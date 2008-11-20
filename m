@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
+Received: from ey-out-2122.google.com ([74.125.78.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@drajsajtl.cz>) id 1Kwwtv-0001Ii-7T
-	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 11:43:19 +0100
-Received: from pixle (pixle.cedo.cz [193.165.198.235])
-	by postak.cedo.cz (Postfix) with SMTP id 2F68F224CBD
-	for <linux-dvb@linuxtv.org>; Mon,  3 Nov 2008 11:21:23 +0100 (CET)
-Message-ID: <002e01c93d9e$247def90$f4c6a5c1@tommy>
-From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
-To: <linux-dvb@linuxtv.org>
-Date: Mon, 3 Nov 2008 11:22:57 +0100
+	(envelope-from <devin.heitmueller@gmail.com>) id 1L3BF0-00009h-ML
+	for linux-dvb@linuxtv.org; Thu, 20 Nov 2008 16:14:47 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so201793eya.17
+	for <linux-dvb@linuxtv.org>; Thu, 20 Nov 2008 07:14:43 -0800 (PST)
+Message-ID: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
+Date: Thu, 20 Nov 2008 10:14:43 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: Linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_002B_01C93DA6.85E9B040"
-Subject: [linux-dvb] Actual DVB-T scan file cz-Brno
+Content-Disposition: inline
+Subject: [linux-dvb] dib0700 remote control support fixed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,50 +19,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+After seeing some recent edits to the LinuxTV DVB wiki, I think it is
+probably worth a more general announcement:
 
-------=_NextPart_000_002B_01C93DA6.85E9B040
-Content-Type: text/plain;
-	charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+http://www.linuxtv.org/wiki/index.php?title=Template:Firmware:dvb-usb-dib0700&curid=3008&diff=17297&oldid=17296
 
-Hello,
-since last Friday the DVB-T networks are reorganized here in Czech Republic.
-Please find the updated cz-Brno file in the attachment.
+The dib0700 remote control problem that people were seeing with
+firmware 1.20 has been fixed.  It was checked in at hg 9640, and will
+work "out of the box" with no need to play with modprobe options.
 
-Greetings,
-Tomas
+Those of you still having problems should update to the latest v4l-dvb
+code.  If you still have issues, please feel free to email me and I
+will investigate.
 
-------=_NextPart_000_002B_01C93DA6.85E9B040
-Content-Type: application/octet-stream;
-	name="cz-Brno"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="cz-Brno"
+Thank you,
 
-# DVB-T Brno (Brno, Czech Republic)
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-# MUX 1 Ceska televize
-T 506000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-# MUX 2 Ceske radiokomunikace
-T 626000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-# MUX 3 Czech Digital Group
-T 778000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
-# MUX 4 Telefonica O2
-T 818000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+Devin
 
-------=_NextPart_000_002B_01C93DA6.85E9B040
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_NextPart_000_002B_01C93DA6.85E9B040--
