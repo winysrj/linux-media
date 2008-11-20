@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGDOmWU009424
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 08:24:48 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAGDOQbo017327
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 08:24:26 -0500
-Date: Sun, 16 Nov 2008 14:24:31 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <8763mo6irz.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0811161409350.4368@axis700.grange>
-References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0811160142140.21494@axis700.grange>
-	<8763mo6irz.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAK00eCH018197
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 19:00:40 -0500
+Received: from mk-outboundfilter-2.mail.uk.tiscali.com
+	(mk-outboundfilter-2.mail.uk.tiscali.com [212.74.114.38])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAK00RH9001619
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 19:00:28 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: video4linux-list@redhat.com
+Date: Thu, 20 Nov 2008 00:00:25 +0000
+References: <4923DC47.6010101@hhs.nl>
+In-Reply-To: <4923DC47.6010101@hhs.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: soc-camera: pixelfmt translation serie
+Content-Type: text/plain;
+  charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811200000.25760.linux@baker-net.org.uk>
+Cc: =?windows-1252?q?Luk=E1=9A_Karas?= <lukas.karas@centrum.cz>
+Subject: Re: RFC: API to query webcams for various webcam specific properties
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,95 +30,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 16 Nov 2008, Robert Jarzmik wrote:
+On Wednesday 19 November 2008, Hans de Goede wrote:
+> Hi All,
+>
+<snip>
+>
+> This has been discussed at the plumbers conference, and there the solution
+> we came up with for "does this cam need software whitebalance?" was
+> (AFAIK), check if has a V4L2_CID_AUTO_WHITE_BALANCE, if it does not do
+> software whitebalance. This of course means we will be doing software
+> whitebalance on things like framefrabbers etc. too, so the plan was to
+> combine this with an "is_webcam" flag in the capabilities struct. The
+> is_webcam workaround, already shows what is wrong with this approach, we
+> are checking for something not being there, were we should be checking for
+> the driver asking something actively,
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > Ok, I looked at your patches, I even have reviewed #8 and #9 (at least 
-> > partially.) But I think I won't send those reviews. I have a different 
-> > idea now:-) Don't worry, it probably won't mean more work for you. It will 
-> > mean some more work for me, and some work for you too, but, simpler than 
-> > what you have done in your patches, if we agree to my idea, of course:
-> >
-> > 1. On the first call to soc_camera_open() we generate a list of possible 
-> > pixel formats.
-> Ack.
-> 
-> > 2. on format enumeration we just walk the generated above list, so, I 
-> > don't see a need to let host drivers overload this function. If we agree, 
-> > this can stay central in soc_camera.c for all, then we drop my patch 
-> > "soc-camera: move pixel format handling to host drivers (part 2)," adding 
-> > .enum_fmt method to struct soc_camera_host_ops.
-> Ack.
-> 
-> > 3. try_fmt and set_fmt are handled by the host driver, and that one 
-> > decides which format to request from the sensor.
-> >
-> > Now, seeing all the complexity in your patch-series, I would like to 
-> > simplify it. I don't think we need to export to struct soc_camera_device 
-> > the list of host-provided format conversions (your
-> >
-> > 	const struct soc_camera_format_translate *translate_fmt;
-> >
-> > pointer.) So I would drop soc_camera_format_generate() and let host's 
-> > ->add_extra_formats() method do all the work - add both format types 
-> > "special" and "pass-through." And because it now would handle not only 
-> > extra formats, it should be called just "add_formats" or "get_formats" or 
-> > "generate_formats"... Then available_formats I would just make a list of 
-> > pointers to struct soc_camera_data_format, so the host driver would just 
-> > either assign a pointer to a sensor provided format struct in case of 
-> > pass-through, or a pointer to its own struct. Hosts would then just define 
-> > a static array of these "extra" structs, similar to sensors. And we don't 
-> > need your struct soc_camera_computed_format - how the host generates the 
-> > required format and which format it requests from the sensor is their 
-> > intimate business, we don't want to intrude in their private life:-)
-> >
-> > How does this sound? If this is accepted, I would resend my patch-series 
-> > without the above patch. And you can decide if you want to code this new 
-> > patch or I shall do it.
-> 
-> Sounds good. Let me add one constraint though. There should be somewhere (at
-> format generation for example) a debug way to show (printk, ...) each format
-> translation between host format and sensor format.
-> 
-> This was in the patch serie if soc_camera format generation function, and
-> provided tracability to the translation process.
+There also seem to be so many things we might want to control that such an 
+inference based system is going to hit other limitations.
 
-Yes, I saw this, and although it does look useful, I tend not to add the 
-whole host format - sensor format infrastructure alone for this debug 
-feature. I would restrict this generated format list to user (host) 
-formats only - without exposing which sensor format the host has decided 
-to use for it. We can either add this debug functionality either on a 
-per-host basis, or implement a debug hook in host drivers? In any case I 
-would prefer not to make this a part of the infrastructure for debugging 
-alone.
+>
+> So we need an extensible mechanism to query devices if they could benefit
+> from certain additional processing being done on the generated image data.
+>
+> This sounds a lot like the existing mechanism for v4l2 controls, except
+> that these are all read only controls, and not controls which we want to
+> show up in v4l control panels like v4l2ucp.
+>
+> Still I think that using the existing controls mechanism is the best way
+> todo this, so therefor I propose to add a number of standard CID's to query
+> the things listed above. All these CID's will always be shown by the driver
+> as readonly and disabled (as they are not really controls).
+>
 
-> Would you also duplicate current_fmt, so that the current host format and sensor
-> current format are available at sight ?
+I can see this leading to a lot of drivers having to implement a whole bunch 
+of cases in a switch statement to handle these values. Could a simpler 
+approach be to have a single ioctl to query the set of controls the driver 
+would like to have implemented and the driver then responds with the list of 
+tags and default values for the controls it would like implemented.
 
-Why? Give me a real reason (apart from debugging) why we need to know in 
-soc_camera.c which formats the host requests from the sensor for a 
-specific output format or which format is currently configured on the 
-sensor?
+Someting like:
 
-> > If you do it, please, only do this one patch at first. After we have got 
-> > it right, then we can add support to PXA and SuperH. Also we should 
-> > preserve the current behaviour at least until the drivers are ported - 
-> > just assign pointers to all sensor-provided formats to the newly-allocated 
-> > list if the host doesn't provide an .add_formats method.
-> I'll wait for your patches this time, and won't generate a new one. Would you
-> please, once your first throw is ready, post a full serie as I did, so that I
-> can apply it all for test and review ? ;)
+struct tag
+{
+u32	tag_id;
+u32	tag_value;
+};
 
-Well, would it be enough if I put the current state somewhere up as a 
-quilt patch series, for instance? I don't want to repost all patches on 
-each iteration.
+const tag default_tags[] = { {LIBV4L_CTL_GAMMA, 0x34}, 
+{LIBV4L_CTL_LRFLIP,1} };
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+This could also be a mechanism to address your other RFC as to how to store 
+the current settings. The fact that you are already adding code to the kernel 
+to provide the list of controls somewhat argues against your point that you 
+don't want to add code to the kernel to store the current control settings.
+The driver could therefore copy the default control values into somewhere in 
+it's device struct to provide a per device instance volatile storage for the 
+data.
+
+The reason I prefer in driver storage is that it simplifies the task of 
+associating the data with the device. If you have a machine with multiple 
+webcams they need to have independent sets of controls per device and you 
+shouldn't retain the previous values if the user unplugs one webcam and plugs 
+in another that gets the same /dev/videox name.
+
+If you do use shared memory have you considered wheter to use the SysV or 
+Posix variant? Both variants provide the required retain while not in use 
+functionality but have different naming rules.
+
+Is it necessary to provide a mechanism to notify other libv4l instances that 
+the set values have changed? With driver stored values I think it is but if 
+you use shared memory they could simply be read each time a frame is 
+received.
+
+Adam
 
 --
 video4linux-list mailing list
