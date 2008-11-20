@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA74UQ58005718
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 23:30:26 -0500
-Received: from QMTA09.westchester.pa.mail.comcast.net
-	(qmta09.westchester.pa.mail.comcast.net [76.96.62.96])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA74UDxa024795
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 23:30:14 -0500
-Message-ID: <4913C455.3030501@personnelware.com>
-Date: Thu, 06 Nov 2008 22:30:13 -0600
-From: Carl Karsten <carl@personnelware.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKJsU5u019854
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 14:54:30 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAKJrPNe022800
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 14:53:25 -0500
+Date: Thu, 20 Nov 2008 20:53:40 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <873ahn8mu7.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0811202041520.8290@axis700.grange>
+References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
+	<Pine.LNX.4.64.0811182006230.8628@axis700.grange>
+	<873ahn8mu7.fsf@free.fr>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <26aa882f0810280714u1b3964b9t1440369d2d2a36b7@mail.gmail.com>	<200811060142.48227.laurent.pinchart@skynet.be>
-	<26aa882f0811061612r1419b6a1p9dd8f17333be09ba@mail.gmail.com>
-In-Reply-To: <26aa882f0811061612r1419b6a1p9dd8f17333be09ba@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Subject: Re: Testing Requested: Python Bindings for Video4linux2
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 1/2 v3] soc-camera: pixel format negotiation - core
+ support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,33 +29,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jackson Yee wrote:
-> Lauren,
+On Wed, 19 Nov 2008, Robert Jarzmik wrote:
+
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 > 
-> On Wed, Nov 5, 2008 at 7:42 PM, Laurent Pinchart
-> <laurent.pinchart@skynet.be> wrote:
->> The uvcvideo driver doesn't implement the standard ioctls. This should not be
->> fatal (and you probably want to define FindKeyas well).
+> > Allocate and fill a list of formats, supported by this specific 
+> > camera-host combination. Use it for format enumeration. Take care to stay 
+> > backwards-compatible.
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > 
-> The standard ioctls are, unfortunately, all I have to go by since I'm
-> testing on my amd64 box with a bttv card.
-
-and vivi.  I wish more people would test against vivi.  although right now I
-would hold off, cuz there is a nasty memory leak in one of vivi.c, capture.c or
-the newer capture_example.c - details:
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/294951 - I am guessing vivi.
-
-> If a function does not
-> succeed though, it should throw an exception and let the user code
-> sort things out. Do you have a link for the uncvideo driver so I could
-> add support for it?
+> So, the translation api is dead, long live user_format :)
 > 
-> FindKey looks to be Carl's code. ;-) I've added the function now.
+> I'm a bit disappointed, as the things I pointed out are missing :
+>  - host format and sensor format association for debug purpose
+>    (think about sensor developpers)
 
-I'll take responsibility for that, cuz it make it look like I am doing something
- kinda useful :)
+Yes, it is missing, and I explained why I wasn't so keen on adding two new 
+structs to a central module and a bunch of code only for debugging, which 
+you only need while developing new camera host drivers. And as I 
+implemented in pxa-camera, this debugging can easily be done in host 
+drivers as required.
 
-Carl K
+>  - current format : we never know what will be done through the host by its
+>  pointer (I'm not thinking about end user, I'm still thinking about soc_camera
+>  point of view).
+
+Sorry, I do not quite understand your concern here. Are you unhappy, that 
+host drivers ae now expected to assign the current_fmt pointer? But this 
+has also been the case with your patch-series. Please, elaborate.
+
+> But anyway, that's life. My review of patch 2 will follow, this one looks fine
+> (though not tested yet).
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
