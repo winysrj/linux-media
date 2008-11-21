@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f149.mail.ru ([194.67.57.228])
+Received: from ik-out-1112.google.com ([66.249.90.176])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1L09VB-0004eX-GB
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 07:46:58 +0100
-From: Goga777 <goga777@bk.ru>
-To: Hans Werner <HWerner4@gmx.de>
-Mime-Version: 1.0
-Date: Wed, 12 Nov 2008 09:46:23 +0300
-References: <20081112023112.94740@gmx.net>
-In-Reply-To: <20081112023112.94740@gmx.net>
-Message-Id: <E1L09Ud-000GW2-00.goga777-bk-ru@f149.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?W1BBVENIXSBzY2FuLXMyOiBmaXhlcyBhbmQgZGlz?=
-	=?koi8-r?b?ZXFjIHJvdG9yIHN1cHBvcnQ=?=
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1L3KPx-0005uN-O8
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 02:02:42 +0100
+Received: by ik-out-1112.google.com with SMTP id c28so677468ika.1
+	for <linux-dvb@linuxtv.org>; Thu, 20 Nov 2008 17:02:38 -0800 (PST)
+Message-ID: <412bdbff0811201702n6893fb87je2e93538dae1cdc4@mail.gmail.com>
+Date: Thu, 20 Nov 2008 20:02:37 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linuxtv@hotair.fastmail.co.uk
+In-Reply-To: <1227228030.18353.1285952745@webmail.messagingengine.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
+	<1227213591.29403.1285914127@webmail.messagingengine.com>
+	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
+	<1227228030.18353.1285952745@webmail.messagingengine.com>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] dib0700 remote control support fixed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,29 +31,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I have attached two patches for scan-s2 at http://mercurial.intuxication.org/hg/scan-s2.
-> 
-> Patch1: Some fixes for problems I found. QAM_AUTO is not supported by all drivers,
-> in particular the HVR-4000, so one needs to use QPSK as the default and ensure that
-> settings are parsed properly from the network information -- the new S2 FECs and
-> modulations were not handled.
-> 
-> Patch2: Add DiSEqC 1.2 rotor support. Use it like this to move the dish to the correct
-> position for the scan:
->  scan-s2 -r 19.2E -n dvb-s/Astra-19.2E
->  or
->  scan-s2 -R 2 -n dvb-s/Astra-19.2E
-> 
-> A file (rotor.conf) listing the rotor positions is used (NB: rotors vary -- do check your
-> rotor manual).
+On Thu, Nov 20, 2008 at 7:40 PM, petercarm
+<linuxtv@hotair.fastmail.co.uk> wrote:
+> OK it is working on the Nova-T 500 but it is throwing up "Unknown remote
+> controller key" messages in dmesg in amongst correctly processing the
+> correct key presses.  I'll try using irrecord to work on a new
+> lircd.conf and see if it goes away.
 
+Hello Peter,
 
-thanks for your patch.
+Please stop top posting - it is a violation of mailing list policy.
 
-btw - could you scan dvb-s2 (qpsk & 8psk) channels with scan-s2 and hvr4000 ? with which drivers ?
+Lirc is not required for this device.  It is automatically hooked into
+the keyboard driver.
 
-Goga
+Which remote control are you using?
 
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
