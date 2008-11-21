@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJDpWOn019355
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:51:32 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJDoC0A019056
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:50:13 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so1669619nfc.21
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 05:50:12 -0800 (PST)
-Message-ID: <412bdbff0811190550i607a740bgae6348ac69253d7d@mail.gmail.com>
-Date: Wed, 19 Nov 2008 08:50:12 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "thomas reiter" <x535.01@gmail.com>
-In-Reply-To: <b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALGGQiL022918
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 11:16:26 -0500
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALGGHbU012719
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 11:16:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Fri, 21 Nov 2008 17:16:14 +0100
+References: <hvaibhav@ti.com>
+	<1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <1226943947.6362.10.camel@ivan>
-	<09CD2F1A09A6ED498A24D850EB101208165C79D3B1@Colmatec004.COLMATEC.INT>
-	<b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: RE : DVB-T2 (Mpeg4) in Norway
+Message-Id: <200811211716.14072.hverkuil@xs4all.nl>
+Cc: linux-omap@vger.kernel.org,
+	davinci-linux-open-source-bounces@linux.davincidsp.com
+Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,22 +31,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Nov 18, 2008 at 12:59 PM, thomas reiter <x535.01@gmail.com> wrote:
-> Sorry but  I'm needing a firmware for the dib0700 driver.
+On Friday 21 November 2008 16:22:03 hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> Added new V4L2 slave driver for TVP514x.
+>
+> The Driver interface has been tested on OMAP3EVM board
+> with TI daughter card (TVP5146). Soon the patch for Daughter card
+> will be posted on community.
+>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> 		Hardik Shah <hardik.shah@ti.com>
+> 		Manjunath Hadli <mrh@ti.com>
+> 		R Sivaraj <sivaraj@ti.com>
+> 		Vaibhav Hiremath <hvaibhav@ti.com>
+> 		Karicheri Muralidharan <m-karicheri2@ti.com>
+> ---
+>  drivers/media/video/Kconfig   |   11 +
+>  drivers/media/video/Makefile  |    1 +
+>  drivers/media/video/tvp514x.c | 1331
+> +++++++++++++++++++++++++++++++++++++++++ include/media/tvp514x.h    
+>   |  406 +++++++++++++
+>  4 files changed, 1749 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/tvp514x.c
+>  create mode 100644 include/media/tvp514x.h
+>
 
-If you're running the latest v4l-dvb, then you need the dib0700 1.20
-firmware, and it's available here.
+I'll review this today or tomorrow.
 
- http://devinheitmueller.com/801e/dvb-usb-dib0700-1.20.fw
+Regards,
 
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+	Hans
 
 --
 video4linux-list mailing list
