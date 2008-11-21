@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA8KeMTK012730
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 15:40:22 -0500
-Received: from daisy.johalla.de (daisy.johalla.de [213.239.201.236])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA8Ke9dh027039
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 15:40:09 -0500
-Received: from [192.168.91.168] (p5090632E.dip.t-dialin.net [80.144.99.46])
-	(authenticated bits=0)
-	by daisy.johalla.de (8.13.8/8.13.8/Debian-3) with ESMTP id
-	mA8KcEsu026601
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 21:38:15 +0100
-From: Michael Schlueter <michael@johalla.de>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Sat, 08 Nov 2008 21:39:38 +0100
-Message-Id: <1226176778.10396.9.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: Hauppauge WinTV HVR 930c
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALIrSVe026143
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 13:53:28 -0500
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALIrCZ1004364
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 13:53:12 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Trilok Soni <soni.trilok@gmail.com>
+Date: Sat, 22 Nov 2008 00:22:58 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403E8E67E5B@dbde02.ent.ti.com>
+In-Reply-To: <5d5443650811210924w30bafc36ge041ec4d1a6016db@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"davinci-linux-open-source-bounces@linux.davincidsp.com"
+	<davinci-linux-open-source-bounces@linux.davincidsp.com>
+Subject: RE: [PATCH 1/2] Add Input/Output related ioctl support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,15 +30,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
 
-does someone knows how to run a Hauppauge WinTV HVR 930c DVB-T/DVB-C TV
-receiver under linux? It is a USB stick. I was hopping that it would
-would run with the em28xx driver but only adding the Vendor/Product ID
-didn't work (2040:1605).
 
 Thanks,
-Michael
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+
+> -----Original Message-----
+> From: Trilok Soni [mailto:soni.trilok@gmail.com]
+> Sent: Friday, November 21, 2008 10:54 PM
+> To: Hiremath, Vaibhav
+> Cc: video4linux-list@redhat.com; linux-omap@vger.kernel.org;
+> davinci-linux-open-source-bounces@linux.davincidsp.com
+> Subject: Re: [PATCH 1/2] Add Input/Output related ioctl support
+> 
+> Hi Vaibhav
+> 
+> On Fri, Nov 21, 2008 at 8:51 PM,  <hvaibhav@ti.com> wrote:
+> >
+> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> >                Hardik Shah <hardik.shah@ti.com>
+> >                Manjunath Hadli <mrh@ti.com>
+> >                R Sivaraj <sivaraj@ti.com>
+> >                Vaibhav Hiremath <hvaibhav@ti.com>
+> >                Karicheri Muralidharan <m-karicheri2@ti.com>
+> 
+> Each line should include Singed-off-by, like this:
+> 
+> > Signed-off-by:  Brijesh Jadav <brijesh.j@ti.com>
+> > Signed-off-by:  Hardik Shah <hardik.shah@ti.com>
+> > Signed-off-by:  Manjunath Hadli <mrh@ti.com>
+> > Signed-off-by:  R Sivaraj <sivaraj@ti.com>
+> > Signed-off-by:  Vaibhav Hiremath <hvaibhav@ti.com>
+> > Signed-off-by:  Karicheri Muralidharan <m-karicheri2@ti.com>
+> 
+[Hiremath, Vaibhav] point taken. Will update and post it again.
+
+> 
+> --
+> ---Trilok Soni
+> http://triloksoni.wordpress.com
+> http://www.linkedin.com/in/triloksoni
+
 
 --
 video4linux-list mailing list
