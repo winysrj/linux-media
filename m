@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L3udb-0004ZO-PS
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 16:43:13 +0100
-Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mAMFh7Kc003575
-	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 16:43:08 +0100
-Message-ID: <4928288B.1050306@cadsoft.de>
-Date: Sat, 22 Nov 2008 16:43:07 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+	(envelope-from <abraham.manu@gmail.com>) id 1L3VS8-0002JR-SD
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 13:49:42 +0100
+Received: from [212.12.32.49] (helo=smtp.work.de)
+	by mail.work.de with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1L3VS5-00009f-CR
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 13:49:37 +0100
+Received: from [92.96.5.173] (helo=[192.168.1.10])
+	by smtp.work.de with esmtpa (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1L3VS5-0005sf-3x
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 13:49:37 +0100
+Message-ID: <4926AE59.8060001@gmail.com>
+Date: Fri, 21 Nov 2008 16:49:29 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] How to determine DVB-S2 capability in S2API?
+Subject: [linux-dvb] STV0900, STV0903 (BAB) frontend drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,15 +30,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I'm currently adopting the patch that makes VDR use S2API,
-but I can't figure out how an application is supposed to find out
-whether a DVB device is DVB-S or DVB-S2.
+Hi all,
 
-Clearly I must be missing something, since S2API is said to be
-"technically superior" than the "multiproto" API (where, BTW,
-this was no problem at all ;-).
+I am pleased to let you know that an initial version of the STV090x
+driver to support the STV0900 Dual DVB-S2 and the STV0903 Single DVB-S2
+Broadcast devices (BAB) (currently only the Broadcast chips are
+supported, the Professional chips (AAB) will be supported only in the
+Broadcast Mode alone for now).
 
-Klaus
+After quite some work, the STV090x driver is available in the SAA716x
+repository at
+
+http://jusst.de/hg/saa716x
+
+Currently the driver is heavily in flux. The initial driver is based on
+the multiproto API, a V5 version will be available soon.
+
+Have fun.
+
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
