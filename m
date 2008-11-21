@@ -1,32 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADBvViI009373
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:57:31 -0500
-Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
-	[69.42.52.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADBvI2P003344
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:57:18 -0500
-Received: from vegas (CPE00a02477ff82-CM001225d885d8.cpe.net.cable.rogers.com
-	[99.249.154.65])
-	by d1.scratchtelecom.com (8.13.8/8.13.8/Debian-3) with ESMTP id
-	mADBvFbI009161
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:57:15 -0500
-Received: from lawsonk (helo=localhost)
-	by vegas with local-esmtp (Exim 3.36 #1 (Debian)) id 1L0aoz-0000jM-00
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:57:13 -0500
-Date: Thu, 13 Nov 2008 06:57:13 -0500 (EST)
-From: Keith Lawson <lawsonk@lawson-tech.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <alpine.DEB.1.10.0811071416380.25756@vegas>
-Message-ID: <alpine.DEB.1.10.0811130651170.2643@vegas>
-References: <491339D9.2010504@personnelware.com>
-	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
-	<4913E9DB.8040801@hhs.nl> <200811071050.25149.hverkuil@xs4all.nl>
-	<20081107161956.c096dd03.ospite@studenti.unina.it>
-	<alpine.DEB.1.10.0811071416380.25756@vegas>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALK3JWr001544
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 15:03:19 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mALK36ew009034
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 15:03:06 -0500
+Date: Fri, 21 Nov 2008 21:03:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <8763mg28bf.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0811212051360.8956@axis700.grange>
+References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
+	<Pine.LNX.4.64.0811182010460.8628@axis700.grange>
+	<87y6zf76aw.fsf@free.fr>
+	<Pine.LNX.4.64.0811202055210.8290@axis700.grange>
+	<8763mg28bf.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Subject: Re: USB Capture device
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,40 +30,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+Hi Robert,
 
-I've been on this list for a while now and have noticed that it's pretty 
-well strictly developer related. Most user questions about supported 
-devices seem to go unanswered. Is there a better forum for users to ask 
-questions about Linux support for video devices?
+On Fri, 21 Nov 2008, Robert Jarzmik wrote:
 
-I didn't catch the final descision on splitting the mailing list. Is a 
-video4linux-users list coming?
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> >> If we're in pass-through mode, and depth is 16 (example: a today unknown RYB
+> >> format), we return -EINVAL. Is that on purpose ?
+> >
+> > Yes, I do not know how to pass a 16-bit format in a pass-through mode, and 
+> > I don't have a test-case for it. Do you?
+> BYR2 I think (12bit Bayer in 16bit words), and Bxxx (10bit Bayer in 16bit
+> words).
+> 
+> And I can test the 10bit Bayer on 16bit words on mt9m111, and will do.
 
-Thanks,
-Keith.
+Wait, don't understand. 10-bit Bayer should have depth = 10, so it will 
+pass. 12-bit Bayer will have depth 12 and will not pass, and I do not know 
+how we can accept it on PXA27x.
 
-On Fri, 7 Nov 2008, Keith Lawson wrote:
+> > I know this code repeats, and it is not nice. But as I was writing it I 
+> > didn't see another possibility. Or more precisely, I did see it, but I 
+> > couldn't compare the two versions well without having at least one of them 
+> > in code in front of my eyes:-) Now that I see it, I think, yes, there is a 
+> > way to do this only once by using a translation struct similar to what you 
+> > have proposed. Now _this_ would be a possibly important advantage, so it 
+> > is useful not _only_ for debugging:-) But we would have to extend it with 
+> > at least a buswidth. Like
+> >
+> > 	const struct soc_camera_data_format *cam_fmt;
+> > 	const struct soc_camera_data_format *host_fmt;
+> > 	unsigned char buswidth;
+> >
+> > Now this _seems_ to provide the complete information so far... In 
+> > pxa_camera_get_formats() we would
+> >
+> > 1. compute camera- and host-formats and buswidth
+> > 2. call pxa_camera_try_bus_param() to check bus-parameter compatibility
+> >
+> > and then in try_fmt() and set_fmt() just traverse the list of translation 
+> > structs and adjust geometry?
+> That sounds great. I'm on it.
+> 
+> >> All in all, I wonder why we need that many tests, and if we could reduce them at
+> >> format generation (under hypothesis that platform_flags are constant and sensor
+> >> flags are constant).
+> >
+> > Ok, I propose you make the next round:-) I would be pleased if you base 
+> > your new patches on these my two, and just replace the user_formats with a 
+> > translation list, and modify pxa try_fmt() and set_fmt() as discussed 
+> > above. I would be quite happy if you mark them "From: <you>". Or if you do 
+> > not want to - let me know, I'll do it. And please do not make 13 patches 
+> > this time:-) I think, two should be enough.
+> I'll be happy to make the next round.
+> 
+> Give me a couple of days, and I'll post the 2 patches, on top of your serie
+> (serie which will end with your 2 patches). After review, you can either merge
+> each one of them with yours, or take them apart.
+> 
+> Don't worry, I won't flood the list anymore :)
 
-> Hello,
->
-> Can anyone suggest a good USB catpure device that has S-Video input and a 
-> stable kernel driver? I've been playing with this device:
->
-> http://www.diamondmm.com/VC500.php
->
-> using the development drivers from http://linuxtv.org/hg/~mchehab/tm6010/ but 
-> I haven't had any luck with S-Video (only composite).
->
-> Can anyone suggest a device with stable drivers in 2.6.27.5?
->
-> Thanks, Keith.
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+Good, I think, we can use the next week, as long as Linus is scuba 
+diving, to finish this transition:-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
