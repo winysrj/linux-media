@@ -1,19 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABAjBn0010096
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 05:45:11 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mABAirKg017262
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 05:44:53 -0500
-Date: Tue, 11 Nov 2008 08:45:01 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Message-ID: <20081111084501.38f2917a@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Video <video4linux-list@redhat.com>
-Subject: Section mismatch on dm1105 driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALD5IxW032563
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 08:05:18 -0500
+Received: from tomts45-srv.bellnexxia.net (tomts45-srv.bellnexxia.net
+	[209.226.175.112])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALD5H0k004094
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 08:05:17 -0500
+Received: from toip36-bus.srvr.bell.ca ([67.69.240.37])
+	by tomts45-srv.bellnexxia.net
+	(InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP id
+	<20081121130512.SOSV22185.tomts45-srv.bellnexxia.net@toip36-bus.srvr.bell.ca>
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 08:05:12 -0500
+From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Fri, 21 Nov 2008 08:01:38 -0500
+Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C79D3C7@Colmatec004.COLMATEC.INT>
+Content-Language: fr-CA
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: RE : WEBCAM DEVELOPERS
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,21 +31,12 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Igor,
+Hi, I see a lot of you about to write and build drivers for webcam.
 
-Upstream compilation causes a section mismatch on dm1105. Please fix.
+I bought one at 28box ca$ and its a powerfull one, doing much over 640x480.If anybody interested in write a driver for it, would be really nice. I don't really need it for me but deceber mounth would give me time to support and or give specs info about this Crystal cam regroupiong lot a features available inside v4l2
 
-WARNING: drivers/media/built-in.o(.text+0x1bbd2d): Section mismatch in reference from the function dm1105dvb_start_feed() to the function .devinit.text:dm1105dvb_enable_irqs()
-The function dm1105dvb_start_feed() references
-the function __devinit dm1105dvb_enable_irqs().
-This is often because dm1105dvb_start_feed lacks a __devinit 
-annotation or the annotation of dm1105dvb_enable_irqs is wrong.
-
-
-
-
-Cheers,
-Mauro
+such focus on the person,
+high resolution ,crop, resize scale.
 
 --
 video4linux-list mailing list
