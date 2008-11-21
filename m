@@ -1,33 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQM2xfC031917
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 17:02:59 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.186])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQM2CMW017263
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 17:02:12 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so378536nfc.21
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 14:02:12 -0800 (PST)
-Message-ID: <412bdbff0811261402s2cf5d965xc5dc60325f5a95ec@mail.gmail.com>
-Date: Wed, 26 Nov 2008 17:02:12 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-In-Reply-To: <alpine.DEB.1.10.0811262251210.10867@bakacsin.ki.iif.hu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
-	<alpine.DEB.1.10.0811262251210.10867@bakacsin.ki.iif.hu>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALFLhcS017522
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 10:21:43 -0500
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALFLWSW029482
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 10:21:32 -0500
+From: hvaibhav@ti.com
+To: video4linux-list@redhat.com
+Date: Fri, 21 Nov 2008 20:51:19 +0530
+Message-Id: <1227280879-31440-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org,
+	davinci-linux-open-source-bounces@linux.davincidsp.com
+Subject: [PATCH 1/2] Add Input/Output related ioctl support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,27 +25,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Nov 26, 2008 at 4:59 PM, Kiss Gabor (Bitman)
-<kissg@ssg.ki.iif.hu> wrote:
->> please open the unit and send me some high-resolution photographs of
->> the circuit board?
->
-> At this moment I have no idea at all how to open the box without
-> serious damages.
-> Is this necessary? Could you check the July thread about the same
-> device?
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-I'll do some research and get back to you, as it might already be
-well-known what devices are contained.
+Added ioctl support for query std, set std, enum input,
+get input, set input, enum output, get output and set output.
 
-Thanks for all your help,
+For sensor kind of slave drivers v4l2-int-device.h provides
+necessary ioctl support, but the ioctls required to interface
+with decoders and encoders are missing. Most of the decoders
+and encoders supports multiple inputs and outputs, like
+S-Video or Composite.
 
-Devin
+With these ioctl''s user can select the specific input/output.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+		Hardik Shah <hardik.shah@ti.com>
+		Manjunath Hadli <mrh@ti.com>
+		R Sivaraj <sivaraj@ti.com>
+		Vaibhav Hiremath <hvaibhav@ti.com>
+		Karicheri Muralidharan <m-karicheri2@ti.com>
+---
+ include/media/v4l2-int-device.h |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
+
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index 9c2df41..d73a11b 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -183,6 +183,14 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_s_crop_num,
+ 	vidioc_int_g_parm_num,
+ 	vidioc_int_s_parm_num,
++	vidioc_int_querystd_num,
++	vidioc_int_s_std_num,
++	vidioc_int_enum_input_num,
++	vidioc_int_g_input_num,
++	vidioc_int_s_input_num,
++	vidioc_int_enumoutput_num,
++	vidioc_int_g_output_num,
++	vidioc_int_s_output_num,
+
+ 	/*
+ 	 *
+@@ -284,6 +292,14 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
++V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(enum_input, struct v4l2_input, *);
++V4L2_INT_WRAPPER_1(g_input, int, *);
++V4L2_INT_WRAPPER_1(s_input, int, );
++V4L2_INT_WRAPPER_1(enumoutput, struct v4l2_output, *);
++V4L2_INT_WRAPPER_1(g_output, int, *);
++V4L2_INT_WRAPPER_1(s_output, int, );
+
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+--
+1.5.6
 
 --
 video4linux-list mailing list
