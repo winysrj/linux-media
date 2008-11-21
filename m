@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1Kz1Oj-00073B-Sm
-	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 04:55:38 +0100
-Message-ID: <49165F17.2020908@rogers.com>
-Date: Sat, 08 Nov 2008 22:55:03 -0500
-From: CityK <cityk@rogers.com>
+Received: from [195.7.61.12] (helo=killala.koala.ie)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <simon@koala.ie>) id 1L3UeF-0006KF-GU
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 12:58:07 +0100
+Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id mALBw614002401
+	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 11:58:06 GMT
+Message-ID: <4926A2B4.4000209@koala.ie>
+Date: Fri, 21 Nov 2008 11:59:48 +0000
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-CC: linux-dvb@linuxtv.org
-References: <20081105142144.2d44ba9a@realh.co.uk>	<20081105143003.GA9384@moelleritberatung.de>
-	<18705.45767.717127.606762@valen.metzler>
-In-Reply-To: <18705.45767.717127.606762@valen.metzler>
-Subject: Re: [linux-dvb] PCI-e drivers
+To: DVB ML <linux-dvb@linuxtv.org>
+References: <1227263508.4090.1011.camel@alkaloid.netup.ru>
+In-Reply-To: <1227263508.4090.1011.camel@alkaloid.netup.ru>
+Subject: Re: [linux-dvb] Development of Linux driver for Dual DVB-S2-CI
+ PCI-E x1	starts
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,31 +29,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-rjkm wrote:
-> Artem Makhutov writes:
->  > Hi,
->  > 
->  > On Wed, Nov 05, 2008 at 02:21:44PM +0000, Tony Houghton wrote:
->  > > Sorry to ask such an awkward question, but is it realistic to hope that
->  > > Linux will have working drivers for PCI-e DVB cards within the next year
->  > > or two?
+Abylai Ospan wrote:
+> Hello,
 >
-> Yes.
+> We have designed NetUP Dual DVB-S2-CI PCI-E x1 card. A short description
+> is available in wiki - 
+> http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_S2_CI
+> Now we have started the work on the driver for Linux. The following
+> components used in this card already have their code for Linux published:
+> Conexant CX23885
+> STM STV6110A
 >
-> There are drivers for the Micronas dual PCIe DVB-S2 prototype and a
-> new card loosely based on this design (but e.g. with new tuners/demod)
-> might be available in a couple of months.
+> We are working on the code for the following components:
+> Dual demodulator STM STV0900BAB
+> Dual LNB STM LNBH24
+> SCM CiMax SP2
 >
->
-> AFAIK, Manu has also been working on cards based on the Philips/NXP 
-> PCIe bridge. 
->
->
-> Ralph
->   
-
-And least we not forget, there has been a working driver for the
-Conexant PCIe bridge for a good while now, supporting several cards!
+> The resulting code will be published under GPL after receiving
+> permissions from IC vendors.
+will this card be available for purchase?
+--
+simon
 
 _______________________________________________
 linux-dvb mailing list
