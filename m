@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.tech.numericable.fr ([82.216.111.37])
+Received: from out1.smtp.messagingengine.com ([66.111.4.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tanguy.pruvot@gmail.com>) id 1L59ku-0000ug-BL
-	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 03:03:53 +0100
-Received: from EPSYLON (ip-128.net-89-2-80.rev.numericable.fr [89.2.80.128])
-	by smtp1.tech.numericable.fr (Postfix) with ESMTP id C74EAE0805
-	for <linux-dvb@linuxtv.org>; Wed, 26 Nov 2008 03:03:48 +0100 (CET)
-Date: Wed, 26 Nov 2008 03:03:46 +0100
-From: Tanguy Pruvot <tanguy.pruvot@gmail.com>
-Message-ID: <1766329077.20081126030346@gmail.com>
+	(envelope-from <chewi@aura-online.co.uk>) id 1L3ds4-0003F9-3o
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 22:49:01 +0100
+Received: from compute2.internal (compute2.internal [10.202.2.42])
+	by out1.messagingengine.com (Postfix) with ESMTP id F38DC1C57E9
+	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 16:48:55 -0500 (EST)
+Received: from symphony (92-233-191-100.cable.ubr03.pert.blueyonder.co.uk
+	[92.233.191.100])
+	by mail.messagingengine.com (Postfix) with ESMTPSA id 0DB1C11258
+	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 16:48:54 -0500 (EST)
+Date: Fri, 21 Nov 2008 21:48:54 +0000
+From: James Le Cuirot <chewi@aura-online.co.uk>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <457563803.20081123042151@gmail.com>
-References: <457563803.20081123042151@gmail.com>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] EC168
-Reply-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+Message-ID: <20081121214854.36c8fdd2@symphony>
+In-Reply-To: <49271C77.6090009@gmail.com>
+References: <20081115234054.0cc58cbb@symphony> <49206686.1080209@rogers.com>
+	<49271C77.6090009@gmail.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] SAA7162 status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,46 +26,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1250"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Pj4gSuFjaHltIEx1a2WaIHdyb3RlOgo+PiA+IEhpLAo+PiA+IHdvdWxkIGl0IGJlIHBvc3NpYmxl
-IGZvciBzb21lYm9keSB0byBtYWtlIExpbnV4IGRyaXZlciBmb3IgRUMxNjggY2hpcHNldAo+PiA+
-IGJhc2VkIFVTQiBEVkItVCBkb25nbGVzPyBUaGV5IGFyZSB2ZXJ5IGNvbW1vbiBhbmQgYWZmb3Jk
-YWJsZSwgSSB0aGluawo+PiA+IHRoYXQgaXQgd291bGQgYmUgYSBncmVhdCB0aGluZyBmb3IgTGlu
-dXggY29tbXVuaXR5LiBUaGlzIGNvdWxkIGJyaW5nCj4+ID4gZGlnaXRhbCBUViB0byBtYW55IHBl
-b3BsZSdzIGRlc2t0b3BzIQo+Pgo+PiBZZXMsIHRob3NlIGFyZSB2ZXJ5IGNvbW1vbi4gSSB0aGlu
-ayB0aGVyZSBpcyBubyBkZXZlbG9wZXIgd2hvIGhhcyBmb3IKPj4gdGhpcyBkZXZpY2UgYW5kIHJl
-dmVyc2UtZW5naW5lZXJpbmcgZGVtb2R1bGF0b3IgaXMgcmVhbCBwYWluLgoKPiBJJ20gZGV2ZWxv
-cGVyLCBidXQgbmV3IG9uZSBpbiBsaW51eC4uLgoKPiBJJ3ZlICAgYW5vdGhlciAgZHZiICBrZXkg
-IHdpdGggIEVDMTY4ICBhbmQgIGkndmUgd3JvdGUgYSB0b29sIGJhc2VkIG9uCj4gbGlidXNiIHRv
-IHVwbG9hZCBmaXJtd2FyZS4uLiB0aGUgbGVkIG9mIHRoZSBrZXkgaXMgbGlnaHRpbmcuLi4KCj4g
-QnV0ICBpICBoYXZlICBkaWZmaWN1bHRpZXMgIHRvICByZXBlYXQgIHRoaXMgIGluICBhICBkcml2
-ZXIuLi4gZm9yIHRoZQo+IG1vbWVudC4uLgoKICBJIGZvdW5kIHRoZXNlIFVTQiByZXF1ZXN0cy4u
-LiBmb3IgdXNiX2NvbnRyb2xfbWVzc2FnZSgpCgojZGVmaW5lIENNRF9FQzE2OF9SQU0gICAgICAg
-MHgwMCAvL1JXLSBSZWFkL1dyaXRlIFJBTSAoRmlybXdhcmUgZ28gdG8gYWRkciAwLTB4MUVGRikK
-I2RlZmluZSBDTURfRUMxNjhfR0VUU1RBVFVTIDB4MDEgLy9SLS0gZXg6IGRmdV9jdHJsX2dldChk
-ZXZpY2UsMHgwMSwweDAwMDAsMHgwMUEwLGJ1ZmZlciwweDFBKTsKI2RlZmluZSBDTURfRUMxNjhf
-U1RSRUFNICAgIDB4MDMgLy9SLVggZXg6IGRmdV9jdHJsKGRldmljZSwweDAzLDAvMHgyMCwweEZG
-MDApOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyAgICBkaXNhYmxlL2VuYWJs
-ZSBzdHJlYW1pbmcgCiNkZWZpbmUgQ01EX0VDMTY4X1NFVF9QT1dFUiAweDA0IC8vLS1YIGV4OiBk
-ZnVfY3RybChkZXZpY2UsMHgwNCwwLzEsMHgwMDA4KTsKICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgLy8gICAgZGlzYWJsZS9lbmFibGUgTEVECiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIC8vICAgIGluZGV4ZXMgc2VlbjogMjA2LDIwOCw4LDksQSxCCiNkZWZpbmUgQ01E
-X0VDMTY4X1VOS05PV04gICAweDEwIC8vLS1YID8/PwojZGVmaW5lIENNRF9FQzE2OF9SRUFEX0JV
-RiAgMHgyMCAvL1ItLSBleDogZGZ1X2N0cmxfZ2V0KGRldmljZSwweDIwLDB4MDAwMCwweDAxQTAs
-YnVmZmVyLDB4MUEpOyAKI2RlZmluZSBDTURfRUMxNjhfV1JJVEVfQlVGIDB4MjEgLy8tVy0gCiNk
-ZWZpbmUgQ01EX0VDMTY4X1NFVCAgICAgICAweDMwIC8vLS1YIGV4OiBkZnVfY3RybChkZXZpY2Us
-IDB4MzAsIDB4MDcwOSwgMHgxQSk7CgpSIFJlYWQgQnVmZmVyClcgV3JpdGUgQnVmZmVyClggU2V0
-IFZhbHVlL0V4ZWMgKHdpdGhvdXQgYnVmZmVyKQoKVXBkYXRlZCBodHRwOi8vd3d3LmxpbnV4dHYu
-b3JnL3dpa2kvaW5kZXgucGhwL0UzQ19FQzE2OCNVcGxvYWRpbmdfRmlybXdhcmVfdG9fdGhlX2Rl
-dmljZQoKVGhlIGZpcnN0IFVTQiByZXF1ZXN0ICgweDAwKSBjYW4gc2V0L2dldCB0aGUgUkFNLi4u
-ICBzbyB3ZSBjYW4KY29tcGFyZS9jaGVjayB1cGxvYWRlZCBmaXJtd2FyZQoKSG9wZSAgdG8gZmlu
-ZCBzb21lIGRvY3Mgb24gdGhlIEVDMTY4L2Zpcm13YXJlIGFzbSBsYW5ndWFnZS4uLiBjb3VsZCBi
-ZQpuaWNlIHRvIHJldmVyc2UgaXQgdG8gdW5kZXJzdGFuZCBhdmFpbGFibGUgZmVhdHVyZXMuLi4K
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1k
-dmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYu
-b3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+On Sat, 22 Nov 2008 00:39:19 +0400
+Manu Abraham <abraham.manu@gmail.com> wrote:
+
+> The SAA716x driver is supposed to support the following PCIe chips
+> 
+> SAA7160
+> SAA7161
+> SAA7162
+> 
+> The SAA716x development repository is at http://jusst.de/hg/saa716x
+> It is quite a work in progress, as of now. There are also some DVB-S2
+> cards based on the SAA7160.
+> 
+> Also, the SAA7164 chip is not supported by the SAA716x driver as it
+> is a completely different chip altogether.
+
+Thanks, Manu. I'll keep an eye on that repository. :)
+
+James
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
