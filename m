@@ -1,20 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAG1tXTi014241
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 20:55:33 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAG1tKDd028659
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 20:55:21 -0500
-Date: Sun, 16 Nov 2008 02:55:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.0811160142140.21494@axis700.grange>
-References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALI0Abx028724
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 13:00:10 -0500
+Received: from tomts37-srv.bellnexxia.net (tomts37-srv.bellnexxia.net
+	[209.226.175.94])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALHxrwg001913
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 12:59:53 -0500
+From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
+To: "'Joel Fernandes'" <agnel.joel@gmail.com>, "video4linux-list@redhat.com"
+	<video4linux-list@redhat.com>
+Date: Fri, 21 Nov 2008 12:59:27 -0500
+Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C85C820@Colmatec004.COLMATEC.INT>
+In-Reply-To: <9ff7a3bc0811210935k6db41236m46be9f91ca8937fe@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: soc-camera: pixelfmt translation serie
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: RE: RE : v4l-dvb doesn't detect device : PixelView PlayTV USB 415
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,98 +29,480 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Robert,
+Please have a look here of what is tested, kernel supported ( not experimental)
 
-On Wed, 12 Nov 2008, Robert Jarzmik wrote:
+http://www.linuxtv.org/wiki/index.php/Main_Page
 
-> Hi Guennadi,
-> 
-> This serie is prolongation of your work on the soc_camera
-> bus driver. I reposted your serie within this one, so that
-> this serie is a "whole", and can be applied on top of
-> v2.6.28-rc4 for testing purpose.
->  => beware, the patch on the ov7272 was removed, shame on me
-> 
-> The patches are split into :
-> 
->  - patch 1 .. 7 : copy paste of your patches, no
->  modification (beware, ov.... was expunged, sorry again)
-> 
->  - patch 8 : the translation framework
+http://www.linuxtv.org/wiki/index.php/DVB_API_history_and_future
 
-Ok, I looked at your patches, I even have reviewed #8 and #9 (at least 
-partially.) But I think I won't send those reviews. I have a different 
-idea now:-) Don't worry, it probably won't mean more work for you. It will 
-mean some more work for me, and some work for you too, but, simpler than 
-what you have done in your patches, if we agree to my idea, of course:
+no more time 4 now
 
-1. On the first call to soc_camera_open() we generate a list of possible 
-pixel formats.
 
-2. on format enumeration we just walk the generated above list, so, I 
-don't see a need to let host drivers overload this function. If we agree, 
-this can stay central in soc_camera.c for all, then we drop my patch 
-"soc-camera: move pixel format handling to host drivers (part 2)," adding 
-.enum_fmt method to struct soc_camera_host_ops.
+-----Original Message-----
+From: Joel Fernandes [mailto:agnel.joel@gmail.com]
+Sent: 21 novembre 2008 12:35
+To: Jonathan Lafontaine; video4linux-list@redhat.com
+Subject: Re: RE : v4l-dvb doesn't detect device : PixelView PlayTV USB 415
 
-3. try_fmt and set_fmt are handled by the host driver, and that one 
-decides which format to request from the sensor.
+Hi Jonathan,
 
-Now, seeing all the complexity in your patch-series, I would like to 
-simplify it. I don't think we need to export to struct soc_camera_device 
-the list of host-provided format conversions (your
+Yes I have sniffed the device, the isochronous transfer is
+interesting, but I am not able to determine the stream of bytes in the
+ISOCH transfer from the device.
+Is there a standard format that the v4L framework supports, or a
+standard set of functions in v4l framework that I can use to
+decode/render the bytes that I receive in the ISOCH tranfer?
 
-	const struct soc_camera_format_translate *translate_fmt;
+the packets after usb sniffing for the isochronous transfer are:
 
-pointer.) So I would drop soc_camera_format_generate() and let host's 
-->add_extra_formats() method do all the work - add both format types 
-"special" and "pass-through." And because it now would handle not only 
-extra formats, it should be called just "add_formats" or "get_formats" or 
-"generate_formats"... Then available_formats I would just make a list of 
-pointers to struct soc_camera_data_format, so the host driver would just 
-either assign a pointer to a sensor provided format struct in case of 
-pass-through, or a pointer to its own struct. Hosts would then just define 
-a static array of these "extra" structs, similar to sensors. And we don't 
-need your struct soc_camera_computed_format - how the host generates the 
-required format and which format it requests from the sensor is their 
-intimate business, we don't want to intrude in their private life:-)
+[11642 ms]  >>>  URB 704 going down  >>>
+-- URB_FUNCTION_ISOCH_TRANSFER:
+  PipeHandle           = 856843f4 [endpoint 0x00000081]
+  TransferFlags        = 00000007 (USBD_TRANSFER_DIRECTION_IN,
+USBD_SHORT_TRANSFER_OK, USBD_START_ISO_TRANSFER_ASAP
+  TransferBufferLength = 00060000
+  TransferBuffer       = 853070b4
+  TransferBufferMDL    = 00000000
+  StartFrame           = 00000000
+  NumberOfPackets      = 00000080
+  IsoPacket[0].Offset = 0
+  IsoPacket[0].Length = 0
+  IsoPacket[1].Offset = 3072
+  IsoPacket[1].Length = 0
+  IsoPacket[2].Offset = 6144
+  IsoPacket[2].Length = 0
+  .... till isoPacket[129]
 
-How does this sound? If this is accepted, I would resend my patch-series 
-without the above patch. And you can decide if you want to code this new 
-patch or I shall do it.
+and the same comes back after a few URBs as follows:
+[11664 ms]  <<<  URB 704 coming back  <<<
+-- URB_FUNCTION_ISOCH_TRANSFER:
+  PipeHandle           = 856843f4 [endpoint 0x00000081]
+  TransferFlags        = 00000007 (USBD_TRANSFER_DIRECTION_IN,
+USBD_SHORT_TRANSFER_OK, USBD_START_ISO_TRANSFER_ASAP
+  TransferBufferLength = 00001800
+  TransferBuffer       = 853070b4
+  TransferBufferMDL    = 8563b908
+  StartFrame           = 0000bbbb
+  NumberOfPackets      = 00000080
+  ErrorCount           = 0000007e
+  IsoPacket[0].Offset = 0
+  IsoPacket[0].Length = 0
+  IsoPacket[0].Status = c0000011
+  IsoPacket[1].Offset = 3072
+  IsoPacket[1].Length = 0
+  IsoPacket[1].Status = c0000011
+  IsoPacket[2].Offset = 6144
+  IsoPacket[2].Length = 0
+  IsoPacket[2].Status = c0000011
+  IsoPacket[3].Offset = 9216
+  IsoPacket[3].Length = 2048
+  IsoPacket[3].Status = 00000000
+    00000000: 80 11 80 12 80 13 80 13 80 13 80 13 80 11 80 11
+    00000010: 80 10 80 12 80 12 80 14 7f 13 80 12 7f 12 80 12
+    00000020: 7f 12 80 12 7f 11 80 10 7f 12 80 14 7f 13 80 13
+    00000030: 7f 14 80 12 7f 11 7f 11 7f 11 7f 12 7f 12 7f 14
+    00000040: 7f 13 7f 13 80 12 7f 11 80 12 7f 11 80 10 7f 11
+    00000050: 5c 1a 20 47 80 11 80 14 80 13 80 14 80 13 80 12
+    00000060: 7f 11 80 10 7f 11 80 11 7f 13 80 14 7f 13 80 13
+... data ..
 
-If you do it, please, only do this one patch at first. After we have got 
-it right, then we can add support to PXA and SuperH. Also we should 
-preserve the current behaviour at least until the drivers are ported - 
-just assign pointers to all sensor-provided formats to the newly-allocated 
-list if the host doesn't provide an .add_formats method.
+Can you give me a hint on how I could interpret the above data and
+write a driver for the same,
 
-Thanks
-Guennadi
+Thanks,
+Joel
 
->  - patch 9 : application of the framework to pxa_camera host
->  - patch 10 : application of the framework to
->  sh_mobile_ceu_camera host
-> 
->  - patch 11 - 12 : fixes for YUV format handling in pxa_camera
-> 
-> This is the ground of the discussion. I know I still have to
-> add documentation around the new functions/structures. I
-> need to know if this is what you have in mind, to either
-> continue the work or stop and take a different path.
-> 
-> I should add this was tested with RGB565 and all YUV formats
-> on a pxa272 with a mt9m111 (as you could have expected :)).
-> 
-> Now is the time to improve the translation code. Happy review.
-> 
-> --
-> Robert
-> 
+On Fri, Nov 21, 2008 at 1:38 AM, Jonathan Lafontaine
+<jlafontaine@ctecworld.com> wrote:
+> START SNIFFING DEVICE WITH windows driversin WXP if possible.
+>
+> if any information u need more th start this reply me.
+>
+> I'm sure we can get datasheet just need pain in the as research, hustle to companie's costumer support.
+>
+>
+> ________________________________________
+> De : video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] de la part de Joel Fernandes [agnel.joel@gmail.com]
+> Date d'envoi : 20 novembre 2008 13:48
+> À : video4linux-list@redhat.com
+> Objet : Re: v4l-dvb doesn't detect device : PixelView PlayTV USB 415
+>
+>> I bought a pixelview PlayTV USB a couple of months back.
+>>
+>> Device Details:
+>> PV-A5600U1(RN)-F
+>> PixelView PlayTV USB 415
+>> Device URL: http://www.prolink.com.tw/style/content/CN-08-2cp2/product_detail.asp?lang=2&customer_id=1470&name_id=36165&rid=17007&id=135713
+>
+> I just opened up the device, and found that it uses a TM5600 usb chip,
+> with an XC2028 tuner. I would like to write a little driver for it in
+> the V4L framework but I can't figure out where to start. Unfortunately
+> the chip doesn't have datasheets availabe, and all that's available is
+> a chinese translation of theproduct page.
+>
+> I would like to use my usb tuner for Composite video, and not really
+> for DVB tuning.
+>
+> My main intention is to start an isochronous transfer from the device,
+> I have usb-snooped the URB packets that initiate isochronous transfer,
+> I would like to write a v4L driver for the same. Can anyone list the
+> areas of v4L that I should study and understand. My first question is,
+> what are the v4l modules that mount /dev/video and which interfaces in
+> the API should I use to make this happen, along with the video
+> transfer? Also as all I want to use the tuner for is composite video,
+> can I ignore configuration of the XC2028 chip or do I need to initiate
+> it and configure it to have composite video to work.
+>
+> Looking forward to contributing to v4l with the driver if I have any success.
+>
+> Thanks,
+> Joel
+>
+> On Wed, Nov 19, 2008 at 5:08 AM, Joel Fernandes <agnel.joel@gmail.com> wrote:
+>> Hi,
+>> I bought a pixelview PlayTV USB a couple of months back.
+>>
+>> Device Details:
+>> PV-A5600U1(RN)-F
+>> PixelView PlayTV USB 415
+>> Device URL: http://www.prolink.com.tw/style/content/CN-08-2cp2/product_detail.asp?lang=2&customer_id=1470&name_id=36165&rid=17007&id=135713
+>>
+>> The device is like a thumb drive. Unfortunately, it doesn't get
+>> detected on usb connection. I have been reading quite some source code
+>> and thinking off ways to get it to work. After fighting the device
+>> alot, and even opening it up, I was thinking if anyone has already got
+>> it to work?
+>>
+>> Things I tried:
+>> Inorder to see if drivers for similar devices supported would work, I
+>> tried adding my device into the em28xx usb device table, though the
+>> driver would detect, it would result in several errors. I soon figured
+>> out that the chip/board must be different, (as the vendor/product id
+>> was so different) so I somehow took the courage to open up the little
+>> device, and found that the board was named 'U6010'.
+>> I also found that the vendor ID of the device is present in
+>> connexant's v4l drivers (cx88xx) card list. and product ID numbers for
+>> my vendor in that list are very close to mine. This led me to think
+>> that my device's board is very similar in behavior to the connexant
+>> boards except that cx88xx is only for PCI, and mine is a USB.
+>> To add to the confusion, the driver on windows seems to be from
+>> Trident, who is also apparently the manufacturer of my device.
+>> So we have a device that is owned by Prolink, manufactured by Trident,
+>> and the drivers on linux are similar to Connexant's. :-) voila! a
+>> device driver developers night mare :-)
+>>
+>> dmesg on connect gives only the following:
+>> [  800.907706] usb 5-3: new high speed USB device using ehci_hcd and address 4
+>> [  801.337477] usb 5-3: configuration #1 chosen from 1 choice
+>>
+>> lsusb -v gives the following for my usb device:
+>> --------------------------------------------------------------------------------------------
+>> Bus 005 Device 003: ID 1554:4966 Prolink Microsystems Corp.
+>> Device Descriptor:
+>>  bLength                18
+>>  bDescriptorType         1
+>>  bcdUSB               2.00
+>>  bDeviceClass            0 (Defined at Interface level)
+>>  bDeviceSubClass         0
+>>  bDeviceProtocol         0
+>>  bMaxPacketSize0        64
+>>  idVendor           0x1554 Prolink Microsystems Corp.
+>>  idProduct          0x4966
+>>  bcdDevice            0.01
+>>  iManufacturer          16 Trident
+>>  iProduct               32 USB2.0 TV BOX
+>>  iSerial                64 2004090820040908
+>>  bNumConfigurations      1
+>>  Configuration Descriptor:
+>>   bLength                 9
+>>   bDescriptorType         2
+>>   wTotalLength           78
+>>   bNumInterfaces          1
+>>   bConfigurationValue     1
+>>   iConfiguration         48 2.0
+>>   bmAttributes         0x80
+>>     (Bus Powered)
+>>   MaxPower              500mA
+>>   Interface Descriptor:
+>>     bLength                 9
+>>     bDescriptorType         4
+>>     bInterfaceNumber        0
+>>     bAlternateSetting       0
+>>     bNumEndpoints           2
+>>     bInterfaceClass       255 Vendor Specific Class
+>>     bInterfaceSubClass      0
+>>     bInterfaceProtocol    255
+>>     iInterface              0
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x81  EP 1 IN
+>>       bmAttributes            1
+>>         Transfer Type            Isochronous
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x0000  1x 0 bytes
+>>       bInterval               1
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x82  EP 2 IN
+>>       bmAttributes            2
+>>         Transfer Type            Bulk
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x0200  1x 512 bytes
+>>       bInterval               0
+>>   Interface Descriptor:
+>>     bLength                 9
+>>     bDescriptorType         4
+>>     bInterfaceNumber        0
+>>     bAlternateSetting       1
+>>     bNumEndpoints           2
+>>     bInterfaceClass       255 Vendor Specific Class
+>>     bInterfaceSubClass      0
+>>     bInterfaceProtocol    255
+>>     iInterface              0
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x81  EP 1 IN
+>>       bmAttributes            1
+>>         Transfer Type            Isochronous
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x1400  3x 1024 bytes
+>>       bInterval               1
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x82  EP 2 IN
+>>       bmAttributes            2
+>>         Transfer Type            Bulk
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x0200  1x 512 bytes
+>>       bInterval               0
+>>   Interface Descriptor:
+>>     bLength                 9
+>>     bDescriptorType         4
+>>     bInterfaceNumber        0
+>>     bAlternateSetting       2
+>>     bNumEndpoints           2
+>>     bInterfaceClass       255 Vendor Specific Class
+>>     bInterfaceSubClass      0
+>>     bInterfaceProtocol    255
+>>     iInterface              0
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x81  EP 1 IN
+>>       bmAttributes            1
+>>         Transfer Type            Isochronous
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x1400  3x 1024 bytes
+>>       bInterval               1
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x82  EP 2 IN
+>>       bmAttributes            2
+>>         Transfer Type            Bulk
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x0200  1x 512 bytes
+>>       bInterval               0
+>> Device Qualifier (for other device speed):
+>>  bLength                10
+>>  bDescriptorType         6
+>>  bcdUSB               2.00
+>>  bDeviceClass            0 (Defined at Interface level)
+>>  bDeviceSubClass         0
+>>  bDeviceProtocol         0
+>>  bMaxPacketSize0        64
+>>  bNumConfigurations      1
+>> Device Status:     0x0002
+>>  (Bus Powered)
+>>  Remote Wakeup Enabled
+>>
+>> Bus 005 Device 001: ID 0000:0000
+>> Device Descriptor:
+>>  bLength                18
+>>  bDescriptorType         1
+>>  bcdUSB               2.00
+>>  bDeviceClass            9 Hub
+>>  bDeviceSubClass         0 Unused
+>>  bDeviceProtocol         1 Single TT
+>>  bMaxPacketSize0        64
+>>  idVendor           0x0000
+>>  idProduct          0x0000
+>>  bcdDevice            2.06
+>>  iManufacturer           3 Linux 2.6.24-16-generic ehci_hcd
+>>  iProduct                2 EHCI Host Controller
+>>  iSerial                 1 0000:00:1d.7
+>>  bNumConfigurations      1
+>>  Configuration Descriptor:
+>>   bLength                 9
+>>   bDescriptorType         2
+>>   wTotalLength           25
+>>   bNumInterfaces          1
+>>   bConfigurationValue     1
+>>   iConfiguration          0
+>>   bmAttributes         0xe0
+>>     Self Powered
+>>     Remote Wakeup
+>>   MaxPower                0mA
+>>   Interface Descriptor:
+>>     bLength                 9
+>>     bDescriptorType         4
+>>     bInterfaceNumber        0
+>>     bAlternateSetting       0
+>>     bNumEndpoints           1
+>>     bInterfaceClass         9 Hub
+>>     bInterfaceSubClass      0 Unused
+>>     bInterfaceProtocol      0 Full speed (or root) hub
+>>     iInterface              0
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x81  EP 1 IN
+>>       bmAttributes            3
+>>         Transfer Type            Interrupt
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x0004  1x 4 bytes
+>>       bInterval              12
+>> Hub Descriptor:
+>>  bLength              11
+>>  bDescriptorType      41
+>>  nNbrPorts             8
+>>  wHubCharacteristic 0x000a
+>>   No power switching (usb 1.0)
+>>   Per-port overcurrent protection
+>>   TT think time 8 FS bits
+>>  bPwrOn2PwrGood       10 * 2 milli seconds
+>>  bHubContrCurrent      0 milli Ampere
+>>  DeviceRemovable    0x00 0x00
+>>  PortPwrCtrlMask    0xff 0xff
+>> Hub Port Status:
+>>  Port 1: 0000.0100 power
+>>  Port 2: 0000.0100 power
+>>  Port 3: 0000.0503 highspeed power enable connect
+>>  Port 4: 0000.0100 power
+>>  Port 5: 0000.0100 power
+>>  Port 6: 0000.0100 power
+>>  Port 7: 0000.0100 power
+>>  Port 8: 0000.0100 power
+>> Device Status:     0x0003
+>>  Self Powered
+>>  Remote Wakeup Enabled
+>>
+>> Bus 004 Device 001: ID 0000:0000
+>> Device Descriptor:
+>>  bLength                18
+>>  bDescriptorType         1
+>>  bcdUSB               1.10
+>>  bDeviceClass            9 Hub
+>>  bDeviceSubClass         0 Unused
+>>  bDeviceProtocol         0 Full speed (or root) hub
+>>  bMaxPacketSize0        64
+>>  idVendor           0x0000
+>>  idProduct          0x0000
+>>  bcdDevice            2.06
+>>  iManufacturer           3 Linux 2.6.24-16-generic uhci_hcd
+>>  iProduct                2 UHCI Host Controller
+>>  iSerial                 1 0000:00:1d.3
+>>  bNumConfigurations      1
+>>  Configuration Descriptor:
+>>   bLength                 9
+>>   bDescriptorType         2
+>>   wTotalLength           25
+>>   bNumInterfaces          1
+>>   bConfigurationValue     1
+>>   iConfiguration          0
+>>   bmAttributes         0xe0
+>>     Self Powered
+>>     Remote Wakeup
+>>   MaxPower                0mA
+>>   Interface Descriptor:
+>>     bLength                 9
+>>     bDescriptorType         4
+>>     bInterfaceNumber        0
+>>     bAlternateSetting       0
+>>     bNumEndpoints           1
+>>     bInterfaceClass         9 Hub
+>>     bInterfaceSubClass      0 Unused
+>>     bInterfaceProtocol      0 Full speed (or root) hub
+>>     iInterface              0
+>>     Endpoint Descriptor:
+>>       bLength                 7
+>>       bDescriptorType         5
+>>       bEndpointAddress     0x81  EP 1 IN
+>>       bmAttributes            3
+>>         Transfer Type            Interrupt
+>>         Synch Type               None
+>>         Usage Type               Data
+>>       wMaxPacketSize     0x0002  1x 2 bytes
+>>       bInterval             255
+>> Hub Descriptor:
+>>  bLength               9
+>>  bDescriptorType      41
+>>  nNbrPorts             2
+>>  wHubCharacteristic 0x000a
+>>   No power switching (usb 1.0)
+>>   Per-port overcurrent protection
+>>  bPwrOn2PwrGood        1 * 2 milli seconds
+>>  bHubContrCurrent      0 milli Ampere
+>>  DeviceRemovable    0x00
+>>  PortPwrCtrlMask    0xff
+>> Hub Port Status:
+>>  Port 1: 0000.0100 power
+>>  Port 2: 0000.0100 power
+>> Device Status:     0x0003
+>>  Self Powered
+>>  Remote Wakeup Enabled
+>>
+>> Bus 003 Device 001: ID 0000:0000
+>> Device Descriptor:
+>>  bLength                18
+>>  bDescriptorType         1
+>>  bcdUSB               1.10
+>>  bDeviceClass            9 Hub
+>>  bDeviceSubClass         0 Unused
+>>  bDeviceProtocol         0 Full speed (or root) hub
+>>  bMaxPacketSize0        64
+>>  idVendor           0x0000
+>>  idProduct          0x0000
+>>  bcdDevice            2.06
+>>  iManufacturer           3 Linux 2.6.24-16-generic uhci_hcd
+>>  iProduct                2 UHCI Host Controller
+>>  iSerial                 1 0000:00:1d.2
+>>  bNumConfigurations      1
+>>  Configuration Descriptor:
+>>   bLength                 9
+>>   bDescriptorType         2
+>>   wTotalLength           25
+>>   bNumInterfaces          1
+>>   bConfigurationValue     1
+>>   iConfiguration          0
+>>   bmAttributes         0xe0
+>>     Self Powered
+>>     Remote Wakeup
+>>   MaxPower                0mA
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+..
+
+--
+
+This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
+Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
+www.solulan.com
+
+
+No virus found in this incoming message.
+Checked by AVG - http://www.avg.com
+Version: 8.0.175 / Virus Database: 270.9.9/1803 - Release Date: 2008-11-21 09:37
 
 --
 video4linux-list mailing list
