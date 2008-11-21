@@ -1,21 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABMKVhC030012
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 17:20:31 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mABMKINO014206
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 17:20:18 -0500
-Date: Tue, 11 Nov 2008 23:20:18 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-In-Reply-To: <ur65inb1i.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0811112317370.8435@axis700.grange>
-References: <ur65inb1i.wl%morimoto.kuninori@renesas.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAL8WW1Q029537
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 03:32:32 -0500
+Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAL8WHjj031253
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 03:32:18 -0500
+Message-ID: <49267361.9030703@hhs.nl>
+Date: Fri, 21 Nov 2008 09:37:53 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: khali@linux-fr.org, V4L <video4linux-list@redhat.com>,
-	mchehab@infradead.org
-Subject: Re: [PATCH 2/2] Change power on/off sequence on ov772x
+To: kilgota@banach.math.auburn.edu
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
+	<200811190020.15663.linux@baker-net.org.uk>
+	<4923D159.9070204@hhs.nl>
+	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
+	<49253004.4010504@hhs.nl>
+	<Pine.LNX.4.64.0811201130410.3570@banach.math.auburn.edu>
+	<4925BC94.7090008@hhs.nl>
+	<Pine.LNX.4.64.0811201657020.3763@banach.math.auburn.edu>
+In-Reply-To: <Pine.LNX.4.64.0811201657020.3763@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
+Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
+	driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,96 +36,104 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 11 Nov 2008, Kuninori Morimoto wrote:
-
-> 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> ---
-> This patch is based on linux-next git
-
-Ok, this makes sense to me, but if we agree on keeping if's which you 
-removed with your previous patch, then please, recode this one with if's. 
-Besides, having if's in place also makes it clear, that these methods are 
-optional, IMHO.
-
-Thanks
-Guennadi
-
-> 
->  drivers/media/video/ov772x.c |   22 ++++++++++++----------
->  1 files changed, 12 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-> index 14a4545..8f0bc56 100644
-> --- a/drivers/media/video/ov772x.c
-> +++ b/drivers/media/video/ov772x.c
-> @@ -603,12 +603,20 @@ static int ov772x_reset(struct i2c_client *client)
->  
->  static int ov772x_init(struct soc_camera_device *icd)
->  {
-> -	return 0;
-> +	struct ov772x_priv *priv = container_of(icd, struct ov772x_priv, icd);
-> +	int ret;
-> +
-> +	ret = priv->info->link.power(&priv->client->dev, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return priv->info->link.reset(&priv->client->dev);
->  }
->  
->  static int ov772x_release(struct soc_camera_device *icd)
->  {
-> -	return 0;
-> +	struct ov772x_priv *priv = container_of(icd, struct ov772x_priv, icd);
-> +	return priv->info->link.power(&priv->client->dev, 0);
->  }
->  
->  static int ov772x_start_capture(struct soc_camera_device *icd)
-> @@ -824,8 +832,6 @@ static int ov772x_video_probe(struct soc_camera_device *icd)
->  	icd->formats     = ov772x_fmt_lists;
->  	icd->num_formats = ARRAY_SIZE(ov772x_fmt_lists);
->  
-> -	priv->info->link.power(&priv->client->dev, 1);
-> -
->  	/*
->  	 * check and show product ID and manufacturer ID
->  	 */
-> @@ -833,7 +839,8 @@ static int ov772x_video_probe(struct soc_camera_device *icd)
->  	ver = i2c_smbus_read_byte_data(priv->client, VER);
->  	if (pid != 0x77 ||
->  	    ver != 0x21) {
-> -		priv->info->link.power(&priv->client->dev, 0);
-> +		dev_err(&icd->dev,
-> +			"Product ID error %x:%x\n", pid, ver);
->  		return -ENODEV;
->  	}
->  
-> @@ -850,12 +857,7 @@ static int ov772x_video_probe(struct soc_camera_device *icd)
->  
->  static void ov772x_video_remove(struct soc_camera_device *icd)
->  {
-> -	struct ov772x_priv *priv = container_of(icd, struct ov772x_priv, icd);
-> -
->  	soc_camera_video_stop(icd);
-> -
-> -	priv->info->link.power(&priv->client->dev, 0);
-> -
->  }
->  
->  static struct soc_camera_ops ov772x_ops = {
-> -- 
-> 1.5.4.3
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+kilgota@banach.math.auburn.edu wrote:
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+<snip>
+
+> 
+>> Easiest way to get my latest code is here:
+>> http://people.atrpms.net/~hdegoede/libv4l-0.5.5.tar.gz
+>>
+>> You are looking for libv4lconvert/bayer.c
+> 
+> Thanks. I got it. By your leave, the first thing I will do is to try to 
+> speed up my own code. There are, I think, some real possibilities to do 
+> that. However, without looking at any details of what you did in your 
+> bayer.c, I will ask a question about organization of the way you did 
+> things. What happens in libgphoto2 is, first a function is run which 
+> "spreads out" the (uncompressed) raw data to a block of data of size 
+> 3*w*h, so that each byte of actual data is in its natural place in the 
+> finished image and the rest of the locations in the finished image are 
+> left filled with 00 bytes. Then after this what the algorithm does is to 
+> work on this copy of the still-not-finished image and to finish it, 
+> entering each piece of computed or estimated data in its proper 
+> location. There might be other ways to go about the entire project of 
+> doing the Bayer demosaicing. Therefore, I ask whether you have done 
+> things the same way, or did you take one of those other possible routes 
+> to the final result? For example, in
+> 
+> static void bayer_to_rgbbgr24(const unsigned char *bayer,
+>   unsigned char *bgr, int width, int height, unsigned int pixfmt,
+>         int start_with_green, int blue_line)
+> 
+> (which looks like one of the relevant functions) is bgr of size w*h, 
+> (size of uncompressed input) still, or of size 3*w*h (size of 
+> interpolated RGB output)? I could figure out all of this stuff in 3 
+> days, but probably not in 5 minutes.
+> 
+
+bayer is the raw bayer input here, and that is ofcourse w*h, bgr is w*3*h, and 
+when this function is done contains complete rgb triplets for all pixels. This 
+function does the "spread out" and the interpolating in one pass.
+
+<snip>
+
+>> p.s.
+>>
+>> If you are experienced with reverse engineering decompression 
+>> algorithms 9for raw bayer), I've got multiple issues where you could 
+>> help me.
+>>
+> 
+> Haha. I was about to ask you the same. On my end, this is *the* problem. 
+
+Hehe
+
+<snip>
+
+> As to the cameras I mentioned before, and who figured out the 
+> decompression:
+> 
+> SQ905 and 905C     myself (took several years to get it all done right)
+> 
+> SN9C2028     macam project, with some improvements by myself after they 
+> did the hard work. The code from the macam project was based, in turn, 
+> on the work of Bertrik Sikkens on the SN9C10X cameras. The two 
+> algorithms are similar but not identical.
+> 
+
+Interesting, so you are familiar with the sn9c10x bayer compression, as you 
+then may remeber it uses differential compression with the following huffman codes:
+0
+100
+101
+1101
+1111
+11001
+110000
+1110xxxx /* direct set */
+
+But sometimes it also sends:
+110001xx
+
+And we have no idea what this code means, does the sn9c2028 also have something 
+similar and have you figured it out?
+
+> MR97310 Bertrik figured out some of the basic stuff but it was never 
+> right, until I was finally (after years) able to figure out what was 
+> wrong. Again this is a differential Huffman encoding which is similar to 
+> the one the Sonix cameras are using, but again different in details.
+> 
+> You want quick, go and ask Bertrik. He is, in my experience, either very 
+> clever or very lucky.
+> 
+
+Ok, I'll ask him.
+
+Thanks & Regards,
+
+Hans
 
 --
 video4linux-list mailing list
