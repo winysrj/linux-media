@@ -1,28 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKIq3nQ010074
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 13:52:03 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAKIpm5r010646
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 13:51:49 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so376202ugc.13
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 10:51:48 -0800 (PST)
-Message-ID: <412bdbff0811201051u22fc5a32if0b241c36ddf81b3@mail.gmail.com>
-Date: Thu, 20 Nov 2008 13:51:48 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Thomas Reiter" <x535.01@gmail.com>
-In-Reply-To: <1227206911.6617.6.camel@ivan>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALLKWLN007090
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:20:32 -0500
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALLKHaT011535
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:20:17 -0500
+Message-ID: <49272762.80304@hhs.nl>
+Date: Fri, 21 Nov 2008 22:25:54 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: kilgota@banach.math.auburn.edu
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
+	<200811190020.15663.linux@baker-net.org.uk>
+	<4923D159.9070204@hhs.nl>
+	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
+	<49253004.4010504@hhs.nl>
+	<Pine.LNX.4.64.0811201130410.3570@banach.math.auburn.edu>
+	<4925BC94.7090008@hhs.nl>
+	<Pine.LNX.4.64.0811202306360.3930@banach.math.auburn.edu>
+	<49269369.90805@hhs.nl>
+	<Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
+In-Reply-To: <Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <1226943947.6362.10.camel@ivan>
-	<09CD2F1A09A6ED498A24D850EB101208165C79D3B1@Colmatec004.COLMATEC.INT>
-	<b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
-	<412bdbff0811190550i607a740bgae6348ac69253d7d@mail.gmail.com>
-	<1227206911.6617.6.camel@ivan>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: RE : DVB-T2 (Mpeg4) in Norway
+Cc: video4linux-list@redhat.com
+Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
+	driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,55 +38,184 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Nov 20, 2008 at 1:48 PM, Thomas Reiter <x535.01@gmail.com> wrote:
-> on., 19.11.2008 kl. 08.50 -0500, skrev Devin Heitmueller:
->> If you're running the latest v4l-dvb, then you need the dib0700 1.20
->> firmware, and it's available here.
+kilgota@banach.math.auburn.edu wrote:
+> 
+<snip>
+
+>> Uhg, with 352x288 @ 30 fps (and yes some cams can do 30 fps at 
+>> 352x288) this translates to 792 ms of each second being used just for 
+>> the demosaic phase.
+> 
+> Yes, I know that some cameras can do 30 fps. I would also assume there 
+> are cameras which can do much more than that. So one needs to be more 
+> clever.
+
+Well assuming 352x288 @ 30 fps for cams *which send raw bayer* seems like a 
+good assumption, anything higher resolution usually uses jpg.
+
+<snip>
+
 >>
->>  http://devinheitmueller.com/801e/dvb-usb-dib0700-1.20.fw
->
->
-> I tried this firmware but a scan gave the following result for my
-> Pinnacle Nano (73e):
->
->>  scan -c -a 0 -f 0 -d 0 -l 45000000,800000000
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> WARNING: filter timeout pid 0x0011
-> WARNING: filter timeout pid 0x0000
-> dumping lists (0 services)
-> Done.
->
->
->
-> dmesg has the output (the firmware file is  a link to 1.20):
->
-> [ 1675.457804] dvb-usb: found a 'Pinnacle PCTV 73e' in cold state, will
-> try to load a firmware
-> [ 1675.457812] firmware: requesting dvb-usb-dib0700-1.10.fw
-> [ 1675.460700] dvb-usb: downloading firmware from file
-> 'dvb-usb-dib0700-1.10.fw'
-> [ 1675.685934] dib0700: firmware started successfully.
-> [ 1676.188024] dvb-usb: found a 'Pinnacle PCTV 73e' in warm state.
-> [ 1676.188076] dvb-usb: will pass the complete MPEG2 transport stream to
-> the software demuxer.
-> [ 1676.188455] DVB: registering new adapter (Pinnacle PCTV 73e)
-> [ 1676.398963] DVB: registering frontend 0 (DiBcom 7000PC)...
-> [ 1676.571841] DiB0070: successfully identified
->
-> My system is an Unbuntu 8.10
+>>> Relative image quality of the methods:
+>>>
+>>> 1. straight bilinear interpolation is lousy on this image. Lots of 
+>>> zippering.
+>>>
+>>
+>> Ok, then maybe we do need to get something better.
+> 
+> If you want to see the results of this on the same photo that I was 
+> using for the test, then you should go to my web page 
+> www.auburn.edu/~kilgota and look at the comparison photos and also have 
+> a look at the article which has done comparisons of the various methods 
+> on the same photos, too.
+> 
 
-Your system is still trying to load version 1.10 of the firmware.
-Have you installed the latest v4l-dvb code by following the directions
-on http://linuxtv.org/repo ?  If so, have you rebooted the computer
-since then (so modules get unloaded).
+Ok, I went and looked at the article, I do see there is a huge difference 
+between plain bi-linear and bi-linear with acrue edge detection. I must say the 
+difference between bi-linear with acrue edge detection, and ahd is less 
+convincing though.
 
-Devin
+>> It might just be that your system is slow, but if it turns out that 
+>> bayer.c from libv4l is much faster then the bilinear code from 
+>> libgphoto2, then IMHO going to AHD is speedwise not a good idea.
+> 
+> My system is an AMD Sempron 2600+ or 2800+ (forget which, and I am at 
+> work, not at home) with 1 M of RAM. Not the fastest thing around, but 
+> not slow at all, actually. We will just have to see what the libv4l code 
+> does. I don't know yet.
+
+Ok, that should actually be pretty comparable to one of the 2 cores of my dual 
+core amd64 when clocked at 1Ghz (the default setting when not more is required, 
+yeah for speedstep). So I think that libv4l's bilinear is much faster than, but 
+that is not strange as it was written with speed in mind.
 
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+> Where I am coming from is, libgphoto2 uses libusb. When a kernel module 
+> has "taken over" the device, then as things currently stand, or have 
+> stood until recently, libgphoto2 has no access to the device unless and 
+> until the kernel module has been rmmod-ed. I understand that there is a 
+> partial solution for this. I am trying to figure out how there is a 
+> complete solution which would make everyone happy, including users who 
+> just want to plug in their cameras.
+> 
+
+I understand, but I'm afraid I don't have any answers here, I'm not familiar 
+enough with the relevant usb stuff.
+
+>> Basicly whenever we have a video input device, we want to have a 
+>> kernel driver, so as to present a standard /dev/videoX device to 
+>> userspace, so that all apps written for v4l can use the device.
+> 
+> Yes, that is quite clear. But insofar as the act of loading the kernel 
+> module which creates that device causes the still camera functionality 
+> of the same camera to be simultaneously inaccessible to the usual apps 
+> which deal with stillcam mode stuff, we have a problem. The worst aspect 
+> of the problem is, of course, that we have a bunch of people whom we 
+> would like to convince to use our nice operating system, and they do not 
+> understand why there has to be a problem because they do not face that 
+> kind of problem if they are not using Linux.
+> 
+
+All I can say is: again I understand.
+
+>>
+>> However we do not want to do video format conversion (let alone 
+>> decompression) in kernel space, so if the data is in an exotic format 
+>> we simply indicate this in the pixelformat member of the exchanged 
+>> structs, and let userspace deal with it.
+>>
+>> This is where libv4l comes in into play, libv4l is a convenience lib 
+>> for applications, which can do conversion for them so that the app 
+>> writers do not have to add support for each exotic webcam format 
+>> themselves.
+> 
+> This is obviously a good idea. I can't imagine that anyone would have a 
+> problem with it. Certainly, I don't. But my questions were about how to 
+> address the userspace-kernelspace conflict which takes place when we try 
+> to support dual-purpose devices, in which one of the modes requires 
+> kernel support and the other mode does not.
+> 
+
+All I can say is: again I understand.
+
+>> libusb does not interact with a kernel module for a specific device, 
+>> it interacts directly with the device through the usb subsystem,
+> 
+> Indeed. The two lines above capture precisely what needs to be 
+> addressed. The current situation certainly is described by 'does not.' I 
+> am well aware of the 'does not.' Otherwise, I probably would not ask 
+> 'why not' or, more precisely, 'what prevents.' So, back to the original 
+> problem:
+> 
+> For a dual-mode device such as most of the cameras that I support in 
+> libgphoto2 in stillcam mode, and you are trying to support in webcam 
+> mode, this 'does not' causes nasty problems for the user, doesn't it?
+
+Agreed.
+
+> So 
+> we should not ignore such difficulties but try to figure out how to 
+> avoid them or work around them.
+
+Agreed.
+
+> Thus, possible solutions (at least so I 
+> could imagine) are that libusb is changed, so that it is willing to 
+> interact with the kernel module, or that the kernel module is so 
+> constructed that it can run in some kind of 'pass-through' mode and 
+> libusb can go ahead and access the device anyway, or libgphoto2 camera 
+> drivers are changed so as to address a kernel module if it is present 
+> instead of addressing the device directly through libusb.
+
+I agree (and still understand) but I'm not aware of a way for a device driver 
+to give up his claim on an usb device, perhaps such an option exists in the 
+kernel usb subsystem, then adding an API to ask v4l to release the device 
+should be possible, although IMHO not the best way forward, how I envision this 
+to work is:
+
+usb-drivers get 2 new optional driver callbacks which the usb-subsystem can 
+call, called :
+
+1) release_device() this returns 0 if the device is not in use, and disallows 
+any new users from using the device through the driver (iow disallow new open's 
+of /dev/videoX in our case).
+
+2) reclaim_device(), the driver may now use the device again and allow users to 
+open it.
+
+
+The usb kernel<->userspace API used by libusb gets a new API, which makes it 
+possible for libusb to send a release request to a driver holding a device
+
+If the driver has release_device implemented and returns 0, the usb subsystem 
+will allow libusb to use the device even though there is a driver for it,
+
+When libusb is done with the device (closes the relevant filedescriptors, the 
+drivers resume_access() method gets called.
+
+Notes:
+1 this is all a figment of my imagination / vaporware.
+2 I think we must come up with something more KISS
+
+
+Ok, so looking for a simpler solution, there is an kernel usb subsystem method 
+called:
+usb_driver_release_interface()
+
+And another called :
+usb_driver_claim_interface()
+
+Using these 2 a driver could release a device when requested and then later 
+(when told to) reclaim it.
+
+No idea how well this will work though, and when we solve this completely at 
+the driver level we will need some (none generic) driver API for libgphoto2 to 
+ask us to release the device (and tell us whem it is ok to reclaim it).
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
