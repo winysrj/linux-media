@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp105.rog.mail.re2.yahoo.com ([206.190.36.83])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1L58zc-0005Ij-2l
-	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 02:15:01 +0100
-Message-ID: <492CA2EA.1000601@rogers.com>
-Date: Tue, 25 Nov 2008 20:14:18 -0500
-From: CityK <cityk@rogers.com>
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1L3csg-0004nX-K6
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 21:45:36 +0100
+Message-ID: <49271DE7.4020809@gmail.com>
+Date: Sat, 22 Nov 2008 00:45:27 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Steve Havelka <smh@rs.tc>
-References: <20081124223625.863ce770.smh@rs.tc>
-In-Reply-To: <20081124223625.863ce770.smh@rs.tc>
+To: Goga777 <goga777@bk.ru>
+References: <20081106124730.16840@gmx.net>
+	<20081106144319.268390@gmx.net>	<200811081130.21951.liplianin@tut.by>	<1a297b360811081323k61c0dd44vf3834ba965b20466@mail.gmail.com>
+	<20081109212526.677d5c76@bk.ru>
+In-Reply-To: <20081109212526.677d5c76@bk.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DViCO FusionHDTV5 USB Gold
+Subject: Re: [linux-dvb] [PATCH] stb0899: Set min symbol rate to 1000000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,42 +21,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steve,
-
-Steve Havelka wrote:
-> Hi all,
->
-> I see on the wiki page for this device that analog support is
-> forthcoming:
->
-> http://linuxtv.org/wiki/index.php/DViCO_FusionHDTV5_USB_Gold
->
-> I'm writing to ask, who is working on the analog support,
-
-I'm guessing that I wrote that ("forthcoming") a good while ago (year
-and a half maybe?). At the time, MKrufky had realized digital support
-for the device and was hoping to eventually add analog support. As I
-said just the other day
-(http://marc.info/?l=linux-video&m=122750104704023&w=2) I'm not sure of
-current state of analog support development, though I suspect that it
-simply slipped off the radar, despite best intentions otherwise.
-
-> is anything I can do to help in this development?
-You might want to take up the reigns on this one. I'm not sure how
-difficult it will be. I believe either Hans Verkuil or Mike Isley has
-been doing some recent work with the cx25843 decoder driver so you might
-want check on that avenue too.
-
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+R29nYTc3NyB3cm90ZToKPiDw0snXxdTT1NfVwCwgTWFudQo+PiBPbiBTYXQsIE5vdiA4LCAyMDA4
+IGF0IDE6MzAgUE0sIElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFuaW5AdHV0LmJ5PiB3cm90ZToK
+Pj4+IEkgY2FuIHJlY2VpdmUgMyBtU3ltL3Mgc3RyZWFtcy4gU28gd2h5IGRvIHlvdSBsaW1pdCBm
+cm9udGVuZAo+Pj4gY2FwYWJpbGl0aWVzIHRvIDU/Cj4+IExvd2VyIHRoYW4gNU1TUFMgZ29lcyBi
+ZWxvdyB0aGUgSGFsZiBQb3dlciBiYW5kd2lkdGggY2hhcmFjdGVyaXN0aWNzLgo+PiBVc3VhbGx5
+IHdlIGhhdmUgbGltaXRzIGRlZmluZWQgd2l0aGluIHRoZSBjaGFyYWN0ZXJpc3RpYyByZWdpb24s
+Cj4+IHJhdGhlciB0aGFuIGFic29sdXRlIGxpbWl0cyBhdCB3aGljaCB0dW5pbmcgZmFpbHMKPiAK
+PiAKPiB0aGF0IGlzIHN0cmFuZ2UgbGltaXRhdGlvbiAsIHRoZXJlJ3MgYSBsb3Qgb2YgZHZiIGNo
+YW5uZWxzIHdpdGggc3RyZWFtcyBsZXNzIHRoYW4gMyBtU3ltL3MKPiBmb3IgZXhhbXBsZSBvbiBj
+eDI0MTE2ICYgSGVsbGFzU2F0IDM5RSB3ZSBoYXZlIGZvbGxvdyByZXN1bHRzIHdpdGggeG1sc2Nh
+biBmcm9tIERhcnJvbiAKPiBodHRwOi8vaGcua2V3bC5vcmcveG1sZHZiLwo+IAo+IDE9QVJNIDE7
+RlQgR0xPQkVDQVNUOjExMTA5OlZDMjNNMk8zNVMwOjA6MzQxODoxMjM1OjEzMzU6MQo+IDEwMTcw
+PUFMLUlSQVFJQSBBVFlBRjtJTU4gQkFHSERBRDoxMTY0MjpWQzM0TTJPMzVTMDowOjIxNzU6MzM6
+MzY6MTAxNzAKPiAxMDE4MD1BTEZPUnFhbjtJTU4gQkFHSERBRDoxMTY0NTpWQzM0TTJPMzVTMDow
+OjIxODA6MzA4OjI1NjoxMDE4MAo+IDEwMTgwPUFMLUlSQVFJQSBTUE9SVDtJTU4gQkFHSERBRDox
+MTY1MjpWQzM0TTJPMzVTMDowOjI1MzU6MjAwNzozNjoxMDE4MAo+IDE9TElERVIgVFYgQVpFUkJB
+SUpBTjtUQU5EQkVSRzoxMjUyMDpIQzEyTTJPMzVTMDowOjQzNDA6NTEzOjI1NjoxCj4gNjY9RU1P
+VElPTiBBUlQ7RU1PVElPTiBBUlQ6MTI1NDM6VkMyM00yTzM1UzA6MDozMzMzOjQ4OjQ5OjY2Cj4g
+MT1NZWRpMVNBVDtUYW5kYmVyZ1RWOjEyNTQ1OkhDNTZNMk8zNVMwOjA6MjczNDozMDg6MjU2OjEK
+PiAxNzA5PUVVUk9ORVdTLUZSQU5DRTtHTE9CRUNBU1Q6MTI1NTg6VkMyM00yTzM1UzA6MDo4MTM4
+OjkyMDo5MzA6MTcwOQo+IDQyMDE9RVVST05FV1MtQUZSSUNBO1NFU0FUOjEyNTU4OlZDMjNNMk8z
+NVMwOjA6ODEzODo0MjIxOjQyMzE6NDIwMQo+IDE9VGFuZGJlcmcgU2VydmljZTtUYW5kYmVyZ1RW
+OjEyNTkxOlZDMzRNMk8zNVMwOjA6MjE3MDozMDg6MjU2OjEKPiAxPVZJREVPTElOQSBTQVQ7VGFk
+aXJhbiBTY29wdXM6MTI1OTY6VkMyM00yTzM1UzA6MDoyNTAwOjQxOTQ6NDE5NToxCj4gMT1KU0Mg
+Q29udHJpYnV0aW9uO1NlcnZpY2UgUHJvdmlkZXI6MTI2MTA6VkMzNE0yTzM1UzA6MDoyODk0OjIw
+MDoyMDE6MQo+IDE9QWwgSmF6ZWVyYTtBcnFpdmE6MTI2MTQ6VkMzNE0yTzM1UzA6MDoyODk0OjMx
+MToyNTY6MQo+IDI9WkFHUk9TO1VubmFtZWQ6MTI2MjU6VkMzNE0yTzM1UzA6MDoyNjY4OjMzOjM2
+OjIKPiAKPiB3aWxsIGJlIG5pY2UgaWYgc3RiMDg5OSBjYXJkcyBhbHNvIGNhbiBMT0NLIGxvdyBz
+eW1ib2wgcmF0ZSBjaGFubmVscwoKVGhlIFNUQjA4OTkgYW5kIGZhbWlseSBkbyB1c2UgdGhlIHR1
+bmluZyBhbGdvcml0aG0gY29tcGxldGVseSBpbgpzb2Z0d2FyZSwgcmF0aGVyIHRoYW4gYSBoYXJk
+d2FyZSBpbXBsZW1lbnRhdGlvbi4gVGhlIGFsZ29yaXRobSBpcyBiYXNlZApvbiBtYW55IHBhcmFt
+ZXRlcnMgYmFzZWQgd2l0aGluIHRoZSBkcml2ZXIgcGFyYW1ldGVycy4KCkN1cnJlbnRseSB0aGUg
+U1RCMDg5OSBkcml2ZXIgZG9lc24ndCB1c2UgYSB0dW5pbmcgYWxnb3JpdGhtIHdoaWNoIGRvZXMK
+d29yayBhdCBsb3cgc3ltYm9sIHJhdGVzLiBUaGVyZSBpcyBhbiBhbGdvcml0aG0gc3BlY2lmaWVk
+IGJ5IFNUTSBmb3IgdGhlCmRlbW9kdWxhdG9yIHRvIGdvIGRvd24gYXMgZmFyIGFzIDJNU1BTIGF0
+IEhhbGYgcG93ZXIsIGJ1dCB0aGlzIG5lZWRzCnNvbWUgbW9yZSBjaGFuZ2VzIGluIHRoZSB0dW5p
+bmcgYWxnb3JpdGhtLiBUaGVyZSB3YXNuJ3QgYW55IHNpZ25pZmljYW50CmludGVyZXN0IG9uIHRo
+aXMgYnkgYW55IG9mIHRoZSB1c2VycyBhbmQgdGhpcyBsb3cgYml0cmF0ZSBhbGdvcml0aG0gd2Fz
+Cm5ldmVyIGRlcGxveWVkLiBJZiB0aGVyZSBpcyBzaWduaWZpY2FudCBpbnRlcmVzdCwgdGhlIGxv
+dyBiaXRyYXRlCmFsZ29yaXRobSBjYW4gYmUgZGVwbG95ZWQuCgoKUmVnYXJkcywKTWFudQoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1h
+aWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9j
+Z2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
