@@ -1,25 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJD4fnw027518
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:04:41 -0500
-Received: from tomts29-srv.bellnexxia.net (tomts29-srv.bellnexxia.net
-	[209.226.175.103])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJD3jRW022415
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:04:24 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: thomas reiter <x535.01@gmail.com>
-Date: Wed, 19 Nov 2008 08:01:59 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C79D3B3@Colmatec004.COLMATEC.INT>
-References: <1226943947.6362.10.camel@ivan>
-	<09CD2F1A09A6ED498A24D850EB101208165C79D3B1@Colmatec004.COLMATEC.INT>,
-	<b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
-In-Reply-To: <b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
-Content-Language: fr-CA
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALAnBtQ029362
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 05:49:11 -0500
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALAmwTJ000325
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 05:48:59 -0500
+Message-ID: <49269369.90805@hhs.nl>
+Date: Fri, 21 Nov 2008 11:54:33 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: RE : RE : DVB-T2 (Mpeg4) in Norway
+To: kilgota@banach.math.auburn.edu
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
+	<200811190020.15663.linux@baker-net.org.uk>
+	<4923D159.9070204@hhs.nl>
+	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
+	<49253004.4010504@hhs.nl>
+	<Pine.LNX.4.64.0811201130410.3570@banach.math.auburn.edu>
+	<4925BC94.7090008@hhs.nl>
+	<Pine.LNX.4.64.0811202306360.3930@banach.math.auburn.edu>
+In-Reply-To: <Pine.LNX.4.64.0811202306360.3930@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
+	driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,64 +36,122 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Try to get the dib0700 windows driver files, if u have tell me would be interest to help
-________________________________________
-De : thomas reiter [x535.01@gmail.com]
-Date d'envoi : 18 novembre 2008 12:59
-À : Jonathan Lafontaine
-Cc : video4linux-list@redhat.com
-Objet : Re: RE : DVB-T2 (Mpeg4) in Norway
+kilgota@banach.math.auburn.edu wrote:
+> 
+> Hans,
+> 
+> Two topics.
+> 
+> First one:
+> I tried out some simplification and shortening of the code in 
+> ahd_bayer.c and I managed to cut down on the time a bit. The time for it 
+> to run on a 320x240 image (from a Sonix SN9C2028) that I keep around for 
+> testing is
+> 
+> Total time of AHD :     40 ms (time before doing the algorithm changes)
+> 
+> Total time of AHD :     20 ms (after doing the algorithm simplification)
+> 
 
-Sorry but  I'm needing a firmware for the dib0700 driver.
+Uhg, with 352x288 @ 30 fps (and yes some cams can do 30 fps at 352x288) this 
+translates to 792 ms of each second being used just for the demosaic phase.
 
-2008/11/18 Jonathan Lafontaine <jlafontaine@ctecworld.com<mailto:jlafontaine@ctecworld.com>>
-sorry I didn't specify the other way to get the firmware, depending if your device is using the em28xx driver
+> Total time of bilin :     10 ms (done with the old algorithm that Lutz 
+> M. wrote for libgphoto2 before the "accrue" edge detection was added)
+> 
+> Total time of accrue :  10 ms  (done with the "accrue" edge detection 
+> which is found at present in ahd_bayer.c)
+> 
 
-if you have the Windows drivers, u can extract from sys file
+Hmm, still not too good, using an spca561 based cam, which sends compressed 
+bayer, displaying 352x288 @ 30 fps, takes 35% CPU load, with my CPU running at 
+1Ghz. Note this includes everything, decompression, demosaic and actually 
+displaying the pictures.
 
-http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#Firmware_Information
+Could you drop in the bilinear code from libv4l bayer.c and see how that 
+performs on your file ?
 
+> What was timed is the interpolation function only;
 
+So these times do not include the spread out ? Hmm.
 
-example for a type vendor using empia chipset :
+> Relative image quality of the methods:
+> 
+> 1. straight bilinear interpolation is lousy on this image. Lots of 
+> zippering.
+> 
 
-kworld : emBDA.sys
+Ok, then maybe we do need to get something better.
 
-________________________________________
-De : video4linux-list-bounces@redhat.com<mailto:video4linux-list-bounces@redhat.com> [video4linux-list-bounces@redhat.com<mailto:video4linux-list-bounces@redhat.com>] de la part de Thomas Reiter [x535.01@gmail.com<mailto:x535.01@gmail.com>]
-Date d'envoi : 17 novembre 2008 12:45
-À : video4linux-list@redhat.com<mailto:video4linux-list@redhat.com>
-Objet : DVB-T2 (Mpeg4) in Norway
+> 2. accrue is not much better. Cures zippering but leaves stripes of 
+> color artifacting beside vertical or horizontal edges.
+> 
 
-I bought a Pinnacle Nano USB stick and checked that this stick is OK
-with the software from Pinnacle. Here in Norway DVB-T is coded with
-Mpeg4, so it's a new experience.
+Are those "stripes of color artifacting" also present with plain bilinear
 
-With Ubuntu I tried something with "scan" and "Kaffeine" but both
-programs were not able to detect some programs. It must be the old
-firmware. Is someone able to help me to extract the firmware from my
-snoopusb log?
+> 3. Very simplified AHD (choice algorithm at each pixel tossed, only an 
+> average of the vertical and horizontal approximation used at each color 
+> in each pixel). Zippering, again, but the rest of the image leaves a 
+> much better impression.
+> 
+> 4. The simplified AHD which is found in ahd_bayer.c (joint work with 
+> Eero Salminen at H.U.T.) gives of course far the best quality, but 
+> probably it is just too slow for webcam type of stuff.
+> 
+> It would probably be possible further to streamline the code for the 
+> very simplified AHD and then I suspect it would run a little bit faster. 
 
-Thanks
+It might just be that your system is slow, but if it turns out that bayer.c 
+from libv4l is much faster then the bilinear code from libgphoto2, then IMHO 
+going to AHD is speedwise not a good idea.
 
-Thomas
+> Second item:
+> 
+> I notice that you intend for the kernel modules which support webcams to 
+> do only basic stuff, and then to pass everything over to userspace. 
+> Specifically, you intend to pass everything over to libv4l2, and various 
+> apps for doing stuff with webcam output are then envisioned to sit on 
+> top of libv4l2 and use it. Therefore some dumb, or, for all I know, not 
+> so dumb questions:
+> 
+> 1. What is to prevent the kernel module from interacting with (for 
+> example) both libv4l2 and libusb? Why could not the kernel module (for 
+> example) pass isochronous stuff through libv4l2 and bulk stuff through 
+> libusb?
+> 
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com<mailto:video4linux-list-request@redhat.com>?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+Erm, when you have a kernel module there is no need to use libusb, the kernel 
+has its own functions for usb.
 
---
+Basicly whenever we have a video input device, we want to have a kernel driver, 
+so as to present a standard /dev/videoX device to userspace, so that all apps 
+written for v4l can use the device.
 
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com<http://www.solulan.com>
+However we do not want to do video format conversion (let alone decompression) 
+in kernel space, so if the data is in an exotic format we simply indicate this 
+in the pixelformat member of the exchanged structs, and let userspace deal with it.
 
+This is where libv4l comes in into play, libv4l is a convenience lib for 
+applications, which can do conversion for them so that the app writers do not 
+have to add support for each exotic webcam format themselves.
 
+Currently we are planning on improving the format conversion by adding 
+additional steps like whitebalance and normalizing.
 
---
-This message has been scanned by LastSpam<http://www.lastspam.com> eMail security service, provided by SoluLAN<http://www.solulan.com>..
-Ce message a été vérifié par le service de sécurité pour courriels LastSpam<http://www.lastspam.com>, fourni par SoluLAN<http://www.solulan.com>.
+> 2. What prevents libusb, in turn, from interacting with a kernel module. 
+> Or, if something does prevent it, then what is preventing something like 
+> libgphoto2 from interacting with the kernel module?
+> 
+
+libusb does not interact with a kernel module for a specific device, it 
+interacts directly with the device through the usb subsystem, here in lies a 
+problem for the sq905 as only an in kernel driver, or libusb can access the 
+device at a time. I've understood from others in this thread there are 
+solutions for this, but I'm not familiar with them.
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
