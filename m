@@ -1,30 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAP7Ri9r027893
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 02:27:44 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAP7RUnA011489
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 02:27:30 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so2530623wfc.6
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 23:27:29 -0800 (PST)
-Message-ID: <5d5443650811242327gc204050lf232dfac48ae4f1@mail.gmail.com>
-Date: Tue, 25 Nov 2008 12:57:29 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-In-Reply-To: <200811250810.01767.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALNe1J9008553
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 18:40:01 -0500
+Received: from mk-outboundfilter-5.mail.uk.tiscali.com
+	(mk-outboundfilter-5.mail.uk.tiscali.com [212.74.114.1])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALNdiIE001249
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 18:39:44 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: sqcam-devel@lists.sourceforge.net
+Date: Fri, 21 Nov 2008 23:39:42 +0000
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
+	<200811212157.21254.linux@baker-net.org.uk>
+In-Reply-To: <200811212157.21254.linux@baker-net.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <200811242309.37489.hverkuil@xs4all.nl>
-	<5d5443650811242251g5ddda028q9413b0ff47fc08a8@mail.gmail.com>
-	<200811250810.01767.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: v4l2_device/v4l2_subdev: please review
+Message-Id: <200811212339.42492.linux@baker-net.org.uk>
+Cc: video4linux-list@redhat.com, kilgota@banach.math.auburn.edu
+Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
+	driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,34 +33,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+On Friday 21 November 2008, Adam Baker wrote:
+> There is a patch for libusb at
+> http://osdir.com/ml/lib.libusb.devel.general/2007-04/msg00239.html to
+> implemnt attach which the relevant maintainer claimed he had applied but
+> doesn't appear to exist in libusb svn. I'll raise the issue on the
 
->
-> I'm not going to spam the list with these quite big patches. Just go to
-> http://linuxtv.org/hg/~hverkuil/v4l-dvb-ng/ and click on the 'raw' link
-> after each change to see the patch. Most of these changes are just
-> boring i2c driver conversions.
+Further investigation reveals that the reason this patch hasn't been applied 
+is because libusb-0.1 is in bug fixes only mode while a new libusb variant is 
+being developed. It did get applied to a previous development branch but that 
+branch got killed.
 
-It is hard to review these patches from this link, as if you submit
-the patch to ML then someone can just give inline comments to your
-patch, otherwise reviewer has to copy that code which he/she wants to
-comment while replying and not easy to track too. I don't know size
-limit of this v4l2 ML, but linux-kernel ML can receive somewhat big
-patches I believe.
+I've asked the question anyway.
 
->
-> We are adding to the v4l core, but the changes do not affect existing
-> v4l drivers let alone other subsystems. Although I should probably have
-> added the omap list.
-
-OMAP + soc-camera + v4l2-int-* community would be more interested to
-see these patches as they need to change their sensor/controller
-drivers to adapt your changes.
-
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Adam
 
 --
 video4linux-list mailing list
