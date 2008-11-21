@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3Iw840031189
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 13:58:08 -0500
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA3Iw63T015898
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 13:58:07 -0500
-Message-ID: <490F4ABB.1050608@hhs.nl>
-Date: Mon, 03 Nov 2008 20:02:19 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALIDXmI003102
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 13:13:33 -0500
+Received: from mail-gx0-f11.google.com (mail-gx0-f11.google.com
+	[209.85.217.11])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALIDF8I011240
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 13:13:15 -0500
+Received: by gxk4 with SMTP id 4so454813gxk.3
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 10:13:15 -0800 (PST)
+Message-ID: <5d5443650811211012t238dd191t81680c45717d8337@mail.gmail.com>
+Date: Fri, 21 Nov 2008 23:42:44 +0530
+From: "Trilok Soni" <soni.trilok@gmail.com>
+To: hvaibhav@ti.com
+In-Reply-To: <1227280923-31654-1-git-send-email-hvaibhav@ti.com>
 MIME-Version: 1.0
-To: Colin Brace <cb@lim.nl>
-References: <490F2730.9090703@lim.nl>
-In-Reply-To: <490F2730.9090703@lim.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: xawtv 'webcam' & uvcvideo webcam: ioctl error
+Content-Disposition: inline
+References: <hvaibhav@ti.com>
+	<1227280923-31654-1-git-send-email-hvaibhav@ti.com>
+Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org,
+	davinci-linux-open-source-bounces@linux.davincidsp.com
+Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,49 +33,137 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Colin Brace wrote:
-> Hi all,
-> 
-> I am trying to get the 'webcam' utility of xwatv working with my uvcvide 
-> webcam, a Creative Optia. My Fedora 9 system recognizes the webcam fine; 
-> here is the dmesg line:
-> 
-> uvcvideo: Found UVC 1.00 device Live! Cam Optia (041e:4057)
-> 
-> The webcam works with apps like Skype.
-> 
-> I'd like to configure it to upload images periodically to my website 
-> using the xawtv 'webcam' utility. I create ~/.webcamrc as indicated in 
-> the man page, but when I run it, it return an error message:
-> 
-> $ webcam
-> reading config file: /home/colin/.webcamrc
-> video4linux webcam v1.5 - (c) 1998-2002 Gerd Knorr
-> grabber config:
->  size 320x240 [16 bit YUV 4:2:2 (packed, YUYV)]
->  input Camera 1, norm (null), jpeg quality 75
->  rotate=0, top=0, left=0, bottom=240, right=320
-> write config [ftp]:
->  local transfer ~/Desktop/uploading.jpeg => ~/Desktop/webcam.jpeg
-> ioctl: VIDIOC_DQBUF(index=0;type=VIDEO_CAPTURE;bytesused=0;flags=0x0 
-> [];field=ANY;;timecode.type=0;timecode.flags=0;timecode.frames=0;timecode.seconds=0;timecode.minutes=0;timecode.hours=0;timecode.userbits="";sequence=0;memory=unknown): 
-> Invalid argument
-> capturing image failed
-> 
-> Any ideas what is going wrong here?
+Hi Vaibhav,
 
-I think I do, xawtv contains a few v4l2 handling bugs. This patch fixes them 
-and most likely fixes your issue:
-http://cvs.fedoraproject.org/viewvc/devel/xawtv/xawtv-3.95-fixes.patch?revision=1.1
+On Fri, Nov 21, 2008 at 8:52 PM,  <hvaibhav@ti.com> wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> Added new V4L2 slave driver for TVP514x.
+>
+> The Driver interface has been tested on OMAP3EVM board
+> with TI daughter card (TVP5146). Soon the patch for Daughter card will
+> be posted on community.
 
-Regards,
+You may want to add some of the TVP5146 video decoder capabilities in
+commit text. Useful for someone who just sees this chip for first
+time.
 
-Hans
+>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+>                Hardik Shah <hardik.shah@ti.com>
+>                Manjunath Hadli <mrh@ti.com>
+>                R Sivaraj <sivaraj@ti.com>
+>                Vaibhav Hiremath <hvaibhav@ti.com>
+>                Karicheri Muralidharan <m-karicheri2@ti.com>
 
+I suggested to change this in another email.
 
-> 
-> TIA
-> 
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/delay.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-int-device.h>
+
+Convention is is to put empty line between  #include <linux/xxx.h> and
+first #include <nonlinux/xxx.h> which is #include
+<media/v4l2-int-device.h>
+
+> +#include <media/tvp514x.h>
+> +
+
+> +
+> +/* List of image formats supported by TVP5146/47 decoder
+> + * Currently we are using 8 bit mode only, but can be
+> + * extended to 10/20 bit mode.
+> + */
+> +static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
+> +       {
+> +        .index = 0,
+> +        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> +        .flags = 0,
+> +        .description = "8-bit UYVY 4:2:2 Format",
+> +        .pixelformat = V4L2_PIX_FMT_UYVY,
+> +        }
+
+Good to add "," after the last element.
+
+> +static struct tvp514x_std_info tvp514x_std_list[] = {
+> +       {
+> +        .width = NTSC_NUM_ACTIVE_PIXELS,
+> +        .height = NTSC_NUM_ACTIVE_LINES,
+> +        .video_std = VIDEO_STD_NTSC_MJ_BIT,
+> +        .standard = {
+> +                     .index = 0,
+> +                     .id = V4L2_STD_NTSC,
+> +                     .name = "NTSC",
+> +                     .frameperiod = {1001, 30000},
+> +                     .framelines = 525}
+
+"{" after 525 looks weird.
+
+> +        },
+> +       {
+
+You can put "{" with "}" to save one line . Like this
+
+"}, {"
+
+You may want to make similar changes at other places in the patch.
+
+> +static enum tvp514x_std tvp514x_get_current_std(struct tvp514x_decoder
+> +                                               *decoder)
+> +{
+> +       u8 std, std_status;
+> +
+> +       if (tvp514x_read_reg(decoder->client, REG_VIDEO_STD, &std))
+> +               return STD_INVALID;
+> +
+> +       if ((std & VIDEO_STD_MASK) == VIDEO_STD_AUTO_SWITCH_BIT) {
+> +               /* use the standard status register */
+> +               if (tvp514x_read_reg(decoder->client, REG_VIDEO_STD_STATUS,
+> +                                    &std_status))
+> +                       return STD_INVALID;
+> +       } else
+> +               std_status = std;       /* use the standard register itself */
+> +
+> +       switch (std_status & VIDEO_STD_MASK) {
+> +       case VIDEO_STD_NTSC_MJ_BIT:
+> +               return STD_NTSC_MJ;
+> +               break;
+
+No need of " break" here.
+
+> +
+> +       case VIDEO_STD_PAL_BDGHIN_BIT:
+> +               return STD_PAL_BDGHIN;
+> +               break;
+
+Ditto.
+
+> +
+> +       default:
+> +               return STD_INVALID;
+> +               break;
+
+Tritto?
+
+> +       }
+> +
+> +       return STD_INVALID;
+> +}
+> +
+
+> +
+> +static int
+> +tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+> +{
+
+Mark this as __init please.
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
 
 --
 video4linux-list mailing list
