@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQM0Fnc030735
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 17:00:15 -0500
-Received: from mail.ki.iif.hu (mail.ki.iif.hu [193.6.222.241])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQM02La016347
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 17:00:02 -0500
-Date: Wed, 26 Nov 2008 22:59:57 +0100 (CET)
-From: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0811262251210.10867@bakacsin.ki.iif.hu>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALJOI84012413
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:24:18 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALJO3JW022340
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:24:03 -0500
+Received: by ug-out-1314.google.com with SMTP id j30so208861ugc.13
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 11:24:02 -0800 (PST)
+Message-ID: <412bdbff0811211124t21332eaer602fa807f0436a9d@mail.gmail.com>
+Date: Fri, 21 Nov 2008 14:24:02 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+In-Reply-To: <alpine.DEB.1.10.0811212015070.29615@bakacsin.ki.iif.hu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
 	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
 	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	<alpine.DEB.1.10.0811212015070.29615@bakacsin.ki.iif.hu>
 Cc: V4L <video4linux-list@redhat.com>
 Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
@@ -34,35 +33,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> No need to apologize.  The parser.pl just makes everything *much* easier.
+On Fri, Nov 21, 2008 at 2:20 PM, Kiss Gabor (Bitman)
+<kissg@ssg.ki.iif.hu> wrote:
+> Uhm.... every time I tried to snoop USB traffic windows machine
+> got frozen or slowed veeeeeeeeeeery down.
+> So I could not run TV software bundled with device.
+> A very short (182 kB) capture about device connection is here:
+>
+> http://bakacsin.ki.iif.hu/~kissg/tmp/connect-UsbSnoop.log.txt
 
-I'm just ashamed because I did not research a bit before
-I offer you some 5 GB of garbage. :-)
+I'll look at this and see if enough is here to debug the issue.
 
-> Do you know which chips this device contains?  If not, could you
+> A question:
+> Where should I download latest em28xx driver from?
+> http://linuxtv.org/hg/ or http://mcentral.de/hg/ ?
 
-No.
+There are actually two different em28xx drivers.  The driver on
+linuxtv.org is maintained by the linux-dvb project and is the driver
+that currently appears in the mainline kernel.  The mcentral.de driver
+is maintained by Markus Rechberger and any questions regarding that
+driver should be sent to his "em28xx" mailing list hosted on
+mcentral.de.
 
-> please open the unit and send me some high-resolution photographs of
-> the circuit board?
+Thanks for the additional testing,
 
-At this moment I have no idea at all how to open the box without
-serious damages.
-Is this necessary? Could you check the July thread about the same
-device?
-https://www.redhat.com/mailman/private/video4linux-list/2008-July/msg00388.html
-https://www.redhat.com/mailman/private/video4linux-list/2008-July/msg00399.html
+Devin
 
-Maybe kernel messages can help something:
-
-Nov 16 11:55:21 pvr kernel: [20768.836569] em28xx #0: found i2c device @ 0x4a [saa7113h]
-Nov 16 11:55:21 pvr kernel: [20768.842344] em28xx #0: found i2c device @ 0x60 [remote IR sensor]
-Nov 16 11:55:21 pvr kernel: [20768.853068] em28xx #0: found i2c device @ 0x86 [tda9887]
-Nov 16 11:55:21 pvr kernel: [20768.870318] em28xx #0: found i2c device @ 0xc6 [tuner (analog)]
-
-Regards
-
-Gabor
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
