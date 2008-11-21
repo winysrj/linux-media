@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1L4cYB-0006R9-GS
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 15:36:34 +0100
-From: Darron Broad <darron@kewl.org>
-To: "Eduard Huguet" <eduardhc@gmail.com>
-In-reply-to: <617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com> 
-References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
-	<29500.1227284783@kewl.org>
-	<617be8890811240346r3aae6f31rfab45804419bfade@mail.gmail.com>
-	<18885.1227529079@kewl.org>
-	<617be8890811240423o6b8fc2e4jc94021cb14ec271a@mail.gmail.com>
-	<617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com>
-Date: Mon, 24 Nov 2008 14:36:27 +0000
-Message-ID: <20093.1227537387@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fwd: Distorted analog sound when using an HVR-3000
+Received: from n8a.bullet.ukl.yahoo.com ([217.146.183.156])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1L3dTv-0001Lx-3N
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 22:24:04 +0100
+Date: Fri, 21 Nov 2008 17:23:27 -0400
+From: Emmanuel ALLAUD <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <3C276393607085468A28782D978BA5EEECB30B5F24@w2k8svr1.glcdomain8.local>
+In-Reply-To: <3C276393607085468A28782D978BA5EEECB30B5F24@w2k8svr1.glcdomain8.local>
+	(from michael.curtis@glcweb.co.uk on Thu Nov 20 08:05:07 2008)
+Message-Id: <1227302607.6200.1@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  Status of TT 3200 S2 card and Mythtv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,40 +20,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com>, "Eduard Huguet" wrote:
+Le 20.11.2008 08:05:07, Michael J. Curtis a =E9crit=A0:
+> Hi all
+> =
 
-hiya.
+> Many thanks to all those who contribute to this list ...........but =
 
->Ok, problem solved: I needed to define a V4L "recording profile" in MythTV,
->so sound gets correctly sampled at 48000. Once done, the sound is perfect.
+> as
+> a keen linux user I need help in understanding where we are at in
+> respect of a working HD system with the TT3200 S2 card and then, is
+> Mythtv working with the required drivers?
+> =
 
-okay good.
+> I do realize that this is not really the correct forum for discussing
+> mythtv but I am certain there are other like me who are struggling
+> with getting a Mythtv system up and running with this card
 
->Thank you very much for your help. Kind regards,
+Well here it works with mythtv and AstonCrypt CAM (can decode 2 streams =
 
-no problem.
+simultaneously). The only problem is that some transponders can not be =
 
-BTW, do I understand that you needed these changes
-for S-VIDEO/COMPOSITE LINE-IN or did you solve the problem by
-just lowering the input volume from your input device? I don't
-have that opportunity personally with one DVD player.
+tuned to (this seems to be highly dependent of location, some people =
 
->  Eduard Huguet
-
-bye
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
+have no problem).
+Bye
+Manu
 
 
 _______________________________________________
