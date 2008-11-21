@@ -1,26 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.citynetwork.se ([62.95.110.81] helo=smtp04.citynetwork.se)
+Received: from hs-out-0708.google.com ([64.233.178.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marten.gustafsson@holisticode.se>)
-	id 1L1LOw-000739-OR
-	for linux-dvb@linuxtv.org; Sat, 15 Nov 2008 14:41:27 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp04.citynetwork.se (Postfix) with ESMTP id 0C6F91B0013
-	for <linux-dvb@linuxtv.org>; Sat, 15 Nov 2008 14:40:31 +0100 (CET)
-Received: from smtp04.citynetwork.se ([127.0.0.1])
-	by localhost (smtp04.citynetwork.se [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id U92Ow4x1w753 for <linux-dvb@linuxtv.org>;
-	Sat, 15 Nov 2008 14:40:22 +0100 (CET)
-Received: from xplap (unknown [83.172.66.170])
-	(Authenticated sender: marten.gustafsson@holisticode.se)
-	by smtp04.citynetwork.se (Postfix) with ESMTP id 6119B1B000E
-	for <linux-dvb@linuxtv.org>; Sat, 15 Nov 2008 14:40:22 +0100 (CET)
-From: <reklam@holisticode.se>
-To: <linux-dvb@linuxtv.org>
-Date: Sat, 15 Nov 2008 14:40:25 +0100
-Message-ID: <F891BA13FD394081A5C17FDDA95616D9@xplap>
+	(envelope-from <eduardhc@gmail.com>) id 1L3bON-00049V-KC
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 20:10:14 +0100
+Received: by hs-out-0708.google.com with SMTP id 4so622108hsl.1
+	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 11:10:06 -0800 (PST)
+Message-ID: <617be8890811211110j40d57609u1ced5301298c34a8@mail.gmail.com>
+Date: Fri, 21 Nov 2008 20:10:06 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "Darron Broad" <darron@kewl.org>
+In-Reply-To: <29500.1227284783@kewl.org>
 MIME-Version: 1.0
-Subject: [linux-dvb] channels.conf for ComHem Stockholm wanted
+References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
+	<29500.1227284783@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,114 +22,116 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0877643668=="
+Content-Type: multipart/mixed; boundary="===============0369227935=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
-
---===============0877643668==
+--===============0369227935==
 Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0013_01C94730.18EA4B60"
+	boundary="----=_Part_97962_4364785.1227294606198"
 
-This is a multi-part message in MIME format.
+------=_Part_97962_4364785.1227294606198
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-------=_NextPart_000_0013_01C94730.18EA4B60
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Thanks for your info. I'll give it a test next Monday and post here the
+results.
 
-The flaky mantis driver for my AzureWave ad-cp30 prohibits channel =
-scanning.
-I would really appreciate if someone posted a working channles.config =
-for
-Swedish ComHem, Stockholm area.
-
-=20
-
-M=E5rten
+Best regards,
+  Eduard Huguet
 
 
-------=_NextPart_000_0013_01C94730.18EA4B60
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 
-<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns=3D"http://www.w3.org/TR/REC-html40">
+2008/11/21 Darron Broad <darron@kewl.org>
 
-<head>
-<meta http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;}
-span.E-postmall17
-	{mso-style-type:personal-compose;
-	font-family:Arial;
-	color:windowtext;}
-@page Section1
-	{size:612.0pt 792.0pt;
-	margin:72.0pt 90.0pt 72.0pt 90.0pt;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DSV =
-style=3D'font-size:10.0pt;
-font-family:Arial'>The flaky mantis driver for my </span></font><font =
-size=3D1
-face=3DArial><span lang=3DSV =
-style=3D'font-size:9.0pt;font-family:Arial'>AzureWave
-ad-cp30 prohibits channel scanning. I would really appreciate if someone =
-posted
-a working channles.config for Swedish ComHem, Stockholm =
-area.<o:p></o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DSV =
-style=3D'font-size:9.0pt;
-font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
-
-<p class=3DMsoNormal><font size=3D1 face=3DArial><span lang=3DSV =
-style=3D'font-size:9.0pt;
-font-family:Arial'>M=E5rten</span></font><font size=3D2 =
-face=3DArial><span lang=3DSV
-style=3D'font-size:10.0pt;font-family:Arial'><o:p></o:p></span></font></p=
+> In message <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>,
+> "Eduard Huguet" wrote:
+>
+> LO
+>
+> >Hi,
+> >    I'm testing a Hauppauge HVR-3000 for its use with MythTV, and I'm
+> >observing that I have a completely distorted sound when using any of the
+> >analog inputs (TV, S-Video or Composite). The sound is completely crackly,
+> >not understanble at all, just noise. I've teste 2 different cards, so I'm
+> >pretty sure it's not a "faulty card" issue.
+> >
+> >This happens both in MythTV or when using directly mplayer to capture
+> video
+> >& audio.
+> >
+> >I'm using an up-to-date HG DVB repository.
+>
+> There are some known problem with cards using the WM8775 codec.
+>
+> Use this repo here:
+>        http://hg.kewl.org/v4l-dvb/
+>
+> It changes how the WM8775 operates and you will be able to
+> control the input levels using v4l2-ctl.
+>
+> Please tell me if this solves your problems.
+>
+> Good luck
+>
+> --
+>
+>  // /
+> {:)==={ Darron Broad <darron@kewl.org>
+>  \\ \
+>
 >
 
-</div>
+------=_Part_97962_4364785.1227294606198
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-</body>
+Thanks for your info. I&#39;ll give it a test next Monday and post here the results.<br><br>Best regards, <br>&nbsp; Eduard Huguet<br><br><br><br><div class="gmail_quote">2008/11/21 Darron Broad <span dir="ltr">&lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;</span><br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">In message &lt;<a href="mailto:617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com">617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com</a>&gt;, &quot;Eduard Huguet&quot; wrote:<br>
 
-</html>
+<br>
+LO<br>
+<div><div></div><div class="Wj3C7c"><br>
+&gt;Hi,<br>
+&gt; &nbsp; &nbsp;I&#39;m testing a Hauppauge HVR-3000 for its use with MythTV, and I&#39;m<br>
+&gt;observing that I have a completely distorted sound when using any of the<br>
+&gt;analog inputs (TV, S-Video or Composite). The sound is completely crackly,<br>
+&gt;not understanble at all, just noise. I&#39;ve teste 2 different cards, so I&#39;m<br>
+&gt;pretty sure it&#39;s not a &quot;faulty card&quot; issue.<br>
+&gt;<br>
+&gt;This happens both in MythTV or when using directly mplayer to capture video<br>
+&gt;&amp; audio.<br>
+&gt;<br>
+&gt;I&#39;m using an up-to-date HG DVB repository.<br>
+<br>
+</div></div>There are some known problem with cards using the WM8775 codec.<br>
+<br>
+Use this repo here:<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://hg.kewl.org/v4l-dvb/" target="_blank">http://hg.kewl.org/v4l-dvb/</a><br>
+<br>
+It changes how the WM8775 operates and you will be able to<br>
+control the input levels using v4l2-ctl.<br>
+<br>
+Please tell me if this solves your problems.<br>
+<br>
+Good luck<br>
+<font color="#888888"><br>
+--<br>
+<br>
+&nbsp;// /<br>
+{:)==={ Darron Broad &lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;<br>
+&nbsp;\\ \<br>
+<br>
+</font></blockquote></div><br>
 
-------=_NextPart_000_0013_01C94730.18EA4B60--
+------=_Part_97962_4364785.1227294606198--
 
 
-
---===============0877643668==
+--===============0369227935==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -145,4 +141,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0877643668==--
+--===============0369227935==--
