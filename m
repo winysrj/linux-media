@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n8a.bullet.ukl.yahoo.com ([217.146.183.156])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1L3eAu-0005Df-IL
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 23:08:29 +0100
-Date: Fri, 21 Nov 2008 18:07:52 -0400
-From: Emmanuel ALLAUD <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <200811091657.32226.liplianin@tut.by> <49271E99.2040407@gmail.com>
-In-Reply-To: <49271E99.2040407@gmail.com> (from abraham.manu@gmail.com on
-	Fri Nov 21 16:48:25 2008)
-Message-Id: <1227305272.6200.2@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : [PATCH] TT S2-3200: Increase timeout for
- stb0899_send_diseqc_msg.
+Received: from joan.kewl.org ([212.161.35.248])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <darron@kewl.org>) id 1L3Ypv-0007Lp-7l
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 17:26:28 +0100
+From: Darron Broad <darron@kewl.org>
+To: "Eduard Huguet" <eduardhc@gmail.com>
+In-reply-to: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com> 
+References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
+Date: Fri, 21 Nov 2008 16:26:23 +0000
+Message-ID: <29500.1227284783@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,92 +18,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 21.11.2008 16:48:25, Manu Abraham a =E9crit=A0:
-> Igor M. Liplianin wrote:
-> > TT S2-3200: Increase timeout for stb0899_send_diseqc_msg.
-> > =
+In message <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>, "Eduard Huguet" wrote:
 
-> > From: Igor M. Liplianin <liplianin@me.by>
-> > =
+LO
 
-> > Increase timeout for stb0899_send_diseqc_msg. It fixes error for
-> rotor:
-> > FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out.
-> > =
+>Hi,
+>    I'm testing a Hauppauge HVR-3000 for its use with MythTV, and I'm
+>observing that I have a completely distorted sound when using any of the
+>analog inputs (TV, S-Video or Composite). The sound is completely crackly,
+>not understanble at all, just noise. I've teste 2 different cards, so I'm
+>pretty sure it's not a "faulty card" issue.
+>
+>This happens both in MythTV or when using directly mplayer to capture video
+>& audio.
+>
+>I'm using an up-to-date HG DVB repository.
 
-> > Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-> > =
+There are some known problem with cards using the WM8775 codec.
 
-> > =
+Use this repo here:
+	http://hg.kewl.org/v4l-dvb/
 
-> > =
+It changes how the WM8775 operates and you will be able to 
+control the input levels using v4l2-ctl.
 
-> ------------------------------------------------------------------------
-> > =
+Please tell me if this solves your problems.
 
-> > # HG changeset patch
-> > # User Igor M. Liplianin <liplianin@me.by>
-> > # Date 1226189735 -7200
-> > # Node ID e14ee5f020b15afdf0e5b573d0f960c68a458d37
-> > # Parent  1c4d63e589e0420d95d96bf81d3bfbb2cd39a9cf
-> > TT S2-3200: Increase timeout for stb0899_send_diseqc_msg.
-> > =
+Good luck
 
-> > From: Igor M. Liplianin <liplianin@me.by>
-> > =
+--
 
-> > Increase timeout for stb0899_send_diseqc_msg. It fixes error for
-> rotor:
-> > FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out.
-> > =
-
-> > Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-> > =
-
-> > diff -r 1c4d63e589e0 -r e14ee5f020b1
-> linux/drivers/media/dvb/frontends/stb0899_drv.c
-> > --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c	Sat Nov
-> 08 23:33:34 2008 +0200
-> > +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c	Sun Nov
-> 09 02:15:35 2008 +0200
-> > @@ -705,7 +705,7 @@
-> >  	stb0899_write_reg(state, STB0899_DISCNTRL1, reg);
-> >  	for (i =3D 0; i < cmd->msg_len; i++) {
-> >  		/* wait for FIFO empty	*/
-> > -		if (stb0899_wait_diseqc_fifo_empty(state, 10) < 0)
-> > +		if (stb0899_wait_diseqc_fifo_empty(state, 20) < 0)
-> >  			return -ETIMEDOUT;
-> >  =
-
-> >  		stb0899_write_reg(state, STB0899_DISFIFO,
-> cmd->msg[i]);
-> =
-
-> Diseqc/Rotor did work with the 10ms timeout for most of us. Was it
-> really failing ?
-> =
-
-> Anyway if it is really needed, the timeout can be increased.
-> =
-
-> Regards,
-> Manu
-
-Hi Manu,
-any progress on the stb0899 locking problems (I reported mine for DVB-S =
-
-QPSK 5/6).
-Thx
-Bye
-Manu
-
-
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
 
 _______________________________________________
