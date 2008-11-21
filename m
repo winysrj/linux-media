@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out5.smtp.messagingengine.com ([66.111.4.29])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <heldal@eml.cc>) id 1L0Cr7-0003mU-9Y
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 11:21:50 +0100
-From: Per Heldal <heldal@eml.cc>
-To: Goga777 <goga777@bk.ru>
-In-Reply-To: <E1L09Ud-000GW2-00.goga777-bk-ru@f149.mail.ru>
-References: <20081112023112.94740@gmx.net>
-	<E1L09Ud-000GW2-00.goga777-bk-ru@f149.mail.ru>
-Date: Wed, 12 Nov 2008 11:21:35 +0100
-Message-Id: <1226485295.19990.28.camel@obelix>
-Mime-Version: 1.0
-Cc: Hans Werner <HWerner4@gmx.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
+	(envelope-from <abraham.manu@gmail.com>) id 1L3cfi-0002lV-4b
+	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 21:32:11 +0100
+Message-ID: <49271AC1.7040801@gmail.com>
+Date: Sat, 22 Nov 2008 00:32:01 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Terry Barnaby <terry1@beam.ltd.uk>
+References: <492568A2.4030100@beam.ltd.uk> <492691B9.1080809@beam.ltd.uk>
+	<492692D2.2000009@beam.ltd.uk>
+In-Reply-To: <492692D2.2000009@beam.ltd.uk>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Take 2: Re: Twinhan VisionPlus DVB-T Card
+ not working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,44 +27,76 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 2008-11-12 at 09:46 +0300, Goga777 wrote:
-> thanks for your patch.
+Terry Barnaby wrote:
+> Terry Barnaby wrote:
+>> Terry Barnaby wrote:
+>>> Hi,
+>>>
+>>> I am having a problem with the latest DVB drivers.
+>>> I have a Twinhan VisionPlus DVB-T card (and other DVB cards) in my
+>>> MythTv server running Fedora 8. This is running fine
+>>> with the Fedora stock kernel: 2.6.26.6-49.fc8.
+>>>
+>>> However, I have now added a Hauppauge DVB-S2 and so have been
+>>> trying the latest DVB Mercurial DVB tree.
+>>> This compiles and installs fine and the two DVB-T cards and the
+>>> new DVB-S card are recognised and has /dev/dvb entries.
+>>> The first DVB-T card, a Twinhan based on the SAA7133/SAA7135
+>>> works fine but the Twinhan VisionPlus, which is Bt878 will not
+>>> tune in.
+>>>
+>>> Any ideas ?
+>>> Has there been any recent changes to the Bt878 driver that could
+>>> have caused this ?
+>>>
+>> I have tracked this down to a bug in the bt8xx/dst frontend.
+>> It appears that the front end tuning algorithm number as used in
+>> dvb_frontend.c has changed format but the default setting in
+>> bt8xx/dst has not been updated to match.
+>>
+>> This patch sets the default algorithm to be software tuning as,
+>> I believe, was the original setting. However, I wonder if
+>> it should be set to use hardware tuning by default ...
+>>
+>>
+>> Cheers
+>>
+>>
+>> Terry
+>>
+> This is a better patch as it describes the integer values
+> that can be used as options.
 > 
-> btw - could you scan dvb-s2 (qpsk & 8psk) channels with scan-s2 and
-> hvr4000 ? with which drivers ?
+> Cheers
 > 
-
-I seem to be able to scan some transponders, but not all, using current
-code from the repos at http://linuxtv.org/hg/v4l-dvb/ and
-http://mercurial.intuxication.org/hg/scan-s2 
-
-I run scan-s2 on the following list of HD-transponders on 0.8w :
-
-S 11938000 H 25000000 3/4 35 8PSK
-S 12015000 H 30000000 3/4 35 8PSK
-S 12130000 H 30000000 3/4 35 8PSK
-S 12188000 V 25000000 3/4 35 8PSK
-
-(a selection of transponders from
-http://lyngsat.com/packages/canaldigital.html)
-
-With rolloff set to AUTO scan-s2 will not lock to any transponder.
-Instead it will appear to repeatedly re-scan sources on any transponder
-the tuner previously was tuned to.
-
-With rolloff set to 35 as above scan-s2 will lock and find channels on
-both transponders with SR=25000000, but for the 2 in the middle with
-SR=30000000 it simply repeats the channel-list of the previous
-transponder. I've been playing with alternatives for rolloff and
-modulation with no result.
+> 
+> Terry
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> diff -r 5dc4a6b381f6 linux/drivers/media/dvb/bt8xx/dst.c
+> --- a/linux/drivers/media/dvb/bt8xx/dst.c	Wed Nov 19 13:01:33 2008 -0200
+> +++ b/linux/drivers/media/dvb/bt8xx/dst.c	Fri Nov 21 10:50:00 2008 +0000
+> @@ -38,9 +38,9 @@ module_param(dst_addons, int, 0644);
+>  module_param(dst_addons, int, 0644);
+>  MODULE_PARM_DESC(dst_addons, "CA daughterboard, default is 0 (No addons)");
+>  
+> -static unsigned int dst_algo;
+> +static unsigned int dst_algo = DVBFE_ALGO_SW;
+>  module_param(dst_algo, int, 0644);
+> -MODULE_PARM_DESC(dst_algo, "tuning algo: default is 0=(SW), 1=(HW)");
+> +MODULE_PARM_DESC(dst_algo, "tuning algo: default is 2=DVBFE_ALGO_SW (options: 1=DVBFE_ALGO_HW)");
+>  
+>  #define HAS_LOCK		1
+>  #define ATTEMPT_TUNE		2
 
 
+Can you please add in your Developer Certificate of Origin
+Signed-off-by: User.Name <user.name@domain.name>
 
--- 
-
-
-Per Heldal - http://heldal.eml.cc/
-
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
