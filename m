@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA1EZQOJ014027
-	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 10:35:26 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA1EZEZB023996
-	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 10:35:14 -0400
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200811011505.51716.hverkuil@xs4all.nl>
-References: <200811011505.51716.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 01 Nov 2008 10:36:02 -0400
-Message-Id: <1225550162.3129.7.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: em28xx <em28xx@mcentral.de>, linux-dvb@linuxtv.org,
-	v4l <video4linux-list@redhat.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] [PATCH 1/7] Adding empia base driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALLtZWL025975
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:55:35 -0500
+Received: from mail4.aster.pl (mail4.aster.pl [212.76.33.58])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALLtLT6025788
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:55:21 -0500
+From: "daniel.perzynski" <daniel.perzynski@aster.pl>
+To: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Message-Id: <6367380D4484A05418484321130E6EE212273045156E0FF6E4617EF3586D@webmail.aster.pl>
+Date: Fri, 21 Nov 2008 22:55:20 +0100 (CET)
+Cc: cityk@rogers.com
+Subject: Avermedia A312 wiki page
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,43 +26,12 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 2008-11-01 at 15:05 +0100, Hans Verkuil wrote:
+I've updated Avermedia A312 wiki page. Here is the link:
+http://www.linuxtv.org/wiki/index.php/AVerMedia_A312_%28ATSC%29
 
-> Hi Markus,
-> 
-> As promised I've done a review of your empia driver and looked at what 
-> needs to be done to get it into the kernel.
-> 
-> First of all, I've no doubt that your empia driver is better and 
-> supports more devices than the current em28xx driver. I also have no 
-> problem adding your driver separate from the current driver. It's been 
-> done before (certain networking drivers spring to mind) and while 
-> obviously not ideal I expect that the older em28xx driver can probably 
-> be removed after a year or something like that.
-
-[snip]
-
-> So my recommendation would be to:
-
-[snip]
-
-> 3) Switch to video_ioctl2 in the empia driver. You can do that, but we 
-> can probably find a volunteer as well.
-> 
-> 4) Conform the code to the coding style. If several people can help with 
-> this we can get it done pretty quickly.
-
-I can support these two portions of the effort, if what Hans' proposes
-is the agreed plan.
-
-Point me to the target directories in the repo, and suggest desired
-completion dates for whatever tasks.
-
-Standing by...
-
-Regards,
-Andy
-
+Can someone please provide me with the information which kernel modules
+I should try to load to proceed further with checking if card can be
+supported?
 
 --
 video4linux-list mailing list
