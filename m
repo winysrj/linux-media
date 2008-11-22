@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from harpoon.unitedhosting.co.uk ([83.223.124.227])
+Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <robert@watkin5.net>) id 1L54R6-0002xu-FH
-	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 21:23:05 +0100
-Received: from [192.168.1.10] (host-84-9-146-65.dslgb.com [84.9.146.65])
-	(authenticated bits=0)
-	by harpoon.unitedhosting.co.uk (8.13.1/8.13.1) with ESMTP id
-	mAPKMMFg019259
-	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 20:22:31 GMT
-From: Robert Watkins <robert@watkin5.net>
+	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L3rGr-0007O1-Ab
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 13:07:30 +0100
+Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
+	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mAMC7P6J005785
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 13:07:25 +0100
+Message-ID: <4927F5FD.5080805@cadsoft.de>
+Date: Sat, 22 Nov 2008 13:07:25 +0100
+From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-In-Reply-To: <100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
-References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
-	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
-	<1227556939.16187.0.camel@youkaida>
-	<100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
-Date: Tue, 25 Nov 2008 20:19:10 +0000
-Message-Id: <1227644366.6949.18.camel@watkins-desktop>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
+Subject: [linux-dvb] S2API: problem unloading dvb_ttpci
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,44 +25,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 2008-11-24 at 21:29 +0000, Richard Palmer wrote:
-> Hi,
-> 
-> On Mon, Nov 24, 2008 at 8:02 PM, Nicolas Will <nico@youplala.net> wrote:
-> > On Mon, 2008-11-24 at 19:34 +0000, jon bird wrote:
-> >> could be although on perusing the mailing list archives this seemed
-> >> to
-> >> be a recurring problem of which various attempts have been made to
-> >> investigate/fix but there didn't seem to be a conclusion to it all.
-> >> Hence I just thought I'd see what the latest state of play was and
-> >> report back anything potentially useful.....
-> >
-> > Well, this has normally been solved. Your report is the first one in a
-> > long time.
-> 
-> I'll second the report. Also with a VIA motherboard, so the USB ports
-> could be the
-> culprit. Running Mythbuntu with kernel 2.6.24 and using the new
-> firmware still gives
-> i2c errors.
-> 
+I'm making my first steps in using the S2API driver, and already
+have a problem. When trying to do
 
-I've found Unbuntu 2.6.24-21-386 worked reasonable well with errors
-requiring a shut down and cold start once or twice a week.
+  /sbin/rmmod dvb_ttpci
 
-After an upgrade, I found 2.6.27-7-generic fails within seconds of
-starting to record on two tuners.
-  dvb-usb: error while enabling fifo.
+I get the error
 
-The current v4l-dvb drivers have the same issue.
+  ERROR: Removing 'dvb_ttpci': Device or resource busy
 
-I also occasionally get
-  dib0700: firmware download failed at 17248 with -110
+'lsmod' shows
 
-My PC's got ATI's IXP SB400 USB2 Host Controllers. 
+  Module                  Size  Used by
+  dvb_ttpci             348748  0
 
-Rob Watkins
+So who is using dvb_ttpci?
 
+BTW: this worked fine with the 'multiproto' driver ;-)
+
+Klaus
 
 _______________________________________________
 linux-dvb mailing list
