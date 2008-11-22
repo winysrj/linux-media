@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAREIe3b003035
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:18:40 -0500
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAREIPgN001864
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:18:26 -0500
-Message-ID: <17446.62.70.2.252.1227795504.squirrel@webmail.xs4all.nl>
-Date: Thu, 27 Nov 2008 15:18:24 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: RFC: drop support for kernels < 2.6.22
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAMMto90004103
+	for <video4linux-list@redhat.com>; Sat, 22 Nov 2008 17:55:50 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAMMtb85011089
+	for <video4linux-list@redhat.com>; Sat, 22 Nov 2008 17:55:37 -0500
+Date: Sat, 22 Nov 2008 20:55:27 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20081122205527.459fcc74@pedra.chehab.org>
+In-Reply-To: <1227384295.1828.8.camel@palomino.walls.org>
+References: <1227384295.1828.8.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l-dvb build doesn't work for 2.6.23.15-80.fc7
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,64 +27,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> On Thu, 27 Nov 2008 11:23:12 +0100 (CET)
-> "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
->
->> > On Thu, 27 Nov 2008 08:32:22 +0100
->> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> >
->> >> Hi all,
->> >>
->> >> It been my opinion for quite some time now that we are too generous
->> in
->> >> the number of kernel versions we support. I think that the benefits
->> no
->> >> longer outweight the effort we have to put in.
->> >>
->> >> This is true in particular for the i2c support since that changed a
->> lot
->> >> over time. Kernel 2.6.22 is a major milestone for that since it
->> >> introduced the new-style i2c API.
->> >
->> > I prefer to keep backward compat with older kernels. Enterprise
->> distros
->> > like
->> > RHEL is shipped with older kernels (for example RHEL5 uses kernel
->> 2.6.18).
->> > We
->> > should support those kernels.
->>
->> Is RHEL (or anyone else for that matter) actually using our tree? I
->> never
->> see any postings about problems or requests for these old kernels on the
->> v4l list.
->
-> RHEL bugs come to redhat bugzilla. Generated patches there should be
-> tested
-> against the latest version and applied upstream.
->
->> If you know of a distro or big customer that is actually using v4l-dvb
->> on
->> old kernels, then I think we should keep it, but otherwise it is my
->> opinion that it is not worth the (substantial) hassle. I also have my
->> doubts about people using enterprise distros together with v4l. Doesn't
->> seem very likely to me.
->
-> Yes, there are customers with enterprise distros using V4L drivers.
->
-> Also, I am using V4L/DVB tree with a 2.6.18 kernel on some machines.
-> Removing
-> support for 2.6.18 will be a pain for me.
->
-> I suspect that Laurent is also using RHEL (or some uvc users), since he
-> sent
-> some patches fixing compilation with RHEL.
+On Sat, 22 Nov 2008 15:04:55 -0500
+Andy Walls <awalls@radix.net> wrote:
 
-Darn. Oh well, so be it...
+> Mauro,
+> 
+> v4l-dvb build fails on one of my setups:
+> 
+> $ uname -a
+> Linux palomino.walls.org 2.6.23.15-80.fc7 #1 SMP Sun Feb 10 16:52:18 EST 2008 x86_64 x86_64 x86_64 GNU/Linu
+> 
+> $ make
+> [snip]
+>   CC [M]  /home/andy/cx18dev/v4l-dvb/v4l/ks0127.o
+>   LD [M]  /home/andy/cx18dev/v4l-dvb/v4l/zr36067.o
+>   CC [M]  /home/andy/cx18dev/v4l-dvb/v4l/videocodec.o
+> /home/andy/cx18dev/v4l-dvb/v4l/videocodec.c: In function 'videocodec_init':
+> /home/andy/cx18dev/v4l-dvb/v4l/videocodec.c:381: error: implicit declaration of function 'proc_create'
+> /home/andy/cx18dev/v4l-dvb/v4l/videocodec.c:381: warning: assignment makes pointer from integer without a cast
+> make[3]: *** [/home/andy/cx18dev/v4l-dvb/v4l/videocodec.o] Error 1
+> make[2]: *** [_module_/home/andy/cx18dev/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/kernels/2.6.23.15-80.fc7-x86_64'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/andy/cx18dev/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> 
+> 
+> By inspection, I think this may be the change that did it (I'm not
+> sure):
+> 
+> http://linuxtv.org/hg/v4l-dvb/rev/90deb49c4730
+> 
+> 
+> My workaround for myself is to just disable building all the zoran
+> stuff.
 
-Regards,
+Hmm... I did a small mistake at the compat thing. Please test if the new commit fixed it.
+> 
+> Regards,
+> Andy
+> 
+> 
 
-        Hans
+
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
