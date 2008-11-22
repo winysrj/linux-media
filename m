@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+Received: from fg-out-1718.google.com ([72.14.220.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lindsay@softlog.com.au>) id 1L4R2I-0006n3-Jg
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 03:18:54 +0100
-Received: from [127.0.0.1] by softlog.com.au (MDaemon PRO v9.5.6)
-	with ESMTP id 08-md50000010179.msg
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 12:17:43 +1000
-Message-ID: <492A0EC6.9090007@softlog.com.au>
-Date: Mon, 24 Nov 2008 12:17:42 +1000
-From: Lindsay Mathieson <lindsay@softlog.com.au>
+	(envelope-from <michael@stepanoff.org>) id 1L3slS-00009E-O2
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 14:43:11 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1051011fga.25
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 05:43:07 -0800 (PST)
+Message-ID: <65922d730811220543g7fba5bffoeeacd23d4ed88b99@mail.gmail.com>
+Date: Sat, 22 Nov 2008 15:43:06 +0200
+From: "Michael Stepanov" <michael@stepanoff.org>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <bf82ea70811110306v345c9061sc6d49f6a961647c@mail.gmail.com>	<bf82ea70811110312y487610d8v9656c3e76bf44e0@mail.gmail.com>	<49199510.6040809@iki.fi>
-	<49223D1E.9030300@softlog.com.au> <49285BAB.10505@iki.fi>
-In-Reply-To: <49285BAB.10505@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DigitalNow TinyTwin second tuner support
+Subject: [linux-dvb] TechnoTrend Budget S-1102
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,55 +18,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0623284549=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Antti Palosaari wrote:
-> Lindsay Mathieson wrote:
->> Antti Palosaari wrote:
->>> I disabled 2nd tuner by default due to bad performance I faced up 
->>> with my hardware. Anyhow, you can enable it by module param, use 
->>> modprobe dvb-usb-af9015 dual_mode=1 . Test it and please report.
->>>   
->>
->>
->> All this has inspired me to retry my DigitalNow TinyTwin. The results
->> are good (excellent) and badish. I am available to do any testing and
->> builds required. Thanks for all the hard work!
->>
->
-> I made other test version of af9015 driver which uses different 
-> MXL500x tuner driver. I think it will perform a lot more better. 
-> Please test:
-> http://linuxtv.org/hg/~anttip/af9015-mxl500x/
+--===============0623284549==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_139262_18486238.1227361386936"
 
+------=_Part_139262_18486238.1227361386936
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Ok, done some initial testing.
+Hi,
 
-- Uninstalled old build, rebooted,  installed new build and rebooted
-- /dev/dvb/adaptor0 created
-- Tunes and play's back *really* well, I tested with Kaffeine - 
-excellent reception, no dropouts or sounds squeaks that I noticed. 
-Tested with HD signals as well. This was only for a few miniutes, I 
-haven't had a chance to schedule a full recording, but will test that soon.
+I try to use TechnoTrend Budget S-1102 card but it isn't recognized by my
+Kubuntu 8.10. I can see it only in the lspci output. But there is no any
+world in the dmesg or logs.
 
-I enabled the second tuner and ran into the exactly problems as before 
-when trying to tune - kernel crash etc. The machine locked up on 
-shutdown and required a hard boot.
+Any idea how to solve that? Which kernel module actually is used for that
+card?
 
-Thanks! - Lindsay
-
-
+TIA
 -- 
-Lindsay
-Softlog Systems
+Cheers,
+Michael
+
+------=_Part_139262_18486238.1227361386936
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,<br><br>I try to use TechnoTrend Budget S-1102 card but it isn&#39;t recognized by my Kubuntu 8.10. I can see it only in the lspci output. But there is no any world in the dmesg or logs.<br><br>Any idea how to solve that? Which kernel module actually is used for that card?<br clear="all">
+<br>TIA<br>-- <br>Cheers,<br>Michael 
+
+------=_Part_139262_18486238.1227361386936--
 
 
+--===============0623284549==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0623284549==--
