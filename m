@@ -1,31 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+0c317467cf5bb4e87def+1897+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1KwUaI-0008Bt-0P
-	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 05:29:06 +0100
-Date: Sun, 2 Nov 2008 02:27:28 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <20081102022728.68e5e564@pedra.chehab.org>
-In-Reply-To: <200811011459.17706.hverkuil@xs4all.nl>
-References: <d9def9db0810221414w5348acf3re31a033ea7179462@mail.gmail.com>
-	<200811011459.17706.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Cc: Vitaly Wool <vwool@ru.mvista.com>,
-	Dan Kreiser <kreiser@informatik.hu-berlin.de>,
-	Lukas Kuna <lukas.kuna@evkanet.net>,
-	Andre Kelmanson <akelmanson@gmail.com>, acano@fastmail.fm,
-	John Stowers <john.stowers.lists@gmail.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Thomas Giesecke <thomas.giesecke@ibgmbh-naumburg.de>,
-	Zhenyu Wang <zhen78@gmail.com>,
-	v4l <video4linux-list@redhat.com>, linux-dvb@linuxtv.org,
-	em28xx <em28xx@mcentral.de>, greg@kroah.com,
-	Stefan Vonolfen <stefan.vonolfen@gmail.com>,
-	Stephan Berberig <s.berberig@arcor.de>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, Frank Neuber <fn@kernelport.de>
-Subject: Re: [linux-dvb] [PATCH 1/7] Adding empia base driver
+Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <halim.sahin@t-online.de>) id 1L3y6t-00043w-UG
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 20:25:41 +0100
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id 902D533A77A
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 20:25:36 +0100 (CET)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 1bxZvR5KIzvJ for <linux-dvb@linuxtv.org>;
+	Sat, 22 Nov 2008 20:25:36 +0100 (CET)
+Received: from halim.local (p54AE3EF9.dip.t-dialin.net [84.174.62.249])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id 4CFB433A6E2
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 20:25:36 +0100 (CET)
+Date: Sat, 22 Nov 2008 20:25:06 +0100
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20081122192506.GA5555@halim.local>
+References: <20081122145820.183450@gmx.net>
+	<20081122165902.GA17484@halim.local>
+	<20081122171756.GA4452@halim.local>
+	<200811221933.34287.sinter.mann@gmx.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <200811221933.34287.sinter.mann@gmx.de>
+Subject: Re: [linux-dvb] corrected subject: Re: errormessages skystar2
+	rev	2.6b?with latest v4l-dvb branch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -39,41 +41,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 1 Nov 2008 14:59:17 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> Hi Markus,
+Hi Mr Sinter (whats your realname?
+On Sa, Nov 22, 2008 at 07:33:34 +0100, sinter wrote:
+> I think you do not comprehend anything that you are doing, plus you are giving 
+> us all wrong and incomplete data.
+> That way you're spoiling that list......
 > 
-> As promised I've done a review of your empia driver and looked at what 
-> needs to be done to get it into the kernel.
-> 
-> First of all, I've no doubt that your empia driver is better and 
-> supports more devices than the current em28xx driver. I also have no 
-> problem adding your driver separate from the current driver. It's been 
-> done before (certain networking drivers spring to mind) and while 
-> obviously not ideal I expect that the older em28xx driver can probably 
-> be removed after a year or something like that.
-> 
-> In my opinion it's pretty much hopeless trying to convert the current 
-> em28xx driver into what you have. It's a huge amount of work that no 
-> one wants to do and (in this case) with very little benefit. Of course, 
-> Mauro has the final say in this.
-> 
+> So I chose to ignore you from now on.....
 
-Both upstream and the 4 duplicated drivers have similar functionality. Also,
-the upstream driver is actively maintained. So, there's no sense on accepting
-those duplicated drivers.
+Do you have some ohter problems to solve?
+Your mails at this list are useless at all.
+It was a typo 2.6b and 2.8b. 
+Sorry for that.
+In fact your mails can be redirected to /dev/null
 
-Also, just replacing one existing driver by a newer one will cause regressions
-on some already fixed bugs and remove some improvements that the upstream driver
-suffered.
 
-If there's a bug or a lack of functionality on em28xx, cx25843, xc5000 or
-tuner-xc2028, it is just a matter of submitting patches fixing those bugs or
-adding newer features.
-
-Cheers,
-Mauro
 
 _______________________________________________
 linux-dvb mailing list
