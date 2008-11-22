@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1L3Ypv-0007Lp-7l
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 17:26:28 +0100
-From: Darron Broad <darron@kewl.org>
-To: "Eduard Huguet" <eduardhc@gmail.com>
-In-reply-to: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com> 
-References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
-Date: Fri, 21 Nov 2008 16:26:23 +0000
-Message-ID: <29500.1227284783@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
+	(envelope-from <liplianin@tut.by>) id 1L3wUq-0000j9-CG
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 18:42:16 +0100
+Received: from [213.184.224.41] (account liplianin@tut.by HELO
+	dynamic-vpdn-128-2-82.telecom.by)
+	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
+	with ESMTPA id 98410638 for linux-dvb@linuxtv.org;
+	Sat, 22 Nov 2008 19:42:09 +0200
+Content-Disposition: inline
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Sat, 22 Nov 2008 19:41:56 +0200
+MIME-Version: 1.0
+Message-Id: <200811221941.56111.liplianin@tut.by>
+Subject: Re: [linux-dvb] [PATCH] TT S2-3200: Support for high symbol rates.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,49 +22,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>, "Eduard Huguet" wrote:
-
-LO
-
->Hi,
->    I'm testing a Hauppauge HVR-3000 for its use with MythTV, and I'm
->observing that I have a completely distorted sound when using any of the
->analog inputs (TV, S-Video or Composite). The sound is completely crackly,
->not understanble at all, just noise. I've teste 2 different cards, so I'm
->pretty sure it's not a "faulty card" issue.
->
->This happens both in MythTV or when using directly mplayer to capture video
->& audio.
->
->I'm using an up-to-date HG DVB repository.
-
-There are some known problem with cards using the WM8775 codec.
-
-Use this repo here:
-	http://hg.kewl.org/v4l-dvb/
-
-It changes how the WM8775 operates and you will be able to 
-control the input levels using v4l2-ctl.
-
-Please tell me if this solves your problems.
-
-Good luck
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+PiBJZ29yIE0uIExpcGxpYW5pbiB3cm90ZToKPiA+IFRUIFMyLTMyMDA6IFN1cHBvcnQgZm9yIGhp
+Z2ggc3ltYm9sIHJhdGVzLgo+ID4KPiA+IEZyb206IElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFu
+aW5AbWUuYnk+Cj4gPgo+ID4gVFQgUzItMzIwMDogU3VwcG9ydCBmb3IgaGlnaCBzeW1ib2wgcmF0
+ZXMuCj4gPiBTdWNjZXNzZnVsbHkgdGVzdGVkIGZvciA0NDk0OCBrU3ltL3MKPiA+Cj4gPiBTaWdu
+ZWQtb2ZmLWJ5OiBJZ29yIE0uIExpcGxpYW5pbiA8bGlwbGlhbmluQG1lLmJ5Pgo+ID4KPiA+Cj4g
+PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0KPiA+Cj4gPiAjIEhHIGNoYW5nZXNldCBwYXRjaAo+ID4gIyBVc2Vy
+IElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFuaW5AbWUuYnk+Cj4gPiAjIERhdGUgMTIyNjE4MDAx
+NCAtNzIwMAo+ID4gIyBOb2RlIElEIDFjNGQ2M2U1ODllMDQyMGQ5NWQ5NmJmODFkM2JmYmIyY2Qz
+OWE5Y2YKPiA+ICMgUGFyZW50ICA1NGIxMjhkNjM4NDM4MDM3YzdjYjQ0MTcwNDVjMGQ3NzNjMjFk
+OWU3Cj4gPiBUVCBTMi0zMjAwOiBTdXBwb3J0IGZvciBoaWdoIHN5bWJvbCByYXRlcy4KPiA+Cj4g
+PiBGcm9tOiBJZ29yIE0uIExpcGxpYW5pbiA8bGlwbGlhbmluQG1lLmJ5Pgo+ID4KPiA+IFRUIFMy
+LTMyMDA6IFN1cHBvcnQgZm9yIGhpZ2ggc3ltYm9sIHJhdGVzLgo+ID4gU3VjY2Vzc2Z1bGx5IHRl
+c3RlZCBmb3IgNDQ5NDgga1N5bS9zCj4gPgo+ID4gU2lnbmVkLW9mZi1ieTogSWdvciBNLiBMaXBs
+aWFuaW4gPGxpcGxpYW5pbkBtZS5ieT4KPiA+Cj4gPiBkaWZmIC1yIDU0YjEyOGQ2Mzg0MyAtciAx
+YzRkNjNlNTg5ZTAKPiA+IGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL3R0cGNpL2J1ZGdldC1jaS5j
+IC0tLQo+ID4gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi90dHBjaS9idWRnZXQtY2kuYwlTdW4g
+Tm92IDA5IDE2OjM1OjEzIDIwMDgKPiA+ICswMjAwICsrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+ZHZiL3R0cGNpL2J1ZGdldC1jaS5jCVNhdCBOb3YgMDggMjM6MzM6MzQKPiA+IDIwMDggKzAyMDAg
+QEAgLTEzMjEsNyArMTMyMSw3IEBACj4gPiAgCS5pbnZlcnNpb24JCT0gSVFfU1dBUF9PTiwgLyog
+MSAqLwo+ID4KPiA+ICAJLmxvX2NsawkJCT0gNzY1MDAwMDAsCj4gPiAtCS5oaV9jbGsJCQk9IDk5
+MDAwMDAwLAo+ID4gKwkuaGlfY2xrCQkJPSAxMzUwMDAwMDAsCj4gPgo+ID4gIAkuZXNub19hdmUJ
+CT0gU1RCMDg5OV9EVkJTMl9FU05PX0FWRSwKPiA+ICAJLmVzbm9fcXVhbnQJCT0gU1RCMDg5OV9E
+VkJTMl9FU05PX1FVQU5ULAo+Cj4gVGhlIFNUQjA4OTkgaXMgbmV2ZXIgcmF0ZWQgdG8gcnVuIGF0
+IDEzNU1IeiBjbG9jay4gU29tZSBvbGRlciBkaWUgY3V0cwo+IHdvdWxkIGV2ZW4gY2F1c2UgY2xv
+Y2sgcmFjZSBhcm91bmRzIGF0IGV2ZW4gMTA4TUh6LiBUaGUgcmVjb21tZW5kZWQKPiBtYXhpbXVt
+IGNsb2NrIGlzIDk5IE1IeiBhdCBtYXhpbXVtLgo+Cj4gSXMgeW91ciBTVEIwODk5IGRlbW9kdWxh
+dG9yIHN0aWxsIGZ1bmN0aW9uYWwsIHdoYXQgaW5zY3JpcHRpb25zIGFyZQo+IHRoZXJlIG9uIHRo
+ZSBkZW1vZHVsYXRvciA/IEkgbWVhbiBjb250aW51b3VzbHkgcnVubmluZyB3aXRoIHRoaXMgQ2xv
+Y2sKPiBmb3IgYSBkYXkgb3IgdHdvIGF0IGxlYXN0IC4uID8KPgo+IFJlZ2FyZHMsCj4gTWFudQoK
+T25seSBjb3VwbGUgaG91cnMgcGVyIGRheS4g93V0IGV2ZXJ5IGRheQpBbmQgc3RpbGwgZnVuY3Rp
+b25hbCA6KQoKLS0gCklnb3IgTS4gTGlwbGlhbmluCk1pY3Jvc29mdCBXaW5kb3dzIEZyZWUgWm9u
+ZSAtIExpbnV4IHVzZWQgZm9yIGFsbCBDb21wdXRpbmcgVGFza3MKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGlu
+dXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFu
+L2xpc3RpbmZvL2xpbnV4LWR2Yg==
