@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.27])
+Received: from relay14.mail.uk.clara.net ([80.168.70.194])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1L0FJM-0007EN-Pz
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 13:59:09 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so255757qwb.17
-	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 04:59:04 -0800 (PST)
-Message-ID: <c74595dc0811120459w430cdamf92318e39eaae88d@mail.gmail.com>
-Date: Wed, 12 Nov 2008 14:59:04 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: "BOUWSMA Barry" <freebeer.bouwsma@gmail.com>
-In-Reply-To: <alpine.DEB.2.00.0811121332240.22461@ybpnyubfg.ybpnyqbznva>
+	(envelope-from <news@onastick.clara.co.uk>) id 1L40IF-00024y-R9
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 22:45:33 +0100
+Received: from [79.123.73.181] (port=10986 helo=mail.onasticksoftware.net)
+	by relay14.mail.uk.clara.net with esmtp (Exim 4.69)
+	(envelope-from <news@onastick.clara.co.uk>) id 1L40IA-0001QV-NA
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 21:45:27 +0000
+Received: from onasticksoftware.net (lapdog.onasticksoftware.net [192.168.0.3])
+	by mail.onasticksoftware.net (Postfix) with ESMTP id BB2E18C884
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 21:45:19 +0000 (GMT)
+Message-ID: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
+Date: Sat, 22 Nov 2008 21:43:44 +0000
+To: linux-dvb@linuxtv.org
+From: jon bird <news@onastick.clara.co.uk>
 MIME-Version: 1.0
-References: <20081112023112.94740@gmx.net>
-	<c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
-	<alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
-	<c74595dc0811120408l4ef3cf92g9b1efc850e3b0b48@mail.gmail.com>
-	<alpine.DEB.2.00.0811121332240.22461@ybpnyubfg.ybpnyqbznva>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
+Subject: [linux-dvb] Nova/dib0700/i2C write failed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,165 +23,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1446385565=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1446385565==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_4989_14388182.1226494744948"
+Just to provide a bit more info on what seems to be an ongoing issue 
+with these devices, I updated my kernel (2.6.26) dvb drivers with a 
+snapshot from here on 19/11/08 (v4l-dvb-5dc4a6b381f6), it has marginally 
+improved the behaviour but only slightly. Previously, sporadic 'usb 1-4: 
+USB disconnect, address 2' followed by 'mt2060 I2C write failed' 
+cropping up generally put the khubd into a spin with repeated messages 
+of the form:
 
-------=_Part_4989_14388182.1226494744948
-Content-Type: text/plain; charset=ISO-8859-7
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Nov 22 20:12:13 fridge kernel: usb 1-4: USB disconnect, address 2
+Nov 22 20:12:13 fridge kernel: mt2060 I2C write failed
+...
 
-MjAwOC8xMS8xMiBCT1VXU01BIEJhcnJ5IDxmcmVlYmVlci5ib3V3c21hQGdtYWlsLmNvbT4KCj4g
-T24gV2VkLCAxMiBOb3YgMjAwOCwgQWxleCBCZXRpcyB3cm90ZToKPgo+ID4gQlRXLCB5b3UgZ2l2
-ZSBoZXJlIGV4YW1wbGUgb2YgTklUIHBhcnNpbmcsIGRvIHlvdSBrbm93IHRoZSBmb3JtYXQgb2Yg
-dGhlCj4gPiBtZXNzYWdlIGFuZCB3aGF0IGZpZWxkIHNwZWNpZmllcyB0aGF0IHRoZSBkZWxpdmVy
-eSBzeXN0ZW0gaXMgRFZCLVMyPyBzY2FuCj4gPiB1dGlsaXR5IGNvZGUgZG9lc24ndCBwYXJzZSBp
-dCwgc28gSSBqdXN0IGFkZCBib3RoIERWQi1TIGFuZCBEVkItUzIgc2NhbnMKPiBmb3IKPgo+IEkn
-dmUgc3BlbnQgeWVzdGVyZGF5IGhhY2tpbmcgVVRGLTggb3V0cHV0IGludG8gbXkgb2xkIGNvcHkK
-PiBvZiBkdmItYXBwcyBhbmQgdGhlbiBmaW5kaW5nIHRoYXQgdGhlIEdyZWVrIDEzRSBIb3RiaXJk
-cwo+IGNoYW5uZWwgYMLv9eveOjEyMTY4Omg6MjoyNzUwMDo1MTc6NzAwOjM4NCcgW1VURi04IGVu
-Y29kZWQsCj4gaG9wZSBteSBNSU1FIGhlYWRlcnMgYW5kIEVTTVRQIGFyZSBjb3JyZWN0XSBpcyBu
-b3Qgc2VudCBhcwo+IGxhdGluLWdyZWVrIGNoYXJzZXQsIGFuZCB0aHVzIGRvZXNuJ3QgYXBwZWFy
-IHByb3Blcmx5IGZvcgo+IG1lLCBidXQgYW55d2F5LCBoZXJlIGlzIGEgY29kZSBzbmlwcGV0IG9m
-IG15IGBzY2FuJyB0aGF0IHNlbmRzCj4gdGhlIE5JVCBkdW1wIG9mIHRoZSBzY2FubmVkIHRyYW5z
-cG9uZGVyIHRvIHN0ZGVyciwgdGhhdCBJCj4gdXNlIHdoZW4gbmVlZGVkLiAgQ3V0J24ncGFzdGU7
-IGFsc28gcGFydCBvZiBhIG11Y2ggbGFyZ2VyCj4gc2V0IG9mIGhhY2tzLCBzbyBpdCdzIG1lYW50
-IGFzIGFuIGV4YW1wbGUsIGFuZCBub3QgdG8gYmUKPiB1c2VkIGFzIGBgdXNlZnVsJycgY29kZToK
-Pgo+ICsKPiArY2hhciAqZmVjWzEwXSA9IHsiTk9ORSIsICIxLzIiLCAiMi8zIiwgIjMvNCIsICI0
-LzUiLCAiNS82IiwgIjYvNyIsICI3LzgiLAo+ICI4LzkiLCAiQVVUTyIgfSA7Cj4gK2lmICh0bi50
-eXBlID09IDApIHsKPiArICBpZiAoZHVtcF9uaXRzID09IDEpIHsKPiArICAgIHByaW50ZigiTklU
-IHJlc3VsdDogICVkICVzICVkICAgcG9zICAlLjFmJXMgICIsIHRuLnBhcmFtLmZyZXF1ZW5jeSwK
-PiB0bi5wb2xhcmlzYXRpb24gPyAiViIgOiAiSCIsIHRuLnBhcmFtLnUucXBzay5zeW1ib2xfcmF0
-ZSwKPiAoZmxvYXQpdG4ub3JiaXRhbF9wb3MvMTAsIHRuLndlX2ZsYWcgPyAiRSIgOiAiVyIpOwo+
-ICsgICAgcHJpbnRmKCIgIEZFQyAlcyIsICBmZWNbdG4ucGFyYW0udS5xcHNrLmZlY19pbm5lcl0g
-KTsKPiAraWYgKHRuLm1vZHVsYXRpb24gJiAweDA0KSB7Cj4gKyAgICAgICBwcmludGYoIiAgRFZC
-LVMyIik7Cj4gKyAgaWYgKCh0bi5tb2R1bGF0aW9uICYgMHgwMykgPT0gMHgwMSkgcHJpbnRmICgi
-IFFQU0siKTsKPiArICBpZiAoKHRuLm1vZHVsYXRpb24gJiAweDAzKSA9PSAweDAyKSBwcmludGYg
-KCIgOFBTSyIpOwo+ICsKPiArfQo+ICtpZiAodG4ucGFyYW0uaW52ZXJzaW9uICE9IDIpCj4gKyAg
-ICAgICBwcmludGYoIiAgaW52ICVzIiwgIHRuLnBhcmFtLmludmVyc2lvbiA/ICJPRkYiIDogIk9O
-IiAvKlhYWCBGSVhNRQo+ICovKTsKPiArcHJpbnRmKCJcbiIpOwo+ICsgIH0KPiArfQo+ICsKCkkg
-bXVzdCBiZSBtaXNzaW5nIHNvbWV0aGluZy4uLiBIb3cgdGhpcyBjb2RlIGlzIGFsaWduZWQgdG8g
-dGhlIGZvbGxvd2luZwptb2R1bGF0aW9uIGVudW1lcmF0aW9uPwpRUFNLIGVudW1lcmF0aW9uIGhh
-cyB2YWx1ZSAwLCA4UFNLIHZhbHVlIDkuCgp0eXBlZGVmIGVudW0gZmVfbW9kdWxhdGlvbiB7CiAg
-IFFQU0ssCiAgIFFBTV8xNiwKICAgUUFNXzMyLAogICBRQU1fNjQsCiAgIFFBTV8xMjgsCiAgIFFB
-TV8yNTYsCiAgIFFBTV9BVVRPLAogICBWU0JfOCwKICAgVlNCXzE2LAogICBQU0tfOCwKICAgQVBT
-S18xNiwKICAgQVBTS18zMiwKICAgRFFQU0ssCn0gZmVfbW9kdWxhdGlvbl90OwoKPgo+Cj4KPiBB
-bHNvLCBJIGJlbGlldmUgdGhhdCB0aGUgcmVjZW50IGBkdmJzbm9vcCcgaW52b2tlZCB3aXRoCj4g
-YC1zIHRzIC10c3N1YmRlY29kZScgb24gdGhlIE5JVCBQSUQgd2lsbCB2ZXJib3NlbHkgcGFyc2UK
-PiB0aGUgY29tcG9uZW50cyBhbmQgZGlzcGxheSBldmVyeXRoaW5nIC0tIEkgYmVsaWV2ZSBJIHVz
-ZWQKPiB0aGF0IHNvdXJjZSBjb2RlIGFzIHRoZSBiYXNpcyBmb3IgdGhlIGFib3ZlIGhhY2suCj4K
-PiBJIHdvbmRlciBpZiBhbnkgb2YgbXkgb3RoZXIgZHZiLWFwcHMvc2NhbiBoYWNrcyB3b3VsZCBi
-ZQo+IG9mIGludGVyZXN0IGZvciBzb21lb25lIHRvIGNsZWFuIHVwIChmb3IgbWUsIGZ1bmN0aW9u
-Cj4gYmVmb3JlIGZvcm0sIGVzcGVjaWFsbHkgd2hlbiBJIGRvbid0IGhhdmUgYSBjbHVlIGFzIHRv
-Cj4gd2hhdCBJIGFtIGRvaW5nKS4uLgo+Cj4KPiBiYXJyeSBib3V3c21hCj4K
-------=_Part_4989_14388182.1226494744948
-Content-Type: text/html; charset=ISO-8859-7
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Nov 22 20:14:22 fridge kernel: INFO: task khubd:1823 blocked for more 
+than 120 seconds.
+Nov 22 20:14:22 fridge kernel: "echo 0 > 
+/proc/sys/kernel/hung_task_timeout_secs" disables this message.
+Nov 22 20:14:22 fridge kernel: khubd         D f7f5d000     0  1823 2
+Nov 22 20:14:22 fridge kernel:        f74c8740 00000046 f7dfe000 
+f7f5d000 f74a0dc0 f74a0dc0 f7cc0e00 f768f360
+Nov 22 20:14:22 fridge kernel:        00000001 f7cc0f8c f7cc0e00 
+f7f39e58 f7f39e6c 00000001 f896724d 00000000
+Nov 22 20:14:22 fridge kernel:        f74a0dc0 c0124fde f7f39e64 
+f7f39e64 f7c0b200 c0186c21 f7f39ea4 00000000
+Nov 22 20:14:22 fridge kernel: Call Trace:
+Nov 22 20:14:22 fridge kernel:  [<f896724d>] 
+dvb_unregister_frontend+0xa3/0xda [dvb_core]
+Nov 22 20:14:22 fridge kernel:  [autoremove_wake_function+0/45] 
+autoremove_wake_function+0x0/0x2d
+Nov 22 20:14:22 fridge kernel:  [<c0124fde>] 
+autoremove_wake_function+0x0/0x2d
+Nov 22 20:14:22 fridge kernel:  [sysfs_ilookup_test+0/13] 
+sysfs_ilookup_test+0x0/0xd
 
-PGRpdiBkaXI9Imx0ciI+PGJyPjxicj4KPGRpdiBjbGFzcz0iZ21haWxfcXVvdGUiPjIwMDgvMTEv
-MTIgQk9VV1NNQSBCYXJyeSA8c3BhbiBkaXI9Imx0ciI+Jmx0OzxhIGhyZWY9Im1haWx0bzpmcmVl
-YmVlci5ib3V3c21hQGdtYWlsLmNvbSI+ZnJlZWJlZXIuYm91d3NtYUBnbWFpbC5jb208L2E+Jmd0
-Ozwvc3Bhbj48YnI+CjxibG9ja3F1b3RlIGNsYXNzPSJnbWFpbF9xdW90ZSIgc3R5bGU9IlBBRERJ
-TkctTEVGVDogMWV4OyBNQVJHSU46IDBweCAwcHggMHB4IDAuOGV4OyBCT1JERVItTEVGVDogI2Nj
-YyAxcHggc29saWQiPgo8ZGl2IGNsYXNzPSJJaDJFM2QiPk9uIFdlZCwgMTIgTm92IDIwMDgsIEFs
-ZXggQmV0aXMgd3JvdGU6PGJyPjxicj48L2Rpdj4KPGRpdiBjbGFzcz0iSWgyRTNkIj4mZ3Q7IEJU
-VywgeW91IGdpdmUgaGVyZSBleGFtcGxlIG9mIE5JVCBwYXJzaW5nLCBkbyB5b3Uga25vdyB0aGUg
-Zm9ybWF0IG9mIHRoZTxicj4mZ3Q7IG1lc3NhZ2UgYW5kIHdoYXQgZmllbGQgc3BlY2lmaWVzIHRo
-YXQgdGhlIGRlbGl2ZXJ5IHN5c3RlbSBpcyBEVkItUzI/IHNjYW48YnI+Jmd0OyB1dGlsaXR5IGNv
-ZGUgZG9lc24mIzM5O3QgcGFyc2UgaXQsIHNvIEkganVzdCBhZGQgYm90aCBEVkItUyBhbmQgRFZC
-LVMyIHNjYW5zIGZvcjxicj4KPGJyPjwvZGl2PkkmIzM5O3ZlIHNwZW50IHllc3RlcmRheSBoYWNr
-aW5nIFVURi04IG91dHB1dCBpbnRvIG15IG9sZCBjb3B5PGJyPm9mIGR2Yi1hcHBzIGFuZCB0aGVu
-IGZpbmRpbmcgdGhhdCB0aGUgR3JlZWsgMTNFIEhvdGJpcmRzPGJyPmNoYW5uZWwgYMLv9eveOjEy
-MTY4Omg6MjoyNzUwMDo1MTc6NzAwOjM4NCYjMzk7IFtVVEYtOCBlbmNvZGVkLDxicj5ob3BlIG15
-IE1JTUUgaGVhZGVycyBhbmQgRVNNVFAgYXJlIGNvcnJlY3RdIGlzIG5vdCBzZW50IGFzPGJyPgps
-YXRpbi1ncmVlayBjaGFyc2V0LCBhbmQgdGh1cyBkb2VzbiYjMzk7dCBhcHBlYXIgcHJvcGVybHkg
-Zm9yPGJyPm1lLCBidXQgYW55d2F5LCBoZXJlIGlzIGEgY29kZSBzbmlwcGV0IG9mIG15IGBzY2Fu
-JiMzOTsgdGhhdCBzZW5kczxicj50aGUgTklUIGR1bXAgb2YgdGhlIHNjYW5uZWQgdHJhbnNwb25k
-ZXIgdG8gc3RkZXJyLCB0aGF0IEk8YnI+dXNlIHdoZW4gbmVlZGVkLiAmbmJzcDtDdXQmIzM5O24m
-IzM5O3Bhc3RlOyBhbHNvIHBhcnQgb2YgYSBtdWNoIGxhcmdlcjxicj4Kc2V0IG9mIGhhY2tzLCBz
-byBpdCYjMzk7cyBtZWFudCBhcyBhbiBleGFtcGxlLCBhbmQgbm90IHRvIGJlPGJyPnVzZWQgYXMg
-YGB1c2VmdWwmIzM5OyYjMzk7IGNvZGU6PGJyPjxicj4rPGJyPitjaGFyICpmZWNbMTBdID0geyZx
-dW90O05PTkUmcXVvdDssICZxdW90OzEvMiZxdW90OywgJnF1b3Q7Mi8zJnF1b3Q7LCAmcXVvdDsz
-LzQmcXVvdDssICZxdW90OzQvNSZxdW90OywgJnF1b3Q7NS82JnF1b3Q7LCAmcXVvdDs2LzcmcXVv
-dDssICZxdW90OzcvOCZxdW90OywgJnF1b3Q7OC85JnF1b3Q7LCAmcXVvdDtBVVRPJnF1b3Q7IH0g
-Ozxicj4KK2lmICh0bi50eXBlID09IDApIHs8YnI+KyAmbmJzcDtpZiAoZHVtcF9uaXRzID09IDEp
-IHs8YnI+KyAmbmJzcDsgJm5ic3A7cHJpbnRmKCZxdW90O05JVCByZXN1bHQ6ICZuYnNwOyVkICVz
-ICVkICZuYnNwOyBwb3MgJm5ic3A7JS4xZiVzICZuYnNwOyZxdW90OywgdG4ucGFyYW0uZnJlcXVl
-bmN5LCB0bi5wb2xhcmlzYXRpb24gPyAmcXVvdDtWJnF1b3Q7IDogJnF1b3Q7SCZxdW90OywgdG4u
-cGFyYW0udS5xcHNrLnN5bWJvbF9yYXRlLCAoZmxvYXQpdG4ub3JiaXRhbF9wb3MvMTAsIHRuLndl
-X2ZsYWcgPyAmcXVvdDtFJnF1b3Q7IDogJnF1b3Q7VyZxdW90Oyk7PGJyPgorICZuYnNwOyAmbmJz
-cDtwcmludGYoJnF1b3Q7ICZuYnNwO0ZFQyAlcyZxdW90OywgJm5ic3A7ZmVjW3RuLnBhcmFtLnUu
-cXBzay5mZWNfaW5uZXJdICk7PGJyPitpZiAodG4ubW9kdWxhdGlvbiAmYW1wOyAweDA0KSB7PGJy
-PisgJm5ic3A7ICZuYnNwOyAmbmJzcDsgcHJpbnRmKCZxdW90OyAmbmJzcDtEVkItUzImcXVvdDsp
-Ozxicj4rICZuYnNwO2lmICgodG4ubW9kdWxhdGlvbiAmYW1wOyAweDAzKSA9PSAweDAxKSBwcmlu
-dGYgKCZxdW90OyBRUFNLJnF1b3Q7KTs8YnI+CisgJm5ic3A7aWYgKCh0bi5tb2R1bGF0aW9uICZh
-bXA7IDB4MDMpID09IDB4MDIpIHByaW50ZiAoJnF1b3Q7IDhQU0smcXVvdDspOzxicj4rPGJyPit9
-PGJyPitpZiAodG4ucGFyYW0uaW52ZXJzaW9uICE9IDIpPGJyPisgJm5ic3A7ICZuYnNwOyAmbmJz
-cDsgcHJpbnRmKCZxdW90OyAmbmJzcDtpbnYgJXMmcXVvdDssICZuYnNwO3RuLnBhcmFtLmludmVy
-c2lvbiA/ICZxdW90O09GRiZxdW90OyA6ICZxdW90O09OJnF1b3Q7IC8qWFhYIEZJWE1FICovKTs8
-YnI+CitwcmludGYoJnF1b3Q7XG4mcXVvdDspOzxicj4rICZuYnNwO308YnI+K308YnI+KzwvYmxv
-Y2txdW90ZT4KPGRpdj5JIG11c3QgYmUgbWlzc2luZyBzb21ldGhpbmcuLi4gSG93IHRoaXMgY29k
-ZSBpcyBhbGlnbmVkIHRvIHRoZSBmb2xsb3dpbmcgbW9kdWxhdGlvbiBlbnVtZXJhdGlvbj88L2Rp
-dj4KPGRpdj5RUFNLIGVudW1lcmF0aW9uIGhhcyB2YWx1ZSAwLCA4UFNLIHZhbHVlIDkuPC9kaXY+
-CjxkaXY+Jm5ic3A7PC9kaXY+CjxkaXY+PHNwYW4gY2xhc3M9ImsiPnR5cGVkZWY8L3NwYW4+IDxz
-cGFuIGNsYXNzPSJrIj5lbnVtPC9zcGFuPiA8c3BhbiBjbGFzcz0ibiI+ZmVfbW9kdWxhdGlvbjwv
-c3Bhbj4gPHNwYW4gY2xhc3M9InAiPns8L3NwYW4+PC9kaXY+CjxkaXY+PHNwYW4gY2xhc3M9Im4i
-PiZuYnNwOyZuYnNwOyBRUFNLPC9zcGFuPjxzcGFuIGNsYXNzPSJwIj4sPC9zcGFuPjwvZGl2Pgo8
-ZGl2PjxzcGFuIGNsYXNzPSJwIj4mbmJzcDsmbmJzcDsgPC9zcGFuPjxzcGFuIGNsYXNzPSJuIj5R
-QU1fMTY8L3NwYW4+PHNwYW4gY2xhc3M9InAiPiw8L3NwYW4+PC9kaXY+CjxkaXY+PHNwYW4gY2xh
-c3M9InAiPiZuYnNwOyZuYnNwOyA8L3NwYW4+PHNwYW4gY2xhc3M9Im4iPlFBTV8zMjwvc3Bhbj48
-c3BhbiBjbGFzcz0icCI+LDwvc3Bhbj48L2Rpdj4KPGRpdj48c3BhbiBjbGFzcz0icCI+Jm5ic3A7
-Jm5ic3A7IDwvc3Bhbj48c3BhbiBjbGFzcz0ibiI+UUFNXzY0PC9zcGFuPjxzcGFuIGNsYXNzPSJw
-Ij4sPC9zcGFuPjwvZGl2Pgo8ZGl2PjxzcGFuIGNsYXNzPSJwIj4mbmJzcDsmbmJzcDsgPC9zcGFu
-PjxzcGFuIGNsYXNzPSJuIj5RQU1fMTI4PC9zcGFuPjxzcGFuIGNsYXNzPSJwIj4sPC9zcGFuPjwv
-ZGl2Pgo8ZGl2PjxzcGFuIGNsYXNzPSJwIj4mbmJzcDsmbmJzcDsgPC9zcGFuPjxzcGFuIGNsYXNz
-PSJuIj5RQU1fMjU2PC9zcGFuPjxzcGFuIGNsYXNzPSJwIj4sPC9zcGFuPjwvZGl2Pgo8ZGl2Pjxz
-cGFuIGNsYXNzPSJwIj4mbmJzcDsmbmJzcDsgPC9zcGFuPjxzcGFuIGNsYXNzPSJuIj5RQU1fQVVU
-Tzwvc3Bhbj48c3BhbiBjbGFzcz0icCI+LDwvc3Bhbj48L2Rpdj4KPGRpdj48c3BhbiBjbGFzcz0i
-cCI+Jm5ic3A7Jm5ic3A7IDwvc3Bhbj48c3BhbiBjbGFzcz0ibiI+VlNCXzg8L3NwYW4+PHNwYW4g
-Y2xhc3M9InAiPiw8L3NwYW4+PC9kaXY+CjxkaXY+PHNwYW4gY2xhc3M9InAiPiZuYnNwOyZuYnNw
-OyA8L3NwYW4+PHNwYW4gY2xhc3M9Im4iPlZTQl8xNjwvc3Bhbj48c3BhbiBjbGFzcz0icCI+LDwv
-c3Bhbj48L2Rpdj4KPGRpdj48c3BhbiBjbGFzcz0icCI+Jm5ic3A7Jm5ic3A7IDwvc3Bhbj48c3Bh
-biBjbGFzcz0ibiI+UFNLXzg8L3NwYW4+PHNwYW4gY2xhc3M9InAiPiw8L3NwYW4+PC9kaXY+Cjxk
-aXY+PHNwYW4gY2xhc3M9InAiPiZuYnNwOyZuYnNwOyA8L3NwYW4+PHNwYW4gY2xhc3M9Im4iPkFQ
-U0tfMTY8L3NwYW4+PHNwYW4gY2xhc3M9InAiPiw8L3NwYW4+PC9kaXY+CjxkaXY+PHNwYW4gY2xh
-c3M9InAiPiZuYnNwOyZuYnNwOyA8L3NwYW4+PHNwYW4gY2xhc3M9Im4iPkFQU0tfMzI8L3NwYW4+
-PHNwYW4gY2xhc3M9InAiPiw8L3NwYW4+PC9kaXY+CjxkaXY+PHNwYW4gY2xhc3M9InAiPiZuYnNw
-OyZuYnNwOyA8L3NwYW4+PHNwYW4gY2xhc3M9Im4iPkRRUFNLPC9zcGFuPjxzcGFuIGNsYXNzPSJw
-Ij4sPC9zcGFuPjwvZGl2Pgo8ZGl2PjxzcGFuIGNsYXNzPSJwIj48L3NwYW4+PHNwYW4gY2xhc3M9
-InAiPn08L3NwYW4+IDxzcGFuIGNsYXNzPSJuIj5mZV9tb2R1bGF0aW9uX3Q8L3NwYW4+PHNwYW4g
-Y2xhc3M9InAiPjs8L3NwYW4+PC9kaXY+CjxibG9ja3F1b3RlIGNsYXNzPSJnbWFpbF9xdW90ZSIg
-c3R5bGU9IlBBRERJTkctTEVGVDogMWV4OyBNQVJHSU46IDBweCAwcHggMHB4IDAuOGV4OyBCT1JE
-RVItTEVGVDogI2NjYyAxcHggc29saWQiPjxzcGFuIGlkPSIiPjwvc3Bhbj48YnI+PGJyPjxicj5B
-bHNvLCBJIGJlbGlldmUgdGhhdCB0aGUgcmVjZW50IGBkdmJzbm9vcCYjMzk7IGludm9rZWQgd2l0
-aDxicj5gLXMgdHMgLXRzc3ViZGVjb2RlJiMzOTsgb24gdGhlIE5JVCBQSUQgd2lsbCB2ZXJib3Nl
-bHkgcGFyc2U8YnI+CnRoZSBjb21wb25lbnRzIGFuZCBkaXNwbGF5IGV2ZXJ5dGhpbmcgLS0gSSBi
-ZWxpZXZlIEkgdXNlZDxicj50aGF0IHNvdXJjZSBjb2RlIGFzIHRoZSBiYXNpcyBmb3IgdGhlIGFi
-b3ZlIGhhY2suPGJyPjxicj5JIHdvbmRlciBpZiBhbnkgb2YgbXkgb3RoZXIgZHZiLWFwcHMvc2Nh
-biBoYWNrcyB3b3VsZCBiZTxicj5vZiBpbnRlcmVzdCBmb3Igc29tZW9uZSB0byBjbGVhbiB1cCAo
-Zm9yIG1lLCBmdW5jdGlvbjxicj4KYmVmb3JlIGZvcm0sIGVzcGVjaWFsbHkgd2hlbiBJIGRvbiYj
-Mzk7dCBoYXZlIGEgY2x1ZSBhcyB0bzxicj53aGF0IEkgYW0gZG9pbmcpLi4uPGJyPjxmb250IGNv
-bG9yPSIjODg4ODg4Ij48YnI+PGJyPmJhcnJ5IGJvdXdzbWE8YnI+PC9mb250PjwvYmxvY2txdW90
-ZT48L2Rpdj48YnI+PC9kaXY+Cg==
-------=_Part_4989_14388182.1226494744948--
+requiring a complete shutdown and reboot to recover even after killing 
+of any dvb applications.
 
+With the latest drivers, this lock of khubd still occurs but only for 
+the lifetime of the active dvb application - it then partially recovers 
+as follows:
 
---===============1446385565==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Nov 22 21:02:36 fridge kernel: dvb-usb: error while stopping stream.
+Nov 22 21:02:36 fridge kernel: dvb-usb: Hauppauge Nova-T Stick 
+successfully deinitialized and disconnected.
+Nov 22 21:02:36 fridge kernel: usb 1-4: new high speed USB device using 
+ehci_hcd and address 3
+Nov 22 21:02:36 fridge /USR/SBIN/CRON[8929]: (wwwrun) MAIL (mailed 947 
+bytes of output but got status 0xffffffff )
+Nov 22 21:02:51 fridge kernel: hub 1-0:1.0: unable to enumerate USB 
+device on port 4
+Nov 22 21:02:51 fridge kernel: usb 3-2: new full speed USB device using 
+uhci_hcd and address 2
+Nov 22 21:02:52 fridge kernel: usb 3-2: not running at top speed; 
+connect to a high speed hub
+Nov 22 21:02:52 fridge kernel: usb 3-2: configuration #1 chosen from 1 
+choice
+Nov 22 21:02:52 fridge kernel: dvb-usb: found a 'Hauppauge Nova-T Stick' 
+in warm state.
+Nov 22 21:02:52 fridge kernel: dvb-usb: This USB2.0 device cannot be run 
+on a USB1.1 port. (it lacks a hardware PID filter)
+Nov 22 21:02:52 fridge kernel: dvb-usb: Hauppauge Nova-T Stick error 
+while loading driver (-19)
+Nov 22 21:02:52 fridge kernel: usb 3-2: New USB device found, 
+idVendor=2040, idProduct=7060
+Nov 22 21:02:52 fridge kernel: usb 3-2: New USB device strings: Mfr=1, 
+Product=2, SerialNumber=3
+Nov 22 21:02:52 fridge kernel: usb 3-2: Product: Nova-T Stick
+Nov 22 21:02:52 fridge kernel: usb 3-2: Manufacturer: Hauppauge
+Nov 22 21:02:52 fridge kernel: usb 3-2: SerialNumber: 4030521095
+
+Physically disconnecting and reconnecting the device has the same 
+effect. So it looks like the driver is recovering but the USB2 hub has 
+been stuffed in some way.
+
+-- 
+== jon bird - software engineer
+== <reply to address _may_ be invalid, real mail below>
+== <reduce rsi, stop using the shift key>
+== posted as: news 'at' onastick 'dot' clara.co.uk
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1446385565==--
