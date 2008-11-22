@@ -1,24 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mANMWkOP000942
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 17:32:46 -0500
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mANMWVK9007409
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 17:32:32 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: kevinlux - <kevinlux@gmail.com>,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>
-In-Reply-To: <8567605f0811231027w4bca54dej414d353e31ff1e5f@mail.gmail.com>
-References: <8567605f0811160257i66ea44a1i8b16a45c1580d5a9@mail.gmail.com>
-	<8567605f0811231027w4bca54dej414d353e31ff1e5f@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 23 Nov 2008 23:29:28 +0100
-Message-Id: <1227479368.4665.42.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAM0GLlY019400
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 19:16:21 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAM0FIj2013536
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 19:15:18 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so594898nfc.21
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:15:17 -0800 (PST)
+Message-ID: <412bdbff0811211615r4ed250f8q12b28eda3a352778@mail.gmail.com>
+Date: Fri, 21 Nov 2008 19:15:17 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Ben Klein" <shacklein@gmail.com>
+In-Reply-To: <d7e40be30811211600u354bf1ebg57567ebd3cd375a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] pinnacle 310i doesn't works very well
+Content-Disposition: inline
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
+	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+	<d7e40be30811211600u354bf1ebg57567ebd3cd375a@mail.gmail.com>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,95 +35,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, Nov 21, 2008 at 7:00 PM, Ben Klein <shacklein@gmail.com> wrote:
+>
+> 2008/11/20 Devin Heitmueller <devin.heitmueller@gmail.com>
+>>
+>> Playing with the "card=" argument is probably not such a good idea.
+>> I should consider taking that functionality out, since setting to the
+>> wrong card number can damage the device (by setting the wrong GPIOs).
+>
+> What about us folk who currently can't get em28xx working without the
+> "card=" option? With no card= option, my "Tevion High Speed DVD Maker"
+> device (eb1a:2861) is detected but reports no inputs (the inputs should be
+> S-Video and Composite). dmesg snippet:
+>
+> em28xx v4l2 driver version 0.1.0 loaded
+> em28xx new video device (eb1a:2861): interface 0, class 255
+> em28xx Has usb audio class
+> em28xx #0: Alternate settings: 8
+> em28xx #0: Alternate setting 0, max size= 0
+> em28xx #0: Alternate setting 1, max size= 0
+> em28xx #0: Alternate setting 2, max size= 1448
+> em28xx #0: Alternate setting 3, max size= 2048
+> em28xx #0: Alternate setting 4, max size= 2304
+> em28xx #0: Alternate setting 5, max size= 2580
+> em28xx #0: Alternate setting 6, max size= 2892
+> em28xx #0: Alternate setting 7, max size= 3072
+> em28xx #0: chip ID is em2860
+> em28xx #0: found i2c device @ 0xb8 [tvp5150a]
+> em28xx #0: Your board has no unique USB ID and thus need a hint to be
+> detected.
+> em28xx #0: You may try to use card=<n> insmod option to workaround that.
+> em28xx #0: Please send an email with this log to:
+> em28xx #0:     V4L Mailing List <video4linux-list@redhat.com>
+> em28xx #0: Board eeprom hash is 0x00000000
+> em28xx #0: Board i2c devicelist hash is 0x77800080
+> em28xx #0: Here is a list of valid choices for the card=<n> insmod option:
+> -- snip --
+> tvp5150 7-005c: tvp5150am1 detected.
+> em28xx #0: V4L2 device registered as /dev/video2 and /dev/vbi1
+> em28xx #0: Found Unknown EM2750/28xx video grabber
+> usbcore: registered new interface driver em28xx
+> tvp5150 7-005c: tvp5150am1 detected.
+>
+> So far, the only card= values I've found also report a TV tuner (10, 13, 38,
+> 39, 58), but I haven't tested every single value.
+>
 
-Am Sonntag, den 23.11.2008, 19:27 +0100 schrieb kevinlux -:
-> Hi Guys,
-> hi talked with Harmut Hackam, on his opinion "something is broken in the
-> tuner callback mechanism again. this is used to control the so called
-> LNA via a GPIO pin - a tricky mechanism and difficult to debug."
-> Should I post also in a val4linux mailing list?? Or someone can help me here?
-> I think it's a problem of all card of  << saa7133 >> with tuner  <<
-> tda829x 2-004b >> (i have also tried an Asus My Cinema Dual TV Tuner
-> same chips and tuner and SAME Problems. )
-> Thanks in advance.
-> 
-> cheers
-> kev
-> 
-> 
-> 2008/11/16, kevinlux - <kevinlux@gmail.com>:
-> > Hi all. I have a pinnacle card, 310i card from 3 years, but now with
-> >  recent drivers (updated yesterday) it works not so good. With the my
-> >  previous driver (dvb mercurial December 2007 on kernel 2.6.24)
-> >  everythings was good. Infact at moment under Window OS i can see more
-> >  channels respect to Linux.
-> >  I also try with another usb device inlinux and i'm able to see all
-> >  those channels that i can't view with my pinnacle 310i board.
-> >  Someone can help me or can confirm my version??
-> >
-> >  Thanks in advance.
-> >  Cheers
-> >
-> >  kev
-> >
-
-Kevin, I saw your previous post, but I can't test on something like the
-310i with tda827x_config/tuner_config = 1 and I was waiting for some
-confirmation. Maybe someone on the video4linux-list can test on it.
-
-Which of the P7131 Dual cards you have. The Dual Hybrid with LNA ?
-
-This one uses tda827x/tuner config = 2.
-
-This configuration I can test on the recently added Asus Tiger 3in1.
-
-We partly have heavy snowfall currently, but on the same DVB-T RF feed,
-with the most critical transponder for me in upper UHF, an Asus Tiger
-Revision 1 fails completely, too many errors, on a Medion Quad mplayer
-starts, but picture and sound are totally distorted and unusable
-currently.
-
-On the Tiger 3in1 almost all is fine, except some rare small artifacts
-from time to time. That means the LNA works for sure.
-
-The same goes for analog TV. It is easy to recognize if the LNA is
-active, since else sync issues after channel switching, a black bar
-passes the screen for a while and also some slight audio issues. Others
-reported sometimes flashing picture and humming noise on analog without
-correctly configured LNA.
-
-"hg head" on this machine is:
-
-changeset:   9575:d5e211683345
-tag:         tip
-parent:      9573:1251a4091b89
-parent:      9574:2ab0045eb27b
-user:        Mauro Carvalho Chehab <mchehab@redhat.com>
-date:        Tue Nov 11 07:42:37 2008 -0200
-summary:     merge: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-backport
-
-We are only 4 days apart, if LNA config = 2 should be broken at all
-later.
-
----
-Few minutes later with the current v4l-dvb installed on that one.
-
-Sorry, I seem not to be able to confirm your observation, at least the
-Asus Tiger 3in1 is still fine on that critical transponder.
-
-If I change the LNA config to 0, mplayer fails to start with only three
-good and 27 bad packages. Means for me the LNA works for sure.
+I can add a device profile so you don't need to specify a "card="
+entry in the future.  Please send me a link to the product page if
+possible and I will look at it this weekend.  If there isn't a page
+you can refer me to, send me as much information about the device that
+you can (what inputs are available for it [composite, tuner, s-video]
+and whether it has a remote control).
 
 Cheers,
-Hermann
 
+Devin
 
-
-
-
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
