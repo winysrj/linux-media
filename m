@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from yw-out-2324.google.com ([74.125.46.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1L0e41-0002mM-OV
-	for linux-dvb@linuxtv.org; Thu, 13 Nov 2008 16:24:58 +0100
-From: Andy Walls <awalls@radix.net>
-To: Dmitry Podyachev <vdp@teletec.com.ua>
-In-Reply-To: <49196891.9060004@teletec.com.ua>
-References: <49196891.9060004@teletec.com.ua>
-Date: Thu, 13 Nov 2008 10:25:50 -0500
-Message-Id: <1226589950.3114.32.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compro VideoMate H900
+	(envelope-from <jeisom@gmail.com>) id 1L3uSg-0003Kq-OI
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 16:31:56 +0100
+Received: by yw-out-2324.google.com with SMTP id 3so579735ywj.41
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 07:31:50 -0800 (PST)
+Message-ID: <1767e6740811220731s17b313edl2947374210054eab@mail.gmail.com>
+Date: Sat, 22 Nov 2008 09:31:49 -0600
+From: "Jonathan Isom" <jeisom@gmail.com>
+To: "Linux DVB" <linux-dvb@linuxtv.org>
+In-Reply-To: <1767e6740811032017x63c1f635u34db2e6e919c2ce7@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <1767e6740811032017x63c1f635u34db2e6e919c2ce7@mail.gmail.com>
+Subject: Re: [linux-dvb] bug with kworld atsc 110/115
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,44 +27,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-11-11 at 13:12 +0200, Dmitry Podyachev wrote:
-> v4l analogue TV question.
-> Could somebody (Andy Walls help me please) advice with next situation:
-> All my cards cx18 (Compro VideoMate H900) drop synchro - and TV
-> picture has problem.
-> This effect like broken analogue signal (I check, it was correct)
+On Mon, Nov 3, 2008 at 10:17 PM, Jonathan Isom <jeisom@gmail.com> wrote:
+> Hi all
+>    I have been using dvbstreamer(not to be confused with dvbstream)
+> and at svn revision r520
+> of dvbstreamer Adam the author introduced a change in it that causes
+> my system to hardlock.
+> The change was if the frontend lost signal lock to Stop all filters
+> and to start them back up when
+> signal locked.  Simply by switching transponders I can hard lock the
+> system in about 1 minute..
+> Reproducable with kworld atsc 110 and 115(not surprising).  nothing is logged.
 
-Dmitry,
+Forgot to say tested a 2.6.25, 2.6.26 and 2.6.27 kernel.   Is anyone
+looking into this?
 
-Yes the CX23418 AV is temporarily losing horizontal sync, looking at the
-MPEG sample you sent me.  We should hopefully be able to come up with
-fix in the cx18 driver with configuring the CX23418's AV decoder's
-analog front end.  I believe Hans' has an H900, let me talk with him
-about it.
+Thanks
 
+Jonathan
 
-> Are you have any idea what can helps (firmware, aplifier)?
-
-This is strictly a problem with components external to the CX23418 A/V
-decoder and the AV decoder's interaction with them, if your video signal
-is completely clean.  
-
-No firmware change will fix it.
-
-Changes to settings in the Analog Front End configuration need to be
-made in the cx18 driver.
-
-
-> This situation usually when all background too light and some part (at top) dark.
-> If picture not so brightness - all ok.
-
-"Too light" is consistent with the conditions that I know can trigger
-the problem.
-
-
-Regards,
-Andy
-
+>
+> Thanks
+>
+> Jonathan
+>
 
 _______________________________________________
 linux-dvb mailing list
