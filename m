@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from smtp5.freeserve.com ([193.252.22.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <richard.palmer@gmail.com>) id 1L4FMi-00016T-QQ
-	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 14:51:12 +0100
-Received: by yx-out-2324.google.com with SMTP id 8so759527yxg.41
-	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 05:51:03 -0800 (PST)
-Message-ID: <100c0ba70811230551p1558032ehb24f5d489fea6048@mail.gmail.com>
-Date: Sun, 23 Nov 2008 13:51:02 +0000
-From: "Richard Palmer" <richard.palmer@gmail.com>
-To: "Antti Palosaari" <crope@iki.fi>
-In-Reply-To: <49285C15.4040903@iki.fi>
+	(envelope-from <linuxtv@mfraz.orangehome.co.uk>) id 1L3oHr-0007gq-Db
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 09:56:21 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf3426.me.freeserve.com (SMTP Server) with ESMTP id B4E851C00086
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 09:55:45 +0100 (CET)
+Received: from rachael.local (unknown [91.108.95.6])
+	by mwinf3426.me.freeserve.com (SMTP Server) with ESMTP id 986471C00084
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 09:55:45 +0100 (CET)
+From: Mark Fraser <linuxtv@mfraz.orangehome.co.uk>
+To: linux-dvb@linuxtv.org
+Date: Sat, 22 Nov 2008 08:55:35 +0000
+References: <alpine.DEB.2.00.0811220104130.6304@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0811220104130.6304@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <100c0ba70811181413p57abe7daw1f2ac4a89881d2f8@mail.gmail.com>
-	<49285C15.4040903@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Reception problems with af9015 based USB stick
+Message-Id: <200811220855.35320.linuxtv@mfraz.orangehome.co.uk>
+Subject: Re: [linux-dvb] Digital switchover (DSO) in the UK
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,41 +25,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Saturday 22 November 2008 00:20:32 BOUWSMA Barry wrote:
 
-On Sat, Nov 22, 2008 at 7:23 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Richard Palmer wrote:
->>  Whilst it works well in single mode (in dual mode neither tuner
->>  worked), there seem to be a lot more 'pops' in the sound and blocks
->>  appearing in the picture. Are there any more tuning options I can try
->> when
->>  loading the module?. I have re-scanned the channels in MythTV but no
->>  improvement. I know it's not a signal strength problem as both a set-top
->> box
->>  and the nova-t ran from the same aerial without these problems.
 >
-> I made test version that uses different tuner driver. Please test if it
-> helps. http://linuxtv.org/hg/~anttip/af9015-mxl500x/
+> The scanfile for uk-Selkirk is now out-of-date where
+> accuracy is concerned (perhaps others?  I'm nowhere near
+> and have no idea), so if someone cares to update this,
+> and, in the months to come, the other affected transmitter
+> locations, with current information, then anyone unaware
+> of DSO who tries to use these scanfiles with a tuner that
+> doesn't AUTO everything might have more success.
 
-All the sound glitches have gone, the picture is almost perfect (a few
-blocks occasionally but probably caused
-by interference). Many thanks Antti.
+A search of the mb21 website can sometimes be of help - the page for Selkir=
+k =
 
-I thought I'd push my luck and see if the dual tuner support worked
-with the new driver, it seems to
-as the first frontend is working just as well as in single mode now,
-but no frontend device is appearing for
-the second tuner so I can't test it.
+is here  http://tx.mb21.co.uk/gallery/selkirk.php.
 
-Thanks again,
+-- =
 
-Richard
+|\ =A0/| ark Fraser =A0/Registered Linux User #466407
+| \/ | Somerset =A0 /Using Kmail on Kubuntu Hardy Heron
+| =A0 =A0|___________/You know what the sig means!
+
 
 _______________________________________________
 linux-dvb mailing list
