@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
+Received: from qmta03.westchester.pa.mail.comcast.net ([76.96.62.32])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KyV37-0005WW-IM
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 18:23:11 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so539536eya.17
-	for <linux-dvb@linuxtv.org>; Fri, 07 Nov 2008 09:23:06 -0800 (PST)
-Message-ID: <37219a840811070923o7aa7e91do1780dd20145c72c8@mail.gmail.com>
-Date: Fri, 7 Nov 2008 12:23:05 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Paul Guzowski" <guzowskip@linuxmail.org>
-In-Reply-To: <37219a840811070921se5be4adk72de45140002b804@mail.gmail.com>
+	(envelope-from <jeffd@i2k.com>) id 1L3yXu-00007s-KG
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 20:53:36 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by blorp.plorb.com (Postfix) with ESMTP id 6E45F16E06D
+	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 14:52:53 -0500 (EST)
+Received: from blorp.plorb.com ([127.0.0.1])
+	by localhost (blorp.plorb.com [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id Bbio6e-z39mO for <linux-dvb@linuxtv.org>;
+	Sat, 22 Nov 2008 14:52:53 -0500 (EST)
+Date: Sat, 22 Nov 2008 14:52:52 -0500
+From: Jeff DeFouw <jeffd@i2k.com>
+To: linux-dvb@linuxtv.org
+Message-ID: <20081122195252.GA26727@blorp.plorb.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <20081107140513.4DCE87BD53@ws5-10.us4.outblaze.com>
-	<37219a840811070921se5be4adk72de45140002b804@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Channel configuration files....
+Subject: [linux-dvb] notes and code for HVR-1800 S-Video
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,87 +30,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Nov 7, 2008 at 12:21 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Paul -- please see my response below.
->
->> Paul in NW Florida
->>> ----- Original Message -----
->>> From: "Michael Krufky" <mkrufky@linuxtv.org>
->>> To: "Paul Guzowski" <guzowskip@linuxmail.org>
->>> Cc: linux-dvb@linuxtv.org
->>> Subject: Re: [linux-dvb] Channel configuration files....
->>> Date: Wed, 5 Nov 2008 11:41:27 -0500
->>>
->>>
->>> On Wed, Nov 5, 2008 at 6:58 AM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
->>> > Greetings,
->>> >
->>> > Does anyone on this list have a sample channel.conf file for
->>> > Brighthouse Networks cable or can anyone give enough information
->>> > (frequencies, transponders, etc) so that I can try to build one?
->>> > Thanks in advance.
->>> >
->>> > Paul in NW Florida
->>>
->>> Paul,
->>>
->>> You can use "scan" from dvb-apps, using the scan file,
->>> "us-Cable-Standard-center-frequencies-QAM256" ...  If that doesn't
->>> work, you can try the other QAM256 cable scan files, located in the
->>> util/scan/atsc/ directory of dvb-apps.
->>>
->>> Alternatively, you can use the latest version of w_scan WITHOUT any
->>> scan file.  This should produce the best results.
->>>
->>> The latest version of w_scan with atsc / qam scanning support can be
->>> downloaded from here:
->>>
->>> http://wirbel.htpc-forum.de/w_scan/w_scan-20080815.tar.bz2
->>>
->>> You can scan cable using this command:
->>>
->>> w_scan -A2 -X > channels.conf
->>>
->>> Good luck.
->>>
->>> -Mike Krufky
->
->
-> On Fri, Nov 7, 2008 at 9:05 AM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
->> Greetings Mike,
->>
->> I tried your suggestion and didn't have any success.  I know there are cable signals coming over the line because two other TVs in the house (one analog and one HDTV-capable) can tune channels.  If I connect to the RF-out from the digital set-top box, I can use mplayer tuned to channel 3 to watch TV but I'd like to be able to tune from the cable directly. Not sure what to try next.  Here's the results of my test:
->>
->> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$ w_scan -a0 -X > channels.conf
->> w_scan version 20080105
->> -_-_-_-_ Getting frontend capabilities-_-_-_-_
->> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
->> ERROR: Sorry - i couldn't get any working frequency/transponder
->>  Nothing to scan!!
->> dumping lists (0 services)
->> Done.
->> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$
->>
->
->
-> Paul,
->
-> The policy of this mailing list, and almost all linux mailing lists,
-> is to enter your replies BELOW the quoted text.  Do not top-post.
->
-> Please notice above, that I instructed you to pass " -A2 -X " into the
-> w_scan command line.  You passed " -a0 -X " ..  The -a? and -A? are
-> two entirely different command line switches.  If you're trying to
-> scan QAM, then you must pass -A2
->
-> -Mike
->
+I compared the registers in different modes with the Windows driver for 
+my WinTV-HVR-1800 (CX23887 based, PCI-E).  Setting the AFE control 
+registers fixes bad and flickering colors in S-Video mode.  The same 
+register values are used for Composite.
 
-Also,  do NOT use the rf out from the cablebox -- you wont get any
-digital services that way.  You must use the cable feed coming in
-directly from the wall / street.
+/* Set AFE control for Composite/S-Video input */
+cx25840_write4(client, 0x104, 0x071cdc00);
 
--Mike
+In analog tuner mode, the values are the chip defaults (0x0704dd80), but 
+I've left the regs set for S-Video and didn't notice anything.
+
+To get the external audio input working (for Composite and S-Video 
+modes), the input needs to be set to AC97, unmuted, and the 
+microcontroller must be disabled (so it doesn't mute it).  The 
+microcontroller was always being enabled for some reason no matter the 
+audio source.
+
+/* Set Path1 to AC97 and unmute */
+cx25840_write4(client, 0x8d0, 0x00063073);
+
+With those two changes I am able to record S-Video and external audio 
+through the MPEG encoder.  I managed to hack the code up enough to get 
+all modes working based on the input setting.  It's not clear in the 
+existing cx23885-cx25840 framework how the audio input is supposed to be 
+configured.
+
+Other issues:
+
+The MPEG encoder video device randomly fails to start streaming, times 
+out, and returns an I/O error.  It's like something isn't being reset or 
+waited on properly during the setup.  The next attempt usually works, 
+but I can try 5 times and not succeed.
+
+The MPEG encoder video device rejects attempts to set the input and 
+other settings as the raw video device does.  The raw video device must 
+be used for configuration, so any application would have to do something 
+special with both devices to be fully functional.  Is there a reason for 
+that?
+
+Viewing the analog tuner over the raw video device and then using the 
+MPEG video device often causes the tuner video on both devices to be 
+scrambled.  Reloading the modules fixes it.  This only happens the first 
+time after boot.
+
+The cx23885-audio branch screws up the operation of my card.  
+Specifically the patch to cx23885_initialize that disables the write to 
+register 0x2 affects my board and scrambles the video and audio rate.  
+It even screws up the MCU firmware download.
+
+-- 
+Jeff DeFouw <jeffd@i2k.com>
 
 _______________________________________________
 linux-dvb mailing list
