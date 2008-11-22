@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.249])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <funihao@gmail.com>) id 1L3Ylf-0006ee-Qv
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 17:22:06 +0100
-Received: by an-out-0708.google.com with SMTP id b38so385342ana.41
-	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 08:21:59 -0800 (PST)
-Message-ID: <9382b27d0811210821t60cb3df6mae37f394f47aaa54@mail.gmail.com>
-Date: Fri, 21 Nov 2008 17:21:58 +0100
-From: "=?ISO-8859-1?Q?Jos=E9_Jes=FAs_Palacios_Rodr=EDguez?="
-	<funihao@gmail.com>
+Received: from mail13.svc.cra.dublin.eircom.net ([159.134.118.29])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <jdonog01@eircom.net>) id 1L3rAM-0006MV-QG
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 13:00:48 +0100
+From: John Donoghue <jdonog01@eircom.net>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <200811192309.24557.hftom@free.fr>
-MIME-Version: 1.0
-References: <9382b27d0811191338n7f4f9cf4ie6e807e426332e51@mail.gmail.com>
-	<200811192309.24557.hftom@free.fr>
-Subject: [linux-dvb]  HVR-3000 on Ubuntu 8.10
+In-Reply-To: 
+Date: Sat, 22 Nov 2008 12:00:15 +0000
+Message-Id: <1227355215.10535.30.camel@john-desktop>
+Mime-Version: 1.0
+Subject: [linux-dvb]  Hi, hauppauge win tv Nova-s plus won't tune
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,90 +17,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2051620895=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2051620895==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_109161_29714879.1227284518303"
+Roland HAMON wrote:
+> Under ubuntu intrepid 64 bits (2.6.27 kernel) vdr fails to tune any
+> channel. I tried dvb-apps 'scan' with no success:
 
-------=_Part_109161_29714879.1227284518303
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+> scanning Hotbird-13.0E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12539000 H 27500000 3
+> initial transponder 10892000 H 27500000 3
 
-2008/11/19 Christophe Thommeret <hftom@free.fr>
+> >>> tune to: 12539:h:0:27500
+> DiSEqC: switch pos 0, 18V, hiband (index 3)
+> >>> tuning status == 0x01
+> >>> tuning status == 0x01
 
-> Le mercredi 19 novembre 2008 22:38:13 Jos=E9 Jes=FAs Palacios Rodr=EDguez=
-, vous
-> avez
-> =E9crit :
-> > Hello folks,
-> >
-> > I'm try to run my HVR-3000 on Ubuntu 8.10 and I follow the wiki page
-> > http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-3000 about Steve
-> > Toth's repository.
->
-> HVR-3000 works with v4l-dvb hg tree.
->
-> --
-> Christophe Thommeret
->
-> Thakns Christophe, ... thanks Robert
+There is a bug in the cx24123 driver.  It does not generate the 22KHz
+tone for high-band.  This seems to date back to changeset 4012.  This
+removed the code which used the ISL6421 tone generator.  I presume the
+intention was to transfer this function to the isl6421 module, but
+this wasn't done.  I tested this with a function as follows:
 
-It's runing just how to ... say Christophe with v4l-dvb hg tree.
-So,... I hope ... kernel 2.6.28 will be support HVR-3000.
-It work on Ubuntu 7.10, but for each new kernel you must pach up.
+static int isl6421_set_tone(struct dvb_frontend* fe, fe_sec_tone_mode_t tone)
+{
+	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+	struct i2c_msg msg = {	.addr = isl6421->i2c_addr, .flags = 0,
+				.buf = &isl6421->config,
+				.len = sizeof(isl6421->config) };
 
-Thanks a lot,
-JJ
+	switch (tone) {
+	case SEC_TONE_ON:
+		isl6421->config |= ISL6421_ENT1;
+		break;
+	case SEC_TONE_OFF:
+		isl6421->config &= ~ISL6421_ENT1;
+		break;
+	default:
+		return -EINVAL;
+	}
 
-------=_Part_109161_29714879.1227284518303
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+	isl6421->config |= isl6421->override_or;
+	isl6421->config &= isl6421->override_and;
 
-2008/11/19 Christophe Thommeret <span dir=3D"ltr">&lt;<a href=3D"mailto:hft=
-om@free.fr">hftom@free.fr</a>&gt;</span><br><div class=3D"gmail_quote"><blo=
-ckquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204,=
- 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Le mercredi 19 novembre 2008 22:38:13 Jos=E9 Jes=FAs Palacios Rodr=EDguez, =
-vous avez<br>
-=E9crit&nbsp;:<br>
-<div class=3D"Ih2E3d">&gt; Hello folks,<br>
-&gt;<br>
-&gt; I&#39;m try to run my HVR-3000 on Ubuntu 8.10 and I follow the wiki pa=
-ge<br>
-&gt; <a href=3D"http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-3000"=
- target=3D"_blank">http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-30=
-00</a> about Steve<br>
-&gt; Toth&#39;s repository.<br>
-<br>
-</div>HVR-3000 works with v4l-dvb hg tree.<br>
-<br>
---<br>
-<font color=3D"#888888">Christophe Thommeret<br>
-<br>
-</font></blockquote></div>Thakns Christophe, ... thanks Robert<br><br>It&#3=
-9;s runing just how to ... say Christophe with v4l-dvb hg tree.<br>So,... I=
- hope ... kernel 2.6.28 will be support HVR-3000.<br>It work on Ubuntu 7.10=
-, but for each new kernel you must pach up.<br>
-<br>Thanks a lot,<br>JJ <br>
+	return (i2c_transfer(isl6421->i2c, &msg, 1) == 1) ? 0 : -EIO;
+}
 
-------=_Part_109161_29714879.1227284518303--
+and added it to the override ops.  This works fine for me and I am now
+getting lock on high-band transponders, but it is probably just the
+easy part as I have no idea how DiSEqC Encoding should be handled, nor
+how to manage overrides for other cards which use this driver, but may
+not want it to generate tones.
+
+Roland, if your low-band transponders are also failing, that is another
+issue!
+
+> Then when I poweroff my computer hangs and the motherboards beeps
+> repeatedly until I hard switch it off.
+
+This is a known bug in latest Ubuntu release and not related to DVB.
+
+Regards, John
 
 
---===============2051620895==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2051620895==--
