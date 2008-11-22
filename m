@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAB2hGpk028987
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 21:43:16 -0500
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAB2h05v019570
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 21:43:01 -0500
-Received: by ti-out-0910.google.com with SMTP id 24so1846608tim.7
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 18:43:00 -0800 (PST)
-Message-ID: <1cf807b00811101842k1ce60474rd9ed17f28ae5772f@mail.gmail.com>
-Date: Tue, 11 Nov 2008 10:42:59 +0800
-From: "Kris Huang" <imaborg@gmail.com>
-To: mark.paulus@verizonbusiness.com
-In-Reply-To: <49185431.2070701@verizonbusiness.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAM05mBK017143
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 19:05:48 -0500
+Received: from mk-outboundfilter-1.mail.uk.tiscali.com
+	(mk-outboundfilter-1.mail.uk.tiscali.com [212.74.114.37])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAM05aDh010662
+	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 19:05:36 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: sqcam-devel@lists.sourceforge.net
+Date: Sat, 22 Nov 2008 00:05:34 +0000
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<200811212157.21254.linux@baker-net.org.uk>
+	<Pine.LNX.4.64.0811211658290.4727@banach.math.auburn.edu>
+In-Reply-To: <Pine.LNX.4.64.0811211658290.4727@banach.math.auburn.edu>
 MIME-Version: 1.0
-References: <1cf807b00811100709p5c70701aoa11043e4d12388c8@mail.gmail.com>
-	<49185431.2070701@verizonbusiness.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Cc: video4linux-list@redhat.com
-Subject: Re: How to stop driver from loading to prevent from hanging during
-	booting
+Message-Id: <200811220005.34321.linux@baker-net.org.uk>
+Cc: video4linux-list@redhat.com, kilgota@banach.math.auburn.edu
+Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
+	driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,66 +33,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-    Thanks Mark.
-    I've downloaded a copy of the missing firmware file but have no luck.
-    In dmesg, it shows having problem when trying to use the firmware file.
-    Though I still can't switch channel in tvtime, but the video is working*
-*alright.*
-   *I am seriously considering opening the tin box to see what exactly the
-tuner chip is.
-   (I can find the decoder chip which is saa7135 actually, but didn't see
-the tuner chip)*
+On Friday 21 November 2008, kilgota@banach.math.auburn.edu wrote:
+> > Unfortunately libusb doesn't include a
+> > corresponding attach method for libgphoto2 to use when it has finished so
+> > it can't re-instate the kernel driver.
+>
+> True. But what I am wondering is, if it would be possible to write the
+> kernel driver in such a way that it does not need to get detached, then it
+> would be possible to solve the problem in both directions,
 
- *  It's very kind of you also provided me a way to modify the blacklist
-file when the file system is under read-only status.
-   The funny thing is I can still boot into system by using the previously
-built kernel. ( 2.6.24-21-generic is still in the Grub menu)
-   So I still have access to modify the blacklist and disable the saa7134
-driver from loading.
-   It's really appreciated.
-   Thank you.
-   Kris.
-*
-*
-On Mon, Nov 10, 2008 at 11:33 PM, Mark Paulus <
-mark.paulus@verizonbusiness.com> wrote:
+I don't believe that that is possible because if I understand correctly libusb 
+detects that a driver has been loaded that has claimed that device and so it 
+needs to be involved in the communication to get the kernel driver to allow 
+access.
 
->
->
-> Kris Huang wrote:
->
->> Hi,
->>
->>  Good day.
->>  In order to get my Compro T750F channel switch working, I use hg and
->> download the latest v4l drivers. After make install and reboot, my Ubuntu
->> Intrepid box just hanged. I am not that familiar with Ubuntu, so I don't
->> know how to stop the trouble driver from being loaded during the boot
->> process.
->>  Any ideas?
->>  Thanks.
->>
->>
-> looks like you need to add a file to /etc/modprobe.d directory,
-> something called, maybe, v4l-blacklist, and in it, put in the driver name
-> that is hanging....  (looks like saa7134).
->
-> Have you downloaded firmware for this card, and put it into
-> /lib/firmware?
-> There looks to be a bit of info in this post:
-> http://www.linuxtv.org/pipermail/linux-dvb/2007-April/017433.html
->
-> BTW, if booting into single user mode still tries to load the
-> driver, then you will need to boot off of a CD or floppy.  Your
-> Install media might have a "Go to Shell" option where you can
-> mount your hard drive and then edit your files, or something like
-> Tomsrtbt disk, or "The Ultimate Boot CD (UBCD)), or even
-> Mythubuntu or Knoppix/Mythknoppix.  Basically
-> you need to boot any kind of linux kernel/system that will allow you to go
-> to a shell, mount your hard drive,
-> and then have vi or some other editor that will allow you to create the
-> file(s) you need.
->
+To acheive what you are suggesting the kernel driver would have to return 
+false from its xxx_probe routine and not create it's endpoints but still call 
+video_register_device to create the /dev/videox dev file. The problem is I 
+don't believe there exists a mechanism whereby it could then obtain access to 
+the USB device within it's xxx_open routine and it certainlywouldn't receive 
+USB disconnect events so couldn't clean up properly.
+
+The libusb attach/detach mechanism definitely looks like the cleanest solution 
+if we can get a shipping version of libusb that implements attach.
+
+Adam
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
