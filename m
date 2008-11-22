@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L4CgL-0004zQ-SL
-	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 11:59:14 +0100
-Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mANAxAOW007663
-	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 11:59:10 +0100
-Message-ID: <4929377D.7070702@cadsoft.de>
-Date: Sun, 23 Nov 2008 11:59:09 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <sinter.mann@gmx.de>) id 1L3twj-0007py-Tt
+	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 15:58:54 +0100
+Date: Sat, 22 Nov 2008 15:58:20 +0100
+From: sinter.mann@gmx.de
+Message-ID: <20081122145820.183450@gmx.net>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <4928288B.1050306@cadsoft.de> <200811221837.58098.hftom@free.fr>
-In-Reply-To: <200811221837.58098.hftom@free.fr>
-Subject: Re: [linux-dvb] How to determine DVB-S2 capability in S2API?
+Subject: Re: [linux-dvb] errormessages skystar2 rev 2.8b with latest v4l-dvb
+ branch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,31 +23,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 22.11.2008 18:37, Christophe Thommeret wrote:
-> Le samedi 22 novembre 2008 16:43:07 Klaus Schmidinger, vous avez =E9crit :
->> I'm currently adopting the patch that makes VDR use S2API,
->> but I can't figure out how an application is supposed to find out
->> whether a DVB device is DVB-S or DVB-S2.
-> =
+Hello Halim,
 
-> This bit is missing in current api.
-> Will be added soon, i guess asa someone provides a patch :)
-> A that time, i solve that with a user toggleable "S2 capable device" ui =
+Forget about the Mercurial tree........
 
-> option.
+1. Get a vanilla kernel 2.6.27 plus patch 2.6.28-rc6 from =
 
-Considering that the "multiproto" API did think of handling this,
-I really don't understand why the "technologically superior" *S2*API
-didn't even think of this.
+http://www.eu.kernel.org/
 
-Requiring the user to configure this is a workaround that even
-more disqualifies the decision to go S2API.
+2. Prepare a kernel linux-2.6.28-rc6.
 
-But anyway, it looks like we're stuck with this inferior API, so
-I've posted a patch that adds this capability. Let's hope it gets
-adopted - VDR 1.7.2 will require it, anyway.
+3. Download the appended patchset: http://www.htpc-
+forum.de/forum/index.php?showtopic=3D4944&st=3D0&#entry31527
 
-Klaus
+4. Unpack the patchset to /usr/src/linux.
+
+5. Move all files in /usr/src/linux/skystarxyz to /usr/src/linux.
+
+6. For a 32-bit architecture execute: ./sky28 32, for a 64-bit one ./sky28 =
+64.
+
+7. Then move on with "make xconfig", make your config, then continue with "=
+make =
+
+modules && make bzlilo, make modules_install.....
+
+Enjoy!
+
+Cheers
+
+Uwe
+
+-- =
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
 linux-dvb mailing list
