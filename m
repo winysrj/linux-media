@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIFIo31028222
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:18:50 -0500
-Received: from tomts52-srv.bellnexxia.net (tomts52-srv.bellnexxia.net
-	[209.226.175.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIFIc5V008432
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:18:38 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: Thomas Reiter <x535.01@gmail.com>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Tue, 18 Nov 2008 10:17:56 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C79D3B1@Colmatec004.COLMATEC.INT>
-References: <1226943947.6362.10.camel@ivan>
-In-Reply-To: <1226943947.6362.10.camel@ivan>
-Content-Language: fr-CA
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mANBmFOS020794
+	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 06:48:15 -0500
+Received: from speedy.tutby.com (mail.tut.by [195.137.160.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mANBm2bp013692
+	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 06:48:02 -0500
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org, video4linux-list@redhat.com
+Date: Sun, 23 Nov 2008 13:47:41 +0200
+References: <49293640.10808@cadsoft.de>
+In-Reply-To: <49293640.10808@cadsoft.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: RE : DVB-T2 (Mpeg4) in Norway
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811231347.41452.liplianin@tut.by>
+Cc: Mauro Chehab <mchehab@infradead.org>
+Subject: [PATCH] Add Compro VideoMate E650F (DVB-T part only)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,48 +29,93 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-sorry I didn't specify the other way to get the firmware, depending if your device is using the em28xx driver
+From: Igor M. Liplianin <liplianin@me.by>
 
-if you have the Windows drivers, u can extract from sys file
+Add Compro VideoMate E650F (DVB-T part only).
+The card based on cx23885 PCI-Express chip, xc3028 tuner and ce6353 demodulator.
 
-http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#Firmware_Information
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
-
-
-example for a type vendor using empia chipset :
-
-kworld : emBDA.sys
-
-________________________________________
-De : video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] de la part de Thomas Reiter [x535.01@gmail.com]
-Date d'envoi : 17 novembre 2008 12:45
-À : video4linux-list@redhat.com
-Objet : DVB-T2 (Mpeg4) in Norway
-
-I bought a Pinnacle Nano USB stick and checked that this stick is OK
-with the software from Pinnacle. Here in Norway DVB-T is coded with
-Mpeg4, so it's a new experience.
-
-With Ubuntu I tried something with "scan" and "Kaffeine" but both
-programs were not able to detect some programs. It must be the old
-firmware. Is someone able to help me to extract the firmware from my
-snoopusb log?
-
-Thanks
-
-Thomas
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---
-
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com
-
+---
+diff -r 17754ef554b0 -r adce5197979d linux/drivers/media/video/cx23885/cx23885-cards.c
+--- a/linux/drivers/media/video/cx23885/cx23885-cards.c	Fri Nov 21 20:00:55 2008 -0200
++++ b/linux/drivers/media/video/cx23885/cx23885-cards.c	Sun Nov 23 13:21:10 2008 +0200
+@@ -159,6 +159,10 @@
+ 		.name		= "Leadtek Winfast PxDVR3200 H",
+ 		.portc		= CX23885_MPEG_DVB,
+ 	},
++	[CX23885_BOARD_COMPRO_VIDEOMATE_E650F] = {
++		.name		= "Compro VideoMate E650F",
++		.portc		= CX23885_MPEG_DVB,
++	},
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+ 
+@@ -238,6 +242,10 @@
+ 		.subvendor = 0x107d,
+ 		.subdevice = 0x6681,
+ 		.card      = CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H,
++	}, {
++		.subvendor = 0x185b,
++		.subdevice = 0xe800,
++		.card      = CX23885_BOARD_COMPRO_VIDEOMATE_E650F,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -391,6 +399,7 @@
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
++	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
+ 		/* Tuner Reset Command */
+ 		bitmask = 0x04;
+ 		break;
+@@ -531,6 +540,7 @@
+ 		cx_set(GP0_IO, 0x000f000f);
+ 		break;
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
++	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
+ 		/* GPIO-2  xc3028 tuner reset */
+ 
+ 		/* The following GPIO's are on the internal AVCore (cx25840) */
+@@ -631,6 +641,7 @@
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1700:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1400:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
++	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
+ 	default:
+ 		ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
+ 		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+@@ -645,6 +656,7 @@
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1700:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
++	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
+ 		request_module("cx25840");
+ 		break;
+ 	}
+diff -r 17754ef554b0 -r adce5197979d linux/drivers/media/video/cx23885/cx23885-dvb.c
+--- a/linux/drivers/media/video/cx23885/cx23885-dvb.c	Fri Nov 21 20:00:55 2008 -0200
++++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c	Sun Nov 23 13:21:10 2008 +0200
+@@ -503,6 +503,7 @@
+ 		break;
+ 	}
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
++	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
+ 		i2c_bus = &dev->i2c_bus[0];
+ 
+ 		fe0->dvb.frontend = dvb_attach(zl10353_attach,
+diff -r 17754ef554b0 -r adce5197979d linux/drivers/media/video/cx23885/cx23885.h
+--- a/linux/drivers/media/video/cx23885/cx23885.h	Fri Nov 21 20:00:55 2008 -0200
++++ b/linux/drivers/media/video/cx23885/cx23885.h	Sun Nov 23 13:21:10 2008 +0200
+@@ -67,6 +67,7 @@
+ #define CX23885_BOARD_DVICO_FUSIONHDTV_7_DUAL_EXP 10
+ #define CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP 11
+ #define CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H 12
++#define CX23885_BOARD_COMPRO_VIDEOMATE_E650F   13
+ 
+ /* Currently unsupported by the driver: PAL/H, NTSC/Kr, SECAM B/G/H/LC */
+ #define CX23885_NORMS (\
 
 --
 video4linux-list mailing list
