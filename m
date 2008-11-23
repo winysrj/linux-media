@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from smtpi1.ngi.it ([88.149.128.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1L0eAi-0003Vk-2k
-	for linux-dvb@linuxtv.org; Thu, 13 Nov 2008 16:31:54 +0100
-Message-ID: <491C4863.1030601@iki.fi>
-Date: Thu, 13 Nov 2008 17:31:47 +0200
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <mail@robertoragusa.it>) id 1L4LOV-0000fm-4u
+	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 21:17:25 +0100
+Received: from [127.0.0.1] (81-174-56-138.static.ngi.it [81.174.56.138])
+	by smtpi1.ngi.it (8.13.8/8.13.8) with ESMTP id mANKH3Yu022381
+	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 21:17:04 +0100
+Message-ID: <4929BA4D.1040906@robertoragusa.it>
+Date: Sun, 23 Nov 2008 21:17:17 +0100
+From: Roberto Ragusa <mail@robertoragusa.it>
 MIME-Version: 1.0
-To: Alain Kalker <miki@dds.nl>
-References: <a40e5bb20a32b537a391.1226449195@miki-debian.ensch1.ov.home.nl>
-In-Reply-To: <a40e5bb20a32b537a391.1226449195@miki-debian.ensch1.ov.home.nl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add support for the Digittrade DVB-T USB
- Stick	remote
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] MC44S803 driver still not merged?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,23 +25,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alain Kalker wrote:
-> From: Alain Kalker <miki@dds.nl>
-> 
-> Add support for the Digittrade DVB-T USB Stick remote.
-> As the Digittrade USB stick identifies itself as a generic AF9015 USB
-> device, the remote cannot be autodetected. To enable it, add the following
-> to /etc/modprobe.d/dvb-usb-af9015 or /etc/modprobe.conf:
-> 
-> options dvb-usb-af9015 remote=4
+Hi,
 
-Could you lower case hex numbers used in ir-table and re-send patch 
-please? I think lower case is some rule of Linux Kernel.
+my Terratec Cinergy T USB XE Ver.2 used to work with this
+af9015 mc44s80x driver
 
-regards
-Antti
+http://git.bocc.de/cgi-bin/gitweb.cgi?p=cinergy.git;a=commitdiff;h=141a8da01a6f3f87ed49a0b344d42a9df2e0648b
+http://git.bocc.de/cgi-bin/gitweb.cgi?p=cinergy.git;a=commitdiff;h=10361aea659e073de19b205d1ecbacf909eaa5c7
+
+which provides support for the MC44S803 frontend.
+
+That driver does not compile on 2.6.27 (but it works on 2.6.25).
+My hope was that 2.6.27 would have supported this hardware with no
+need for patches or external builds.
+
+My question: will this driver be merged in a near future?
+
+I'm willing to test, if it can be useful.
+
+Best regards.
 -- 
-http://palosaari.fi/
+   Roberto Ragusa    mail at robertoragusa.it
 
 _______________________________________________
 linux-dvb mailing list
