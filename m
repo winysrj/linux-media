@@ -1,20 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAFCgPU0027334
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 07:42:25 -0500
-Received: from mail4.aster.pl (mail4.aster.pl [212.76.33.58])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAFCg5bP013670
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 07:42:05 -0500
-From: "daniel.perzynski" <daniel.perzynski@aster.pl>
-To: video4linux-list@redhat.com
-Cc: 
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mANAvcMB008341
+	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 05:57:38 -0500
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mANAvPsB032670
+	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 05:57:26 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
+	<Pine.LNX.4.64.0811182010460.8628@axis700.grange>
+	<87y6zf76aw.fsf@free.fr>
+	<Pine.LNX.4.64.0811202055210.8290@axis700.grange>
+	<8763mg28bf.fsf@free.fr>
+	<Pine.LNX.4.64.0811212051360.8956@axis700.grange>
+	<878wrcztqb.fsf@free.fr>
+	<Pine.LNX.4.64.0811212256160.8956@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 23 Nov 2008 11:46:57 +0100
+In-Reply-To: <Pine.LNX.4.64.0811212256160.8956@axis700.grange> (Guennadi
+	Liakhovetski's message of "Fri\,
+	21 Nov 2008 23\:16\:33 +0100 \(CET\)")
+Message-ID: <873ahilnxa.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Message-Id: <EACE05E33CF814870362B58660E45DEF122675291943CCA4B3DE2097B955@webmail.aster.pl>
-Date: Sat, 15 Nov 2008 13:42:04 +0100 (CET)
-Subject: Re: [Bulk] [linux-dvb] Avermedia A312
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,54 +35,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-> > > Hi,
-> > > I would like to help identify and develop (I can do a testing
-> and
-> > > debug) driver for Avermedia A312 mini pci card. Link to the
-> > product
-> > > page:
-> > >
-> http://www.avermedia.com/AVerTV/Product/ProductDetail.aspx?Id=378.
-> > >
-> > > Please find attached lsusb output for that card and windows x64
-> > inf
-> > > driver file.
-> > >
-> > > If you have any questions please let me know.
-> > >
-> >
-> > As developers are in short supply, you may have to do a lot more
-> > then
-> > debugging if you want to get this to work under Linux (i.e. you
-> > might
-> > have to do the development yourself).  Anyway, a good start would
-> be
-> > if
-> > you could identify the component chips being used on the device --
-> > and
-> > if you can take a high res picture and submit it to the wiki(
-> >
+>> I think it is documented in Micron MT9M111 datasheet, table 6, page 14.
+>> My understanding is that it has a buswidth=8, and depth=16. But I may be wrong,
+>> have a look with your trained eye and tell me please.
 >
-http://www.linuxtv.org/wiki/index.php?title=AVerMedia_A312_(ATSC)&action=edit
-> >
-> > )
-> >
-> > This thing (mini pci card) has an usb interface?  Strange.
-> >
-> >
-> >
-Thanks for the info. I'm in the process of gathering those hi res
-pictures but not only for A312 but also for A301 and A321 models.
-Then I will update the wiki for them. A301 is very similar to A312
-from
-windows driver inf file point of view and is supported under Linux
-by Avermedia A828 driver. Unfortunately adding A312 device id to the
-source code of A828 driver didn't help.
+> I think we shouldn't (and possibly cannot) process this data in 
+> pass-through mode on pxa270. In raw mode pxa270 expects each pixel to only 
+> occupy one pixel clock. And we use icd->width and icd->height to configure 
+> PXA registers in pxa_camera_set_bus_param(). Whereas in this case we would 
+> have to lie to the PXA and configure it with, for example, the double 
+> line-width. I think, this way it could work. Then your horizontal sync 
+> would stay valid. So, I think, we have three options with this format:
+>
+> 1. Refuse to support this configuration, as PXA doesn't support 2 pixel 
+> clocks per pixel in raw mode
+>
+> 2. Extend the API even further to allow for different geometries on the 
+> sensor and on the controller. This, in fact, will anyway be required once 
+> we support scaling on host...
+>
+> 3. Create a special translation entry for this mode and abuse some 16-bit 
+> preprocessed format, like, e.g., RGB565. I _think_ this would work too, 
+> because, in the end, PXA doesn't know what colour it should be:-)
 
-What is concerning mini pci having usb interface I can say only that
-on Avermedia webpage that card is in Mini PCI & Mini Card category.
+Wow, that's clearly stated :)
 
+I like both solutions 2 and 3. In solution 3, on YUV variant would be nicer I
+think, because pxa reorders RGB while packing it, whereas VYUY is just passed
+through.
+I would even prefer a bit solution 3, just slightly, to split true host scaling
+from "simulated" host scaling.
+
+Now, it's up to you, make a choice. This would be anyway for the next patch
+serie, not this one. I think we should finish that one ASAP (and I'm a bit late)
+to stabilize the API.
+
+Cheers.
+
+--
+Robert
+
+PS: I forgot ... now I aggree we shouldn't use pass-through mode for 16bit
+exotic formats :)
 
 --
 video4linux-list mailing list
