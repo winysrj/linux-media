@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA1GK4dl010440
-	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 12:20:04 -0400
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA1GJEXs008441
-	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 12:19:15 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so559852eyf.39
-	for <video4linux-list@redhat.com>; Sat, 01 Nov 2008 09:19:14 -0700 (PDT)
-Message-ID: <412bdbff0811010919v3b336939qf94df1162ecbbb28@mail.gmail.com>
-Date: Sat, 1 Nov 2008 12:19:14 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Pekka Enberg" <penberg@cs.helsinki.fi>
-In-Reply-To: <84144f020811010908h1220d209j799edca3eb772fd@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAN3Jchr027522
+	for <video4linux-list@redhat.com>; Sat, 22 Nov 2008 22:19:38 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAN3JC8Q014977
+	for <video4linux-list@redhat.com>; Sat, 22 Nov 2008 22:19:12 -0500
+Received: by ug-out-1314.google.com with SMTP id j30so491952ugc.13
+	for <video4linux-list@redhat.com>; Sat, 22 Nov 2008 19:19:11 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: David Ellingsworth <david@identd.dyndns.org>
+In-Reply-To: <30353c3d0811200753h113ede02xc8708cd2dee654b3@mail.gmail.com>
+References: <1227054989.2389.33.camel@tux.localhost>
+	<30353c3d0811200753h113ede02xc8708cd2dee654b3@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 23 Nov 2008 06:19:29 +0300
+Message-Id: <1227410369.16932.31.camel@tux.localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <200811011505.51716.hverkuil@xs4all.nl>
-	<412bdbff0811010846h2edd63bfn44536e8a1c72d17f@mail.gmail.com>
-	<84144f020811010908h1220d209j799edca3eb772fd@mail.gmail.com>
-Cc: Greg KH <greg@kroah.com>, v4l <video4linux-list@redhat.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	em28xx <em28xx@mcentral.de>, mchehab@infradead.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH 1/7] Adding empia base driver
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/1] radio-mr800: fix unplug
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,65 +30,99 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Nov 1, 2008 at 12:08 PM, Pekka Enberg <penberg@cs.helsinki.fi> wrote:
-> Hi Devin,
->
-> On Sat, Nov 1, 2008 at 5:46 PM, Devin Heitmueller
-> <devin.heitmueller@gmail.com> wrote:
->> A number of people have suggested that nobody was willing to
->> incorporate Markus's changes incrementally to improve the in-kernel
->> driver.  This couldn't be further from the truth.  I appealed to
->> Markus on multiple occasions trying to find some compromise where his
->> changes could be merged into the mainline em28xx driver.  He outright
->> refused.  It was his contention that his driver was/is better than the
->> in-kernel driver in every possible way, and that the existing code has
->> no redeeming value.  In fact, I was accused of taking his GPL'd code
->> without his consent and incorporating it into the linux-dvb codebase.
->> It's this "all or nothing" attitude that has prevented his work thus
->> far from being incorporated, not the unwillingness of people like
->> myself to do the work to merge his changes in a sane matter.
->
-> I'm not sure I understand how he can refuse such a thing. If the code
-> is released under the GPLv2 and the author refuses to play by the well
-> known rules of the kernel community, then I don't see any problem with
-> taking the code and improving the current driver (as long as the
-> copyright is properly attributed, of course).
->
-> I think it's already pretty well established that we don't just take
-> in shiny new drivers and trust a new maintainer to do the right thing
-> because that has gotten us in such a mess so many times before. Being
-> part of the community is not so much the code you write but the way
-> you interact with other kernel developers.
->
-> So, if I were you, I'd just do it.
+Hello, David
 
-Hello Pekka,
+On Thu, 2008-11-20 at 10:53 -0500, David Ellingsworth wrote:
+> NACK
 
-I do not believe that he had any legal standing to prevent me from
-taking the code and incorporating it if that was my desire, given that
-he released it under the GPL.  However, taking someone's code when
-they specifically said they don't want you to is kind of a crappy
-thing to do in my humble opinion, and it definitely doesn't improve
-relations with the developer.
+> video_unregister_device should _always_ be called once the device is
+> disconnect, no matter how many handles are still open.
+> 
+> > -               radio->videodev = NULL;
+> > -               if (radio->users) {
+> > -                       kfree(radio->buffer);
+> > -                       kfree(radio);
+> > -               } else {
+> > -                       radio->removed = 1;
+> > -               }
+> > +               kfree(radio->buffer);
+> > +               kfree(radio);
+> 
+> You should not be freeing memory here. The video_device release
+> callback should be used for this purpose. It is called once all open
+> file handles are closed and after video_unregister_device has been
+> called.
 
-The reality is that from a technical standpoint I really want Markus
-to be the maintainer.  He knows more about the devices than anyone,
-works for the vendor, and has access to all the datasheets.  That
-said, I don't want a situation where he is the *only* one who can do
-work on the codebase because it is poorly commented and structured in
-a way where only he can understand why it works the way it does.
-Also, I believe certain design decisions should be made as a result of
-consensus with the other maintainers, taking into consideration
-consistency across drivers.
+Well, things what you said make me feel ill at ease (feel
+uncomfortable). Looks like 3 usb radio drivers don't implement right
+disconnect and video release functions ?
+Generaly, i took order of release/kfree-functions from dsbr100 and
+si470x.
 
-Regards,
+> Again, video_unregister_device should always be called from the usb
+> disconnect callback.
+> 
+> >                kfree(radio->buffer);
+> >                kfree(radio);
+> 
+> Again, memory should not be freed here. It should be freed by the
+> video_device release callback for reasons stated above.
 
-Devin
+Ok. I were in deep quest of finding video_device release callback. I had
+release function only in file_operations, but it wasn't right function.
+Then i found video_device_release in video_device
+amradio_videodev_template. 
+Looks like disconnect function called before video_device_release in all
+cases. And i need to call kfree(radio) after disconnect but before probe
+function(if device pluged in again).
+
+Do this general examples below look right ?
+
+static struct video_device amradio_videodev_template = {
+        .name           = "AverMedia MR 800 USB FM Radio",
+        .fops           = &usb_amradio_fops,
+        .ioctl_ops      = &usb_amradio_ioctl_ops,
+        .release        = video_device_release_am,
+};
+
+I need my own release function, right ? To free radio structure.
+
+void video_device_release_am(struct video_device *videodev)
+{
+        struct amradio_device *radio = video_get_drvdata(videodev);
+        printk("we are in video_device_release\n");
+        video_device_release(videodev);
+        kfree(radio->buffer);
+        kfree(radio);
+}
+May be something like "container_of" to get *radio from *videodev ? Or it's okay ?
+
+static void usb_amradio_disconnect(struct usb_interface *intf)
+{
+        struct amradio_device *radio = usb_get_intfdata(intf);
+
+        printk("disconnect called\n");
+//      mutex_lock(&radio->disconnect_lock);
+        radio->removed = 1;
+
+        usb_set_intfdata(intf, NULL);
+        video_unregister_device(radio->videodev);
+
+//      mutex_unlock(&radio->disconnect_lock);
+}
+
+> I suspect you'll find little need for this mutex once you have
+> properly implemented the video_device release callback. You may
+> however still need the removed flag as some usb calls obviously can't
+> be made once the device has been removed. For reference, please review
+> the stk-webcam driver as it implements this properly
+
+Thanks for pointing this out. I think that disconnect lock is not
+necessarily.
+
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
