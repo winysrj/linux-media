@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <FlyMyPG@gmail.com>) id 1L4RmB-0001Mf-VQ
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 04:06:19 +0100
-Received: from cpe-24-165-6-130.san.res.rr.com ([24.165.6.130])
-	by cdptpa-omta03.mail.rr.com with ESMTP id
-	<20081124030541.QTR27329.cdptpa-omta03.mail.rr.com@cpe-24-165-6-130.san.res.rr.com>
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 03:05:41 +0000
-Message-ID: <492A1A05.1050204@gmail.com>
-Date: Sun, 23 Nov 2008 19:05:41 -0800
-From: Bob Cunningham <FlyMyPG@gmail.com>
+Received: from smtp117.rog.mail.re2.yahoo.com ([68.142.225.233])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1L4Kwf-0006NY-T8
+	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 20:48:39 +0100
+Message-ID: <4929B373.8030801@rogers.com>
+Date: Sun, 23 Nov 2008 14:48:03 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <49287DCC.9040004@gmail.com>	<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>	<4929B192.8050707@rogers.com>	<4929FE90.2050008@gmail.com>	<492A0478.8060101@gmail.com>
-	<492A12B8.9060304@gmail.com>
-In-Reply-To: <492A12B8.9060304@gmail.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <49287DCC.9040004@gmail.com>	<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>
+	<4929B192.8050707@rogers.com>
+In-Reply-To: <4929B192.8050707@rogers.com>
+Cc: Bob Cunningham <FlyMyPG@gmail.com>, linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,99 +26,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Bob Cunningham wrote:
-> Bob Cunningham wrote:
->> Bob Cunningham wrote:
->>> CityK wrote:
->>>> Michael Krufky wrote:
->>>>> On Sat, Nov 22, 2008 at 4:46 PM, Bob Cunningham <FlyMyPG@gmail.com> wrote:
->>>>>   
->>>>>> Hi,
->>>>>>
->>>>>> I just bought an AnyTV AUTV002 USB Tuner Stick from DealExtreme.  When plugged in, lsusb provides the following:
->>>>>>
->>>>>>   Bus 001 Device 011: ID 05e1:0400 Syntek Semiconductor Co., Ltd
->>>>>>
->>>>>> A quick search revealed that the au0828 driver ....
->>>>>>     
->>>>> Bob,
->>>>>
->>>>> A patch was submitted that adds support for a device with usb ID
->>>>> 05e1:0400, but it did not get merged yet.
->>>>>
->>>>> The reason why I didn't merge the patch yet, is that there are
->>>>> multiple devices out there using this USB id but they have different
->>>>> internal components and no way to differentiate between the two.
->>>>>
->>>>> If you can open up your stick and tell us what is printed on each
->>>>> chip, then I can help you get yours working.
->>>> Likely (as mentioned in the related discussion/thread:
->>>> http://marc.info/?l=linux-dvb&m=122472907625204&w=2):
->>>>
->>>> - Microtune MT213x (tuner)
->>>> - Auvitek AU850x (demod)
->>>> - Auvitek AU0828 (usb)
->>>>
->>> There are 3 chips, from the USB to the cable connector they are:
->>> AU0828A
->>> AU8522AA
->>> MT2131F
->>>
->>> The silk screen text on the PC board reads "AUTV002_Ver1.0c"
->>>
->>> Pictures soon!
->>>
->>> -BobC
->> Hi yet again,
->>
->> I checked the source, and it seems the patch I found (http://marc.info/?l=linux-dvb&m=122416362902362&w=2) had indeed not yet been committed to the tree.  I applied it to my updated source and reinstalled v4l.  The following devices now appear:
->>
->> /dev/audio1
->> /dev/dsp1
->> /dev/dvb/adapter0
->> /dev/mixer1
->> /dev/ptmx
->>
->> I have no idea if they are functional!  I tried running xine, but I am unfamiliar with it, so I don't know if there is a problem in the driver, or if it is a PEBKAC.
->>
->> What is the preferred testing strategy?
->>
->>
->> Thanks,
->>
->> -BobC
-> 
-> 
-> As I stumbled through the maze, I was suddenly struck by a clue-by-4, and the following occurred:
-> 
->     $ dvbscan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB 
->     Unable to query frontend status
-> 
-> I take it this is not a good thing.
-> 
-> 
-> -BobC
+CityK wrote:
+> Likely (as mentioned in the related discussion/thread:
+> http://marc.info/?l=linux-dvb&m=122472907625204&w=2):
+>
+> - Microtune MT213x (tuner)
+> - Auvitek AU850x (demod)
+> - Auvitek AU0828 (usb)
 
+Here's a listing example:
+http://www.acesuppliers.com/Supplier_Company/USB-2-0-AnyTV-ATSC-Stick_Product_Showroom_37331.html
 
-Tried this next:
-    $ scan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB 
-    scanning /usr/share/dvb-apps/atsc/us-ATSC-center-frequencies-8VSB
-    using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-    >>> tune to: 57028615:8VSB
-    WARNING: >>> tuning failed!!!
-    >>> tune to: 57028615:8VSB (tuning failed)
-    ... snip over 40 other attempts ...
-    >>> tune to: 803028615:8VSB
-    WARNING: >>> tuning failed!!!
-    >>> tune to: 803028615:8VSB (tuning failed)
-    WARNING: >>> tuning failed!!!
-    ERROR: initial tuning failed
-    dumping lists (0 services)
-    Done.
+Bob, if you open it up, can you take some high res images and upload
+them to the wiki:
+http://www.linuxtv.org/wiki/index.php?title=Shenzhen_Forward_Video_AnyTV-ATSC_Stick&action=edit
 
-Still not success, but at least the devices were found and are accessible.
-
--BobC
+I'm also curious if these are indeed LifeView OEM's (as I speculated on:
+http://www.linuxtv.org/wiki/index.php/ATSC_USB_Devices#Currently_Unsupported_ATSC_USB_Devices
+) ... if so, the pcb would have a LRxxx model number silk screened on to
+it somewhere
 
 
 _______________________________________________
