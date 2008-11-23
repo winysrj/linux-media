@@ -1,18 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKLJpFF007891
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 16:19:51 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAKLJnE4005889
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 16:19:49 -0500
-Message-ID: <4925D46F.10701@gmx.net>
-Date: Thu, 20 Nov 2008 22:19:43 +0100
-From: Roman <muzungu@gmx.net>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAN0iamp028639
+	for <video4linux-list@redhat.com>; Sat, 22 Nov 2008 19:44:36 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAN0hd09009035
+	for <video4linux-list@redhat.com>; Sat, 22 Nov 2008 19:44:16 -0500
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20081122205527.459fcc74@pedra.chehab.org>
+References: <1227384295.1828.8.camel@palomino.walls.org>
+	<20081122205527.459fcc74@pedra.chehab.org>
+Content-Type: text/plain
+Date: Sat, 22 Nov 2008 19:45:24 -0500
+Message-Id: <1227401124.1828.11.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Asus PC-39 IR Control: dead keys
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l-dvb build doesn't work for 2.6.23.15-80.fc7
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,35 +28,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all
+On Sat, 2008-11-22 at 20:55 -0200, Mauro Carvalho Chehab wrote:
+> On Sat, 22 Nov 2008 15:04:55 -0500
+> Andy Walls <awalls@radix.net> wrote:
+> 
+> > Mauro,
+> > 
+> > v4l-dvb build fails on one of my setups:
+> > 
+> > $ uname -a
+> > Linux palomino.walls.org 2.6.23.15-80.fc7 #1 SMP Sun Feb 10 16:52:18 EST 2008 x86_64 x86_64 x86_64 GNU/Linu
+> > 
+> > $ make
+> > [snip]
+> >   CC [M]  /home/andy/cx18dev/v4l-dvb/v4l/ks0127.o
+> >   LD [M]  /home/andy/cx18dev/v4l-dvb/v4l/zr36067.o
+> >   CC [M]  /home/andy/cx18dev/v4l-dvb/v4l/videocodec.o
+> > /home/andy/cx18dev/v4l-dvb/v4l/videocodec.c: In function 'videocodec_init':
+> > /home/andy/cx18dev/v4l-dvb/v4l/videocodec.c:381: error: implicit declaration of function 'proc_create'
+> > /home/andy/cx18dev/v4l-dvb/v4l/videocodec.c:381: warning: assignment makes pointer from integer without a cast
+> > make[3]: *** [/home/andy/cx18dev/v4l-dvb/v4l/videocodec.o] Error 1
+> > make[2]: *** [_module_/home/andy/cx18dev/v4l-dvb/v4l] Error 2
+> > make[2]: Leaving directory `/usr/src/kernels/2.6.23.15-80.fc7-x86_64'
+> > make[1]: *** [default] Error 2
+> > make[1]: Leaving directory `/home/andy/cx18dev/v4l-dvb/v4l'
+> > make: *** [all] Error 2
+> > 
+> > 
+> > By inspection, I think this may be the change that did it (I'm not
+> > sure):
+> > 
+> > http://linuxtv.org/hg/v4l-dvb/rev/90deb49c4730
+> > 
+> > 
+> > My workaround for myself is to just disable building all the zoran
+> > stuff.
+> 
+> Hmm... I did a small mistake at the compat thing. Please test if the new commit fixed it.
 
-The keys defined with numbers bigger than 255 in the IR_KEYTAB_TYPE 
-ir_codes_asus_pc39[IR_KEYTAB_SIZE] do not get recognized by X11 nor the 
-console.
+Mauro,
 
-- showkey shows the keycode but no scancode
-- xev does not react at all on those keys
-- neither does the console
-- lineak, as far as I can see, just reacts on keycodes below 256 too, or 
-in other word on what xev does react.
+Yes, it appears to build now.  Thanks.
 
-How to solve this? How do I get the keys such as KEY_DVD or KEY_ZOOM 
-(>255) get to work with an (X) app?
-
-The only solution I can see by now, as long as X11 and the kernel 
-(right?) do not react on key above 255 is
-- to find me some unused keys below 256,
-- fill IR_KEYTAB_TYPE ir_codes_asus_pc39[IR_KEYTAB_SIZE] wiht the best 
-fitting,
-- and recompile the driver module saa7134 with the new key definitions.
-
-This is probably NOT the way to go.
-
-Any suggestions?
-
-Greets and thanks
-
-Roman
+Regards,
+Andy
 
 --
 video4linux-list mailing list
