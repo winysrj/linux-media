@@ -1,34 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADBbO8a000937
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:37:24 -0500
-Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADBbC7j025300
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:37:12 -0500
-Received: from smtp6-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id 18F271977B
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:37:12 +0100 (CET)
-Received: from [192.168.0.13] (lns-bzn-39-82-255-26-50.adsl.proxad.net
-	[82.255.26.50])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id D7CEC19779
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:37:08 +0100 (CET)
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Video 4 Linux <video4linux-list@redhat.com>
-In-Reply-To: <20081112191736.bcbc1e37.ospite@studenti.unina.it>
-References: <20080816050023.GB30725@thumper>
-	<20080816083613.51071257@mchehab.chehab.org>
-	<7813ee860808160513g2f0e3602q9f3aed45d66ef165@mail.gmail.com>
-	<20081105203114.213b599a@pedra.chehab.org>
-	<20081111184200.cb9a2ba4.ospite@studenti.unina.it>
-	<20081111191516.20febe64.ospite@studenti.unina.it>
-	<4919E47E.4000603@hhs.nl>
-	<20081112191736.bcbc1e37.ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Thu, 13 Nov 2008 12:33:58 +0100
-Message-Id: <1226576038.2040.42.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mANGW1HH031425
+	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 11:32:01 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mANGVnMs014562
+	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 11:31:49 -0500
+Date: Sun, 23 Nov 2008 17:32:01 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87wseuihum.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0811231707040.3838@axis700.grange>
+References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
+	<Pine.LNX.4.64.0811182010460.8628@axis700.grange>
+	<87y6zf76aw.fsf@free.fr>
+	<Pine.LNX.4.64.0811202055210.8290@axis700.grange>
+	<87wseuihum.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,51 +30,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 2008-11-12 at 19:17 +0100, Antonio Ospite wrote:
-> Well, with my hacks to gspca.c the ov534 driver has become really
-> trivial. The source has shrunk from 33K to 13K. But these hacks could
-> not be accepted though :) But, yes, the opinion on gspca is positive.
+On Sun, 23 Nov 2008, Robert Jarzmik wrote:
 
-Hello Antonio,
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > I know this code repeats, and it is not nice. But as I was writing it I 
+> > didn't see another possibility. Or more precisely, I did see it, but I 
+> > couldn't compare the two versions well without having at least one of them 
+> > in code in front of my eyes:-) Now that I see it, I think, yes, there is a 
+> > way to do this only once by using a translation struct similar to what you 
+> > have proposed. Now _this_ would be a possibly important advantage, so it 
+> > is useful not _only_ for debugging:-) But we would have to extend it with 
+> > at least a buswidth. Like
+> >
+> > 	const struct soc_camera_data_format *cam_fmt;
+> > 	const struct soc_camera_data_format *host_fmt;
+> > 	unsigned char buswidth;
+> >
+> > Now this _seems_ to provide the complete information so far... In 
+> > pxa_camera_get_formats() we would
+> >
+> > 1. compute camera- and host-formats and buswidth
+> > 2. call pxa_camera_try_bus_param() to check bus-parameter compatibility
+> >
+> > and then in try_fmt() and set_fmt() just traverse the list of translation 
+> > structs and adjust geometry?
+> 
+> Hi Guennadi,
+> 
+> I began the work. I have a pending question here. Do you want to have the
+> translation structure fully contained into pxa_camera (in host_priv for
+> example), or do you want to replace the user formats by translation structure
+> (ie. soc_camera_init_user_formats() would generate a list of
+> soc_camera_format_translate instead of a list of soc_camera_data format) ?
+> 
+> I'm asking because in pxa_camera, there is no easy way to "guess" the size of
+> the array of translations. And as vmalloc() is done in
+> soc_camera_init_user_formats(), and allocates only soc_camera_data_format
+> structures, I see no easy way to generate the list of translations in
+> pxa_camera.c.
+> 
+> I thought I would modify soc_camera.c in this way :
+> static int soc_camera_init_user_formats(struct soc_camera_device *icd)
+> {
+> <snip>
+> -       icd->user_formats = vmalloc(sizeof(struct soc_camera_data_format *) *
+> -                                   fmts);
+> +       icd->user_formats =
+> +               vmalloc(sizeof(struct soc_camera_format_translate *) * fmts);
+> <snip>
+> 
+> Is that what you had in mind ?
 
-Thank you for your opinion.
+Yes, exactly. he only thing, the name soc_camera_format_translate is too 
+long... But I cannot think of a better one... maybe 
+soc_camera_format_xlate just to make it a bit shorter? or format_match? 
+Anyway, this will not be a reason to reject your patch:-) And I would 
+prefer to have
 
-I looked again at your subdriver, and it seems good to me. So forget
-about mine which is too buggy.
++	x = vmalloc(y *
 
-About your hacks to gspca, there are good and bad ideas. The good idea
-is to have the bulk_nurbs parameter. The bad idea is to force it to one
-when no set. To preserve the compatibility, the bulk_nurbs may be set to
-some value for webcams which accept permanent bulk read, the submit
-being done by gspca. For the other webcams, as those in finepix, a null
-bulk_nurbs will indicate that the bulk read requests are done by the
-subdriver. Is it OK for you?
+on one line, instead of splitting it like above. E.g., 
 
-Also, I saw a little problem in your subdriver: in pkt_scan, you use a
-static variable (count). This does not work with many active webcams and
-also after stop / restart streaming. Instead, you may know the current
-byte count using the frame values data and data_end.
+> +       icd->user_formats = vmalloc(fmts *
+> +               sizeof(struct soc_camera_format_translate *));
 
-> The improvement that I always dream to see is to have bridge and
-> sensor
-> drivers split, so sensor drivers can be shared, a-la soc_camera, I
-> mean.
+but that's again just a matter of taste.
 
-There were many threads about this subject, but I could not find many
-common values for a same sensor with different bridges in gspca...
-
-> Bringing that idea to the extreme, one could think even to share
-> sensor
-> drivers with the soc_camera framework itself, but I only have this
-> abstract suggestion, no idea at all about how it can be done, sorry.
-> Could it be a GSoC project for next summer?
-
-Why not?
-
--- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
