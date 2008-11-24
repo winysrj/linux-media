@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAACbPRw028140
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 07:37:25 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAACaZ3a012082
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 07:36:35 -0500
-Date: Mon, 10 Nov 2008 13:36:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: video4linux-list@redhat.com
-In-Reply-To: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0811101331510.4248@axis700.grange>
-References: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOAl8eN001713
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 05:47:08 -0500
+Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOAktc7001476
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 05:46:55 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Mon, 24 Nov 2008 16:16:39 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403E8E680BD@dbde02.ent.ti.com>
+In-Reply-To: <24968.62.70.2.252.1227519143.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: 
-Subject: [PATCH 1/5] soc-camera: simplify naming
+Content-Transfer-Encoding: 8bit
+Cc: David Brownell <david-b@pacbell.net>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"davinci-linux-open-source-bounces@linux.davincidsp.com"
+	<davinci-linux-open-source-bounces@linux.davincidsp.com>
+Subject: RE: [PATCH 2/2] TVP514x V4L int device driver support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,393 +31,163 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-We anyway don't follow the s_fmt_vid_cap / g_fmt_vid_cap / try_fmt_vid_cap
-naming, and soc-camera is so far only about video capture, let's simplify
-operation names a bit further. set_fmt_cap / try_fmt_cap wasn't a very good
-choice too.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/mt9m001.c              |   14 +++++++-------
- drivers/media/video/mt9m111.c              |   12 ++++++------
- drivers/media/video/mt9v022.c              |   14 +++++++-------
- drivers/media/video/ov772x.c               |   14 +++++++-------
- drivers/media/video/pxa_camera.c           |   16 ++++++++--------
- drivers/media/video/sh_mobile_ceu_camera.c |   16 ++++++++--------
- drivers/media/video/soc_camera.c           |    6 +++---
- drivers/media/video/soc_camera_platform.c  |   12 ++++++------
- include/media/soc_camera.h                 |   10 ++++------
- 9 files changed, 56 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index 0c52437..0bcfef7 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -285,8 +285,8 @@ static unsigned long mt9m001_query_bus_param(struct soc_camera_device *icd)
- 		width_flag;
- }
- 
--static int mt9m001_set_fmt_cap(struct soc_camera_device *icd,
--		__u32 pixfmt, struct v4l2_rect *rect)
-+static int mt9m001_set_fmt(struct soc_camera_device *icd,
-+			   __u32 pixfmt, struct v4l2_rect *rect)
- {
- 	struct mt9m001 *mt9m001 = container_of(icd, struct mt9m001, icd);
- 	int ret;
-@@ -298,7 +298,7 @@ static int mt9m001_set_fmt_cap(struct soc_camera_device *icd,
- 		ret = reg_write(icd, MT9M001_VERTICAL_BLANKING, vblank);
- 
- 	/* The caller provides a supported format, as verified per
--	 * call to icd->try_fmt_cap() */
-+	 * call to icd->try_fmt() */
- 	if (!ret)
- 		ret = reg_write(icd, MT9M001_COLUMN_START, rect->left);
- 	if (!ret)
-@@ -325,8 +325,8 @@ static int mt9m001_set_fmt_cap(struct soc_camera_device *icd,
- 	return ret;
- }
- 
--static int mt9m001_try_fmt_cap(struct soc_camera_device *icd,
--			       struct v4l2_format *f)
-+static int mt9m001_try_fmt(struct soc_camera_device *icd,
-+			   struct v4l2_format *f)
- {
- 	if (f->fmt.pix.height < 32 + icd->y_skip_top)
- 		f->fmt.pix.height = 32 + icd->y_skip_top;
-@@ -447,8 +447,8 @@ static struct soc_camera_ops mt9m001_ops = {
- 	.release		= mt9m001_release,
- 	.start_capture		= mt9m001_start_capture,
- 	.stop_capture		= mt9m001_stop_capture,
--	.set_fmt_cap		= mt9m001_set_fmt_cap,
--	.try_fmt_cap		= mt9m001_try_fmt_cap,
-+	.set_fmt		= mt9m001_set_fmt,
-+	.try_fmt		= mt9m001_try_fmt,
- 	.set_bus_param		= mt9m001_set_bus_param,
- 	.query_bus_param	= mt9m001_query_bus_param,
- 	.controls		= mt9m001_controls,
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index da0b2d5..63c52c0 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -452,8 +452,8 @@ static int mt9m111_set_pixfmt(struct soc_camera_device *icd, u32 pixfmt)
- 	return ret;
- }
- 
--static int mt9m111_set_fmt_cap(struct soc_camera_device *icd,
--			       __u32 pixfmt, struct v4l2_rect *rect)
-+static int mt9m111_set_fmt(struct soc_camera_device *icd,
-+			   __u32 pixfmt, struct v4l2_rect *rect)
- {
- 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
- 	int ret;
-@@ -473,8 +473,8 @@ static int mt9m111_set_fmt_cap(struct soc_camera_device *icd,
- 	return ret;
- }
- 
--static int mt9m111_try_fmt_cap(struct soc_camera_device *icd,
--			       struct v4l2_format *f)
-+static int mt9m111_try_fmt(struct soc_camera_device *icd,
-+			   struct v4l2_format *f)
- {
- 	if (f->fmt.pix.height > MT9M111_MAX_HEIGHT)
- 		f->fmt.pix.height = MT9M111_MAX_HEIGHT;
-@@ -597,8 +597,8 @@ static struct soc_camera_ops mt9m111_ops = {
- 	.release		= mt9m111_release,
- 	.start_capture		= mt9m111_start_capture,
- 	.stop_capture		= mt9m111_stop_capture,
--	.set_fmt_cap		= mt9m111_set_fmt_cap,
--	.try_fmt_cap		= mt9m111_try_fmt_cap,
-+	.set_fmt		= mt9m111_set_fmt,
-+	.try_fmt		= mt9m111_try_fmt,
- 	.query_bus_param	= mt9m111_query_bus_param,
- 	.set_bus_param		= mt9m111_set_bus_param,
- 	.controls		= mt9m111_controls,
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index 2584201..3a39f02 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -337,14 +337,14 @@ static unsigned long mt9v022_query_bus_param(struct soc_camera_device *icd)
- 		width_flag;
- }
- 
--static int mt9v022_set_fmt_cap(struct soc_camera_device *icd,
--		__u32 pixfmt, struct v4l2_rect *rect)
-+static int mt9v022_set_fmt(struct soc_camera_device *icd,
-+			   __u32 pixfmt, struct v4l2_rect *rect)
- {
- 	struct mt9v022 *mt9v022 = container_of(icd, struct mt9v022, icd);
- 	int ret;
- 
- 	/* The caller provides a supported format, as verified per call to
--	 * icd->try_fmt_cap(), datawidth is from our supported format list */
-+	 * icd->try_fmt(), datawidth is from our supported format list */
- 	switch (pixfmt) {
- 	case V4L2_PIX_FMT_GREY:
- 	case V4L2_PIX_FMT_Y16:
-@@ -400,8 +400,8 @@ static int mt9v022_set_fmt_cap(struct soc_camera_device *icd,
- 	return 0;
- }
- 
--static int mt9v022_try_fmt_cap(struct soc_camera_device *icd,
--			       struct v4l2_format *f)
-+static int mt9v022_try_fmt(struct soc_camera_device *icd,
-+			   struct v4l2_format *f)
- {
- 	if (f->fmt.pix.height < 32 + icd->y_skip_top)
- 		f->fmt.pix.height = 32 + icd->y_skip_top;
-@@ -538,8 +538,8 @@ static struct soc_camera_ops mt9v022_ops = {
- 	.release		= mt9v022_release,
- 	.start_capture		= mt9v022_start_capture,
- 	.stop_capture		= mt9v022_stop_capture,
--	.set_fmt_cap		= mt9v022_set_fmt_cap,
--	.try_fmt_cap		= mt9v022_try_fmt_cap,
-+	.set_fmt		= mt9v022_set_fmt,
-+	.try_fmt		= mt9v022_try_fmt,
- 	.set_bus_param		= mt9v022_set_bus_param,
- 	.query_bus_param	= mt9v022_query_bus_param,
- 	.controls		= mt9v022_controls,
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 6206dff..b1b4cd2 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -737,9 +737,9 @@ static int ov772x_set_register(struct soc_camera_device *icd,
- }
- #endif
- 
--static int ov772x_set_fmt_cap(struct soc_camera_device *icd,
--			      __u32                     pixfmt,
--			      struct v4l2_rect         *rect)
-+static int ov772x_set_fmt(struct soc_camera_device *icd,
-+			  __u32                     pixfmt,
-+			  struct v4l2_rect         *rect)
- {
- 	struct ov772x_priv *priv = container_of(icd, struct ov772x_priv, icd);
- 	int ret = -EINVAL;
-@@ -760,8 +760,8 @@ static int ov772x_set_fmt_cap(struct soc_camera_device *icd,
- 	return ret;
- }
- 
--static int ov772x_try_fmt_cap(struct soc_camera_device *icd,
--			      struct v4l2_format       *f)
-+static int ov772x_try_fmt(struct soc_camera_device *icd,
-+			  struct v4l2_format       *f)
- {
- 	struct v4l2_pix_format *pix  = &f->fmt.pix;
- 	struct ov772x_priv     *priv;
-@@ -859,8 +859,8 @@ static struct soc_camera_ops ov772x_ops = {
- 	.release		= ov772x_release,
- 	.start_capture		= ov772x_start_capture,
- 	.stop_capture		= ov772x_stop_capture,
--	.set_fmt_cap		= ov772x_set_fmt_cap,
--	.try_fmt_cap		= ov772x_try_fmt_cap,
-+	.set_fmt		= ov772x_set_fmt,
-+	.try_fmt		= ov772x_try_fmt,
- 	.set_bus_param		= ov772x_set_bus_param,
- 	.query_bus_param	= ov772x_query_bus_param,
- 	.get_chip_id		= ov772x_get_chip_id,
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index a375872..665eef2 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -904,8 +904,8 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 	return soc_camera_bus_param_compatible(camera_flags, bus_flags) ? 0 : -EINVAL;
- }
- 
--static int pxa_camera_set_fmt_cap(struct soc_camera_device *icd,
--				  __u32 pixfmt, struct v4l2_rect *rect)
-+static int pxa_camera_set_fmt(struct soc_camera_device *icd,
-+			      __u32 pixfmt, struct v4l2_rect *rect)
- {
- 	const struct soc_camera_data_format *cam_fmt;
- 	int ret;
-@@ -920,15 +920,15 @@ static int pxa_camera_set_fmt_cap(struct soc_camera_device *icd,
- 			return -EINVAL;
- 	}
- 
--	ret = icd->ops->set_fmt_cap(icd, pixfmt, rect);
-+	ret = icd->ops->set_fmt(icd, pixfmt, rect);
- 	if (pixfmt && !ret)
- 		icd->current_fmt = cam_fmt;
- 
- 	return ret;
- }
- 
--static int pxa_camera_try_fmt_cap(struct soc_camera_device *icd,
--				  struct v4l2_format *f)
-+static int pxa_camera_try_fmt(struct soc_camera_device *icd,
-+			      struct v4l2_format *f)
- {
- 	const struct soc_camera_data_format *cam_fmt;
- 	int ret = pxa_camera_try_bus_param(icd, f->fmt.pix.pixelformat);
-@@ -960,7 +960,7 @@ static int pxa_camera_try_fmt_cap(struct soc_camera_device *icd,
- 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
- 
- 	/* limit to sensor capabilities */
--	return icd->ops->try_fmt_cap(icd, f);
-+	return icd->ops->try_fmt(icd, f);
- }
- 
- static int pxa_camera_reqbufs(struct soc_camera_file *icf,
-@@ -1068,8 +1068,8 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
- 	.remove		= pxa_camera_remove_device,
- 	.suspend	= pxa_camera_suspend,
- 	.resume		= pxa_camera_resume,
--	.set_fmt_cap	= pxa_camera_set_fmt_cap,
--	.try_fmt_cap	= pxa_camera_try_fmt_cap,
-+	.set_fmt	= pxa_camera_set_fmt,
-+	.try_fmt	= pxa_camera_try_fmt,
- 	.init_videobuf	= pxa_camera_init_videobuf,
- 	.reqbufs	= pxa_camera_reqbufs,
- 	.poll		= pxa_camera_poll,
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 1bacfc7..367c4eb 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -444,8 +444,8 @@ static int sh_mobile_ceu_try_bus_param(struct soc_camera_device *icd,
- 	return 0;
- }
- 
--static int sh_mobile_ceu_set_fmt_cap(struct soc_camera_device *icd,
--				     __u32 pixfmt, struct v4l2_rect *rect)
-+static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
-+				 __u32 pixfmt, struct v4l2_rect *rect)
- {
- 	const struct soc_camera_data_format *cam_fmt;
- 	int ret;
-@@ -460,15 +460,15 @@ static int sh_mobile_ceu_set_fmt_cap(struct soc_camera_device *icd,
- 			return -EINVAL;
- 	}
- 
--	ret = icd->ops->set_fmt_cap(icd, pixfmt, rect);
-+	ret = icd->ops->set_fmt(icd, pixfmt, rect);
- 	if (pixfmt && !ret)
- 		icd->current_fmt = cam_fmt;
- 
- 	return ret;
- }
- 
--static int sh_mobile_ceu_try_fmt_cap(struct soc_camera_device *icd,
--				     struct v4l2_format *f)
-+static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
-+				 struct v4l2_format *f)
- {
- 	const struct soc_camera_data_format *cam_fmt;
- 	int ret = sh_mobile_ceu_try_bus_param(icd, f->fmt.pix.pixelformat);
-@@ -502,7 +502,7 @@ static int sh_mobile_ceu_try_fmt_cap(struct soc_camera_device *icd,
- 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
- 
- 	/* limit to sensor capabilities */
--	return icd->ops->try_fmt_cap(icd, f);
-+	return icd->ops->try_fmt(icd, f);
- }
- 
- static int sh_mobile_ceu_reqbufs(struct soc_camera_file *icf,
-@@ -570,8 +570,8 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= sh_mobile_ceu_add_device,
- 	.remove		= sh_mobile_ceu_remove_device,
--	.set_fmt_cap	= sh_mobile_ceu_set_fmt_cap,
--	.try_fmt_cap	= sh_mobile_ceu_try_fmt_cap,
-+	.set_fmt	= sh_mobile_ceu_set_fmt,
-+	.try_fmt	= sh_mobile_ceu_try_fmt,
- 	.reqbufs	= sh_mobile_ceu_reqbufs,
- 	.poll		= sh_mobile_ceu_poll,
- 	.querycap	= sh_mobile_ceu_querycap,
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index afadb33..7304e73 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -73,7 +73,7 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
- 	}
- 
- 	/* limit format to hardware capabilities */
--	ret = ici->ops->try_fmt_cap(icd, f);
-+	ret = ici->ops->try_fmt(icd, f);
- 
- 	return ret;
- }
-@@ -324,7 +324,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
- 	rect.top	= icd->y_current;
- 	rect.width	= f->fmt.pix.width;
- 	rect.height	= f->fmt.pix.height;
--	ret = ici->ops->set_fmt_cap(icd, f->fmt.pix.pixelformat, &rect);
-+	ret = ici->ops->set_fmt(icd, f->fmt.pix.pixelformat, &rect);
- 	if (ret < 0) {
- 		return ret;
- 	} else if (!icd->current_fmt ||
-@@ -553,7 +553,7 @@ static int soc_camera_s_crop(struct file *file, void *fh,
- 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
- 
--	ret = ici->ops->set_fmt_cap(icd, 0, &a->c);
-+	ret = ici->ops->set_fmt(icd, 0, &a->c);
- 	if (!ret) {
- 		icd->width	= a->c.width;
- 		icd->height	= a->c.height;
-diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
-index bb7a9d4..c23871e 100644
---- a/drivers/media/video/soc_camera_platform.c
-+++ b/drivers/media/video/soc_camera_platform.c
-@@ -79,14 +79,14 @@ soc_camera_platform_query_bus_param(struct soc_camera_device *icd)
- 	return p->bus_param;
- }
- 
--static int soc_camera_platform_set_fmt_cap(struct soc_camera_device *icd,
--					   __u32 pixfmt, struct v4l2_rect *rect)
-+static int soc_camera_platform_set_fmt(struct soc_camera_device *icd,
-+				       __u32 pixfmt, struct v4l2_rect *rect)
- {
- 	return 0;
- }
- 
--static int soc_camera_platform_try_fmt_cap(struct soc_camera_device *icd,
--					   struct v4l2_format *f)
-+static int soc_camera_platform_try_fmt(struct soc_camera_device *icd,
-+				       struct v4l2_format *f)
- {
- 	struct soc_camera_platform_info *p = soc_camera_platform_get_info(icd);
- 
-@@ -124,8 +124,8 @@ static struct soc_camera_ops soc_camera_platform_ops = {
- 	.release		= soc_camera_platform_release,
- 	.start_capture		= soc_camera_platform_start_capture,
- 	.stop_capture		= soc_camera_platform_stop_capture,
--	.set_fmt_cap		= soc_camera_platform_set_fmt_cap,
--	.try_fmt_cap		= soc_camera_platform_try_fmt_cap,
-+	.set_fmt		= soc_camera_platform_set_fmt,
-+	.try_fmt		= soc_camera_platform_try_fmt,
- 	.set_bus_param		= soc_camera_platform_set_bus_param,
- 	.query_bus_param	= soc_camera_platform_query_bus_param,
- };
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index c9b2b7f..64eb4b5 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -66,9 +66,8 @@ struct soc_camera_host_ops {
- 	void (*remove)(struct soc_camera_device *);
- 	int (*suspend)(struct soc_camera_device *, pm_message_t state);
- 	int (*resume)(struct soc_camera_device *);
--	int (*set_fmt_cap)(struct soc_camera_device *, __u32,
--			   struct v4l2_rect *);
--	int (*try_fmt_cap)(struct soc_camera_device *, struct v4l2_format *);
-+	int (*set_fmt)(struct soc_camera_device *, __u32, struct v4l2_rect *);
-+	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
- 	void (*init_videobuf)(struct videobuf_queue *,
- 			      struct soc_camera_device *);
- 	int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
-@@ -125,9 +124,8 @@ struct soc_camera_ops {
- 	int (*release)(struct soc_camera_device *);
- 	int (*start_capture)(struct soc_camera_device *);
- 	int (*stop_capture)(struct soc_camera_device *);
--	int (*set_fmt_cap)(struct soc_camera_device *, __u32,
--			   struct v4l2_rect *);
--	int (*try_fmt_cap)(struct soc_camera_device *, struct v4l2_format *);
-+	int (*set_fmt)(struct soc_camera_device *, __u32, struct v4l2_rect *);
-+	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
- 	unsigned long (*query_bus_param)(struct soc_camera_device *);
- 	int (*set_bus_param)(struct soc_camera_device *, unsigned long);
- 	int (*get_chip_id)(struct soc_camera_device *,
--- 
-1.5.4
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Monday, November 24, 2008 3:02 PM
+> To: Hiremath, Vaibhav
+> Cc: David Brownell; video4linux-list@redhat.com; linux-
+> omap@vger.kernel.org; davinci-linux-open-source-
+> bounces@linux.davincidsp.com
+> Subject: RE: [PATCH 2/2] TVP514x V4L int device driver support
+> 
+> >
+> >
+> > Thanks,
+> > Vaibhav Hiremath
+> >
+> >> -----Original Message-----
+> >> From: video4linux-list-bounces@redhat.com [mailto:video4linux-
+> list-
+> >> bounces@redhat.com] On Behalf Of Hans Verkuil
+> >> Sent: Monday, November 24, 2008 1:24 PM
+> >> To: David Brownell
+> >> Cc: video4linux-list@redhat.com; linux-omap@vger.kernel.org;
+> >> davinci-linux-open-source-bounces@linux.davincidsp.com
+> >> Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
+> >>
+> >> On Monday 24 November 2008 07:32:31 David Brownell wrote:
+> >> > On Sunday 23 November 2008, Trilok Soni wrote:
+> >> > > > 2) Please use the media/v4l2-i2c-drv.h or
+> >> > > > media/v4l2-i2c-drv-legacy.h header to hide some of the i2c
+> >> > > > complexity (again, see e.g. saa7115.c). The i2c API tends
+> to
+> >> > > > change a lot (and some changes are upcoming) so
+> >> >
+> >> > What "changes" do you mean?  Since this is not a legacy-style
+> >> > driver (yay!), the upcoming changes won't affect it at all.
+> >>
+> >> Oops, sorry. I thought it was a legacy driver, but it isn't.
+> There
+> >> are
+> >> changes upcoming for legacy drivers, but not for new-style
+> drivers.
+> >>
+> >> > > > using this header will mean that i2c driver changes will be
+> >> > > > minimal in the future. In addition it will ensure that this
+> >> > > > driver can be compiled with older kernels as well once it
+> is
+> >> part
+> >> > > > of the v4l-dvb repository.
+> >> > >
+> >> > > I don't agree with having support to compile with older
+> kernels.
+> >> >
+> >> > Right.  Folk wanting legacy tvp5146 and tvp5140 support could
+> >> > try to use the legacy drivers from the DaVinci tree.
+> >>
+> >> The v4l-dvb mercurial tree at www.linuxtv.org/hg which is the
+> main
+> >> v4l-dvb repository can support kernels >= 2.6.16. Before new
+> stuff
+> >> is
+> >> merged with the git kernel all the compatibility stuff for old
+> >> kernels
+> >> is stripped out, so you don't see it in the actual kernel code.
+> >> Using
+> >> the media/v4l2-i2c-drv.h header makes it much easier to support
+> >> these
+> >> older kernels and it actually reduces the code size as well. Most
+> >> v4l
+> >> i2c drivers are already converted or will be converted soon. It's
+> a
+> >> v4l
+> >> thing.
+> >>
+> >> > > Even though I2C APIs change as lot it is for good, and
+> creating
+> >> > > abstractions doesn't help as saa7xxx is family of chips where
+> I
+> >> > > don't see the case here. Once this driver is mainlined if
+> >> someone
+> >> > > does i2c subsystem change which breaks this driver from
+> building
+> >> > > then he/she has to make changes to all the code affecting it.
+> >> >
+> >> > And AFAIK no such change is anticipated.  The conversion from
+> >> > legacy style I2C drivers to "new style" driver-model friendly
+> >> > drivers is progressing fairly well, so that legacy support can
+> >> > be completely removed.
+> >> >
+> >> > > I am not in favour of adding support to compile with older
+> >> kernels.
+> >> >
+> >> > My two cents:  I'm not in favor either.  In fact that's the
+> >> > general policy for mainline drivers, and I'm surprised to hear
+> >> > any maintainer suggest it be added.
+> >>
+> >> Again, it's specific to v4l drivers. You don't have to do it, but
+> it
+> >> makes it consistent with the other v4l i2c drivers and when the
+> >> driver
+> >> is in the v4l-dvb repository you get support for older kernels
+> for
+> >> free.
+> >>
+> > [Hiremath, Vaibhav] Again only to maintain consistency, supporting
+> legacy
+> > wrapper is not good practice (In my opinion). Why can't we have
+> new driver
+> > coming with new interface and old drivers still can have legacy
+> wrappers?
+> 
+> It's no big deal for me, it was just a suggestion. We have noticed
+> that a
+> lot of people actually use the v4l-dvb repository to be able to get
+> the
+> latest v4l-dvb drivers for older kernels. Using these wrappers makes
+> it
+> trivial to provide that service, that's all. Just concentrate on
+> points 1
+> (trivial to fix) and 4 (the only really important and 'must fix'
+> issue).
+> 
+[Hiremath, Vaibhav] Thanks Hans.
+Point 1 - I completely agree to your point and will fix this.
+
+Point 4 - If I understand it correctly, you are referring to parameters, functions exported from board specific file. 
+
+Let me explain the TVP514x driver interface -
+
+Board specific file (for me arch/arm/mach-omap2/board-omap3evm-dc.c) exports Default register list (tvp514x_reg), input list supported (tvp514x_input_info), etc... 
+The platform specific structure for tvp514x is looking like - 
+
+static struct tvp514x_platform_data tvp5146_pdata = {
+        .power_set = tvp5146_power_set,
+        .priv_data_set = tvp5146_set_prv_data,
+        .ifparm = tvp5146_ifparm,
+
+        /* TVP5146 regsiter list, contains default values */
+        .reg_list = tvp5146_reg_list,
+
+        /* Number of supported inputs */
+        .num_inputs = TVP5146_NUM_INPUTS,
+        .input_list = tvp5146_input_list,
+};
+
+
+Are you talking about the dependency for default register list and input list on board specific file? 
+I believe we can very well move it to tvp driver file, actually I found it easy to have complete default configuration list coming from board specific file instead of asking/taking some (required) params only.
+
+> Regards,
+> 
+>         Hans
+> 
+
 
 --
 video4linux-list mailing list
