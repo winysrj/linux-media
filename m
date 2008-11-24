@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [85.17.51.120] (helo=master.jcz.nl)
+Received: from ug-out-1314.google.com ([66.249.92.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jaap@jcz.nl>) id 1L38Mi-0003d7-Q2
-	for linux-dvb@linuxtv.org; Thu, 20 Nov 2008 13:10:36 +0100
-Message-ID: <492553AF.4080209@jcz.nl>
-Date: Thu, 20 Nov 2008 13:10:23 +0100
-From: Jaap Crezee <jaap@jcz.nl>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L4WkB-0000iQ-Bi
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 09:24:33 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so642473ugc.16
+	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 00:24:27 -0800 (PST)
+Date: Mon, 24 Nov 2008 09:24:14 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Artem Makhutov <artem@makhutov.org>
+In-Reply-To: <492A53C4.5030509@makhutov.org>
+Message-ID: <alpine.DEB.2.00.0811240829050.26293@ybpnyubfg.ybpnyqbznva>
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
 MIME-Version: 1.0
-To: "Michael J. Curtis" <michael.curtis@glcweb.co.uk>
-References: <3C276393607085468A28782D978BA5EEECB30B5F24@w2k8svr1.glcdomain8.local>
-In-Reply-To: <3C276393607085468A28782D978BA5EEECB30B5F24@w2k8svr1.glcdomain8.local>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Status of TT 3200 S2 card and Mythtv
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,21 +27,86 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael J. Curtis wrote:
-> Many thanks to all those who contribute to this list ...........but as a keen linux user I need help in understanding where we are at in respect of a working HD system with the TT3200 S2 card and then, is Mythtv working with the required drivers?
+On Mon, 24 Nov 2008, Artem Makhutov wrote:
 
-Hi Michael,
+(quoting Klaus...)
+> > It is assumed that a device capable of handling "second generation
+> > modulation" can implicitly handle "first generation modulation".
+> > The flag is not named anything with DVBS2 in order to allow its
+> > use with future DVBT2 devices as well (should they ever come).
 
-I have got a working setup with a budget TT3200 S2 (including CI/CAM module and paytv subscription) and mythtv using
-drivers at http://linuxtv.org/hg/v4l-dvb/ and mythtv current trunk svn with patch http://svn.mythtv.org/trac/ticket/5882 .
+I am sure than DVB-T2 devices will appear soon enough, as
+that's going to go into regular service in the UK in a
+year's time.  Other countries will lag, if they even make
+the jump at all -- it depends how their plans for signal
+delivery via terrestrial matches the frequency allocations
+and the demand for these frequencies -- some countries
+have explicitly stated their intent to treat DVB-T as an
+unwanted child, while in others, HD bandwidth demand
+could easily outstrip allocated frequencies and the
+political division thereof between broadcasters.  That is,
+perhaps outside of the UK one will have to search rather
+intensively to find such devices for some time.
 
-Currently, i am at patch-patch level http://svn.mythtv.org/trac/attachment/ticket/5882/t5882_S2Api_3.diff
-Maybe I will try ...S2Api_5.diff , but I think it will work.
+My question is about overlapping capability, which I'll try
+to explain below:
 
 
-Regards,
+> Wouldn't it be better to add something like this:
+> FE_CAN_8PSK
+> FE_CAN_16APSK
+> FE_CAN_32APSK
 
-Jaap Crezee
+Agreed.  In the case of DVB-T2, which I don't know by
+heart, there are additional modulation modes, some of
+which are already covered by existing capabilities or
+definitions.  But I don't know if there are backwards
+incompatibilities that aren't covered by the modulation
+methods.
+
+In particular, I'm thinking of DVB-S2 use of QPSK.  This
+is something I haven't wrapped my head around, but I do
+know that my DVB-S receivers and tuners cannot tune to
+those DVB-S2 QPSK frequencies (listed in part in an earlier
+mail I sent).
+
+
+To go off-topic, can someone explain to me, simply, in
+words of one syllable, just what it is that differentiates
+a DVB-S2 QPSK transponder from a DVB-S QPSK transponder,
+and better as something that can be plugged into the
+definitions of the existing API -- like, say, rolloff
+or something.
+
+
+Looking at it from the perspective of the UK, where DVB-T
+was introduced early using 2k FFT modulation, but as part
+of DSO this is being changed to 8k, yet early consumer
+equipment cut costs and corners in several ways to make
+those devices incompatible (split-NIT, 8k mode) today --
+definitions included within the capabilities for devices
+under linux-dvb.  Wait, that's not a sentence.  I mean,
+`can-dvb-t' for those devices is something like `can-qpsk'
+in the dvb-s/s2 case.  Am I making sense?  I need sleep.
+
+
+
+> FE_CAN_DVBS2
+> Instead of FE_CAN_2ND_GEN_MODULATION ? It is too generic for me.
+
+Maybe also a bit too overbroad/generic?  In the case that
+DVB-S2 includes things not supported by existing consumer
+products, intended for professional broadcasters, or future
+data delivery, or something.
+
+
+Feel free to ignore me, as I'm sort of commenting from the
+sidelines, and I don't know what I'm talking about, and
+I'm in desperate need of sleep.
+
+
+thanks
+barry bouwsmna
 
 _______________________________________________
 linux-dvb mailing list
