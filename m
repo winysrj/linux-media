@@ -1,19 +1,35 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA8Im5NF015501
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 13:48:05 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA8IlrSm016601
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 13:47:53 -0500
-Date: Sat, 8 Nov 2008 19:48:05 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0811081917070.8956@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAO89iP4000583
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 03:09:44 -0500
+Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAO89Vgk029948
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 03:09:32 -0500
+Message-ID: <492A629C.1010808@hhs.nl>
+Date: Mon, 24 Nov 2008 09:15:24 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: 
-Subject: [PATCH 3/3] soc-camera: let camera host drivers decide upon pixel
- format
+To: kilgota@banach.math.auburn.edu
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
+	<200811190020.15663.linux@baker-net.org.uk>
+	<4923D159.9070204@hhs.nl>
+	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
+	<49253004.4010504@hhs.nl>
+	<Pine.LNX.4.64.0811201130410.3570@banach.math.auburn.edu>
+	<4925BC94.7090008@hhs.nl>
+	<Pine.LNX.4.64.0811202306360.3930@banach.math.auburn.edu>
+	<49269369.90805@hhs.nl>
+	<Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
+	<49272762.80304@hhs.nl>
+	<Pine.LNX.4.64.0811211929220.4832@banach.math.auburn.edu>
+	<49292417.30100@hhs.nl>
+	<Pine.LNX.4.64.0811231522510.6135@banach.math.auburn.edu>
+In-Reply-To: <Pine.LNX.4.64.0811231522510.6135@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Apparent inconsistency in the labels of Bayer tilings
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,293 +41,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Pixel format requested by the user is not necessarily the same, as what
-a sensor driver provides. There are situations, when a camera host driver
-provides the required format, but requires a different format from the
-sensor. Further, the list of formats, supported by sensors is pretty static
-and can be pretty good described with a constant list of structures. Whereas
-decisions, made by camera host drivers to support requested formats can be
-quite complex, therefore it is better to let the host driver do the work.
+kilgota@banach.math.auburn.edu wrote:
+> 
+> Thanks for the recommendation about gettimeofday. I will try putting 
+> that in. Right now, I wonder if you know something about the following:
+> 
+> In order to make your Bayer demosaicing algorithm work, I had to do the 
+> following because otherwise the colors were mapped backwards:
+> 
+> 1. create new entries in your libv4lconvert-priv.h like this
+> 
+> #ifndef V4L2_PIX_FMT_SBGGR8
+> #define V4L2_PIX_FMT_SBGGR8 v4l2_fourcc('B','G','G','R')
+> #endif
+> 
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Erm, that one is defined in linux/videodev2.h and has been for a long time:
+#define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. 
+GRGR.. */
 
-Robert, this patch shall actually let us cleanly implement format 
-conversions in camera host-drivers. The previous two patches I've cc'ed to 
-you for completeness, so you can test this one. Now the camera 
-host-driver, e.g., pxa_camera.c gets the s_fmt_vid_cap request practically 
-directly and can then decide which format to request from the sensor 
-driver. Have a look if you can use this. I'll try to think about it a bit 
-more too.
+But I see I did not include it in libv4lconvert-priv.h, my bad.
 
- drivers/media/video/pxa_camera.c           |   32 +++++++++++++++-
- drivers/media/video/sh_mobile_ceu_camera.c |   32 +++++++++++++++-
- drivers/media/video/soc_camera.c           |   58 ++++++++++-----------------
- include/media/soc_camera.h                 |    3 +
- 4 files changed, 87 insertions(+), 38 deletions(-)
+Anyways to which fourcc you define V4L2_PIX_FMT_SBGGR8 should not matter, as 
+for the meaning of the defines, as the command above shows in v4l BGGR means 
+first line: BGBG.. second line: GRGR.., and then third line BGBG.. again, etc.
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index 2a811f8..a375872 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -907,17 +907,43 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- static int pxa_camera_set_fmt_cap(struct soc_camera_device *icd,
- 				  __u32 pixfmt, struct v4l2_rect *rect)
- {
--	return icd->ops->set_fmt_cap(icd, pixfmt, rect);
-+	const struct soc_camera_data_format *cam_fmt;
-+	int ret;
-+
-+	/*
-+	 * TODO: find a suitable supported by the SoC output format, check
-+	 * whether the sensor supports one of acceptable input formats.
-+	 */
-+	if (pixfmt) {
-+		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
-+		if (!cam_fmt)
-+			return -EINVAL;
-+	}
-+
-+	ret = icd->ops->set_fmt_cap(icd, pixfmt, rect);
-+	if (pixfmt && !ret)
-+		icd->current_fmt = cam_fmt;
-+
-+	return ret;
- }
- 
- static int pxa_camera_try_fmt_cap(struct soc_camera_device *icd,
- 				  struct v4l2_format *f)
- {
-+	const struct soc_camera_data_format *cam_fmt;
- 	int ret = pxa_camera_try_bus_param(icd, f->fmt.pix.pixelformat);
- 
- 	if (ret < 0)
- 		return ret;
- 
-+	/*
-+	 * TODO: find a suitable supported by the SoC output format, check
-+	 * whether the sensor supports one of acceptable input formats.
-+	 */
-+	cam_fmt = soc_camera_format_by_fourcc(icd, f->fmt.pix.pixelformat);
-+	if (!cam_fmt)
-+		return -EINVAL;
-+
- 	/* limit to pxa hardware capabilities */
- 	if (f->fmt.pix.height < 32)
- 		f->fmt.pix.height = 32;
-@@ -929,6 +955,10 @@ static int pxa_camera_try_fmt_cap(struct soc_camera_device *icd,
- 		f->fmt.pix.width = 2048;
- 	f->fmt.pix.width &= ~0x01;
- 
-+	f->fmt.pix.bytesperline = f->fmt.pix.width *
-+		DIV_ROUND_UP(cam_fmt->depth, 8);
-+	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+
- 	/* limit to sensor capabilities */
- 	return icd->ops->try_fmt_cap(icd, f);
- }
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index a6b29a4..1bacfc7 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -447,17 +447,43 @@ static int sh_mobile_ceu_try_bus_param(struct soc_camera_device *icd,
- static int sh_mobile_ceu_set_fmt_cap(struct soc_camera_device *icd,
- 				     __u32 pixfmt, struct v4l2_rect *rect)
- {
--	return icd->ops->set_fmt_cap(icd, pixfmt, rect);
-+	const struct soc_camera_data_format *cam_fmt;
-+	int ret;
-+
-+	/*
-+	 * TODO: find a suitable supported by the SoC output format, check
-+	 * whether the sensor supports one of acceptable input formats.
-+	 */
-+	if (pixfmt) {
-+		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
-+		if (!cam_fmt)
-+			return -EINVAL;
-+	}
-+
-+	ret = icd->ops->set_fmt_cap(icd, pixfmt, rect);
-+	if (pixfmt && !ret)
-+		icd->current_fmt = cam_fmt;
-+
-+	return ret;
- }
- 
- static int sh_mobile_ceu_try_fmt_cap(struct soc_camera_device *icd,
- 				     struct v4l2_format *f)
- {
-+	const struct soc_camera_data_format *cam_fmt;
- 	int ret = sh_mobile_ceu_try_bus_param(icd, f->fmt.pix.pixelformat);
- 
- 	if (ret < 0)
- 		return ret;
- 
-+	/*
-+	 * TODO: find a suitable supported by the SoC output format, check
-+	 * whether the sensor supports one of acceptable input formats.
-+	 */
-+	cam_fmt = soc_camera_format_by_fourcc(icd, f->fmt.pix.pixelformat);
-+	if (!cam_fmt)
-+		return -EINVAL;
-+
- 	/* FIXME: calculate using depth and bus width */
- 
- 	if (f->fmt.pix.height < 4)
-@@ -471,6 +497,10 @@ static int sh_mobile_ceu_try_fmt_cap(struct soc_camera_device *icd,
- 	f->fmt.pix.width &= ~0x01;
- 	f->fmt.pix.height &= ~0x03;
- 
-+	f->fmt.pix.bytesperline = f->fmt.pix.width *
-+		DIV_ROUND_UP(cam_fmt->depth, 8);
-+	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+
- 	/* limit to sensor capabilities */
- 	return icd->ops->try_fmt_cap(icd, f);
- }
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 2d1f474..afadb33 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -35,7 +35,7 @@ static LIST_HEAD(devices);
- static DEFINE_MUTEX(list_lock);
- static DEFINE_MUTEX(video_lock);
- 
--const static struct soc_camera_data_format *format_by_fourcc(
-+const struct soc_camera_data_format *soc_camera_format_by_fourcc(
- 	struct soc_camera_device *icd, unsigned int fourcc)
- {
- 	unsigned int i;
-@@ -45,6 +45,7 @@ const static struct soc_camera_data_format *format_by_fourcc(
- 			return icd->formats + i;
- 	return NULL;
- }
-+EXPORT_SYMBOL(soc_camera_format_by_fourcc);
- 
- static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
- 				      struct v4l2_format *f)
-@@ -54,25 +55,19 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct soc_camera_host *ici =
- 		to_soc_camera_host(icd->dev.parent);
- 	enum v4l2_field field;
--	const struct soc_camera_data_format *fmt;
- 	int ret;
- 
- 	WARN_ON(priv != file->private_data);
- 
--	fmt = format_by_fourcc(icd, f->fmt.pix.pixelformat);
--	if (!fmt) {
--		dev_dbg(&icd->dev, "invalid format 0x%08x\n",
--			f->fmt.pix.pixelformat);
--		return -EINVAL;
--	}
--
--	dev_dbg(&icd->dev, "fmt: 0x%08x\n", fmt->fourcc);
--
-+	/*
-+	 * TODO: this might also have to migrate to host-drivers, if anyone
-+	 * wishes to support other fields
-+	 */
- 	field = f->fmt.pix.field;
- 
- 	if (field == V4L2_FIELD_ANY) {
--		field = V4L2_FIELD_NONE;
--	} else if (V4L2_FIELD_NONE != field) {
-+		f->fmt.pix.field = V4L2_FIELD_NONE;
-+	} else if (field != V4L2_FIELD_NONE) {
- 		dev_err(&icd->dev, "Field type invalid.\n");
- 		return -EINVAL;
- 	}
-@@ -80,13 +75,6 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
- 	/* limit format to hardware capabilities */
- 	ret = ici->ops->try_fmt_cap(icd, f);
- 
--	/* calculate missing fields */
--	f->fmt.pix.field = field;
--	f->fmt.pix.bytesperline =
--		(f->fmt.pix.width * fmt->depth) >> 3;
--	f->fmt.pix.sizeimage =
--		f->fmt.pix.height * f->fmt.pix.bytesperline;
--
- 	return ret;
- }
- 
-@@ -325,18 +313,10 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
- 		to_soc_camera_host(icd->dev.parent);
- 	int ret;
- 	struct v4l2_rect rect;
--	const static struct soc_camera_data_format *data_fmt;
- 
- 	WARN_ON(priv != file->private_data);
- 
--	data_fmt = format_by_fourcc(icd, f->fmt.pix.pixelformat);
--	if (!data_fmt)
--		return -EINVAL;
--
--	/* buswidth may be further adjusted by the ici */
--	icd->buswidth = data_fmt->depth;
--
--	ret = soc_camera_try_fmt_vid_cap(file, icf, f);
-+	ret = soc_camera_try_fmt_vid_cap(file, priv, f);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -345,14 +325,21 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
- 	rect.width	= f->fmt.pix.width;
- 	rect.height	= f->fmt.pix.height;
- 	ret = ici->ops->set_fmt_cap(icd, f->fmt.pix.pixelformat, &rect);
--	if (ret < 0)
-+	if (ret < 0) {
- 		return ret;
-+	} else if (!icd->current_fmt ||
-+		   icd->current_fmt->fourcc != f->fmt.pix.pixelformat) {
-+		dev_err(&ici->dev, "Host driver hasn't set up current "
-+			"format correctly!\n");
-+		return -EINVAL;
-+	}
- 
--	icd->current_fmt	= data_fmt;
-+	/* buswidth may be further adjusted by the ici */
-+	icd->buswidth		= icd->current_fmt->depth;
- 	icd->width		= rect.width;
- 	icd->height		= rect.height;
- 	icf->vb_vidq.field	= f->fmt.pix.field;
--	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != f->type)
-+	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		dev_warn(&icd->dev, "Attention! Wrong buf-type %d\n",
- 			 f->type);
- 
-@@ -394,10 +381,9 @@ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.height	= icd->height;
- 	f->fmt.pix.field	= icf->vb_vidq.field;
- 	f->fmt.pix.pixelformat	= icd->current_fmt->fourcc;
--	f->fmt.pix.bytesperline	=
--		(f->fmt.pix.width * icd->current_fmt->depth) >> 3;
--	f->fmt.pix.sizeimage	=
--		f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.bytesperline	= f->fmt.pix.width *
-+		DIV_ROUND_UP(icd->current_fmt->depth, 8);
-+	f->fmt.pix.sizeimage	= f->fmt.pix.height * f->fmt.pix.bytesperline;
- 	dev_dbg(&icd->dev, "current_fmt->fourcc: 0x%08x\n",
- 		icd->current_fmt->fourcc);
- 	return 0;
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 5eb9540..c9b2b7f 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -105,6 +105,9 @@ extern void soc_camera_device_unregister(struct soc_camera_device *icd);
- extern int soc_camera_video_start(struct soc_camera_device *icd);
- extern void soc_camera_video_stop(struct soc_camera_device *icd);
- 
-+extern const struct soc_camera_data_format *soc_camera_format_by_fourcc(
-+	struct soc_camera_device *icd, unsigned int fourcc);
-+
- struct soc_camera_data_format {
- 	char *name;
- 	unsigned int depth;
--- 
-1.5.4
+That seems pretty straightforward to me, how are libgphoto's defines supposed 
+to be interpreted?
+
+> #ifndef BAYER_TILE_BGGR
+> #define BAYER_TILE_BGGR V4L2_PIX_FMT_SBGGR8
+> #endif
+> 
+> and then use these. But in libgphoto2 the same photo from the same 
+> camera has to use
+> 
+> BAYER_TILE_RGGB
+> 
+> So in other words when changing over the Bayer algorithm I also had to 
+> change the label for the tiling from RGGB over to BGGR.
+> 
+> What gives? Do you happen to know? The two labels clearly disagree to 
+> such an extent that they cannot both be right. Of course, the whole 
+> thing is a matter of convention, presumably settled a long time ago by 
+> someone who was neither of us. Also, the labeling of the Bayer tiles in 
+> Gphoto was done long before I came along and thus I am not responsible 
+> for it. So I explicitly do not give and do not have an opinion about who 
+> is right.
+
+The v4l convention also stems from before I came a long, I merely added the 
+other 3 possible bayer patterns to the list.
+
+Regards,
+
+Hans
+
 
 --
 video4linux-list mailing list
