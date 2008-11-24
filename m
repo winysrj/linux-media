@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n8a.bullet.ukl.yahoo.com ([217.146.183.156])
+Received: from smtp108.rog.mail.re2.yahoo.com ([68.142.225.206])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1L3dTv-0001Lx-3N
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 22:24:04 +0100
-Date: Fri, 21 Nov 2008 17:23:27 -0400
-From: Emmanuel ALLAUD <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <3C276393607085468A28782D978BA5EEECB30B5F24@w2k8svr1.glcdomain8.local>
-In-Reply-To: <3C276393607085468A28782D978BA5EEECB30B5F24@w2k8svr1.glcdomain8.local>
-	(from michael.curtis@glcweb.co.uk on Thu Nov 20 08:05:07 2008)
-Message-Id: <1227302607.6200.1@manu-laptop>
+	(envelope-from <cityk@rogers.com>) id 1L4TC3-0006r7-RO
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 05:37:05 +0100
+Message-ID: <492A2F4B.2050407@rogers.com>
+Date: Sun, 23 Nov 2008 23:36:27 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  Status of TT 3200 S2 card and Mythtv
+To: Manu Abraham <abraham.manu@gmail.com>
+References: <20081115234054.0cc58cbb@symphony> <49206686.1080209@rogers.com>
+	<49271C77.6090009@gmail.com>
+In-Reply-To: <49271C77.6090009@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] SAA7162 status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,38 +20,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 20.11.2008 08:05:07, Michael J. Curtis a =E9crit=A0:
-> Hi all
-> =
+Manu Abraham wrote:
+> The SAA716x driver is supposed to support the following PCIe chips
+>
+> SAA7160
+> SAA7161
+> SAA7162
+>
+> The SAA716x development repository is at http://jusst.de/hg/saa716x
+> It is quite a work in progress, as of now. There are also some DVB-S2
+> cards based on the SAA7160.
+>   
 
-> Many thanks to all those who contribute to this list ...........but =
+Thanks for the update Manu. 
 
-> as
-> a keen linux user I need help in understanding where we are at in
-> respect of a working HD system with the TT3200 S2 card and then, is
-> Mythtv working with the required drivers?
-> =
+> Also, the SAA7164 chip is not supported by the SAA716x driver as it is a
+> completely different chip altogether.
+>   
 
-> I do realize that this is not really the correct forum for discussing
-> mythtv but I am certain there are other like me who are struggling
-> with getting a Mythtv system up and running with this card
-
-Well here it works with mythtv and AstonCrypt CAM (can decode 2 streams =
-
-simultaneously). The only problem is that some transponders can not be =
-
-tuned to (this seems to be highly dependent of location, some people =
-
-have no problem).
-Bye
-Manu
-
+Yep, includes MPEG encoder ... I just couldn't remember, from prior
+conversations, whether the above driver could be extended to cover the
+7164 as well, or whether it was a different matter altogether.
 
 _______________________________________________
 linux-dvb mailing list
