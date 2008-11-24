@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36])
+Received: from joan.kewl.org ([212.161.35.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <n.wagenaar@xs4all.nl>) id 1L4e5A-0006ui-8I
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 17:14:41 +0100
-Received: from webmail.xs4all.nl (dovemail11.xs4all.nl [194.109.26.13])
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id mAOGEbKX022003
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 17:14:37 +0100 (CET)
-	(envelope-from n.wagenaar@xs4all.nl)
-Message-ID: <13502.130.36.62.140.1227543276.squirrel@webmail.xs4all.nl>
-Date: Mon, 24 Nov 2008 17:14:36 +0100 (CET)
-From: "Niels Wagenaar" <n.wagenaar@xs4all.nl>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
-Reply-To: n.wagenaar@xs4all.nl
+	(envelope-from <darron@kewl.org>) id 1L4cYB-0006R9-GS
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 15:36:34 +0100
+From: Darron Broad <darron@kewl.org>
+To: "Eduard Huguet" <eduardhc@gmail.com>
+In-reply-to: <617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com> 
+References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
+	<29500.1227284783@kewl.org>
+	<617be8890811240346r3aae6f31rfab45804419bfade@mail.gmail.com>
+	<18885.1227529079@kewl.org>
+	<617be8890811240423o6b8fc2e4jc94021cb14ec271a@mail.gmail.com>
+	<617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com>
+Date: Mon, 24 Nov 2008 14:36:27 +0000
+Message-ID: <20093.1227537387@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fwd: Distorted analog sound when using an HVR-3000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,39 +23,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Op Ma, 24 november, 2008 16:59, schreef VDR User:
-> If the multiproto method is superior, which it certainly seems to be,
-> why can't that method be adopted into s2api?  It seems silly that this
-> problem hasn't been addressed in the conception of s2api.
->
+In message <617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com>, "Eduard Huguet" wrote:
 
-Is multiproto superior? Perhaps on several points it's indeed better or
-more complete. But then again, it was allready 2 years in development so
-it's bound to have additional enhancements which S2API doesn't have atm.
+hiya.
 
-But then again, we're comparing multiproto with S2API which was build from
-the ground in just little over 3 months. So yeah, it doesn't have it all.
+>Ok, problem solved: I needed to define a V4L "recording profile" in MythTV,
+>so sound gets correctly sampled at 48000. Once done, the sound is perfect.
 
->From my personal POV. I think S2API isn't missing something concerning
-tuning. The latest VDR 1.7.0 patch (which I made available on 7-10), still
-works in my configuration. And I heard from several others that it works
-for them also. Even after updating the v4l repo to the latest editions. So
-DVB tuning works with S2API.
+okay good.
 
-So, what we're missing are enhancements! Well, we can add that since it's
-OpenSource and all. So add it allready instead of complaining ;)
+>Thank you very much for your help. Kind regards,
 
-Regards,
+no problem.
 
-Niels Wagenaar
+BTW, do I understand that you needed these changes
+for S-VIDEO/COMPOSITE LINE-IN or did you solve the problem by
+just lowering the input volume from your input device? I don't
+have that opportunity personally with one DVD player.
 
+>  Eduard Huguet
 
+bye
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
 
 _______________________________________________
