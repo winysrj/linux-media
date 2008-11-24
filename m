@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+f7e041a6cf3ae700ba84+1914+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1L2ukL-0004BL-Jy
-	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 22:38:01 +0100
-Date: Wed, 19 Nov 2008 19:37:49 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-Message-ID: <20081119193749.49f654c9@pedra.chehab.org>
-In-Reply-To: <412bdbff0811191324y67b965fcpdf57ef09bb18208c@mail.gmail.com>
-References: <412bdbff0811191324y67b965fcpdf57ef09bb18208c@mail.gmail.com>
-Mime-Version: 1.0
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] em28xx "card=" argument
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <FlyMyPG@gmail.com>) id 1L4QLF-00048S-7j
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 02:34:23 +0100
+Received: from cpe-24-165-6-130.san.res.rr.com ([24.165.6.130])
+	by cdptpa-omta03.mail.rr.com with ESMTP id
+	<20081124013345.ZAPM27329.cdptpa-omta03.mail.rr.com@cpe-24-165-6-130.san.res.rr.com>
+	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 01:33:45 +0000
+Message-ID: <492A0478.8060101@gmail.com>
+Date: Sun, 23 Nov 2008 17:33:44 -0800
+From: Bob Cunningham <FlyMyPG@gmail.com>
+MIME-Version: 1.0
+CC: linux-dvb@linuxtv.org
+References: <49287DCC.9040004@gmail.com>	<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>	<4929B192.8050707@rogers.com>
+	<4929FE90.2050008@gmail.com>
+In-Reply-To: <4929FE90.2050008@gmail.com>
+Subject: Re: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,25 +29,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 19 Nov 2008 16:24:44 -0500
-"Devin Heitmueller" <devin.heitmueller@gmail.com> wrote:
-
-> Mauro,
+Bob Cunningham wrote:
+> CityK wrote:
+>> Michael Krufky wrote:
+>>> On Sat, Nov 22, 2008 at 4:46 PM, Bob Cunningham <FlyMyPG@gmail.com> wrote:
+>>>   
+>>>> Hi,
+>>>>
+>>>> I just bought an AnyTV AUTV002 USB Tuner Stick from DealExtreme.  When plugged in, lsusb provides the following:
+>>>>
+>>>>   Bus 001 Device 011: ID 05e1:0400 Syntek Semiconductor Co., Ltd
+>>>>
+>>>> A quick search revealed that the au0828 driver ....
+>>>>     
+>>> Bob,
+>>>
+>>> A patch was submitted that adds support for a device with usb ID
+>>> 05e1:0400, but it did not get merged yet.
+>>>
+>>> The reason why I didn't merge the patch yet, is that there are
+>>> multiple devices out there using this USB id but they have different
+>>> internal components and no way to differentiate between the two.
+>>>
+>>> If you can open up your stick and tell us what is printed on each
+>>> chip, then I can help you get yours working.
+>> Likely (as mentioned in the related discussion/thread:
+>> http://marc.info/?l=linux-dvb&m=122472907625204&w=2):
+>>
+>> - Microtune MT213x (tuner)
+>> - Auvitek AU850x (demod)
+>> - Auvitek AU0828 (usb)
+>>
 > 
-> What do you think about removing the "card=" module option from
-> em28xx?  Users who don't know any better might be inclined to try the
-> various cards in the list and could burn out their hardware if they
-> select a card with the wrong GPIOs.
+> There are 3 chips, from the USB to the cable connector they are:
+> AU0828A
+> AU8522AA
+> MT2131F
 > 
-> I can submit a patch that takes it out.  Let me know what you think.
+> The silk screen text on the PC board reads "AUTV002_Ver1.0c"
+> 
+> Pictures soon!
+> 
+> -BobC
 
-nack. This option is needed, since some cards can't be auto-detected. For
-example, that device with ALC655 is a capture only device that doesn't have any
-eeprom. Also, the autodetect hints think it is an Oral Camera. So, it uses the
-"generic id". Of course, the generic entry doesn't work for it.
+Hi yet again,
 
-Cheers,
-Mauro
+I checked the source, and it seems the patch I found (http://marc.info/?l=linux-dvb&m=122416362902362&w=2) had indeed not yet been committed to the tree.  I applied it to my updated source and reinstalled v4l.  The following devices now appear:
+
+/dev/audio1
+/dev/dsp1
+/dev/dvb/adapter0
+/dev/mixer1
+/dev/ptmx
+
+I have no idea if they are functional!  I tried running xine, but I am unfamiliar with it, so I don't know if there is a problem in the driver, or if it is a PEBKAC.
+
+What is the preferred testing strategy?
+
+
+Thanks,
+
+-BobC
 
 _______________________________________________
 linux-dvb mailing list
