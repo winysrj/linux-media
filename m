@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.29])
+Received: from joan.kewl.org ([212.161.35.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <richard.palmer@gmail.com>) id 1L4j07-000649-27
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 22:29:48 +0100
-Received: by yx-out-2324.google.com with SMTP id 8so1070489yxg.41
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 13:29:42 -0800 (PST)
-Message-ID: <100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
-Date: Mon, 24 Nov 2008 21:29:42 +0000
-From: "Richard Palmer" <richard.palmer@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1227556939.16187.0.camel@youkaida>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
-	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
-	<1227556939.16187.0.camel@youkaida>
-Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
+	(envelope-from <darron@kewl.org>) id 1L4aOB-0001Vl-Dq
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 13:18:04 +0100
+From: Darron Broad <darron@kewl.org>
+To: "Eduard Huguet" <eduardhc@gmail.com>
+In-reply-to: <617be8890811240346r3aae6f31rfab45804419bfade@mail.gmail.com> 
+References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
+	<29500.1227284783@kewl.org>
+	<617be8890811240346r3aae6f31rfab45804419bfade@mail.gmail.com>
+Date: Mon, 24 Nov 2008 12:17:59 +0000
+Message-ID: <18885.1227529079@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,33 +20,58 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+In message <617be8890811240346r3aae6f31rfab45804419bfade@mail.gmail.com>, "Eduard Huguet" wrote:
 
-On Mon, Nov 24, 2008 at 8:02 PM, Nicolas Will <nico@youplala.net> wrote:
-> On Mon, 2008-11-24 at 19:34 +0000, jon bird wrote:
->> could be although on perusing the mailing list archives this seemed
->> to
->> be a recurring problem of which various attempts have been made to
->> investigate/fix but there didn't seem to be a conclusion to it all.
->> Hence I just thought I'd see what the latest state of play was and
->> report back anything potentially useful.....
+hi
+
+>Nothing :(. The results are exactly the same: when I use the analog TV
+>input, the sound is bad but understable, but somehow "high pitched" fro some
+>reason.
+
+okay. as it stands, analogue TV audio isn't affected by these changes
+so no change here is expected. i could see about changing this if you
+could live with mono only. however, this really would depend on whether
+any of this works for you at all...
+
+>When using s-video or composite (this, capturing sound from LineIn input)
+>the sound is completely broken: I'm getting only crackling noise,
+>ocassionaly disrupted by some fragments of which it should be the original
+>input sound...
+
+if this is the same problem as which has been addressed for analogue
+input (LINE-IN) for me on both an hvr-1300 and hvr-4000 then you can try to
+attenuate the input level even more to see if it improves things.
+
+>This happens both in MythTV and when using mplayer, like i.e. using the
+>following command line:
 >
-> Well, this has normally been solved. Your report is the first one in a
-> long time.
+>mplayer tv:// -tv driver=v4l2:device=/dev/video0:norm=PAL-BG:\
+>input=1:alsa:adevice=hw.1,0:amode=1:volume=50:immediatemode=0:buffersize=3
+>
+>Any ideas? I'm using a fresh copy of http://hg.kewl.org/v4l-dvb/ repository.
 
-I'll second the report. Also with a VIA motherboard, so the USB ports
-could be the
-culprit. Running Mythbuntu with kernel 2.6.24 and using the new
-firmware still gives
-i2c errors.
+The volume level can be from 0 to 63 try something even lower (10).
+If the volume= option doesn't work as anticipated then
+try v4l2-ctl -d /dev/video --set-ctrl=volume=XX as well.
 
-Richard
+We can look at other things if you have the time for it, e-mail me off-list
+and we can look work something out.
+
+cya
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
+
 
 _______________________________________________
 linux-dvb mailing list
