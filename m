@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp5.aruba.it)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1L2q2X-0000Wh-VB
-	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 17:36:32 +0100
-Message-ID: <49244E4F.3000901@avalpa.com>
-Date: Wed, 19 Nov 2008 18:35:11 +0100
-From: Andrea Venturi <a.venturi@avalpa.com>
+Received: from yx-out-2324.google.com ([74.125.44.29])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <richard.palmer@gmail.com>) id 1L4j07-000649-27
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 22:29:48 +0100
+Received: by yx-out-2324.google.com with SMTP id 8so1070489yxg.41
+	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 13:29:42 -0800 (PST)
+Message-ID: <100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
+Date: Mon, 24 Nov 2008 21:29:42 +0000
+From: "Richard Palmer" <richard.palmer@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <1227556939.16187.0.camel@youkaida>
 MIME-Version: 1.0
-CC: linux-dvb@linuxtv.org
-References: <911565.38943.qm@web38801.mail.mud.yahoo.com>
-In-Reply-To: <911565.38943.qm@web38801.mail.mud.yahoo.com>
-Subject: Re: [linux-dvb] [PATCH 1/2] Siano's SMS subsystems API - SmsHost
- support
+Content-Disposition: inline
+References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
+	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
+	<1227556939.16187.0.camel@youkaida>
+Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,29 +29,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Uri Shkolnik wrote:
-> Siano DTV module works with three subsystem API (DVB-API v3, DVB-API v5 (S2) and SmsHost)
+Hi,
+
+On Mon, Nov 24, 2008 at 8:02 PM, Nicolas Will <nico@youplala.net> wrote:
+> On Mon, 2008-11-24 at 19:34 +0000, jon bird wrote:
+>> could be although on perusing the mailing list archives this seemed
+>> to
+>> be a recurring problem of which various attempts have been made to
+>> investigate/fix but there didn't seem to be a conclusion to it all.
+>> Hence I just thought I'd see what the latest state of play was and
+>> report back anything potentially useful.....
 >
-> Until now, only the DVB-API v3 has been supported.
-> The following two patch's parts add the support for the two other APIs.
->
-> The first adds the SmsHost API support. This API supports DTV standards yet to be fully supported by the DVB-API (CMMB, T-DMB and more).
->   
+> Well, this has normally been solved. Your report is the first one in a
+> long time.
 
-hi, as i live in italy under one of the few trials of T-DMB network,  
-i'm interested in the T-DMB support.
-i happen to own a Cinergy Terratec Piranha based on a SMS 100x chipset 
-and under another OS i can lock and see the T-DMB services. i'd like to 
-do the same under linux.
+I'll second the report. Also with a VIA motherboard, so the USB ports
+could be the
+culprit. Running Mythbuntu with kernel 2.6.24 and using the new
+firmware still gives
+i2c errors.
 
-is there some public spec about this SmsHost API to hack a simple 
-application to dump the TS from a T-DMB network?
-google doesn't return with much interesting..
-
-thanx
-
-andrea venturi
-
+Richard
 
 _______________________________________________
 linux-dvb mailing list
