@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from djamil.net ([88.177.154.16] helo=route.djamil.net)
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <djamil@djamil.net>) id 1KzoV6-0008DO-7u
-	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 09:21:30 +0100
-Received: from [192.168.1.10] (toptop.djamil.net [192.168.1.10])
-	by route.djamil.net (Postfix) with ESMTP id 093211432F
-	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 09:20:24 +0100 (CET)
-From: djamil <djamil@djamil.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <alpine.DEB.2.00.0811110403000.22461@ybpnyubfg.ybpnyqbznva>
-References: <491236F2.4050101@andrei.myip.org>
-	<200811060153.37102.hftom@free.fr> <49124960.6070101@andrei.myip.org>
-	<alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>
-	<4918BC54.5030304@andrei.myip.org>
-	<alpine.DEB.2.00.0811110403000.22461@ybpnyubfg.ybpnyqbznva>
-Date: Tue, 11 Nov 2008 09:20:53 +0100
-Message-Id: <1226391653.8108.3.camel@toptop>
-Mime-Version: 1.0
-Subject: [linux-dvb]  hybrid with analog working (pal secam)
+	(envelope-from <lindsay@softlog.com.au>) id 1L4R2I-0006n3-Jg
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 03:18:54 +0100
+Received: from [127.0.0.1] by softlog.com.au (MDaemon PRO v9.5.6)
+	with ESMTP id 08-md50000010179.msg
+	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 12:17:43 +1000
+Message-ID: <492A0EC6.9090007@softlog.com.au>
+Date: Mon, 24 Nov 2008 12:17:42 +1000
+From: Lindsay Mathieson <lindsay@softlog.com.au>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+References: <bf82ea70811110306v345c9061sc6d49f6a961647c@mail.gmail.com>	<bf82ea70811110312y487610d8v9656c3e76bf44e0@mail.gmail.com>	<49199510.6040809@iki.fi>
+	<49223D1E.9030300@softlog.com.au> <49285BAB.10505@iki.fi>
+In-Reply-To: <49285BAB.10505@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DigitalNow TinyTwin second tuner support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,74 +23,55 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1096842729=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
---===============1096842729==
-Content-Type: multipart/alternative; boundary="=-h99nia6DyC1dlaLv8jfu"
-
-
---=-h99nia6DyC1dlaLv8jfu
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-Hello 
-
-Is there a known hybrid express card that does analog and digital under
-linux ?
-
-I d like to use to composite svideo in with it , and the tuners are cool
-too .
-
-In Pal Secam, because I am in france 
-
-
-Best regards
-
- 
-
---=-h99nia6DyC1dlaLv8jfu
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.24.1">
-</HEAD>
-<BODY>
-Hello <BR>
-<BR>
-Is there a known hybrid express card that does analog and digital under linux ?<BR>
-<BR>
-I d like to use to composite svideo in with it , and the tuners are cool too .<BR>
-<BR>
-In Pal Secam, because I am in france <BR>
-<BR>
-<BR>
-Best regards<BR>
-<BR>
- 
-</BODY>
-</HTML>
-
---=-h99nia6DyC1dlaLv8jfu--
+Antti Palosaari wrote:
+> Lindsay Mathieson wrote:
+>> Antti Palosaari wrote:
+>>> I disabled 2nd tuner by default due to bad performance I faced up 
+>>> with my hardware. Anyhow, you can enable it by module param, use 
+>>> modprobe dvb-usb-af9015 dual_mode=1 . Test it and please report.
+>>>   
+>>
+>>
+>> All this has inspired me to retry my DigitalNow TinyTwin. The results
+>> are good (excellent) and badish. I am available to do any testing and
+>> builds required. Thanks for all the hard work!
+>>
+>
+> I made other test version of af9015 driver which uses different 
+> MXL500x tuner driver. I think it will perform a lot more better. 
+> Please test:
+> http://linuxtv.org/hg/~anttip/af9015-mxl500x/
 
 
+Ok, done some initial testing.
 
---===============1096842729==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- Uninstalled old build, rebooted,  installed new build and rebooted
+- /dev/dvb/adaptor0 created
+- Tunes and play's back *really* well, I tested with Kaffeine - 
+excellent reception, no dropouts or sounds squeaks that I noticed. 
+Tested with HD signals as well. This was only for a few miniutes, I 
+haven't had a chance to schedule a full recording, but will test that soon.
+
+I enabled the second tuner and ran into the exactly problems as before 
+when trying to tune - kernel crash etc. The machine locked up on 
+shutdown and required a hard boot.
+
+Thanks! - Lindsay
+
+
+-- 
+Lindsay
+Softlog Systems
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1096842729==--
