@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Fri, 28 Nov 2008 00:00:05 +0800
-From: Chia-I Wu <olvaffe@gmail.com>
-To: Erik =?iso-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
-Message-ID: <20081127160005.GA4097@m500.domain>
-References: <492B15E1.2080207@gmail.com> <20081125082002.GC18787@m500.domain>
-	<492E7906.905@redhat.com> <20081127105931.GD19421@m500.domain>
-	<62e5edd40811270355id4e856g1a8fb53f73455a39@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOAvC9W006446
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 05:57:12 -0500
+Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOAv0ho005994
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 05:57:00 -0500
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Gilles Curchod <mailing@glorfindel.ch>
+In-Reply-To: <492A84DA.4080409@glorfindel.ch>
+References: <492A84DA.4080409@glorfindel.ch>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Mon, 24 Nov 2008 11:43:54 +0100
+Message-Id: <1227523434.1732.45.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <62e5edd40811270355id4e856g1a8fb53f73455a39@mail.gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, video4linux-list@redhat.com,
-	noodles@earth.li, qce-ga-devel@lists.sourceforge.net
-Subject: Re: Please test the gspca-stv06xx branch
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: V4L error on Linux 2.6.22
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,56 +27,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Nov 27, 2008 at 12:55:21PM +0100, Erik Andrén wrote:
-> 2008/11/27 Chia-I Wu <olvaffe@gmail.com>:
-> > On Thu, Nov 27, 2008 at 11:40:06AM +0100, Hans de Goede wrote:
-> >> Chia-I Wu, I'm afraid this might conflict with your HDCS work, as it is
-> >> against Erik's latest hg tree, so without your patches. I noticed you
-> >> were defining your own read/write register functions which really seems
-> >> the wrong thing todo, hopefully with my new functions you can use those
-> >> directly, or ?
-> > IMO, it is almost always a good thing that each driver defines its own
-> > wrapping reg read/write functions.  It is less confusing and saves
-> > typings.  It makes the sub-driver loosely coupled with the main driver.
-> > And, the compiler will do the right thing, and optimize them out if
-> > appropriate.
-> I agree with Hans on this matter. It convolutes the driver and gives
-> no real gain.
-> I've just been converting the gspca-m5602 to use one set of read /
-> write functions instead of sensor specific ones and it removes a large
-> amount of code.
-> What the compiler does is one thing but when dealing with non
-> performance critical code paths, code simplicity is more important.
-It is the opposite.  What compiler does good to us is that, instead of
-macros, one could define functions.
+On Mon, 2008-11-24 at 11:41 +0100, Gilles Curchod wrote:
+> Hi,
 
-Other than hdcs_reg_write_seq, you may think the others as simple as,
-for example,
+Hi Gilles,
 
-#define hdcs_reg_write(hdcs, reg, val) \
-	stv06xx_write_sensor_b(hdcs->sd, reg, val)
+	[snip]
+> I have a Logitech Webcam (id 046d:08ad). The i.MX31 boards run Linux
+> 2.6.22.6.
+> I installed the GSPCA (gspcav1-20071224) drivers and I god the following
+> message while starting the GSPCA module:
+	[snip]
 
-There should be no complication, and the significance here is that it
-gives clear implication that there is no word write
-(stv06xx_write_sensor_w) to this device, even though it is available in
-the stv06xx.h.
+You should not use the gspca v1. It is not maintained anymore. The new
+gspca driver is in the kernel version 2.6.27, but you may get it from
+mercurial repositories at LinuxTv.org. Don't forget to read the
+gspca_README in my page.
 
-IMO, there should be per-sensor I/O functions.  And the implementations
-should be as simple as wrappers (i.e., macros) to the generic ones
-provided by the bridge.  Sending exotic usb control messages is the job
-of the bridge driver, not the sensor driver's.
-
-The purpose for hdcs_reg_write_seq is a little bit trickier.  According
-to the datasheet, HDCS family uses a serial protocol, instead of i2c, to
-communicate with STV06xx.  When the first bit of HDCS_ICTRL is cleared,
-it allows sequential writes: The beginning address is given once,
-followed by a set of values.  The address will be automatically
-incremented.  The prototype of hdcs_reg_write_seq models this hardware
-characteristic, which might be something not shared by every sensor.
+Cheers.
 
 -- 
-Regards,
-olv
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
