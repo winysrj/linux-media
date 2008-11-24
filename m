@@ -1,24 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25])
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <chewi@aura-online.co.uk>) id 1L3ds4-0003F9-3o
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 22:49:01 +0100
-Received: from compute2.internal (compute2.internal [10.202.2.42])
-	by out1.messagingengine.com (Postfix) with ESMTP id F38DC1C57E9
-	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 16:48:55 -0500 (EST)
-Received: from symphony (92-233-191-100.cable.ubr03.pert.blueyonder.co.uk
-	[92.233.191.100])
-	by mail.messagingengine.com (Postfix) with ESMTPSA id 0DB1C11258
-	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 16:48:54 -0500 (EST)
-Date: Fri, 21 Nov 2008 21:48:54 +0000
-From: James Le Cuirot <chewi@aura-online.co.uk>
+	(envelope-from <FlyMyPG@gmail.com>) id 1L4RmB-0001Mf-VQ
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 04:06:19 +0100
+Received: from cpe-24-165-6-130.san.res.rr.com ([24.165.6.130])
+	by cdptpa-omta03.mail.rr.com with ESMTP id
+	<20081124030541.QTR27329.cdptpa-omta03.mail.rr.com@cpe-24-165-6-130.san.res.rr.com>
+	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 03:05:41 +0000
+Message-ID: <492A1A05.1050204@gmail.com>
+Date: Sun, 23 Nov 2008 19:05:41 -0800
+From: Bob Cunningham <FlyMyPG@gmail.com>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Message-ID: <20081121214854.36c8fdd2@symphony>
-In-Reply-To: <49271C77.6090009@gmail.com>
-References: <20081115234054.0cc58cbb@symphony> <49206686.1080209@rogers.com>
-	<49271C77.6090009@gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] SAA7162 status
+References: <49287DCC.9040004@gmail.com>	<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>	<4929B192.8050707@rogers.com>	<4929FE90.2050008@gmail.com>	<492A0478.8060101@gmail.com>
+	<492A12B8.9060304@gmail.com>
+In-Reply-To: <492A12B8.9060304@gmail.com>
+Subject: Re: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,25 +29,100 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 22 Nov 2008 00:39:19 +0400
-Manu Abraham <abraham.manu@gmail.com> wrote:
-
-> The SAA716x driver is supposed to support the following PCIe chips
+Bob Cunningham wrote:
+> Bob Cunningham wrote:
+>> Bob Cunningham wrote:
+>>> CityK wrote:
+>>>> Michael Krufky wrote:
+>>>>> On Sat, Nov 22, 2008 at 4:46 PM, Bob Cunningham <FlyMyPG@gmail.com> wrote:
+>>>>>   
+>>>>>> Hi,
+>>>>>>
+>>>>>> I just bought an AnyTV AUTV002 USB Tuner Stick from DealExtreme.  When plugged in, lsusb provides the following:
+>>>>>>
+>>>>>>   Bus 001 Device 011: ID 05e1:0400 Syntek Semiconductor Co., Ltd
+>>>>>>
+>>>>>> A quick search revealed that the au0828 driver ....
+>>>>>>     
+>>>>> Bob,
+>>>>>
+>>>>> A patch was submitted that adds support for a device with usb ID
+>>>>> 05e1:0400, but it did not get merged yet.
+>>>>>
+>>>>> The reason why I didn't merge the patch yet, is that there are
+>>>>> multiple devices out there using this USB id but they have different
+>>>>> internal components and no way to differentiate between the two.
+>>>>>
+>>>>> If you can open up your stick and tell us what is printed on each
+>>>>> chip, then I can help you get yours working.
+>>>> Likely (as mentioned in the related discussion/thread:
+>>>> http://marc.info/?l=linux-dvb&m=122472907625204&w=2):
+>>>>
+>>>> - Microtune MT213x (tuner)
+>>>> - Auvitek AU850x (demod)
+>>>> - Auvitek AU0828 (usb)
+>>>>
+>>> There are 3 chips, from the USB to the cable connector they are:
+>>> AU0828A
+>>> AU8522AA
+>>> MT2131F
+>>>
+>>> The silk screen text on the PC board reads "AUTV002_Ver1.0c"
+>>>
+>>> Pictures soon!
+>>>
+>>> -BobC
+>> Hi yet again,
+>>
+>> I checked the source, and it seems the patch I found (http://marc.info/?l=linux-dvb&m=122416362902362&w=2) had indeed not yet been committed to the tree.  I applied it to my updated source and reinstalled v4l.  The following devices now appear:
+>>
+>> /dev/audio1
+>> /dev/dsp1
+>> /dev/dvb/adapter0
+>> /dev/mixer1
+>> /dev/ptmx
+>>
+>> I have no idea if they are functional!  I tried running xine, but I am unfamiliar with it, so I don't know if there is a problem in the driver, or if it is a PEBKAC.
+>>
+>> What is the preferred testing strategy?
+>>
+>>
+>> Thanks,
+>>
+>> -BobC
 > 
-> SAA7160
-> SAA7161
-> SAA7162
 > 
-> The SAA716x development repository is at http://jusst.de/hg/saa716x
-> It is quite a work in progress, as of now. There are also some DVB-S2
-> cards based on the SAA7160.
+> As I stumbled through the maze, I was suddenly struck by a clue-by-4, and the following occurred:
 > 
-> Also, the SAA7164 chip is not supported by the SAA716x driver as it
-> is a completely different chip altogether.
+>     $ dvbscan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB 
+>     Unable to query frontend status
+> 
+> I take it this is not a good thing.
+> 
+> 
+> -BobC
 
-Thanks, Manu. I'll keep an eye on that repository. :)
 
-James
+Tried this next:
+    $ scan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB 
+    scanning /usr/share/dvb-apps/atsc/us-ATSC-center-frequencies-8VSB
+    using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+    >>> tune to: 57028615:8VSB
+    WARNING: >>> tuning failed!!!
+    >>> tune to: 57028615:8VSB (tuning failed)
+    ... snip over 40 other attempts ...
+    >>> tune to: 803028615:8VSB
+    WARNING: >>> tuning failed!!!
+    >>> tune to: 803028615:8VSB (tuning failed)
+    WARNING: >>> tuning failed!!!
+    ERROR: initial tuning failed
+    dumping lists (0 services)
+    Done.
+
+Still not success, but at least the devices were found and are accessible.
+
+-BobC
+
 
 _______________________________________________
 linux-dvb mailing list
