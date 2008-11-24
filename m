@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.178])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <damien@damienandlaurel.com>) id 1Kxx24-0003yR-F8
-	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 06:03:49 +0100
-Received: by ik-out-1112.google.com with SMTP id c28so375819ika.1
-	for <linux-dvb@linuxtv.org>; Wed, 05 Nov 2008 21:03:44 -0800 (PST)
-Message-ID: <ee0ad0230811052103u16edf7d9ia7b1e13440257724@mail.gmail.com>
-Date: Thu, 6 Nov 2008 16:03:43 +1100
-From: "Damien Morrissey" <damien@damienandlaurel.com>
-To: "Lindsay Mathieson" <lindsay@softlog.com.au>
-In-Reply-To: <4912780C.8010106@softlog.com.au>
+Message-ID: <4929FE90.2050008@gmail.com>
+Date: Sun, 23 Nov 2008 17:08:32 -0800
+From: Bob Cunningham <FlyMyPG@gmail.com>
 MIME-Version: 1.0
-References: <4912780C.8010106@softlog.com.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dvico Fusion Pro
+To: CityK <cityk@rogers.com>
+References: <49287DCC.9040004@gmail.com>
+	<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>
+	<4929B192.8050707@rogers.com>
+In-Reply-To: <4929B192.8050707@rogers.com>
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,123 +17,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1595220381=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1595220381==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_556_6978479.1225947823740"
+CityK wrote:
+> Michael Krufky wrote:
+>> On Sat, Nov 22, 2008 at 4:46 PM, Bob Cunningham <FlyMyPG@gmail.com> wrote:
+>>   
+>>> Hi,
+>>>
+>>> I just bought an AnyTV AUTV002 USB Tuner Stick from DealExtreme.  When plugged in, lsusb provides the following:
+>>>
+>>>   Bus 001 Device 011: ID 05e1:0400 Syntek Semiconductor Co., Ltd
+>>>
+>>> A quick search revealed that the au0828 driver ....
+>>>     
+>> Bob,
+>>
+>> A patch was submitted that adds support for a device with usb ID
+>> 05e1:0400, but it did not get merged yet.
+>>
+>> The reason why I didn't merge the patch yet, is that there are
+>> multiple devices out there using this USB id but they have different
+>> internal components and no way to differentiate between the two.
+>>
+>> If you can open up your stick and tell us what is printed on each
+>> chip, then I can help you get yours working.
+> 
+> Likely (as mentioned in the related discussion/thread:
+> http://marc.info/?l=linux-dvb&m=122472907625204&w=2):
+> 
+> - Microtune MT213x (tuner)
+> - Auvitek AU850x (demod)
+> - Auvitek AU0828 (usb)
+> 
 
-------=_Part_556_6978479.1225947823740
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+There are 3 chips, from the USB to the cable connector they are:
+AU0828A
+AU8522AA
+MT2131F
 
-On Thu, Nov 6, 2008 at 3:52 PM, Lindsay Mathieson <lindsay@softlog.com.au>wrote:
+The silk screen text on the PC board reads "AUTV002_Ver1.0c"
 
-> Hi All, I have a Fusion Pro I'm testing with. Have installed the latest
-> v4l-dvb drivers as per the wiki and the board is recognised correctly on
-> boot and registers a /dev/dvb/adaptor0 device. However it is uable to
-> tune anything - a "scan < au-Brisbane" runs with no errors, but finds no
-> stations.
->
-> However if I install the pascoe drivers:
->  http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/<http://www.itee.uq.edu.au/%7Echrisp/Linux-DVB/DVICO/>
->  http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
->
-> Its works fine - picks up the brisbane stations and displays them via
-> mythtv
->
-> I thought the pascoe drivers were merged into the trunk ages ago - am I
-> mistaken?
->
-> Thanks,
->
-> Lindsay
->
-> p.s My setup is a test PC and I can run tests as needed - doesn't matter
-> if it breaks.
->
-> --
-> Lindsay
-> Softlog Systems
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-Lindsay,
-I too seem to have an issue with tuning and DVICO drivers. Since I upgraded
-to mythbuntu 8.10 I have found my DViCO Dual Digital 4 has loaded proprly
-with no errors (thanks to the inclusion of xc... firmware), however no
-stations could be scanned with the firmware that came with it.
+Pictures soon!
 
-When I used the pascoe drivers in 8.04 I was able to tune stations.
-
-Might this be related to the 7MHz issues in the past (with Australia having
-7MHz channels)?
-
-Cheers,
-Damien.
-
-------=_Part_556_6978479.1225947823740
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<br><br><div class="gmail_quote">On Thu, Nov 6, 2008 at 3:52 PM, Lindsay Mathieson <span dir="ltr">&lt;<a href="mailto:lindsay@softlog.com.au">lindsay@softlog.com.au</a>&gt;</span> wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi All, I have a Fusion Pro I&#39;m testing with. Have installed the latest<br>
-v4l-dvb drivers as per the wiki and the board is recognised correctly on<br>
-boot and registers a /dev/dvb/adaptor0 device. However it is uable to<br>
-tune anything - a &quot;scan &lt; au-Brisbane&quot; runs with no errors, but finds no<br>
-stations.<br>
-<br>
-However if I install the pascoe drivers:<br>
- &nbsp;<a href="http://www.itee.uq.edu.au/%7Echrisp/Linux-DVB/DVICO/" target="_blank">http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/</a><br>
- &nbsp;<a href="http://linuxtv.org/hg/%7Epascoe/xc-test/" target="_blank">http://linuxtv.org/hg/~pascoe/xc-test/</a><br>
-<br>
-Its works fine - picks up the brisbane stations and displays them via mythtv<br>
-<br>
-I thought the pascoe drivers were merged into the trunk ages ago - am I<br>
-mistaken?<br>
-<br>
-Thanks,<br>
-<br>
-Lindsay<br>
-<br>
-p.s My setup is a test PC and I can run tests as needed - doesn&#39;t matter<br>
-if it breaks.<br>
-<br>
---<br>
-Lindsay<br>
-Softlog Systems<br>
-<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div>Lindsay,<br>I too seem to have an issue with tuning and DVICO drivers. Since I upgraded to mythbuntu 8.10 I have found my DViCO Dual Digital 4 has loaded proprly with no errors (thanks to the inclusion of xc... firmware), however no stations could be scanned with the firmware that came with it.<br>
-<br>When I used the pascoe drivers in 8.04 I was able to tune stations.<br><br>Might this be related to the 7MHz issues in the past (with Australia having 7MHz channels)?<br><br>Cheers,<br>Damien.<br>
-
-------=_Part_556_6978479.1225947823740--
-
-
---===============1595220381==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-BobC
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1595220381==--
