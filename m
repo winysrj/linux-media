@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAK7gqYK008983
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 02:42:52 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAK7gfQj025635
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 02:42:41 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so356712rvb.51
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 23:42:41 -0800 (PST)
-Message-ID: <208cbae30811192342s1175777q3a7fb831603b82da@mail.gmail.com>
-Date: Thu, 20 Nov 2008 10:42:40 +0300
-From: "Alexey Klimov" <klimov.linux@gmail.com>
-To: "Douglas Schilling Landgraf" <dougsland@gmail.com>
-In-Reply-To: <20081120013156.2157739c@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAO7sbGY028725
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 02:54:37 -0500
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAO7riNe023873
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 02:53:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Brownell <david-b@pacbell.net>
+Date: Mon, 24 Nov 2008 08:53:35 +0100
+References: <hvaibhav@ti.com>
+	<5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
+	<200811232232.31646.david-b@pacbell.net>
+In-Reply-To: <200811232232.31646.david-b@pacbell.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <1227054955.2389.32.camel@tux.localhost>
-	<20081120013156.2157739c@gmail.com>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 0/1] radio-mr800: fix unplug
+Message-Id: <200811240853.35650.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org,
+	davinci-linux-open-source-bounces@linux.davincidsp.com
+Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,50 +32,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, Douglas
+On Monday 24 November 2008 07:32:31 David Brownell wrote:
+> On Sunday 23 November 2008, Trilok Soni wrote:
+> > > 2) Please use the media/v4l2-i2c-drv.h or
+> > > media/v4l2-i2c-drv-legacy.h header to hide some of the i2c
+> > > complexity (again, see e.g. saa7115.c). The i2c API tends to
+> > > change a lot (and some changes are upcoming) so
+>
+> What "changes" do you mean?  Since this is not a legacy-style
+> driver (yay!), the upcoming changes won't affect it at all.
 
-On Thu, Nov 20, 2008 at 6:31 AM, Douglas Schilling Landgraf
-<dougsland@gmail.com> wrote:
-> Hello Alexey,
->
-> On Wed, 19 Nov 2008 03:35:55 +0300
-> Alexey Klimov <klimov.linux@gmail.com> wrote:
->
->> Hello, all
->>
->> This patch fix such thing. When you listening the radio with you
->> user-space application(kradio/gnomeradio/mplayer/etc) and suddenly you
->> unplug the device from usb port and then close application or change
->> frequency of the radio - a lot of oopses appear in dmesg. I also had
->> big problems with stability of kernel(different memory leaks,
->> lockings) in ~30% of cases when using mplayer trying to reproduce
->> this bug.
->
->> This thing happens with dsbr100 radio and radio-mr800. I told about
->> this thing to Douglas Schilling Landgraf and then he suggested right
->> decision for dsbr100. He told me that he get ideas of preventing this
->> bug from Tobias radio-si470x driver. Hopefully this bug didn't show
->> up in radio-si470x. Well, i used Douglas suggestion and code of
->> si470x and made this patch.
->>
->> Douglas said that he's going to create patch for dsbr100.
->
-> humm, since you already fixed radio-mr800 and I'm working with other
-> developers to improve em28xx... Are you interested to make a patch to
-> fix dsbr100?
->
-> Cheers,
-> Douglas
->
+Oops, sorry. I thought it was a legacy driver, but it isn't. There are 
+changes upcoming for legacy drivers, but not for new-style drivers.
 
-Well, if you okay with that and if this patch (for mr800) is right - i
-can make patch for dsbr100. Currently, i don't have access to this
-device for a few days. So, if i don't post this patch to this list in
-a week - please contact with me.
+> > > using this header will mean that i2c driver changes will be
+> > > minimal in the future. In addition it will ensure that this
+> > > driver can be compiled with older kernels as well once it is part
+> > > of the v4l-dvb repository.
+> >
+> > I don't agree with having support to compile with older kernels.
+>
+> Right.  Folk wanting legacy tvp5146 and tvp5140 support could
+> try to use the legacy drivers from the DaVinci tree.
 
+The v4l-dvb mercurial tree at www.linuxtv.org/hg which is the main 
+v4l-dvb repository can support kernels >= 2.6.16. Before new stuff is 
+merged with the git kernel all the compatibility stuff for old kernels 
+is stripped out, so you don't see it in the actual kernel code. Using 
+the media/v4l2-i2c-drv.h header makes it much easier to support these 
+older kernels and it actually reduces the code size as well. Most v4l 
+i2c drivers are already converted or will be converted soon. It's a v4l 
+thing.
 
--- 
-Best regards, Klimov Alexey
+> > Even though I2C APIs change as lot it is for good, and creating
+> > abstractions doesn't help as saa7xxx is family of chips where I
+> > don't see the case here. Once this driver is mainlined if someone
+> > does i2c subsystem change which breaks this driver from building
+> > then he/she has to make changes to all the code affecting it.
+>
+> And AFAIK no such change is anticipated.  The conversion from
+> legacy style I2C drivers to "new style" driver-model friendly
+> drivers is progressing fairly well, so that legacy support can
+> be completely removed.
+>
+> > I am not in favour of adding support to compile with older kernels.
+>
+> My two cents:  I'm not in favor either.  In fact that's the
+> general policy for mainline drivers, and I'm surprised to hear
+> any maintainer suggest it be added.
+
+Again, it's specific to v4l drivers. You don't have to do it, but it 
+makes it consistent with the other v4l i2c drivers and when the driver 
+is in the v4l-dvb repository you get support for older kernels for 
+free.
+
+Whether it is good or bad that the v4l-dvb repo works this way is a 
+completely different discussion.
+
+Regards,
+
+	Hans
 
 --
 video4linux-list mailing list
