@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gszathmari@gmail.com>) id 1L6izW-0003cE-3e
-	for linux-dvb@linuxtv.org; Sun, 30 Nov 2008 10:53:27 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so1429010fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 30 Nov 2008 01:53:22 -0800 (PST)
-Message-ID: <4df9b1830811300153j38a1173dxeaadf8373db80c2f@mail.gmail.com>
-Date: Sun, 30 Nov 2008 10:53:22 +0100
-From: "=?ISO-8859-1?Q?Szathm=E1ri_G=E1bor?=" <gszathmari@gmail.com>
-To: linux-dvb@linuxtv.org
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: stev391@email.com
+Date: Tue, 25 Nov 2008 01:57:33 +0200
+References: <20081124215142.DB2AD1BF2A3@ws1-10.us4.outblaze.com>
+In-Reply-To: <20081124215142.DB2AD1BF2A3@ws1-10.us4.outblaze.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: Re: [linux-dvb] Winfast TV2000XP Global sound problem (white noise)
+Message-Id: <200811250157.33599.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add Compro VideoMate E650F (DVB-T part only)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,45 +16,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Some additional information:
-
-dmesg:
-http://pastebin.com/f2d1ff20b
-
-lsmod:
-http://pastebin.com/f54073851
-
-Thanks
-
-
-
-> Dear all,
->
-> Recently I bought a 'Winfast TV2000XP Global' tuner card.
-> Almost everything works with the latest kernel:
-> the picture is brilliant, I can tune all of the stations, but I have
-> white noise (like an untuned channel) instead of proper sound.
->
-> I use the the cx88xx module with these options:
-> options cx88xx card=3D61 tuner=3D71
-> I created the xc3028-v27.fw firmware and copied into /lib/firmware also.
->
-> I live in Hungary, and the TV system here is PAL-BG
->
-> Thank you in advance.
-
-
---
-Szathm=E1ri G=E1bor
-gszathmari@gmail.com
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgMjQgTm92ZW1iZXIgMjAwOCAyMzo1MTozNSBzdGV2MzkxQGVtYWlsLmNv
+bSDOwdDJ08HMKMEpOgo+ID4gTWVzc2FnZTogMgo+ID4gRGF0ZTogU3VuLCAyMyBOb3YgMjAwOCAx
+Mzo0Nzo0MSArMDIwMAo+ID4gRnJvbTogIklnb3IgTS4gTGlwbGlhbmluIiA8bGlwbGlhbmluQHR1
+dC5ieT4KPiA+IFN1YmplY3Q6IFtsaW51eC1kdmJdIFtQQVRDSF0gQWRkIENvbXBybyBWaWRlb01h
+dGUgRTY1MEYgKERWQi1UIHBhcnQKPiA+IAlvbmx5KQo+ID4gVG86IGxpbnV4LWR2YkBsaW51eHR2
+Lm9yZywgdmlkZW80bGludXgtbGlzdEByZWRoYXQuY29tCj4gPiBNZXNzYWdlLUlEOiA8MjAwODEx
+MjMxMzQ3LjQxNDUyLmxpcGxpYW5pbkB0dXQuYnk+Cj4gPiBDb250ZW50LVR5cGU6IHRleHQvcGxh
+aW47ICBjaGFyc2V0PSJrb2k4LXIiCj4gPgo+ID4gRnJvbTogSWdvciBNLiBMaXBsaWFuaW4gPGxp
+cGxpYW5pbkBtZS5ieT4KPiA+Cj4gPiBBZGQgQ29tcHJvIFZpZGVvTWF0ZSBFNjUwRiAoRFZCLVQg
+cGFydCBvbmx5KS4KPiA+IFRoZSBjYXJkIGJhc2VkIG9uIGN4MjM4ODUgUENJLUV4cHJlc3MgY2hp
+cCwgeGMzMDI4IHR1bmVyIGFuZCBjZTYzNTMKPiA+IGRlbW9kdWxhdG9yLgo+ID4KPiA+IFNpZ25l
+ZC1vZmYtYnk6IElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFuaW5AbWUuYnk+Cj4KPiAtLS0tU25p
+cC0tLQo+Cj4gSWdvciwKPgo+IElzIHRoaXMgYmFzZWQgb24gbXkgZWFybGllciBwYXRjaGVzIHNl
+bnQgdG8gdGhlIG1haWxpbmcgbGlzdD8KPiBodHRwOi8vbGludXh0di5vcmcvcGlwZXJtYWlsL2xp
+bnV4LWR2Yi8yMDA4LUF1Z3VzdC8wMjgzNDEuaHRtbApIaSBTdGVwaGVuClNvcnJ5LCBJIG1pc3Nl
+ZCB0aGF0IHBvc3QgLgpTbyB5b3UgYXJlIHRoZSBmaXJzdCA6KQpJIGRpZG4ndCBzZWUgYW55IGZ1
+bmN0aW9uYWwgZGlmZmVyZW5jZSBiZXR3ZWVuIGJvdGggcGF0Y2hlcwoKPgo+IElmIHNvIGhhdmUg
+eW91IGhhZCB0aGlzIHdvcmtpbmcgY29ycmVjdGx5PwpBY3R1YWxseSwgSSBib3VnaHQgdGhpcyBj
+YXJkIGNvdXBsZSBkYXlzIGFnbyBmb3IgZXhwZXJpbWVucy4KVGhlbiBJIHR5cGUKCW1vZHByb2Jl
+IGN4MjM4ODUgY2FyZD0xMgpBbmQgaXQgd29ya3MgaW1tZWRpYXRlbHkgOikKQnV0IEkgZGlkbid0
+IGZvcmdldCB0aGUgZmlybXdhcmUgZm9yIHhjMzAyOCA7KQpPdGhlcnMgaXMgdGVjaG5pYy4KU28s
+IEl0IHdvcmtzIHJpZ2h0IG5vdyBpbiBteSBjb21wdXRlci4KV2l0aCBLYWZmZWluZSBJJ20gYWJs
+ZSBzZWFyY2ggZm9yIGNoYW5uZWxzIGFuZCB3YXRjaCB0aGVtLgoKPgo+IFdoYXQgaGFwcGVucyBp
+ZiB5b3UgZG8gbm93IHJlcXVlc3QgdGhlIG1vZHVsZSBjeDI1ODQwPwpJdCBsb2FkczopCgo+Cj4g
+TXkgcGF0Y2hlcyB3ZXJlIHByZXZpb3VzbHkgbm90IGNvbW1pdHRlZCBkdWUgdG86Cj4gKiBJIG9u
+bHkgaGFkIHR3byBwZW9wbGUgd2hvIGhhZCB0aGlzIGNhcmQgKHNhbWUgcGNpIGlkcykgYW5kIGJv
+dGggZ2F2ZSBtZQo+IGNvbmZsaWNpdG5nIHJlc3VsdHMuIChyZWdhcmRpbmcgdGhlIG5lZWQgZm9y
+IGN4MjU4NDAsIGlmIHlvdSBzZWFyY2ggdGhlCj4gbWFpbGluZyBsaXN0IGFyY2hpdmVzIGZyb20g
+YWJvdXQgQXVndXN0IHRocm91Z2ggU2VwdGVtYmVyIHRoaXMgeWVhciB5b3UKPiB3aWxsIGZpbmQg
+dGhlIGNvbnZlcnNhdGlvbnMpLiAqIFRoZSBwY2kgaWRzIGFyZSBzaGFyZWQgYWNyb3NzIHZhcmlv
+dXMgY2FyZHMKPiBmcm9tIENvbXBybyBWaWRlb01hdGUgU2VyaWVzIGFuZCB0aGVyZWZvcmUgdGhl
+IGNhcmRzIGFyZSBkZXRlY3RlZAo+IGluY29ycmVjdGx5LCB0aGUgZWVwcm9tIGR1bXBzIGZvciBl
+YWNoIGNhcmQgdGhhdCBwZW9wbGUgaGF2ZSBjb250YWN0ZWQgdGhlCj4gbGlzdCBhYm91dCBwcmV2
+aW91c2x5IGFyZSBvbiB0aGUgd2lraSBwYWdlcy4KPgo+IEtlZXAgdXAgdGhlIGVmZm9ydCBpbiBz
+dXBwb3J0aW5nIERWQiBjYXJkcyBpbiBsaW51eC4KPgo+IFJlZ2FyZHMsCj4gU3RlcGhlbi4KCgpC
+ZXN0IFJlZ2FyZHMKSWdvcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
+cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
