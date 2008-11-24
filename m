@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.24])
+Received: from mail-gx0-f11.google.com ([209.85.217.11])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1KwyAD-00010r-DG
-	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 13:04:12 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so1025832qwb.17
-	for <linux-dvb@linuxtv.org>; Mon, 03 Nov 2008 04:04:04 -0800 (PST)
-Message-ID: <c74595dc0811030404h7c6dc1cchf406f36e0c6962ec@mail.gmail.com>
-Date: Mon, 3 Nov 2008 14:04:04 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: "Kovacs Balazs" <basq@bitklub.hu>
-In-Reply-To: <167586304.20081103115116@bitklub.hu>
+	(envelope-from <eduardhc@gmail.com>) id 1L4Zu0-00080M-Ri
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 12:46:53 +0100
+Received: by gxk4 with SMTP id 4so1810218gxk.17
+	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 03:46:16 -0800 (PST)
+Message-ID: <617be8890811240346r3aae6f31rfab45804419bfade@mail.gmail.com>
+Date: Mon, 24 Nov 2008 12:46:16 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
+To: "Darron Broad" <darron@kewl.org>
+In-Reply-To: <29500.1227284783@kewl.org>
 MIME-Version: 1.0
-References: <167586304.20081103115116@bitklub.hu>
+References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
+	<29500.1227284783@kewl.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
+Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,123 +22,132 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2122356685=="
+Content-Type: multipart/mixed; boundary="===============1031515788=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2122356685==
+--===============1031515788==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_50727_29757750.1225713844290"
+	boundary="----=_Part_118418_19726167.1227527176070"
 
-------=_Part_50727_29757750.1225713844290
+------=_Part_118418_19726167.1227527176070
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-I have Twinhan 1041, same chipset as your card and I have the same behavior
-with S2 channels.
-Some can be locked, some can't. I think it's a known issue with stb0899
-chips, I mean known here in the list.
+Nothing :(. The results are exactly the same: when I use the analog TV
+input, the sound is bad but understable, but somehow "high pitched" fro some
+reason.
 
-Hope someone will be able to fix that. DVB-S2 scannint and locking is done
-in the chip itself, so without knowledge of chip
-internals it will be very hard to resolve that issue.
+When using s-video or composite (this, capturing sound from LineIn input)
+the sound is completely broken: I'm getting only crackling noise,
+ocassionaly disrupted by some fragments of which it should be the original
+input sound...
 
-On Mon, Nov 3, 2008 at 12:51 PM, Kovacs Balazs <basq@bitklub.hu> wrote:
+This happens both in MythTV and when using mplayer, like i.e. using the
+following command line:
 
-> Hi All!
+mplayer tv:// -tv driver=v4l2:device=/dev/video0:norm=PAL-BG:\
+input=1:alsa:adevice=hw.1,0:amode=1:volume=50:immediatemode=0:buffersize=3
+
+Any ideas? I'm using a fresh copy of http://hg.kewl.org/v4l-dvb/ repository.
+
+Best regards,
+  Eduard Huguet
+
+
+
+2008/11/21 Darron Broad <darron@kewl.org>
+
+> In message <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>,
+> "Eduard Huguet" wrote:
 >
->  I tried a few variation, but without any success:
+> LO
 >
->  I try to lock (stable! :)) on our new transponders at Amos 4W:
+> >Hi,
+> >    I'm testing a Hauppauge HVR-3000 for its use with MythTV, and I'm
+> >observing that I have a completely distorted sound when using any of the
+> >analog inputs (TV, S-Video or Composite). The sound is completely crackly,
+> >not understanble at all, just noise. I've teste 2 different cards, so I'm
+> >pretty sure it's not a "faulty card" issue.
+> >
+> >This happens both in MythTV or when using directly mplayer to capture
+> video
+> >& audio.
+> >
+> >I'm using an up-to-date HG DVB repository.
 >
-> 10,723(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax
-> 10,759(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax
-> 10,842(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax
+> There are some known problem with cards using the WM8775 codec.
 >
-> with a TT3200 card + Debian etch with 2.4.24 etchnhalf kernel + the current
-> V4L-DVB mercurial drivers compiled.
+> Use this repo here:
+>        http://hg.kewl.org/v4l-dvb/
 >
->  The drivers recognizes my card, and for example it works good with
-> Premiere's S2 transponders at Astra 19.2E.
+> It changes how the WM8775 operates and you will be able to
+> control the input levels using v4l2-ctl.
 >
-> But it won't lock stable on our Amos's transponders.
+> Please tell me if this solves your problems.
 >
->  FYI: on these TP's there's a pilot signal and rolloff set to 0.20. I tried
-> to push these parameters to scan-s2 and szap-s2, but scan-s2 sometimes lock
-> and sometimes won't on these transponders and also szap-s2 (after a few try
-> to lock with scan-s2 and get the channels.conf from these transponders)
-> sometimes locks, but it's not stable, it lost lock after a few seconds.
+> Good luck
 >
->  What I recognized also: if i run szap-s2 on our transponders it gives me
-> the status message lines much slower than on other TP's.
+> --
 >
-> it almost always looks like this:
+>  // /
+> {:)==={ Darron Broad <darron@kewl.org>
+>  \\ \
 >
-> /usr/src/dvb/s2api/szap-s2# ./szap-s2-thome.sh
-> reading channels from file '/root/.szap/channels.conf'
-> zapping to 1 '1':
-> delivery DVB-S2, modulation 8PSK
-> sat 0, frequency 10723 MHz V, symbolrate 30000000, coderate 2/3, rolloff
-> 0.20
-> vpid 0x00b3, apid 0x00b1, sid 0x00b4
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
-> status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
-> status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
-> status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
-> status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
-> status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
-> status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
->
-> but sometimes it can lock, very rare...
->
-> please, help me.
->
-> thanks,
->
-> Basq
->
->
->
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
 
-------=_Part_50727_29757750.1225713844290
+------=_Part_118418_19726167.1227527176070
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-<div dir="ltr"><div>I have Twinhan 1041, same chipset as your card and I have the same behavior with S2 channels.</div>
-<div>Some can be locked, some can&#39;t. I think it&#39;s a known issue with stb0899 chips, I mean known here in the list.</div>
-<div>&nbsp;</div>
-<div>Hope someone will be able to fix that. DVB-S2 scannint and locking is done in the chip itself, so without knowledge of chip</div>
-<div>internals it will be very hard to resolve that issue.<br><br></div>
-<div class="gmail_quote">On Mon, Nov 3, 2008 at 12:51 PM, Kovacs Balazs <span dir="ltr">&lt;<a href="mailto:basq@bitklub.hu">basq@bitklub.hu</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="PADDING-LEFT: 1ex; MARGIN: 0px 0px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">Hi All!<br><br>&nbsp;I tried a few variation, but without any success:<br><br>&nbsp;I try to lock (stable! :)) on our new transponders at Amos 4W:<br>
-<br>10,723(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax<br>10,759(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax<br>10,842(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax<br><br>with a TT3200 card + Debian etch with 2.4.24 etchnhalf kernel + the current V4L-DVB mercurial drivers compiled.<br>
-<br>&nbsp;The drivers recognizes my card, and for example it works good with Premiere&#39;s S2 transponders at Astra 19.2E.<br><br>But it won&#39;t lock stable on our Amos&#39;s transponders.<br><br>&nbsp;FYI: on these TP&#39;s there&#39;s a pilot signal and rolloff set to 0.20. I tried to push these parameters to scan-s2 and szap-s2, but scan-s2 sometimes lock and sometimes won&#39;t on these transponders and also szap-s2 (after a few try to lock with scan-s2 and get the channels.conf from these transponders) sometimes locks, but it&#39;s not stable, it lost lock after a few seconds.<br>
-<br>&nbsp;What I recognized also: if i run szap-s2 on our transponders it gives me the status message lines much slower than on other TP&#39;s.<br><br>it almost always looks like this:<br><br>/usr/src/dvb/s2api/szap-s2# ./szap-s2-thome.sh<br>
-reading channels from file &#39;/root/.szap/channels.conf&#39;<br>zapping to 1 &#39;1&#39;:<br>delivery DVB-S2, modulation 8PSK<br>sat 0, frequency 10723 MHz V, symbolrate 30000000, coderate 2/3, rolloff 0.20<br>vpid 0x00b3, apid 0x00b1, sid 0x00b4<br>
-using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |<br>status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |<br>
-status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |<br>status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |<br>status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |<br>status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |<br>
-status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |<br><br>but sometimes it can lock, very rare...<br><br>please, help me.<br><br>thanks,<br><br>Basq<br><br><br><br><br><br><br><br>_______________________________________________<br>
-linux-dvb mailing list<br><a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br><a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br></div>
+Nothing :(. The results are exactly the same: when I use the analog TV input, the sound is bad but understable, but somehow &quot;high pitched&quot; fro some reason.<br><br>When using s-video or composite (this, capturing sound from LineIn input) the sound is completely broken: I&#39;m getting only crackling noise, ocassionaly disrupted by some fragments of which it should be the original input sound...<br>
+<br>This happens both in MythTV and when using mplayer, like i.e. using the following command line:<br><br><div style="margin-left: 40px; font-family: courier new,monospace;">mplayer tv:// -tv driver=v4l2:device=/dev/video0:norm=PAL-BG:\<br>
+input=1:alsa:adevice=hw.1,0:amode=1:volume=50:immediatemode=0:buffersize=3<br></div><br>Any ideas? I&#39;m using a fresh copy of <a href="http://hg.kewl.org/v4l-dvb/">http://hg.kewl.org/v4l-dvb/</a> repository.<br><br>Best regards, <br>
+&nbsp; Eduard Huguet<br><br><br><br><div class="gmail_quote">2008/11/21 Darron Broad <span dir="ltr">&lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;</span><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+In message &lt;<a href="mailto:617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com">617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com</a>&gt;, &quot;Eduard Huguet&quot; wrote:<br>
+<br>
+LO<br>
+<div><div></div><div class="Wj3C7c"><br>
+&gt;Hi,<br>
+&gt; &nbsp; &nbsp;I&#39;m testing a Hauppauge HVR-3000 for its use with MythTV, and I&#39;m<br>
+&gt;observing that I have a completely distorted sound when using any of the<br>
+&gt;analog inputs (TV, S-Video or Composite). The sound is completely crackly,<br>
+&gt;not understanble at all, just noise. I&#39;ve teste 2 different cards, so I&#39;m<br>
+&gt;pretty sure it&#39;s not a &quot;faulty card&quot; issue.<br>
+&gt;<br>
+&gt;This happens both in MythTV or when using directly mplayer to capture video<br>
+&gt;&amp; audio.<br>
+&gt;<br>
+&gt;I&#39;m using an up-to-date HG DVB repository.<br>
+<br>
+</div></div>There are some known problem with cards using the WM8775 codec.<br>
+<br>
+Use this repo here:<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://hg.kewl.org/v4l-dvb/" target="_blank">http://hg.kewl.org/v4l-dvb/</a><br>
+<br>
+It changes how the WM8775 operates and you will be able to<br>
+control the input levels using v4l2-ctl.<br>
+<br>
+Please tell me if this solves your problems.<br>
+<br>
+Good luck<br>
+<font color="#888888"><br>
+--<br>
+<br>
+&nbsp;// /<br>
+{:)==={ Darron Broad &lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;<br>
+&nbsp;\\ \<br>
+<br>
+</font></blockquote></div><br>
 
-------=_Part_50727_29757750.1225713844290--
+------=_Part_118418_19726167.1227527176070--
 
 
---===============2122356685==
+--===============1031515788==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -147,4 +157,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2122356685==--
+--===============1031515788==--
