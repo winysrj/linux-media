@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASAAsKv009881
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 05:10:54 -0500
-Received: from smoke.redembedded.co.uk (mail.redembedded.co.uk
-	[83.100.215.137])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mASAAdV6003883
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 05:10:40 -0500
-Received: from dhcp50.redembedded.com ([192.168.168.150])
-	by smoke.redembedded.co.uk with esmtps
-	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32) (Exim 4.69)
-	(envelope-from <darren.longhorn@redembedded.com>) id 1L60LO-0005FO-5G
-	for video4linux-list@redhat.com; Fri, 28 Nov 2008 10:13:21 +0000
-Message-ID: <492FC38B.6000703@redembedded.com>
-Date: Fri, 28 Nov 2008 10:10:19 +0000
-From: Darren Longhorn <darren.longhorn@redembedded.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOHlLON023850
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 12:47:21 -0500
+Received: from mail11d.verio-web.com (mail11d.verio-web.com [204.202.242.86])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAOHl5hx019880
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 12:47:05 -0500
+Received: from mx41.stngva01.us.mxservers.net (204.202.242.76)
+	by mail11d.verio-web.com (RS ver 1.0.95vs) with SMTP id 0-0566678825
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 12:47:05 -0500 (EST)
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'Keith Lawson'" <lawsonk@lawson-tech.com>,
+	"=?iso-8859-2?Q?'SKOCDOPOLE_Tom=E1=B9'?=" <hoppik@centrum.cz>
+References: <200811231932.15658@centrum.cz>
+	<alpine.DEB.1.10.0811241148500.2253@vegas>
+In-Reply-To: <alpine.DEB.1.10.0811241148500.2253@vegas>
+Date: Mon, 24 Nov 2008 09:46:58 -0800
+Message-ID: <00a001c94e5c$a6daba80$f4902f80$@com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <11380.62.70.2.252.1227781392.squirrel@webmail.xs4all.nl>	<20081127120814.14f25c1b@pedra.chehab.org>
-	<200811271520.48202.laurent.pinchart@skynet.be>
-In-Reply-To: <200811271520.48202.laurent.pinchart@skynet.be>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: Re: RFC: drop support for kernels < 2.6.22
+Content-Type: text/plain;
+	charset="iso-8859-2"
+Content-Language: en-us
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: RE: Example application for V4L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,18 +34,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Laurent Pinchart wrote:
+Also, videodog:
+http://linux.softpedia.com/get/Multimedia/Video/VideoDog-9261.shtml
+http://linux.die.net/man/1/videodog
 
-> Before moving to linuxtv.org the UVC driver was backward compatible with all 
-> kernels starting at 2.6.15 out of the box. With a minor patch applied this 
-> even extended to 2.6.10. While I have no statistics regarding kernel versions 
-> on which the UVC driver is used, the driver seems to be popular with embedded 
-> users who usually run "old" vendor-supplied kernels on their systems.
-> 
-> As such, at least for the UVC driver, I'd hate to see compatibility with 
-> 2.6.16-2.6.21 going away anytime soon.
+And, xawtv-streamer:
+http://rpmfind.net/linux/RPM/conectiva/snapshot/i386/RPMS.extra/xawtv-stream
+er-3.90-59428cl.i386.html
+http://tldp.org/HOWTO/Webcam-HOWTO/framegrabbers.html
 
-As one of those embedded developers, I second this view.
+Charlie X. Liu @ www.sensoray.com
+
+
+-----Original Message-----
+From: video4linux-list-bounces@redhat.com
+[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Keith Lawson
+Sent: Monday, November 24, 2008 8:52 AM
+To: SKOCDOPOLE Tomá¹
+Cc: video4linux-list@redhat.com
+Subject: Re: Example application for V4L
+
+
+On Sun, 23 Nov 2008, SKO?DOPOLE Tom?? wrote:
+
+> Hello,
+>
+> I want to ask you for this situation:
+> I have got a Leadtek WinFast 2000XP, where is a S-Video input. To this
+S-Video input is connected a analog camera.
+>
+> Exists any "example program" for programming with v4l drivers? I only need
+get single picture from the camera. It should be BMP, JPEG, TIFF or some
+other formats.
+>
+> If any example program doesn't exist, where can I find some informations?
+
+Xawtv http://linux.bytesex.org/xawtv/ and tvtime 
+http://tvtime.sourceforge.net/ both have the ability to take a screen 
+shot.
+
+>
+> Thank you for help.
+>
+> Regards Tomas
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
+
+
 
 --
 video4linux-list mailing list
