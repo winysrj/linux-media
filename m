@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from viefep18-int.chello.at ([213.46.255.22])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <basq@bitklub.hu>) id 1Kxzoa-00055h-2h
-	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 09:02:08 +0100
-Date: Thu, 6 Nov 2008 09:01:11 +0100
-From: Kovacs Balazs <basq@bitklub.hu>
-Message-ID: <1745079361.20081106090111@bitklub.hu>
-To: Ales Jurik <ajurik@quick.cz>
-In-Reply-To: <200811041018.27417.ajurik@quick.cz>
-References: <167586304.20081103115116@bitklub.hu>
-	<20081103155903.245267fe@bk.ru>
-	<54283792.20081104090010@bitklub.hu>
-	<200811041018.27417.ajurik@quick.cz>
+	(envelope-from <abraham.manu@gmail.com>) id 1L4hBh-0005GG-LT
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 20:33:38 +0100
+Message-ID: <492B0182.2030602@gmail.com>
+Date: Mon, 24 Nov 2008 23:33:22 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
+To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+References: <13077.130.36.62.140.1227542142.squirrel@webmail.xs4all.nl>
+	<492AD583.4040809@cadsoft.de>
+In-Reply-To: <492AD583.4040809@cadsoft.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,79 +20,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-QWxlcywgY2FuIHlvdSB0ZXN0IG1lIHdoYXQgaGFwcGVucyBpZiB5b3UganVzdCB3YW50IHRvIGxv
-Y2sgb24gdGhlc2UgVFAncz8gSXMgaXQgc3RhYmxlIGZvciB5b3U/CgpDYW4geW91IHR1biBhIHN6
-YXAgYW5kIHdhdGNoIGl0IGlmIHRoZSBjYXJkIGxvc3QgdGhlIGxvY2sgb3IgaXMgaXQgbG9ja2Vk
-IHN0YWJsZT8KCkkndmUgdHJpZWQgYSBTa3lzdGFyIEhEMiBjYXJkIHdpdGggczItbGlwbGlhbmlu
-IGRyaXZlcnMgYnV0IHRoZSByZXN1bHQgaXMgdGhlIHNhbWUuIFNvbWV0aW1lcyBJIGNhbiBzY2Fu
-IHRoZSBUUCdzIGlmIHRoZSBjYXJkIGlzIGxvY2tlZCBmb3IgYSAxLTIgc2Vjb25kIHBlcmlvZCwg
-dGhlbiBpdCBsb3N0cyB0aGUgbG9jay4KClRoaXMgY291bGQgYmUgYSBkcml2ZXIgaXNzdWUsIGJl
-Y2F1c2UgdW5kZXIgV2luZG93cyB3aXRoIHRoZSBvcmlnaW5hbCBUVCBXRE0gb3IgQkRBIGRyaXZl
-cnMgdGhlIFRUMzIwMCB3b3JrcyBwZXJmZWN0IG9uIHRoZXNlIFRQJ3MuCgp0aGFueCwKCmJhc3EK
-Cj4gT24gVHVlc2RheSAwNCBvZiBOb3ZlbWJlciAyMDA4LCBLb3ZhY3MgQmFsYXpzIHdyb3RlOgo+
-PiA+PiAgIEZZSTogb24gdGhlc2UgVFAncyB0aGVyZSdzIGEgcGlsb3Qgc2lnbmFsIGFuZCByb2xs
-b2ZmIHNldCB0byAwLjIwLgo+PiA+Cj4+ID4gSSdtIHdvbmRlcmluZyAtIGhvdyBkaWQgeW91IG9i
-c2VydmUgaXQgPwoKPj4gSSBhc2tlZCBteSBjb2xsZWFndWVzIHdobyBzZXQgdXAgdGhpcyBtb2R1
-bGF0b3IgYXQgdXBsaW5rIHNpdGUsIGJlY2F1c2Ugd2UKPj4gYXJlIHdvcmtpbmcgb24gdGhlc2Ug
-c2F0ZWxsaXRlIERUSCBzeXN0ZW0uCgo+PiBJcyBhbnlib2R5IGNhbiBzdWdnZXN0IGEgd29ya2lu
-ZyBEVkItUzIgY2FyZCArIGxpbnV4IGRyaXZlciB3aGljaCBpcwo+PiBjYXBhYmxlIHRvIGxvY2sg
-aGVyZSBzdGFibGU/IChBTU9TIDQuMFcsIDEwLjcyM0doeiBWLCAzMDAwMCkKCj4+IHRoYW5rIHlv
-dSwKCj4+IGJhc3EKCj4gSSBkb24ndCBoYXZlIGFueSBwcm9ibGVtIHdpdGggbG9jayB3aXRoIG15
-IGxhc3QgZHZiLWxpcGxpYW5pbiBkcml2ZXJzIAo+IChtdWx0aXByb3RvKSBhbmQgSFZSLTQwMDAu
-Cgo+IEJ1dCB0aGUgcm9sbG9mZiBpcyBhdXRvbWF0aWNhbGx5IHNldCBieSB0aGUgZHJpdmVyIHRv
-IDAuMzUuCgo+IEhlcmUgaXMgdGhlIGF1dG9tYXRpY2FsbHkgZG9uZSBzY2FuIGZyb20gdmRyLTEu
-Ny4wLiBJJ3ZlIGVkaXRlZCB0aGUgcm9sbG9mZiB0bwo+IDAuMjAgYnV0IGl0IGRvZXNuJ3Qgc2Vl
-bXMgdG8gaGVhdmUgYW55IGluZmx1ZW5jZSBldmVuIGlmIEkgZGlzYWJsZSB1cGRhdGUgb2YKPiBj
-aGFubmVscy4gCgo+IFRoZSB2aWRlbyBvbiBGVEEgY2hhbm5lbHMgaXMgc29tZXRoaW5nIGxpa2Ug
-bm90IGZsdWVudCAob25seSBSVEwgZG9lc24ndCBoYXZlCj4gdGhpcyBwcm9ibGVtKSAtIGJ1dCBp
-dCBjb3VsZCBiZSB0aGF0IG5vIHNvdW5kIG9uZSB0aGF0IGNoYW5uZWxzIGlzIAo+IGJyb2FkY2Fz
-dGVkLgoKPiBCUiwKCj4gQWxlcwoKPiBSVEwKPiBLbHViO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8y
-MFMxOlM0LjBXOjMwMDAwOjE3OToxNzc9aHVuOjE4MDpCMDA6MToxMDA6MTowCj4gdHYyO1QtS8OG
-YmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjE3NDoxNzI9aHVuOjE3NTpCMDA6Mjox
-MDA6MTowCj4gbTE7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTY5OjA6
-MTcwOkIwMDozOjEwMDoxOjAKPiBtMjtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzoz
-MDAwMDoxNjQ6MDoxNjU6QjAwOjQ6MTAwOjE6MAo+IFRWIERla287VC1Lw4ZiZWw6MTA3MjM6dkMy
-M001TzIwUzE6UzQuMFc6MzAwMDA6MTU5OjA6MDpCMDA6NToxMDA6MTowCj4gVFYgUGFwcmlrYTtU
-LUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDoxNTQ6MDowOkIwMDo2OjEwMDox
-OjAKPiBLaWRzY287VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTQ5OjA6
-MDpCMDA6NzoxMDA6MTowCj4gTWluaW1heDtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4w
-VzozMDAwMDoxNDQ6MDowOkIwMDo4OjEwMDoxOjAKPiBYWFh0cmVtZTtULUvDhmJlbDoxMDcyMzp2
-QzIzTTVPMjBTMTpTNC4wVzozMDAwMDowOjA6MDowOjk6MTAwOjE6MAo+IE1UVgo+IEh1bmdhcnk7
-VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTM0OjA6MDpCMDA6MTA6MTAw
-OjE6MAo+IFZIMTtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDoxMjk6MDow
-OkIwMDoxMToxMDA6MTowCj4gTWFneWFyCj4gQVRWO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMx
-OlM0LjBXOjMwMDAwOjEyNDowOjA6QjAwOjEyOjEwMDoxOjAKPiBQbGF5Ym95IFRWO1QtS8OGYmVs
-OjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjA6MDowOjA6MTM6MTAwOjE6MAo+IEVjaG8g
-VFY7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTE0OjA6MDpCMDA6MTQ6
-MTAwOjE6MAo+IEjDhmzDsHphdAo+IFRWO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBX
-OjMwMDAwOjEwOTowOjA6QjAwOjE1OjEwMDoxOjAKPiBNVFYyO1QtS8OGYmVsOjEwNzIzOnZDMjNN
-NU8yMFMxOlM0LjBXOjMwMDAwOjEwNDowOjA6QjAwOjE2OjEwMDoxOjAKPiBSZWZsZWt0b3I7VC1L
-w4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6OTk6MDowOkIwMDoxNzoxMDA6MTow
-Cj4gZmlsbTIrO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjk0OjA6MDpC
-MDA6MTg6MTAwOjE6MAo+IENvb2w7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAw
-MDA6ODk6MDowOkIwMDoxOToxMDA6MTowCj4gUG/DmG47VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIw
-UzE6UzQuMFc6MzAwMDA6ODQ6MDowOkIwMDoyMDoxMDA6MTowCj4gc29yb3phdCs7VC1Lw4ZiZWw6
-MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6Nzk6MDowOkIwMDoyMToxMDA6MTowCj4gZmls
-bSs7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6NzQ6MDowOkIwMDoyMjox
-MDA6MTowCj4gRmlzaGluZyBhbmQgCj4gSHVudGluZztULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBT
-MTpTNC4wVzozMDAwMDo2OTowOjA6QjAwOjIzOjEwMDoxOjAKPiBTcG9ydCBLbHViO1QtS8OGYmVs
-OjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjY0OjA6MDpCMDA6MjQ6MTAwOjE6MAo+IFNw
-b3J0Cj4gS2x1Yis7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6NTk6MDow
-OkIwMDoyNToxMDA6MTowCj4gRG9xO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMw
-MDAwOjU0OjA6MDpCMDA6MjY6MTAwOjE6MAo+IHRlc3QxO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8y
-MFMxOlM0LjBXOjMwMDAwOjA6MDowOjA6Mjc6MTAwOjE6MAo+IHRlc3QyO1QtS8OGYmVsOjEwNzIz
-OnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjA6MDowOjA6Mjg6MTAwOjE6MAo+IHRlc3QzO1QtS8OG
-YmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjM5OjA6MDpCMDA6Mjk6MTAwOjE6MAo+
-IEjFpnIgVFY7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MzQ6MDowOkIw
-MDozMDoxMDA6MTowCgoKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBsaW51eC1kdmJAbGludXh0di5vcmcK
-PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1k
-dmIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
-dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Klaus Schmidinger wrote:
+> On 24.11.2008 16:55, Niels Wagenaar wrote:
+>> ...
+>> For the time being I have only two options which will work without any
+>> additional patching in S2API:
+>>
+>> - Let the user set this as an option
+>> - Use my VUP (very ugly patch) by checking the deliverystem for the string
+>> "DVBS2".
+> 
+> Both are ugly workarounds and any reasonable API requiring them instead
+> of simply reporting the -S2 capability of a device should
+> be ashamed, go home and do its homework.
+
+ACK
+
+> For the time being I'll work with my suggested FE_CAN_2ND_GEN_MODULATION
+> patch - until somebody can suggest a different way of doing this (without
+> parsing strings or requiring the user to do it).
+
+ACK.
+
+That is a saner way of doing it rather than anything else, as it stands.
+
+Anyway, we won't be seeing professional device support as it stands with
+the current API anytime soon, so as it stands the better alternative is
+thus.
+
+But it would be nice to have something shorter: say FE_IS_2G or
+something that way, for the minimal typing.
+
+
+Regards,
+Manu
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
