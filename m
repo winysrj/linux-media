@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGIHEL4022974
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:17:14 -0500
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.24])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGIGxsb013548
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:16:59 -0500
-Received: by ey-out-2122.google.com with SMTP id 4so761902eyf.39
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 10:16:58 -0800 (PST)
-Message-ID: <412bdbff0811161016w91fc6c1s67e84519e2505b05@mail.gmail.com>
-Date: Sun, 16 Nov 2008 13:16:58 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: CityK <cityk@rogers.com>
-In-Reply-To: <4920603D.20906@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAO84Y9g031594
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 03:04:34 -0500
+Received: from smtp-vbr7.xs4all.nl (smtp-vbr7.xs4all.nl [194.109.24.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAO84LXN027769
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 03:04:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Trilok Soni" <soni.trilok@gmail.com>
+Date: Mon, 24 Nov 2008 09:04:12 +0100
+References: <hvaibhav@ti.com> <200811232300.40530.hverkuil@xs4all.nl>
+	<5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
+In-Reply-To: <5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <491CC096.7090107@rogers.com>
-	<f3ae23390811140559i5e235c3bvabe8d5004d57165@mail.gmail.com>
-	<4920603D.20906@rogers.com>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: AVerMedia EZMaker USB Gold
+Message-Id: <200811240904.12758.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org,
+	davinci-linux-open-source-bounces@linux.davincidsp.com
+Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,45 +31,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Nov 16, 2008 at 1:02 PM, CityK <cityk@rogers.com> wrote:
-> Re: 7136
+On Monday 24 November 2008 07:16:12 Trilok Soni wrote:
+> Hi Hans,
 >
-> Currently there haven't been many reports of devices using this IC.
-> Last spring, Janneg obtained a device using the 7136 and this lead to a
-> brief discussion on irc about it.  IIRC, Manu Abrahams, who had access
-> to the datasheet at the time and upon a cursory inspection of its info,
-> thought that it was likely that support for the chip could be
-> incorporated into the existing 713x driver.  I forget any specifics
-> about the chip, but I seem to recall that there is something unique
-> about it.  (I also seem to recall that it has component input that is
-> good enough for capturing full res HDTV...not that many vendors would
-> ever implement access to that though).
+> On Mon, Nov 24, 2008 at 3:30 AM, Hans Verkuil <hverkuil@xs4all.nl> 
+wrote:
+> > Hi Vaibhav,
+> >
+> > Here is my review as promised (although a day late). It's a mix of
+> > smaller and larger issues:
+> >
+> > 1) CONFIG_VIDEO_ADV_DEBUG is meant to enable the ability to set/get
+> > registers through the VIDIOC_DBG_G/S_REGISTER ioctls. For general
+> > debugging you should use a debug module option (see e.g.
+> > saa7115.c).
 >
-> Anyway, I haven't seen much mention of the chip since, but did happen to
-> coincidently catch this post just the other day:
-> * http://marc.info/?l=linux-video&m=122675953217105&w=2
-> The importance of which becomes clear when seeing:
-> *
-> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Ultimate_Stick_(808e)
+> Local dprintk with log levels is fine, as far as it not misused.
 >
-> So I have cc'ed Devin in on the message as perhaps you two could
-> collaborate on this, and I imagine Devin would appreciate any help once
-> all the "fun" legal aspect is settled with NXP.
+> > 2) Please use the media/v4l2-i2c-drv.h or
+> > media/v4l2-i2c-drv-legacy.h header to hide some of the i2c
+> > complexity (again, see e.g. saa7115.c). The i2c API tends to change
+> > a lot (and some changes are upcoming) so using this header will
+> > mean that i2c driver changes will be minimal in the future. In
+> > addition it will ensure that this driver can be compiled with older
+> > kernels as well once it is part of the v4l-dvb repository.
+>
+> I don't agree with having support to compile with older kernels. Even
+> though I2C APIs change as lot it is for good, and creating
+> abstractions doesn't help as saa7xxx is family of chips where I don't
+> see the case here. Once this driver is mainlined if someone does i2c
+> subsystem change which breaks this driver from building then he/she
+> has to make changes to all the code affecting it.
+>
+> I am not in favour of adding support to compile with older kernels.
+>
+> > 3) Remember that the use of v4l2-int-device.h must be temporary
+> > only. It will make it impossible to use this driver with any other
+> > platform but omap. I had hoped to release my generic v4l2 subdevice
+> > support today which should replace v4l2-int-device.h in time, but I
+> > hit a bug that needs to be resolved first. I hope to fix it during
+> > the next week so that I can finally make it available for use asap.
+>
+> Better step would be to have single camera-sensor framework or merge
+> with soc-camera framework. Two frameworks doesn't help anyone, but
+> creates more confusion for new developers.
 
-Yes.  I am working on getting the datasheet for this device, and will
-definitely be doing driver support for it (unless somebody manages to
-beat me to it).  It's good to know what other devices are using this
-chip, so I can pick one up and make sure I don't do anything that is
-specific to the Pinnacle 808e.
+The v4l2-int-device.h stuff should never have been added. Ditto for 
+parts of the soc-camera framework that duplicates v4l2-int-device.h. My 
+new v4l2_subdev support will replace the three methods of using i2c 
+devices (or similar) that are currently in use. It's exactly to reduce 
+the confusion that I'm working on this.
+
+It's been discussed before on the v4l mailinglist and the relevant 
+developers are aware of this. It's almost finished, just need to track 
+down a single remaining oops.
 
 Regards,
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+	Hans
 
 --
 video4linux-list mailing list
