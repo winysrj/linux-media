@@ -1,29 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mATN6gI1014316
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 18:06:42 -0500
-Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mATN6TN6005963
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 18:06:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Brownell <david-b@pacbell.net>
-Date: Sun, 30 Nov 2008 00:06:21 +0100
-References: <200811291852.41794.hverkuil@xs4all.nl>
-	<200811292246.20338.hverkuil@xs4all.nl>
-	<200811291422.20155.david-b@pacbell.net>
-In-Reply-To: <200811291422.20155.david-b@pacbell.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOEaOx6017393
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 09:36:24 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.187])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOEZtos019730
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 09:35:56 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so1057667nfc.21
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 06:35:55 -0800 (PST)
+Message-ID: <30353c3d0811240635t3649fa2bk5f5982c4d3d6e87c@mail.gmail.com>
+Date: Mon, 24 Nov 2008 09:35:55 -0500
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Alexey Klimov" <klimov.linux@gmail.com>
+In-Reply-To: <1227410369.16932.31.camel@tux.localhost>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200811300006.22080.hverkuil@xs4all.nl>
-Content-Transfer-Encoding: 8bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
+References: <1227054989.2389.33.camel@tux.localhost>
+	<30353c3d0811200753h113ede02xc8708cd2dee654b3@mail.gmail.com>
+	<1227410369.16932.31.camel@tux.localhost>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/1] radio-mr800: fix unplug
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,116 +32,160 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 29 November 2008 23:22:19 David Brownell wrote:
-> On Saturday 29 November 2008, Hans Verkuil wrote:
-> > > > +void v4l2_device_register(struct device *dev, struct
-> > > > v4l2_device *v4l2_dev) +{
-> > > > +       BUG_ON(!dev || !v4l2_dev || dev_get_drvdata(dev));
-> > >
-> > > Ouch.  Better to return -EINVAL, like most register() calls,
-> > > than *ever* use a BUG_ON() for bad parameters.  Same applies
-> > > every other place you use BUG_ON, from a quick scan ...
-> >
-> > Are there some documented guidelines on when to use BUG_ON?
+On Sat, Nov 22, 2008 at 10:19 PM, Alexey Klimov <klimov.linux@gmail.com> wrote:
+> Hello, David
 >
-> Maybe there should be.  I know I've seen flames from Linus on
-> the topic.  Basically, treat it like a panic() where the system
-> must stop operation lest it catch fire or scribble all over the
-> (not-backed-up) disk ... if the system can keep running sanely,
-> then BUG() and friends are inappropriate.
-
-I think it would be good to have some document about this, since
-from what I've seen from a quick scan I'm not the only one who uses
-it incorrectly. There is no documentation in the asm-generic/bug.h
-header and there is also no documentation on this in the Documentation
-directory.
-
-> > I see it used in other places in this way.
+> On Thu, 2008-11-20 at 10:53 -0500, David Ellingsworth wrote:
+>> NACK
 >
-> I tend to submit patches fixing bugs like that, when I have time.
+>> video_unregister_device should _always_ be called once the device is
+>> disconnect, no matter how many handles are still open.
+>>
+>> > -               radio->videodev = NULL;
+>> > -               if (radio->users) {
+>> > -                       kfree(radio->buffer);
+>> > -                       kfree(radio);
+>> > -               } else {
+>> > -                       radio->removed = 1;
+>> > -               }
+>> > +               kfree(radio->buffer);
+>> > +               kfree(radio);
+>>
+>> You should not be freeing memory here. The video_device release
+>> callback should be used for this purpose. It is called once all open
+>> file handles are closed and after video_unregister_device has been
+>> called.
 >
-> > My reasoning was that returning an
-> > error makes sense if external causes can result in an error, but
-> > this test is more the equivalent of an assert(), i.e. catching a
-> > programming bug early.
+> Well, things what you said make me feel ill at ease (feel
+> uncomfortable). Looks like 3 usb radio drivers don't implement right
+> disconnect and video release functions ?
+> Generaly, i took order of release/kfree-functions from dsbr100 and
+> si470x.
+
+Yes, this is probably true. Not many drivers handled this properly
+since the video_device release callback used to occur immediately
+after calling video_unregister_device while the structure was
+potentially still being used. Some drivers implemented a kref object
+to work around this deficiency, others used a user count. Now that the
+v4l2-core correctly calls this release after video_unregister_device
+has been called and all open handles have been close, no work-arounds
+are needed by v4l2 sub-drivers.
+
+The suggested method to simply set the video_device release callback
+to video_device_release was from the beginning flawed. The only
+instance where it was actually safe to do so was in the vivi driver
+since there was no way to abruptly remove the device while it was
+still being used. All usb and pci devices can be removed at will and
+have to properly handle that case. Sadly most do not. In my opinion,
+the video_device_alloc and video_device_release functions should be
+removed entirely, they only add unnecessary complexity to a v4l2
+sub-driver.
+
+Before the v4l2-core was fixed, if a driver set the release callback
+to video_device_release and _always_ called video_unregister_device in
+it's disconnect callback then the video_device struct used by the
+driver would be immediately freed. Once the video_device struct had
+been freed, any call to video_get_drvdata would fail and crash the
+driver. Sub-drivers could then do one of two things to avoid this
+crash, 1. not call video_unregister_device upon disconnect, or 2. set
+the release callback to a null function. The problem with the first
+method is that by not calling video_unregister_device the driver had
+to ensure the device was present during the fops open callback, aka
+handling a call to open after disconnect. The problem with the second
+method is that the sub-driver had to implement it's own reference
+count to determine when it was safe to free it's structure. Both
+methods had their own challenges and neither was something that most
+drivers got right.
+
 >
-> In which case a WARN() is better.  But in most cases I wouldn't
-> even do that.  The kernel's design center is closer to "run
-> robustly" than "make developers' lives easier".  Programmers
-> who don't check return values for critical operations like
-> registering core resources deserve what they get.  And if you
-> want to nudge them, the __must_check annotation helps catch
-> such goofage even earlier:  compile time, not run time.
+>> Again, video_unregister_device should always be called from the usb
+>> disconnect callback.
+>>
+>> >                kfree(radio->buffer);
+>> >                kfree(radio);
+>>
+>> Again, memory should not be freed here. It should be freed by the
+>> video_device release callback for reasons stated above.
+>
+> Ok. I were in deep quest of finding video_device release callback. I had
+> release function only in file_operations, but it wasn't right function.
+> Then i found video_device_release in video_device
+> amradio_videodev_template.
+> Looks like disconnect function called before video_device_release in all
+> cases. And i need to call kfree(radio) after disconnect but before probe
+> function(if device pluged in again).
+>
+> Do this general examples below look right ?
 
-I've replaced it as follows (and with __must_check in the header):
+Yes, this looks correct.
 
-int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
-{
-        if (dev == NULL || v4l2_dev == NULL)
-                return -EINVAL;
-        /* Warn if we apparently re-register a device */
-        WARN_ON(dev_get_drvdata(dev));
-        INIT_LIST_HEAD(&v4l2_dev->subdevs);
-        spin_lock_init(&v4l2_dev->lock);
-        v4l2_dev->dev = dev;
-        snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %s",
-                        dev->driver->name, dev->bus_id);
-        dev_set_drvdata(dev, v4l2_dev);
-        return 0;
-}
-EXPORT_SYMBOL_GPL(v4l2_device_register);
+>
+> static struct video_device amradio_videodev_template = {
+>        .name           = "AverMedia MR 800 USB FM Radio",
+>        .fops           = &usb_amradio_fops,
+>        .ioctl_ops      = &usb_amradio_ioctl_ops,
+>        .release        = video_device_release_am,
+> };
+>
+> I need my own release function, right ? To free radio structure.
 
-void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
-{
-        struct v4l2_subdev *sd, *next;
+Correct. You'll need your own function.
 
-        if (v4l2_dev == NULL || v4l2_dev->dev == NULL)
-                return;
-        dev_set_drvdata(v4l2_dev->dev, NULL);
-        /* unregister subdevs */
-        list_for_each_entry_safe(sd, next, &v4l2_dev->subdevs, list)
-                v4l2_device_unregister_subdev(sd);
+>
+> void video_device_release_am(struct video_device *videodev)
+> {
+>        struct amradio_device *radio = video_get_drvdata(videodev);
+>        printk("we are in video_device_release\n");
+>        video_device_release(videodev);
+>        kfree(radio->buffer);
+>        kfree(radio);
+> }
+> May be something like "container_of" to get *radio from *videodev ? Or it's okay ?
 
-        v4l2_dev->dev = NULL;
-}
-EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+Since the video_device struct is not embedded within the
+amradio_device structure you can't use container_of to get a pointer
+to the amradio_device structure. What you have here is correct. If you
+choose to do so, I advocate embedding the video_device struct into the
+amradio struct since it simplifies memory allocation. You would then
+be able to use container_of in many places to go from the video_device
+struct to the amradio_device struct.
 
-int v4l2_device_register_subdev(struct v4l2_device *dev, struct v4l2_subdev *sd)
-{
-        /* Check for valid input */
-        if (dev == NULL || sd == NULL || !sd->name[0])
-                return -EINVAL;
-        /* Warn if we apparently re-register a subdev */
-        WARN_ON(sd->dev);
-        if (!try_module_get(sd->owner))
-                return -ENODEV;
-        sd->dev = dev;
-        spin_lock(&dev->lock);
-        list_add_tail(&sd->list, &dev->subdevs);
-        spin_unlock(&dev->lock);
-        return 0;
-}
-EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+>
+> static void usb_amradio_disconnect(struct usb_interface *intf)
+> {
+>        struct amradio_device *radio = usb_get_intfdata(intf);
+>
+>        printk("disconnect called\n");
+> //      mutex_lock(&radio->disconnect_lock);
+>        radio->removed = 1;
+>
+>        usb_set_intfdata(intf, NULL);
+>        video_unregister_device(radio->videodev);
+>
+> //      mutex_unlock(&radio->disconnect_lock);
+> }
+>
+>> I suspect you'll find little need for this mutex once you have
+>> properly implemented the video_device release callback. You may
+>> however still need the removed flag as some usb calls obviously can't
+>> be made once the device has been removed. For reference, please review
+>> the stk-webcam driver as it implements this properly
 
-void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
-{
-        /* return if it isn't registered */
-        if (sd == NULL || sd->dev == NULL)
-                return;
-        spin_lock(&sd->dev->lock);
-        list_del(&sd->list);
-        spin_unlock(&sd->dev->lock);
-        sd->dev = NULL;
-        module_put(sd->owner);
-}
-EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+If you have a general mutex, which you should, for locking access to
+the amradio_device struct it should probably be used here while
+setting the removed member to 1. Admittedly, stk-webcam currently
+lacks the required mutex. The state change in it's disconnect callback
+is not safe and should be protected by a general mutex, as should
+operations in it's open, release, and read functions. I merely haven't
+had the time to submit a patch to correct it.
 
-Thanks for the review!
+>
+> Thanks for pointing this out. I think that disconnect lock is not
+> necessarily.
 
-	Hans
+Regards,
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+David Ellingsworth
 
 --
 video4linux-list mailing list
