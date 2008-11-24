@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from viefep20-int.chello.at ([62.179.121.40])
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <basq@bitklub.hu>) id 1KxLIl-0002LT-25
-	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 13:46:31 +0100
-Received: from edge01.upc.biz ([192.168.13.236]) by viefep20-int.chello.at
-	(InterMail vM.7.08.02.02 201-2186-121-104-20070414) with ESMTP
-	id <20081104124557.QKKJ15604.viefep20-int.chello.at@edge01.upc.biz>
-	for <linux-dvb@linuxtv.org>; Tue, 4 Nov 2008 13:45:57 +0100
-Date: Tue, 4 Nov 2008 13:45:39 +0100
-From: Kovacs Balazs <basq@bitklub.hu>
-Message-ID: <42260639.20081104134539@bitklub.hu>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-In-Reply-To: <c74595dc0811040131w5e3342cbq8242d0d2422c2ee0@mail.gmail.com>
-References: <167586304.20081103115116@bitklub.hu>
-	<20081103155903.245267fe@bk.ru>
-	<54283792.20081104090010@bitklub.hu>
-	<b42fca4d0811040108x4e71f95ds141942b35d505c72@mail.gmail.com>
-	<c74595dc0811040131w5e3342cbq8242d0d2422c2ee0@mail.gmail.com>
+	(envelope-from <n.wagenaar@xs4all.nl>) id 1L4dmt-0004U0-Qg
+	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 16:55:49 +0100
+Received: from webmail.xs4all.nl (dovemail11.xs4all.nl [194.109.26.13])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id mAOFtg4h006652
+	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 16:55:42 +0100 (CET)
+	(envelope-from n.wagenaar@xs4all.nl)
+Message-ID: <13077.130.36.62.140.1227542142.squirrel@webmail.xs4all.nl>
+Date: Mon, 24 Nov 2008 16:55:42 +0100 (CET)
+From: "Niels Wagenaar" <n.wagenaar@xs4all.nl>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+Reply-To: n.wagenaar@xs4all.nl
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,83 +27,117 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I tried almost all what I know:
+-----Original message-----
+From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+Sent: Mon 24-11-2008 10:07
+To: linux-dvb@linuxtv.org;
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 
-v4l-dvb with szap-s2 and scan-s2
+> On 24.11.2008 08:12, Artem Makhutov wrote:
+> > Hello,
+> >
+> > Klaus Schmidinger schrieb:
+> >> The attached patch adds a capability flag that allows an application
+> >> to determine whether a particular device can handle "second generation
+> >> modulation" transponders. This is necessary in order for applications
+> >> to be able to decide which device to use for a given channel in
+> >> a multi device environment, where DVB-S and DVB-S2 devices are mixed.
+> >>
+> >> It is assumed that a device capable of handling "second generation
+> >> modulation" can implicitly handle "first generation modulation".
+> >> The flag is not named anything with DVBS2 in order to allow its
+> >> use with future DVBT2 devices as well (should they ever come).
+> >>
+> >> Signed-off by: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+> >
+> > Wouldn't it be better to add something like this:
+> >
+> > FE_CAN_8PSK
+> > FE_CAN_16APSK
+> > FE_CAN_32APSK
+> >
+> > or
+> >
+> > FE_CAN_DVBS2
+> >
+> > Instead of FE_CAN_2ND_GEN_MODULATION ? It is too generic for me.
+>
 
-liplianin-dvb with older szap2
+I agree with Artem on this one.
 
-s2-liplianin with szap-s2 and scan-s2
+> Well, it's bad enough that we have to "guess" which kind of
+> delivery system it is by looking at feinfo.type. If it's FE_QPSK
+> then it's DVB-S (or DVB-S2), if it's FE_OFDM then it's DVB-T etc.,
 
-and the results the same in almost all the case: sometimes locks, but it's very rare for me.
+With most software I used on Windows (DVB Viewer Pro and Mediaportal) I
+have to enable "DVB-S2" features on my card. Perhaps since we don't have a
+FE_CAN_8PSK or an other sollution to check this, this might be the best
+option you seek. Or use my very ugly patch (tm) where I check for the
+string "DVBS2" in the card's deliverysystem and then set the frontendtype
+to SYS_DVBS2 (which is backwards compatible with DVB-S).
 
-Maybe is it because of the 2.6.24 kernel? I don't know.
+> etc. The "multiproto" API had this cleaned up and introduced a
+> clean way of finding out the delivery systems(!) a particular device
+> can handle. Unfortunately, as we all know, this approach has been
+> dismissed.
 
-Please, somebody with TT3200 with success on these TP's reply me what version of driver + utilities (szap, scan) do you use?
+I don't know multiproto perse and I didn't check the multiproto code
+within VDR in general. I just used Igor's S2API patch for VDR 1.7.0 which
+only had DVB-S2. I then added the other SYS_ types and added the VUP I
+wrote about earlier.
 
-thanks,
+> Using some additional flags for "guessing" whether it's DVB-S2
+> doesn't seem like a clean solution to me. Why not simply state
+> the obvious? After all, the DVB standard for DVB-S2 speaks of
+> "second generation modulation", that's why I named this flag
+> that way.
 
-Basq
+With DVB-S2, I rather speak of an enhancement then of second generation.
+But this is my oppinion and you can simply ignore this! ;)
 
+> And since S2API can only handle a single delivery system
+> at a time (as opposed to multiproto, where the delivery systems
+> were flags, so a device could support several of them), it
+> somehow made sense to me to have a flag that could later also
+> be used for "second generation DVB-T" devices.
+>
 
-> Just to add my 2 cents, in lyngsat that transponder is shown as
-> 10722 and not 10723, so Oleg was probably not the only one who
-> reduced the frequency to lock on that channel.
+If I am correct, S2API will handle multiple delivery systems without any
+problems. A device can handle multiple delivery systems because the
+frontend (/dev/dvb/adapter[0,1,2,etc]/frontend[0,1,2,3,etc]) is the real
+device(-location which) will handle the DVB delivery/transport. This can
+be DVB-T, DVB-S, DVB-S2 or DVB-C (not and!). And we open a frontend
+adapter of the device for tuning and that will only support one DVB
+transport (we don't ask the card to tune, we ask the frontend
+device-location to tune).
 
-> On Tue, Nov 4, 2008 at 11:08 AM, oleg roitburd <oroitburd@gmail.com> wrote:
-> I have decreased frequenz ( -4MHz)
-> And I can scan both transpoders with SR 30000
+At least, this is the way as I understand how tuning with DVB-cards works
+in general. And this is also the way how I implented the S2API patch. But
+I'm not 100% sure if the patch does indeed work with MFE devices like the
+HVR-3000, HVR-4000, etc because I didn't had the option to check if the
+code - which checks the frontend of de device - can handle multiple
+frontend device-locations.
 
-> [0001];:10719:vS1C23M5:S0.0W:30000:179:177=hun:180:0:1:0:0:0
-> [0002];:10719:vS1C23M5:S0.0W:30000:174:172=hun:175:0:2:0:0:0
-> [0003];:10719:vS1C23M5:S0.0W:30000:169:0:170:0:3:0:0:0
-> [0004];:10719:vS1C23M5:S0.0W:30000:164:0:165:0:4:0:0:0
-> [0005];:10719:vS1C23M5:S0.0W:30000:159:0:0:0:5:0:0:0
-> [0006];:10719:vS1C23M5:S0.0W:30000:154:0:0:0:6:0:0:0
-> [0007];:10719:vS1C23M5:S0.0W:30000:149:0:0:0:7:0:0:0
-> [0008];:10719:vS1C23M5:S0.0W:30000:144:0:0:0:8:0:0:0
-> [000a];:10719:vS1C23M5:S0.0W:30000:134:0:0:0:10:0:0:0
-> [000b];:10719:vS1C23M5:S0.0W:30000:129:0:0:0:11:0:0:0
-> [000c];:10719:vS1C23M5:S0.0W:30000:124:0:0:0:12:0:0:0
-> [000e];:10719:vS1C23M5:S0.0W:30000:114:0:0:0:14:0:0:0
-> [000f];:10719:vS1C23M5:S0.0W:30000:109:0:0:0:15:0:0:0
-> [0010];:10719:vS1C23M5:S0.0W:30000:104:0:0:0:16:0:0:0
-> [0011];:10719:vS1C23M5:S0.0W:30000:99:0:0:0:17:0:0:0
-> [0012];:10719:vS1C23M5:S0.0W:30000:94:0:0:0:18:0:0:0
-> [0013];:10719:vS1C23M5:S0.0W:30000:89:0:0:0:19:0:0:0
-> [0014];:10719:vS1C23M5:S0.0W:30000:84:0:0:0:20:0:0:0
-> [0015];:10719:vS1C23M5:S0.0W:30000:79:0:0:0:21:0:0:0
-> [0016];:10719:vS1C23M5:S0.0W:30000:74:0:0:0:22:0:0:0
-> [0017];:10719:vS1C23M5:S0.0W:30000:69:0:0:0:23:0:0:0
-> [0018];:10719:vS1C23M5:S0.0W:30000:64:0:0:0:24:0:0:0
-> [0019];:10719:vS1C23M5:S0.0W:30000:59:0:0:0:25:0:0:0
-> [001a];:10719:vS1C23M5:S0.0W:30000:54:0:0:0:26:0:0:0
-> [001d];:10719:vS1C23M5:S0.0W:30000:39:0:0:0:29:0:0:0
-> [001e];:10719:vS1C23M5:S0.0W:30000:34:0:0:0:30:0:0:0
-> [001f];:10754:vS1C23M5:S0.0W:30000:90:0:0:0:31:0:0:0
-> [0020];:10754:vS1C23M5:S0.0W:30000:85:0:0:0:32:0:0:0
-> [0021];:10754:vS1C23M5:S0.0W:30000:80:0:0:0:33:0:0:0
-> [0023];:10754:vS1C23M5:S0.0W:30000:70:0:71:0:35:0:0:0
-> [0024];:10754:vS1C23M5:S0.0W:30000:65:0:66:0:36:0:0:0
-> [0025];:10754:vS1C23M5:S0.0W:30000:60:0:0:0:37:0:0:0
-> [0026];:10754:vS1C23M5:S0.0W:30000:55:0:0:0:38:0:0:0
-> [0065];:10754:vS1C23M5:S0.0W:30000:46:44=hun:0:0:101:0:0:0
-> [0066];:10754:vS1C23M5:S0.0W:30000:42:40=eng:0:0:102:0:0:0
-> [0067];:10754:vS1C23M5:S0.0W:30000:38:36;36:0:0:103:0:0:0
-> [0068];:10754:vS1C23M5:S0.0W:30000:34:32=eng:0:0:104:0:0:0
+> But I don't want to start another political fight here. All I need
+> is a way to determine whether or not a device supports DVB-S2.
+> If the commonly agreed on way to do this is to guess it by
+> looking at FE_CAN_xyPSK capability flags, so be it. However, so
+> far none of the "experts" cared about answering my initial
+> question "How to determine DVB-S2 capability in S2API?", so
+> I guessed the only way to get something to work was doing something
+> about it ;-)
+>
 
-> It's old bug and old quick&dirty trick. My card is TT S2-3200
+For the time being I have only two options which will work without any
+additional patching in S2API:
 
-> Regards
-> Oleg Roitburd
+- Let the user set this as an option
+- Use my VUP (very ugly patch) by checking the deliverystem for the string
+"DVBS2".
 
+> Klaus
 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
+Niels Wagenaar
 
 
 
