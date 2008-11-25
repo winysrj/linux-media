@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp117.rog.mail.re2.yahoo.com ([68.142.225.233])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1Kz1Ky-0006Qt-FU
-	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 04:51:47 +0100
-Message-ID: <49165E2D.2090907@rogers.com>
-Date: Sat, 08 Nov 2008 22:51:09 -0500
-From: CityK <cityk@rogers.com>
+Received: from nf-out-0910.google.com ([64.233.182.189])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <devin.heitmueller@gmail.com>) id 1L54XZ-00040S-3B
+	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 21:29:47 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so97235nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 12:29:39 -0800 (PST)
+Message-ID: <412bdbff0811251229m7e36ed33jade32457a4c37185@mail.gmail.com>
+Date: Tue, 25 Nov 2008 15:29:39 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Robert Watkins" <robert@watkin5.net>
+In-Reply-To: <1227644366.6949.18.camel@watkins-desktop>
 MIME-Version: 1.0
-To: Florian Bauhaus <matrix@traxo.net>
-References: <490B4477.40400@traxo.net>
-In-Reply-To: <490B4477.40400@traxo.net>
+Content-Disposition: inline
+References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
+	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
+	<1227556939.16187.0.camel@youkaida>
+	<100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
+	<1227644366.6949.18.camel@watkins-desktop>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy 2400i DVB-T
+Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,25 +32,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Florian Bauhaus wrote:
-> I own a TerraTec Cinergy 2400i DVB-T and wonder how I could help to
-> support development (the wiki says to contact mailing list).
-> The card worked really great under windows and I would like to put it
-> into one of my servers now so I can turn of my workstation from time to
-> time ;)
+On Tue, Nov 25, 2008 at 3:19 PM, Robert Watkins <robert@watkin5.net> wrote:
+> On Mon, 2008-11-24 at 21:29 +0000, Richard Palmer wrote:
+>> Hi,
+>>
+>> On Mon, Nov 24, 2008 at 8:02 PM, Nicolas Will <nico@youplala.net> wrote:
+>> > On Mon, 2008-11-24 at 19:34 +0000, jon bird wrote:
+>> >> could be although on perusing the mailing list archives this seemed
+>> >> to
+>> >> be a recurring problem of which various attempts have been made to
+>> >> investigate/fix but there didn't seem to be a conclusion to it all.
+>> >> Hence I just thought I'd see what the latest state of play was and
+>> >> report back anything potentially useful.....
+>> >
+>> > Well, this has normally been solved. Your report is the first one in a
+>> > long time.
+>>
+>> I'll second the report. Also with a VIA motherboard, so the USB ports
+>> could be the
+>> culprit. Running Mythbuntu with kernel 2.6.24 and using the new
+>> firmware still gives
+>> i2c errors.
+>>
 >
+> I've found Unbuntu 2.6.24-21-386 worked reasonable well with errors
+> requiring a shut down and cold start once or twice a week.
 >
-> Greets,
+> After an upgrade, I found 2.6.27-7-generic fails within seconds of
+> starting to record on two tuners.
+>  dvb-usb: error while enabling fifo.
+>
+> The current v4l-dvb drivers have the same issue.
+>
+> I also occasionally get
+>  dib0700: firmware download failed at 17248 with -110
+>
+> My PC's got ATI's IXP SB400 USB2 Host Controllers.
+>
+> Rob Watkins
 
-Hi,
+Hello Robert,
 
-There is still no support for the Micronas bridge. However, there was a
-recent post that suggests that things could progress in the near future;
-see:
-http://marc.info/?l=linux-dvb&m=122589667118950&w=2
+Are you running dib0700 firmware version 1.10 or 1.20?
 
-Not sure about the other components, but the ngene is the main stumbling
-at the moment.
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
