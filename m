@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA7I41J6031126
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 13:04:01 -0500
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA7I3xOQ016579
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 13:03:59 -0500
-To: Antonio Ospite <ospite@studenti.unina.it>
-References: <20081107125919.ddf028a6.ospite@studenti.unina.it>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Fri, 07 Nov 2008 19:03:54 +0100
-In-Reply-To: <20081107125919.ddf028a6.ospite@studenti.unina.it> (Antonio
-	Ospite's message of "Fri\, 7 Nov 2008 12\:59\:19 +0100")
-Message-ID: <874p2jbegl.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH,
-	RFC] mt9m111: allow data to be received on pixelclock falling edge?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAPMr6Kx018853
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 17:53:06 -0500
+Received: from smtp-out25.alice.it (smtp-out25.alice.it [85.33.2.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAPMr4Ph003968
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 17:53:05 -0500
+Date: Tue, 25 Nov 2008 23:52:49 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: video4linux-list@redhat.com
+Message-Id: <20081125235249.d45b50f4.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: [PATCH] gspca_ov534: Print only frame_rate actually used.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,50 +25,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Antonio Ospite <ospite@studenti.unina.it> writes:
+Print only frame_rate actually used.
 
-> Now I have many questions:
->
-> * Can the same sensor model have different default hardwired values?
->   I am referring to IO/Timings differences between mt9m111 on A910
->   and A780
-Technically, yes.
-Even the sensor can sometimes be configured to dump its date on falling edge
-rather than rising edge. See MT9M111 datasheet, register 0x13a (Output Format
-Control 2), bit 9.
+It is better to avoid altogether misleading prints of to be discarded values.
 
-> * Should I change the sensor setup instead of changing its advertised
->   capabilities? Maybe modifying mt9m111 so it can use platform data?
-Would't it be better to change format negociation instead : patch in mt9m111.c
-the mt9m111_query_bus_param() function, add SOCAM_PCLK_SAMPLE_FALLING, and add
-necessary handling in the mt9m111_set_bus_param() ? That would be a little
-extension of your attached patch ...
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
 
-> * Is the pxa-camera code dealing with PXA_CAMERA_PCP too conservative?
->   Shouldn't PXA_CAMERA_PCP be independent from the specific sensor
->   capabilities? it is a valid pxa-camera setting even if it produces
->   wrong results with the specific sensor.
-Well, I don't understand something here : you have to configure the sensor to
-output data on rising edge, while the PXA is reading them on the falling edge,
-am I right ? Would that mean the clock signal is inverted by the hardware ? I
-don't really understand that part ...
-
-> @@ -410,7 +410,8 @@ static int mt9m111_stop_capture(struct soc_camera_device *icd)
->
->  static unsigned long mt9m111_query_bus_param(struct soc_camera_device *icd)
->  {
-> - return SOCAM_MASTER | SOCAM_PCLK_SAMPLE_RISING |
-> + return SOCAM_MASTER |
-> +   SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
->     SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
->     SOCAM_DATAWIDTH_8;
->  }
-Don't forget mt9m111_set_bus_param(), and add an entry in struct mt9m111 to
-remember the setting on suspend/resume. Amend accordingly mt9m111_setup_pixfmt()
-with the new field in mt9m111_set_bus_param().
-
---
-Robert
+diff -r 8d178f462ba7 linux/drivers/media/video/gspca/ov534.c
+--- a/linux/drivers/media/video/gspca/ov534.c	Mon Nov 24 10:38:21 2008 +0100
++++ b/linux/drivers/media/video/gspca/ov534.c	Tue Nov 25 23:41:10 2008 +0100
+@@ -364,10 +364,9 @@
+ 	if (frame_rate > 0)
+ 		sd->frame_rate = frame_rate;
+ 
+-	PDEBUG(D_PROBE, "frame_rate = %d", sd->frame_rate);
+-
+ 	switch (sd->frame_rate) {
+ 	case 50:
++		PDEBUG(D_PROBE, "frame_rate = 50");
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x01);
+ 		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0x41);
+@@ -375,6 +374,7 @@
+ 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x02);
+ 		break;
+ 	case 40:
++		PDEBUG(D_PROBE, "frame_rate = 40");
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x02);
+ 		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0xc1);
+@@ -383,6 +383,7 @@
+ 		break;
+ 	case 30:
+ 	default:
++		PDEBUG(D_PROBE, "frame_rate = 30");
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x04);
+ 		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0x81);
+@@ -390,6 +391,7 @@
+ 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x02);
+ 		break;
+ 	case 15:
++		PDEBUG(D_PROBE, "frame_rate = 15");
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x03);
+ 		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0x41);
 
 --
 video4linux-list mailing list
