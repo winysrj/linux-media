@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <Bitte_antworten@will-hier-weg.de>)
-	id 1KyofS-0005Ce-Ui
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 15:20:06 +0100
-Date: Sat, 08 Nov 2008 15:19:29 +0100
-From: Bitte_antworten@will-hier-weg.de
-Message-ID: <20081108141929.113700@gmx.net>
-MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Fwd: Re:  stb0899 drivers Pinnacle PCTV452
+Received: from harpoon.unitedhosting.co.uk ([83.223.124.227])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <robert@watkin5.net>) id 1L54R6-0002xu-FH
+	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 21:23:05 +0100
+Received: from [192.168.1.10] (host-84-9-146-65.dslgb.com [84.9.146.65])
+	(authenticated bits=0)
+	by harpoon.unitedhosting.co.uk (8.13.1/8.13.1) with ESMTP id
+	mAPKMMFg019259
+	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 20:22:31 GMT
+From: Robert Watkins <robert@watkin5.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
+References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
+	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
+	<1227556939.16187.0.camel@youkaida>
+	<100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
+Date: Tue, 25 Nov 2008 20:19:10 +0000
+Message-Id: <1227644366.6949.18.camel@watkins-desktop>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,60 +32,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Igor,
+On Mon, 2008-11-24 at 21:29 +0000, Richard Palmer wrote:
+> Hi,
+> 
+> On Mon, Nov 24, 2008 at 8:02 PM, Nicolas Will <nico@youplala.net> wrote:
+> > On Mon, 2008-11-24 at 19:34 +0000, jon bird wrote:
+> >> could be although on perusing the mailing list archives this seemed
+> >> to
+> >> be a recurring problem of which various attempts have been made to
+> >> investigate/fix but there didn't seem to be a conclusion to it all.
+> >> Hence I just thought I'd see what the latest state of play was and
+> >> report back anything potentially useful.....
+> >
+> > Well, this has normally been solved. Your report is the first one in a
+> > long time.
+> 
+> I'll second the report. Also with a VIA motherboard, so the USB ports
+> could be the
+> culprit. Running Mythbuntu with kernel 2.6.24 and using the new
+> firmware still gives
+> i2c errors.
+> 
 
-I just want to let you know that Dominik Kuhlen's patches  for Pinnacle's PCTV452 are just working fine for me.
+I've found Unbuntu 2.6.24-21-386 worked reasonable well with errors
+requiring a shut down and cold start once or twice a week.
 
-Dirk
--------- Original-Nachricht --------
-Datum: Mon, 3 Nov 2008 17:46:50 +0100
-Von: "Faruk A" <fa@elwak.com>
-An: Bitte_antworten@will-hier-weg.de
-Betreff: Re: [linux-dvb] cinergyT2 renamed drivers (was Re: stb0899 drivers)
+After an upgrade, I found 2.6.27-7-generic fails within seconds of
+starting to record on two tuners.
+  dvb-usb: error while enabling fifo.
 
-On Mon, Nov 3, 2008 at 3:07 PM,  <Bitte_antworten@will-hier-weg.de> wrote:
-> Thanks Faruk.
-> I've tried this version and it works (except NDR and MDR on Astra 19.2E) like multiproto does.
-> Are there any plans to add this patch to the main repository or Igor's repository?
->
-> Dirk
+The current v4l-dvb drivers have the same issue.
 
-Hi!
+I also occasionally get
+  dib0700: firmware download failed at 17248 with -110
 
-I'm glad it worked for you, Igor knows about this patch but he is not
-adding this because it changes other files
-like stb0899, stb6100 ... which other cards uses like the popular s2-3200 card.
-Here is quoted mail from Igor when testing the patch against his s2-3200.
+My PC's got ATI's IXP SB400 USB2 Host Controllers. 
 
-"To me, nothing changed. There is no lock for 3255 and 44948 kSym/s
-and there is packet losses for
-27500 from time to time."
+Rob Watkins
 
-What they need is feedback from people like us, Please email Igor and
-others or to the mailing list that the patch is working
-fine with your device and it should be merged.
-
-I only tested once i wrote some good stuff and some negative stuff, my
-bad because i did'nt know that my card
-was broken i think because of that Igor did'nt merged. I was the only
-one who made feedback about the patch.
-
-I have returned my card to where i bought it, when i get it back I'll
-do more testing.
-
-
-
-Dominik Kuhlen's Original mail:
-http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029830.html
-
-Direct link to the patch: my_s2api_pctv452e.patch.bz2
-http://www.linuxtv.org/pipermail/linux-dvb/attachments/20081018/032ac808/attachment-0001.bin
-
-Faruk
-
--- 
-"Feel free" - 5 GB Mailbox, 50 FreeSMS/Monat ...
-Jetzt GMX ProMail testen: http://www.gmx.net/de/go/promail
 
 _______________________________________________
 linux-dvb mailing list
