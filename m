@@ -1,22 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARG0BQa019755
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 11:00:11 -0500
-Received: from mailhost.docobo.co.uk (docobo.co.uk [87.194.161.235] (may be
-	forged))
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARFxDIp025329
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 10:59:43 -0500
-Received: from [192.168.0.14] (christina2.int.docobo.co.uk [192.168.0.14])
-	by mailhost.docobo.co.uk (Postfix) with ESMTP id 8DEC23AF19C
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 16:02:50 +0000 (GMT)
-Message-ID: <492EC42C.1020509@docobo.co.uk>
-Date: Thu, 27 Nov 2008 16:00:44 +0000
-From: David Gowenlock <david.gowenlock@docobo.co.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAP7Ri9r027893
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 02:27:44 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAP7RUnA011489
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 02:27:30 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so2530623wfc.6
+	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 23:27:29 -0800 (PST)
+Message-ID: <5d5443650811242327gc204050lf232dfac48ae4f1@mail.gmail.com>
+Date: Tue, 25 Nov 2008 12:57:29 +0530
+From: "Trilok Soni" <soni.trilok@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200811250810.01767.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Still image capture with V4L2
+Content-Disposition: inline
+References: <200811242309.37489.hverkuil@xs4all.nl>
+	<5d5443650811242251g5ddda028q9413b0ff47fc08a8@mail.gmail.com>
+	<200811250810.01767.hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: v4l2_device/v4l2_subdev: please review
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,17 +36,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi everyone,
+Hi Hans,
 
-Can anyone point me to some sample C code for still image capture with 
-V4L2?  I am getting errors and want to check against known working code 
-to see where I am going wrong.
+>
+> I'm not going to spam the list with these quite big patches. Just go to
+> http://linuxtv.org/hg/~hverkuil/v4l-dvb-ng/ and click on the 'raw' link
+> after each change to see the patch. Most of these changes are just
+> boring i2c driver conversions.
 
-I have got video capture working with the i.MX31 PDK I am using but 
-currently stuck with still imaging.
+It is hard to review these patches from this link, as if you submit
+the patch to ML then someone can just give inline comments to your
+patch, otherwise reviewer has to copy that code which he/she wants to
+comment while replying and not easy to track too. I don't know size
+limit of this v4l2 ML, but linux-kernel ML can receive somewhat big
+patches I believe.
 
-Cheers and Happy Thanksgiving,
-Dave
+>
+> We are adding to the v4l core, but the changes do not affect existing
+> v4l drivers let alone other subsystems. Although I should probably have
+> added the omap list.
+
+OMAP + soc-camera + v4l2-int-* community would be more interested to
+see these patches as they need to change their sensor/controller
+drivers to adapt your changes.
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
 
 --
 video4linux-list mailing list
