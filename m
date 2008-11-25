@@ -1,28 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <florin@andrei.myip.org>) id 1Kzfht-00066F-6A
-	for linux-dvb@linuxtv.org; Mon, 10 Nov 2008 23:58:06 +0100
-Received: from localhost (weiqi.home.local [127.0.0.1])
-	by weiqi.home.local (Postfix) with ESMTP id 7432D5770F3
-	for <linux-dvb@linuxtv.org>; Mon, 10 Nov 2008 14:57:26 -0800 (PST)
-Received: from weiqi.home.local ([127.0.0.1])
-	by localhost (andrei.myip.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id IijbElNCiwop for <linux-dvb@linuxtv.org>;
-	Mon, 10 Nov 2008 14:57:25 -0800 (PST)
-Received: from [10.123.0.253] (unknown [10.123.0.253])
-	by weiqi.home.local (Postfix) with ESMTP id 01115576E26
-	for <linux-dvb@linuxtv.org>; Mon, 10 Nov 2008 14:57:24 -0800 (PST)
-Message-ID: <4918BC54.5030304@andrei.myip.org>
-Date: Mon, 10 Nov 2008 14:57:24 -0800
-From: Florin Andrei <florin@andrei.myip.org>
-MIME-Version: 1.0
+Received: from smtp02.lnh.mail.rcn.net ([207.172.157.102])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from <smh@rs.tc>)
+	id 1L4pfK-0007xk-FV
+	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 05:36:47 +0100
+Date: Mon, 24 Nov 2008 22:36:25 -0600
+From: Steve Havelka <smh@rs.tc>
 To: linux-dvb@linuxtv.org
-References: <491236F2.4050101@andrei.myip.org>	<200811060153.37102.hftom@free.fr>	<49124960.6070101@andrei.myip.org>
-	<alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>
-Subject: Re: [linux-dvb] HD over satellite? (h.264)
-Reply-To: linux-dvb@linuxtv.org
+Message-Id: <20081124223625.863ce770.smh@rs.tc>
+Mime-Version: 1.0
+Subject: [linux-dvb] DViCO FusionHDTV5 USB Gold
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,24 +22,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-BOUWSMA Barry wrote:
-> 
-> You have given no clue that I can see without research in your
-> message as to which particular services are of interest to you,
-> and a hint to your location, so I will have to generalise about
-> things here...
+Hi all,
 
-The TVRHD channel on Eutelsat W2.
+I see on the wiki page for this device that analog support is
+forthcoming:
 
-W2 is under horizon in my area (California) but the same network 
-currently has the TVRi channel on Galaxy 25, which can be received 
-easily by me. I assume, once their trial period is over, they will put 
-the HD channel on Galaxy 25 or other satellites.
+http://linuxtv.org/wiki/index.php/DViCO_FusionHDTV5_USB_Gold
 
--- 
-Florin Andrei
+I'm writing to ask, who is working on the analog support, and if there
+is anything I can do to help in this development?
 
-http://florin.myip.org/
+Thanks,
+Steve
+
 
 _______________________________________________
 linux-dvb mailing list
