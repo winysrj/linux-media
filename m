@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIBcvMv009624
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 06:38:58 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIBc6Ls027303
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 06:38:07 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so2991112wfc.6
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 03:38:06 -0800 (PST)
-Message-ID: <62e5edd40811180338q2527233aw37b91734465f6b49@mail.gmail.com>
-Date: Tue, 18 Nov 2008 12:38:06 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAPDWir2014308
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 08:32:44 -0500
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAPDWhlQ018615
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 08:32:43 -0500
+Received: by yw-out-2324.google.com with SMTP id 5so986691ywb.81
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 05:32:43 -0800 (PST)
+Message-ID: <62e5edd40811250322r5f87b35ub6223ead720263a3@mail.gmail.com>
+Date: Tue, 25 Nov 2008 12:22:02 +0100
 From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
-To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
-In-Reply-To: <4922A0FD.2040108@hhs.nl>
+To: "Chia-I Wu" <olvaffe@gmail.com>
+In-Reply-To: <20081125082002.GC18787@m500.domain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Disposition: inline
-References: <200811172253.33396.linux@baker-net.org.uk>
-	<4922924B.8050302@hhs.nl>
-	<62e5edd40811180200q614d0a32l68c0e47f043d225d@mail.gmail.com>
-	<4922A0FD.2040108@hhs.nl>
+References: <492B15E1.2080207@gmail.com> <20081125082002.GC18787@m500.domain>
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
-Subject: Re: Advice wanted on producing an in kernel sq905 driver
+Cc: video4linux-list@redhat.com, noodles@earth.li,
+	qce-ga-devel@lists.sourceforge.net
+Subject: Re: Please test the gspca-stv06xx branch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,66 +31,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/11/18 Hans de Goede <j.w.r.degoede@hhs.nl>:
-> Erik Andrén wrote:
+Hi,
+
+2008/11/25 Chia-I Wu <olvaffe@gmail.com>:
+> Hi Erik,
 >
-> <snip>
+> On Mon, Nov 24, 2008 at 10:00:17PM +0100, Erik Andrén wrote:
+>> I've reworked the driver somewhat and added initial support for th
+>> pb0100.
+>> Please test with the latest version of the gspca-stv06xx tree and
+>> see if you can get an image. Ekiga works best for me at the moment.
+> I am trying to make gspca-stv06xx work with my QuickCam Express
+> (046d:0840).  It comes with the HDCS 1000 sensor.  So far, I am able to
+> receive frames using gstreamer (with libv4l).  The colors are wrong
+> though.
 >
->>> Correct, there is nothing special you need to do for that, just pass
->>> frames
->>> with the raw bayer data to userspace and set the pixelformat to one of:
->>> V4L2_PIX_FMT_SBGGR8 /* v4l2_fourcc('B', 'A', '8', '1'), 8 bit BGBG..
->>> GRGR..
->>> */
->>> V4L2_PIX_FMT_SGBRG8 /* v4l2_fourcc('G', 'B', 'R', 'G'), 8 bit GBGB..
->>> RGRG..
->>> */
->>> V4L2_PIX_FMT_SGRBG8 /* v4l2_fourcc('G','R','B','G'), 8 bit GRGR.. BGBG..
->>> */
->>> V4L2_PIX_FMT_SRGGB8 /* v4l2_fourcc('R','G','G','B'), 8 bit RGRG.. GBGB..
->>> */
->>>
->>> Note the last 2 currently are only defined internally in libv4l and not
->>> in
->>> linux/videodev2.h as no drivers use them yet, but if you need one of them
->>> adding it to linux/videodev2.h is fine.
->>
->> I'm currently developing a driver where I need the two lower ones in
->> order to get a correct bayer decoding.
->> Would it possible to add them into the linux/videodev2.h?
->>
->> I can send a patch tonight if required.
->>
+> While working on it, I encounter two minor issues:
 >
-> It is usual for such patches to be submitted together with the driver using
-> the new defines. Just be sure you define
-> V4L2_PIX_FMT_SGRBG8 as v4l2_fourcc('G','R','B','G')
-> and
-> V4L2_PIX_FMT_SRGGB8 as v4l2_fourcc('R','G','G','B')
+> * stv06xx_write_sensor sends an extra packet unconditionally.  It causes
+>  the function call return error.
+
+Do you mean the extra packet to register 0x1704?
+It's needed for my quickca
+
+> * Turning LED on/off kills the device.  I have to re-plug the device to
+>  make it work again.
 >
-> You can try sending a patch to Mauro as preperation for your driver, but I'm
-> not sure he will take such a patch, he did not accept it from me in the past
-> as no drivers were using them, maybe with a driver on the horizon he will
-> accept such a patch.
+> I could put those functions inside an if clause:
+>
+>        if (udev->descriptor.idProduct != 0x840)
+>                do_something;
+>
+> and things work.  But as I do not have other cameras to test, I am not
+> sure if this is the right way.  Do you have any suggestion?
+>
+> I will keep working on it.  But you can find a primitive patch and a
+> sample image in the attachments.
 >
 
-I'm currently in the process of porting the old quickcam driver [1] to
-the gspca framework sofar I have working video using the vv6410
-sensor. Next step is to get the hdcs and pb0100 sensors up to speed.
-The driver will be tracked in
-http://linuxtv.org/hg/~eandren/gspca-stv06xx/ (nothing pushed yet)
+Wow, thanks for the patch.
+I'll review and probably commit it later today.
 
-[1] http://qce-ga.sourceforge.net/
-
-I'll let Jean-Francoise and Mauro know when it's ready for mainline submission.
-
-Regards,
+Best regards,
 Erik
 
-
+> --
 > Regards,
->
-> Hans
+> olv
 >
 
 --
