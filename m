@@ -1,33 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
+Received: from viefep20-int.chello.at ([62.179.121.40])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <halim.sahin@t-online.de>) id 1L3y6t-00043w-UG
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 20:25:41 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.as-10.de (Postfix) with ESMTP id 902D533A77A
-	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 20:25:36 +0100 (CET)
-Received: from mail.as-10.de ([127.0.0.1])
-	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 1bxZvR5KIzvJ for <linux-dvb@linuxtv.org>;
-	Sat, 22 Nov 2008 20:25:36 +0100 (CET)
-Received: from halim.local (p54AE3EF9.dip.t-dialin.net [84.174.62.249])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested) (Authenticated sender: web11p28)
-	by mail.as-10.de (Postfix) with ESMTPSA id 4CFB433A6E2
-	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 20:25:36 +0100 (CET)
-Date: Sat, 22 Nov 2008 20:25:06 +0100
-From: Halim Sahin <halim.sahin@t-online.de>
+	(envelope-from <basq@bitklub.hu>) id 1L50wK-0006dJ-Lj
+	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 17:39:05 +0100
+Received: from edge05.upc.biz ([192.168.13.212]) by viefep20-int.chello.at
+	(InterMail vM.7.08.02.02 201-2186-121-104-20070414) with ESMTP
+	id <20081125163829.WTTM9471.viefep20-int.chello.at@edge05.upc.biz>
+	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 17:38:29 +0100
+Date: Tue, 25 Nov 2008 17:37:59 +0100
+From: Kovacs Balazs <basq@bitklub.hu>
+Message-ID: <1642788920.20081125173759@bitklub.hu>
 To: linux-dvb@linuxtv.org
-Message-ID: <20081122192506.GA5555@halim.local>
-References: <20081122145820.183450@gmx.net>
-	<20081122165902.GA17484@halim.local>
-	<20081122171756.GA4452@halim.local>
-	<200811221933.34287.sinter.mann@gmx.de>
+In-Reply-To: <a3ef07920811250832g35f4670ft4e14c942c3eef990@mail.gmail.com>
+References: <8622.130.36.62.139.1227602799.squirrel@webmail.xs4all.nl>
+	<492BBFD9.50909@cadsoft.de>
+	<a3ef07920811250832g35f4670ft4e14c942c3eef990@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <200811221933.34287.sinter.mann@gmx.de>
-Subject: Re: [linux-dvb] corrected subject: Re: errormessages skystar2
-	rev	2.6b?with latest v4l-dvb branch
+Subject: [linux-dvb] TT3200 revisions - 0702 works, 0708 not in S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -41,20 +30,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Mr Sinter (whats your realname?
-On Sa, Nov 22, 2008 at 07:33:34 +0100, sinter wrote:
-> I think you do not comprehend anything that you are doing, plus you are giving 
-> us all wrong and incomplete data.
-> That way you're spoiling that list......
-> 
-> So I chose to ignore you from now on.....
+Today I had an interesting experience:
 
-Do you have some ohter problems to solve?
-Your mails at this list are useless at all.
-It was a typo 2.6b and 2.8b. 
-Sorry for that.
-In fact your mails can be redirected to /dev/null
+  I wrote about i was not able to lock on Amos4.0W 10723V, 10759V and 10842V S2 transponders with my TT3200 card. 
 
+Fortunately on the first weeks of November Igor patched the s2-liplianin tree, and everything worked.
+
+Now i got a new revision of TT3200 card, it has another text below the input box (where you attach the antenna cable). THe previous cards was 0702 text and the newer ones with 0708 title.
+
+My problem is the newer cards won't work anymore. I pulled the latest s2liplianin but doesn't help. V4L-DVB drivers doesn't work with this newer cards, unable to lock on these transponders. :(
+
+The older cards with 0702 locks properly...
+
+help me,
+
+thanks
+
+Balazs Kovacs
 
 
 _______________________________________________
