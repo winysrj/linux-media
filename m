@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.190])
+Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1L23Zy-0008DD-GX
-	for linux-dvb@linuxtv.org; Mon, 17 Nov 2008 13:51:47 +0100
-Received: by fk-out-0910.google.com with SMTP id f40so3584098fka.1
-	for <linux-dvb@linuxtv.org>; Mon, 17 Nov 2008 04:51:42 -0800 (PST)
-Message-ID: <492168D8.4050900@googlemail.com>
-Date: Mon, 17 Nov 2008 13:51:36 +0100
-From: e9hack <e9hack@googlemail.com>
+	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L4tOM-0005r8-2E
+	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 09:35:31 +0100
+Received: from [192.168.1.71] (falcon.cadsoft.de [192.168.1.71])
+	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mAP8ZQdT017515
+	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 09:35:26 +0100
+Message-ID: <492BB8CE.4010008@cadsoft.de>
+Date: Tue, 25 Nov 2008 09:35:26 +0100
+From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------050809070002090508090501"
-Subject: [linux-dvb] [PATCH]Fix a bug in scan,
- which outputs the wrong frequency if the current tuned transponder
- is scanned only
+References: <13077.130.36.62.140.1227542142.squirrel@webmail.xs4all.nl>
+	<492AD583.4040809@cadsoft.de> <492B0182.2030602@gmail.com>
+In-Reply-To: <492B0182.2030602@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,80 +22,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------050809070002090508090501
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On 24.11.2008 20:33, Manu Abraham wrote:
+> Klaus Schmidinger wrote:
+>> On 24.11.2008 16:55, Niels Wagenaar wrote:
+>>> ...
+>>> For the time being I have only two options which will work without any
+>>> additional patching in S2API:
+>>>
+>>> - Let the user set this as an option
+>>> - Use my VUP (very ugly patch) by checking the deliverystem for the string
+>>> "DVBS2".
+>> Both are ugly workarounds and any reasonable API requiring them instead
+>> of simply reporting the -S2 capability of a device should
+>> be ashamed, go home and do its homework.
+> 
+> ACK
+> 
+>> For the time being I'll work with my suggested FE_CAN_2ND_GEN_MODULATION
+>> patch - until somebody can suggest a different way of doing this (without
+>> parsing strings or requiring the user to do it).
+> 
+> ACK.
+> 
+> That is a saner way of doing it rather than anything else, as it stands.
+> 
+> Anyway, we won't be seeing professional device support as it stands with
+> the current API anytime soon, so as it stands the better alternative is
+> thus.
+> 
+> But it would be nice to have something shorter: say FE_IS_2G or
+> something that way, for the minimal typing.
 
-Hi,
+Well, I don't really care about the actual name - as long as I can
+get the information... ;-)
 
-if the current tuned transponder is scanned only and the output needs the frequency of the
-transponder, it is used the last frequency, which is found during the NIT scanning. This
-is wrong. The attached patch will fix this problem.
-
-Regards,
-Hartmut
-
-
-
---------------050809070002090508090501
-Content-Type: text/x-diff;
- name="scan_fix_current_transponder_only.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="scan_fix_current_transponder_only.diff"
-
-signed-off-by: Hartmut Birr <e9hack@googlemail.com>
-diff -r afd0efc0f9d2 util/scan/scan.c
---- a/util/scan/scan.c	Mon Nov 10 16:32:50 2008 +0100
-+++ b/util/scan/scan.c	Mon Nov 17 10:20:02 2008 +0100
-@@ -221,8 +221,6 @@ static struct transponder *find_transpon
- 
- 	list_for_each(pos, &scanned_transponders) {
- 		tp = list_entry(pos, struct transponder, list);
--		if (current_tp_only)
--			return tp;
- 		if (is_same_transponder(tp->param.frequency, frequency))
- 			return tp;
- 	}
-@@ -879,9 +877,10 @@ static void parse_nit (const unsigned ch
- 		if (tn.type == fe_info.type) {
- 			/* only add if develivery_descriptor matches FE type */
- 			t = find_transponder(tn.param.frequency);
--			if (!t)
-+			if (!t && !current_tp_only)
- 				t = alloc_transponder(tn.param.frequency);
--			copy_transponder(t, &tn);
-+			if (t)
-+				copy_transponder(t, &tn);
- 		}
- 
- 		section_length -= descriptors_loop_len + 6;
-@@ -2284,7 +2283,10 @@ int main (int argc, char **argv)
- 	signal(SIGINT, handle_sigint);
- 
- 	if (current_tp_only) {
--		current_tp = alloc_transponder(0); /* dummy */
-+		struct dvb_frontend_parameters frontend_params;
-+		if (ioctl(frontend_fd, FE_GET_FRONTEND, &frontend_params) < 0)
-+			fatal("FE_GET_FRONTEND failed: %d %m\n", errno);
-+		current_tp = alloc_transponder(frontend_params.frequency);
- 		/* move TP from "new" to "scanned" list */
- 		list_del_init(&current_tp->list);
- 		list_add_tail(&current_tp->list, &scanned_transponders);
-
---------------050809070002090508090501
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Klaus
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------050809070002090508090501--
