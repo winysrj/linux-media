@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOGqZjv020406
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 11:52:35 -0500
-Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
-	[69.42.52.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOGqA7O015319
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 11:52:10 -0500
-Date: Mon, 24 Nov 2008 11:52:06 -0500 (EST)
-From: Keith Lawson <lawsonk@lawson-tech.com>
-To: =?ISO-8859-2?Q?SKO=C8DOPOLE_Tom=E1=B9?= <hoppik@centrum.cz>
-In-Reply-To: <200811231932.15658@centrum.cz>
-Message-ID: <alpine.DEB.1.10.0811241148500.2253@vegas>
-References: <200811231932.15658@centrum.cz>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: video4linux-list@redhat.com
-Subject: Re: Example application for V4L
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAPM09cL025095
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 17:00:10 -0500
+Received: from smtp-out114.alice.it (smtp-out114.alice.it [85.37.17.114])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAPLx2lN011382
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 16:59:03 -0500
+Date: Tue, 25 Nov 2008 22:58:50 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: video4linux-list@redhat.com
+Message-Id: <20081125225850.2f311353.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: [PATCH] gspca_ov534: Fix printing "frame_rate = 0" when using
+ default frame_rate.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,33 +26,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Fix printing "frame_rate = 0" when using default frame_rate.
 
-On Sun, 23 Nov 2008, SKO?DOPOLE Tom?? wrote:
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
 
-> Hello,
->
-> I want to ask you for this situation:
-> I have got a Leadtek WinFast 2000XP, where is a S-Video input. To this S-Video input is connected a analog camera.
->
-> Exists any "example program" for programming with v4l drivers? I only need get single picture from the camera. It should be BMP, JPEG, TIFF or some other formats.
->
-> If any example program doesn't exist, where can I find some informations?
-
-Xawtv http://linux.bytesex.org/xawtv/ and tvtime 
-http://tvtime.sourceforge.net/ both have the ability to take a screen 
-shot.
-
->
-> Thank you for help.
->
-> Regards Tomas
->
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+diff -r 8d178f462ba7 linux/drivers/media/video/gspca/ov534.c
+--- a/linux/drivers/media/video/gspca/ov534.c	Mon Nov 24 10:38:21 2008 +0100
++++ b/linux/drivers/media/video/gspca/ov534.c	Tue Nov 25 21:58:41 2008 +0100
+@@ -363,6 +363,8 @@
+ 
+ 	if (frame_rate > 0)
+ 		sd->frame_rate = frame_rate;
++	else
++		sd->frame_rate = 30;
+ 
+ 	PDEBUG(D_PROBE, "frame_rate = %d", sd->frame_rate);
+ 
 
 --
 video4linux-list mailing list
