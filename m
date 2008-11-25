@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-4.orange.nl ([193.252.22.249])
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michel@verbraak.org>) id 1KwIeq-0002uJ-3f
-	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 16:45:02 +0100
-Message-ID: <490C7958.8050902@verbraak.org>
-Date: Sat, 01 Nov 2008 16:44:24 +0100
-From: Michel Verbraak <michel@verbraak.org>
+	(envelope-from <stev391@email.com>) id 1L4nDi-0000hI-6k
+	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 03:00:07 +0100
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	BDF02180012E
+	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 02:00:00 +0000 (GMT)
+Content-Disposition: inline
 MIME-Version: 1.0
-To: Goga777 <goga777@bk.ru>, linux-dvb@linuxtv.org
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>	<490C7194.8060603@verbraak.org>
-	<20081101182051.3ac22972@bk.ru>
-In-Reply-To: <20081101182051.3ac22972@bk.ru>
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+From: stev391@email.com
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Date: Tue, 25 Nov 2008 12:00:00 +1000
+Message-Id: <20081125020000.8A72F1642A6@ws1-4.us4.outblaze.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add Compro VideoMate E650F (DVB-T part only)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,171 +23,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0073475483=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============0073475483==
-Content-Type: multipart/alternative;
- boundary="------------030101060300080600050906"
-
-This is a multi-part message in MIME format.
---------------030101060300080600050906
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: quoted-printable
-
-Goga777 schreef:
-> =F0=D2=C9=D7=C5=D4=D3=D4=D7=D5=C0, Michel
->
-> but cx24116 based cards don't work with fec=3Dauto for dvb-s2=20
->
-> I'm not sure - may be for cx24116 cards the parameters roll off & modul=
-ation are obligatory (not optional)
->
->
->
->  =20
->> Tested your scan-s2 with a Technisat HD2 card.
->>
->> Scanning works. But some channels are reported twice with different=20
->> frequency. I found an error which is fixed by the patch file named=20
->> scan.c.diff1.
->>
->> I would also like to propose the following change (see file scan.c.dif=
-f2=20
->> or scan.c.diff which includes both patches). This change makes it=20
->> possible to only scan for DVB-S channels or DVB-S2 channels or both.=20
->> This is done by specifying lines starting with S or S2 in the input fi=
-le.
->>
->> example input file:
->> # Astra 19.2E SDT info service transponder
->> # freq pol sr fec
->> S 12522000 H 22000000 2/3       <only DVB-S channels are scanned>
->> S 11914000 H 27500000 AUTO
->> S 10743750 H 22000000 5/6
->> S 12187500 H 27500000 3/4
->> S 12343500 H 27500000 3/4
->> S 12515250 H 22000000 5/6
->> S 12574250 H 22000000 5/6
->> S2 12522000 H 22000000 AUTO    <only DVB-S2 channels are scanned>
->> S2 11914000 H 27500000 AUTO
->>
->> I hope this is usefull.
->>
->> Regards,
->>
->> Michel.
->>    =20
->
->
->  =20
-
-Goga,
-
-AUTO fec does work because the following is the result for the DVB-S2=20
-channels I get with the above input:
-
-PREMIERE HD:11914:h:0:27500:767:772:129:6
-DISCOVERY HD:11914:h:0:27500:1023:1027:130:6
-ASTRA HD+:11914:h:0:27500:1279:1283:131:6
-ANIXE HD:11914:h:0:27500:1535:1539:132:6
-
-Regards,
-
-Michel.
-
---------------030101060300080600050906
-Content-Type: text/html; charset=KOI8-R
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content=3D"text/html;charset=3DKOI8-R" http-equiv=3D"Content-Type=
-">
-</head>
-<body bgcolor=3D"#ffffff" text=3D"#000000">
-Goga777 schreef:
-<blockquote cite=3D"mid:20081101182051.3ac22972@bk.ru" type=3D"cite">
-  <pre wrap=3D"">=F0=D2=C9=D7=C5=D4=D3=D4=D7=D5=C0, Michel
-
-but cx24116 based cards don't work with fec=3Dauto for dvb-s2=20
-
-I'm not sure - may be for cx24116 cards the parameters roll off &amp; mod=
-ulation are obligatory (not optional)
-
-
-
-  </pre>
-  <blockquote type=3D"cite">
-    <pre wrap=3D"">Tested your scan-s2 with a Technisat HD2 card.
-
-Scanning works. But some channels are reported twice with different=20
-frequency. I found an error which is fixed by the patch file named=20
-scan.c.diff1.
-
-I would also like to propose the following change (see file scan.c.diff2=20
-or scan.c.diff which includes both patches). This change makes it=20
-possible to only scan for DVB-S channels or DVB-S2 channels or both.=20
-This is done by specifying lines starting with S or S2 in the input file.
-
-example input file:
-# Astra 19.2E SDT info service transponder
-# freq pol sr fec
-S 12522000 H 22000000 2/3       &lt;only DVB-S channels are scanned&gt;
-S 11914000 H 27500000 AUTO
-S 10743750 H 22000000 5/6
-S 12187500 H 27500000 3/4
-S 12343500 H 27500000 3/4
-S 12515250 H 22000000 5/6
-S 12574250 H 22000000 5/6
-S2 12522000 H 22000000 AUTO    &lt;only DVB-S2 channels are scanned&gt;
-S2 11914000 H 27500000 AUTO
-
-I hope this is usefull.
-
-Regards,
-
-Michel.
-    </pre>
-  </blockquote>
-  <pre wrap=3D""><!---->
-
-  </pre>
-</blockquote>
-<br>
-Goga,<br>
-<br>
-AUTO fec does work because the following is the result for the DVB-S2
-channels I get with the above input:<br>
-<br>
-PREMIERE HD:11914:h:0:27500:767:772:129:6<br>
-DISCOVERY HD:11914:h:0:27500:1023:1027:130:6<br>
-ASTRA HD+:11914:h:0:27500:1279:1283:131:6<br>
-ANIXE HD:11914:h:0:27500:1535:1539:132:6<br>
-<br>
-Regards,<br>
-<br>
-Michel.<br>
-</body>
-</html>
-
---------------030101060300080600050906--
-
-
-
---===============0073475483==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0073475483==--
+Cj4gLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLQo+IEZyb206ICJJZ29yIE0uIExpcGxpYW5p
+biIgPGxpcGxpYW5pbkB0dXQuYnk+Cj4gVG86IHN0ZXYzOTFAZW1haWwuY29tCj4gQ2M6IGxpbnV4
+LWR2YkBsaW51eHR2Lm9yZywgc3RvdGhAbGludXh0di5vcmcKPiBTdWJqZWN0OiBSZTogW2xpbnV4
+LWR2Yl0gW1BBVENIXSBBZGQgQ29tcHJvIFZpZGVvTWF0ZSBFNjUwRiAoRFZCLVQgcGFydCBvbmx5
+KQo+IERhdGU6IFR1ZSwgMjUgTm92IDIwMDggMDE6NTc6MzMgKzAyMDAKPiAKPiAKPiD3INPPz8Ld
+xc7JySDP1CAyNCBOb3ZlbWJlciAyMDA4IDIzOjUxOjM1IHN0ZXYzOTFAZW1haWwuY29tIM7B0MnT
+wcwowSk6Cj4gPiA+IE1lc3NhZ2U6IDIKPiA+ID4gRGF0ZTogU3VuLCAyMyBOb3YgMjAwOCAxMzo0
+Nzo0MSArMDIwMAo+ID4gPiBGcm9tOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0
+LmJ5Pgo+ID4gPiBTdWJqZWN0OiBbbGludXgtZHZiXSBbUEFUQ0hdIEFkZCBDb21wcm8gVmlkZW9N
+YXRlIEU2NTBGIChEVkItVCBwYXJ0Cj4gPiA+IAlvbmx5KQo+ID4gPiBUbzogbGludXgtZHZiQGxp
+bnV4dHYub3JnLCB2aWRlbzRsaW51eC1saXN0QHJlZGhhdC5jb20KPiA+ID4gTWVzc2FnZS1JRDog
+PDIwMDgxMTIzMTM0Ny40MTQ1Mi5saXBsaWFuaW5AdHV0LmJ5Pgo+ID4gPiBDb250ZW50LVR5cGU6
+IHRleHQvcGxhaW47ICBjaGFyc2V0PSJrb2k4LXIiCj4gPiA+Cj4gPiA+IEZyb206IElnb3IgTS4g
+TGlwbGlhbmluIDxsaXBsaWFuaW5AbWUuYnk+Cj4gPiA+Cj4gPiA+IEFkZCBDb21wcm8gVmlkZW9N
+YXRlIEU2NTBGIChEVkItVCBwYXJ0IG9ubHkpLgo+ID4gPiBUaGUgY2FyZCBiYXNlZCBvbiBjeDIz
+ODg1IFBDSS1FeHByZXNzIGNoaXAsIHhjMzAyOCB0dW5lciBhbmQgY2U2MzUzCj4gPiA+IGRlbW9k
+dWxhdG9yLgo+ID4gPgo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBJZ29yIE0uIExpcGxpYW5pbiA8bGlw
+bGlhbmluQG1lLmJ5Pgo+ID4KPiA+IC0tLS1TbmlwLS0tCj4gPgo+ID4gSWdvciwKPiA+Cj4gPiBJ
+cyB0aGlzIGJhc2VkIG9uIG15IGVhcmxpZXIgcGF0Y2hlcyBzZW50IHRvIHRoZSBtYWlsaW5nIGxp
+c3Q/Cj4gPiBodHRwOi8vbGludXh0di5vcmcvcGlwZXJtYWlsL2xpbnV4LWR2Yi8yMDA4LUF1Z3Vz
+dC8wMjgzNDEuaHRtbAo+IEhpIFN0ZXBoZW4KPiBTb3JyeSwgSSBtaXNzZWQgdGhhdCBwb3N0IC4K
+PiBTbyB5b3UgYXJlIHRoZSBmaXJzdCA6KQo+IEkgZGlkbid0IHNlZSBhbnkgZnVuY3Rpb25hbCBk
+aWZmZXJlbmNlIGJldHdlZW4gYm90aCBwYXRjaGVzCj4gCj4gPgo+ID4gSWYgc28gaGF2ZSB5b3Ug
+aGFkIHRoaXMgd29ya2luZyBjb3JyZWN0bHk/Cj4gQWN0dWFsbHksIEkgYm91Z2h0IHRoaXMgY2Fy
+ZCBjb3VwbGUgZGF5cyBhZ28gZm9yIGV4cGVyaW1lbnMuCj4gVGhlbiBJIHR5cGUKPiAJbW9kcHJv
+YmUgY3gyMzg4NSBjYXJkPTEyCj4gQW5kIGl0IHdvcmtzIGltbWVkaWF0ZWx5IDopCj4gQnV0IEkg
+ZGlkbid0IGZvcmdldCB0aGUgZmlybXdhcmUgZm9yIHhjMzAyOCA7KQo+IE90aGVycyBpcyB0ZWNo
+bmljLgo+IFNvLCBJdCB3b3JrcyByaWdodCBub3cgaW4gbXkgY29tcHV0ZXIuCj4gV2l0aCBLYWZm
+ZWluZSBJJ20gYWJsZSBzZWFyY2ggZm9yIGNoYW5uZWxzIGFuZCB3YXRjaCB0aGVtLgo+IAo+ID4K
+PiA+IFdoYXQgaGFwcGVucyBpZiB5b3UgZG8gbm93IHJlcXVlc3QgdGhlIG1vZHVsZSBjeDI1ODQw
+Pwo+IEl0IGxvYWRzOikKPiAKPiA+Cj4gPiBNeSBwYXRjaGVzIHdlcmUgcHJldmlvdXNseSBub3Qg
+Y29tbWl0dGVkIGR1ZSB0bzoKPiA+ICogSSBvbmx5IGhhZCB0d28gcGVvcGxlIHdobyBoYWQgdGhp
+cyBjYXJkIChzYW1lIHBjaSBpZHMpIGFuZCBib3RoIGdhdmUgbWUKPiA+IGNvbmZsaWNpdG5nIHJl
+c3VsdHMuIChyZWdhcmRpbmcgdGhlIG5lZWQgZm9yIGN4MjU4NDAsIGlmIHlvdSBzZWFyY2ggdGhl
+Cj4gPiBtYWlsaW5nIGxpc3QgYXJjaGl2ZXMgZnJvbSBhYm91dCBBdWd1c3QgdGhyb3VnaCBTZXB0
+ZW1iZXIgdGhpcyB5ZWFyIHlvdQo+ID4gd2lsbCBmaW5kIHRoZSBjb252ZXJzYXRpb25zKS4gKiBU
+aGUgcGNpIGlkcyBhcmUgc2hhcmVkIGFjcm9zcyB2YXJpb3VzIGNhcmRzCj4gPiBmcm9tIENvbXBy
+byBWaWRlb01hdGUgU2VyaWVzIGFuZCB0aGVyZWZvcmUgdGhlIGNhcmRzIGFyZSBkZXRlY3RlZAo+
+ID4gaW5jb3JyZWN0bHksIHRoZSBlZXByb20gZHVtcHMgZm9yIGVhY2ggY2FyZCB0aGF0IHBlb3Bs
+ZSBoYXZlIGNvbnRhY3RlZCB0aGUKPiA+IGxpc3QgYWJvdXQgcHJldmlvdXNseSBhcmUgb24gdGhl
+IHdpa2kgcGFnZXMuCj4gPgo+ID4gS2VlcCB1cCB0aGUgZWZmb3J0IGluIHN1cHBvcnRpbmcgRFZC
+IGNhcmRzIGluIGxpbnV4Lgo+ID4KPiA+IFJlZ2FyZHMsCj4gPiBTdGVwaGVuLgo+IAo+IAo+IEJl
+c3QgUmVnYXJkcwo+IElnb3IKCklnb3IsCgpTb3JyeSBJIGhhZCBhIHR5cG8gaW4gbXkgcHJldmlv
+dXMgZW1haWw6CldoYXQgaGFwcGVucyBpZiB5b3UgZG8gTk9UIHJlcXVlc3QgdGhlIG1vZHVsZSBj
+eDI1ODQwPyBEb2VzIGl0IHN0aWxsIHdvcms/CgpJZiBpdCBkb2Vzbid0OiByZXF1ZXN0IHRoZSBt
+b2R1bGUsIGJ1dCBjb21tZW50IG91dCB0aGVzZSBsaW5lcyBpbiBjeDI1ODQwLWNvcmUuYzoKCWlm
+IChzdGF0ZS0+aXNfY3gyMzg4NSkgewogCQkvKiBEcml2ZSBHUElPMiBkaXJlY3Rpb24gYW5kIHZh
+bHVlcyAqLwoJCWN4MjU4NDBfd3JpdGUoY2xpZW50LCAweDE2MCwgMHgxZCk7CgkJY3gyNTg0MF93
+cml0ZShjbGllbnQsIDB4MTY0LCAweDAwKTsKCX0KV2hhdCBJIG5lZWQgdG8ga25vdyBpcyBpZiB0
+aGVzZSB3cml0ZXMgYXJlIGVuYWJsaW5nIHRoZSBjYXJkIHRvIHdvcmsgY29ycmVjdGx5LgoKTk9U
+RTogYWZ0ZXIgZWFjaCBjaGFuZ2UgbWVudGlvbmVkIGluIHRoaXMgZW1haWwgcGVyZm9ybSBhIGhh
+cmQgcmVzZXQgb2YgdGhlIGNvbXB1dGVyIChPciBldmVuIGJldHRlciByZW1vdmUgcG93ZXIgdG8g
+dGhlIGNvbXB1dGVyIGNvbXBsZXRlbHkgZm9yIGEgc2hvcnQgcGVyaW9kKSBhcyB0aGUgY2FyZCdz
+IHJlZ2lzdGVycyBkbyBub3QgZ2V0IHJlc2V0IGFsbCB0aGUgdGltZSwgdGhpcyBwdXRzIGl0IGlu
+IGEga25vd24gc3RhdGUuCgpSZWdhcmRzLApTdGVwaGVuLgoKCgotLSAKQmUgWW91cnNlbGYgQCBt
+YWlsLmNvbSEKQ2hvb3NlIEZyb20gMjAwKyBFbWFpbCBBZGRyZXNzZXMKR2V0IGEgRnJlZSBBY2Nv
+dW50IGF0IHd3dy5tYWlsLmNvbQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
+Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
+Yg==
