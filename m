@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.180])
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1L3GQW-0000sm-6q
-	for linux-dvb@linuxtv.org; Thu, 20 Nov 2008 21:47:01 +0100
-Received: by ik-out-1112.google.com with SMTP id c28so590148ika.1
-	for <linux-dvb@linuxtv.org>; Thu, 20 Nov 2008 12:46:56 -0800 (PST)
-Message-ID: <412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
-Date: Thu, 20 Nov 2008 15:46:56 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linuxtv@hotair.fastmail.co.uk
-In-Reply-To: <1227213591.29403.1285914127@webmail.messagingengine.com>
+	(envelope-from <liplianin@tut.by>) id 1L54vX-0006qd-1U
+	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 21:54:31 +0100
+Received: from [213.184.224.45] (account liplianin@tut.by HELO
+	dynamic-vpdn-128-13-175.telecom.by)
+	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
+	with ESMTPA id 100107391 for linux-dvb@linuxtv.org;
+	Tue, 25 Nov 2008 22:54:20 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Tue, 25 Nov 2008 22:54:04 +0200
+References: <200811252243.49615.liplianin@tut.by>
+In-Reply-To: <200811252243.49615.liplianin@tut.by>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
-	<1227213591.29403.1285914127@webmail.messagingengine.com>
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] dib0700 remote control support fixed
+Message-Id: <200811252254.04494.liplianin@tut.by>
+Subject: Re: [linux-dvb] TurboSight TBS 6920 PCI-e; ID 6922:8888;
+	cx23885 cx24116; DVB-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,41 +25,17 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Nov 20, 2008 at 3:39 PM, petercarm
-<linuxtv@hotair.fastmail.co.uk> wrote:
-> I'll do a test build in the next hour or so and confirm behaviour with:
->
-> - a Hauppauge Nova-T 500 (PCI)
-> - a Hauppauge Nova-TD USB stick
->
-> This will be my test gentoo system built from scratch with 2.6.25.
-> Everything apart from remote was working correctly until I pulled a
-> recent version down from mercurial.  My last build, based on Mercurial
-> from a few days ago has got my Nova-T 500 bitching away with i2c errors
-> if I stop of the lirc daemon.
-
-The fix only went in on Sunday evening, so it's not surprising if you
-had the issue with a relatively recent build.
-
-Please do report back regarding how your testing goes.  Note that you
-should not have any module options setup when you do the testing.
-
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgMjUgTm92ZW1iZXIgMjAwOCAyMjo0Mzo0OSBJZ29yIE0uIExpcGxpYW5p
+biDOwdDJ08HMKMEpOgo+IFNvb24gSSB3aWxsIHNlbmQgcGF0Y2ggdG8gc3VwcG9ydCBpdAo+IElm
+IGFueW9uZSBoYXZlIG9wbmlvbiwgbGV0IG1lIGtub3c6KQpGaXggdHlwbzoKQ29ycmVjdCBQQ0kg
+SUQgaXMgNjkyMDo4ODg4CgotLSAKSWdvciBNLiBMaXBsaWFuaW4KTWljcm9zb2Z0IFdpbmRvd3Mg
+RnJlZSBab25lIC0gTGludXggdXNlZCBmb3IgYWxsIENvbXB1dGluZyBUYXNrcwoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcg
+bGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmlu
+L21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
