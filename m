@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mANFjqO5018904
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 10:45:52 -0500
-Received: from sirez (static-202-65-157-248.pol.net.in [202.65.157.248] (may
-	be forged))
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mANFjbqG032276
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 10:45:38 -0500
-From: <sunder.svit@gmail.com>
-To: <video4linux-list@redhat.com>
-Date: Sun, 23 Nov 2008 21:15:32 +0530
-Message-ID: <4358136C4809473D8EE58FC2A2684D03@sirez>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAPILMVX021573
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 13:21:22 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAPIL7R1012450
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 13:21:09 -0500
+Date: Tue, 25 Nov 2008 19:21:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.0811251914260.6290@axis700.grange>
+References: <Pine.LNX.4.64.0811202055210.8290@axis700.grange>
+	<1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-Content-Class: urn:content-classes:message
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Subject: Recommend and Win Reebok Shoe
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 1/2] soc_camera: add format translation structure
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,38 +27,212 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
- <http://www.yepme.com/images/mailer/621_A.jpg> 	
- 	  <http://www.yepme.com/promorefferpage.aspx> 	 
-	
-	Message from Sundar Iyer (sunder.svit@gmail.com)	 
-	
-<http://www.yepme.com/promorefferpage.aspx> 
-Congratulations you have been authorized by Official Promotion
-Administrator of Yepme.com to participate and claim your free pair of
-Reebok Shoes worth Rs 2690. You constitute less than 1% of Indians who
-have been selected for this promotion. The official Authorization
-Document is the validation of your eligibility to participate in this
-promotion.
-	
-<http://www.yepme.com/promorefferpage.aspx> 
-You have received this Promotion from Yepme.com Yepme is India's First
-Recommendation Engine that combines recommendations from experts and
-reviews from you that act as recommendations for your friends and
-community at large. You are at the core of Yepme. Yepme has information
-on over 2200 categories with a special focus on Leisure Categories viz.
-Restaurant, Nightlife, Shopping, Sale, Movies, Events, Malls.
-	
-Recommend & Win Reebok Shoe <http://www.yepme.com/promorefferpage.aspx>
-Click Here <http://www.yepme.com/promorefferpage.aspx> 	 
-	
-		
-	
-*Condition Apply
- 	 
- 	  	 
- <http://www.yepme.com/images/mailer/621.jpg> 	
+On Mon, 24 Nov 2008, Robert Jarzmik wrote:
 
- 
+> Camera hosts rely on sensor formats available, as well as
+> host specific translations. We add a structure so that hosts
+> can define a translation table and use it for format check
+> and setup.
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/video/soc_camera.c |   42 ++++++++++++++++++++++++++-----------
+>  include/media/soc_camera.h       |   23 ++++++++++++++++++--
+>  2 files changed, 49 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index f5a1e5a..c7c1ae5 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -47,6 +47,18 @@ const struct soc_camera_data_format *soc_camera_format_by_fourcc(
+>  }
+>  EXPORT_SYMBOL(soc_camera_format_by_fourcc);
+>  
+> +const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
+> +	struct soc_camera_device *icd, unsigned int fourcc)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < icd->num_user_formats; i++)
+> +		if (icd->user_formats[i].host_fmt->fourcc == fourcc)
+> +			return icd->user_formats + i;
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL(soc_camera_xlate_by_fourcc);
+> +
+>  static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+>  				      struct v4l2_format *f)
+>  {
+> @@ -183,8 +195,8 @@ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
+>  	if (!fmts)
+>  		return -ENXIO;
+>  
+> -	icd->user_formats = vmalloc(sizeof(struct soc_camera_data_format *) *
+> -				    fmts);
+> +	icd->user_formats =
+> +		vmalloc(fmts * sizeof(struct soc_camera_format_xlate));
+>  	if (!icd->user_formats)
+>  		return -ENOMEM;
+>  
+> @@ -195,13 +207,16 @@ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
+>  
+>  	/* Second pass - actually fill data formats */
+>  	for (i = 0; i < icd->num_formats; i++)
+> -		if (!ici->ops->get_formats)
+> -			icd->user_formats[i] = icd->formats + i;
+> -		else
+> +		if (!ici->ops->get_formats) {
+> +			icd->user_formats[i].host_fmt = icd->formats + i;
+> +			icd->user_formats[i].cam_fmt = icd->formats + i;
+> +			icd->user_formats[i].buswidth = icd->formats[i].depth;
+> +		} else {
+>  			fmts += ici->ops->get_formats(icd, i,
+>  						      &icd->user_formats[fmts]);
+> +		}
+>  
+> -	icd->current_fmt = icd->user_formats[0];
+> +	icd->current_fmt = &icd->user_formats[0];
+
+Well, no. You cannot do this - not in this patch. In general, I guess, you 
+want current_fmt to point to the xlate object for debugging, etc. But this 
+has to be a separate patch, changing the define in the header, 
+soc_camera.c and _all_ host-drivers, including SuperH, which you left 
+broken with your two patches. So, please leave current_fmt at its old 
+meaning for these two patches. We can convert it later - if we really want 
+to.
+
+>  
+>  	return 0;
+>  }
+> @@ -368,6 +383,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+>  	struct soc_camera_device *icd = icf->icd;
+>  	struct soc_camera_host *ici =
+>  		to_soc_camera_host(icd->dev.parent);
+> +	__u32 pixfmt = f->fmt.pix.pixelformat;
+>  	int ret;
+>  	struct v4l2_rect rect;
+>  
+> @@ -385,7 +401,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+>  	if (ret < 0) {
+>  		return ret;
+>  	} else if (!icd->current_fmt ||
+> -		   icd->current_fmt->fourcc != f->fmt.pix.pixelformat) {
+> +		   icd->current_fmt->host_fmt->fourcc != pixfmt) {
+>  		dev_err(&ici->dev,
+>  			"Host driver hasn't set up current format correctly!\n");
+>  		return -EINVAL;
+> @@ -402,7 +418,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+>  		icd->width, icd->height);
+>  
+>  	/* set physical bus parameters */
+> -	return ici->ops->set_bus_param(icd, f->fmt.pix.pixelformat);
+> +	return ici->ops->set_bus_param(icd, pixfmt);
+>  }
+>  
+>  static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
+> @@ -417,7 +433,7 @@ static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
+>  	if (f->index >= icd->num_user_formats)
+>  		return -EINVAL;
+>  
+> -	format = icd->user_formats[f->index];
+> +	format = icd->user_formats[f->index].host_fmt;
+>  
+>  	strlcpy(f->description, format->name, sizeof(f->description));
+>  	f->pixelformat = format->fourcc;
+> @@ -435,12 +451,12 @@ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
+>  	f->fmt.pix.width	= icd->width;
+>  	f->fmt.pix.height	= icd->height;
+>  	f->fmt.pix.field	= icf->vb_vidq.field;
+> -	f->fmt.pix.pixelformat	= icd->current_fmt->fourcc;
+> +	f->fmt.pix.pixelformat	= icd->current_fmt->host_fmt->fourcc;
+>  	f->fmt.pix.bytesperline	= f->fmt.pix.width *
+> -		DIV_ROUND_UP(icd->current_fmt->depth, 8);
+> +		DIV_ROUND_UP(icd->current_fmt->host_fmt->depth, 8);
+>  	f->fmt.pix.sizeimage	= f->fmt.pix.height * f->fmt.pix.bytesperline;
+> -	dev_dbg(&icd->dev, "current_fmt->fourcc: 0x%08x\n",
+> -		icd->current_fmt->fourcc);
+> +	dev_dbg(&icd->dev, "current_fmt->host_fmt->fourcc: 0x%08x\n",
+> +		icd->current_fmt->host_fmt->fourcc);
+>  	return 0;
+>  }
+>  
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index d6333a0..19fa2f7 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -38,10 +38,10 @@ struct soc_camera_device {
+>  	unsigned char buswidth;		/* See comment in .c */
+>  	struct soc_camera_ops *ops;
+>  	struct video_device *vdev;
+> -	const struct soc_camera_data_format *current_fmt;
+> +	const struct soc_camera_format_xlate *current_fmt;
+>  	const struct soc_camera_data_format *formats;
+>  	int num_formats;
+> -	const struct soc_camera_data_format **user_formats;
+> +	struct soc_camera_format_xlate *user_formats;
+>  	int num_user_formats;
+>  	struct module *owner;
+>  	void *host_priv;		/* per-device host private data */
+> @@ -70,7 +70,7 @@ struct soc_camera_host_ops {
+>  	int (*suspend)(struct soc_camera_device *, pm_message_t);
+>  	int (*resume)(struct soc_camera_device *);
+>  	int (*get_formats)(struct soc_camera_device *, int,
+> -			   const struct soc_camera_data_format **);
+> +			   struct soc_camera_format_xlate *);
+>  	int (*set_fmt)(struct soc_camera_device *, __u32, struct v4l2_rect *);
+>  	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
+>  	void (*init_videobuf)(struct videobuf_queue *,
+> @@ -111,6 +111,8 @@ extern void soc_camera_video_stop(struct soc_camera_device *icd);
+>  
+>  extern const struct soc_camera_data_format *soc_camera_format_by_fourcc(
+>  	struct soc_camera_device *icd, unsigned int fourcc);
+> +extern const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
+> +	struct soc_camera_device *icd, unsigned int fourcc);
+>  
+>  struct soc_camera_data_format {
+>  	const char *name;
+> @@ -119,6 +121,21 @@ struct soc_camera_data_format {
+>  	enum v4l2_colorspace colorspace;
+>  };
+>  
+> +/**
+> + * struct soc_camera_format_xlate - match between host and sensor formats
+> + * @cam_fmt: sensor format provided by the sensor
+> + * @host_fmt: host format after host translation from cam_fmt
+> + * @buswidth: bus width for this format
+> + *
+> + * Table of host and sensor formats matchings. A host can generate this list, in
+> + * camera registation, and use it for format checks and format setup.
+> + */
+
+This comment doesn't look quite right - this is not a table, this is just 
+one element thereof. And "host can generate this list" is also not quite 
+precise - the list is generated by the soc_camera.c, the host can override 
+the default one-to-one mapping.
+
+> +struct soc_camera_format_xlate {
+> +	const struct soc_camera_data_format *cam_fmt;
+> +	const struct soc_camera_data_format *host_fmt;
+> +	unsigned char buswidth;
+> +};
+> +
+>  struct soc_camera_ops {
+>  	struct module *owner;
+>  	int (*probe)(struct soc_camera_device *);
+> -- 
+> 1.5.6.5
+
+Otherwise looks ok. I would suggest you remove the current_fmt change, fix 
+the comment and submit integrated into my previous patch - not as 
+incremental.
+
+A review to the pxa-patch will follow later...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
