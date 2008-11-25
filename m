@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAIi3iK029613
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:44:03 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAPLV4HZ004317
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 16:31:04 -0500
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAAIhbZA031064
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:43:38 -0500
-Date: Mon, 10 Nov 2008 19:43:44 +0100 (CET)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAPLUxcV021597
+	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 16:31:00 -0500
+Date: Tue, 25 Nov 2008 22:30:54 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: David Ellingsworth <david@identd.dyndns.org>
-In-Reply-To: <30353c3d0811101009u195fb42du346ff3e0fb559b19@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0811101942340.8315@axis700.grange>
-References: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
-	<Pine.LNX.4.64.0811101335170.4248@axis700.grange>
-	<30353c3d0811101009u195fb42du346ff3e0fb559b19@mail.gmail.com>
+To: Mike Rapoport <mike@compulab.co.il>
+In-Reply-To: <1227603594-16953-1-git-send-email-mike@compulab.co.il>
+Message-ID: <Pine.LNX.4.64.0811252225200.10677@axis700.grange>
+References: <1227603594-16953-1-git-send-email-mike@compulab.co.il>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 5/5] pxa-camera: framework to handle camera-native and
- synthesized formats
+Subject: Re: [PATCH] mt9m111: add support for mt9m112 since sensors seem
+ identical
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,31 +27,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 10 Nov 2008, David Ellingsworth wrote:
+On Tue, 25 Nov 2008, Mike Rapoport wrote:
 
-> [snip]
-> > +static bool depth_supported(struct soc_camera_device *icd, int i)
-> > +{
-> > +       struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> > +       struct pxa_camera_dev *pcdev = ici->priv;
-> > +
-> > +       switch (icd->formats[i].depth) {
-> > +       case 8:
-> > +               if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)
-> > +                       return true;
-> > +               return false;
-> I'm not sure what the linux kernel development docs might say about
-> this, but the if statement here might be unnecessary. Couldn't you
-> write the following instead?
 > 
-> return pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8;
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> ---
+>  drivers/media/video/mt9m111.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index da0b2d5..49c1167 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -841,7 +841,8 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
+>  	data = reg_read(CHIP_VERSION);
+>  
+>  	switch (data) {
+> -	case 0x143a:
+> +	case 0x143a: /* MT9M111 */
+> +	case 0x148c: /* MT9M112 */
+>  		mt9m111->model = V4L2_IDENT_MT9M111;
 
-Indeed, a good idea, thanks, only I would do this like
-
-	return !!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8);
+Wouldn't it be better to add a new chip ID? Are there any differences 
+between the two models, that the user might want to know about?
 
 Thanks
 Guennadi
+
+>  		icd->formats = mt9m111_colour_formats;
+>  		icd->num_formats = ARRAY_SIZE(mt9m111_colour_formats);
+> -- 
+> 1.5.6.4
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
