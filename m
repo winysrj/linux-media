@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASNRQX1028793
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 18:27:27 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mASNRERt003030
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 18:27:14 -0500
-Date: Sat, 29 Nov 2008 00:27:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <Pine.LNX.4.64.0811272343480.8230@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0811290026200.7032@axis700.grange>
-References: <Pine.LNX.4.64.0811202055210.8290@axis700.grange>
-	<1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
-	<1227554928-25471-2-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0811272343480.8230@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQ9AmDW006751
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 04:10:48 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQ9AbhL012399
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 04:10:38 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so382261wfc.6
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 01:10:37 -0800 (PST)
+Message-ID: <62e5edd40811260110pacffdf7v15e4ddabc587399@mail.gmail.com>
+Date: Wed, 26 Nov 2008 10:10:37 +0100
+From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
+To: "Chia-I Wu" <olvaffe@gmail.com>
+In-Reply-To: <20081126074633.GA11305@m500.domain>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <20081126074633.GA11305@m500.domain>
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 2/2] pxa_camera: use the new translation structure
+Subject: Re: [PATCH] gspca-stv06xx: Overhaul the HDCS driver.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,21 +30,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 28 Nov 2008, Guennadi Liakhovetski wrote:
+2008/11/26 Chia-I Wu <olvaffe@gmail.com>:
+> Hi Erik,
+>
+> This patch (against r9689) overhauls HDCS driver and make 046d:0840
+> work.  Please help review and apply, if it is ok.  Thanks.
+>
+> --
+> Regards,
+> olv
+>
 
-> On Mon, 24 Nov 2008, Robert Jarzmik wrote:
-> 
-> > +	if (!depth_supported(icd, buswidth))
-> 
-> I think, this function would be better named buswicth_supported().
+Thanks, I'll review and commit it ASAP.
+Do you still get a black and white image or does it work in color?
 
-...even better buswidth_supported:-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Regards,
+Erik
 
 --
 video4linux-list mailing list
