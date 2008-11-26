@@ -1,27 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAO6Hhjk032687
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 01:17:43 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAO6GDnl022535
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 01:16:33 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so2017089wfc.6
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 22:16:12 -0800 (PST)
-Message-ID: <5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
-Date: Mon, 24 Nov 2008 11:46:12 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-In-Reply-To: <200811232300.40530.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQH57rX028577
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:05:07 -0500
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQH4uvR006251
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:04:56 -0500
+From: hvaibhav@ti.com
+To: video4linux-list@redhat.com
+Date: Wed, 26 Nov 2008 22:34:39 +0530
+Message-Id: <1227719079-19459-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
-	<1227280923-31654-1-git-send-email-hvaibhav@ti.com>
-	<200811232300.40530.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org,
-	davinci-linux-open-source-bounces@linux.davincidsp.com
-Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
+Cc: davinci-linux-open-source-bounces@linux.davincidsp.com,
+	Karicheri Muralidharan <m-karicheri2@ti.com>, linux-omap@vger.kernel.org
+Subject: [PATCH 1/2] Add Input/Output related ioctl support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,53 +25,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Mon, Nov 24, 2008 at 3:30 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Vaibhav,
->
-> Here is my review as promised (although a day late). It's a mix of
-> smaller and larger issues:
->
-> 1) CONFIG_VIDEO_ADV_DEBUG is meant to enable the ability to set/get
-> registers through the VIDIOC_DBG_G/S_REGISTER ioctls. For general
-> debugging you should use a debug module option (see e.g. saa7115.c).
+Note - Resending again with TVP driver for completeness.
 
-Local dprintk with log levels is fine, as far as it not misused.
+Added ioctl support for query std, set std, enum input,
+get input, set input, enum output, get output and set output.
 
->
-> 2) Please use the media/v4l2-i2c-drv.h or media/v4l2-i2c-drv-legacy.h
-> header to hide some of the i2c complexity (again, see e.g. saa7115.c).
-> The i2c API tends to change a lot (and some changes are upcoming) so
-> using this header will mean that i2c driver changes will be minimal in
-> the future. In addition it will ensure that this driver can be compiled
-> with older kernels as well once it is part of the v4l-dvb repository.
+For sensor kind of slave drivers v4l2-int-device.h provides
+necessary ioctl support, but the ioctls required to interface
+with decoders and encoders are missing. Most of the decoders
+and encoders supports multiple inputs and outputs, like
+S-Video or Composite.
 
-I don't agree with having support to compile with older kernels. Even
-though I2C APIs change as lot it is for good, and creating
-abstractions doesn't help as saa7xxx is family of chips where I don't
-see the case here. Once this driver is mainlined if someone does i2c
-subsystem change which breaks this driver from building then he/she
-has to make changes to all the code affecting it.
+With these ioctl''s user can select the specific input/output.
 
-I am not in favour of adding support to compile with older kernels.
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: R Sivaraj <sivaraj@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
+---
+ include/media/v4l2-int-device.h |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
 
->
-> 3) Remember that the use of v4l2-int-device.h must be temporary only. It
-> will make it impossible to use this driver with any other platform but
-> omap. I had hoped to release my generic v4l2 subdevice support today
-> which should replace v4l2-int-device.h in time, but I hit a bug that
-> needs to be resolved first. I hope to fix it during the next week so
-> that I can finally make it available for use asap.
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index 9c2df41..2325b2a 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -102,6 +102,7 @@ enum v4l2_power {
+ 	V4L2_POWER_OFF = 0,
+ 	V4L2_POWER_ON,
+ 	V4L2_POWER_STANDBY,
++	V4L2_POWER_RESUME,
+ };
 
-Better step would be to have single camera-sensor framework or merge
-with soc-camera framework. Two frameworks doesn't help anyone, but
-creates more confusion for new developers.
+ /* Slave interface type. */
+@@ -183,6 +184,14 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_s_crop_num,
+ 	vidioc_int_g_parm_num,
+ 	vidioc_int_s_parm_num,
++	vidioc_int_querystd_num,
++	vidioc_int_s_std_num,
++	vidioc_int_enum_input_num,
++	vidioc_int_g_input_num,
++	vidioc_int_s_input_num,
++	vidioc_int_enumoutput_num,
++	vidioc_int_g_output_num,
++	vidioc_int_s_output_num,
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+ 	/*
+ 	 *
+@@ -284,6 +293,14 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
++V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(enum_input, struct v4l2_input, *);
++V4L2_INT_WRAPPER_1(g_input, int, *);
++V4L2_INT_WRAPPER_1(s_input, int, );
++V4L2_INT_WRAPPER_1(enumoutput, struct v4l2_output, *);
++V4L2_INT_WRAPPER_1(g_output, int, *);
++V4L2_INT_WRAPPER_1(s_output, int, );
+
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+--
+1.5.6
 
 --
 video4linux-list mailing list
