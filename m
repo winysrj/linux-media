@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38803.mail.mud.yahoo.com ([209.191.125.94])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1L2ld6-0006RW-Lq
-	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 12:53:57 +0100
-Date: Wed, 19 Nov 2008 03:53:22 -0800 (PST)
-From: Uri Shkolnik <urishk@yahoo.com>
-To: linux-dvb@linuxtv.org, Christophe Thommeret <hftom@free.fr>
-In-Reply-To: <200811191124.37315.hftom@free.fr>
+	(envelope-from <udo_richter@gmx.de>) id 1L5SNB-00072N-OM
+	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 22:56:38 +0100
+Message-ID: <492DC5F5.3060501@gmx.de>
+Date: Wed, 26 Nov 2008 22:56:05 +0100
+From: Udo Richter <udo_richter@gmx.de>
 MIME-Version: 1.0
-Message-ID: <352865.62863.qm@web38803.mail.mud.yahoo.com>
-Subject: Re: [linux-dvb] [PATCH 2/5] SPI interface driver for Siano's SMS
-	chip-set based devices.
-Reply-To: urishk@yahoo.com
+To: linux-dvb@linuxtv.org
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+In-Reply-To: <492A53C4.5030509@makhutov.org>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,57 +18,41 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Please note that this specific patch should be ignored (the diff file conta=
-ins temporary files)
-I submit a new patch.
+Artem Makhutov wrote:
+> Klaus Schmidinger schrieb:
+>> The attached patch adds a capability flag that allows an application
+>> to determine whether a particular device can handle "second generation
+>> modulation" transponders. 
+> Wouldn't it be better to add something like this:
+> 
+> FE_CAN_8PSK
+> FE_CAN_16APSK
+> FE_CAN_32APSK
 
-Sorry about this silly silly mistake
+Without knowing enough about the differences between -S and -S2 tuners 
+and whatever cards are on the market, I'll try to step back and give 
+this my 2c point of view:
 
-Uri
+What does a DVB app need to know? A DVB app probably just needs to know 
+"What devices are capable of tuning to channel XYZ?". The API could 
+answer this the same way as it would tune to channel XYZ, just without 
+actually doing it. Try-before-you-buy.
 
-
---- On Wed, 11/19/08, Christophe Thommeret <hftom@free.fr> wrote:
-
-> From: Christophe Thommeret <hftom@free.fr>
-> Subject: Re: [linux-dvb] [PATCH 2/5] SPI interface driver for Siano's SMS=
- chip-set based devices.
-> To: linux-dvb@linuxtv.org
-> Cc: "Uri Shkolnik" <urishk@yahoo.com>
-> Date: Wednesday, November 19, 2008, 12:24 PM
-> Le mercredi 19 novembre 2008 10:03:04 Uri Shkolnik, vous
-> avez =E9crit=A0:
-> > This patch provides SPI interface driver for SMS
-> chip-set based devices.
-> > The patch includes common SMS SPI code, and adapter
-> driver for PXA310
-> >
-> >
-> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> =
-
-> Hi Uri,
-> =
-
-> This patch also adds backup files ( e.g. smsspicommon.c~ )
-> !
-> Maybe others do also, haven't checked.
-> =
-
-> So, i guess it will be rejected :)
-> =
-
-> -- =
-
-> Christophe Thommeret
+This would also give maximum flexibility to the driver, as a device that 
+supports some -S2 features could offer these, or a device that has known 
+bugs on some tuning modes could also deny these. Non-standard modes 
+could be offered without requiring yet another FE_CAN_XYZ.
 
 
-      =
+Cheers,
+
+Udo
 
 
 _______________________________________________
