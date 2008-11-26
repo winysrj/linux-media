@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAK9Ww3X024974
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 04:32:58 -0500
-Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAK9WgLi016226
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 04:32:42 -0500
-Message-ID: <49253004.4010504@hhs.nl>
-Date: Thu, 20 Nov 2008 10:38:12 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQHFNLv002873
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:15:23 -0500
+Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQHFAHH014611
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:15:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Wed, 26 Nov 2008 18:15:07 +0100
+References: <hvaibhav@ti.com>
+	<1227719079-19459-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1227719079-19459-1-git-send-email-hvaibhav@ti.com>
 MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
-	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
-	<200811190020.15663.linux@baker-net.org.uk>
-	<4923D159.9070204@hhs.nl>
-	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
-Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
-	driver
+Content-Disposition: inline
+Message-Id: <200811261815.07648.hverkuil@xs4all.nl>
+Cc: linux-omap@vger.kernel.org, Karicheri Muralidharan <m-karicheri2@ti.com>,
+	davinci-linux-open-source-bounces@linux.davincidsp.com
+Subject: Re: [PATCH 1/2] Add Input/Output related ioctl support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,122 +31,94 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-kilgota@banach.math.auburn.edu wrote:
+On Wednesday 26 November 2008 18:04:39 hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> Note - Resending again with TVP driver for completeness.
+>
+> Added ioctl support for query std, set std, enum input,
+> get input, set input, enum output, get output and set output.
+>
+> For sensor kind of slave drivers v4l2-int-device.h provides
+> necessary ioctl support, but the ioctls required to interface
+> with decoders and encoders are missing. Most of the decoders
+> and encoders supports multiple inputs and outputs, like
+> S-Video or Composite.
+>
+> With these ioctl''s user can select the specific input/output.
+>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> Signed-off-by: R Sivaraj <sivaraj@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
+> ---
+>  include/media/v4l2-int-device.h |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/media/v4l2-int-device.h
+> b/include/media/v4l2-int-device.h index 9c2df41..2325b2a 100644
+> --- a/include/media/v4l2-int-device.h
+> +++ b/include/media/v4l2-int-device.h
+> @@ -102,6 +102,7 @@ enum v4l2_power {
+>  	V4L2_POWER_OFF = 0,
+>  	V4L2_POWER_ON,
+>  	V4L2_POWER_STANDBY,
+> +	V4L2_POWER_RESUME,
+>  };
 
-<snip>
+Why is POWER_RESUME added? In an earlier discussion with Sakari Ailus it 
+was decided not to add this (see the video4linux thread with 
+subject "[PATCH 4/6] V4L: Int if: Define new power state changes").
 
-> 
->> libv4l currently uses linear interpolated demosaicing, the 4 (or 2) 
->> surrounding pixels with the missing color components are taken and 
->> then straight forward averaged. At the borders only those pixels which 
->> are actually present get used ofcourse.
-> 
-> Perhaps you ought at least to use what is in gp_bayer_accrue() as well 
-> (see libgphoto2/libgphoto2/bayer.c) because it cuts down on the zipper 
-> effect.
-> 
-
-Interesting, although I must say the libgphoto code certainly is not written 
-with speed in mind, but we can fix that. Still doing something like 
-gp_bayer_accrue() will cause a significant additional CPU load, please keep in 
-mind that:
-1) We often also need to decompress the bayer data first using some form of
-    Huffman decompression as usb11 bandwidth is not enough for raw bayer
-2) Then we have 352x288 (luckily all raw bayer cams seem to be this low) at
-    30 fps
-3) Which we then need to demosaic
-4) And do white balance *
-5) And normalize *
-6) And gamma correct *
-7) And flip / rotate the image
-8) And the app may want to do stuff with it like display it, which might
-    involve pixelformat conversion, and / or software scaling
-9) And if the app wants to record broadcast, the app often also needs to do
-    some form of framerate modification to get a steady framerate (webcam
-    framerate is exposure setting dependend)
-10) And the app may do even more such as HG264 compression for video
-    conferencing
-11) And this may all be part of the user just having a chat window open, while
-    he is mostly using his PC for something else.
-
-*) Not yet implemented
-
-So all in all we need to be carefull with CPU usage here.
-
-
->> I'm always open for convincing examples of differences in algorithms, 
->> esp. when backed up with a proposed patch and benchmarks showing the 
->> additional costs.
-> 
-> The algorithm in libgphoto2/libgphoto2/ahd_bayer.c requires 3X the time 
-> which is required for the old algorithm in bayer.c
-
-Ugh, and I'm quite sure the algorithm in bayer.c is much much slower then what 
-is in libv4l, not only because of gp_bayer_accrue(), but because it is not 
-written very efficient in general IMHO (lots of if's instead of seperate 
-methods for different cases like borders, different bayer orders).
-
-> . For still photos 
-> with some rather low quality cameras, it gives much better results. I 
-> have written a paper about this algorithm, and also some demonstration 
-> photos from some different cameras, and you can find the paper and the 
-> demonstration photos at www.auburn.edu/~kilgota. As to whether the speed 
-> hit of 3X is crucial for a webcam, I am not sure.
-
-Nor am I, but I think we should be careful with not causing too much cpuload, 
-also think of things like netbooks, which do not come with a very powerful cpu.
-
-
-<snip>
-
->>> I clearly have to read the version and either flip the data myself or 
->>> inform libv4l that it needs to be flipped. The do as much work in 
->>> userspace as possible argument says I should just provide an 
->>> indicator that it needs flipping but I don't know how to do that.
->>>
->>
->> Ah interesting, 2 things:
->>
->> 1) Do not do the flipping in the kernel libv4l already has all the 
->> necessary
->>   code.
->>
->> 2) Currently there is no API for telling libv4l to do the flipping, 
->> but I think
->>   we should design one. Currently for the few cams which need software
->>   flipping (or rather software rotate 180 as that is what libv4l 
->> does), are
->>   detected by libv4l by doing string comparisons on the 
->> v4l2_capability struct
->>   card string. We could cheat and let the sq905 driver put something 
->> special
->>   in there for cams with upside down mounted sensors, but given that 
->> this is a
->>   re-occuring problem, defining a proper API for this would be good I 
->> think.
-> 
-> 
-> Well, for these particular cameras the problem is twofold. First, the 
-> image is always upside down (and the way to fix that is with a byte 
-> reversal of the raw image). Second, it is also true for *some* of them 
-> that the image has reversed left and right. So what you have to do is 
-> read the firmware, know which firmware number corresponds to what, and 
-> then have a standard way to tell the app precisely what it should do. 
-> Something like a variable called "orientation" and then the appropriate 
-> one of the bitmap values 00, 01, 10, or 11, or, in ordinary numbers
-> 
-> 0    oriented correctly, no action needed
-> 1    reversal of byte string needed (giving 180 degree rotation)
-> 2    reverse bytes on lines (i. e. do de-mirroring)
-> 3    do both 1 and 2 (notice that 3 = 1|2)
-> 
-
-Erm, 3 just boils down to only doing vflip, rotate 180 == vflip + hflip,
-so rotate180 + hflip == vflip + hflip + hflip == vflip
+It also wasn't in your original patch.
 
 Regards,
 
-Hans
+	Hans
+
+>
+>  /* Slave interface type. */
+> @@ -183,6 +184,14 @@ enum v4l2_int_ioctl_num {
+>  	vidioc_int_s_crop_num,
+>  	vidioc_int_g_parm_num,
+>  	vidioc_int_s_parm_num,
+> +	vidioc_int_querystd_num,
+> +	vidioc_int_s_std_num,
+> +	vidioc_int_enum_input_num,
+> +	vidioc_int_g_input_num,
+> +	vidioc_int_s_input_num,
+> +	vidioc_int_enumoutput_num,
+> +	vidioc_int_g_output_num,
+> +	vidioc_int_s_output_num,
+>
+>  	/*
+>  	 *
+> @@ -284,6 +293,14 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
+>  V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+>  V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+>  V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
+> +V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
+> +V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
+> +V4L2_INT_WRAPPER_1(enum_input, struct v4l2_input, *);
+> +V4L2_INT_WRAPPER_1(g_input, int, *);
+> +V4L2_INT_WRAPPER_1(s_input, int, );
+> +V4L2_INT_WRAPPER_1(enumoutput, struct v4l2_output, *);
+> +V4L2_INT_WRAPPER_1(g_output, int, *);
+> +V4L2_INT_WRAPPER_1(s_output, int, );
+>
+>  V4L2_INT_WRAPPER_0(dev_init);
+>  V4L2_INT_WRAPPER_0(dev_exit);
+> --
+> 1.5.6
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+
 
 --
 video4linux-list mailing list
