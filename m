@@ -1,28 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.ukfsn.org ([77.75.108.10])
+Received: from smtp1.tech.numericable.fr ([82.216.111.37])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <h@realh.co.uk>) id 1KyArC-0004k8-T0
-	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 20:49:34 +0100
-Received: from localhost (smtp-filter.ukfsn.org [192.168.54.205])
-	by mail.ukfsn.org (Postfix) with ESMTP id 08116DEEBE
-	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 19:49:31 +0000 (GMT)
-Received: from mail.ukfsn.org ([192.168.54.25])
-	by localhost (smtp-filter.ukfsn.org [192.168.54.205]) (amavisd-new,
-	port 10024) with ESMTP id p-s0U8wgkSje for <linux-dvb@linuxtv.org>;
-	Thu,  6 Nov 2008 19:28:37 +0000 (GMT)
-Received: from realh.co.uk (unknown [84.45.223.215])
-	by mail.ukfsn.org (Postfix) with ESMTP id B43D8DEE96
-	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 19:49:30 +0000 (GMT)
-Date: Thu, 6 Nov 2008 19:49:25 +0000
-From: Tony Houghton <h@realh.co.uk>
+	(envelope-from <tanguy.pruvot@gmail.com>) id 1L59ku-0000ug-BL
+	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 03:03:53 +0100
+Received: from EPSYLON (ip-128.net-89-2-80.rev.numericable.fr [89.2.80.128])
+	by smtp1.tech.numericable.fr (Postfix) with ESMTP id C74EAE0805
+	for <linux-dvb@linuxtv.org>; Wed, 26 Nov 2008 03:03:48 +0100 (CET)
+Date: Wed, 26 Nov 2008 03:03:46 +0100
+From: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+Message-ID: <1766329077.20081126030346@gmail.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <20081106194925.2d15b55b@realh.co.uk>
-In-Reply-To: <18705.45767.717127.606762@valen.metzler>
-References: <20081105142144.2d44ba9a@realh.co.uk>
-	<20081105143003.GA9384@moelleritberatung.de>
-	<18705.45767.717127.606762@valen.metzler>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] PCI-e drivers
+In-Reply-To: <457563803.20081123042151@gmail.com>
+References: <457563803.20081123042151@gmail.com>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] EC168
+Reply-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,43 +22,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1250"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 5 Nov 2008 15:50:47 +0100
-rjkm <rjkm@metzlerbros.de> wrote:
-
-> Artem Makhutov writes:
->  > 
->  > On Wed, Nov 05, 2008 at 02:21:44PM +0000, Tony Houghton wrote:
->  > > Sorry to ask such an awkward question, but is it realistic to hope that
->  > > Linux will have working drivers for PCI-e DVB cards within the next year
->  > > or two?
-> 
-> Yes.
-> 
-> There are drivers for the Micronas dual PCIe DVB-S2 prototype and a
-> new card loosely based on this design (but e.g. with new tuners/demod)
-> might be available in a couple of months.
-> 
-> AFAIK, Manu has also been working on cards based on the Philips/NXP 
-> PCIe bridge. 
-
-Yes, I saw something about that in the list archives etc, but there
-didn't seem to be any recent news.
-
-This has been quite a helpful thread, so thanks everyone. It's helped
-strengthen my opinion that it does make sense to "wait and see" with
-DVB-S2 and get the cheap option for now, although most people would
-rather get a DVB-S2 card straight away.
-
--- 
-TH * http://www.realh.co.uk
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Pj4gSuFjaHltIEx1a2WaIHdyb3RlOgo+PiA+IEhpLAo+PiA+IHdvdWxkIGl0IGJlIHBvc3NpYmxl
+IGZvciBzb21lYm9keSB0byBtYWtlIExpbnV4IGRyaXZlciBmb3IgRUMxNjggY2hpcHNldAo+PiA+
+IGJhc2VkIFVTQiBEVkItVCBkb25nbGVzPyBUaGV5IGFyZSB2ZXJ5IGNvbW1vbiBhbmQgYWZmb3Jk
+YWJsZSwgSSB0aGluawo+PiA+IHRoYXQgaXQgd291bGQgYmUgYSBncmVhdCB0aGluZyBmb3IgTGlu
+dXggY29tbXVuaXR5LiBUaGlzIGNvdWxkIGJyaW5nCj4+ID4gZGlnaXRhbCBUViB0byBtYW55IHBl
+b3BsZSdzIGRlc2t0b3BzIQo+Pgo+PiBZZXMsIHRob3NlIGFyZSB2ZXJ5IGNvbW1vbi4gSSB0aGlu
+ayB0aGVyZSBpcyBubyBkZXZlbG9wZXIgd2hvIGhhcyBmb3IKPj4gdGhpcyBkZXZpY2UgYW5kIHJl
+dmVyc2UtZW5naW5lZXJpbmcgZGVtb2R1bGF0b3IgaXMgcmVhbCBwYWluLgoKPiBJJ20gZGV2ZWxv
+cGVyLCBidXQgbmV3IG9uZSBpbiBsaW51eC4uLgoKPiBJJ3ZlICAgYW5vdGhlciAgZHZiICBrZXkg
+IHdpdGggIEVDMTY4ICBhbmQgIGkndmUgd3JvdGUgYSB0b29sIGJhc2VkIG9uCj4gbGlidXNiIHRv
+IHVwbG9hZCBmaXJtd2FyZS4uLiB0aGUgbGVkIG9mIHRoZSBrZXkgaXMgbGlnaHRpbmcuLi4KCj4g
+QnV0ICBpICBoYXZlICBkaWZmaWN1bHRpZXMgIHRvICByZXBlYXQgIHRoaXMgIGluICBhICBkcml2
+ZXIuLi4gZm9yIHRoZQo+IG1vbWVudC4uLgoKICBJIGZvdW5kIHRoZXNlIFVTQiByZXF1ZXN0cy4u
+LiBmb3IgdXNiX2NvbnRyb2xfbWVzc2FnZSgpCgojZGVmaW5lIENNRF9FQzE2OF9SQU0gICAgICAg
+MHgwMCAvL1JXLSBSZWFkL1dyaXRlIFJBTSAoRmlybXdhcmUgZ28gdG8gYWRkciAwLTB4MUVGRikK
+I2RlZmluZSBDTURfRUMxNjhfR0VUU1RBVFVTIDB4MDEgLy9SLS0gZXg6IGRmdV9jdHJsX2dldChk
+ZXZpY2UsMHgwMSwweDAwMDAsMHgwMUEwLGJ1ZmZlciwweDFBKTsKI2RlZmluZSBDTURfRUMxNjhf
+U1RSRUFNICAgIDB4MDMgLy9SLVggZXg6IGRmdV9jdHJsKGRldmljZSwweDAzLDAvMHgyMCwweEZG
+MDApOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvLyAgICBkaXNhYmxlL2VuYWJs
+ZSBzdHJlYW1pbmcgCiNkZWZpbmUgQ01EX0VDMTY4X1NFVF9QT1dFUiAweDA0IC8vLS1YIGV4OiBk
+ZnVfY3RybChkZXZpY2UsMHgwNCwwLzEsMHgwMDA4KTsKICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgLy8gICAgZGlzYWJsZS9lbmFibGUgTEVECiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIC8vICAgIGluZGV4ZXMgc2VlbjogMjA2LDIwOCw4LDksQSxCCiNkZWZpbmUgQ01E
+X0VDMTY4X1VOS05PV04gICAweDEwIC8vLS1YID8/PwojZGVmaW5lIENNRF9FQzE2OF9SRUFEX0JV
+RiAgMHgyMCAvL1ItLSBleDogZGZ1X2N0cmxfZ2V0KGRldmljZSwweDIwLDB4MDAwMCwweDAxQTAs
+YnVmZmVyLDB4MUEpOyAKI2RlZmluZSBDTURfRUMxNjhfV1JJVEVfQlVGIDB4MjEgLy8tVy0gCiNk
+ZWZpbmUgQ01EX0VDMTY4X1NFVCAgICAgICAweDMwIC8vLS1YIGV4OiBkZnVfY3RybChkZXZpY2Us
+IDB4MzAsIDB4MDcwOSwgMHgxQSk7CgpSIFJlYWQgQnVmZmVyClcgV3JpdGUgQnVmZmVyClggU2V0
+IFZhbHVlL0V4ZWMgKHdpdGhvdXQgYnVmZmVyKQoKVXBkYXRlZCBodHRwOi8vd3d3LmxpbnV4dHYu
+b3JnL3dpa2kvaW5kZXgucGhwL0UzQ19FQzE2OCNVcGxvYWRpbmdfRmlybXdhcmVfdG9fdGhlX2Rl
+dmljZQoKVGhlIGZpcnN0IFVTQiByZXF1ZXN0ICgweDAwKSBjYW4gc2V0L2dldCB0aGUgUkFNLi4u
+ICBzbyB3ZSBjYW4KY29tcGFyZS9jaGVjayB1cGxvYWRlZCBmaXJtd2FyZQoKSG9wZSAgdG8gZmlu
+ZCBzb21lIGRvY3Mgb24gdGhlIEVDMTY4L2Zpcm13YXJlIGFzbSBsYW5ndWFnZS4uLiBjb3VsZCBi
+ZQpuaWNlIHRvIHJldmVyc2UgaXQgdG8gdW5kZXJzdGFuZCBhdmFpbGFibGUgZmVhdHVyZXMuLi4K
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1k
+dmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYu
+b3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
