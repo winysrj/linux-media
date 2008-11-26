@@ -1,16 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.172])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L3gEt-0006Sx-RH
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 01:20:44 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so270947ugc.16
-	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 16:20:40 -0800 (PST)
-Date: Sat, 22 Nov 2008 01:20:32 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Received: from web23204.mail.ird.yahoo.com ([217.146.189.59])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <newspaperman_germany@yahoo.com>) id 1L5JU3-0000sO-8t
+	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 13:27:08 +0100
+Date: Wed, 26 Nov 2008 12:26:32 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <alpine.DEB.2.00.0811220104130.6304@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
-Subject: [linux-dvb] Digital switchover (DSO) in the UK
+Message-ID: <93373.99808.qm@web23204.mail.ird.yahoo.com>
+Subject: Re: [linux-dvb] TT S2-3200: Support for high symbol rates.
+Reply-To: newspaperman_germany@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,39 +17,27 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-(looks at clock, okay, so...)
+hi!
 
-Two days ago now, the first major steps were taken in the UK
-to switch off analogue transmissions.  This means that the
-supplied initial scanfiles in dvb-apps scan will start to
-have incorrect information.
-
-The biggest change will be from 2k to 8k FFT modulation as
-the switchover progresses; additionally, from what I've
-read, there may be some frequency changes too.  Other
-modulation parameters (16-vs-64QAM and the like) are
-unknown to me and not revealed in the limited reading
-I've done.
-
-The scanfile for uk-Selkirk is now out-of-date where
-accuracy is concerned (perhaps others?  I'm nowhere near
-and have no idea), so if someone cares to update this,
-and, in the months to come, the other affected transmitter
-locations, with current information, then anyone unaware
-of DSO who tries to use these scanfiles with a tuner that
-doesn't AUTO everything might have more success.
+I tried Igor's latest s2-liplianin mercurial,
+but till no success with 8psk 30000 3/4 on Thor 1 =B0 West.
 
 
-That means you, brave volunteer!
+kind regards =
 
-etc,
-barry bouwsma
+
+
+Newsy
+
+
+      =
+
 
 _______________________________________________
 linux-dvb mailing list
