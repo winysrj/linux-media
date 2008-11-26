@@ -1,24 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA4E9wiw006248
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 09:09:58 -0500
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.186])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA4E9lrX029821
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 09:09:47 -0500
-Received: by fk-out-0910.google.com with SMTP id e30so3970795fke.3
-	for <video4linux-list@redhat.com>; Tue, 04 Nov 2008 06:09:46 -0800 (PST)
-Message-ID: <c41ce8440811040609v591ae268y80d6669dccf55862@mail.gmail.com>
-Date: Tue, 4 Nov 2008 15:09:46 +0100
-From: picciuX <matteo@picciux.it>
-To: video4linux-list@redhat.com
-In-Reply-To: <1225586521.2642.7.camel@pc10.localdom.local>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Date: Wed, 26 Nov 2008 08:33:45 +0100
+References: <200811032103.36711.laurent.pinchart@skynet.be>
+	<200811040709.29024.hverkuil@xs4all.nl>
+	<200811260105.03177.laurent.pinchart@skynet.be>
+In-Reply-To: <200811260105.03177.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <c41ce8440810310231gdb614bcred3f4386de883abb@mail.gmail.com>
-	<1225586521.2642.7.camel@pc10.localdom.local>
-Subject: Re: Pinnacle PCTV 310i Remote: i2c 'ERROR: NO_DEVICE'
+Message-Id: <200811260833.45485.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, mchehab@redhat.com
+Subject: Re: [PATCH 2/2] v4l2: Add camera privacy control.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,33 +25,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/11/2 hermann pitton <hermann-pitton@arcor.de>:
-
-> don't have that remote, but also enable ir-kbd-i2c debug=1.
+On Wednesday 26 November 2008 01:05:02 Laurent Pinchart wrote:
+> Hi Hans,
 >
-> ir-kbd-i2c: probe 0x7a @ saa7133[0]: no
-> ir-kbd-i2c: probe 0x47 @ saa7133[0]: no
-> ir-kbd-i2c: probe 0x71 @ saa7133[0]: no
-> ir-kbd-i2c: probe 0x2d @ saa7133[0]: no
-> ir-kbd-i2c: probe 0x7a @ saa7133[1]: no
-> ir-kbd-i2c: probe 0x47 @ saa7133[1]: no
-> ir-kbd-i2c: probe 0x71 @ saa7133[1]: no
-> ir-kbd-i2c: probe 0x2d @ saa7133[1]: no
+> On Tuesday 04 November 2008, Hans Verkuil wrote:
+> > Hi Laurent,
+> >
+> > Can you also patch v4l2-common.c to add support for this new
+> > control?
+> >
+> > Actually, it would be great if the other missing controls (e.g.
+> > FOCUS controls) are also added.
 >
-> You should have the device found at 0x47.
+> As I'd rather not have to respin the patch (doesn't seem easily
+> handled by Mercurial once changes are pushed to the linuxtv.org
+> tree), I'll try to reach a consensus on control names first.
 >
+> - Do you have a preference for auto control names (such as auto-hue
+> or auto-gain) ? "Auto Hue" would make lots of controls start with
+> "Auto", "Hue, Auto" might be better.
 
-In fact i see:
+I think I prefer 'Hue, Automatic'. This will keep it close to the 'Hue' 
+control and using the full word rather than the abbreviation 'Auto' is 
+(I think) a bit better since these are user-visible strings.
 
-ir-kbd-i2c: probe 0x47 @ saa7133[0]: yes
+> - What about the absolute/relative controls ? They are currently used
+> in the UVC driver only, and called "Pan (Absolute)" for instance.
+> Should I rename that to "Pan, Absolute" ?
 
-So everything seemed to go well. But, same story for the rest: ERROR:
-NO_DEVICE when i press buttons on the remote.
-What seems strange to me is the fact that the driver *reacts* to
-remote key presses, but reacts with an error.
+Yes, I think 'Pan, Absolute' is consistent with 'Hue, Automatic'. The 
+comma notation is also similar to what is commonly used in an index of 
+a book, so people are used to it.
 
-Cheers
-Matteo
+>
+> - Are you ok with V4L2_CID_DO_WHITE_BALANCE being called "Do White
+> Balance" ?
+
+Yes.
+
+> - How should deprecated controls be named ?
+
+The user doesn't care whether a control is deprecated or not, so I don't 
+think there should be any special about the name. It's really an 
+internal thing.
+
+> Regarding v4l2_ctrl_query_fill_std(), the UVC specification doesn't
+> specify boundaries for most controls so I can't fill the required
+> values.
+
+How is that handled in practice? If you have an integer control without 
+min-max values, then how can you present that to the user in a control 
+panel? A simple 0-15 control can be represented by e.g. a slider, but 
+not a 0-INT_MAX control.
+
+If the min/max are completely unknown, then you can always fill in the 
+INT_MIN and INT_MAX values.
+
+Regards,
+
+	Hans
 
 --
 video4linux-list mailing list
