@@ -1,24 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABILdXf005045
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 13:21:39 -0500
-Received: from smtp-out114.alice.it (smtp-out114.alice.it [85.37.17.114])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mABILSYo003622
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 13:21:28 -0500
-Date: Tue, 11 Nov 2008 19:15:16 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: video4linux-list@redhat.com
-Message-Id: <20081111191516.20febe64.ospite@studenti.unina.it>
-In-Reply-To: <20081111184200.cb9a2ba4.ospite@studenti.unina.it>
-References: <20080816050023.GB30725@thumper>
-	<20080816083613.51071257@mchehab.chehab.org>
-	<7813ee860808160513g2f0e3602q9f3aed45d66ef165@mail.gmail.com>
-	<20081105203114.213b599a@pedra.chehab.org>
-	<20081111184200.cb9a2ba4.ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQM0Fnc030735
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 17:00:15 -0500
+Received: from mail.ki.iif.hu (mail.ki.iif.hu [193.6.222.241])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQM02La016347
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 17:00:02 -0500
+Date: Wed, 26 Nov 2008 22:59:57 +0100 (CET)
+From: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
+Message-ID: <alpine.DEB.1.10.0811262251210.10867@bakacsin.ki.iif.hu>
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
+	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,30 +34,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 11 Nov 2008 18:42:00 +0100
-Antonio Ospite <ospite@studenti.unina.it> wrote:
+> No need to apologize.  The parser.pl just makes everything *much* easier.
 
-> 
-> Actually I've started a port of this driver to gspca as an exercise.
-> You can find a rough preview here:
-> http://shell.studenti.unina.it/~ospite/tmp/gspca_ov534-20081111-1733.tar.bz2
->
+I'm just ashamed because I did not research a bit before
+I offer you some 5 GB of garbage. :-)
 
-And here's the direct link to the file, sorry for the tarball:
-http://shell.studenti.unina.it/~ospite/tmp/gspca_ov534-20081111-1733/ov534.c
+> Do you know which chips this device contains?  If not, could you
 
-> I tried to (ab)use gpsca infrastructure for bulk transfers, the driver is
-> quite essential but it works acceptably well, for now, even if I still
-> loose fames because of some bug.
-> 
-> The driver needs the attached changes (or any better equivalent)
-> to gspca bulk transfers code.
+No.
 
-I forgot to say that the changes are against linux-2.6.28-rc4 from linus
-git tree.
+> please open the unit and send me some high-resolution photographs of
+> the circuit board?
 
-Regards,
-   Antonio Ospite
+At this moment I have no idea at all how to open the box without
+serious damages.
+Is this necessary? Could you check the July thread about the same
+device?
+https://www.redhat.com/mailman/private/video4linux-list/2008-July/msg00388.html
+https://www.redhat.com/mailman/private/video4linux-list/2008-July/msg00399.html
+
+Maybe kernel messages can help something:
+
+Nov 16 11:55:21 pvr kernel: [20768.836569] em28xx #0: found i2c device @ 0x4a [saa7113h]
+Nov 16 11:55:21 pvr kernel: [20768.842344] em28xx #0: found i2c device @ 0x60 [remote IR sensor]
+Nov 16 11:55:21 pvr kernel: [20768.853068] em28xx #0: found i2c device @ 0x86 [tda9887]
+Nov 16 11:55:21 pvr kernel: [20768.870318] em28xx #0: found i2c device @ 0xc6 [tuner (analog)]
+
+Regards
+
+Gabor
 
 --
 video4linux-list mailing list
