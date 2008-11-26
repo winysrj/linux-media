@@ -1,24 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJMcihM017165
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 17:38:44 -0500
-Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJMcWqX029774
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 17:38:32 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
-	<Pine.LNX.4.64.0811182006230.8628@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 19 Nov 2008 21:47:28 +0100
-In-Reply-To: <Pine.LNX.4.64.0811182006230.8628@axis700.grange> (Guennadi
-	Liakhovetski's message of "Tue\,
-	18 Nov 2008 20\:25\:48 +0100 \(CET\)")
-Message-ID: <873ahn8mu7.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQKR0UU015120
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 15:27:00 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQKQhFp002409
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 15:26:44 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so355295nfc.21
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:26:43 -0800 (PST)
+Message-ID: <412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+Date: Wed, 26 Nov 2008 15:26:43 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+In-Reply-To: <alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 1/2 v3] soc-camera: pixel format negotiation - core
-	support
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
+	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,28 +35,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-
-> Allocate and fill a list of formats, supported by this specific 
-> camera-host combination. Use it for format enumeration. Take care to stay 
-> backwards-compatible.
+On Wed, Nov 26, 2008 at 3:00 PM, Kiss Gabor (Bitman)
+<kissg@ssg.ki.iif.hu> wrote:
+>> Hello Gabor,
+>>
+>> Playing with the "card=" argument is probably not such a good idea.
+>> I should consider taking that functionality out, since setting to the
+>> wrong card number can damage the device (by setting the wrong GPIOs).
+>>
+>> If somebody can get me a USB trace of the device starting up under
+>> Windows, I can probably make this card work.
 >
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Dear Devin,
+>
+> We could get two USB traces (some 2-4 GB each uncompressed).
+> File http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-tv.rar shows
+> what happened during setup and the first few seconds of scanning
+> for TV channels. (Unfortunately we had no good antenna signal.)
+> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-svideo.rar is recorded
+> during setup and  shor use of S-video input.
+>
+> And http://bakacsin.ki.iif.hu/~kissg/tmp/connect-UsbSnoop.log.txt
+> is the log of USB connection.
+>
+> I hope this can provide you enough information.
+>
+> Device is ADS Tech "Instant TV USB"
+> http://www.adstech.com/Support/ProductSupport.asp?productId=USBAV-704&productName=Instant%20TV
+>
+> Regards
+>
+> Gabor
 
-So, the translation api is dead, long live user_format :)
+Hello Gabor,
 
-I'm a bit disappointed, as the things I pointed out are missing :
- - host format and sensor format association for debug purpose
-   (think about sensor developpers)
- - current format : we never know what will be done through the host by its
- pointer (I'm not thinking about end user, I'm still thinking about soc_camera
- point of view).
+I hate to admit it, but I got confused since two different people
+named "Gabor" have been sending me email in regards to different
+em28xx based devices.
 
-But anyway, that's life. My review of patch 2 will follow, this one looks fine
-(though not tested yet).
+Could you please clarify the exact model number of the device in
+question?  ADS makes multiple products, some with very similar names
+and it is important that I am focusing on the correct product.
 
---
-Robert
+Also, you can run the files through the parser.pl that Markus
+Rechberger's ships with his very useful "usbreplay" tool.  This will
+make them *much* smaller.
+
+Thanks,
+
+Devin
+
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
