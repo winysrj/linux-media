@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAI9FQR006448
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:09:15 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAAI9BH8007892
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:09:12 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so454709ugc.13
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 10:09:11 -0800 (PST)
-Message-ID: <30353c3d0811101009u195fb42du346ff3e0fb559b19@mail.gmail.com>
-Date: Mon, 10 Nov 2008 13:09:11 -0500
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0811101335170.4248@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQ5sgi9008996
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 00:54:42 -0500
+Received: from tomts20-srv.bellnexxia.net (tomts20.bellnexxia.net
+	[209.226.175.74])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQ5sTXU018093
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 00:54:29 -0500
+Received: from toip7.srvr.bell.ca ([209.226.175.124])
+	by tomts20-srv.bellnexxia.net
+	(InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP id
+	<20081126055424.QOGH1552.tomts20-srv.bellnexxia.net@toip7.srvr.bell.ca>
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 00:54:24 -0500
+From: Bill Pringlemeir <bpringle@sympatico.ca>
+To: video4linux-list@redhat.com
+Date: Wed, 26 Nov 2008 01:51:08 -0500
+Message-ID: <87fxlff09v.fsf@sympatico.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
-	<Pine.LNX.4.64.0811101335170.4248@axis700.grange>
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 5/5] pxa-camera: framework to handle camera-native and
-	synthesized formats
+Content-Type: text/plain; charset=us-ascii
+Subject: 2.6.25+ and KWorld ATSC 110 inputs.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,38 +29,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-[snip]
-> +static bool depth_supported(struct soc_camera_device *icd, int i)
-> +{
-> +       struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> +       struct pxa_camera_dev *pcdev = ici->priv;
-> +
-> +       switch (icd->formats[i].depth) {
-> +       case 8:
-> +               if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)
-> +                       return true;
-> +               return false;
-I'm not sure what the linux kernel development docs might say about
-this, but the if statement here might be unnecessary. Couldn't you
-write the following instead?
 
-return pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8;
+I use tvtime and mplayer to view ATSC and NTSC content OTA.  I have
+the same input for both and prefer not to split it due to loss.
+Anyways, with 2.6.24 series and below the drivers seems to pick the
+inputs 'properly' for my needs.  Now they don't.  I looked through the
+source and it seems that things are being structured more sanely.
 
-> +       case 9:
-> +               if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_9)
-> +                       return true;
-> +               return false;
-> +       case 10:
-> +               if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10)
-> +                       return true;
-> +               return false;
-> +       }
-> +       return false;
-> +}
+I have the following output when I set debug=1 for tuner_simple and
+run 'mplayer dvb://',
+
+tuner-simple 1-0061: using tuner params #1 (digital)
+tuner-simple 1-0061: freq = 509.00 (8144), range = 2, config = 0xc6, cb = 0x44
+tuner-simple 1-0061: Philips TUV1236D ATSC/NTSC dual in: div=8848 | buf=0x22,0x90,0xc6,0x44
+
+
+I don't get any output when running either tvtime or 'mplayer tv://'.
+Is there some userspace ioctl call that should be made to set the
+antenna input for NTSC content?  I also tried setting the atv_input
+and dtv_input values.  This didn't seem to change anything.
+
+I started getting lost in the code.  Why does simple_std_setup() check
+for V4L2_STD_ATSC and then unconditionally use atv_input?  Maybe that
+simple_set_rf_input() is undone at a later time?
+
+Thanks for any info.  Search engines are sparse with information on
+tuner_simple parameter information.  Although I expect I need some
+code that does ioctls to the tuner modules.
 
 Regards,
-
-David Ellingsworth
+Bill Pringlemeir.
 
 --
 video4linux-list mailing list
