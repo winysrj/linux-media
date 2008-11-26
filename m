@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.246])
+Received: from mta-out.inet.fi ([195.156.147.13] helo=jenni1.inet.fi)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <richard.palmer@gmail.com>) id 1L2Ypf-0005T7-3t
-	for linux-dvb@linuxtv.org; Tue, 18 Nov 2008 23:14:06 +0100
-Received: by an-out-0708.google.com with SMTP id b38so1195934ana.41
-	for <linux-dvb@linuxtv.org>; Tue, 18 Nov 2008 14:13:58 -0800 (PST)
-Message-ID: <100c0ba70811181413p57abe7daw1f2ac4a89881d2f8@mail.gmail.com>
-Date: Tue, 18 Nov 2008 22:13:58 +0000
-From: "Richard Palmer" <richard.palmer@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <seppo.ingalsuo@iki.fi>) id 1L5QKV-0007R4-UP
+	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 20:45:45 +0100
+Received: from kemuli.localdomain (84.250.94.112) by jenni1.inet.fi (8.5.014)
+	id 48FC59C701BE7F36 for linux-dvb@linuxtv.org;
+	Wed, 26 Nov 2008 21:45:38 +0200
+Received: from kettu.localdomain ([192.168.1.2])
+	by kemuli.localdomain with esmtp (Exim 4.69)
+	(envelope-from <seppo.ingalsuo@iki.fi>) id 1L5QKQ-0005Md-Ar
+	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 21:45:38 +0200
+Message-ID: <492DA760.2050401@iki.fi>
+Date: Wed, 26 Nov 2008 21:45:36 +0200
+From: Seppo Ingalsuo <seppo.ingalsuo@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Reception problems with af9015 based USB stick
+To: linux-dvb@linuxtv.org
+References: <8622.130.36.62.139.1227602799.squirrel@webmail.xs4all.nl>	<492BBFD9.50909@cadsoft.de>	<a3ef07920811250832g35f4670ft4e14c942c3eef990@mail.gmail.com>
+	<3cc3561f0811251034v7ac1a77dt7a2233a62b6a8f1c@mail.gmail.com>
+In-Reply-To: <3cc3561f0811251034v7ac1a77dt7a2233a62b6a8f1c@mail.gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,30 +26,28 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Morgan T=F8rvolt wrote:
+> In all honesty, having this as a user setting,
+> it would only need to be set once, which hardly qualify as hard work.
+>   =
 
-  After abandoning my nova-t pci card due to the never ending usb
-  disconnect/i2c problems, I thought I'd try a cheap dvb stick from
-  Maplin's (Twinhan af9015 based).
+I fully support Klaus' opinion. My motherboard bios and udev initialize =
 
-  Whilst it works well in single mode (in dual mode neither tuner
-  worked), there seem to be a lot more 'pops' in the sound and blocks
-  appearing in the picture. Are there any more tuning options I can try when
-  loading the module?. I have re-scanned the channels in MythTV but no
-  improvement. I know it's not a signal strength problem as both a set-top box
-  and the nova-t ran from the same aerial without these problems.
+my three DVB cards into "random" order that is depending whether the =
 
-  I'm running Mythbuntu on a 2.6.24-19 kernel.
+boot was cold or warm. Application level setting of dvbN device =
 
-Many thanks,
+capabilities would not work for me reliably.
 
-Richard
+Best Regards,
+Seppo
+
 
 _______________________________________________
 linux-dvb mailing list
