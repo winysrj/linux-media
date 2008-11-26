@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA51FlkL024540
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 20:15:47 -0500
-Received: from QMTA08.emeryville.ca.mail.comcast.net
-	(qmta08.emeryville.ca.mail.comcast.net [76.96.30.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA51FQw4001609
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 20:15:28 -0500
-Message-ID: <4910F39E.9060604@personnelware.com>
-Date: Tue, 04 Nov 2008 19:15:10 -0600
-From: Carl Karsten <carl@personnelware.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQKH3He010049
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 15:17:03 -0500
+Received: from smtp-vbr6.xs4all.nl (smtp-vbr6.xs4all.nl [194.109.24.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQKGosb029420
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 15:16:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Wed, 26 Nov 2008 21:16:42 +0100
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+In-Reply-To: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>, video4linux-list@redhat.com
-References: <47C90994.8040304@personnelware.com>	<20080304113834.0140884d@gaivota>
-	<490E468A.6090200@personnelware.com>	<1225675203.3116.12.camel@palomino.walls.org>	<490E6EC3.7030408@personnelware.com>
-	<1225762470.3198.23.camel@palomino.walls.org>
-In-Reply-To: <1225762470.3198.23.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Re: v4l2 api compliance test
+Content-Disposition: inline
+Message-Id: <200811262116.42364.hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>,
+	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH] Add OMAP2 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,106 +30,81 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
->>>> details: http://linuxtv.org/v4lwiki/index.php/Test_Suite#Bugs_in_Examples
->>> I'm not sure why a memory leak on abnormal termination is worrisome for
->>> you.  It looks like init_userp() allocated a bunch of "buffers", which
->>> has to happen for a program to use user pointer mode of v4l2.  The
->>> function errno_exit() doesn't bother to clean up when the VIDIOC_QBUF
->>> ioctl() call fails.  free() is only called by uninit_device().  Since
->>> the alternate flow of the program through errno_exit() to termination
->>> doesn't call free() on "buffers", you should have a process heap memory
->>> leak on error exit.
->>>
->>> Since this is userspace, a memory leak from the process heap doesn't
->>> hang around when the process terminates - no big deal.
->> Are you sure about that?
-> 
-> About the process heap, yes.
-> 
->> if I run
->> ./capture --userp -d /dev/video1
->> VIDIOC_QBUF error 22, Invalid argument
->>
->> enough I can't run the valid modes:
->>
->> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --read -d /dev/video1
->> read error 12, Cannot allocate memory
-> 
-> The capture app would output "Out of memory" if the calloc() call for
-> the --read option buffers failed.  This is some global/kernel resource
-> that has been exhausted.
+On Wednesday 26 November 2008 19:44:51 Trilok Soni wrote:
+> This patch was living at linux-omap GIT tree from long time and seem
+> to survive the testing. It is also used in N800/N810 Internet Tablet.
+> Sakari Ailus can give more information about this. I am not able to
+> submit this patch as inline one due to my git-send-email
+> configuration with Gmail.
+
+Hi Trilok,
+
+I found a few problems with this patch:
+
+1) The makefile isn't right: it compiles omap24xxcam.c and 
+omap24xxcam-dma.c as two modules, but I suspect you want only one since 
+the symbols that omap24xxcam.c needs from omap24xxcam-dma.c are not 
+exported. See e.g. the msp3400 driver in the Makefile for how to do it.
+
+2) The Kconfig is probably missing a ARCH_OMAP dependency (sounds 
+reasonable, at least), so now it also compiles for the i686 but that 
+architecture doesn't have a clk_get function.
+
+3) I was wondering whether Sakari also wants to add a Signed-off-by 
+line? Looking at the comments it seems that he was involved as well.
+
+4) I get a bunch of compile warnings (admittedly when compiling for 
+i686) that you might want to look at. Compiled against the 2.6.27 
+kernel with gcc-4.3.1. It might be bogus since I didn't compile for the 
+omap architecture.
+
+  CC [M]  /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.o
+In file included 
+from /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.c:42:
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_in':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:549: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_out':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:555: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_merge':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:563: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:565: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+  CC [M]  /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.o
+In file included 
+from /home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c:32:
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_in':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:549: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_out':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:555: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h: In 
+function 'omap24xxcam_reg_merge':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:563: warning: passing 
+argument 1 of 'readl' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam.h:565: warning: passing 
+argument 2 of 'writel' makes pointer from integer without a cast
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c: In 
+function 'omap24xxcam_dma_hwinit':
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c:357: warning: 
+passing argument 1 of '_spin_lock_irqsave' discards qualifiers from 
+pointer target type
+/home/hans/work/src/v4l/v4l-dvb/v4l/omap24xxcam-dma.c:361: warning: 
+passing argument 1 of '_spin_unlock_irqrestore' discards qualifiers 
+from pointer target type
 
 
-> 
-> 
->> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --mmap -d /dev/video1
->> mmap error 12, Cannot allocate memory
-> 
-> Ditto for this.  This message can only happen at the end of init_mmap()
-> when the mmap call fails.  Thus an allocation of some sort of kernel
-> global resource/space failed.
+Regards,
 
-
-so more likely a driver problem?
-
-> 
-> 
-> I don't know what could be exhausting those kernel resources when using
-> the userp option.  The failed ioctl()'s calls to the vivi driver would
-> be a place to start looking.
-> 
-> 
->> although free still shows lots:
->>
->> juser@dhcp186:~/vga2usb/v4l.org/examples$ free
->>              total       used       free     shared    buffers     cached
->> Mem:       1033388     282340     751048          0      31012      98208
->> -/+ buffers/cache:     153120     880268
->> Swap:       859436          0     859436
->>
-> 
-> Perhaps you could look at /proc/meminfo between runs and see if
-> something is gradually being exhausted.  Vmalloc address space
-> exhaustion is what I'd look for.
-> 
-
-I ran this script:
-
-http://linuxtv.org/v4lwiki/index.php/Test_Suite#memory_leak_2
-
-and put all the meminfo's into a spreadsheet:
-
-http://spreadsheets.google.com/ccc?key=pIfz0wOzPtW1-oZkXXbvcLA&hl=en
-
-I don't see any columns growing or shrinking, so not sure what to make of it.
-
-> 
-> 
->>> You could
->>> equally gripe that the program didn't close it's file descriptors with
->>> the driver on errno_exit() - but process termination cleans those up
->>> too.
->> I am personally interested in anything that makes it harder for me to determine
->> if a driver is misbehaving.
-> 
-> Ah, eliminating unknowns.  OK.
-> 
-
-bingo.
-
-> 
->> In addition, I would think that the API's example code should be a squeaky clean
->> example of how real code should be written, given it is often used as a starting
->> point.  If problems are identified, they should at least be noted, better yet
->> removed.
-> 
-> I can't say I disagree. 
-> 
-
-so assuming the problem is with capture.c, who do I tell?  (i know where to send
-anything else it might be: v4l list.
-
-Carl K
+	Hans
 
 --
 video4linux-list mailing list
