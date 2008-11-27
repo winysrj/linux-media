@@ -1,24 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3L0q5O022930
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 16:00:52 -0500
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA3L0bFx027306
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 16:00:38 -0500
-Received: from tervel.nabble.com ([192.168.236.150])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <bounces@n2.nabble.com>) id 1Kx6XN-0000lu-AB
-	for video4linux-list@redhat.com; Mon, 03 Nov 2008 13:00:37 -0800
-Message-ID: <1225746037211-1451395.post@n2.nabble.com>
-Date: Mon, 3 Nov 2008 13:00:37 -0800 (PST)
-From: Colin Brace <cb@lim.nl>
-To: video4linux-list@redhat.com
-In-Reply-To: <490F4ABB.1050608@hhs.nl>
+Date: Fri, 28 Nov 2008 00:00:05 +0800
+From: Chia-I Wu <olvaffe@gmail.com>
+To: Erik =?iso-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
+Message-ID: <20081127160005.GA4097@m500.domain>
+References: <492B15E1.2080207@gmail.com> <20081125082002.GC18787@m500.domain>
+	<492E7906.905@redhat.com> <20081127105931.GD19421@m500.domain>
+	<62e5edd40811270355id4e856g1a8fb53f73455a39@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-References: <490F2730.9090703@lim.nl> <490F4ABB.1050608@hhs.nl>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Subject: Re: [patch] xawtv 'webcam' & uvcvideo webcam: ioctl error
+In-Reply-To: <62e5edd40811270355id4e856g1a8fb53f73455a39@mail.gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, video4linux-list@redhat.com,
+	noodles@earth.li, qce-ga-devel@lists.sourceforge.net
+Subject: Re: Please test the gspca-stv06xx branch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,56 +25,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Thu, Nov 27, 2008 at 12:55:21PM +0100, Erik Andr�n wrote:
+> 2008/11/27 Chia-I Wu <olvaffe@gmail.com>:
+> > On Thu, Nov 27, 2008 at 11:40:06AM +0100, Hans de Goede wrote:
+> >> Chia-I Wu, I'm afraid this might conflict with your HDCS work, as it is
+> >> against Erik's latest hg tree, so without your patches. I noticed you
+> >> were defining your own read/write register functions which really seems
+> >> the wrong thing todo, hopefully with my new functions you can use those
+> >> directly, or ?
+> > IMO, it is almost always a good thing that each driver defines its own
+> > wrapping reg read/write functions.  It is less confusing and saves
+> > typings.  It makes the sub-driver loosely coupled with the main driver.
+> > And, the compiler will do the right thing, and optimize them out if
+> > appropriate.
+> I agree with Hans on this matter. It convolutes the driver and gives
+> no real gain.
+> I've just been converting the gspca-m5602 to use one set of read /
+> write functions instead of sensor specific ones and it removes a large
+> amount of code.
+> What the compiler does is one thing but when dealing with non
+> performance critical code paths, code simplicity is more important.
+It is the opposite.  What compiler does good to us is that, instead of
+macros, one could define functions.
 
+Other than hdcs_reg_write_seq, you may think the others as simple as,
+for example,
 
-Hans de Goede wrote:
-> 
-> I think I do, xawtv contains a few v4l2 handling bugs. This patch fixes
-> them 
-> and most likely fixes your issue:
-> http://cvs.fedoraproject.org/viewvc/devel/xawtv/xawtv-3.95-fixes.patch?revision=1.1
-> 
+#define hdcs_reg_write(hdcs, reg, val) \
+	stv06xx_write_sensor_b(hdcs->sd, reg, val)
 
-Thanks, Hans. I downloaded and applied that patch to the source. However
-when I go to compile it, 'make' returns an error:
+There should be no complication, and the significance here is that it
+gives clear implication that there is no word write
+(stv06xx_write_sensor_w) to this device, even though it is available in
+the stv06xx.h.
 
-[...]
-console/fs.h:2:20: error: FSlib.h: No such file or directory
-In file included from console/fbtv.c:44:
-console/fs.h:6: error: expected specifier-qualifier-list before
-‘FSXFontInfoHeader’
-console/fs.h:58: error: expected declaration specifiers or ‘...’ before
-‘FSXCharInfo’
-console/fs.h:62: error: expected ‘)’ before ‘*’ token
-console/fbtv.c: In function ‘text_out’:
-console/fbtv.c:339: error: ‘struct fs_font’ has no member named ‘height’
-console/fbtv.c:340: error: ‘struct fs_font’ has no member named ‘fontHeader’
-console/fbtv.c:341: warning: pointer targets in passing argument 4 of
-‘fs_puts’ differ in signedness
-console/fbtv.c: In function ‘text_width’:
-console/fbtv.c:347: warning: pointer targets in passing argument 2 of
-‘fs_textwidth’ differ in signedness
-console/fbtv.c: In function ‘do_capture’:
-console/fbtv.c:405: error: ‘struct fs_font’ has no member named ‘height’
-console/fbtv.c:406: error: ‘struct fs_font’ has no member named ‘height’
-console/fbtv.c:443: error: ‘struct fs_font’ has no member named ‘height’
-console/fbtv.c:444: error: ‘struct fs_font’ has no member named ‘height’
-console/fbtv.c: In function ‘main’:
-console/fbtv.c:755: error: ‘struct fs_font’ has no member named ‘height’
-console/fbtv.c:773: error: ‘struct fs_font’ has no member named ‘width’
-console/fbtv.c:813: warning: pointer targets in assignment differ in
-signedness
-make: *** [console/fbtv.o] Error 1
+IMO, there should be per-sensor I/O functions.  And the implementations
+should be as simple as wrappers (i.e., macros) to the generic ones
+provided by the bridge.  Sending exotic usb control messages is the job
+of the bridge driver, not the sensor driver's.
 
-It looks like a file called fslib.h is missing. Neither yum nor Google turn
-up a package by this name, although there are a couple of references on the
-Web to this file. Any idea what I am missing?
-
+The purpose for hdcs_reg_write_seq is a little bit trickier.  According
+to the datasheet, HDCS family uses a serial protocol, instead of i2c, to
+communicate with STV06xx.  When the first bit of HDCS_ICTRL is cleared,
+it allows sequential writes: The beginning address is given once,
+followed by a set of values.  The address will be automatically
+incremented.  The prototype of hdcs_reg_write_seq models this hardware
+characteristic, which might be something not shared by every sensor.
 
 -- 
-View this message in context: http://n2.nabble.com/xawtv-%27webcam%27---uvcvideo-webcam%3A-ioctl-error-tp1450204p1451395.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
-
+Regards,
+olv
 
 --
 video4linux-list mailing list
