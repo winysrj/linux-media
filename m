@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA31JOPF024004
-	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 20:19:24 -0500
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA31JAKq026734
-	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 20:19:10 -0500
-From: Andy Walls <awalls@radix.net>
-To: Carl Karsten <carl@personnelware.com>
-In-Reply-To: <490E468A.6090200@personnelware.com>
-References: <47C90994.8040304@personnelware.com>
-	<20080304113834.0140884d@gaivota> <490E468A.6090200@personnelware.com>
-Content-Type: text/plain
-Date: Sun, 02 Nov 2008 20:20:03 -0500
-Message-Id: <1225675203.3116.12.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARENQUv005052
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:23:26 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAREMsnN004390
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:23:10 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so225393qwe.39
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 06:22:54 -0800 (PST)
+Date: Thu, 27 Nov 2008 12:22:49 -0200
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <20081127122249.7063d255@gmail.com>
+In-Reply-To: <20081127074139.25d2c576@pedra.chehab.org>
+References: <200811270832.22341.hverkuil@xs4all.nl>
+	<20081127074139.25d2c576@pedra.chehab.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: v4l2 api compliance test
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: RFC: drop support for kernels < 2.6.22
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,47 +30,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 2008-11-02 at 18:32 -0600, Carl Karsten wrote:
-> Mauro Carvalho Chehab wrote:
-> > On Sat, 01 Mar 2008 01:45:24 -0600
-> > Carl Karsten <carl@personnelware.com> wrote:
-> >
+Hello,
+
+On Thu, 27 Nov 2008 07:41:39 -0200
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+
+> On Thu, 27 Nov 2008 08:32:22 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+> > Hi all,
 > > 
-> > Please, feel free to improve the tools. Unfortunately, nobody yet had time to
-> > dedicate on improving the testing tools.
+> > It been my opinion for quite some time now that we are too generous
+> > in the number of kernel versions we support. I think that the
+> > benefits no longer outweight the effort we have to put in.
+> > 
+> > This is true in particular for the i2c support since that changed a
+> > lot over time. Kernel 2.6.22 is a major milestone for that since it 
+> > introduced the new-style i2c API.
 > 
-> These 2 issues are thwarting my efforts to write my tester:
-> 
-> 1. memory leak:
-> valgrind ./capture --userp -d /dev/video1
-> ==17153== malloc/free: in use at exit: 2,457,632 bytes in 5 blocks.
-> 
-> 2. capabilities mismatch:
-> ./capture --userp -d /dev/video1
-> VIDIOC_QBUF error 22, Invalid argument
-> 
-> details: http://linuxtv.org/v4lwiki/index.php/Test_Suite#Bugs_in_Examples
+> I prefer to keep backward compat with older kernels. Enterprise
+> distros like RHEL is shipped with older kernels (for example RHEL5
+> uses kernel 2.6.18). We should support those kernels.
 
-I'm not sure why a memory leak on abnormal termination is worrisome for
-you.  It looks like init_userp() allocated a bunch of "buffers", which
-has to happen for a program to use user pointer mode of v4l2.  The
-function errno_exit() doesn't bother to clean up when the VIDIOC_QBUF
-ioctl() call fails.  free() is only called by uninit_device().  Since
-the alternate flow of the program through errno_exit() to termination
-doesn't call free() on "buffers", you should have a process heap memory
-leak on error exit.
-
-Since this is userspace, a memory leak from the process heap doesn't
-hang around when the process terminates - no big deal.  You could
-equally gripe that the program didn't close it's file descriptors with
-the driver on errno_exit() - but process termination cleans those up
-too.
-
-Regards,
-Andy
-
-> Carl K
-
+Agreed. I'm using 2.6.18 kernel on some of my machines.
+ 
+Cheers,
+Douglas
 
 --
 video4linux-list mailing list
