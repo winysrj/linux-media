@@ -1,16 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qb-out-0506.google.com ([72.14.204.237])
+Received: from mailhost.terions.de ([81.16.53.101] helo=pm1.terions.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nullsleep247@googlemail.com>) id 1KxRy2-0000nJ-JX
-	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 20:53:36 +0100
-Received: by qb-out-0506.google.com with SMTP id e11so1662606qbe.25
-	for <linux-dvb@linuxtv.org>; Tue, 04 Nov 2008 11:53:29 -0800 (PST)
-From: Alan_beaven <nullsleep247@googlemail.com>
+	(envelope-from <alles@bredde.de>) id 1L5pPS-0007Yi-PT
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 23:32:32 +0100
+Message-ID: <492F1FF4.7030600@bredde.de>
+Date: Thu, 27 Nov 2008 23:32:20 +0100
+From: br <alles@bredde.de>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Date: Tue, 04 Nov 2008 19:53:20 +0000
-Message-Id: <1225828400.21939.4.camel@Nulltop>
-Mime-Version: 1.0
-Subject: [linux-dvb] a577 and a306, willing to run tests to get it working
+Subject: [linux-dvb] Cinergy Hybrid XE with tm6010 chip
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,13 +22,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Well i have an AVerMedia AVerTV Hybrid Express (A577) ( wiki link
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_(A577) ) or does this all ready work?
+Hi,
+I've got a Cinergy Hybrid XE DVB-T USB Stick, which has got a tm6010
+chip inside (I opened the case just to get sure). Quite fast I realized,
+that there are no stable Linux drivers out there, so i tried the
+unstable one.
 
-i am all so getting a avermedia a306
-( http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=376&SI=true ) this doesnt seem like it will work under linux, i will post detals about it when i get the card to help people.
- 
+So I checked out the repo at http://linuxtv.org/hg/~mchehab/tm6010/ and
+compiled (without DVB), installed, loaded the module and then inserted
+the stick and well.. nothing happened, because the driver did not knew
+about my device. To fix this, i added the line
+{ USB_DEVICE(0x0ccd, 0x0086), .driver_info = TM6010_BOARD_GENERIC },
+to file tm6000-cards.c (my lsusb output is 'Bus 008 Device 004: ID
+0ccd:0086 TerraTec Electronic GmbH'). I do not know, whether
+TM6010_BOARD_GENERIC is the correct one, but for me it seemed to be the
+best solution.
+Afterward, the driver recognized my stick and began to work:
+http://pastebin.com/f79722ed2 . In short: The firmware's missing. So I
+extracted the firmware with help of a python script I found on the
+internet and put it to the right place. Here's the (long) result:
+http://pastebin.com/f6c853b43
 
+I'm not surprised that my journey has failed, because I do not really
+know what my added line does (good old try'n'error), so my question:
+Where to go from here?
+
+Mark
 
 _______________________________________________
 linux-dvb mailing list
