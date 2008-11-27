@@ -1,20 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA77BJSw024710
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 02:11:19 -0500
-Received: from smtp-out113.alice.it (smtp-out113.alice.it [85.37.17.113])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA77AXr3021745
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 02:10:34 -0500
-Date: Fri, 7 Nov 2008 08:10:20 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: video4linux-list@redhat.com
-Message-Id: <20081107081020.736ce3ad.ospite@studenti.unina.it>
-In-Reply-To: <Pine.LNX.4.64.0811070040130.8681@axis700.grange>
-References: <1226012656-17334-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0811070040130.8681@axis700.grange>
-Mime-Version: 1.0
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] pxa_camera: Fix YUV format handling.
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Date: Thu, 27 Nov 2008 17:15:30 +0100
+References: <13858.62.70.2.252.1227797591.squirrel@webmail.xs4all.nl>
+	<200811271619.23820.laurent.pinchart@skynet.be>
+In-Reply-To: <200811271619.23820.laurent.pinchart@skynet.be>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811271715.30588.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, mchehab@redhat.com
+Subject: Re: [PATCH 2/2] v4l2: Add camera privacy control.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,74 +20,78 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2080988644=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---===============2080988644==
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg="PGP-SHA1";
-	boundary="Signature=_Fri__7_Nov_2008_08_10_20_+0100_M9iK_pMLA0ZDoU3o"
-
---Signature=_Fri__7_Nov_2008_08_10_20_+0100_M9iK_pMLA0ZDoU3o
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 7 Nov 2008 00:52:12 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-
->=20
-> So, let's just get the naming consistent. Are you also planning to update=
-=20
-> your "Add new pixel format VYUY 16 bits wide" patch as requested by Hans=
-=20
-> Verkuil? Then you could put all these patches in a patch series to make i=
-t=20
-> easier to manage them:-)
->=20
-> Also, I would _at the very least_ give credit to Antonio Ospite for=20
-> reporting the problem and suggesting a first fix in your patch for=20
-> mt9m111. Eventually we would also like to have a Tested-by from him.
+On Thursday 27 November 2008 16:19:23 Laurent Pinchart wrote:
+> On Thursday 27 November 2008, Hans Verkuil wrote:
+> > > Hi Hans,
+> > >
+> > > On Wednesday 26 November 2008, Hans Verkuil wrote:
+> > >> On Wednesday 26 November 2008 01:05:02 Laurent Pinchart wrote:
+> > >> > On Tuesday 04 November 2008, Hans Verkuil wrote:
+> > >
+> > > [snip]
+> > >
+> > >> > Regarding v4l2_ctrl_query_fill_std(), the UVC specification
+> > >> > doesn't specify boundaries for most controls so I can't fill
+> > >> > the required values.
+> > >>
+> > >> How is that handled in practice? If you have an integer control
+> > >> without min-max values, then how can you present that to the
+> > >> user in a control panel?
+> > >
+> > > UVC-compliant devices can be queried for their boundaries at
+> > > runtime.
+> >
+> > Ah, now I understand. Just fill in 0 to 255 as the default min/max
+> > values. They'll be overridden in any case for UVC.
 >
+> Ok.
+>
+> > >> A simple 0-15 control can be represented by e.g. a slider, but
+> > >> not a 0-INT_MAX control.
+> > >
+> > > Btw, speaking of sliders, I believe the V4L2_CTRL_FLAG_SLIDER was
+> > > a mistake in
+> > > the first place.
+> >
+> > Why? When I made the qv4l2 control panel it was the one thing that
+> > was missing. Usually it is pretty obvious what type of control is
+> > best represented as a slider (volume, brightness, hue, etc) and if
+> > you are not sure, then you can leave it out. It prevents
+> > applications from having to keep a hardcoded list of controls that
+> > should be shown as a slider instead of a numeric input field.
+>
+> Because, in my opinion, drivers shouldn't care how controls are
+> displayed to the user. Even though it would achieve the same result,
+> a different semantic such as V4L2_CTRL_FLAG_EXACT (or its opposite
+> V4L2_CTRL_FLAG_FUZZY) to signal that a control requires (or doesn't
+> require) an exact value (no slider) would have been better.
+>
+> Applications might want to use dials instead of sliders, and the
+> following pseudo-code looks a bit weird :-)
+>
+> if (ctrl & V4L2_CTRL_FLAG_SLIDER)
+> 	create_widget(DIAL_BUTTON);
+> else
+> 	create_widget(LINE_EDIT);
 
-If you can provide a patch series it will be easier to test for me.
+Ah, so it's the name you have a problem with, not the flag as such. Hmm, 
+you have a point, it can be improved upon. Luckily the spec describes 
+the flag as: "A hint that this control is best represented as a 
+slider-like element in a user interface." A dial is slider-like, so I'm 
+OK with it :-)
 
-Thanks,
-   Antonio Ospite
+But you are correct, the name is not right. I wish it was caught when I 
+proposed this at the time.
 
---=20
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
+Regards,
 
-  Web site: http://www.studenti.unina.it/~ospite
-Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
-
---Signature=_Fri__7_Nov_2008_08_10_20_+0100_M9iK_pMLA0ZDoU3o
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkkT6dwACgkQ5xr2akVTsAEjMwCeP5dTZZo9Kid4cuGNV2d7wgXk
-s/EAn1OuksTYUhYgTUUUjuKuS6VMneW6
-=mLR/
------END PGP SIGNATURE-----
-
---Signature=_Fri__7_Nov_2008_08_10_20_+0100_M9iK_pMLA0ZDoU3o--
-
-
---===============2080988644==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+         Hans
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============2080988644==--
