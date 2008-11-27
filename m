@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KwVNj-0002uZ-Oh
-	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 06:20:13 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so654127eya.17
-	for <linux-dvb@linuxtv.org>; Sat, 01 Nov 2008 22:20:08 -0700 (PDT)
-Date: Sun, 2 Nov 2008 06:20:00 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: linux-dvb@linuxtv.org
-Message-ID: <alpine.DEB.2.00.0811020532490.14582@ybpnyubfg.ybpnyqbznva>
+	(envelope-from <artem@moelleritberatung.de>) id 1L5g5U-0004Aw-DR
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 13:35:17 +0100
+Date: Thu, 27 Nov 2008 13:35:05 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: Udo Richter <udo_richter@gmx.de>
+Message-ID: <20081127123505.GI13103@titan.makhutov-it.de>
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1274729070-1225603203=:14582"
-Subject: [linux-dvb] Updates to scanfiles for Germany in November
+Content-Disposition: inline
+In-Reply-To: <492DC5F5.3060501@gmx.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,91 +21,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi,
 
---8323328-1274729070-1225603203=:14582
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+On Wed, Nov 26, 2008 at 10:56:05PM +0100, Udo Richter wrote:
+> Artem Makhutov wrote:
+> > Klaus Schmidinger schrieb:
+> >> The attached patch adds a capability flag that allows an application
+> >> to determine whether a particular device can handle "second generation
+> >> modulation" transponders. 
+> > Wouldn't it be better to add something like this:
+> > 
+> > FE_CAN_8PSK
+> > FE_CAN_16APSK
+> > FE_CAN_32APSK
+> 
+> Without knowing enough about the differences between -S and -S2 tuners 
+> and whatever cards are on the market, I'll try to step back and give 
+> this my 2c point of view:
+> 
+> What does a DVB app need to know? A DVB app probably just needs to know 
+> "What devices are capable of tuning to channel XYZ?". The API could 
+> answer this the same way as it would tune to channel XYZ, just without 
+> actually doing it. Try-before-you-buy.
+> 
+> This would also give maximum flexibility to the driver, as a device that 
+> supports some -S2 features could offer these, or a device that has known 
+> bugs on some tuning modes could also deny these. Non-standard modes 
+> could be offered without requiring yet another FE_CAN_XYZ.
 
-Moin moin,
+If I understand you correct you would like to call an function like:
 
-During the month of November 2008, there will be some changes
-made in several areas of Germany to the DVB-T transmitters,
-including switching over some remaining analogue transmitters,
-but also some shuffling of frequencies to agree to the Geneve
-2006 international frequency coordination.
+bool ItWorks = DoFakeTune(a lot of Paramters);
 
-Before the end of this (coming) week, on 05.11.2008, one existing
-scanfile for Stuttgart (Baden-Wuerttemberg) will be completely
-incorrect.  For this, I submit a new scanfile that should
-replace the existing one sometime this week -- exactly when
-will determine what sort of period of limbo users will
-suffer, depending how they get their scanfile...
+Sure, this would work, but it would make the implementation more
+difficult for both the driver and the application.
 
-In any case, also affected is Heidelberg, for which there
-exists no scanfile.  Therefore, I've decided to create an
-initial scanfile for all of Baden-Wuerttemberg to cover
-all frequencies as of 05.11, and to address the issue of
-additional nearby frequencies which can be received -- near
-Heidelberg, one likely also sees signals from Hessen and
-Rheinland-Pfalz, at least.
+So in this case the application would have to call DoFakeTune() for a lot of
+different modulations, FEC's and so on and interprete the results.
 
-I hope to post that much longer scanfile in time for the
-frequency changes, and try to do the same for other
-Bundeslaender (Rheinland-Pfalz a week later; Bayern near
-the end of the month).
+The application must then call
 
-Even with such an all-encompassing scanfile, I still think
-de-Stuttgart should continue to exist, being a large city
-with its own transmitter and no nearby transmitters with any
-additional programming, for people who know they are in
-Stuttgart but have no idea what Bundesland it is.
+DoFakeTune(DVB-S,FEC_AUTO);
+DoFakeTune(DVB-S,FEC_3_4);
+DoFakeTune(DVB-S,FEC_2_4);
+DoFakeTune(DVB-S,FEC_4_5);
+DoFakeTune(DVB-S2,FEC_AUTO);
+[...]
+DoFakeTune(DVB-T,FEC_XYZ);
+DoFakeTune(DVB-T2,FEC_XYZ);
 
-However, de-Baden-Baden, de-Freiburg, de-Loerrach, and
-de-Ravensburg should disappear, being better served (in
-my opinion) by the combined all-encompassing all-dancing
-regional scanfile...
+This would not make much fun and this could be achieved much easier using some kind of capability flags.
 
-As I'll submit it, the regional scanfile will by default
-scan all 16 frequencies (one of which will be obsolete
-after some months) used by all trasmitters, and will
-allow power-users to customise it to uncomment nearby
-frequencies, assuming they know where they are.  If,
-though, it's better to by default scan all possibly
-nearby frequencies, be they from Hessen or Austria,
-I could uncomment them, roughly tripling frequencies
-and greatly increasing scan time.  Your call...
-
-
-thanks,
-barry bouwsma
-
---8323328-1274729070-1225603203=:14582
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=de-Stuttgart
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.DEB.2.00.0811020620000.14582@ybpnyubfg.ybpnyqbznva>
-Content-Description: New frequencies 05.Nov Stuttgart
-Content-Disposition: attachment; filename=de-Stuttgart
-
-IyBEVkItVCBTdHV0dGdhcnQgKGZyb20gMDUuMTEuMjAwOCkNCiMgYnkgSm9l
-cmcgTWFyaGVua2UgKGpvZXJnLm1hcmhlbmtlQHVuaS11bG0uZGUpDQoNClQg
-NDkwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUJIyBL
-MjMgWkRGbW9iaWwNClQgNTE0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYg
-OGsgMS80IE5PTkUJIyBLMjYgQVJEDQpUIDcwNjAwMDAwMCA4TUh6IDIvMyBO
-T05FIFFBTTE2IDhrIDEvNCBOT05FCSMgSzUwIFNXUg0K
-
---8323328-1274729070-1225603203=:14582
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards, Artem
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---8323328-1274729070-1225603203=:14582--
