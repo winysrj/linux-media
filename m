@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARANQPK021522
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 05:23:26 -0500
-Received: from smtp-vbr1.xs4all.nl (smtp-vbr1.xs4all.nl [194.109.24.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARANDpT002935
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 05:23:14 -0500
-Message-ID: <11380.62.70.2.252.1227781392.squirrel@webmail.xs4all.nl>
-Date: Thu, 27 Nov 2008 11:23:12 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAR7Nbt4011662
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 02:23:37 -0500
+Received: from qb-out-0506.google.com (qb-out-0506.google.com [72.14.204.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAR7NKGC003766
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 02:23:20 -0500
+Received: by qb-out-0506.google.com with SMTP id c8so845821qbc.7
+	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 23:23:20 -0800 (PST)
+Message-ID: <5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
+Date: Thu, 27 Nov 2008 12:53:19 +0530
+From: "Trilok Soni" <soni.trilok@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>,
+	"Sakari Ailus" <sakari.ailus@nokia.com>
+In-Reply-To: <200811262116.42364.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: RFC: drop support for kernels < 2.6.22
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+	<200811262116.42364.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com,
+	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Subject: Re: [PATCH] Add OMAP2 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,59 +33,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> On Thu, 27 Nov 2008 08:32:22 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->> Hi all,
->>
->> It been my opinion for quite some time now that we are too generous in
->> the number of kernel versions we support. I think that the benefits no
->> longer outweight the effort we have to put in.
->>
->> This is true in particular for the i2c support since that changed a lot
->> over time. Kernel 2.6.22 is a major milestone for that since it
->> introduced the new-style i2c API.
->
-> I prefer to keep backward compat with older kernels. Enterprise distros
-> like
-> RHEL is shipped with older kernels (for example RHEL5 uses kernel 2.6.18).
-> We
-> should support those kernels.
-
-Is RHEL (or anyone else for that matter) actually using our tree? I never
-see any postings about problems or requests for these old kernels on the
-v4l list.
-
-Do you know if and how other subsystems handle this?
+Hi Hans,
 
 >
->> In order to keep the #ifdefs to a minimum I introduced the
->> v4l2-i2c-drv.h and v4l2-i2c-drv-legacy.h headers. These make sense when
->> used in the v4l-dvb tree context, but when they are stripped and used
->> in the actual kernel source they look very weird.
+> 1) The makefile isn't right: it compiles omap24xxcam.c and
+> omap24xxcam-dma.c as two modules, but I suspect you want only one since
+> the symbols that omap24xxcam.c needs from omap24xxcam-dma.c are not
+> exported. See e.g. the msp3400 driver in the Makefile for how to do it.
+
+I will make this change.
+
 >
-> We may use a different approach for the above files. For example, we may
-> include the headers just for older kernels, like we did in the past with
-> i2c
-> backward compat with kernel 2.4. gentree can easily remove a #include line
-> from
-> the upstream patch.
+> 2) The Kconfig is probably missing a ARCH_OMAP dependency (sounds
+> reasonable, at least), so now it also compiles for the i686 but that
+> architecture doesn't have a clk_get function.
 
-You either using these headers, or you start using lots of #ifdefs in each
-i2c driver. There is unfortunately no easy solution to this (I really
-tried at the time). Dropping pre-2.6.22 support will make it feasible to
-drop these headers. There would still be a few #ifdefs, but it will be
-acceptable.
+I will add this dependency.
 
-If you know of a distro or big customer that is actually using v4l-dvb on
-old kernels, then I think we should keep it, but otherwise it is my
-opinion that it is not worth the (substantial) hassle. I also have my
-doubts about people using enterprise distros together with v4l. Doesn't
-seem very likely to me.
+>
+> 3) I was wondering whether Sakari also wants to add a Signed-off-by
+> line? Looking at the comments it seems that he was involved as well.
 
-Regards,
+I CCed from the first e-mail, so that he can review and give
+Signed-off-by to this patch.
 
-       Hans
+>
+> 4) I get a bunch of compile warnings (admittedly when compiling for
+> i686) that you might want to look at. Compiled against the 2.6.27
+> kernel with gcc-4.3.1. It might be bogus since I didn't compile for the
+> omap architecture.
+
+I will update my toolchain to gcc-4.3.x for ARM and see if it
+generates the warnings like below. But I think we are fine once we add
+ARCH_OMAP dependency to this driver.
+
+Thanks for the review comments. I will resubmit the patch.
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
 
 --
 video4linux-list mailing list
