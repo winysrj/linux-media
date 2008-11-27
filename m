@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from portal.beam.ltd.uk ([62.49.82.227] helo=beam.beamnet)
+Received: from nf-out-0910.google.com ([64.233.182.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <terry1@beam.ltd.uk>) id 1L3Tct-00022y-E7
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 11:52:40 +0100
-Message-ID: <492692D2.2000009@beam.ltd.uk>
-Date: Fri, 21 Nov 2008 10:52:02 +0000
-From: Terry Barnaby <terry1@beam.ltd.uk>
+	(envelope-from <user.vdr@gmail.com>) id 1L5kWz-0004z7-59
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 18:20:00 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so642612nfb.11
+	for <linux-dvb@linuxtv.org>; Thu, 27 Nov 2008 09:19:53 -0800 (PST)
+Message-ID: <a3ef07920811270919t77c40c0cv64c96675ce147a5@mail.gmail.com>
+Date: Thu, 27 Nov 2008 09:19:53 -0800
+From: "VDR User" <user.vdr@gmail.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <1227799293.5677.10.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Terry Barnaby <terry1@beam.ltd.uk>
-References: <492568A2.4030100@beam.ltd.uk> <492691B9.1080809@beam.ltd.uk>
-In-Reply-To: <492691B9.1080809@beam.ltd.uk>
-Content-Type: multipart/mixed; boundary="------------030308020104080607060007"
+Content-Disposition: inline
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de>
+	<20081127123505.GI13103@titan.makhutov-it.de>
+	<a3ef07920811270608v12999195k533d552fd059f24@mail.gmail.com>
+	<1227799293.5677.10.camel@palomino.walls.org>
 Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [PATCH] Take 2: Re: Twinhan VisionPlus DVB-T Card not
- working
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,91 +26,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------030308020104080607060007
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Thu, Nov 27, 2008 at 7:21 AM, Andy Walls <awalls@radix.net> wrote:
+> On Thu, 2008-11-27 at 06:08 -0800, VDR User wrote:
+>> Does anyone here actually disagree that the approach multiproto takes
+>> is a great solution that should be adopted (if possible)?
+>
+> Does anyone here disagree that the above question is a troll?
+>
+> My point is that silence on internet mailing lists is not concurrence.
+>
+> This is especially the case if people are trying to avoid conflict by
+> not reacting to people trolling for conflict.
 
-Terry Barnaby wrote:
-> Terry Barnaby wrote:
->> Hi,
->>
->> I am having a problem with the latest DVB drivers.
->> I have a Twinhan VisionPlus DVB-T card (and other DVB cards) in my
->> MythTv server running Fedora 8. This is running fine
->> with the Fedora stock kernel: 2.6.26.6-49.fc8.
->>
->> However, I have now added a Hauppauge DVB-S2 and so have been
->> trying the latest DVB Mercurial DVB tree.
->> This compiles and installs fine and the two DVB-T cards and the
->> new DVB-S card are recognised and has /dev/dvb entries.
->> The first DVB-T card, a Twinhan based on the SAA7133/SAA7135
->> works fine but the Twinhan VisionPlus, which is Bt878 will not
->> tune in.
->>
->> Any ideas ?
->> Has there been any recent changes to the Bt878 driver that could
->> have caused this ?
->>
-> 
-> I have tracked this down to a bug in the bt8xx/dst frontend.
-> It appears that the front end tuning algorithm number as used in
-> dvb_frontend.c has changed format but the default setting in
-> bt8xx/dst has not been updated to match.
-> 
-> This patch sets the default algorithm to be software tuning as,
-> I believe, was the original setting. However, I wonder if
-> it should be set to use hardware tuning by default ...
-> 
-> 
-> Cheers
-> 
-> 
-> Terry
-> 
-This is a better patch as it describes the integer values
-that can be used as options.
+I hope you don't expect to be taken seriously after your absurd
+comment.  This conversation is about addressing and finding a solution
+to a problem.  I'm not even the person who originally brought up the
+solution used in multiproto but as far as I can see, it does seem to
+be a great solution so I question why that method shouldn't be
+adopted.
 
-Cheers
+It's ridiculous I need to point any of this out to you but one
+possible reason is that _you_ are in fact the one trolling here.
+Afterall, the only posting you've made has absolutely nothing to do
+with the subject, while all of mine do.  Please contribute something
+relevant or find some other thread to infect.
 
-
-Terry
-
---------------030308020104080607060007
-Content-Type: text/x-patch;
- name="v4l-dvb.beam.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="v4l-dvb.beam.patch"
-
-diff -r 5dc4a6b381f6 linux/drivers/media/dvb/bt8xx/dst.c
---- a/linux/drivers/media/dvb/bt8xx/dst.c	Wed Nov 19 13:01:33 2008 -0200
-+++ b/linux/drivers/media/dvb/bt8xx/dst.c	Fri Nov 21 10:50:00 2008 +0000
-@@ -38,9 +38,9 @@ module_param(dst_addons, int, 0644);
- module_param(dst_addons, int, 0644);
- MODULE_PARM_DESC(dst_addons, "CA daughterboard, default is 0 (No addons)");
- 
--static unsigned int dst_algo;
-+static unsigned int dst_algo = DVBFE_ALGO_SW;
- module_param(dst_algo, int, 0644);
--MODULE_PARM_DESC(dst_algo, "tuning algo: default is 0=(SW), 1=(HW)");
-+MODULE_PARM_DESC(dst_algo, "tuning algo: default is 2=DVBFE_ALGO_SW (options: 1=DVBFE_ALGO_HW)");
- 
- #define HAS_LOCK		1
- #define ATTEMPT_TUNE		2
-
---------------030308020104080607060007
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+And by the way, most of us have accepted the outcome of the
+s2api/multiproto controversy.  Maybe it's about time you find a way to
+move on as well.  Good luck to you.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------030308020104080607060007--
