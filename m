@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from bay0-omc3-s12.bay0.hotmail.com ([65.54.246.212])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1Kys44-0001qk-CQ
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 18:57:41 +0100
-Received: from [91.149.190.211] (account liplianin@tut.by HELO
-	useri.liplianin.net)
-	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
-	with ESMTPA id 90256131 for linux-dvb@linuxtv.org;
-	Sat, 08 Nov 2008 19:57:32 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Sat, 8 Nov 2008 19:57:28 +0200
-References: <4914C482.8010306@helmutauer.de> <4914C4E6.1060305@helmutauer.de>
-	<4915BF3A.3010807@helmutauer.de>
-In-Reply-To: <4915BF3A.3010807@helmutauer.de>
+	(envelope-from <kjjordans@hotmail.com>) id 1L5YWr-0000Pz-9v
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 05:31:01 +0100
+Message-ID: <COL0-DAV54C91F77A0AEAF8A64729FA1050@phx.gbl>
+From: "Joe" <kjjordans@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Thu, 27 Nov 2008 15:00:22 +1030
+Message-ID: <000001c95048$dc93c930$95bb5b90$@com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811081957.28356.liplianin@tut.by>
-Subject: Re: [linux-dvb] tbs 8920 / cx24116 not working
+Content-Language: en-au
+Subject: [linux-dvb] DTV 1000 S driver support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,47 +18,125 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0774741153=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgOCBOb3ZlbWJlciAyMDA4IDE4OjMyOjU4IEhlbG11dCBBdWVyIM7B0MnT
-wcwowSk6Cj4gSGVsbG8gSWdvcgo+Cj4gVGhhbmtzIGZvciB5b3VyIHBhdGNoIGZyb20gaGVyZToK
-PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9saW51eC1kdmIvMjAwOC1Ob3ZlbWJl
-ci8wMzAyMDcuaHRtbAo+Cj4gSSBkbyBub3QgZ2V0IHRoZSBlbWFpbCBmb3IgdGhpcyBhbnN3ZXIg
-OigKWW91ciBtYWlsIGRlbGl2ZXJ5IHN5c3RlbSBtYXJrcyBteSBtYWlscyBsaWtlIHNwYW0gOigK
-Cj4KPiBOb3cgRFZCLVMgd29ya3MsIGJ1dCB3aGVuIEkgc3dpdGNoIHRvIGEgSERUViBjaGFubmVs
-IEkgZ2V0IHRoaXMgbWVzc2FnZXM6Cj4gPiBjeDI0MTA4IGRlYnVnOiBlbnRlcmluZyBTZXRUdW5l
-ckZyZXEsIGZyZXE9MTYxMjAwMAo+ID4gY3gyNDEwOCBkZWJ1Zzogc2VsZWN0IHZjbyAjNyAoZj0x
-NjEyMDAwKQo+ID4gY3gyNDEwOCBkZWJ1ZzogcHVtcD0xLCBuPTQ5LCBhPTI2Cj4gPiBjeDI0MTA4
-IGRlYnVnOiBlbnRlcmluZyBTZXRUdW5lckZyZXEsIGZyZXE9MTYxMzM3NQo+ID4gY3gyNDEwOCBk
-ZWJ1Zzogc2VsZWN0IHZjbyAjNyAoZj0xNjEzMzc1KQo+ID4gY3gyNDEwOCBkZWJ1ZzogcHVtcD0x
-LCBuPTQ5LCBhPTI3Cj4gPiBjeDI0MTA4IGRlYnVnOiBlbnRlcmluZyBTZXRUdW5lckZyZXEsIGZy
-ZXE9MTYxMDYyNQo+ID4gY3gyNDEwOCBkZWJ1Zzogc2VsZWN0IHZjbyAjNyAoZj0xNjEwNjI1KQo+
-ID4gY3gyNDEwOCBkZWJ1ZzogcHVtcD0xLCBuPTQ5LCBhPTI0Cj4gPiBjeDI0MTA4IGRlYnVnOiBl
-bnRlcmluZyBTZXRUdW5lckZyZXEsIGZyZXE9MTYxNDc1MAo+ID4gY3gyNDEwOCBkZWJ1Zzogc2Vs
-ZWN0IHZjbyAjNyAoZj0xNjE0NzUwKQo+ID4gY3gyNDEwOCBkZWJ1ZzogcHVtcD0xLCBuPTQ5LCBh
-PTI5Cj4gPiBjeDI0MTA4IGRlYnVnOiBlbnRlcmluZyBTZXRUdW5lckZyZXEsIGZyZXE9MTYwOTI1
-MAo+ID4gY3gyNDEwOCBkZWJ1Zzogc2VsZWN0IHZjbyAjNyAoZj0xNjA5MjUwKQo+ID4gY3gyNDEw
-OCBkZWJ1ZzogcHVtcD0xLCBuPTQ5LCBhPTIzCj4gPiBjeDI0MTA4IGRlYnVnOiBlbnRlcmluZyBT
-ZXRUdW5lckZyZXEsIGZyZXE9MTYxNjEyNQo+ID4gY3gyNDEwOCBkZWJ1Zzogc2VsZWN0IHZjbyAj
-NyAoZj0xNjE2MTI1KQo+ID4gY3gyNDEwOCBkZWJ1ZzogcHVtcD0xLCBuPTQ5LCBhPTMwCj4gPiBj
-eDI0MTA4IGRlYnVnOiBlbnRlcmluZyBTZXRUdW5lckZyZXEsIGZyZXE9MTYwNzg3NQo+ID4gY3gy
-NDEwOCBkZWJ1Zzogc2VsZWN0IHZjbyAjNyAoZj0xNjA3ODc1KQo+ID4gY3gyNDEwOCBkZWJ1Zzog
-cHVtcD0xLCBuPTQ5LCBhPTIyCj4gPiBjeDI0MTA4IGRlYnVnOiBlbnRlcmluZyBTZXRUdW5lckZy
-ZXEsIGZyZXE9MTYxNzUwMAo+ID4gY3gyNDEwOCBkZWJ1Zzogc2VsZWN0IHZjbyAjNyAoZj0xNjE3
-NTAwKQo+ID4gY3gyNDEwOCBkZWJ1ZzogcHVtcD0xLCBuPTQ5LCBhPTMxCj4gPiBjeDI0MTA4IGRl
-YnVnOiBlbnRlcmluZyBTZXRUdW5lckZyZXEsIGZyZXE9MTYwNjUwMAo+ID4gY3gyNDEwOCBkZWJ1
-Zzogc2VsZWN0IHZjbyAjNyAoZj0xNjA2NTAwKQo+ID4gY3gyNDEwOCBkZWJ1ZzogcHVtcD0xLCBu
-PTQ5LCBhPTIwCj4gPiBjeDI0MTA4IGRlYnVnOiBlbnRlcmluZyBTZXRUdW5lckZyZXEsIGZyZXE9
-MTYxODg3NQo+Cj4gQW5kIG5vdGhpbmcgd29sbCBiZSByZWNlaXZlZC4KPiBUZXN0ZWQgd2l0aDoK
-Pgo+IEFOSVhFCj4gSEQ7QmV0YURpZ2l0YWw6MTE5MTQ6aEM5MTBNMk8zNVMxOlMxOS4yRToyNzUw
-MDoxNTM1OjA7MTUzOT1kZXU6MDowOjEzMjoxMzM6Cj42OjAgYW5kCj4gQVJURQo+IEhEO1pERnZp
-c2lvbjoxMTM2MjpoQzIzTTJPMzVTMTpTMTkuMkU6MjIwMDA6NjIxMDo2MjIxPWRldSw2MjIyPWZy
-YTo2MjMwOjA6MQo+MTEyMDoxOjEwMTE6MAoKCgotLSAKSWdvciBNLiBMaXBsaWFuaW4KTWljcm9z
-b2Z0IFdpbmRvd3MgRnJlZSBab25lIC0gTGludXggdXNlZCBmb3IgYWxsIENvbXB1dGluZyBUYXNr
-cwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgt
-ZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2
-Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+This is a multipart message in MIME format.
+
+--===============0774741153==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0001_01C950A0.DF220D30"
+Content-Language: en-au
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_0001_01C950A0.DF220D30
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+Hi, i was wondering if anyone knows if i can get linux drivers for a leadtek
+winfast DTV 1000 s
+
+Thanks, 
+
+Joe
+
+ 
+
+
+------=_NextPart_000_0001_01C950A0.DF220D30
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+MsoChpDefault
+	{mso-style-type:export-only;}
+@page Section1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext=3D"edit">
+  <o:idmap v:ext=3D"edit" data=3D"1" />
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal><span lang=3DEN-AU>Hi, i was wondering if anyone =
+knows if i
+can get linux drivers for a leadtek winfast DTV 1000 =
+s<o:p></o:p></span></p>
+
+<p class=3DMsoNormal><span lang=3DEN-AU>Thanks, <o:p></o:p></span></p>
+
+<p class=3DMsoNormal><span lang=3DEN-AU>Joe<o:p></o:p></span></p>
+
+<p class=3DMsoNormal><span lang=3DEN-AU><o:p>&nbsp;</o:p></span></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0001_01C950A0.DF220D30--
+
+
+
+--===============0774741153==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0774741153==--
