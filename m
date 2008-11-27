@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.225])
+Received: from mu-out-0910.google.com ([209.85.134.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kevinlux@gmail.com>) id 1L1fJi-00045H-R6
-	for linux-dvb@linuxtv.org; Sun, 16 Nov 2008 11:57:23 +0100
-Received: by rv-out-0506.google.com with SMTP id b25so2061393rvf.41
-	for <linux-dvb@linuxtv.org>; Sun, 16 Nov 2008 02:57:16 -0800 (PST)
-Message-ID: <8567605f0811160257i66ea44a1i8b16a45c1580d5a9@mail.gmail.com>
-Date: Sun, 16 Nov 2008 11:57:16 +0100
-From: "kevinlux -" <kevinlux@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <damien@damienandlaurel.com>) id 1L5bCJ-0000G2-TU
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 08:22:00 +0100
+Received: by mu-out-0910.google.com with SMTP id g7so723414muf.1
+	for <linux-dvb@linuxtv.org>; Wed, 26 Nov 2008 23:21:55 -0800 (PST)
+Message-ID: <ee0ad0230811262321u13d23a27j6a959891513d3443@mail.gmail.com>
+Date: Thu, 27 Nov 2008 18:21:55 +1100
+From: "Damien Morrissey" <damien@damienandlaurel.com>
+To: Joe <kjjordans@hotmail.com>
+In-Reply-To: <COL0-DAV54C91F77A0AEAF8A64729FA1050@phx.gbl>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] pinnacle 310i doesn't works very well
+References: <COL0-DAV54C91F77A0AEAF8A64729FA1050@phx.gbl>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DTV 1000 S driver support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,27 +21,97 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1422053852=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all. I have a pinnacle card, 310i card from 3 years, but now with
-recent drivers (updated yesterday) it works not so good. With the my
-previous driver (dvb mercurial December 2007 on kernel 2.6.24)
-everythings was good. Infact at moment under Window OS i can see more
-channels respect to Linux.
-I also try with another usb device inlinux and i'm able to see all
-those channels that i can't view with my pinnacle 310i board.
-Someone can help me or can confirm my version??
+--===============1422053852==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_36471_16989590.1227770515653"
 
-Thanks in advance.
-Cheers
+------=_Part_36471_16989590.1227770515653
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-kev
+2008/11/27 Joe <kjjordans@hotmail.com>
+
+>  Hi, i was wondering if anyone knows if i can get linux drivers for a
+> leadtek winfast DTV 1000 s
+>
+> Thanks,
+>
+> Joe
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+There is no support as yet, however I believe that the components required
+do exist. I have a card and am willing to help test, but do not have the
+time at the moment to actually develop such a driver.
+
+Damien.
+
+------=_Part_36471_16989590.1227770515653
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+2008/11/27 Joe <span dir="ltr">&lt;<a href="mailto:kjjordans@hotmail.com">kjjordans@hotmail.com</a>&gt;</span><br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+
+
+
+
+
+
+
+
+
+<div link="blue" vlink="purple" lang="EN-US">
+
+<div>
+
+<p><span lang="EN-AU">Hi, i was wondering if anyone knows if i
+can get linux drivers for a leadtek winfast DTV 1000 s</span></p>
+
+<p><span lang="EN-AU">Thanks, </span></p>
+
+<p><span lang="EN-AU">Joe</span></p>
+
+<p><span lang="EN-AU">&nbsp;</span></p>
+
+</div>
+
+</div>
+
+
+<br>_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote></div><br>There is no support as yet, however I believe that the components
+required do exist. I have a card and am willing to help test, but do
+not have the time at the moment to actually develop such a driver.<br>
+<br>
+Damien.<br><br>
+
+------=_Part_36471_16989590.1227770515653--
+
+
+--===============1422053852==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1422053852==--
