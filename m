@@ -1,28 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mATJrVgf023554
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 14:53:31 -0500
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mATJrJrd028486
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 14:53:19 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Brownell <david-b@pacbell.net>
-Date: Sat, 29 Nov 2008 20:53:15 +0100
-References: <200811242309.37489.hverkuil@xs4all.nl>
-	<200811291519.39549.hverkuil@xs4all.nl>
-	<200811291146.44371.david-b@pacbell.net>
-In-Reply-To: <200811291146.44371.david-b@pacbell.net>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Disposition: inline
-Message-Id: <200811292053.16121.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARCckIV019949
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 07:38:46 -0500
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARCcXnH013459
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 07:38:33 -0500
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+In-Reply-To: <20081127120536.62b35cd6.ospite@studenti.unina.it>
+References: <20081125235249.d45b50f4.ospite@studenti.unina.it>
+	<1227777784.1752.20.camel@localhost>
+	<20081127120536.62b35cd6.ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Thu, 27 Nov 2008 13:22:33 +0100
+Message-Id: <1227788553.1752.42.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: v4l2_device/v4l2_subdev: please review (PATCH 1/3)
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] gspca_ov534: Print only frame_rate actually used.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,51 +29,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 29 November 2008 20:46:43 David Brownell wrote:
-> On Saturday 29 November 2008, Hans Verkuil wrote:
-> > > > +And this to go from an i2c_client to a v4l2_subdev struct:
-> > > > +
-> > > > +   struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> > > > +
-> > > > +Finally you need to make a command function to make
-> > > > +driver->command() call the right subdev_ops functions:
-> > > > +
-> > > > +static int
-> > > > +subdev_command(struct i2c_client *client, unsigned cmd, void
-> > > > *arg) +{
-> > > > +   return v4l2_subdev_command(i2c_get_clientdata(client), cmd,
-> > > > arg); +}
-> > > > +
-> > > > +If driver->command is never used then you can leave this out.
-> > > > +Eventually the driver->command usage should be removed from
-> > > > v4l.
-> > >
-> > > Should it then be added to the list of features scheduled for
-> > > removal?
+On Thu, 2008-11-27 at 12:05 +0100, Antonio Ospite wrote:
+> > The patch also includes removing the bulk_size setting at streamon time:
+> > the value is already used at this time, and also, there is only one
+> > resolution.
+> We will add this again when we add other resolutions, OK.
+
+The bulk_size must be set at the max resolution because it is used for
+buffer allocation before stream on.
+
+	[snip]
+> >  /* V4L2 controls supported by the driver */
+> > @@ -59,7 +58,7 @@
+> >  	{640, 480, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
+> >  	 .bytesperline = 640 * 2,
+> >  	 .sizeimage = 640 * 480 * 2,
+> > -	 .colorspace = V4L2_COLORSPACE_JPEG,
+> > +	 .colorspace = V4L2_COLORSPACE_SRGB,
+> >  	 .priv = 0},
+> >  };
 > >
-> > No, driver->command is part of the i2c subsystem and we are not the
-> > only users, so it can't be scheduled for removal.
->
-> ISTR that the only use of the i2c_driver.command() mechanism
-> is for video/DVB driver support.  It's kind of an ugly wart,
-> and it'd be good to see such ioctl-ish interfaces vanish.
->
-> This came up a while back as part of a "how can we clean up
-> the I2C stack" discussion.  So it would be nice if V4L2 wasn't
-> effectively adding new reasons (and advice) to use this.
+> 
+> Can you explain this one, please?
 
-If v4l is indeed the only user, then once all i2c drivers are converted 
-to this new sub device API, then command can indeed go away.
+I think the JPEG images embed colorspace information, and here, it is
+simple RGB.
 
-Would be nice, but it will probably take a few kernel cycles before we 
-are there. It's a lot of work, but very worthwhile in my opinion.
+> [snip]
+> > @@ -433,7 +429,6 @@
+> >  	int framesize = gspca_dev->cam.bulk_size;
+> >  
+> >  	if (len == framesize - 4) {
+> > -		frame =
+> >  		    gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, len);
+> 
+> This change is just to follow the convention used by other drivers,
+> right? You could also adjust indentation on following line, then.
 
-Regards,
+If you look carefully, the frame returned by gspca_frame_add() is
+changed only when the packet type is LAST_PACKET. OK for the
+indentation.
 
-	Hans
+Cheers.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
