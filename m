@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA4MhaNd027948
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 17:43:36 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA4MhNIH026456
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 17:43:24 -0500
-Date: Tue, 4 Nov 2008 23:43:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <1225835978-14548-1-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.0811042342100.8208@axis700.grange>
-References: <87bpwvyx19.fsf@free.fr>
-	<1225835978-14548-1-git-send-email-robert.jarzmik@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARANQPK021522
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 05:23:26 -0500
+Received: from smtp-vbr1.xs4all.nl (smtp-vbr1.xs4all.nl [194.109.24.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARANDpT002935
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 05:23:14 -0500
+Message-ID: <11380.62.70.2.252.1227781392.squirrel@webmail.xs4all.nl>
+Date: Thu, 27 Nov 2008 11:23:12 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
-Subject: Re: [PATCH] Add new pixel format VYUY 16 bits wide.
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: RFC: drop support for kernels < 2.6.22
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,45 +25,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 4 Nov 2008, Robert Jarzmik wrote:
+> On Thu, 27 Nov 2008 08:32:22 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> Hi all,
+>>
+>> It been my opinion for quite some time now that we are too generous in
+>> the number of kernel versions we support. I think that the benefits no
+>> longer outweight the effort we have to put in.
+>>
+>> This is true in particular for the i2c support since that changed a lot
+>> over time. Kernel 2.6.22 is a major milestone for that since it
+>> introduced the new-style i2c API.
+>
+> I prefer to keep backward compat with older kernels. Enterprise distros
+> like
+> RHEL is shipped with older kernels (for example RHEL5 uses kernel 2.6.18).
+> We
+> should support those kernels.
 
-> There were already 3 YUV formats defined :
->  - YUYV
->  - YVYU
->  - UYVY
-> The only left combination is VYUY, which is added in this
-> patch.
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Is RHEL (or anyone else for that matter) actually using our tree? I never
+see any postings about problems or requests for these old kernels on the
+v4l list.
 
-We have to ask the fourcc maintainer: Michael? Would you accept this?
+Do you know if and how other subsystems handle this?
 
-Thanks
-Guennadi
+>
+>> In order to keep the #ifdefs to a minimum I introduced the
+>> v4l2-i2c-drv.h and v4l2-i2c-drv-legacy.h headers. These make sense when
+>> used in the v4l-dvb tree context, but when they are stripped and used
+>> in the actual kernel source they look very weird.
+>
+> We may use a different approach for the above files. For example, we may
+> include the headers just for older kernels, like we did in the past with
+> i2c
+> backward compat with kernel 2.4. gentree can easily remove a #include line
+> from
+> the upstream patch.
 
-> ---
->  include/linux/videodev2.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 4669d7e..ec311d4 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -293,6 +293,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
->  #define V4L2_PIX_FMT_YUYV    v4l2_fourcc('Y', 'U', 'Y', 'V') /* 16  YUV 4:2:2     */
->  #define V4L2_PIX_FMT_UYVY    v4l2_fourcc('U', 'Y', 'V', 'Y') /* 16  YUV 4:2:2     */
-> +#define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
->  #define V4L2_PIX_FMT_YUV422P v4l2_fourcc('4', '2', '2', 'P') /* 16  YVU422 planar */
->  #define V4L2_PIX_FMT_YUV411P v4l2_fourcc('4', '1', '1', 'P') /* 16  YVU411 planar */
->  #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
-> -- 
-> 1.5.6.5
-> 
+You either using these headers, or you start using lots of #ifdefs in each
+i2c driver. There is unfortunately no easy solution to this (I really
+tried at the time). Dropping pre-2.6.22 support will make it feasible to
+drop these headers. There would still be a few #ifdefs, but it will be
+acceptable.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+If you know of a distro or big customer that is actually using v4l-dvb on
+old kernels, then I think we should keep it, but otherwise it is my
+opinion that it is not worth the (substantial) hassle. I also have my
+doubts about people using enterprise distros together with v4l. Doesn't
+seem very likely to me.
+
+Regards,
+
+       Hans
 
 --
 video4linux-list mailing list
