@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from viefep20-int.chello.at ([62.179.121.40])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1L1LH5-0006Do-9i
-	for linux-dvb@linuxtv.org; Sat, 15 Nov 2008 14:33:20 +0100
-Message-ID: <491ECF8B.6060009@iki.fi>
-Date: Sat, 15 Nov 2008 15:32:59 +0200
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <basq@bitklub.hu>) id 1L5hGk-0001X9-1L
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 14:50:58 +0100
+Date: Thu, 27 Nov 2008 14:49:52 +0100
+From: Kovacs Balazs <basq@bitklub.hu>
+Message-ID: <823378732.20081127144952@bitklub.hu>
+To: Newsy Paper <newspaperman_germany@yahoo.com>
+In-Reply-To: <123326.70850.qm@web23202.mail.ird.yahoo.com>
+References: <605526226.20081126135435@bitklub.hu>
+	<123326.70850.qm@web23202.mail.ird.yahoo.com>
 MIME-Version: 1.0
-To: Rasjid Wilcox <rasjidw@gmail.com>
-References: <bf82ea70811110306v345c9061sc6d49f6a961647c@mail.gmail.com>	<bf82ea70811110312y487610d8v9656c3e76bf44e0@mail.gmail.com>	<49199510.6040809@iki.fi>
-	<bf82ea70811150303p4d6517b2qce1345dd707a315c@mail.gmail.com>
-In-Reply-To: <bf82ea70811150303p4d6517b2qce1345dd707a315c@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DigitalNow TinyTwin second tuner support
+Subject: Re: [linux-dvb] TT S2-3200: Support for high symbol rates.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,36 +20,79 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Rasjid Wilcox wrote:
-> 2008/11/12 Antti Palosaari <crope@iki.fi>:
->> I disabled 2nd tuner by default due to bad performance I faced up with my
->> hardware. Anyhow, you can enable it by module param, use modprobe
->> dvb-usb-af9015 dual_mode=1 . Test it and please report.
-> 
-> I have enabled dual mode, and now have an extra adaptor in /dev/dvb.
-> 
-> However, when I try to set the new card up in the Myth backend in
-> Capture Card Setup, I get an error on the Frontend ID: "Could not get
-> card info for the card #1", and for Subtype: Unknown error.
-> 
-> dmesg also has an error message:
-> 
-> af9015: firmware copy to 2nd frontend failed, will disable it
-> 
-> Any suggestions?
+No, it's a driver problem I think because those cards works OK in Windows f=
+or me. But not with the linux driver. In linux only the older cards work fo=
+r me, and it seems 0708 and newer cards won't.
 
-Did you re-plug stick?
+basq
 
-> 
-> Cheers,
-> 
-> Rasjid.
+> Hi!
+
+> my card sasy 0712 not 0702! What's the difference between old 0702
+> and the newer ones? Is it even a hardware problem and not a driver proble=
+m?
+
+> kind regards
+
+> Newsy
+
+
+> --- Kovacs Balazs <basq@bitklub.hu> schrieb am Mi, 26.11.2008:
+
+>> Von: Kovacs Balazs <basq@bitklub.hu>
+>> Betreff: Re: [linux-dvb] TT S2-3200: Support for high symbol rates.
+>> An: =
+
+>> CC: linux-dvb@linuxtv.org
+>> Datum: Mittwoch, 26. November 2008, 13:54
+>> Maybe you are in the same situation like me with the newer
+>> cards. Can you check the text label below the box where you
+>> connect the antenna cable? For me TT3200 card works if
+>> it's 0702, if it's 0708 -> doesn't work.
+
+>> > hi!
+
+>> > I tried Igor's latest s2-liplianin mercurial,
+>> > but till no success with 8psk 30000 3/4 on Thor 1 =B0
+>> West.
+
+
+>> > kind regards =
+
+
+
+>> > Newsy
+
+
+>> >       =
+
+
+>> > _______________________________________________
+>> > linux-dvb mailing list
+>> > linux-dvb@linuxtv.org
+>> >
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+>       =
+
+
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
 _______________________________________________
