@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASD3QOq019947
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 08:03:26 -0500
-Received: from tomts27-srv.bellnexxia.net (tomts27.bellnexxia.net
-	[209.226.175.101])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mASD37DR026344
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 08:03:07 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: "'kin2031@yahoo.com'" <kin2031@yahoo.com>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Fri, 28 Nov 2008 08:02:47 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB1012081700909BA5@Colmatec004.COLMATEC.INT>
-In-Reply-To: <82224.60450.qm@web39708.mail.mud.yahoo.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARN0XZx017487
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 18:00:33 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mARN0Kkr032185
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 18:00:20 -0500
+Date: Fri, 28 Nov 2008 00:00:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <1227554928-25471-2-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.0811272343480.8230@axis700.grange>
+References: <Pine.LNX.4.64.0811202055210.8290@axis700.grange>
+	<1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
+	<1227554928-25471-2-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: RE: Unable to achieve 30fps using 'read()' in C
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2/2] pxa_camera: use the new translation structure
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,45 +28,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Is your webcam is connected to a usb2 port(if it requires)?
+On Mon, 24 Nov 2008, Robert Jarzmik wrote:
 
-Do lsusb
+> The new translation structure enables to build the format
+> list with buswidth, depth, host format and camera format
+> checked, so that it's not done anymore on try_fmt nor
+> set_fmt.
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-And dmesg | grep usb
+Ok, this one looks good to me. Only two small nitpicks, the first one was 
+actually my mistake in the beginning:
 
-dmesg | grep Logitech
+>  static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
+> -				  const struct soc_camera_data_format **fmt)
+> +				  struct soc_camera_format_xlate *xlate)
+>  {
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> -	struct pxa_camera_dev *pcdev = ici->priv;
+> -	int formats = 0;
+> +	int formats = 0, buswidth, ret;
+> +
+> +	buswidth = required_buswidth(icd->formats + idx);
+> +
+> +	if (!depth_supported(icd, buswidth))
 
-which driver r u using for v4l2
+I think, this function would be better named buswicth_supported().
 
------Original Message-----
-From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-bounces@redhat.com] On Behalf Of wei kin
-Sent: 28 novembre 2008 03:03
-To: video4linux-list@redhat.com
-Subject: Unable to achieve 30fps using 'read()' in C
+>  		}
+>  	}
+>  
+>  	return formats;
+>  }
+>  
+> +
+>  static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+>  			      __u32 pixfmt, struct v4l2_rect *rect)
+>  {
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
 
-Hi all, I am new in v4l programming. What I did in my code is I used 'read( )' in C programming to read images from my Logitech Quickcam Express. My problem is I can't get 30frames per second, what I got is just 5fps when I loop and read for 200times. Do anyone know why is it under performance? Thanks
-
-Rgds,
-nik2031
-
-
-
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---
-
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com
+Let's stay at one blank line between functions:-)
 
 
-No virus found in this incoming message.
-Checked by AVG - http://www.avg.com
-Version: 8.0.175 / Virus Database: 270.9.9/1807 - Release Date: 2008-11-27 09:02
+So, just please revert the current_fmt change and submit these two patches 
+integrating mine into them.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
