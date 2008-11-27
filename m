@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay14.mail.uk.clara.net ([80.168.70.194])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <news@onastick.clara.co.uk>) id 1L40IF-00024y-R9
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 22:45:33 +0100
-Received: from [79.123.73.181] (port=10986 helo=mail.onasticksoftware.net)
-	by relay14.mail.uk.clara.net with esmtp (Exim 4.69)
-	(envelope-from <news@onastick.clara.co.uk>) id 1L40IA-0001QV-NA
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 21:45:27 +0000
-Received: from onasticksoftware.net (lapdog.onasticksoftware.net [192.168.0.3])
-	by mail.onasticksoftware.net (Postfix) with ESMTP id BB2E18C884
-	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 21:45:19 +0000 (GMT)
-Message-ID: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
-Date: Sat, 22 Nov 2008 21:43:44 +0000
-To: linux-dvb@linuxtv.org
-From: jon bird <news@onastick.clara.co.uk>
+	(envelope-from <damien@damienandlaurel.com>) id 1L5fk6-00029Q-0E
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 13:13:10 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so1647760ugc.16
+	for <linux-dvb@linuxtv.org>; Thu, 27 Nov 2008 04:13:06 -0800 (PST)
+Message-ID: <ee0ad0230811270413h3367516eyc92a6935c7d0cf9d@mail.gmail.com>
+Date: Thu, 27 Nov 2008 23:13:05 +1100
+From: "Damien Morrissey" <damien@damienandlaurel.com>
+To: Plantain <yellowplantain@gmail.com>
+In-Reply-To: <492E517B.2090409@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Nova/dib0700/i2C write failed
+References: <COL0-DAV54C91F77A0AEAF8A64729FA1050@phx.gbl>
+	<492E517B.2090409@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DTV 1000 S driver support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,93 +22,119 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1129443404=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Just to provide a bit more info on what seems to be an ongoing issue 
-with these devices, I updated my kernel (2.6.26) dvb drivers with a 
-snapshot from here on 19/11/08 (v4l-dvb-5dc4a6b381f6), it has marginally 
-improved the behaviour but only slightly. Previously, sporadic 'usb 1-4: 
-USB disconnect, address 2' followed by 'mt2060 I2C write failed' 
-cropping up generally put the khubd into a spin with repeated messages 
-of the form:
+--===============1129443404==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_39957_27929947.1227787985997"
 
-Nov 22 20:12:13 fridge kernel: usb 1-4: USB disconnect, address 2
-Nov 22 20:12:13 fridge kernel: mt2060 I2C write failed
-...
+------=_Part_39957_27929947.1227787985997
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Nov 22 20:14:22 fridge kernel: INFO: task khubd:1823 blocked for more 
-than 120 seconds.
-Nov 22 20:14:22 fridge kernel: "echo 0 > 
-/proc/sys/kernel/hung_task_timeout_secs" disables this message.
-Nov 22 20:14:22 fridge kernel: khubd         D f7f5d000     0  1823 2
-Nov 22 20:14:22 fridge kernel:        f74c8740 00000046 f7dfe000 
-f7f5d000 f74a0dc0 f74a0dc0 f7cc0e00 f768f360
-Nov 22 20:14:22 fridge kernel:        00000001 f7cc0f8c f7cc0e00 
-f7f39e58 f7f39e6c 00000001 f896724d 00000000
-Nov 22 20:14:22 fridge kernel:        f74a0dc0 c0124fde f7f39e64 
-f7f39e64 f7c0b200 c0186c21 f7f39ea4 00000000
-Nov 22 20:14:22 fridge kernel: Call Trace:
-Nov 22 20:14:22 fridge kernel:  [<f896724d>] 
-dvb_unregister_frontend+0xa3/0xda [dvb_core]
-Nov 22 20:14:22 fridge kernel:  [autoremove_wake_function+0/45] 
-autoremove_wake_function+0x0/0x2d
-Nov 22 20:14:22 fridge kernel:  [<c0124fde>] 
-autoremove_wake_function+0x0/0x2d
-Nov 22 20:14:22 fridge kernel:  [sysfs_ilookup_test+0/13] 
-sysfs_ilookup_test+0x0/0xd
+On Thu, Nov 27, 2008 at 6:51 PM, Plantain <yellowplantain@gmail.com> wrote:
 
-requiring a complete shutdown and reboot to recover even after killing 
-of any dvb applications.
+> Joe wrote:
+> >
+> > Hi, i was wondering if anyone knows if i can get linux drivers for a
+> > leadtek winfast DTV 1000 s
+> >
+> > Thanks,
+> >
+> > Joe
+> >
+> >
+> >
+> > ------------------------------------------------------------------------
+> >
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> If you read the archives, you'll see I botched an attempt at a patch.
+> I've the time, but sadly not the expertise to develop the driver ;)
+> From what I can tell, there's nothing really holding it back beyond a
+> catch-22ish situation
+> Those with the ability and time, don't have the card
+> Those with the ability and the card, don't have the time
+> Those with the card and the time, haven't the ability
+>
+> Good luck!
+>
+> ~Matthew~
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-With the latest drivers, this lock of khubd still occurs but only for 
-the lifetime of the active dvb application - it then partially recovers 
-as follows:
+If anyone can advise me how to go about it I will give it a shot. I am an
+experienced programmer, but am not experienced with linux drivers.
 
-Nov 22 21:02:36 fridge kernel: dvb-usb: error while stopping stream.
-Nov 22 21:02:36 fridge kernel: dvb-usb: Hauppauge Nova-T Stick 
-successfully deinitialized and disconnected.
-Nov 22 21:02:36 fridge kernel: usb 1-4: new high speed USB device using 
-ehci_hcd and address 3
-Nov 22 21:02:36 fridge /USR/SBIN/CRON[8929]: (wwwrun) MAIL (mailed 947 
-bytes of output but got status 0xffffffff )
-Nov 22 21:02:51 fridge kernel: hub 1-0:1.0: unable to enumerate USB 
-device on port 4
-Nov 22 21:02:51 fridge kernel: usb 3-2: new full speed USB device using 
-uhci_hcd and address 2
-Nov 22 21:02:52 fridge kernel: usb 3-2: not running at top speed; 
-connect to a high speed hub
-Nov 22 21:02:52 fridge kernel: usb 3-2: configuration #1 chosen from 1 
-choice
-Nov 22 21:02:52 fridge kernel: dvb-usb: found a 'Hauppauge Nova-T Stick' 
-in warm state.
-Nov 22 21:02:52 fridge kernel: dvb-usb: This USB2.0 device cannot be run 
-on a USB1.1 port. (it lacks a hardware PID filter)
-Nov 22 21:02:52 fridge kernel: dvb-usb: Hauppauge Nova-T Stick error 
-while loading driver (-19)
-Nov 22 21:02:52 fridge kernel: usb 3-2: New USB device found, 
-idVendor=2040, idProduct=7060
-Nov 22 21:02:52 fridge kernel: usb 3-2: New USB device strings: Mfr=1, 
-Product=2, SerialNumber=3
-Nov 22 21:02:52 fridge kernel: usb 3-2: Product: Nova-T Stick
-Nov 22 21:02:52 fridge kernel: usb 3-2: Manufacturer: Hauppauge
-Nov 22 21:02:52 fridge kernel: usb 3-2: SerialNumber: 4030521095
+I am more than willing to muck around with it on my machine or even give
+someone an ssh login if they need it and we can go no further without it.
 
-Physically disconnecting and reconnecting the device has the same 
-effect. So it looks like the driver is recovering but the USB2 hub has 
-been stuffed in some way.
+Damien.
 
--- 
-== jon bird - software engineer
-== <reply to address _may_ be invalid, real mail below>
-== <reduce rsi, stop using the shift key>
-== posted as: news 'at' onastick 'dot' clara.co.uk
+------=_Part_39957_27929947.1227787985997
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+<br><br><div class="gmail_quote">On Thu, Nov 27, 2008 at 6:51 PM, Plantain <span dir="ltr">&lt;<a href="mailto:yellowplantain@gmail.com">yellowplantain@gmail.com</a>&gt;</span> wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div><div></div><div class="Wj3C7c">Joe wrote:<br>
+&gt;<br>
+&gt; Hi, i was wondering if anyone knows if i can get linux drivers for a<br>
+&gt; leadtek winfast DTV 1000 s<br>
+&gt;<br>
+&gt; Thanks,<br>
+&gt;<br>
+&gt; Joe<br>
+&gt;<br>
+&gt;<br>
+&gt;<br>
+</div></div>&gt; ------------------------------------------------------------------------<br>
+<div class="Ih2E3d">&gt;<br>
+&gt; _______________________________________________<br>
+&gt; linux-dvb mailing list<br>
+&gt; <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+&gt; <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</div>If you read the archives, you&#39;ll see I botched an attempt at a patch.<br>
+I&#39;ve the time, but sadly not the expertise to develop the driver ;)<br>
+>From what I can tell, there&#39;s nothing really holding it back beyond a<br>
+catch-22ish situation<br>
+Those with the ability and time, don&#39;t have the card<br>
+Those with the ability and the card, don&#39;t have the time<br>
+Those with the card and the time, haven&#39;t the ability<br>
+<br>
+Good luck!<br>
+<br>
+~Matthew~<br>
+<div><div></div><div class="Wj3C7c"><br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</div></div></blockquote></div><br>If anyone can advise me how to go about it I will give it a shot. I am an experienced programmer, but am not experienced with linux drivers.<br><br>I am more than willing to muck around with it on my machine or even give someone an ssh login if they need it and we can go no further without it.<br>
+<br>Damien.<br>
+
+------=_Part_39957_27929947.1227787985997--
+
+
+--===============1129443404==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1129443404==--
