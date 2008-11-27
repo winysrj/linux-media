@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQLXIce018782
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 16:33:18 -0500
-Received: from mail.ki.iif.hu (mail.ki.iif.hu [193.6.222.241])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQLX392002503
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 16:33:04 -0500
-Date: Wed, 26 Nov 2008 22:32:59 +0100 (CET)
-From: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAREL1Ao004181
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:21:01 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAREKf5o003060
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:20:41 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Thu, 27 Nov 2008 15:20:48 +0100
+References: <11380.62.70.2.252.1227781392.squirrel@webmail.xs4all.nl>
+	<20081127120814.14f25c1b@pedra.chehab.org>
+In-Reply-To: <20081127120814.14f25c1b@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811271520.48202.laurent.pinchart@skynet.be>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: RFC: drop support for kernels < 2.6.22
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,43 +31,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Hello Gabor,
-> 
-> I hate to admit it, but I got confused since two different people
-> named "Gabor" have been sending me email in regards to different
-> em28xx based devices.
+On Thursday 27 November 2008, Mauro Carvalho Chehab wrote:
+> On Thu, 27 Nov 2008 11:23:12 +0100 (CET)
+> "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+> > > On Thu, 27 Nov 2008 08:32:22 +0100
+> > > Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > >> Hi all,
+> > >>
+> > >> It been my opinion for quite some time now that we are too generous in
+> > >> the number of kernel versions we support. I think that the benefits no
+> > >> longer outweight the effort we have to put in.
+> > >>
+> > >> This is true in particular for the i2c support since that changed a
+> > >> lot over time. Kernel 2.6.22 is a major milestone for that since it
+> > >> introduced the new-style i2c API.
+> > >
+> > > I prefer to keep backward compat with older kernels. Enterprise distros
+> > > like RHEL is shipped with older kernels (for example RHEL5 uses kernel
+> > > 2.6.18). We should support those kernels.
+> >
+> > Is RHEL (or anyone else for that matter) actually using our tree? I never
+> > see any postings about problems or requests for these old kernels on the
+> > v4l list.
+>
+> RHEL bugs come to redhat bugzilla. Generated patches there should be tested
+> against the latest version and applied upstream.
+>
+> > If you know of a distro or big customer that is actually using v4l-dvb on
+> > old kernels, then I think we should keep it, but otherwise it is my
+> > opinion that it is not worth the (substantial) hassle. I also have my
+> > doubts about people using enterprise distros together with v4l. Doesn't
+> > seem very likely to me.
+>
+> Yes, there are customers with enterprise distros using V4L drivers.
+>
+> Also, I am using V4L/DVB tree with a 2.6.18 kernel on some machines.
+> Removing support for 2.6.18 will be a pain for me.
+>
+> I suspect that Laurent is also using RHEL (or some uvc users), since he
+> sent some patches fixing compilation with RHEL.
 
-Really? :-o
-I think I'm the only Gabor who posted any mail to video4linux list
-in the past two weeks. :-)
+Before moving to linuxtv.org the UVC driver was backward compatible with all 
+kernels starting at 2.6.15 out of the box. With a minor patch applied this 
+even extended to 2.6.10. While I have no statistics regarding kernel versions 
+on which the UVC driver is used, the driver seems to be popular with embedded 
+users who usually run "old" vendor-supplied kernels on their systems.
 
-https://www.redhat.com/mailman/private/video4linux-list/2008-November/msg00308.html
-https://www.redhat.com/mailman/private/video4linux-list/2008-November/msg00364.html
-https://www.redhat.com/mailman/private/video4linux-list/2008-November/msg00366.html
-https://www.redhat.com/mailman/private/video4linux-list/2008-November/msg00436.html
-https://www.redhat.com/mailman/private/video4linux-list/2008-November/msg00523.html
+As such, at least for the UVC driver, I'd hate to see compatibility with 
+2.6.16-2.6.21 going away anytime soon.
 
+Best regards,
 
-> Could you please clarify the exact model number of the device in
-> question?  ADS makes multiple products, some with very similar names
-> and it is important that I am focusing on the correct product.
-
-ADS Tech "Instant TV USB", USBAV-704
-
-> Also, you can run the files through the parser.pl that Markus
-> Rechberger's ships with his very useful "usbreplay" tool.  This will
-> make them *much* smaller.
-
-
-Oh, I see. Sorry for giant files.
-Here you are:
-http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-connect.log.gz
-http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-tv.log.gz
-http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-svideo.log.gz
-
-Thanks again for your efforts.
-
-Gabor
+Laurent Pinchart
 
 --
 video4linux-list mailing list
