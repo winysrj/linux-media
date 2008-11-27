@@ -1,19 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Adam Baker <linux@baker-net.org.uk>
-To: kilgota@banach.math.auburn.edu
-Date: Tue, 25 Nov 2008 00:02:36 +0000
-References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
-	<492A8E76.3070701@redhat.com>
-	<Pine.LNX.4.64.0811241446210.6862@banach.math.auburn.edu>
-In-Reply-To: <Pine.LNX.4.64.0811241446210.6862@banach.math.auburn.edu>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_cC0KJwMcxZWoykn"
-Message-Id: <200811250002.36951.linux@baker-net.org.uk>
-Cc: Hans de Goede <hdegoede@redhat.com>, video4linux-list@redhat.com,
-	sqcam-devel@lists.sourceforge.net
-Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
-	driver
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARB6iqt010512
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 06:06:44 -0500
+Received: from smtp-out113.alice.it (smtp-out113.alice.it [85.37.17.113])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARB6U5S025550
+	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 06:06:30 -0500
+Date: Thu, 27 Nov 2008 12:05:36 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Message-Id: <20081127120536.62b35cd6.ospite@studenti.unina.it>
+In-Reply-To: <1227777784.1752.20.camel@localhost>
+References: <20081125235249.d45b50f4.ospite@studenti.unina.it>
+	<1227777784.1752.20.camel@localhost>
+Mime-Version: 1.0
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] gspca_ov534: Print only frame_rate actually used.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,106 +22,131 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0033815316=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---Boundary-00=_cC0KJwMcxZWoykn
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--===============0033815316==
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+	micalg="PGP-SHA1";
+	boundary="Signature=_Thu__27_Nov_2008_12_05_36_+0100_53BOlo1_q0mGd+Ff"
 
-On Monday 24 November 2008, kilgota@banach.math.auburn.edu wrote:
-> Well, there is another ideal solution which probably cannot work for ten
-> thousand other very good reasons. That would be to eliminate the need for
-> the kernel to create a "device" before a webcam is fired up.
+--Signature=_Thu__27_Nov_2008_12_05_36_+0100_53BOlo1_q0mGd+Ff
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 27 Nov 2008 10:23:04 +0100
+Jean-Francois Moine <moinejf@free.fr> wrote:
+
+> On Tue, 2008-11-25 at 23:52 +0100, Antonio Ospite wrote:
+> > Print only frame_rate actually used.
+>=20
+> Hello Antonio,
+>=20
+> This may be simplified as in the attached patch (the frame_rate in the
+> sd structure was not used).
 >
 
-Unfortunately that would mean changing lots of existing applications.
+Some questions inlined. I am still learning.
 
-> So in other words the ability of libusb to load up a kernel module is
-> another trick which may alleviate the problem for some people, but does
-> not solve the problem. Not yet.
+> The patch also includes removing the bulk_size setting at streamon time:
+> the value is already used at this time, and also, there is only one
+> resolution.
+>
 
-libusb doesn't actually reload the kernel module. The patch I posted a 
-reference to just causes the same scan for modules to run as would have run 
-when the device was first plugged in.
+We will add this again when we add other resolutions, OK.
 
-This approach can even cope with the complex case that no-one has yet 
-considered, wanting to use one sq905 based camera to record video while you 
-download stills from another.
+> I found a real problem: for USB read and write, you have a 16-bits
+> variable in/from which you read/write only one byte. This will fail with
+> big-endian machines. Anyway, it is safer to use the usb_buf from the
+> gspca structure.
+>
 
-On an embedded system that didn't want camera drivers it would never use you 
-would probably build the kernel without V4L support and nothing anyone does 
-is then going to load the module.
+Ah, you mean in control messages, yes, those always use size=3D1 so a u8
+can be used there.
+I'll give a look and will do some tests on a real PS3.
 
-To hopefully convince you this can easily provide all the functionality you 
-want I've attempted to do some testing and in order to avoid changing 
-libgphoto I've written a little standalone app (attached) to do the cleanup. 
-I'm taking advantage of the fact I know we want ifno 0 for this cam but 
-libgphoto2 has already found the correct value.
+Thanks.
 
-I can now happily run the following sequence
+Regards,
+   Antonio Ospite.
 
-Plug in camera, driver loads and /dev/video0 is created
+> Cheers.
+>=20
+> --=20
+> Ken ar c'henta=F1 |             ** Breizh ha Linux atav! **
+> Jef             |               http://moinejf.free.fr/
+>=20
+>=20
+>=20
+> [ov534.patch  text/x-patch (2,1KB)]
+> diff -r 3e0ba0a8e47f linux/drivers/media/video/gspca/ov534.c
+> --- a/linux/drivers/media/video/gspca/ov534.c	Wed Nov 26 20:17:13 2008 +0=
+100
+> +++ b/linux/drivers/media/video/gspca/ov534.c	Thu Nov 27 10:15:08 2008 +0=
+100
+> @@ -48,7 +48,6 @@
+>  /* specific webcam descriptor */
+>  struct sd {
+>  	struct gspca_dev gspca_dev;	/* !! must be the first item */
+> -	__u8 frame_rate;
+>  };
+> =20
+>  /* V4L2 controls supported by the driver */
+> @@ -59,7 +58,7 @@
+>  	{640, 480, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
+>  	 .bytesperline =3D 640 * 2,
+>  	 .sizeimage =3D 640 * 480 * 2,
+> -	 .colorspace =3D V4L2_COLORSPACE_JPEG,
+> +	 .colorspace =3D V4L2_COLORSPACE_SRGB,
+>  	 .priv =3D 0},
+>  };
+>
 
-run gphoto2 -L and it tells me there are photos on the camera and /dev/video0 
-dissappears (and this is a model that deletes photos when used as a web cam)
+Can you explain this one, please?
 
-run my rescan app which I'd suggest libgphoto2 should do automatically if it 
-has called usb_detach_kernel_driver_np
-./usbscan /dev/bus/usb/005/008
-and /dev/video0 re-appears and I can run up xawtv and see a picture
+[snip]
+> @@ -433,7 +429,6 @@
+>  	int framesize =3D gspca_dev->cam.bulk_size;
+> =20
+>  	if (len =3D=3D framesize - 4) {
+> -		frame =3D
+>  		    gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, len);
 
-If I now run up gphoto2 again all my images have gone as I actually used the 
-webcam functionality.
+This change is just to follow the convention used by other drivers,
+right? You could also adjust indentation on following line, then.
 
-I've changed the ioctl's in the patch from using libusb private values to 
-values from a kernel provided header file.
+>  		frame =3D
+>  		    gspca_frame_add(gspca_dev, LAST_PACKET, frame, last_pixel,
+>=20
 
---Boundary-00=_cC0KJwMcxZWoykn
-Content-Type: text/x-csrc;
-  charset="iso 8859-15";
-  name="usbscan.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="usbscan.c"
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <linux/usbdevice_fs.h>
+--=20
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
 
-int main(int argc, char *argv[])
-{
-    int fd;
-    struct usbdevfs_ioctl command;
+  Web site: http://www.studenti.unina.it/~ospite
+Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
 
-    if (argc != 2) exit(1);
-    fd=open(argv[1],O_RDWR);
+--Signature=_Thu__27_Nov_2008_12_05_36_+0100_53BOlo1_q0mGd+Ff
+Content-Type: application/pgp-signature
 
-    if (fd < 0)
-    {
-        perror(argv[1]);
-        exit(1);
-    }
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-    command.ifno = 0;
-    command.ioctl_code = USBDEVFS_CONNECT;
-    command.data = NULL;
+iEYEARECAAYFAkkufwAACgkQ5xr2akVTsAFctgCgqo4wBqVFgSLA3Bji2WDgH5RM
+T0IAn325CkentLRKbh/ffuSOrtXhumqg
+=E35b
+-----END PGP SIGNATURE-----
 
-    if (ioctl(fd, USBDEVFS_IOCTL, &command))
-       perror("ioctl");
-       
-    close(fd);
+--Signature=_Thu__27_Nov_2008_12_05_36_+0100_53BOlo1_q0mGd+Ff--
 
-    return 0;
-}
 
---Boundary-00=_cC0KJwMcxZWoykn
+--===============0033815316==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -130,4 +156,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---Boundary-00=_cC0KJwMcxZWoykn--
+--===============0033815316==--
