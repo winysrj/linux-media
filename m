@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from nf-out-0910.google.com ([64.233.182.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1L4heL-0000OI-IU
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 21:03:15 +0100
-Received: from [10.11.11.138] (user-514dc4f9.l4.c2.dsl.pol.co.uk
-	[81.77.196.249])
-	by mail.youplala.net (Postfix) with ESMTP id 6DCF6D880A4
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 21:02:27 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <u0lnYVBoGwKJFwJg@onasticksoftware.net>
-References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
-	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
-Date: Mon, 24 Nov 2008 20:02:19 +0000
-Message-Id: <1227556939.16187.0.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
+	(envelope-from <user.vdr@gmail.com>) id 1L5hXO-0003UX-EL
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 15:08:11 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so589355nfb.11
+	for <linux-dvb@linuxtv.org>; Thu, 27 Nov 2008 06:08:06 -0800 (PST)
+Message-ID: <a3ef07920811270608v12999195k533d552fd059f24@mail.gmail.com>
+Date: Thu, 27 Nov 2008 06:08:06 -0800
+From: "VDR User" <user.vdr@gmail.com>
+To: "Artem Makhutov" <artem@makhutov.org>
+In-Reply-To: <20081127123505.GI13103@titan.makhutov-it.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de>
+	<20081127123505.GI13103@titan.makhutov-it.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,19 +30,8 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 2008-11-24 at 19:34 +0000, jon bird wrote:
-> could be although on perusing the mailing list archives this seemed
-> to 
-> be a recurring problem of which various attempts have been made to 
-> investigate/fix but there didn't seem to be a conclusion to it all. 
-> Hence I just thought I'd see what the latest state of play was and 
-> report back anything potentially useful.....
-
-Well, this has normally been solved. Your report is the first one in a
-long time.
-
-Nico
-
+Does anyone here actually disagree that the approach multiproto takes
+is a great solution that should be adopted (if possible)?
 
 _______________________________________________
 linux-dvb mailing list
