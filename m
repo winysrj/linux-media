@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from irc.jaif.se ([91.90.27.211] helo=mail.jaif.se ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jaif+linuxdvb@jaif.se>) id 1KwzSG-0007Tu-Fm
-	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 14:26:54 +0100
-Received: from h-157-126.a155.priv.bahnhof.se ([81.170.157.126]
-	helo=[192.168.0.250])
-	by mail.jaif.se with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63) (envelope-from <jaif+linuxdvb@jaif.se>)
-	id 1KwzS7-0006UJ-HM
-	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 14:26:47 +0100
-Message-ID: <490EFC0F.6050806@jaif.se>
-Date: Mon, 03 Nov 2008 14:26:39 +0100
-From: =?ISO-8859-1?Q?Jonas_F=E4rdig?= <jaif+linuxdvb@jaif.se>
-MIME-Version: 1.0
+Received: from web23207.mail.ird.yahoo.com ([217.146.189.62])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <newspaperman_germany@yahoo.com>) id 1L5hic-0004jH-No
+	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 15:19:49 +0100
+Date: Thu, 27 Nov 2008 14:19:13 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------050705060409060108000406"
-Subject: [linux-dvb] scan file for se-gothnet
+In-Reply-To: <823378732.20081127144952@bitklub.hu>
+MIME-Version: 1.0
+Message-ID: <262327.48768.qm@web23207.mail.ird.yahoo.com>
+Subject: [linux-dvb]  TT S2-3200: Support for high symbol rates.
+Reply-To: newspaperman_germany@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,62 +18,138 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------050705060409060108000406
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Scan file for the DVB-C provider Gothnet in Gothenburg, Sweden.
-
-/Jonas
+So let's hope our experts will soon find the problem.
 
 
 
---------------050705060409060108000406
-Content-Type: text/plain;
- name="se-gothnet"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="se-gothnet"
-
-# Gothnet DVB-C
-# Updated: 2008-09-19
-# freq sr fec mod
-
-# Free channels
-C 490000000 6875000 NONE QAM64
-C 498000000 6875000 NONE QAM64
-C 506000000 6875000 NONE QAM64
-C 514000000 6875000 NONE QAM64
-
-# SPA channels
-C 682000000 6900000 NONE QAM64
-C 690000000 6900000 NONE QAM64
-C 698000000 6900000 NONE QAM64
-C 706000000 6900000 NONE QAM64
-
-# Canal Digital channels
-C 314000000 7000000 NONE QAM64
-C 322000000 7000000 NONE QAM64
-C 346000000 7000000 NONE QAM64
-C 354000000 7000000 NONE QAM64
-C 362000000 7000000 NONE QAM64
-C 370000000 7000000 NONE QAM64
+kinds regards
 
 
+Newsy
 
---------------050705060409060108000406
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+--- Kovacs Balazs <basq@bitklub.hu> schrieb am Do, 27.11.2008:
+
+> Von: Kovacs Balazs <basq@bitklub.hu>
+> Betreff: Re[2]: [linux-dvb] TT S2-3200: Support for high symbol rates.
+> An: "Newsy Paper" <newspaperman_germany@yahoo.com>
+> CC: linux-dvb@linuxtv.org
+> Datum: Donnerstag, 27. November 2008, 14:49
+> No, it's a driver problem I think because those cards
+> works OK in Windows for me. But not with the linux driver.
+> In linux only the older cards work for me, and it seems 0708
+> and newer cards won't.
+> =
+
+> basq
+> =
+
+> > Hi!
+> =
+
+> > my card sasy 0712 not 0702! What's the difference
+> between old 0702
+> > and the newer ones? Is it even a hardware problem and
+> not a driver problem?
+> =
+
+> > kind regards
+> =
+
+> > Newsy
+> =
+
+> =
+
+> > --- Kovacs Balazs <basq@bitklub.hu> schrieb am
+> Mi, 26.11.2008:
+> =
+
+> >> Von: Kovacs Balazs <basq@bitklub.hu>
+> >> Betreff: Re: [linux-dvb] TT S2-3200: Support for
+> high symbol rates.
+> >> An: =
+
+> >> CC: linux-dvb@linuxtv.org
+> >> Datum: Mittwoch, 26. November 2008, 13:54
+> >> Maybe you are in the same situation like me with
+> the newer
+> >> cards. Can you check the text label below the box
+> where you
+> >> connect the antenna cable? For me TT3200 card
+> works if
+> >> it's 0702, if it's 0708 -> doesn't
+> work.
+> =
+
+> >> > hi!
+> =
+
+> >> > I tried Igor's latest s2-liplianin
+> mercurial,
+> >> > but till no success with 8psk 30000 3/4 on
+> Thor 1 =B0
+> >> West.
+> =
+
+> =
+
+> >> > kind regards =
+
+> =
+
+> =
+
+> >> > Newsy
+> =
+
+> =
+
+> >> >       =
+
+> =
+
+> >> >
+> _______________________________________________
+> >> > linux-dvb mailing list
+> >> > linux-dvb@linuxtv.org
+> >> >
+> >>
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> =
+
+> =
+
+> >> _______________________________________________
+> >> linux-dvb mailing list
+> >> linux-dvb@linuxtv.org
+> >>
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> =
+
+> =
+
+> >       =
+
+> =
+
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> >
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+      =
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------050705060409060108000406--
