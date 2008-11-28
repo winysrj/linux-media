@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIJoV3u008008
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 14:50:31 -0500
-Received: from QMTA10.emeryville.ca.mail.comcast.net
-	(qmta10.emeryville.ca.mail.comcast.net [76.96.30.17])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIJoIO1011952
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 14:50:18 -0500
-Message-ID: <49231C7C.4090905@personnelware.com>
-Date: Tue, 18 Nov 2008 13:50:20 -0600
-From: Carl Karsten <carl@personnelware.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASBuFwF023371
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 06:56:15 -0500
+Received: from mk-filter-1-a-1.mail.uk.tiscali.com
+	(mk-filter-1-a-1.mail.uk.tiscali.com [212.74.100.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mASBu2eY024526
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 06:56:02 -0500
+From: "Chris Grove" <dj_gerbil@tiscali.co.uk>
+To: <video4linux-list@redhat.com>
+Date: Fri, 28 Nov 2008 11:55:54 -0000
+Message-ID: <002901c95150$44c16b90$ce4442b0$@co.uk>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <4923175A.10908@gmail.com>
-In-Reply-To: <4923175A.10908@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: Re: [gspca-stv06xx]First bits of the new stv0600/stv0610 pushed
+Content-Language: en-gb
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Subject: Hauppauge WinTV USB Model 566 PAL-I 
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,338 +27,90 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Erik Andrén wrote:
-> Hi,
-> 
-> As I've written in an earlier mail I've taken a stab at porting over
-> the old qc-usb driver to the gspca framework.
-> The driver is nowhere complete but I've gotten it to work on my
-> Quickcam Web using the vv6410 sensor. 
+Hi there, I've got one of these cards but I'm having trouble getting it to
+work. The problem is that it loads ok, but when I try to use it, it turns
+out that the tuner module has loaded the wrong tuner type. Instead of using
+tuner type 1, a PAL-I tuner which mine is, it selects a PAL-BG tuner. Now
+I've tried using type=1 in the modprobe line but it turns out that, that is
+no longer supported. 
 
-Should I try with:
+ 
 
-[ 3737.600060] usb 4-1: new full speed USB device using uhci_hcd and address 2
-[ 3737.800330] usb 4-1: configuration #1 chosen from 1 choice
-[ 3738.338375] Linux video capture interface: v2.00
-[ 3738.381658] gspca: main v2.2.0 registered
-[ 3738.411220] gspca: probing 046d:092c
-[ 3738.472411] gspca: probe ok
-[ 3738.474574] usbcore: registered new interface driver spca561
-[ 3738.475493] spca561: registered
+System Info.
 
-carl@e18:~/vga2usb/dvgrab$ sudo lsusb -s 2 -v
-Bus 004 Device 002: ID 046d:092c Logitech, Inc. QuickCam Chat
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               1.10
-  bDeviceClass          255 Vendor Specific Class
-  bDeviceSubClass       255 Vendor Specific Subclass
-  bDeviceProtocol         0
-  bMaxPacketSize0         8
-  idVendor           0x046d Logitech, Inc.
-  idProduct          0x092c QuickCam Chat
-  bcdDevice            0.00
-  iManufacturer           1
-  iProduct                2 Camera
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          233
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              100mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0080  1x 128 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0370  1x 880 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       4
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0280  1x 640 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       5
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0300  1x 768 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       6
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0380  1x 896 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       7
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x03ff  1x 1023 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       8
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0220  1x 544 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       9
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0290  1x 656 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      10
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x02c0  1x 704 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      11
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0360  1x 864 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      12
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x03c0  1x 960 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting      13
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x034d  1x 845 bytes
-        bInterval               1
-Device Status:     0x0000
-  (Bus Powered)
+I'm using GeexBox which is built on linux-2.6.21.3 kernel.
 
+ 
 
+The Init.d script is:
 
-Carl K
+#!/bin/sh
+
+#
+
+# setup tv cards
+
+#
+
+# runlevels: geexbox, debug, install
+
+ 
+
+echo "### Setting up TV card ###"
+
+modprobe tuner pal=I
+
+modprobe tveeprom 
+
+modprobe usbvision
+
+modprobe saa7115 
+
+ 
+
+echo -n "" > /var/tvcard 
+
+exit 0  
+
+ 
+
+And the output from dmesg is:
+
+<6>usbvision_probe: Hauppauge WinTv-USB II (PAL) MODEL 566 found
+
+<6>USBVision[0]: registered USBVision Video device /dev/video0 [v4l2]
+
+<6>USBVision[0]: registered USBVision VBI device /dev/vbi0 [v4l2] (Not
+Working Yet!)
+
+<6>usbcore: registered new interface driver usbvision
+
+<6>USBVision USB Video Device Driver for Linux : 0.9.9
+
+<6>eth0: Media Link On 100mbps full-duplex
+
+<6>tuner 1-0042: chip found @ 0x84 (usbvision #0)
+
+<6>tda9887 1-0042: tda988[5/6/7] found @ 0x42 (tuner)
+
+<6>tuner 1-0061: chip found @ 0xc2 (usbvision #0)
+
+<6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and compatibles))
+
+<6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and compatibles))
+
+<6>saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (usbvision #0)
+
+<6>tda9887 1-0042: i2c i/o error: rc == -121 (should be 4)
+
+ 
+
+Any ideas please, and if someone has already asked this, sorry but I'm new
+to the list and haven't worked out how to search the archives yet.
+
+Thanks in advance, Chris.
+
+ 
 
 --
 video4linux-list mailing list
