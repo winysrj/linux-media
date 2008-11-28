@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-1.orange.nl ([193.252.22.241])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michel@verbraak.org>) id 1KwI8q-000061-9c
-	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 16:11:56 +0100
-Message-ID: <490C7194.8060603@verbraak.org>
-Date: Sat, 01 Nov 2008 16:11:16 +0100
-From: Michel Verbraak <michel@verbraak.org>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org, Alex Betis <alex.betis@gmail.com>
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-In-Reply-To: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-Content-Type: multipart/mixed; boundary="------------070906020500030301010803"
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+	(envelope-from <awalls@radix.net>) id 1L5snH-0004j9-I6
+	for linux-dvb@linuxtv.org; Fri, 28 Nov 2008 03:09:23 +0100
+From: Andy Walls <awalls@radix.net>
+To: VDR User <user.vdr@gmail.com>
+In-Reply-To: <a3ef07920811270919t77c40c0cv64c96675ce147a5@mail.gmail.com>
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de> <20081127123505.GI13103@titan.makhutov-it.de>
+	<a3ef07920811270608v12999195k533d552fd059f24@mail.gmail.com>
+	<1227799293.5677.10.camel@palomino.walls.org>
+	<a3ef07920811270919t77c40c0cv64c96675ce147a5@mail.gmail.com>
+Date: Thu, 27 Nov 2008 21:10:10 -0500
+Message-Id: <1227838210.3120.47.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,263 +23,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------070906020500030301010803
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 2008-11-27 at 09:19 -0800, VDR User wrote: 
+> On Thu, Nov 27, 2008 at 7:21 AM, Andy Walls <awalls@radix.net> wrote:
+> > On Thu, 2008-11-27 at 06:08 -0800, VDR User wrote:
+> >> Does anyone here actually disagree that the approach multiproto takes
+> >> is a great solution that should be adopted (if possible)?
+> >
+> > Does anyone here disagree that the above question is a troll?
+> >
+> > My point is that silence on internet mailing lists is not concurrence.
+> >
+> > This is especially the case if people are trying to avoid conflict by
+> > not reacting to people trolling for conflict.
+> 
+> I hope you don't expect to be taken seriously after your absurd
+> comment.
 
-Alex,
+Derek,
 
-Tested your scan-s2 with a Technisat HD2 card.
+I never expected for that response to be taken at face value.  It was to
+encourage reflection on the way your original question was phrased and
+to point out it's inability to get a conclusive answer.
 
-Scanning works. But some channels are reported twice with different 
-frequency. I found an error which is fixed by the patch file named 
-scan.c.diff1.
+Also devoid of any fragments of the previous conversation in the thread,
+your original question can be construed as inflammatory (i.e. a troll).
+Even the most benign tone and intent won't always be conveyed in a
+written medium.
 
-I would also like to propose the following change (see file scan.c.diff2 
-or scan.c.diff which includes both patches). This change makes it 
-possible to only scan for DVB-S channels or DVB-S2 channels or both. 
-This is done by specifying lines starting with S or S2 in the input file.
 
-example input file:
-# Astra 19.2E SDT info service transponder
-# freq pol sr fec
-S 12522000 H 22000000 2/3       <only DVB-S channels are scanned>
-S 11914000 H 27500000 AUTO
-S 10743750 H 22000000 5/6
-S 12187500 H 27500000 3/4
-S 12343500 H 27500000 3/4
-S 12515250 H 22000000 5/6
-S 12574250 H 22000000 5/6
-S2 12522000 H 22000000 AUTO    <only DVB-S2 channels are scanned>
-S2 11914000 H 27500000 AUTO
+> This conversation is about addressing and finding a solution
+> to a problem.  I'm not even the person who originally brought up the
+> solution used in multiproto but as far as I can see, it does seem to
+> be a great solution so I question why that method shouldn't be
+> adopted.
 
-I hope this is usefull.
+
+> It's ridiculous I need to point any of this out to you but one
+> possible reason is that _you_ are in fact the one trolling here.
+
+The first and third line of my response were crafted such that it could
+possibly be construed as a troll.  A bit of irony I was hoping people
+would catch.
+
+
+> Afterall, the only posting you've made has absolutely nothing to do
+> with the subject, while all of mine do.
+>  Please contribute something
+> relevant or find some other thread to infect.
+
+And I could say the same thing.  Open ended survey questions that can't
+yield conclusive results, with no surrounding context in the message,
+and yet addressed to a wide audience (i.e. "anyone here") are not
+productive, IMO. 
+
+I admire the passion you have about the state of v4l-dvb in your
+writings.  So why can't I see that passion in your work?
+
+I'd encourage you to take that energy and passion you have and write
+some improvements, go through unit testing, and submit some patches.
+It's open source, you can make a difference - you can even author some
+of those differences.  If you think it's broken, help us fix it.  If you
+don't think you can write code yourself, find a friend who can help you.
+I echo your sentiment back to you whole-heartedly: please contribute!
+
+
+> And by the way, most of us have accepted the outcome of the
+> s2api/multiproto controversy.  Maybe it's about time you find a way to
+> move on as well.  Good luck to you.
+
+Who says I haven't moved on?  My peeve is inflammatory and derisive
+comments and destructive criticism.  These things weigh heavily on me
+when I see them.
+
+As CityK rightly guessed, your history of somewhat provocative comments
+in postings colored my opinion on your survey question with which I took
+issue.  Without context, it appears to be just another in a series.
 
 Regards,
+Andy
 
-Michel.
-
---------------070906020500030301010803
-Content-Type: text/plain;
- name="scan.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="scan.c.diff"
-
---- scan-s2-88afcf030566/scan.c.orig	2008-11-01 10:09:43.000000000 +0100
-+++ scan-s2-88afcf030566/scan.c	2008-11-01 15:55:14.000000000 +0100
-@@ -906,10 +906,7 @@
- 				// New transponder
- 				t = alloc_transponder(tn.frequency);
- 
--				// For sattelites start with DVB-S, it will switch to DVB-S2 if DVB-S gives no results
--				if(current_tp->delivery_system == SYS_DVBS || current_tp->delivery_system == SYS_DVBS2) {
--					tn.delivery_system = SYS_DVBS;
--				}
-+				tn.delivery_system = current_tp->delivery_system;
- 
- 				copy_transponder(t, &tn);
- 			}
-@@ -1578,7 +1575,10 @@
- 			if_freq = abs(t->frequency - lnb_type.low_val);
- 		}
- 		if (verbosity >= 2)
-+                   if (t->delivery_system == SYS_DVBS)
- 			dprintf(1,"DVB-S IF freq is %d\n", if_freq);
-+                  else if (t->delivery_system == SYS_DVBS2)
-+			dprintf(1,"DVB-S2 IF freq is %d\n", if_freq);
- 	}
- 
- 
-@@ -1640,7 +1640,8 @@
- 			// get the actual parameters from the driver for that channel
- 			if ((ioctl(frontend_fd, FE_GET_PROPERTY, &cmdseq)) == -1) {
- 				perror("FE_GET_PROPERTY failed");
--				return;
-+        			t->last_tuning_failed = 1;
-+				return -1;
- 			}
- 
- 			t->delivery_system = p[0].u.data;
-@@ -1722,12 +1723,6 @@
- 
- 		rc = tune_to_transponder(frontend_fd, t);
- 
--		// If scan failed and it's a DVB-S system, try DVB-S2 before giving up
--		if (rc != 0 && t->delivery_system == SYS_DVBS) {
--			t->delivery_system = SYS_DVBS2;
--			rc = tune_to_transponder(frontend_fd, t);
--		}
--
- 		if (rc == 0) {
- 			return 0;
- 		}
-@@ -1992,6 +1987,42 @@
- 				t->frequency,
- 				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
- 		}
-+		else if (sscanf(buf, "S2 %u %1[HVLR] %u %4s %4s %6s\n", &f, pol, &sr, fec, rolloff, qam) >= 3) {
-+			t = alloc_transponder(f);
-+			t->delivery_system = SYS_DVBS2;
-+			t->modulation = QAM_AUTO;
-+			t->rolloff = ROLLOFF_AUTO;
-+			t->fec = FEC_AUTO;
-+			switch(pol[0]) 
-+			{
-+			case 'H':
-+			case 'L':
-+				t->polarisation = POLARISATION_HORIZONTAL;
-+				break;
-+			default:
-+				t->polarisation = POLARISATION_VERTICAL;;
-+				break;
-+			}
-+			t->inversion = spectral_inversion;
-+			t->symbol_rate = sr;
-+
-+			// parse optional parameters
-+			if(strlen(fec) > 0) {
-+				t->fec = str2fec(fec);
-+			}
-+
-+			if(strlen(rolloff) > 0) {
-+				t->rolloff = str2rolloff(rolloff);
-+			}
-+
-+			if(strlen(qam) > 0) {
-+				t->modulation = str2qam(qam);
-+			}
-+
-+			info("initial transponder %u %c %d %s %s %s\n",
-+				t->frequency,
-+				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
-+		}
- 		else if (sscanf(buf, "C %u %u %4s %6s\n", &f, &sr, fec, qam) >= 2) {
- 			t = alloc_transponder(f);
- 			t->delivery_system = SYS_DVBC_ANNEX_AC;
-
---------------070906020500030301010803
-Content-Type: text/plain;
- name="scan.c.diff1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="scan.c.diff1"
-
---- scan-s2-88afcf030566/scan.c.orig	2008-11-01 10:09:43.000000000 +0100
-+++ scan-s2-88afcf030566/scan.c	2008-11-01 15:55:14.000000000 +0100
-@@ -1640,7 +1640,8 @@
- 			// get the actual parameters from the driver for that channel
- 			if ((ioctl(frontend_fd, FE_GET_PROPERTY, &cmdseq)) == -1) {
- 				perror("FE_GET_PROPERTY failed");
--				return;
-+        			t->last_tuning_failed = 1;
-+				return -1;
- 			}
- 
- 			t->delivery_system = p[0].u.data;
-
---------------070906020500030301010803
-Content-Type: text/plain;
- name="scan.c.diff2"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="scan.c.diff2"
-
---- scan-s2-88afcf030566/scan.c.orig	2008-11-01 10:09:43.000000000 +0100
-+++ scan-s2-88afcf030566/scan.c	2008-11-01 15:55:14.000000000 +0100
-@@ -906,10 +906,7 @@
- 				// New transponder
- 				t = alloc_transponder(tn.frequency);
- 
--				// For sattelites start with DVB-S, it will switch to DVB-S2 if DVB-S gives no results
--				if(current_tp->delivery_system == SYS_DVBS || current_tp->delivery_system == SYS_DVBS2) {
--					tn.delivery_system = SYS_DVBS;
--				}
-+				tn.delivery_system = current_tp->delivery_system;
- 
- 				copy_transponder(t, &tn);
- 			}
-@@ -1578,7 +1575,10 @@
- 			if_freq = abs(t->frequency - lnb_type.low_val);
- 		}
- 		if (verbosity >= 2)
-+                   if (t->delivery_system == SYS_DVBS)
- 			dprintf(1,"DVB-S IF freq is %d\n", if_freq);
-+                  else if (t->delivery_system == SYS_DVBS2)
-+			dprintf(1,"DVB-S2 IF freq is %d\n", if_freq);
- 	}
- 
- 
-@@ -1722,12 +1723,6 @@
- 
- 		rc = tune_to_transponder(frontend_fd, t);
- 
--		// If scan failed and it's a DVB-S system, try DVB-S2 before giving up
--		if (rc != 0 && t->delivery_system == SYS_DVBS) {
--			t->delivery_system = SYS_DVBS2;
--			rc = tune_to_transponder(frontend_fd, t);
--		}
--
- 		if (rc == 0) {
- 			return 0;
- 		}
-@@ -1992,6 +1987,42 @@
- 				t->frequency,
- 				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
- 		}
-+		else if (sscanf(buf, "S2 %u %1[HVLR] %u %4s %4s %6s\n", &f, pol, &sr, fec, rolloff, qam) >= 3) {
-+			t = alloc_transponder(f);
-+			t->delivery_system = SYS_DVBS2;
-+			t->modulation = QAM_AUTO;
-+			t->rolloff = ROLLOFF_AUTO;
-+			t->fec = FEC_AUTO;
-+			switch(pol[0]) 
-+			{
-+			case 'H':
-+			case 'L':
-+				t->polarisation = POLARISATION_HORIZONTAL;
-+				break;
-+			default:
-+				t->polarisation = POLARISATION_VERTICAL;;
-+				break;
-+			}
-+			t->inversion = spectral_inversion;
-+			t->symbol_rate = sr;
-+
-+			// parse optional parameters
-+			if(strlen(fec) > 0) {
-+				t->fec = str2fec(fec);
-+			}
-+
-+			if(strlen(rolloff) > 0) {
-+				t->rolloff = str2rolloff(rolloff);
-+			}
-+
-+			if(strlen(qam) > 0) {
-+				t->modulation = str2qam(qam);
-+			}
-+
-+			info("initial transponder %u %c %d %s %s %s\n",
-+				t->frequency,
-+				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
-+		}
- 		else if (sscanf(buf, "C %u %u %4s %6s\n", &f, &sr, fec, qam) >= 2) {
- 			t = alloc_transponder(f);
- 			t->delivery_system = SYS_DVBC_ANNEX_AC;
-
---------------070906020500030301010803
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------070906020500030301010803--
