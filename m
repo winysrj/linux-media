@@ -1,16 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49])
+Received: from nf-out-0910.google.com ([64.233.182.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1L59Vj-0007tX-2u
-	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 02:48:12 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-In-Reply-To: <492BBFD9.50909@cadsoft.de>
-References: <8622.130.36.62.139.1227602799.squirrel@webmail.xs4all.nl>
-	<492BBFD9.50909@cadsoft.de>
-Date: Wed, 26 Nov 2008 02:44:16 +0100
-Message-Id: <1227663856.2618.10.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <user.vdr@gmail.com>) id 1L5yFB-0000gu-Th
+	for linux-dvb@linuxtv.org; Fri, 28 Nov 2008 08:58:31 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so775168nfb.11
+	for <linux-dvb@linuxtv.org>; Thu, 27 Nov 2008 23:58:26 -0800 (PST)
+Message-ID: <a3ef07920811272358p6c1cbe6bt8e0361db2e79671d@mail.gmail.com>
+Date: Thu, 27 Nov 2008 23:58:26 -0800
+From: "VDR User" <user.vdr@gmail.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <1227839691.2590.7.camel@pc10.localdom.local>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de>
+	<20081127123505.GI13103@titan.makhutov-it.de>
+	<a3ef07920811270608v12999195k533d552fd059f24@mail.gmail.com>
+	<1227799293.5677.10.camel@palomino.walls.org>
+	<a3ef07920811270919t77c40c0cv64c96675ce147a5@mail.gmail.com>
+	<492EF2F7.105@rogers.com>
+	<1227839691.2590.7.camel@pc10.localdom.local>
 Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
@@ -20,91 +29,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksCgpBbSBEaWVuc3RhZywgZGVuIDI1LjExLjIwMDgsIDEwOjA1ICswMTAwIHNjaHJpZWIgS2xh
-dXMgU2NobWlkaW5nZXI6Cj4gT24gMjUuMTEuMjAwOCAwOTo0NiwgTmllbHMgV2FnZW5hYXIgd3Jv
-dGU6Cj4gPiBPcCBNYSwgMjQgbm92ZW1iZXIsIDIwMDggMjA6MzMsIHNjaHJlZWYgTWFudSBBYnJh
-aGFtOgo+ID4+IEtsYXVzIFNjaG1pZGluZ2VyIHdyb3RlOgo+ID4+PiBPbiAyNC4xMS4yMDA4IDE2
-OjU1LCBOaWVscyBXYWdlbmFhciB3cm90ZToKPiA+Pj4+IC4uLgo+ID4+Pj4gRm9yIHRoZSB0aW1l
-IGJlaW5nIEkgaGF2ZSBvbmx5IHR3byBvcHRpb25zIHdoaWNoIHdpbGwgd29yayB3aXRob3V0IGFu
-eQo+ID4+Pj4gYWRkaXRpb25hbCBwYXRjaGluZyBpbiBTMkFQSToKPiA+Pj4+Cj4gPj4+PiAtIExl
-dCB0aGUgdXNlciBzZXQgdGhpcyBhcyBhbiBvcHRpb24KPiA+Pj4+IC0gVXNlIG15IFZVUCAodmVy
-eSB1Z2x5IHBhdGNoKSBieSBjaGVja2luZyB0aGUgZGVsaXZlcnlzdGVtIGZvciB0aGUKPiA+Pj4+
-IHN0cmluZwo+ID4+Pj4gIkRWQlMyIi4KPiA+Pj4gQm90aCBhcmUgdWdseSB3b3JrYXJvdW5kcyBh
-bmQgYW55IHJlYXNvbmFibGUgQVBJIHJlcXVpcmluZyB0aGVtIGluc3RlYWQKPiA+Pj4gb2Ygc2lt
-cGx5IHJlcG9ydGluZyB0aGUgLVMyIGNhcGFiaWxpdHkgb2YgYSBkZXZpY2Ugc2hvdWxkCj4gPj4+
-IGJlIGFzaGFtZWQsIGdvIGhvbWUgYW5kIGRvIGl0cyBob21ld29yay4KPiA+PiBBQ0sKPiA+Pgo+
-ID4gCj4gPiBBbmQgc3RpbGwsIEkgc2VlIG1hbnkgcG9wdWxhci9mcmVlL2NvbW1lcmNpYWwgRFZC
-IHNvZnR3YXJlIG9uIHRoZSBXaW5kb3dzCj4gPiBwbGF0Zm9ybSB3aGVyZSB5b3UgbmVlZCB0byBz
-ZWxlY3QgdGhlIERWQi1TMiBvcHRpb24gb24gdGhlIERWQi1jYXJkLiBTbyBJCj4gPiB3b3VsZG4n
-dCBqdXN0IHRocm93IGF3YXkgdGhpcyBvcHRpb24gYXMgYW4gdWdseSB3b3JrLWFyb3VuZC4KPiA+
-IAo+ID4gSW4gZmFjdCwgSSB3b3VsZCBsaWtlIHRvIHNldCB0aGUgc3BlY2lmaWMgdHlwZSBmb3Ig
-bXkgRFZCIGNhcmRzIGlmIEkKPiA+IGNvdWxkLiBTbyBhbiBvdmVycmlkZSBvcHRpb24gaXMgZGVm
-aW5hdGVseSBub3QgYSB1Z2x5IHdvcmstYXJvdW5kIGFuZCBmb3IKPiA+IHNldmVyYWwgcGVvcGxl
-IHRoaXMgd2lsbCBub3QgYmUgcHJvYmxlbS4KPiA+IAo+ID4gQnV0LCB0aGUgb3RoZXIgb3B0aW9u
-IGlzIGRlZmluYXRlbHkgYSB2ZXJ5IHVnbHkgd29yay1hcm91bmQuIEJ1dCB0aGVuCj4gPiBhZ2Fp
-biwgaXQgd29ya3MgOykKPiA+IAo+ID4+PiBGb3IgdGhlIHRpbWUgYmVpbmcgSSdsbCB3b3JrIHdp
-dGggbXkgc3VnZ2VzdGVkIEZFX0NBTl8yTkRfR0VOX01PRFVMQVRJT04KPiA+Pj4gcGF0Y2ggLSB1
-bnRpbCBzb21lYm9keSBjYW4gc3VnZ2VzdCBhIGRpZmZlcmVudCB3YXkgb2YgZG9pbmcgdGhpcwo+
-ID4+PiAod2l0aG91dAo+ID4+PiBwYXJzaW5nIHN0cmluZ3Mgb3IgcmVxdWlyaW5nIHRoZSB1c2Vy
-IHRvIGRvIGl0KS4KPiA+PiBBQ0suCj4gPj4KPiA+PiBUaGF0IGlzIGEgc2FuZXIgd2F5IG9mIGRv
-aW5nIGl0IHJhdGhlciB0aGFuIGFueXRoaW5nIGVsc2UsIGFzIGl0IHN0YW5kcy4KPiA+Pgo+ID4+
-IEFueXdheSwgd2Ugd29uJ3QgYmUgc2VlaW5nIHByb2Zlc3Npb25hbCBkZXZpY2Ugc3VwcG9ydCBh
-cyBpdCBzdGFuZHMgd2l0aAo+ID4+IHRoZSBjdXJyZW50IEFQSSBhbnl0aW1lIHNvb24sIHNvIGFz
-IGl0IHN0YW5kcyB0aGUgYmV0dGVyIGFsdGVybmF0aXZlIGlzCj4gPj4gdGh1cy4KPiA+Pgo+ID4+
-IEJ1dCBpdCB3b3VsZCBiZSBuaWNlIHRvIGhhdmUgc29tZXRoaW5nIHNob3J0ZXI6IHNheSBGRV9J
-U18yRyBvcgo+ID4+IHNvbWV0aGluZyB0aGF0IHdheSwgZm9yIHRoZSBtaW5pbWFsIHR5cGluZy4K
-PiA+Pgo+ID4gCj4gPiBJIGRpc2FncmVlIG9uIGJvdGggb2YgdGhlIHByb3Bvc2Fscy4gQWRkIGFu
-IG90aGVyIGZsYWcgaXMgaW5kZWVkIHRoZSB3YXkKPiA+IChJIEFDSyB0aGF0KSwgYnV0IG5vdCBh
-IGdlbmVyYWwgb25lIGxpa2UgeW91IGJvdGggcHJvcG9zZWQuIFdoZW4gRFZCLVQyCj4gPiAob3Ig
-RFZCLVMzIG9yIERWQi1DMiBvciB3aGF0ZXZlciBuZXcgZW5oYW5jZW1lbnQgb2YgcGFzdCBEVkIg
-c3RhbmRhcmRzKQo+ID4gYmVjb21lcyBtYWluc3RyZWFtIHdlIGdldCB0aGUgZXhhY3Qgc2FtZSBk
-aXNjdXNzaW9uIGFnYWluLgo+ID4gCj4gPiBJTUhPLCBhbiBub24tZ2VuZXJhbCBmbGFnIGxpa2Ug
-RkVfQ0FOX0RWQlQsIEZFX0NBTl9EVkJTLCBGRV9DQU5fRFZCUzIsCj4gPiBGRV9DQU5fRFZCQywg
-ZXRjIHdvdWxkIGJlIG1vcmUgY2xlYXJlci4gU2luY2UgaXQncyBhbiBEVkIgc3RhbmRhcmQsIGl0
-Cj4gPiBtdXN0IHN1cHBvcnQgY2VydGFpbiBtb2R1bGF0aW9uIHR5cGVzLCBldGMuIFNvIGlmIHRo
-ZSBkcml2ZXIgc2V0IGl0cwo+ID4gZnJvbnRlbmR0eXBlIHRvIEZFX0NBTl9EVkJULCB5b3Uga25v
-dyBmb3Igc3VyZSB3aGF0IHR1bmluZyB0eXBlcyBpdAo+ID4gc3VwcG9ydHMuCj4gPiAKPiA+IEJ1
-dCBpdCBhbCBkZXBlbmRzIGlmIHBlb3BsZSB3YW50IHRvIGFkZCB0aGlzIGluIHRoZSB2NGwgZHJp
-dmVyIGFsc28uIElmCj4gPiB0aGV5IGRvbid0LCBpdCBkb2Vzbid0IG1hdHRlciB3aGljaCBwcm9w
-b3NhbCBvciBwYXRjaCBtYWtlcyBpdC4gQW5kIGZvcgo+ID4gdGhhdCBhIG1hbnVhbCBvdmVycmlk
-ZSBvciBzZXR0aW5nIHdvdWxkIGJlY29tZSB2ZXJ5IGhhbmR5Lgo+ID4gCj4gPj4gUmVnYXJkcywK
-PiA+PiBNYW51Cj4gPj4KPiA+IAo+ID4gTG9vaywgSSdtIG5vdCBhbiBkZXZlbG9wZXIgcGVyc2Ug
-YW5kIHlvdSBjYW4gaWdub3JlIHdoYXQgSSBqdXN0IHdyb3RlLiBCdXQKPiA+IG15IGxvZ2ljIHRl
-bGxzIG1lIHRoYXQgYW4gbWFudWFsIG92ZXJyaWRlIG9yIGEgbm9uLWdlbmVyYWwgRkVfQ0FOIGZs
-YWcgZm9yCj4gPiB0aGUgY3VycmVudCBEVkIgc3RhbmRhcmRzIGlzIGEgdmVyeSBjbGVhbiBzb2xs
-dXRpb24uIEp1c3QgbXkg4oKsIDAsMDIuCj4gCj4gSSBmaW5kIGl0IGEgY29tcGxldGVseSB1bmFj
-Y2VwdGFibGUgdGhpbmcgdG8gaGF2ZSB0aGUgdXNlciB0ZWxsCj4gdGhlIGFwcGxpY2F0aW9uIHdo
-YXQgdHlwZSBvZiBEVkIgZGV2aWNlcyB0aGUgaGFyZHdhcmUgcHJvdmlkZXMuCj4gVGhpcyBpcyBw
-cmV0dHkgbXVjaCB0aGUgZmlyc3QgYW5kIHNpbXBsZXN0IHRoaW5nIHRoZSAqRFJJVkVSKiBoYXMK
-PiB0byBkby4gSWYgYSBkcml2ZXIgKEFQSSkgZG9lc24ndCBhbGxvdyB0aGlzIGluIGEgY2xlYW4g
-d2F5LCBpdCdzCj4gd29ydGhsZXNzIQoKdGhlICJzdXBlcmlvciIgX290aGVyXyBzdHVmZiBoYW5n
-cyBpbiBpdCB0b28gYW5kIG11Y2ggbW9yZS4KCj4gSSBkb24ndCBjYXJlIGlmIHRoaXMgaXMgYSBz
-cGVjaWZpYyBvciBhIGdlbmVyYWwgZmxhZywgYXMgbG9uZyBhcwo+IGl0IGFsbG93cyB0aGUgYXBw
-bGljYXRpb24gdG8gY2xlYXJseSBmaW5kIG91dCB0aGUga2luZCBvZiBoYXJkd2FyZQo+IHRoYXQn
-cyBhdmFpbGFibGUuIEl0IGxlYXZlcyBtZSBkdW1iZm91bmRlZCB0aGF0IHRoaXMgaXMgc3VkZGVu
-bHkKPiBzdWNoIGEgYmlnIHByb2JsZW0uLi4KPiAKPiBJZiBteSBwcm9wb3NhbCBpcyBub3QgYWNj
-ZXB0YWJsZSwgdGhlbiBwbGVhc2UgY2FuIG9uZSBvZiB0aGUgUzJBUEkKPiBleHBlcnRzIGNvbWUg
-dXAgd2l0aCBhIHNvbHV0aW9uIHRoYXQgYmV0dGVyIGZpdHMgdGhlIFMyQVBJIHdheSBvZgo+IHRo
-aW5raW5nPwoKU3RldmVuIGRpZCBub3Qgd29yayBvbiBTMkFQSSBmb3IgZnVuLCBoZSB3YXMgZXhj
-bHVkZWQgZnJvbSBtdWx0aXByb3RvCm92ZXIgeWVhcnMsIGFuZCB0cmllZCBhbGwgcHJldmlvdXNs
-eSB0byBvdmVyY29tZSB0aGlzLgoKSGUgbWlnaHQgaGF2ZSBhIGJyZWFrIGN1cnJlbnRseSwgYnV0
-IGlmIHlvdSB3YW50IHlvdXIgcGF0Y2hlcyByZXZpZXdlZAphbmQgaW5jbHVkZWQsIE1hbnUgY2Fu
-IGZvcndhcmQgdGhlbSBhcyB3ZWxsIGZvciB5b3UsIG9yIHlvdSB0cnkgdG8gcG9zdAp0byBNYXVy
-byBkaXJlY3RseSB0b28sIHNpbmNlIGhlIGlzIG9mdGVuIGluIGRlbGF5IHJlYWRpbmcgdGhlIGxp
-c3RzLCBidXQKdGhhdCB3b24ndCBtYWtlIGFueSBkaWZmZXJlbmNlLCBzaW5jZSBoZSB3aWxsIGFz
-ayBmb3IgZmVlZGJhY2sgZnJvbSBhbGwKaW52b2x2ZWQgYW55d2F5LCBiZWZvcmUgYXBwbHlpbmcg
-cGF0Y2hlcy4gQmVsaWV2ZSBpdCBvciBub3QuCgo+IDxjb25zcGlyYWN5X3RoZW9yeT48c2FyY2Fz
-bT4KPiBPciBpcyB0aGUgUzJBUEkgYWxyZWFkeSAiZGVhZCIsIGFuZCBpdCdzIHNvbGUgcHVycG9z
-ZSB3YXMgdG8KPiBwcmV2ZW50ICJtdWx0aXByb3RvIiB0byBtYWtlIGl0cyB3YXkgaW50byB0aGUg
-a2VybmVsPyBBbmQgbm93IHRoYXQKPiB0aGlzIGhhcyBiZWVuIGFjaGlldmVkLCBub2RvZHkgcmVh
-bGx5IGNhcmVzIHdoZXRoZXIgaXQgY2FuIGJlIHVzZWQKPiBpbiByZWFsIGxpZmU/Cj4gPC9zYXJj
-YXNtPjwvY29uc3BpcmFjeV90aGVvcnk+Cj4gCj4gS2xhdXMKPiAKCkNoZWVycywKSGVybWFubgoK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1k
-dmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYu
-b3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Considering that writing my own retorts to quotes will only bring this
+discussion further off-topic, I'll refrain by only saying that anyone
+who finds my opinions too abrasive for their ears should elect to
+ignore my posts.  I don't think people should be expected to censor
+themselves or walk on eggshells for fear of someone taking it the
+wrong way.  Of course unless people engage in name-calling, excessive
+profanity, etc.  Aside of the "troll" word being tossed around a
+couple times, I don't see that happening.  That being said, no harm no
+foul.. Let's move on.
+
+CityK said it best:
+
+"Fair enough, and upon casual inspection, it sounds like the multiproto
+method is done well and can be adopted ... so lets move towards that
+direction with that in mind and with whatever other good suggestions can
+be fleshed out of the discussion."
+
+Agreed.
+
+With regard,
+-Derek
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
