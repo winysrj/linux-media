@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from viefep18-int.chello.at ([213.46.255.22])
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <basq@bitklub.hu>) id 1KxGqS-0004cB-KK
-	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 09:01:01 +0100
-Date: Tue, 4 Nov 2008 09:00:10 +0100
-From: Kovacs Balazs <basq@bitklub.hu>
-Message-ID: <54283792.20081104090010@bitklub.hu>
-To: Goga777 <goga777@bk.ru>
-In-Reply-To: <20081103155903.245267fe@bk.ru>
-References: <167586304.20081103115116@bitklub.hu>
-	<20081103155903.245267fe@bk.ru>
+	(envelope-from <dvb-t@iinet.com.au>) id 1L5wr1-0003Ra-0F
+	for linux-dvb@linuxtv.org; Fri, 28 Nov 2008 07:29:28 +0100
+Message-ID: <A06AD3E8520F4A5F8F201C165BBEB10C@mce>
+From: "David" <dvb-t@iinet.com.au>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 28 Nov 2008 16:29:15 +1000
 MIME-Version: 1.0
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
+Subject: [linux-dvb] Supported / Recommended USB2.0 based Dual DVB-T Tuner ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,27 +22,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hello List,
 
+Does anyone have any recommendations about such a product?
+I'm particularly interested in something with with general availability in 
+Australia.
 
->>   FYI: on these TP's there's a pilot signal and rolloff set to 0.20. 
-
-> I'm wondering - how did you observe it ?
-
-I asked my colleagues who set up this modulator at uplink site, because we are working on these satellite DTH system.
-
-Is anybody can suggest a working DVB-S2 card + linux driver which is capable to lock here stable? (AMOS 4.0W, 10.723Ghz V, 30000)
-
-thank you,
-
-basq
-
-> Goga
-
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Thanks & regards
+David 
 
 
 _______________________________________________
