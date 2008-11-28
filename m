@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJ0aaAV026054
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 19:36:36 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.169])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJ0Zkn1014865
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 19:35:46 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so398093ugc.13
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 16:35:46 -0800 (PST)
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Wed, 19 Nov 2008 03:35:55 +0300
-Message-Id: <1227054955.2389.32.camel@tux.localhost>
-Mime-Version: 1.0
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Fri, 28 Nov 2008 17:30:55 +0100
+References: <200811271536.46779.laurent.pinchart@skynet.be>
+	<200811271548.31310.laurent.pinchart@skynet.be>
+	<20081128140709.64fee358@pedra.chehab.org>
+In-Reply-To: <20081128140709.64fee358@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 0/1] radio-mr800: fix unplug
+Content-Disposition: inline
+Message-Id: <200811281730.55232.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
+Subject: Re: [PATCH 4/4] v4l2: Document zoom and privacy controls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,32 +25,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, all
+Hi Mauro,
 
-This patch fix such thing. When you listening the radio with you
-user-space application(kradio/gnomeradio/mplayer/etc) and suddenly you
-unplug the device from usb port and then close application or change
-frequency of the radio - a lot of oopses appear in dmesg. I also had big
-problems with stability of kernel(different memory leaks, lockings) in
-~30% of cases when using mplayer trying to reproduce this bug.
+On Friday 28 November 2008, Mauro Carvalho Chehab wrote:
+> On Thu, 27 Nov 2008 15:48:31 +0100
+>
+> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+> > +
+> > +          <row>
+> > +            <entry
+> > spanname="id"><constant>V4L2_CID_ZOOM_ABSOLUTE</constant>&nbsp;</entry> +
+> >            <entry>integer</entry>
+> > +          </row><row><entry spanname="descr">Specify the objective lens
+> > +focal length as an absolute value. The zoom unit is driver-specific and
+> > its +value should be a positive integer.</entry>
+>
+> Hmm... I think it would be better to have some unit for the controls, or at
+> least a way to report the unit to userspace.
 
-This thing happens with dsbr100 radio and radio-mr800. I told about this
-thing to Douglas Schilling Landgraf and then he suggested right decision
-for dsbr100. He told me that he get ideas of preventing this bug from
-Tobias radio-si470x driver. Hopefully this bug didn't show up in
-radio-si470x. Well, i used Douglas suggestion and code of si470x and
-made this patch.
+Why ? Does it matter if the zoom is expressed as an absolute focal lens in 
+millimetres or mils, or as a relative value between 0 an 255 ? Most devices 
+will use an arbitrary scale, probably 0-255, to cover the whole zoom range. 
+There is no unit associated with that.
 
-Douglas said that he's going to create patch for dsbr100.
+Best regards,
 
-Patch places a lof of safety checks in functions, adds disconnect_lock
-mutex and changes disconnect and release functions of module. May be
-it's good to add it to 2.6.28 because it fixes an issue.
-I tested this thing under 2.6.28-rc5.
-
--- 
-Best regards, Klimov Alexey
-
+Laurent Pinchart
 
 --
 video4linux-list mailing list
