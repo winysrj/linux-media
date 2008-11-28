@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA70E2BP000919
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 19:14:02 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA70CvRb019393
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 19:13:45 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so948617wfc.6
-	for <video4linux-list@redhat.com>; Thu, 06 Nov 2008 16:12:57 -0800 (PST)
-Message-ID: <26aa882f0811061612r1419b6a1p9dd8f17333be09ba@mail.gmail.com>
-Date: Thu, 6 Nov 2008 19:12:57 -0500
-From: "Jackson Yee" <jackson@gotpossum.com>
-To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
-In-Reply-To: <200811060142.48227.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASJGF0H014585
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 14:16:15 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mASJG2OX031012
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 14:16:03 -0500
+Date: Fri, 28 Nov 2008 17:15:51 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20081128171551.42c1b1e9@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0811281707440.4430@axis700.grange>
+References: <uljvhtzst.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0811281707440.4430@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <26aa882f0810280714u1b3964b9t1440369d2d2a36b7@mail.gmail.com>
-	<200811060142.48227.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com
-Subject: Re: Testing Requested: Python Bindings for Video4linux2
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add ov7725 ov7720 support to ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,37 +28,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Lauren,
+On Fri, 28 Nov 2008 17:44:14 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-On Wed, Nov 5, 2008 at 7:42 PM, Laurent Pinchart
-<laurent.pinchart@skynet.be> wrote:
-> The uvcvideo driver doesn't implement the standard ioctls. This should not be
-> fatal (and you probably want to define FindKeyas well).
+> Hi,
+> 
+> sorry it took me a while to find some time to look at this patch. In 
+> principle it looks ok, just a couple of notes / questions:
+> 
+> (also Mauro): I am not sure if this is ok to submit a change to 
+> include/media/v4l2-chip-ident.h in this patch, i.e., if I may pull it via 
+> my tree. Mauro? Or shall it be submitted separately and _after_ it is 
+> applied we can also push the main part of the patch? Here's the hunk I'm 
+> talking about:
+> 
+> > diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+> > index bfe5142..14a205f 100644
+> > --- a/include/media/v4l2-chip-ident.h
+> > +++ b/include/media/v4l2-chip-ident.h
+> > @@ -60,7 +60,8 @@ enum {
+> >  
+> >  	/* OmniVision sensors: reserved range 250-299 */
+> >  	V4L2_IDENT_OV7670 = 250,
+> > -	V4L2_IDENT_OV772X = 251,
+> > +	V4L2_IDENT_OV7720 = 251,
+> > +	V4L2_IDENT_OV7725 = 252,
+> >  
+> >  	/* Conexant MPEG encoder/decoders: reserved range 410-420 */
+> >  	V4L2_IDENT_CX23415 = 415,
 
-The standard ioctls are, unfortunately, all I have to go by since I'm
-testing on my amd64 box with a bttv card. If a function does not
-succeed though, it should throw an exception and let the user code
-sort things out. Do you have a link for the uncvideo driver so I could
-add support for it?
+It is ok to be in the same patch, but I prefer if you split this into a
+separate patch, especially since you're renaming the ID for a previous chip.
 
-FindKey looks to be Carl's code. ;-) I've added the function now.
-
-> The problem comes from a bad alignment in the PixFormat structure. At least on
-> my architecture (x86) the type field is 32 bits wide.
-
-I've updated the type field on PixFormat to c_long, which should come
-out to be the right size on both x86 and amd64 platforms now.
-
-Thanks for the test. I'm working on adding libavcodec/libavformat
-support so that we can capture straight to video instead of jpegs like
-we're doing now. Please let me know if we have any other issues.
-
--- 
-Regards,
-Jackson Yee
-The Possum Company
-540-818-4079
-me@gotpossum.com
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
