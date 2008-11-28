@@ -1,28 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3GDSfH007536
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 11:13:28 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.175])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id mA3GDDrx018855
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 11:13:14 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so6191080ugc.13
-	for <video4linux-list@redhat.com>; Mon, 03 Nov 2008 08:13:03 -0800 (PST)
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <30353c3d0810291012y5c9a4c54x480fdb0fa807dd0c@mail.gmail.com>
-References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
-	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
-	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
-	<20081028180552.GA2677@tux>
-	<30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
-	<30353c3d0810291012y5c9a4c54x480fdb0fa807dd0c@mail.gmail.com>
-Content-Type: text/plain
-Date: Mon, 03 Nov 2008 19:02:53 +0300
-Message-Id: <1225728173.20921.6.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: [patch] radio-mr800: remove warn- and err- messages
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASIYZNH032512
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 13:34:35 -0500
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mASIYOuj013023
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 13:34:24 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Date: Sat, 29 Nov 2008 00:04:10 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403E904ECE1@dbde02.ent.ti.com>
+In-Reply-To: <200811280833.30868.david-b@pacbell.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"davinci-linux-open-source-bounces@linux.davincidsp.com"
+	<davinci-linux-open-source-bounces@linux.davincidsp.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: RE: [PATCH 2/2] TVP514x Driver with Review comments fixed
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,140 +31,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, again
-What do you think about this ?
-
-radio-mr800: remove warn-, err- and info-messages
-
-Patch removes warn(), err() and info() statements in
-media/radio/radio-mr800.c, and place dev_warn, dev_info in right places.
-Printk changed on pr_info and pr_err macro.
-
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
-
----
-diff -r db5374be1876 linux/drivers/media/radio/radio-mr800.c
---- a/linux/drivers/media/radio/radio-mr800.c	Mon Nov 03 04:26:47 2008 +0300
-+++ b/linux/drivers/media/radio/radio-mr800.c	Mon Nov 03 18:52:11 2008 +0300
-@@ -72,6 +72,10 @@
- 
- #define USB_AMRADIO_VENDOR 0x07ca
- #define USB_AMRADIO_PRODUCT 0xb800
-+
-+/* dev_warn macro with driver name */
-+#define DRIVERNAME "radio-mr800"
-+#define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRIVERNAME fmt, ##arg)
- 
- /* Probably USB_TIMEOUT should be modified in module parameter */
- #define BUFFER_LENGTH 8
-@@ -362,7 +366,8 @@
- 
- 	radio->curfreq = f->frequency;
- 	if (amradio_setfreq(radio, radio->curfreq) < 0)
--		warn("Set frequency failed");
-+		amradio_dev_warn(&radio->videodev->dev,
-+			" - set frequency failed\n");
- 	return 0;
- }
- 
-@@ -385,8 +390,7 @@
- 
- 	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
- 		if (qc->id && qc->id == radio_qctrl[i].id) {
--			memcpy(qc, &(radio_qctrl[i]),
--						sizeof(*qc));
-+			memcpy(qc, &(radio_qctrl[i]), sizeof(*qc));
- 			return 0;
- 		}
- 	}
-@@ -417,12 +421,14 @@
- 	case V4L2_CID_AUDIO_MUTE:
- 		if (ctrl->value) {
- 			if (amradio_stop(radio) < 0) {
--				warn("amradio_stop() failed");
-+				amradio_dev_warn(&radio->videodev->dev,
-+					" - amradio_stop failed\n");
- 				return -1;
- 			}
- 		} else {
- 			if (amradio_start(radio) < 0) {
--				warn("amradio_start() failed");
-+				amradio_dev_warn(&radio->videodev->dev,
-+					" - amradio_start failed\n");
- 				return -1;
- 			}
- 		}
-@@ -478,13 +484,15 @@
- 	radio->muted = 1;
- 
- 	if (amradio_start(radio) < 0) {
--		warn("Radio did not start up properly");
-+		amradio_dev_warn(&radio->videodev->dev,
-+			" - radio did not start up properly\n");
- 		radio->users = 0;
- 		unlock_kernel();
- 		return -EIO;
- 	}
- 	if (amradio_setfreq(radio, radio->curfreq) < 0)
--		warn("Set frequency failed");
-+		amradio_dev_warn(&radio->videodev->dev,
-+			" - set frequency failed\n");
- 
- 	unlock_kernel();
- 	return 0;
-@@ -511,9 +519,9 @@
- 	struct amradio_device *radio = usb_get_intfdata(intf);
- 
- 	if (amradio_stop(radio) < 0)
--		warn("amradio_stop() failed");
-+		dev_warn(&intf->dev, "amradio_stop failed\n");
- 
--	info("radio-mr800: Going into suspend..");
-+	dev_info(&intf->dev, "going into suspend..\n");
- 
- 	return 0;
- }
-@@ -524,9 +532,9 @@
- 	struct amradio_device *radio = usb_get_intfdata(intf);
- 
- 	if (amradio_start(radio) < 0)
--		warn("amradio_start() failed");
-+		dev_warn(&intf->dev, "amradio_start failed\n");
- 
--	info("radio-mr800: Coming out of suspend..");
-+	dev_info(&intf->dev, "coming out of suspend..\n");
- 
- 	return 0;
- }
-@@ -605,7 +613,7 @@
- 
- 	video_set_drvdata(radio->videodev, radio);
- 	if (video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr)) {
--		warn("Could not register video device");
-+		dev_warn(&intf->dev, "could not register video device\n");
- 		video_device_release(radio->videodev);
- 		kfree(radio->buffer);
- 		kfree(radio);
-@@ -620,9 +628,13 @@
- {
- 	int retval = usb_register(&usb_amradio_driver);
- 
--	info(DRIVER_VERSION " " DRIVER_DESC);
-+	pr_info(KBUILD_MODNAME
-+		": version " DRIVER_VERSION " " DRIVER_DESC "\n");
-+
- 	if (retval)
--		err("usb_register failed. Error number %d", retval);
-+		pr_err(KBUILD_MODNAME
-+			": usb_register failed. Error number %d\n", retval);
-+
- 	return retval;
- }
- 
 
 
--- 
-Best regards, Klimov Alexey
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: David Brownell [mailto:david-b@pacbell.net]
+> Sent: Friday, November 28, 2008 10:04 PM
+> To: Hiremath, Vaibhav
+> Cc: video4linux-list@redhat.com; davinci-linux-open-source-
+> bounces@linux.davincidsp.com; linux-omap@vger.kernel.org; Jadav,
+> Brijesh R; Shah, Hardik; Hadli, Manjunath; R, Sivaraj; Karicheri,
+> Muralidharan
+> Subject: Re: [PATCH 2/2] TVP514x Driver with Review comments fixed
+> 
+> On Friday 28 November 2008, hvaibhav@ti.com wrote:
+> > +/*
+> > + * Supported standards - These must be ordered according to enum
+> tvp514x_std
+> > + * order.
+> 
+> In this case it'd be easy to remove that restriction...
+> 
+> 
+[Hiremath, Vaibhav] Very true, I never thought this of while implementing. I will change this in next patch.
+
+> > + * Currently supports two standards only, need to add support for
+> rest of the
+> > + * modes, like SECAM, etc...
+> > + */
+> > +static struct tvp514x_std_info tvp514x_std_list[] = {
+> > +       {
+> 
+> 	[STD_NTSC_MJ] = {
+> 
+> > +        .width = NTSC_NUM_ACTIVE_PIXELS,
+> > +        .height = NTSC_NUM_ACTIVE_LINES,
+> > +        .video_std = VIDEO_STD_NTSC_MJ_BIT,
+> > +        .standard = {
+> > +                     .index = 0,
+> > +                     .id = V4L2_STD_NTSC,
+> > +                     .name = "NTSC",
+> > +                     .frameperiod = {1001, 30000},
+> > +                     .framelines = 525
+> > +                    },
+> > +       }, {
+> 
+> 	[STD_PAL_BDGHIN] = { ...
+> 
+> ... for clarity.  Though it's more conventional to have
+> the "undefined" value be zero, and thus what kzalloc or
+> static initialization provides, than have NTSC be zero.  :)
+> 
+> 
+> 
+
 
 --
 video4linux-list mailing list
