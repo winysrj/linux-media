@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 4 Nov 2008 19:55:40 +0100
-References: <200811032103.36711.laurent.pinchart@skynet.be>
-	<200811032147.04546.laurent.pinchart@skynet.be>
-	<200811040709.29024.hverkuil@xs4all.nl>
-In-Reply-To: <200811040709.29024.hverkuil@xs4all.nl>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASNMcsj027149
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 18:22:38 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mASNMP2d000848
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 18:22:26 -0500
+Date: Sat, 29 Nov 2008 00:22:27 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20081128171551.42c1b1e9@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.64.0811290020500.7032@axis700.grange>
+References: <uljvhtzst.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0811281707440.4430@axis700.grange>
+	<20081128171551.42c1b1e9@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811041955.40763.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, mchehab@redhat.com
-Subject: Re: [PATCH 2/2] v4l2: Add camera privacy control.
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add ov7725 ov7720 support to ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,26 +28,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+On Fri, 28 Nov 2008, Mauro Carvalho Chehab wrote:
 
-On Tuesday 04 November 2008, Hans Verkuil wrote:
-> Hi Laurent,
->
-> Can you also patch v4l2-common.c to add support for this new control?
+> On Fri, 28 Nov 2008 17:44:14 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> 
+> > Hi,
+> > 
+> > sorry it took me a while to find some time to look at this patch. In 
+> > principle it looks ok, just a couple of notes / questions:
+> > 
+> > (also Mauro): I am not sure if this is ok to submit a change to 
+> > include/media/v4l2-chip-ident.h in this patch, i.e., if I may pull it via 
+> > my tree. Mauro? Or shall it be submitted separately and _after_ it is 
+> > applied we can also push the main part of the patch? Here's the hunk I'm 
+> > talking about:
+> > 
+> > > diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+> > > index bfe5142..14a205f 100644
+> > > --- a/include/media/v4l2-chip-ident.h
+> > > +++ b/include/media/v4l2-chip-ident.h
+> > > @@ -60,7 +60,8 @@ enum {
+> > >  
+> > >  	/* OmniVision sensors: reserved range 250-299 */
+> > >  	V4L2_IDENT_OV7670 = 250,
+> > > -	V4L2_IDENT_OV772X = 251,
+> > > +	V4L2_IDENT_OV7720 = 251,
+> > > +	V4L2_IDENT_OV7725 = 252,
+> > >  
+> > >  	/* Conexant MPEG encoder/decoders: reserved range 410-420 */
+> > >  	V4L2_IDENT_CX23415 = 415,
+> 
+> It is ok to be in the same patch, but I prefer if you split this into a
+> separate patch, especially since you're renaming the ID for a previous chip.
 
-Sorry, I forgot about that.
+Oops, sorry, we cannot separate it that easily - ov772x.c would not 
+compile any more. So, we either have to commit it as a single patch 
+(easy), or make three patches out of it - add new IDs, switch ov772x.c, 
+remove the old ID. I am for the easy version.
 
-> Actually, it would be great if the other missing controls (e.g. FOCUS
-> controls) are also added.
-
-I'll prepare a patch and submit it along with zoom support.
-
-Mauro, if you haven't picked the camera privacy control patch yet, please 
-ignore it. I'll resubmit with the missing changes to v4l2-common.c.
-
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
