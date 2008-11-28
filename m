@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARDr71r023026
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 08:53:07 -0500
-Received: from smtp-out25.alice.it (smtp-out25.alice.it [85.33.2.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARDqqjN021021
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 08:52:53 -0500
-Date: Thu, 27 Nov 2008 14:52:33 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Message-Id: <20081127145233.f467442a.ospite@studenti.unina.it>
-In-Reply-To: <1227788553.1752.42.camel@localhost>
-References: <20081125235249.d45b50f4.ospite@studenti.unina.it>
-	<1227777784.1752.20.camel@localhost>
-	<20081127120536.62b35cd6.ospite@studenti.unina.it>
-	<1227788553.1752.42.camel@localhost>
-Mime-Version: 1.0
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] gspca_ov534: Print only frame_rate actually used.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAS7nXMG016906
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 02:49:33 -0500
+Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAS7nIK1001877
+	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 02:49:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Fri, 28 Nov 2008 08:49:14 +0100
+References: <19F8576C6E063C45BE387C64729E739403E904EBA8@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E904EBA8@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811280849.14829.hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: v4l2_device/v4l2_subdev: please review
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,125 +25,210 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1926243589=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---===============1926243589==
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg="PGP-SHA1";
-	boundary="Signature=_Thu__27_Nov_2008_14_52_33_+0100_9+=nhzCy1eHievOy"
-
---Signature=_Thu__27_Nov_2008_14_52_33_+0100_9+=nhzCy1eHievOy
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 27 Nov 2008 13:22:33 +0100
-Jean-Francois Moine <moinejf@free.fr> wrote:
-
-> On Thu, 2008-11-27 at 12:05 +0100, Antonio Ospite wrote:
-> > > The patch also includes removing the bulk_size setting at streamon ti=
-me:
-> > > the value is already used at this time, and also, there is only one
-> > > resolution.
-> > We will add this again when we add other resolutions, OK.
->=20
-> The bulk_size must be set at the max resolution because it is used for
-> buffer allocation before stream on.
+On Friday 28 November 2008 07:34:55 Hiremath, Vaibhav wrote:
+> Hi Hans,
 >
-
-Well, isn't it only used in create_urbs()? AFAICS the latter uses it to
-set urb->tranfer_buffer_length and is called at streamon time, so it
-could still be worth to set bulk_size to exact value for the current
-resolution to have more efficient transfers, what do you think?
-
-> 	[snip]
-> > >  /* V4L2 controls supported by the driver */
-> > > @@ -59,7 +58,7 @@
-> > >  	{640, 480, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
-> > >  	 .bytesperline =3D 640 * 2,
-> > >  	 .sizeimage =3D 640 * 480 * 2,
-> > > -	 .colorspace =3D V4L2_COLORSPACE_JPEG,
-> > > +	 .colorspace =3D V4L2_COLORSPACE_SRGB,
-> > >  	 .priv =3D 0},
-> > >  };
+> > -----Original Message-----
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > Sent: Wednesday, November 26, 2008 11:29 PM
+> > To: Hiremath, Vaibhav
+> > Cc: v4l
+> > Subject: Re: v4l2_device/v4l2_subdev: please review
+> >
+> > On Wednesday 26 November 2008 18:47:08 Hiremath, Vaibhav wrote:
+> > > Thanks,
+> > > Vaibhav Hiremath
 > > >
-> >=20
-> > Can you explain this one, please?
->=20
-> I think the JPEG images embed colorspace information, and here, it is
-> simple RGB.
+> > > > -----Original Message-----
+> > > > From: video4linux-list-bounces@redhat.com [mailto:video4linux-
+> >
+> > list-
+> >
+> > > > bounces@redhat.com] On Behalf Of Hans Verkuil
+> > > > Sent: Tuesday, November 25, 2008 3:40 AM
+> > > > To: v4l
+> > > > Subject: v4l2_device/v4l2_subdev: please review
+> > > >
+> > > > Hi all,
+> > > >
+> > > > I've finally tracked down the last oops so I could make a new
+> >
+> > tree
+> >
+> > > > with
+> > > > all the latest changes.
+> > > >
+> > > > My http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng tree contains
+> >
+> > the
+> >
+> > > > following:
+> > >
+> > > [Hiremath, Vaibhav] Some quick comments I came across -
+> > >
+> > > 	- No support for enumerating/getting the input/output list. We
+> >
+> > do
+> >
+> > > have entry for s_routing, but how master driver will be able to
+> >
+> > know
+> >
+> > > about the input and output supported for sub-devices? I believe
+> >
+> > the
+> >
+> > > input and output supported should come from board specific file
+> >
+> > (from
+> >
+> > > bridge).
+> > >
+> > > Although I am not aware of sa7115 driver, but after looking to
+> >
+> > code
+> >
+> > > it looks like master driver knows about the indexes (input and
+> > > output) part. That should not be the case.
+> >
+> > The s_input and s_output ioctls deal with user level inputs and
+> > outputs
+> > (i.e. the actual connectors like HDMI, S-Video, etc.). The i2c
+> > video chip deals with input and output pins. How the two match up
+> > can *only*
+> > be decided by the master driver. Typically it will determine which
+> > board/card it is and do a lookup in some table to find the right
+> > mapping. The i2c driver definitely doesn't know. All it needs to
+> > know
+> > are the pins it has to select.
+> >
+> > > 	- Again, in my opinion it would carry more information if we
+> >
+> > use
+> >
+> > > v4l2_input struct for input and output.
+> > >
+> > > What is your opinion here?
+> > >
+> > > Still looking into it, may get some more points while migrating
+> > > to it.
+> >
+> > It's really important not to confuse the user-level inputs and the
+> > chip-level inputs.
 >
+> [Hiremath, Vaibhav] Hans, I read the spec for saa7115 video decoder
+> and I believe from input point of view the requirement/handling is
+> almost same for both TVP and SAA devices. Let me put that in details
+> for better understanding -
 
-Also other drivers are setting this colorspace for raw YCbCr data, see
-mt9m111.c:
-COL_FMT("YCrYCb 16 bit", 16, V4L2_PIX_FMT_YUYV, V4L2_COLORSPACE_JPEG),
+That's correct, it's a very similar device.
 
-and tcm825x.c:
-switch (pix->pixelformat) {
-	case V4L2_PIX_FMT_UYVY:
-	default:
-		pix->colorspace =3D V4L2_COLORSPACE_JPEG;
-		break;
-
-and also the comment relative to V4L2_COLORSPACE_JPEG mentions YCbCr,
-but honestly, I don't know how this colorspace info is used that's why I
-am asking.
-
-> > [snip]
-> > > @@ -433,7 +429,6 @@
-> > >  	int framesize =3D gspca_dev->cam.bulk_size;
-> > > =20
-> > >  	if (len =3D=3D framesize - 4) {
-> > > -		frame =3D
-> > >  		    gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, len);
-> >=20
-> > This change is just to follow the convention used by other drivers,
-> > right? You could also adjust indentation on following line, then.
->=20
-> If you look carefully, the frame returned by gspca_frame_add() is
-> changed only when the packet type is LAST_PACKET. OK for the
-> indentation.
+> SAAx (e.g. SAA7115)
 >
+> Input supported -
+> 	- 6 CVBS inputs
+> 	- 2 Y-C and 2 CVBS
+> 	- 1 Y-C and 4 CVBS
+>
+> Output Supported -
+> 	- 2 output (I-Port and X-Port out)
+>
+> TVPx (e.g. TVP5146)
+>
+> Input supported (as of now I will consider only S-Video/Composite) -
+> 	- 10 Composite
+> 	- 4 S-Video
+> 	- And combinations of these
+>
+> Output Supported -
+> 	- 1 output
+>
+> I believe chip-level input and user level input should be tied to
+> each other up-to some extent, meaning that -
+>
+> If say, TVP has 10 composite input connected then user should be able
+> to select any of them. But the user won't be knowing the chip level
+> details. From user point of view it is only 10-composite inputs, he
+> should be able to enumerate them, get the current active input and
+> set/switch the input to any of them.
+>
+> Same applies to output.
 
-OK, thanks.
+No, think about it: say that this chip is used on a board where 2 of the 
+10 composite input pins are hooked up to an actual composite connector. 
+The user only cares about selecting the connector input. You don't want 
+him to hunt through all 10 possible pins to find the two that are 
+hooked up to the actual connectors. It becomes even worse when you 
+consider the audio inputs: the user would have to go through the same 
+process to match an audio input pin with an audio input connector, and 
+than has to figure out which audio connector matches which video 
+connector.
+
+The mapping between an actual connector and the pin on a chip is 
+hardwired and so is part of the bridge (host, master, whatever) driver 
+since that driver actually knows which board it is and how it is hooked 
+up. There is also no need to enumerate inputs from an i2c device: the 
+bridge driver always knows what input pin to use for which physical 
+input connector.
+
+>
+> From my opinion I think, S_ROUNDING ioctl is bit confusing to me. I
+> would prefer generic and different interface to both input and output
+> - ENUM_INPUT - Enumerate all the inputs supported.
+> GET/QUERY_INPUT - Get the current active input.
+> SET_INPUT - Set/Switch the input to.
+>
+> ENUM_OUTPUT - Enumerate all the outputs supported.
+> GET/QUERY_INPUT - Get the current active output.
+> SET_OUTPUT - Set/Switch output to. This would be a requirement from
+> display point of view where we have multiple outputs and would like
+> to switch between them.
+>
+> With this, the current master drivers would need to call two slave
+> API's to route particular input to specific output (which is being
+> handled through S_ROUTING ioctl)
+
+- Why introduce an enum ioctl?
+- Why introduce a 'get' ioctl?
+- Why make two ioctls (one for input, one for output) when the two have 
+to be set simultaneously anyway?
+
+(Note that there is a G_ROUTING ioctl at the moment, but it is actually 
+never used).
+
+The generic sequence is as follows:
+
+An application calls ENUMINPUT/ENUMOUTPUT to discover which physical 
+inputs and outputs there are and presents them to the user in a GUI.
+
+When the user selects one the applications calls e.g. S_INPUT to select 
+that input and the bridge driver looks up in a table which route 
+through the video decoder chip the signal from the connector to the 
+rest of the system takes. It sends that information to the i2c driver 
+using the S_ROUTING ioctl and we are done.
+
+A good example of seeing this mapping in practice is 
+drivers/media/video/ivtv/ivtv-cards.c. It supports three different 
+video decoders and many boards and connector - pin mappings.
 
 Regards,
-   Antonio Ospite
 
---=20
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
+	Hans
 
-  Web site: http://www.studenti.unina.it/~ospite
-Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
+>
+> Thanks,
+> Vaibhav Hiremath
+>
+> > Regards,
+> >
+> > 	Hans
 
---Signature=_Thu__27_Nov_2008_14_52_33_+0100_9+=nhzCy1eHievOy
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkkupiEACgkQ5xr2akVTsAF4WgCcCqYfUe4aPvq5acmM0yK7E6RU
-NfMAnj+WE3BNsldh1287zioMHB+iiH77
-=LeYR
------END PGP SIGNATURE-----
-
---Signature=_Thu__27_Nov_2008_14_52_33_+0100_9+=nhzCy1eHievOy--
-
-
---===============1926243589==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============1926243589==--
