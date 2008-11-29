@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.154])
+Received: from fmmailgate01.web.de ([217.72.192.221])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1L4KW6-0002nC-E6
-	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 20:21:11 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so1393226fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 11:21:07 -0800 (PST)
-Message-ID: <37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>
-Date: Sun, 23 Nov 2008 14:21:07 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Bob Cunningham" <FlyMyPG@gmail.com>
-In-Reply-To: <49287DCC.9040004@gmail.com>
+	(envelope-from <Andre.Weidemann@web.de>) id 1L6UTk-0000sp-0B
+	for linux-dvb@linuxtv.org; Sat, 29 Nov 2008 19:23:40 +0100
+Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
+	by fmmailgate01.web.de (Postfix) with ESMTP id BDD03FA18AB3
+	for <linux-dvb@linuxtv.org>; Sat, 29 Nov 2008 19:23:06 +0100 (CET)
+Received: from [80.88.20.130] (helo=[192.168.3.1])
+	by smtp08.web.de with asmtp (WEB.DE 4.109 #226) id 1L6UTC-0001l3-00
+	for linux-dvb@linuxtv.org; Sat, 29 Nov 2008 19:23:06 +0100
+Message-ID: <49318885.6010109@web.de>
+Date: Sat, 29 Nov 2008 19:23:01 +0100
+From: =?ISO-8859-1?Q?Andr=E9_Weidemann?= <Andre.Weidemann@web.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <49287DCC.9040004@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
+CC: linux-dvb@linuxtv.org
+References: <823378732.20081127144952@bitklub.hu>	<262327.48768.qm@web23207.mail.ird.yahoo.com>
+	<1a18e9e80811282332q3e41bc78u8edfd56282b29271@mail.gmail.com>
+In-Reply-To: <1a18e9e80811282332q3e41bc78u8edfd56282b29271@mail.gmail.com>
+Subject: Re: [linux-dvb] TT S2-3200: Support for high symbol rates.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,65 +25,41 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Nov 22, 2008 at 4:46 PM, Bob Cunningham <FlyMyPG@gmail.com> wrote:
-> Hi,
->
-> I just bought an AnyTV AUTV002 USB Tuner Stick from DealExtreme.  When plugged in, lsusb provides the following:
->
->   Bus 001 Device 011: ID 05e1:0400 Syntek Semiconductor Co., Ltd
->
-> A quick search revealed that the au0828 driver had recently been updated (10 Nov) to support this USB ID.
->
-> Following instructions on the wiki, I obtained the latest v4l-dvb source via Mercurial, and built/installed it without error.  Next I did "modprobe au0828", and dmesg provided the following:
->
->    au0828 driver loaded
->    usbcore: registered new interface driver au0828
->
-> Next I did "lsmod | grep au0828", which provides the following:
->
->   au0828                 20384  0
->   dvb_core               68673  1 au0828
->   tveeprom               14917  1 au0828
->   i2c_core               20949  4 au0828,tveeprom,nvidia,i2c_i801
->
-> dmesg provides the following when the device is plugged in:
->
->   usb 1-2: new high speed USB device using ehci_hcd and address 10
->   usb 1-2: configuration #1 chosen from 1 choice
->   usb 1-2: New USB device found, idVendor=05e1, idProduct=0400
->   usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
->   usb 1-2: Product: USB 2.0 Video Capture Controller
->   usb 1-2: Manufacturer: Syntek Semiconductor
->
-> However, I have no /dev/dvb.  I unplugged/replugged several times, with no change.
->
-> I rebooted and repeated the modprobe and the unplug/replug, with no different results.
->
-> My guess is that udev isn't making the connection from the USB ID, but I'm not sure what to do about it.
->
-> I'm running a fully updated FC8 on a Dell dual Xeon-HT server with kernel 2.6.26.6-49.fc8 #1 SMP.
->
-> Did I miss something basic?
+Meysam Hariri wrote:
+> On my card it's written 0714 so it seems like there are different =
 
-Bob,
+> versions of this card around, if this number refers to a sort of a =
 
-A patch was submitted that adds support for a device with usb ID
-05e1:0400, but it did not get merged yet.
+> versioning. it may clear things if you could confirm the capability of =
 
-The reason why I didn't merge the patch yet, is that there are
-multiple devices out there using this USB id but they have different
-internal components and no way to differentiate between the two.
+> your old card to lock on 8psk 3/4 30000 channels with the current drivers.
+> =
 
-If you can open up your stick and tell us what is printed on each
-chip, then I can help you get yours working.
 
--Mike
+Hi All,
+Those are not 3 different version of the card. The number is merely the =
+
+production date.
+
+The board revision is on the left side of the board.
+
+It should read:
+
+B2S3000
+Rev. 1.0
+TT2006.1
+
+for all the cards.
+
+Regards.
+  Andr=E9
+
 
 _______________________________________________
 linux-dvb mailing list
