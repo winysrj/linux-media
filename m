@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx27.mail.ru ([194.67.23.23])
+Received: from ey-out-2122.google.com ([74.125.78.24])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KwIkt-0003zu-1M
-	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 16:51:15 +0100
-Date: Sat, 1 Nov 2008 18:50:45 +0300
-From: Goga777 <goga777@bk.ru>
-To: Michel Verbraak <michel@verbraak.org>, linux-dvb@linuxtv.org
-Message-ID: <20081101185045.1616b5c6@bk.ru>
-In-Reply-To: <490C7958.8050902@verbraak.org>
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-	<490C7194.8060603@verbraak.org> <20081101182051.3ac22972@bk.ru>
-	<490C7958.8050902@verbraak.org>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+	(envelope-from <meysam.hariri@gmail.com>) id 1L6KJv-0005JR-5I
+	for linux-dvb@linuxtv.org; Sat, 29 Nov 2008 08:32:53 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so966237eya.17
+	for <linux-dvb@linuxtv.org>; Fri, 28 Nov 2008 23:32:47 -0800 (PST)
+Message-ID: <1a18e9e80811282332q3e41bc78u8edfd56282b29271@mail.gmail.com>
+Date: Sat, 29 Nov 2008 11:02:47 +0330
+From: "Meysam Hariri" <meysam.hariri@gmail.com>
+To: basq@bitklub.hu
+In-Reply-To: <262327.48768.qm@web23207.mail.ird.yahoo.com>
+MIME-Version: 1.0
+References: <823378732.20081127144952@bitklub.hu>
+	<262327.48768.qm@web23207.mail.ird.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT S2-3200: Support for high symbol rates.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,42 +22,289 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0833336657=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-PiA+IPDSydfF1NPU19XALCBNaWNoZWwKPiA+Cj4gPiBidXQgY3gyNDExNiBiYXNlZCBjYXJkcyBk
-b24ndCB3b3JrIHdpdGggZmVjPWF1dG8gZm9yIGR2Yi1zMiAKPiA+Cj4gPiBJJ20gbm90IHN1cmUg
-LSBtYXkgYmUgZm9yIGN4MjQxMTYgY2FyZHMgdGhlIHBhcmFtZXRlcnMgcm9sbCBvZmYgJiBtb2R1
-bGF0aW9uIGFyZSBvYmxpZ2F0b3J5IChub3Qgb3B0aW9uYWwpCj4gPgo+ID4KPiA+Cj4gPiAgIAo+
-ID4+IFRlc3RlZCB5b3VyIHNjYW4tczIgd2l0aCBhIFRlY2huaXNhdCBIRDIgY2FyZC4KPiA+Pgo+
-ID4+IFNjYW5uaW5nIHdvcmtzLiBCdXQgc29tZSBjaGFubmVscyBhcmUgcmVwb3J0ZWQgdHdpY2Ug
-d2l0aCBkaWZmZXJlbnQgCj4gPj4gZnJlcXVlbmN5LiBJIGZvdW5kIGFuIGVycm9yIHdoaWNoIGlz
-IGZpeGVkIGJ5IHRoZSBwYXRjaCBmaWxlIG5hbWVkIAo+ID4+IHNjYW4uYy5kaWZmMS4KPiA+Pgo+
-ID4+IEkgd291bGQgYWxzbyBsaWtlIHRvIHByb3Bvc2UgdGhlIGZvbGxvd2luZyBjaGFuZ2UgKHNl
-ZSBmaWxlIHNjYW4uYy5kaWZmMiAKPiA+PiBvciBzY2FuLmMuZGlmZiB3aGljaCBpbmNsdWRlcyBi
-b3RoIHBhdGNoZXMpLiBUaGlzIGNoYW5nZSBtYWtlcyBpdCAKPiA+PiBwb3NzaWJsZSB0byBvbmx5
-IHNjYW4gZm9yIERWQi1TIGNoYW5uZWxzIG9yIERWQi1TMiBjaGFubmVscyBvciBib3RoLiAKPiA+
-PiBUaGlzIGlzIGRvbmUgYnkgc3BlY2lmeWluZyBsaW5lcyBzdGFydGluZyB3aXRoIFMgb3IgUzIg
-aW4gdGhlIGlucHV0IGZpbGUuCj4gPj4KPiA+PiBleGFtcGxlIGlucHV0IGZpbGU6Cj4gPj4gIyBB
-c3RyYSAxOS4yRSBTRFQgaW5mbyBzZXJ2aWNlIHRyYW5zcG9uZGVyCj4gPj4gIyBmcmVxIHBvbCBz
-ciBmZWMKPiA+PiBTIDEyNTIyMDAwIEggMjIwMDAwMDAgMi8zICAgICAgIDxvbmx5IERWQi1TIGNo
-YW5uZWxzIGFyZSBzY2FubmVkPgo+ID4+IFMgMTE5MTQwMDAgSCAyNzUwMDAwMCBBVVRPCj4gPj4g
-UyAxMDc0Mzc1MCBIIDIyMDAwMDAwIDUvNgo+ID4+IFMgMTIxODc1MDAgSCAyNzUwMDAwMCAzLzQK
-PiA+PiBTIDEyMzQzNTAwIEggMjc1MDAwMDAgMy80Cj4gPj4gUyAxMjUxNTI1MCBIIDIyMDAwMDAw
-IDUvNgo+ID4+IFMgMTI1NzQyNTAgSCAyMjAwMDAwMCA1LzYKPiA+PiBTMiAxMjUyMjAwMCBIIDIy
-MDAwMDAwIEFVVE8gICAgPG9ubHkgRFZCLVMyIGNoYW5uZWxzIGFyZSBzY2FubmVkPgo+ID4+IFMy
-IDExOTE0MDAwIEggMjc1MDAwMDAgQVVUTwo+ID4+Cj4gPj4gSSBob3BlIHRoaXMgaXMgdXNlZnVs
-bC4KPiA+Pgo+ID4+IFJlZ2FyZHMsCj4gPj4KPiA+PiBNaWNoZWwuCj4gPj4gICAgIAo+ID4KPiA+
-Cj4gPiAgIAo+IAo+IEdvZ2EsCj4gCj4gQVVUTyBmZWMgZG9lcyB3b3JrIGJlY2F1c2UgdGhlIGZv
-bGxvd2luZyBpcyB0aGUgcmVzdWx0IGZvciB0aGUgRFZCLVMyIAo+IGNoYW5uZWxzIEkgZ2V0IHdp
-dGggdGhlIGFib3ZlIGlucHV0Ogo+IAo+IFBSRU1JRVJFIEhEOjExOTE0Omg6MDoyNzUwMDo3Njc6
-NzcyOjEyOTo2Cj4gRElTQ09WRVJZIEhEOjExOTE0Omg6MDoyNzUwMDoxMDIzOjEwMjc6MTMwOjYK
-PiBBU1RSQSBIRCs6MTE5MTQ6aDowOjI3NTAwOjEyNzk6MTI4MzoxMzE6Ngo+IEFOSVhFIEhEOjEx
-OTE0Omg6MDoyNzUwMDoxNTM1OjE1Mzk6MTMyOjYKCnlvdSBoYXZlIHN0YjA4OTkgYmFzZWQgY2Fy
-ZCwgYnV0IEkgaGF2ZSBtZWFuIGN4MjQxMTYgYmFzZWQgY2FyZC4KCkdvZ2EKCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBs
-aXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4v
-bWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+--===============0833336657==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_74185_13670133.1227943967390"
+
+------=_Part_74185_13670133.1227943967390
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+On my card it's written 0714 so it seems like there are different versions
+of this card around, if this number refers to a sort of a versioning. it ma=
+y
+clear things if you could confirm the capability of your old card to lock o=
+n
+8psk 3/4 30000 channels with the current drivers.
+
+Regards,
+
+
+On Thu, Nov 27, 2008 at 5:49 PM, Newsy Paper <newspaperman_germany@yahoo.co=
+m
+> wrote:
+
+> So let's hope our experts will soon find the problem.
+>
+>
+>
+> kinds regards
+>
+>
+> Newsy
+>
+>
+> --- Kovacs Balazs <basq@bitklub.hu> schrieb am Do, 27.11.2008:
+>
+> > Von: Kovacs Balazs <basq@bitklub.hu>
+> > Betreff: Re[2]: [linux-dvb] TT S2-3200: Support for high symbol rates.
+> > An: "Newsy Paper" <newspaperman_germany@yahoo.com>
+> > CC: linux-dvb@linuxtv.org
+> > Datum: Donnerstag, 27. November 2008, 14:49
+> > No, it's a driver problem I think because those cards
+> > works OK in Windows for me. But not with the linux driver.
+> > In linux only the older cards work for me, and it seems 0708
+> > and newer cards won't.
+> >
+> > basq
+> >
+> > > Hi!
+> >
+> > > my card sasy 0712 not 0702! What's the difference
+> > between old 0702
+> > > and the newer ones? Is it even a hardware problem and
+> > not a driver problem?
+> >
+> > > kind regards
+> >
+> > > Newsy
+> >
+> >
+> > > --- Kovacs Balazs <basq@bitklub.hu> schrieb am
+> > Mi, 26.11.2008:
+> >
+> > >> Von: Kovacs Balazs <basq@bitklub.hu>
+> > >> Betreff: Re: [linux-dvb] TT S2-3200: Support for
+> > high symbol rates.
+> > >> An:
+> > >> CC: linux-dvb@linuxtv.org
+> > >> Datum: Mittwoch, 26. November 2008, 13:54
+> > >> Maybe you are in the same situation like me with
+> > the newer
+> > >> cards. Can you check the text label below the box
+> > where you
+> > >> connect the antenna cable? For me TT3200 card
+> > works if
+> > >> it's 0702, if it's 0708 -> doesn't
+> > work.
+> >
+> > >> > hi!
+> >
+> > >> > I tried Igor's latest s2-liplianin
+> > mercurial,
+> > >> > but till no success with 8psk 30000 3/4 on
+> > Thor 1 =B0
+> > >> West.
+> >
+> >
+> > >> > kind regards
+> >
+> >
+> > >> > Newsy
+> >
+> >
+> > >> >
+> >
+> > >> >
+> > _______________________________________________
+> > >> > linux-dvb mailing list
+> > >> > linux-dvb@linuxtv.org
+> > >> >
+> > >>
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> >
+> > >> _______________________________________________
+> > >> linux-dvb mailing list
+> > >> linux-dvb@linuxtv.org
+> > >>
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> >
+> > >
+> >
+> > > _______________________________________________
+> > > linux-dvb mailing list
+> > > linux-dvb@linuxtv.org
+> > >
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_74185_13670133.1227943967390
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+<div dir=3D"ltr">On my card it&#39;s written 0714 so it seems like there ar=
+e different versions of this card around, if this number refers to a sort o=
+f a versioning. it may clear things if you could confirm the capability of =
+your old card to lock on 8psk 3/4 30000 channels with the current drivers.<=
+br>
+<br>Regards,<br><br><br><div class=3D"gmail_quote">On Thu, Nov 27, 2008 at =
+5:49 PM, Newsy Paper <span dir=3D"ltr">&lt;<a href=3D"mailto:newspaperman_g=
+ermany@yahoo.com">newspaperman_germany@yahoo.com</a>&gt;</span> wrote:<br><=
+blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 2=
+04, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+So let&#39;s hope our experts will soon find the problem.<br>
+<br>
+<br>
+<br>
+kinds regards<br>
+<br>
+<br>
+Newsy<br>
+<br>
+<br>
+--- Kovacs Balazs &lt;<a href=3D"mailto:basq@bitklub.hu">basq@bitklub.hu</a=
+>&gt; schrieb am Do, 27.11.2008:<br>
+<div class=3D"Ih2E3d"><br>
+&gt; Von: Kovacs Balazs &lt;<a href=3D"mailto:basq@bitklub.hu">basq@bitklub=
+.hu</a>&gt;<br>
+</div>&gt; Betreff: Re[2]: [linux-dvb] TT S2-3200: Support for high symbol =
+rates.<br>
+&gt; An: &quot;Newsy Paper&quot; &lt;<a href=3D"mailto:newspaperman_germany=
+@yahoo.com">newspaperman_germany@yahoo.com</a>&gt;<br>
+<div class=3D"Ih2E3d">&gt; CC: <a href=3D"mailto:linux-dvb@linuxtv.org">lin=
+ux-dvb@linuxtv.org</a><br>
+</div>&gt; Datum: Donnerstag, 27. November 2008, 14:49<br>
+<div><div></div><div class=3D"Wj3C7c">&gt; No, it&#39;s a driver problem I =
+think because those cards<br>
+&gt; works OK in Windows for me. But not with the linux driver.<br>
+&gt; In linux only the older cards work for me, and it seems 0708<br>
+&gt; and newer cards won&#39;t.<br>
+&gt;<br>
+&gt; basq<br>
+&gt;<br>
+&gt; &gt; Hi!<br>
+&gt;<br>
+&gt; &gt; my card sasy 0712 not 0702! What&#39;s the difference<br>
+&gt; between old 0702<br>
+&gt; &gt; and the newer ones? Is it even a hardware problem and<br>
+&gt; not a driver problem?<br>
+&gt;<br>
+&gt; &gt; kind regards<br>
+&gt;<br>
+&gt; &gt; Newsy<br>
+&gt;<br>
+&gt;<br>
+&gt; &gt; --- Kovacs Balazs &lt;<a href=3D"mailto:basq@bitklub.hu">basq@bit=
+klub.hu</a>&gt; schrieb am<br>
+&gt; Mi, 26.11.2008:<br>
+&gt;<br>
+&gt; &gt;&gt; Von: Kovacs Balazs &lt;<a href=3D"mailto:basq@bitklub.hu">bas=
+q@bitklub.hu</a>&gt;<br>
+&gt; &gt;&gt; Betreff: Re: [linux-dvb] TT S2-3200: Support for<br>
+&gt; high symbol rates.<br>
+&gt; &gt;&gt; An:<br>
+&gt; &gt;&gt; CC: <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxt=
+v.org</a><br>
+&gt; &gt;&gt; Datum: Mittwoch, 26. November 2008, 13:54<br>
+&gt; &gt;&gt; Maybe you are in the same situation like me with<br>
+&gt; the newer<br>
+&gt; &gt;&gt; cards. Can you check the text label below the box<br>
+&gt; where you<br>
+&gt; &gt;&gt; connect the antenna cable? For me TT3200 card<br>
+&gt; works if<br>
+&gt; &gt;&gt; it&#39;s 0702, if it&#39;s 0708 -&gt; doesn&#39;t<br>
+&gt; work.<br>
+&gt;<br>
+&gt; &gt;&gt; &gt; hi!<br>
+&gt;<br>
+&gt; &gt;&gt; &gt; I tried Igor&#39;s latest s2-liplianin<br>
+&gt; mercurial,<br>
+&gt; &gt;&gt; &gt; but till no success with 8psk 30000 3/4 on<br>
+&gt; Thor 1 =B0<br>
+&gt; &gt;&gt; West.<br>
+&gt;<br>
+&gt;<br>
+&gt; &gt;&gt; &gt; kind regards<br>
+&gt;<br>
+&gt;<br>
+&gt; &gt;&gt; &gt; Newsy<br>
+&gt;<br>
+&gt;<br>
+&gt; &gt;&gt; &gt;<br>
+&gt;<br>
+&gt; &gt;&gt; &gt;<br>
+&gt; _______________________________________________<br>
+&gt; &gt;&gt; &gt; linux-dvb mailing list<br>
+&gt; &gt;&gt; &gt; <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linux=
+tv.org</a><br>
+&gt; &gt;&gt; &gt;<br>
+&gt; &gt;&gt;<br>
+&gt; <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" =
+target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb=
+</a><br>
+&gt;<br>
+&gt;<br>
+&gt; &gt;&gt; _______________________________________________<br>
+&gt; &gt;&gt; linux-dvb mailing list<br>
+&gt; &gt;&gt; <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.or=
+g</a><br>
+&gt; &gt;&gt;<br>
+&gt; <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" =
+target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb=
+</a><br>
+&gt;<br>
+&gt;<br>
+&gt; &gt;<br>
+&gt;<br>
+&gt; &gt; _______________________________________________<br>
+&gt; &gt; linux-dvb mailing list<br>
+&gt; &gt; <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a=
+><br>
+&gt; &gt;<br>
+&gt; <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" =
+target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb=
+</a><br>
+<br>
+<br>
+<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
+t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
+br>
+</div></div></blockquote></div><br></div>
+
+------=_Part_74185_13670133.1227943967390--
+
+
+--===============0833336657==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0833336657==--
