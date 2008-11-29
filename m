@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARJXAlq013440
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 14:33:10 -0500
-Received: from tomts33-srv.bellnexxia.net (tomts33.bellnexxia.net
-	[209.226.175.107])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARJWnqr007399
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 14:32:50 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: "'Charlie X. Liu'" <charlie@sensoray.com>, "'Keith Lawson'"
-	<lawsonk@lawson-tech.com>, =?iso-8859-2?Q?=27SKOCDOPOLE_Tom=E1=B9=27?=
-	<hoppik@centrum.cz>
-Date: Thu, 27 Nov 2008 14:32:39 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB10120816F6361D5A@Colmatec004.COLMATEC.INT>
-In-Reply-To: <00a001c94e5c$a6daba80$f4902f80$@com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-2"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAT8RVNW026754
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 03:27:31 -0500
+Received: from web39708.mail.mud.yahoo.com (web39708.mail.mud.yahoo.com
+	[209.191.106.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAT8RGVZ023323
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 03:27:17 -0500
+Date: Sat, 29 Nov 2008 00:27:16 -0800 (PST)
+From: wei kin <kin2031@yahoo.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: RE: Example application for V4L
+Message-ID: <368069.23199.qm@web39708.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: Unable to achieve 30fps using 'read()' in C
+Reply-To: kin2031@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,92 +26,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-U may consider also this version api specs
+I installed qc-usb-0.6.6 and gspca-modules-2.6.18-5-xen-686 in my debian 2.=
+6.18-5-xen. Below are what I got:
 
-http://v4l2spec.bytesex.org/spec/x16430.htm
+lsusb
+Bus 004 Device 004: ID 046d:0920 Logitech, Inc. QuickCam Express
 
+dmesg | grep usb
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+usb usb1: configuration #1 chosen from 1 choice
+usb usb2: configuration #1 chosen from 1 choice
+usb usb3: configuration #1 chosen from 1 choice
+usb usb4: configuration #1 chosen from 1 choice
+usb 4-1: new full speed USB device using uhci_hcd and address 2
+usb 4-1: configuration #1 chosen from 1 choice
+usb usb5: configuration #1 chosen from 1 choice
+=A0sda:<6>usb 4-1: USB disconnect, address 2
+usb 4-1: new full speed USB device using uhci_hcd and address 3
+usb 4-1: configuration #1 chosen from 1 choice
+usbcore: registered new driver gspca
+usb 4-1: USB disconnect, address 3
+usb 4-1: new full speed USB device using uhci_hcd and address 4
+usb 4-1: configuration #1 chosen from 1 choice
 
------Original Message-----
-From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-bounces@redhat.com] On Behalf Of Charlie X. Liu
-Sent: 24 novembre 2008 12:47
-To: 'Keith Lawson'; 'SKOCDOPOLE Tomá¹'
-Cc: video4linux-list@redhat.com
-Subject: RE: Example application for V4L
+dmesg | grep Logitech
+input: ImPS/2 Logitech Wheel Mouse as /class/input/input2
 
-Also, videodog:
-http://linux.softpedia.com/get/Multimedia/Video/VideoDog-9261.shtml
-http://linux.die.net/man/1/videodog
+I did try out the API example in http://www.linuxtv.org/downloads/video4lin=
+ux/API/V4L2_API/spec/a16706.htm. However, I get error message stated that=
+=A0 '/dev/video0 is no V4L2 device'.
 
-And, xawtv-streamer:
-http://rpmfind.net/linux/RPM/conectiva/snapshot/i386/RPMS.extra/xawtv-stream
-er-3.90-59428cl.i386.html
-http://tldp.org/HOWTO/Webcam-HOWTO/framegrabbers.html
+Do anyone have any idea?
+Thanks,
+Rgds
+nik2031
 
-Charlie X. Liu @ www.sensoray.com
-
-
------Original Message-----
-From: video4linux-list-bounces@redhat.com
-[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Keith Lawson
-Sent: Monday, November 24, 2008 8:52 AM
-To: SKOCDOPOLE Tomá¹
-Cc: video4linux-list@redhat.com
-Subject: Re: Example application for V4L
-
-
-On Sun, 23 Nov 2008, SKO?DOPOLE Tom?? wrote:
-
-> Hello,
+On Fri, Nov 28, 2008 at 3:02 AM, wei kin <kin2031@yahoo.com> wrote:
 >
-> I want to ask you for this situation:
-> I have got a Leadtek WinFast 2000XP, where is a S-Video input. To this
-S-Video input is connected a analog camera.
+Hi all, I am new in v4l programming. What I did in my code is I used
+'read( )' in C programming to read images from my Logitech Quickcam
+Express. My problem is I can't get 30frames per second, what I got is
+just 5fps when I loop and read for 200times. Do anyone know why is it
+under performance? Thanks
 >
-> Exists any "example program" for programming with v4l drivers? I only need
-get single picture from the camera. It should be BMP, JPEG, TIFF or some
-other formats.
->
-> If any example program doesn't exist, where can I find some informations?
-
-Xawtv http://linux.bytesex.org/xawtv/ and tvtime
-http://tvtime.sourceforge.net/ both have the ability to take a screen
-shot.
-
->
-> Thank you for help.
->
-> Regards Tomas
->
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
-
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---
-
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com
-
-
-No virus found in this incoming message.
-Checked by AVG - http://www.avg.com
-Version: 8.0.175 / Virus Database: 270.9.9/1807 - Release Date: 2008-11-23 10:59
-
+> Rgds,
+> nik2031
+=0A=0A=0A      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
