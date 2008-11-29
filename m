@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAJerng019628
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 14:40:53 -0500
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id mAAJecwL007980
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 14:40:38 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Mon, 10 Nov 2008 20:39:36 +0100
-In-Reply-To: <Pine.LNX.4.64.0811101323490.4248@axis700.grange> (Guennadi
-	Liakhovetski's message of "Mon\,
-	10 Nov 2008 13\:36\:38 +0100 \(CET\)")
-Message-ID: <87fxlz8j5z.fsf@free.fr>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mATHVnRP010595
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 12:31:49 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mATHVaLn000873
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 12:31:36 -0500
+Date: Sat, 29 Nov 2008 18:31:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <Pine.LNX.4.64.0811280000250.8230@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0811291822100.8352@axis700.grange>
+References: <Pine.LNX.4.64.0811202055210.8290@axis700.grange>
+	<1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0811251914260.6290@axis700.grange>
+	<87ljv4506r.fsf@free.fr>
+	<Pine.LNX.4.64.0811280000250.8230@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 0/5] pixel format handling in camera host drivers - part
-	2
+Subject: Re: [PATCH v4 1/2] soc-camera: pixel format negotiation - core
+ support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,23 +31,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Hi Robert,
 
-> These patches should finish the necessary preparations for the pxa-camera 
-> driver to finally correctly present its planar YUV format and to be able 
-> to select camera formats, it actually can support, and perform further 
-> format conversions as they emerge.
+this is what I have written:
 
-Hi Guennadi,
+> +	icd->current_fmt = icd->user_formats[0].host_fmt;
 
-Would you tell me against what tree you're based (a git URL would be wonderful)
-?  Because I got rejects, having not the ov7272.c file in my git tree
-(mainline), which would mean you're ahead and I'm late ...
+and this is what you've written:
 
-Cheers.
+On Sat, 29 Nov 2008, Robert Jarzmik wrote:
 
---
-Robert
+> +	icd->current_fmt = &icd->user_formats[0].host_fmt;
+
+I think, this is different. Further I think your version would produce a 
+compiler warning like this:
+
+drivers/media/video/soc_camera.c: In function 'soc_camera_init_user_formats':
+drivers/media/video/soc_camera.c:219: warning: assignment from incompatible pointer type
+
+and is indeed wrong. Please fix and please test your patches before 
+submitting - compile and run. Or am I wrong?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
