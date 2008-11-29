@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3KqODq018122
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 15:52:24 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mATFoAxq023897
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 10:50:10 -0500
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA3KqBQK022184
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 15:52:11 -0500
-Date: Mon, 3 Nov 2008 21:52:03 +0100 (CET)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mATFmtjN018006
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 10:48:55 -0500
+Date: Sat, 29 Nov 2008 16:49:06 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <87mygg4l5l.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0811032131410.7744@axis700.grange>
-References: <20081029232544.661b8f17.ospite@studenti.unina.it>
-	<87mygkof3j.fsf@free.fr>
-	<Pine.LNX.4.64.0811022048430.14486@axis700.grange>
-	<87skq87mgp.fsf@free.fr>
-	<Pine.LNX.4.64.0811031944340.7744@axis700.grange>
-	<87mygg4l5l.fsf@free.fr>
+In-Reply-To: <1227968224-21577-2-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.0811291644200.8352@axis700.grange>
+References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
+	<1227968224-21577-1-git-send-email-robert.jarzmik@free.fr>
+	<1227968224-21577-2-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] mt9m111: Fix YUYV format for pxa-camera
+Subject: Re: [PATCH v4 2/2] pxa-camera: pixel format negotiation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,82 +28,326 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 3 Nov 2008, Robert Jarzmik wrote:
+Heh, couldn't wait until tomorrow?:-)
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > Hm, wondering how you know?:-) I agree most probably there are about 2 
-> > users of this driver in the world:-), but who knows?
-> Yes, who knows ...
-> 
-> > I don't see why 27-19 should be wrong - it specifies exactly the byte 
-> > order CbYCrY, i.r., UYVY (I think, this is what you meant by "UYUV".)
-> Well, the one working configuration known, Antonio's is :
->  - pxa CPU
->  - mt9m111, with OUTPUT_FORMAT_CTRL[1]=1
-> 
-> According to the mt9m111 datasheet, table 3, page 14, when OUTPUT_FORMAT_CTRL[1]
-> = 1 and OUTPUT_FORMAT_CTRL[0] = 0, the MT9M111 sensor outputs data as follows :
->  - byte1 = Y1
->  - byte2 = Cb1
->  - byte3 = Y2
->  - byte4 = Cr1
->  - and so on ...
-> 
-> According to PXA27x datasheet, table 27-19, input bytes from the sensor should
-> be :
->  - byte1 = Cb1
->  - byte2 = Y1
->  - byte3 = Cr1
->  - byte4 = Y2
->  - and so on ...
-> 
-> Do you see the discrepancy now ? Either pxa27x datasheet of mt9m111 datasheet is
-> wrong, or else Antonio's setup wouldn't work.
+On Sat, 29 Nov 2008, Robert Jarzmik wrote:
 
-Yes, now I see it. Then we have to figure out which one is wrong... Or 
-just decide as it best suits us. Would be interesting to know how the data 
-is stored in RAM in the packed format - CbYCrY as is claimed in 27-21 or 
-YCbYCr? Antonio, did you test in planar or in packed mode? Maybe you could 
-test the packed mode and look at the data? One could also try to read data 
-out of the FIFO, but that's too much work:-) I think, it would suffice to 
-test in packed mode and use some standard application and see with what 
-format it will produce the correct picture.
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-In fact, I think, it might even be, that both datasheets are correct and 
-the testing was wrong. In packed mode pxa270 probably just pipes the data 
-through one-to-one. So, if both datasheets are correct you would get UYUV 
-in application buffers. Now, if you tell the application, that it's YUYV 
-the picture will be wrong of course. And if you just swap the bytes _at_ 
-_the_ _sensor_ the picture will be right, even though the pxa is only 
-documented to work in UYUV mode. In packed mode it probably just doesn't 
-care. Or am I missing something? Antonio, how did you test - in packed or 
-planar mode and what format have you configured at the application level?
-
-> > Good, then this is the fix that I'd like to have. It seems pretty simple, 
-> > it will preserve behaviour of mt9m111. It will change the behaviour of 
-> > pxa-camera for the YUYV format, to be precise, it will stop supporting 
-> > this format. So, I would print out a warning, explaining that this format 
-> > is not supported by pxa270 and the user should use UYVY instead. I 
-> > suggested to add only one format to mt9m111 so far, just because this is 
-> > the easiest as a bug-fix. But if you prefer, you can add all four, yes.
-> Right, so be it for the 4 formats.
-> 
-> > Still, I would really prefer to see the version described above - add more 
-> > formats to mt9m111 and fix pxa270 to claim the correct format and print a 
-> > warning for YUYV. This shouldn't be much more difficult to make than the 
-> > proposed patch, and it will be correct. I made enough bad experiences with 
-> > "temporary fixes" to try to avoid them as much as possible:-)
-> 
-> If you wish so. I'll watch you pushing the fix in the stable branch to see how
-> you convince people that changing the pxa camera driver is only a "fix" and not
-> an evolution :) Too bad for a quick working fix.
-
-Well, I am not at all sure we need it for 2.6.27-stable. This is not a 
-regression.
+I haven't looked at the patches yet - will do tomorrow or on monday, but - 
+I actually wanted them to be "from you" - that's why I suggested you to do 
+the final version. Otherwise I would have done that myself - don't want to 
+steal your work. But if you insist, I think, we can share - I make 1/2 
+(spc-camera) "from me" and 2/2 (pxa) "from you" - agree?
 
 Thanks
 Guennadi
+
+> 
+> Use the new format-negotiation infrastructure, support all four YUV422
+> packed and the planar formats.
+> 
+> The new translation structure enables to build the format
+> list with buswidth, depth, host format and camera format
+> checked, so that it's not done anymore on try_fmt nor
+> set_fmt.
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/video/pxa_camera.c |  207 ++++++++++++++++++++++++++++++--------
+>  1 files changed, 165 insertions(+), 42 deletions(-)
+> 
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> index 37afdfa..8219a6c 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -765,6 +765,9 @@ static int test_platform_param(struct pxa_camera_dev *pcdev,
+>  		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8))
+>  			return -EINVAL;
+>  		*flags |= SOCAM_DATAWIDTH_8;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+>  	}
+>  
+>  	return 0;
+> @@ -823,12 +826,10 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+>  	 * We fix bit-per-pixel equal to data-width... */
+>  	switch (common_flags & SOCAM_DATAWIDTH_MASK) {
+>  	case SOCAM_DATAWIDTH_10:
+> -		icd->buswidth = 10;
+>  		dw = 4;
+>  		bpp = 0x40;
+>  		break;
+>  	case SOCAM_DATAWIDTH_9:
+> -		icd->buswidth = 9;
+>  		dw = 3;
+>  		bpp = 0x20;
+>  		break;
+> @@ -836,7 +837,6 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+>  		/* Actually it can only be 8 now,
+>  		 * default is just to silence compiler warnings */
+>  	case SOCAM_DATAWIDTH_8:
+> -		icd->buswidth = 8;
+>  		dw = 2;
+>  		bpp = 0;
+>  	}
+> @@ -862,7 +862,17 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+>  	case V4L2_PIX_FMT_YUV422P:
+>  		pcdev->channels = 3;
+>  		cicr1 |= CICR1_YCBCR_F;
+> +		/*
+> +		 * Normally, pxa bus wants as input UYVY format. We allow all
+> +		 * reorderings of the YUV422 format, as no processing is done,
+> +		 * and the YUV stream is just passed through without any
+> +		 * transformation. Note that UYVY is the only format that
+> +		 * should be used if pxa framebuffer Overlay2 is used.
+> +		 */
+> +	case V4L2_PIX_FMT_UYVY:
+> +	case V4L2_PIX_FMT_VYUY:
+>  	case V4L2_PIX_FMT_YUYV:
+> +	case V4L2_PIX_FMT_YVYU:
+>  		cicr1 |= CICR1_COLOR_SP_VAL(2);
+>  		break;
+>  	case V4L2_PIX_FMT_RGB555:
+> @@ -888,13 +898,14 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+>  	return 0;
+>  }
+>  
+> -static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+> +static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
+> +				    unsigned char buswidth)
+>  {
+>  	struct soc_camera_host *ici =
+>  		to_soc_camera_host(icd->dev.parent);
+>  	struct pxa_camera_dev *pcdev = ici->priv;
+>  	unsigned long bus_flags, camera_flags;
+> -	int ret = test_platform_param(pcdev, icd->buswidth, &bus_flags);
+> +	int ret = test_platform_param(pcdev, buswidth, &bus_flags);
+>  
+>  	if (ret < 0)
+>  		return ret;
+> @@ -904,25 +915,139 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+>  	return soc_camera_bus_param_compatible(camera_flags, bus_flags) ? 0 : -EINVAL;
+>  }
+>  
+> +static const struct soc_camera_data_format pxa_camera_formats[] = {
+> +	{
+> +		.name		= "Planar YUV422 16 bit",
+> +		.depth		= 16,
+> +		.fourcc		= V4L2_PIX_FMT_YUV422P,
+> +		.colorspace	= V4L2_COLORSPACE_JPEG,
+> +	},
+> +};
+> +
+> +static bool buswidth_supported(struct soc_camera_device *icd, int depth)
+> +{
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct pxa_camera_dev *pcdev = ici->priv;
+> +
+> +	switch (depth) {
+> +	case 8:
+> +		return !!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8);
+> +	case 9:
+> +		return !!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_9);
+> +	case 10:
+> +		return !!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10);
+> +	}
+> +	return false;
+> +}
+> +
+> +static int required_buswidth(const struct soc_camera_data_format *fmt)
+> +{
+> +	switch (fmt->fourcc) {
+> +	case V4L2_PIX_FMT_UYVY:
+> +	case V4L2_PIX_FMT_VYUY:
+> +	case V4L2_PIX_FMT_YUYV:
+> +	case V4L2_PIX_FMT_YVYU:
+> +	case V4L2_PIX_FMT_RGB565:
+> +	case V4L2_PIX_FMT_RGB555:
+> +		return 8;
+> +	default:
+> +		return fmt->depth;
+> +	}
+> +}
+> +
+> +static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
+> +				  struct soc_camera_format_xlate *xlate)
+> +{
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	int formats = 0, buswidth, ret;
+> +
+> +	buswidth = required_buswidth(icd->formats + idx);
+> +
+> +	if (!buswidth_supported(icd, buswidth))
+> +		return 0;
+> +
+> +	ret = pxa_camera_try_bus_param(icd, buswidth);
+> +	if (ret < 0)
+> +		return 0;
+> +
+> +	switch (icd->formats[idx].fourcc) {
+> +	case V4L2_PIX_FMT_UYVY:
+> +		formats++;
+> +		if (xlate) {
+> +			xlate->host_fmt = &pxa_camera_formats[0];
+> +			xlate->cam_fmt = icd->formats + idx;
+> +			xlate->buswidth = buswidth;
+> +			xlate++;
+> +			dev_dbg(&ici->dev, "Providing format %s using %s\n",
+> +				pxa_camera_formats[0].name,
+> +				icd->formats[idx].name);
+> +		}
+> +	case V4L2_PIX_FMT_VYUY:
+> +	case V4L2_PIX_FMT_YUYV:
+> +	case V4L2_PIX_FMT_YVYU:
+> +	case V4L2_PIX_FMT_RGB565:
+> +	case V4L2_PIX_FMT_RGB555:
+> +		formats++;
+> +		if (xlate) {
+> +			xlate->host_fmt = icd->formats + idx;
+> +			xlate->cam_fmt = icd->formats + idx;
+> +			xlate->buswidth = buswidth;
+> +			xlate++;
+> +			dev_dbg(&ici->dev, "Providing format %s packed\n",
+> +				icd->formats[idx].name);
+> +		}
+> +		break;
+> +	default:
+> +		/* Generic pass-through */
+> +		formats++;
+> +		if (xlate) {
+> +			xlate->host_fmt = icd->formats + idx;
+> +			xlate->cam_fmt = icd->formats + idx;
+> +			xlate->buswidth = icd->formats[idx].depth;
+> +			xlate++;
+> +			dev_dbg(&ici->dev,
+> +				"Providing format %s in pass-through mode\n",
+> +				icd->formats[idx].name);
+> +		}
+> +	}
+> +
+> +	return formats;
+> +}
+> +
+>  static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+>  			      __u32 pixfmt, struct v4l2_rect *rect)
+>  {
+> -	const struct soc_camera_data_format *cam_fmt;
+> -	int ret;
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	const struct soc_camera_data_format *host_fmt, *cam_fmt = NULL;
+> +	const struct soc_camera_format_xlate *xlate;
+> +	int ret, buswidth;
+>  
+> -	/*
+> -	 * TODO: find a suitable supported by the SoC output format, check
+> -	 * whether the sensor supports one of acceptable input formats.
+> -	 */
+> -	if (pixfmt) {
+> -		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
+> -		if (!cam_fmt)
+> -			return -EINVAL;
+> +	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+> +	if (!xlate) {
+> +		dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
+> +		return -EINVAL;
+>  	}
+>  
+> -	ret = icd->ops->set_fmt(icd, pixfmt, rect);
+> -	if (pixfmt && !ret)
+> -		icd->current_fmt = cam_fmt;
+> +	buswidth = xlate->buswidth;
+> +	host_fmt = xlate->host_fmt;
+> +	cam_fmt = xlate->cam_fmt;
+> +
+> +	switch (pixfmt) {
+> +	case 0:				/* Only geometry change */
+> +		ret = icd->ops->set_fmt(icd, pixfmt, rect);
+> +		break;
+> +	default:
+> +		ret = icd->ops->set_fmt(icd, cam_fmt->fourcc, rect);
+> +	}
+> +
+> +	if (ret < 0)
+> +		dev_warn(&ici->dev, "Failed to configure for format %x\n",
+> +			 pixfmt);
+> +
+> +	if (pixfmt && !ret) {
+> +		icd->buswidth = buswidth;
+> +		icd->current_fmt = host_fmt;
+> +	}
+>  
+>  	return ret;
+>  }
+> @@ -930,34 +1055,31 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+>  static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+>  			      struct v4l2_format *f)
+>  {
+> -	const struct soc_camera_data_format *cam_fmt;
+> -	int ret = pxa_camera_try_bus_param(icd, f->fmt.pix.pixelformat);
+> -
+> -	if (ret < 0)
+> -		return ret;
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	const struct soc_camera_format_xlate *xlate;
+> +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> +	__u32 pixfmt = pix->pixelformat;
+>  
+> -	/*
+> -	 * TODO: find a suitable supported by the SoC output format, check
+> -	 * whether the sensor supports one of acceptable input formats.
+> -	 */
+> -	cam_fmt = soc_camera_format_by_fourcc(icd, f->fmt.pix.pixelformat);
+> -	if (!cam_fmt)
+> +	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+> +	if (!xlate) {
+> +		dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
+>  		return -EINVAL;
+> +	}
+>  
+>  	/* limit to pxa hardware capabilities */
+> -	if (f->fmt.pix.height < 32)
+> -		f->fmt.pix.height = 32;
+> -	if (f->fmt.pix.height > 2048)
+> -		f->fmt.pix.height = 2048;
+> -	if (f->fmt.pix.width < 48)
+> -		f->fmt.pix.width = 48;
+> -	if (f->fmt.pix.width > 2048)
+> -		f->fmt.pix.width = 2048;
+> -	f->fmt.pix.width &= ~0x01;
+> -
+> -	f->fmt.pix.bytesperline = f->fmt.pix.width *
+> -		DIV_ROUND_UP(cam_fmt->depth, 8);
+> -	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+> +	if (pix->height < 32)
+> +		pix->height = 32;
+> +	if (pix->height > 2048)
+> +		pix->height = 2048;
+> +	if (pix->width < 48)
+> +		pix->width = 48;
+> +	if (pix->width > 2048)
+> +		pix->width = 2048;
+> +	pix->width &= ~0x01;
+> +
+> +	pix->bytesperline = pix->width *
+> +		DIV_ROUND_UP(xlate->host_fmt->depth, 8);
+> +	pix->sizeimage = pix->height * pix->bytesperline;
+>  
+>  	/* limit to sensor capabilities */
+>  	return icd->ops->try_fmt(icd, f);
+> @@ -1068,6 +1190,7 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+>  	.remove		= pxa_camera_remove_device,
+>  	.suspend	= pxa_camera_suspend,
+>  	.resume		= pxa_camera_resume,
+> +	.get_formats	= pxa_camera_get_formats,
+>  	.set_fmt	= pxa_camera_set_fmt,
+>  	.try_fmt	= pxa_camera_try_fmt,
+>  	.init_videobuf	= pxa_camera_init_videobuf,
+> -- 
+> 1.5.6.5
+> 
+
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
