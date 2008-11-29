@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.171])
+Received: from smtp.seznam.cz ([77.75.72.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <2manybills@gmail.com>) id 1Kx1ET-0008Em-G2
-	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 16:20:48 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so1745163ugc.16
-	for <linux-dvb@linuxtv.org>; Mon, 03 Nov 2008 07:20:42 -0800 (PST)
-Message-ID: <157f4a8c0811030720s309f53a6v4e127b97926c110a@mail.gmail.com>
-Date: Mon, 3 Nov 2008 15:20:41 +0000
-From: "hudo kkow" <2manybills@gmail.com>
-To: "Alex Betis" <alex.betis@gmail.com>
-In-Reply-To: <c74595dc0811012206y36de5783w544fb701a922fda6@mail.gmail.com>
+	(envelope-from <thunder.m@email.cz>) id 1L6Qqk-0003ZR-LM
+	for linux-dvb@linuxtv.org; Sat, 29 Nov 2008 15:31:12 +0100
+Message-ID: <493151F9.2040904@email.cz>
+Date: Sat, 29 Nov 2008 15:30:17 +0100
+From: =?ISO-8859-2?Q?Mirek_Sluge=F2?= <thunder.m@email.cz>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-	<490C7194.8060603@verbraak.org> <20081101182051.3ac22972@bk.ru>
-	<490C7958.8050902@verbraak.org> <20081101185045.1616b5c6@bk.ru>
-	<490C7CEB.6030704@verbraak.org>
-	<c74595dc0811012206y36de5783w544fb701a922fda6@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+To: Jonathan <jhhummel@bigpond.com>, linux-dvb@linuxtv.org
+References: <4675AD3E.3090608@email.cz> <492FD9E8.9070600@email.cz>
+	<200811292353.00677.jhhummel@bigpond.com>
+In-Reply-To: <200811292353.00677.jhhummel@bigpond.com>
+Subject: Re: [linux-dvb] Patch for Leadtek DTV1800H, DTV2000H (rev I, J),
+ and (not working yet) DTV2000H Plus
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,75 +20,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gRnJpLCBPY3QgMzEsIDIwMDggYXQgMTE6NTggQU0sIEdvZ2E3NzcgPGdvZ2E3NzdAYmsucnU+
-IHdyb3RlOgo+IPDSydfF1NPU19XALCBBbGV4Cj4KPiB0aGFua3MgZm9yIHlvdSB3b3JrLiBCdXQg
-Zm9yIG1lIHNjYW4tczIgd29ya3Mgc3RyYW5nZSAtIHNjYW4tczIgY291bGRuJ3QgZmluZCBhIGxv
-dCBvZiBkdmItczIgJiBkdmItcyBjaGFubmVscyBmcm9tIEFzdHJhCj4gMTllCj4KPiBJIGhhdmUg
-YSBsb3Qgb2YgY29waWVzIG9mIDR0aCBjaGFubmVscyB3aXRoIGRpZmZlcmVudCBmcmVxCj4KPiBQ
-UkVNSUVSRSBIRDtQUkVNSUVSRToxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6
-MzI6MDoxMjk6MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0OlMwLjBX
-OjI3NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdp
-dGFsOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDow
-Cj4gQU5JWEUgSEQ7QmV0YURpZ2l0YWw6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUz
-OTsxNTM5OjA6MDoxMzI6MDowOjAKPgo+IGR1bXBpbmcgbGlzdHMgKDEwOCBzZXJ2aWNlcykKPiBQ
-UkVNSUVSRSBIRDtQUkVNSUVSRToxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6
-MzI6MDoxMjk6MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0OlMwLjBX
-OjI3NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdp
-dGFsOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDow
-Cj4gQU5JWEUgSEQ7QmV0YURpZ2l0YWw6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUz
-OTsxNTM5OjA6MDoxMzI6MDowOjAKPiBQUkVNSUVSRSBIRDtQUkVNSUVSRToxMTc1ODpoUzBDMzQ6
-UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJF
-TUlFUkU6MTE3NTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6
-MDowCj4gQVNUUkEgSEQrO0JldGFEaWdpdGFsOjExNzU4OmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5
-OjEyODM7MTI4MzowOjA6MTMxOjA6MDowCj4gQU5JWEUgSEQ7QmV0YURpZ2l0YWw6MTE3NTg6aFMw
-QzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5OjA6MDoxMzI6MDowOjAKPiBQUkVNSUVSRSBI
-RDtQUkVNSUVSRToxMTc5ODpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6
-MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEw
-MjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdpdGFsOjExNzk4
-OmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDowCj4gQU5JWEUg
-SEQ7QmV0YURpZ2l0YWw6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5OjA6
-MDoxMzI6MDowOjAKPiBQUkVNSUVSRSBIRDtQUkVNSUVSRToxMTgzNjpoUzBDMzQ6UzAuMFc6Mjc1
-MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6MDowOjAKPgo+IHRoZSBmdWxsIGxvZyBpbgo+IGh0dHA6
-Ly9wYXN0ZS5vcmcucnUvP2cwYjBwbgo+Cj4gSSB0aGluayBzY2FuLXMyIGlzIHNjYW5uaW5nIG9u
-bHkgY3VycmVudCAxMTkxNCB0cmFuc3BvbmRlciAoaW4gbXkgY2FzZSkuIFdpdGggdGhpcyB0cmFu
-c3BvbmRlciBJIHdvcmtlZCB3aXRoIHZkciBiZWZvcmUKPiBzY2FuMiBzdGFydGVkLgo+Cj4KPgo+
-IEdvZ2EKCkhpLgpGb3IgbWUgaXMgYWxzbyB3b3JraW5nIHN0cmFuZ2Ugc2Nhbm5pbmcgMzBXIE1l
-byBwcm92aWRlciA+PgpodHRwOi8vcHQua2luZ29mc2F0Lm5ldC9wYWNrLW1lby5waHAKQXMgeW91
-IGNhbiBzZWUgZnJvbSB0aGUgbGluayBhYm92ZSwgYWxsIGNoYW5uZWxzIGFyZSBvbiBEVkItUzIg
-OFBTSwphbmQgc29tZXRpbWVzIHNjYW4gcGlja3MgdXAgZXZlcnkgY2hhbm5lbCBhbmQgb3RoZXIg
-dGltZXMgaXQgZG9lc24ndC4KCkFmdGVyIGEgZmV3IHRyaWVzLCBldmVyeSBjaGFubmVsIHdhcyBw
-aWNrZWQgdXAsIGJ1dCBzb21lIHBhcmFtZXRlcnMgYXJlIG1pc3NpbmcuCgpUaGlzIGlzIGEgc2Nh
-bm5lZCBjaGFubmVsIGxpc3QuCihudWxsKSAtIFswMDAtMDA2NV07OjEyMDEyOmhTMTozMFc6MzAw
-MDA6NDA5Nzo0MDk4OjQxMDA6MTAwOjEwMTowOjA6MAoobnVsbCkgLSBbMDAxLTAwNjZdOzoxMjAx
-MjpoUzE6MzBXOjMwMDAwOjQxMDU6NDEwNjo0MTAwOjEwMDoxMDI6MDowOjAKKG51bGwpIC0gWzAw
-Mi0wMDY3XTs6MTIwMTI6aFMxOjMwVzozMDAwMDo0MTEzOjQxMTQ6NDEwMDoxMDA6MTAzOjA6MDow
-CihudWxsKSAtIFswMDMtMDA2OF07OjEyMDEyOmhTMTozMFc6MzAwMDA6NDEyMTo0MTIyOjQxMDA6
-MTAwOjEwNDowOjA6MAoobnVsbCkgLSBbMDA0LTAwNjldOzoxMjAxMjpoUzE6MzBXOjMwMDAwOjQx
-Mjk6NDEzMDo0MTAwOjEwMDoxMDU6MDowOjAKKG51bGwpIC0gWzAwNS0wMDZhXTs6MTIwMTI6aFMx
-OjMwVzozMDAwMDo0MTM3OjQxMzg6NDEwMDoxMDA6MTA2OjA6MDowCihudWxsKSAtIFswMDYtMDA2
-Yl07OjEyMDEyOmhTMTozMFc6MzAwMDA6NDE0NTo0MTQ2OjQxMDA6MTAwOjEwNzowOjA6MAoobnVs
-bCkgLSBbMDA3LTAwNmNdOzoxMjAxMjpoUzE6MzBXOjMwMDAwOjQxNTM6NDE1NDowOjEwMDoxMDg6
-MDowOjAKKG51bGwpIC0gWzAwOC0wMDZkXTs6MTIwMTI6aFMxOjMwVzozMDAwMDo0MTYxOjQxNjI6
-MDoxMDA6MTA5OjA6MDowCihudWxsKSAtIFswMDktMDA2ZV07OjEyMDEyOmhTMTozMFc6MzAwMDA6
-NDE2OTo0MTcwOjA6MTAwOjExMDowOjA6MAoobnVsbCkgLSBbMDBhLTAwNmZdOzoxMjAxMjpoUzE6
-MzBXOjMwMDAwOjQxNzc6NDE3ODowOjEwMDoxMTE6MDowOjAKKG51bGwpIC0gWzAwYi0wMDcwXTs6
-MTIwMTI6aFMxOjMwVzozMDAwMDo0MTg1OjQxODY6MDoxMDA6MTEyOjA6MDowCihudWxsKSAtIFsw
-MGMtMDA3MV07OjEyMDEyOmhTMTozMFc6MzAwMDA6NDE5Mzo0MTk0OjA6MTAwOjExMzowOjA6MAoK
-QXMgeW91IGNhbiBzZWUsIG5vIG5ldHdvcmsgYW5kIHByb3ZpZGVyIGFyZSBrbm93biwgYWxvbmcg
-d2l0aCBvdGhlcgpwYXJhbWV0ZXJzLCBhbGRvIEkgc2Nhbm5lZCB3aXRoCgouL3NjYW4tczIgLU8g
-MzBXIC14IC0yIC10IDEgLXAgLW8gdmRyIC1zMyAtdiAtVSBIaXNwYU9ubHlNRU8gPiBNZW9fM190
-ZXN0CgpJIGhhdmUgdHJpZWQgd2l0aCBGRUMgMy80CgojIDMwVwpTIDEyMDEyMDAwIEggMzAwMDAw
-MDAgMy80ClMgMTIwNTIwMDAgSCAzMDAwMDAwMCAzLzQKUyAxMjA5MjAwMCBIIDMwMDAwMDAwIDMv
-NAoKYW5kIEZFQyBBVVRPCgojIDMwVwpTIDEyMDEyMDAwIEggMzAwMDAwMDAgQVVUTwpTIDEyMDUy
-MDAwIEggMzAwMDAwMDAgQVVUTwpTIDEyMDkyMDAwIEggMzAwMDAwMDAgQVVUTwoKQXV0byBzZWVt
-cyB0byB3b3JrIGJldHRlci4KCklmIGFueW9uZSB3YW50cyB0byBnaXZlIGl0IGEgdHJ5LCBnbyBh
-aGVhZCBhbmQgbGVhdmUgZmVlZGJhY2suCgpVc2luZyBhIFRULTMyMDAgb24gdWJ1bnR1IDY0Lgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIg
-bWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3Jn
-L2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Hi, you should connect internal cable from your TV card to your sound =
+
+card, or use "arecord -D hw:1 -f dat 2>/dev/null | aplay -f dat 2>/dev/null"
+
+Mirek
+
+Jonathan napsal(a):
+> On Fri, 28 Nov 2008 10:45:44 pm Mirek Sluge=F2 wrote:
+>> Hi, all 3 patches are in one file, they depend on each other.
+>>
+>> All GPIOs spoted from Windows with original APs
+>>
+>> DTV1800H - there is patch pending in this thread from Miroslav Sustek,
+>> this is only modification of his patch, difference should be only in
+>> GPIOs (I think it is better to use GPIOs from Windows).
+>>
+>> DTV2000H (rev. I) - Only renamed from original old DTV2000H
+>>
+>> DTV2000H (rev. J) - Almost everything is working, I have problem only
+>> with FM radio (no sound).
+>>
+>> DTV2000H Plus - added pci id, GPIOs, sadly Tuner is XC4000, so it is not
+>> working yet.
+>>
+>> Mirek Slugen
+> =
+
+> =
+
+> Hi Mirek,
+> =
+
+> Nice work with the patch!
+> =
+
+> I gave it a go and found that I still can't get sound for analogue TV and =
+
+> radio.
+> I have a DTV2000H rev J
+> Tried:
+>  - KdeTV
+>  - TVtime
+>  - Gnome radio
+> =
+
+> I'm in Australia with PAL format TV
+> =
+
+> Attached is the dmesg output
+> =
+
+> What ya think?
+> =
+
+> Jon
+> =
+
+> =
+
+> ------------------------------------------------------------------------
+> =
+
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
