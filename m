@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from imo-m27.mx.aol.com ([64.12.137.8])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1L4nDi-0000hI-6k
-	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 03:00:07 +0100
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	BDF02180012E
-	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 02:00:00 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <dbox2alpha@netscape.net>) id 1L6Mpd-0005kj-O1
+	for linux-dvb@linuxtv.org; Sat, 29 Nov 2008 11:13:46 +0100
+Received: from dbox2alpha@netscape.net
+	by imo-m27.mx.aol.com  (mail_out_v39.1.) id m.be0.4a43a045 (37118)
+	for <linux-dvb@linuxtv.org>; Sat, 29 Nov 2008 05:13:05 -0500 (EST)
+To: linux-dvb@linuxtv.org
+Date: Sat, 29 Nov 2008 05:13:00 -0500
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Date: Tue, 25 Nov 2008 12:00:00 +1000
-Message-Id: <20081125020000.8A72F1642A6@ws1-4.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add Compro VideoMate E650F (DVB-T part only)
+From: dbox2alpha@netscape.net
+Message-Id: <8CB2022318A0220-1E84-15EE@WEBMAIL-MZ13.sysops.aol.com>
+Subject: [linux-dvb] technotrend s2-3600: i2c error w/ kernel 2.6.28-rc6 on
+ big endian system (ps3)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,69 +20,138 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============2018545565=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Cj4gLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLQo+IEZyb206ICJJZ29yIE0uIExpcGxpYW5p
-biIgPGxpcGxpYW5pbkB0dXQuYnk+Cj4gVG86IHN0ZXYzOTFAZW1haWwuY29tCj4gQ2M6IGxpbnV4
-LWR2YkBsaW51eHR2Lm9yZywgc3RvdGhAbGludXh0di5vcmcKPiBTdWJqZWN0OiBSZTogW2xpbnV4
-LWR2Yl0gW1BBVENIXSBBZGQgQ29tcHJvIFZpZGVvTWF0ZSBFNjUwRiAoRFZCLVQgcGFydCBvbmx5
-KQo+IERhdGU6IFR1ZSwgMjUgTm92IDIwMDggMDE6NTc6MzMgKzAyMDAKPiAKPiAKPiD3INPPz8Ld
-xc7JySDP1CAyNCBOb3ZlbWJlciAyMDA4IDIzOjUxOjM1IHN0ZXYzOTFAZW1haWwuY29tIM7B0MnT
-wcwowSk6Cj4gPiA+IE1lc3NhZ2U6IDIKPiA+ID4gRGF0ZTogU3VuLCAyMyBOb3YgMjAwOCAxMzo0
-Nzo0MSArMDIwMAo+ID4gPiBGcm9tOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0
-LmJ5Pgo+ID4gPiBTdWJqZWN0OiBbbGludXgtZHZiXSBbUEFUQ0hdIEFkZCBDb21wcm8gVmlkZW9N
-YXRlIEU2NTBGIChEVkItVCBwYXJ0Cj4gPiA+IAlvbmx5KQo+ID4gPiBUbzogbGludXgtZHZiQGxp
-bnV4dHYub3JnLCB2aWRlbzRsaW51eC1saXN0QHJlZGhhdC5jb20KPiA+ID4gTWVzc2FnZS1JRDog
-PDIwMDgxMTIzMTM0Ny40MTQ1Mi5saXBsaWFuaW5AdHV0LmJ5Pgo+ID4gPiBDb250ZW50LVR5cGU6
-IHRleHQvcGxhaW47ICBjaGFyc2V0PSJrb2k4LXIiCj4gPiA+Cj4gPiA+IEZyb206IElnb3IgTS4g
-TGlwbGlhbmluIDxsaXBsaWFuaW5AbWUuYnk+Cj4gPiA+Cj4gPiA+IEFkZCBDb21wcm8gVmlkZW9N
-YXRlIEU2NTBGIChEVkItVCBwYXJ0IG9ubHkpLgo+ID4gPiBUaGUgY2FyZCBiYXNlZCBvbiBjeDIz
-ODg1IFBDSS1FeHByZXNzIGNoaXAsIHhjMzAyOCB0dW5lciBhbmQgY2U2MzUzCj4gPiA+IGRlbW9k
-dWxhdG9yLgo+ID4gPgo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBJZ29yIE0uIExpcGxpYW5pbiA8bGlw
-bGlhbmluQG1lLmJ5Pgo+ID4KPiA+IC0tLS1TbmlwLS0tCj4gPgo+ID4gSWdvciwKPiA+Cj4gPiBJ
-cyB0aGlzIGJhc2VkIG9uIG15IGVhcmxpZXIgcGF0Y2hlcyBzZW50IHRvIHRoZSBtYWlsaW5nIGxp
-c3Q/Cj4gPiBodHRwOi8vbGludXh0di5vcmcvcGlwZXJtYWlsL2xpbnV4LWR2Yi8yMDA4LUF1Z3Vz
-dC8wMjgzNDEuaHRtbAo+IEhpIFN0ZXBoZW4KPiBTb3JyeSwgSSBtaXNzZWQgdGhhdCBwb3N0IC4K
-PiBTbyB5b3UgYXJlIHRoZSBmaXJzdCA6KQo+IEkgZGlkbid0IHNlZSBhbnkgZnVuY3Rpb25hbCBk
-aWZmZXJlbmNlIGJldHdlZW4gYm90aCBwYXRjaGVzCj4gCj4gPgo+ID4gSWYgc28gaGF2ZSB5b3Ug
-aGFkIHRoaXMgd29ya2luZyBjb3JyZWN0bHk/Cj4gQWN0dWFsbHksIEkgYm91Z2h0IHRoaXMgY2Fy
-ZCBjb3VwbGUgZGF5cyBhZ28gZm9yIGV4cGVyaW1lbnMuCj4gVGhlbiBJIHR5cGUKPiAJbW9kcHJv
-YmUgY3gyMzg4NSBjYXJkPTEyCj4gQW5kIGl0IHdvcmtzIGltbWVkaWF0ZWx5IDopCj4gQnV0IEkg
-ZGlkbid0IGZvcmdldCB0aGUgZmlybXdhcmUgZm9yIHhjMzAyOCA7KQo+IE90aGVycyBpcyB0ZWNo
-bmljLgo+IFNvLCBJdCB3b3JrcyByaWdodCBub3cgaW4gbXkgY29tcHV0ZXIuCj4gV2l0aCBLYWZm
-ZWluZSBJJ20gYWJsZSBzZWFyY2ggZm9yIGNoYW5uZWxzIGFuZCB3YXRjaCB0aGVtLgo+IAo+ID4K
-PiA+IFdoYXQgaGFwcGVucyBpZiB5b3UgZG8gbm93IHJlcXVlc3QgdGhlIG1vZHVsZSBjeDI1ODQw
-Pwo+IEl0IGxvYWRzOikKPiAKPiA+Cj4gPiBNeSBwYXRjaGVzIHdlcmUgcHJldmlvdXNseSBub3Qg
-Y29tbWl0dGVkIGR1ZSB0bzoKPiA+ICogSSBvbmx5IGhhZCB0d28gcGVvcGxlIHdobyBoYWQgdGhp
-cyBjYXJkIChzYW1lIHBjaSBpZHMpIGFuZCBib3RoIGdhdmUgbWUKPiA+IGNvbmZsaWNpdG5nIHJl
-c3VsdHMuIChyZWdhcmRpbmcgdGhlIG5lZWQgZm9yIGN4MjU4NDAsIGlmIHlvdSBzZWFyY2ggdGhl
-Cj4gPiBtYWlsaW5nIGxpc3QgYXJjaGl2ZXMgZnJvbSBhYm91dCBBdWd1c3QgdGhyb3VnaCBTZXB0
-ZW1iZXIgdGhpcyB5ZWFyIHlvdQo+ID4gd2lsbCBmaW5kIHRoZSBjb252ZXJzYXRpb25zKS4gKiBU
-aGUgcGNpIGlkcyBhcmUgc2hhcmVkIGFjcm9zcyB2YXJpb3VzIGNhcmRzCj4gPiBmcm9tIENvbXBy
-byBWaWRlb01hdGUgU2VyaWVzIGFuZCB0aGVyZWZvcmUgdGhlIGNhcmRzIGFyZSBkZXRlY3RlZAo+
-ID4gaW5jb3JyZWN0bHksIHRoZSBlZXByb20gZHVtcHMgZm9yIGVhY2ggY2FyZCB0aGF0IHBlb3Bs
-ZSBoYXZlIGNvbnRhY3RlZCB0aGUKPiA+IGxpc3QgYWJvdXQgcHJldmlvdXNseSBhcmUgb24gdGhl
-IHdpa2kgcGFnZXMuCj4gPgo+ID4gS2VlcCB1cCB0aGUgZWZmb3J0IGluIHN1cHBvcnRpbmcgRFZC
-IGNhcmRzIGluIGxpbnV4Lgo+ID4KPiA+IFJlZ2FyZHMsCj4gPiBTdGVwaGVuLgo+IAo+IAo+IEJl
-c3QgUmVnYXJkcwo+IElnb3IKCklnb3IsCgpTb3JyeSBJIGhhZCBhIHR5cG8gaW4gbXkgcHJldmlv
-dXMgZW1haWw6CldoYXQgaGFwcGVucyBpZiB5b3UgZG8gTk9UIHJlcXVlc3QgdGhlIG1vZHVsZSBj
-eDI1ODQwPyBEb2VzIGl0IHN0aWxsIHdvcms/CgpJZiBpdCBkb2Vzbid0OiByZXF1ZXN0IHRoZSBt
-b2R1bGUsIGJ1dCBjb21tZW50IG91dCB0aGVzZSBsaW5lcyBpbiBjeDI1ODQwLWNvcmUuYzoKCWlm
-IChzdGF0ZS0+aXNfY3gyMzg4NSkgewogCQkvKiBEcml2ZSBHUElPMiBkaXJlY3Rpb24gYW5kIHZh
-bHVlcyAqLwoJCWN4MjU4NDBfd3JpdGUoY2xpZW50LCAweDE2MCwgMHgxZCk7CgkJY3gyNTg0MF93
-cml0ZShjbGllbnQsIDB4MTY0LCAweDAwKTsKCX0KV2hhdCBJIG5lZWQgdG8ga25vdyBpcyBpZiB0
-aGVzZSB3cml0ZXMgYXJlIGVuYWJsaW5nIHRoZSBjYXJkIHRvIHdvcmsgY29ycmVjdGx5LgoKTk9U
-RTogYWZ0ZXIgZWFjaCBjaGFuZ2UgbWVudGlvbmVkIGluIHRoaXMgZW1haWwgcGVyZm9ybSBhIGhh
-cmQgcmVzZXQgb2YgdGhlIGNvbXB1dGVyIChPciBldmVuIGJldHRlciByZW1vdmUgcG93ZXIgdG8g
-dGhlIGNvbXB1dGVyIGNvbXBsZXRlbHkgZm9yIGEgc2hvcnQgcGVyaW9kKSBhcyB0aGUgY2FyZCdz
-IHJlZ2lzdGVycyBkbyBub3QgZ2V0IHJlc2V0IGFsbCB0aGUgdGltZSwgdGhpcyBwdXRzIGl0IGlu
-IGEga25vd24gc3RhdGUuCgpSZWdhcmRzLApTdGVwaGVuLgoKCgotLSAKQmUgWW91cnNlbGYgQCBt
-YWlsLmNvbSEKQ2hvb3NlIEZyb20gMjAwKyBFbWFpbCBBZGRyZXNzZXMKR2V0IGEgRnJlZSBBY2Nv
-dW50IGF0IHd3dy5tYWlsLmNvbQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
-Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
-Yg==
+
+--===============2018545565==
+Content-Type: multipart/alternative;
+ boundary="--------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com"
+
+
+----------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+
+what's wrong? thanks.
+
+usb 1-2.4: new high speed USB device using ps3-ehci-driver and address 8
+usb 1-2.4: configuration #1 chosen from 1 choice
+dvb-usb: found a 'Technotrend TT Connect S2-3600' in warm state.
+pctv452e_power_ctrl: 1
+i2c-adapter i2c-0: adapter [Technotrend TT Connect S2-3600] registered
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (Technotrend TT Connect S2-3600)
+pctv452e: I2C error -121; AA 02? A0 01 14 -> 55 02? A0 00 00.
+dvb-usb: MAC address: 00:d0:5c:64:75:3c
+pctv452e_frontend_attach Enter
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[1] R, addr=0x68, len=1
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
+stb0899_attach: Attaching STB0899
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=4
+pctv452e_frontend_attach Leave Ok
+DVB: registering adapter 0 frontend 0 (STB0899 Multistandard)...
+pctv452e_tuner_attach Enter
+stb6100_attach: Attaching STB6100
+pctv452e_tuner_attach Leave
+input: IR-receiver inside an USB DVB receiver as /class/input/input1
+dvb-usb: schedule remote query interval to 500 msecs.
+pctv452e_power_ctrl: 0
+dvb-usb: Technotrend TT Connect S2-3600 successfully initialized and connected.
+
+----------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com
+Content-Transfer-Encoding: 7bit
+Content-Type: text/html; charset="us-ascii"
+
+<font face="Arial, Helvetica, sans-serif">what's wrong? thanks.<br>
+<br>
+usb 1-2.4: new high speed USB device using ps3-ehci-driver and address 8<br>
+usb 1-2.4: configuration #1 chosen from 1 choice<br>
+dvb-usb: found a 'Technotrend TT Connect S2-3600' in warm state.<br>
+pctv452e_power_ctrl: 1<br>
+i2c-adapter i2c-0: adapter [Technotrend TT Connect S2-3600] registered<br>
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>
+DVB: registering new adapter (Technotrend TT Connect S2-3600)<br>
+pctv452e: I2C error -121; AA 02&nbsp; A0 01 14 -&gt; 55 02&nbsp; A0 00 00.<br>
+dvb-usb: MAC address: 00:d0:5c:64:75:3c<br>
+pctv452e_frontend_attach Enter<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[1] R, addr=0x68, len=1<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
+i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
+stb0899_attach: Attaching STB0899<br>
+i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=4<br>
+pctv452e_frontend_attach Leave Ok<br>
+DVB: registering adapter 0 frontend 0 (STB0899 Multistandard)...<br>
+pctv452e_tuner_attach Enter<br>
+stb6100_attach: Attaching STB6100<br>
+pctv452e_tuner_attach Leave<br>
+input: IR-receiver inside an USB DVB receiver as /class/input/input1<br>
+dvb-usb: schedule remote query interval to 500 msecs.<br>
+pctv452e_power_ctrl: 0<br>
+dvb-usb: Technotrend TT Connect S2-3600 successfully initialized and connected.<br>
+</font><div id='MAILCIAMA014-5c61493115ad388' class='aol_ad_footer'><BR/><FONT style="color: black; font: normal 10pt ARIAL, SAN-SERIF;"><HR style="MARGIN-TOP: 10px"></HR> Tis the season to save your money!  <a href="http://toolbar.aol.com/holiday/download.html?ncid=emlweusdown00000008">Get the new AOL Holiday Toolbar</a> for money saving offers and gift ideas. </div>
+
+----------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com--
+
+
+--===============2018545565==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2018545565==--
