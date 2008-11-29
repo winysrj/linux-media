@@ -1,20 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAH4CP3T021812
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 23:12:25 -0500
-Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
-	[75.180.132.120])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAH3uOVG020437
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 22:56:37 -0500
-Message-ID: <4920EB66.50805@foks.us>
-Date: Sun, 16 Nov 2008 22:56:22 -0500
-From: Jelle Foks <jelle-v4l@foks.us>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mATLkeUQ024897
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 16:46:40 -0500
+Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mATLkRfI011083
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 16:46:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Brownell <david-b@pacbell.net>
+Date: Sat, 29 Nov 2008 22:46:20 +0100
+References: <200811291852.41794.hverkuil@xs4all.nl>
+	<200811291220.47542.david-b@pacbell.net>
+In-Reply-To: <200811291220.47542.david-b@pacbell.net>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: mchehab@infradead.org
-Subject: [PATCH] new email address
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Disposition: inline
+Message-Id: <200811292246.20338.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,64 +34,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Please accept this patch to refer to my new email address
+On Saturday 29 November 2008 21:20:47 David Brownell wrote:
+> On Saturday 29 November 2008, Hans Verkuil wrote:
+> > +void v4l2_device_register(struct device *dev, struct v4l2_device
+> > *v4l2_dev) +{
+> > +       BUG_ON(!dev || !v4l2_dev || dev_get_drvdata(dev));
+>
+> Ouch.  Better to return -EINVAL, like most register() calls,
+> than *ever* use a BUG_ON() for bad parameters.  Same applies
+> every other place you use BUG_ON, from a quick scan ...
 
-Signed-off-by Jelle Foks <jelle@foks.us>
+Are there some documented guidelines on when to use BUG_ON? I see it 
+used in other places in this way. My reasoning was that returning an 
+error makes sense if external causes can result in an error, but this 
+test is more the equivalent of an assert(), i.e. catching a programming 
+bug early.
 
-diff -r c5f976cab011 linux/drivers/media/video/cx23885/cx23885-417.c
---- a/linux/drivers/media/video/cx23885/cx23885-417.c	Sun Nov 16 11:40:21 2008 -0200
-+++ b/linux/drivers/media/video/cx23885/cx23885-417.c	Sun Nov 16 22:49:23 2008 -0500
-@@ -2,7 +2,7 @@
-   *
-   *  Support for a cx23417 mpeg encoder via cx23885 host port.
-   *
-- *    (c) 2004 Jelle Foks <jelle@foks.8m.com>
-+ *    (c) 2004 Jelle Foks <jelle@foks.us>
-   *    (c) 2004 Gerd Knorr <kraxel@bytesex.org>
-   *    (c) 2008 Steven Toth <stoth@linuxtv.org>
-   *      - CX23885/7/8 support
-diff -r c5f976cab011 linux/drivers/media/video/cx88/cx88-blackbird.c
---- a/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Nov 16 11:40:21 2008 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Nov 16 22:49:23 2008 -0500
-@@ -3,7 +3,7 @@
-   *  Support for a cx23416 mpeg encoder via cx2388x host port.
-   *  "blackbird" reference design.
-   *
-- *    (c) 2004 Jelle Foks <jelle@foks.8m.com>
-+ *    (c) 2004 Jelle Foks <jelle@foks.us>
-   *    (c) 2004 Gerd Knorr <kraxel@bytesex.org>
-   *
-   *    (c) 2005-2006 Mauro Carvalho Chehab <mchehab@infradead.org>
-@@ -39,7 +39,7 @@
-  #include "cx88.h"
+> For the unregister() paths a WARN() would be fair.  Again,
+> any time you're tempted to use BUG() or BUG_ON(), you need
+> to re-think.  It's hardly ever the right thing to do.  Just
+> report the error and continue; callers should check, and
+> clean up if something went wrong.
+>
+> > +EXPORT_SYMBOL(v4l2_device_register);
+>
+> This may be a nit, but I wonder why not EXPORT_SYMBOL_GPL,
+> which seems to be more correct in this case.
 
-  MODULE_DESCRIPTION("driver for cx2388x/cx23416 based mpeg encoder cards");
--MODULE_AUTHOR("Jelle Foks <jelle@foks.8m.com>, Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
-+MODULE_AUTHOR("Jelle Foks <jelle@foks.us>, Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
-  MODULE_LICENSE("GPL");
+I was under the impression that the v4l core was all EXPORT_SYMBOL, but 
+I took another look and a lot is now EXPORT_SYMBOL_GPL, so I guess I 
+should use that as well.
 
-  static unsigned int mpegbufs = 32;
-diff -r c5f976cab011 linux/drivers/media/video/cx88/cx88-mpeg.c
---- a/linux/drivers/media/video/cx88/cx88-mpeg.c	Sun Nov 16 11:40:21 2008 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-mpeg.c	Sun Nov 16 22:49:23 2008 -0500
-@@ -3,7 +3,7 @@
-   *  Support for the mpeg transport stream transfers
-   *  PCI function #2 of the cx2388x.
-   *
-- *    (c) 2004 Jelle Foks <jelle@foks.8m.com>
-+ *    (c) 2004 Jelle Foks <jelle@foks.us>
-   *    (c) 2004 Chris Pascoe <c.pascoe@itee.uq.edu.au>
-   *    (c) 2004 Gerd Knorr <kraxel@bytesex.org>
-   *
-@@ -34,7 +34,7 @@
-  /* ------------------------------------------------------------------ */
+> Another quasi-style point:  v4l2-device.s and v4l-subdev.c
+> are so small, and conceptually related, that I'd be tempted
+> to have one file not two.  Ditto their headers.
 
-  MODULE_DESCRIPTION("mpeg driver for cx2388x based TV cards");
--MODULE_AUTHOR("Jelle Foks <jelle@foks.8m.com>");
-+MODULE_AUTHOR("Jelle Foks <jelle@foks.us>");
-  MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
-  MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
-  MODULE_LICENSE("GPL");
+They are small now, but they will become a lot larger in the future. 
+There is a lot of common code in most if not all of the v4l drivers and 
+my intention is to gradually expand the framework and move some of the 
+common code into these headers/sources. This is just the start.
+
+>
+> - Dave
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-kernel" in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
