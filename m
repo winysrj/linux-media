@@ -1,20 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIJR0IM024764
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 14:27:01 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAIJQXv0026327
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 14:26:38 -0500
-Date: Tue, 18 Nov 2008 20:25:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: video4linux-list@redhat.com
-In-Reply-To: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0811182010460.8628@axis700.grange>
-References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mATN6gI1014316
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 18:06:42 -0500
+Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mATN6TN6005963
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 18:06:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Brownell <david-b@pacbell.net>
+Date: Sun, 30 Nov 2008 00:06:21 +0100
+References: <200811291852.41794.hverkuil@xs4all.nl>
+	<200811292246.20338.hverkuil@xs4all.nl>
+	<200811291422.20155.david-b@pacbell.net>
+In-Reply-To: <200811291422.20155.david-b@pacbell.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: 
-Subject: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Disposition: inline
+Message-Id: <200811300006.22080.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,331 +35,116 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Use the new format-negotiation infrastructure, support all four YUV422 
-packed and the planar formats.
+On Saturday 29 November 2008 23:22:19 David Brownell wrote:
+> On Saturday 29 November 2008, Hans Verkuil wrote:
+> > > > +void v4l2_device_register(struct device *dev, struct
+> > > > v4l2_device *v4l2_dev) +{
+> > > > +       BUG_ON(!dev || !v4l2_dev || dev_get_drvdata(dev));
+> > >
+> > > Ouch.  Better to return -EINVAL, like most register() calls,
+> > > than *ever* use a BUG_ON() for bad parameters.  Same applies
+> > > every other place you use BUG_ON, from a quick scan ...
+> >
+> > Are there some documented guidelines on when to use BUG_ON?
+>
+> Maybe there should be.  I know I've seen flames from Linus on
+> the topic.  Basically, treat it like a panic() where the system
+> must stop operation lest it catch fire or scribble all over the
+> (not-backed-up) disk ... if the system can keep running sanely,
+> then BUG() and friends are inappropriate.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+I think it would be good to have some document about this, since
+from what I've seen from a quick scan I'm not the only one who uses
+it incorrectly. There is no documentation in the asm-generic/bug.h
+header and there is also no documentation on this in the Documentation
+directory.
 
----
+> > I see it used in other places in this way.
+>
+> I tend to submit patches fixing bugs like that, when I have time.
+>
+> > My reasoning was that returning an
+> > error makes sense if external causes can result in an error, but
+> > this test is more the equivalent of an assert(), i.e. catching a
+> > programming bug early.
+>
+> In which case a WARN() is better.  But in most cases I wouldn't
+> even do that.  The kernel's design center is closer to "run
+> robustly" than "make developers' lives easier".  Programmers
+> who don't check return values for critical operations like
+> registering core resources deserve what they get.  And if you
+> want to nudge them, the __must_check annotation helps catch
+> such goofage even earlier:  compile time, not run time.
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index 37afdfa..1bcdb5d 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -765,6 +765,9 @@ static int test_platform_param(struct pxa_camera_dev *pcdev,
- 		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8))
- 			return -EINVAL;
- 		*flags |= SOCAM_DATAWIDTH_8;
-+		break;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	return 0;
-@@ -823,12 +826,10 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 	 * We fix bit-per-pixel equal to data-width... */
- 	switch (common_flags & SOCAM_DATAWIDTH_MASK) {
- 	case SOCAM_DATAWIDTH_10:
--		icd->buswidth = 10;
- 		dw = 4;
- 		bpp = 0x40;
- 		break;
- 	case SOCAM_DATAWIDTH_9:
--		icd->buswidth = 9;
- 		dw = 3;
- 		bpp = 0x20;
- 		break;
-@@ -836,7 +837,6 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 		/* Actually it can only be 8 now,
- 		 * default is just to silence compiler warnings */
- 	case SOCAM_DATAWIDTH_8:
--		icd->buswidth = 8;
- 		dw = 2;
- 		bpp = 0;
- 	}
-@@ -862,7 +862,17 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 	case V4L2_PIX_FMT_YUV422P:
- 		pcdev->channels = 3;
- 		cicr1 |= CICR1_YCBCR_F;
-+		/*
-+		 * Normally, pxa bus wants as input UYVY format. We allow all
-+		 * reorderings of the YUV422 format, as no processing is done,
-+		 * and the YUV stream is just passed through without any
-+		 * transformation. Note that UYVY is the only format that
-+		 * should be used if pxa framebuffer Overlay2 is used.
-+		 */
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_VYUY:
- 	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
- 		cicr1 |= CICR1_COLOR_SP_VAL(2);
- 		break;
- 	case V4L2_PIX_FMT_RGB555:
-@@ -888,13 +898,14 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 	return 0;
- }
- 
--static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
-+static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
-+				    unsigned char buswidth)
- {
- 	struct soc_camera_host *ici =
- 		to_soc_camera_host(icd->dev.parent);
- 	struct pxa_camera_dev *pcdev = ici->priv;
- 	unsigned long bus_flags, camera_flags;
--	int ret = test_platform_param(pcdev, icd->buswidth, &bus_flags);
-+	int ret = test_platform_param(pcdev, buswidth, &bus_flags);
- 
- 	if (ret < 0)
- 		return ret;
-@@ -904,25 +915,133 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 	return soc_camera_bus_param_compatible(camera_flags, bus_flags) ? 0 : -EINVAL;
- }
- 
-+static const struct soc_camera_data_format pxa_camera_formats[] = {
-+	{
-+		.name		= "Planar YUV422 16 bit",
-+		.depth		= 16,
-+		.fourcc		= V4L2_PIX_FMT_YUV422P,
-+		.colorspace	= V4L2_COLORSPACE_JPEG,
-+	},
-+};
-+
-+static bool depth_supported(struct soc_camera_device *icd, int depth)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
-+
-+	switch (depth) {
-+	case 8:
-+		return !!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8);
-+	case 9:
-+		return !!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_9);
-+	case 10:
-+		return !!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_10);
-+	}
-+	return false;
-+}
-+
-+static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
-+				  const struct soc_camera_data_format **fmt)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
-+	int formats = 0;
-+
-+	switch (icd->formats[idx].fourcc) {
-+	case V4L2_PIX_FMT_UYVY:
-+		formats++;
-+		if (fmt && (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
-+			*fmt++ = &pxa_camera_formats[0];
-+			dev_dbg(&ici->dev, "Providing format %s using %s\n",
-+				pxa_camera_formats[0].name,
-+				icd->formats[idx].name);
-+		}
-+	case V4L2_PIX_FMT_VYUY:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_RGB555:
-+		formats++;
-+		if (fmt && (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
-+			*fmt++ = &icd->formats[idx];
-+			dev_dbg(&ici->dev, "Providing format %s packed\n",
-+				icd->formats[idx].name);
-+		}
-+		break;
-+	default:
-+		/* Generic pass-through */
-+		if (depth_supported(icd, icd->formats[idx].depth)) {
-+			formats++;
-+			if (fmt) {
-+				*fmt++ = &icd->formats[idx];
-+				dev_dbg(&ici->dev,
-+					"Providing format %s in pass-through mode\n",
-+					icd->formats[idx].name);
-+			}
-+		}
-+	}
-+
-+	return formats;
-+}
-+
- static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 			      __u32 pixfmt, struct v4l2_rect *rect)
- {
--	const struct soc_camera_data_format *cam_fmt;
--	int ret;
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
-+	const struct soc_camera_data_format *host_fmt = NULL;
-+	int ret, buswidth;
- 
--	/*
--	 * TODO: find a suitable supported by the SoC output format, check
--	 * whether the sensor supports one of acceptable input formats.
--	 */
--	if (pixfmt) {
--		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
--		if (!cam_fmt)
-+	switch (pixfmt) {
-+	case V4L2_PIX_FMT_YUV422P:
-+		host_fmt = &pxa_camera_formats[0];
-+		pixfmt = V4L2_PIX_FMT_UYVY;
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_VYUY:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_RGB555:
-+		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
-+			dev_warn(&ici->dev,
-+				 "8 bit bus unsupported, but required for format %x\n",
-+				 pixfmt);
-+			return -EINVAL;
-+		}
-+
-+		if (!host_fmt)
-+			host_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
-+
-+		if (!host_fmt) {
-+			dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
- 			return -EINVAL;
-+		}
-+		buswidth = 8;
-+	case 0:				/* Only geometry change */
-+		ret = icd->ops->set_fmt(icd, pixfmt, rect);
-+		break;
-+	default:
-+		/* Generic pass-through */
-+		host_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
-+		if (!host_fmt || !depth_supported(icd, host_fmt->depth)) {
-+			dev_warn(&ici->dev,
-+				 "Format %x unsupported in pass-through mode\n",
-+				 pixfmt);
-+			return -EINVAL;
-+		}
-+
-+		buswidth = host_fmt->depth;
-+		ret = icd->ops->set_fmt(icd, pixfmt, rect);
- 	}
- 
--	ret = icd->ops->set_fmt(icd, pixfmt, rect);
--	if (pixfmt && !ret)
--		icd->current_fmt = cam_fmt;
-+	if (ret < 0)
-+		dev_warn(&ici->dev, "Failed to configure for format %x\n",
-+			 pixfmt);
-+
-+	if (pixfmt && !ret) {
-+		icd->buswidth = buswidth;
-+		icd->current_fmt = host_fmt;
-+	}
- 
- 	return ret;
- }
-@@ -930,34 +1049,70 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
- {
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
- 	const struct soc_camera_data_format *cam_fmt;
--	int ret = pxa_camera_try_bus_param(icd, f->fmt.pix.pixelformat);
-+	struct v4l2_pix_format *pix = &f->fmt.pix;
-+	__u32 pixfmt = pix->pixelformat;
-+	unsigned char buswidth;
-+	int ret;
- 
--	if (ret < 0)
--		return ret;
-+	switch (pixfmt) {
-+	case V4L2_PIX_FMT_YUV422P:
-+		pixfmt = V4L2_PIX_FMT_UYVY;
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_VYUY:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_RGB555:
-+		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
-+			dev_warn(&ici->dev,
-+				 "try-fmt: 8 bit bus unsupported for format %x\n",
-+				 pixfmt);
-+			return -EINVAL;
-+		}
- 
--	/*
--	 * TODO: find a suitable supported by the SoC output format, check
--	 * whether the sensor supports one of acceptable input formats.
--	 */
--	cam_fmt = soc_camera_format_by_fourcc(icd, f->fmt.pix.pixelformat);
--	if (!cam_fmt)
--		return -EINVAL;
-+		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
-+		if (!cam_fmt) {
-+			dev_warn(&ici->dev, "try-fmt: format %x not found\n",
-+				 pixfmt);
-+			return -EINVAL;
-+		}
-+		buswidth = 8;
-+		break;
-+	default:
-+		/* Generic pass-through */
-+		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
-+		if (!cam_fmt || !depth_supported(icd, cam_fmt->depth)) {
-+			dev_warn(&ici->dev,
-+				 "try-fmt: Format %x unsupported in pass-through\n",
-+				 pixfmt);
-+			return -EINVAL;
-+		}
-+		buswidth = cam_fmt->depth;
-+	}
-+
-+	ret = pxa_camera_try_bus_param(icd, buswidth);
-+
-+	if (ret < 0) {
-+		dev_warn(&ici->dev, "Incompatible bus parameters!\n");
-+		return ret;
-+	}
- 
- 	/* limit to pxa hardware capabilities */
--	if (f->fmt.pix.height < 32)
--		f->fmt.pix.height = 32;
--	if (f->fmt.pix.height > 2048)
--		f->fmt.pix.height = 2048;
--	if (f->fmt.pix.width < 48)
--		f->fmt.pix.width = 48;
--	if (f->fmt.pix.width > 2048)
--		f->fmt.pix.width = 2048;
--	f->fmt.pix.width &= ~0x01;
--
--	f->fmt.pix.bytesperline = f->fmt.pix.width *
--		DIV_ROUND_UP(cam_fmt->depth, 8);
--	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	if (pix->height < 32)
-+		pix->height = 32;
-+	if (pix->height > 2048)
-+		pix->height = 2048;
-+	if (pix->width < 48)
-+		pix->width = 48;
-+	if (pix->width > 2048)
-+		pix->width = 2048;
-+	pix->width &= ~0x01;
-+
-+	pix->bytesperline = pix->width * DIV_ROUND_UP(cam_fmt->depth, 8);
-+	pix->sizeimage = pix->height * pix->bytesperline;
- 
- 	/* limit to sensor capabilities */
- 	return icd->ops->try_fmt(icd, f);
-@@ -1068,6 +1223,7 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
- 	.remove		= pxa_camera_remove_device,
- 	.suspend	= pxa_camera_suspend,
- 	.resume		= pxa_camera_resume,
-+	.get_formats	= pxa_camera_get_formats,
- 	.set_fmt	= pxa_camera_set_fmt,
- 	.try_fmt	= pxa_camera_try_fmt,
- 	.init_videobuf	= pxa_camera_init_videobuf,
+I've replaced it as follows (and with __must_check in the header):
+
+int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+{
+        if (dev == NULL || v4l2_dev == NULL)
+                return -EINVAL;
+        /* Warn if we apparently re-register a device */
+        WARN_ON(dev_get_drvdata(dev));
+        INIT_LIST_HEAD(&v4l2_dev->subdevs);
+        spin_lock_init(&v4l2_dev->lock);
+        v4l2_dev->dev = dev;
+        snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %s",
+                        dev->driver->name, dev->bus_id);
+        dev_set_drvdata(dev, v4l2_dev);
+        return 0;
+}
+EXPORT_SYMBOL_GPL(v4l2_device_register);
+
+void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+{
+        struct v4l2_subdev *sd, *next;
+
+        if (v4l2_dev == NULL || v4l2_dev->dev == NULL)
+                return;
+        dev_set_drvdata(v4l2_dev->dev, NULL);
+        /* unregister subdevs */
+        list_for_each_entry_safe(sd, next, &v4l2_dev->subdevs, list)
+                v4l2_device_unregister_subdev(sd);
+
+        v4l2_dev->dev = NULL;
+}
+EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+
+int v4l2_device_register_subdev(struct v4l2_device *dev, struct v4l2_subdev *sd)
+{
+        /* Check for valid input */
+        if (dev == NULL || sd == NULL || !sd->name[0])
+                return -EINVAL;
+        /* Warn if we apparently re-register a subdev */
+        WARN_ON(sd->dev);
+        if (!try_module_get(sd->owner))
+                return -ENODEV;
+        sd->dev = dev;
+        spin_lock(&dev->lock);
+        list_add_tail(&sd->list, &dev->subdevs);
+        spin_unlock(&dev->lock);
+        return 0;
+}
+EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+
+void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+{
+        /* return if it isn't registered */
+        if (sd == NULL || sd->dev == NULL)
+                return;
+        spin_lock(&sd->dev->lock);
+        list_del(&sd->list);
+        spin_unlock(&sd->dev->lock);
+        sd->dev = NULL;
+        module_put(sd->owner);
+}
+EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+
+Thanks for the review!
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
