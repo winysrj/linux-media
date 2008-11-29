@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA8KaxVL011796
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 15:36:59 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA8KalPZ025874
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 15:36:47 -0500
-Date: Sat, 8 Nov 2008 21:36:46 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <874p2jbegl.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0811082119280.8956@axis700.grange>
-References: <20081107125919.ddf028a6.ospite@studenti.unina.it>
-	<874p2jbegl.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mATGtCEA021794
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 11:55:12 -0500
+Received: from mk-filter-1-a-1.mail.uk.tiscali.com
+	(mk-filter-1-a-1.mail.uk.tiscali.com [212.74.100.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mATGsWFX014460
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 11:54:32 -0500
+From: "Chris Grove" <dj_gerbil@tiscali.co.uk>
+To: <video4linux-list@redhat.com>
+References: <002901c95150$44c16b90$ce4442b0$@co.uk>
+In-Reply-To: <002901c95150$44c16b90$ce4442b0$@co.uk>
+Date: Sat, 29 Nov 2008 16:54:33 -0000
+Message-ID: <00aa01c95243$27df4580$779dd080$@co.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH, RFC] mt9m111: allow data to be received on pixelclock
- falling edge?
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-gb
+Subject: RE: Hauppauge WinTV USB Model 566 PAL-I 
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,88 +29,105 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 7 Nov 2008, Robert Jarzmik wrote:
+Sorry to bother you again, but has anybody had any luck with my tuner
+problems?? Thanks in advance, Chris.
 
-> Antonio Ospite <ospite@studenti.unina.it> writes:
-> 
-> > Now I have many questions:
-> >
-> > * Can the same sensor model have different default hardwired values?
-> >   I am referring to IO/Timings differences between mt9m111 on A910
-> >   and A780
-> Technically, yes.
-> Even the sensor can sometimes be configured to dump its date on falling edge
-> rather than rising edge. See MT9M111 datasheet, register 0x13a (Output Format
-> Control 2), bit 9.
+-----Original Message-----
+From: video4linux-list-bounces@redhat.com
+[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Chris Grove
+Sent: 28 November 2008 11:56
+To: video4linux-list@redhat.com
+Subject: Hauppauge WinTV USB Model 566 PAL-I 
 
-Also register 0x00a is intersting...
+Hi there, I've got one of these cards but I'm having trouble getting it to
+work. The problem is that it loads ok, but when I try to use it, it turns
+out that the tuner module has loaded the wrong tuner type. Instead of using
+tuner type 1, a PAL-I tuner which mine is, it selects a PAL-BG tuner. Now
+I've tried using type=1 in the modprobe line but it turns out that, that is
+no longer supported. 
 
-> > * Should I change the sensor setup instead of changing its advertised
-> >   capabilities? Maybe modifying mt9m111 so it can use platform data?
-> Would't it be better to change format negociation instead : patch in mt9m111.c
-> the mt9m111_query_bus_param() function, add SOCAM_PCLK_SAMPLE_FALLING, and add
-> necessary handling in the mt9m111_set_bus_param() ? That would be a little
-> extension of your attached patch ...
+ 
 
-Yes, that would be correct, but, it seems, it would then stop working 
-again, see below.
+System Info.
 
-> > * Is the pxa-camera code dealing with PXA_CAMERA_PCP too conservative?
-> >   Shouldn't PXA_CAMERA_PCP be independent from the specific sensor
-> >   capabilities? it is a valid pxa-camera setting even if it produces
-> >   wrong results with the specific sensor.
-> Well, I don't understand something here : you have to configure the sensor to
-> output data on rising edge, while the PXA is reading them on the falling edge,
-> am I right ? Would that mean the clock signal is inverted by the hardware ? I
-> don't really understand that part ...
+I'm using GeexBox which is built on linux-2.6.21.3 kernel.
 
-That's also the only explanation I can see here too... I was actually 
-wondering as I was developing the framework, if anyone ever would come up 
-with an idea to put inverters on any of sync / clock lines or any other 
-additional logic. Ok, you can configure inverters with extra platform 
-flags, but can we really add enough flags to support any possible 
-camera-interface design?... I am not a hardware designer, so, I have no 
-idea what other configurations one can think of here. Shall we really add 
-flags for inverters on all interface lines and hope noone will ever 
-engineer anything more complex than that?
+ 
 
-> > @@ -410,7 +410,8 @@ static int mt9m111_stop_capture(struct soc_camera_device *icd)
-> >
-> >  static unsigned long mt9m111_query_bus_param(struct soc_camera_device *icd)
-> >  {
-> > - return SOCAM_MASTER | SOCAM_PCLK_SAMPLE_RISING |
-> > + return SOCAM_MASTER |
-> > +   SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
-> >     SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
-> >     SOCAM_DATAWIDTH_8;
-> >  }
-> Don't forget mt9m111_set_bus_param(), and add an entry in struct mt9m111 to
-> remember the setting on suspend/resume. Amend accordingly mt9m111_setup_pixfmt()
-> with the new field in mt9m111_set_bus_param().
+The Init.d script is:
 
-I think, it currently works thanks to this code in pxa_camera.c:
+#!/bin/sh
 
-	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
-	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
-		if (pcdev->platform_flags & PXA_CAMERA_PCP)
-			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
-		else
-			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
-	}
+#
 
-i.e., if both sensor and host support both polarities take what's 
-suggested by the platform. That's, probably, why Antonio's patch helped. 
-But, if you also add flag handling to mt9m111_set_bus_param(), it will 
-invert the pixel clock too, and it will stop working again... It's a pity 
-we'll, probably, never see schematics of the phone:-)
+# setup tv cards
 
-So, shall we add inverter flags?
+#
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+# runlevels: geexbox, debug, install
+
+ 
+
+echo "### Setting up TV card ###"
+
+modprobe tuner pal=I
+
+modprobe tveeprom 
+
+modprobe usbvision
+
+modprobe saa7115 
+
+ 
+
+echo -n "" > /var/tvcard 
+
+exit 0  
+
+ 
+
+And the output from dmesg is:
+
+<6>usbvision_probe: Hauppauge WinTv-USB II (PAL) MODEL 566 found
+
+<6>USBVision[0]: registered USBVision Video device /dev/video0 [v4l2]
+
+<6>USBVision[0]: registered USBVision VBI device /dev/vbi0 [v4l2] (Not
+Working Yet!)
+
+<6>usbcore: registered new interface driver usbvision
+
+<6>USBVision USB Video Device Driver for Linux : 0.9.9
+
+<6>eth0: Media Link On 100mbps full-duplex
+
+<6>tuner 1-0042: chip found @ 0x84 (usbvision #0)
+
+<6>tda9887 1-0042: tda988[5/6/7] found @ 0x42 (tuner)
+
+<6>tuner 1-0061: chip found @ 0xc2 (usbvision #0)
+
+<6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and compatibles))
+
+<6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and compatibles))
+
+<6>saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (usbvision #0)
+
+<6>tda9887 1-0042: i2c i/o error: rc == -121 (should be 4)
+
+ 
+
+Any ideas please, and if someone has already asked this, sorry but I'm new
+to the list and haven't worked out how to search the archives yet.
+
+Thanks in advance, Chris.
+
+ 
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
