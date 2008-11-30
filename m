@@ -1,29 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAP7wdnT006124
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 02:58:39 -0500
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAP7vg3i024205
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 02:57:42 -0500
-Message-ID: <492BB15B.7030202@hhs.nl>
-Date: Tue, 25 Nov 2008 09:03:39 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAULCeE8009194
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 16:12:40 -0500
+Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAULCQ2v011274
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 16:12:26 -0500
+Message-ID: <493301D5.5050001@free.fr>
+Date: Sun, 30 Nov 2008 22:12:53 +0100
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
-	<49269369.90805@hhs.nl>
-	<Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
-	<200811212157.21254.linux@baker-net.org.uk>
-	<Pine.LNX.4.64.0811211658290.4727@banach.math.auburn.edu>
-	<492A8E76.3070701@redhat.com>
-	<Pine.LNX.4.64.0811241446210.6862@banach.math.auburn.edu>
-In-Reply-To: <Pine.LNX.4.64.0811241446210.6862@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Hans de Goede <hdegoede@redhat.com>, video4linux-list@redhat.com,
-	sqcam-devel@lists.sourceforge.net
-Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
-	driver
+To: Chris Grove <dj_gerbil@tiscali.co.uk>
+References: <002901c95150$44c16b90$ce4442b0$@co.uk>
+	<4931ADCD.2000407@free.fr>	<011901c952f4$a02d9710$e088c530$@co.uk>
+	<4932ACE9.7030309@free.fr> <012301c95302$6eed5f60$4cc81e20$@co.uk>
+	<013f01c9532a$8dcbdf10$a9639d30$@co.uk>
+In-Reply-To: <013f01c9532a$8dcbdf10$a9639d30$@co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,131 +30,174 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-kilgota@banach.math.auburn.edu wrote:
+Chris Grove wrote:
+> A further, slightly interesting development is that the s-video input works
+> fine with no interference at all, also the TV picture in fine in windows.
+> Just thought that might help with a solution.
 > 
-> 
-> On Mon, 24 Nov 2008, Hans de Goede wrote:
-<snip>
+Right, this helps. We can deduce this does not come from the decompression algorithm since it is the same whether the TV input or the s-video input is selected.
+I suspect a tda9887/saa7113 interface problem but just my intuition.
+As it works under windows, can you do an usbsnoop (http://www.linuxtv.org/v4lwiki/index.php/Usbsnoop)
+Just open the TV application, let it tune the channel and stop the application immediately in order to have a minimal capture file.
 
->> I've been thinking along similar lines (keeping /dev/videoX present 
->> when using the still image function). But thinking about this some 
->> more I don't think this is worth the trouble. A camera which can do 
->> both still images and function as webcam really is a multifunction 
->> device, with one function active at a time, this is just like any usb 
->> device with multiple usb configurations,
-> 
-> Ah, but the problem is that USB devices which are "good citizens" 
-> usually have a different Product number when running in different modes.
-> 
+For the audio over USB, in the ancient times I developed a audio extension for usbvision. I don't even know what I did from it. I can look for it if you want. I will need to sweep the dust (compilation errors and so on) but should work.
 
-Well, that would make things consistent then with my proposal for cams who hide 
-multiple functions behind one ID, if one function is used, the other 
-disappears, including the /dev/videoX device.
+P.S.: this thread is really hard to follow now... please reply under my answer so that we will be able to read that again :)
 
->> and when you change the configuration certain functionality becomes 
->> not available and other becomes available. If this cam would be 
->> correctly using usb configuaration profiles for this, the /dev/videoX 
->> would also disappear.
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com
+> [mailto:video4linux-list-bounces@redhat.com] On Behalf Of Chris Grove
+> Sent: 30 November 2008 15:44
+> To: 'Thierry Merle'
+> Cc: video4linux-list@redhat.com
+> Subject: RE: Hauppauge WinTV USB Model 566 PAL-I
+> 
+> Hi,
+> Yes I am using the external audio, mainly because I haven't got a clue how
+> to get the audio via USB to work. If you've got any pointers on that,
+> that'll be really cool I'm not bothered about the 16KHz sound. The white
+> lines on the picture are constant but move up and down the screen. It very
+> much reminds me of an old TV fault called sound on vision where the video
+> and audio carriers aren't separated properly. 
+> 
+> -----Original Message-----
+> From: Thierry Merle [mailto:thierry.merle@free.fr]
+> Sent: 30 November 2008 15:11
+> To: Chris Grove
+> Cc: video4linux-list@redhat.com
+> Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
+> 
+> Chris Grove wrote:
+>> Hi,
+>> Ok I've tried it and it works, sort of. I've managed to get a picture 
+>> that works, the problem now is that the old bug of white lines on the 
+>> display and noise on the audio is back. Any ideas if there is a tweak 
+>> or something I can use to fix it please??
 >>
->> Also by just unloading the driver removing /dev/videoX things stay KISS.
+> Do you use external audio or the audio via usb?
+> Please use the external audio, much better sound quality (44KHz whereas
+> 16KHz via USB).
+> What are the white lines on the display? Interferences, constant lines,
+> other?
 > 
-> Well, I am not sure that this is simpler, actually, which is why I 
-> brought the subject up for discussion.
-> 
-
-Well, drivers need to handle disconnect anyways, so this requires no additional 
-code from the driver, how simple do you want it to be ?
-
+>> -----Original Message-----
+>> From: Thierry Merle [mailto:thierry.merle@free.fr]
+>> Sent: 29 November 2008 21:02
+>> To: Chris Grove
+>> Cc: video4linux-list@redhat.com
+>> Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
 >>
->> Last it is not that strange for the webcam not to show up as a webcam 
->> to choose from for use in a webcam app, when you've got a photo app 
->> open for importing photo's (and when the import dialog is closed the 
->> device should be given back to the /dev/videoX driver).
+>> Hi Chris,
 >>
->> So all in all I believe that having some mechanism:
->> -to unload the driver when libusb wants access *AND*
->> -reload it when libusb is done
-> 
-> This does not address the question of whether the owner of the machine 
-> wants the kernel module installed, or not. I can imagine that the owner 
-> might not be interested at all in loading the module if said owner is 
-> not interested in running the camera as a webcam. I can also imagine 
-> that the outcome is
-> 
-
-If you look at any up2date Linux distro, all drivers for all available hardware 
-will get loaded. This is just how things work now a days, and this is the right 
-thing todo for 99.99 % of all users. And I really don't care about that other 
-0.01 %
-
-> 1. owner gets still photos off the camera.
-> 2. owner exits from photo-getting app
-> 3. libgphoto2 releases the camera, and libusb loads the kernel module -- 
-> which was, prior to (1), *not* loaded.
-
-No, as Adam explained libgphoto would trigger a rescanning of the usb bus, if 
-the driver was not loaded at plugin / boot because it was blacklisted for 
-example, the rescan wont load it either.
-
-But this is a corner case. One should never design / optimize for corner case. 
-Design / optimize for the straight path / normal expected use scenario and then 
-  see what needs and can be done for special cases.
-
-> 
+>> Chris Grove wrote:
+>>> Hi there, I've got one of these cards but I'm having trouble getting 
+>>> it to work. The problem is that it loads ok, but when I try to use 
+>>> it, it turns out that the tuner module has loaded the wrong tuner type.
+>>> Instead of using tuner type 1, a PAL-I tuner which mine is, it 
+>>> selects a PAL-BG tuner. Now I've tried using type=1 in the modprobe 
+>>> line but it turns out that, that is no longer supported.
+>>>
+>>>  
+>>>
+>>> System Info.
+>>>
+>>> I'm using GeexBox which is built on linux-2.6.21.3 kernel.
+>>>
+>>>  
+>>>
+>>> The Init.d script is:
+>>>
+>>> #!/bin/sh
+>>>
+>>> #
+>>>
+>>> # setup tv cards
+>>>
+>>> #
+>>>
+>>> # runlevels: geexbox, debug, install
+>>>
+>>>  
+>>>
+>>> echo "### Setting up TV card ###"
+>>>
+>>> modprobe tuner pal=I
+>>>
+>>> modprobe tveeprom
+>>>
+>>> modprobe usbvision
+>>>
+>>> modprobe saa7115
+>>>
+>>>  
+>>>
+>>> echo -n "" > /var/tvcard
+>>>
+>>> exit 0
+>>>
+>>>  
+>>>
+>>> And the output from dmesg is:
+>>>
+>>> <6>usbvision_probe: Hauppauge WinTv-USB II (PAL) MODEL 566 found
+>>>
+>>> <6>USBVision[0]: registered USBVision Video device /dev/video0 [v4l2]
+>>>
+>>> <6>USBVision[0]: registered USBVision VBI device /dev/vbi0 [v4l2] 
+>>> (Not Working Yet!)
+>>>
+>>> <6>usbcore: registered new interface driver usbvision
+>>>
+>>> <6>USBVision USB Video Device Driver for Linux : 0.9.9
+>>>
+>>> <6>eth0: Media Link On 100mbps full-duplex
+>>>
+>>> <6>tuner 1-0042: chip found @ 0x84 (usbvision #0)
+>>>
+>>> <6>tda9887 1-0042: tda988[5/6/7] found @ 0x42 (tuner)
+>>>
+>>> <6>tuner 1-0061: chip found @ 0xc2 (usbvision #0)
+>>>
+>>> <6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and
+>>> compatibles))
+>>>
+>>> <6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and
+>>> compatibles))
+>>>
+>>> <6>saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (usbvision
+>>> #0)
+>>>
+>>> <6>tda9887 1-0042: i2c i/o error: rc == -121 (should be 4)
+>> please try a modprobe tda9887 debug=1 to see some debug messages where 
+>> it fails.
+>> Proceed like this:
+>> modprobe tda9887 debug=1
+>> modprobe saa7115
+>> modprobe usbvision
+>> Then, plug-in your device.
+>> Geeksbox is based on mplayer, I tested OK mplayer but with some tuning 
+>> like
+>> this:
+>> mplayer -tv
+>> driver=v4l2:width=320:height=240:norm=SECAM:outfmt=yuy2:channels=21-F2
+>> tv://
 >>
->> Is enough, and is nice and KISS, which I like.
+>> Cheers,
+>> Thierry
+>>
+>>
 > 
 > 
-> Yeah. I just love to have modules installed to support hardware which I 
-> do not intend to use. Don't we all? ;)
 
-Erm, yes we do all love that, because then when I do decide to buy a bluetooth 
-gizmo, even though I did not have any use for the entire bluetooth stack being 
-loaded on my desktop before, now all of a sudden it works out of the box.
 
-I'm sorry but not loading modules is something from a recent past, we just 
-don't do that anymore. Just like almost no one builds its own kernels now.
-
-> What is "simple" about that?
-
-That if I decide to change my mind and use the functionality after all things 
-will just work.
-
-> If I 
-> am running some low-powered piece of hardware, why would I want all 
-> kinds of support for devices X, Y, and Z installed in the kernel unless 
-> and until I am actually going to use one of them?
-> 
-
-If you run on a low-powered piece of hardware, you will need a custom distro 
-anyways.
-
-> The ideal solution probably can not work for ten thousand good reasons, 
-> but what ought to happen is that a libgphoto2-based app could turn off 
-> or remove the module (unless the module is in use), and an app requiring 
-> the kernel module could cause it to be installed, unless the device is 
-> in use by some app already. This would actually be most ideal and would 
-> make it unnecessary for libusb to install kernel modules which, perhaps, 
-> no one is going to use during the next week after installation.
-> 
-
-No, that will never work, because now a days we have a model where drivers gets 
-loaded when hardware is detected, not when apps need the functionality. This 
-allows applications to ask the system which devices are present. Since 
-applications now ask the system which devices are present, they cannot tell it 
-to load the driver, otherwise we get a classic chicken and egg problem.
-
-> So in other words the ability of libusb to load up a kernel module is 
-> another trick which may alleviate the problem for some people, but does 
-> not solve the problem. Not yet.
-
-I disagree, it is not a trick, it is a nice and very *simple* solution. Maybe 
-I'm wring, time will tell then and then we can start thinking about more 
-complex solutions, for now this seems the way forward to me.
-
-Regards,
-
-Hans
+-- 
+                   ,
+                   }\      °
+           _    .-`  `-.  o
+           \`'./     (o)\
+            ) >   )))    } O
+           /_.'\     / \/
+       jgs      `'---'=`     http://thierry.merle.free.fr/
 
 --
 video4linux-list mailing list
