@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Fri, 28 Nov 2008 17:30:55 +0100
-References: <200811271536.46779.laurent.pinchart@skynet.be>
-	<200811271548.31310.laurent.pinchart@skynet.be>
-	<20081128140709.64fee358@pedra.chehab.org>
-In-Reply-To: <20081128140709.64fee358@pedra.chehab.org>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAUE9bJ8025094
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 09:09:37 -0500
+Received: from mk-filter-1-a-1.mail.uk.tiscali.com
+	(mk-filter-1-a-1.mail.uk.tiscali.com [212.74.100.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAUE9OMC031342
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 09:09:25 -0500
+From: "Chris Grove" <dj_gerbil@tiscali.co.uk>
+To: "'Thierry Merle'" <thierry.merle@free.fr>
+References: <002901c95150$44c16b90$ce4442b0$@co.uk> <4931ADCD.2000407@free.fr>
+In-Reply-To: <4931ADCD.2000407@free.fr>
+Date: Sun, 30 Nov 2008 14:04:56 -0000
+Message-ID: <011901c952f4$a02d9710$e088c530$@co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811281730.55232.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
-Subject: Re: [PATCH 4/4] v4l2: Document zoom and privacy controls
+Content-Language: en-gb
+Cc: video4linux-list@redhat.com
+Subject: RE: Hauppauge WinTV USB Model 566 PAL-I
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,32 +30,114 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+Hi,
+Ok I've tried it and it works, sort of. I've managed to get a picture that
+works, the problem now is that the old bug of white lines on the display and
+noise on the audio is back. Any ideas if there is a tweak or something I can
+use to fix it please??
 
-On Friday 28 November 2008, Mauro Carvalho Chehab wrote:
-> On Thu, 27 Nov 2008 15:48:31 +0100
->
-> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
-> > +
-> > +          <row>
-> > +            <entry
-> > spanname="id"><constant>V4L2_CID_ZOOM_ABSOLUTE</constant>&nbsp;</entry> +
-> >            <entry>integer</entry>
-> > +          </row><row><entry spanname="descr">Specify the objective lens
-> > +focal length as an absolute value. The zoom unit is driver-specific and
-> > its +value should be a positive integer.</entry>
->
-> Hmm... I think it would be better to have some unit for the controls, or at
-> least a way to report the unit to userspace.
+-----Original Message-----
+From: Thierry Merle [mailto:thierry.merle@free.fr] 
+Sent: 29 November 2008 21:02
+To: Chris Grove
+Cc: video4linux-list@redhat.com
+Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
 
-Why ? Does it matter if the zoom is expressed as an absolute focal lens in 
-millimetres or mils, or as a relative value between 0 an 255 ? Most devices 
-will use an arbitrary scale, probably 0-255, to cover the whole zoom range. 
-There is no unit associated with that.
+Hi Chris,
 
-Best regards,
+Chris Grove wrote:
+> Hi there, I've got one of these cards but I'm having trouble getting 
+> it to work. The problem is that it loads ok, but when I try to use it, 
+> it turns out that the tuner module has loaded the wrong tuner type. 
+> Instead of using tuner type 1, a PAL-I tuner which mine is, it selects 
+> a PAL-BG tuner. Now I've tried using type=1 in the modprobe line but 
+> it turns out that, that is no longer supported.
+> 
+>  
+> 
+> System Info.
+> 
+> I'm using GeexBox which is built on linux-2.6.21.3 kernel.
+> 
+>  
+> 
+> The Init.d script is:
+> 
+> #!/bin/sh
+> 
+> #
+> 
+> # setup tv cards
+> 
+> #
+> 
+> # runlevels: geexbox, debug, install
+> 
+>  
+> 
+> echo "### Setting up TV card ###"
+> 
+> modprobe tuner pal=I
+> 
+> modprobe tveeprom
+> 
+> modprobe usbvision
+> 
+> modprobe saa7115
+> 
+>  
+> 
+> echo -n "" > /var/tvcard
+> 
+> exit 0
+> 
+>  
+> 
+> And the output from dmesg is:
+> 
+> <6>usbvision_probe: Hauppauge WinTv-USB II (PAL) MODEL 566 found
+> 
+> <6>USBVision[0]: registered USBVision Video device /dev/video0 [v4l2]
+> 
+> <6>USBVision[0]: registered USBVision VBI device /dev/vbi0 [v4l2] (Not 
+> Working Yet!)
+> 
+> <6>usbcore: registered new interface driver usbvision
+> 
+> <6>USBVision USB Video Device Driver for Linux : 0.9.9
+> 
+> <6>eth0: Media Link On 100mbps full-duplex
+> 
+> <6>tuner 1-0042: chip found @ 0x84 (usbvision #0)
+> 
+> <6>tda9887 1-0042: tda988[5/6/7] found @ 0x42 (tuner)
+> 
+> <6>tuner 1-0061: chip found @ 0xc2 (usbvision #0)
+> 
+> <6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and 
+> compatibles))
+> 
+> <6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and 
+> compatibles))
+> 
+> <6>saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (usbvision 
+> #0)
+> 
+> <6>tda9887 1-0042: i2c i/o error: rc == -121 (should be 4)
+please try a modprobe tda9887 debug=1 to see some debug messages where it
+fails.
+Proceed like this:
+modprobe tda9887 debug=1
+modprobe saa7115
+modprobe usbvision
+Then, plug-in your device.
+Geeksbox is based on mplayer, I tested OK mplayer but with some tuning like
+this:
+mplayer -tv
+driver=v4l2:width=320:height=240:norm=SECAM:outfmt=yuy2:channels=21-F2 tv://
 
-Laurent Pinchart
+Cheers,
+Thierry
 
 --
 video4linux-list mailing list
