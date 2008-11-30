@@ -1,33 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALF9p9M008063
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 10:09:51 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALF98IX017461
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 10:09:09 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so140297ugc.13
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 07:09:08 -0800 (PST)
-Message-ID: <30353c3d0811210703l4be01f6cj315f8dbf1bb2813@mail.gmail.com>
-Date: Fri, 21 Nov 2008 10:03:02 -0500
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-In-Reply-To: <30353c3d0811210654l693c4c4evc4ae9212de35ceae@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAUDxGj6022882
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 08:59:16 -0500
+Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAUDwQ5j027528
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 08:58:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Sun, 30 Nov 2008 14:58:22 +0100
+References: <200811242309.37489.hverkuil@xs4all.nl>
+	<200811291519.39549.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.0811292002300.8352@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0811292002300.8352@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <200811151218.45664.m.kozlowski@tuxland.pl>
-	<30353c3d0811190552y2ef78b53s833182da377a5046@mail.gmail.com>
-	<492439AE.1070903@redhat.com>
-	<200811192256.09361.m.kozlowski@tuxland.pl>
-	<1227205179.1708.47.camel@localhost>
-	<30353c3d0811201057o2244ca80of033e3bead96c779@mail.gmail.com>
-	<1227207831.1708.58.camel@localhost>
-	<30353c3d0811210654l693c4c4evc4ae9212de35ceae@mail.gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mariusz Kozlowski <m.kozlowski@tuxland.pl>, video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] [BUG] zc3xx oopses on unplug: unable to
-	handle kernel paging request
+Message-Id: <200811301458.23184.hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, video4linux-list@redhat.com,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: v4l2_device/v4l2_subdev: please review (PATCH 1/3)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,17 +34,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-[snip]
->> No, the module count is correct, the problem is that it is incremented /
->> decremented by 2 at each open / close. Don't you have the same behaviour
->> with stk-webcam?
+On Saturday 29 November 2008 20:08:44 Guennadi Liakhovetski wrote:
+> On Sat, 29 Nov 2008, Hans Verkuil wrote:
+> > > > +Introduction
+> > > > +------------
+> > > > +
+> > > > +The V4L2 drivers tend to be very complex due to the complexity
+> > > > of the +hardware: most devices have multiple ICs, export
+> > > > multiple device nodes in +/dev, and create also non-V4L2
+> > > > devices such as DVB, ALSA, FB, I2C and input +(IR) devices.
+> > > > +
+> > > > +Especially the fact that V4L2 drivers have to setup supporting
+> > > > ICs to +do audio/video muxing/encoding/decoding makes it more
+> > > > complex than most. +Usually these ICs are connected to the main
+> > > > bridge driver through one or +more I2C busses, but other busses
+> > > > can also be used. Such devices are +called 'sub-devices'.
+> > >
+> > > Do you know of other busses being used in (Linux supported) real
+> > > video hardware, or is it currently theoretical only ?
+> >
+> > The pxa_camera driver is one example of that. Also devices driven
+> > by GPIO pins can be implemented this way. I did that in ivtv for
+> > example: most cards use i2c audio muxers, but some have audio
+> > muxers that are commanded through GPIO so I created a v4l2_subdev
+> > that uses GPIO to drive these chips. Works very well indeed.
+>
+> I think pxa-camera (as well as sh-mobile-ceu and other soc-camera
+> host drivers in the works) is not a very good example here. Sensors
+> connected to embedded controllers like PXA indeed use a dedicated
+> camera bus but only for data exchange. This bus comprises of data and
+> synchronisation lines only. Sensors are still connected over an i2c
+> bus for control and configuration, also been open to other busses, I
+> haven't seen such examples as yet. I might have misunderstood what
+> has been discussed here though.
 
-Sorry I missed this one. No we do not have this issue with stk-webcam.
-The usage count is only incremented once to my knowledge.
+I agree that it not the best example, although it is perfectly possible 
+to see this as a controller sub-device. Having the same mechanism to 
+talk to any type of hardware involved in video capture and display has 
+definite advantages.
+
+Once these patches are in I would definitely recommend that people start 
+experimenting with them. Also be aware that this is just the first 
+step. I'm going to improve on these two fundamental structs 
+(v4l2_device and v4l2_subdev) to add much improved support for 
+controls. Currently drivers have to spend way too much effort on 
+implementing all the control handling code.
+
+And there are many more things one can do with these structures. I'll 
+just take it step by step.
 
 Regards,
 
-David Ellingsworth
+         Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
