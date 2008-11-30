@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOBLL1H018361
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 06:21:21 -0500
-Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOBL8hP017481
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 06:21:09 -0500
-Message-ID: <492A8F83.1020208@hhs.nl>
-Date: Mon, 24 Nov 2008 12:26:59 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
-	<49269369.90805@hhs.nl>
-	<Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
-	<200811212157.21254.linux@baker-net.org.uk>
-	<Pine.LNX.4.64.0811211658290.4727@banach.math.auburn.edu>
-In-Reply-To: <Pine.LNX.4.64.0811211658290.4727@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAU2n64h030105
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 21:49:06 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAU2msoq004903
+	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 21:48:54 -0500
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200811300140.44322.hverkuil@xs4all.nl>
+References: <200811291852.41794.hverkuil@xs4all.nl>
+	<1228001498.4615.28.camel@palomino.walls.org>
+	<200811300140.44322.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 29 Nov 2008 21:49:45 -0500
+Message-Id: <1228013385.4615.143.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
-Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
-	driver
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,64 +33,148 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-
-kilgota@banach.math.auburn.edu wrote:
+On Sun, 2008-11-30 at 01:40 +0100, Hans Verkuil wrote:
+> On Sunday 30 November 2008 00:31:38 Andy Walls wrote:
+> > On Sat, 2008-11-29 at 18:52 +0100, Hans Verkuil wrote:
+> > > Hi all,
+> > >
+> > > This is hopefully the final version. All earlier comments have been
+> > > incorporated into this patch. I also made a new change: the mutex
+> > > has been replaced by a spinlock and I no longer lock when walking
+> > > the list of subdevs.
+> > >
+> > > So the assumption is that subdevs only added during initialization
+> > > of the device and removed during the destruction of the device, and
+> > > not in between. I cannot think of any reason why this you would
+> > > want to do this, but should this ever happen then the list should
+> > > be replaced by a klist. I consider this overkill, esp. since
+> > > walking the subdev list should be as fast as possible.
+> >
+> > I don't have a problem with not locking during a list walk as long as
+> > you can ensure the register and unregister calls can't happen in the
+> > middle of a walk.  I haven't taken a hard look to see if this is the
+> > case.  I'd imagine a walk while registration is going on is the only
+> > case that has a remote chance of happening.
 > 
-
-<snip>
-
-> Unfortunately libusb doesn't include a
->> corresponding attach method for libgphoto2 to use when it has finished 
->> so it
->> can't re-instate the kernel driver.
+> A driver that would do register or unregister calls in the middle of a 
+> walk is very badly written. I can't even imagine how that can happen.
 > 
-> True. But what I am wondering is, if it would be possible to write the 
-> kernel driver in such a way that it does not need to get detached, then 
-> it would be possible to solve the problem in both directions, not just 
-> one. Somehow, arrange things so that if an app requires the kernel 
-> driver, then the kernel driver obliges. But if the app wants to approach 
-> the device through libusb, then libusb, upon discovering that the kernel 
-> driver is loaded, asks the kernel driver for access and then the kernel 
-> driver, under certain reasonable conditions, obliges. For example, in 
-> the case of a dual-mode camera I would probably tend to consider that 
-> the kernel module ought not to surrender while a webcam app is actually 
-> in use, but in other circumstances ought to allow "pass through." I 
-> mean, if I am a userspace app which peaceably and above-board wants 
-> access to a still camera through libusb then do I care if there is a 
-> device /dev/videoXX which is associated with my USB vendor:product 
-> number? Actually, not. I only care that if I am an app which never wants 
-> even to go near to any /dev/videoXX then nobody is going to try to force 
-> me to do that. In particular, why does the kernel driver for the device 
-> have to force me to access /dev/videoXX even if I never requested any 
-> such thing? So it could work like this:
+> That said, I'll add a comment in the header making it explicit that no 
+> locking is taking place.
+
+Ah.
+
+
+> > Although I think I've just answered my own next question I'll ask
+> > anyway: why are register & unregister such time critical operations
+> > that we have to spin instead of risk sleeping in a mutex?  To greatly
+> > reduce the probability a walk happens while registering?  If that's
+> > the case it sounds like we're knowingly building in a race.
 > 
+> In the register function it only needs to lock the list momentarily in 
+> case two registrations happen at the same time. A mutex is overkill for 
+> that. Perhaps having locking at all is overkill as well for this, but 
+> for now I feel safer with the lock. In addition, I might well change 
+> the way subdevices are registered. Right now the bridge driver loads 
+> and registers a subdevice, but an alternative approach would be that 
+> the i2c driver can register itself with the bridge driver when loaded. 
+> There are actually some advantages to that approach, but if I do that, 
+> then the lock is definitely needed.
+> 
+> > This comment kind of bugged me too:
+> > >/* Iterate over all subdevs. The next item is prefetched, so you can
+> > > +   delete the current item if necessary. */
+> > > +#define v4l2_device_for_each_subdev(sd, dev)
+> >
+> > It implies it's safe to remove things from the list that we're not
+> > locking.
+> 
+> Oops, that was a bogus comment. Actually, the whole macro is a bit bogus 
+> and can simply be replaced by this:
+> 
+> /* Iterate over all subdevs. */
+> #define v4l2_device_for_each_subdev(sd, dev) \
+>         list_for_each_entry(sd, &(dev)->subdevs, list)
+> 
+> > I can appreciate the desire for being able to walk the list and issue
+> > commands to various subdevs with high concurrency.  I know spinlocks
+> > are optimized for the common case of the lock being available (well
+> > at least the underlying __raw_spin_lock() is optimized, if preemption
+> > is enabled there's a little overhead added).  So they give the safety
+> > with a minor penalty at the micro level, but kill concurrency of
+> > common operations at the macro level.
+> >
+> > So how about a rwlock_t and using read_lock() and write_lock(), locks
+> > that provide safety and allow high concurrency at the macro level?  I
+> > don't know if there's an analog of a read/write mutex.
+> 
+> Note that I can't use spinlocks while walking the subdevs list since the 
+> subdev ops that you call can sleep which is not allowed with spinlocks 
+> (as I very quickly found out when I tried it :-) ).
 
-I've been thinking along similar lines (keeping /dev/videoX present when using 
-the still image function). But thinking about this some more I don't think this 
-is worth the trouble. A camera which can do both still images and function as 
-webcam really is a multifunction device, with one function active at a time, 
-this is just like any usb device with multiple usb configurations, and when you 
-change the configuration certain functionality becomes not available and other 
-becomes available. If this cam would be correctly using usb configuaration 
-profiles for this, the /dev/videoX would also disappear.
+Ah.
 
-Also by just unloading the driver removing /dev/videoX things stay KISS.
+> The only way to safely walk over it is to switch to a klist, but I 
+> really like to keep __v4l2_device_call_subdevs as fast as possible. 
+> Since the registration/unregistration of subdevs is fully controlled by 
+> the driver it is trivial for the driver to ensure that there are no 
+> (un)registrations while the subdev list is being walked. There are no 
+> external events that can cause this to happen.
+> 
+> In addition, there is also no point for a driver to begin issuing 
+> commands to subdevs while some of them are not yet registered. So I 
+> feel confident about my approach.
 
-Last it is not that strange for the webcam not to show up as a webcam to choose 
-from for use in a webcam app, when you've got a photo app open for importing 
-photo's (and when the import dialog is closed the device should be given back 
-to the /dev/videoX driver).
+Just playing a little more devil's advocate:
 
-So all in all I believe that having some mechanism:
--to unload the driver when libusb wants access *AND*
--reload it when libusb is done
+I have a recollection that the lirc_pvr150 module calls an ivtv function
+directly to reset the IR blaster chip on PVR-150's.  I'd imagine in the
+future, the GPIO subdev in ivtv might implement some sort of reset_ops
+or ir_ops for a cleaner interface for an updated lirc_pvr150 module to
+call in on. There's my one contrived example, contingent on assumed
+changes, of a bridge chip driver not being strictly in control of when a
+subdev could be called.
 
-Is enough, and is nice and KISS, which I like.
+(It's moot in this case though as lirc_pvr150 would need ivtv to init
+i2c before gpio, which ivtv doesn't do, before lirc_pvr150 would attempt
+a reset of the IR blaster.)
+
+I think you're safe for now. :)
+
+
+
+On a more philosophical note is GPIO really a single subdev or a
+collection of independent serial & discrete buses to a collection of
+subdevs?  In cx18 depending on the board, GPIO can reset chips, change
+audio mux paths, change the state of LED's, and in the future be used as
+a serial line (if I ever get that soft-UART to the IR blaster
+implemented).
+
+
+> But if it turns out to be a problem after all in the future, then it 
+> will be easy to replace the list with a klist.
+
+Well my one contrived example is between two modules who usage is
+tightly coupled at least in one direction, even if source code changes
+are not tightly coordinated.  In that case I'd predict problems will
+simply be avoided due to the tight coupling.
 
 Regards,
+Andy
 
-Hans
+> > Did I totally miss the concept?
+> 
+> Not at all, and once again thanks for the comments.
+> 
+> I've updated my tree with the changes mentioned above.
+> 
+> Regards,
+> 
+>           Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
 
 --
 video4linux-list mailing list
