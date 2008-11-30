@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from djamil.net ([88.177.154.16] helo=route.djamil.net)
+Received: from rv-out-0506.google.com ([209.85.198.228])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <djamil@djamil.net>) id 1Kytb2-00015w-SP
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 20:35:49 +0100
-Received: from [192.168.1.10] (toptop.djamil.net [192.168.1.10])
-	by route.djamil.net (Postfix) with ESMTP id 90F1F14331
-	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 20:34:52 +0100 (CET)
-From: djamil <djamil@djamil.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1226162432.7651.2.camel@toptop>
-References: <49150AF1.5060601@rongage.org>  <1226135032.7882.1.camel@toptop>
-	<1226135171.7882.2.camel@toptop>  <1226140296.7671.1.camel@toptop>
-	<1226162432.7651.2.camel@toptop>
-Date: Sat, 08 Nov 2008 20:35:14 +0100
-Message-Id: <1226172914.10629.0.camel@toptop>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] HVR 1400
+	(envelope-from <bemorgan@gmail.com>) id 1L6dac-0004Q9-Oi
+	for linux-dvb@linuxtv.org; Sun, 30 Nov 2008 05:07:26 +0100
+Received: by rv-out-0506.google.com with SMTP id b25so1910429rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 29 Nov 2008 20:07:18 -0800 (PST)
+Message-ID: <3d623cf80811292007j59f2c0f9j96877e9420180118@mail.gmail.com>
+Date: Sun, 30 Nov 2008 14:07:18 +1000
+From: "Benjamin Morgan" <bemorgan@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <3d623cf80811292004u282db50crcb17ea9f376578dd@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <3d623cf80811292004u282db50crcb17ea9f376578dd@mail.gmail.com>
+Subject: Re: [linux-dvb] Hauppauge Nova-T 500 problem, probably erased eeprom
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,207 +21,164 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1973678275=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+i missed the details from the card itself:
 
---===============1973678275==
-Content-Type: multipart/alternative; boundary="=-BtxsRWc/KluLnfEyp6rt"
+Nova T 500 DVB - T
+99101F
+Rev D8B5
 
-
---=-BtxsRWc/KluLnfEyp6rt
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-
-am I in the wrong list ?
-
-
-Le samedi 08 novembre 2008 =E0 17:40 +0100, djamil a =E9crit :
-
-> hello
->=20
-> I have cvs'd=20
->=20
->=20
-> drwxr-sr-x 7 root src 4096 2008-11-08 17:01 cx23885-audio
-> drwxr-sr-x 7 root src 4096 2008-11-08 17:27 cx23885-leadtek
-> drwxr-sr-x 7 root src 4096 2008-11-08 17:21 cx23885-sram
-> drwxr-sr-x 7 root src 4096 2008-11-08 17:09 cx23885-video
->=20
-> from =20
-> http://linuxtv.org/hg/~stoth/*
->=20
->=20
-> unluckyly   the video part wont compile,  sram neither ,=20
->=20
-> any one want to join me ?
->=20
->=20
->=20
->=20
-> Le samedi 08 novembre 2008 =E0 11:31 +0100, djamil a =E9crit :
->=20
-> > Hello
-> >=20
-> > I have just installed the CVS version, modinfo talks about a video
-> > DEV but no /dev/video are created
-> > Can you help ?
-> >=20
-> >=20
-> > regards
-> >=20
-> >=20
-> >=20
-> > Le samedi 08 novembre 2008 =E0 10:06 +0100, djamil a =E9crit :
-> >=20
-> > > sorry for the pollution
-> > >=20
-> > > I thaught seeing it in the sources ...
-> > >=20
-> > > Regards
-> > >=20
-> > >=20
-> > >=20
-> > > Le samedi 08 novembre 2008 =E0 10:03 +0100, djamil a =E9crit :
-> > >=20
-> > > > Hello gentlemen=20
-> > > >=20
-> > > > I still cant use svideo / composite with WinTv hvr1400 ?
-> > > >=20
-> > > > best regards=20
-> > > >=20
-> > > > _______________________________________________
-> > > > linux-dvb mailing list
-> > > > linux-dvb@linuxtv.org
-> > > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > >=20
-> > > _______________________________________________
-> > > linux-dvb mailing list
-> > > linux-dvb@linuxtv.org
-> > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >=20
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->=20
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
---=-BtxsRWc/KluLnfEyp6rt
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.24.1">
-</HEAD>
-<BODY>
-am I in the wrong list ?<BR>
-<BR>
-<BR>
-Le samedi 08 novembre 2008 &#224; 17:40 +0100, djamil a &#233;crit :<BR>
-<BLOCKQUOTE TYPE=CITE>
-    hello<BR>
-    <BR>
-    I have cvs'd <BR>
-    <BR>
-    <BR>
-    drwxr-sr-x 7 root src 4096 2008-11-08 17:01 cx23885-audio<BR>
-    drwxr-sr-x 7 root src 4096 2008-11-08 17:27 cx23885-leadtek<BR>
-    drwxr-sr-x 7 root src 4096 2008-11-08 17:21 cx23885-sram<BR>
-    drwxr-sr-x 7 root src 4096 2008-11-08 17:09 cx23885-video<BR>
-    <BR>
-    from&nbsp; <BR>
-    <A HREF="http://linuxtv.org/hg/~stoth/*">http://linuxtv.org/hg/~stoth/*</A><BR>
-    <BR>
-    <BR>
-    unluckyly&nbsp;&nbsp; the video part wont compile,&nbsp; sram neither , <BR>
-    <BR>
-    any one want to join me ?<BR>
-    <BR>
-    <BR>
-    <BR>
-    <BR>
-    Le samedi 08 novembre 2008 &#224; 11:31 +0100, djamil a &#233;crit :<BR>
-    <BLOCKQUOTE TYPE=CITE>
-        Hello<BR>
-        <BR>
-        I have just installed the CVS version, modinfo talks about a video DEV but no /dev/video are created<BR>
-        Can you help ?<BR>
-        <BR>
-        <BR>
-        regards<BR>
-        <BR>
-        <BR>
-        <BR>
-        Le samedi 08 novembre 2008 &#224; 10:06 +0100, djamil a &#233;crit :<BR>
-        <BLOCKQUOTE TYPE=CITE>
-            sorry for the pollution<BR>
-            <BR>
-            I thaught seeing it in the sources ...<BR>
-            <BR>
-            Regards<BR>
-            <BR>
-            <BR>
-            <BR>
-            Le samedi 08 novembre 2008 &#224; 10:03 +0100, djamil a &#233;crit :<BR>
-            <BLOCKQUOTE TYPE=CITE>
-                Hello gentlemen <BR>
-                <BR>
-                I still cant use svideo / composite with WinTv hvr1400 ?<BR>
-                <BR>
-                best regards 
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-            </BLOCKQUOTE>
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-        </BLOCKQUOTE>
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-    </BLOCKQUOTE>
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-</BLOCKQUOTE>
-</BODY>
-</HTML>
-
---=-BtxsRWc/KluLnfEyp6rt--
-
-
-
---===============1973678275==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+2008/11/30 Benjamin Morgan <bemorgan@gmail.com>:
+> Hi All,
+>
+> I'm experiencing problems getting a hauppauge Nova T 500 to work on my
+> system, based on the thread
+> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg26676.html it
+> sounds like my card has an erased eeprom, how can I check this? Is
+> there a line from lsusb that shows this?
+>
+> I've tried doing what was suggested in the thread to force the driver
+> to recognise the device as a Nova T 500 however this hasn't worked.
+> For reference I edited the following:
+>
+> linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h - added the following lines:
+> #define USB_PID_HAUPPAUGE_NOVA_T_500_4                  0x10b8
+> #define USB_PID_HAUPPAUGE_NOVA_T_500_5                  0x0066
+>
+> /linux/drivers/media/dvb/dvb-usb/dib0700_devices.c - added the following lines:
+>       { USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_4) },
+>        { USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_5) },
+>
+> and then ran a make, make install and shutdown the computer and
+> restarted it however it is still not being recognised.
+>
+> The system I am running it on is a fresh install of Ubuntu 8.10, some
+> details as follows:
+>
+> Details from the card:
+>
+> uname -a
+> Linux tv 2.6.27-9-generic #1 SMP Thu Nov 20 21:57:00 UTC 2008 i686 GNU/Linux
+>
+> lsusb
+> Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 002 Device 003: ID 0609:0322 SMK Manufacturing, Inc. eHome Infrared Receiver
+> Bus 002 Device 002: ID 045e:008a Microsoft Corp. Wireless Keyboard and Mouse
+> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 005 Device 002: ID 10b8:0066 DiBcom
+> Bus 005 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>
+> lsusb -vd 10b8:0066
+>
+> Bus 005 Device 002: ID 10b8:0066 DiBcom
+> Device Descriptor:
+>  bLength                18
+>  bDescriptorType         1
+>  bcdUSB               2.00
+>  bDeviceClass            0 (Defined at Interface level)
+>  bDeviceSubClass         0
+>  bDeviceProtocol         0
+>  bMaxPacketSize0        64
+>  idVendor           0x10b8 DiBcom
+>  idProduct          0x0066
+>  bcdDevice            2.00
+>  iManufacturer           1 DiBcom SA
+>  iProduct                2 HOOK
+>  iSerial                 0
+>  bNumConfigurations      1
+>  Configuration Descriptor:
+>    bLength                 9
+>    bDescriptorType         2
+>    wTotalLength           46
+>    bNumInterfaces          1
+>    bConfigurationValue     1
+>    iConfiguration          0
+>    bmAttributes         0xa0
+>      (Bus Powered)
+>      Remote Wakeup
+>    MaxPower              500mA
+>    Interface Descriptor:
+>      bLength                 9
+>      bDescriptorType         4
+>      bInterfaceNumber        0
+>      bAlternateSetting       0
+>      bNumEndpoints           4
+>      bInterfaceClass       255 Vendor Specific Class
+>      bInterfaceSubClass      0
+>      bInterfaceProtocol      0
+>      iInterface              0
+>      Endpoint Descriptor:
+>        bLength                 7
+>        bDescriptorType         5
+>        bEndpointAddress     0x01  EP 1 OUT
+>        bmAttributes            2
+>          Transfer Type            Bulk
+>          Synch Type               None
+>          Usage Type               Data
+>        wMaxPacketSize     0x0200  1x 512 bytes
+>        bInterval               1
+>      Endpoint Descriptor:
+>        bLength                 7
+>        bDescriptorType         5
+>        bEndpointAddress     0x81  EP 1 IN
+>        bmAttributes            2
+>          Transfer Type            Bulk
+>          Synch Type               None
+>          Usage Type               Data
+>        wMaxPacketSize     0x0200  1x 512 bytes
+>        bInterval               1
+>      Endpoint Descriptor:
+>        bLength                 7
+>        bDescriptorType         5
+>        bEndpointAddress     0x82  EP 2 IN
+>        bmAttributes            2
+>          Transfer Type            Bulk
+>          Synch Type               None
+>          Usage Type               Data
+>        wMaxPacketSize     0x0200  1x 512 bytes
+>        bInterval               1
+>      Endpoint Descriptor:
+>        bLength                 7
+>        bDescriptorType         5
+>        bEndpointAddress     0x83  EP 3 IN
+>        bmAttributes            2
+>          Transfer Type            Bulk
+>          Synch Type               None
+>          Usage Type               Data
+>        wMaxPacketSize     0x0200  1x 512 bytes
+>        bInterval               1
+> Device Qualifier (for other device speed):
+>  bLength                10
+>  bDescriptorType         6
+>  bcdUSB               2.00
+>  bDeviceClass            0 (Defined at Interface level)
+>  bDeviceSubClass         0
+>  bDeviceProtocol         0
+>  bMaxPacketSize0        64
+>  bNumConfigurations      1
+> Device Status:     0x0000
+>  (Bus Powered)
+>
+> modprobe dvb-usb-dib0700 debug=8 then dmesg:
+> [ 1144.779172] dib0700: loaded with support for 8 different device-types
+> [ 1144.783648] usbcore: registered new interface driver dvb_usb_dib0700
+>
+> any suggestions would be most welcome
+>
+> Ben
+>
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1973678275==--
