@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAMnIFP011928
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 17:49:18 -0500
-Received: from mail11d.verio-web.com (mail11d.verio-web.com [204.202.242.86])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAAMn1vg020617
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 17:49:02 -0500
-Received: from mx103.stngva01.us.mxservers.net (198.173.112.40)
-	by mail11d.verio-web.com (RS ver 1.0.95vs) with SMTP id 1-0725957341
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 17:49:01 -0500 (EST)
-From: Pete Eberlein <pete@sensoray.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Mon, 10 Nov 2008 14:52:19 -0800
-Message-Id: <1226357539.8035.20.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: Gerd Knorr <kraxel@bytesex.org>
-Subject: [PATCH] saa7134: Add new cards
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAUFAIYr009074
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 10:10:18 -0500
+Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAUFA5Ni021965
+	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 10:10:05 -0500
+Message-ID: <4932ACE9.7030309@free.fr>
+Date: Sun, 30 Nov 2008 16:10:33 +0100
+From: Thierry Merle <thierry.merle@free.fr>
+MIME-Version: 1.0
+To: Chris Grove <dj_gerbil@tiscali.co.uk>
+References: <002901c95150$44c16b90$ce4442b0$@co.uk> <4931ADCD.2000407@free.fr>
+	<011901c952f4$a02d9710$e088c530$@co.uk>
+In-Reply-To: <011901c952f4$a02d9710$e088c530$@co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,206 +28,131 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Added new hybrid cards using saa7134 and go7007 chip.
-- WIS Voyager or compatible
-- Sensoray model 314
-- Sensoray model 614
-For these boards, module saa7134-go7007 (in staging) is loaded to
-interface with the go7007 MPEG encoder chip.
+Chris Grove wrote:
+> Hi,
+> Ok I've tried it and it works, sort of. I've managed to get a picture that
+> works, the problem now is that the old bug of white lines on the display and
+> noise on the audio is back. Any ideas if there is a tweak or something I can
+> use to fix it please??
+> 
+Do you use external audio or the audio via usb?
+Please use the external audio, much better sound quality (44KHz whereas 16KHz via USB).
+What are the white lines on the display? Interferences, constant lines, other?
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+> -----Original Message-----
+> From: Thierry Merle [mailto:thierry.merle@free.fr] 
+> Sent: 29 November 2008 21:02
+> To: Chris Grove
+> Cc: video4linux-list@redhat.com
+> Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
+> 
+> Hi Chris,
+> 
+> Chris Grove wrote:
+>> Hi there, I've got one of these cards but I'm having trouble getting 
+>> it to work. The problem is that it loads ok, but when I try to use it, 
+>> it turns out that the tuner module has loaded the wrong tuner type. 
+>> Instead of using tuner type 1, a PAL-I tuner which mine is, it selects 
+>> a PAL-BG tuner. Now I've tried using type=1 in the modprobe line but 
+>> it turns out that, that is no longer supported.
+>>
+>>  
+>>
+>> System Info.
+>>
+>> I'm using GeexBox which is built on linux-2.6.21.3 kernel.
+>>
+>>  
+>>
+>> The Init.d script is:
+>>
+>> #!/bin/sh
+>>
+>> #
+>>
+>> # setup tv cards
+>>
+>> #
+>>
+>> # runlevels: geexbox, debug, install
+>>
+>>  
+>>
+>> echo "### Setting up TV card ###"
+>>
+>> modprobe tuner pal=I
+>>
+>> modprobe tveeprom
+>>
+>> modprobe usbvision
+>>
+>> modprobe saa7115
+>>
+>>  
+>>
+>> echo -n "" > /var/tvcard
+>>
+>> exit 0
+>>
+>>  
+>>
+>> And the output from dmesg is:
+>>
+>> <6>usbvision_probe: Hauppauge WinTv-USB II (PAL) MODEL 566 found
+>>
+>> <6>USBVision[0]: registered USBVision Video device /dev/video0 [v4l2]
+>>
+>> <6>USBVision[0]: registered USBVision VBI device /dev/vbi0 [v4l2] (Not 
+>> Working Yet!)
+>>
+>> <6>usbcore: registered new interface driver usbvision
+>>
+>> <6>USBVision USB Video Device Driver for Linux : 0.9.9
+>>
+>> <6>eth0: Media Link On 100mbps full-duplex
+>>
+>> <6>tuner 1-0042: chip found @ 0x84 (usbvision #0)
+>>
+>> <6>tda9887 1-0042: tda988[5/6/7] found @ 0x42 (tuner)
+>>
+>> <6>tuner 1-0061: chip found @ 0xc2 (usbvision #0)
+>>
+>> <6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and 
+>> compatibles))
+>>
+>> <6>tuner 1-0061: type set to 5 (Philips PAL_BG (FI1216 and 
+>> compatibles))
+>>
+>> <6>saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (usbvision 
+>> #0)
+>>
+>> <6>tda9887 1-0042: i2c i/o error: rc == -121 (should be 4)
+> please try a modprobe tda9887 debug=1 to see some debug messages where it
+> fails.
+> Proceed like this:
+> modprobe tda9887 debug=1
+> modprobe saa7115
+> modprobe usbvision
+> Then, plug-in your device.
+> Geeksbox is based on mplayer, I tested OK mplayer but with some tuning like
+> this:
+> mplayer -tv
+> driver=v4l2:width=320:height=240:norm=SECAM:outfmt=yuy2:channels=21-F2 tv://
+> 
+> Cheers,
+> Thierry
+> 
+> 
 
 
-diff -r bb00cb692462 linux/Documentation/video4linux/CARDLIST.saa7134
---- a/linux/Documentation/video4linux/CARDLIST.saa7134	Mon Nov 10 19:56:20 2008 -0200
-+++ b/linux/Documentation/video4linux/CARDLIST.saa7134	Mon Nov 10 14:42:19 2008 -0800
-@@ -151,3 +151,6 @@ 150 -> Zogis Real Angel 220
- 150 -> Zogis Real Angel 220
- 151 -> ADS Tech Instant HDTV                    [1421:0380]
- 152 -> Asus Tiger Rev:1.00                      [1043:4857]
-+153 -> WIS Voyager or compatible                [1905:7007]
-+154 -> Sensoray model 314                       [6000:0314]
-+155 -> Sensoray model 614                       [6000:0614]
-diff -r bb00cb692462 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Nov 10 19:56:20 2008 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Nov 10 14:42:19 2008 -0800
-@@ -4645,6 +4645,76 @@ struct saa7134_board saa7134_boards[] = 
- 			.gpio   = 0x0200000,
- 		},
- 	},
-+	[SAA7134_BOARD_WIS_VOYAGER] = {
-+		.name           = "WIS Voyager or compatible",
-+		.audio_clock    = 0x00200000,
-+		.tuner_type	= TUNER_PHILIPS_TDA8290,
-+		.inputs		= { {
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_tv,
-+			.vmux = 3,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 6,
-+		.amux = LINE1,
-+		} },
-+		.mpeg		= SAA7134_MPEG_GO7007,
-+	},
-+	[SAA7134_BOARD_SENSORAY_314] = {
-+		.name		= "Sensoray 314 board",
-+		.audio_clock	= 0x00200000,
-+		.tuner_type	= TUNER_PHILIPS_TDA8290,
-+		.inputs		= { {
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 6,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 7,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_comp2,
-+			.vmux = 1,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_comp3,
-+			.vmux = 2,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_comp4,
-+			.vmux = 3,
-+			.amux = LINE2,
-+		} },
-+		.mpeg		= SAA7134_MPEG_GO7007,
-+	},
-+	[SAA7134_BOARD_SENSORAY_614] = {
-+		.name		= "Sensoray 614 board",
-+		.audio_clock	= 0x00200000,
-+		.tuner_type	= TUNER_PHILIPS_TDA8290,
-+		.inputs		= { {
-+			.name = name_comp,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 6,
-+			.amux = LINE2,
-+		} },
-+		.mpeg		= SAA7134_MPEG_GO7007,
-+	},
- };
- 
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -5691,6 +5761,24 @@ struct pci_device_id saa7134_pci_tbl[] =
- 		.subvendor    = 0x1043,
- 		.subdevice    = 0x4878, /* REV:1.02G */
- 		.driver_data  = SAA7134_BOARD_ASUSTeK_TIGER_3IN1,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1905, /* WIS */
-+		.subdevice    = 0x7007,
-+		.driver_data  = SAA7134_BOARD_WIS_VOYAGER,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x6000,
-+		.subdevice    = 0x0314,
-+		.driver_data  = SAA7134_BOARD_SENSORAY_314,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x6000,
-+		.subdevice    = 0x0614,
-+		.driver_data  = SAA7134_BOARD_SENSORAY_614,
- 	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
-diff -r bb00cb692462 linux/drivers/media/video/saa7134/saa7134-core.c
---- a/linux/drivers/media/video/saa7134/saa7134-core.c	Mon Nov 10 19:56:20 2008 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-core.c	Mon Nov 10 14:42:19 2008 -0800
-@@ -201,6 +201,8 @@ static void request_module_async(struct 
- 		request_module("saa7134-empress");
- 	if (card_is_dvb(dev))
- 		request_module("saa7134-dvb");
-+	if (card_is_go7007(dev))
-+		request_module("saa7134-go7007");
- 	if (alsa)
- 		request_module("saa7134-alsa");
- 	if (oss)
-@@ -601,15 +603,19 @@ static irqreturn_t saa7134_irq(int irq, 
- 
- 		if ((report & SAA7134_IRQ_REPORT_DONE_RA0) &&
- 		    (status & 0x60) == 0)
--			saa7134_irq_video_done(dev,status);
-+			saa7134_irq_video_done(dev, status);
- 
- 		if ((report & SAA7134_IRQ_REPORT_DONE_RA0) &&
- 		    (status & 0x40) == 0x40)
--			saa7134_irq_vbi_done(dev,status);
-+			saa7134_irq_vbi_done(dev, status);
- 
- 		if ((report & SAA7134_IRQ_REPORT_DONE_RA2) &&
--		    card_has_mpeg(dev))
--			saa7134_irq_ts_done(dev,status);
-+		    card_has_mpeg(dev)) {
-+			if (dev->mops->irq_ts_done != NULL)
-+				dev->mops->irq_ts_done(dev, status);
-+			else
-+				saa7134_irq_ts_done(dev, status);
-+		}
- 
- 		if (report & SAA7134_IRQ_REPORT_GPIO16) {
- 			switch (dev->has_remote) {
-diff -r bb00cb692462 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Mon Nov 10 19:56:20 2008 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Mon Nov 10 14:42:19 2008 -0800
-@@ -276,6 +276,9 @@ struct saa7134_format {
- #define SAA7134_BOARD_REAL_ANGEL_220     150
- #define SAA7134_BOARD_ADS_INSTANT_HDTV_PCI  151
- #define SAA7134_BOARD_ASUSTeK_TIGER         152
-+#define SAA7134_BOARD_WIS_VOYAGER 153
-+#define SAA7134_BOARD_SENSORAY_314 154
-+#define SAA7134_BOARD_SENSORAY_614 155
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-@@ -306,6 +309,7 @@ enum saa7134_mpeg_type {
- 	SAA7134_MPEG_UNUSED,
- 	SAA7134_MPEG_EMPRESS,
- 	SAA7134_MPEG_DVB,
-+	SAA7134_MPEG_GO7007,
- };
- 
- struct saa7134_board {
-@@ -336,6 +340,7 @@ struct saa7134_board {
- #define card_has_radio(dev)   (NULL != saa7134_boards[dev->board].radio.name)
- #define card_is_empress(dev)  (SAA7134_MPEG_EMPRESS == saa7134_boards[dev->board].mpeg)
- #define card_is_dvb(dev)      (SAA7134_MPEG_DVB     == saa7134_boards[dev->board].mpeg)
-+#define card_is_go7007(dev)   (SAA7134_MPEG_GO7007  == saa7134_boards[dev->board].mpeg)
- #define card_has_mpeg(dev)    (SAA7134_MPEG_UNUSED  != saa7134_boards[dev->board].mpeg)
- #define card(dev)             (saa7134_boards[dev->board])
- #define card_in(dev,n)        (saa7134_boards[dev->board].inputs[n])
-@@ -470,6 +475,8 @@ struct saa7134_mpeg_ops {
- 	struct list_head           next;
- 	int                        (*init)(struct saa7134_dev *dev);
- 	int                        (*fini)(struct saa7134_dev *dev);
-+	void                       (*irq_ts_done)(struct saa7134_dev *dev,
-+						  unsigned long status);
- 	void                       (*signal_change)(struct saa7134_dev *dev);
- };
- 
-
+-- 
+                   ,
+                   }\      °
+           _    .-`  `-.  o
+           \`'./     (o)\
+            ) >   )))    } O
+           /_.'\     / \/
+       jgs      `'---'=`     http://thierry.merle.free.fr/
 
 --
 video4linux-list mailing list
