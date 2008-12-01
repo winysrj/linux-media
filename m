@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2N3oIG007376
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 18:03:50 -0500
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB2N3XBV005631
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 18:03:33 -0500
-Message-ID: <4935C04E.8090200@hhs.nl>
-Date: Wed, 03 Dec 2008 00:10:06 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1Dpgnf029793
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 08:51:42 -0500
+Received: from smtp-vbr8.xs4all.nl (smtp-vbr8.xs4all.nl [194.109.24.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1DpTZp011190
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 08:51:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "v4l-dvb maintainer list" <v4l-dvb-maintainer@linuxtv.org>
+Date: Mon, 1 Dec 2008 14:51:06 +0100
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: libv4l release: 0.5.7 (The fix "the UVC release" release)
+Content-Disposition: inline
+Message-Id: <200812011451.06156.hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,40 +30,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-<resent with correct version no in subject, sorry about the spam>
+Hi Mauro,
 
-Hi All,
+Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for the 
+following:
 
-So after 2 days of debugging (many thanks for the patience of all reporters and
-for all the tests they have run) I've finally managed to pinpoint and fix a
-nasty (and stupid, completely my fault) bug in the special try_fmt handling for
-uvc cams.
+- omap2: add OMAP2 camera driver.
 
-This bug is present in the 0.5.5 and 0.5.6 releases every one is urged to
-upgrade to 0.5.7 asap!
+Thanks,
 
-The problem is that the enumframesize results try_fmt replacement for uvccams
-was dependend upon the enumframesize results being sorted in a particular
-order, which happened to be the case with my test cam.
+        Hans
 
-This was causing issues with quite a few uvc cams, this release fixes this.
+diffstat:
+ b/linux/drivers/media/video/omap24xxcam-dma.c |  601 ++++++++
+ b/linux/drivers/media/video/omap24xxcam.c     | 1908 
+++++++++++++++++++++++++++
+ b/linux/drivers/media/video/omap24xxcam.h     |  593 ++++++++
+ linux/drivers/media/video/Kconfig             |    7
+ linux/drivers/media/video/Makefile            |    3
+ 5 files changed, 3112 insertions(+)
 
-libv4l-0.5.7
-------------
-* Fix a nasty (and stupid) bug in the special try_fmt handling for UVC cams
-* Add some more verbose logging of various calls when asking libv4l to log
-   calls to a file, to assist in (future) debugging
-
-Get it here:
-http://people.atrpms.net/~hdegoede/libv4l-0.5.7.tar.gz
-
-Regards,
-
-Hans
-
-
-
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
