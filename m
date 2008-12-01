@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB12A0w1003684
-	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 21:10:00 -0500
-Received: from smtp121.rog.mail.re2.yahoo.com (smtp121.rog.mail.re2.yahoo.com
-	[206.190.53.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB129jff031151
-	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 21:09:46 -0500
-Message-ID: <49334769.8070908@rogers.com>
-Date: Sun, 30 Nov 2008 21:09:45 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB17AvB0009082
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 02:10:57 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB17AhuU009318
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 02:10:44 -0500
+Date: Mon, 1 Dec 2008 08:06:21 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	morimoto.kuninori@renesas.com
+In-Reply-To: <uej0s20i1.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812010804220.3915@axis700.grange>
+References: <uljvhtzst.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0811281707440.4430@axis700.grange>
+	<uej0s20i1.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-To: V4L <video4linux-list@redhat.com>, bpringle@sympatico.ca,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: KWorld ATSC 110 and NTSC [was: 2.6.25+ and KWorld ATSC 110 inputs]
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add ov7725 ov7720 support to ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,44 +29,115 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Bill,
+Hi Morimoto,
 
-Bill Pringlemeir wrote:
+On Mon, 1 Dec 2008, morimoto.kuninori@renesas.com wrote:
 
-> I have experimented with this a bit further.  Here are some of my
-> observations,
->  
-> I switch the antenna feed between top and bottom inputs with no effect
-> on getting the NTSC signal.
->   
+> > > @@ -837,15 +859,16 @@ static int ov772x_video_probe(struct soc_camera_device *icd)
+> > >  	 */
+> > >  	pid = i2c_smbus_read_byte_data(priv->client, PID);
+> > >  	ver = i2c_smbus_read_byte_data(priv->client, VER);
+> > > -	if (pid != 0x77 ||
+> > > -	    ver != 0x21) {
+> > > +	if (pid != GET_PID(priv->id->driver_data) ||
+> > > +	    ver != GET_VER(priv->id->driver_data)) {
+> > >  		dev_err(&icd->dev,
+> > >  			"Product ID error %x:%x\n", pid, ver);
+> > >  		return -ENODEV;
+> > >  	}
+> > 
+> > this means, you can indeed probe the exact type of the camera - 7720 vs. 
+> > 7725, right? Then why do you require the platform code to also specify 
+> > exactly which camera is connected? Why don't you leave the platform code 
+> > at the old requirement, i.e., it should just register an i2c device of 
+> > type "ov772x" and then detect yourself what exactly sensor is there? This 
+> > is what I've done in mt9m001 and mt9v022. They both support several sensor 
+> > variants too. This way you can use one kernel for all compatible cameras. 
+> > If there is no real reason not to do the same in ov772x, I would suggest 
+> > you switch it over to autoprobing.
+> 
+> Indeed, it is not necessary to specify it accurately.
+> Sorry about it.
+> 
+> Therefore I would like to re-create this patch.
+> But how should I do about v4l2-chip-ident.h ?
+> 
+> only V4L2_IDENT_OV772X is better ?
+> or should I add new V4L2_IDENT_OV7720 and V4L2_IDENT_OV7725 ?
+> 
+> If the answer is latter, should I send 2 patches ?
 
-The NTSC issue is a known problem.
+I think it would be better to follow Mauro's advise. Here's his email once 
+more for you quoted below.
 
-I tracked the error down to a commit Mauro had made (IIRC, back in
-April) which ended up causing a regression on some boards  (e.g. KWorld
-ATSC 110/115).  M.Krufky spun a quick patch (which works fine), but it
-cannot be applied to the main Hg sources as it too would break other
-things, and so some discussion would be needed to resolve the underlying
-problem.  I was going to bug Mauro about the issue, but never got around
-to it, and I don't know if Mike discussed this with Mauro at the recent
-Plummers conference.  (I have cc'ed both in on the message).
-
-Several posters on AVS forums were complaining of this and I posted a
-link to Mike's patch and instructions (including a warning that it could
-break support with other cards).  AFAIK, zero feedback was achieved from
-that, as posters were either too scared by the warning or couldn't
-follow the instructions, nor responded to further posts.  Whatever.
-
-In any regard, Mike's patch, as I said, works fine, albeit is not a
-perfect solution as it requires some manual intervention (or script) on
-the part of the user to enable the analogue TV functionality.
-
-Mauro -- the exact changeset in question is:   7753:67faa17a5bcb
-Mike's patch is located at:
-http://linuxtv.org/~mkrufky/fix-broken-atsc110-analog.patch
+Thanks
+Guennadi
 
 
+On Sat, 29 Nov 2008, Mauro Carvalho Chehab wrote:
 
+> On Sat, 29 Nov 2008 00:22:27 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> 
+> > On Fri, 28 Nov 2008, Mauro Carvalho Chehab wrote:
+> > 
+> > > On Fri, 28 Nov 2008 17:44:14 +0100 (CET)
+> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > > 
+> > > > Hi,
+> > > > 
+> > > > sorry it took me a while to find some time to look at this patch. In 
+> > > > principle it looks ok, just a couple of notes / questions:
+> > > > 
+> > > > (also Mauro): I am not sure if this is ok to submit a change to 
+> > > > include/media/v4l2-chip-ident.h in this patch, i.e., if I may pull it via 
+> > > > my tree. Mauro? Or shall it be submitted separately and _after_ it is 
+> > > > applied we can also push the main part of the patch? Here's the hunk I'm 
+> > > > talking about:
+> > > > 
+> > > > > diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+> > > > > index bfe5142..14a205f 100644
+> > > > > --- a/include/media/v4l2-chip-ident.h
+> > > > > +++ b/include/media/v4l2-chip-ident.h
+> > > > > @@ -60,7 +60,8 @@ enum {
+> > > > >  
+> > > > >  	/* OmniVision sensors: reserved range 250-299 */
+> > > > >  	V4L2_IDENT_OV7670 = 250,
+> > > > > -	V4L2_IDENT_OV772X = 251,
+> > > > > +	V4L2_IDENT_OV7720 = 251,
+> > > > > +	V4L2_IDENT_OV7725 = 252,
+> > > > >  
+> > > > >  	/* Conexant MPEG encoder/decoders: reserved range 410-420 */
+> > > > >  	V4L2_IDENT_CX23415 = 415,
+> > > 
+> > > It is ok to be in the same patch, but I prefer if you split this into a
+> > > separate patch, especially since you're renaming the ID for a previous chip.
+> > 
+> > Oops, sorry, we cannot separate it that easily - ov772x.c would not 
+> > compile any more. So, we either have to commit it as a single patch 
+> > (easy), or make three patches out of it - add new IDs, switch ov772x.c, 
+> > remove the old ID. I am for the easy version.
+> 
+> I'm in favor of two patches:
+> 
+> First patch:
+> 	s/V4L2_IDENT_OV772X/V4L2_IDENT_OV7720/g
+> 
+> Second patch:
+> 	ov7225 patch plus new chip id addition.
+> 
+> Cheers,
+> Mauro.
+> 
+> 
+> Cheers,
+> Mauro
+> 
+
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
