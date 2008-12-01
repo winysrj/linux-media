@@ -1,27 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBQ5VvMG004571
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 00:31:57 -0500
-Received: from outbound.mail.nauticom.net (outbound.mail.nauticom.net
-	[72.22.18.105])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBQ5Uig1002788
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 00:30:44 -0500
-Received: from [192.168.0.124] (27.craf1.xdsl.nauticom.net [209.195.160.60])
-	(authenticated bits=0)
-	by outbound.mail.nauticom.net (8.14.0/8.14.0) with ESMTP id
-	mBQ5UhVt059421
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 00:30:43 -0500 (EST)
-From: Rick Bilonick <rab@nauticom.net>
-To: video4linux-list <video4linux-list@redhat.com>
-In-Reply-To: <20081226010307.2c7e3b55@gmail.com>
-References: <1230233794.3450.33.camel@localhost.localdomain>
-	<20081226010307.2c7e3b55@gmail.com>
-Content-Type: text/plain
-Date: Fri, 26 Dec 2008 00:30:43 -0500
-Message-Id: <1230269443.3450.48.camel@localhost.localdomain>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1EhWoc003473
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:43:33 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1EhKxc012782
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:43:20 -0500
+Date: Mon, 1 Dec 2008 12:43:13 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20081201124313.4d233311@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0812011412050.3915@axis700.grange>
+References: <Pine.LNX.4.64.0812011412050.3915@axis700.grange>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: Re: Compiling v4l-dvb-kernel for Ubuntu and for F8
+Cc: video4linux-list@redhat.com
+Subject: Re: Patches, affecting directories not in hg/linux
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,33 +27,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Mon, 1 Dec 2008 14:22:17 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-On Fri, 2008-12-26 at 01:03 -0200, Douglas Schilling Landgraf wrote:
-> Hello Rick,
+> Hi Mauro,
 > 
-> On Thu, 25 Dec 2008 14:36:34 -0500
-> Rick Bilonick <rab@nauticom.net> wrote:
+> I have a series of two patches, of which the first _amends_ a pxa-header, 
+> creates a header under drivers/media/video/, and changes pxa_camera.c to 
+> include the new header:
 > 
-> > I'm trying to get em28xx working under Ubuntu and F8, but when I
-> > "make" I get errors saying that dmxdev.h, dvb_demux.h, dvb_net.h, and
-> > dvb_frontend.h cannot be found.
-> > 
-> > I get the same errors in F7 with v4l-dvb-experimental (same with
-> > v4l-dvb-kernel):
+>  arch/arm/mach-pxa/include/mach/pxa-regs.h |   95 -----------------------------
+>  drivers/media/video/pxa_camera.c          |    2 +
+>  drivers/media/video/pxa_camera.h          |   95 +++++++++++++++++++++++++++++
+>  3 files changed, 97 insertions(+), 95 deletions(-)
+>  create mode 100644 drivers/media/video/pxa_camera.h
 > 
-> Please use upstream driver to get support (if needed) from mail-list:
-> http://linuxtv.org/v4lwiki/index.php/Em28xx_devices
+> and the second one is based on the first: it only touches files under 
+> drivers/media/video, but needs results of the first one:
 > 
-> Cheers,
-> Douglas
+>  drivers/media/video/pxa_camera.c |  204 ++++++++++++++++++++++++++++++--------
+>  drivers/media/video/pxa_camera.h |   95 ------------------
+>  2 files changed, 162 insertions(+), 137 deletions(-)
+>  delete mode 100644 drivers/media/video/pxa_camera.h
+> 
+> (yes, it deletes drivers/media/video/pxa_camera.h again... No, I don't 
+> like it either)
 
-I don't know what you mean by "upstream" driver. In Ubuntu 8.10, I did
-an "lsmod" and both the em28xx and em28xx_dvb modules show up. "modprobe
--l | grep em28" also shows these modules. Does that mean I don't have to
-compile them from scratch? If they already exist, what else do I have to
-do to get the HD Pro to receive broadcasts?
+Argh! Why inserting the header file just to delete on the next patch?
 
-Rick B.
+> I acked the first one and it is going to be merged over the ARM tree, the 
+> second one we should merge ourselves.
+> 
+> Shall we wait until the first one is in "next", so we can resync with it 
+> and then push the second one or how would you prefer to do this?
+
+For sure we need to wait for the first one to be at -next. Then, we should
+apply it, with a meta tag "kernel-sync:", to not break the compilation of
+v4l/dvb tree[1], and apply the second one.
+
+[1] The meta-tag will sign to my scripts to discard the patch, not exporting it to -git.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
