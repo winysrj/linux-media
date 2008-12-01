@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from correo.cdmon.com ([212.36.74.112])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jordi@cdmon.com>) id 1LATKd-0003tx-TH
-	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 18:58:44 +0100
-Message-ID: <4940032D.90106@cdmon.com>
-Date: Wed, 10 Dec 2008 18:58:05 +0100
-From: Jordi Moles Blanco <jordi@cdmon.com>
+Received: from smtp125.rog.mail.re2.yahoo.com ([206.190.53.30])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1L6zaY-0003m4-WA
+	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 04:36:48 +0100
+Message-ID: <49335BAB.70107@rogers.com>
+Date: Sun, 30 Nov 2008 22:36:11 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-References: <493FFD3A.80209@cdmon.com>
-	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
+To: Dmitri Belimov <d.belimov@gmail.com>
+References: <200811291557.57092.b3hzat@gmail.com>
+	<20081201110216.4c2d600d@glory.loctelecom.ru>
+In-Reply-To: <20081201110216.4c2d600d@glory.loctelecom.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working through
- diseqc anymore
-Reply-To: jordi@cdmon.com
+Subject: Re: [linux-dvb] How to write driver for xilinx spartan iie xc2s50e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,78 +26,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-En/na BOUWSMA Barry ha escrit:
-> On Wed, 10 Dec 2008, Jordi Moles Blanco wrote:
->
+Dmitri Belimov wrote:
+> Hi 
+>  
 >   
->> here's what i got from scanning........
+>> I want to write driver for xilinx spartan iie xc2s50e chipset.
 >>
->> switch 1 (astra 28.2E)
->>
->> ********
->> scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
->>     
->>>>> tune to: 10729:v:1:22000
->>>>>           
->> 0x0000 0x206c: pmt_pid 0x0100 BSkyB -- E4+1 (running)
+>> How to start for this case. Could you give me any suggest or idea for
+>> this?
 >>     
 >
->   
->> switch 2 (astra 19E)
->> ********
->> scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
->>     
->>>>> tune to: 10788:v:2:22000
->>>>>           
->> 0x0000 0x283d: pmt_pid 0x0100 BSkyB -- BBC 1 W Mids (running)
->>     
+> This is FPGA Field Programmed Array. A hardware designer write some code on VHDL or Verilog
+> describing howto it should be worked and programm this FPGA. For work with current firmware in FPGA
+> you should have description or API. If you have, write your driver as for common chip.
 >
-> You are correct, this is a transponder at 28E2 which
-> shares freq,pol+sr with 19E2...
->
->
->   
->> And it doesn't matter if i run "scan -s 1" or "scan -s 2" or "scan -s
->> 3", it will always scan from "switch 1"
->>     
->
-> Try with -s 0; I'm not sure if it is always the case,
-> but my unhacked `scan' uses 0-3 for DiSEqC positions
-> 1/4 to 4/4 -- I've hacked this to use the range of 1-4
-> on all my `scan' and related tuning/streaming utilities.
->
->
-> Personally, I prefer `0' to mean no DiSEqC at all, A/B
-> as appropriate, and 1-4 to match all consumer equipment
-> I've got my hands on (or A-D), but that's me...
->
->
-> barry bouwsma
->   
+> With my best regards, Dmitry.
 
-hi, thanks for anwsering.
+You'd have to check, but I'd imagine that you can get the datasheet from
+Xilinx, which would greatly assist your effort. (I know that I have a
+Spartan 3e sheet which I found on their site probably a year or so ago,
+so can't think why the 2e wouldn't be as freely available).
 
-I've already tried that.
+And pulling up a stored link, here is a project that makes use of a 2e
+family member, so you could likely find other some examples and code:
 
-remember, on switch 1 i've got astra 28.2E and on switch 2 i've got 
-astra 19E
-
-no matter what i try...
-
-scan -s 0 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
-scan -s 0 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
-scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
-scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
-scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
-scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
-
-
-i always get signal from Astra 28.2E
-
-and if i switch cables and i put Astra 19E on switch 1 i'll always get 
-signal from Astra 19.2.
-
-I don't why but it looks like it doesn't know how to switch to "switch 2"
+http://www.linuxdevices.com/articles/AT2441343146.html
 
 _______________________________________________
 linux-dvb mailing list
