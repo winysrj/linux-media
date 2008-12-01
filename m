@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHE4XPL004352
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:04:33 -0500
-Received: from mail.anno.name (baal.anno.name [92.51.131.125])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHE4T80016844
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:04:30 -0500
-Received: from [192.168.178.24] (p579C250E.dip.t-dialin.net [87.156.37.14])
-	by mail.anno.name (Postfix) with ESMTPA id C8C5222C4C246
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 15:04:28 +0100 (CET)
-Message-ID: <494906F5.40102@wakelift.de>
-Date: Wed, 17 Dec 2008 15:04:37 +0100
-From: Timo Paulssen <timo@wakelift.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1Iuixg022308
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:56:44 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1IuVar020994
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:56:31 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so563983qwe.39
+	for <video4linux-list@redhat.com>; Mon, 01 Dec 2008 10:56:30 -0800 (PST)
+Message-ID: <7d7f2e8c0812011056r4f364e06la2873a829bcdc228@mail.gmail.com>
+Date: Mon, 1 Dec 2008 10:56:29 -0800
+From: "Steve Fink" <sphink@gmail.com>
+To: "Carl Karsten" <carl@personnelware.com>
+In-Reply-To: <49339FB1.7000700@personnelware.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <4948F603.1070906@wakelift.de> <49490182.3000507@pickworth.me.uk>
-In-Reply-To: <49490182.3000507@pickworth.me.uk>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Re: zc3xx webcam (041e:4034 Creative Webcam Instant) stopped working
- some time ago (since gspca kernel integration?)
+Content-Disposition: inline
+References: <7d7f2e8c0811302255q3168bbe1yfcd075616d4d9fc6@mail.gmail.com>
+	<49339FB1.7000700@personnelware.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: USB device for uncompressed NTSC capture
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,13 +31,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thank you very much! This made it work. I wonder why this information
-isn't made prominent somewhere on some v4l information place (linuxtv
-wiki?). Is it because the driver's not yet stable?
+On Mon, Dec 1, 2008 at 12:26 AM, Carl Karsten <carl@personnelware.com> wrote:
+>
+> if it only has analog out, how will the 1394 help?
 
+Oh, sorry. I was thinking of an external device with analog input and
+1394 output. My laptop has a 1394 port.
 
-Kind regards
-  - Timo
+Ah, yes. They do exist:
+<http://www.firewire-1394.com/canopus-advc55.htm>. But (1) I was
+hoping to pay about a quarter of that, and (2) I still don't
+understand the Linux side of it  -- although it seems like it
+shouldn't be a problem; I'm assuming I can use a generic 1394 video
+capture driver, whereas USB would be device-specific. There is a v4l
+driver for 1394, I hope?
 
 --
 video4linux-list mailing list
