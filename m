@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBK0o3Nq013941
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 19:50:03 -0500
-Received: from smtp-vbr8.xs4all.nl (smtp-vbr8.xs4all.nl [194.109.24.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBK0nngI022303
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 19:49:49 -0500
-Received: from durdane.lan (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id mBK0nj93084346
-	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 01:49:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Sat, 20 Dec 2008 01:49:45 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1IFAjB028544
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:15:10 -0500
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1IEroU021400
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:14:53 -0500
+Received: by yw-out-2324.google.com with SMTP id 5so972935ywb.81
+	for <video4linux-list@redhat.com>; Mon, 01 Dec 2008 10:14:53 -0800 (PST)
+Message-ID: <5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
+Date: Mon, 1 Dec 2008 23:44:52 +0530
+From: "Trilok Soni" <soni.trilok@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200812011451.06156.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812200149.45272.hverkuil@xs4all.nl>
-Subject: [REVIEW] Please review V4 of v4l2-dev.c
+References: <200812011451.06156.hverkuil@xs4all.nl>
+Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>, v4l <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,24 +33,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Hi Hans,
 
-I've improved comments and naming consistencies.
+On Mon, Dec 1, 2008 at 7:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Mauro,
+>
+> Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for the
+> following:
+>
 
-In addition I fixed race conditions in the register function (these have 
-been there for a very long time) and improved robustness a bit.
+I don't understand "hg" version control tool, but commit shows your
+name as author of this patch, whereas the patch I had sent was having
+--author field as Sakari Ailus. Could you please check this? Thanks.
 
-I think I've now gone over every single line of this code and it's looking 
-good IMHO.
-
-As always, the change is in my ~hverkuil/v4l-dvb tree.
-
-Regards,
-
-	Hans
+author	Hans Verkuil <hverkuil@xs4all.nl>
+Mon Dec 01 14:49:58 2008 +0100 (4 hours ago)
+changeset 9768	2b81e03d16ed
+manifest	2b81e03d16ed
+parent 9767	7100e78482d7
+tag	tip
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
 
 --
 video4linux-list mailing list
