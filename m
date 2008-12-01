@@ -1,26 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f16.google.com ([209.85.219.16])
+Received: from ey-out-2122.google.com ([74.125.78.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jordi.moles@gmail.com>) id 1LAZxm-0004sF-6T
-	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 02:03:35 +0100
-Received: by ewy9 with SMTP id 9so1067660ewy.17
-	for <linux-dvb@linuxtv.org>; Wed, 10 Dec 2008 17:03:00 -0800 (PST)
-Message-ID: <494066C2.90105@gmail.com>
-Date: Thu, 11 Dec 2008 02:02:58 +0100
-From: Jordi Molse <jordi.moles@gmail.com>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1L7FUr-0005tF-3K
+	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 21:35:58 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so1874799eya.17
+	for <linux-dvb@linuxtv.org>; Mon, 01 Dec 2008 12:35:53 -0800 (PST)
+Message-ID: <412bdbff0812011235y5b32291cq604df2b11a78f1ef@mail.gmail.com>
+Date: Mon, 1 Dec 2008 15:35:53 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linuxtv@hotair.fastmail.co.uk
+In-Reply-To: <1228162425.30518.1287666879@webmail.messagingengine.com>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <493FFD3A.80209@cdmon.com>	
-	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>	
-	<4940032D.90106@cdmon.com>	
-	<alpine.DEB.2.00.0812101956220.989@ybpnyubfg.ybpnyqbznva>	
-	<49401C73.1010208@gmail.com>
-	<1228955664.3468.21.camel@pc10.localdom.local>
-In-Reply-To: <1228955664.3468.21.camel@pc10.localdom.local>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working through
- diseqc anymore
-Reply-To: jordi.moles@gmail.com
+Content-Disposition: inline
+References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
+	<1227213591.29403.1285914127@webmail.messagingengine.com>
+	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
+	<1227228030.18353.1285952745@webmail.messagingengine.com>
+	<412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>
+	<1228152690.22348.1287628393@webmail.messagingengine.com>
+	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
+	<1228162425.30518.1287666879@webmail.messagingengine.com>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] dib0700 remote control support fixed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,190 +35,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-En/na hermann pitton ha escrit:
-> Hi,
->
-> Am Mittwoch, den 10.12.2008, 20:45 +0100 schrieb Jordi Molse:
->   
->> En/na BOUWSMA Barry ha escrit:
->>     
->>> On Wed, 10 Dec 2008, Jordi Moles Blanco wrote:
->>>
->>>   
->>>       
->>>>>> And it doesn't matter if i run "scan -s 1" or "scan -s 2" or "scan -s
->>>>>> 3", it will always scan from "switch 1"
->>>>>>     
->>>>>>         
->>>>>>             
->>>>> Try with -s 0; I'm not sure if it is always the case,
->>>>> but my unhacked `scan' uses 0-3 for DiSEqC positions
->>>>> 1/4 to 4/4 -- I've hacked this to use the range of 1-4
->>>>>       
->>>>>           
->>>   
->>>       
->>>> hi, thanks for anwsering.
->>>> I've already tried that.
->>>> remember, on switch 1 i've got astra 28.2E and on switch 2 i've got astra 19E
->>>>     
->>>>         
->>> I realized soon after sending my reply, that I had probably
->>> confused myself about which inputs you had where, and my
->>> advice, while partly correct, wouldn't help...
->>>
->>> Anyway -- the important thing to remember, is that if your
->>> `scan' works as I expect and your kernel modules work properly
->>> and you have a 2/1 DiSEqC switch, that scan -s option...
->>>  0 -- will tune to position 1/2;
->>>  1 -- will tune to position 2/2;
->>>  2 -- will cycle back and tune position 1/2;
->>>  3 -- will again tune position 2/2
->>>  4 -- should spit a warning, I think (something does)
->>>
->>> In other words -- if your system worked properly, `-s 1'
->>> would give you 19E2 and `-s 2' would give you 28E; the
->>> opposite of your switch labels.
->>>
->>>
->>>
->>>   
->>>       
->>>> I don't why but it looks like it doesn't know how to switch to "switch 2"
->>>>     
->>>>         
->>> If I understand from your original post (re-reading it;
->>> as soon as people start posting distribution or system
->>> details my eyes sort of glaze over, while other people
->>> will get an `aha!' moment that shall remain elusive to
->>> me)...
->>>
->>> An older kernel version + modules worked;
->>> an update of those modules broke DiSEqC;
->>> your original kernel and modules didn't support your card.
->>>
->>> What I would suggest -- keeping in mind that the dvb kernel
->>> modules, which you should see with `lsmod', are where you
->>> should find correct support, are probably in some package
->>> unknown to me which you'd need to downgrade -- would be to
->>> either revert, if possible, whatever contains those modules,
->>> or jump ahead several kernel versions.
->>>
->>> If you feel comfortable compiling and installing a newer
->>> kernel (which is now around the 2.6.28 area), you could do
->>> that.
->>>
->>> Alternatively, and possibly better, would be to upgrade
->>> only the linux-dvb kernel modules, building them against
->>> your 2.6.24-era kernel source, which you may need to
->>> download and install.
->>>
->>> It's simple to download and build the latest linux-dvb
->>> modules even against a 2.6.24 kernel, and that should
->>> make things work -- if not, then something's been broken
->>> for a while, and some expert should be able to help you.
->>>
->>>
->>> barryb ouwsma
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>   
->>>       
->> Hi again,
->>
->> and thanks for the info.
->>
->> Unfortunately, diseqc seems broken, because no matter what i try
->>
->> -s 0, 1 , 2 ,3.... i get 28.2E signal
->>
->> however, 4 shows an error, as you said.
->>
->> It used to work... so i'll try to get back or compile new linux-dvb 
->> module as you suggested.
->>
->> i'm really really newbie in this, i'm using kubuntu, so imagine.... 
->> hahahaha.
->>
->> i don't even know how to get started, i barely install thing by "apt-get"
->>
->> i'll try to find the way or post instead my problem in an ubuntu forum.
->>
->> thanks for the info.
->>
->>     
->
-> we need a report at least from 2.6.25 or current v4l-dvb from
-> linuxtv.org.
->
-> Prior to this patch
-> http://linuxtv.org/pipermail/linux-dvb/2007-June/018741.html
-> the Trio failed for 13 Volts and tone generation.
-> Don't have the hardware, but would expect BBC 1 London to work and BBC 1
-> CI to fail.
->
-> This patch disabled some lnpb21 boards, which have that one connected in
-> such a way, that diseqc forwarding is disabled. They need it from the
-> tda10086.
->
-> This was fixed by Hartmut with suggestions from Patrick to make it a
-> config option, if the tda10086 or the LNB chip in question is active.
->
-> All saa7134 DVB-S drivers have this option as diseqc = 0 in the config
-> currently and it should be right for the Trio too and the isl6421 should
-> forward.
->
-> For looking at Ubuntu stuff, they downport a lot of things, because
-> always late with kernel releases, we need the exact sources to diff
-> against.
->
-> I still have only that single dish for initially helping Hartmut with
-> the isl6405 devel, but no rotors and switches yet and might be not of
-> much help.
->
-> Cheers,
-> Hermann
->
->
->
->
->
->
->   
-hi,
+On Mon, Dec 1, 2008 at 3:13 PM, petercarm <linuxtv@hotair.fastmail.co.uk> wrote:
+> The LIRC project provides drivers for otherwise unsupported RC hardware.
+>  For dvb-usb receivers it just piggybacks off the /dev/input device
+> file.  No driver from LIRC is used.  The LIRC involvement is purely in
+> userspace.  This is not a LIRC problem.  The problem arises whether or
+> not lircd is started.
 
-thanks for the info. I agree that in ubuntu there seem always to be 
-"unfinished" things and then rush many things into "stable" releases 
-when "it's time".
+I recognize that lirc is purely in userspace, but it would be
+desirable to setup a comparable environment that polls the /dev/input
+device so I can attempt to reproduce the behavior locally.
 
-Anyway....
+That's interesting that it occurs even if lircd is not running.
 
-i tried to upgrade the system from "hardy" to "intrepid", which meant a 
-lot of ports upgraded, including kernel
-2.6.27.9.13
+> The problem is suppressed if the disable_rc_polling parameter in dvb_usb
+> is set to 1 but obviously this disables all RC support.
 
-that thing you say...
+This whole situation is suspicious since the IR polling has no
+interaction with the i2c subsystem.  In fact, it no longer even uses
+the same request endpoint.
 
-"All saa7134 DVB-S drivers have this option as diseqc = 0 in the config
+Can you provide any quantitative data as to the frequency of failure
+and under what circumstances this occurs?  Does it prevent tuning from
+succeeding, or do you lose lock after the device is capturing?  Do you
+see i2c errors when not capturing?  How often do the errors occur?
+Are you unable to get tuning lock in 100% of attempts?  Are the i2c
+errors always against the mt2060, or are you seeing other i2c errors
+as well?
 
-currently and it should be right for the Trio too and the isl6421 should
-forward."
+You mentioned that "The Nova-T 500 and the Nova TD USB stick are the
+two dibcom devices".  I realize this, but my question was, are you
+seeing failure with both of these two devices, and are these the only
+two devices you see errors with?
 
+Devin
 
-is there any way i can try this? is there any config file i can edit to 
-make that happen (to make diseqc work)?
-
-i'm not a experienced user ,but i've got the card and i'm really willing 
-to help in any posible way.
-
-just let me know what i can do.
-
-thanks.
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
