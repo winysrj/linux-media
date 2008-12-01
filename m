@@ -1,30 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHGs9t4016907
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 11:54:09 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHGqxXs032382
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 11:52:59 -0500
-Date: Wed, 17 Dec 2008 14:52:15 -0200 (BRST)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812171527140.5465@axis700.grange>
-Message-ID: <alpine.LRH.2.00.0812171449530.30974@caramujo.chehab.org>
-References: <20080205012451.GA31004@plankton.ifup.org>
-	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
-	<20080205080038.GB8232@plankton.ifup.org>
-	<20080205102409.4b7acb01@gaivota>
-	<20080213202055.GA26352@plankton.ifup.org>
-	<20080214174602.4ed91987@gaivota>
-	<Pine.LNX.4.64.0812171444420.5465@axis700.grange>
-	<49490A4B.90609@linuxtv.org>
-	<Pine.LNX.4.64.0812171527140.5465@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1CWlAw016876
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:32:47 -0500
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1CWG43030283
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:32:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon, 1 Dec 2008 13:31:57 +0100
+References: <200812011246.08885.hverkuil@xs4all.nl>
+	<20081201102707.6c3ab527@pedra.chehab.org>
+In-Reply-To: <20081201102707.6c3ab527@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
-	v4lm <v4l-dvb-maintainer@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812011331.58141.hverkuil@xs4all.nl>
+Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	v4l <video4linux-list@redhat.com>,
+	davinci-linux-open-source-bounces@linux.davincidsp.com,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,48 +34,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 17 Dec 2008, Guennadi Liakhovetski wrote:
-
-> On Wed, 17 Dec 2008, Michael Krufky wrote:
+On Monday 01 December 2008 13:27:07 Mauro Carvalho Chehab wrote:
+> On Mon, 1 Dec 2008 12:46:08 +0100
 >
->> Please take a look at one of the hg patches within the repository:
->>
->> http://linuxtv.org/hg/v4l-dvb/raw-rev/3cc7daa31234
->>
->> This patch is the same type of output that you would get from using "hg export
->> 3cc7daa31234"
->>
->> Notice the "From:" line -- that line is used to indicate author.
->>
->> Notice the "User" line (line 2) -- that line is used to indicate committer.
->>
->> Does that help to clear it up for you?
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Hi Mauro,
+> >
+> > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for
+> > the following:
+> >
+> > - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2
+> > framework. - v4l2-common: add i2c helper functions
+> > - cs53l32a: convert to v4l2_subdev.
+> > - cx25840: convert to v4l2_subdev.
+> > - m52790: convert to v4l2_subdev.
+> > - msp3400: convert to v4l2_subdev.
+> > - saa7115: convert to v4l2_subdev.
+> > - saa7127: convert to v4l2_subdev.
+> > - saa717x: convert to v4l2_subdev.
+> > - tuner: convert to v4l2_subdev.
+> > - upd64031a: convert to v4l2_subdev.
+> > - upd64083: convert to v4l2_subdev.
+> > - vp27smpx: convert to v4l2_subdev.
+> > - wm8739: convert to v4l2_subdev.
+> > - wm8775: convert to v4l2_subdev.
+> > - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
+> >
+> > All points raised in reviews are addressed so I think it is time to
+> > get this merged so people can start to use it.
+> >
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+> > Reviewed-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Reviewed-by: Andy Walls <awalls@radix.net>
+> > Reviewed-by: David Brownell <david-b@pacbell.net>
+> >
+> > Once this is in I'll start on converting the other i2c drivers.
 >
-> Maybe... So, if I take a patch produced by git-format-patch, and add a
-> line at the top like
->
-> # User myname <myaddress@myprovider.com>
->
-> and then "hg import" this patch, then this line will be used by hg for the
-> "user" field and the "From: " line that git produced will be kept... emn
-> no, it will not, because it belongs to the header. But ok, I think, I know
-> what should be done. I'll just move the "From: " from the header to below
-> the "Subject: ", and, optionally add one more "# User " or "From: " for
-> the user... uhhh...
+> Hmm.. wouldn't this break the other drivers that use the converted
+> i2c drivers (for example saa7115 and msp3400 are used for other
+> drivers, like em28xx and bttv).
 
-I use here a simpler procedure to retrieve patches from other file 
-systems. Instead of doing "hg import <patch>", I use:
+No, see v4l2_subdev_command() in v4l2-subdev.c: this adds the required 
+backwards compatibility. It can be removed once everyone uses the new 
+calling convention, but until that time it will take care of this. 
+That's the nice thing about it: you can do the conversion step by step 
+without worrying about breaking existing drivers.
 
-./mailimport <patch>
+Regards,
 
-The mailimport script do the proper patch import, and also allows you to 
-review the patch before committing.
+	Hans
 
 -- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
