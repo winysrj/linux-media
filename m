@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1L9nTA-0000Xb-S3
-	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 22:16:46 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: xweber.alex@googlemail.com
-In-Reply-To: <493D62F5.4010207@googlemail.com>
-References: <493AC65E.3010900@googlemail.com>
-	<493D593F.7010707@googlemail.com> <337548152.20081208193816@gmail.com>
-	<493D62F5.4010207@googlemail.com>
-Date: Mon, 08 Dec 2008 22:12:04 +0100
-Message-Id: <1228770724.2587.16.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134 with Avermedia M115S hybrid card
+	(envelope-from <patrick.boettcher@desy.de>) id 1L76w9-0002p5-LY
+	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 12:27:34 +0100
+Date: Mon, 1 Dec 2008 12:26:55 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: =?ISO-8859-15?Q?Antti_Sepp=E4l=E4?= <a.seppala+linux-dvb@gmail.com>
+In-Reply-To: <492D96AB.9020009@gmail.com>
+Message-ID: <alpine.LRH.1.10.0812011226160.19122@pub1.ifh.de>
+References: <492D96AB.9020009@gmail.com>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="579714831-1788931758-1228130815=:19122"
+Cc: Linux DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] Cablestar 2 i2c retries
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,49 +21,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Am Montag, den 08.12.2008, 19:09 +0100 schrieb Alexander Weber:
-> Tanguy Pruvot wrote:
-> > Bonjour,
-> > 
-> >   Could you make a scan (picture) of the Mini PCI Card (if it's a mini
-> >   pci card)... I can maybe help you to determine GPIOs....
-> > 
-> >   i reversed a SAA7130 PCI card here : http://tanguy.ath.cx/?q=SAA7130
-> > 
-> > Cordialement,
-> 
-> 
-> Hello,
-> 
-> all i have are some mini pci card pictures i googled on ebay. "My" card 
-> is inside the original packaged and sealed laptop. But i will take a 
-> closer look if can open it without damaging anything...
-> 
-> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-709.jpg
-> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-710.jpg
-> 
-> 
-> Alex
-> 
+--579714831-1788931758-1228130815=:19122
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id mB1BQtTN020869
 
-here you'll find the old known but tiny picture of the M115 non S.
+Hi Antti,
 
-http://www.avermedia.com/cgi-bin/products_odm_M115.asp
+On Wed, 26 Nov 2008, Antti Sepp=E4l=E4 wrote:
+> The reason is that the earlier version of the driver used to retry=20
+> unsuccessful i2c operations. The demodulator of Cablestar 2 cards=20
+> (stv0297) seems to be very dependent on these retries and adding them=20
+> back fixes Cablestar detection.
 
-Cheers,
-Hermann
+Thanks a lot for your fix.
 
+It is committed and asked to be pulled.
 
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+--579714831-1788931758-1228130815=:19122
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--579714831-1788931758-1228130815=:19122--
