@@ -1,30 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1ElnJe006441
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:47:50 -0500
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1ElZgq015800
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:47:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Date: Mon, 1 Dec 2008 15:47:27 +0100
-References: <200812011246.08885.hverkuil@xs4all.nl>
-	<200812011445.50115.hverkuil@xs4all.nl>
-	<200812011524.43499.laurent.pinchart@skynet.be>
-In-Reply-To: <200812011524.43499.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812011547.27644.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com,
-	davinci-linux-open-source-bounces@linux.davincidsp.com,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1LOYZX025846
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 16:24:36 -0500
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1LG1I6017939
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 16:16:38 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de
+Date: Mon,  1 Dec 2008 22:15:58 +0100
+Message-Id: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+Cc: video4linux-list@redhat.com
+Subject: [PATCH] mt9m111: Add automatic white balance control
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,144 +22,94 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Monday 01 December 2008 15:24:43 Laurent Pinchart wrote:
-> Hi Hans,
->
-> On Monday 01 December 2008, Hans Verkuil wrote:
-> > On Monday 01 December 2008 14:29:53 Laurent Pinchart wrote:
-> > > On Monday 01 December 2008, Hans Verkuil wrote:
-> > > > On Monday 01 December 2008 13:31:25 Laurent Pinchart wrote:
-> > > > > On Monday 01 December 2008, Hans Verkuil wrote:
-> > > > > > Hi Mauro,
-> > > > > >
-> > > > > > Please pull from
-> > > > > > http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for the
-> > > > > > following:
-> > > > > >
-> > > > > > - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2
-> > > > > > framework. - v4l2-common: add i2c helper functions
-> > > > > > - cs53l32a: convert to v4l2_subdev.
-> > > > > > - cx25840: convert to v4l2_subdev.
-> > > > > > - m52790: convert to v4l2_subdev.
-> > > > > > - msp3400: convert to v4l2_subdev.
-> > > > > > - saa7115: convert to v4l2_subdev.
-> > > > > > - saa7127: convert to v4l2_subdev.
-> > > > > > - saa717x: convert to v4l2_subdev.
-> > > > > > - tuner: convert to v4l2_subdev.
-> > > > > > - upd64031a: convert to v4l2_subdev.
-> > > > > > - upd64083: convert to v4l2_subdev.
-> > > > > > - vp27smpx: convert to v4l2_subdev.
-> > > > > > - wm8739: convert to v4l2_subdev.
-> > > > > > - wm8775: convert to v4l2_subdev.
-> > > > > > - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
-> > > > > >
-> > > > > > All points raised in reviews are addressed so I think it is
-> > > > > > time to get this merged so people can start to use it.
-> > > > >
-> > > > > Does linuxtv.org and Mercurial provide the necessary
-> > > > > infrastructure to integrate those changes into the v4l-dvb
-> > > > > repository while not pushing them upstream yet ? I'd like to
-> > > > > see more people testing (and breaking and fixing :-)) your
-> > > > > changes before they reach the mainline kernel.
-> > > >
-> > > > That's basically why I want this to go into the v4l-dvb
-> > > > repository: this makes it easier for people to start working
-> > > > with it. It doesn't affect existing drivers, except for the i2c
-> > > > driver changes and those changes are just transforming a big
-> > > > switch to a set of functions. So I really consider this a
-> > > > pretty low-risk merge.
-> > > >
-> > > > If someone is willing to do some testing with my tree in the
-> > > > next two weeks then I don't mind waiting, but it's been in
-> > > > development now from early September (if not earlier) and been
-> > > > reviewed several times. In addition, ivtv has been modified to
-> > > > work with it and that driver uses more sub-devices by far than
-> > > > any other driver.
-> > > >
-> > > > I don't know what more I can do, to be honest.
-> > >
-> > > I am all for pushing the changes to the v4l-dvb repository so
-> > > they can get broader testing. I am, however, a bit more concerned
-> > > about pushing the changes to Linus yet.
-> >
-> > They will of course go to linux-next and end up in 2.6.29 when the
-> > merge window opens. It's obviously not for 2.6.28.
->
-> I would say 2.6.29 is a bit early, but I can live with that.
->
-> > > Shouldn't it wait until you convert
-> > > other drivers and make the v4l2_device (infra)structure more
-> > > powerful, as you announced you would ? There will probably be
-> > > API/ABI breakage then, it patches will probably benefit from a
-> > > few iterations in v4l-dvb before we push them to mainline.
-> >
-> > Yes, I want to add more features to them, but those additions need
-> > a lot more thought. Currently the new subdev support is the most
-> > important feature of this and the reason is the introduction of
-> > v4l2-int-device and soc-camera: both are recent arrivals and
-> > neither was reviewed properly. As a result we now see i2c drivers
-> > arriving that can only work with v4l2-int-device or with soc-camera
-> > infrastructure. This is very undesirable and must be fixed asap.
->
-> Agreed.
->
-> > And v4l2_subdev is the way to do this. Existing i2c drivers are not
-> > affected and when these changes are in we can start to replace
-> > v4l2-int-device.h and to modify soc-camera to use v4l2_subdev as
-> > well.
->
-> Ok.
->
-> > In addition, these changes make it easier as well to use the new
-> > i2c API in bridge drivers (in 2.6.29 the old-style I2C probing will
-> > be deprecated, so we need to convert). So we get many benefits with
-> > just these changes.
-> > Of course, I want to add more v4l2 framework support to these new
-> > structures, but I don't have any code yet for that anyway, just
-> > lots of ideas. Start simple, then expand.
-> >
-> > > I don't know if that's possible at all, or if all changes in
-> > > v4l-dvb are automatically selected for a push to the git
-> > > repository whenever Mauro triggers the hg->git process.
-> >
-> > Well, they go to linux-next, but is that a problem?
->
-> In a few months time (probably even earlier) the v4l2_device
-> structure will be reworked (and possible renamed). I'm fine with it
-> going to linux-next now if we agree on the following.
->
-> - We should only advocate v4l2_device usage for subdevices-aware
-> video devices. Porting all drivers to v4l2_device is currently
-> pointless and will only make future transitions more difficult.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/video/mt9m111.c |   28 +++++++++++++++++++++++++++-
+ 1 files changed, 27 insertions(+), 1 deletions(-)
 
-Agreed. For now it is only relevant for drivers that use subdevices.
-
-> - v4l2_device should be marked as experimental. I don't want to hear
-> any API/ABI breakage argument in a few months time when the framework
-> will evolve.
-
-Am I overlooking something? This API is a kernel API, not a public API. 
-Hence if I (or anyone else for that matter) make future changes then it 
-is my responsibility to adapt all other drivers that are affected at 
-the same time. I don't see how any of this could break compatibility. 
-Except for out-of-kernel drivers, of course. But that's the risk that 
-they always run.
-
-Marking this API as experimental seems pointless to me. It either works 
-and so is available for use or it doesn't and then it is a plain old 
-bug that needs to be fixed. I also know already that there will be 
-changes as e.g. sensors require a new ops category and v4l2_device 
-might need a notifier callback as well. However, I'm not going to 
-implement that until there is also a driver that uses it (adding 
-functionality to an internal API just because it might be needed in the 
-future is a really bad idea).
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 9b9b377..208ec6c 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -90,7 +90,7 @@
+ #define MT9M111_OUTPUT_FORMAT_CTRL2_B	0x19b
+ 
+ #define MT9M111_OPMODE_AUTOEXPO_EN	(1 << 14)
+-
++#define MT9M111_OPMODE_AUTOWHITEBAL_EN	(1 << 1)
+ 
+ #define MT9M111_OUTFMT_PROCESSED_BAYER	(1 << 14)
+ #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
+@@ -163,6 +163,7 @@ struct mt9m111 {
+ 	unsigned int swap_rgb_red_blue:1;
+ 	unsigned int swap_yuv_y_chromas:1;
+ 	unsigned int swap_yuv_cb_cr:1;
++	unsigned int autowhitebalance:1;
+ };
+ 
+ static int reg_page_map_set(struct i2c_client *client, const u16 reg)
+@@ -701,6 +702,23 @@ static int mt9m111_set_autoexposure(struct soc_camera_device *icd, int on)
+ 
+ 	return ret;
+ }
++
++static int mt9m111_set_autowhitebalance(struct soc_camera_device *icd, int on)
++{
++	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
++	int ret;
++
++	if (on)
++		ret = reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
++	else
++		ret = reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
++
++	if (!ret)
++		mt9m111->autowhitebalance = on;
++
++	return ret;
++}
++
+ static int mt9m111_get_control(struct soc_camera_device *icd,
+ 			       struct v4l2_control *ctrl)
+ {
+@@ -737,6 +755,9 @@ static int mt9m111_get_control(struct soc_camera_device *icd,
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 		ctrl->value = mt9m111->autoexposure;
+ 		break;
++	case V4L2_CID_AUTO_WHITE_BALANCE:
++		ctrl->value = mt9m111->autowhitebalance;
++		break;
+ 	}
+ 	return 0;
+ }
+@@ -770,6 +791,9 @@ static int mt9m111_set_control(struct soc_camera_device *icd,
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 		ret =  mt9m111_set_autoexposure(icd, ctrl->value);
+ 		break;
++	case V4L2_CID_AUTO_WHITE_BALANCE:
++		ret =  mt9m111_set_autowhitebalance(icd, ctrl->value);
++		break;
+ 	default:
+ 		ret = -EINVAL;
+ 	}
+@@ -788,6 +812,7 @@ static int mt9m111_restore_state(struct soc_camera_device *icd)
+ 	mt9m111_set_flip(icd, mt9m111->vflip, MT9M111_RMB_MIRROR_ROWS);
+ 	mt9m111_set_global_gain(icd, icd->gain);
+ 	mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
++	mt9m111_set_autowhitebalance(icd, mt9m111->autowhitebalance);
+ 	return 0;
+ }
+ 
+@@ -882,6 +907,7 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
+ 		goto eisis;
+ 
+ 	mt9m111->autoexposure = 1;
++	mt9m111->autowhitebalance = 1;
+ 
+ 	mt9m111->swap_rgb_even_odd = 1;
+ 	mt9m111->swap_rgb_red_blue = 1;
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.5.6.5
 
 --
 video4linux-list mailing list
