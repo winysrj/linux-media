@@ -1,26 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBMDGNf7011941
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 08:16:23 -0500
-Received: from mailrelay008.isp.belgacom.be (mailrelay008.isp.belgacom.be
-	[195.238.6.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBMDFe9F015096
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 08:15:42 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Johannes Berg <johannes@sipsolutions.net>
-Date: Mon, 22 Dec 2008 14:15:42 +0100
-References: <1229889214.3050.8.camel@johannes>
-	<200812221050.57039.laurent.pinchart@skynet.be>
-	<569cef5eecd374b8343a566c1e65a4a3@localhost>
-In-Reply-To: <569cef5eecd374b8343a566c1e65a4a3@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1DMJU2013124
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 08:22:19 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB1DM8ij026814
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 08:22:09 -0500
+Date: Mon, 1 Dec 2008 14:22:17 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <Pine.LNX.4.64.0812011412050.3915@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812221415.42804.laurent.pinchart@skynet.be>
-Cc: video4linux-list <video4linux-list@redhat.com>, lkml@vger.kernel.org
-Subject: Re: uvcvideo prints lots of "unknown event"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Patches, affecting directories not in hg/linux
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,29 +24,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Johannes,
+Hi Mauro,
 
-On Monday 22 December 2008, Johannes Berg wrote:
-> On Mon, 22 Dec 2008 10:50:56 +0100, Laurent Pinchart
->
-> <laurent.pinchart@skynet.be> wrote:
-> > Could you please try the attached patched ?
->
-> Ok, that looks like it'll fix it (not tested yet), do you think there would
-> be any value in reverse engineering the proprietary status protocol?
+I have a series of two patches, of which the first _amends_ a pxa-header, 
+creates a header under drivers/media/video/, and changes pxa_camera.c to 
+include the new header:
 
-That's hard to tell, as I have no idea what the camera outputs :-)
+ arch/arm/mach-pxa/include/mach/pxa-regs.h |   95 -----------------------------
+ drivers/media/video/pxa_camera.c          |    2 +
+ drivers/media/video/pxa_camera.h          |   95 +++++++++++++++++++++++++++++
+ 3 files changed, 97 insertions(+), 95 deletions(-)
+ create mode 100644 drivers/media/video/pxa_camera.h
 
-> Should be fairly simple, if you think it has some useful information I'll
-> take a look.
+and the second one is based on the first: it only touches files under 
+drivers/media/video, but needs results of the first one:
 
-If you have time to take a look please do. I'm quite curious to know what the 
-interrupt endpoint is used for. Whether or not the UVC driver will use the 
-data will obviously depend on their usefulness.
+ drivers/media/video/pxa_camera.c |  204 ++++++++++++++++++++++++++++++--------
+ drivers/media/video/pxa_camera.h |   95 ------------------
+ 2 files changed, 162 insertions(+), 137 deletions(-)
+ delete mode 100644 drivers/media/video/pxa_camera.h
 
-Best regards,
+(yes, it deletes drivers/media/video/pxa_camera.h again... No, I don't 
+like it either)
 
-Laurent Pinchart
+I acked the first one and it is going to be merged over the ARM tree, the 
+second one we should merge ourselves.
+
+Shall we wait until the first one is in "next", so we can resync with it 
+and then push the second one or how would you prefer to do this?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
