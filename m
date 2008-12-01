@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2b.orange.fr ([80.12.242.145])
+Received: from out1.smtp.messagingengine.com ([66.111.4.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1LDpAT-0002ej-QO
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 00:54:06 +0100
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Sat, 20 Dec 2008 00:53:34 +0100
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<200812192058.58686.sinter.mann@gmx.de>
-	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
-In-Reply-To: <d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
-MIME-Version: 1.0
+	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7Ezp-0002T2-72
+	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 21:03:55 +0100
+Received: from compute2.internal (compute2.internal [10.202.2.42])
+	by out1.messagingengine.com (Postfix) with ESMTP id 6F9971C948C
+	for <linux-dvb@linuxtv.org>; Mon,  1 Dec 2008 15:03:48 -0500 (EST)
+Message-Id: <1228161828.28118.1287661397@webmail.messagingengine.com>
+From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
+To: "linux-dvb" <linux-dvb@linuxtv.org>
 Content-Disposition: inline
-Message-Id: <200812200053.34744.hftom@free.fr>
-Subject: Re: [linux-dvb] S2API drivers sync
+MIME-Version: 1.0
+Date: Mon, 01 Dec 2008 20:03:48 +0000
+Subject: Re: [linux-dvb] dib0700 remote control support fixed
+Reply-To: linuxtv@hotair.fastmail.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,92 +21,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le vendredi 19 d=E9cembre 2008 21:11:11 Markus Rechberger, vous avez =E9cri=
-t=A0:
-> On Fri, Dec 19, 2008 at 8:58 PM, sinter <sinter.mann@gmx.de> wrote:
-> > Am Friday 19 December 2008 20:29:52 schrieben Sie:
-> >> On Fri, Dec 19, 2008 at 7:43 PM, sinter <sinter.mann@gmx.de> wrote:
-> >> > Am Freitag 19 Dezember 2008 18:01:40 schrieb gimli:
-> >> >> The DVB-S2 stuff smells all like a big bullshit.
-> >> >> In the first step a big hurry to get S2API in
-> >> >> the mainline kernel and now nothing at all from
-> >> >> the DVB-S2 front. This is a completly big mess
-> >> >> in my eyes.
-> >> >>
-> >> >> cu
-> >> >>
-> >> >> Edgar (gimli) Hucek
-> >> >>
-> >> >> P.S.: Childish political games which are played on
-> >> >> the shoulders of the users. Hurray, well done.
-> >> >
-> >> > Yes, Edgar, exactly: This is what the name Manu A. stands for since
-> >> > this guy was recruited as a DVB "maintainer" by Johannes Stezenbach:
-> >> >
-> >> > Kiddish political games which are played on the shoulders of the
-> >> > users. Also those kiddish games are ideal to hide the discovery of
-> >> > one's own personal mediocrity / incapability in coding issues.
-> >> >
-> >> > There are people who ask themselves why Manu A. still owes a
-> >> > repository at linuxtv.org. I guess this runs under "utilitarianism of
-> >> > human beings".
-> >> >
-> >> > And also: a huge mass of (inactive) nominal members looks nice for a
-> >> > career at redhat.com, doesn't it?
-> >>
-> >> This looks like a respect email.
-> >
-> > No, not in any context at all!
-> > It's you who ignores the sarcasm behind my words!
-> > Just use your brain, austrian!
-> >
-> >> Best would have been if Manu wouldn't
-> >> have had released
-> >> any code and would just have forwarded his code to his friends they
-> >> wouldn't have complained and
-> >> even probably would have paid some beer and invited him for some
-> >> parties.
-> >
-> > YES! This would have made everything easier: NOT to have persons like Y=
-OU
-> > and Manu A. around here, as nobody needs anti-team working
-> > big-mouth-nut-shuts here.
-> >
-> >> It takes time to get documentation for a certain chip, to get the
-> >> agreement for it and finally to write
-> >> a driver for it.
-> >
-> > Yesno! It also takes social behaviour to maintain written code, and if
-> > someone does not respect social behaviour but claims to be chief DVB
-> > maintainer at the same time then this indian person called A. is counter
-> > productive / ridiculous!
-> > And that's all about him.
-> > We gotta get rid of people like you, Markus, and Manu A. too because you
-> > two are like an incarnation of the living copounter productive pest,
-> > arenn't you?
-> >
-> >> As user it's certainly easier to complain about all
-> >> that and think that everything's free.
-> >> Even google is playing around with the content of the mails I send
-> >> here and earning money by doing
-> >> statistics out of that.
-> >
-> > Stop ranting, Austrian! Shut up man!!!!
->
-> ah this is Uwe, welcome back.
+On Mon, 1 Dec 2008 13:54:19 -0500, "Devin Heitmueller"
+<devin.heitmueller@gmail.com> said:
+> Hello Peter,
+> 
+> Of the devices that you have, which are the ones that are failing?
+> Both of the dibcom devices?
+> 
+> I am not familiar with how lirc interacts with the dib0700 driver,
+> since the driver polls the bulk endpoint every 50ms and injects the
+> keys directly.  I will have to look at the driver and see how this
+> hooks into lirc.
+> 
+> I suspect that most people are not using lirc at all, since the device
+> works without it.  This would explain why you are the only person I
+> know of still reporting these problems.
+> 
+> Could you please send my your lirc configuration so I can attempt to
+> reproduce the issue locally?  If I can get an environment that
+> reproduces the issue, I can almost certainly fix it.
+> 
+> Thanks,
+> 
+> Devin
+> 
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
-LOL
+The Nova-T 500 and the Nova TD USB stick are the two dibcom devices.
 
--- =
-
-Christophe Thommeret
-
+What output should I be getting from the remote control?  Having
+previously seen RC signals coming through on /dev/input I need some
+clues for where to look if things have changed.
 
 _______________________________________________
 linux-dvb mailing list
