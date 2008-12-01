@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1Cq2Fj027565
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:52:03 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1CplC1008334
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:51:47 -0500
-Received: by yx-out-2324.google.com with SMTP id 31so894020yxl.81
-	for <video4linux-list@redhat.com>; Mon, 01 Dec 2008 04:51:47 -0800 (PST)
-Message-ID: <5d5443650812010451o321e76e6s2681b3486e7c3c24@mail.gmail.com>
-Date: Mon, 1 Dec 2008 18:21:46 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-In-Reply-To: <200812011334.41306.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1Iic6b015120
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:44:38 -0500
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1IiE4p011994
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:44:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Trilok Soni" <soni.trilok@gmail.com>
+Date: Mon, 1 Dec 2008 19:43:58 +0100
+References: <200812011451.06156.hverkuil@xs4all.nl>
+	<5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
+In-Reply-To: <5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <5d5443650811280216r450c6f02v3fb0db2e1580594a@mail.gmail.com>
-	<200812011334.41306.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
+Message-Id: <200812011943.58519.hverkuil@xs4all.nl>
+Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>, v4l <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,28 +33,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
-
+On Monday 01 December 2008 19:14:52 Trilok Soni wrote:
+> Hi Hans,
 >
-> I reviewed this sensor driver and it's fine except for one thing:
-> setting the default registers from outside the driver. This is a really
-> bad idea. I2C drivers should be self-contained. I've made the same
-> comment in the tvp514x driver review which I'm copying below (with some
-> small edits):
-
-I knew that you are going to comment on that, and I agree on those
-points. I will pull in that register initialization to the driver.
-
+> On Mon, Dec 1, 2008 at 7:21 PM, Hans Verkuil <hverkuil@xs4all.nl> 
+wrote:
+> > Hi Mauro,
+> >
+> > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for
+> > the following:
 >
-> I noticed that the tcm825x.c driver takes exactly the same wrong
-> approach, BTW.
+> I don't understand "hg" version control tool, but commit shows your
+> name as author of this patch, whereas the patch I had sent was having
+> --author field as Sakari Ailus. Could you please check this? Thanks.
+>
+> author	Hans Verkuil <hverkuil@xs4all.nl>
+> Mon Dec 01 14:49:58 2008 +0100 (4 hours ago)
+> changeset 9768	2b81e03d16ed
+> manifest	2b81e03d16ed
+> parent 9767	7100e78482d7
+> tag	tip
 
-Yes, because ov9640 was the first sensor driver on OMAP2 ;)
+The hg author field is just whoever committed it into the mercurial 
+repository, but what will show up when merged into the kernel are the 
+From: and SoB fields. Actually, those were wrong as I had you as author 
+(From:) instead of Sakari. I've changed that now.
+
+It looks like this now:
+
+ omap2: add OMAP2 camera driver.
+ 
+ From: Sakari Ailus <sakari.ailus@nokia.com>
+ 
+ Add a driver for the OMAP2 camera block. OMAP2 is used in e.g. Nokia
+ N800/N810 internet tablet.
+ 
+ This driver uses the V4L2 internal ioctl interface.
+ 
+ Priority: normal
+ 
+ Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+ Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+ Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Should be fine now, thanks for the heads up.
+
+Regards,
+
+	Hans
 
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
