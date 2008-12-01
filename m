@@ -1,23 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB17AvB0009082
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 02:10:57 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB17AhuU009318
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 02:10:44 -0500
-Date: Mon, 1 Dec 2008 08:06:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	morimoto.kuninori@renesas.com
-In-Reply-To: <uej0s20i1.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0812010804220.3915@axis700.grange>
-References: <uljvhtzst.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0811281707440.4430@axis700.grange>
-	<uej0s20i1.wl%morimoto.kuninori@renesas.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1CVX8w016447
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:31:33 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1CVJFF029873
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:31:19 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Mon, 1 Dec 2008 13:31:25 +0100
+References: <200812011246.08885.hverkuil@xs4all.nl>
+In-Reply-To: <200812011246.08885.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add ov7725 ov7720 support to ov772x driver
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812011331.25676.laurent.pinchart@skynet.be>
+Cc: davinci-linux-open-source-bounces@linux.davincidsp.com,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,115 +34,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Morimoto,
+On Monday 01 December 2008, Hans Verkuil wrote:
+> Hi Mauro,
+>
+> Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for the
+> following:
+>
+> - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2 framework.
+> - v4l2-common: add i2c helper functions
+> - cs53l32a: convert to v4l2_subdev.
+> - cx25840: convert to v4l2_subdev.
+> - m52790: convert to v4l2_subdev.
+> - msp3400: convert to v4l2_subdev.
+> - saa7115: convert to v4l2_subdev.
+> - saa7127: convert to v4l2_subdev.
+> - saa717x: convert to v4l2_subdev.
+> - tuner: convert to v4l2_subdev.
+> - upd64031a: convert to v4l2_subdev.
+> - upd64083: convert to v4l2_subdev.
+> - vp27smpx: convert to v4l2_subdev.
+> - wm8739: convert to v4l2_subdev.
+> - wm8775: convert to v4l2_subdev.
+> - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
+>
+> All points raised in reviews are addressed so I think it is time to get
+> this merged so people can start to use it.
 
-On Mon, 1 Dec 2008, morimoto.kuninori@renesas.com wrote:
+Does linuxtv.org and Mercurial provide the necessary infrastructure to 
+integrate those changes into the v4l-dvb repository while not pushing them 
+upstream yet ? I'd like to see more people testing (and breaking and 
+fixing :-)) your changes before they reach the mainline kernel.
 
-> > > @@ -837,15 +859,16 @@ static int ov772x_video_probe(struct soc_camera_device *icd)
-> > >  	 */
-> > >  	pid = i2c_smbus_read_byte_data(priv->client, PID);
-> > >  	ver = i2c_smbus_read_byte_data(priv->client, VER);
-> > > -	if (pid != 0x77 ||
-> > > -	    ver != 0x21) {
-> > > +	if (pid != GET_PID(priv->id->driver_data) ||
-> > > +	    ver != GET_VER(priv->id->driver_data)) {
-> > >  		dev_err(&icd->dev,
-> > >  			"Product ID error %x:%x\n", pid, ver);
-> > >  		return -ENODEV;
-> > >  	}
-> > 
-> > this means, you can indeed probe the exact type of the camera - 7720 vs. 
-> > 7725, right? Then why do you require the platform code to also specify 
-> > exactly which camera is connected? Why don't you leave the platform code 
-> > at the old requirement, i.e., it should just register an i2c device of 
-> > type "ov772x" and then detect yourself what exactly sensor is there? This 
-> > is what I've done in mt9m001 and mt9v022. They both support several sensor 
-> > variants too. This way you can use one kernel for all compatible cameras. 
-> > If there is no real reason not to do the same in ov772x, I would suggest 
-> > you switch it over to autoprobing.
-> 
-> Indeed, it is not necessary to specify it accurately.
-> Sorry about it.
-> 
-> Therefore I would like to re-create this patch.
-> But how should I do about v4l2-chip-ident.h ?
-> 
-> only V4L2_IDENT_OV772X is better ?
-> or should I add new V4L2_IDENT_OV7720 and V4L2_IDENT_OV7725 ?
-> 
-> If the answer is latter, should I send 2 patches ?
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+> Reviewed-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Reviewed-by: Andy Walls <awalls@radix.net>
+> Reviewed-by: David Brownell <david-b@pacbell.net>
+>
+> Once this is in I'll start on converting the other i2c drivers.
 
-I think it would be better to follow Mauro's advise. Here's his email once 
-more for you quoted below.
+Best regards,
 
-Thanks
-Guennadi
-
-
-On Sat, 29 Nov 2008, Mauro Carvalho Chehab wrote:
-
-> On Sat, 29 Nov 2008 00:22:27 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > On Fri, 28 Nov 2008, Mauro Carvalho Chehab wrote:
-> > 
-> > > On Fri, 28 Nov 2008 17:44:14 +0100 (CET)
-> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > > 
-> > > > Hi,
-> > > > 
-> > > > sorry it took me a while to find some time to look at this patch. In 
-> > > > principle it looks ok, just a couple of notes / questions:
-> > > > 
-> > > > (also Mauro): I am not sure if this is ok to submit a change to 
-> > > > include/media/v4l2-chip-ident.h in this patch, i.e., if I may pull it via 
-> > > > my tree. Mauro? Or shall it be submitted separately and _after_ it is 
-> > > > applied we can also push the main part of the patch? Here's the hunk I'm 
-> > > > talking about:
-> > > > 
-> > > > > diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-> > > > > index bfe5142..14a205f 100644
-> > > > > --- a/include/media/v4l2-chip-ident.h
-> > > > > +++ b/include/media/v4l2-chip-ident.h
-> > > > > @@ -60,7 +60,8 @@ enum {
-> > > > >  
-> > > > >  	/* OmniVision sensors: reserved range 250-299 */
-> > > > >  	V4L2_IDENT_OV7670 = 250,
-> > > > > -	V4L2_IDENT_OV772X = 251,
-> > > > > +	V4L2_IDENT_OV7720 = 251,
-> > > > > +	V4L2_IDENT_OV7725 = 252,
-> > > > >  
-> > > > >  	/* Conexant MPEG encoder/decoders: reserved range 410-420 */
-> > > > >  	V4L2_IDENT_CX23415 = 415,
-> > > 
-> > > It is ok to be in the same patch, but I prefer if you split this into a
-> > > separate patch, especially since you're renaming the ID for a previous chip.
-> > 
-> > Oops, sorry, we cannot separate it that easily - ov772x.c would not 
-> > compile any more. So, we either have to commit it as a single patch 
-> > (easy), or make three patches out of it - add new IDs, switch ov772x.c, 
-> > remove the old ID. I am for the easy version.
-> 
-> I'm in favor of two patches:
-> 
-> First patch:
-> 	s/V4L2_IDENT_OV772X/V4L2_IDENT_OV7720/g
-> 
-> Second patch:
-> 	ov7225 patch plus new chip id addition.
-> 
-> Cheers,
-> Mauro.
-> 
-> 
-> Cheers,
-> Mauro
-> 
-
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Laurent Pinchart
 
 --
 video4linux-list mailing list
