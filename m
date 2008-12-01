@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.25])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <admin@monolithmc.com>) id 1L9P4w-0000rD-8k
-	for linux-dvb@linuxtv.org; Sun, 07 Dec 2008 20:14:06 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so314062eya.17
-	for <linux-dvb@linuxtv.org>; Sun, 07 Dec 2008 11:14:02 -0800 (PST)
-Message-ID: <e816454e0812071114w7fd45fb4l588a8d12f981621@mail.gmail.com>
-Date: Sun, 7 Dec 2008 14:14:02 -0500
-From: "Andrew Barbaccia" <andrew@monolithmc.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <patrick.boettcher@desy.de>) id 1L772F-0003aB-SX
+	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 12:33:53 +0100
+Date: Mon, 1 Dec 2008 12:33:12 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Benjamin Morgan <bemorgan@gmail.com>
+In-Reply-To: <3d623cf80811292004u282db50crcb17ea9f376578dd@mail.gmail.com>
+Message-ID: <alpine.LRH.1.10.0812011230220.19122@pub1.ifh.de>
+References: <3d623cf80811292004u282db50crcb17ea9f376578dd@mail.gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Hauppauge HVR 2250 Driver Status
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge Nova-T 500 problem, probably erased eeprom
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,49 +19,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1115850895=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1115850895==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_65707_22089332.1228677242273"
+Hi Benjamin,
 
-------=_Part_65707_22089332.1228677242273
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sun, 30 Nov 2008, Benjamin Morgan wrote:
+> I've tried doing what was suggested in the thread to force the driver
+> to recognise the device as a Nova T 500 however this hasn't worked.
+> For reference I edited the following:
+>
+> linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h - added the following lines:
+> #define USB_PID_HAUPPAUGE_NOVA_T_500_4                  0x10b8
+> #define USB_PID_HAUPPAUGE_NOVA_T_500_5                  0x0066
+>
+> /linux/drivers/media/dvb/dvb-usb/dib0700_devices.c - added the following lines:
+>       { USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_4) },
+>        { USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_5) },
+>
+> and then ran a make, make install and shutdown the computer and
+> restarted it however it is still not being recognised.
 
-A while back on this list I saw a posting about HVR 2250 drivers being
-writen by Steve Toth. Is there any update on the status of these drivers?
+If you want to do that change USB_VID_HAUPPAUGE to 0x10b8, then it will 
+work.
 
-Thanks,
+But as your eeprom is erased you should better exchange your card at your 
+dealer: there is another information in the eeprom which is used for the 
+tuner on that board to achieve a better sensitivity - this is now gone as 
+well.
 
--- 
-Andrew Barbaccia
-MonolithMC, Inc.
+regards,
+Patrick.
 
-------=_Part_65707_22089332.1228677242273
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-A while back on this list I saw a posting about HVR 2250 drivers being writen by Steve Toth. Is there any update on the status of these drivers?<br><br>Thanks,<br clear="all"><br>-- <br>Andrew Barbaccia<br>MonolithMC, Inc.<br>
-
-
-------=_Part_65707_22089332.1228677242273--
-
-
---===============1115850895==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1115850895==--
