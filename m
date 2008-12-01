@@ -1,21 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB48JGNn014666
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 03:19:16 -0500
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB48J2n2017967
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 03:19:02 -0500
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Jim Paris <jim@jtan.com>
-In-Reply-To: <patchbomb.1228337219@hypnosis.jim>
-References: <patchbomb.1228337219@hypnosis.jim>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Thu, 04 Dec 2008 09:14:02 +0100
-Message-Id: <1228378442.1733.17.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 4] ov534 patches
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1ElnJe006441
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:47:50 -0500
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1ElZgq015800
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:47:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Date: Mon, 1 Dec 2008 15:47:27 +0100
+References: <200812011246.08885.hverkuil@xs4all.nl>
+	<200812011445.50115.hverkuil@xs4all.nl>
+	<200812011524.43499.laurent.pinchart@skynet.be>
+In-Reply-To: <200812011524.43499.laurent.pinchart@skynet.be>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812011547.27644.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com,
+	davinci-linux-open-source-bounces@linux.davincidsp.com,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,33 +36,144 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 2008-12-03 at 15:46 -0500, Jim Paris wrote:
-> Hi,
+On Monday 01 December 2008 15:24:43 Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Monday 01 December 2008, Hans Verkuil wrote:
+> > On Monday 01 December 2008 14:29:53 Laurent Pinchart wrote:
+> > > On Monday 01 December 2008, Hans Verkuil wrote:
+> > > > On Monday 01 December 2008 13:31:25 Laurent Pinchart wrote:
+> > > > > On Monday 01 December 2008, Hans Verkuil wrote:
+> > > > > > Hi Mauro,
+> > > > > >
+> > > > > > Please pull from
+> > > > > > http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for the
+> > > > > > following:
+> > > > > >
+> > > > > > - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2
+> > > > > > framework. - v4l2-common: add i2c helper functions
+> > > > > > - cs53l32a: convert to v4l2_subdev.
+> > > > > > - cx25840: convert to v4l2_subdev.
+> > > > > > - m52790: convert to v4l2_subdev.
+> > > > > > - msp3400: convert to v4l2_subdev.
+> > > > > > - saa7115: convert to v4l2_subdev.
+> > > > > > - saa7127: convert to v4l2_subdev.
+> > > > > > - saa717x: convert to v4l2_subdev.
+> > > > > > - tuner: convert to v4l2_subdev.
+> > > > > > - upd64031a: convert to v4l2_subdev.
+> > > > > > - upd64083: convert to v4l2_subdev.
+> > > > > > - vp27smpx: convert to v4l2_subdev.
+> > > > > > - wm8739: convert to v4l2_subdev.
+> > > > > > - wm8775: convert to v4l2_subdev.
+> > > > > > - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
+> > > > > >
+> > > > > > All points raised in reviews are addressed so I think it is
+> > > > > > time to get this merged so people can start to use it.
+> > > > >
+> > > > > Does linuxtv.org and Mercurial provide the necessary
+> > > > > infrastructure to integrate those changes into the v4l-dvb
+> > > > > repository while not pushing them upstream yet ? I'd like to
+> > > > > see more people testing (and breaking and fixing :-)) your
+> > > > > changes before they reach the mainline kernel.
+> > > >
+> > > > That's basically why I want this to go into the v4l-dvb
+> > > > repository: this makes it easier for people to start working
+> > > > with it. It doesn't affect existing drivers, except for the i2c
+> > > > driver changes and those changes are just transforming a big
+> > > > switch to a set of functions. So I really consider this a
+> > > > pretty low-risk merge.
+> > > >
+> > > > If someone is willing to do some testing with my tree in the
+> > > > next two weeks then I don't mind waiting, but it's been in
+> > > > development now from early September (if not earlier) and been
+> > > > reviewed several times. In addition, ivtv has been modified to
+> > > > work with it and that driver uses more sub-devices by far than
+> > > > any other driver.
+> > > >
+> > > > I don't know what more I can do, to be honest.
+> > >
+> > > I am all for pushing the changes to the v4l-dvb repository so
+> > > they can get broader testing. I am, however, a bit more concerned
+> > > about pushing the changes to Linus yet.
+> >
+> > They will of course go to linux-next and end up in 2.6.29 when the
+> > merge window opens. It's obviously not for 2.6.28.
+>
+> I would say 2.6.29 is a bit early, but I can live with that.
+>
+> > > Shouldn't it wait until you convert
+> > > other drivers and make the v4l2_device (infra)structure more
+> > > powerful, as you announced you would ? There will probably be
+> > > API/ABI breakage then, it patches will probably benefit from a
+> > > few iterations in v4l-dvb before we push them to mainline.
+> >
+> > Yes, I want to add more features to them, but those additions need
+> > a lot more thought. Currently the new subdev support is the most
+> > important feature of this and the reason is the introduction of
+> > v4l2-int-device and soc-camera: both are recent arrivals and
+> > neither was reviewed properly. As a result we now see i2c drivers
+> > arriving that can only work with v4l2-int-device or with soc-camera
+> > infrastructure. This is very undesirable and must be fixed asap.
+>
+> Agreed.
+>
+> > And v4l2_subdev is the way to do this. Existing i2c drivers are not
+> > affected and when these changes are in we can start to replace
+> > v4l2-int-device.h and to modify soc-camera to use v4l2_subdev as
+> > well.
+>
+> Ok.
+>
+> > In addition, these changes make it easier as well to use the new
+> > i2c API in bridge drivers (in 2.6.29 the old-style I2C probing will
+> > be deprecated, so we need to convert). So we get many benefits with
+> > just these changes.
+> > Of course, I want to add more v4l2 framework support to these new
+> > structures, but I don't have any code yet for that anyway, just
+> > lots of ideas. Start simple, then expand.
+> >
+> > > I don't know if that's possible at all, or if all changes in
+> > > v4l-dvb are automatically selected for a push to the git
+> > > repository whenever Mauro triggers the hg->git process.
+> >
+> > Well, they go to linux-next, but is that a problem?
+>
+> In a few months time (probably even earlier) the v4l2_device
+> structure will be reworked (and possible renamed). I'm fine with it
+> going to linux-next now if we agree on the following.
+>
+> - We should only advocate v4l2_device usage for subdevices-aware
+> video devices. Porting all drivers to v4l2_device is currently
+> pointless and will only make future transitions more difficult.
 
-Hi Jim,
+Agreed. For now it is only relevant for drivers that use subdevices.
 
-> Here are some ov534 patches I've been working on.
-> 
-> ov534: don't check status twice
-> ov534: initialization cleanup
-> ov534: Fix frame size so we don't miss the last pixel
-> ov534: frame transfer improvements
+> - v4l2_device should be marked as experimental. I don't want to hear
+> any API/ABI breakage argument in a few months time when the framework
+> will evolve.
 
-Thank you for these patchs. Some changes were already done in my
-repository. I merged them and pushed. May you check if everything is
-correct?
+Am I overlooking something? This API is a kernel API, not a public API. 
+Hence if I (or anyone else for that matter) make future changes then it 
+is my responsibility to adapt all other drivers that are affected at 
+the same time. I don't see how any of this could break compatibility. 
+Except for out-of-kernel drivers, of course. But that's the risk that 
+they always run.
 
-Also, I moved the last fid and pts to the sd structure. This allows many
-webcams to work simultaneously. I was wondering about the reset of these
-variables: last_fid is never reset and last_pts is reset on
-UVC_STREAM_EOF. Shouldn't they also be reset on streaming start?
+Marking this API as experimental seems pointless to me. It either works 
+and so is available for use or it doesn't and then it is a plain old 
+bug that needs to be fixed. I also know already that there will be 
+changes as e.g. sensors require a new ops category and v4l2_device 
+might need a notifier callback as well. However, I'm not going to 
+implement that until there is also a driver that uses it (adding 
+functionality to an internal API just because it might be needed in the 
+future is a really bad idea).
 
-Cheers.
+Regards,
+
+	Hans
 
 -- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
