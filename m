@@ -1,18 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBA4vgKr022439
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 23:57:42 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBA4vSEv012398
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 23:57:28 -0500
-Received: by yx-out-2324.google.com with SMTP id 31so150727yxl.81
-	for <video4linux-list@redhat.com>; Tue, 09 Dec 2008 20:57:28 -0800 (PST)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Wed, 10 Dec 2008 13:55:40 +0900
-Message-Id: <20081210045540.3813.82504.sendpatchset@rx1.opensource.se>
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org
-Subject: [PATCH] video: add NV16 and NV61 pixel formats
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB18UM63002297
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 03:30:22 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB18U95a016348
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 03:30:10 -0500
+Date: Mon, 1 Dec 2008 09:30:03 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mike Rapoport <mike@compulab.co.il>
+In-Reply-To: <493242F1.8000605@compulab.co.il>
+Message-ID: <Pine.LNX.4.64.0812010927530.3915@axis700.grange>
+References: <1227603594-16953-1-git-send-email-mike@compulab.co.il>
+	<Pine.LNX.4.64.0811252225200.10677@axis700.grange>
+	<492D1A2D.8070701@compulab.co.il> <493242F1.8000605@compulab.co.il>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] mt9m111: add support for mt9m112 since sensors seem
+ identical
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,35 +29,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Magnus Damm <damm@igel.co.jp>
+On Sun, 30 Nov 2008, Mike Rapoport wrote:
 
-This patch adds support for NV16 and NV61 pixel formats.
+> Guennadi, Robert,
+> 
+> Mike Rapoport wrote:
+> > 
+> > Guennadi Liakhovetski wrote:
+> >> On Tue, 25 Nov 2008, Mike Rapoport wrote:
+> >>
+> >>> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> >>> ---
+> >>>  drivers/media/video/mt9m111.c |    3 ++-
+> >>>  1 files changed, 2 insertions(+), 1 deletions(-)
+> >>>
+> >>> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> >>> index da0b2d5..49c1167 100644
+> >>> --- a/drivers/media/video/mt9m111.c
+> >>> +++ b/drivers/media/video/mt9m111.c
+> >>> @@ -841,7 +841,8 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
+> >>>  	data = reg_read(CHIP_VERSION);
+> >>>  
+> >>>  	switch (data) {
+> >>> -	case 0x143a:
+> >>> +	case 0x143a: /* MT9M111 */
+> >>> +	case 0x148c: /* MT9M112 */
+> >>>  		mt9m111->model = V4L2_IDENT_MT9M111;
+> >> Wouldn't it be better to add a new chip ID? Are there any differences 
+> >> between the two models, that the user might want to know about?
+> > 
+> > I don't have mt9m111 datasheet, I can only judge by "feature comparison" table
+> > in the mt9m112 datasheet. It seems that sensors differ in there advanced image
+> > processing and low power mode capabilities.
+> > If you think it's worse adding new chip ID, I'll prepare the patches.
+> 
+> Any comments? Should I add a new chip ID, or modifying Kconfig and comments would
+> be enough?
 
-These pixel formats use two planes; one for 8-bit Y values and
-one for interleaved 8-bit U and V values. NV16/NV61 formats are
-very similar to NV12/NV21 with the exception that NV16/NV61 are
-using the same number of lines for both planes. The difference
-between NV16 and NV61 is the U and V byte order.
+Personally, I think, it is nicer for a user to get precise information 
+about their hardware. So, yes, I would add another ID, even if we don't 
+support any extra features for now.
 
-The fourcc values are extrapolated from the NV12/NV21 case.
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Thanks
+Guennadi
 ---
-
- include/linux/videodev2.h |    2 ++
- 1 file changed, 2 insertions(+)
-
---- 0011/include/linux/videodev2.h
-+++ work/include/linux/videodev2.h	2008-12-10 00:09:00.000000000 +0900
-@@ -305,6 +305,8 @@ struct v4l2_pix_format {
- /* two planes -- one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
- #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
-+#define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
-+#define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
- 
- /*  The following formats are not defined in the V4L2 specification */
- #define V4L2_PIX_FMT_YUV410  v4l2_fourcc('Y', 'U', 'V', '9') /*  9  YUV 4:1:0     */
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
