@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBQJftwn023851
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 14:41:55 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBQJfYVq013978
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 14:41:35 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so1474868qwe.39
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 11:41:34 -0800 (PST)
-Date: Fri, 26 Dec 2008 17:41:29 -0200
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: video4linux-list@redhat.com, rab@nauticom.net
-Message-ID: <20081226174129.7c752fc6@gmail.com>
-In-Reply-To: <1230269443.3450.48.camel@localhost.localdomain>
-References: <1230233794.3450.33.camel@localhost.localdomain>
-	<20081226010307.2c7e3b55@gmail.com>
-	<1230269443.3450.48.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Re: Compiling v4l-dvb-kernel for Ubuntu and for F8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB16WHbL025925
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:32:17 -0500
+Received: from tomts43-srv.bellnexxia.net (tomts43-srv.bellnexxia.net
+	[209.226.175.110])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB16W2dn026479
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:32:02 -0500
+Received: from toip5.srvr.bell.ca ([209.226.175.88])
+	by tomts43-srv.bellnexxia.net
+	(InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP id
+	<20081201063201.OLFM1582.tomts43-srv.bellnexxia.net@toip5.srvr.bell.ca>
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:32:01 -0500
+From: Bill Pringlemeir <bpringle@sympatico.ca>
+To: CityK <cityk@rogers.com>
+References: <49334769.8070908@rogers.com>
+Date: Mon, 01 Dec 2008 02:29:10 -0500
+In-Reply-To: <49334769.8070908@rogers.com> (cityk@rogers.com's message of
+	"Sun, 30 Nov 2008 21:09:45 -0500")
+Message-ID: <87k5akbbg9.fsf@sympatico.ca>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: V4L <video4linux-list@redhat.com>, Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: KWorld ATSC 110 and NTSC
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,41 +34,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On 30 Nov 2008, cityk@rogers.com wrote:
 
-On Fri, 26 Dec 2008 00:30:43 -0500
-Rick Bilonick <rab@nauticom.net> wrote:
+> Bill Pringlemeir wrote:
 
-> I don't know what you mean by "upstream" driver. In Ubuntu 8.10, I did
-> an "lsmod" and both the em28xx and em28xx_dvb modules show up.
-> "modprobe -l | grep em28" also shows these modules. Does that mean I
-> don't have to compile them from scratch? If they already exist, what
-> else do I have to do to get the HD Pro to receive broadcasts?
+>> I have experimented with this a bit further.  Here are some of my
+>> observations,
 
-Upstream means "official", in this case official supported driver. 
+>> I switch the antenna feed between top and bottom inputs with no effect
+>> on getting the NTSC signal.
 
-I'd like to suggest:
+> The NTSC issue is a known problem.
 
-Remove your device from usb before start your computer:
+http://marc.info/?l=linux-video&m=121210186625441&w=2
 
-Clone official driver from linuxtv host:
+[... blah blah blah ...]
 
-shell> hg clone http://linuxtv.org/hg/v4l-dvb
-shell> cd v4l-dvb
-shell> make 
-shell> make install
+I did investigate some of the difference between 2.6.24 and more
+recent kernels.  The code is far better; user should expect some pain.
+I was just hoping I was helping with a new issue; but I guess the
+kernel lags behind mecurial.
 
-Plug your device and try to play your favorite tv application.
-If you get any problem or sucess with drivers from v4l-dvb tree send
-your report to this mail-list with lsusb and dmesg output. 
+> I tracked the error down to a commit Mauro had made (IIRC, back in
+> April) which ended up causing a regression on some boards (e.g. KWorld
+> ATSC 110/115).  M.Krufky spun a quick patch (which works fine), but it
+> cannot be applied to the main Hg sources as it too would break other
+> things, and so some discussion would be needed to resolve the underlying
+> problem.  I was going to bug Mauro about the issue, but never got around
+> to it, and I don't know if Mike discussed this with Mauro at the recent
+> Plummers conference.  (I have cc'ed both in on the message).
 
-p.s:
-There is a link at linuxtv wiki about compilation process from
-v4l-dvb tree:
-http://www.linuxtv.org/wiki/index.php/How_to_build_from_Mercurial
+> Several posters on AVS forums were complaining of this and I posted a
+> link to Mike's patch and instructions (including a warning that it could
+> break support with other cards).  AFAIK, zero feedback was achieved from
+> that, as posters were either too scared by the warning or couldn't
+> follow the instructions, nor responded to further posts.  Whatever.
 
-Cheers,
-Douglas
+Google was not helpful at showing me this thread.  I patch and used
+'rmmod tuner; modprobe tuner'.  This allow NTSC reception.
+
+> In any regard, Mike's patch, as I said, works fine, albeit is not a
+> perfect solution as it requires some manual intervention (or script) on
+> the part of the user to enable the analogue TV functionality.
+
+> Mauro -- the exact changeset in question is:   7753:67faa17a5bcb
+> Mike's patch is located at:
+> http://linuxtv.org/~mkrufky/fix-broken-atsc110-analog.patch
+
+No, having an i2c driver muck with a tuner is not nice (it is what was
+in the 2.6.24 kernel).
+
+Couldn't the nxt200x driver be placing outputs in OC state via a
+'hw_init' and 'hw_fini' type callback (or maybe
+hw_quiescent). Switching between analog and digital demodulators would
+need something like this?  When tuner-simple switches A/D, it needs to
+make a call up to the main saa7134 driver to ask for the demodulators
+(nxt200x) to be put in the right state (or is the saa7134 already
+aware of this switch?).  At least, that is what somebody who knows
+nothing about this code would expect.
+
+Thanks,
+Bill Pringlemeir.
 
 --
 video4linux-list mailing list
