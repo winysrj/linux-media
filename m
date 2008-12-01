@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGGh2e9016221
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 11:43:03 -0500
-Received: from bay0-omc1-s28.bay0.hotmail.com (bay0-omc1-s28.bay0.hotmail.com
-	[65.54.246.100])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGGglwq003387
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 11:42:47 -0500
-Message-ID: <BAY135-W526C1AC293891AC584A4B7BFF50@phx.gbl>
-From: Lehel Kovach <lehelkovach@hotmail.com>
-To: <video4linux-list@redhat.com>
-Date: Tue, 16 Dec 2008 08:42:46 -0800
-In-Reply-To: <1229421997.1745.23.camel@localhost>
-References: <BAY135-W47952C51F5ED0CAEE9809BFF50@phx.gbl>
-	<1229421997.1745.23.camel@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: RE: quickcam express
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1MMV4c030705
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 17:22:31 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1MMJuj022483
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 17:22:19 -0500
+Date: Mon, 1 Dec 2008 20:22:09 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Trilok Soni" <soni.trilok@gmail.com>
+Message-ID: <20081201202209.5cea1f4b@pedra.chehab.org>
+In-Reply-To: <5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
+References: <200812011451.06156.hverkuil@xs4all.nl>
+	<5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	v4l <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,51 +30,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Mon, 1 Dec 2008 23:44:52 +0530
+"Trilok Soni" <soni.trilok@gmail.com> wrote:
 
-its  a logitech quickcam express -- the old one: model# 961121-0403
+> Hi Hans,
+> 
+> On Mon, Dec 1, 2008 at 7:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Hi Mauro,
+> >
+> > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for the
+> > following:
+> >
+> 
+> I don't understand "hg" version control tool, but commit shows your
+> name as author of this patch, whereas the patch I had sent was having
+> --author field as Sakari Ailus. Could you please check this? Thanks.
+> 
+> author	Hans Verkuil <hverkuil@xs4all.nl>
 
-im using 0.6.6 i believe (the one with distroed with ubuntu 8.1). =20
+This is one of the lack of the features on mercurial. It doesn't have a meta
+tag for committer. On mercurial, the -hg user and the author should be the same
+person.
+
+Since we want to identify the patch origin (e.g. whose v4l/dvb maintainer got
+the patch), we use the internal "user" meta-tag as the committer, and an extra
+tag, at the patch description for the author (From:).
+
+When creating the -git patch, the "From:" tag is replaced, by script, for
+"Author:", I add my SOB there, and, I add myself as the -git committer (on git
+we have both meta-tags).
 
 
 
 
+Cheers,
+Mauro
 
-> Subject: Re: quickcam express
-> From: moinejf@free.fr
-> To: lehelkovach@hotmail.com
-> CC:=20
-> Date: Tue=2C 16 Dec 2008 11:06:37 +0100
->=20
-> On Tue=2C 2008-12-16 at 02:41 -0800=2C Lehel Kovach wrote:
-> > does v4l have an issue with quickcam express?  i keep getting this unkn=
-own error 515 and dont know if its a v4l issue or an issue of my quickcam d=
-river:
-> >=20
-> > ### video4linux device info [/dev/video0] ###
-> > general info
-> >     VIDIOCGCAP
-> >     name                    : "Logitech QuickCam USB"
-> >     type                    : 0x0 []
-> >     channels                : 1
-> >     audios                  : 0
-> >     maxwidth                : 360
-> >     maxheight               : 296
-> >     minwidth                : 32
-> >     minheight               : 32
-> >=20
-> > libv4l2: error getting capabilities: Unknown error 515
-> > ioctl: VIDIOC_QUERYCAP(driver=3D""=3Bcard=3D""=3Bbus_info=3D""=3Bversio=
-n=3D0.0.0=3Bcapabilities=3D0x0 []): Unknown error 515
->=20
-> May you give more information about your webcam?
-> - vend:prod
-> - used driver
->=20
-> --=20
-> Ken ar c'henta=F1 |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
->=20
->=20
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
