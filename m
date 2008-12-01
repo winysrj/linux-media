@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBDLqKP1021082
-	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 16:52:20 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBDLq2Eq024819
-	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 16:52:02 -0500
-Date: Sat, 13 Dec 2008 22:52:03 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-In-Reply-To: <20081210074450.5727.83002.sendpatchset@rx1.opensource.se>
-Message-ID: <Pine.LNX.4.64.0812132244130.10954@axis700.grange>
-References: <20081210074435.5727.93374.sendpatchset@rx1.opensource.se>
-	<20081210074450.5727.83002.sendpatchset@rx1.opensource.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1MIXKT028401
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 17:18:33 -0500
+Received: from mk-filter-1-a-1.mail.uk.tiscali.com
+	(mk-filter-1-a-1.mail.uk.tiscali.com [212.74.100.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1MIJBA020237
+	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 17:18:20 -0500
+From: "Chris Grove" <dj_gerbil@tiscali.co.uk>
+To: "'Thierry Merle'" <thierry.merle@free.fr>
+References: <002901c95150$44c16b90$ce4442b0$@co.uk>
+	<4931ADCD.2000407@free.fr>	<011901c952f4$a02d9710$e088c530$@co.uk>
+	<4932ACE9.7030309@free.fr> <012301c95302$6eed5f60$4cc81e20$@co.uk>
+	<013f01c9532a$8dcbdf10$a9639d30$@co.uk> <493301D5.5050001@free.fr>
+	<000301c95341$504c5810$f0e50830$@co.uk> <493451C5.9010406@free.fr>
+In-Reply-To: <493451C5.9010406@free.fr>
+Date: Mon, 1 Dec 2008 22:18:02 -0000
+Message-ID: <00bf01c95402$ae3c6070$0ab52150$@co.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-gb
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 02/03] sh_mobile_ceu: add NV12 and NV21 support
+Subject: RE: Hauppauge WinTV USB Model 566 PAL-I
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,255 +34,101 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 10 Dec 2008, Magnus Damm wrote:
+-----Original Message-----
+From: Thierry Merle [mailto:thierry.merle@free.fr] 
+Sent: 01 December 2008 21:06
+To: Chris Grove
+Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
 
-> From: Magnus Damm <damm@igel.co.jp>
+Chris Grove wrote:
+> -----Original Message-----
+> From: Thierry Merle [mailto:thierry.merle@free.fr]
+> Sent: 30 November 2008 21:13
+> To: Chris Grove
+> Cc: video4linux-list@redhat.com
+> Subject: Re: Hauppauge WinTV USB Model 566 PAL-I
 > 
-> This patch adds NV12/NV21 support to the sh_mobile_ceu driver.
+> Chris Grove wrote:
+>> A further, slightly interesting development is that the s-video input 
+>> works fine with no interference at all, also the TV picture in fine 
+>> in
+> windows.
+>> Just thought that might help with a solution.
+>>
+> Right, this helps. We can deduce this does not come from the 
+> decompression algorithm since it is the same whether the TV input or 
+> the s-video input is selected.
+> I suspect a tda9887/saa7113 interface problem but just my intuition.
+> As it works under windows, can you do an usbsnoop
+> (http://www.linuxtv.org/v4lwiki/index.php/Usbsnoop)
+> Just open the TV application, let it tune the channel and stop the 
+> application immediately in order to have a minimal capture file.
 > 
-> Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> ---
+> For the audio over USB, in the ancient times I developed a audio 
+> extension for usbvision. I don't even know what I did from it. I can 
+> look for it if you want. I will need to sweep the dust (compilation 
+> errors and so on) but should work.
 > 
->  drivers/media/video/sh_mobile_ceu_camera.c |  114 ++++++++++++++++++++++++----
->  1 file changed, 99 insertions(+), 15 deletions(-)
+> P.S.: this thread is really hard to follow now... please reply under 
+> my answer so that we will be able to read that again :)
 > 
-> --- 0031/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ work/drivers/media/video/sh_mobile_ceu_camera.c	2008-12-10 13:09:43.000000000 +0900
-> @@ -99,6 +99,8 @@ struct sh_mobile_ceu_dev {
->  	struct videobuf_buffer *active;
->  
->  	struct sh_mobile_ceu_info *pdata;
-> +
-> +	const struct soc_camera_data_format *camera_fmt;
->  };
->  
->  static void ceu_write(struct sh_mobile_ceu_dev *priv,
-> @@ -158,6 +160,9 @@ static void free_buffer(struct videobuf_
->  
->  static void sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
->  {
-> +	struct soc_camera_device *icd = pcdev->icd;
-> +	unsigned long phys_addr;
+> Hi, yea sorry about that, Outlook always starts at the top of the message.
+> Anyway, I've used USB Snoop and ended up with a 45Mb file. Now I'm 
+> guessing you don't need all of it so there is a portion of it below my 
+> answer. As for the audio-over-usb, yes please, I wouldn't mind a look 
+> at the code if you can find it. Anyway here's that sample, Thanks for the
+help.
+I found the audio-over-usb code (see attached). The code may need some
+cleanups and can cause kernel oops.
+The USB snoops need to be analyzed. Can you put it on a site so that I can
+download it?
+Nevertheless you can read what I wrote when I was programming the
+audio-over-usb driver here:
+http://thierry.merle.free.fr/articles.php?lng=en&pg=82
+The page was translated to English using google translate so there may be
+some problems of understanding :) For some more information about the
+usbvision chip, I wrote a page here:
+http://thierry.merle.free.fr/articles.php?lng=en&pg=68
 
-dma_addr_t
+As a first step, I will look at the register accesses. They begin with a
+line like this:
+00000000: 00000000: 42 33 00 00
+With the datasheet I can understand what the windows driver is setting.
 
-> +
->  	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) & ~1);
->  	ceu_write(pcdev, CETCR, ~ceu_read(pcdev, CETCR) & 0x0317f313);
->  	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) | 1);
-> @@ -166,11 +171,21 @@ static void sh_mobile_ceu_capture(struct
->  
->  	ceu_write(pcdev, CETCR, 0x0317f313 ^ 0x10);
->  
-> -	if (pcdev->active) {
-> -		pcdev->active->state = VIDEOBUF_ACTIVE;
-> -		ceu_write(pcdev, CDAYR, videobuf_to_dma_contig(pcdev->active));
-> -		ceu_write(pcdev, CAPSR, 0x1); /* start capture */
-> +	if (!pcdev->active)
-> +		return;
-> +
-> +	phys_addr = videobuf_to_dma_contig(pcdev->active);
-> +	ceu_write(pcdev, CDAYR, phys_addr);
+[SNIP]
 
-Hm, looks like someone could have reviewed this driver a bit better on 
-submission:-) I think, your ceu_write() should really take a u32 as an 
-argument, not unsigned long, respectively, ceu_read() should return u32. 
-So there is even less motivation for "unsigned long phys_addr" above. A 
-patch to change these functions would be welcome:-)
+> -- URB_FUNCTION_CONTROL_TRANSFER:
+>   PipeHandle           = 8ac23cfc [endpoint 0x00000001]
+>   TransferFlags        = 00000000 (USBD_TRANSFER_DIRECTION_OUT,
+> ~USBD_SHORT_TRANSFER_OK)
+>   TransferBufferLength = 00000001
+>   TransferBuffer       = a1745938
+>   TransferBufferMDL    = 00000000
+>     00000000: 30
+>   UrbLink              = 00000000
+>   SetupPacket          =
+>     00000000: 42 33 00 00 07 00 01 00
+For example here you have a register programming #07 (SER_MODE from the
+NT1004 datasheet).
+Value is 0x30 (TransferBufferMDL line). Means MODE=3.
+This is just for the example, this one is not interesting.
+There are other registers more interesting but I should have the complete
+log to find out.
 
-> +
-> +	switch (icd->current_fmt->fourcc) {
-> +	case V4L2_PIX_FMT_NV12:
-> +	case V4L2_PIX_FMT_NV21:
-> +		phys_addr += (icd->width * icd->height);
-
-superfluous parenthesis
-
-> +		ceu_write(pcdev, CDACR, phys_addr);
->  	}
-> +
-> +	pcdev->active->state = VIDEOBUF_ACTIVE;
-> +	ceu_write(pcdev, CAPSR, 0x1); /* start capture */
->  }
->  
->  static int sh_mobile_ceu_videobuf_prepare(struct videobuf_queue *vq,
-> @@ -364,6 +379,7 @@ static int sh_mobile_ceu_set_bus_param(s
->  	struct sh_mobile_ceu_dev *pcdev = ici->priv;
->  	int ret, buswidth, width, cfszr_width, cdwdr_width;
->  	unsigned long camera_flags, common_flags, value;
-> +	int yuv_mode, yuv_lineskip;
->  
->  	camera_flags = icd->ops->query_bus_param(icd);
->  	common_flags = soc_camera_bus_param_compatible(camera_flags,
-> @@ -389,7 +405,35 @@ static int sh_mobile_ceu_set_bus_param(s
->  	ceu_write(pcdev, CRCNTR, 0);
->  	ceu_write(pcdev, CRCMPR, 0);
->  
-> -	value = 0x00000010;
-> +	value = 0x00000010; /* data fetch by default */
-> +	yuv_mode = yuv_lineskip = 0;
-> +
-> +	switch (icd->current_fmt->fourcc) {
-> +	case V4L2_PIX_FMT_NV12:
-> +	case V4L2_PIX_FMT_NV21:
-> +		yuv_lineskip = 1; /* skip for NV12/21, no skip for NV16/61 */
-> +		yuv_mode = 1;
-> +		switch (pcdev->camera_fmt->fourcc) {
-> +		case V4L2_PIX_FMT_UYVY:
-> +			value = 0x00000000; /* Cb0, Y0, Cr0, Y1 */
-> +			break;
-> +		case V4L2_PIX_FMT_VYUY:
-> +			value = 0x00000100; /* Cr0, Y0, Cb0, Y1 */
-> +			break;
-> +		case V4L2_PIX_FMT_YUYV:
-> +			value = 0x00000200; /* Y0, Cb0, Y1, Cr0 */
-> +			break;
-> +		case V4L2_PIX_FMT_YVYU:
-> +			value = 0x00000300; /* Y0, Cr0, Y1, Cb0 */
-> +			break;
-> +		default:
-> +			BUG();
-> +		}
-> +	}
-> +
-> +	if (icd->current_fmt->fourcc == V4L2_PIX_FMT_NV21)
-> +		value ^= 0x00000100; /* swap U, V to change from NV12->NV21 */
-> +
->  	value |= (common_flags & SOCAM_VSYNC_ACTIVE_LOW) ? (1 << 1) : 0;
->  	value |= (common_flags & SOCAM_HSYNC_ACTIVE_LOW) ? (1 << 0) : 0;
->  	value |= (buswidth == 16) ? (1 << 12) : 0;
-
-superfluous parenthesis before and after "?" - this and other occurrences 
-would make a nice cleanup patch:-)
-
-> @@ -400,16 +444,22 @@ static int sh_mobile_ceu_set_bus_param(s
->  
->  	mdelay(1);
->  
-> -	width = icd->width * (icd->current_fmt->depth / 8);
-> -	width = (buswidth == 16) ? width / 2 : width;
-> -	cfszr_width = (buswidth == 8) ? width / 2 : width;
-> -	cdwdr_width = (buswidth == 16) ? width * 2 : width;
-> +	if (yuv_mode) {
-> +		width = icd->width * 2;
-> +		width = (buswidth == 16) ? width / 2 : width;
-
-superfluous parenthesis
-
-> +		cfszr_width = cdwdr_width = icd->width;
-> +	} else {
-> +		width = icd->width * ((icd->current_fmt->depth + 7) >> 3);
-> +		width = (buswidth == 16) ? width / 2 : width;
-> +		cfszr_width = (buswidth == 8) ? width / 2 : width;
-> +		cdwdr_width = (buswidth == 16) ? width * 2 : width;
-
-ditto - in last 3 lines
-
-> +	}
->  
->  	ceu_write(pcdev, CAMOR, 0);
->  	ceu_write(pcdev, CAPWR, (icd->height << 16) | width);
-> -	ceu_write(pcdev, CFLCR, 0); /* data fetch mode - no scaling */
-> +	ceu_write(pcdev, CFLCR, 0); /* no scaling */
->  	ceu_write(pcdev, CFSZR, (icd->height << 16) | cfszr_width);
-> -	ceu_write(pcdev, CLFCR, 0); /* data fetch mode - no lowpass filter */
-> +	ceu_write(pcdev, CLFCR, 0); /* no lowpass filter */
->  
->  	/* A few words about byte order (observed in Big Endian mode)
->  	 *
-> @@ -423,14 +473,16 @@ static int sh_mobile_ceu_set_bus_param(s
->  	 * using 7 we swap the data bytes to match the incoming order:
->  	 * D0, D1, D2, D3, D4, D5, D6, D7
->  	 */
-> -	ceu_write(pcdev, CDOCR, 0x00000017);
-> +	value = 0x00000017;
-> +	if (yuv_lineskip)
-> +		value &= ~0x00000010; /* convert 4:2:2 -> 4:2:0 */
-> +
-> +	ceu_write(pcdev, CDOCR, value);
->  
->  	ceu_write(pcdev, CDWDR, cdwdr_width);
->  	ceu_write(pcdev, CFWCR, 0); /* keep "datafetch firewall" disabled */
->  
->  	/* not in bundle mode: skip CBDSR, CDAYR2, CDACR2, CDBYR2, CDBCR2 */
-> -	/* in data fetch mode: no need for CDACR, CDBYR, CDBCR */
-> -
->  	return 0;
->  }
->  
-> @@ -449,11 +501,26 @@ static int sh_mobile_ceu_try_bus_param(s
->  	return 0;
->  }
->  
-> +static const struct soc_camera_data_format sh_mobile_ceu_formats[] = {
-> +	{
-> +		.name		= "NV12",
-> +		.depth		= 12,
-> +		.fourcc		= V4L2_PIX_FMT_NV12,
-> +		.colorspace	= V4L2_COLORSPACE_JPEG,
-> +	},
-> +	{
-> +		.name		= "NV21",
-> +		.depth		= 12,
-> +		.fourcc		= V4L2_PIX_FMT_NV21,
-> +		.colorspace	= V4L2_COLORSPACE_JPEG,
-> +	},
-> +};
-> +
->  static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
->  				     struct soc_camera_format_xlate *xlate)
->  {
->  	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> -	int ret;
-> +	int ret, k, n;
->  	int formats = 0;
->  
->  	ret = sh_mobile_ceu_try_bus_param(icd);
-> @@ -461,6 +528,21 @@ static int sh_mobile_ceu_get_formats(str
->  		return 0;
->  
->  	switch (icd->formats[idx].fourcc) {
-> +	case V4L2_PIX_FMT_UYVY:
-> +	case V4L2_PIX_FMT_VYUY:
-> +	case V4L2_PIX_FMT_YUYV:
-> +	case V4L2_PIX_FMT_YVYU:
-> +		n = ARRAY_SIZE(sh_mobile_ceu_formats);
-> +		formats += n;
-> +		for (k = 0; xlate && k < n; k++) {
-> +			xlate->host_fmt = &sh_mobile_ceu_formats[k];
-> +			xlate->cam_fmt = icd->formats + idx;
-> +			xlate->buswidth = icd->formats[idx].depth;
-> +			xlate++;
-> +			dev_dbg(&ici->dev, "Providing format %s using %s\n",
-> +				sh_mobile_ceu_formats[k].name,
-> +				icd->formats[idx].name);
-> +		}
->  	default:
->  		/* Generic pass-through */
->  		formats++;
-> @@ -482,6 +564,7 @@ static int sh_mobile_ceu_set_fmt(struct 
->  				 __u32 pixfmt, struct v4l2_rect *rect)
->  {
->  	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> +	struct sh_mobile_ceu_dev *pcdev = ici->priv;
->  	const struct soc_camera_format_xlate *xlate;
->  	int ret;
->  
-> @@ -502,6 +585,7 @@ static int sh_mobile_ceu_set_fmt(struct 
->  	if (pixfmt && !ret) {
->  		icd->buswidth = xlate->buswidth;
->  		icd->current_fmt = xlate->host_fmt;
-> +		pcdev->camera_fmt = xlate->cam_fmt;
->  	}
->  
->  	return ret;
-> 
+You may have sent me the sufficient data to investigate but in doubt give me
+the complete logs.
+Of course you can look at the problem if you are interested.
 
 Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Thierry
+
+Hi Thierry, Thanks for the links to you code, I'll download it and have a
+look. Here's hoping I can work out what's going on in it. I've uploaded the
+whole of the log to my skydrive, the link is below. 
+http://cid-19380f9184511dde.skydrive.live.com/browse.aspx/Public
+To be honest I'm only a learner when it comes to linux and c++ programming,
+I'm more of a basic programmer so I need all the help I can get my hands on.
+Thanks in advance for all your help. Chris. 
 
 --
 video4linux-list mailing list
