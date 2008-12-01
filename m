@@ -1,23 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
+Received: from out1.smtp.messagingengine.com ([66.111.4.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1LDlhs-0005AR-JS
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 21:12:21 +0100
-Received: by bwz11 with SMTP id 11so2367416bwz.17
-	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 12:11:47 -0800 (PST)
-Message-ID: <d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
-Date: Fri, 19 Dec 2008 21:11:11 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: sinter <sinter.mann@gmx.de>
-In-Reply-To: <200812192058.58686.sinter.mann@gmx.de>
-MIME-Version: 1.0
+	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7FZT-0006ZH-2A
+	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 21:40:44 +0100
+Received: from compute1.internal (compute1.internal [10.202.2.41])
+	by out1.messagingengine.com (Postfix) with ESMTP id ED22E1C9C36
+	for <linux-dvb@linuxtv.org>; Mon,  1 Dec 2008 15:40:38 -0500 (EST)
+Message-Id: <1228164038.5106.1287670679@webmail.messagingengine.com>
+From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
+To: "Linux-dvb" <linux-dvb@linuxtv.org>
 Content-Disposition: inline
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<200812191943.00696.sinter.mann@gmx.de>
-	<d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>
-	<200812192058.58686.sinter.mann@gmx.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API drivers sync
+MIME-Version: 1.0
+References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
+	<1227213591.29403.1285914127@webmail.messagingengine.com>
+	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
+	<1227228030.18353.1285952745@webmail.messagingengine.com>
+	<412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>
+	<1228152690.22348.1287628393@webmail.messagingengine.com>
+	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
+	<1228162425.30518.1287666879@webmail.messagingengine.com>
+In-Reply-To: <1228162425.30518.1287666879@webmail.messagingengine.com>
+Date: Mon, 01 Dec 2008 20:40:38 +0000
+Subject: Re: [linux-dvb] dib0700 remote control support fixed
+Reply-To: linuxtv@hotair.fastmail.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,75 +36,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Dec 19, 2008 at 8:58 PM, sinter <sinter.mann@gmx.de> wrote:
-> Am Friday 19 December 2008 20:29:52 schrieben Sie:
->> On Fri, Dec 19, 2008 at 7:43 PM, sinter <sinter.mann@gmx.de> wrote:
->> > Am Freitag 19 Dezember 2008 18:01:40 schrieb gimli:
->> >> The DVB-S2 stuff smells all like a big bullshit.
->> >> In the first step a big hurry to get S2API in
->> >> the mainline kernel and now nothing at all from
->> >> the DVB-S2 front. This is a completly big mess
->> >> in my eyes.
->> >>
->> >> cu
->> >>
->> >> Edgar (gimli) Hucek
->> >>
->> >> P.S.: Childish political games which are played on
->> >> the shoulders of the users. Hurray, well done.
->> >
->> > Yes, Edgar, exactly: This is what the name Manu A. stands for since this
->> > guy was recruited as a DVB "maintainer" by Johannes Stezenbach:
->> >
->> > Kiddish political games which are played on the shoulders of the users.
->> > Also those kiddish games are ideal to hide the discovery of one's own
->> > personal mediocrity / incapability in coding issues.
->> >
->> > There are people who ask themselves why Manu A. still owes a repository
->> > at linuxtv.org. I guess this runs under "utilitarianism of human beings".
->> >
->> > And also: a huge mass of (inactive) nominal members looks nice for a
->> > career at redhat.com, doesn't it?
->>
->> This looks like a respect email.
->
-> No, not in any context at all!
-> It's you who ignores the sarcasm behind my words!
-> Just use your brain, austrian!
->
->> Best would have been if Manu wouldn't
->> have had released
->> any code and would just have forwarded his code to his friends they
->> wouldn't have complained and
->> even probably would have paid some beer and invited him for some parties.
->
-> YES! This would have made everything easier: NOT to have persons like YOU and
-> Manu A. around here, as nobody needs anti-team working big-mouth-nut-shuts
-> here.
->
->> It takes time to get documentation for a certain chip, to get the
->> agreement for it and finally to write
->> a driver for it.
->
-> Yesno! It also takes social behaviour to maintain written code, and if someone
-> does not respect social behaviour but claims to be chief DVB maintainer at the
-> same time then this indian person called A. is counter productive /
-> ridiculous!
-> And that's all about him.
-> We gotta get rid of people like you, Markus, and Manu A. too because you two
-> are like an incarnation of the living copounter productive pest, arenn't you?
->
->> As user it's certainly easier to complain about all
->> that and think that everything's free.
->> Even google is playing around with the content of the mails I send
->> here and earning money by doing
->> statistics out of that.
->
-> Stop ranting, Austrian! Shut up man!!!!
->
->
+Hi Devin,
 
-ah this is Uwe, welcome back.
+I've just got lucky with running dmesg at the onset of the problem, so
+can see the initial messages rather than just the flood of read/write
+failures.
+
+Unfortunately I've only got it in my xterm buffer, so I've posted some
+screenshots here:
+
+http://linuxtv.hotair.fastmail.co.uk/Picture%203.jpg
+http://linuxtv.hotair.fastmail.co.uk/Picture%204.jpg
+
+It looks like it is crashing IRQ 10 which is assigned to the PCI bus.  
 
 _______________________________________________
 linux-dvb mailing list
