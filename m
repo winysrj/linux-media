@@ -1,23 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHEJCcW012098
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:19:12 -0500
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHEIvX9025766
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:18:57 -0500
-Message-ID: <49490A4B.90609@linuxtv.org>
-Date: Wed, 17 Dec 2008 09:18:51 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <20080205012451.GA31004@plankton.ifup.org>	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>	<20080205080038.GB8232@plankton.ifup.org>	<20080205102409.4b7acb01@gaivota>	<20080213202055.GA26352@plankton.ifup.org>	<20080214174602.4ed91987@gaivota>
-	<Pine.LNX.4.64.0812171444420.5465@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0812171444420.5465@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2HLREj028498
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 12:21:27 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB2HLCeQ019580
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 12:21:12 -0500
+Date: Tue, 2 Dec 2008 15:21:00 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Message-ID: <20081202152100.0a4dd2c1@pedra.chehab.org>
+In-Reply-To: <200812021758.35503.laurent.pinchart@skynet.be>
+References: <200812011246.08885.hverkuil@xs4all.nl>
+	<200812011524.43499.laurent.pinchart@skynet.be>
+	<20081201130643.661f5743@pedra.chehab.org>
+	<200812021758.35503.laurent.pinchart@skynet.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, v4lm <v4l-dvb-maintainer@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
+Cc: video4linux-list@redhat.com,
+	davinci-linux-open-source-bounces@linux.davincidsp.com,
+	linux-kernel@vger.kernel.org, v4l-dvb
+	maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,85 +34,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski wrote:
-> Sorry for reviving this almost-a-year-old thread, but after my last 
-> failure to formst hg-commits correctly, I'd like to have this clarified 
-> before causing Mauro extra manual editing of my commits again.
->
-> On Thu, 14 Feb 2008, Mauro Carvalho Chehab wrote:
->
-> [snip]
->
->   
->> -git trees have two different meta-tags to represent the tree owner _and_ the
->> patch author. A patch can be committed by a maintainer, preserving author's
->> ownership. On Mercurial, there's only one meta-tag. So, each developer needs to
->> manually add a line with:
->> 	From: someone <some@email>
->> To represent the missing authorship. I need some scripts to convert this "From"
->> artificial field into an Author, before generating the -git.
->>     
->
-> later
->
-> On Tue, 22 Apr 2008, Mauro Carvalho Chehab wrote:
->
->   
->> In general, you ask me to pull a patch series with yours and also third part
->> patches. Please, be sure to add a "From: " line at the patch, since Mercurial
->> has no meta-tag to indicate patch authorship. The only meta tag for someone is
->> "user". We use this meta-tag to help tracking from what tree a changeset were 
->> merged.
->>     
->
-> and recently
->
-> On Mon, 8 Dec 2008, Mauro Carvalho Chehab wrote:
->
->   
->> On -git, you have two different fields: the committer and the patch author.
->> Since mercurial has just one field, we should take some care, since, depending
->> on the way you import things into mercurial, you may lead to bad author
->> attribution.
->>
->> To avoid this risk, we've added an extra tag on all mercurial commits. Also, my
->> -git import scripts don't automatically merge any patch that comes without the 
->> "from" field. Those patches require manual work to forward. This way, I have a 
->> double check procedure there.
->>     
->
-> So, what should a patch header look like to be imported into hg per "hg 
-> import" for later push to linuxtv to be pulled by Mauro?
->
-> Looks like it should have two "From: " lines - one will be used by hg for 
-> the user field and should contain my address, the second "From: " line 
-> should contain the actual patch author? All quotes above mention only one 
-> "From: ", and this is what a git-format-patch produces, but it looks like 
-> this single "From: " is then consumed by hg to form its "user" field, so 
-> nothing is left for a subsequent re-export to git.
->
-> Thanks
-> Guennadi
->
->   
+On Tue, 2 Dec 2008 17:58:35 +0100
+Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
 
-Guennadi,
+> > Are you meaning marking this as experimental at Kconfig? This seems too
+> > complex, since we'll need to test for some var on every driver that were
+> > converted, providing two KABI options for each converted driver (the legacy
+> > and the v4l2_device way). This doesn't seem to be a good idea, since will
+> > add a lot of extra complexity to debug bugs.
+> 
+> Not at the Kconfig level, just in the documentation (and possible headers).
 
-Please take a look at one of the hg patches within the repository:
+Ah, ok. Good point.
 
-http://linuxtv.org/hg/v4l-dvb/raw-rev/3cc7daa31234
+> This is a work in progress. Hans wants the changes to go mainline to get 
+> broader testing, which is a valid reason, but I'd like to make sure people 
+> understand that more changes are coming.
 
-This patch is the same type of output that you would get from using "hg export 3cc7daa31234"
+Maybe instead we should have a TODO list somewhere with the programmed changes,
+especially at the subsystem core.
 
-Notice the "From:" line -- that line is used to indicate author.
-
-Notice the "User" line (line 2) -- that line is used to indicate committer.
-
-Does that help to clear it up for you?
-
-Regards,
-
-Mike
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
