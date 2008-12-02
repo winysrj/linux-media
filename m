@@ -1,14 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.mnementh.co.uk ([173.45.232.4] helo=mnementh.co.uk)
+Received: from mailhost.terions.de ([81.16.53.101] helo=pm1.terions.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ian@mnementh.co.uk>) id 1LCrY4-000869-3x
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 09:14:29 +0100
-Message-ID: <4948B5AB.7020500@mnementh.co.uk>
-Date: Wed, 17 Dec 2008 08:17:47 +0000
-From: Ian Molton <ian@mnementh.co.uk>
+	(envelope-from <alles@bredde.de>) id 1L7QdD-0006HA-EZ
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 09:29:20 +0100
+Message-ID: <4934F1CA.1000805@bredde.de>
+Date: Tue, 02 Dec 2008 09:28:58 +0100
+From: Mark Breddemann <alles@bredde.de>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] freecom dvb-t v4
+References: <492F1FF4.7030600@bredde.de>
+In-Reply-To: <492F1FF4.7030600@bredde.de>
+Subject: Re: [linux-dvb] Cinergy Hybrid XE with tm6010 chip
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,21 +24,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+Nobody?
 
-Im trying to get the freecom v4 stick up and runnign on 2.6.26
-
-I can build the source, but the module fails to load complaaining of:
-
-dvb_usb_rtl2831u: Unknown symbol dvb_usb_device_init
-
-Clearly the API for initialising the driveer has changed, and I'd like 
-to fi this, but cant find any real record of how or why this change was 
-made.
-
-Any help greatly appreciated.
-
--Ian
+br wrote:
+> Hi,
+> I've got a Cinergy Hybrid XE DVB-T USB Stick, which has got a tm6010
+> chip inside (I opened the case just to get sure). Quite fast I realized,
+> that there are no stable Linux drivers out there, so i tried the
+> unstable one.
+> 
+> So I checked out the repo at http://linuxtv.org/hg/~mchehab/tm6010/ and
+> compiled (without DVB), installed, loaded the module and then inserted
+> the stick and well.. nothing happened, because the driver did not knew
+> about my device. To fix this, i added the line
+> { USB_DEVICE(0x0ccd, 0x0086), .driver_info = TM6010_BOARD_GENERIC },
+> to file tm6000-cards.c (my lsusb output is 'Bus 008 Device 004: ID
+> 0ccd:0086 TerraTec Electronic GmbH'). I do not know, whether
+> TM6010_BOARD_GENERIC is the correct one, but for me it seemed to be the
+> best solution.
+> Afterward, the driver recognized my stick and began to work:
+> http://pastebin.com/f79722ed2 . In short: The firmware's missing. So I
+> extracted the firmware with help of a python script I found on the
+> internet and put it to the right place. Here's the (long) result:
+> http://pastebin.com/f6c853b43
+> 
+> I'm not surprised that my journey has failed, because I do not really
+> know what my added line does (good old try'n'error), so my question:
+> Where to go from here?
+> 
+> Mark
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
