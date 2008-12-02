@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOHah0C021668
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:36:43 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.24])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOHUaBc000976
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:30:36 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so1180093qwe.39
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 09:30:36 -0800 (PST)
-Message-ID: <b9476b930812240930l60e1ca74ua53c4b16c40ecc85@mail.gmail.com>
-Date: Wed, 24 Dec 2008 23:00:36 +0530
-From: "Manas Bhattacharya" <bhattacharya.manas@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2KBuWD026185
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 15:11:56 -0500
+Received: from mk-filter-4-a-1.mail.uk.tiscali.com
+	(mk-filter-4-a-1.mail.uk.tiscali.com [212.74.100.55])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB2KAppu006769
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 15:10:52 -0500
+From: "Chris Grove" <dj_gerbil@tiscali.co.uk>
+To: <video4linux-list@redhat.com>
+Date: Tue, 2 Dec 2008 17:36:25 -0000
+Message-ID: <000c01c954a4$81c59870$8550c950$@co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Language: en-gb
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: help: v4l2 pixel format setting
+Subject: WinTV USB Model 566 PAL-I - New Problem.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,13 +27,14 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all
-  I  need help in setting pixel values to my wecam. My camera is Frontech
-ecam jil 2220 model
-The PC cam controller installed  Sn9c120  .Any pixel format i want to
-set(say yuyv,yuv420 etc) VIDIOC_S_FORMAT returns me Bayer Rgb (sbggr8)
-format .can u please help me in identifying the problem
-       Manas Bhattacharya
+Hi all,  with the help of Thierry I've managed to get this device sort of
+working. There seems to be a problem with the tuner bit but Thierry is
+helping me sort that. The problem is that I seem to have found a new
+problem. When I select S-Video I get sound and a perfect picture but, when I
+select composite I get sound and no picture. Now the card has one port which
+it uses for both, in case that makes a difference, and an adapter to convert
+the S-Video port into a phono. Any ideas please???
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
