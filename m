@@ -1,25 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOHb6xG021962
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:37:07 -0500
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOHaqcc003990
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:36:52 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
-	<87iqpi4qb0.fsf@free.fr>
-	<Pine.LNX.4.64.0812171921420.8733@axis700.grange>
-	<Pine.LNX.4.64.0812200104090.9649@axis700.grange>
-	<87wsdplc29.fsf@free.fr>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 24 Dec 2008 18:36:51 +0100
-In-Reply-To: <87wsdplc29.fsf@free.fr> (Robert Jarzmik's message of "Wed\,
-	24 Dec 2008 18\:26\:06 +0100")
-Message-ID: <87r63xlbkc.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2JNpR4029963
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 14:23:51 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB2JNBZZ028364
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 14:23:11 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Tue, 2 Dec 2008 17:58:35 +0100
+References: <200812011246.08885.hverkuil@xs4all.nl>
+	<200812011524.43499.laurent.pinchart@skynet.be>
+	<20081201130643.661f5743@pedra.chehab.org>
+In-Reply-To: <20081201130643.661f5743@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: soc-camera: current stack
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812021758.35503.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com,
+	davinci-linux-open-source-bounces@linux.davincidsp.com,
+	linux-kernel@vger.kernel.org,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,25 +36,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Robert Jarzmik <robert.jarzmik@free.fr> writes:
+Hi Mauro,
 
-> I made some tests of your patches against mainline tree (2.6.28-rc4 actually),
-> on pxa271 + mt9m111.
+On Monday 01 December 2008, Mauro Carvalho Chehab wrote:
+> Hi Hans,
 >
-> I'm not sure whether the problem is not on my setup, I hadn't touched it for
-> days. I know after opening the video device, I setup a camera register before
-> taking the picture (to set up the test pattern and automate my non-regression
-> tests).
+> On Mon, 1 Dec 2008 15:24:43 +0100
+>
+> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+[snip]
 
-OK, I found. Was on my side, my kernel and my modules were not in sync (the
-CONFIG_VIDEO_ADV_DEBUG was in modules, not in kernel).
+> > In a few months time (probably even earlier) the v4l2_device structure
+> > will be reworked (and possible renamed).
+>
+> Hmm... why? it would be better to try to have the KABI changes for it at
+> the same kernel release if possible.
 
-So you should know the whole serie is working fine on my setup :)))
+Because Hans is working on more changes.
 
-Cheers.
+> > I'm fine with it going to linux-next now if
+> > we agree on the following.
+> >
+> > - We should only advocate v4l2_device usage for subdevices-aware video
+> > devices. Porting all drivers to v4l2_device is currently pointless and
+> > will only make future transitions more difficult.
+>
+> This makes sense to me.
+>
+> > - v4l2_device should be marked as experimental. I don't want to hear any
+> > API/ABI breakage argument in a few months time when the framework will
+> > evolve.
+>
+> Are you meaning marking this as experimental at Kconfig? This seems too
+> complex, since we'll need to test for some var on every driver that were
+> converted, providing two KABI options for each converted driver (the legacy
+> and the v4l2_device way). This doesn't seem to be a good idea, since will
+> add a lot of extra complexity to debug bugs.
 
---
-Robert
+Not at the Kconfig level, just in the documentation (and possible headers).
+
+This is a work in progress. Hans wants the changes to go mainline to get 
+broader testing, which is a valid reason, but I'd like to make sure people 
+understand that more changes are coming.
+
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
