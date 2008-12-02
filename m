@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
+Received: from ayden.softclick-it.de ([217.160.202.102])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@drajsajtl.cz>) id 1L7eQ4-0008I8-Fj
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 00:12:42 +0100
-Message-ID: <004a01c954d2$cb3a9810$217da8c0@tdrpc>
-From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
-To: "BOUWSMA Barry" <freebeer.bouwsma@gmail.com>
-References: <938eabef0811270552t16fb1f7drc95988373f8c61fc@mail.gmail.com><938eabef0811270559pb48bdf6lc2d22818c71a559c@mail.gmail.com><19a3b7a80812020750o17c2b00ibd9d5663353564d8@mail.gmail.com><alpine.DEB.2.00.0812022158510.9198@ybpnyubfg.ybpnyqbznva><alpine.DEB.2.00.0812022241370.9198@ybpnyubfg.ybpnyqbznva>
-	<003a01c954d2$2305ae50$217da8c0@tdrpc>
-Date: Wed, 3 Dec 2008 00:07:48 +0100
+	(envelope-from <tobi@to-st.de>) id 1L7XSK-00021j-Ig
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 16:46:33 +0100
+Message-ID: <4935583C.1010709@to-st.de>
+Date: Tue, 02 Dec 2008 16:46:04 +0100
+From: Tobias Stoeber <tobi@to-st.de>
 MIME-Version: 1.0
+To: Christoph Pfister <christophpfister@gmail.com>
+References: <19a3b7a80812020743x3bd0f465r9f278ebba60241fe@mail.gmail.com>
+In-Reply-To: <19a3b7a80812020743x3bd0f465r9f278ebba60241fe@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New scan file for cz-Praha
+Subject: Re: [linux-dvb] scan file for de-Hannover,
+	it-Cagliari and pl-Rzeszow
+Reply-To: tobi@to-st.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,17 +27,12 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I hope I will calculate correctly, please check.
-> mux 1: channel 53 -> 730 MHz
-> mux 2: channel 41 -> 634 MHz
-> mux 3: channel 46 -> 674 MHz
-> mux 4: channel 64 -> 818 MHz
->
-> You can use the cz-Brno file I posted here a month ago which should be now
-> commited in the tree. Just replace the frequencies in that file.
+Christoph Pfister schrieb:
+> Sent to kaffeine ml & my linuxtv account.
 
-...to generate cz-Praha of course. cz-Brno is OK. :-)
+The change for de-Hannover will also apply for Braunschweig / Brunswick!
 
+Cheers, Tobias
 
 _______________________________________________
 linux-dvb mailing list
