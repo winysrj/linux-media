@@ -1,23 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f16.google.com ([209.85.219.16])
+Received: from smtp-3.orange.nl ([193.252.22.243])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jordi.moles@gmail.com>) id 1LAur5-00083v-Hm
-	for linux-dvb@linuxtv.org; Fri, 12 Dec 2008 00:22:05 +0100
-Received: by ewy9 with SMTP id 9so1444581ewy.17
-	for <linux-dvb@linuxtv.org>; Thu, 11 Dec 2008 15:21:29 -0800 (PST)
-Message-ID: <4941A076.3060107@gmail.com>
-Date: Fri, 12 Dec 2008 00:21:26 +0100
-From: Jordi Molse <jordi.moles@gmail.com>
+	(envelope-from <michel@verbraak.org>) id 1L7OWe-00004u-6x
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 07:14:25 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf6209.online.nl (SMTP Server) with ESMTP id 5F4AB1C00082
+	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 07:13:50 +0100 (CET)
+Received: from asterisk.verbraak.thuis (s55939d86.adsl.wanadoo.nl
+	[85.147.157.134])
+	by mwinf6209.online.nl (SMTP Server) with ESMTP id 335871C00081
+	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 07:13:46 +0100 (CET)
+Message-ID: <4934D218.4090202@verbraak.org>
+Date: Tue, 02 Dec 2008 07:13:44 +0100
+From: Michel Verbraak <michel@verbraak.org>
 MIME-Version: 1.0
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-References: <493FFD3A.80209@cdmon.com>	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>	<4940032D.90106@cdmon.com>	<alpine.DEB.2.00.0812101956220.989@ybpnyubfg.ybpnyqbznva>	<49401C73.1010208@gmail.com>	<1228955664.3468.21.camel@pc10.localdom.local>	<494066C2.90105@gmail.com>	<1228958740.3468.28.camel@pc10.localdom.local>	<4940C9D6.2020704@cdmon.com>	<alpine.DEB.2.00.0812111415560.989@ybpnyubfg.ybpnyqbznva>	<49411A6E.2020107@gmail.com>
-	<49412BF9.5010401@cdmon.com>
-	<alpine.DEB.2.00.0812111626260.989@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0812111626260.989@ybpnyubfg.ybpnyqbznva>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working	through
- diseqc anymore
-Reply-To: jordi.moles@gmail.com
+To: linux-dvb@linuxtv.org
+References: <49346726.7010303@insite.cz>
+In-Reply-To: <49346726.7010303@insite.cz>
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,115 +31,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-En/na BOUWSMA Barry ha escrit:
-> On Thu, 11 Dec 2008, Jordi Moles Blanco wrote:
->
->   
->> well... i did what i could....
->>     
->
-> Thanks, that I did not have to explain how to find the
-> kernel source  :-)
+Pavel Hofman schreef:
+> Hello,
 >
 >
+> I have studied many pages, tried to make the card work. I can tune and 
+> view programs in windows.
 >
->   
->> i extracted the files and run "make". everything worked fine. The problem was
->> that i didn't now how to "load" that new compiled module instead of the
->> "default one"
->>     
+> My setup:
 >
-> If you want to do it the way I do, which is to test the
-> newly-built kernel modules without actually installing
-> them (in case I have more problems with the new than with
-> the old), the way I do it is...
+> Ubuntu 8.04, P4 32bit, Technisat HD2 connected to dual LNB, A heading to 
+> Astra 19.2E, B heading to Astra 23.5E
 >
-> % lsmod
-> (lists all the loaded kernel modules)
+> uname -a:
+> Linux htpc 2.6.24-19-generic #1 SMP
 >
-> then I `rmmod' every module related to my particular
-> device and dvb/video/whatever is related, if I've been
-> updating that part of the source.
 >
-> Then I load by hand, specifying the path to the
-> modules I've just built, like
-> # insmod /usr/local/src/v4l-dvb-last-before-2.6.16/v4l/[modname].ko
+> lspci -v:
+> 05:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI 
+> Bridge Controller [Ver 1.0] (rev 01)
+>          Subsystem: Unknown device 1ae4:0003
+>          Flags: bus master, medium devsel, latency 32, IRQ 22
+>          Memory at 92000000 (32-bit, prefetchable) [size=4K]
 >
-> Keeping an eye on `dmesg' to show dependencies, which
-> you have experienced below...
+>
+> I fetched latest mantis from  http://jusst.de/hg/mantis, changed
+> #define TECHNISAT_SKYSTAR_HD2  0x0003
 >
 >
 >   
->> i mean.... if i run "modprobe saa7134"_dvb i'm accessing to the default module
->> that comes with the kernel. is that right? so... i didn't how to load the new
->> module.
->>     
->
-> Yes, this is correct.  If you do not care to keep your
-> old modules, you can do a
-> # make install
-> which should overwrite your old distro modules with the
-> new ones you've built, as you have done below...
->
+<snip>
+> I fetched latest dvb-apps from  http://linuxtv.org/hg/dvb-apps, compiled.
 >
 >   
->> and "make install" so that i could load the new module by just doing "modproe
->> saa7134_dvb". is this right?
->>     
->
->   
->> [  240.715593] saa7134: disagrees about version of symbol v4l_compat_ioctl32
->>     
->
-> I've seen this before on the list, but personally I don't
-> know the precise solution -- check the archives, if
-> someone else doesn't provide the answer.
+<snip>
+> Please what are the next steps I should perform to make the card work? 
+> Such as the success report 
+> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg29608.html
 >
 >
->   
->> [  240.715604] saa7134: Unknown symbol v4l_compat_ioctl32
->> [  240.776343] saa7134_dvb: Unknown symbol saa7134_tuner_callback
->> [  240.776410] saa7134_dvb: Unknown symbol saa7134_ts_register
->> [  240.776643] saa7134_dvb: Unknown symbol saa7134_set_gpio
->> [  240.776703] saa7134_dvb: Unknown symbol saa7134_ts_qops
->> [  240.776845] saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
->> [  240.776983] saa7134_dvb: Unknown symbol saa7134_ts_unregister
->>     
+> I can post verbose=5 messages for stb0899/stb6100 if needed. Thank you 
+> very much for your help and suggestions.
 >
-> For the unknown symbols, as I mentioned above, that
-> means that needed modules aren't loaded -- as I note,
-> the way I do things (not recommended!) is to load
-> everything manually, mainly because I want to test
-> new hacks without losing my old modules.
+> Regards,
 >
-> I would then have to
-> # insmod /path/to/new/modules/[related-module].ko
-> where the related-modules are usually listed in the
-> `lsmod' output -- or else I just guess and load
-> anything that looks interesting and relevant.
->
-> As a wild guess, you need to load 
->  ...drivers/media/video/compat_ioctl32.ko
-> in order to get v4l_compat_ioctl32; 
->  ...drivers/media/video/saa7134/saa7134.ko
-> probably contains the various saa7134_foo symbols
-> which are needed by saa7134_dvb...
->
->
->   
->> any idea how to fix this?
->>     
->
-> Check the mailing list archives, is my suggestion,
-> since my personal answer is `no', not having
-> experienced this myself...
->
-> Anyway, I'm happy that you're able to work your way
-> through this without too much help, and I hope you
-> are learning something useful at the same time...
->
->
-> barry bouwsma
+> Pavel.
 >
 > _______________________________________________
 > linux-dvb mailing list
@@ -147,58 +83,22 @@ En/na BOUWSMA Barry ha escrit:
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >   
 
-Hi, thanks again for the help you are offering me.
+Pavel,
 
-However, i haven't been able to get diseqc working and i don't think i 
-will....
+Try http://mercurial.intuxication.org/hg/s2-liplianin . This one works 
+for me on Fedora 9 with the latest scan tool (scan-s2) from 
+http://mercurial.intuxication.org/hg/scan-s2 and tune tool (szap-s2) 
+from http://mercurial.intuxication.org/hg/szap-s2.
 
-let's go through all the thing...
+If you unpack the driver and the tools unpack them into the same 
+directory and make a symbolic link named "s2" pointing to the 
+s2-liplianing-* directory. Do this before compiling of the tools.
 
-i've got a lifeview flydvb pci trio card (saa7134) which has different 
-chips, to tune satellite, digital terrestrial tv and also radio.
+Regards,
 
-i used to have this card running in a dual boot with windows xp, where 
-everything worked like a charm, and another one where i kept installing 
-linux distros without any luck until "kubuntu hardy" came out. At that 
-point, as the card with diseqc worked "out of the box", i decided to 
-erase all data and move to ubuntu.
+Michel.
 
-then i upgraded the system and also moved the tower from its place to 
-next to the tv (to be a medicenter computer :) ). Then i couldn't view 
-the channels anymore. I tried to retune with no luck... I check all the 
-cables, just in case one of them was in bad shape. I even replaced the T 
-connectors, just in case.
 
-Then is when i first posted here with all my diseqc problems.
-
-Since that moment i've reinstalled the whole system several times and 
-even compiled the latest linux-dvb modules, but no matter what i do... i 
-can only tune what is on switch 1 of my diseqc, never switch 2.
-
-so... is it possible that somehow i've broken the card someone? the 
-truth is that what used to work in windows... doesn't work anymore... 
-this evening i went back to windows just to check if the card, the 
-diseqc and everything was fine... and i had so many problems to get the 
-satellite working as before. i used to use progdvb, which supported 
-diseqc for my card and now it just can't tune through diseqc, none of 
-the two satellites. other software does know how to get through diseqc, 
-but only switch 1.
-
-is it then possible that it's "half-broken"? i mean.. it's still able to 
-tune, but not through diseqc because.....................
-
-i'm no satellite or linux expert, but now i can confirm that while i 
-still can view satellite channels in windows, it's not working as it 
-used to anymore...
-
-i've checked cables and i don't think it's an issue from the diseq 
-thing, cause i've got two and both give the same problem.
-
-well.. i guess i won't be able to use diseqc anymore... but if only 
-someone could through some light on this...... at least how come i've 
-broken it...
-
-thanks.
 
 
 _______________________________________________
