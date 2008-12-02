@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.157])
+Received: from nf-out-0910.google.com ([64.233.182.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1LDkNI-00084v-HK
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 19:47:01 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so442099fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 10:46:57 -0800 (PST)
-Message-ID: <37219a840812191046o68406337wda5fec55a4bf1fcf@mail.gmail.com>
-Date: Fri, 19 Dec 2008 13:46:57 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Simon Kenyon" <simon@koala.ie>
-In-Reply-To: <494B9754.6000403@koala.ie>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1L7eYK-00011d-AJ
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 00:21:14 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so1952763nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 15:21:09 -0800 (PST)
+Message-ID: <412bdbff0812021521m163a4d61q52e96de4cf3d2518@mail.gmail.com>
+Date: Tue, 2 Dec 2008 18:21:08 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0812021510r1e68e949i603e08be9dfc209@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <494B9754.6000403@koala.ie>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
+References: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
+	<d9def9db0812021510r1e68e949i603e08be9dfc209@mail.gmail.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Pinnacle 80e support: not going to happen...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,30 +29,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Dec 19, 2008 at 7:45 AM, Simon Kenyon <simon@koala.ie> wrote:
-> just bought what i though was a t-500 and when i opened the box it
-> contained a td-500
+On Tue, Dec 2, 2008 at 6:10 PM, Markus Rechberger <mrechberger@gmail.com> wrote:
+> On Tue, Dec 2, 2008 at 11:55 PM, Devin Heitmueller
+> <devin.heitmueller@gmail.com> wrote:
+>> For those of you waiting for Linux support for the Pinnacle 80e, I
+>> have some bad news:  it's not going to happen.
+>>
+>> After investing over 100 hours doing the driver work, adding support
+>> for the Empia em2874, integrating with the Linux tda18271 driver,
+>> incorporating the Micronas drx reference driver source, and doing all
+>> the testing, Micronas has effectively killed the project.  They
+>> decided that their intellectual property was too valuable to make
+>> available their reference driver code in source code form.  Even
+>> worse, because I've seen the sources I am effectively prevented from
+>> writing any sort of reverse engineered driver for the drx-j.
+>>
 >
-> the wiki says (in bright bold colours) that it is not (and never would
-> be) supported
->
-> however, from looking at the mailing list it appear to be supported
->
-> i can of course take it out of the sealed bag and try
->
-> however, to preserve any change of swapping it i thought i would ask
-> here first
+> Not so fast, even though I wasn't involved at knocking this down.
+> We have a custom player now which is capable of directly interfacing the
+> I2C chips from those devices. Another feature is that it supports all the
+> features of those devices, there won't be any need of different applications
+> anymore. There's also the thought about publishing an SDK, most applications
+> have problems of detecting all corresponding devicenodes which are required
+> for those devices anyway. i2c-dev is an already available and accepted
+> kernel interface
+> to userland just as usbfs is.
 
-There is a very old version of the board that is not supported.  There
-are very few of those boards around nowadays.
+Hello Markus,
 
-The new Nova-TD-500 is definitely supported.  Look for the 84xxx model
-number -- that is the new revision.  This is the one that you are
-likely to have, if you recently purchased that board.
+Yeah, I saw the screenshots for Empia eeeTV on your website a few days
+ago - it looks like a neat application and there is certainly a place
+for a well written application to watch TV.
+
+For those of you not familiar, Markus is working on his own dedicated
+TV watching application for Linux and BSD:
+http://mcentral.de/wiki/index.php5/ISDB-T
+
+I agree that it is certainly true that a closed-source application
+could be used with the Pinnacle 80e (since such application would be
+able to accommodate the Micronas binary-only licensing), however this
+approach does restrict access to those devices to that specific
+application and is not a more general solution that would work with
+whatever application the user wants to use (such as MythTV, Kaffeine,
+mplayer, etc).
+
+So for many people, this could be a viable approach.
 
 Regards,
 
-Mike
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
