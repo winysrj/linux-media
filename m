@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta005e.interbusiness.it ([88.44.62.5])
+Received: from smtp1.tech.numericable.fr ([82.216.111.37])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1LAisA-0003dw-N0
-	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 11:34:23 +0100
-Message-ID: <4940EC87.3060404@avalpa.com>
-Date: Thu, 11 Dec 2008 11:33:43 +0100
-From: Andrea Venturi <a.venturi@avalpa.com>
+	(envelope-from <tanguy.pruvot@gmail.com>) id 1L7Qaz-0005kS-EX
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 09:27:02 +0100
+Received: from EPSYLON (ip-128.net-89-2-80.rev.numericable.fr [89.2.80.128])
+	by smtp1.tech.numericable.fr (Postfix) with ESMTP id 0BC48E081A
+	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 09:26:56 +0100 (CET)
+Date: Tue, 2 Dec 2008 09:26:55 +0100
+From: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+Message-ID: <116652354.20081202092655@gmail.com>
+To: Linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-To: urishk@yahoo.com
-References: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
-In-Reply-To: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
-Content-Type: multipart/mixed; boundary="------------070804030408090905090406"
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] SMS Host Library
+Subject: [linux-dvb] [TUA6030] Infineon TUA6030 driver available... =)
+Reply-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,84 +20,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------070804030408090905090406
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Uri Shkolnik wrote:
-> Andrea, Barry,
->
-> Finally, I have marketing approval to release the user space SMS host library (binary form) and the associate header file (as source). 
->   
+   You can find the configuration needed for this multi tuner on this page :
 
-nice to hear again about it. of course this lib bind the SMS host driver
-interface, right?
+   This tuner can do everything analog (PAL (including SECAM)/ NTSC / FM))
 
-is there a sample application to borrow from or same API documentation
-inside?
-
-> Now you can test DAB/T-DMB with SMS based devices....
->
-> One problem still remain, true I can attach the header to a post mailed to this ML, but the library is about 1,3MByte.... 
->   
-
-for me, you can happily attach the lib to a PM.
-
-for a broader availability, you should look for a ftp/http hosting.
-
-i don't really know if a binary lib fits the scope of linuxtv.org very
-well, but the web is full of free file hosting services..
-
-ciao
-
-andrea
-
-> Do you think that FTP will be a good solution?
->
->
-> Uri
->
->
->       
->
->   
+      http://tanguy.ath.cx/index.php?q=SAA7130
 
 
-
---------------070804030408090905090406
-Content-Type: text/x-vcard; charset=utf-8;
- name="a_venturi.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="a_venturi.vcf"
-
-begin:vcard
-fn:Andrea Venturi
-n:;Andrea Venturi
-org:Avalpa Digital Engineering SRL
-adr;dom:;;Via dell'Arcoveggio 49/5;Bologna;BO;40129
-email;internet:a.venturi@avalpa.com
-title:CEO
-tel;work:+39 0514187531
-tel;cell:+39 3477142994
-url:www.avalpa.com
-version:2.1
-end:vcard
+   Full PC-Basic SAA7130/TUA6030 card driver will follow soon (Graphics)
+   when IR remote control will be configured correctly... GPIOs
 
 
---------------070804030408090905090406
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+   Hope this code could be included in v4l kernel sources !
+   Cheers
+
+--
+Tanguy Pruvot                         email : tanguy.pruvot@gmail.com
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------070804030408090905090406--
