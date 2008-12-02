@@ -1,16 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
+Received: from nf-out-0910.google.com ([64.233.182.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <admin@monolithmc.com>) id 1LDLUY-0004XY-6H
-	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 17:12:50 +0100
-Received: by bwz11 with SMTP id 11so1041971bwz.17
-	for <linux-dvb@linuxtv.org>; Thu, 18 Dec 2008 08:12:16 -0800 (PST)
-Message-ID: <e816454e0812180809h59d1b75q470f34b438b91ff7@mail.gmail.com>
-Date: Thu, 18 Dec 2008 11:09:06 -0500
-From: "Andrew Barbaccia" <andrew@monolithmc.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <e9hack@googlemail.com>) id 1L7b9r-00053u-JN
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 20:43:44 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so1899744nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 11:43:40 -0800 (PST)
+Message-ID: <49358FE8.9020701@googlemail.com>
+Date: Tue, 02 Dec 2008 20:43:36 +0100
+From: e9hack <e9hack@googlemail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb]  HVR 2250 Status
+To: linux-dvb@linuxtv.org
+References: <492168D8.4050900@googlemail.com>	
+	<19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>
+	<c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>
+In-Reply-To: <c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>
+Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
+ which outputs the wrong frequency if the current tuned transponder
+ is scanned only
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,60 +24,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0643453742=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0643453742==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_34075_3537790.1229616546737"
+Alex Betis schrieb:
+ > I don't understand what's wrong with NIT advartised frequency?
+> For example, many satelite sites (such as lyngsat) have different
+> frequencies listed for the same channel, generally a difference of 1 MHz
+> here and there. 
 
-------=_Part_34075_3537790.1229616546737
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+If I do scan the tuned transponder only (parameter '-c'), scan will copy all NIT entries
+to the same transponder data. The output contains the last frequency, which was found. On
+DVB-C, the NIT contains the frequencies of all transponders. If VDR has tuned to the
+113MHz transponder and I scan this transponder, I should got 113MHz and QAM64 modulation,
+but I get e.g. 466MHz and QAM256 modulation. The frequency changes on every scan.
 
-I was wondering how the development on the HVR2250 was coming along. A
-mythtv wiki page shows:
-Excerpt from an email from Hauppauge support on 11-19-2008: "Support for the
-WinTV-HVR-2250 is expected by the end of the year."
-
-Are they accurate on this email? Looking around on google shows that Steve
-Toth has the basis for this completed.
-
-Thanks for any info you may have! I'm anxious to test and help debug.
---
-Andrew Barbaccia
-
-------=_Part_34075_3537790.1229616546737
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;">I was wondering how the development on the HVR2250 was coming along. A mythtv wiki page shows:</span><div><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;"><br>
-</span></div><div><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;"><span class="Apple-style-span" style="font-family: &#39;Times New Roman&#39;; font-size: 16px; line-height: normal; "><div style="margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; font: normal normal normal small/normal arial; ">
-<span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px; ">Excerpt from an email from Hauppauge support on 11-19-2008: &quot;Support for the WinTV-HVR-2250 is expected by the end of the year.&quot;</span></div>
-<div style="margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; font: normal normal normal small/normal arial; "><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;"><br>
-</span></div><div style="margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; font: normal normal normal small/normal arial; "><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;">Are they accurate on this email? Looking around on google shows that Steve Toth has the basis for this completed.</span></div>
-<div style="margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; font: normal normal normal small/normal arial; "><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;"><br>
-</span></div><div style="margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; font: normal normal normal small/normal arial; "><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;">Thanks for any info you may have! I&#39;m anxious to test and help debug.</span></div>
-<div style="margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; font: normal normal normal small/normal arial; "><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;">--</span></div>
-<div style="margin-top: 8px; margin-right: 8px; margin-bottom: 8px; margin-left: 8px; font: normal normal normal small/normal arial; "><span class="Apple-style-span" style="font-family: -webkit-sans-serif; line-height: 19px;">Andrew Barbaccia</span></div>
-</span></span></div>
-
-------=_Part_34075_3537790.1229616546737--
+-Hartmut
 
 
---===============0643453742==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0643453742==--
