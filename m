@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.infomir.com.ua ([79.142.192.5] helo=infomir.com.ua)
+Received: from sd-green-dreamhost-133.dreamhost.com ([208.97.187.133]
+	helo=webmail4.sd.dreamhost.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vdp@teletec.com.ua>) id 1LHdKl-00036V-CL
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 13:04:27 +0100
-Received: from [10.128.0.10] (iptv.infomir.com.ua [79.142.192.146])
-	by infomir.com.ua with ESMTP id 1LHdKg-000879-9Z
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 14:04:22 +0200
-Message-ID: <495A0E46.6030903@teletec.com.ua>
-Date: Tue, 30 Dec 2008 14:04:22 +0200
-From: Dmitry Podyachev <vdp@teletec.com.ua>
-MIME-Version: 1.0
+	(envelope-from <cl@qgenuity.com>) id 1L7f0E-0003Rc-16
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 00:50:03 +0100
+Received: from webmail.qgenuity.com (localhost [127.0.0.1])
+	by webmail4.sd.dreamhost.com (Postfix) with ESMTP id C80BD302B7
+	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 15:49:55 -0800 (PST)
+Message-ID: <427d6fd3d8cc5242de113141bc51aae6.squirrel@webmail.qgenuity.com>
+Date: Tue, 2 Dec 2008 15:49:55 -0800 (PST)
+From: cl@qgenuity.com
 To: linux-dvb@linuxtv.org
-References: <mailman.1.1230548402.10016.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.1.1230548402.10016.linux-dvb@linuxtv.org>
-Subject: [linux-dvb] dvb-t config for Ukraine_Kiev (ua)
+MIME-Version: 1.0
+Subject: [linux-dvb] Hauppage HVR-950 on Opensuse 10.3
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,33 +26,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-#file for dvb-apps/util/scan/dvb-t/ua-kiev
-#T freq     bw   fec_hi fec_lo  mod     transmission-mode guard-interval 
-hierarchy
-T 634000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
-T 650000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
-T 714000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
-T 818000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
+I recently tried to install an Hauppage HVR-950 on opensuse 10.3 the
+system is an AMD64 with kernel 2.6.22.19 using the v4l-dvb software.
 
+What I did:
 
-#dvbt.conf channels list for  Ukraine_Kiev (for 
-dvb-apps/util/szap/channels-conf/dvb-t/ua-kiev)
+1) Firmware:
+wget
+http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
 
-UT-1:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:4111:4112:1
-RADA:634000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:4131:4132:3
+unzip HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
+./extract_xc3028.pl
+cp xc3028-v27.fw /lib/firmware
 
-5 
-KANAL:650000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:4311:4312:1
-MEGASPORT:650000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:4321:4322:2
-TET:650000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:4331:4332:3
-OTV:650000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:4341:4342:4
-ICTV:650000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:4351:4352:5
+(The firmware is there in the /lib/firmware directory)
 
-KDRTRK:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:1011:1012:1
-KULTURA:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:1031:1032:3
-UR1:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:0:1111:11
-UR2:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:0:1121:12
-UR3:714000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:0:1131:13
+2) Downloaded drivers with hg clone http://linuxtv.org/hg/v4l-dvb
+
+3) make & make install in v4l-dvb directory
+
+4) Plugged usb dongle into machine
+
+The result that I get is:
+
+au0828: disagrees about version of symbol tveeprom_read
+au0828: Unknown symbol tveeprom_read
+au0828: disagrees about version of symbol tveeprom_hauppauge_analog
+au0828: Unknown symbol tveeprom_hauppauge_analog
+au0828: disagrees about version of symbol tveeprom_read
+au0828: Unknown symbol tveeprom_read
+au0828: disagrees about version of symbol tveeprom_hauppauge_analog
+au0828: Unknown symbol tveeprom_hauppauge_analog
+au0828: disagrees about version of symbol tveeprom_read
+au0828: Unknown symbol tveeprom_read
+au0828: disagrees about version of symbol tveeprom_hauppauge_analog
+au0828: Unknown symbol tveeprom_hauppauge_analog
+
+no /dev/video0 device is created and it looks as if the hardware is not
+installed. What am I doing wrong?
 
 
 _______________________________________________
