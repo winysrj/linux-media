@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1LA4cO-0001Z4-Vx
-	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 16:35:26 +0100
-Date: Tue, 09 Dec 2008 16:34:51 +0100
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <20081206170753.69410@gmx.net>
-Message-ID: <20081209153451.75130@gmx.net>
+Received: from ug-out-1314.google.com ([66.249.92.174])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L7bZH-0007cR-Em
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 21:10:01 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so3115750ugc.16
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 12:09:55 -0800 (PST)
+Date: Tue, 2 Dec 2008 21:09:43 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Christoph Pfister <christophpfister@gmail.com>
+In-Reply-To: <19a3b7a80812020821udb493a1m3e4d2733a54e87f0@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0812021931570.9198@ybpnyubfg.ybpnyqbznva>
+References: <19a3b7a80812020821udb493a1m3e4d2733a54e87f0@mail.gmail.com>
 MIME-Version: 1.0
-References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
-	<4935B72F.1000505@insite.cz>
-	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
-	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
-	<49371511.1060703@insite.cz> <4938C8BB.5040406@verbraak.org>
-	<c74595dc0812050100q52ab86bewebe8dbf17bddbb51@mail.gmail.com>
-	<20081206170753.69410@gmx.net>
-To: "Hans Werner" <HWerner4@gmx.de>, michel@verbraak.org, alex.betis@gmail.com
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Technisat HD2 cannot szap/scan
+Subject: Re: [linux-dvb] changes for de-Nuernberg and de-Stuttgart;
+ de-Baden-Wuerttemberg
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,162 +22,194 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > 2008/12/5 Michel Verbraak <michel@verbraak.org>
-> > =
+On Tue, 2 Dec 2008, Christoph Pfister wrote:
 
-> > >  Alex,
-> > >
-> > > I have the following problem. I'm not able to rotate my rotor with my
-> > HD2
-> > > card and any of the drivers (liplianin, v4l-dvb, Manu). I tried GotoX
-> > diseqc
-> > > commands as well as the goto position used by scan-s2.
-> > > As Pavel also has problems with diseqc (switch with A B input) I think
-> > it
-> > > is not in the scan-s2 an szap-s2 utilities but in the driver.
-> > >
-> > I don't have a rotor nor HD2 card, so I can't help with that.
-> > I do have 8-1 disecq that works fine with Igor's drivers (previously
-> > worked
-> > fine with Manu's drivers as well) and scan-s2 utility using Twinhan 1041
-> > card.
-> =
+> Changes collected by Barry. The de-Baden-Wuerttemberg is a combination
+> of different transmitters and although I tend not to include it in the
+> repository (quite hard to maintain)
 
-> I have a Twinhan 1041 card and I have problems with the s2-liplianin
-> driver
-> which I have not fully understood yet.
-> =
+Actually, I expect that -- apart from Bad Mergentheim as
+noted, exact frequencies not yet discovered -- there should
+be no changes needed for quite some time.  Here's why:
 
-> 1) Scan-s2 works for a while but in a long scan I eventually I start
-> getting
-> "Slave RACK Fail !" messages in dmesg and scan-s2 hangs. Perhaps
-> increasing to
-> msleep(15) in mantis_ack_wait helps (it hasn't eliminated the problem),
-> but I am not sure.
-> There are messages in /var/log/messages from
-> stb6100_[set/get]_[frequency/bandwidth]
-> which say "Invalid parameter". Only shutting down the computer and
-> restarting seems to
-> recover from this once it has happened.
+As of November 2008, nearly the last of the analogue
+transmitters in Deutschland were switched over to DVB-T
+or in the case of filler repeaters, switched off.  In
+addition to the Taubertal, I'm aware that in Bayern, the
+same will happen to GAP if not one other location.
 
-I looked into this more and found a possible solution. The problem =
+The changed frequencies here as well as in other Bundeslaender
+now match those assigned in Geneve in 2006, so throughout
+all the scanfiles, there should be no new changes needed,
+apart from:
 
-occurs in the i2c handling for stb6100_read_regs or stb6100_write_regs.
+A few transmitters are still using Band III VHF channels;
+these will be changed so that all DVB-T in Germany will be
+on UHF frequencies.  Those are not in this file but to be
+found in other Bundeslaender.  These allocations, resulting
+from GE06 or RRC06, however you wish to search for it, are
+expected to suffice for the next 20 or 30 years.  (Heh.)
 
-diff -r 29523b6d6cc0 linux/drivers/media/dvb/mantis/mantis_i2c.c
---- a/linux/drivers/media/dvb/mantis/mantis_i2c.c
-+++ b/linux/drivers/media/dvb/mantis/mantis_i2c.c
-@@ -42,7 +42,7 @@ static int mantis_ack_wait(struct mantis
-                dprintk(verbose, MANTIS_DEBUG, 1, "Master !I2CDONE");
-                rc =3D -EREMOTEIO;
-        }
--       while (!(mantis->mantis_int_stat & MANTIS_INT_I2CRACK)) {
-+       while (!(mantis->mantis_int_stat & MANTIS_INT_I2CDONE)) {
-                dprintk(verbose, MANTIS_DEBUG, 1, "Waiting for Slave RACK");
-                mantis->mantis_int_stat =3D mmread(MANTIS_INT_STAT);
-                msleep(5);
+Unlike France, which makes use of Multi-Frequency Networks
+and so every town with transmitter requires a separate
+scanfile, you can see the re-used frequencies of several
+SFNs, simplifying the uncommented portion of this list
+compared with trying to maintain redundant files for each
+transmitter site.
 
-The reason for this change is that usually both I2CRACK and I2CDONE bits
-are set in mantis_int_stat but there are occasions when I2CDONE can be set
-and I2CRACK is not (it seems particularly following attempts to tune to non=
--existent
-channels as you will do sometimes in a scan). The right number of I2CDONEs =
-occur
-for reading/writing the stb6100 registers, just no I2CRACKs.
+The GE06 frequency plan allocated six plus one UHF frequencies
+for DVB-T (or DVB-H or other 8MHz bandwidth use), so that in
+the current frequency layout, three multiplexes are assigned
+to the oeffentlich-rechtliche broadcasters (PSB), and three
+reserved for private commercial broadcasters -- the dual
+system or whatever they call it.  Unfortunately, I haven't
+found readable maps to show the areas and channels assigned
+for germany (while I have for Suisse).
 
-> =
+Unlike in, say, France, where private broadcasters are
+present at each transmitter site, in Germany, the privates
+have chosen to restrict themselves to a few larger metropolitan
+areas, such as Muenchen, Hamburg, Frankfurt/Main, and so on,
+and have shown no interest in even Stuttgart, apparently
+preferring to rely on CableTV and Satellite, or throwing
+around the idea, presently on ice, of encrypting their
+signals, even via DVB-T, and charging a subscription fee.
+Nor am I aware of any plans for local broadcasts, or any
+private broadcasts outside of Stuttgart, that don't rely
+heavily on a government helping hand or are near any sort
+of realisation.
 
-> 2) szap-s2 works for a while after a cold start, but I think if you stop
-> it and leave it for
-> 30 seconds or so =
+If these assigned and reserved frequencies come into use
+eventually, they can be added as appropriate -- if I get off
+my lazy arse and compile the list for Bayern or Hessen, you'll
+then see those frequencies.  Most likely, the ex-Bundespost-
+Telekom-whoever-they-are-now that manage the broadcast towers
+and transmitters will use the same locations listed here.
+
+The current allocation of three oe-r Muxen and three reserved
+privates is unlikely to see the parameters changed soon, as
+DVB-T is not seen as the primary distribution that analogue
+used to be until the last decade.  The Guard Interval matches
+the SFNs covering a wide area, and the use of almost exclusively
+high-powered widely-spaced transmitters without fillers needs
+a robust set of parameters that trade potential bitrate for
+a better signal under marginal reception (cf. the QAM and FEC
+used in the Alsace, where I read reports that the quality is
+readily affected adversely at comparable distances).
+
+While HD broadcasts in various forms have started and are due
+to start within years, I have heard nothing about plans to use
+DVB-T for them, either by adopting the existing Muxen for them,
+or taking over the remaining allocated but yet unused channels,
+possibly using DVB-T2 for that (the existing base of receivers
+is entirely DVB-T+MPEG-2, unlike in some countries, so a DVB-T+
+H.264 hybrid is highly unlikely).  Presently satellite is expected
+to be the primary distribution for HDTV (and thus CATV).
+
+This is of course based on what little I know of the broadcasters
+and I hope you won't hold me to my word if changes are made soon
+which I've not predicted here.
 
 
-sorry it is 1 minute, not 30 seconds
+As far as the neighbouring countries, France has started the
+five or six Muxen assigned by GE06, yet there continue to be
+some analogue broadcasts receivable along the Oberrhein, until
+something like 2012 or so.  As there are only two MFN transmitter
+sites which I list, if there are changes made to them in the
+coming years, that's somewhat easy to fix -- and as I noted as
+a comment, one of those two scanfiles presently doesn't even
+give frequencies in useful form.
 
-> the card goes into sleep mode and after that szap-s2
-> hangs. Strangely when
-> this happens a short scan-s2 run (not long enough to get the "Slave RACK
-> Fail!" problem) can wake
-> the card up again, and szap-s2 works after that.  But szap-s2 can't wake
-> it up itself and hangs in
-> get_pmt_pid on the line
-> if (((count =3D read(patfd, buf, sizeof(buft))) < 0) && errno =3D=3D EOVE=
-RFLOW){
-> =
+Switzerland has officially* stated there will be only a single
+frequency used for DVB-T per region, in spite of having received
+eight frequencies allocated (if I remember right) and has further
+stated* that DVB-T will remain SD, and HD will not be broadcast
+terrestrially.  A second frequency is used in several areas for
+DVB-H with little consumer acceptance at present.  Whether those
+proclamations will stand the test of time and still be true in
+five or ten years, I won't guess.  In Suisse, Cable is the
+primary means of content distribution of broadcast; presumably
+other non-over-the-air means will also see heavy use (DSL and
+other IP technologies).  Those frequencies shouldn't need any
+changes -- unless some parameter tweaks are needed to accomplish
+the stated plans of fitting five programmes onto a single SFN
+multiplex, which may have happened, I don't know...
 
-> When it goes into sleep mode I see the following in dmesg:
-> [  522.821625] _stb0899_read_reg: Reg=3D[0xf12a], data=3D58              =
-     =
+(*Well, I read it in an interview, and I'm no insider)
 
->                                                                     =
+Also, the existing CH Muxen are the PSB channels, except in
+some areas far from reach of BaWue; *possibly* there may be
+use by private broadcasters in areas like Basel or Zuerich if
+there gets to be enough interest -- presently all local or
+regional/national(?) private broadcasters are carried exclusively
+via cable.  There is currently more in the way of privates
+joining a DAB+ radio multiplex...  I also know of no plans to
+add the missing second of each of the language region TV
+broadcasters to a second DVB-T multiplex or using the same
+to allow an increased bitrate and quality for the existing
+channels on the present multiplex.
 
-> [  522.821632] stb0899_i2c_gate_ctrl: Disabling I2C Repeater ...          =
+Apart from some spillage from Austria near the Bodensee region,
+the other areas receiving out-of-area coverage do so from other
+regions of Germany.  Any needed tweaks to the parameters will
+certainly be effective for all of germany, as of the three PSB
+Muxen, one (ZDFmobil) is identical throughout all of Germany;
+the other two are regionally mixed from local PSB broadcasters
+or the regionalisation of the other national broadcaster (ARD
+Das Erste).
 
->                                                                     =
+Unlike the switchover in the UK for example, which is being
+carried out in steps, resulting in the need to change every
+frequency list (change in ERP, modulation and FFT, frequencies,
+does the offset disappear?), these frequencies listed here
+are basically those initially put into service, and, apart
+from the frequency tweaking (to match GE06; why this was not
+initially the case is unknown to me), low-maintenance.
 
-> [  522.821634] stb0899_write_regs [0xf12a]: 58                            =
 
->                                                                     =
 
-> [  522.822681] stb0899_sleep: Going to Sleep .. (Really tired .. :-))
-> =
+The alternative I see to this single file is to break it into
+the 14 sites in BaWue from which DVB-T (will) radiates, which
+is a lot more work for redundant info, and also makes it hard
+for those out in the boonies to find a suitable transmitter
+(quick, where's Brandenkopf or how would you name it instead,
+and would you even know it's in BaWue if you're not a native
+of that specific area or a TV/Radio installer?)
 
-> So the Twinhan 1041 is quite useless for me at the moment.
+The other alternative I have is to create a de-all, similar to
+the ch-all; the latter of which seems to just list the GE06
+allocations and makes no mention of what regions see which
+frequencies -- eventually after I learn the details of all
+the other Bundeslaender, I might create such a file.
 
-Try the following channels.conf for Astra at 19.2E:
 
-TVEi;CANALSATELLITE:11567:vS0C56M2:S19.2E:22000:58:59:61:0:9022:1:1024:0
-ZDF;ZDFvision:11953:hS0C34M2:S19.2E:27500:110:120=3Ddeu,121=3D2ch;125=3Ddeu=
-:130:0:28006:1:1079:0
+The intent of this file is to share what I would create for
+myself for use when travelling to different regions, as well
+as to try to present the mental picture of what I create for
+each region in the unlikely event that anyone would ever
+hire me back into the broadcasting world where such an
+overview could be useful.  Or something.
 
-Then do the following (in this order): =
+If anyone else thinks I'm just wasting my time, I'll probably
+put it on hold until the next time I find myself hitting the
+road, so feel free to voice your opinions.
 
-0. point dish to 19.2E.
-1. tune to TVEi
-szap-s2 -a 0 -r -p -V -c ~/channels.conf.astra1 "TVEi;CANALSATELLITE"
 
-2. hit ctrl-c, and wait 1 minute until the frontend sleeps (check dmesg)
 
-3. try to tune to ZDF. It FAILS (hangs).
-szap-s2 -a 0 -r -p -V -c ~/channels.conf.astra1 "ZDF;ZDFvision"
+JEEZ do I write a lot, when I could be reverse-engineering
+drivers, or doing something useful...
 
-4. ctrl-c and then szap-s2 to TVEi. That WORKS.
-
-5. ctrl-c and then quickly (before sleep) szap-s2 to ZDF. Now it WORKS too.
-You can keep changing to other channels provided that it is not allowed to =
-
-get into a sleep.
-
-Similar problems are seen using scan-s2 instead of szap-s2.
-
-I suspect part of the frontend state (hw or sw) survives the sleep and prev=
-ents tuning
-to channels with different parameters subsequently. In other words the init=
-ialization
-called when resuming from the sleep is not bringing the card to the exactly=
- the same
-reproducible state each time. A successful tuning (4 above) fixes things on=
-ly until the
-next sleep. I don't know yet where the problem is, but something isn't gett=
-ing initialized
-properly -- in the stb0899, stb6100 or maybe one of the parameter structs?
-
-Can someone reproduce this? (or fix the problem ;-) ).
-
-Hans
--- =
-
-Release early, release often.
-
-Sensationsangebot verl=E4ngert: GMX FreeDSL - Telefonanschluss + DSL =
-
-f=FCr nur 16,37 Euro/mtl.!* http://dsl.gmx.de/?ac=3DOM.AD.PD003K1308T4569a
+barry bouwsma
+oh, by the way, all I wrote above is from memory without
+bothering to verify what I vaguely recall reading months ago
+when unable to sleep, and filtered through an inebriated haze,
+so trust and believe at your own risk
 
 _______________________________________________
 linux-dvb mailing list
