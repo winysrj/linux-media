@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout1-sn1.fre.skanova.net ([81.228.11.98])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jyrki.n@telia.com>) id 1LDwOp-00007U-Nf
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 08:37:24 +0100
-Message-ID: <494CA097.9060501@telia.com>
-Date: Sat, 20 Dec 2008 08:36:55 +0100
-From: Jyrki Niskala <jyrki.n@telia.com>
+Received: from mail54.messagelabs.com ([216.82.241.131])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <aturbide@rogers.com>) id 1L7aoN-0002Pl-Fc
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 20:21:33 +0100
+Received: from cr344472a (unknown [172.28.23.212])
+	by imap1.toshiba.ca (Postfix) with SMTP id 3807E3FC83
+	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 14:12:34 -0500 (EST)
+Message-ID: <008401c954b3$31ea2f00$0000fea9@cr344472a>
+From: "Alain Turbide" <aturbide@rogers.com>
+To: <linux-dvb@linuxtv.org>
+References: <99503.50867.qm@web88302.mail.re4.yahoo.com><003301c953fc$84e23110$0000fea9@cr344472a><a3ef07920812020937jb0feff7q695f91dbd2156b5e@mail.gmail.com>
+	<007801c954b1$29b4d030$0000fea9@cr344472a>
+Date: Tue, 2 Dec 2008 14:21:36 -0500
 MIME-Version: 1.0
-To: Simon Kenyon <simon@koala.ie>
-References: <494B9754.6000403@koala.ie> <494BE451.3080407@telia.com>
-In-Reply-To: <494BE451.3080407@telia.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
+Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020,
+	bt_8xx driver + frontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,59 +28,106 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jyrki Niskala wrote:
-> Simon Kenyon wrote:
->   
->> just bought what i though was a t-500 and when i opened the box it 
->> contained a td-500
->>
->> the wiki says (in bright bold colours) that it is not (and never would 
->> be) supported
->>
->> however, from looking at the mailing list it appear to be supported
->>
->> i can of course take it out of the sealed bag and try
->>
->> however, to preserve any change of swapping it i thought i would ask 
->> here first
->>
->> regards
->> --
->> simon
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>   
->>     
-> Hi
+modprobe dst dst_algo=1 (to select the HW tuning algo ) works as well.. 
+Didnt realize the hw algo worked for those cards.
+
+----- Original Message ----- 
+From: "Alain Turbide" <aturbide@rogers.com>
+To: <linux-dvb@linuxtv.org>
+Sent: Tuesday, December 02, 2008 2:05 PM
+Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020,bt_8xx driver 
++ frontend
+
+
+> Well, it's not a difficult fix now that I see it.  The issue was that the
+> original default for FE_ALGO_SW was 0 while FE_ALGO_HW was 1.
+> Since there is an older documented option for the dst module called 
+> dst_algo
+> that some people might still be using to force the tuning algo to sofware 
+> by
+> setting dst_algo=0, there is no choice but to also make the default of
+> DVBFE_ALGO_SW to also be 0 so that the values will match and the new code
+> will still function with users who force dst_algo=0 on the dst module 
+> load..
+> The fix would thus be to go from: this in dvb_frontend.h
+> enum dvbfe_algo {
+>        DVBFE_ALGO_HW                   = (1 <<  0),
+>        DVBFE_ALGO_SW                   = (1 << 1),
+>        DVBFE_ALGO_CUSTOM               = (1 <<  2),
+>        DVBFE_ALGO_RECOVERY             = (1 << 31)
+> };
 >
-> For me it's still kind of 80% working status, it works on 4 of 5 muxes 
-> (read more about it here: 
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030601.html).
-> I been tracking the problem from time to time by comparing usbsnoop logs 
-> from the windows driver. Windows driver works on all 5 muxes. For the 
-> moment I have found some differences in demod driver (dib7000p) and the 
-> tuner driver (dib0700). I will have some more time during Christmas 
-> holiday to investigate it further.
+> to this:
+> enum dvbfe_algo {
+>        DVBFE_ALGO_HW                   = (1 <<  0),
+>        DVBFE_ALGO_SW                   = 0,
+>        DVBFE_ALGO_CUSTOM               = (1 <<  2),
+>        DVBFE_ALGO_RECOVERY             = (1 << 31)
+> };
 >
-> Regards, Jyrki
+> This is what I've done now and works well. This is the only change 
+> required
+> to fix the issue.   In dst.c we could also default dst_algo to
+> DVB_FRONTEND_SW instead of 0 to make it more robust.  I can't see any code
+> else where that depends on DVBFE_ALGO_SW being set to 2.
+>
+> For those that do not want to patch code, the alternate way to get the 
+> cards
+> to work is to simply load the dst module with the dst_algo parm set. to 2:
+> ie. modprobe dst dst_algo=2   ( to have the dst module return the current
+> value of DVBFE_ALGO_SW) back to the front end code.
+>
+>
+>
+>
+>
+> ----- Original Message ----- 
+> From: "VDR User" <user.vdr@gmail.com>
+> To: "Alain Turbide" <aturbide@rogers.com>
+> Cc: <linux-dvb@linuxtv.org>
+> Sent: Tuesday, December 02, 2008 12:37 PM
+> Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020, bt_8xx 
+> driver
+> + frontend
+>
+>
+>> 2008/12/1 Alain Turbide <aturbide@rogers.com>:
+>>> Digging in a little further.The dst_algo (which the twinhan uses) is set
+>>> to
+>>> return  0 as the default setting for the SW algo in dst.c, yet in
+>>> dvb_frontend.h, the DVBFE_ALGO_SW algo is defined as 2.  Which is the
+>>> correct one here? Should dst.c be changed to return 2 as sw or is 0 the
+>>> correct number for the SW algo and thus DVBFE_ALGO_SW be changed to
+>>> return
+>>> 0?
+>>
+>> Is nobody else looking into this?!  I would think this bug would have
+>> received a little more attention considering the number of people
+>> affected!
+>>
+>> Please keep up the work, it's much appreciated!  I, on behalf of
+>> several others who aren't subscribed to the ml, am monitoring this
+>> thread in hopes of a proper fix.
+>>
+>> Thanks!
+>> -Derek
+>
+>
+> ______________________________________________________________________
+> This email has been scanned by the MessageLabs Email Security System.
+> For more information please visit http://www.messagelabs.com/email
+> ______________________________________________________________________
 >
 > _______________________________________________
 > linux-dvb mailing list
 > linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-Hi,
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
 
-Your post got me working on my problems, and the good thing is that I 
-finally got  it working by using "auto guard interval" instead of  
-default "1/8 guard interval".
 
-Merry  Christmas
-
-/ Jyrki
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email 
+______________________________________________________________________
 
 _______________________________________________
 linux-dvb mailing list
