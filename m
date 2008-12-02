@@ -1,20 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHCUvPE020194
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 07:30:57 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHCUr3T027579
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 07:30:54 -0500
-Date: Wed, 17 Dec 2008 13:31:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-In-Reply-To: <20081216103113.13174.97907.sendpatchset@rx1.opensource.se>
-Message-ID: <Pine.LNX.4.64.0812171328150.5465@axis700.grange>
-References: <20081216103113.13174.97907.sendpatchset@rx1.opensource.se>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] video: sh_mobile_ceu cleanups and comments V2
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2FZrQo031025
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 10:35:53 -0500
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB2FZbcs019534
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 10:35:37 -0500
+From: hvaibhav@ti.com
+To: video4linux-list@redhat.com
+Date: Tue,  2 Dec 2008 21:05:19 +0530
+Message-Id: <1228232119-10750-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
+Cc: davinci-linux-open-source-bounces@linux.davincidsp.com,
+	Karicheri Muralidharan <m-karicheri2@ti.com>, linux-omap@vger.kernel.org
+Subject: [PATCH 1/2] Addition of set/get Routing ioctl support[V4]
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,48 +25,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 16 Dec 2008, Magnus Damm wrote:
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> From: Magnus Damm <damm@igel.co.jp>
+Fixed Community review comments:
 
-Magnus, sorry, looks like you missed a couple more:
+s/g_input:
+    Removed input/output related ioctl, and made
+    use of s/g_routing ioctl. Added entry for the
+    same to the v4l2-int framework.
 
-> @@ -452,13 +459,13 @@ static int sh_mobile_ceu_set_bus_param(s
+s/g_input:
+    Since from decoder point of view we really don't
+    care about output, and anyway we can tie this
+    feature with s/g_routing. So removed s/g_output
+    ioctl.
+    This was added for completeness in the previous patch.
 
-	if ((icd->current_fmt->fourcc == V4L2_PIX_FMT_NV21) ||
-	    (icd->current_fmt->fourcc == V4L2_PIX_FMT_NV61))
-		value ^= 0x00000100; /* swap U, V to change from NV1x->NVx1 */
-
-	value |= (common_flags & SOCAM_VSYNC_ACTIVE_LOW) ? (1 << 1) : 0;
-	value |= (common_flags & SOCAM_HSYNC_ACTIVE_LOW) ? (1 << 0) : 0;
-	value |= (buswidth == 16) ? (1 << 12) : 0;
-
-Let's make it complete, ok?
-
->  
->  	if (yuv_mode) {
->  		width = icd->width * 2;
-> -		width = (buswidth == 16) ? width / 2 : width;
-> +		width = buswidth == 16 ? width / 2 : width;
->  		cfszr_width = cdwdr_width = icd->width;
->  	} else {
->  		width = icd->width * ((icd->current_fmt->depth + 7) >> 3);
-> -		width = (buswidth == 16) ? width / 2 : width;
-> -		cfszr_width = (buswidth == 8) ? width / 2 : width;
-> -		cdwdr_width = (buswidth == 16) ? width * 2 : width;
-> +		width = buswidth == 16 ? width / 2 : width;
-> +		cfszr_width = buswidth == 8 ? width / 2 : width;
-> +		cdwdr_width = buswidth == 16 ? width * 2 : width;
->  	}
->  
->  	ceu_write(pcdev, CAMOR, 0);
-> 
-
-Thanks
-Guennadi
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: R Sivaraj <sivaraj@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+ include/media/v4l2-int-device.h |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 include/media/v4l2-int-device.h
+
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+old mode 100644
+new mode 100755
+index 9c2df41..5e3e193
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -183,6 +183,10 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_s_crop_num,
+ 	vidioc_int_g_parm_num,
+ 	vidioc_int_s_parm_num,
++	vidioc_int_querystd_num,
++	vidioc_int_s_std_num,
++	vidioc_int_g_video_routing_num,
++	vidioc_int_s_video_routing_num,
+
+ 	/*
+ 	 *
+@@ -284,6 +288,10 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
++V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
++V4L2_INT_WRAPPER_1(g_video_routing, int, *);
++V4L2_INT_WRAPPER_1(s_video_routing, int, );
+
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+--
+1.5.6
 
 --
 video4linux-list mailing list
