@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from asmtp1.iomartmail.com ([62.128.201.248])
+Received: from mail-qy0-f16.google.com ([209.85.221.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lawrence@softsystem.co.uk>) id 1LDdML-0001qp-Di
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 12:17:34 +0100
-From: Lawrence Rust <lawrence@softsystem.co.uk>
-To: Darron Broad <darron@kewl.org>
-Date: Fri, 19 Dec 2008 12:16:37 +0100
-References: <200812181804.34557.lawrence@softsystem.co.uk>
-	<200812191127.35952.lawrence@softsystem.co.uk>
-	<7882.1229683311@kewl.org>
-In-Reply-To: <7882.1229683311@kewl.org>
+	(envelope-from <alex.betis@gmail.com>) id 1L7YRw-0007mp-Dt
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 17:50:13 +0100
+Received: by qyk9 with SMTP id 9so3593969qyk.17
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 08:49:38 -0800 (PST)
+Message-ID: <c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>
+Date: Tue, 2 Dec 2008 18:49:38 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: "Christoph Pfister" <christophpfister@gmail.com>
+In-Reply-To: <19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812191216.38259.lawrence@softsystem.co.uk>
-Cc: Linux-dvb list <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Nova-S-Plus audio line input
+References: <492168D8.4050900@googlemail.com>
+	<19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
+	which outputs the wrong frequency if the current tuned transponder
+	is scanned only
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,94 +24,123 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0645565337=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Friday 19 December 2008 11:41:51 Darron Broad wrote:
-> In message <200812191127.35952.lawrence@softsystem.co.uk>, Lawrence Rust
-> wrote:
->
-> Hiya.
->
-> >On Thursday 18 December 2008 20:17:41 Darron Broad wrote:
-> >> hi
-> >>
-> >> >I have a Hauppauge Nova-S-plus PCI card and it works great with
-> >> > satellite reception.  However, I would also like to use it with an
-> >> > external DVB-T box that outputs composite video and line audio but
-> >> > when I select the composite video input I can see a picture but get no
-> >> > sound.
-> >> >
-> >> >I'm using kernel version 2.6.24 so I dug around those sources and I see
-> >> > in cx88-cards.c that there's no provision for line audio in.  However,
-> >> > the latest v4l top of tree sources have added support for I2S audio
-> >> > input and 'audioroute's.
-> >> >
-> >> >So I modded my 2.6.24 sources to support the external ADC and enable
-> >> > I2S audio input using the struct cx88_board cx88_boards.extadc flag,
-> >> > similar to the changes made in the current top of tree.  This now
-> >> > means that I can watch DVB-T :-)  I don't believe the changes affect
-> >> > any other cards.
-> >> >
-> >> >I would like to see support added for the Nova-S-Plus audio line input
-> >> > in the kernel tree asap.  What's the best way of achieving this?  I
-> >> > can supply a diff for 2.6.24 or the current top of tree.
-> >>
-> >> I would be interested to see what changes you made to achieve this
-> >> and am able to test. Please share your patch for testing.
-> >>
-> >> Thanks
-> >> darron
-> >
-> >Diffs for linux kernel 2.6.24 andcd out/linux.x86/release/bin/src the 
-current v4l tip attached.
-> >
-> >The change for the current top of tree is minimal - just a few lines in
-> > the static configuration data of cx88-cards.c.
-> >
-> >The changes for 2.6.24 parallel the changes made for audioroutes in the
-> >current tip.
-> >
-> >Note the changes to cx88_alsa.c to remove the tuner volume control if
-> > there's no TV tuner and to re-group the switches more logically.  I was
-> > thinking of adding some code to adjust the WM8775 gain - what do you
-> > think?
-> >
-> >HTH.
->
-> Thanks for that Lawrence. I will test this soon.
->
-> With regard to the gain control on the WM8775, perhaps you can
-> look at this:
->
-> http://hg.kewl.org/v4l-dvb-test/shortlog
->
-> You can find some patches here:
-> http://hg.kewl.org/v4l-dvb-test/rev/c1d603af3bef
-> http://hg.kewl.org/v4l-dvb-test/rev/302d51bf2baf
-> http://hg.kewl.org/v4l-dvb-test/rev/8b24b8211fc9
->
-> Which sound like they would do what you desire?
->
-> I should rebuild these patches soon to for better testing purposes
-> but in the meantime please test if you are interested.
+--===============0645565337==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_104194_25976530.1228236578247"
 
-Yes, these patches look _exactly_ like what I was thinking of.  The control of 
-audio overload was my main priority, together with a nice ALSA interface.  
-I'll give them a try and report back.
+------=_Part_104194_25976530.1228236578247
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-NB I can build current top of tree, but I'm only testing with my Nova card on 
-kernel 2.6.24.  I don't have a proper test m/c setup to try anything too 
-bleeding edge.
+On Tue, Dec 2, 2008 at 6:34 PM, Christoph Pfister <
+christophpfister@gmail.com> wrote:
 
-Thanks.
+> 2008/11/17 e9hack <e9hack@googlemail.com>:
+> > Hi,
+> >
+> > if the current tuned transponder is scanned only and the output needs the
+> frequency of the
+> > transponder, it is used the last frequency, which is found during the NIT
+> scanning. This
+> > is wrong. The attached patch will fix this problem.
 
--- Lawrence Rust
+I probably missed that post (or forgot about it already :)).
+
+What scan is being discused? dvb-apps scan utility (or the scan-s2 that I
+maintain)?
+
+
+>
+>
+> Any opinion about this patch? It seems ok from a quick look, so I'll
+> apply it soon if nobody objects.
+
+I don't understand what's wrong with NIT advartised frequency?
+For example, many satelite sites (such as lyngsat) have different
+frequencies listed for the same channel, generally a difference of 1 MHz
+here and there. That's probably caused since wide scans are probably done on
+all the possible frequencies.
+Since driver tunning algorithm can zigzag in some frequency bounds it will
+probably be able to lock on the channel if you'll specify frequencies such
+as the following, assuming the real channel frequency is 12000000:
+11998000
+11999000
+12000000
+12001000
+12002000
+
+NIT specifies the correct frequency and that one should be used next time to
+tune.
+
+Am I missing something?
+
+>
+>
+> > Regards,
+> > Hartmut
+>
+> Thanks,
+>
+> Christoph
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_104194_25976530.1228236578247
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr"><br><br>
+<div class="gmail_quote">On Tue, Dec 2, 2008 at 6:34 PM, Christoph Pfister <span dir="ltr">&lt;<a href="mailto:christophpfister@gmail.com">christophpfister@gmail.com</a>&gt;</span> wrote:<br>
+<blockquote class="gmail_quote" style="PADDING-LEFT: 1ex; MARGIN: 0px 0px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">2008/11/17 e9hack &lt;<a href="mailto:e9hack@googlemail.com">e9hack@googlemail.com</a>&gt;:<br>&gt; Hi,<br>
+&gt;<br>&gt; if the current tuned transponder is scanned only and the output needs the frequency of the<br>&gt; transponder, it is used the last frequency, which is found during the NIT scanning. This<br>&gt; is wrong. The attached patch will fix this problem.</blockquote>
+
+<div>I probably missed that post (or forgot about it already :)).</div>
+<div>&nbsp;</div>
+<div>What scan is being discused? dvb-apps scan utility (or the scan-s2 that I maintain)?</div>
+<div>&nbsp;</div>
+<blockquote class="gmail_quote" style="PADDING-LEFT: 1ex; MARGIN: 0px 0px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid"><span id=""></span><br><br>Any opinion about this patch? It seems ok from a quick look, so I&#39;ll<br>apply it soon if nobody objects.</blockquote>
+
+<div>I don&#39;t understand what&#39;s wrong with NIT advartised frequency?</div>
+<div>For example, many satelite sites (such as lyngsat) have different frequencies listed for the same channel, generally a difference of 1 MHz here and there. That&#39;s probably caused since wide scans are probably done on all the possible frequencies.</div>
+
+<div>Since driver tunning algorithm can zigzag in some frequency bounds it will probably be able to lock on the channel if you&#39;ll specify frequencies such as the following, assuming the real channel frequency is 12000000:</div>
+
+<div>11998000</div>
+<div>11999000</div>
+<div>12000000</div>
+<div>12001000</div>
+<div>12002000</div>
+<div>&nbsp;</div>
+<div>NIT specifies the correct frequency and that one should be used next time to tune.</div>
+<div>&nbsp;</div>
+<div>Am I missing something?</div>
+<blockquote class="gmail_quote" style="PADDING-LEFT: 1ex; MARGIN: 0px 0px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid"><span id=""></span><br><br>&gt; Regards,<br>&gt; Hartmut<br><br>Thanks,<br><br>Christoph<br><br>_______________________________________________<br>
+linux-dvb mailing list<br><a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br><a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</blockquote></div><br></div>
+
+------=_Part_104194_25976530.1228236578247--
+
+
+--===============0645565337==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0645565337==--
