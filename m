@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <storkus@storkus.com>) id 1L8OCX-0006hO-IA
-	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 01:05:46 +0100
-Message-Id: <1228435541.13351.1288344033@webmail.messagingengine.com>
-From: storkus@storkus.com
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-Content-Disposition: inline
+Received: from mail129.messagelabs.com ([216.82.250.147])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <aturbide@rogers.com>) id 1L7aaL-0000kO-2i
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 20:07:02 +0100
+Received: from cr344472a (unknown [172.28.23.212])
+	by imap1.toshiba.ca (Postfix) with SMTP id 8F8583FC8B
+	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 13:58:01 -0500 (EST)
+Message-ID: <007801c954b1$29b4d030$0000fea9@cr344472a>
+From: "Alain Turbide" <aturbide@rogers.com>
+To: <linux-dvb@linuxtv.org>
+References: <99503.50867.qm@web88302.mail.re4.yahoo.com>
+	<003301c953fc$84e23110$0000fea9@cr344472a>
+	<a3ef07920812020937jb0feff7q695f91dbd2156b5e@mail.gmail.com>
+Date: Tue, 2 Dec 2008 14:05:44 -0500
 MIME-Version: 1.0
-References: <1228413511.30817.1288290035@webmail.messagingengine.com>
-	<412bdbff0812041104k6ec78699h18561cdae5214bf@mail.gmail.com>
-In-Reply-To: <412bdbff0812041104k6ec78699h18561cdae5214bf@mail.gmail.com>
-Date: Thu, 04 Dec 2008 17:05:41 -0700
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Strange problem with loading firmware on HVR-950Q
- (XC5000)
-Reply-To: storkus@storkus.com
+Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020,
+	bt_8xx driver + frontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,42 +29,78 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Well, it's not a difficult fix now that I see it.  The issue was that the 
+original default for FE_ALGO_SW was 0 while FE_ALGO_HW was 1.
+Since there is an older documented option for the dst module called dst_algo 
+that some people might still be using to force the tuning algo to sofware by 
+setting dst_algo=0, there is no choice but to also make the default of 
+DVBFE_ALGO_SW to also be 0 so that the values will match and the new code 
+will still function with users who force dst_algo=0 on the dst module load..
+The fix would thus be to go from: this in dvb_frontend.h
+enum dvbfe_algo {
+        DVBFE_ALGO_HW                   = (1 <<  0),
+        DVBFE_ALGO_SW                   = (1 << 1),
+        DVBFE_ALGO_CUSTOM               = (1 <<  2),
+        DVBFE_ALGO_RECOVERY             = (1 << 31)
+};
 
-On Thu, 4 Dec 2008 14:04:59 -0500, "Devin Heitmueller"
-<devin.heitmueller@gmail.com> said:
-> 
-> Are you running the latest version of the code from mercurial?  If
-> not, please update to the latest version and report back the results.
-> 
-> http://www.linuxtv.org/repo/
-> 
-> Devin
+to this:
+enum dvbfe_algo {
+        DVBFE_ALGO_HW                   = (1 <<  0),
+        DVBFE_ALGO_SW                   = 0,
+        DVBFE_ALGO_CUSTOM               = (1 <<  2),
+        DVBFE_ALGO_RECOVERY             = (1 << 31)
+};
 
-Tried it and nothing.  Then I thought of something else and plugged
-"xc5000-1.1", part of the firmware filename, into Google, and got this:
+This is what I've done now and works well. This is the only change required 
+to fix the issue.   In dst.c we could also default dst_algo to 
+DVB_FRONTEND_SW instead of 0 to make it more robust.  I can't see any code 
+else where that depends on DVBFE_ALGO_SW being set to 2.
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028921.html
+For those that do not want to patch code, the alternate way to get the cards 
+to work is to simply load the dst module with the dst_algo parm set. to 2:
+ie. modprobe dst dst_algo=2   ( to have the dst module return the current 
+value of DVBFE_ALGO_SW) back to the front end code.
 
-Apparently this bug was seen back in September and supposedly squashed;
-not anymore.  But the same fix worked: removing "i2c-dev" from the
-kernel and it's working fine, at least for ATSC stations.
 
-I may have to return the dongle for a different one, though, since no
-one seems interested in including NTSC support for this device (and my
-programming skills suck right now), which is what I'm stuck with in our
-in-building sat/cable system. :(  My understanding is the HVR-1950
-supports all 3 formats, or I can downgrade to a HVR 8/950 (no suffix).
 
-Anyway, hopefully this helps in squashing this bug once and for all!
 
-Thanks again, Mike
 
-> 
-> 
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
+----- Original Message ----- 
+From: "VDR User" <user.vdr@gmail.com>
+To: "Alain Turbide" <aturbide@rogers.com>
+Cc: <linux-dvb@linuxtv.org>
+Sent: Tuesday, December 02, 2008 12:37 PM
+Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020, bt_8xx driver 
++ frontend
+
+
+> 2008/12/1 Alain Turbide <aturbide@rogers.com>:
+>> Digging in a little further.The dst_algo (which the twinhan uses) is set 
+>> to
+>> return  0 as the default setting for the SW algo in dst.c, yet in
+>> dvb_frontend.h, the DVBFE_ALGO_SW algo is defined as 2.  Which is the
+>> correct one here? Should dst.c be changed to return 2 as sw or is 0 the
+>> correct number for the SW algo and thus DVBFE_ALGO_SW be changed to 
+>> return
+>> 0?
+>
+> Is nobody else looking into this?!  I would think this bug would have
+> received a little more attention considering the number of people
+> affected!
+>
+> Please keep up the work, it's much appreciated!  I, on behalf of
+> several others who aren't subscribed to the ml, am monitoring this
+> thread in hopes of a proper fix.
+>
+> Thanks!
+> -Derek 
+
+
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email 
+______________________________________________________________________
 
 _______________________________________________
 linux-dvb mailing list
