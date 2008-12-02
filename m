@@ -1,29 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF8uEFD031146
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:56:14 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBF8teFA017308
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:55:53 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so2277727wfc.6
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 00:55:39 -0800 (PST)
-Message-ID: <aec7e5c30812150055y4bd8b1f4rb969be546456fb93@mail.gmail.com>
-Date: Mon, 15 Dec 2008 17:55:39 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812150932320.3722@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2NJnbN013970
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 18:19:49 -0500
+Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
+	[151.189.21.50])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB2NJUMO013564
+	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 18:19:31 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+In-Reply-To: <116652354.20081202092655@gmail.com>
+References: <116652354.20081202092655@gmail.com>
+Content-Type: text/plain
+Date: Wed, 03 Dec 2008 00:15:27 +0100
+Message-Id: <1228259727.2588.67.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
-	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812150844560.3722@axis700.grange>
-	<aec7e5c30812150028t11589040g3ae33eb2c82bbf08@mail.gmail.com>
-	<Pine.LNX.4.64.0812150932320.3722@axis700.grange>
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add tw9910 driver
+Cc: video4linux-list@redhat.com, Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [TUA6030] Infineon TUA6030 driver available... =)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,45 +28,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Dec 15, 2008 at 5:33 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Mon, 15 Dec 2008, Magnus Damm wrote:
->> On Mon, Dec 15, 2008 at 5:06 PM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > What happens is that v4l2-ioctl.c::check_fmt() calls soc_camera_s_std(),
->> > verifies that it returns 0, and then sets current_norm, which you then use
->> > in your driver in tw9910_select_norm(). This way again we have no way to
->> > reject an unsupported tv-norm. Like, try selecting a SECAM norm:-) So, we
->> > need two patches here: first to add a set_std method to struct
->> > soc_camera_ops and call it from soc_camera_s_std():
->> >
->> > static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
->> > {
->> >        struct soc_camera_file *icf = file->private_data;
->> >        struct soc_camera_device *icd = icf->icd;
->> >        return icd->ops->set_std(icd, a);
->> > }
->> >
->> > and second - your driver implementing this method. Or do we have to pass
->> > set_std first to the host driver? Looks like neither i.MX31 nor PXA270
->> > have anything to do with it, SuperH neither?
->>
->> The CEU has nothing to do with it. For our hardware this is handled by
->> the TW9910 video decoder. The CEU driver has to be switched to
->> interlace mode, but that's about it. =)
->
-> Good, then passing it directly to the camera driver should be enough for
-> now.
+Hello!
 
-Yeah. I guess this all means that we have to rework things a bit. So
-the interlace patch needs to be updated. Which affects my cleanup
-patch. Do you have any preference on how to proceed? I'd go with just
-keep on adding things - this means my cleanup patch that i'm about to
-send will still apply - but I'm fine rewriting and reposting as well.
+Am Dienstag, den 02.12.2008, 09:26 +0100 schrieb Tanguy Pruvot:
+> Hi,
+> 
+>    You can find the configuration needed for this multi tuner on this page :
+> 
+>    This tuner can do everything analog (PAL (including SECAM)/ NTSC / FM))
+> 
+>       http://tanguy.ath.cx/index.php?q=SAA7130
+> 
+> 
+>    Full PC-Basic SAA7130/TUA6030 card driver will follow soon (Graphics)
+>    when IR remote control will be configured correctly... GPIOs
+> 
+> 
+>    Hope this code could be included in v4l kernel sources !
+>    Cheers
+> 
+
+These tuners have been seen at first on Hauppauge products as
+replacement for the Philips FM1216ME/I H-3 (MK-3) and a member of the
+video4linux-list in the UK had confirmation from Hauppauge's user
+support there, that they are compatible with the prior tuner=38.
+
+This was for a MFPE05-2. (PE = PAL/Europe)
+http://tuner.tcl.com/English/html/enewsproopen.asp?proname=107&url=product
+I think a MFPE05-3-E was reported on some device too.
+
+Since then this tuner is mapped to tuner=38 in media/video/tveeprom.c
+and is on several Hauppauge devices, but also on others. No complaints
+so far.
+
+The layout of the tuner PCB of your MFPE05-2-E and the FM1216ME MK3
+seems to be identical. The most visible difference is, that the on your
+tuner just unused tuner pins 7 and 8 are not present at the Philips at
+all. Means 12 against 14 visible tuner pins according to your
+photograph.
+
+Else only the color of some of the coils differs and instead of TUA 6032
+marked on the pll chip, on the pll used by Philips is only printed B2
+and 230, but both have 38pins connected to the obviously same layout.
+
+You might even have the same original EPCOS SAW filters, but your tuner
+will not support NTSC, needs different filter equipment.
+NTSC is covered by the MFNM05. (NM = NTSC N/M)
+http://tuner.tcl.com/English/html/enewsproopen.asp?proname=108&url=product
+This also causes the different bandswitch takeover frequencies.
+
+On a first look at the main programming table all write and read bytes
+are identical up to every single bit. You can find the datasheet of the
+Philips FM1216ME MK3 we have these days at ivtvdriver.org.
+http://dl.ivtvdriver.org/datasheets/tuners
+
+If we find details not covered by tuner=38, you can get a new tuner
+entry, but the patch must be against recent v4l-dvb. The radio should be
+treated like on the other MK3 tuners in tuner-simple.c I guess.
+IIRC, we have reports for radio working well with port1=1, inactive, FM
+high sensitivity.
+
+We would need a valid signed-off-by line from you as well.
+
+Thanks, especially for the picture of the opened tuner. We did not have
+any further details previously. Just testing results and the Hauppauge
+hint. 
 
 Cheers,
+Hermann
 
-/ magnus
 
 --
 video4linux-list mailing list
