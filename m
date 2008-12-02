@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.184])
+Received: from ik-out-1112.google.com ([66.249.90.181])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1L9oTz-0005Bi-Io
-	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 23:21:40 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so726855nfb.11
-	for <linux-dvb@linuxtv.org>; Mon, 08 Dec 2008 14:21:36 -0800 (PST)
-Message-ID: <412bdbff0812081421l4ab945f5s7feb2b0da4b6a208@mail.gmail.com>
-Date: Mon, 8 Dec 2008 17:21:36 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "daniel. perzynski" <daniel.perzynski@aster.pl>
-In-Reply-To: <A957E57448D25C0C661E9E181E74547A1228774205B964889A15616F1311@webmail.aster.pl>
+	(envelope-from <user.vdr@gmail.com>) id 1L7ZCA-0002a0-LG
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 18:37:59 +0100
+Received: by ik-out-1112.google.com with SMTP id c28so3047345ika.1
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 09:37:55 -0800 (PST)
+Message-ID: <a3ef07920812020937jb0feff7q695f91dbd2156b5e@mail.gmail.com>
+Date: Tue, 2 Dec 2008 09:37:54 -0800
+From: "VDR User" <user.vdr@gmail.com>
+To: "Alain Turbide" <aturbide@rogers.com>
+In-Reply-To: <003301c953fc$84e23110$0000fea9@cr344472a>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <A957E57448D25C0C661E9E181E74547A1228774205B964889A15616F1311@webmail.aster.pl>
+References: <99503.50867.qm@web88302.mail.re4.yahoo.com>
+	<003301c953fc$84e23110$0000fea9@cr344472a>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
+Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020,
+	bt_8xx driver + frontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,68 +30,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Dec 8, 2008 at 5:10 PM, daniel. perzynski
-<daniel.perzynski@aster.pl> wrote:
-> Hi,
->
-> I'm asking again for more help as I haven't received any response to
-> my previous e-mail pasted below. I've tried to run
-> SniffUSB-x64-2.0.0006.zip but is not working under vista :( I've also
-> found that card is using merlinb.rom and merlinc.rom (they are listed
-> in device manager in windows vista)
->> I've tried to load all v4l modules (one by one) in 2.6.27.4 kernel -
->> nothing in syslog :(
->> I've then compiled and tried to load lgdt330x, cx25840,tuner-xc2028
->> and
->> wm8739 from http://linuxtv.org/hg/v4l-dvb mercurial repository -
->> nothing
->> in syslog :(
->>
->> At the end I've used http://linuxtv.org/hg/v4l-dvb-experimental
->> repository and when doing:
->>
->> insmod em28xx_cx25843, I've received :)
->> Nov 30 21:43:54 h3xu5 cx25843.c: starting probe for adapter SMBus
->> I801
->> adapter at 1200 (0x40004)
->> Nov 30 21:43:54 h3xu5 cx25843.c: detecting cx25843 client on address
->> 0x88
->>
->> It is a small progress and I need even more help here. There is a
->> question if I'm doing everything right? Do I need to load the
->> modules
->> with parameters? Why I need to do next to help in creation of
->> working
->> solution for that A312 card?
->
-> Regards,
+2008/12/1 Alain Turbide <aturbide@rogers.com>:
+> Digging in a little further.The dst_algo (which the twinhan uses) is set to
+> return  0 as the default setting for the SW algo in dst.c, yet in
+> dvb_frontend.h, the DVBFE_ALGO_SW algo is defined as 2.  Which is the
+> correct one here? Should dst.c be changed to return 2 as sw or is 0 the
+> correct number for the SW algo and thus DVBFE_ALGO_SW be changed to return
+> 0?
 
-Hello Daniel,
+Is nobody else looking into this?!  I would think this bug would have
+received a little more attention considering the number of people
+affected!
 
-Don't use http://linuxtv.org/hg/v4l-dvb-experimental, that's a very
-old repository.
+Please keep up the work, it's much appreciated!  I, on behalf of
+several others who aren't subscribed to the ml, am monitoring this
+thread in hopes of a proper fix.
 
-Just loading the modules does nothing.  They won't do anything unless
-they know about your hardware.
-
-I would start with the bridge:  CY7C68013A
-
-You need to get the bridge working before you can get any of the
-peripherals working (such as the lgdt3304 demod, the 3028 tuner, or
-the cx25843 decoder).
-
-Once you have the bridge working, you can set the GPIOs to bring the
-other chips out of reset and then do i2c enumeration and device
-registration.
-
-Do you plan on doing analog support first or digital?
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Thanks!
+-Derek
 
 _______________________________________________
 linux-dvb mailing list
