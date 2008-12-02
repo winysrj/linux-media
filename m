@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-qy0-f16.google.com ([209.85.221.16])
+Received: from gv-out-0910.google.com ([216.239.58.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1L8WYb-0000mY-0p
-	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 10:01:06 +0100
-Received: by qyk9 with SMTP id 9so5692035qyk.17
-	for <linux-dvb@linuxtv.org>; Fri, 05 Dec 2008 01:00:30 -0800 (PST)
-Message-ID: <c74595dc0812050100q52ab86bewebe8dbf17bddbb51@mail.gmail.com>
-Date: Fri, 5 Dec 2008 11:00:30 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: "Michel Verbraak" <michel@verbraak.org>
-In-Reply-To: <4938C8BB.5040406@verbraak.org>
+	(envelope-from <christophpfister@gmail.com>) id 1L7XPY-0001Ru-TI
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 16:43:41 +0100
+Received: by gv-out-0910.google.com with SMTP id n29so526431gve.16
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 07:43:37 -0800 (PST)
+Message-ID: <19a3b7a80812020743x3bd0f465r9f278ebba60241fe@mail.gmail.com>
+Date: Tue, 2 Dec 2008 16:43:37 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
-	<4935B72F.1000505@insite.cz>
-	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
-	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
-	<49371511.1060703@insite.cz> <4938C8BB.5040406@verbraak.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan (possible diseqc
-	problem)
+Content-Type: multipart/mixed;
+	boundary="----=_Part_93819_31978577.1228232617226"
+Subject: [linux-dvb] scan file for de-Hannover, it-Cagliari and pl-Rzeszow
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,115 +20,70 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1772631566=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1772631566==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_24539_13646465.1228467630776"
-
-------=_Part_24539_13646465.1228467630776
-Content-Type: text/plain; charset=ISO-8859-1
+------=_Part_93819_31978577.1228232617226
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-2008/12/5 Michel Verbraak <michel@verbraak.org>
+Sent to kaffeine ml & my linuxtv account.
 
->  Alex,
->
-> I have the following problem. I'm not able to rotate my rotor with my HD2
-> card and any of the drivers (liplianin, v4l-dvb, Manu). I tried GotoX diseqc
-> commands as well as the goto position used by scan-s2.
-> As Pavel also has problems with diseqc (switch with A B input) I think it
-> is not in the scan-s2 an szap-s2 utilities but in the driver.
->
-I don't have a rotor nor HD2 card, so I can't help with that.
-I do have 8-1 disecq that works fine with Igor's drivers (previously worked
-fine with Manu's drivers as well) and scan-s2 utility using Twinhan 1041
-card.
+Christoph
 
-Few weeks ago Hans Werner applied changes for scan-s2 to work with his
-rotor. Please take a look on rotor.conf file and "-r" option.
-Maybe it will help.
+------=_Part_93819_31978577.1228232617226
+Content-Type: text/x-diff; name=de-Hannover.diff
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fo8pz55v0
+Content-Disposition: attachment; filename=de-Hannover.diff
 
+LS0tIGRlLUhhbm5vdmVyLm9yaWcgICAgMjAwNy0wNC0yOCAwMToxOToyNy4wMDAwMDAwMDAgKzAy
+MDAKKysrIGRlLUhhbm5vdmVyIDIwMDgtMTEtMjQgMTE6MTk6MTEuMDAwMDAwMDAwICswMTAwCkBA
+IC0xLDUgKzEsNSBAQAogIyBEVkItVCBIYW5ub3ZlciAtLSBpbmZvIGZyb20gaHR0cDovL3d3dy5z
+a3lwbHVzLnNleWVuLmRlL0RWQi1ULmh0bWwKLVQgMTk4NTAwMDAwIDdNSHogMy80IE5PTkUgUUFN
+MTYgOGsgMS80IE5PTkUKK1QgNjgyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5P
+TkUKIFQgNDkwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKIFQgNDk4MDAw
+MDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKIFQgNTMwMDAwMDAwIDhNSHogMi8z
+IE5PTkUgUUFNMTYgOGsgMS80IE5PTkUK
+------=_Part_93819_31978577.1228232617226
+Content-Type: application/octet-stream; name=it-Cagliari
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fo8pz8q11
+Content-Disposition: attachment; filename=it-Cagliari
 
->
-> I changed the subject because I do not know if Pavels problem is only due
-> to diseqc problems.
->
-> I have another card (twinhan vp-1034 mantis) which should be able to rotate
-> my rotor and I will try it next weekend to see if my rotor is not broken and
-> I will also have a look into the driver but this will be not easy beacuse I
-> do not have schematics or any documentation.
->
-My 1027 card worked fine with multiproto drivers few months ago (replaced it
-with 1041 card)
+IyBEVkItVCBDYWdsaWFyaQojIE1VWC1BIFJBSQpUIDY4MjAwMDAwMCA4TUh6IEFVVE8gQVVUTyBB
+VVRPIEFVVE8gQVVUTyBOT05FCiMgTVVYLUIgUkFJClQgODQyMDAwMDAwIDhNSHogQVVUTyBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUKIyBNVVggTUVESUFTRVQgMQpUIDcwNjAwMDAwMCA4TUh6IEFV
+VE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBOT05FClQgODI2MDAwMDAwIDhNSHogQVVUTyBBVVRPIEFV
+VE8gQVVUTyBBVVRPIE5PTkUKIyBNVVggREZSRUUKVCA1OTQwMDAwMDAgOE1IeiBBVVRPIEFVVE8g
+QVVUTyBBVVRPIEFVVE8gTk9ORQpUIDczMDAwMDAwMCA4TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8g
+QVVUTyBOT05FCiMgTVVYIFRDUwpUIDY1ODAwMDAwMCA4TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8g
+QVVUTyBOT05FCiMgTVVYIFZJREVPTElOQQpUIDYxMDAwMDAwMCA4TUh6IEFVVE8gQVVUTyBBVVRP
+IEFVVE8gQVVUTyBOT05FCiMgTVVYIE1FRElBU0VUIDIKVCA4NTAwMDAwMDAgOE1IeiBBVVRPIEFV
+VE8gQVVUTyBBVVRPIEFVVE8gTk9ORQpUIDU2MjAwMDAwMCA4TUh6IEFVVE8gQVVUTyBBVVRPIEFV
+VE8gQVVUTyBOT05FCiMgTVVYIE1CT05FClQgNTE0MDAwMDAwIDhNSHogQVVUTyBBVVRPIEFVVE8g
+QVVUTyBBVVRPIE5PTkUKVCA2NTAwMDAwMDAgOE1IeiBBVVRPIEFVVE8gQVVUTyBBVVRPIEFVVE8g
+Tk9ORQpUIDgxODAwMDAwMCA4TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBOT05FClQgNDc0
+MDAwMDAwIDhNSHogQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUKVCA4MTAwMDAwMDAgOE1I
+eiBBVVRPIEFVVE8gQVVUTyBBVVRPIEFVVE8gTk9ORQpUIDY1MDAwMDAwMCA4TUh6IEFVVE8gQVVU
+TyBBVVRPIEFVVE8gQVVUTyBOT05FCiMgTVVYIFRJTUIxClQgNjAyMDAwMDAwIDhNSHogQVVUTyBB
+VVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUKVCAxNzc1MDAwMDAgOE1IeiBBVVRPIEFVVE8gQVVUTyBB
+VVRPIEFVVE8gTk9ORQpUIDc1NDAwMDAwMCA4TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBO
+T05FCiMgTVVYIExBNwpUIDc2MjAwMDAwMCA4TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBO
+T05FClQgNzg2MDAwMDAwIDhNSHogQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUKIyBNVVgg
+UkVURUEKVCA4MjYwMDAwMDAgOE1IeiBBVVRPIEFVVE8gQVVUTyBBVVRPIEFVVE8gTk9ORQoK
+------=_Part_93819_31978577.1228232617226
+Content-Type: application/octet-stream; name=pl-Rzeszow
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fo8pzb892
+Content-Disposition: attachment; filename=pl-Rzeszow
 
-
->
->
-> Regards,
->
-> Michel.
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-------=_Part_24539_13646465.1228467630776
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">2008/12/5 Michel Verbraak <span dir="ltr">&lt;<a href="mailto:michel@verbraak.org">michel@verbraak.org</a>&gt;</span><br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div bgcolor="#ffffff" text="#000000">
-
-
-  
-  
-
-<blockquote type="cite">
-</blockquote>  
-Alex,<br>
-<br>
-I have the following problem. I&#39;m not able to rotate my rotor with my
-HD2 card and any of the drivers (liplianin, v4l-dvb, Manu). I tried
-GotoX diseqc commands as well as the goto position used by scan-s2.<br>
-As Pavel also has problems with diseqc (switch with A B input) I think
-it is not in the scan-s2 an szap-s2 utilities but in the driver.</div></blockquote><div>I don&#39;t have a rotor nor HD2 card, so I can&#39;t help with that.<br>I do have 8-1 disecq that works fine with Igor&#39;s drivers (previously worked fine with Manu&#39;s drivers as well) and scan-s2 utility using Twinhan 1041 card.<br>
-<br>Few weeks ago Hans Werner applied changes for scan-s2 to work with his rotor. Please take a look on rotor.conf file and &quot;-r&quot; option.<br>Maybe it will help.<br><br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div bgcolor="#ffffff" text="#000000"><br>
-<br>
-I changed the subject because I do not know if Pavels problem is only
-due to diseqc problems.<br>
-<br>
-I have another card (twinhan vp-1034 mantis) which should be able to
-rotate my rotor and I will try it next weekend to see if my rotor is
-not broken and I will also have a look into the driver but this will be
-not easy beacuse I do not have schematics or any documentation.</div></blockquote><div>My 1027 card worked fine with multiproto drivers few months ago (replaced it with 1041 card)<br>&nbsp;<br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div bgcolor="#ffffff" text="#000000"><br>
-<br>
-Regards,<br>
-<br>
-Michel.<br>
-<br>
-</div>
-
-<br>_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote></div><br></div>
-
-------=_Part_24539_13646465.1228467630776--
-
-
---===============1772631566==
+IyBSemVzem93IC8gU3VjaGEgR29yYSwgU291dGgtRWFzdCBQb2xhbmQKIyBUIGZyZXEgYncgZmVj
+X2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5
+ClQgNjQyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS8zMiBOT05FCg==
+------=_Part_93819_31978577.1228232617226
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -144,4 +93,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1772631566==--
+------=_Part_93819_31978577.1228232617226--
