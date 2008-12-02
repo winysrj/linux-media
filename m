@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.172])
+Received: from ey-out-2122.google.com ([74.125.78.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L8rpv-0003zQ-Fj
-	for linux-dvb@linuxtv.org; Sat, 06 Dec 2008 08:44:25 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so202684ugc.16
-	for <linux-dvb@linuxtv.org>; Fri, 05 Dec 2008 23:44:20 -0800 (PST)
-Date: Sat, 6 Dec 2008 08:44:17 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: litlle girl <little.linux.girl@gmail.com>
-In-Reply-To: <9e27f5bf0812051407g687a280ao7d9599a4bebcab8@mail.gmail.com>
-Message-ID: <alpine.DEB.2.00.0812060829280.11349@ybpnyubfg.ybpnyqbznva>
-References: <9e27f5bf0812051407g687a280ao7d9599a4bebcab8@mail.gmail.com>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1L7e9B-00063r-NW
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 23:55:14 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so2131092eya.17
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 14:55:10 -0800 (PST)
+Message-ID: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
+Date: Tue, 2 Dec 2008 17:55:09 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] EMTEC S826 (ID 1164:1f08 YUAN STK7700D)
+Content-Disposition: inline
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Subject: [linux-dvb] Pinnacle 80e support: not going to happen...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,31 +26,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 5 Dec 2008, litlle girl wrote:
+For those of you waiting for Linux support for the Pinnacle 80e, I
+have some bad news:  it's not going to happen.
 
-> im trying my friends usb tv card EMTEC S826 to run on my linux,
-> so far without succes :(
+After investing over 100 hours doing the driver work, adding support
+for the Empia em2874, integrating with the Linux tda18271 driver,
+incorporating the Micronas drx reference driver source, and doing all
+the testing, Micronas has effectively killed the project.  They
+decided that their intellectual property was too valuable to make
+available their reference driver code in source code form.  Even
+worse, because I've seen the sources I am effectively prevented from
+writing any sort of reverse engineered driver for the drx-j.
 
-Where are you?  I did not see any useful info when looking
-at your mail headers...  But then, webmail isn't the most
-revealing, and text/html, urgh...
+Obviously, I would have preferred they told me this *before* I spent
+all the time doing the work, but there's not a whole lot I can do
+about that now....
 
+I figured I should let those of you know who have been waiting for
+this support (in particular those I told that support was completed
+and just waiting on Micronas's legal department).
 
-> dvbscan /usr/share/dvb/dvb-t/* -vv:
+I wouldn't suggest buying any devices that make use of the drx-j,
+drx-k, or drx-d devices under the expectation that support for those
+chipsets will be available under Linux at some point.  In terms of
+Pinnacle products, stick with the 801e (or the 800e or 801e-se).
 
-> 530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:T
-> RANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+It's worth noting that the people at Pinnacle have been great in their
+supporting me in my efforts to add Linux support for their products.
+They provided sample hardware, engineering level support, and
+connected me with the right people at the chipset vendors.  The fact
+that this device cannot be supported is in no way their fault.
 
-This can only be expected to work somewhere where you can
-receive an 8MHz 64QAM 8k MFN signal at 530MHz; the best
-I can guess from the timestamp in your mail header is that
-you are in west or central europe...
+Also, I would like to take a minute and express my thanks to Michael
+Krufky in particular for taking the time to help me work through
+numerous issues such as getting that first tuning lock on the
+tda18271.
 
-The current source I have shows these parameters for a few
-locations in France, Italia, and Polska, if that helps.
+I wish I had better news, but that's the status.
 
+Devin
 
-barry bouwsma
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
