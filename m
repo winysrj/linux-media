@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from ug-out-1314.google.com ([66.249.92.175])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1LDnmx-0003dz-37
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 23:25:43 +0100
-Message-ID: <494C1F62.2040901@iki.fi>
-Date: Sat, 20 Dec 2008 00:25:38 +0200
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L7cTA-0004fS-7h
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 22:07:45 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so3131900ugc.16
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 13:07:40 -0800 (PST)
+Date: Tue, 2 Dec 2008 22:07:36 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Christoph Pfister <christophpfister@gmail.com>
+In-Reply-To: <19a3b7a80812020750o17c2b00ibd9d5663353564d8@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0812022158510.9198@ybpnyubfg.ybpnyqbznva>
+References: <938eabef0811270552t16fb1f7drc95988373f8c61fc@mail.gmail.com>
+	<938eabef0811270559pb48bdf6lc2d22818c71a559c@mail.gmail.com>
+	<19a3b7a80812020750o17c2b00ibd9d5663353564d8@mail.gmail.com>
 MIME-Version: 1.0
-To: Jos Hoekstra <joshoekstra@gmx.net>
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>	<200812191943.00696.sinter.mann@gmx.de>	<d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>	<200812192058.58686.sinter.mann@gmx.de>	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>	<37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>	<412bdbff0812191247j60480e61wa3c1aea74f1e118@mail.gmail.com>	<1229720907.31427.18.camel@youkaida>
-	<494C1B1F.40205@gmx.net>
-In-Reply-To: <494C1B1F.40205@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Adding info to the wiki,
- Was: Re:  S2API drivers sync
+Cc: Martin Jaburek <longmatys@gmail.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New scan file for cz-Praha
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,38 +29,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jos Hoekstra wrote:
-> I would like to add some pointers on making the Avermedia Volar X DVB-T 
-> device work to the wiki, but I'm not sure if this 'supported or unsupported?
+On Tue, 2 Dec 2008, Christoph Pfister wrote:
 
-It is supported. Anyhow, with this tuner driver performance is not 100%. 
-Driver merged to the 2.6.28 Kernel.
+> 2008/11/27 Martin Jaburek <longmatys@gmail.com>:
 
-> Case:
-> Avermedia Volar X DVB-T with AF9015-NT* & MXL5003S
-> Works with compiling the source from:
-> http://linuxtv.org/hg/~anttip/af9015/
+> > There were some changes in October 2008 in dvb-t multiplexes in Czech
 
-You can also use v4l-dvb-master or wait 2.6.28.
-
-> and firmware from:
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
+> +T 570000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
 > 
-> Is it ok if I add it as a minor edit to:
-> 
-> http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices#Afatech_AF9013_and_AF9015
-> ?
+> Can you please try to find out the actual values instead of "AUTO" there?
 
-yes?
+Or, a quick search (with no background) shows this frequency
+is in use at Usti n.Labem (north-ish; would have to search my
+maps to quote actual antenna distance and view terrain and
+predict if 100kW ERP would cover those 50+km), but I see
+nothing using this frequency in the area of Praha -- at least,
+not in the two results I looked closely at.
 
-> Regards,
-> 
-> Jos Hoekstra
+Can you tell me what stations can be received on this frequency,
+so I can say which multiplex it is, and then, I could possibly 
+provide actual modulation parameters as published?
 
-regards
-Antti
--- 
-http://palosaari.fi/
+
+Diky moc,
+pivo bouwsma
 
 _______________________________________________
 linux-dvb mailing list
