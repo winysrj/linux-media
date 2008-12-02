@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1LHo0l-0002G7-KB
-	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 00:28:35 +0100
-Message-ID: <495AAE96.5060207@iki.fi>
-Date: Wed, 31 Dec 2008 01:28:22 +0200
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <christophpfister@gmail.com>) id 1L7YCr-0006F4-Be
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 17:34:37 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so1851493nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 08:34:34 -0800 (PST)
+Message-ID: <19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>
+Date: Tue, 2 Dec 2008 17:34:33 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: e9hack <e9hack@googlemail.com>
+In-Reply-To: <492168D8.4050900@googlemail.com>
 MIME-Version: 1.0
-To: Anders Eriksson <aeriksson@fastmail.fm>
-References: <200812300909.49996.md001@gmx.de>	<20081230100254.644B0942B31@tippex.mynet.homeunix.org>	<495A849D.30307@iki.fi>
-	<20081230223923.B62BE6BC001@tippex.mynet.homeunix.org>
-In-Reply-To: <20081230223923.B62BE6BC001@tippex.mynet.homeunix.org>
-Cc: Martin Dauskardt <md001@gmx.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Where to buy Anysee E30C in Europe ("Euroland")?
+Content-Disposition: inline
+References: <492168D8.4050900@googlemail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
+	which outputs the wrong frequency if the current tuned transponder
+	is scanned only
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,48 +30,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Anders Eriksson wrote:
-> 
-> Hi Antti,
-> 
-> crope@iki.fi said:
->> Anysee have standard ISO 7816 card reader interface + SoftCAM in the  driver.
->> I did not implemented card reader due to lack of time &  interest. It
->> probably needs own driver module for card reader and there  is no very
->> similar module that can be used of base of the mode. 
-> 
-> Am I right in understanding that all information required to drive the driver 
-> is available? No lack of specs? I was thinking that we mught want to forward
-> it to the gregkh. He once put up an offer to write drivers for any hw if specs 
-> were provided.
+2008/11/17 e9hack <e9hack@googlemail.com>:
+> Hi,
+>
+> if the current tuned transponder is scanned only and the output needs the frequency of the
+> transponder, it is used the last frequency, which is found during the NIT scanning. This
+> is wrong. The attached patch will fix this problem.
 
-No, there is no specs available. I did current driver by 
-reverse-engineering. Reverse-engineering USB-protocol is not usually 
-very bad task.
+Any opinion about this patch? It seems ok from a quick look, so I'll
+apply it soon if nobody objects.
 
-> 
->> However  I did some
->> protocol reverse-engineering and those results can be found from: http://
->> www.otit.fi/~crope/v4l-dvb/anysee_ca_iso7816_protocol.txt Feel free to
->> implement smart card reader module :)
-> 
-> I'm afaraid that's beyond my skill level. :-(
-> 
-> 
->> This device is rather common in Finland and Sweden. Also found from
->> Netherlands and Latvia.
-> 
-> So, there should be some interest in getting it supported. Here in Sweden it's 
-> the only DVB-C I've seen available on stores. 
+> Regards,
+> Hartmut
 
-In Finland all DVB-T/C versions are sold (DVB-S/S2 version also exists, 
-but not in Finland)
-http://hintaseuranta.fi/tuote.aspx/44704
-http://hintaseuranta.fi/tuote.aspx/161489
-http://hintaseuranta.fi/tuote.aspx/42648
+Thanks,
 
-regards
-Antti
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
