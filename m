@@ -1,15 +1,31 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Fri, 5 Dec 2008 01:56:15 +0100
-From: Tanguy Pruvot <tanguy.pruvot@gmail.com>
-Message-ID: <1387916491.20081205015615@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-In-Reply-To: <1228259727.2588.67.camel@pc10.localdom.local>
-References: <116652354.20081202092655@gmail.com>
-	<1228259727.2588.67.camel@pc10.localdom.local>
+Received: from out1.smtp.messagingengine.com ([66.111.4.25])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7d7D-00007B-Id
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 22:49:08 +0100
+Received: from compute1.internal (compute1.internal [10.202.2.41])
+	by out1.messagingengine.com (Postfix) with ESMTP id 516CE1C9A51
+	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 16:49:03 -0500 (EST)
+Message-Id: <1228254543.23353.1287906941@webmail.messagingengine.com>
+From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
+To: "linux-dvb" <linux-dvb@linuxtv.org>
+Content-Disposition: inline
 MIME-Version: 1.0
-Cc: video4linux-list@redhat.com, Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [TUA6030] Infineon TUA6030 driver available... =)
-Reply-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
+	<1227213591.29403.1285914127@webmail.messagingengine.com>
+	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
+	<1227228030.18353.1285952745@webmail.messagingengine.com>
+	<412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>
+	<1228152690.22348.1287628393@webmail.messagingengine.com>
+	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
+	<1228162425.30518.1287666879@webmail.messagingengine.com>
+	<1228164038.5106.1287670679@webmail.messagingengine.com>
+	<500CD7A3A0%linux@youmustbejoking.demon.co.uk>
+	<1228239571.26312.1287857857@webmail.messagingengine.com>
+In-Reply-To: <1228239571.26312.1287857857@webmail.messagingengine.com>
+Date: Tue, 02 Dec 2008 21:49:03 +0000
+Subject: Re: [linux-dvb] dib0700 remote control support fixed
+Reply-To: linuxtv@hotair.fastmail.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,75 +33,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-List-ID: <video4linux-list@redhat.com>
+List-ID: <linux-dvb@linuxtv.org>
 
-Le mercredi 3 d=E9cembre 2008 =E0 00:15:27, vous =E9criviez :
+I've been busy testing and I have an apology to make.
 
-> These tuners have been seen at first on Hauppauge products as
-> replacement for the Philips FM1216ME/I H-3 (MK-3) and a member of the
-> video4linux-list in the UK had confirmation from Hauppauge's user
-> support there, that they are compatible with the prior tuner=3D38.
+It looks like the problem is with a riser card.  When I moved the Nova-T
+500 to an identical VIA SP8000 in a case that allowed a direct fitting
+PCI card, the problems stabilized.
 
-> This was for a MFPE05-2. (PE =3D PAL/Europe)
-> http://tuner.tcl.com/English/html/enewsproopen.asp?proname=3D107&url=3Dpr=
-oduct
-> I think a MFPE05-3-E was reported on some device too.
-
-> Since then this tuner is mapped to tuner=3D38 in media/video/tveeprom.c
-> and is on several Hauppauge devices, but also on others. No complaints
-> so far.
-
-> The layout of the tuner PCB of your MFPE05-2-E and the FM1216ME MK3
-> seems to be identical. The most visible difference is, that the on your
-> tuner just unused tuner pins 7 and 8 are not present at the Philips at
-> all. Means 12 against 14 visible tuner pins according to your
-> photograph.
-
-> Else only the color of some of the coils differs and instead of TUA 6032
-> marked on the pll chip, on the pll used by Philips is only printed B2
-> and 230, but both have 38pins connected to the obviously same layout.
-
-> You might even have the same original EPCOS SAW filters, but your tuner
-> will not support NTSC, needs different filter equipment.
-> NTSC is covered by the MFNM05. (NM =3D NTSC N/M)
-> http://tuner.tcl.com/English/html/enewsproopen.asp?proname=3D108&url=3Dpr=
-oduct
-> This also causes the different bandswitch takeover frequencies.
-
-> On a first look at the main programming table all write and read bytes
-> are identical up to every single bit. You can find the datasheet of the
-> Philips FM1216ME MK3 we have these days at ivtvdriver.org.
-> http://dl.ivtvdriver.org/datasheets/tuners
-
-> If we find details not covered by tuner=3D38, you can get a new tuner
-> entry, but the patch must be against recent v4l-dvb. The radio should be
-> treated like on the other MK3 tuners in tuner-simple.c I guess.
-> IIRC, we have reports for radio working well with port1=3D1, inactive, FM
-> high sensitivity.
-
-> We would need a valid signed-off-by line from you as well.
-
-> Thanks, especially for the picture of the opened tuner. We did not have
-> any further details previously. Just testing results and the Hauppauge
-> hint. =
-
-
-> Cheers,
-> Hermann
-
-Thanks for your help for tuners, i removed NTSC settings...
-
-The default Philips settings doesn't work well, even it's working...
-
-i updated tuner config to best values for TV by disabling AGC,
-set to external AGC (0x60) in Init Auxiliary Byte
-
-cf. http://tanguy.ath.cx/index.php?q=3DSAA7130
-
+This does explain why I was the only one seeing these problems.  Curious
+that the card was stable for DVB functions if the RC polling was
+disabled.  I will amend the wiki to make sure it reflects the current
+status of the driver.
 
 _______________________________________________
 linux-dvb mailing list
