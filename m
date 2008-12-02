@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25])
+Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artem@moelleritberatung.de>) id 1LEOim-0000vV-Jo
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 14:51:54 +0100
-Date: Sun, 21 Dec 2008 14:51:49 +0100
-From: Artem Makhutov <artem@makhutov.org>
-To: Faruk A <fa@elwak.com>
-Message-ID: <20081221135149.GH12059@titan.makhutov-it.de>
-References: <20081220224557.GF12059@titan.makhutov-it.de>
-	<854d46170812201646u3414788dh6cbbe6eb9c9ba8ca@mail.gmail.com>
+	(envelope-from <linux-dvb@drajsajtl.cz>) id 1L7eQ4-0008I8-Fj
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 00:12:42 +0100
+Message-ID: <004a01c954d2$cb3a9810$217da8c0@tdrpc>
+From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+To: "BOUWSMA Barry" <freebeer.bouwsma@gmail.com>
+References: <938eabef0811270552t16fb1f7drc95988373f8c61fc@mail.gmail.com><938eabef0811270559pb48bdf6lc2d22818c71a559c@mail.gmail.com><19a3b7a80812020750o17c2b00ibd9d5663353564d8@mail.gmail.com><alpine.DEB.2.00.0812022158510.9198@ybpnyubfg.ybpnyqbznva><alpine.DEB.2.00.0812022241370.9198@ybpnyubfg.ybpnyqbznva>
+	<003a01c954d2$2305ae50$217da8c0@tdrpc>
+Date: Wed, 3 Dec 2008 00:07:48 +0100
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <854d46170812201646u3414788dh6cbbe6eb9c9ba8ca@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
+Subject: Re: [linux-dvb] New scan file for cz-Praha
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,27 +25,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+> I hope I will calculate correctly, please check.
+> mux 1: channel 53 -> 730 MHz
+> mux 2: channel 41 -> 634 MHz
+> mux 3: channel 46 -> 674 MHz
+> mux 4: channel 64 -> 818 MHz
+>
+> You can use the cz-Brno file I posted here a month ago which should be now
+> commited in the tree. Just replace the frequencies in that file.
 
-On Sun, Dec 21, 2008 at 01:46:48AM +0100, Faruk A wrote:
-> The best streaming method in linux that i found is vdr with streamdev plugin.
+...to generate cz-Praha of course. cz-Brno is OK. :-)
 
-Yes, I know :) And I am trying to help with the UDP multicast streaming.
-
-> try streaming the whole transponder with 8192.
-> szap2 -r -p 'ASTRA HD'
-> dvbstream 8192 -udp -i 239.255.0.1 -r 1234
-
-Yes, the stream is still corrupted.
-
-> vlc 0.8??: you can change the channel in the "Navigation" sub menu.
-> vlc 09??:  I think they change the location, I can't help you with
-> that since my locale is in Swedish.
-
-I can not use the build in DVB-Tuning of VLC because it does not support multiproto
-and therefore can not tune to DVB-S2 channels.
-
-Regards, Artem
 
 _______________________________________________
 linux-dvb mailing list
