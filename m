@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46])
+Received: from rv-out-0506.google.com ([209.85.198.234])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LE9VU-0003bq-BB
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 22:37:10 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Matyas Sustik <linux-dvb.list@sustik.com>
-In-Reply-To: <494D4A00.6020305@sustik.com>
-References: <494D4A00.6020305@sustik.com>
-Date: Sat, 20 Dec 2008 22:37:58 +0100
-Message-Id: <1229809078.4702.34.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fusion HDTV7 again
+	(envelope-from <leo.thealmighty@gmail.com>) id 1L7YnG-0000jJ-GH
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 18:12:15 +0100
+Received: by rv-out-0506.google.com with SMTP id b25so3032470rvf.41
+	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 09:12:10 -0800 (PST)
+Message-ID: <401cfcb70812020912v4ab7caa3q74787b3f2d860eb9@mail.gmail.com>
+Date: Tue, 2 Dec 2008 22:42:10 +0530
+From: "leo theGreat" <leo.thealmighty@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] Cinergy Hybrid XE with tm6010 chip - Mark Breddemann
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,115 +18,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2145794658=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Matyas,
+--===============2145794658==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_81005_11591397.1228237930052"
 
-Am Samstag, den 20.12.2008, 13:39 -0600 schrieb Matyas Sustik:
-> Hi All,
-> 
-> After a dist-upgrade my HDTV7 Dual Express card stopped working.  I managed
-> to get it to work before, from the logs from Dec 15:
-> 
-> Dec 15 23:47:47 cheetah kernel: [   10.701054] cx23885 driver version 0.0.1 load
-> ed
-> Dec 15 23:47:47 cheetah kernel: [   10.701117] ACPI: PCI Interrupt 0000:02:00.0[
-> A] -> GSI 16 (level, low) -> IRQ 16
-> Dec 15 23:47:47 cheetah kernel: [   10.701237] CORE cx23885[0]: subsystem:
-> 18ac:d618, board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
-> Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 0 registered
-> Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 1 registered
-> Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 2 registered
-> Dec 15 23:47:47 cheetah kernel: [   10.870102] cx23885[0]: cx23885 based dvb card
-> 
-> That was with linux-image-2.6.26-1-amd64_2.6.26-11_amd64.deb and compiled the
-> cx23885 module from the mercurial repo.
-> 
-> The current kernel is from: linux-image-2.6.26-1-amd64_2.6.26-12_amd64.deb.
-> I pulled the mercurial sources again did make and make install, rebooted but
-> I still get:
-> 
-> Dec 20 13:15:02 cheetah kernel: [   11.801129] cx23885: disagrees about
-> version of symbol v4l_compat_ioctl32
-> Dec 20 13:15:02 cheetah kernel: [   11.801133] cx23885: Unknown symbol
-> v4l_compat_ioctl32
-> 
-> I have seen this before, but I cannot figure out what is happening.  I would
-> appreciate if someone could explain to me what is going on here.  That may
-> reduce my frustration somewhat.
-> 
-> If there is some documentation on how to debug a problem like this I would be
-> willing to do some debug and even work on it.  I suspect that the kernel
-> interface got updated and changes for the driver is needed.  Maybe this is a
-> simple enough project to get started with open source.  (Let me know if
-> not...)  I have not contributed to open source yet, so please be gentle.
-> 
-> I tried reinstalling the old linux-image package but that now does not work
-> either.  There must be some other software/libs that got updated from apt-get
-> dist-upgrade rendering the cx23885 module unusable at the present.
-> 
-> Any insight would be appreciated.
-> Matyas
-> -
+------=_Part_81005_11591397.1228237930052
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-if you install the first time mercurial v4l-dvb on older kernels,
-it always can happen that module names have changed and new modules are
-added.
+Hi,
 
-Since you don't know what is going on in details, you are not aware of.
+I too tried to compile the drivers from '
+http://linuxtv.org/hg/~mchehab/tm6010/<http://linuxtv.org/hg/%7Emchehab/tm6010/>
+'.
 
-In this case the old compat-ioctl32 is not replaced by the new
-v4l2-compat-ioctl32 module.
+I tried 4 days ago archive..... 5 weeks old and 7 months old... all the same
+results.
 
-If you do on top of the modules of your kernel version
-"less modules.symbols |grep ioctl32",
-you likely will see this.
-alias symbol:v4l_compat_ioctl32 compat_ioctl32
-alias symbol:v4l_compat_ioctl32 v4l2-compat-ioctl32
+All drivers compile fine... but not tm6000. Compilation runs fine. It
+produces around 200+ drivers but not any tm6000 driver. Although tm6000
+folder is present in all of these archives. But it remains as source file
+only ( like .c, .h etc ) and doesnt get compiled into the driver like other
+drivers. As the compilation goes fine without any errors. I am wondering If
+I am doing something wrong or is there a different way to do it.
 
-But it should be only that.
-less modules.symbols |grep ioctl32
-alias symbol:v4l_compat_ioctl32 v4l2-compat-ioctl32
+I use 'make' or sometimes 'make all' and then 'make install'.
 
-On top of the mercurial v4l-dvb do
-"make rmmod", since some complaints are visible do it again.
+Hi Mike, according to your post you have successfully compiled these
+drivers. Kindly guide me the way also. I know these drivers are still in the
+development. But analog support is working. And i need only that. My Chipset
+is 5600 AI.
 
-Then "make rminstall" should remove all old modules,
-but renamed ones or such in distribution specific wrong locations
-remain.
+Kindly help me out! Hope to get a reply soon. :)
 
-Check with "ls -R |grep .ko" on top of your kernel's media modules
-folder.
+Regards,
+Sanjeev
 
-Delete the media folder or the modules.
+------=_Part_81005_11591397.1228237930052
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Now on "make install" everything is created new and a "depmod -a" on the
-end of it will automatically create all dependencies and module.symbols.
+Hi,<br><br>I too tried to compile the drivers from &#39;<a href="http://linuxtv.org/hg/%7Emchehab/tm6010/" target="_blank">http://linuxtv.org/hg/~mchehab/tm6010/</a>&#39;.<br><br>I tried 4 days ago archive..... 5 weeks old and 7 months old... all the same results.<br>
 
-Only in case of a deprecated module is not unloaded with "make rmmod",
-you might have to do this manually or reboot.
+<br>All drivers compile fine... but not tm6000. Compilation runs fine.
+It produces around 200+ drivers but not any tm6000 driver. Although
+tm6000 folder is present in all of these archives. But it remains as
+source file only ( like .c, .h etc ) and doesnt get compiled into the
+driver like other drivers. As the compilation goes fine without any
+errors. I am wondering If I am doing something wrong or is there a
+different way to do it.<br>
+<br>I use &#39;make&#39; or sometimes &#39;make all&#39; and then &#39;make install&#39;.<br><br>Hi
+Mike, according to your post you have successfully compiled these
+drivers. Kindly guide me the way also. I know these drivers are still
+in the development. But analog support is working. And i need only
+that. My Chipset is 5600 AI.<br>
+<br>Kindly help me out! Hope to get a reply soon. :)<br><br>Regards,<br>Sanjeev
 
->From now on everything will work automatically until again modules are
-changed.
-
-Use "modprobe -v" for loading, since this will also reveal possibly
-conflicting kernel modules in other locations than the media folder.
-
-Cheers,
-Hermann
+------=_Part_81005_11591397.1228237930052--
 
 
-
-
-
-
-
+--===============2145794658==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2145794658==--
