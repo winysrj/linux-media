@@ -1,21 +1,35 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from anchor-post-1.mail.demon.net ([195.173.77.132])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LEP6f-0003KW-Fk
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 15:16:38 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so169148eya.17
-	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 06:16:30 -0800 (PST)
-Date: Sun, 21 Dec 2008 15:16:18 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Artem Makhutov <artem@makhutov.org>
-In-Reply-To: <20081221132637.GG12059@titan.makhutov-it.de>
-Message-ID: <alpine.DEB.2.00.0812211444330.22383@ybpnyubfg.ybpnyqbznva>
-References: <20081220224557.GF12059@titan.makhutov-it.de>
-	<494E4176.2000003@verbraak.org>
-	<20081221132637.GG12059@titan.makhutov-it.de>
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1L7Y3p-0004sZ-CW
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 17:25:18 +0100
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-1.mail.demon.net with esmtp (Exim 4.69)
+	id 1L7Y3l-0004mU-gz
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 16:25:13 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1L7Y3f-0000wG-7w
+	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 16:25:12 +0000
+Date: Tue, 02 Dec 2008 14:35:24 +0000
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+To: linux-dvb@linuxtv.org
+Message-ID: <500CD7A3A0%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <1228164038.5106.1287670679@webmail.messagingengine.com>
+References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>  
+	<1227213591.29403.1285914127@webmail.messagingengine.com>  
+	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>  
+	<1227228030.18353.1285952745@webmail.messagingengine.com>  
+	<412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>  
+	<1228152690.22348.1287628393@webmail.messagingengine.com>  
+	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>  
+	<1228162425.30518.1287666879@webmail.messagingengine.com>  
+	<1228164038.5106.1287670679@webmail.messagingengine.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
+Subject: Re: [linux-dvb] dib0700 remote control support fixed
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,67 +43,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 21 Dec 2008, Artem Makhutov wrote:
+I demand that petercarm may or may not have written...
 
-> I just checked it out. It looks interesing, but I need UDP streaming,
-> as the STB can only receive UDP-Streams.
+> I've just got lucky with running dmesg at the onset of the problem, so can
+> see the initial messages rather than just the flood of read/write failures.
 
-What sort of UDP do you need -- an RTP Transport Stream,
-an RTP Program Stream, a simple raw Transport stream, or
-what?
+> Unfortunately I've only got it in my xterm buffer, so I've posted some
+> screenshots here:
 
-Unless you're using a different `dvbstream' than I, it
-sends out RTP (partial or not) Transport Streams, with
-UDP packet size equal to the TS frame size (I hacked this
-to fill as much of an ethernet frame as possible).
+If it's displayed in an X terminal, it's saveable as a text file:
+drag-select, "xclip >foo". If it's somewhere in /var/log, use $EDITOR to save
+part of the file somewhere user-readable.
 
-I don't know if your `szap2' program simply sets up the
-frontend to the desired frequency, or if it also sets
-hardware PID filters on your card -- I've always been able
-to use other utilities with bog-standard `t/szap' to work
-on the entire TS.
+You have no excuse for using screenshots. :-)
 
-If bandwidth is an issue, a HD H.264 stream is likely to
-weigh in around 10 to 20Mbit/sec; a full S2 transport
-stream is higher (DVB-S streams from Astra are on the
-order of 36Mbit/sec; S2 will likely be slightly more).
+[snip]
+-- 
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+|   Kill all extremists!
 
-Add the overhead for UDP encapsulation of the 188-byte
-packets, and I wouldn't be surprised if you push close
-to some hardware limits of a 100Mbit/sec network, given
-the unreliable nature of UDP, and that a single dropped
-or corrupt packet can appear as a video stream error.
-
-Although, as you said, your 'Doze works, so the sum of
-your hardware should be able to handle the traffic.
-
-Something I just learned a few seconds ago, dvbstream:
--net ip:prt IP address:port combination to be followed by pids 
-list. Can be repeated to generate multiple RTP streams
-
-This will filter your ~50Mbit/sec transponder down to a
-manageable size.  Be sure to specify all the PIDs for
-ASTRA HD or whatever; for the DVB-S Eins Festival that
-will start tomorrow (Mo) with non-upscaled 720p content
-again, that should be
-0  1600  -v 1601   -a 1602   1603  1606
-(as arguments to standalone `dvbstream')
-
-
-Just some additional things to keep in mind...
-
-
-By the way, I also received some personal mail which I
-don't think made it to the list, and this may be of use
-to you, so I'll quote from that here, so that others may
-benefit:
-DUBOST Brice wrote:
-``You can try mumudvb : http://mumudvb.braice.net, I think it will answer
-your needs''
-
-
-thankz
-baz bouwsma
+You will be awarded the Nobel Peace Prize. Posthumously.
 
 _______________________________________________
 linux-dvb mailing list
