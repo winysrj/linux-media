@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3KmPro024232
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:25 -0500
-Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3KmBeP010753
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:11 -0500
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <ede2dd835a2086131584.1228337223@hypnosis.jim>
-In-Reply-To: <patchbomb.1228337219@hypnosis.jim>
-Date: Wed, 03 Dec 2008 15:47:03 -0500
-From: Jim Paris <jim@jtan.com>
-To: video4linux-list@redhat.com
-Cc: 
-Subject: [PATCH 4 of 4] ov534: frame transfer improvements
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3Iq2Tf026098
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 13:52:02 -0500
+Received: from smtp-out28.alice.it (smtp-out28.alice.it [85.33.2.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3Ipk9r008382
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 13:51:47 -0500
+Date: Wed, 3 Dec 2008 19:51:37 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-Id: <20081203195137.6ccb5d76.ospite@studenti.unina.it>
+In-Reply-To: <Pine.LNX.4.64.0812012148060.3915@axis700.grange>
+References: <20081107125919.ddf028a6.ospite@studenti.unina.it>
+	<874p2jbegl.fsf@free.fr>
+	<Pine.LNX.4.64.0811082119280.8956@axis700.grange>
+	<20081109235940.4c009a68.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0811101946200.8315@axis700.grange>
+	<878wrr9z9h.fsf@free.fr>
+	<20081112192746.f59ee94d.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0812012148060.3915@axis700.grange>
+Mime-Version: 1.0
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH, RFC] mt9m111: allow data to be received on pixelclock
+ falling edge?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,153 +29,92 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0452275433=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User jim@jtan.com
-# Date 1228335450 18000
-# Node ID ede2dd835a2086131584558f5ccb1e2170135b07
-# Parent  61c8d2959dd6ad1b45e0d8bf12b3d5748fc6a568
-ov534: frame transfer improvements
+--===============0452275433==
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+	micalg="PGP-SHA1";
+	boundary="Signature=_Wed__3_Dec_2008_19_51_37_+0100_DJk9R6g0oafZ9g.P"
 
-The indirect registers at 0x1c/0x1d control frame settings.  If we
-leave the values at 0x0a and 0x0b at their reset-time defaults, frame
-data from the camera matches the UVC payload format.  This lets us
-better reassemble the data into frames and know when data was lost.
+--Signature=_Wed__3_Dec_2008_19_51_37_+0100_DJk9R6g0oafZ9g.P
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This also lets us relax the bulk_size requirement from 600K to 2K,
-which should help systems on with limited RAM (like the PS3).
+On Mon, 1 Dec 2008 21:54:17 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-Signed-off-by: Jim Paris <jim@jtan.com>
+> Hi Antonio,
+>=20
+> On Wed, 12 Nov 2008, Antonio Ospite wrote:
+>=20
+> > On Mon, 10 Nov 2008 20:06:34 +0100
+> > Robert Jarzmik <robert.jarzmik@free.fr> wrote:
+> >=20
+> >
+> > >=20
+> > > I can't think of a better solution than an inverter flag as well. As =
+this would
+> > > be very board specific, let it go in something board code sets up.
+> > >=20
+> > > That's how it's already done for inverted gpio Vbus sensing in the US=
+B stack for
+> > > the pxa for example.
+> > >=20
+> >=20
+> > Ok, I hope you'll find time to add the proper solution some day, since I
+> > don't think I can do it correctly with my current knowledge.
+>=20
+> Could you test the patch below? It applies on top of all my patches I=20
+> pushed today plus a couple more that are still to be pushed... But maybe=
+=20
+> you can apply it to linux-next manually. You just need the parts for=20
+> soc_camera.h and for mt9m111. And then you need to add to your struct=20
+> soc_camera_link in platform data:
+>=20
+> 	.flags =3D SOCAM_SENSOR_INVERT_PCLK,
+>=20
 
-diff -r 61c8d2959dd6 -r ede2dd835a20 linux/drivers/media/video/gspca/ov534.c
---- a/linux/drivers/media/video/gspca/ov534.c	Wed Dec 03 15:07:30 2008 -0500
-+++ b/linux/drivers/media/video/gspca/ov534.c	Wed Dec 03 15:17:30 2008 -0500
-@@ -166,10 +166,6 @@
- 	{ 0xe2, 0x00 },
- 	{ 0xe7, 0x3e },
- 
--	{ 0x1c, 0x0a },
--	{ 0x1d, 0x22 },
--	{ 0x1d, 0x06 },
--
- 	{ 0x96, 0x00 },
- 
- 	{ 0x97, 0x20 },
-@@ -328,10 +324,8 @@
- 	cam->cam_mode = vga_mode;
- 	cam->nmodes = ARRAY_SIZE(vga_mode);
- 
--	cam->bulk_size = vga_mode[0].sizeimage;
-+	cam->bulk_size = 2048;
- 	cam->bulk_nurbs = 2;
--
--	PDEBUG(D_PROBE, "bulk_size = %d", cam->bulk_size);
- 
- 	return 0;
- }
-@@ -379,8 +373,6 @@
- 	PDEBUG(D_PROBE, "width = %d, height = %d",
- 	       gspca_dev->width, gspca_dev->height);
- 
--	gspca_dev->cam.bulk_size = gspca_dev->width * gspca_dev->height * 2;
--
- 	/* start streaming data */
- 	ov534_set_led(gspca_dev->dev, 1);
- 	ov534_reg_write(gspca_dev->dev, 0xe0, 0x00);
-@@ -395,18 +387,80 @@
- 	ov534_set_led(gspca_dev->dev, 0);
- }
- 
-+/* Values for bmHeaderInfo (Video and Still Image Payload Headers, 2.4.3.3) */
-+#define UVC_STREAM_EOH	(1 << 7)
-+#define UVC_STREAM_ERR	(1 << 6)
-+#define UVC_STREAM_STI	(1 << 5)
-+#define UVC_STREAM_RES	(1 << 4)
-+#define UVC_STREAM_SCR	(1 << 3)
-+#define UVC_STREAM_PTS	(1 << 2)
-+#define UVC_STREAM_EOF	(1 << 1)
-+#define UVC_STREAM_FID	(1 << 0)
-+
- static void sd_pkt_scan(struct gspca_dev *gspca_dev, struct gspca_frame *frame,
- 			__u8 *data, int len)
- {
--	int framesize = gspca_dev->cam.bulk_size;
-+	static __u32 last_pts;
-+	__u32 this_pts;
-+	static int last_fid;
-+	int this_fid;
- 
--	if (len == framesize) {
--		frame = gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
--					data, len);
--		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
--	} else
--		PDEBUG(D_PACK, "packet len = %d, framesize = %d", len,
--		       framesize);
-+	/* Payloads are prefixed with a the UVC-style header.  We
-+	   consider a frame to start when the FID toggles, or the PTS
-+	   changes.  A frame ends when EOF is set, and we've received
-+	   the correct number of bytes. */
-+
-+	/* Verify UVC header.  Header length is always 12 */
-+	if (data[0] != 12 || len < 12) {
-+		PDEBUG(D_PACK, "bad header");
-+		goto discard;
-+	}
-+
-+	/* Check errors */
-+	if (data[1] & UVC_STREAM_ERR) {
-+		PDEBUG(D_PACK, "payload error");
-+		goto discard;
-+	}
-+
-+	/* Extract PTS and FID */
-+	if (!(data[1] & UVC_STREAM_PTS)) {
-+		PDEBUG(D_PACK, "PTS not present");
-+		goto discard;
-+	}
-+	this_pts = (data[5] << 24) | (data[4] << 16) | (data[3] << 8) | data[2];
-+	this_fid = (data[1] & UVC_STREAM_FID) ? 1 : 0;
-+
-+	/* If PTS or FID has changed, start a new frame. */
-+	if (this_pts != last_pts || this_fid != last_fid) {
-+		frame = gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
-+		last_pts = this_pts;
-+		last_fid = this_fid;
-+	}
-+
-+	/* Add the data from this payload */
-+	frame = gspca_frame_add(gspca_dev, INTER_PACKET, frame,
-+				data + 12, len - 12);
-+
-+	/* If this packet is marked as EOF, end the frame */
-+	if (data[1] & UVC_STREAM_EOF) {
-+		last_pts = 0;
-+
-+		if ((frame->data_end - frame->data) !=
-+		    (gspca_dev->width * gspca_dev->height * 2)) {
-+			PDEBUG(D_PACK, "short frame");
-+			goto discard;
-+		}
-+
-+		gspca_frame_add(gspca_dev, LAST_PACKET, frame, NULL, 0);
-+	}
-+
-+	/* Done */
-+	return;
-+
-+discard:
-+	/* Discard data until a new frame starts. */
-+	gspca_frame_add(gspca_dev, DISCARD_PACKET, frame, NULL, 0);
-+	return;
- }
- 
- /* sub-driver description */
+Thanks Guennadi, I can't test it before week-end. If by then you have a
+single patchset, please let me know.
+
+Regards,
+   Antonio Ospite
+
+--=20
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+  Web site: http://www.studenti.unina.it/~ospite
+Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
+
+--Signature=_Wed__3_Dec_2008_19_51_37_+0100_DJk9R6g0oafZ9g.P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkk21TkACgkQ5xr2akVTsAHfCgCfRZWYS2jHjI2+yJWvslNQjDUv
+QfsAn33IthNExUpvpBIFGEr/prnij/m1
+=u7Bq
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__3_Dec_2008_19_51_37_+0100_DJk9R6g0oafZ9g.P--
+
+
+--===============0452275433==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--===============0452275433==--
