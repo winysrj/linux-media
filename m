@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHHDI6v001810
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 12:13:18 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHHCjLo013986
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 12:12:45 -0500
-Date: Wed, 17 Dec 2008 18:12:57 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0812171809030.5465@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3F5hbq007546
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 10:05:43 -0500
+Received: from sk.insite.com.br (sk.insite.com.br [66.135.32.93])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3F4een014047
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 10:04:40 -0500
+Received: from [201.82.105.195] (helo=[192.168.1.100])
+	by sk.insite.com.br with esmtps (TLSv1:AES256-SHA:256) (Exim 4.69)
+	(envelope-from <diniz@wimobilis.com.br>) id 1L7tHK-0003mb-VH
+	for video4linux-list@redhat.com; Wed, 03 Dec 2008 13:04:40 -0200
+From: Rafael Diniz <diniz@wimobilis.com.br>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Wed, 3 Dec 2008 13:12:11 -0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: 
-Subject: "fix compilation for pre-2.6.26 kernels" - backwards compatibility
- breaks patches
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812031312.11642.diniz@wimobilis.com.br>
+Subject: VBI capture failing for saa7134
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,26 +30,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello people,
+I'm w/ a problem for capturing VBI data (closed caption) using a Pinnacle PCTV 
+(worked w/ some older kernel). 
+Using the sliced-vbi-test.c (inside v4l2-apps/test), I get the error in the 
+following ioctl:
 
-I've got a case, where a patch doesn't apply to the hg tree because of 
-such a backwards-compatibility fix. To be precise, the patch applies but 
-with a "fuzz 2", I think, hg will not accept this. but even if it will, it 
-will then be difficult to re-export it to mainline git. What does one do 
-in such situations? Specifically this is the ov772x.c driver and the 
-conflicting commit is
+ioctl(fh, VIDIOC_S_FMT, &fmt);
+vbi: Invalid argument
 
-# User Hans Verkuil <hverkuil@xs4all.nl>
-# Date 1225375034 -3600
-# Node ID 85a17c64ef0ae476bb2e7cc3c43190db04a39ca2
-# Parent  3ed7439469cdd5d66b1cc2a053ae617bff56bb92
-ov772x: fix compilation for pre-2.6.26 kernels
+What function handles that ioctl?
+I'm looking at linux/drivers/media/video/saa7134 directory, but I could not 
+figure out what function takes care of the VIDIOC_S_FMT ioctl.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Thanks,
+Rafael Diniz
+WiMobilis
 
 --
 video4linux-list mailing list
