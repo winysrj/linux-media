@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web27707.mail.ukl.yahoo.com ([217.146.177.241])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <pongo_bob@yahoo.co.uk>) id 1LCxNQ-0007A2-7X
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 15:27:53 +0100
-Date: Wed, 17 Dec 2008 14:27:18 +0000 (GMT)
-From: Bob <pongo_bob@yahoo.co.uk>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812170539n62490614ia7fee4e1689f91@mail.gmail.com>
+Received: from fk-out-0910.google.com ([209.85.128.187])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <e9hack@googlemail.com>) id 1L7x1p-0002U3-G1
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 20:04:53 +0100
+Received: by fk-out-0910.google.com with SMTP id f40so3698373fka.1
+	for <linux-dvb@linuxtv.org>; Wed, 03 Dec 2008 11:04:50 -0800 (PST)
+Message-ID: <9ac6f40e0812031104q1b3a419ub5c1a58d19f96239@mail.gmail.com>
+Date: Wed, 3 Dec 2008 20:04:49 +0100
+From: e9hack@googlemail.com
+To: linux-dvb@linuxtv.org
+In-Reply-To: <4936BE27.10800@googlemail.com>
 MIME-Version: 1.0
-Message-ID: <730052.59111.qm@web27707.mail.ukl.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge Nova-TD-500 84xxx remote control
-Reply-To: pongo_bob@yahoo.co.uk
+References: <492168D8.4050900@googlemail.com>
+	<19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>
+	<c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>
+	<49358FE8.9020701@googlemail.com>
+	<c74595dc0812021205x22936540w9ce74549f07339ff@mail.gmail.com>
+	<4935B1B3.40709@googlemail.com>
+	<c74595dc0812022323w1df844cegc0c0ef269babed66@mail.gmail.com>
+	<4936BE27.10800@googlemail.com>
+Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
+	which outputs the wrong frequency if the current tuned transponder
+	is scanned only
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,109 +29,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0486083426=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0486083426==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_13023_18890304.1228331089990"
 
---- On Wed, 17/12/08, Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+------=_Part_13023_18890304.1228331089990
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> From: Devin Heitmueller <devin.heitmueller@gmail.com>
-> Subject: Re: [linux-dvb] Hauppauge Nova-TD-500 84xxx remote control
-> To: pongo_bob@yahoo.co.uk
-> Cc: linux-dvb@linuxtv.org
-> Date: Wednesday, 17 December, 2008, 1:39 PM
-> On Wed, Dec 17, 2008 at 7:14 AM, Bob
-> <pongo_bob@yahoo.co.uk> wrote:
-> > Hi,
-> >  I used the following kludge :
-> >
-> >  The code for handling the remote is missing in
-> linux/drivers/media/dvb/dvb-usb/dib0700_devices.c. Around
-> line 1402 in you need to add
-> >
-> >                        },
-> >                },
-> >
-> >                .rc_interval      =
-> DEFAULT_RC_INTERVAL,
-> >                .rc_key_map       = dib0700_rc_keys,
-> >                .rc_key_map_size  =
-> ARRAY_SIZE(dib0700_rc_keys),
-> >                .rc_query         = dib0700_rc_query
-> >
-> > pinched from the remotes above.
-> >
-> > This enables the remote if you recompile and reload
-> the module you should see a new input device in dmesg, in my
-> case I can cat /dev/input/event4 and see the key presses.
-> >
-> > Unfortunately , the code in dib0700_rc_query always
-> returns the last key pressed so you get an event every 150mS
-> with the same key in it. So on to the next kludge :
-> >
-> > At the top of dib0700_rc_query I added:
-> >
-> > static int toggle;
-> >
-> > and after i = dib0700_ctrl_rd( blah blah) :
-> >
-> > if ( key[2] == toggle )
-> >  return 0;
-> > toggle = key[2];
-> >
-> > This checks if the key fetched from the remote is the
-> same as the last and returns if it is thus dumping all the
-> repeats from dib0700_ctrl_rd;
-> >
-> > Now you should find that UP , DOWN , LEFT and RIGHT
-> keys work ok but not much else.
-> >
-> > Kludge No.3 coming up :
-> > Starting around line 612 in dib0700_devices.c are the
-> key mappings for the Hauppauge remote. I changed the mapping
-> for KEY_OK to KEY_ENTER so now I can navigate menus and
-> select items.
-> >
-> > And that is as far as I've got ..
-> 
-> Hello Bob,
-> 
-> Are you using the latest code and 1.20 firmware?  I pushed
-> in a fix on
-> December 8 that as far as I know addressed the last of the
-> remaining
-> dib0700 IR issues.
-> 
-> It is possible that your device is missing it's RC
-> declaration, which
-> I can add.  But you shouldn't be seeing any more repeat
-> problems.
-> 
-> If people are still having dib0700 IR issues, I would like
-> to hear
-> about it, since I thought I fixed them all...
-> 
-> Devin
-> 
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
+2008/12/3 e9hack <e9hack@googlemail.com>
 
-Hi Devin ,
- I am running the 1.20 firmware but missed that fix. I've just downloaded and tested the latest code and it works fine after enabling the remote. 
+> For the current transponder scanning, it isn't set any filter for NIT
+> parsing. Since the
+> output format is zap and vdr only, it must be always setup a NIT filter:
+>
+> diff -r 51eceb97c3bd scan.c
+> --- a/scan.c    Mon Dec 01 23:36:50 2008 +0200
+> +++ b/scan.c    Wed Dec 03 18:04:10 2008 +0100
+> @@ -2495,7 +2503,7 @@ static void scan_tp_dvb (void)
+>        add_filter (&s0);
+>        add_filter (&s1);
+>
+> -       if (!current_tp_only) {
+> +       if (/*!current_tp_only*/1) {
+>                setup_filter (&s2, demux_devname, PID_NIT_ST,
+> TID_NIT_ACTUAL, -1, 1, 0,
+> 15); /* NIT */
+>                add_filter (&s2);
+>                if (get_other_nits) {
+>
 
-Many thanks for your help with this.
+I forgot, frequency and modulation are wrong as in the original scan
+application. The values are from last parsed NIT entry, which isn't from the
+current transponder.
+
+Regards,
+Hartmut
+
+------=_Part_13023_18890304.1228331089990
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+2008/12/3 e9hack <span dir="ltr">&lt;<a href="mailto:e9hack@googlemail.com">e9hack@googlemail.com</a>&gt;</span><br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+For the current transponder scanning, it isn&#39;t set any filter for NIT parsing. Since the<br>
+output format is zap and vdr only, it must be always setup a NIT filter:<br>
+<br>
+diff -r 51eceb97c3bd scan.c<br>
+--- a/scan.c &nbsp; &nbsp;Mon Dec 01 23:36:50 2008 +0200<br>
++++ b/scan.c &nbsp; &nbsp;Wed Dec 03 18:04:10 2008 +0100<br>
+@@ -2495,7 +2503,7 @@ static void scan_tp_dvb (void)<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;add_filter (&amp;s0);<br>
+ &nbsp; &nbsp; &nbsp; &nbsp;add_filter (&amp;s1);<br>
+<br>
+- &nbsp; &nbsp; &nbsp; if (!current_tp_only) {<br>
++ &nbsp; &nbsp; &nbsp; if (/*!current_tp_only*/1) {<br>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;setup_filter (&amp;s2, demux_devname, PID_NIT_ST, TID_NIT_ACTUAL, -1, 1, 0,<br>
+15); /* NIT */<br>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;add_filter (&amp;s2);<br>
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;if (get_other_nits) {<br></blockquote></div><br>I forgot, frequency and modulation are wrong as in the original scan application. The values are from last parsed NIT entry, which isn&#39;t from the current transponder.<br>
+<br>Regards,<br>Hartmut<br>
+
+------=_Part_13023_18890304.1228331089990--
 
 
-
-
-      
+--===============0486083426==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0486083426==--
