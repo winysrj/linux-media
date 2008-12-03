@@ -1,27 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7F9S-0003Kq-3x
-	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 21:13:51 +0100
-Received: from compute2.internal (compute2.internal [10.202.2.42])
-	by out1.messagingengine.com (Postfix) with ESMTP id E14011C9FF9
-	for <linux-dvb@linuxtv.org>; Mon,  1 Dec 2008 15:13:45 -0500 (EST)
-Message-Id: <1228162425.30518.1287666879@webmail.messagingengine.com>
-From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
-To: "Linux-dvb" <linux-dvb@linuxtv.org>
-Content-Disposition: inline
-MIME-Version: 1.0
-References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
-	<1227213591.29403.1285914127@webmail.messagingengine.com>
-	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
-	<1227228030.18353.1285952745@webmail.messagingengine.com>
-	<412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>
-	<1228152690.22348.1287628393@webmail.messagingengine.com>
-	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
-In-Reply-To: <412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
-Date: Mon, 01 Dec 2008 20:13:45 +0000
-Subject: Re: [linux-dvb] dib0700 remote control support fixed
-Reply-To: linuxtv@hotair.fastmail.co.uk
+	(envelope-from <awalls@radix.net>) id 1L7gqD-0002Ki-0z
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 02:47:49 +0100
+From: Andy Walls <awalls@radix.net>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+In-Reply-To: <alpine.DEB.2.00.0812030110260.9198@ybpnyubfg.ybpnyqbznva>
+References: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
+	<alpine.DEB.2.00.0812030110260.9198@ybpnyubfg.ybpnyqbznva>
+Date: Tue, 02 Dec 2008 20:48:42 -0500
+Message-Id: <1228268922.3861.55.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Pinnacle 80e support: not going to happen...
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,45 +26,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 1 Dec 2008 13:54:19 -0500, "Devin Heitmueller"
-<devin.heitmueller@gmail.com> said:
-> Hello Peter,
-> 
-> Of the devices that you have, which are the ones that are failing?
-> Both of the dibcom devices?
-> 
-> I am not familiar with how lirc interacts with the dib0700 driver,
-> since the driver polls the bulk endpoint every 50ms and injects the
-> keys directly.  I will have to look at the driver and see how this
-> hooks into lirc.
-> 
-> I suspect that most people are not using lirc at all, since the device
-> works without it.  This would explain why you are the only person I
-> know of still reporting these problems.
-> 
-> Could you please send my your lirc configuration so I can attempt to
-> reproduce the issue locally?  If I can get an environment that
-> reproduces the issue, I can almost certainly fix it.
-> 
-> Thanks,
-> 
-> Devin
-> 
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
+On Wed, 2008-12-03 at 01:32 +0100, BOUWSMA Barry wrote:
 
-Just to add a bit more clarity.
+> barry bouwsma
+> wanders off muttering about how dissatisfying it is to
+> throw a USB stick out the window; oh how I miss being able
+> to hurl a rack filled with valves (tubes for you wrong-
+> pondians) and chokes and real transformers leaking oily
+> PCBs down to the parking lot below.
 
-The LIRC project provides drivers for otherwise unsupported RC hardware.
- For dvb-usb receivers it just piggybacks off the /dev/input device
-file.  No driver from LIRC is used.  The LIRC involvement is purely in
-userspace.  This is not a LIRC problem.  The problem arises whether or
-not lircd is started.
+Don't forget about the mercury in those smashed tubes, um, valves.
 
-The problem is suppressed if the disable_rc_polling parameter in dvb_usb
-is set to 1 but obviously this disables all RC support.
+Man, it's been years since I've seen the blue glow of a *real* diode.
+
+Regards,
+Andy
+
+
 
 _______________________________________________
 linux-dvb mailing list
