@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIBqkWw022534
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 06:52:46 -0500
-Received: from smtp-vbr7.xs4all.nl (smtp-vbr7.xs4all.nl [194.109.24.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIBqUGY015943
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 06:52:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Thu, 18 Dec 2008 12:52:24 +0100
-References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
-In-Reply-To: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB35W7AK027985
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 00:32:07 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB35Vs79006925
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 00:31:55 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so1340079eyf.39
+	for <video4linux-list@redhat.com>; Tue, 02 Dec 2008 21:31:54 -0800 (PST)
+Message-ID: <de8cad4d0812022131h29832960y1881b79137b9fa46@mail.gmail.com>
+Date: Wed, 3 Dec 2008 00:31:53 -0500
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: ivtv-users@ivtvdriver.org, ivtv-devel@ivtvdriver.org,
+	linux-dvb@linuxtv.org, video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812181252.24661.hverkuil@xs4all.nl>
-Cc: Fabio Belavenuto <belavenuto@gmail.com>
-Subject: Re: [PATCH] Add TEA5764 radio driver
+Content-Type: multipart/mixed;
+	boundary="----=_Part_95056_32397885.1228282313990"
+Cc: 
+Subject: Update request for attached patch: v4l2-compat-ioctl32.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,53 +28,111 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Fabio,
+------=_Part_95056_32397885.1228282313990
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Wednesday 17 December 2008 23:49:33 Fabio Belavenuto wrote:
-> Add support for radio driver TEA5764 from NXP.
-> This chip is connected in pxa I2C bus in EZX phones
-> from Motorola, the chip is used in phone model A1200.
-> This driver is for OpenEZX project (www.openezx.org)
-> Tested with A1200 phone, openezx kernel and fm-tools
->
-> Signed-off-by: Fabio Belavenuto <belavenuto@gmail.com>
->
->  drivers/media/radio/Kconfig         |   19 +
->  drivers/media/radio/Makefile        |    1 +
->  drivers/media/radio/radio-tea5764.c |  641
-> +++++++++++++++++++++++++++++++++++ 3 files changed, 661 insertions(+), 0
-> deletions(-)
->
+Greetings all,
 
-I'm sorry, but this isn't the right approach. This chip is a radio tuner and 
-as such can be used in many other products. So the tea5764 driver should be 
-implemented as a tuner driver instead. See drivers/media/common/tuners for 
-other such drivers, including the close cousins tea5761 and tea5767.
+Would anyone on the list be interested in updating the attached patch
+to work with the new structure of the v4l2-compat-ioctl32.c file? I
+use SageTV which is 32-bit on my 64-bit system and the newer driver
+base does not work with the attached patch. I attempted to contact the
+original dev of the patch and while someone volunteered to update, no
+update has been provided by the time discussed. As a result I am
+seeing messages like:
 
-Next to that you need a v4l radio driver for this platform that loads the 
-tuner module and sets it up correctly.
+compat_ioctl32: VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32: VIDIOC_S_EXT_CTRLS<6>cx18-1 info:
+Start encoder stream encoder MPEG
 
-Basically this driver needs to be split into a tuner driver and a v4l driver 
-for this platform.
+Thanks in advance,
 
-The big advantage is that the tea5764 driver can be reused in other 
-products, and also that it is easy to change the v4l driver if another 
-tuner chip is chosen in the future.
+Brandon
 
-BTW, it might be possible that the tea5764 is very similar to the existing 
-tea radio drivers. In that case you might want to consider adding support 
-for this new variant to an existing driver, rather than creating a new 
-driver. I've never looked at the datasheets for these chips, so I don't 
-know how feasible that is.
+PS - I am not sure which list to post this on.
 
-Regards,
+------=_Part_95056_32397885.1228282313990
+Content-Type: application/octet-stream; name=sage64.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fo9jensf0
+Content-Disposition: attachment; filename=sage64.patch
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+LS0tIC4uL2hkcHZyLW9yaWcvaGRwdnIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jb21wYXRf
+aW9jdGwzMi5jCTIwMDgtMDgtMTIgMTI6Mjk6NDcuMDAwMDAwMDAwIC0wNjAwCisrKyBoZHB2ci9s
+aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2NvbXBhdF9pb2N0bDMyLmMJMjAwOC0wOC0xMiAyMDox
+ODo1MC4wMDAwMDAwMDAgLTA2MDAKQEAgLTU0OCw2ICs1NDgsNjEgQEAKIAlyZXR1cm4gMDsKIH0K
+IAorCitzdHJ1Y3QgdjRsMl9leHRfY29udHJvbHMzMiB7CisgICAgICAgX191MzIgY3RybF9jbGFz
+czsKKyAgICAgICBfX3UzMiBjb3VudDsKKyAgICAgICBfX3UzMiBlcnJvcl9pZHg7CisgICAgICAg
+X191MzIgcmVzZXJ2ZWRbMl07CisgICAgICAgY29tcGF0X2NhZGRyX3QgY29udHJvbHM7IC8qIGFj
+dHVhbGx5IHN0cnVjdCB2NGwyX2V4dF9jb250cm9sMzIgKiAqLworfTsKKworc3RhdGljIGludCBn
+ZXRfdjRsMl9leHRfY29udHJvbHMzMihzdHJ1Y3QgdjRsMl9leHRfY29udHJvbHMgKmtwLCBzdHJ1
+Y3QgdjRsMl9leHRfY29udHJvbHMzMiBfX3VzZXIgKnVwKQoreworCWlmICghYWNjZXNzX29rKFZF
+UklGWV9SRUFELCB1cCwgc2l6ZW9mKHN0cnVjdCB2NGwyX2V4dF9jb250cm9sczMyKSkgfHwKKwkJ
+Z2V0X3VzZXIoa3AtPmN0cmxfY2xhc3MsICZ1cC0+Y3RybF9jbGFzcykgfHwKKwkJZ2V0X3VzZXIo
+a3AtPmNvdW50LCAmdXAtPmNvdW50KSB8fAorCQlnZXRfdXNlcihrcC0+ZXJyb3JfaWR4LCAmdXAt
+PmVycm9yX2lkeCkgfHwKKwkJY29weV9mcm9tX3VzZXIoa3AtPnJlc2VydmVkLCB1cC0+cmVzZXJ2
+ZWQsIDIgKiBzaXplb2YoX191MzIpKSkKKwkJCXJldHVybiAtRUZBVUxUOworCWlmIChrcC0+Y291
+bnQpIHsKKwkJc3RydWN0IHY0bDJfZXh0X2NvbnRyb2wgX191c2VyICp1Y29udHJvbHM7CisJCXN0
+cnVjdCB2NGwyX2V4dF9jb250cm9sIF9fdXNlciAqa2NvbnRyb2xzOworCQlpbnQgbiA9IGtwLT5j
+b3VudDsKKwkJY29tcGF0X2NhZGRyX3QgcDsKKworCQlpZiAoZ2V0X3VzZXIocCwgJnVwLT5jb250
+cm9scykpCisJCQlyZXR1cm4gLUVGQVVMVDsKKwkJdWNvbnRyb2xzID0gY29tcGF0X3B0cihwKTsK
+KwkJa2NvbnRyb2xzID0gY29tcGF0X2FsbG9jX3VzZXJfc3BhY2UobiAqIHNpemVvZihzdHJ1Y3Qg
+djRsMl9leHRfY29udHJvbCkpOworCQlrcC0+Y29udHJvbHMgPSBrY29udHJvbHM7CisJCXdoaWxl
+ICgtLW4gPj0gMCkgeworCQkJaWYgKGNvcHlfaW5fdXNlcigma2NvbnRyb2xzLT5pZCwgJnVjb250
+cm9scy0+aWQsIHNpemVvZihfX3UzMikpKQorCQkJCXJldHVybiAtRUZBVUxUOworCQkJaWYgKGNv
+cHlfaW5fdXNlcigma2NvbnRyb2xzLT5yZXNlcnZlZDIsICZ1Y29udHJvbHMtPnJlc2VydmVkMiwg
+MiAqIHNpemVvZihfX3UzMikpKQorCQkJCXJldHVybiAtRUZBVUxUOworCQkJaWYgKGNvcHlfaW5f
+dXNlcigma2NvbnRyb2xzLT52YWx1ZSwgJnVjb250cm9scy0+dmFsdWUsIHNpemVvZih1Y29udHJv
+bHMtPnZhbHVlKSkpCisJCQkJcmV0dXJuIC1FRkFVTFQ7CisJCQl1Y29udHJvbHMrKzsKKwkJCWtj
+b250cm9scysrOworCQl9CisJfSBlbHNlIHsKKwkJa3AtPmNvbnRyb2xzID0gTlVMTDsKKwl9CisJ
+cmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgcHV0X3Y0bDJfZXh0X2NvbnRyb2xzMzIoc3RydWN0
+IHY0bDJfZXh0X2NvbnRyb2xzICprcCwgc3RydWN0IHY0bDJfZXh0X2NvbnRyb2xzMzIgX191c2Vy
+ICp1cCkKK3sKKwlpZiAoIWFjY2Vzc19vayhWRVJJRllfV1JJVEUsIHVwLCBzaXplb2Yoc3RydWN0
+IHY0bDJfZXh0X2NvbnRyb2xzMzIpKSB8fAorCQlwdXRfdXNlcihrcC0+Y3RybF9jbGFzcywgJnVw
+LT5jdHJsX2NsYXNzKSB8fAorCQlwdXRfdXNlcihrcC0+Y291bnQsICZ1cC0+Y291bnQpIHx8CisJ
+CXB1dF91c2VyKGtwLT5lcnJvcl9pZHgsICZ1cC0+ZXJyb3JfaWR4KSB8fAorCQljb3B5X3RvX3Vz
+ZXIodXAtPnJlc2VydmVkLCBrcC0+cmVzZXJ2ZWQsIDIgKiBzaXplb2YoX191MzIpKSkKKwkJCXJl
+dHVybiAtRUZBVUxUOworCXJldHVybiAwOworfQorCiAjaWZkZWYgQ09ORklHX1ZJREVPX1Y0TDFf
+Q09NUEFUCiBzdHJ1Y3QgdmlkZW9fY29kZTMyCiB7CkBAIC01OTcsNiArNjUyLDcgQEAKICNkZWZp
+bmUgVklESU9DX0dfSU5QVVQzMglfSU9SICAoJ1YnLCAzOCwgY29tcGF0X2ludF90KQogI2RlZmlu
+ZSBWSURJT0NfU19JTlBVVDMyCV9JT1dSICgnVicsIDM5LCBjb21wYXRfaW50X3QpCiAjZGVmaW5l
+IFZJRElPQ19UUllfRk1UMzIgICAgICAJX0lPV1IgKCdWJywgNjQsIHN0cnVjdCB2NGwyX2Zvcm1h
+dDMyKQorI2RlZmluZSBWSURJT0NfU19FWFRfQ1RSTFMzMiAgICBfSU9XUiAoJ1YnLCA3Miwgc3Ry
+dWN0IHY0bDJfZXh0X2NvbnRyb2xzMzIpCiAKICNpZmRlZiBDT05GSUdfVklERU9fVjRMMV9DT01Q
+QVQKIGVudW0gewpAQCAtNjgxLDYgKzczNyw3IEBACiAJCXN0cnVjdCB2NGwyX3N0YW5kYXJkIHYy
+czsKIAkJc3RydWN0IHY0bDJfaW5wdXQgdjJpOwogCQlzdHJ1Y3QgdjRsMl90dW5lciB2MnQ7CisJ
+CXN0cnVjdCB2NGwyX2V4dF9jb250cm9scyB2MmVjczsKIAkJdW5zaWduZWQgbG9uZyB2eDsKIAl9
+IGthcmc7CiAJdm9pZCBfX3VzZXIgKnVwID0gY29tcGF0X3B0cihhcmcpOwpAQCAtNzE2LDYgKzc3
+Myw3IEBACiAJY2FzZSBWSURJT0NfR19JTlBVVDMyOiByZWFsY21kID0gY21kID0gVklESU9DX0df
+SU5QVVQ7IGJyZWFrOwogCWNhc2UgVklESU9DX1NfSU5QVVQzMjogcmVhbGNtZCA9IGNtZCA9IFZJ
+RElPQ19TX0lOUFVUOyBicmVhazsKIAljYXNlIFZJRElPQ19UUllfRk1UMzI6IHJlYWxjbWQgPSBj
+bWQgPSBWSURJT0NfVFJZX0ZNVDsgYnJlYWs7CisJY2FzZSBWSURJT0NfU19FWFRfQ1RSTFMzMjog
+cmVhbGNtZCA9IGNtZCA9IFZJRElPQ19TX0VYVF9DVFJMUzsgYnJlYWs7CiAJfTsKIAogCXN3aXRj
+aChjbWQpIHsKQEAgLTgwOSw2ICs4NjcsMTEgQEAKIAkJY29tcGF0aWJsZV9hcmcgPSAwOwogCQli
+cmVhazsKICNlbmRpZgorCisJY2FzZSBWSURJT0NfU19FWFRfQ1RSTFM6CisJCWVyciA9IGdldF92
+NGwyX2V4dF9jb250cm9sczMyKCZrYXJnLnYyZWNzLCB1cCk7CisJCWNvbXBhdGlibGVfYXJnID0g
+MDsKKwkJYnJlYWs7CiAJfTsKIAlpZihlcnIpCiAJCWdvdG8gb3V0OwpAQCAtODg2LDYgKzk0OSwx
+MCBAQAogCQljYXNlIFZJRElPQ19HX0lOUFVUOgogCQkJZXJyID0gcHV0X3VzZXIoKCh1MzIpa2Fy
+Zy52eCksICh1MzIgX191c2VyICopdXApOwogCQkJYnJlYWs7CisKKwkJY2FzZSBWSURJT0NfU19F
+WFRfQ1RSTFM6CisJCQllcnIgPSBwdXRfdjRsMl9leHRfY29udHJvbHMzMigma2FyZy52MmVjcywg
+dXApOworCQkJYnJlYWs7CiAJCX07CiAJfQogb3V0OgpAQCAtOTUwLDYgKzEwMTcsOSBAQAogCWNh
+c2UgVklESU9DX1NfSU5QVVQzMjoKIAljYXNlIFZJRElPQ19UUllfRk1UMzI6CiAJY2FzZSBWSURJ
+T0NfU19IV19GUkVRX1NFRUs6CisJY2FzZSBWSURJT0NfRU5DT0RFUl9DTUQ6CisJY2FzZSBWSURJ
+T0NfU19BVURJTzoKKwljYXNlIFZJRElPQ19TX0VYVF9DVFJMUzMyOgogCQlyZXQgPSBkb192aWRl
+b19pb2N0bChmaWxlLCBjbWQsIGFyZyk7CiAJCWJyZWFrOwogCg==
+------=_Part_95056_32397885.1228282313990
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_95056_32397885.1228282313990--
