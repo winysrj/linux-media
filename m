@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBINkaxY015918
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 18:46:36 -0500
-Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
-	[151.189.21.44])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBINkXkH020758
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 18:46:33 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20081218184752.4772c44e@caramujo.chehab.org>
-References: <20080711231113.13054808@hyperion.delvare>
-	<20081014113031.739068f8@hyperion.delvare>
-	<1224800838.4202.20.camel@pc10.localdom.local>
-	<200812181808.57543.hverkuil@xs4all.nl>
-	<20081218184752.4772c44e@caramujo.chehab.org>
-Content-Type: text/plain
-Date: Fri, 19 Dec 2008 00:41:02 +0100
-Message-Id: <1229643662.2561.6.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3KmM54024193
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:22 -0500
+Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3Km8vM010723
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:09 -0500
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] bt832 driver
+Message-Id: <61c8d2959dd6ad1b45e0.1228337222@hypnosis.jim>
+In-Reply-To: <patchbomb.1228337219@hypnosis.jim>
+Date: Wed, 03 Dec 2008 15:47:02 -0500
+From: Jim Paris <jim@jtan.com>
+To: video4linux-list@redhat.com
+Cc: 
+Subject: [PATCH 3 of 4] ov534: Fix frame size so we don't miss the last pixel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,66 +26,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+# HG changeset patch
+# User jim@jtan.com
+# Date 1228334850 18000
+# Node ID 61c8d2959dd6ad1b45e0d8bf12b3d5748fc6a568
+# Parent  893107a5df87228bb6766f26226fcef8069e3fc8
+ov534: Fix frame size so we don't miss the last pixel
 
-Am Donnerstag, den 18.12.2008, 18:47 -0200 schrieb Mauro Carvalho
-Chehab:
-> On Thu, 18 Dec 2008 18:08:57 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > On Friday 24 October 2008 00:27:18 hermann pitton wrote:
-> > > Hi,
-> > >
-> > > Am Dienstag, den 14.10.2008, 11:30 +0200 schrieb Jean Delvare:
-> > > > Hi Mauro,
-> > > >
-> > > > On Wed, 30 Jul 2008 10:49:55 -0300, Mauro Carvalho Chehab wrote:
-> > > > > > I know there is nothing meant personal and the technical arguments
-> > > > > > seem to be all correct.
-> > > > > >
-> > > > > > Just, if we have some last known email address, we try to inform
-> > > > > > the author, reachable or not, directly too.
-> > > > > >
-> > > > > > This happened now and I think you can proceed.
-> > > > > >
-> > > > > > An answer from Gunther, who is not around on the lists since a
-> > > > > > while, would of course be even better.
-> > > > > >
-> > > > > > I also would like to send him documentation about some new cards,
-> > > > > > but also don't know if mails really come through currently.
-> > > > >
-> > > > > Ok. Let's wait some days to give him a chance to read this and send
-> > > > > us an answer. It seems better to wait until the end of the next week,
-> > > > > since we might be in vacations during July.
-> > > >
-> > > > It has been a long time now and apparently nobody cares about the
-> > > > broken bt832 driver, so I think it's time to delete it?
-> > > >
-> > > > Thanks,
-> > >
-> > > Mauro, Jean, please proceed as announced.
-> > 
-> > While bt832 is no longer compiled the source is still around. Can I remove 
-> > it completely? I personally hate dead sources like this, if you ever need 
-> > it again you can get it from the repository, that's why we have a 
-> > repository in the first place. I was already converting it to v4l2_subdev 
-> > before I realized that it is no longer used :-(
-> 
-> >From my side, you can remove it.
-> > 
+The frame size is too small, so we lose the last YUYV pixel.
+Fix the setup and remove the last_pixel hack.
 
-yes, of course remove it.
+Signed-off-by: Jim Paris <jim@jtan.com>
 
-Gunther was in CC since then, which should be good practice and more
-than a few days are gone now to wait ...
-
-Unfortunately we seem to lose the well searchable bttv-gallery for newer
-devices too. The wiki can't compensate this yet, if you quickly need
-some hardware details.
-
-Hermann
-
-
-
+diff -r 893107a5df87 -r 61c8d2959dd6 linux/drivers/media/video/gspca/ov534.c
+--- a/linux/drivers/media/video/gspca/ov534.c	Wed Dec 03 15:06:54 2008 -0500
++++ b/linux/drivers/media/video/gspca/ov534.c	Wed Dec 03 15:07:30 2008 -0500
+@@ -198,9 +198,9 @@
+ 	{ 0x1d, 0x40 },
+ 	{ 0x1d, 0x02 },
+ 	{ 0x1d, 0x00 },
+-	{ 0x1d, 0x02 },
+-	{ 0x1d, 0x57 },
+-	{ 0x1d, 0xff },
++	{ 0x1d, 0x02 }, /* frame size 0x025800 * 4 = 614400 */
++	{ 0x1d, 0x58 }, /* frame size */
++	{ 0x1d, 0x00 }, /* frame size */
+ 
+ 	{ 0x8d, 0x1c },
+ 	{ 0x8e, 0x80 },
+@@ -398,19 +398,12 @@
+ static void sd_pkt_scan(struct gspca_dev *gspca_dev, struct gspca_frame *frame,
+ 			__u8 *data, int len)
+ {
+-	/*
+-	 * The current camera setup doesn't stream the last pixel, so we set it
+-	 * to a dummy value
+-	 */
+-	__u8 last_pixel[4] = { 0, 0, 0, 0 };
+ 	int framesize = gspca_dev->cam.bulk_size;
+ 
+-	if (len == framesize - 4) {
+-		frame =
+-		    gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, len);
+-		frame =
+-		    gspca_frame_add(gspca_dev, LAST_PACKET, frame, last_pixel,
+-				    4);
++	if (len == framesize) {
++		frame = gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
++					data, len);
++		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
+ 	} else
+ 		PDEBUG(D_PACK, "packet len = %d, framesize = %d", len,
+ 		       framesize);
 
 --
 video4linux-list mailing list
