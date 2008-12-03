@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB16tDgl003904
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:55:13 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.229])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB16t1f8003140
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:55:02 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so2652711rvb.51
-	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 22:55:01 -0800 (PST)
-Message-ID: <7d7f2e8c0811302255q3168bbe1yfcd075616d4d9fc6@mail.gmail.com>
-Date: Sun, 30 Nov 2008 22:55:01 -0800
-From: "Steve Fink" <sphink@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB39fm32022015
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 04:41:48 -0500
+Received: from qb-out-0506.google.com (qb-out-0506.google.com [72.14.204.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB39fTGh012062
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 04:41:29 -0500
+Received: by qb-out-0506.google.com with SMTP id c8so3529058qbc.7
+	for <video4linux-list@redhat.com>; Wed, 03 Dec 2008 01:41:28 -0800 (PST)
+Message-ID: <5d5443650812030141r431371fco58501c8f241a37c7@mail.gmail.com>
+Date: Wed, 3 Dec 2008 15:11:28 +0530
+From: "Trilok Soni" <soni.trilok@gmail.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E6E06@dbde02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: USB device for uncompressed NTSC capture
+References: <5d5443650812022248p28f42ce4n513dceb18adadeab@mail.gmail.com>
+	<19F8576C6E063C45BE387C64729E739403E90E6E06@dbde02.ent.ti.com>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>,
+	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,43 +33,68 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This may be the wrong place for this question. I've been looking at a
-number of places, but haven't managed to figure out what I need to
-know.
+Hi Vaibhav,
 
-I have a camera that only has analog NTSC output. I would like to get
-the frames into my Linux laptop. The frames are 8-bit deep grayscale
-and 320x240. I assume that they are getting expanded up into NTSC
-format or something; I'm ok with that; I don't need it to be very
-accurate.
+> [Hiremath, Vaibhav] I can tell you that for OMAP3 we do have lot of files coming in, and it really brings more confusion if we have OMAP1 and OMAP2 lying outside and OMAP3 code (Display + capture) say under omap/ or omap3/.
+>
 
-On my desktop box, I have a Hauppage WinTV PCI card that hands me the
-frames back via v4l. That works perfectly. I want to do the same on my
-laptop, only using USB rather than PCI for obvious reasons. (1394
-would be fine too. But I want something cheap.)
+If you want OMAP3 directory I am fine with that but I still don't see
+need of omap2 and omap1 files under omap directory.
 
-What devices are supported that would give me what I need? I scrounged
-around on the linuxtv wiki and various other places, but it seems like
-all of the USB sticks with analog inputs were doing fancy mpeg-2
-compression, which kinda sucks for me:  I'm not saving the frames
-anywhere, I'm processing them as they come in. So I'd rather not have
-them compressed and then decompressed immediately. Also, although
-quality isn't that big of a concern for me, latency is.
+> It makes sense to have omap/ directory, and all the versions/devices of OMAP get handled from omap/Kconfig and omap/Makefile. Even if they have single file it would be nice to follow directory layers.
+>
+> Hans, Sakari or Mauro can provide their opinion on this, and decide how to handle this.
+>
+> I am just providing details, so that it would be easy to take decision -
+>
+> OMAP1 - (I have listed names from old O-L tree)
+>        - omap16xxcam.c
+>        - camera_core.c
+>        - camera_hw_if.h
+>        - omap16xxcam.h
+>        - camera_core.h
 
-I don't need audio, TV tuning, a remote, or any of the other usual
-crud that these things seem to have. I just want to get a stream of
-frames at a rather low resolution, with the bits relatively
-unmolested. I suspect that there may be many USB devices that would do
-this for me, but for the life of me I can't figure out how to tell
-which ones they are.
+In the long run (??) this will reduce to...
 
-I am currently running the 2.6.26 kernel that comes with Fedora 9
-(2.6.26.6-79.fc9.i686), but I'm happy to upgrade, downgrade, or
-compile my own drivers.
+omap1cam.c
+omap1cam.h
 
-My code is currently using v4l (either v4l1 or v4l2, autodetected).
-I've never understood the V4L vs DVB thing, but I could switch to a
-different API if necessary.
+as there is not need to creating this hw_if as the only user of this
+interface is omap16xx. I don't see any need cam_core abstraction at
+all.
+
+>
+> OMAP2 - (I have listed names from old O-L tree)
+>        - omap24xxcam.c
+>        - omap24xxcam-dma.c
+>        - omap24xxcam.h
+
+This is already accepted by Hans and going to be mainlined once merge
+window opens.
+
+>
+> In future may be display will add here.
+>
+> OMAP3 -
+>        Display - (Posted twice with old DSS library)
+>                - omap_vout.c
+>                - omap_voutlib.c
+>                - omap_voutlib.h
+>                - omap_voutdef.h
+>        Camera - (Will come soon)
+>                - omap34xxcam.c
+>                - omap34xxcam.h
+>        ISP - (Will come soon)
+>                - Here definitely we will plenty number of files.
+
+ISP block would be generic enough to be used on other silicons also,
+right? What if it is on Davinci line of processors?
+
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
 
 --
 video4linux-list mailing list
