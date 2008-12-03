@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.25])
+Received: from ug-out-1314.google.com ([66.249.92.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LEn5D-0005W2-KU
-	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 16:52:41 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so764242qwb.17
-	for <linux-dvb@linuxtv.org>; Mon, 22 Dec 2008 07:52:33 -0800 (PST)
-Message-ID: <412bdbff0812220752p4f4d3bf0t741472a8349db683@mail.gmail.com>
-Date: Mon, 22 Dec 2008 10:52:33 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Matt R" <mattr121@gmail.com>
-In-Reply-To: <25864d030812220513i22938f4dt28b0190f8aaafeba@mail.gmail.com>
+	(envelope-from <gavermer@gmail.com>) id 1L7yJt-0007mC-81
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 21:27:38 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so3433323ugc.16
+	for <linux-dvb@linuxtv.org>; Wed, 03 Dec 2008 12:27:33 -0800 (PST)
+Message-ID: <468e5d620812031227i18f646ebk1b098b88b2e56289@mail.gmail.com>
+Date: Wed, 3 Dec 2008 21:27:32 +0100
+From: "ga ver" <gavermer@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <25864d030812220513i22938f4dt28b0190f8aaafeba@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Pinnacle USB TV tuner sticks
+Subject: [linux-dvb] error in make for scan-s2-51eceb97c3bd
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,113 +25,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Dec 22, 2008 at 8:13 AM, Matt R <mattr121@gmail.com> wrote:
-> Dear Devin,
->
-> I recently purchased a Pinnacle PCTV HD Pro Stick (801e) without realizing
-> that it's different from the 800e version of the model. I was able to play
-> OTA digital channels on a Jaunty snapshop (dec 12) of Ubuntu after copying
-> in the more recent firmware version(s) mentioned  at the wiki page for this
-> model.
->
-> I was wondering whether and which of these features of the 801e currently
-> work or might be supported in the near future:
-> 1. clear QAM digital cable
-> 2. analog
-> 3. FM radio
-> as I am considering returning the unit if support for clear QAM and FM by
-> open source projects such a linuxtv/mythtv is going to take some time. What
-> would be your recommendation on this, and what is your recommendation for
-> the best USB tuner stick out there in terms of both model features as well
-> as current/forthcoming linux support for those features?
->
-> Also, in this mailing list thread, were you referring to Pinnacle's new
-> "Ultimate" stick (whose number seems to be 880e and not 80e)? If so, I am a
-> bit confused about what Markus Rechberger said in response:
->
-> Not so fast, even though I wasn't involved at knocking this down.
-> We have a custom player now which is capable of directly interfacing the
-> I2C chips from those devices. Another feature is that it supports all the
->
-> features of those devices, there won't be any need of different applications
-> anymore. There's also the thought about publishing an SDK, most applications
-> have problems of detecting all corresponding devicenodes which are required
->
-> for those devices anyway. i2c-dev is an already available and accepted
-> kernel interface
-> to userland just as usbfs is.
->
-> best regards,
-> Markus Rechberger
->
-> Is a full-featured custom player (including device drivers) is available for
-> that model? If so, are you able to point me where to look for it?
->
-> Thanks and best regards
-> Matt
+Hi,
 
-Putting the ML on the CC so others can benefit from the information.
+I try to update my channels.conf file for vdr-1.7.0 and want tu use scan-s2
+make scan-s2..... gives
 
-First off - the mistake you made in buying the 801e thinking you were
-getting an 800e is a common one - I made that mistake myself and that
-is what prompted me to add Linux support for the 801e (for the record
-though, I later added the 800e support too).
+:/usr/local/src/scan-s2# make
+gcc -I../s2/linux/include -c diseqc.c -o diseqc.o
+In file included from diseqc.c:7:
+scan.h:86: fout: expected specifier-qualifier-list before 'fe_rolloff_t'
+make: *** [diseqc.o] Fout 1
 
-Just to make things confusing, Pinnacle makes four different products
-with nearly identical model numbers (800e, 801e, 880e, 80e).
+Fout=Error
 
-Let's start with the one you have: the 801e (Pro).  This device
-supports ATSC, ClearQAM, analog, and radio.  However, only the ATSC
-and ClearQAM are implemented in Linux.  Because of some limitations in
-the Linux dvb_usb stack, I couldn't make the analog support work
-without adding all the necessary infrastructure.  And the FM support
-falls under analog.  Also, the ClearQAM support should work in theory
-but I couldn't test it when I added support since I didn't have access
-to cable.  I really do need to follow up on that now and correct any
-problems I find.
+I use Ubuntu 8.10
+Kernel : Linux gv3 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC
+2008 x86_64 GNU/Linux
 
-The 800e (Pro) is the older version of the product you have.  The ATSC
-and analog both are supported, however the hardware does not support
-ClearQAM or FM Radio.
-
-The 880e (Ultimate) hardware supports ATSC, ClearQAM, analog, but no
-FM radio.  The device is currently completely unsupported in Linux as
-I have just last week gotten the datasheets and started working on
-analog support (it uses chips that are not supported at all in Linux
-so it will take longer).
-
-The 80e (Mini) hardware only has ATSC and ClearQAM support (no analog
-or FM).  As indicated in the Wiki, this device will never be supported
-in an open source manner because Micronas refused to let me release
-the driver source (after I did all the work).
-
-Regarding your question on Markus's player, he is working on a piece
-of commercial software for playing video, and because it is closed
-source and he has relationships with Micronas he was able to include
-their driver source required for the 80e Mini.  That said, his player
-will not allow you to use applications such as MythTV or Kaffeine, as
-none of those projects are going to create a dependency on his
-closed-source player.  Also, his product is locked to Empia based
-devices, so it will not work with products such as the 801e.  You can
-go to his website at http://mcentral.de for more information.
-
-You're going to be hard pressed to find a USB product that does all
-four in Linux - ATSC, ClearQAM, analog, and FM.  Most of the older
-products that do ATSC have analog/FM working (but the hardware doesn't
-support QAM), but most of the products that do ClearQAM and ATSC do
-not have any analog or FM support implemented in the Linux driver.
-The Pinnacle Ultimate driver I am working on (when it is completed)
-will support ClearQAM, ATSC, and analog, but the hardware doesn't
-support FM).
-
-Hope that answers your question,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+thanks in advance
+gavermer
 
 _______________________________________________
 linux-dvb mailing list
