@@ -1,16 +1,31 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.188])
+Received: from out2.smtp.messagingengine.com ([66.111.4.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <holger@rusch.name>) id 1LALIK-00010f-7O
-	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 10:23:50 +0100
-Message-ID: <493F8A81.7040802@rusch.name>
-Date: Wed, 10 Dec 2008 10:23:13 +0100
-From: Holger Rusch <holger@rusch.name>
+	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7uZp-0008QR-Nj
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 17:27:50 +0100
+Received: from compute2.internal (compute2.internal [10.202.2.42])
+	by out1.messagingengine.com (Postfix) with ESMTP id 5BFE51CA7D3
+	for <linux-dvb@linuxtv.org>; Wed,  3 Dec 2008 11:27:45 -0500 (EST)
+Message-Id: <1228321665.3335.1288060499@webmail.messagingengine.com>
+From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
+To: "linux-dvb" <linux-dvb@linuxtv.org>
+Content-Disposition: inline
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <cae4ceb0812091511s668dcc5fj793e7efc113fedfd@mail.gmail.com>
-In-Reply-To: <cae4ceb0812091511s668dcc5fj793e7efc113fedfd@mail.gmail.com>
-Subject: [linux-dvb] Quality with linux worse then with Windows
+References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
+	<1228152690.22348.1287628393@webmail.messagingengine.com>
+	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
+	<1228162425.30518.1287666879@webmail.messagingengine.com>
+	<1228164038.5106.1287670679@webmail.messagingengine.com>
+	<500CD7A3A0%linux@youmustbejoking.demon.co.uk>
+	<1228239571.26312.1287857857@webmail.messagingengine.com>
+	<1228254543.23353.1287906941@webmail.messagingengine.com>
+	<412bdbff0812021413s52ddcf3r8595b55182b798bf@mail.gmail.com>
+	<1228318254.21892.1288048961@webmail.messagingengine.com>
+	<412bdbff0812030734y56e908dfp793faf94238e24d3@mail.gmail.com>
+In-Reply-To: <412bdbff0812030734y56e908dfp793faf94238e24d3@mail.gmail.com>
+Date: Wed, 03 Dec 2008 16:27:45 +0000
+Subject: Re: [linux-dvb] dib0700 remote control support fixed
+Reply-To: linuxtv@hotair.fastmail.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,64 +39,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-i got a
-
-TerraTec Cinergy DT USB XS Diversity
-http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity
-
-Running well with v4l (except the problems with the SB700 USB ports of 
-my MB (disconnects here and then) => I am using a PCI USB Card with NEC 
-Chipset and everything works well).
-
-One thing that bugs me:
-
-The recording/reception quality is much worse that with windows.
-
-Using the Terratec Software i get 100% signal and 100% quality in 
-check-mode and i NEVER got any frameloss or other picture/sound errors.
-
-Using v4l and vdr i get mpeg-blocks here and then (5 minutes) and even 
-soundloss or complete frame loss.
-
-Femon-Plugin for VDR shows me STR/SNR/BNR values which are in the lower 
-orange area, really close to red. => BAD!
-
-What may be the cause?
-
-This is set:
-options dvb_usb_dib0700 force_lna_activation=1
-
-Would be nice to see help to get 100% signal back.
-
-Tu-Tu Yu schrieb:
-> Hi Sirs:
-> I am working on the Dvico HDTV7 Dual Express TV tuner card under Linux
-> environment with kernel (2.6.26).
-> When I check the snr value and signal status about every 10 seconds,
-> it works fine in first few hours, but it will stop after about 12 - 24
-> hours.
-> I found out if i check the snr and signal status every second. It will
-> stop after 5 hours.
-> If I check the snr and siganl status every time it read PES, it will
-> stop in few minutes.
-> And it will show the message==> value too large for defined data type,
-> Read -1 byte from DVR.
-> Do you think it because the driver is not compatible with my Desktop?
-> Or I shouldnt check the snr value?
-> Thank you so much
-> Tu Tu Yu
-> tutuyu@usc.edu
+On Wed, 3 Dec 2008 10:34:02 -0500, "Devin Heitmueller"
+<devin.heitmueller@gmail.com> said:
+> On Wed, Dec 3, 2008 at 10:30 AM, petercarm
+> <linuxtv@hotair.fastmail.co.uk> wrote:
+> > More testing.
+> >
+> > Moving on from the riser card issue, I've now got a fairly predictable
+> > case where warm restart of the box results in endless mt2060 i2c errors.
+> >
 > 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> Hello Peter,
+> 
+> Just to be clear, this is in a box that doesn't have the riser card?
+> 
+> Does it happen even before you start streaming video?  Or does it
+> occur when you do the first tune?
+> 
+> Can you please provide a detailed explanation regarding what that
+> "fairly predictable case" is?
+> 
+> Thanks,
+> 
+> Devin
 
+This is the case without the riser.  The log showed the failure 8
+seconds after the driver initialized.  Mythtv backend may have started
+in the meantime, but had no current jobs.  It may be related to EIT
+scanning.
 
--- 
-+ Contact? => http://site.rusch.name/ +
+So far three times out of four it has failed on issuing "reboot".  It
+has worked every time with a power down before restarting.  I'm doing a
+clean rebuild of the complete test environment to eliminate any cached
+results, just in case.  This will take about 8 hours.
 
 _______________________________________________
 linux-dvb mailing list
