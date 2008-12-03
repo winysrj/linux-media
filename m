@@ -1,21 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.26])
+Received: from fg-out-1718.google.com ([72.14.220.156])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LHph9-0005vM-Nj
-	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 02:16:24 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so2644659qwb.17
-	for <linux-dvb@linuxtv.org>; Tue, 30 Dec 2008 17:16:19 -0800 (PST)
-Message-ID: <412bdbff0812301716r3a9d069ax2c4438fdf5c5d9e7@mail.gmail.com>
-Date: Tue, 30 Dec 2008 20:16:19 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: sonofzev@iinet.net.au
-In-Reply-To: <59495.1230686092@iinet.net.au>
+	(envelope-from <e9hack@googlemail.com>) id 1L7vHo-0003b1-KI
+	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 18:13:17 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so2517006fga.25
+	for <linux-dvb@linuxtv.org>; Wed, 03 Dec 2008 09:13:13 -0800 (PST)
+Message-ID: <4936BE27.10800@googlemail.com>
+Date: Wed, 03 Dec 2008 18:13:11 +0100
+From: e9hack <e9hack@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <59495.1230686092@iinet.net.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO dual express incorrect readback of firmware
-	message (2.6.28 kernel)
+To: linux-dvb@linuxtv.org
+References: <492168D8.4050900@googlemail.com>	
+	<19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>	
+	<c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>	
+	<49358FE8.9020701@googlemail.com>	
+	<c74595dc0812021205x22936540w9ce74549f07339ff@mail.gmail.com>	
+	<4935B1B3.40709@googlemail.com>
+	<c74595dc0812022323w1df844cegc0c0ef269babed66@mail.gmail.com>
+In-Reply-To: <c74595dc0812022323w1df844cegc0c0ef269babed66@mail.gmail.com>
+Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
+ which outputs the wrong frequency if the current tuned transponder
+ is scanned only
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,34 +28,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Dec 30, 2008 at 8:14 PM, sonofzev@iinet.net.au
-<sonofzev@iinet.net.au> wrote:
->
-> oops.. didn't finish the last sentence.. at the time I checked dmesg this
-> morning, it was displaying this behaviour but nothing was being recorded or
-> watched at that moment in time.
->
-> In the short term is this something that might be worked around by going
-> back to hg drivers, or would you prefer I stick with the in-kernel ones, to
-> help work out what is happening.
+Alex Betis schrieb:
+>>> If you use S2API driver, please try my scan-s2 from here:
+>>> http://mercurial.intuxication.org/hg/scan-s2/
+>> If I use 'scan-s2 -c -o vdr', the output is wrong. I get:
+>>
+>> Bayerisches FS S=FCd;ARD:201:202=3Ddeu,203=3D2ch;206=3Ddeu:204:0:28107:4=
+1985:1101:0
+>>
+>> I should get:
+>>
+>> Bayerisches FS
+>> S=FCd;ARD:346:M256:C:6900:201:202=3Ddeu,203=3D2ch;206=3Ddeu:204:0:28107:=
+41985:0:0
+>>
+>> Frequency, modulation, DVB type and symbol rate are still missing.
+> =
 
-Are you saying you upgrade to 2.6.28 from the hg?  I would be very
-surprised if this issue wasn't in the latest hg as well.
+> That's interesting. That means the utility doesn't know what delivery sys=
+tem
+> is used. Probably because it didn't tune the driver.
+> I'll check that. It should happen with DVB-S as well.
 
-I would upgrade to the latest hg, and then debug it from there.
+For the current transponder scanning, it isn't set any filter for NIT parsi=
+ng. Since the
+output format is zap and vdr only, it must be always setup a NIT filter:
 
-Devin
+diff -r 51eceb97c3bd scan.c
+--- a/scan.c    Mon Dec 01 23:36:50 2008 +0200
++++ b/scan.c    Wed Dec 03 18:04:10 2008 +0100
+@@ -2495,7 +2503,7 @@ static void scan_tp_dvb (void)
+        add_filter (&s0);
+        add_filter (&s1);
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+-       if (!current_tp_only) {
++       if (/*!current_tp_only*/1) {
+                setup_filter (&s2, demux_devname, PID_NIT_ST, TID_NIT_ACTUA=
+L, -1, 1, 0,
+15); /* NIT */
+                add_filter (&s2);
+                if (get_other_nits) {
+
+> Can you scan the same channel without "-c" and report if the dump is
+> correct?
+
+I need a little patch for tuning to DVB-C transponders:
+
+diff -r 51eceb97c3bd scan.c
+--- a/scan.c    Mon Dec 01 23:36:50 2008 +0200
++++ b/scan.c    Wed Dec 03 18:04:10 2008 +0100
+@@ -1729,6 +1729,14 @@ static int __tune_to_transponder (int fr
+
+        switch(t->delivery_system)
+        {
++       case SYS_DVBC_ANNEX_AC:
++               if_freq =3D t->frequency;
++
++               if (verbosity >=3D 2){
++                       dprintf(1,"DVB-C frequency is %d\n", if_freq);
++               }
++               break;
++
+        case SYS_DVBS:
+        case SYS_DVBS2:
+                if (lnb_type.high_val) {
+
+It seems that the output is correct (currently not tested with vdr).
+
+Regards,
+Hartmut
 
 _______________________________________________
 linux-dvb mailing list
