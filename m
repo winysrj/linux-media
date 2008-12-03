@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5GMT1E004463
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 11:22:29 -0500
-Received: from qb-out-0506.google.com (qb-out-0506.google.com [72.14.204.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5GMBMc026408
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 11:22:11 -0500
-Received: by qb-out-0506.google.com with SMTP id c8so58772qbc.7
-	for <video4linux-list@redhat.com>; Fri, 05 Dec 2008 08:22:11 -0800 (PST)
-Message-ID: <412bdbff0812050822q63d946b8y960559f7bca10e6f@mail.gmail.com>
-Date: Fri, 5 Dec 2008 11:22:10 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Brian Rosenberger" <brian@brutex.de>
-In-Reply-To: <1228493415.439.8.camel@bru02>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3KmHpj024145
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:17 -0500
+Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3Km3gn010667
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:04 -0500
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <1228493415.439.8.camel@bru02>
-Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle PCTV USB (DVB-T device [eb1a:2870])
+Message-Id: <fa4fcbdb237a065c4033.1228337220@hypnosis.jim>
+In-Reply-To: <patchbomb.1228337219@hypnosis.jim>
+Date: Wed, 03 Dec 2008 15:47:00 -0500
+From: Jim Paris <jim@jtan.com>
+To: video4linux-list@redhat.com
+Cc: 
+Subject: [PATCH 1 of 4] ov534: don't check status twice
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,49 +26,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Dec 5, 2008 at 11:10 AM, Brian Rosenberger <brian@brutex.de> wrote:
-> Hi,
->
-> I am trying to get my Pinnacle PCTV USB (DVB-T device [eb1a:2870]) to
-> work. I fetched sources from http://linuxtv.org/hg/v4l-dvb and then did
-> a make, make install and make load. Everything went fine as far my
-> understanding is (yes with reboot in between).
-> Next I plugged the usb stick and checked dmesg (see below). I am a bit
-> stuck right now, I did try some card=xx variants, but /dev/dvb isn't
-> created.
->
-> What are the next steps?
->
-> Thanks
-> Brian
->
+# HG changeset patch
+# User jim@jtan.com
+# Date 1228334704 18000
+# Node ID fa4fcbdb237a065c4033bd51be28fa9da9016cef
+# Parent  ee27d949bfa5e050f858b5bae4cc9a050ff5b119
+ov534: don't check status twice
 
-The error you described occurs when a vendor uses Empia's default USB
-ID and we don't have a profile for the device in the driver (so we
-know things like the correct GPIOs to be set, etc).
+sccb_reg_write already calls sccb_check_status, no need to do it
+again.
 
-Do you know what tuner chip this device contains?  Which demodulator?
-If not, please open the device and take photos, so we can build a
-device profile.
+Signed-off-by: Jim Paris <jim@jtan.com>
 
-Secondly, we need to know what GPIO mapping is needed.  If you could
-please get a USB capture using "SniffUSB 2.0" for Windows after
-opening the TV application, we should be able to get this device
-working under Linux.
-
-I would recommend you figure out what demod/tuner it has first before
-doing the Windows USB trace.  This will allow us to confirm that the
-demod and tuner drivers are available before you go through the work
-of getting the Windows trace.
-
-Regards,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+diff -r ee27d949bfa5 -r fa4fcbdb237a linux/drivers/media/video/gspca/ov534.c
+--- a/linux/drivers/media/video/gspca/ov534.c	Tue Dec 02 19:00:57 2008 +0100
++++ b/linux/drivers/media/video/gspca/ov534.c	Wed Dec 03 15:05:04 2008 -0500
+@@ -369,31 +369,23 @@
+ 	switch (sd->frame_rate) {
+ 	case 50:
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x01);
+-		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0x41);
+-		sccb_check_status(gspca_dev->dev);
+ 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x02);
+ 		break;
+ 	case 40:
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x02);
+-		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0xc1);
+-		sccb_check_status(gspca_dev->dev);
+ 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x04);
+ 		break;
+ 	case 30:
+ 	default:
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x04);
+-		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0x81);
+-		sccb_check_status(gspca_dev->dev);
+ 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x02);
+ 		break;
+ 	case 15:
+ 		sccb_reg_write(gspca_dev->dev, 0x11, 0x03);
+-		sccb_check_status(gspca_dev->dev);
+ 		sccb_reg_write(gspca_dev->dev, 0x0d, 0x41);
+-		sccb_check_status(gspca_dev->dev);
+ 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x04);
+ 		break;
+ 	};
 
 --
 video4linux-list mailing list
