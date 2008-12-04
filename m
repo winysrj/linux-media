@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBM9XcFN014976
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 04:33:38 -0500
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de
-	[92.198.50.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBM9XLr2030190
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 04:33:22 -0500
-Date: Mon, 22 Dec 2008 10:32:51 +0100
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: Agustin <gatoguan-os@yahoo.com>
-Message-ID: <20081222093250.GM22230@pengutronix.de>
-References: <20081218170015.10DD88E03CC@hormel.redhat.com>
-	<44440.83878.qm@web32104.mail.mud.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4ITHvI011997
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 13:29:17 -0500
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4IT1Re008244
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 13:29:01 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Sakari Ailus <sakari.ailus@nokia.com>, "Hiremath, Vaibhav"
+	<hvaibhav@ti.com>
+Date: Thu, 4 Dec 2008 12:28:52 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415C11947@dlee02.ent.ti.com>
+In-Reply-To: <49367FD3.6080003@nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <44440.83878.qm@web32104.mail.mud.yahoo.com>
-Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <sha@pengutronix.de>
-Subject: Re: soc-camera: current stack
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Subject: RE: [PATCH] Add OMAP2 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,26 +29,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Agustin,
+> Sakari Ailus wrote:
+> ext Hiremath, Vaibhav wrote:
+> > OMAP3 -
+> > 	Display - (Posted twice with old DSS library)
+> > 		- omap_vout.c
+> > 		- omap_voutlib.c
+> > 		- omap_voutlib.h
+> > 		- omap_voutdef.h
+> > 	Camera - (Will come soon)
+> > 		- omap34xxcam.c
+> > 		- omap34xxcam.h
+> > 	ISP - (Will come soon)
+> > 		- Here definitely we will plenty number of files.
+> 
+> I think that the OMAP 3 stuff could go into a separate directory, say
+> omap3 or omap3isp. But for the OMAP 1 or OMAP 2 camera drivers, I'd
+> perhaps just prefix those with corresponding OMAP (omap1 etc.).
+> 
+> The current OMAP 3 camera driver has few dependencies to OMAP 3 left so
+> it seems that it's going to be generic. It's just a question of when the
+> OMAP 3 ISP driver can offer a better interface towards the camera driver.
+> 
+[Aguirre, Sergio] Hi, I have some comments about this:
 
-On Fri, Dec 19, 2008 at 03:58:46AM -0800, Agustin wrote:
-> I was about to try this stack on my Phytec i.MX31 system when I found
-> there is no mx3_camera driver in it. Too bad!
+IMHO, I think that we can keep same names for OMAP3 camera driver, and keep it at the same level than omap1 and omap2 cam drivers, but for isp folder, I agree with Sakari that has to be named omap3isp.
 
-We are working hard on a mainline quality patch series for the
-phyCORE-i.MX31 and a bunch of these patches already went into the
-maintainer trees for the 2.6.29 merge window.
+Although the end result of making OMAP3 cam driver independent from ISP doesn't make much sense to me, as in OMAP3 the ISP is needed even for the minimal handling required for receiving data from the sensors that the camera driver supports. (Minimal datapath is CCP2->SDRAM or CSI2->SDRAM, and that requires ISP MMU and the corresponding receivers, which are considered part of the ISP)
 
-One of the next central components is the pmic driver, which hasn't
-reached mainline quality yet. If that's finished, camera drivers will
-surely be in a better situation wrt. mainline.
+About display filenames, if they are compatible with all OMAP versions (1, 2, 3), then current name makes sense, if no, then omap3_vout* will look clearer.
 
-rsc
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+What do you think?
+
+Regards,
+Sergio
+
 
 --
 video4linux-list mailing list
