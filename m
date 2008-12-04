@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBL28IZT010200
-	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:08:18 -0500
-Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
-	[151.189.21.45])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBL27wsW014101
-	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:07:58 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-In-Reply-To: <de8cad4d0812201755v846c5dcn536736a6f56fd008@mail.gmail.com>
-References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
-	<200812161655.39431.hverkuil@xs4all.nl>
-	<de8cad4d0812170904x474a5503ve5fcef84ebfeba65@mail.gmail.com>
-	<200812181009.09836.hverkuil@xs4all.nl>
-	<de8cad4d0812201755v846c5dcn536736a6f56fd008@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 21 Dec 2008 03:09:16 +0100
-Message-Id: <1229825356.2557.1.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4HGngv032383
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 12:16:49 -0500
+Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4HFnV4026342
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 12:16:00 -0500
+Date: Thu, 4 Dec 2008 12:15:46 -0500
+From: Jim Paris <jim@jtan.com>
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Antonio Ospite <ospite@studenti.unina.it>
+Message-ID: <20081204171546.GA27230@psychosis.jim.sh>
+References: <patchbomb.1228337219@hypnosis.jim>
+	<1228378442.1733.17.camel@localhost>
+	<20081204130557.85799da0.ospite@studenti.unina.it>
+	<patchbomb.1228337219@hypnosis.jim>
+	<1228378442.1733.17.camel@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20081204130557.85799da0.ospite@studenti.unina.it>
+	<1228378442.1733.17.camel@localhost>
 Cc: video4linux-list@redhat.com
-Subject: Re: v4l2-compat-ioctl32 update?
+Subject: Re: [PATCH 0 of 4] ov534 patches
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,206 +33,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi Jean, Antonio,
 
-Am Samstag, den 20.12.2008, 20:55 -0500 schrieb Brandon Jenkins:
-> On Thu, Dec 18, 2008 at 4:09 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > Hi Brandon,
-> >
-> > This can't be right. Are you sure that you are using the right
-> > v4l2_compat_ioctl32 module? Check that you do not accidentally have the old
-> > compat_ioctl32 module instead. VIDIOC_S_EXT_CTRLS works fine here, and in
-> > any case, these compat_ioctl32 messages you get should have a newline at
-> > the end as well.
-> >
-> > Regards,
-> >
-> >        Hans
-> >
-> >>
-> >> Brandon
-> >
-> >
-> >
-> > --
-> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> >
-> 
-> Hi Hans,
-> 
-> I have verified the time stamp of the module is from today and the
-> source file includes your copyright which is part of the patch. My
-> method of building the driver is to clone from Janne's hdpvr source
-> tree and pull in the changes from yours. (Please note that I also
-> pulled a clone from just your repo and the same/similar item popped
-> up: [ 1784.808655] compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32: VIDIOC_S_EXT_CTRLS<6>cx18-2 info:
-> Start encoder stream encoder MPEG)
-> 
-> Rest of the note below, thanks!
-> 
-> Brandon
-> 
-> I am still seeing:
-> 
-> [  876.565494] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:4706):
-> Unknown cmd fd(54) cmd(40345622){t:'V';sz:52} arg(aea69b34) on
-> /dev/v4l/video3
-> 
-> [ 1001.370070] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
-> Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
-> /dev/v4l/video1
-> [ 1001.370114] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
-> Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
-> /dev/v4l/video1
-> [ 1001.370172] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
-> Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
-> /dev/v4l/video1
-> [ 1001.370244] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
-> Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
-> /dev/v4l/video1
-> [ 1001.370285] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
-> Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
-> /dev/v4l/video1
-> [ 1001.370325] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
-> Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
-> /dev/v4l/video1
-> 
-> [ 2308.076933] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:26646):
-> Unknown cmd fd(54) cmd(40345622){t:'V';sz:52} arg(ac65cd44) on
-> /dev/v4l/video3
-> 
-> [ 2312.841316] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:26646):
-> Unknown cmd fd(54) cmd(c0185648){t:'V';sz:24} arg(ac65c920) on
-> /dev/v4l/video3
-> [ 2312.841363] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:26646):
-> Unknown cmd fd(54) cmd(c0185648){t:'V';sz:24} arg(ac65c920) on
-> /dev/v4l/video3
-> [ 2312.841400] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:26646):
-> Unknown cmd fd(54) cmd(c0185648){t:'V';sz:24} arg(ac65c920) on
-> /dev/v4l/video3
-> 
-> compat_ioctl32: VIDIOC_ENCODER_CMDioctl32(java:26727): Unknown cmd
-> fd(101) cmd(c028564d){t:'V';sz:40} arg(ac05cce4) on /dev/v4l/video3
-> 
-> video3 is a HDPVR
-> video1 is a cx18
-> 
-> The java process is SageTV.
-> 
-> I ran through my script again and it produced errors in:
-> 
-> [ 3335.252229] compat_ioctl : unexpected VIDIOC_FMT type 8
-> [ 3335.253804] compat_ioctl32:
-> VIDIOC_G_SLICED_VBI_CAP<7>compat_ioctl32:
-> VIDIOC_G_SLICED_VBI_CAPcompat_ioctl : unexpected VIDIOC_FMT type 6
-> [ 3335.258891] compat_ioctl : unexpected VIDIOC_FMT type 7
-> [ 3335.262139] compat_ioctl : unexpected VIDIOC_FMT type 5
-> [ 3335.267127] compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
-> VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
-> VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_AUDIO<7>compat_ioctl32:
-> VIDIOC_G_AUDOUT<7>compat_ioctl32: VIDIOC_ENUMAUDOUT<7>compat_ioctl32:
-> VIDIOC_ENUMAUDIOcompat_ioctl : unexpected VIDIOC_FMT type 2
-> [ 3363.895405] compat_ioctl : unexpected VIDIOC_FMT type 8
-> [ 3363.895408] compat_ioctl : unexpected VIDIOC_FMT type 6
-> [ 3363.895410] compat_ioctl : unexpected VIDIOC_FMT type 7
-> [ 3363.895430] compat_ioctl : unexpected VIDIOC_FMT type 5
-> [ 3363.895438] compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
-> VIDIOC_G_OUTPUT<7>compat_ioctl32: VIDIOC_G_AUDIO<7>compat_ioctl32:
-> VIDIOC_G_AUDOUT<7>compat_ioctl32: VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_ENUMOUTPUT<7>compat_ioctl32: VIDIOC_G_OUTPUTcompat_ioctl :
-> unexpected VIDIOC_FMT type 2
-> [ 3363.922264] compat_ioctl : unexpected VIDIOC_FMT type 8
-> [ 3363.923846] compat_ioctl32:
-> VIDIOC_G_SLICED_VBI_CAP<7>compat_ioctl32:
-> VIDIOC_G_SLICED_VBI_CAPcompat_ioctl : unexpected VIDIOC_FMT type 6
-> [ 3363.928925] compat_ioctl : unexpected VIDIOC_FMT type 7
-> [ 3363.932176] compat_ioctl : unexpected VIDIOC_FMT type 5
-> [ 3363.937120] compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
-> VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
-> VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_AUDIO<7>compat_ioctl32:
-> VIDIOC_G_AUDOUT<7>compat_ioctl32: VIDIOC_ENUMAUDOUT<7>compat_ioctl32:
-> VIDIOC_ENUMAUDIO
-> 
+Jean-Francois Moine wrote:
+> Thank you for these patchs. Some changes were already done in my
+> repository. I merged them and pushed. May you check if everything is
+> correct?
 
-it is over here too.
-http://linuxtv.org/pipermail/linux-dvb/2008-December/031012.html
+I took a brief look and the merge looks OK, thanks.
 
-Let's know how it goes without the old module.
+> Also, I moved the last fid and pts to the sd structure. This allows many
+> webcams to work simultaneously. I was wondering about the reset of these
+> variables: last_fid is never reset and last_pts is reset on
+> UVC_STREAM_EOF. Shouldn't they also be reset on streaming start?
 
-Cheers,
-Hermann
+I didn't consider multiple cameras.  Moving them of course makes sense
+for that.  I did think of the reset case and thought it was OK, but
+given Antonio's report below there might need to be some fixes in here
+anyway.
 
+Antonio Ospite wrote:
+> Tested the latest version, I am getting "payload error"s setting
+> frame_rate=50, loosing about 50% of frames. I tried raising
+> bulk_size but then I get "frame overflow" errors from gspca, I'll
+> investigate further.
+
+I don't think I see any payload errors even at 50fps.  For the bulk
+size, I'm not sure exactly how the payloads work into that.  I suppose
+that when bulk_size is larger than the camera's payload size (2048),
+we get another payload header at data[2048] but don't pay attention to
+it.  If this header had the EOF then we can send gspca too much data,
+causing frame overflow.  (there's no overflow check in ov534 since
+gspca handles it already).
+
+With the current setup, we're essentially getting a UVC stream.  This
+makes sense since the marketing for ov534 says it supports UVC.  So
+some documentation for this would be
+  http://www.usb.org/developers/devclass_docs/USB_Video_Class_1_1.zip
+
+This header and payload format is handled by a couple drivers that I
+found:
+
+  linux/drivers/media/video/uvc/uvc_video.c
+     uvc_video_decode_start
+     uvc_video_decode_data
+     uvc_video_decode_end
+     
+  (I thought there was another Linux driver that also handled this
+   payloads itself, but now I can't find it again)
+
+  http://www.openbsd.org/cgi-bin/cvsweb/src/sys/dev/usb/uvideo.c?rev=1.99
+     uvideo_vs_decode_stream_header
+
+Some discussion I found on payload headers in bulk transfers is here
+
+  http://osdir.com/ml/linux.drivers.uvc.devel/2007-05/msg00036.html
+
+Maybe finding a way to switch to isoc would make things easier?
+
+-jim
 
 --
 video4linux-list mailing list
