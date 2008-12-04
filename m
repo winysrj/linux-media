@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBKCkSui023381
-	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 07:46:28 -0500
-Received: from smtp-vbr9.xs4all.nl (smtp-vbr9.xs4all.nl [194.109.24.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBKCkCjZ020132
-	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 07:46:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Sat, 20 Dec 2008 13:45:56 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4M9oRl027198
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 17:09:50 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4M9a3V027996
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 17:09:37 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so3106092fga.7
+	for <video4linux-list@redhat.com>; Thu, 04 Dec 2008 14:09:36 -0800 (PST)
+Message-ID: <e48b28270812041409t31139b4v1ca6c8ab1578b4e9@mail.gmail.com>
+Date: Thu, 4 Dec 2008 23:09:36 +0100
+From: "Nagy Gabor" <nagygabor.info@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812201345.56672.hverkuil@xs4all.nl>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [REVIEW] v4l2 debugging: match drivers by name instead of the
-	deprecated ID
+Subject: WinFast PalmTop DTV200H USB TvTuner
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,90 +27,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+I've got a Leadtek
+dtv200h<http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=413>usb
+tv tuner, and it got 4 chips:
 
-Jean Delvare has stated repeatedly that the I2C driver IDs will have to go. 
-However, one major user inside V4L2 are the VIDIOC_G_CHIP_IDENT and 
-VIDIOC_DBG_G/S_REGISTER ioctls.
+EMPIA 2882<http://kepfeltoltes.hu/081204/EMPIA_2882_www.kepfeltoltes.hu_.jpg>
+WJCE6353 <http://kepfeltoltes.hu/081204/WJCE6353_www.kepfeltoltes.hu_.jpg>
+CX25843-24Z<http://kepfeltoltes.hu/081204/CX25843-242_www.kepfeltoltes.hu_.jpg>
+XCEIVE XC3028LCQ<http://kepfeltoltes.hu/081204/XCEIVE_XC3028LCQ_www.kepfeltoltes.hu_.jpg>
+front<http://kepfeltoltes.hu/081204/258590942front_www.kepfeltoltes.hu_.jpg>
+back <http://kepfeltoltes.hu/081204/22578894back_www.kepfeltoltes.hu_.jpg>
 
-These ioctls are meant as debugging and testing ioctls and (in the case of 
-G_CHIP_IDENT) for internal use in the kernel (e.g. a bridge driver that 
-needs to know which I2C chip variant is present).
+distro: I use Debian Lenny
+2.6.26-1-amd64<http://cdimage.debian.org/cdimage/lenny_di_rc1/amd64/bt-cd/debian-testing-amd64-kde-CD-1.iso.torrent>-
+"or anything you want" :D
 
-These ioctls should not be used in applications and luckily this is indeed 
-the case. I scanned the major applications and did a google search and 
-everything came up clean.
+lsusb:
+Bus 007 Device 005: ID 0413:6f02 Leadtek Research, Inc.
 
-I made the following changes:
+dmesg:
+[    2.787953] usb 7-1: new high speed USB device using ehci_hcd and address
+2
+[    2.928702] usb 7-1: configuration #1 chosen from 1 choice
+[    2.928702] usb 7-1: New USB device found, idVendor=0413, idProduct=6f02
+[    2.928702] usb 7-1: New USB device strings: Mfr=0, Product=1,
+SerialNumber=2
+[    2.928702] usb 7-1: Product: WinFast PalmTop DTV200 H
+[    2.928702] usb 7-1: SerialNumber: 2222
 
-#define V4L2_CHIP_MATCH_HOST       0  /* Match against chip ID on host (0 
-for the host) */
-#define V4L2_CHIP_MATCH_I2C_DRIVER 1  /* Match against I2C driver name */
-#define V4L2_CHIP_MATCH_I2C_ADDR   2  /* Match against I2C 7-bit address */
+tvtime-scanner:
+videoinput: Cannot open capture device /dev/video0: No such file or
+directory
 
-struct v4l2_match_info {
-        __u32 type; /* Match type */
-        union {
-                __u32 addr;
-                char name[32];
-        };
-} __attribute__ ((packed));
-
-struct v4l2_register {
-        struct v4l2_match_info match;
-        __u64 reg;
-        __u64 val;
-} __attribute__ ((packed));
-
-/* VIDIOC_DBG_G_CHIP_IDENT */
-struct v4l2_chip_ident {
-        struct v4l2_match_info match;
-        __u32 ident;
-        __u32 revision;
-} __attribute__ ((packed));
-
-So the match will now be done against either a chip address or a driver 
-name.
-
-I also added additional comments in videodev2.h, warning against ever using 
-it in applications:
-
-#if 1 /*KEEP*/
-/* Experimental, meant for debugging, testing and internal use.
-   Only implemented if CONFIG_VIDEO_ADV_DEBUG is defined.
-   You must be root to use these ioctls. Never use these in applications! */
-#define VIDIOC_DBG_S_REGISTER    _IOW('V', 79, struct v4l2_register)
-#define VIDIOC_DBG_G_REGISTER   _IOWR('V', 80, struct v4l2_register)
-
-/* Experimental, meant for debugging, testing and internal use.
-   Never use this ioctl in applications! */
-#define VIDIOC_DBG_G_CHIP_IDENT _IOWR('V', 81, struct v4l2_chip_ident)
-#endif
-
-And VIDIOC_G_CHIP_IDENT was renamed to VIDIOC_DBG_G_CHIP_IDENT, again to 
-clearly mark this as a debugging API.
-
-All this is available in this tree:
-http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-drvid
-
-Now, the main question I have is whether I should keep the old 
-VIDIOC_G_CHIP_IDENT around for 2.6.29 with a big warning if someone tries 
-to use it, or do we just change it since 1) it is marked experimental and 
-for debugging purposes only, and 2) I cannot find a single application that 
-uses it and even Google throws up only a handful of pages.
-
-Another question I have is for the omap developers: is it used in any omap 
-applications that I don't know about? I doubt it since the chip-ident 
-header is internal to the kernel so that's another reason why this ioctl is 
-very unlikely to be used in applications.
-
-Regards,
-
-	Hans
+Does someone know, how to get it work under Linux?
+Thank you!
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Nagy Gabor
+http://szabadlinuxot.blogspot.com/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
