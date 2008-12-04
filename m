@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
+Received: from yx-out-2324.google.com ([74.125.44.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oobe.trouble@gmail.com>) id 1LBf94-0005yC-OL
-	for linux-dvb@linuxtv.org; Sun, 14 Dec 2008 01:47:43 +0100
-Received: by bwz11 with SMTP id 11so4439051bwz.17
-	for <linux-dvb@linuxtv.org>; Sat, 13 Dec 2008 16:47:09 -0800 (PST)
-Message-ID: <21aab41d0812130432x3f8a80cbxa7386fa560239d3d@mail.gmail.com>
-Date: Sat, 13 Dec 2008 23:32:28 +1100
-From: "Kemble Wagner" <oobe.trouble@gmail.com>
-To: linuxcbon@yahoo.fr
-In-Reply-To: <610460.22660.qm@web26105.mail.ukl.yahoo.com>
+	(envelope-from <morgan.torvolt@gmail.com>) id 1L8N9Y-0002yt-4t
+	for linux-dvb@linuxtv.org; Thu, 04 Dec 2008 23:58:37 +0100
+Received: by yx-out-2324.google.com with SMTP id 8so1790238yxg.41
+	for <linux-dvb@linuxtv.org>; Thu, 04 Dec 2008 14:58:31 -0800 (PST)
+Message-ID: <3cc3561f0812041458m5344f0e8v7e0dec95e91e7735@mail.gmail.com>
+Date: Thu, 4 Dec 2008 22:58:31 +0000
+From: "=?ISO-8859-1?Q?Morgan_T=F8rvolt?=" <morgan.torvolt@gmail.com>
+To: Linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-References: <610460.22660.qm@web26105.mail.ukl.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Best dvb-t tuner ?
+Content-Disposition: inline
+Subject: [linux-dvb] A bug in libdvben50221?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,106 +19,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0626643865=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0626643865==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_16139_26283806.1229171548965"
+Hi all.
 
-------=_Part_16139_26283806.1229171548965
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This might be a stupid question, please feel free to call me a moron
+and tell me how to solve this little problem I am having. I have tried
+getting in touch with someone on the irc channel to help me sort this
+out without much luck. Hopefully someone here has some knowledge of
+the libdvben50221 library. I would imagine that very many use this
+library with their dvb cards, so there should be someone out there.
 
-Do I need time-shifting ?
+The camthread in gnutv, which continuously polls the stdcam, calls the
+stdcam's poll function (obviously). The poll function is in my
+pointing to the en50221_stdcam_llci_poll function. This function in
+turn calls en50221_tl_poll, but without passing the return value of
+this on to the camthread function of gnutv. What happened in my case
+was that the transport layer crashed in some obscure way (this has
+only happened once actually), and the en50221_tl_poll function
+returned -1 all the time, and set the error state to be -3, which is
+EN50221ERR_TIMEOUT. It did not recover in over an hour of waiting.
+This message was spamming my console window:
+en50221_stdcam_llci_poll: Error reported by stack:-3
 
-no its a part of the products software which you wont be using anyway
+After looking high and low for a way to be able to detect this state,
+I have come up with nothing. I cannot read the error value directly
+out of the stuct as it is a forward declaration in the header file and
+actually declared in the .c file. I can access the error data using
+the en50221_tl_get_error() function, but that only tells me that at
+some point there was an error with the given error value.
 
-Do I need a radio tuner ?
+At least on my cam I get this message often when I start a program:
+"en50221_stdcam_llci_poll: Error reported by stack:-7", which is a
+message I can test with. My testing suggest that the error is set to
+-7 and is left there until a new error occurs. In other words, it is
+not possible to detect if the error -7 occurs every second, every
+minute, or just once at the start and no errors since then. The same
+problem exists with the timeout error I had. gnutv could have detected
+that there had been a timeout error, but could in no way I can see,
+find out if it had resolved itself or not.
 
-not unless you listen to the radio
+The error I saw was a timeout error that happened after more than 24
+hours from starting the program, and the transport layer was returning
+-3 continuously.
 
-On Sat, Dec 13, 2008 at 4:51 AM, linuxcbon <linuxcbon@yahoo.fr> wrote:
+I can think of a few ways to solve this problem.
+ * One would be a callback function on transport layer error in the stdcam
+ * Have an error counter in the transport layer struct, and a function
+to read the counter. Must be reflected in the session layer as well it
+seems.
+ * Return the transport layer poll's return value in some way from the
+stdcam poll function. Possibly by setting adding to the stdcam_status
+enum a value like "EN50221_STDCAM_TL_ERROR". Maybe a bitshifted value
+as well? It should then be easy to check the error using the
+en50221_tl_get_error function.
+ * This is already solved trough some other solution, and I have been
+to blind to see it all along.
 
-> hi,
->
-> there are many dvb-t tuners for the PC.
-> Can you help me chose the best :p
->
-> I read PCI have better sensibility than USB bvecause they have a special
-> antenna circuit ?
-> I read that "diversity" receives better but it is only in USB, and doesnt
-> work in linux ?
-> I read most of tuners have only 40dB AGC range so they need a LNA, and
-> others have 80dB AGC range (MT2067 has even 110dB).
->
-> Do I need time-shifting ?
-> Do I need a radio tuner ?
->
-> Also there are new HD products, I am lost...
->
-> Regards
->
->
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+I prefer the options from bottom to top.
+Any takers?
 
-------=_Part_16139_26283806.1229171548965
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div class="Ih2E3d">Do I need time-shifting ?<br>
-<br></div>no its a part of the products software which you wont be using anyway <br><div class="Ih2E3d"><br>Do I need a radio tuner ?<br><br></div>not unless you listen to the radio<br><br><div class="gmail_quote">On Sat, Dec 13, 2008 at 4:51 AM, linuxcbon <span dir="ltr">&lt;<a href="mailto:linuxcbon@yahoo.fr">linuxcbon@yahoo.fr</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">hi,<br>
-<br>
-there are many dvb-t tuners for the PC.<br>
-Can you help me chose the best :p<br>
-<br>
-I read PCI have better sensibility than USB bvecause they have a special antenna circuit ?<br>
-I read that &quot;diversity&quot; receives better but it is only in USB, and doesnt work in linux ?<br>
-I read most of tuners have only 40dB AGC range so they need a LNA, and others have 80dB AGC range (MT2067 has even 110dB).<br>
-<br>
-Do I need time-shifting ?<br>
-Do I need a radio tuner ?<br>
-<br>
-Also there are new HD products, I am lost...<br>
-<br>
-Regards<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br>
-
-------=_Part_16139_26283806.1229171548965--
-
-
---===============0626643865==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Best regards
+Morgan
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0626643865==--
