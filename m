@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5JrkMU029401
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 14:53:46 -0500
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5JrfL1022521
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 14:53:41 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	v4l-dvb-maintainer@linuxtv.org
-Content-Type: multipart/mixed; boundary="=-FaPlB22E05og3T+Ptjem"
-Date: Fri, 05 Dec 2008 20:49:34 +0100
-Message-Id: <1228506574.2891.10.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB48JGNn014666
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 03:19:16 -0500
+Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB48J2n2017967
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 03:19:02 -0500
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Jim Paris <jim@jtan.com>
+In-Reply-To: <patchbomb.1228337219@hypnosis.jim>
+References: <patchbomb.1228337219@hypnosis.jim>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Thu, 04 Dec 2008 09:14:02 +0100
+Message-Id: <1228378442.1733.17.camel@localhost>
 Mime-Version: 1.0
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: [PATCH] saa7134: add analog and DVB-T support for Medion/Creatix
-	CTX946
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 0 of 4] ov534 patches
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,119 +27,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, 2008-12-03 at 15:46 -0500, Jim Paris wrote:
+> Hi,
 
---=-FaPlB22E05og3T+Ptjem
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Hi Jim,
 
-# HG changeset patch
-# User Hermann Pitton <hermann-pitton@arcor.de>
-# Date 1228504664 -3600
-# Node ID 011294745fd95f6ee40ae5480f7ca30322a667af
-# Parent  6a9d064fe0ee266926ada3e5a57057a07df1d73d
-saa7134: add analog and DVB-T support for Medion/Creatix CTX946
+> Here are some ov534 patches I've been working on.
+> 
+> ov534: don't check status twice
+> ov534: initialization cleanup
+> ov534: Fix frame size so we don't miss the last pixel
+> ov534: frame transfer improvements
 
-From: Hermann Pitton <hermann-pitton@arcor.de>
+Thank you for these patchs. Some changes were already done in my
+repository. I merged them and pushed. May you check if everything is
+correct?
 
-How to enable the mpeg encoder is not found yet.
-The card comes up with gpio 0x0820000 for DVB-T.
+Also, I moved the last fid and pts to the sd structure. This allows many
+webcams to work simultaneously. I was wondering about the reset of these
+variables: last_fid is never reset and last_pts is reset on
+UVC_STREAM_EOF. Shouldn't they also be reset on streaming start?
 
-Priority: normal
+Cheers.
 
-Signed-off-by: Hermann Pitton <hermann-pitton@arcor.de>
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
 
-diff -r 6a9d064fe0ee -r 011294745fd9 linux/Documentation/video4linux/CARDLIST.saa7134
---- a/linux/Documentation/video4linux/CARDLIST.saa7134	Fri Dec 05 11:49:53 2008 -0200
-+++ b/linux/Documentation/video4linux/CARDLIST.saa7134	Fri Dec 05 20:17:44 2008 +0100
-@@ -10,7 +10,7 @@
-   9 -> Medion 5044
-  10 -> Kworld/KuroutoShikou SAA7130-TVPCI
-  11 -> Terratec Cinergy 600 TV                  [153b:1143]
-- 12 -> Medion 7134                              [16be:0003]
-+ 12 -> Medion 7134                              [16be:0003,16be:5000]
-  13 -> Typhoon TV+Radio 90031
-  14 -> ELSA EX-VISION 300TV                     [1048:226b]
-  15 -> ELSA EX-VISION 500TV                     [1048:226a]
-diff -r 6a9d064fe0ee -r 011294745fd9 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Dec 05 11:49:53 2008 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Dec 05 20:17:44 2008 +0100
-@@ -4774,6 +4774,12 @@
- 		.subdevice    = 0x0003,
- 		.driver_data  = SAA7134_BOARD_MD7134,
- 	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-+		.subvendor    = 0x16be, /* CTX946 analog TV, HW mpeg, DVB-T */
-+		.subdevice    = 0x5000, /* only analog TV and DVB-T for now */
-+		.driver_data  = SAA7134_BOARD_MD7134,
-+	}, {
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
- 		.subvendor    = 0x1048,
-
-
---=-FaPlB22E05og3T+Ptjem
-Content-Disposition: inline;
-	filename*0=saa7134_add_analog_and_DVB-T_support_for_Medion-Creatix_CTX94;
-	filename*1=6.patch
-Content-Type: text/x-patch;
-	name*0=saa7134_add_analog_and_DVB-T_support_for_Medion-Creatix_CTX946.pa;
-	name*1=tch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-# HG changeset patch
-# User Hermann Pitton <hermann-pitton@arcor.de>
-# Date 1228504664 -3600
-# Node ID 011294745fd95f6ee40ae5480f7ca30322a667af
-# Parent  6a9d064fe0ee266926ada3e5a57057a07df1d73d
-saa7134: add analog and DVB-T support for Medion/Creatix CTX946
-
-From: Hermann Pitton <hermann-pitton@arcor.de>
-
-How to enable the mpeg encoder is not found yet.
-The card comes up with gpio 0x0820000 for DVB-T.
-
-Priority: normal
-
-Signed-off-by: Hermann Pitton <hermann-pitton@arcor.de>
-
-diff -r 6a9d064fe0ee -r 011294745fd9 linux/Documentation/video4linux/CARDLIST.saa7134
---- a/linux/Documentation/video4linux/CARDLIST.saa7134	Fri Dec 05 11:49:53 2008 -0200
-+++ b/linux/Documentation/video4linux/CARDLIST.saa7134	Fri Dec 05 20:17:44 2008 +0100
-@@ -10,7 +10,7 @@
-   9 -> Medion 5044
-  10 -> Kworld/KuroutoShikou SAA7130-TVPCI
-  11 -> Terratec Cinergy 600 TV                  [153b:1143]
-- 12 -> Medion 7134                              [16be:0003]
-+ 12 -> Medion 7134                              [16be:0003,16be:5000]
-  13 -> Typhoon TV+Radio 90031
-  14 -> ELSA EX-VISION 300TV                     [1048:226b]
-  15 -> ELSA EX-VISION 500TV                     [1048:226a]
-diff -r 6a9d064fe0ee -r 011294745fd9 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Dec 05 11:49:53 2008 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Dec 05 20:17:44 2008 +0100
-@@ -4774,6 +4774,12 @@
- 		.subdevice    = 0x0003,
- 		.driver_data  = SAA7134_BOARD_MD7134,
- 	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-+		.subvendor    = 0x16be, /* CTX946 analog TV, HW mpeg, DVB-T */
-+		.subdevice    = 0x5000, /* only analog TV and DVB-T for now */
-+		.driver_data  = SAA7134_BOARD_MD7134,
-+	}, {
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
- 		.subvendor    = 0x1048,
-
---=-FaPlB22E05og3T+Ptjem
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-FaPlB22E05og3T+Ptjem--
