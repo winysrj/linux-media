@@ -1,18 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGAXHUo032624
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 05:33:17 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.235])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGAX2jJ009478
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 05:33:03 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so3351822rvb.51
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 02:33:02 -0800 (PST)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Tue, 16 Dec 2008 19:31:13 +0900
-Message-Id: <20081216103113.13174.97907.sendpatchset@rx1.opensource.se>
-Cc: g.liakhovetski@gmx.de
-Subject: [PATCH] video: sh_mobile_ceu cleanups and comments V2
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4J1bFx003419
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 14:01:37 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4J1Lpv031248
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 14:01:21 -0500
+Received: by ug-out-1314.google.com with SMTP id j30so4658900ugc.13
+	for <video4linux-list@redhat.com>; Thu, 04 Dec 2008 11:01:21 -0800 (PST)
+Message-ID: <412bdbff0812041101i7a2a5bebjeed2299a2065f79@mail.gmail.com>
+Date: Thu, 4 Dec 2008 14:01:20 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Steve Fink" <sphink@gmail.com>
+In-Reply-To: <7d7f2e8c0812041009w487b5aabwaf27d5c7d917b1ab@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <7d7f2e8c0812032307y3b12f74cr8c00175618add7a1@mail.gmail.com>
+	<412bdbff0812040659l2c441ed8mcc9cd00573b3f939@mail.gmail.com>
+	<7d7f2e8c0812041009w487b5aabwaf27d5c7d917b1ab@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l support for "Pinnacle PCTV HD Pro USB Stick"
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,102 +32,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Magnus Damm <damm@igel.co.jp>
+On Thu, Dec 4, 2008 at 1:09 PM, Steve Fink <sphink@gmail.com> wrote:
+> Ok, thanks. I guess I'll try returning this one, then.
+>
+> I wonder if there's any way to apply pressure -- I mean, encouragement
+> -- to manufacturers to either change model numbers or at least release
+> serial number ranges or something along with specs for their hardware.
+> The only reason I bought this device was because it had composite
+> input and Linux support -- or at least, the earlier version with
+> exactly the same description did.
+>
+> I suppose I could take a quick stab at making my app decode the mpeg
+> frames, but it's really suboptimal for my setup (I am very sensitive
+> to latency and CPU load.)
 
-This patch cleans up the sh_mobile_ceu driver and adds comments and
-constants to clarify the magic sequence in sh_mobile_ceu_capture().
+Just to be clear, the analog is not being converted into MPEG inside
+the device.  Analog isn't supported at all.  When somebody finally
+does get around to adding the device driver support, it will behave
+just like any other v4l device (providing uncompressed video).
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
+Devin
 
- Applies on top of the NV16 patch.
-
- Changes since V1:
- - use unsigned longs for ceu_read() and ceu_write() reg_offs.
-
- drivers/media/video/sh_mobile_ceu_camera.c |   39 ++++++++++++++++------------
- 1 file changed, 23 insertions(+), 16 deletions(-)
-
---- 0029/drivers/media/video/sh_mobile_ceu_camera.c
-+++ work/drivers/media/video/sh_mobile_ceu_camera.c	2008-12-16 18:55:22.000000000 +0900
-@@ -104,13 +104,12 @@ struct sh_mobile_ceu_dev {
- };
- 
- static void ceu_write(struct sh_mobile_ceu_dev *priv,
--		      unsigned long reg_offs, unsigned long data)
-+		      unsigned long reg_offs, u32 data)
- {
- 	iowrite32(data, priv->base + reg_offs);
- }
- 
--static unsigned long ceu_read(struct sh_mobile_ceu_dev *priv,
--			      unsigned long reg_offs)
-+static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
- {
- 	return ioread32(priv->base + reg_offs);
- }
-@@ -158,18 +157,26 @@ static void free_buffer(struct videobuf_
- 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
- }
- 
-+#define CEU_CETCR_MAGIC 0x0317f313 /* acknowledge magical interrupt sources */
-+#define CEU_CETCR_IGRW (1 << 4) /* prohibited register access interrupt bit */
-+#define CEU_CEIER_CPEIE (1 << 0) /* one-frame capture end interrupt */
-+#define CEU_CAPCR_CTNCP (1 << 16) /* continuous capture mode (if set) */
-+
-+
- static void sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
- {
- 	struct soc_camera_device *icd = pcdev->icd;
--	unsigned long phys_addr;
--
--	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) & ~1);
--	ceu_write(pcdev, CETCR, ~ceu_read(pcdev, CETCR) & 0x0317f313);
--	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) | 1);
-+	dma_addr_t phys_addr;
- 
--	ceu_write(pcdev, CAPCR, ceu_read(pcdev, CAPCR) & ~0x10000);
--
--	ceu_write(pcdev, CETCR, 0x0317f313 ^ 0x10);
-+	/* The hardware is _very_ picky about this sequence. Especially
-+	 * the CEU_CETCR_MAGIC value. It seems like we need to acknowledge
-+	 * several not-so-well documented interrupt sources in CETCR.
-+	 */
-+	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) & ~CEU_CEIER_CPEIE);
-+	ceu_write(pcdev, CETCR, ~ceu_read(pcdev, CETCR) & CEU_CETCR_MAGIC);
-+	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) | CEU_CEIER_CPEIE);
-+	ceu_write(pcdev, CAPCR, ceu_read(pcdev, CAPCR) & ~CEU_CAPCR_CTNCP);
-+	ceu_write(pcdev, CETCR, CEU_CETCR_MAGIC ^ CEU_CETCR_IGRW);
- 
- 	if (!pcdev->active)
- 		return;
-@@ -182,7 +189,7 @@ static void sh_mobile_ceu_capture(struct
- 	case V4L2_PIX_FMT_NV21:
- 	case V4L2_PIX_FMT_NV16:
- 	case V4L2_PIX_FMT_NV61:
--		phys_addr += (icd->width * icd->height);
-+		phys_addr += icd->width * icd->height;
- 		ceu_write(pcdev, CDACR, phys_addr);
- 	}
- 
-@@ -452,13 +459,13 @@ static int sh_mobile_ceu_set_bus_param(s
- 
- 	if (yuv_mode) {
- 		width = icd->width * 2;
--		width = (buswidth == 16) ? width / 2 : width;
-+		width = buswidth == 16 ? width / 2 : width;
- 		cfszr_width = cdwdr_width = icd->width;
- 	} else {
- 		width = icd->width * ((icd->current_fmt->depth + 7) >> 3);
--		width = (buswidth == 16) ? width / 2 : width;
--		cfszr_width = (buswidth == 8) ? width / 2 : width;
--		cdwdr_width = (buswidth == 16) ? width * 2 : width;
-+		width = buswidth == 16 ? width / 2 : width;
-+		cfszr_width = buswidth == 8 ? width / 2 : width;
-+		cdwdr_width = buswidth == 16 ? width * 2 : width;
- 	}
- 
- 	ceu_write(pcdev, CAMOR, 0);
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
