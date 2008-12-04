@@ -1,23 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB39c4Ao019546
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 04:38:04 -0500
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB39bqIm010246
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 04:37:52 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Date: Wed, 3 Dec 2008 15:07:38 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E90E6EBA@dbde02.ent.ti.com>
-In-Reply-To: <C8A6D84C-B0DE-4169-B9B0-744285908E42@student.utwente.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB43HmuY019646
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 22:17:48 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB43HZMB026532
+	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 22:17:36 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so3943013wfc.6
+	for <video4linux-list@redhat.com>; Wed, 03 Dec 2008 19:17:35 -0800 (PST)
+Message-ID: <e5df86c90812031917h77d03d4fs5cec912f9139f2ae@mail.gmail.com>
+Date: Wed, 3 Dec 2008 21:17:35 -0600
+From: "Mark Jenks" <mjenks1968@gmail.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <1228359012.3104.64.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: Sakari Ailus <sakari.ailus@nokia.com>, "linux-omap@vger.kernel.org Mailing
-	List" <linux-omap@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: RE: [PATCH] Add OMAP2 camera driver
+References: <e5df86c90811291616s65209d26q3471213958bdfde6@mail.gmail.com>
+	<de8cad4d0812022114n11544dc1ve8fbca5d2d21eb57@mail.gmail.com>
+	<e5df86c90812030409m736a45b1xb851b01e349d23eb@mail.gmail.com>
+	<de8cad4d0812031245n5a47c330o5fe1fafa52703820@mail.gmail.com>
+	<e5df86c90812031712oa73fb5av3a4b239ae0b5f76e@mail.gmail.com>
+	<1228359012.3104.64.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: video4linux-list@redhat.com
+Subject: Re: S-Video analog Capture.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,43 +35,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, Dec 3, 2008 at 8:50 PM, Andy Walls <awalls@radix.net> wrote:
 
+> On Wed, 2008-12-03 at 19:12 -0600, Mark Jenks wrote:
+> > On Wed, Dec 3, 2008 at 2:45 PM, Brandon Jenkins <bcjenkins@tvwhere.com
+> >wrote:
+> >
+> > > On Wed, Dec 3, 2008 at 7:09 AM, Mark Jenks <mjenks1968@gmail.com>
+> wrote:
+> > > > No, I don't need PCI, PCIe is just what I had room for and bought it.
+> > > The
+> > > > Backend is sitting in a media closet, so it's a fullsize case. ;)
+> > > >
+> > > > So, with the 1600, Svideo in, w/ Audio interleaved in mpg format, you
+> say
+> > > it
+> > > > works?
+> > > >
+> > > > Can anyone verify this, before I go out and purchase this, or a
+> PVR-250.
+> > > >
+> > > > -Mark
+> > > >
+> > >
+> > > I run three of them using DCT700 set top boxes on Verizon FiOS. (Note:
+> > > I use CommandIR II for control) via svideo and r/l minijack inputs.
+> > > This is in SageTV though, if that matters.
+> > >
+> > > Brandon
+> >
+> >
+> > No, that does not matter, as long as you can catch a mpeg stream, it
+> should
+> > work just fine.   I already have 1394 channel changing working without a
+> > hitch.
+>
+> Mark,
+>
+> Just to manage expectations, you may want to read the ivtv-users and
+> ivtv-driver mailing list archive for the past month or so.  Some users
+> have absolutely no problems.  Others have noticed some audio or video
+> playback annoyances with analog captures (which I am working to get
+> resolved).
+>
+> Personally, I like my HVR-1600's and don't have problems with analog and
+> digital tuner captures.  I don't use S-Video or CVBS composite
+> regularly.  You will need to do buffered playback, which MythTV does
+> always, and mplayer does when you use the '-cache 8192' commandline
+> option.  (I'm hoping to resolve the need for that too.)
+>
+>
+> > Time to hunt out a 1600.
+>
+> NewEgg or e-Bay. :)
+>
+>
+Anything is better than a 1800 that I can get no support on for Analog,
+other than someone always saying "It works for me".   I just picked one up
+on Newegg for $79 w/ free shipping.  Hopefully it gets here soon.
 
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
-> Sent: Wednesday, December 03, 2008 3:04 PM
-> To: Hiremath, Vaibhav
-> Cc: Trilok Soni; Hans Verkuil; Sakari Ailus; linux-
-> omap@vger.kernel.org Mailing List; video4linux-list@redhat.com
-> Subject: Re: [PATCH] Add OMAP2 camera driver
-> 
-> 
-> Op 3 dec 2008, om 08:05 heeft Hiremath, Vaibhav het volgende
-> geschreven:
-> > OMAP3 -
-> > 	Display - (Posted twice with old DSS library)
-> > 		- omap_vout.c
-> > 		- omap_voutlib.c
-> > 		- omap_voutlib.h
-> > 		- omap_voutdef.h
-> > 	Camera - (Will come soon)
-> > 		- omap34xxcam.c
-> > 		- omap34xxcam.h
-> > 	ISP - (Will come soon)
-> > 		- Here definitely we will plenty number of files.
-> 
-> Isn't DSS2 supposed to work on omap2 (and perhaps omap1) as well?
-> 
-[Hiremath, Vaibhav] yes, but the DSS2 library goes under arch/arm/plat-omap/dss/. The above files are belongs to the driver underneath.
- 
-> regards,
-> 
-> Koen
-
-
+-Mark
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
