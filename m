@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.173])
+Received: from ey-out-2122.google.com ([74.125.78.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LHdeq-0005N0-LT
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 13:25:13 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so1036889ugc.16
-	for <linux-dvb@linuxtv.org>; Tue, 30 Dec 2008 04:25:09 -0800 (PST)
-Date: Tue, 30 Dec 2008 13:25:02 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Artem Makhutov <artem@makhutov.org>
-In-Reply-To: <495A06B7.7060506@makhutov.org>
-Message-ID: <alpine.DEB.2.00.0812301246050.29535@ybpnyubfg.ybpnyqbznva>
-References: <20081227180001.GS12059@titan.makhutov-it.de>
-	<alpine.DEB.2.00.0812300758390.29535@ybpnyubfg.ybpnyqbznva>
-	<495A06B7.7060506@makhutov.org>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1L8JVX-0007qD-PJ
+	for linux-dvb@linuxtv.org; Thu, 04 Dec 2008 20:05:04 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so2516077eya.17
+	for <linux-dvb@linuxtv.org>; Thu, 04 Dec 2008 11:04:59 -0800 (PST)
+Message-ID: <412bdbff0812041104k6ec78699h18561cdae5214bf@mail.gmail.com>
+Date: Thu, 4 Dec 2008 14:04:59 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: storkus@storkus.com
+In-Reply-To: <1228413511.30817.1288290035@webmail.messagingengine.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+References: <1228413511.30817.1288290035@webmail.messagingengine.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compile DVB drivers for kernel 2.6.11
+Subject: Re: [linux-dvb] Strange problem with loading firmware on HVR-950Q
+	(XC5000)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,48 +29,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 30 Dec 2008, Artem Makhutov wrote:
+2008/12/4  <storkus@storkus.com>:
+> Apologies in advance if the attachment doesn't work: I'm on web-mail.
+>
+> Anyway, my kernel-fu isn't very good and I can't make heads or tails of
+> the following, other than this appeared exactly the same way even before
+> I realized I needed to extract firmware for the XC5000.  It lives in
+> /lib/firmware now, but no difference, as I said.
+>
+> I saw this exact same thing on another message in another list, but
+> there were no replies (probably because it wasn't a DVB list).
+>
+> Thanks for any and all help!
 
-> and also this diff:
-> --- s2-liplianin.org/v4l/compat.h       2008-12-27 13:00:38.000000000 +0100
+Are you running the latest version of the code from mercurial?  If
+not, please update to the latest version and report back the results.
 
-Ah, that's what I was trying to remember --
+http://www.linuxtv.org/repo/
 
-If you happen to have a snapshot of Markus Rechberger's
-mcentral v4l-dvb-kernel before late November, when it
-was replaced (due to being misleading and/or obsolete)
-with a link to his em28xx source, you should also take
-a look at that compat.h file, as it has quite a few
-version checks to 2.6.9 and earlier.  That may also be
-helpful.
-
-If you don't have this snapshot, I can send you a copy
-of this file that I archived.
-
-
-> Can you send over me the diffs you did?
-
-I'll pack them together and send you a personal mail
-with a pointer to them, or an attachment, whatever
-fits best...
-
-The kernel panics my code gave me are not a NULL
-pointer, but instead, a kernel paging request, that
-looks as if it may be related to later-than-2.6.14-
-hacks which I merged in.  Actually, there appear to
-be several similar panics, as I appear to have been
-tweaking the code during these...
-
-I do get a NULL pointer panic from my attempt to
-add support for one particular device to the 2.6.14
-codebase, that I've tracked to one particular thing
-I've been too lazy or preoccupied to finally fix.
+Devin
 
 
-(now to see if I can *find* those diffs...)
-
-barry bouwsma
-disorganised
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
