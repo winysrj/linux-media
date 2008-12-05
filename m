@@ -1,30 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBKDxbh028612
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:13:59 -0500
-Received: from mail.ki.iif.hu (mail.ki.iif.hu [193.6.222.241])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mBBKDRVO021339
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:13:27 -0500
-Date: Thu, 11 Dec 2008 21:11:22 +0100 (CET)
-From: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812111159t79fd8647w6f883496350b8585@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0812112100190.26420@bakacsin.ki.iif.hu>
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
-	<alpine.DEB.1.10.0811271936080.6927@bakacsin.ki.iif.hu>
-	<412bdbff0812110832h1ab889b7jc30f6e84993456c4@mail.gmail.com>
-	<alpine.DEB.1.10.0812112053560.26420@bakacsin.ki.iif.hu>
-	<412bdbff0812111159t79fd8647w6f883496350b8585@mail.gmail.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5GMT1E004463
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 11:22:29 -0500
+Received: from qb-out-0506.google.com (qb-out-0506.google.com [72.14.204.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5GMBMc026408
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 11:22:11 -0500
+Received: by qb-out-0506.google.com with SMTP id c8so58772qbc.7
+	for <video4linux-list@redhat.com>; Fri, 05 Dec 2008 08:22:11 -0800 (PST)
+Message-ID: <412bdbff0812050822q63d946b8y960559f7bca10e6f@mail.gmail.com>
+Date: Fri, 5 Dec 2008 11:22:10 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Brian Rosenberger" <brian@brutex.de>
+In-Reply-To: <1228493415.439.8.camel@bru02>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <1228493415.439.8.camel@bru02>
+Cc: video4linux-list@redhat.com
+Subject: Re: Pinnacle PCTV USB (DVB-T device [eb1a:2870])
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,29 +30,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Please, do not make any channel switches.  Just start the USB capture,
-> plug in the device, tune to a single channel, wait two seconds, and
-> stop USB capture.
+On Fri, Dec 5, 2008 at 11:10 AM, Brian Rosenberger <brian@brutex.de> wrote:
+> Hi,
+>
+> I am trying to get my Pinnacle PCTV USB (DVB-T device [eb1a:2870]) to
+> work. I fetched sources from http://linuxtv.org/hg/v4l-dvb and then did
+> a make, make install and make load. Everything went fine as far my
+> understanding is (yes with reboot in between).
+> Next I plugged the usb stick and checked dmesg (see below). I am a bit
+> stuck right now, I did try some card=xx variants, but /dev/dvb isn't
+> created.
+>
+> What are the next steps?
+>
+> Thanks
+> Brian
+>
 
-Eeeerrrr... it's too late.
-I cannot go back to my brother till next week to make further measurements.
-However captures made so far are almost like you need.
-Except that there was no antenna cable attached.
+The error you described occurs when a vendor uses Empia's default USB
+ID and we don't have a profile for the device in the driver (so we
+know things like the correct GPIOs to be set, etc).
 
-> The problem I'm having right now is that is appears you kept switching
-> channels and putting multiple connects/disconnects in the same
-> capture.
+Do you know what tuner chip this device contains?  Which demodulator?
+If not, please open the device and take photos, so we can build a
+device profile.
 
-I can't understand. This was the first occasion the tuner was tuned
-and I could see any picture. No channel switchings can be recorded.
+Secondly, we need to know what GPIO mapping is needed.  If you could
+please get a USB capture using "SniffUSB 2.0" for Windows after
+opening the TV application, we should be able to get this device
+working under Linux.
 
-Meanwhile ... today logs are here:
-http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-1.log.gz
-http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-2.log.gz
-http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-3.log.gz
-http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-4.log.gz
+I would recommend you figure out what demod/tuner it has first before
+doing the Windows USB trace.  This will allow us to confirm that the
+demod and tuner drivers are available before you go through the work
+of getting the Windows trace.
 
-Gabor
+Regards,
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
