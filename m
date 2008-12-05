@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web111410.mail.gq1.yahoo.com ([67.195.15.186])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cncook001@yahoo.com>) id 1LE2dI-0006Vr-WE
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 15:16:45 +0100
-Date: Sat, 20 Dec 2008 06:16:09 -0800 (PST)
-From: Craig Cook <cncook001@yahoo.com>
+Received: from smtp27.orange.fr ([80.12.242.95])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hftom@free.fr>) id 1L8P9G-0001ks-US
+	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 02:06:27 +0100
+From: Christophe Thommeret <hftom@free.fr>
 To: linux-dvb@linuxtv.org
+Date: Fri, 5 Dec 2008 02:05:54 +0100
+References: <3cc3561f0812041458m5344f0e8v7e0dec95e91e7735@mail.gmail.com>
+	<200812050202.52582.hftom@free.fr>
+In-Reply-To: <200812050202.52582.hftom@free.fr>
 MIME-Version: 1.0
-Message-ID: <643644.88230.qm@web111410.mail.gq1.yahoo.com>
-Subject: [linux-dvb] DViCO FusionHDTV7 Dual Express analog support status?
-Reply-To: cncook001@yahoo.com
+Content-Disposition: inline
+Message-Id: <200812050205.54408.hftom@free.fr>
+Cc: Morgan =?utf-8?q?T=C3=B8rvolt?= <morgan.torvolt@gmail.com>
+Subject: Re: [linux-dvb] A bug in libdvben50221?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,22 +21,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Back in Sept 2008 Tim Lucas attempted to port analog support from the HVR-1500.  Does anyone know if analog is supported in the FusionHDTV7 Dual Express now?
-
-Thanks
-
-Craig
-
-
-      
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+TGUgdmVuZHJlZGkgNSBkw6ljZW1icmUgMjAwOCAwMjowMjo1MiBDaHJpc3RvcGhlIFRob21tZXJl
+dCwgdm91cyBhdmV6IMOpY3JpdMKgOgo+IExlIGpldWRpIDQgZMOpY2VtYnJlIDIwMDggMjM6NTg6
+MzEgTW9yZ2FuIFTDuHJ2b2x0LCB2b3VzIGF2ZXogw6ljcml0wqA6Cj4gPiBIaSBhbGwuCj4gPgo+
+ID4gVGhpcyBtaWdodCBiZSBhIHN0dXBpZCBxdWVzdGlvbiwgcGxlYXNlIGZlZWwgZnJlZSB0byBj
+YWxsIG1lIGEgbW9yb24KPiA+IGFuZCB0ZWxsIG1lIGhvdyB0byBzb2x2ZSB0aGlzIGxpdHRsZSBw
+cm9ibGVtIEkgYW0gaGF2aW5nLiBJIGhhdmUgdHJpZWQKPiA+IGdldHRpbmcgaW4gdG91Y2ggd2l0
+aCBzb21lb25lIG9uIHRoZSBpcmMgY2hhbm5lbCB0byBoZWxwIG1lIHNvcnQgdGhpcwo+ID4gb3V0
+IHdpdGhvdXQgbXVjaCBsdWNrLiBIb3BlZnVsbHkgc29tZW9uZSBoZXJlIGhhcyBzb21lIGtub3ds
+ZWRnZSBvZgo+ID4gdGhlIGxpYmR2YmVuNTAyMjEgbGlicmFyeS4gSSB3b3VsZCBpbWFnaW5lIHRo
+YXQgdmVyeSBtYW55IHVzZSB0aGlzCj4gPiBsaWJyYXJ5IHdpdGggdGhlaXIgZHZiIGNhcmRzLCBz
+byB0aGVyZSBzaG91bGQgYmUgc29tZW9uZSBvdXQgdGhlcmUuCj4gPgo+ID4gVGhlIGNhbXRocmVh
+ZCBpbiBnbnV0diwgd2hpY2ggY29udGludW91c2x5IHBvbGxzIHRoZSBzdGRjYW0sIGNhbGxzIHRo
+ZQo+ID4gc3RkY2FtJ3MgcG9sbCBmdW5jdGlvbiAob2J2aW91c2x5KS4gVGhlIHBvbGwgZnVuY3Rp
+b24gaXMgaW4gbXkKPiA+IHBvaW50aW5nIHRvIHRoZSBlbjUwMjIxX3N0ZGNhbV9sbGNpX3BvbGwg
+ZnVuY3Rpb24uIFRoaXMgZnVuY3Rpb24gaW4KPiA+IHR1cm4gY2FsbHMgZW41MDIyMV90bF9wb2xs
+LCBidXQgd2l0aG91dCBwYXNzaW5nIHRoZSByZXR1cm4gdmFsdWUgb2YKPiA+IHRoaXMgb24gdG8g
+dGhlIGNhbXRocmVhZCBmdW5jdGlvbiBvZiBnbnV0di4gV2hhdCBoYXBwZW5lZCBpbiBteSBjYXNl
+Cj4gPiB3YXMgdGhhdCB0aGUgdHJhbnNwb3J0IGxheWVyIGNyYXNoZWQgaW4gc29tZSBvYnNjdXJl
+IHdheSAodGhpcyBoYXMKPiA+IG9ubHkgaGFwcGVuZWQgb25jZSBhY3R1YWxseSksIGFuZCB0aGUg
+ZW41MDIyMV90bF9wb2xsIGZ1bmN0aW9uCj4gPiByZXR1cm5lZCAtMSBhbGwgdGhlIHRpbWUsIGFu
+ZCBzZXQgdGhlIGVycm9yIHN0YXRlIHRvIGJlIC0zLCB3aGljaCBpcwo+ID4gRU41MDIyMUVSUl9U
+SU1FT1VULiBJdCBkaWQgbm90IHJlY292ZXIgaW4gb3ZlciBhbiBob3VyIG9mIHdhaXRpbmcuCj4g
+PiBUaGlzIG1lc3NhZ2Ugd2FzIHNwYW1taW5nIG15IGNvbnNvbGUgd2luZG93Ogo+ID4gZW41MDIy
+MV9zdGRjYW1fbGxjaV9wb2xsOiBFcnJvciByZXBvcnRlZCBieSBzdGFjazotMwo+ID4KPiA+IEFm
+dGVyIGxvb2tpbmcgaGlnaCBhbmQgbG93IGZvciBhIHdheSB0byBiZSBhYmxlIHRvIGRldGVjdCB0
+aGlzIHN0YXRlLAo+ID4gSSBoYXZlIGNvbWUgdXAgd2l0aCBub3RoaW5nLiBJIGNhbm5vdCByZWFk
+IHRoZSBlcnJvciB2YWx1ZSBkaXJlY3RseQo+ID4gb3V0IG9mIHRoZSBzdHVjdCBhcyBpdCBpcyBh
+IGZvcndhcmQgZGVjbGFyYXRpb24gaW4gdGhlIGhlYWRlciBmaWxlIGFuZAo+ID4gYWN0dWFsbHkg
+ZGVjbGFyZWQgaW4gdGhlIC5jIGZpbGUuIEkgY2FuIGFjY2VzcyB0aGUgZXJyb3IgZGF0YSB1c2lu
+Zwo+ID4gdGhlIGVuNTAyMjFfdGxfZ2V0X2Vycm9yKCkgZnVuY3Rpb24sIGJ1dCB0aGF0IG9ubHkg
+dGVsbHMgbWUgdGhhdCBhdAo+ID4gc29tZSBwb2ludCB0aGVyZSB3YXMgYW4gZXJyb3Igd2l0aCB0
+aGUgZ2l2ZW4gZXJyb3IgdmFsdWUuCj4gPgo+ID4gQXQgbGVhc3Qgb24gbXkgY2FtIEkgZ2V0IHRo
+aXMgbWVzc2FnZSBvZnRlbiB3aGVuIEkgc3RhcnQgYSBwcm9ncmFtOgo+ID4gImVuNTAyMjFfc3Rk
+Y2FtX2xsY2lfcG9sbDogRXJyb3IgcmVwb3J0ZWQgYnkgc3RhY2s6LTciLCB3aGljaCBpcyBhCj4g
+PiBtZXNzYWdlIEkgY2FuIHRlc3Qgd2l0aC4gTXkgdGVzdGluZyBzdWdnZXN0IHRoYXQgdGhlIGVy
+cm9yIGlzIHNldCB0bwo+ID4gLTcgYW5kIGlzIGxlZnQgdGhlcmUgdW50aWwgYSBuZXcgZXJyb3Ig
+b2NjdXJzLiBJbiBvdGhlciB3b3JkcywgaXQgaXMKPiA+IG5vdCBwb3NzaWJsZSB0byBkZXRlY3Qg
+aWYgdGhlIGVycm9yIC03IG9jY3VycyBldmVyeSBzZWNvbmQsIGV2ZXJ5Cj4gPiBtaW51dGUsIG9y
+IGp1c3Qgb25jZSBhdCB0aGUgc3RhcnQgYW5kIG5vIGVycm9ycyBzaW5jZSB0aGVuLiBUaGUgc2Ft
+ZQo+ID4gcHJvYmxlbSBleGlzdHMgd2l0aCB0aGUgdGltZW91dCBlcnJvciBJIGhhZC4gZ251dHYg
+Y291bGQgaGF2ZSBkZXRlY3RlZAo+ID4gdGhhdCB0aGVyZSBoYWQgYmVlbiBhIHRpbWVvdXQgZXJy
+b3IsIGJ1dCBjb3VsZCBpbiBubyB3YXkgSSBjYW4gc2VlLAo+ID4gZmluZCBvdXQgaWYgaXQgaGFk
+IHJlc29sdmVkIGl0c2VsZiBvciBub3QuCj4gPgo+ID4gVGhlIGVycm9yIEkgc2F3IHdhcyBhIHRp
+bWVvdXQgZXJyb3IgdGhhdCBoYXBwZW5lZCBhZnRlciBtb3JlIHRoYW4gMjQKPiA+IGhvdXJzIGZy
+b20gc3RhcnRpbmcgdGhlIHByb2dyYW0sIGFuZCB0aGUgdHJhbnNwb3J0IGxheWVyIHdhcyByZXR1
+cm5pbmcKPiA+IC0zIGNvbnRpbnVvdXNseS4KPiA+Cj4gPiBJIGNhbiB0aGluayBvZiBhIGZldyB3
+YXlzIHRvIHNvbHZlIHRoaXMgcHJvYmxlbS4KPiA+ICAqIE9uZSB3b3VsZCBiZSBhIGNhbGxiYWNr
+IGZ1bmN0aW9uIG9uIHRyYW5zcG9ydCBsYXllciBlcnJvciBpbiB0aGUKPiA+IHN0ZGNhbSAqIEhh
+dmUgYW4gZXJyb3IgY291bnRlciBpbiB0aGUgdHJhbnNwb3J0IGxheWVyIHN0cnVjdCwgYW5kIGEK
+PiA+IGZ1bmN0aW9uIHRvIHJlYWQgdGhlIGNvdW50ZXIuIE11c3QgYmUgcmVmbGVjdGVkIGluIHRo
+ZSBzZXNzaW9uIGxheWVyIGFzCj4gPiB3ZWxsIGl0IHNlZW1zLgo+ID4gICogUmV0dXJuIHRoZSB0
+cmFuc3BvcnQgbGF5ZXIgcG9sbCdzIHJldHVybiB2YWx1ZSBpbiBzb21lIHdheSBmcm9tIHRoZQo+
+ID4gc3RkY2FtIHBvbGwgZnVuY3Rpb24uIFBvc3NpYmx5IGJ5IHNldHRpbmcgYWRkaW5nIHRvIHRo
+ZSBzdGRjYW1fc3RhdHVzCj4gPiBlbnVtIGEgdmFsdWUgbGlrZSAiRU41MDIyMV9TVERDQU1fVExf
+RVJST1IiLiBNYXliZSBhIGJpdHNoaWZ0ZWQgdmFsdWUKPiA+IGFzIHdlbGw/IEl0IHNob3VsZCB0
+aGVuIGJlIGVhc3kgdG8gY2hlY2sgdGhlIGVycm9yIHVzaW5nIHRoZQo+ID4gZW41MDIyMV90bF9n
+ZXRfZXJyb3IgZnVuY3Rpb24uCj4gPiAgKiBUaGlzIGlzIGFscmVhZHkgc29sdmVkIHRyb3VnaCBz
+b21lIG90aGVyIHNvbHV0aW9uLCBhbmQgSSBoYXZlIGJlZW4KPiA+IHRvIGJsaW5kIHRvIHNlZSBp
+dCBhbGwgYWxvbmcuCj4gPgo+ID4gSSBwcmVmZXIgdGhlIG9wdGlvbnMgZnJvbSBib3R0b20gdG8g
+dG9wLgo+ID4gQW55IHRha2Vycz8KPgo+IExvb2sgYXQgZW41MDIyMV9zdGRjYW1fbGxjaV9wb2xs
+KC4uKSBpbiB0aGUgam9pbmVkIGZpbGUuCj4gVGhpcyBpcyBob3cgaSBzb2x2ZWQgdGhhdC4KCkZv
+cmdvdCB0byBzYXk6IGRvbid0IHRyeSB0byB1c2UgdGhhdCBmaWxlIGFzIGlzLCBpdCBtYXkgaGF2
+ZSBzb21lIG90aGVyIAptb2RpZmljYXRpb25zIHRoYXQgeW91IGRvbid0IHdhbnQuCgotLSAKQ2hy
+aXN0b3BoZSBUaG9tbWVyZXQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpo
+dHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
