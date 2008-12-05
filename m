@@ -1,26 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1L7vHo-0003b1-KI
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 18:13:17 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so2517006fga.25
-	for <linux-dvb@linuxtv.org>; Wed, 03 Dec 2008 09:13:13 -0800 (PST)
-Message-ID: <4936BE27.10800@googlemail.com>
-Date: Wed, 03 Dec 2008 18:13:11 +0100
-From: e9hack <e9hack@googlemail.com>
+Received: from vps1.tull.net ([66.180.172.116])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1L8Z7O-00023X-De
+	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 12:45:13 +0100
 MIME-Version: 1.0
+Message-Id: <6810946716817a6c1172.1228477484@marcab.local.tull.net>
+In-Reply-To: <patchbomb.1228477483@marcab.local.tull.net>
+Date: Fri, 05 Dec 2008 22:44:44 +1100
+From: Nick Andrew <nick-linuxtv@nick-andrew.net>
 To: linux-dvb@linuxtv.org
-References: <492168D8.4050900@googlemail.com>	
-	<19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>	
-	<c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>	
-	<49358FE8.9020701@googlemail.com>	
-	<c74595dc0812021205x22936540w9ce74549f07339ff@mail.gmail.com>	
-	<4935B1B3.40709@googlemail.com>
-	<c74595dc0812022323w1df844cegc0c0ef269babed66@mail.gmail.com>
-In-Reply-To: <c74595dc0812022323w1df844cegc0c0ef269babed66@mail.gmail.com>
-Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
- which outputs the wrong frequency if the current tuned transponder
- is scanned only
+Subject: [linux-dvb] [PATCH 1 of 2] Fix spelling of 'lose'
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,81 +17,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alex Betis schrieb:
->>> If you use S2API driver, please try my scan-s2 from here:
->>> http://mercurial.intuxication.org/hg/scan-s2/
->> If I use 'scan-s2 -c -o vdr', the output is wrong. I get:
->>
->> Bayerisches FS S=FCd;ARD:201:202=3Ddeu,203=3D2ch;206=3Ddeu:204:0:28107:4=
-1985:1101:0
->>
->> I should get:
->>
->> Bayerisches FS
->> S=FCd;ARD:346:M256:C:6900:201:202=3Ddeu,203=3D2ch;206=3Ddeu:204:0:28107:=
-41985:0:0
->>
->> Frequency, modulation, DVB type and symbol rate are still missing.
-> =
+# HG changeset patch
+# User Nick Andrew <nick@nick-andrew.net>
+# Date 1228476704 -39600
+# Node ID 6810946716817a6c1172912541b9e348b1a44401
+# Parent  6bab82c6096e66523ea8c77eb1843550b9a096b9
+Fix spelling of 'lose'
 
-> That's interesting. That means the utility doesn't know what delivery sys=
-tem
-> is used. Probably because it didn't tune the driver.
-> I'll check that. It should happen with DVB-S as well.
+Change 'loose' to 'lose'
 
-For the current transponder scanning, it isn't set any filter for NIT parsi=
-ng. Since the
-output format is zap and vdr only, it must be always setup a NIT filter:
+Signed-off-by: Nick Andrew <nick@nick-andrew.net>
 
-diff -r 51eceb97c3bd scan.c
---- a/scan.c    Mon Dec 01 23:36:50 2008 +0200
-+++ b/scan.c    Wed Dec 03 18:04:10 2008 +0100
-@@ -2495,7 +2503,7 @@ static void scan_tp_dvb (void)
-        add_filter (&s0);
-        add_filter (&s1);
-
--       if (!current_tp_only) {
-+       if (/*!current_tp_only*/1) {
-                setup_filter (&s2, demux_devname, PID_NIT_ST, TID_NIT_ACTUA=
-L, -1, 1, 0,
-15); /* NIT */
-                add_filter (&s2);
-                if (get_other_nits) {
-
-> Can you scan the same channel without "-c" and report if the dump is
-> correct?
-
-I need a little patch for tuning to DVB-C transponders:
-
-diff -r 51eceb97c3bd scan.c
---- a/scan.c    Mon Dec 01 23:36:50 2008 +0200
-+++ b/scan.c    Wed Dec 03 18:04:10 2008 +0100
-@@ -1729,6 +1729,14 @@ static int __tune_to_transponder (int fr
-
-        switch(t->delivery_system)
-        {
-+       case SYS_DVBC_ANNEX_AC:
-+               if_freq =3D t->frequency;
-+
-+               if (verbosity >=3D 2){
-+                       dprintf(1,"DVB-C frequency is %d\n", if_freq);
-+               }
-+               break;
-+
-        case SYS_DVBS:
-        case SYS_DVBS2:
-                if (lnb_type.high_val) {
-
-It seems that the output is correct (currently not tested with vdr).
-
-Regards,
-Hartmut
+diff -r 6bab82c6096e -r 681094671681 linux/drivers/media/dvb/ttpci/av7110.c
+--- a/linux/drivers/media/dvb/ttpci/av7110.c	Wed Dec 03 15:32:11 2008 -0200
++++ b/linux/drivers/media/dvb/ttpci/av7110.c	Fri Dec 05 22:31:44 2008 +1100
+@@ -2848,7 +2848,7 @@
+ 		 * we must do it here even though saa7146_core did it already),
+ 		 * and b) that if we were to disable an edge triggered irq
+ 		 * (like the gpio irqs sadly are) temporarily we would likely
+-		 * loose some. This sucks :-(
++		 * lose some. This sucks :-(
+ 		 */
+ 		SAA7146_IER_DISABLE(av7110->dev, MASK_19);
+ 		SAA7146_ISR_CLEAR(av7110->dev, MASK_19);
 
 _______________________________________________
 linux-dvb mailing list
