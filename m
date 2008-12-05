@@ -1,22 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBK39V8G026911
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 22:09:31 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBK39HKT011487
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 22:09:17 -0500
-Received: by ewy14 with SMTP id 14so1312355ewy.3
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 19:09:17 -0800 (PST)
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain
-Date: Sat, 20 Dec 2008 06:09:32 +0300
-Message-Id: <1229742572.10297.116.camel@tux.localhost>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB54vmi9027577
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 23:57:48 -0500
+Received: from si01.xit.com.hk (si01.xit.com.hk [202.67.236.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB54uZIU009442
+	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 23:56:35 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by si01.xit.com.hk (Postfix) with ESMTP id 9F072C7076
+	for <video4linux-list@redhat.com>; Fri,  5 Dec 2008 12:56:34 +0800 (HKT)
+Received: from si01.xit.com.hk ([127.0.0.1])
+	by localhost (si01.xit.com.hk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id hng1fRZZpUqE for <video4linux-list@redhat.com>;
+	Fri,  5 Dec 2008 12:56:33 +0800 (HKT)
+Received: from [192.168.128.30] (pcd255137.netvigator.com [203.218.45.137])
+	by si01.xit.com.hk (Postfix) with ESMTP id B3F3FC706F
+	for <video4linux-list@redhat.com>; Fri,  5 Dec 2008 12:56:33 +0800 (HKT)
+Message-ID: <4938B49A.20702@xit.com.hk>
+Date: Fri, 05 Dec 2008 12:56:58 +0800
+From: Chris Ruehl <v4l@xit.com.hk>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <4938B0FE.3010108@xit.com.hk>
+In-Reply-To: <4938B0FE.3010108@xit.com.hk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: [review patch 4/5] dsbr100: fix and add rigth comments
+Subject: Re: HVR-4000 need to switch 19/14V
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,79 +36,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Fixing and adding right comments. Few empty lines are removed.
 
----
-diff -r 91319c812b7b linux/drivers/media/radio/dsbr100.c
---- a/linux/drivers/media/radio/dsbr100.c	Sat Dec 20 05:29:58 2008 +0300
-+++ b/linux/drivers/media/radio/dsbr100.c	Sat Dec 20 05:35:13 2008 +0300
-@@ -1,5 +1,5 @@
--/* A driver for the D-Link DSB-R100 USB radio.  The R100 plugs
-- into both the USB and an analog audio input, so this thing
-+/* A driver for the D-Link DSB-R100 USB radio and Gemtek USB Radio 21.
-+ The device plugs into both the USB and an analog audio input, so this thing
-  only deals with initialisation and frequency setting, the
-  audio data has to be handled by a sound driver.
- 
-@@ -173,7 +173,6 @@
- 	int muted;
- };
- 
--
- static struct usb_device_id usb_dsbr100_device_table [] = {
- 	{ USB_DEVICE(DSB100_VENDOR, DSB100_PRODUCT) },
- 	{ }						/* Terminating entry */
-@@ -226,7 +225,6 @@
- 	mutex_unlock(&radio->lock);
- 	return (radio->transfer_buffer)[0];
- }
--
- 
- /* switch off radio */
- static int dsbr100_stop(struct dsbr100_device *radio)
-@@ -320,13 +318,14 @@
- 	mutex_unlock(&radio->lock);
- }
- 
--
- /* USB subsystem interface begins here */
- 
--/* handle unplugging of the device, release data structures
--if nothing keeps us from doing it.  If something is still
--keeping us busy, the release callback of v4l will take care
--of releasing it. */
-+/*
-+ * Handle unplugging of the device.
-+ * We call video_unregister_device in any case.
-+ * The last function called in this procedure is
-+ * usb_dsbr100_video_device_release
-+ */
- static void usb_dsbr100_disconnect(struct usb_interface *intf)
- {
- 	struct dsbr100_device *radio = usb_get_intfdata(intf);
-@@ -597,6 +596,7 @@
- 	return 0;
- }
- 
-+/* free data structures */
- static void usb_dsbr100_video_device_release(struct video_device *videodev)
- {
- 	struct dsbr100_device *radio = videodev_to_radio(videodev);
-@@ -640,8 +640,7 @@
- 	.release	= usb_dsbr100_video_device_release,
- };
- 
--/* check if the device is present and register with v4l and
--usb if it is */
-+/* check if the device is present and register with v4l and usb if it is */
- static int usb_dsbr100_probe(struct usb_interface *intf,
- 				const struct usb_device_id *id)
- {
+Chris Ruehl wrote:
+> Dear All,
+>
+> I run a HVR 4000 in Hong Kong and try to make it run with ALIGA2 on a 
+> 'so called' cheap Sat in my rented flat.
+> Problem:
+> When I run the scan <myaligaconfig> no result come out.
+> I double check with my dreambox - its working
+> different between dreambox<>HVR4000 dreambox set 19V on the LNB HVR 
+> only 17,8V.
+>
+> I google around a bit and found a thread where someone set a extra bit 
+> in the registry (win32) to make the
+> card set to 19/14V.
+>
+> Can someone give me a hint which register affected here on the cx88??? 
+> code -  to make it possible for me
+> testing/patching.
+>
+> thank  you.
+> Chris
+>
+BTW: The info I found while search the WWW.
 
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\HCW88BDA\Parameters]
+"LNBVoltage_Ctrl"=dword:00000005
+   
+; Bit 0: (+1) - disables dynamic current limiting
+; Bit 1: (+2) - makes output voltage 13/18V instead of 14/19V
+; Bit 2: (+4) - prevents LNB power from being disabled
 
-
--- 
-Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
