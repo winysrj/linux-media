@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.184])
+Received: from mail-gx0-f15.google.com ([209.85.217.15])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1L70t1-0000Fa-3C
-	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 05:59:56 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so1343910nfb.11
-	for <linux-dvb@linuxtv.org>; Sun, 30 Nov 2008 20:59:51 -0800 (PST)
-Message-ID: <412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>
-Date: Sun, 30 Nov 2008 23:59:51 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linuxtv@hotair.fastmail.co.uk
-In-Reply-To: <1227228030.18353.1285952745@webmail.messagingengine.com>
+	(envelope-from <ernstp@gmail.com>) id 1L8WtZ-0002bU-JW
+	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 10:22:47 +0100
+Received: by gxk8 with SMTP id 8so888133gxk.17
+	for <linux-dvb@linuxtv.org>; Fri, 05 Dec 2008 01:22:10 -0800 (PST)
+Message-ID: <8e2e399f0812050122x7d4581fcqf933efed5d3921a9@mail.gmail.com>
+Date: Fri, 5 Dec 2008 10:22:09 +0100
+From: "Ernst Persson" <ernstp@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <4938C967.2010908@verbraak.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
-	<1227213591.29403.1285914127@webmail.messagingengine.com>
-	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
-	<1227228030.18353.1285952745@webmail.messagingengine.com>
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] dib0700 remote control support fixed
+References: <BLU147-W3542F4C32E37A483A5750A9E020@phx.gbl>
+	<4938C967.2010908@verbraak.org>
+Subject: Re: [linux-dvb] Mantis driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,51 +22,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Nov 20, 2008 at 7:40 PM, petercarm
-<linuxtv@hotair.fastmail.co.uk> wrote:
-> OK it is working on the Nova-T 500 but it is throwing up "Unknown remote
-> controller key" messages in dmesg in amongst correctly processing the
-> correct key presses.  I'll try using irrecord to work on a new
-> lircd.conf and see if it goes away.
-
-Hello Peter,
-
-I am following up on your issue with your Nova-T 500.  I noticed the
-following update to the linuxtv.org wiki:
-
-http://www.linuxtv.org/wiki/index.php?title=Template:Firmware:dvb-usb-dib0700&curid=3008&diff=18052&oldid=17297
-
-If there is a problem with the dib0700 1.20 firmware, I would like to
-get to the bottom of it (and get Patrick Boettcher involved as
-necessary).  I am especially concerned since this code is going into
-2.6.27 and the behavior you are describing could definitely be
-considered a regression.
-
-As far as I have heard, most people have reported considerable
-improvement with the 1.20 firmware, including users of the Nova-T 500.
- So I would like to better understand what is different about your
-environment.
-
-Could you please summarize the results of your testing on both
-devices?  In particular, there should be no lircd involved, as this
-device should be sending keystrokes directly via the kernel.
-
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SSdtIHVzaW5nIHRoZSBNYW50aXMgZHJpdmVyIGZvciBhIERWQi1DIGNhcmQgYW5kIEknbSBhbHNv
+IHdvbmRlcmluZyBpZgppdCB3aWxsIGV2ZXIgYmUgbWVyZ2VkLi4KCkJSCi9Fcm5zdAoKMjAwOC8x
+Mi81IE1pY2hlbCBWZXJicmFhayA8bWljaGVsQHZlcmJyYWFrLm9yZz46Cj4gQWxlc3NhbmRybyBT
+YWdyYXRpbmkgc2NocmVlZjoKPgo+IEhlbGxvIGV2ZXJ5Ym9keSwKPiBJIGhhdmUgVGVjaG5pc2F0
+IFNreXN0YXIgMiBIRCwgYW5kIEkgd291bGQgbGlrZSB0byBrbm93IHdoaWNoIGFyZSB0aGUgbWVy
+Z2UKPiBwbGFucyBmb3IgbWFudGlzIGRyaXZlci4gczJhcGkgd2lsbCBiZSBtZXJnZWQgaW4gMi42
+LjI4IGtlcm5lbDogd2hhdCBhYm91dAo+IG1hbnRpcz8KPgo+IFRoYW5rIHlvdSwKPiBBbGVzc2Fu
+ZHJvCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBWaXNpdGEgaWwgc3VvIFNw
+YWNlcyEgU2NvcHJpIGxlIG5vdml0w6AgZGkgRG9yZXR0YS4KPgo+IF9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYub3Jn
+Cj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgt
+ZHZiCj4KPiBBbGVzc2FuZHJvLAo+Cj4gRm9yIG5vdyB5b3Ugd2lsbCBiZSBuZWVkaW5nIHRoZSBm
+b2xsb3dpbmcgZHJpdmVyIGZyb206Cj4KPiBodHRwOi8vbWVyY3VyaWFsLmludHV4aWNhdGlvbi5v
+cmcvaGcvczItbGlwbGlhbmluCj4KPiBUbyBzY2FuIGFuZCB0dW5lIHlvdSBjYW4gdXNlCj4gaHR0
+cDovL21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3NjYW4tczIKPiBodHRwOi8vbWVyY3Vy
+aWFsLmludHV4aWNhdGlvbi5vcmcvaGcvc3phcC1zMgo+Cj4gSSBkbyBub3Qga25vdyBob3cgbG9u
+ZyBpdCB3aWxsIHRha2UgYmVmb3JlIHRoaXMgZHJpdmVyIG1ha2VzIGl0IGludG8gdGhlCj4gcmVw
+b3NpdG9yeSBhbmQgdGhlbiBpbiB0byB0aGUgbWFpbiBsaW5lIGtlcm5lbC4KPgo+IFJlZ2FyZHMs
+Cj4KPiBNaWNoZWwuCj4KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBsaW51eC1kdmJAbGludXh0di5vcmcK
+PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1k
+dmIKPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
