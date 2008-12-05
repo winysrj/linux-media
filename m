@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBQCGNUv004161
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 07:16:23 -0500
-Received: from mail-gx0-f11.google.com (mail-gx0-f11.google.com
-	[209.85.217.11])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBQCFS5Y003244
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 07:15:28 -0500
-Received: by gxk4 with SMTP id 4so3298898gxk.3
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 04:15:28 -0800 (PST)
-Message-ID: <ea4209750812260415m9b9f7ebre6c1852f7c22a090@mail.gmail.com>
-Date: Fri, 26 Dec 2008 13:15:27 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "=?ISO-8859-2?Q?Andr=E1s_L=F5rincz?=" <andras.lorincz@gmail.com>
-In-Reply-To: <a21d779b0812260207i6681133n9aa0b9b436184b21@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5BcZBE030033
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 06:38:35 -0500
+Received: from si01.xit.com.hk (si01.xit.com.hk [202.67.236.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5BcDoo008200
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 06:38:14 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by si01.xit.com.hk (Postfix) with ESMTP id 4858EC706F
+	for <video4linux-list@redhat.com>; Fri,  5 Dec 2008 19:38:11 +0800 (HKT)
+Received: from si01.xit.com.hk ([127.0.0.1])
+	by localhost (si01.xit.com.hk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 2FeWMbr8gi+L for <video4linux-list@redhat.com>;
+	Fri,  5 Dec 2008 19:38:10 +0800 (HKT)
+Received: from [192.168.128.30] (pcd255137.netvigator.com [203.218.45.137])
+	by si01.xit.com.hk (Postfix) with ESMTP id 3A5C7C706B
+	for <video4linux-list@redhat.com>; Fri,  5 Dec 2008 19:38:10 +0800 (HKT)
+Message-ID: <493912BB.5040400@xit.com.hk>
+Date: Fri, 05 Dec 2008 19:38:35 +0800
+From: Chris Ruehl <v4l@xit.com.hk>
 MIME-Version: 1.0
-References: <a21d779b0812260207i6681133n9aa0b9b436184b21@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Asus My Cinema U3000 Hybrid
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: hg - cx88-alsa brocken with 2.6.27
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,34 +30,82 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0467111583=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---===============0467111583==
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Hallo,
 
-T25seSBkaWdpdGFsLCBzb3JyeSA6UC4KCjIwMDgvMTIvMjYgQW5kcuFzIEz1cmluY3ogPGFuZHJh
-cy5sb3JpbmN6QGdtYWlsLmNvbT4KCj4gSGVsbG8sCj4KPiBJJ3ZlIHNlZW4gaW4gdGhlIGtlcm5l
-bCBjaGFuZ2Vsb2cgZm9yIDIuNi4yOCB0aGF0IGR2Yi10IHN1cHBvcnQgd2FzCj4gYWRkZWQgZm9y
-IHRoZSBkZXZpY2UgbWVudGlvbmVkIGluIHRoZSB0aXRsZSBidXQgSSBjb3VsZG4ndCBmaW5kIG91
-dCBpZgo+IHRoZSBhbmFsb2d1ZSBwYXJ0IHdvcmtzIG9yIG5vdC4gQ291bGQgc29tZW9uZSBjb25m
-aXJtIGlmIHRoZSBhbmFsb2d1ZQo+IHBhcnQgaXMgd29ya2luZyBvciBub3Q/IFRoYW5rcy4KPgo+
-IC0tCj4gdmlkZW80bGludXgtbGlzdCBtYWlsaW5nIGxpc3QKPiBVbnN1YnNjcmliZSBtYWlsdG86
-dmlkZW80bGludXgtbGlzdC1yZXF1ZXN0QHJlZGhhdC5jb20/c3ViamVjdD11bnN1YnNjcmliZQo+
-IGh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0
-Cj4K
---===============0467111583==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I try to load the cx88-alsa with my HVR4000 but with the 2.6.27.x I got 
+a null-pointer assignment
+- I had a look in the code but not see any serious.
+
+I got 2 sound cards working in my system Xonar D2x and Intel HD (both 
+working)
+
+here is the dump.   Sorry I have not enough time for a closer look - but 
+ask me if more infos needed.
+
+cheers
+Chris
+
+
+cx2388x alsa driver version 0.0.6 loaded
+cx88_audio 0000:11:0c.1: PCI INT A -> GSI 20 (level, low) -> IRQ 20
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+IP: [<f91698a7>] :cx88_alsa:cx88_audio_initdev+0xeb/0x309
+*pdpt = 0000000035136001 *pde = 0000000000000000
+Oops: 0002 [#1] SMP
+Modules linked in: cx88_alsa(+) wmi pci_slot iptable_filter ip_tables 
+x_tables cx22702 isl6421 cx24116 cx88_dvb cx88_vp3054_i2c wm8775 
+tuner_simple tuner_types tda9887 tda8290 tuner snd_virtuoso 
+snd_oxygen_lib snd_hda_intel snd_pcm_oss snd_mixer_oss snd_pcm 
+snd_page_alloc snd_mpu401_uart snd_hwdep snd_seq_dummy snd_seq_oss 
+cx8802 snd_seq_midi cx8800 cx88xx snd_seq_midi_event ir_common 
+i2c_algo_bit videodev snd_seq tveeprom v4l1_compat videobuf_dvb 
+snd_rawmidi compat_ioctl32 dvb_core snd_timer v4l2_common snd_seq_device 
+btcx_risc nvidia(P) videobuf_dma_sg videobuf_core snd i2c_core e1000e 
+dm_mirror dm_log dm_snapshot fuse
+
+Pid: 5709, comm: modprobe Tainted: P          (2.6.27.7 #4)
+EIP: 0060:[<f91698a7>] EFLAGS: 00010202 CPU: 0
+EIP is at cx88_audio_initdev+0xeb/0x309 [cx88_alsa]
+EAX: f792f010 EBX: f792f000 ECX: 00000000 EDX: ffffffff
+ESI: f51c0c00 EDI: 00000000 EBP: f78ee800 ESP: f4da3e9c
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process modprobe (pid: 5709, ti=f4da2000 task=f6b52680 task.ti=f4da2000)
+Stack: f792f010 f78ee8d4 c02340a9 f916b084 f916b050 f78ee800 f916b084 
+c023460f
+       f78ee85c 00000000 f916b084 c028a6a2 f78ee85c f78ee918 f916b084 
+c028a76b
+       00000000 00000000 c040ab24 c028a123 f783593c f7835940 f78ee8b0 
+00000000
+Call Trace:
+ [<c02340a9>] pci_match_device+0x13/0x8b
+ [<c023460f>] pci_device_probe+0x36/0x55
+ [<c028a6a2>] driver_probe_device+0x9d/0x12f
+ [<c028a76b>] __driver_attach+0x37/0x55
+ [<c028a123>] bus_for_each_dev+0x35/0x5c
+ [<c028a555>] driver_attach+0x11/0x13
+ [<c028a734>] __driver_attach+0x0/0x55
+ [<c0289ba6>] bus_add_driver+0x91/0x1a7
+ [<f9169772>] cx88_audio_init+0x0/0x2a [cx88_alsa]
+ [<c028a8d1>] driver_register+0x7d/0xd6
+ [<f9169772>] cx88_audio_init+0x0/0x2a [cx88_alsa]
+ [<f9169772>] cx88_audio_init+0x0/0x2a [cx88_alsa]
+ [<c02347d1>] __pci_register_driver+0x3c/0x67
+ [<c010111f>] _stext+0x37/0xfb
+ [<c013d07e>] sys_init_module+0x87/0x174
+ [<c0102fc5>] sysenter_do_call+0x12/0x25
+ =======================
+Code: 04 24 75 27 50 8b 07 83 c0 10 50 68 a4 9c 16 f9 e8 63 f3 1d c7 89 
+d8 89 ea bb fb ff ff ff e8 e8 c9 b2 ff 83 c4 0c e9 14 02 00 00 <89> 1f 
+89 77 4c 89 6f 44 c7 47 48 ff ff ff ff c7 47 50 00 00 00
+EIP: [<f91698a7>] cx88_audio_initdev+0xeb/0x309 [cx88_alsa] SS:ESP 
+0068:f4da3e9c
+---[ end trace e9e859edcab46f62 ]---
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============0467111583==--
