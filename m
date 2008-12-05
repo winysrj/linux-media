@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
+Received: from out1.smtp.messagingengine.com ([66.111.4.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1L7e9B-00063r-NW
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 23:55:14 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so2131092eya.17
-	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 14:55:10 -0800 (PST)
-Message-ID: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
-Date: Tue, 2 Dec 2008 17:55:09 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-MIME-Version: 1.0
+	(envelope-from <storkus@storkus.com>) id 1L8OCX-0006hO-IA
+	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 01:05:46 +0100
+Message-Id: <1228435541.13351.1288344033@webmail.messagingengine.com>
+From: storkus@storkus.com
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
 Content-Disposition: inline
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Subject: [linux-dvb] Pinnacle 80e support: not going to happen...
+MIME-Version: 1.0
+References: <1228413511.30817.1288290035@webmail.messagingengine.com>
+	<412bdbff0812041104k6ec78699h18561cdae5214bf@mail.gmail.com>
+In-Reply-To: <412bdbff0812041104k6ec78699h18561cdae5214bf@mail.gmail.com>
+Date: Thu, 04 Dec 2008 17:05:41 -0700
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Strange problem with loading firmware on HVR-950Q
+ (XC5000)
+Reply-To: storkus@storkus.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,50 +29,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-For those of you waiting for Linux support for the Pinnacle 80e, I
-have some bad news:  it's not going to happen.
 
-After investing over 100 hours doing the driver work, adding support
-for the Empia em2874, integrating with the Linux tda18271 driver,
-incorporating the Micronas drx reference driver source, and doing all
-the testing, Micronas has effectively killed the project.  They
-decided that their intellectual property was too valuable to make
-available their reference driver code in source code form.  Even
-worse, because I've seen the sources I am effectively prevented from
-writing any sort of reverse engineered driver for the drx-j.
+On Thu, 4 Dec 2008 14:04:59 -0500, "Devin Heitmueller"
+<devin.heitmueller@gmail.com> said:
+> 
+> Are you running the latest version of the code from mercurial?  If
+> not, please update to the latest version and report back the results.
+> 
+> http://www.linuxtv.org/repo/
+> 
+> Devin
 
-Obviously, I would have preferred they told me this *before* I spent
-all the time doing the work, but there's not a whole lot I can do
-about that now....
+Tried it and nothing.  Then I thought of something else and plugged
+"xc5000-1.1", part of the firmware filename, into Google, and got this:
 
-I figured I should let those of you know who have been waiting for
-this support (in particular those I told that support was completed
-and just waiting on Micronas's legal department).
+http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028921.html
 
-I wouldn't suggest buying any devices that make use of the drx-j,
-drx-k, or drx-d devices under the expectation that support for those
-chipsets will be available under Linux at some point.  In terms of
-Pinnacle products, stick with the 801e (or the 800e or 801e-se).
+Apparently this bug was seen back in September and supposedly squashed;
+not anymore.  But the same fix worked: removing "i2c-dev" from the
+kernel and it's working fine, at least for ATSC stations.
 
-It's worth noting that the people at Pinnacle have been great in their
-supporting me in my efforts to add Linux support for their products.
-They provided sample hardware, engineering level support, and
-connected me with the right people at the chipset vendors.  The fact
-that this device cannot be supported is in no way their fault.
+I may have to return the dongle for a different one, though, since no
+one seems interested in including NTSC support for this device (and my
+programming skills suck right now), which is what I'm stuck with in our
+in-building sat/cable system. :(  My understanding is the HVR-1950
+supports all 3 formats, or I can downgrade to a HVR 8/950 (no suffix).
 
-Also, I would like to take a minute and express my thanks to Michael
-Krufky in particular for taking the time to help me work through
-numerous issues such as getting that first tuning lock on the
-tda18271.
+Anyway, hopefully this helps in squashing this bug once and for all!
 
-I wish I had better news, but that's the status.
+Thanks again, Mike
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+> 
+> 
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
