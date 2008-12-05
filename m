@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBG95eTW002246
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:05:40 -0500
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBG94TeC016937
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:04:32 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Tue, 16 Dec 2008 10:04:28 +0100
-References: <412bdbff0812151315j768feb89j5deaf4db4650749e@mail.gmail.com>
-In-Reply-To: <412bdbff0812151315j768feb89j5deaf4db4650749e@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5Ix35f029890
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 13:59:04 -0500
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5Iw1uG021879
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 13:58:02 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Date: Sat, 6 Dec 2008 00:27:41 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403E90E75B9@dbde02.ent.ti.com>
+In-Reply-To: <20081204234534.GJ7054@atomide.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812161004.28556.hverkuil@xs4all.nl>
-Cc: 
-Subject: Re: v4l audio enumeration API
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	Koen Kooi <k.kooi@student.utwente.nl>,
+	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+Subject: RE: [PATCH] Add OMAP2 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,54 +30,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Monday 15 December 2008 22:15:40 Devin Heitmueller wrote:
-> Hello,
->
-> A longstanding problem with some devices that provide uncompressed
-> video has to do with there being no way to associate an ALSA audio
-> device with the video.  For example, the HVR-950 provides it's analog
-> video stream and has a USB audio device for the audio, and there is
-> no way to know the two are associated.  This isn't an issue with
-> devices that have an MPEG encoder, since the card multiplexes the
-> audio into the MPEG stream automatically.
->
-> This has lead to some pretty crazy solutions from users such as
-> running tvtime or xawtv and arecord/aplay or sox at the same time,
-> with obvious problems with synchronization.  Markus was nice enough
-> to hack a version of tvtime that works for certain cards, but really
-> this is something the device be telling the application.  Having a
-> situation where every application out there needs to have custom
-> logic for each device is less than ideal.
->
-> Has anyone proposed an API for associating a video stream with an
-> audio device?  Does anyone see a downside in having a call that will
-> tell the calling application where to find the audio stream?
->
-> If nobody has done this before, I will take a closer look at the API
-> and make a proposal.
->
-> Devin
 
-Hi Devin,
 
-Yes, I've made a proposal for this (and more) in this RFC:
+Thanks,
+Vaibhav Hiremath
 
-http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.html
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, December 05, 2008 5:16 AM
+> To: Hiremath, Vaibhav
+> Cc: Koen Kooi; Trilok Soni; Hans Verkuil; Sakari Ailus; linux-
+> omap@vger.kernel.org Mailing List; video4linux-list@redhat.com
+> Subject: Re: [PATCH] Add OMAP2 camera driver
+> 
+> * Hiremath, Vaibhav <hvaibhav@ti.com> [081203 01:38]:
+> >
+> >
+> > Thanks,
+> > Vaibhav Hiremath
+> >
+> > > -----Original Message-----
+> > > From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
+> > > Sent: Wednesday, December 03, 2008 3:04 PM
+> > > To: Hiremath, Vaibhav
+> > > Cc: Trilok Soni; Hans Verkuil; Sakari Ailus; linux-
+> > > omap@vger.kernel.org Mailing List; video4linux-list@redhat.com
+> > > Subject: Re: [PATCH] Add OMAP2 camera driver
+> > >
+> > >
+> > > Op 3 dec 2008, om 08:05 heeft Hiremath, Vaibhav het volgende
+> > > geschreven:
+> > > > OMAP3 -
+> > > > 	Display - (Posted twice with old DSS library)
+> > > > 		- omap_vout.c
+> > > > 		- omap_voutlib.c
+> > > > 		- omap_voutlib.h
+> > > > 		- omap_voutdef.h
+> > > > 	Camera - (Will come soon)
+> > > > 		- omap34xxcam.c
+> > > > 		- omap34xxcam.h
+> > > > 	ISP - (Will come soon)
+> > > > 		- Here definitely we will plenty number of files.
+> > >
+> > > Isn't DSS2 supposed to work on omap2 (and perhaps omap1) as
+> well?
+> > >
+> > [Hiremath, Vaibhav] yes, but the DSS2 library goes under
+> arch/arm/plat-omap/dss/. The above files are belongs to the driver
+> underneath.
+> 
+> Huh? Why would it need to be under plat-omap?
+> 
+[Hiremath, Vaibhav] This is low level library which will export Kernel API's to top level driver like, Frame buffer and V4L2 driver. So this has to be in some common directory, and both patches on DSS (from Tomi and from TI) aligned to the same thing.
 
-It's been on hold since there was no point in working on this unless I 
-could get the lower level v4l2_device and v4l2_subdev structs in first. 
-But I hope to start working on this early next year.
+> Tony
 
-In a nutshell, the idea is to create a media controller device that 
-allows you to query meta information (such as which v4l2/alsa/dvb/fb 
-devices there are) for a particular media card.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
