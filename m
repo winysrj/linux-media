@@ -1,24 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from asmtp1.iomartmail.com ([62.128.201.248])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lawrence@softsystem.co.uk>) id 1LDMJM-0007B2-ET
-	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 18:05:21 +0100
-Received: from asmtp1.iomartmail.com (localhost.localdomain [127.0.0.1])
-	by asmtp1.iomartmail.com (8.12.11.20060308/8.12.8) with ESMTP id
-	mBIH4kYd007807
-	for <linux-dvb@linuxtv.org>; Thu, 18 Dec 2008 17:04:46 GMT
-Received: from collins.softsystem.co.uk (230.229.98-84.rev.gaoland.net
-	[84.98.229.230]) (authenticated bits=0)
-	by asmtp1.iomartmail.com (8.12.11.20060308/8.12.11) with ESMTP id
-	mBIH4jF4007789
-	for <linux-dvb@linuxtv.org>; Thu, 18 Dec 2008 17:04:46 GMT
-From: Lawrence Rust <lawrence@softsystem.co.uk>
-To: "Linux-dvb list" <linux-dvb@linuxtv.org>
-Date: Thu, 18 Dec 2008 18:04:34 +0100
+Received: from vps1.tull.net ([66.180.172.116])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1L8Z7P-00023d-SJ
+	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 12:45:14 +0100
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812181804.34557.lawrence@softsystem.co.uk>
-Subject: [linux-dvb] Nova-S-Plus audio line input
+Message-Id: <1a1281c692af423bc751.1228477485@marcab.local.tull.net>
+In-Reply-To: <patchbomb.1228477483@marcab.local.tull.net>
+Date: Fri, 05 Dec 2008 22:44:45 +1100
+From: Nick Andrew <nick-linuxtv@nick-andrew.net>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH 2 of 2] Fix spelling of 'lose'
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,27 +23,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have a Hauppauge Nova-S-plus PCI card and it works great with satellite 
-reception.  However, I would also like to use it with an external DVB-T box  
-that outputs composite video and line audio but when I select the composite 
-video input I can see a picture but get no sound.
+# HG changeset patch
+# User Nick Andrew <nick@nick-andrew.net>
+# Date 1228476802 -39600
+# Node ID 1a1281c692af423bc75106daaba7b890da6728dc
+# Parent  6810946716817a6c1172912541b9e348b1a44401
+Fix spelling of 'lose'
 
-I'm using kernel version 2.6.24 so I dug around those sources and I see in 
-cx88-cards.c that there's no provision for line audio in.  However, the 
-latest v4l top of tree sources have added support for I2S audio input 
-and 'audioroute's.
+Change 'loose' to 'lose' where the latter is intended.
 
-So I modded my 2.6.24 sources to support the external ADC and enable I2S audio 
-input using the struct cx88_board cx88_boards.extadc flag, similar to the 
-changes made in the current top of tree.  This now means that I can watch 
-DVB-T :-)  I don't believe the changes affect any other cards.
+Signed-off-by: Nick Andrew <nick@nick-andrew.net>
 
-I would like to see support added for the Nova-S-Plus audio line input in the 
-kernel tree asap.  What's the best way of achieving this?  I can supply a 
-diff for 2.6.24 or the current top of tree.
-
--- Lawrence Rust
-
+diff -r 681094671681 -r 1a1281c692af v4l2-apps/lib/libv4l/ChangeLog
+--- a/v4l2-apps/lib/libv4l/ChangeLog	Fri Dec 05 22:31:44 2008 +1100
++++ b/v4l2-apps/lib/libv4l/ChangeLog	Fri Dec 05 22:33:22 2008 +1100
+@@ -182,7 +182,7 @@
+ * Do not get in the way of mmap calls made by V4L2 applications
+ * Fix swapping of red and blue in bayer -> bgr24 decode routine
+ * Remember the v4l1 palette asked for with SPICT and return that, as
+-  otherwise we loose information when going v4l1 -> v4l2 -> v4l1, for example
++  otherwise we lose information when going v4l1 -> v4l2 -> v4l1, for example
+   YUV420P becomes YUV420, which are separate in v4l1.
+ 
+ 
 
 _______________________________________________
 linux-dvb mailing list
