@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8INrOF015026
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 13:23:53 -0500
-Received: from mail11e.verio-web.com (mail11e.verio-web.com [204.202.242.84])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id mB8INg7A029585
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 13:23:42 -0500
-Received: from mx78.stngva01.us.mxservers.net (204.202.242.149)
-	by mail11e.verio-web.com (RS ver 1.0.95vs) with SMTP id 1-062737621
-	for <video4linux-list@redhat.com>; Mon,  8 Dec 2008 13:23:42 -0500 (EST)
-Message-ID: <493D662C.3030401@sensoray.com>
-Date: Mon, 08 Dec 2008 10:23:40 -0800
-From: dean <dean@sensoray.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB6JCr4Z020807
+	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 14:12:53 -0500
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.180])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB6JCP6x029249
+	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 14:12:26 -0500
+Received: by wa-out-1112.google.com with SMTP id j4so242886wah.19
+	for <video4linux-list@redhat.com>; Sat, 06 Dec 2008 11:12:25 -0800 (PST)
+Message-ID: <fbab3e0d0812061112g231fa964pcd39c7692c61156e@mail.gmail.com>
+Date: Sat, 6 Dec 2008 11:12:25 -0800
+From: "Erik Tollerud" <erik.tollerud@gmail.com>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0812050554v1e511ff7o1a4988c4176fe904@mail.gmail.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Greg KH <greg@kroah.com>, dean <dean@sensoray.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: VIVI & S2255DRV driver problems
+Content-Disposition: inline
+References: <fbab3e0d0812042322g6b5f3e19rf2a851634ae3df9b@mail.gmail.com>
+	<412bdbff0812050554v1e511ff7o1a4988c4176fe904@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Pinnacle HDTV Ultimate USB
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,64 +31,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Great, thanks - I'll try to keep my eye on the list - as I said
+before, if you need a tester feel free to contact me.
 
-In non-blocking mode, the vivi driver and s2255drv drivers seem to 
-require a poll or select call in order for VIDIOC_DQBUF to function 
-correctly.  This seems like a bug in the drivers themselves or possibly 
-in the API.  The workaround is to always call poll with a zero timeout 
-before a VIDIOC_DQBUF call.  However, this should not necessarily be a 
-requirement for non-blocking mode.
+On Fri, Dec 5, 2008 at 5:54 AM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Fri, Dec 5, 2008 at 2:22 AM, Erik Tollerud <erik.tollerud@gmail.com> wrote:
+>> I noticed there was a post last month in the archives stating that the
+>> drivers for the Pinnacle HDTV Ultimate were in the works... has there
+>> been any news on this front?  (I'd be happy to help with testing, if
+>> necessary).
+>
+> Hello Erik,
+>
+> I am continuing to work out the NDA issues for the Broadcom and NXP
+> components, but I received word this morning from Pinnacle that there
+> has been some forward progress.
+>
+> So it's *very* slow going, but the answer is "yes".
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
 
-To reproduce, please see the code below replacing the mainloop function 
-from the standard capture.c file:  Tested with v4l-dvb-291a596b7f34 from 
-linuxtv.org mercurial and the 2.6.27 kernel.
 
-standard capture.c file modification:
 
-static void
-mainloop                        (void)
-{
-	unsigned int count;
-         count = 100;
-         while (count-- > 0) {
-                 for (;;) {
-		  /* What if we don't want to use select or poll */
-#if 0
-                         fd_set fds;
-                         struct timeval tv;
-                         int r;
-                         FD_ZERO (&fds);
-                         FD_SET (fd, &fds);
-                         /* Timeout. */
-                         tv.tv_sec = 0;
-                         tv.tv_usec = 1;
-                         r = select (fd + 1, &fds, NULL, NULL, &tv);
-                         if (-1 == r) {
-                                 if (EINTR == errno)
-                                         continue;
-                                 errno_exit ("select");
-                         }
-                         if (0 == r) {
-                                 fprintf (stderr, "select timeout\n");
-				//                                exit (EXIT_FAILURE);
-                         }
-#endif
-			if (read_frame ())
-                     		break;
-			/* EAGAIN - continue select loop. */
-			/* If we aren't using select or poll, we should
-			   be able to just sleep and try again. But with
-			   the VIVI driver and possibly others,
-			   DQBUF will always return
-			   EAGAIN and we are stuck in this infinite loop.   select or poll 
-seems to be required for			   non-blocking operation.
-			*/
-			//printf("eagain\n");
-			usleep(25*1000);
-                 }
-         }
-}
+-- 
+Erik Tollerud
+Graduate Student
+Center For Cosmology
+Department of Physics and Astronomy
+2142 Frederick Reines Hall
+University of California, Irvine
+Office Phone: (949)824-2587
+Cell: (651)307-9409
+etolleru@uci.edu
 
 --
 video4linux-list mailing list
