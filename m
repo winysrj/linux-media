@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB19g2Cl031996
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 04:42:02 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB19fnRg020623
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 04:41:50 -0500
-Date: Mon, 1 Dec 2008 10:41:31 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <873ah8n8d3.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0812011039550.3915@axis700.grange>
-References: <20081107130136.fkdeaklvs40ocsws@webmail.hebergement.com>
-	<Pine.LNX.4.64.0811290229070.7032@axis700.grange>
-	<873ah8n8d3.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: [PATCH 1/2] soc-camera: add camera sense data
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB6BSfhn001439
+	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 06:28:41 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB6BSRKY032305
+	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 06:28:27 -0500
+Date: Sat, 6 Dec 2008 09:28:12 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Message-ID: <20081206092812.7753125d@pedra.chehab.org>
+In-Reply-To: <4936F718.2000101@oracle.com>
+References: <20081203183602.c06f8c39.sfr@canb.auug.org.au>
+	<4936F718.2000101@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, v4l-dvb-maintainer@linuxtv.org,
+	linux-next@vger.kernel.org, video4linux-list@redhat.com,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for December 3 (media/video/cx88)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,63 +30,142 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Add a struct soc_camera_sense, that can be used by camera host drivers to
-request additional information from a camera driver, for example, when
-changing data format. This struct can be extended in the future, its first use
-is to request the camera driver whether the pixel-clock frequency has changed.
+Hi Randy,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- include/media/soc_camera.h |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
+On Wed, 03 Dec 2008 13:16:08 -0800
+Randy Dunlap <randy.dunlap@oracle.com> wrote:
 
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index da57ffd..7832d97 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -36,6 +36,7 @@ struct soc_camera_device {
- 	unsigned char iface;		/* Host number */
- 	unsigned char devnum;		/* Device number per host */
- 	unsigned char buswidth;		/* See comment in .c */
-+	struct soc_camera_sense *sense;	/* See comment in struct definition */
- 	struct soc_camera_ops *ops;
- 	struct video_device *vdev;
- 	const struct soc_camera_data_format *current_fmt;
-@@ -164,6 +165,32 @@ struct soc_camera_ops {
- 	int num_controls;
- };
+> Stephen Rothwell wrote:
+> > Hi all,
+> > 
+> > Changes since 20081202:
+> > 
+> > Today's tree fails the powerpc allyesconfig build.
+> 
+> 
+> drivers/built-in.o: In function `cx88_call_i2c_clients':
+> (.text+0xbafc7): undefined reference to `videobuf_dvb_get_frontend'
+> drivers/built-in.o: In function `cx8802_probe':
+> cx88-mpeg.c:(.devinit.text+0x61b3): undefined reference to `videobuf_dvb_alloc_frontend'
+> cx88-mpeg.c:(.devinit.text+0x61d9): undefined reference to `videobuf_dvb_dealloc_frontends'
+> make[1]: *** [.tmp_vmlinux1] Error 1
+> 
+> 
+> config attached.
+
+It required some tricks to fix this one ;) Patch is attached. On my tests, all combinations worked
+properly.
+
+Cheers,
+Mauro
+
+--
+
+cx88: fix compilation when cx8800=y and cx88-dvb=m
+
+The current Kconfig rules allow having the core cx88 driver (cx8800) compiled in-kernel,
+and cx88 sub-drivers (cx88-alsa, cx88-blackbird, cx88-dvb) to be compiled as modules.
+
+However, if you select cx88-dvb as a module, it will select videobuf_dvb as a module also.
+
+As pointed by Randy Dunlap <randy.dunlap@oracle.com>, using those .config entries:
+
+CONFIG_VIDEO_CX88=y
+# CONFIG_VIDEO_CX88_BLACKBIRD is not set
+CONFIG_VIDEO_CX88_DVB=m
+CONFIG_VIDEOBUF_GEN=y
+CONFIG_VIDEOBUF_DMA_SG=y
+CONFIG_VIDEOBUF_VMALLOC=y
+CONFIG_VIDEOBUF_DVB=m
+
+Will produce those errors:
+
+drivers/built-in.o: In function `cx88_call_i2c_clients':
+(.text+0xbafc7): undefined reference to `videobuf_dvb_get_frontend'
+drivers/built-in.o: In function `cx8802_probe':
+cx88-mpeg.c:(.devinit.text+0x61b3): undefined reference to `videobuf_dvb_alloc_frontend'
+cx88-mpeg.c:(.devinit.text+0x61d9): undefined reference to `videobuf_dvb_dealloc_frontends'
+make[1]: *** [.tmp_vmlinux1] Error 1
+
+A simple fix would be just to make cx88-mpeg to be depend on VIDEO_CX88_DVB || VIDEO_CX88_BLACKBIRD.
+However, cx88-i2c has a conditional test to call videobuf_dvb_get_frontend() if VIDEO_CX88_DVB.
+
+As cx88-i2c is part of cx88 (compiled with Y) and videobuf_dvb_get_frontend is
+part of videobuf_dvb (compiled with M), this will cause another error.
+
+So, it is needed also to deny having cx88=y and cx88_dvb=m.
+
+This patch also fixes a minor issue where cx8802 helper module were inconditionally compiled,
+even on setups where it would never be used.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/cx88/Kconfig b/drivers/media/video/cx88/Kconfig
+index 0b9e5fa..96242ad 100644
+--- a/drivers/media/video/cx88/Kconfig
++++ b/drivers/media/video/cx88/Kconfig
+@@ -1,5 +1,5 @@
+ config VIDEO_CX88
+-	tristate "Conexant 2388x (bt878 successor) support"
++	tristate "Conexant 2388x (bt878 successor) support (cx88)"
+ 	depends on VIDEO_DEV && PCI && I2C && INPUT
+ 	select I2C_ALGOBIT
+ 	select VIDEO_BTCX
+@@ -43,9 +43,21 @@ config VIDEO_CX88_BLACKBIRD
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called cx88-blackbird.
  
-+#define SOCAM_SENSE_PCLK_CHANGED	(1 << 0)
+-config VIDEO_CX88_DVB
+-	tristate "DVB/ATSC Support for cx2388x based TV cards"
++config VIDEO_CX88_ALLOW_DVB
++	boolean "DVB/ATSC Support for cx2388x based TV cards"
+ 	depends on VIDEO_CX88 && DVB_CORE
 +
-+/**
-+ * This struct can be attached to struct soc_camera_device by the host driver
-+ * to request sense from the camera, for example, when calling .set_fmt(). The
-+ * host then can check which flags are set and verify respective values if any.
-+ * For example, if SOCAM_SENSE_PCLK_CHANGED is set, it means, pixclock has
-+ * changed during this operation. After completion the host should detach sense.
-+ *
-+ * @flags		ored SOCAM_SENSE_* flags
-+ * @master_clock	if the host wants to be informed about pixel-clock
-+ *			change, it better set master_clock.
-+ * @pixel_clock_max	maximum pixel clock frequency supported by the host,
-+ *			camera is not allowed to exceed this.
-+ * @pixel_clock		if the camera driver changed pixel clock during this
-+ *			operation, it sets SOCAM_SENSE_PCLK_CHANGED, uses
-+ *			master_clock to calculate the new pixel-clock and
-+ *			sets it.
-+ */
-+struct soc_camera_sense {
-+	unsigned long flags;
-+	unsigned long master_clock;
-+	unsigned long pixel_clock_max;
-+	unsigned long pixel_clock;
-+};
++	---help---
++	  This adds support for DVB/ATSC cards based on the
++	  Conexant 2388x chip.
 +
- static inline struct v4l2_queryctrl const *soc_camera_find_qctrl(
- 	struct soc_camera_ops *ops, int id)
- {
--- 
-1.5.4
++	  if cx88 driver is compiled as a module, the
++	  dvb support module will be called cx88-dvb.
++
++config VIDEO_CX88_DVB
++	tristate
++	default y
++	depends on VIDEO_CX88 && DVB_CORE && VIDEO_CX88_ALLOW_DVB
+ 	select VIDEOBUF_DVB
+ 	select DVB_PLL if !DVB_FE_CUSTOMISE
+ 	select DVB_MT352 if !DVB_FE_CUSTOMISE
+@@ -62,12 +74,11 @@ config VIDEO_CX88_DVB
+ 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
+ 	select DVB_STV0288 if !DVB_FE_CUSTOMISE
+ 	select DVB_STB6000 if !DVB_FE_CUSTOMISE
+-	---help---
+-	  This adds support for DVB/ATSC cards based on the
+-	  Conexant 2388x chip.
+ 
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called cx88-dvb.
++config VIDEO_CX88_MPEG
++	tristate
++	default y
++	depends on VIDEO_CX88_DVB || VIDEO_CX88_BLACKBIRD
+ 
+ config VIDEO_CX88_VP3054
+ 	tristate "VP-3054 Secondary I2C Bus Support"
+diff --git a/drivers/media/video/cx88/Makefile b/drivers/media/video/cx88/Makefile
+index 6ec30f2..b06b127 100644
+--- a/drivers/media/video/cx88/Makefile
++++ b/drivers/media/video/cx88/Makefile
+@@ -3,7 +3,8 @@ cx88xx-objs	:= cx88-cards.o cx88-core.o cx88-i2c.o cx88-tvaudio.o \
+ cx8800-objs	:= cx88-video.o cx88-vbi.o
+ cx8802-objs	:= cx88-mpeg.o
+ 
+-obj-$(CONFIG_VIDEO_CX88) += cx88xx.o cx8800.o cx8802.o
++obj-$(CONFIG_VIDEO_CX88) += cx88xx.o cx8800.o
++obj-$(CONFIG_VIDEO_CX88_MPEG) += cx8802.o
+ obj-$(CONFIG_VIDEO_CX88_ALSA) += cx88-alsa.o
+ obj-$(CONFIG_VIDEO_CX88_BLACKBIRD) += cx88-blackbird.o
+ obj-$(CONFIG_VIDEO_CX88_DVB) += cx88-dvb.o
 
 --
 video4linux-list mailing list
