@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from imo-m14.mx.aol.com ([64.12.138.204])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dbox2alpha@netscape.net>) id 1LEX3S-0008Ds-BV
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 23:45:46 +0100
-Received: from dbox2alpha@netscape.net
-	by imo-m14.mx.aol.com  (mail_out_v39.1.) id m.c8f.39c30ff8 (34899)
-	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 17:44:55 -0500 (EST)
-To: linux-dvb@linuxtv.org
-Date: Sun, 21 Dec 2008 17:44:49 -0500
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1L915y-00078L-NN
+	for linux-dvb@linuxtv.org; Sat, 06 Dec 2008 18:37:35 +0100
+Date: Sat, 06 Dec 2008 18:37:01 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <c74595dc0812060928l467825fbq79a0a62d5882df8d@mail.gmail.com>
+Message-ID: <20081206173701.69400@gmx.net>
 MIME-Version: 1.0
-From: dbox2alpha@netscape.net
-Message-Id: <8CB31D4DD3B74C2-C48-6AA@WEBMAIL-MC16.sysops.aol.com>
-Subject: [linux-dvb] TT-3600 on kernel 2.6.27 doesn't work... any help?
+References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
+	<4935B72F.1000505@insite.cz>
+	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
+	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
+	<49371511.1060703@insite.cz> <4938C8BB.5040406@verbraak.org>
+	<c74595dc0812050100q52ab86bewebe8dbf17bddbb51@mail.gmail.com>
+	<20081206170753.69410@gmx.net>
+	<c74595dc0812060928l467825fbq79a0a62d5882df8d@mail.gmail.com>
+To: "Alex Betis" <alex.betis@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan (possible
+	diseqc	problem)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,82 +27,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0513576893=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+> > I have a Twinhan 1041 card and I have problems with the s2-liplianin
+> driver
+> > which I have not fully understood yet.
+> >
+> > 1) Scan-s2 works for a while but in a long scan I eventually I start
+> > getting
+> > "Slave RACK Fail !" messages in dmesg and scan-s2 hangs. Perhaps
+> increasing
+> > to
+> > msleep(15) in mantis_ack_wait helps (it hasn't eliminated the problem),
+> but
+> > I am not sure.
+> > There are messages in /var/log/messages from
+> > stb6100_[set/get]_[frequency/bandwidth]
+> > which say "Invalid parameter". Only shutting down the computer and
+> > restarting seems to
+> > recover from this once it has happened.
+> =
 
---===============0513576893==
-Content-Type: multipart/alternative;
- boundary="--------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com"
-
-
-----------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"
-
-hi, 
-I'm trying to get the TT-3600 USB DVB-S2 to work on a PlayStation 3 but so far I have not been successful.
-
-I'm using the latest DVB-S2 API and driver: s2-liplianin-aed3dd42ac28
-which compiles and installs fine.
-Driver also seems to initialize fine.
-But when I use szap-s2 FE_SET_PROPERTY DTV_CLEAR fails.
-problem with the following ioctl: 
-ioctl32(szap-s2:32528): Unknown cmd fd(3) cmd(80086f52){t:'o';sz:8} arg(ff835360) on /dev/dvb/adapter0/frontend0
-
-[root@ps3 szap-s2-a75cabee2e95]# ./szap-s2 -c channels.conf -rn 2
-reading channels from file 'channels.conf'
-zapping to 2 'SAT.1;ProSiebenSat.1':
-delivery DVB-S, modulation QPSK
-sat 0, frequency 12544 MHz H, symbolrate 22000000, coderate 5/6, rolloff 0.35
-vpid 0x00ff, apid 0x0100, sid 0x0020
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-FE_SET_PROPERTY DTV_CLEAR failed: Invalid argument
-[root@ps3 szap-s2-a75cabee2e95]#
-
-Any help? Thanks.
-
-----------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com
-Content-Transfer-Encoding: 7bit
-Content-Type: text/html; charset="us-ascii"
-
-<font face="Arial, Helvetica, sans-serif">hi, <br>
-I'm trying to get the TT-3600 USB DVB-S2 to work on a PlayStation 3 but so far I have not been successful.<br>
-<br>
-I'm using the latest DVB-S2 API and driver: s2-liplianin-aed3dd42ac28<br>
-which compiles and installs fine.<br>
-Driver also seems to initialize fine.<br>
-But when I use szap-s2 FE_SET_PROPERTY DTV_CLEAR fails.<br>
-problem with the following ioctl: <br>
-ioctl32(szap-s2:32528): Unknown cmd fd(3) cmd(80086f52){t:'o';sz:8} arg(ff835360) on /dev/dvb/adapter0/frontend0<br>
-<br>
-[root@ps3 szap-s2-a75cabee2e95]# ./szap-s2 -c channels.conf -rn 2<br>
-reading channels from file 'channels.conf'<br>
-zapping to 2 'SAT.1;ProSiebenSat.1':<br>
-delivery DVB-S, modulation QPSK<br>
-sat 0, frequency 12544 MHz H, symbolrate 22000000, coderate 5/6, rolloff 0.35<br>
-vpid 0x00ff, apid 0x0100, sid 0x0020<br>
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'<br>
-FE_SET_PROPERTY DTV_CLEAR failed: Invalid argument<br>
-[root@ps3 szap-s2-a75cabee2e95]#<br>
-<br>
-Any help? Thanks.<br>
-</font><div id='MAILCIADA018-5bb8494ec6e12c2' class='aol_ad_footer'><BR/><FONT style="color: black; font: normal 10pt ARIAL, SAN-SERIF;"><HR style="MARGIN-TOP: 10px"></HR>Listen to 350+ music, sports, & news radio stations &#150; including songs for the holidays &#150; FREE while you browse. <a href="http://toolbar.aol.com/aolradio/download.html?ncid=emlweusdown00000013">Start Listening Now</a>! </div>
-
-----------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com--
+> I never had that "Slave RACK" problem, =
 
 
---===============0513576893==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Strange, I have always (since forever) had that problem. Can anyone =
+
+comment on what's going on?
+
+> but I think I saw some messages
+> that
+> says it was solved.
+
+Do you have a link? I couldn't find it.
+
+> Do you use the latest drivers?
+
+Yes latest drivers, and latest versions of scan-s2 and szap-s2, so if the p=
+roblem has been
+solved it is not implemented in s2-liplianin.
+
+Hans
+-- =
+
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0513576893==--
