@@ -1,31 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7uZp-0008QR-Nj
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 17:27:50 +0100
-Received: from compute2.internal (compute2.internal [10.202.2.42])
-	by out1.messagingengine.com (Postfix) with ESMTP id 5BFE51CA7D3
-	for <linux-dvb@linuxtv.org>; Wed,  3 Dec 2008 11:27:45 -0500 (EST)
-Message-Id: <1228321665.3335.1288060499@webmail.messagingengine.com>
-From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
-To: "linux-dvb" <linux-dvb@linuxtv.org>
-Content-Disposition: inline
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1L90dn-0004ZQ-7I
+	for linux-dvb@linuxtv.org; Sat, 06 Dec 2008 18:08:28 +0100
+Date: Sat, 06 Dec 2008 18:07:53 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <c74595dc0812050100q52ab86bewebe8dbf17bddbb51@mail.gmail.com>
+Message-ID: <20081206170753.69410@gmx.net>
 MIME-Version: 1.0
-References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
-	<1228152690.22348.1287628393@webmail.messagingengine.com>
-	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
-	<1228162425.30518.1287666879@webmail.messagingengine.com>
-	<1228164038.5106.1287670679@webmail.messagingengine.com>
-	<500CD7A3A0%linux@youmustbejoking.demon.co.uk>
-	<1228239571.26312.1287857857@webmail.messagingengine.com>
-	<1228254543.23353.1287906941@webmail.messagingengine.com>
-	<412bdbff0812021413s52ddcf3r8595b55182b798bf@mail.gmail.com>
-	<1228318254.21892.1288048961@webmail.messagingengine.com>
-	<412bdbff0812030734y56e908dfp793faf94238e24d3@mail.gmail.com>
-In-Reply-To: <412bdbff0812030734y56e908dfp793faf94238e24d3@mail.gmail.com>
-Date: Wed, 03 Dec 2008 16:27:45 +0000
-Subject: Re: [linux-dvb] dib0700 remote control support fixed
-Reply-To: linuxtv@hotair.fastmail.co.uk
+References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
+	<4935B72F.1000505@insite.cz>
+	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
+	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
+	<49371511.1060703@insite.cz> <4938C8BB.5040406@verbraak.org>
+	<c74595dc0812050100q52ab86bewebe8dbf17bddbb51@mail.gmail.com>
+To: "Alex Betis" <alex.betis@gmail.com>, michel@verbraak.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan (possible
+	diseqc	problem)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,46 +25,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+> 2008/12/5 Michel Verbraak <michel@verbraak.org>
+> =
 
-On Wed, 3 Dec 2008 10:34:02 -0500, "Devin Heitmueller"
-<devin.heitmueller@gmail.com> said:
-> On Wed, Dec 3, 2008 at 10:30 AM, petercarm
-> <linuxtv@hotair.fastmail.co.uk> wrote:
-> > More testing.
+> >  Alex,
 > >
-> > Moving on from the riser card issue, I've now got a fairly predictable
-> > case where warm restart of the box results in endless mt2060 i2c errors.
+> > I have the following problem. I'm not able to rotate my rotor with my
+> HD2
+> > card and any of the drivers (liplianin, v4l-dvb, Manu). I tried GotoX
+> diseqc
+> > commands as well as the goto position used by scan-s2.
+> > As Pavel also has problems with diseqc (switch with A B input) I think
+> it
+> > is not in the scan-s2 an szap-s2 utilities but in the driver.
 > >
-> 
-> Hello Peter,
-> 
-> Just to be clear, this is in a box that doesn't have the riser card?
-> 
-> Does it happen even before you start streaming video?  Or does it
-> occur when you do the first tune?
-> 
-> Can you please provide a detailed explanation regarding what that
-> "fairly predictable case" is?
-> 
-> Thanks,
-> 
-> Devin
+> I don't have a rotor nor HD2 card, so I can't help with that.
+> I do have 8-1 disecq that works fine with Igor's drivers (previously
+> worked
+> fine with Manu's drivers as well) and scan-s2 utility using Twinhan 1041
+> card.
 
-This is the case without the riser.  The log showed the failure 8
-seconds after the driver initialized.  Mythtv backend may have started
-in the meantime, but had no current jobs.  It may be related to EIT
-scanning.
+I have a Twinhan 1041 card and I have problems with the s2-liplianin driver
+which I have not fully understood yet.
 
-So far three times out of four it has failed on issuing "reboot".  It
-has worked every time with a power down before restarting.  I'm doing a
-clean rebuild of the complete test environment to eliminate any cached
-results, just in case.  This will take about 8 hours.
+1) Scan-s2 works for a while but in a long scan I eventually I start getting
+"Slave RACK Fail !" messages in dmesg and scan-s2 hangs. Perhaps increasing=
+ to
+msleep(15) in mantis_ack_wait helps (it hasn't eliminated the problem), but=
+ I am not sure.
+There are messages in /var/log/messages from stb6100_[set/get]_[frequency/b=
+andwidth]
+which say "Invalid parameter". Only shutting down the computer and restarti=
+ng seems to
+recover from this once it has happened.
+
+2) szap-s2 works for a while after a cold start, but I think if you stop it=
+ and leave it for
+30 seconds or so the card goes into sleep mode and after that szap-s2 hangs=
+. Strangely when
+this happens a short scan-s2 run (not long enough to get the "Slave RACK Fa=
+il!" problem) can wake
+the card up again, and szap-s2 works after that.  But szap-s2 can't wake it=
+ up itself and hangs in
+get_pmt_pid on the line
+if (((count =3D read(patfd, buf, sizeof(buft))) < 0) && errno =3D=3D EOVERF=
+LOW){
+
+When it goes into sleep mode I see the following in dmesg:
+[  522.821625] _stb0899_read_reg: Reg=3D[0xf12a], data=3D58                =
+                                                                        =
+
+[  522.821632] stb0899_i2c_gate_ctrl: Disabling I2C Repeater ...           =
+                                                                    =
+
+[  522.821634] stb0899_write_regs [0xf12a]: 58                             =
+                                                                    =
+
+[  522.822681] stb0899_sleep: Going to Sleep .. (Really tired .. :-))
+
+So the Twinhan 1041 is quite useless for me at the moment.
+
+> =
+
+> Few weeks ago Hans Werner applied changes for scan-s2 to work with his
+> rotor. Please take a look on rotor.conf file and "-r" option.
+> Maybe it will help.
+
+I tested that with an HVR4000 by the way. I'm not aware that the problems I=
+ have
+with the Twinhan vp1041 are to do with diseqc. When it is working diseqc
+works too.
+
+> =
+
+> >
+> > I changed the subject because I do not know if Pavels problem is only
+> due
+> > to diseqc problems.
+> >
+> > I have another card (twinhan vp-1034 mantis) which should be able to
+> rotate
+> > my rotor and I will try it next weekend to see if my rotor is not broken
+> and
+> > I will also have a look into the driver but this will be not easy
+> beacuse I
+> > do not have schematics or any documentation.
+> >
+> My 1027 card worked fine with multiproto drivers few months ago (replaced
+> it
+> with 1041 card)
+
+-- =
+
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
 linux-dvb mailing list
