@@ -1,25 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJ4cOMD028980
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 23:38:24 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJ4cBP9020650
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 23:38:11 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so794817wfc.6
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 20:38:11 -0800 (PST)
-Message-ID: <aec7e5c30812182038v5d89c2bnfc2a71ebd61783b@mail.gmail.com>
-Date: Fri, 19 Dec 2008 13:38:10 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Sat, 6 Dec 2008 19:34:00 +0100
+References: <200811271536.46779.laurent.pinchart@skynet.be>
+In-Reply-To: <200811271536.46779.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
-Cc: Magnus Damm <damm@igel.co.jp>, video4linux-list@redhat.com,
-	Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org
-Subject: Re: A patch got applied to v4l bypassing v4l lists
+Message-Id: <200812061934.00750.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
+Subject: Re: [PATCH 0/4] Add zoom and privacy controls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,25 +23,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
+Hi Mauro,
 
-On Fri, Dec 19, 2008 at 12:23 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> just stumbled upon a patch
+On Thursday 27 November 2008, Laurent Pinchart wrote:
+> Hi,
 >
-> sh: sh_mobile ceu clock framework support
+> this patch series adds support for zoom and privacy controls to V4L2:
 >
-> that has been pulled through linux-sh ML and the sh tree without even
-> being cc-ed to the v4l list, which wasn't a very good idea IMHO. Now this
-> patch has to be manually "back-ported" to v4l hg repos using the
-> "kernel-sync:" tag and only in part, because arch/sh directory is not in
-> hg at all. Can we please avoid this in the future?
+> - the first two patches add the controls to videodev2.h
+> - the 3rd patch updates v4l2-common.c with missing control names
+> - the 4th patch updates the v4l2 api documentation
+>
+> I've split the additions to videodev2.h in two patches to document the new
+> controls in the patches description as requested by Mauro.
 
-That specific patch set improved clock framework support and changed
-quite a few SuperH drivers. I should have CC-ed you. Sorry about that,
-will do next time.
+Is there anything that prevents those patches from being applied ?
 
-/ magnus
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
