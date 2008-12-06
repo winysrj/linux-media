@@ -1,30 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB280aI8018260
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 03:00:36 -0500
-Received: from qb-out-0506.google.com (qb-out-0506.google.com [72.14.204.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB280EUL030556
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 03:00:14 -0500
-Received: by qb-out-0506.google.com with SMTP id c8so2952736qbc.7
-	for <video4linux-list@redhat.com>; Tue, 02 Dec 2008 00:00:14 -0800 (PST)
-Message-ID: <5d5443650812020000t3ed04d1am4963b9fe914d34a0@mail.gmail.com>
-Date: Tue, 2 Dec 2008 13:30:13 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-In-Reply-To: <5d5443650812012228u5aad36a2jc3e9e68cd61c27e3@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB6053Jn021573
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 19:05:03 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB604ol4023050
+	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 19:04:50 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so104512eyf.39
+	for <video4linux-list@redhat.com>; Fri, 05 Dec 2008 16:04:49 -0800 (PST)
+Message-ID: <208cbae30812051604t6d74a0cbr4177262324563688@mail.gmail.com>
+Date: Sat, 6 Dec 2008 03:04:49 +0300
+From: "Alexey Klimov" <klimov.linux@gmail.com>
+To: "David Ellingsworth" <david@identd.dyndns.org>,
+	"Mauro Carvalho Chehab" <mchehab@redhat.com>
+In-Reply-To: <30353c3d0811292119y226c5af3tb63dbf130da59c69@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <200812011451.06156.hverkuil@xs4all.nl>
-	<5d5443650812011014q55a96540gc8a4b97be951f2fd@mail.gmail.com>
-	<20081201202209.5cea1f4b@pedra.chehab.org>
-	<5d5443650812012228u5aad36a2jc3e9e68cd61c27e3@mail.gmail.com>
-Cc: v4l <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>,
-	linux-kernel@vger.kernel.org,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
+References: <1227054989.2389.33.camel@tux.localhost>
+	<30353c3d0811200753h113ede02xc8708cd2dee654b3@mail.gmail.com>
+	<1227410369.16932.31.camel@tux.localhost>
+	<30353c3d0811240635t3649fa2bk5f5982c4d3d6e87c@mail.gmail.com>
+	<1227787210.11477.7.camel@tux.localhost>
+	<30353c3d0811292119y226c5af3tb63dbf130da59c69@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 1/1] radio-mr800: fix unplug
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,41 +36,160 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello, all
 
-On Tue, Dec 2, 2008 at 11:58 AM, Trilok Soni <soni.trilok@gmail.com> wrote:
-> Hi Mauro,
+On Sun, Nov 30, 2008 at 8:19 AM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+>> Do this patch looks correct ? (it is fix for current hg-tree)
+>> I'm still confused about part of probe-function where
+>> video_register_device failed and we should free memory. Will disconnect
+>> function be called if probe-function failed ?
 >
+> The disconnect function will not be called if the probe method fails.
+> The usb subsystem only calls the disconnect function for successfully
+> probed devices.
+>> diff -r 602d3ac1f476 linux/drivers/media/radio/radio-mr800.c
+>> --- a/linux/drivers/media/radio/radio-mr800.c   Thu Nov 20 19:47:37 2008 -0200
+>> +++ b/linux/drivers/media/radio/radio-mr800.c   Wed Nov 26 17:29:54 2008 +0300
+>> @@ -142,7 +142,6 @@
 >>
->> This is one of the lack of the features on mercurial. It doesn't have a meta
->> tag for committer. On mercurial, the -hg user and the author should be the same
->> person.
+>>        unsigned char *buffer;
+>>        struct mutex lock;      /* buffer locking */
+>> -       struct mutex disconnect_lock;
+>>        int curfreq;
+>>        int stereo;
+>>        int users;
+>> @@ -305,16 +304,12 @@
+>>  {
+>>        struct amradio_device *radio = usb_get_intfdata(intf);
 >>
->> Since we want to identify the patch origin (e.g. whose v4l/dvb maintainer got
->> the patch), we use the internal "user" meta-tag as the committer, and an extra
->> tag, at the patch description for the author (From:).
+>> -       mutex_lock(&radio->disconnect_lock);
+>> +       mutex_lock(&radio->lock);
+>>        radio->removed = 1;
+>> +       mutex_unlock(&radio->lock);
+>> +
+>>        usb_set_intfdata(intf, NULL);
+>> -
+>> -       if (radio->users == 0) {
+>> -               video_unregister_device(radio->videodev);
+>> -               kfree(radio->buffer);
+>> -               kfree(radio);
+>> -       }
+>> -       mutex_unlock(&radio->disconnect_lock);
+>> +       video_unregister_device(radio->videodev);
+>>  }
 >>
->> When creating the -git patch, the "From:" tag is replaced, by script, for
->> "Author:", I add my SOB there, and, I add myself as the -git committer (on git
->> we have both meta-tags).
+>>  /* vidioc_querycap - query device capabilities */
+>> @@ -532,7 +527,7 @@
+>>        return 0;
+>>  }
+>>
+>> -/*close device - free driver structures */
+>> +/*close device */
+>>  static int usb_amradio_close(struct inode *inode, struct file *file)
+>>  {
+>>        struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+>> @@ -541,21 +536,15 @@
+>>        if (!radio)
+>>                return -ENODEV;
+>>
+>> -       mutex_lock(&radio->disconnect_lock);
+>>        radio->users = 0;
+>> -       if (radio->removed) {
+>> -               video_unregister_device(radio->videodev);
+>> -               kfree(radio->buffer);
+>> -               kfree(radio);
+>>
+>> -       } else {
+>> +       if (!radio->removed) {
+>>                retval = amradio_stop(radio);
+>>                if (retval < 0)
+>>                        amradio_dev_warn(&radio->videodev->dev,
+>>                                "amradio_stop failed\n");
+>>        }
+>>
+>> -       mutex_unlock(&radio->disconnect_lock);
+>>        return 0;
+>>  }
+>>
+>> @@ -612,12 +601,30 @@
+>>        .vidioc_s_input     = vidioc_s_input,
+>>  };
+>>
+>> +static void usb_amradio_device_release(struct video_device *videodev)
+>> +{
+>> +       struct amradio_device *radio = video_get_drvdata(videodev);
+>> +
+>> +       mutex_lock(&radio->lock);
 >
-> Isn't it good time to move v4l2-dvb tree to GIT? I am not aware of any
-> hg-to-git repo. converter, but I can check with hg and git community.
-> It could be difficult at first, but I am very confident that there are
-> many GIT users here than mercurial, and yes your v4l-dvb maintenance
-> process might change due move from GIT, but atleast you will not have
-> to internal user meta-data per patch.
+> The lock here is completely unnecessary for you are guaranteed the
+> structure is not in use due to the reference counting done by the v4l2
+> core.
+>
+>> +
+>> +       /* we call v4l to free radio->videodev */
+>> +       video_device_release(videodev);
+>> +
+>> +       /* free rest memory */
+>> +       kfree(radio->buffer);
+>> +       kfree(radio);
+>> +
+>> +       mutex_unlock(&radio->lock);
 
-OK, there are tools to convert mercurial to git repo.
+> Again, wrong for the above reason but worse cause you are referencing
+> freed memory.
 
-http://git.or.cz/gitwiki/InterfacesFrontendsAndTools#head-8870e1c81cc93f9a7a7acb5e969924ee60182d6b
-http://hedonismbot.wordpress.com/2008/10/16/hg-fast-export-convert-mercurial-repositories-to-git-repositories/
+Yes, you are right!
+I removed them.
 
+>> +}
+>> +
+>> +
+>> +
+>>  /* V4L2 interface */
+>>  static struct video_device amradio_videodev_template = {
+>>        .name           = "AverMedia MR 800 USB FM Radio",
+>>        .fops           = &usb_amradio_fops,
+>>        .ioctl_ops      = &usb_amradio_ioctl_ops,
+>> -       .release        = video_device_release,
+>> +       .release        = usb_amradio_device_release,
+>>  };
+>>
+>>  /* check if the device is present and register with v4l and
+>> @@ -655,15 +662,12 @@
+>>        radio->usbdev = interface_to_usbdev(intf);
+>>        radio->curfreq = 95.16 * FREQ_MUL;
+>>
+>> -       mutex_init(&radio->disconnect_lock);
+>>        mutex_init(&radio->lock);
+>>
+>>        video_set_drvdata(radio->videodev, radio);
+>>        if (video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr)) {
+>>                dev_warn(&intf->dev, "could not register video device\n");
+>> -               video_device_release(radio->videodev);
+>> -               kfree(radio->buffer);
+>> -               kfree(radio);
+>> +               video_unregister_device(radio->videodev);
+>
+> This is wrong. When video_register_device fails, you should not call
+> video_unregister_device. You should free any allocated memory and
+> return an error code. The prior code here was correct.
+
+Okay, i didn't know about when disconnect-function called, so i asked.
+I return former code.
+
+Thanks for reviewing again. It's really help me.
+
+If there is no more mistakes..
+
+Mauro, should i make patch for current hg-tree ? Or you want revert
+previous patch ?
+What is the options here?
+Probably this thing should go to current upstream, because it will fix an oops.
+I start working to fix the same oops in dsbr100 module.
 
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
