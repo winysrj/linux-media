@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB382wNJ011307
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 03:02:58 -0500
-Received: from cathcart.site5.com (89.6b.364a.static.theplanet.com
-	[74.54.107.137])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB382i05032146
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 03:02:44 -0500
-Message-ID: <49363D20.60301@compulab.co.il>
-Date: Wed, 03 Dec 2008 10:02:40 +0200
-From: Mike Rapoport <mike@compulab.co.il>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB7CmqJZ027111
+	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 07:48:52 -0500
+Received: from smtp-vbr8.xs4all.nl (smtp-vbr8.xs4all.nl [194.109.24.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB7CmYAE005935
+	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 07:48:34 -0500
+Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id mB7CmTEK099597
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 13:48:33 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: v4l <video4linux-list@redhat.com>
+Date: Sun, 7 Dec 2008 13:48:28 +0100
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1227603594-16953-1-git-send-email-mike@compulab.co.il>
-	<Pine.LNX.4.64.0811252225200.10677@axis700.grange>
-	<492D1A2D.8070701@compulab.co.il> <493242F1.8000605@compulab.co.il>
-	<Pine.LNX.4.64.0812010927530.3915@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0812010927530.3915@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: [PATCH 2/2] mt9m111: add support for mt9m112 since sensors seem
-	identical
+Content-Disposition: inline
+Message-Id: <200812071348.28510.hverkuil@xs4all.nl>
+Subject: Building v4l2spec docbook problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,84 +32,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Update mt9m11 driver and Kconfig
+Hi all,
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+I'm trying to build the v4l2spec: 
+http://v4l2spec.bytesex.org/v4l2spec-0.24.tar.bz2
 
- drivers/media/video/Kconfig   |    4 ++--
- drivers/media/video/mt9m111.c |   16 ++++++++++------
- 2 files changed, 12 insertions(+), 8 deletions(-)
+But I'm getting the following errors:
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 47102c2..0848032 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -725,10 +725,10 @@ config MT9M001_PCA9536_SWITCH
- 	  extender to switch between 8 and 10 bit datawidth modes
+...
+Using catalogs: /etc/sgml/catalog
+Using stylesheet: /home/hans/work/src/v4l2spec-0.24/custom.dsl#html
+Working on: /home/hans/work/src/v4l2spec-0.24/v4l2.sgml
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:5:W: cannot 
+generate system identifier for general entity "sub-common"
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:5:E: general 
+entity "sub-common" not defined and no default entity
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:15:E: reference to 
+entity "sub-common" for which no system identifier could be generated
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:4: entity was 
+defined here
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:358:11:E: end tag 
+for "CHAPTER" which is not finished
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:5:W: cannot 
+generate system identifier for general entity "sub-pixfmt"
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:5:E: general 
+entity "sub-pixfmt" not defined and no default entity
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:15:E: reference to 
+entity "sub-pixfmt" for which no system identifier could be generated
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:4: entity was 
+defined here
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:362:11:E: end tag 
+for "CHAPTER" which is not finished
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:365:5:W: cannot 
+generate system identifier for general entity "sub-io"
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:365:5:E: general 
+entity "sub-io" not defined and no default entity
+jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:365:11:E: reference to 
+entity "sub-io" for which no system identifier could be generated
 
- config SOC_CAMERA_MT9M111
--	tristate "mt9m111 support"
-+	tristate "mt9m111 and mt9m112 support"
- 	depends on SOC_CAMERA && I2C
- 	help
--	  This driver supports MT9M111 cameras from Micron
-+	  This driver supports MT9M111 and MT9M112 cameras from Micron
+And this continues for a long list of 'sub-something' entities.
 
- config SOC_CAMERA_MT9V022
- 	tristate "mt9v022 support"
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index da0b2d5..9a428b7 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -1,5 +1,5 @@
- /*
-- * Driver for MT9M111 CMOS Image Sensor from Micron
-+ * Driver for MT9M111/MT9M112 CMOS Image Sensor from Micron
-  *
-  * Copyright (C) 2008, Robert Jarzmik <robert.jarzmik@free.fr>
-  *
-@@ -19,7 +19,7 @@
- #include <media/soc_camera.h>
+Me no speak sgml, so I hope someone more familiar with this can help me.
 
- /*
-- * mt9m111 i2c address is 0x5d or 0x48 (depending on SAddr pin)
-+ * mt9m111 and mt9m112 i2c address is 0x5d or 0x48 (depending on SAddr pin)
-  * The platform has to define i2c_board_info and call i2c_register_board_info()
-  */
+Thanks,
 
-@@ -841,10 +841,11 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
- 	data = reg_read(CHIP_VERSION);
+	Hans
 
- 	switch (data) {
--	case 0x143a:
-+	case 0x143a: /* MT9M111 */
- 		mt9m111->model = V4L2_IDENT_MT9M111;
--		icd->formats = mt9m111_colour_formats;
--		icd->num_formats = ARRAY_SIZE(mt9m111_colour_formats);
-+		break;
-+	case 0x148c: /* MT9M112 */
-+		mt9m111->model = V4L2_IDENT_MT9M112;
- 		break;
- 	default:
- 		ret = -ENODEV;
-@@ -853,6 +854,9 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
- 		goto ei2c;
- 	}
-
-+	icd->formats = mt9m111_colour_formats;
-+	icd->num_formats = ARRAY_SIZE(mt9m111_colour_formats);
-+
- 	dev_info(&icd->dev, "Detected a MT9M111 chip ID 0x143a\n");
-
- 	ret = soc_camera_video_start(icd);
-@@ -968,6 +972,6 @@ static void __exit mt9m111_mod_exit(void)
- module_init(mt9m111_mod_init);
- module_exit(mt9m111_mod_exit);
-
--MODULE_DESCRIPTION("Micron MT9M111 Camera driver");
-+MODULE_DESCRIPTION("Micron MT9M111/MT9M112 Camera driver");
- MODULE_AUTHOR("Robert Jarzmik");
- MODULE_LICENSE("GPL");
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
