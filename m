@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1LGdqn-0001iO-L1
-	for linux-dvb@linuxtv.org; Sat, 27 Dec 2008 19:25:26 +0100
-Received: from [127.0.0.1] (cozumel.koala.ie [195.7.61.7])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id mBRIQc93021261
-	for <linux-dvb@linuxtv.org>; Sat, 27 Dec 2008 18:26:41 GMT
-Message-ID: <49567308.2060606@koala.ie>
-Date: Sat, 27 Dec 2008 18:25:12 +0000
-From: Simon Kenyon <simon@koala.ie>
+	(envelope-from <maddox@2die4.com>) id 1L9OfK-0007E4-Pf
+	for linux-dvb@linuxtv.org; Sun, 07 Dec 2008 19:47:39 +0100
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	B9FC9180033B
+	for <linux-dvb@linuxtv.org>; Sun,  7 Dec 2008 18:47:33 +0000 (GMT)
+Content-Disposition: inline
 MIME-Version: 1.0
+From: "mad dox" <maddox@2die4.com>
 To: linux-dvb@linuxtv.org
-References: <494B9754.6000403@koala.ie>
-	<37219a840812191046o68406337wda5fec55a4bf1fcf@mail.gmail.com>
-In-Reply-To: <37219a840812191046o68406337wda5fec55a4bf1fcf@mail.gmail.com>
-Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
+Date: Sun, 7 Dec 2008 13:47:33 -0500
+Message-Id: <20081207184733.AACD31059C@ws1-3.us4.outblaze.com>
+Subject: [linux-dvb] SkyStar HD 2 remote control ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,91 +28,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> On Fri, Dec 19, 2008 at 7:45 AM, Simon Kenyon <simon@koala.ie> wrote:
->   
->> just bought what i though was a t-500 and when i opened the box it
->> contained a td-500
->>
->> the wiki says (in bright bold colours) that it is not (and never would
->> be) supported
->>
->> however, from looking at the mailing list it appear to be supported
->>
->> i can of course take it out of the sealed bag and try
->>
->> however, to preserve any change of swapping it i thought i would ask
->> here first
->>     
->
-> There is a very old version of the board that is not supported.  There
-> are very few of those boards around nowadays.
->
-> The new Nova-TD-500 is definitely supported.  Look for the 84xxx model
-> number -- that is the new revision.  This is the one that you are
-> likely to have, if you recently purchased that board.
->
-> Regards,
->
-> Mike
->
->   
-well i have been trying to get this to work for a few days now. this is 
-what appears in the kernel log:
+Hi,
 
-dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in cold state, will try 
-to load a firmware
-firmware: requesting dvb-usb-dib0700-1.20.fw
-[snip]
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-[snip]
-dib0700: firmware started successfully.
-dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (Hauppauge Nova-TD-500 (84xxx))
-ep 0 read error (status = -32)
-I2C read failed on address 41
-ep 0 read error (status = -32)
-I2C read failed on address 40
-DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-DiB0070: successfully identified
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (Hauppauge Nova-TD-500 (84xxx))
-DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
-DiB0070: successfully identified
-dvb-usb: Hauppauge Nova-TD-500 (84xxx) successfully initialized and 
-connected.
-usbcore: registered new interface driver dvb_usb_dib0700
-
-i can tzap to a channel, but get nothing when i try to read from 
-/dev/dvb/adapter0/dvr0
-
-also i get errors from w_scan:
-
-tune to: :738000:I999B8C999D999M999T999G999Y999:T:27500:
-Info: filter timeout pid 0x0011
-Info: filter timeout pid 0x0000
-Info: filter timeout pid 0x0010
-tune to: :770000:I999B8C999D999M999T999G999Y999:T:27500:
-Info: filter timeout pid 0x0011
-Info: filter timeout pid 0x0000
-Info: filter timeout pid 0x0010
-tune to: :794000:I999B8C999D999M999T999G999Y999:T:27500:
-----------no signal----------
-tune to: :794000:I999B8C999D999M999T999G999Y999:T:27500: (no signal)
-----------no signal----------
-tune to: :818000:I999B8C999D999M999T999G999Y999:T:27500:
-Info: filter timeout pid 0x0011
-Info: filter timeout pid 0x0000
-Info: filter timeout pid 0x0010
-dumping lists (0 services)
-Done.
+I have a SkyStar HD 2 working and i would like to get the remote 
+control working with VDR
+The remote is a TS35
 
 
+My questions:
+1- This card comes with a IR receiver (2.5 mm jack) is there anyway 
+to get it working? I can&#180;t find any info
+
+2- Do i have to build or buy a RS232 receiver like this? 
+http://www.irblaster.info/index.html#RS232_IR
+
+2- Or maybe the USB ir receiver? 
+http://www.technisat.com/index9263.html?nav=PC_products,en,76-50
+
+thanks
 
 
+maddox
+maddox@2die4.com
+
+
+-- 
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
 
 
 _______________________________________________
