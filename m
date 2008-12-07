@@ -1,23 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mognix.dark-green.com ([88.116.226.179])
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gimli@dark-green.com>) id 1LDyXr-0006h4-Hm
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 10:54:52 +0100
-Received: from [192.168.10.236] (chello062178208071.1.15.vie.surfer.at
-	[62.178.208.71])
-	by mognix.dark-green.com (Postfix) with ESMTP id 43A0F5AC098
-	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 10:55:46 +0100 (CET)
-Message-ID: <494CC0E7.50505@dark-green.com>
-Date: Sat, 20 Dec 2008 10:54:47 +0100
-From: gimli <gimli@dark-green.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L9O33-0004OR-0Y
+	for linux-dvb@linuxtv.org; Sun, 07 Dec 2008 19:08:06 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so460828ugc.16
+	for <linux-dvb@linuxtv.org>; Sun, 07 Dec 2008 10:08:01 -0800 (PST)
+Date: Sun, 7 Dec 2008 19:08:32 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Pavel Hofman <pavel.hofman@insite.cz>
+In-Reply-To: <493BE666.8030007@insite.cz>
+Message-ID: <alpine.DEB.2.00.0812071856470.11349@ybpnyubfg.ybpnyqbznva>
+References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
+	<4935B72F.1000505@insite.cz>
+	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
+	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
+	<49371511.1060703@insite.cz> <493BE666.8030007@insite.cz>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
-	<59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
-	<200812191943.00696.sinter.mann@gmx.de>
-In-Reply-To: <200812191943.00696.sinter.mann@gmx.de>
-Subject: Re: [linux-dvb] S2API drivers sync
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,52 +31,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I think you do net get me right. I'm not blaming one person.
-I blame the whohle DVB-S2 thing and the developers involved in.
-You immedialey shoot, start thinking. It's not the fault of one
-person. The mess is the fault of a group of persons. The only
-thing i see on this ML is when criticism come up some people here
-can't deal with it. That shows me verry little skills in dealing
-with criticism and dealing with users and developers. Try to find
-a solution and not blaming this or that person. One intresting point
-on this ML is, that flames starting realy fast and are mostly
-personal and more than rude. And most of the time there is no
-technical solution discussion, only flaming and shooting.
+On Sun, 7 Dec 2008, Pavel Hofman wrote:
 
-cu
+Sorry if I'm missing something, as I haven't been paying
+too much attention, but...
 
-Edgar (gimli) Hucek
 
-sinter schrieb:
-> Am Freitag 19 Dezember 2008 18:01:40 schrieb gimli:
->> The DVB-S2 stuff smells all like a big bullshit.
->> In the first step a big hurry to get S2API in
->> the mainline kernel and now nothing at all from
->> the DVB-S2 front. This is a completly big mess
->> in my eyes.
->>
->> cu
->>
->> Edgar (gimli) Hucek
->>
->> P.S.: Childish political games which are played on
->> the shoulders of the users. Hurray, well done.
+> I added a few free-to-air channels I was able to tune in WinXP to 
+> channels.conf:
 > 
-> Yes, Edgar, exactly: This is what the name Manu A. stands for since this guy 
-> was recruited as a DVB "maintainer" by Johannes Stezenbach:
+> Entertainment:12012:v:0:27500:2582:2581:8037
+> SkyNews:12207:v:0:27500:514:645:4707
+> WineTV:11555:h:1:27500:2372:2374:50435
+> AvaTest:11555:h:1:27500:2329:2330:50446
+> Vegas:11515:h:1:27500:3568:3567:8035
+> Faith:11515:h:1:27500:2375:2376:50455
 > 
-> Kiddish political games which are played on the shoulders of the users.
-> Also those kiddish games are ideal to hide the discovery of one's own personal 
-> mediocrity / incapability in coding issues.
-> 
-> There are people who ask themselves why Manu A. still owes a repository at 
-> linuxtv.org. I guess this runs under "utilitarianism of human beings".
-> 
-> And also: a huge mass of (inactive) nominal members looks nice for a career at 
-> redhat.com, doesn't it?
-> 
-> 
+> The first two on LNB0, the rest on LNB1.
 
+I'm sorry, but these are all programmes which are sent
+over the 28E position (Astra2/Eurobird), for the UK.
+All of them.
+
+Do you have two dishes pointed to the same satellite
+position, connected to LNBs 0 and 1 ?
+
+
+> Perhaps it is correct and the channels I checked broadcast no stream at 
+> this time. Since scan2 keeps failing, please is there a place to 
+> download recent channels.conf for Astra 19.2E so that I can test on many 
+> more channels?
+
+And now you mention Astra 19E2, so I am very confused.
+
+I would expect you should be able to receive 23E5 for
+the czech broadcasts -- but please explain your setup,
+which satellites you expect to see at which LNB position.
+
+
+Many of the frequencies and polarisations are re-used
+among different satellite positions -- that is the case
+for 28E and 19E from 10714 up to 10964 (at 28E, the
+frequencies above this have generally not been activated
+yet) and other frequencies *not* on Eurobird, which
+generally seem to share the same frequency both hor.
+and vertically.
+
+That is, you will often get carrier for the same tuning
+parameters from different satellites.
+
+
+So, please ease my mind, and tell me what you expect to
+receive on LNBs 0 and 1 (and 2 and up if you have them).
+
+
+I could point you to an old-style channels.conf which I
+have for 19E2, as well as 28E, 23E5, and 13E, if you
+still need them, but I first want to be sure they'll help
+
+
+thanks
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
