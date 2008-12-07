@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [194.250.18.140] (helo=tv-numeric.com)
+Received: from bobrnet.cust.inethome.cz ([88.146.180.6]
+	helo=mailserver.bobrnet.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1LHwiD-0001ox-D7
-	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 09:45:58 +0100
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: "'BOUWSMA Barry'" <freebeer.bouwsma@gmail.com>,
-	<linux-dvb@linuxtv.org>
-Date: Wed, 31 Dec 2008 09:45:22 +0100
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAKD9Q4NAVr0+H0MAg3L7x3gEAAAAA@tv-numeric.com>
+	(envelope-from <pavel.hofman@insite.cz>) id 1L9LDD-0002sy-Jc
+	for linux-dvb@linuxtv.org; Sun, 07 Dec 2008 16:06:24 +0100
+Message-ID: <493BE666.8030007@insite.cz>
+Date: Sun, 07 Dec 2008 16:06:14 +0100
+From: Pavel Hofman <pavel.hofman@insite.cz>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.0812302027170.29535@ybpnyubfg.ybpnyqbznva>
-Subject: [linux-dvb] RE :  Compile error,
-	bug in compat.h with kernel 2.6.27.9 ?
+To: Alex Betis <alex.betis@gmail.com>
+References: <49346726.7010303@insite.cz>
+	<4934D218.4090202@verbraak.org>		<4935B72F.1000505@insite.cz>		<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
+	<49371511.1060703@insite.cz>
+In-Reply-To: <49371511.1060703@insite.cz>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,78 +28,101 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-De : BOUWSMA Barry [mailto:freebeer.bouwsma@gmail.com] 
+Pavel Hofman napsal(a):
+> Alex Betis napsal(a):
+>> On Wed, Dec 3, 2008 at 9:32 AM, Alex Betis <alex.betis@gmail.com 
+>> <mailto:alex.betis@gmail.com>> wrote:
+>>
+>>
+>>     On Wed, Dec 3, 2008 at 12:31 AM, Pavel Hofman
+>>     <pavel.hofman@insite.cz <mailto:pavel.hofman@insite.cz>> wrote:
+>>
+>>         pavel@htpc:~/project/satelit2/szap-s2$
+>>         <mailto:pavel@htpc:~/project/satelit2/szap-s2$> ./szap-s2 -x
+>>         EinsFestival
+>>         reading channels from file '/home/pavel/.szap/channels.conf'
+>>         zapping to 5 'EinsFestival':
+>>         delivery DVB-S, modulation QPSK
+>>         sat 0, frequency 12110 MHz H, symbolrate 27500000, coderate auto,
+>>
+>>     I don't think there is 12110 channel on Astra 19.2, at least not
+>>     accirding to lyngsat.
+>>
+>> My bad, there is such channel... I somehow got to Astra 1G only page 
+>> instead of all Atras in that position.
+>> Try other frequencies anyway.
+>>  
+>> Maybe you have diseqc problems?
+>>
 > 
-> On Tue, 30 Dec 2008, Thierry Lelegard wrote:
-> 
-> > OK, looking into the source RPM for the latest Fedora 10 update
-> > kernel (kernel-2.6.27.9-159.fc10.src.rpm), it appears that
-> > the definition of pci_ioremap_bar in pci.h was introduced by
-> > linux-2.6.27.7-alsa-driver-fixups.patch
-> > 
-> > I assume that this is a Fedora-specific patch (or more 
-> generally Red Hat),
-> > back-porting 2.6.28 stuff.
-> 
-> There may be hope for a dirty hack...
-> 
-> As part of this, I also see
-> --- a/include/linux/input.h
-> +++ b/include/linux/input.h
-> @@ -644,6 +644,7 @@ struct input_absinfo {
->  #define SW_RADIO               SW_RFKILL_ALL   /* deprecated */
->  #define SW_MICROPHONE_INSERT   0x04  /* set = inserted */
->  #define SW_DOCK                        0x05  /* set = 
-> plugged into dock */
-> +#define SW_LINEOUT_INSERT      0x06  /* set = plugged into dock 
-> */
-> 
-> which is not yet in my latest 2.6.28 git kernel...
-> 
-> These both seem to be present since -r1.1 through HEAD,
-> so I would guess you can special-case this check into
-> a 2.6.27 version test.
 
-Good idea. After some more checks, it seems reasonable. I consequently
-propose the following patch:
 
-====[CUT HERE]====
---- v4l-dvb.1/v4l/compat.h	2008-12-31 09:16:32.000000000 +0100
-+++ v4l-dvb.2/v4l/compat.h	2008-12-31 09:30:08.000000000 +0100
-@@ -31,6 +31,11 @@
- #include <linux/i2c.h>
- #endif
- 
-+/* To validate cpp test before pci_ioremap_bar */
-+#if LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 27)
-+#include <linux/input.h>
-+#endif
-+
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,23)
- #define set_freezable()
- #define cancel_delayed_work_sync cancel_rearming_delayed_work
-@@ -268,7 +273,7 @@
- })
- #endif
- 
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 28)
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 27) || (LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 27) && !defined
-(SW_LINEOUT_INSERT))
- #define snd_BUG_ON(cond)	WARN((cond), "BUG? (%s)\n", __stringify(cond))
- 
- #define pci_ioremap_bar(pci, a)				\
-====[CUT HERE]====
+Hi,
 
-Quite dirty indeed, but isn't it the exact purpose of the compat.h file,
-being the dirty glue to compile latest kernel code inside older kernels ?
+Partial success :)
 
-I think this would help all Fedora users to have this little path committed
-into the linuxtv.org repository.
+I added a few free-to-air channels I was able to tune in WinXP to 
+channels.conf:
 
-Thanks Barry for your idea.
--Thierry
+Entertainment:12012:v:0:27500:2582:2581:8037
+SkyNews:12207:v:0:27500:514:645:4707
+WineTV:11555:h:1:27500:2372:2374:50435
+AvaTest:11555:h:1:27500:2329:2330:50446
+Vegas:11515:h:1:27500:3568:3567:8035
+Faith:11515:h:1:27500:2375:2376:50455
 
+
+The first two on LNB0, the rest on LNB1.
+
+For LNB0, I can tune via szap2:
+
+pavel@htpc:~/project/satelit2/szap-s2$ ./szap-s2 -r SkyNews
+reading channels from file '/home/pavel/.szap/channels.conf'
+zapping to 2 'SkyNews':
+delivery DVB-S, modulation QPSK
+sat 0, frequency 12207 MHz V, symbolrate 27500000, coderate auto, 
+rolloff 0.35
+vpid 0x0202, apid 0x0285, sid 0x1263
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal 0136 | snr 002d | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+status 1f | signal 0136 | snr 0031 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+
+and view the channels with
+
+mplayer - < /dev/dvb/adapter0/dvr0
+
+For LNB1, it seems I can get signal via szap2:
+
+pavel@htpc:~/project/satelit2/szap-s2$ ./szap-s2 -r Faith
+reading channels from file '/home/pavel/.szap/channels.conf'
+zapping to 6 'Faith':
+delivery DVB-S, modulation QPSK
+sat 1, frequency 11515 MHz H, symbolrate 27500000, coderate auto, 
+rolloff 0.35
+vpid 0x0947, apid 0x0948, sid 0xc517
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal 0178 | snr 0051 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+status 1f | signal 0178 | snr 0051 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+status 1f | signal 0178 | snr 0050 | ber 00000000 | unc fffffffe | 
+FE_HAS_LOCK
+
+
+However, /dev/dvb/adapter0/dvr0 outputs no data for any of the stations 
+on the second LNB1.
+
+
+Perhaps it is correct and the channels I checked broadcast no stream at 
+this time. Since scan2 keeps failing, please is there a place to 
+download recent channels.conf for Astra 19.2E so that I can test on many 
+more channels?
+
+Thanks a lot,
+
+Pavel.
 
 _______________________________________________
 linux-dvb mailing list
