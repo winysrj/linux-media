@@ -1,30 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25])
+Received: from qmta07.westchester.pa.mail.comcast.net ([76.96.62.64])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7ZDk-0003FS-OW
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 18:39:37 +0100
-Received: from compute1.internal (compute1.internal [10.202.2.41])
-	by out1.messagingengine.com (Postfix) with ESMTP id 39A811CA596
-	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 12:39:31 -0500 (EST)
-Message-Id: <1228239571.26312.1287857857@webmail.messagingengine.com>
-From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
-To: "linux-dvb" <linux-dvb@linuxtv.org>
-Content-Disposition: inline
+	(envelope-from <jeffd@i2k.com>) id 1L9XJ9-00014z-BE
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 05:01:20 +0100
+Date: Sun, 7 Dec 2008 23:00:40 -0500
+From: Jeff DeFouw <jeffd@i2k.com>
+To: Josh Borke <joshborke@gmail.com>
+Message-ID: <20081208040040.GA7855@blorp.plorb.com>
+References: <7d91b3760812071828w57ba50d6h979d9d0f703d3080@mail.gmail.com>
 MIME-Version: 1.0
-References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
-	<1227213591.29403.1285914127@webmail.messagingengine.com>
-	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
-	<1227228030.18353.1285952745@webmail.messagingengine.com>
-	<412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>
-	<1228152690.22348.1287628393@webmail.messagingengine.com>
-	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
-	<1228162425.30518.1287666879@webmail.messagingengine.com>
-	<1228164038.5106.1287670679@webmail.messagingengine.com>
-	<500CD7A3A0%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <500CD7A3A0%linux@youmustbejoking.demon.co.uk>
-Date: Tue, 02 Dec 2008 17:39:31 +0000
-Subject: Re: [linux-dvb] dib0700 remote control support fixed
-Reply-To: linuxtv@hotair.fastmail.co.uk
+Content-Disposition: inline
+In-Reply-To: <7d91b3760812071828w57ba50d6h979d9d0f703d3080@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 Analog issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,31 +26,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 02 Dec 2008 14:35:24 +0000, "Darren Salt"
-<linux@youmustbejoking.demon.co.uk> said:
-> I demand that petercarm may or may not have written...
+On Sun, Dec 07, 2008 at 09:28:17PM -0500, Josh Borke wrote:
+> I recently upgraded to Fedora 10 and decided to try to get my Hauppauge
+> HVR-1800 working. I thought everything was working fine and well because I
+> could run 'tvtime -d /dev/video0' and 'cat /dev/video1 > /tmp/test.mpg' and
+> things worked but then I rebooted and it all went to pot. Now when I run
+> 'cat /dev/video1 > /tmp/test.mpg' the output of tvtime becomes wavy and
+> distorted. I tried loading both cx25840 and cx23885 with debug=1 but that
+> didn't help.  I also tried with the latest v4l-dvb sources
+> (v4l-dvb-7100e78482d7) with the same result.
 > 
-> > I've just got lucky with running dmesg at the onset of the problem, so can
-> > see the initial messages rather than just the flood of read/write failures.
+> I've attached the dmesg in hopes of being some help.
 > 
-> > Unfortunately I've only got it in my xterm buffer, so I've posted some
-> > screenshots here:
-> 
-> If it's displayed in an X terminal, it's saveable as a text file:
-> drag-select, "xclip >foo". If it's somewhere in /var/log, use $EDITOR to
-> save
-> part of the file somewhere user-readable.
-> 
-> You have no excuse for using screenshots. :-)
-> 
+> To recap, I can 'tvtime -d /dev/video0' and I get a great picture. As soon
+> as I 'cat /dev/video1 > /tmp/test.mpg' the picture goes wavy.
 
-;-)
+I found the same thing while testing the analog tuner support (which I 
+don't normally use).  It only happened the first time after boot.  
+Unloading all of the modules (run "make rmmod" in the v4l-dvb sources) 
+and reloading them always fixed it for me.  Also, make sure the tuner 
+module is loaded after that.  Mine doesn't auto-load for some reason.
 
-I guess that as a some-time project manager I appreciate the merits of
-getting something completed rather than applying finesse to a job of
-zero importance.
-
-(Minimal livecd build.  No xclip.)
+-- 
+Jeff DeFouw <jeffd@i2k.com>
 
 _______________________________________________
 linux-dvb mailing list
