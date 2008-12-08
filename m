@@ -1,22 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1FF9Fi031958
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 10:15:09 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB1FE9LZ001622
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 10:14:10 -0500
-Date: Mon, 1 Dec 2008 16:14:20 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <873ah8n8d3.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0812011612000.3915@axis700.grange>
-References: <20081107130136.fkdeaklvs40ocsws@webmail.hebergement.com>
-	<Pine.LNX.4.64.0811290229070.7032@axis700.grange>
-	<873ah8n8d3.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: About CITOR register value for pxa_camera
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8IAhEr007123
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 13:10:44 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB8IATUb023698
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 13:10:29 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so464892eyf.39
+	for <video4linux-list@redhat.com>; Mon, 08 Dec 2008 10:10:29 -0800 (PST)
+From: Jaime Velasco Juan <jsagarribay@gmail.com>
+To: mchehab@infradead.org
+Date: Mon,  8 Dec 2008 18:10:26 +0000
+Message-Id: <1228759826-11929-1-git-send-email-jsagarribay@gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: [PATCH] stkwebcam: Implement VIDIOC_ENUM_FRAMESIZES ioctl
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,44 +24,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 30 Nov 2008, Robert Jarzmik wrote:
+It is used at least by gstreamer.
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > I finally got round to trying this...
-> >
-> > Please, have a look at this patch. I decided against another function call 
-> > for a number of reasons: first, if the host calls into the camera to ask 
-> > whether the frequency has changed, it is not easy to recognise, whether it 
-> > changed _now_, if you let camera notify the host about frequency change 
-> > this breaks the hierarchy. Second, you don't know how many more similar 
-> > parameters will have to be communicated between the camera and the host. 
-> > So, I decided to add an extensible sense struct.
-> >
-> > Only compile tested so far, will run-test later, maybe tomorrow (actually, 
-> > already today). Comments welcome, tests even more so:-)
-> The first test crashes in the pxa_camera_probe() for me, something like :
-> [  247.554669] [<c014f2f8>] (dev_driver_string+0x0/0x48) from [<bf01eac8>] (pxa_camera_probe+0x2c8/0x424 [pxa_camera])
-> [  247.564907] [<bf01e800>] (pxa_camera_probe+0x0/0x424 [pxa_camera]) from [<c01538fc>] (platform_drv_probe+0x20/0x24)
-> [  247.575129] [<c01538dc>] (platform_drv_probe+0x0/0x24) from [<c0152a3c>] (driver_probe_device+0xac/0x1b0)
-> [  247.585308] [<c0152990>] (driver_probe_device+0x0/0x1b0) from [<c0152bd0>] (__driver_attach+0x90/0x94)
-> 
-> I'll take some time tomorrow, to review and test.
-> 
-> > Patch below. Loosely based on top of our current format-negotiation 
-> > stack...
-> Applies nicely, thanks.
-
-As you might have seen, I posted two patches on the list earlier today 
-(with you on cc), which fix this Oops and one more bug in a formula. If 
-the patches look fine to you or better yet, if you can test them and they 
-pass your test, I'll push them upstream with a next request.
-
-Thanks
-Guennadi
+Signed-off-by: Jaime Velasco Juan <jsagarribay@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+ drivers/media/video/stk-webcam.c |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
+index e9eb6d7..4afa82f 100644
+--- a/drivers/media/video/stk-webcam.c
++++ b/drivers/media/video/stk-webcam.c
+@@ -1262,6 +1262,34 @@ static int stk_vidioc_g_parm(struct file *filp,
+ 	return 0;
+ }
+ 
++static int stk_vidioc_enum_framesizes(struct file *filp,
++		void *priv, struct v4l2_frmsizeenum *frms)
++{
++	if (frms->index >= ARRAY_SIZE(stk_sizes))
++		return -EINVAL;
++	switch (frms->pixel_format) {
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_RGB565X:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_SBGGR8:
++		frms->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++		frms->discrete.width = stk_sizes[frms->index].w;
++		frms->discrete.height = stk_sizes[frms->index].h;
++		return 0;
++	default: return -EINVAL;
++	}
++}
++
++static int stk_vidioc_default(struct file *filp,
++		void *priv, int cmd, void *arg)
++{
++	if (cmd == (int)VIDIOC_ENUM_FRAMESIZES)
++		return stk_vidioc_enum_framesizes(filp, priv,
++				(struct v4l2_frmsizeenum *) arg);
++	return -EINVAL;
++}
++
+ static struct file_operations v4l_stk_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = v4l_stk_open,
+@@ -1296,6 +1324,7 @@ static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
+ 	.vidioc_g_ctrl = stk_vidioc_g_ctrl,
+ 	.vidioc_s_ctrl = stk_vidioc_s_ctrl,
+ 	.vidioc_g_parm = stk_vidioc_g_parm,
++	.vidioc_default = stk_vidioc_default,
+ };
+ 
+ static void stk_v4l_dev_release(struct video_device *vd)
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
