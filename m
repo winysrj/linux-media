@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bobrnet.cust.inethome.cz ([88.146.180.6]
-	helo=mailserver.bobrnet.net)
+Received: from mail-in-03.arcor-online.net ([151.189.21.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pavel.hofman@insite.cz>) id 1L814l-0004oz-DB
-	for linux-dvb@linuxtv.org; Thu, 04 Dec 2008 00:24:15 +0100
-Message-ID: <49371511.1060703@insite.cz>
-Date: Thu, 04 Dec 2008 00:24:01 +0100
-From: Pavel Hofman <pavel.hofman@insite.cz>
-MIME-Version: 1.0
-To: Alex Betis <alex.betis@gmail.com>
-References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>	
-	<4935B72F.1000505@insite.cz>	
-	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
-	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
-In-Reply-To: <c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
+	(envelope-from <hermann-pitton@arcor.de>) id 1L9nTA-0000Xb-S3
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 22:16:46 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: xweber.alex@googlemail.com
+In-Reply-To: <493D62F5.4010207@googlemail.com>
+References: <493AC65E.3010900@googlemail.com>
+	<493D593F.7010707@googlemail.com> <337548152.20081208193816@gmail.com>
+	<493D62F5.4010207@googlemail.com>
+Date: Mon, 08 Dec 2008 22:12:04 +0100
+Message-Id: <1228770724.2587.16.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
+Subject: Re: [linux-dvb] saa7134 with Avermedia M115S hybrid card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,48 +27,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alex Betis napsal(a):
-> On Wed, Dec 3, 2008 at 9:32 AM, Alex Betis <alex.betis@gmail.com 
-> <mailto:alex.betis@gmail.com>> wrote:
+Hi,
+
+Am Montag, den 08.12.2008, 19:09 +0100 schrieb Alexander Weber:
+> Tanguy Pruvot wrote:
+> > Bonjour,
+> > 
+> >   Could you make a scan (picture) of the Mini PCI Card (if it's a mini
+> >   pci card)... I can maybe help you to determine GPIOs....
+> > 
+> >   i reversed a SAA7130 PCI card here : http://tanguy.ath.cx/?q=SAA7130
+> > 
+> > Cordialement,
 > 
 > 
->     On Wed, Dec 3, 2008 at 12:31 AM, Pavel Hofman
->     <pavel.hofman@insite.cz <mailto:pavel.hofman@insite.cz>> wrote:
+> Hello,
 > 
->         pavel@htpc:~/project/satelit2/szap-s2$
->         <mailto:pavel@htpc:~/project/satelit2/szap-s2$> ./szap-s2 -x
->         EinsFestival
->         reading channels from file '/home/pavel/.szap/channels.conf'
->         zapping to 5 'EinsFestival':
->         delivery DVB-S, modulation QPSK
->         sat 0, frequency 12110 MHz H, symbolrate 27500000, coderate auto,
+> all i have are some mini pci card pictures i googled on ebay. "My" card 
+> is inside the original packaged and sealed laptop. But i will take a 
+> closer look if can open it without damaging anything...
 > 
->     I don't think there is 12110 channel on Astra 19.2, at least not
->     accirding to lyngsat.
+> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-709.jpg
+> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-710.jpg
 > 
-> My bad, there is such channel... I somehow got to Astra 1G only page 
-> instead of all Atras in that position.
-> Try other frequencies anyway.
->  
-> Maybe you have diseqc problems?
+> 
+> Alex
 > 
 
-Alex,
+here you'll find the old known but tiny picture of the M115 non S.
 
-Thanks a lot for your help. I tested the card on a different computer 
-with Windows and I could scan and view both Astra 19.2E and Astra 23.5E 
-free-to-air programs through A and B parts of the dual LNB. I have no 
-decoding card yet, nor any adapter.
+http://www.avermedia.com/cgi-bin/products_odm_M115.asp
 
-Since the computer was different, I will test my final computer/setup in 
-windows (just have to install them first here :) ). Nevertheless I think 
-it will work in windows.
+Cheers,
+Hermann
 
-I will get back with result.
 
-Regards,
-
-Pavel.
 
 _______________________________________________
 linux-dvb mailing list
