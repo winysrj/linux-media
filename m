@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rayleigh.systella.fr ([213.41.184.253])
+Received: from mail4.aster.pl ([212.76.33.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bertrand@systella.fr>) id 1LDdOS-0002Nx-7x
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 12:19:45 +0100
-Message-ID: <494B8316.7000904@systella.fr>
-Date: Fri, 19 Dec 2008 12:18:46 +0100
-From: =?ISO-8859-1?Q?BERTRAND_Jo=EBl?= <bertrand@systella.fr>
+	(envelope-from <daniel.perzynski@aster.pl>) id 1L9oIw-0003hZ-VA
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 23:10:17 +0100
+From: daniel.perzynski <daniel.perzynski@aster.pl>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Alan_beaven <nullsleep247@googlemail.com>
-References: <1225828400.21939.4.camel@Nulltop>
-In-Reply-To: <1225828400.21939.4.camel@Nulltop>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] a577 and a306,
-	willing to run tests to get it working
+Content-Disposition: inline
+Message-Id: <A957E57448D25C0C661E9E181E74547A1228774205B964889A15616F1311@webmail.aster.pl>
+Date: Mon,  8 Dec 2008 23:10:10 +0100 (CET)
+Subject: [linux-dvb] Fw: Re:  Avermedia A312 wiki page
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,43 +17,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alan_beaven a =E9crit :
-> Well i have an AVerMedia AVerTV Hybrid Express (A577) ( wiki link
-> http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_(A5=
-77) ) or does this all ready work?
-> =
+Hi,
 
-> i am all so getting a avermedia a306
-> ( http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=3D376&SI=
-=3Dtrue ) this doesnt seem like it will work under linux, i will post detal=
-s about it when i get the card to help people.
+I'm asking again for more help as I haven't received any response to
+my previous e-mail pasted below. I've tried to run
+SniffUSB-x64-2.0.0006.zip but is not working under vista :( I've also
+found that card is using merlinb.rom and merlinc.rom (they are listed
+in device manager in windows vista)
+> I've tried to load all v4l modules (one by one) in 2.6.27.4 kernel -
+> nothing in syslog :(
+> I've then compiled and tried to load lgdt330x, cx25840,tuner-xc2028
+> and
+> wm8739 from http://linuxtv.org/hg/v4l-dvb mercurial repository -
+> nothing
+> in syslog :(
+>
+> At the end I've used http://linuxtv.org/hg/v4l-dvb-experimental
+> repository and when doing:
+>
+> insmod em28xx_cx25843, I've received :)
+> Nov 30 21:43:54 h3xu5 cx25843.c: starting probe for adapter SMBus
+> I801
+> adapter at 1200 (0x40004)
+> Nov 30 21:43:54 h3xu5 cx25843.c: detecting cx25843 client on address
+> 0x88
+>
+> It is a small progress and I need even more help here. There is a
+> question if I'm doing everything right? Do I need to load the
+> modules
+> with parameters? Why I need to do next to help in creation of
+> working
+> solution for that A312 card?
 
-	Are there any news about A577 support ? I have made some tests with
-2.6.27.9 kernel without any result. cx23885 is seen by system :
-
-cx23885[0]: i2c bus 0 registered
-cx23885[0]: i2c bus 1 registered
-cx23885[0]: i2c bus 2 registered
-cx23885_dev_checkrevision() Hardware revision =3D 0xb0
-cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, latency: 0, mmio:
-0xf0000000
-cx23885 0000:02:00.0: setting latency timer to 64
-
-but no other chip. I have made some tests with card option, but the obly
-one that load a demodulator is card=3D4. I don't know if I have made a
-mistake, but dvbscan does not work.
-
-	I have some time to test now, but I only have a RTC internet connection.
-
-	Regards,
-
-	JKB
+Regards,
 
 
 _______________________________________________
