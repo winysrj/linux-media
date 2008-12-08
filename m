@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp27.orange.fr ([80.12.242.95])
+Received: from bobrnet.cust.inethome.cz ([88.146.180.6]
+	helo=mailserver.bobrnet.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1L7pMs-0000We-4y
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 11:54:07 +0100
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Wed, 3 Dec 2008 11:53:31 +0100
-References: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
-	<412bdbff0812021521m163a4d61q52e96de4cf3d2518@mail.gmail.com>
-	<200812031123.14065.Nicola.Sabbi@poste.it>
-In-Reply-To: <200812031123.14065.Nicola.Sabbi@poste.it>
+	(envelope-from <pavel.hofman@insite.cz>) id 1L9l4e-0003yx-NB
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 19:43:17 +0100
+Message-ID: <493D6ABC.5060400@insite.cz>
+Date: Mon, 08 Dec 2008 19:43:08 +0100
+From: Pavel Hofman <pavel.hofman@insite.cz>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812031153.31517.hftom@free.fr>
-Cc: Nico Sabbi <Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] Pinnacle 80e support: not going to happen...
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
+	<4935B72F.1000505@insite.cz>
+	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
+	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
+	<49371511.1060703@insite.cz> <493BE666.8030007@insite.cz>
+	<alpine.DEB.2.00.0812071856470.11349@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0812071856470.11349@ybpnyubfg.ybpnyqbznva>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,92 +25,85 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le mercredi 3 d=E9cembre 2008 11:23:14 Nico Sabbi, vous avez =E9crit=A0:
-> On Wednesday 03 December 2008 00:21:08 Devin Heitmueller wrote:
-> > On Tue, Dec 2, 2008 at 6:10 PM, Markus Rechberger
->
-> <mrechberger@gmail.com> wrote:
-> > > On Tue, Dec 2, 2008 at 11:55 PM, Devin Heitmueller
-> > >
-> > > <devin.heitmueller@gmail.com> wrote:
-> > >> For those of you waiting for Linux support for the Pinnacle 80e,
-> > >> I have some bad news:  it's not going to happen.
-> > >>
-> > >> After investing over 100 hours doing the driver work, adding
-> > >> support for the Empia em2874, integrating with the Linux
-> > >> tda18271 driver, incorporating the Micronas drx reference driver
-> > >> source, and doing all the testing, Micronas has effectively
-> > >> killed the project.  They decided that their intellectual
-> > >> property was too valuable to make available their reference
-> > >> driver code in source code form.  Even worse, because I've seen
-> > >> the sources I am effectively prevented from writing any sort of
-> > >> reverse engineered driver for the drx-j.
-> > >
-> > > Not so fast, even though I wasn't involved at knocking this down.
-> > > We have a custom player now which is capable of directly
-> > > interfacing the I2C chips from those devices. Another feature is
-> > > that it supports all the features of those devices, there won't
-> > > be any need of different applications anymore. There's also the
-> > > thought about publishing an SDK, most applications have problems
-> > > of detecting all corresponding devicenodes which are required for
-> > > those devices anyway. i2c-dev is an already available and
-> > > accepted kernel interface
-> > > to userland just as usbfs is.
-> >
-> > Hello Markus,
-> >
-> > Yeah, I saw the screenshots for Empia eeeTV on your website a few
-> > days ago - it looks like a neat application and there is certainly
-> > a place for a well written application to watch TV.
-> >
-> > For those of you not familiar, Markus is working on his own
-> > dedicated TV watching application for Linux and BSD:
-> > http://mcentral.de/wiki/index.php5/ISDB-T
-> >
-> > I agree that it is certainly true that a closed-source application
-> > could be used with the Pinnacle 80e (since such application would
-> > be able to accommodate the Micronas binary-only licensing), however
-> > this approach does restrict access to those devices to that
-> > specific application and is not a more general solution that would
-> > work with whatever application the user wants to use (such as
-> > MythTV, Kaffeine, mplayer, etc).
-> >
-> > So for many people, this could be a viable approach.
-> >
-> > Regards,
-> >
-> > Devin
->
-> what makes Micronas believe that in order to have the High Privilege
-> of using their products bought with their money people are willing to
-> sacrifice their freedom and hope that someone will adapt
-> existing players? I can tell you with absolute certainty that mplayer
-> will never adapt and I will reject any (unlikely to come) patch to
-> support that library
+BOUWSMA Barry napsal(a):
+> On Sun, 7 Dec 2008, Pavel Hofman wrote:
+> 
+> Sorry if I'm missing something, as I haven't been paying
+> too much attention, but...
+> 
+> 
+>> I added a few free-to-air channels I was able to tune in WinXP to 
+>> channels.conf:
+>>
+>> Entertainment:12012:v:0:27500:2582:2581:8037
+>> SkyNews:12207:v:0:27500:514:645:4707
+>> WineTV:11555:h:1:27500:2372:2374:50435
+>> AvaTest:11555:h:1:27500:2329:2330:50446
+>> Vegas:11515:h:1:27500:3568:3567:8035
+>> Faith:11515:h:1:27500:2375:2376:50455
+>>
+>> The first two on LNB0, the rest on LNB1.
+> 
+> I'm sorry, but these are all programmes which are sent
+> over the 28E position (Astra2/Eurobird), for the UK.
+> All of them.
+> 
+> Do you have two dishes pointed to the same satellite
+> position, connected to LNBs 0 and 1 ?
+> 
+> 
+>> Perhaps it is correct and the channels I checked broadcast no stream at 
+>> this time. Since scan2 keeps failing, please is there a place to 
+>> download recent channels.conf for Astra 19.2E so that I can test on many 
+>> more channels?
+> 
+> And now you mention Astra 19E2, so I am very confused.
+> 
+> I would expect you should be able to receive 23E5 for
+> the czech broadcasts -- but please explain your setup,
+> which satellites you expect to see at which LNB position.
+> 
+> 
+> Many of the frequencies and polarisations are re-used
+> among different satellite positions -- that is the case
+> for 28E and 19E from 10714 up to 10964 (at 28E, the
+> frequencies above this have generally not been activated
+> yet) and other frequencies *not* on Eurobird, which
+> generally seem to share the same frequency both hor.
+> and vertically.
+> 
+> That is, you will often get carrier for the same tuning
+> parameters from different satellites.
+> 
+> 
+> So, please ease my mind, and tell me what you expect to
+> receive on LNBs 0 and 1 (and 2 and up if you have them).
+> 
+> 
+> I could point you to an old-style channels.conf which I
+> have for 19E2, as well as 28E, 23E5, and 13E, if you
+> still need them, but I first want to be sure they'll help
+> 
+> 
+> thanks
+> barry bouwsma
 
-Ack.
-Anyway, such a lib will never get its way in Linux distributions.
-There is lots of good hardware with linuxtv drivers around.
-Maybe someone should tell Micronas that what they are looking for is called =
+Hi Barry,
 
-microsoft.
+Thanks a lot for your offer. I have a dual LNB (4 degrees apart), LNB0 
+points to Astra19.2E, LNB1 points to Astra23.5E. I am able to tune both 
+satellites now, nevertheless your channel.conf's for them would probably 
+help.
 
-Giving a reference driver to Devin to say latter "aha, you are damned now" =
-is =
+Thanks,
 
-not only unpolite but also uncivilized. =
-
-
--- =
-
-Christophe Thommeret
-
+Pavel.
 
 _______________________________________________
 linux-dvb mailing list
