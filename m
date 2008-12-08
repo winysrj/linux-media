@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB7CmqJZ027111
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 07:48:52 -0500
-Received: from smtp-vbr8.xs4all.nl (smtp-vbr8.xs4all.nl [194.109.24.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB7CmYAE005935
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 07:48:34 -0500
-Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id mB7CmTEK099597
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 13:48:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Sun, 7 Dec 2008 13:48:28 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8M6m8P019326
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 17:06:48 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB8M6YH0017864
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 17:06:34 -0500
+Date: Mon, 8 Dec 2008 20:06:27 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Message-ID: <20081208200627.5894e44e@pedra.chehab.org>
+In-Reply-To: <200812061934.00750.laurent.pinchart@skynet.be>
+References: <200811271536.46779.laurent.pinchart@skynet.be>
+	<200812061934.00750.laurent.pinchart@skynet.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812071348.28510.hverkuil@xs4all.nl>
-Subject: Building v4l2spec docbook problems
+Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
+Subject: Re: [PATCH 0/4] Add zoom and privacy controls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,54 +28,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
 
-I'm trying to build the v4l2spec: 
-http://v4l2spec.bytesex.org/v4l2spec-0.24.tar.bz2
+On Sat, 6 Dec 2008 19:34:00 +0100
+Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
 
-But I'm getting the following errors:
+> Hi Mauro,
+> 
+> On Thursday 27 November 2008, Laurent Pinchart wrote:
+> > Hi,
+> >
+> > this patch series adds support for zoom and privacy controls to V4L2:
+> >
+> > - the first two patches add the controls to videodev2.h
+> > - the 3rd patch updates v4l2-common.c with missing control names
+> > - the 4th patch updates the v4l2 api documentation
+> >
+> > I've split the additions to videodev2.h in two patches to document the new
+> > controls in the patches description as requested by Mauro.
+> 
+> Is there anything that prevents those patches from being applied ?
 
-...
-Using catalogs: /etc/sgml/catalog
-Using stylesheet: /home/hans/work/src/v4l2spec-0.24/custom.dsl#html
-Working on: /home/hans/work/src/v4l2spec-0.24/v4l2.sgml
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:5:W: cannot 
-generate system identifier for general entity "sub-common"
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:5:E: general 
-entity "sub-common" not defined and no default entity
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:15:E: reference to 
-entity "sub-common" for which no system identifier could be generated
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:357:4: entity was 
-defined here
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:358:11:E: end tag 
-for "CHAPTER" which is not finished
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:5:W: cannot 
-generate system identifier for general entity "sub-pixfmt"
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:5:E: general 
-entity "sub-pixfmt" not defined and no default entity
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:15:E: reference to 
-entity "sub-pixfmt" for which no system identifier could be generated
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:361:4: entity was 
-defined here
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:362:11:E: end tag 
-for "CHAPTER" which is not finished
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:365:5:W: cannot 
-generate system identifier for general entity "sub-io"
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:365:5:E: general 
-entity "sub-io" not defined and no default entity
-jade:/home/hans/work/src/v4l2spec-0.24/v4l2.sgml:365:11:E: reference to 
-entity "sub-io" for which no system identifier could be generated
+I was assuming that you would add this into your mercurial repository and ask
+me to pull from it ;)
 
-And this continues for a long list of 'sub-something' entities.
 
-Me no speak sgml, so I hope someone more familiar with this can help me.
 
-Thanks,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
