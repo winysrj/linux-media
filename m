@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB7FZ3XV008917
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 10:35:03 -0500
-Received: from smtp-vbr9.xs4all.nl (smtp-vbr9.xs4all.nl [194.109.24.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB7FYmKc018845
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 10:34:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Date: Sun, 7 Dec 2008 16:34:46 +0100
-References: <200812071314.17267.laurent.pinchart@skynet.be>
-In-Reply-To: <200812071314.17267.laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB82II0f017294
+	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 21:18:18 -0500
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.189])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB82G8jZ012250
+	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 21:16:08 -0500
+Received: by rn-out-0910.google.com with SMTP id k32so801749rnd.7
+	for <video4linux-list@redhat.com>; Sun, 07 Dec 2008 18:16:07 -0800 (PST)
+Message-ID: <ea3b75ed0812071816t9189c47s2d73724e3d780473@mail.gmail.com>
+Date: Sun, 7 Dec 2008 21:16:07 -0500
+From: "Brian Phelps" <lm317t@gmail.com>
+To: alexWe <hondansx@gmx.de>
+In-Reply-To: <1228565373925-1621999.post@n2.nabble.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_W0+OJNseGNGTkui"
-Message-Id: <200812071634.46842.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: [BUG] Race condition between open and disconnect
+References: <510940.57134.qm@web51804.mail.re2.yahoo.com>
+	<1228565373925-1621999.post@n2.nabble.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: video4linux-list@redhat.com
+Subject: Re: bttv timeouts
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,197 +31,256 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---Boundary-00=_W0+OJNseGNGTkui
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This seems to be a bug in the bttv-risc.c code, at least according to Vegard
+Nossum on the Kernel Dev list:
 
-Hi Laurent,
-
-On Sunday 07 December 2008 13:14:17 Laurent Pinchart wrote:
-> Hi everybody,
+I found that if you set pixfmt from YVU420 to YUYV in capture.c :
+> V4L2_PIX_FMT_YUV420 seems to be the culprit!
+> YUYV is the stable rock solid setting
+> Right now I am talking to the linux-kernel list trying to track down
+> the memory problem we are running into.
 >
-> I'm afraid to report that the move to the cdev interface in 2.6.28
-> has introduced a race condition between open and disconnect.
+> The bug that I am running into is on an intel quad core machine, 2x4
+> input chip bt878 based pci capture cards with /dev/video0-7
 >
-> To avoid the need of a reference count in every v4l2 driver, v4l2
-> moved to cdev which includes its own reference counting
-> infrastructure based on kobject.
-
-It actually seems to be a cdev race condition that can happen with other 
-char devices as well. However, there is also a bug in v4l2-dev that 
-makes it worse.
-
-Please try attached patch. You will still get the kref WARN, but 
-otherwise it should work OK.
-
-Did you get these WARN and BUG messages in a 'real-life' situation as 
-well, or only when you put in an msleep?
-
-Regards,
-
-	Hans
-
-> kobject_(get|put) calls on which the reference counting code relies
-> (kobject_get being called by cdev_get in chrdev_open, and kobject_put
-> being called by device_unregister in video_device_unregister) call
-> use the embedded kref_(get|put). Unfortunately, while those calls use
-> atomic operations to access the reference counter, they are not
-> thread-safe. A call to kref_get can succeed even though a call to
-> kref_put has released the last reference.
+> All you have to do is change "count" from 100 to something large like
+> 10million or so and change:
+> fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 >
-> I've modified the UVC driver to remove the thread-safe reference
-> counting that was supposed not to be required anymore with the move
-> to cdev and added an msleep(3000) at the beginning of
-> v4l2_chardev_release to make the race condition easier to reproduce
-> (patch against my hg tree attached).
+> to:
+> fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
 >
-> Steps to reproduce:
+
+Here is the patch from Vegard, but it caused a select time out using
+capture.c.
+
+Hi Brian,
 >
-> - load the uvcvideo module
-> - connect a UVC camera
-> - start any video application
-> - close the application
-> - disconnect the camera
-> - within 3 seconds of the disconnection, start the video application
-> - check dmesg for the bug report and enjoy
+> Can you see if this patch helps your problem?
 >
 >
-> usb 2-1: USB disconnect, address 6
-> ------------[ cut here ]------------
-> WARNING: at lib/kref.c:43 kref_get+0x1c/0x20()
-> Modules linked in: snd_usb_audio snd_usb_lib snd_rawmidi snd_hwdep
-> uvcvideo videodev v4l2_compat_ioctl32 v4l1_compat radeon drm arc4 ecb
-> ieee80211_crypt_tkip rfcomm l2cap hci_usb ipw2200 bluetooth ieee80211
-> r8169 snd_intel8x0m ieee80211_crypt
-> Pid: 19247, comm: luvcview Not tainted 2.6.27 #36
->  [<c011cd6f>] warn_on_slowpath+0x5f/0x90
->  [<c01192bf>] try_to_wake_up+0xaf/0xc0
->  [<c01806e7>] __d_lookup+0xf7/0x150
->  [<c01d70e0>] xattr_lookup_poison+0x0/0xa0
->  [<c01762c5>] do_lookup+0x65/0x1a0
->  [<c018005c>] dput+0x1c/0x160
->  [<c0178331>] __link_path_walk+0xb01/0xc90
->  [<c025e6ac>] kref_get+0x1c/0x20
->  [<c025d8ef>] kobject_get+0xf/0x20
->  [<c01710c2>] cdev_get+0x22/0x90
->  [<c01717c7>] chrdev_open+0x37/0x1e0
->  [<c0171790>] chrdev_open+0x0/0x1e0
->  [<c016ce24>] __dentry_open+0xd4/0x260the
->  [<c016cff5>] nameidata_to_filp+0x45/0x60
->  [<c0179617>] do_filp_open+0x187/0x720
->  [<c02a2488>] tty_write+0x1b8/0x1e0
->  [<c016cbfe>] do_sys_open+0x4e/0xe0
->  [<c016cd0c>] sys_open+0x2c/0x40
->  [<c0103119>] sysenter_do_call+0x12/0x21
->  [<c0440000>] pfkey_add+0x4f0/0x7f0
->  =======================
-> ---[ end trace 32937b1bc9a02398 ]---
-> ------------[ cut here ]------------
-> kernel BUG at drivers/media/video/v4l2-dev.c:119!
-> invalid opcode: 0000 [#1] PREEMPT
-> Modules linked in: snd_usb_audio snd_usb_lib snd_rawmidi snd_hwdep
-> uvcvideo videodev v4l2_compat_ioctl32 v4l1_compat radeon drm arc4 ecb
-> ieee80211_crypt_tkip rfcomm l2cap hci_usb ipw2200 bluetooth ieee80211
-> r8169 snd_intel8x0m ieee80211_crypt
+> Vegard
 >
-> Pid: 19247, comm: luvcview Tainted: G        W (2.6.27 #36)
-> EIP: 0060:[<f09d14e7>] EFLAGS: 00010202 CPU: 0
-> EIP is at v4l2_chardev_release+0x37/0x80 [videodev]
-> EAX: f09d8a90 EBX: ed069c00 ECX: 00000003 EDX: 00000000
-> ESI: ed069d20 EDI: 00000000 EBP: d836968c ESP: e9005e6c
->  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-> Process luvcview (pid: 19247, ti=e9004000 task=e90f31a0
-> task.ti=e9004000) Stack: ed069d20 f09d8a9c c025d896 ed069d3c c025d860
-> ffffffed c025e659 f0c0f500 00000001 c017121d ed069d20 c0171887
-> ed2ddb40 00000006 ed2ddb40 d836968c 00000000 c0171790 c016ce24
-> ef80d1c0 d7861760 ed2ddb40 e9005f10 00000026 Call Trace:
->  [<c025d896>] kobject_release+0x36/0x80
->  [<c025d860>] kobject_release+0x0/0x80
->  [<c025e659>] kref_put+0x29/0x60
->  [<c017121d>] cdev_put+0xd/0x20
->  [<c0171887>] chrdev_open+0xf7/0x1e0
->  [<c0171790>] chrdev_open+0x0/0x1e0
->  [<c016ce24>] __dentry_open+0xd4/0x260
->  [<c016cff5>] nameidata_to_filp+0x45/0x60
->  [<c0179617>] do_filp_open+0x187/0x720
->  [<c02a2488>] tty_write+0x1b8/0x1e0
->  [<c016cbfe>] do_sys_open+0x4e/0xe0
->  [<c016cd0c>] sys_open+0x2c/0x40
->  [<c0103119>] sysenter_do_call+0x12/0x21
->  [<c0440000>] pfkey_add+0x4f0/0x7f0
->  =======================
-> Code: 0b 00 00 e8 cc 47 75 cf b8 90 8a 9d f0 e8 a2 8b a7 cf 8b 83 88
-> 01 00 00 3b 1c 85 00 8d 9d f0 74 0e b8 90 8a 9d f0 e8 99 8b a7 cf
-> <0f> 0b eb fe 31 c9 89 0c 85 00 8d 9d f0 8b 83 84 01 00 00 0f b7
-> EIP: [<f09d14e7>] v4l2_chardev_release+0x37/0x80 [videodev] SS:ESP
-> 0068:e9005e6c
-> ---[ end trace 32937b1bc9a02398 ]---
 >
-> Best regards,
+> From 84396b14b9059de4a697df4ea4e036a22513436e Mon Sep 17 00:00:00 2001
+> From: Vegard Nossum <vegard.nossum@gmail.com>
+> Date: Sat, 22 Nov 2008 12:12:11 +0100
+> Subject: [PATCH] bttv: don't compare list_head's .next with NULL
 >
-> Laurent Pinchart
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
---Boundary-00=_W0+OJNseGNGTkui
-Content-Type: text/x-diff;
-  charset="iso-8859-15";
-  name="v4l2-dev.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="v4l2-dev.c.diff"
-
-diff -r 1dc46cdcf365 linux/drivers/media/video/v4l2-dev.c
---- a/linux/drivers/media/video/v4l2-dev.c	Sat Dec 06 11:29:33 2008 +0100
-+++ b/linux/drivers/media/video/v4l2-dev.c	Sun Dec 07 16:28:47 2008 +0100
-@@ -110,11 +110,23 @@
- static void v4l2_chardev_release(struct kobject *kobj)
- {
- 	struct video_device *vfd = container_of(kobj, struct video_device, cdev.kobj);
-+	
-+	/* Release the character device, ensures that afterwards this
-+	   chardev cannot be opened again. */
-+	vfd->cdev_release(kobj);
-+
-+	/* If someone tried to open this chardev while we are still in the
-+	   process of deleting it then the refcount will be non-zero. */
-+	if (atomic_read(&kobj->kref.refcount)) {
-+		/* Do nothing, the next time the refcount goes to zero
-+		   we will be called again. */
-+		return;
-+	}
- 
- 	mutex_lock(&videodev_lock);
- 	if (video_device[vfd->minor] != vfd) {
- 		mutex_unlock(&videodev_lock);
--		BUG();
-+		WARN(1, "Inconsistent vfd on minor %d!\n", vfd->minor);
- 		return;
- 	}
- 
-@@ -123,8 +135,6 @@
- 	clear_bit(vfd->num, video_nums[vfd->vfl_type]);
- 	mutex_unlock(&videodev_lock);
- 
--	/* Release the character device */
--	vfd->cdev_release(kobj);
- 	/* Release video_device and perform other
- 	   cleanups as needed. */
- 	if (vfd->release)
-
---Boundary-00=_W0+OJNseGNGTkui
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
+> The list implementation doesn't store NULLs in .next/.prev, but
+> uses poison values (for-sure invalid pointers). I assume that this
+> code wanted to test whether an entry was the last in a list.
+>
+> This function is only ever called for the video capture list, so
+> we know which list to check (it could have been vcapture as well).
+>
+> Patch is untested!
+>
+> Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+> ---
+> drivers/media/video/bt8xx/bttv-risc.c |   10 +++++-----
+> 1 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/video/bt8xx/bttv-risc.c
+> b/drivers/media/video/bt8xx/bttv-risc.c
+> index 5b1b8e4..7a54c99 100644
+> --- a/drivers/media/video/bt8xx/bttv-risc.c
+> +++ b/drivers/media/video/bt8xx/bttv-risc.c
+> @@ -649,14 +649,14 @@ bttv_buffer_activate_video(struct bttv *btv,
+>       if (NULL != set->top  &&  NULL != set->bottom) {
+>               if (set->top == set->bottom) {
+>                       set->top->vb.state    = VIDEOBUF_ACTIVE;
+> -                       if (set->top->vb.queue.next)
+> +                       if (list_is_last(&set->top->vb.queue,
+> &btv->capture))
+>                               list_del(&set->top->vb.queue);
+>               } else {
+>                       set->top->vb.state    = VIDEOBUF_ACTIVE;
+>                       set->bottom->vb.state = VIDEOBUF_ACTIVE;
+> -                       if (set->top->vb.queue.next)
+> +                       if (list_is_last(&set->top->vb.queue,
+> &btv->capture))
+>                               list_del(&set->top->vb.queue);
+> -                       if (set->bottom->vb.queue.next)
+> +                       if (list_is_last(&set->bottom->vb.queue,
+> &btv->capture))
+>                               list_del(&set->bottom->vb.queue);
+>               }
+>               bttv_apply_geo(btv, &set->top->geo, 1);
+> @@ -671,7 +671,7 @@ bttv_buffer_activate_video(struct bttv *btv,
+>                     ~0x0f, BT848_COLOR_CTL);
+>       } else if (NULL != set->top) {
+>               set->top->vb.state  = VIDEOBUF_ACTIVE;
+> -               if (set->top->vb.queue.next)
+> +               if (list_is_last(&set->top->vb.queue, &btv->capture))
+>                       list_del(&set->top->vb.queue);
+>               bttv_apply_geo(btv, &set->top->geo,1);
+>               bttv_apply_geo(btv, &set->top->geo,0);
+> @@ -682,7 +682,7 @@ bttv_buffer_activate_video(struct bttv *btv,
+>               btaor(set->top->btswap & 0x0f,   ~0x0f, BT848_COLOR_CTL);
+>       } else if (NULL != set->bottom) {
+>               set->bottom->vb.state = VIDEOBUF_ACTIVE;
+> -               if (set->bottom->vb.queue.next)
+> +               if (list_is_last(&set->bottom->vb.queue, &btv->capture))
+>                       list_del(&set->bottom->vb.queue);
+>               bttv_apply_geo(btv, &set->bottom->geo,1);
+>               bttv_apply_geo(btv, &set->bottom->geo,0);
+> --
+> 1.5.6.5
+>
+> On Wed, Nov 19, 2008 at 12:24 AM, Brian Phelps <lm317t@gmail.com> wrote:
+> > This possible kernel bug (see bottom) is very reproducible when the
+> > pci bus gets loaded with traffic, specifically video data.
+> > It has been reproduced on 2 identical machines.
+> >
+> > Please let me know if you need more information
+>
+> Hi,
+>
+> Can you reproduce this with CONFIG_DEBUG_SLAB=y?
+>
+> Can you reproduce this with CONFIG_SLUB=y instead of SLAB? If not,
+> could be a genuine bug in SLAB (but I doubt it). If yes, then SLUB
+> debugging might help us more than SLAB debugging can.
+>
+> It sounds likely that bttv driver is involved somehow -- it would fit
+> with your description too. Maybe the fact that the same driver is
+> serving many devices on the same IRQ? But I guess that shouldn't
+> really be a problem.
+>
+> It would also be interesting to see if you can find more different
+> crashes in other places, like the corrupted page tables. Those are
+> important clues. Like this:
+>
+> > [ 2128.370257] PGD 10869067 PUD 23232323 BAD
+>
+> That looks like a magic number of sorts. This was the only one I could
+> find, however:
+>
+> crypto/anubis.c:      0x83838383U, 0x1b1b1b1bU, 0x0e0e0e0eU, 0x23232323U,
+>
+> But google has some more info. A google for "23232323 bug" turned up
+> this thread:
+>
+> http://lkml.org/lkml/2008/1/5/51
+>
+> ...which also involves bttv driver. I've added the Ccs of that discussion.
+>
+> But it seems that it is not a regression at least. Did you try earlier
+> kernels as well?
+>
+>
+> Vegard
+>
+> --
+> "The animistic metaphor of the bug that maliciously sneaked in while
+> the programmer was not looking is intellectually dishonest as it
+> disguises that the error is the programmer's own creation."
+>       -- E. W. Dijkstra, EWD1036
+>
+> and ....
+>
+>
+> On Sat, Nov 22, 2008 at 2:10 AM, Vegard Nossum <vegard.nossum@gmail.com>
+> wrote:
+> >> [  527.562373]  ffffffff8043b157 0000000000200200 ffffffffa02810d4
+> >> ffff88001e13c600
+> >
+> > LIST_POISON2 on the stack:
+> >
+> > include/linux/poison.h:#define LIST_POISON2  ((void *) 0x00200200)
+>
+> So looking at bttv source code, I wonder what the codes like these are
+> trying to do:
+>
+>                       if (set->top->vb.queue.next)
+>                               list_del(&set->top->vb.queue);
+>
+> Code is ancient, I'll ask Mauro.
+> - Hide quoted text -
+>
+>
+> Vegard
+>
+> --
+> "The animistic metaphor of the bug that maliciously sneaked in while
+> the programmer was not looking is intellectually dishonest as it
+> disguises that the error is the programmer's own creation."
+>       -- E. W. Dijkstra, EWD1036
+>
+> On Sat, Dec 6, 2008 at 7:09 AM, alexWe <hondansx@gmx.de> wrote:
+> >
+> > Hi,
+> >
+> > Maybe this can help you. See here:
+> > http://n2.nabble.com/Pre-crash-log-td1515298.html#a1621996
+> >
+> >
+> > BR,
+> > Alex
+> >
+> > --
+> > View this message in context:
+> http://n2.nabble.com/bttv-timeouts-tp1614747p1621999.html
+> > Sent from the video4linux-list mailing list archive at Nabble.com.
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe mailto:video4linux-list-request@redhat.com
+> ?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+> >
+> On Wed, Nov 19, 2008 at 12:24 AM, Brian Phelps <lm317t@gmail.com> wrote:
+> > This possible kernel bug (see bottom) is very reproducible when the
+> > pci bus gets loaded with traffic, specifically video data.
+> > It has been reproduced on 2 identical machines.
+> >
+> > Please let me know if you need more information
+>
+> Hi,
+>
+> Can you reproduce this with CONFIG_DEBUG_SLAB=y?
+>
+> Can you reproduce this with CONFIG_SLUB=y instead of SLAB? If not,
+> could be a genuine bug in SLAB (but I doubt it). If yes, then SLUB
+> debugging might help us more than SLAB debugging can.
+>
+> It sounds likely that bttv driver is involved somehow -- it would fit
+> with your description too. Maybe the fact that the same driver is
+> serving many devices on the same IRQ? But I guess that shouldn't
+> really be a problem.
+>
+> It would also be interesting to see if you can find more different
+> crashes in other places, like the corrupted page tables. Those are
+> important clues. Like this:
+>
+> > [ 2128.370257] PGD 10869067 PUD 23232323 BAD
+>
+> That looks like a magic number of sorts. This was the only one I could
+> find, however:
+>
+> crypto/anubis.c:      0x83838383U, 0x1b1b1b1bU, 0x0e0e0e0eU, 0x23232323U,
+>
+> But google has some more info. A google for "23232323 bug" turned up
+> this thread:
+>
+> http://lkml.org/lkml/2008/1/5/51
+>
+> ...which also involves bttv driver. I've added the Ccs of that discussion.
+>
+> But it seems that it is not a regression at least. Did you try earlier
+> kernels as well?
+>
+>
+> Vegard
+>
+> --
+> "The animistic metaphor of the bug that maliciously sneaked in while
+> the programmer was not looking is intellectually dishonest as it
+> disguises that the error is the programmer's own creation."
+>       -- E. W. Dijkstra, EWD1036
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---Boundary-00=_W0+OJNseGNGTkui--
