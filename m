@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBT2TTG6020896
-	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 21:29:29 -0500
-Received: from mail-in-13.arcor-online.net (mail-in-13.arcor-online.net
-	[151.189.21.53])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBT2TAEd002258
-	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 21:29:11 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: CityK <cityk@rogers.com>
-In-Reply-To: <495811FB.2060904@rogers.com>
-References: <4956E4C6.8040506@popdial.com>
-	<20081228183433.1b35c464@gmail.com>  <495811FB.2060904@rogers.com>
-Content-Type: text/plain
-Date: Mon, 29 Dec 2008 03:29:44 +0100
-Message-Id: <1230517784.2695.16.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB82L0gT018588
+	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 21:21:00 -0500
+Received: from smtp130.rog.mail.re2.yahoo.com (smtp130.rog.mail.re2.yahoo.com
+	[206.190.53.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB82KhKa013995
+	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 21:20:43 -0500
+Message-ID: <493C8479.2090502@rogers.com>
+Date: Sun, 07 Dec 2008 21:20:41 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: nymusicman <nymusicman@gmail.com>
+References: <b131d10812060913p61a26027pd7d5bee20c37e79c@mail.gmail.com>
+In-Reply-To: <b131d10812060913p61a26027pd7d5bee20c37e79c@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, MrUmunhum@popdial.com
-Subject: Re: eMPIA camera support?
+Cc: video4linux-list@redhat.com
+Subject: Re: Plug n Play Tv Tuner Card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,42 +28,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+nymusicman wrote:
+> I'm sure this has been delt with over and over and over again. But I don't
+> know how to check past mailings. 
+http://marc.info/?l=linux-dvb&r=1&w=2
+http://marc.info/?l=linux-video
 
-Am Sonntag, den 28.12.2008, 18:55 -0500 schrieb CityK:
-> Douglas Schilling Landgraf wrote:
-> > 4) If possible, photos (outside and inside)
-> >    You can use bttv galery: http://www.bttv-gallery.de/
-> 
-> Nack on this one point. While the bttv gallery remains a very useful
-> resource, I don't believe that Gunther is maintaining it any more. In
-> any regard, let s use the V4L-DVB wiki
-> (http://www.linuxtv.org/wiki/index.php/Main_Page), as it is best to keep
-> the information all in one place (i.e. a centralized repository of
-> knowledge and information), as opposed to spread out across multiple 3rd
-> party sources.
-> 
+Gmane offers similar capability
 
-let's see. It still has lots of advantages.
+> I would like to know everybody's
+> experience. Besides pchdtv what are the best plug n play (no work necessary,
+> drivers built into kernel or proprietary drivers provided) cards to buy???
 
-Hacking of hundreds of tuners and advanced gpio and eeprom detection was
-coordinated there on requests for research coming up on the lists and it
-has several thousand contributors. A wiki was not even in sight then.
-
-I would prefer to see it further maintained for easy searching on hard
-facts.
-
-At least don't call it third party.
-
-That is as mad as if you would call the video4linux-list or bytesex.org
-third party.
-
-It is/was to that point the official hardware resource and Gunther a
-leading tuner/hardware developer and nothing else.
-
-Cheers,
-Hermann
-
+- Best is highly subjective
+- You're not being specific as to what your needs are or features you
+seek  ... expect to receive inappropriate suggestions
+- proprietary drivers aren't plug'n'play --- think nvidia proprietary
+drivers for e.g. -- as they aren't included in the kernel
+- the wiki is a good place to start your research:
+http://www.linuxtv.org/wiki/index.php/Main_Page
 
 --
 video4linux-list mailing list
