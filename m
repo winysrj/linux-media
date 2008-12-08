@@ -1,19 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.170])
+Received: from ug-out-1314.google.com ([66.249.92.175])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LCrjP-0001cM-0g
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 09:26:12 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so312807ugc.16
-	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 00:26:07 -0800 (PST)
-Date: Wed, 17 Dec 2008 09:26:00 +0100 (CET)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L9mQn-0003d4-Bv
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 21:10:15 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so738837ugc.16
+	for <linux-dvb@linuxtv.org>; Mon, 08 Dec 2008 12:10:09 -0800 (PST)
+Date: Mon, 8 Dec 2008 21:10:53 +0100 (CET)
 From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Ian Molton <ian@mnementh.co.uk>
-In-Reply-To: <4948B5AB.7020500@mnementh.co.uk>
-Message-ID: <alpine.DEB.2.00.0812170921540.18619@ybpnyubfg.ybpnyqbznva>
-References: <4948B5AB.7020500@mnementh.co.uk>
+To: Pavel Hofman <pavel.hofman@insite.cz>
+In-Reply-To: <493D69C8.2080904@insite.cz>
+Message-ID: <alpine.DEB.2.00.0812082101180.14915@ybpnyubfg.ybpnyqbznva>
+References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
+	<4935B72F.1000505@insite.cz>
+	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
+	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
+	<49371511.1060703@insite.cz> <493BE666.8030007@insite.cz>
+	<c74595dc0812070822p73746bdel9894de34c87a733f@mail.gmail.com>
+	<493D69C8.2080904@insite.cz>
 MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] freecom dvb-t v4
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,23 +33,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 17 Dec 2008, Ian Molton wrote:
+On Mon, 8 Dec 2008, Pavel Hofman wrote:
 
-> I can build the source, but the module fails to load complaaining of:
-> dvb_usb_rtl2831u: Unknown symbol dvb_usb_device_init
+> Results of the scan give very often zero APID, VPID:
+> 
+> Sky Cust Ch:11934:v:0:27500:0:0:4505:5
+> Cartoon Network Game 4:12012:v:0:27500:0:2603:8005:5
+> Video Application Val:12012:v:0:27500:2518:2519:8015:5
+> Sky Bingo:12012:v:0:27500:0:0:8032:5
+> Sky Bet, Vegas & Sky Poker:12012:v:0:27500:0:0:8076:5
 
-A `grep' in my modules shows this is apparently provided by
-dvb-usb.ko.
+These are all programmes -- or rather, data services or MHP/
+OpenTV/whatever BSkyB uses -- at 28E -- nowhere else.
 
-Does `lsmod' reveal a line similar to
-dvb_usb                15532  2 dvb_usb_cxusb,dvb_usb_opera
- ?
+Your sat dish is clearly misaligned -- you are probably
+receiving your CZ/SK/Kabel Deutschland/NL correctly at
+23E5, but instead of 19E2, you are receiving 28E, with
+english speaking programmes for the UK -- the majority
+of the 19E2 programmes are german language, with a few
+french, spanish, and a handful of other languages.
+
+Do you have a normal satellite receiver?  If so, use
+that, as you move your dish slightly in one direction
+(to the direction of the sunset) until you receive your
+CZ stations -- although now they will be received on
+the other LNB input -- and then you should be seeing
+the programmes from 19E2.
+
+As long as you are receiving FreeSat/BSkyB programmes,
+there is no way that an Astra 19E2 scanfile will help.
 
 
-Of course, this is with old source/modules, so if something
-has changed, then I'm wasting your time...
-
-thanks
 barry bouwsma
 
 _______________________________________________
