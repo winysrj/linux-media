@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <thomas.creutz@gmx.de>) id 1LEl0d-0007OV-Ef
-	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 14:39:48 +0100
-Message-ID: <494F987F.60707@gmx.de>
-Date: Mon, 22 Dec 2008 14:39:11 +0100
-From: Thomas Creutz <thomas.creutz@gmx.de>
+Received: from bobrnet.cust.inethome.cz ([88.146.180.6]
+	helo=mailserver.bobrnet.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <pavel.hofman@insite.cz>) id 1L9lFR-0005Lq-M5
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 19:54:26 +0100
+Message-ID: <493D6D58.8010704@insite.cz>
+Date: Mon, 08 Dec 2008 19:54:16 +0100
+From: Pavel Hofman <pavel.hofman@insite.cz>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <49293640.10808@cadsoft.de>
-	<492A53C4.5030509@makhutov.org>	<492A6E9B.7030906@cadsoft.de>
-	<492AC460.1050203@makhutov.org>
-In-Reply-To: <492AC460.1050203@makhutov.org>
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+To: Michel Verbraak <michel@verbraak.org>
+References: <49346726.7010303@insite.cz>	<4934D218.4090202@verbraak.org>		<4935B72F.1000505@insite.cz>		<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>	<49371511.1060703@insite.cz>
+	<493BE666.8030007@insite.cz> <493CC447.8030606@verbraak.org>
+In-Reply-To: <493CC447.8030606@verbraak.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,31 +27,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Artem Makhutov schrieb:
-> I fully understand what you mean. I would also like to adress the
-> remarks of Berry:
+Michel Verbraak napsal(a):
+>>   
+> Pavel,
 > 
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030539.html
+> The reason why you probably do not get picture on LNB1 is because you 
+> are still getting a stream from LNB0. Probably there is a transponder on 
+> LNB0 with the same frequency and symbolrate as on LNB1 (frequency 11515 
+> MHz H, symbolrate 27500000) but the specified PIDs (vpid 0x0947, apid 
+> 0x0948) do not exist. Therefore you do not get a picture.
 > 
-> Here we can define the frontend type and check if it is DVB-S or DVB-S2
-> or whatever and also define the modulations that the frontend is capable
-> to handle (in case a device won't work with the "professional"
-> modulations like 16APSK).
+> Have a look at http://nl.kingofsat.net/pos-19.2E.php. Find the 
+> transponder for LNB0 with the same frequency and symbolrate (frequency 
+> 11515 MHz H, symbolrate 27500000) as tried on LNB1 but with a set of 
+> PIDs that exist on LNB0. Change the channels.conf file and szap again to 
+> LNB1 with these parameters. If you do get picture you are sure that the 
+> diseqc switch is not switching but stays on LNB0.
 > 
-> Applications like VDR can check the fe_type flags, and applications that
-> require more info could check fe_caps.
+> Please report your result to the list.
 > 
-> I am not sure about this all, and I would like to see some comments from
-> some people that are more familiar it. Specially changing fe_type looks
-> like it will break the binary compatibility, so maybe it would be better
-> to define a new enum for this flags...
+> Regards,
 > 
+> Michel.
 
-I think, it can be a (or the) solution. Why nobody answered on this?
-Have I not read something? Is a solution found?
+Hi Michel,
+
+I appreciate your help a lot. Fortunately I can tune the second LNB now. 
+  I got caught by the scan/mplayer LNB numbering inconsistency too.
 
 Regards,
-Thomas
+
+Pavel.
 
 _______________________________________________
 linux-dvb mailing list
