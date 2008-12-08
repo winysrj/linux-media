@@ -1,34 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVMZLMc003187
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 17:35:21 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVMZ6q6023179
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 17:35:06 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so2376844qwe.39
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 14:35:05 -0800 (PST)
-Message-ID: <412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
-Date: Wed, 31 Dec 2008 17:35:05 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Paul Thomas" <pthomas8589@gmail.com>
-In-Reply-To: <c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8GEqIg021475
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 11:14:52 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB8GE23R030942
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 11:14:35 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so444057eyf.39
+	for <video4linux-list@redhat.com>; Mon, 08 Dec 2008 08:14:34 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain
+Date: Mon, 08 Dec 2008 19:14:31 +0300
+Message-Id: <1228752871.1809.94.camel@tux.localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
-	<412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
-	<c785bba30812311209k16ef6f04jc3d8867a64d4cb93@mail.gmail.com>
-	<c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
-	<c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
-	<412bdbff0812311323rd83eac8l35f29195b599d3e@mail.gmail.com>
-	<c785bba30812311330w26ce5817l10db52d5be98d175@mail.gmail.com>
-	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>
-	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
-Cc: video4linux-list <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: em28xx issues
+Cc: video4linux-list@redhat.com, David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH 2/2] radio-mr800: disable autosuspend support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,49 +27,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Dec 31, 2008 at 5:24 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
-> Here it is,
->
-> em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
-> em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
-> em28xx #0: chip ID is em2860
-> saa7115' 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-> em28xx #0: board has no eeprom
-> em28xx #0: found i2c device @ 0x4a [saa7113h]
-> em28xx #0: Your board has no unique USB ID.
-> em28xx #0: A hint were successfully done, based on i2c devicelist hash.
-> em28xx #0: This method is not 100% failproof.
-> em28xx #0: If the board were missdetected, please email this log to:
-> em28xx #0:      V4L Mailing List  <video4linux-list@redhat.com>
-> em28xx #0: Board detected as PointNix Intra-Oral Camera
-> em28xx #0: Registering snapshot button...
-> input: em28xx snapshot button as
-> /devices/pci0000:00/0000:00:02.1/usb1/1-1/1-1.4/input/input15
-> em28xx #0: Config register raw data: 0x00
-> em28xx #0: No AC97 audio processor
-> em28xx #0: v4l2 driver version 0.1.1
-> em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-> em28xx-audio.c: probing for em28x1 non standard usbaudio
-> em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-> usb 1-1.4: New USB device found, idVendor=eb1a, idProduct=2860
-> usb 1-1.4: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+Because this device doesn't provide any powermanagment capabilities(may
+be they exist but unknown to me yet, so they are not implemented), we
+should turn them off.
+Patch sets support_autosuspend equal to 0. 
 
-Yeah, that's going to be a tough one - they're using the default Empia
-USB ID, they have no eeprom at all to use in a hash, and it does
-indeed have an identical i2c device layout to the Pointnix camera.
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-I'm not sure how we're going to be able to tell the two apart, which
-really is a problem since the Pointnix camera has different inputs on
-the saa7113 than this device.
+---
+diff -r bc48582f8776 linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Mon Dec 08 17:42:20 2008 +0300
++++ b/linux/drivers/media/radio/radio-mr800.c	Mon Dec 08 17:45:34 2008 +0300
+@@ -169,7 +169,7 @@
+ 	.reset_resume		= usb_amradio_resume,
+ #endif
+ 	.id_table		= usb_amradio_device_table,
+-	.supports_autosuspend	= 1,
++	.supports_autosuspend	= 0,
+ };
+ 
+ /* switch on radio. Send 8 bytes to device. */
 
-Mauro, any suggestions?
-
-Devin
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
