@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.infomir.com.ua ([79.142.192.5] helo=infomir.com.ua)
+Received: from gv-out-0910.google.com ([216.239.58.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vdp@teletec.com.ua>) id 1LHMJ1-0007bM-0M
-	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 18:53:32 +0100
-Received: from [10.128.0.10] (iptv.infomir.com.ua [79.142.192.146])
-	by infomir.com.ua with ESMTP id 1LHMIu-00068s-NL
-	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 19:53:24 +0200
-Message-ID: <49590E94.5040406@teletec.com.ua>
-Date: Mon, 29 Dec 2008 19:53:24 +0200
-From: Dmitry Podyachev <vdp@teletec.com.ua>
+	(envelope-from <xweber.alex@googlemail.com>) id 1L9nuF-0002E1-E7
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 22:44:45 +0100
+Received: by gv-out-0910.google.com with SMTP id n29so297679gve.16
+	for <linux-dvb@linuxtv.org>; Mon, 08 Dec 2008 13:44:40 -0800 (PST)
+Message-ID: <493D9545.4080605@googlemail.com>
+Date: Mon, 08 Dec 2008 22:44:37 +0100
+From: Alexander Weber <xweber.alex@googlemail.com>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <mailman.1.1230202801.10286.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.1.1230202801.10286.linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] linux-dvb Digest, Vol 47, Issue 27
+References: <493AC65E.3010900@googlemail.com>	
+	<493D593F.7010707@googlemail.com>
+	<337548152.20081208193816@gmail.com>	
+	<493D62F5.4010207@googlemail.com>
+	<1228770724.2587.16.camel@pc10.localdom.local>
+In-Reply-To: <1228770724.2587.16.camel@pc10.localdom.local>
+Subject: Re: [linux-dvb] saa7134 with Avermedia M115S hybrid card
+Reply-To: xweber.alex@googlemail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,20 +31,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-change please URI at hg/v4l-dvb/linux/Documentation/dvb/get_dvb_firmware
-for tda10046:
-from 
-http://technotrend-online.com/download/software/219/TT_PCI_2.19h_28_11_2006.zip
-to     
-http://www.technotrend.de/Dokumente/87/software/219/TT_PCI_2.19h_28_11_2006.zip
+hermann pitton wrote:
+> Hi,
+> 
+> Am Montag, den 08.12.2008, 19:09 +0100 schrieb Alexander Weber:
+>> Tanguy Pruvot wrote:
+>>> Bonjour,
+>>>
+>>>   Could you make a scan (picture) of the Mini PCI Card (if it's a mini
+>>>   pci card)... I can maybe help you to determine GPIOs....
+>>>
+>>>   i reversed a SAA7130 PCI card here : http://tanguy.ath.cx/?q=SAA7130
+>>>
+>>> Cordialement,
+>>
+>> Hello,
+>>
+>> all i have are some mini pci card pictures i googled on ebay. "My" card 
+>> is inside the original packaged and sealed laptop. But i will take a 
+>> closer look if can open it without damaging anything...
+>>
+>> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-709.jpg
+>> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-710.jpg
+>>
+>>
+>> Alex
+>>
+> 
+> here you'll find the old known but tiny picture of the M115 non S.
+> 
+> http://www.avermedia.com/cgi-bin/products_odm_M115.asp
+> Cheers,
+> Hermann
+> 
 
-Source: perl  ./hg/linux/Documentation/dvb/get_dvb_firmware tda10046
-wget failed - unable to download firmware at 
-./linux/Documentation/dvb/get_dvb_firmware line 412
+compared to that, the new ones are hi-res images :)
 
-new uri: 
-http://www.technotrend.de/Dokumente/87/software/219/TT_PCI_2.19h_28_11_2006.zip 
-
+Alex
 
 _______________________________________________
 linux-dvb mailing list
