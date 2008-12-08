@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4M9oRl027198
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 17:09:50 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4M9a3V027996
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 17:09:37 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so3106092fga.7
-	for <video4linux-list@redhat.com>; Thu, 04 Dec 2008 14:09:36 -0800 (PST)
-Message-ID: <e48b28270812041409t31139b4v1ca6c8ab1578b4e9@mail.gmail.com>
-Date: Thu, 4 Dec 2008 23:09:36 +0100
-From: "Nagy Gabor" <nagygabor.info@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8LhK7W010639
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 16:43:20 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB8Lghom007241
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 16:42:43 -0500
+Date: Mon, 8 Dec 2008 19:42:35 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Trilok Soni" <soni.trilok@gmail.com>
+Message-ID: <20081208194235.4991873d@pedra.chehab.org>
+In-Reply-To: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: WinFast PalmTop DTV200H USB TvTuner
+Cc: v4l <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,44 +29,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've got a Leadtek
-dtv200h<http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=413>usb
-tv tuner, and it got 4 chips:
+On Thu, 27 Nov 2008 00:14:51 +0530
+"Trilok Soni" <soni.trilok@gmail.com> wrote:
 
-EMPIA 2882<http://kepfeltoltes.hu/081204/EMPIA_2882_www.kepfeltoltes.hu_.jpg>
-WJCE6353 <http://kepfeltoltes.hu/081204/WJCE6353_www.kepfeltoltes.hu_.jpg>
-CX25843-24Z<http://kepfeltoltes.hu/081204/CX25843-242_www.kepfeltoltes.hu_.jpg>
-XCEIVE XC3028LCQ<http://kepfeltoltes.hu/081204/XCEIVE_XC3028LCQ_www.kepfeltoltes.hu_.jpg>
-front<http://kepfeltoltes.hu/081204/258590942front_www.kepfeltoltes.hu_.jpg>
-back <http://kepfeltoltes.hu/081204/22578894back_www.kepfeltoltes.hu_.jpg>
+> +
+> +/*
+> + *
+> + * DMA hardware.
+> + *
+> + */
+> +
+> +/* Ack all interrupt on CSR and IRQSTATUS_L0 */
+> +static void omap24xxcam_dmahw_ack_all(unsigned long base)
 
-distro: I use Debian Lenny
-2.6.26-1-amd64<http://cdimage.debian.org/cdimage/lenny_di_rc1/amd64/bt-cd/debian-testing-amd64-kde-CD-1.iso.torrent>-
-"or anything you want" :D
+Oh, no! yet another dma video buffers handling...
 
-lsusb:
-Bus 007 Device 005: ID 0413:6f02 Leadtek Research, Inc.
+Soni, couldn't this be converted to use videobuf?
 
-dmesg:
-[    2.787953] usb 7-1: new high speed USB device using ehci_hcd and address
-2
-[    2.928702] usb 7-1: configuration #1 chosen from 1 choice
-[    2.928702] usb 7-1: New USB device found, idVendor=0413, idProduct=6f02
-[    2.928702] usb 7-1: New USB device strings: Mfr=0, Product=1,
-SerialNumber=2
-[    2.928702] usb 7-1: Product: WinFast PalmTop DTV200 H
-[    2.928702] usb 7-1: SerialNumber: 2222
+Each time I see a driver implementing a different buffer schema I want to cry...
 
-tvtime-scanner:
-videoinput: Cannot open capture device /dev/video0: No such file or
-directory
+Those handlers seem to be very complex and different buffers implementations
+lead to different errors that requires lots of time to fix. We should really
+work to improve a common buffer handler that work fine for all drivers.
 
-Does someone know, how to get it work under Linux?
-Thank you!
+Cheers,
+Mauro
 
--- 
-Nagy Gabor
-http://szabadlinuxot.blogspot.com/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
