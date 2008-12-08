@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web26104.mail.ukl.yahoo.com ([217.146.182.145])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <linuxcbon@yahoo.fr>) id 1LCiEG-0006o7-RT
-	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 23:17:26 +0100
-Date: Tue, 16 Dec 2008 22:16:50 +0000 (GMT)
-From: linuxcbon <linuxcbon@yahoo.fr>
-To: Halim Sahin <halim.sahin@t-online.de>,
-	Henrik Beckman <henrik.list@gmail.com>
-In-Reply-To: <af2e95fa0812150101y38f53189saa70156972d11068@mail.gmail.com>
-MIME-Version: 1.0
-Message-ID: <260709.51661.qm@web26104.mail.ukl.yahoo.com>
+Received: from mail-in-04.arcor-online.net ([151.189.21.44])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1L9ZWN-00075d-PA
+	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 07:23:09 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+In-Reply-To: <alpine.DEB.2.00.0812072126580.11349@ybpnyubfg.ybpnyqbznva>
+References: <alpine.DEB.2.00.0812072126580.11349@ybpnyubfg.ybpnyqbznva>
+Date: Mon, 08 Dec 2008 07:18:03 +0100
+Message-Id: <1228717083.2589.9.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Best dvb-t tuner ?
-Reply-To: linuxcbon@yahoo.fr
+Subject: Re: [linux-dvb] EMTEC S826 (ID 1164:1f08 YUAN STK7700D) (fwd)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,64 +19,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
---- En date de=A0: Lun 15.12.08, Henrik Beckman <henrik.list@gmail.com> a =
-=E9crit=A0:
+Hi,
 
-> De: Henrik Beckman <henrik.list@gmail.com>
-> Objet: Re: [linux-dvb] Best dvb-t tuner ?
-> =C0: "Halim Sahin" <halim.sahin@t-online.de>
-> Cc: linux-dvb@linuxtv.org
-> Date: Lundi 15 D=E9cembre 2008, 10h01
-> No,
-> =
+Am Sonntag, den 07.12.2008, 21:49 +0100 schrieb BOUWSMA Barry:
+> I'm forwarding this to the list (I think it was only
+> sent to me), because I am ignorant of the Linux support
+> for this device -- or for that matter, of any sort of
+> analogue support; perhaps someone else can offer the
+> assistance needed...
 
-> The linux compatible version is long gone and afaik no
-> driver has been
-> adapted to the new hardware revision.
-> See the Wiki for info.
-> =
+Barry, do you also have some ideas about which hardware mpeg encoders
+are still working, if ever, compared to m$ XP versus vista drivers on
+that OS?
 
-> /Henrik
-> =
+I'm totally lost on it.
 
-> On Fri, Dec 12, 2008 at 9:19 PM, Halim Sahin
-> <halim.sahin@t-online.de>wrote:
-> =
+Cheers,
+Hermann
 
-> > Hi,
-> > I am using a twinhan dtv alpha stick since three
-> years.
-> > i don't know if that version is available today
-> but the stick works realy
-> > well.
-> >
-> > If you want to buy a pci card look at the technisat
-> airstar pci products!
-> > HTH.
-> > halim
+> 
+> ---------- Forwarded message ----------
+> Date: Sun, 7 Dec 2008 20:07:58
+> From: litlle girl <little.linux.girl@gmail.com>
+> To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+> Subject: Re: [linux-dvb] EMTEC S826 (ID 1164:1f08 YUAN STK7700D)
+> 
+> hi Barry,
+> i did it :) IT WORKS :D
+> there is no parameters for my location, so i tested all *
+> the way to succes was kaffeine,
+> it has Auto scan all frequencies, and it finds TV programs
+> so thank you for your tips,
+> 
+> i have one more question, according this links:
+> http://www.emtec-international.com/en/produit.php?categorie=AVNOM&gamme=TUNERS%20TNT&ss_gamme=S826
+> With the Hybrid USB Tuner S826, turn your PC into a television and watch the
+> analog and DVB-T channels. 3 recording modes. USB 2.0 compatible
+> http://www.emtec-international.com/en/gamme.php?categorie=AVNOM&gamme=TUNERS%20TNT
+> With the Hybrid USB Tuner S826, turn your PC into a television and watch the
+> analog and DVB-T channels. 3 recording modes. USB 2.0 compatible
+> 
+> this tuner is a hybrid one, is there any way to use analog tuner?
+> In my place i havent DVB digital channels, i have only analog :(
+> 
+> I was testing DVB digital channels during busines trip.
+> Thanks 4 R time
+> LLG :D
+> 
 
-Hi
-
-Someone told me, PCI have a better reception than USB.
-And the more expensive, the better the card is.
-So what about :
-Hauppauge WinTV-HVR-4000 =
-
-Pinnacle PCTV Dual DVB-T Pro PCI
-Hauppauge WinTV-NOVA-T-500
-
-Regards
-
-
-
-      =
 
 
 _______________________________________________
