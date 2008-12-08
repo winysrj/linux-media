@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBE1LitG017866
-	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 20:21:44 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBE1LU8s001532
-	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 20:21:30 -0500
-Date: Sat, 13 Dec 2008 23:21:05 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <20081213232105.14e18a03@caramujo.chehab.org>
-In-Reply-To: <Pine.LNX.4.64.0812132252090.10954@axis700.grange>
-References: <20081210074435.5727.93374.sendpatchset@rx1.opensource.se>
-	<20081210074457.5727.59206.sendpatchset@rx1.opensource.se>
-	<Pine.LNX.4.64.0812132252090.10954@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8GEWAg021236
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 11:14:32 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB8GE23Q030942
+	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 11:14:19 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so444057eyf.39
+	for <video4linux-list@redhat.com>; Mon, 08 Dec 2008 08:14:18 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain
+Date: Mon, 08 Dec 2008 19:14:15 +0300
+Message-Id: <1228752855.1809.93.camel@tux.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 03/03] sh_mobile_ceu: add NV16 and NV61 support
+Cc: video4linux-list@redhat.com, David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH 1/2] radio-mr800: correct unplug, fix to previous patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,25 +27,115 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 13 Dec 2008 22:56:37 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+This patch corrects unplug procedure, that was implemented wrong in
+previous patch. New function usb_amradio_device_release added.
+Disconnect lock removed.
 
-> On Wed, 10 Dec 2008, Magnus Damm wrote:
-> 
-> > From: Magnus Damm <damm@igel.co.jp>
-> > 
-> > This patch adds NV16/NV61 support to the sh_mobile_ceu driver.
-> 
-> I guess I cannot apply / push this patch befor your NV16 / NV61 is 
-> applied, or shall I pull that patch too, Mauro?
-> 
-Guennadi,
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-You can apply it on your tree. I'll then pull from you on your next pull request.
+---
+diff -r 602d3ac1f476 linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Thu Nov 20 19:47:37 2008 -0200
++++ b/linux/drivers/media/radio/radio-mr800.c	Mon Dec 08 17:42:06 2008 +0300
+@@ -142,7 +142,6 @@
+ 
+ 	unsigned char *buffer;
+ 	struct mutex lock;	/* buffer locking */
+-	struct mutex disconnect_lock;
+ 	int curfreq;
+ 	int stereo;
+ 	int users;
+@@ -305,16 +304,12 @@
+ {
+ 	struct amradio_device *radio = usb_get_intfdata(intf);
+ 
+-	mutex_lock(&radio->disconnect_lock);
++	mutex_lock(&radio->lock);
+ 	radio->removed = 1;
++	mutex_unlock(&radio->lock);
++
+ 	usb_set_intfdata(intf, NULL);
+-
+-	if (radio->users == 0) {
+-		video_unregister_device(radio->videodev);
+-		kfree(radio->buffer);
+-		kfree(radio);
+-	}
+-	mutex_unlock(&radio->disconnect_lock);
++	video_unregister_device(radio->videodev);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+@@ -532,7 +527,7 @@
+ 	return 0;
+ }
+ 
+-/*close device - free driver structures */
++/*close device */
+ static int usb_amradio_close(struct inode *inode, struct file *file)
+ {
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+@@ -541,21 +536,15 @@
+ 	if (!radio)
+ 		return -ENODEV;
+ 
+-	mutex_lock(&radio->disconnect_lock);
+ 	radio->users = 0;
+-	if (radio->removed) {
+-		video_unregister_device(radio->videodev);
+-		kfree(radio->buffer);
+-		kfree(radio);
+ 
+-	} else {
++	if (!radio->removed) {
+ 		retval = amradio_stop(radio);
+ 		if (retval < 0)
+ 			amradio_dev_warn(&radio->videodev->dev,
+ 				"amradio_stop failed\n");
+ 	}
+ 
+-	mutex_unlock(&radio->disconnect_lock);
+ 	return 0;
+ }
+ 
+@@ -612,12 +601,24 @@
+ 	.vidioc_s_input     = vidioc_s_input,
+ };
+ 
++static void usb_amradio_device_release(struct video_device *videodev)
++{
++	struct amradio_device *radio = video_get_drvdata(videodev);
++
++	/* we call v4l to free radio->videodev */
++	video_device_release(videodev);
++
++	/* free rest memory */
++	kfree(radio->buffer);
++	kfree(radio);
++}
++
+ /* V4L2 interface */
+ static struct video_device amradio_videodev_template = {
+ 	.name		= "AverMedia MR 800 USB FM Radio",
+ 	.fops		= &usb_amradio_fops,
+ 	.ioctl_ops 	= &usb_amradio_ioctl_ops,
+-	.release	= video_device_release,
++	.release	= usb_amradio_device_release,
+ };
+ 
+ /* check if the device is present and register with v4l and
+@@ -655,7 +656,6 @@
+ 	radio->usbdev = interface_to_usbdev(intf);
+ 	radio->curfreq = 95.16 * FREQ_MUL;
+ 
+-	mutex_init(&radio->disconnect_lock);
+ 	mutex_init(&radio->lock);
+ 
+ 	video_set_drvdata(radio->videodev, radio);
 
 
-Cheers,
-Mauro
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
