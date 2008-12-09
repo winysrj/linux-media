@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.173])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L9QY4-0006Ut-5V
-	for linux-dvb@linuxtv.org; Sun, 07 Dec 2008 21:48:17 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so489186ugc.16
-	for <linux-dvb@linuxtv.org>; Sun, 07 Dec 2008 12:48:12 -0800 (PST)
-Date: Sun, 7 Dec 2008 21:49:02 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: linux-dvb@linuxtv.org
-Message-ID: <alpine.DEB.2.00.0812072126580.11349@ybpnyubfg.ybpnyqbznva>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <oliver.maurhart@gmx.net>) id 1LA74Y-0002AA-15
+	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 19:12:39 +0100
+From: Oliver Maurhart <oliver.maurhart@gmx.net>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+Date: Tue, 9 Dec 2008 19:11:55 +0100
+References: <200812091251.57007.oliver.maurhart@gmx.net>
+	<412bdbff0812090739n831d446tf19faab40c85763@mail.gmail.com>
+In-Reply-To: <412bdbff0812090739n831d446tf19faab40c85763@mail.gmail.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] EMTEC S826 (ID 1164:1f08 YUAN STK7700D) (fwd)
+Content-Disposition: inline
+Message-Id: <200812091911.55699.oliver.maurhart@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Help: /dev/dvb missing with Terratec Cinergy XS
+	Hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,40 +28,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I'm forwarding this to the list (I think it was only
-sent to me), because I am ignorant of the Linux support
-for this device -- or for that matter, of any sort of
-analogue support; perhaps someone else can offer the
-assistance needed...
+On Tuesday 09 December 2008 16:39:54 Devin Heitmueller wrote:
+> On Tue, Dec 9, 2008 at 6:51 AM, Oliver Maurhart <oliver.maurhart@gmx.net> 
+wrote:
+> > Hi *,
+> >
+> > After months of googling I'm out of  knowledge. I'm the (lucky?) owner of
+> > a Terratec Hybrid XS USB Card:
+> >
+> > # lsusb | grep TerraTec
+> > Bus 001 Device 007: ID 0ccd:005e TerraTec Electronic GmbH
+...
+> I figured ones of these days a user of this device would come along.  :-)
+>
+> This is an em28xx based device we don't have a profile for yet -
+> although all the core components are supported -
+> em28xx/zarlink/xc3028.
+>
+> If you want to get this device supported under Linux, I'll put in in
+> my queue of em28xx devices to look at.  I think we are just missing
+> the GPIOs and the dvb profile.
 
+Never mind! Markus Rechberger pointed me to the drivers at mcentral.de. I 
+checked out the em28xx-new and ... it worked!!!
 
----------- Forwarded message ----------
-Date: Sun, 7 Dec 2008 20:07:58
-From: litlle girl <little.linux.girl@gmail.com>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-Subject: Re: [linux-dvb] EMTEC S826 (ID 1164:1f08 YUAN STK7700D)
+Geee! I was running around this issue for months.
 
-hi Barry,
-i did it :) IT WORKS :D
-there is no parameters for my location, so i tested all *
-the way to succes was kaffeine,
-it has Auto scan all frequencies, and it finds TV programs
-so thank you for your tips,
+Still: kdetv scans all the possible channels on my webcam (!), missing the 
+fact that my TerraTec Card does now provide a /dev/dvb but as the 2nd V4L-
+Device it's on /dev/video1 ... hehehe ... but kaffeine seems quite smarter and 
+gets around that, showing DVB-TV! Yeah! =)
 
-i have one more question, according this links:
-http://www.emtec-international.com/en/produit.php?categorie=AVNOM&gamme=TUNERS%20TNT&ss_gamme=S826
-With the Hybrid USB Tuner S826, turn your PC into a television and watch the
-analog and DVB-T channels. 3 recording modes. USB 2.0 compatible
-http://www.emtec-international.com/en/gamme.php?categorie=AVNOM&gamme=TUNERS%20TNT
-With the Hybrid USB Tuner S826, turn your PC into a television and watch the
-analog and DVB-T channels. 3 recording modes. USB 2.0 compatible
+What a relief!
 
-this tuner is a hybrid one, is there any way to use analog tuner?
-In my place i havent DVB digital channels, i have only analog :(
+THX!
 
-I was testing DVB digital channels during busines trip.
-Thanks 4 R time
-LLG :D
+kR,
+Oliver
 
 _______________________________________________
 linux-dvb mailing list
