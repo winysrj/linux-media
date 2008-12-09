@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <sinter.mann@gmx.de>) id 1LAmyh-0001Nb-GB
-	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 15:57:24 +0100
-From: sinter <sinter.mann@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Thu, 11 Dec 2008 15:54:51 +0100
-References: <alpine.LRH.1.10.0812101628500.23745@pub3.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0812101628500.23745@pub3.ifh.de>
+Received: from smtp4.tech.numericable.fr ([82.216.111.40])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tanguy.pruvot@gmail.com>) id 1L9tif-0002ls-K0
+	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 04:57:11 +0100
+Date: Tue, 9 Dec 2008 04:57:05 +0100
+From: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+Message-ID: <1689947513.20081209045705@gmail.com>
+To: Alexander Weber <xweber.alex@googlemail.com>
+In-Reply-To: <493D9545.4080605@googlemail.com>
+References: <493AC65E.3010900@googlemail.com> <493D593F.7010707@googlemail.com>
+	<337548152.20081208193816@gmail.com>
+	<493D62F5.4010207@googlemail.com>
+	<1228770724.2587.16.camel@pc10.localdom.local>
+	<493D9545.4080605@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_8mSQJVfDn6ETL10"
-Message-Id: <200812111554.52178.sinter.mann@gmx.de>
-Subject: Re: [linux-dvb] Technisat SkyStar2 rev 2.8 GPL driver now available
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7134 with Avermedia M115S hybrid card
+Reply-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,218 +24,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_8mSQJVfDn6ETL10
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> hermann pitton wrote:
+>> Hi,
+>> 
+>> Am Montag, den 08.12.2008, 19:09 +0100 schrieb Alexander Weber:
+>>> Tanguy Pruvot wrote:
+>>>> Bonjour,
+>>>>
+>>>>   Could you make a scan (picture) of the Mini PCI Card (if it's a mini
+>>>>   pci card)... I can maybe help you to determine GPIOs....
+>>>>
+>>>>   i reversed a SAA7130 PCI card here : http://tanguy.ath.cx/?q=SAA7130
+>>>>
+>>>> Cordialement,
+>>>
+>>> Hello,
+>>>
+>>> all i have are some mini pci card pictures i googled on ebay. "My" card 
+>>> is inside the original packaged and sealed laptop. But i will take a 
+>>> closer look if can open it without damaging anything...
+>>>
+>>> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-709.jpg
+>>> http://www.bdinfo.de/E-Pics/207/minipcitv-1223129064-710.jpg
+>>>
+>>>
+>>> Alex
+>>>
+>> 
+>> here you'll find the old known but tiny picture of the M115 non S.
+>> 
+>> http://www.avermedia.com/cgi-bin/products_odm_M115.asp
+>> Cheers,
+>> Hermann
+>> 
 
-Am Mittwoch 10 Dezember 2008 23:06:21 schrieb Patrick Boettcher:
-> Hi all,
->
-> Finally and with pleasure, I can announce that I just released the last
-> missing piece to add full GPL support to LinuxTV for the Technisat
-> SkyStar2 rev2.8. The last missing piece in question was the driver for the
-> CX24113 tuner. I just committed the source for that into my repository and
-> will ask Mauro to pull it into the main soon.
-> (http://linuxtv.org/hg/~pb/v4l-dvb/)
->
-> Expect support for this card in 2.6.29 .
->
-> happy using and best regards,
-> Patrick.
+> compared to that, the new ones are hi-res images :)
 
-Yeah, thanks to Patrick!
+> Alex
 
-Here is the source code for the Technisat Skystar Revision 2.8 that you can 
-use until it will be part of kernel 2.6.29.
+  Mini  PCI  Cards  are  often  (but  not always) accessible under the
+  laptop, like RAM or Hard disk, because that could be an option of the laptop...
 
-However there is one problem with that driver:
+  Did you take a look closer ?
 
-What you need to reproduce the problem:
-- a channels.conf with FTA channels only
-- the technisat card Revision 2.8 as the only card in your system
-- xine or mplayer
-- mtt and / or dvbrowse, which are essential parts of Gerd Knorr's xawtv-4.0 
-pre which you can download here: http://dl.bytesex.org/cvs-
-snapshots/xawtv-20081014-100645.tar.gz
-
-You can reproduce the problem with the following procedure:
-1. Either start mplayer dvb:// or xine dvb:// (the "master application")
-2. Start mtt after successfully compiling xawtv-4.0 pre (the "slave 
-application")
-
-Then please zap on / change channel using mplayer or xine.
-
-Under normal conditions mtt should stop now and wait as "slave application" 
-for the "master application" to tune a new channel.
-If that new channel has been tuned correctly mtt should continue and show the 
-new videotext.
-
-But what happens instead is the following:
-mtt stops and waits for the new channel, but for unknown reasons the new 
-channel is not being tuned.
-The consequence are the typical timeout-based errors known from xine or 
-mplayer.
-Zapping is only successful if mtt as videotext application is not involved at 
-all parallely.
-
-Question:
-Can someone please reproduce this problem / error?
-
-Thanks
-
-Please see outline attachment!
-
->
-> --
->    Mail: patrick.boettcher@desy.de
->    WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
---Boundary-00=_8mSQJVfDn6ETL10
-Content-Type: application/x-bzip-compressed-tar;
-  name="skystar2_rev2.8.tar.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="skystar2_rev2.8.tar.bz2"
-
-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
-kn/xdyRThQkC3kuE4A==
-
---Boundary-00=_8mSQJVfDn6ETL10
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_8mSQJVfDn6ETL10--
