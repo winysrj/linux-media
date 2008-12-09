@@ -1,26 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52])
+Received: from ik-out-1112.google.com ([66.249.90.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LAwI4-0005q1-H7
-	for linux-dvb@linuxtv.org; Fri, 12 Dec 2008 01:54:02 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: jordi.moles@gmail.com
-In-Reply-To: <4941A199.5020303@gmail.com>
-References: <493FFD3A.80209@cdmon.com>
-	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
-	<4940032D.90106@cdmon.com>
-	<alpine.DEB.2.00.0812101956220.989@ybpnyubfg.ybpnyqbznva>
-	<49401C73.1010208@gmail.com>	<1228955664.3468.21.camel@pc10.localdom.local>
-	<494066C2.90105@gmail.com>	<1228958740.3468.28.camel@pc10.localdom.local>
-	<4940C9D6.2020704@cdmon.com>
-	<1229036621.5863.27.camel@pc10.localdom.local>
-	<4941A199.5020303@gmail.com>
-Date: Fri, 12 Dec 2008 01:48:31 +0100
-Message-Id: <1229042911.5863.51.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LA4gn-0002BH-JA
+	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 16:39:59 +0100
+Received: by ik-out-1112.google.com with SMTP id c28so15188ika.1
+	for <linux-dvb@linuxtv.org>; Tue, 09 Dec 2008 07:39:54 -0800 (PST)
+Message-ID: <412bdbff0812090739n831d446tf19faab40c85763@mail.gmail.com>
+Date: Tue, 9 Dec 2008 10:39:54 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Oliver Maurhart" <oliver.maurhart@gmx.net>
+In-Reply-To: <200812091251.57007.oliver.maurhart@gmx.net>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <200812091251.57007.oliver.maurhart@gmx.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] lifeview pci trio
-	(saa7134)	not	working	through	diseqc anymore
+Subject: Re: [linux-dvb] Help: /dev/dvb missing with Terratec Cinergy XS
+	Hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,329 +29,151 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Tue, Dec 9, 2008 at 6:51 AM, Oliver Maurhart <oliver.maurhart@gmx.net> wrote:
+> Hi *,
+>
+> After months of googling I'm out of  knowledge. I'm the (lucky?) owner of a
+> Terratec Hybrid XS USB Card:
+>
+> # lsusb | grep TerraTec
+> Bus 001 Device 007: ID 0ccd:005e TerraTec Electronic GmbH
+>
+> I think, I followed each and every hint and tip, but I failed to get a
+> /dev/dvb device created. :(
+>
+> I'm really lost! Please help!
+>
+>
+> dmesg after pluging in the device:
+>
+> usb 1-4: new high speed USB device using ehci_hcd and address 7
+> usb 1-4: configuration #1 chosen from 1 choice
+> em28xx v4l2 driver version 0.1.0 loaded
+> em28xx new video device (0ccd:005e): interface 0, class 255
+> em28xx Doesn't have usb audio class
+> em28xx #0: Alternate settings: 8
+> em28xx #0: Alternate setting 0, max size= 0
+> em28xx #0: Alternate setting 1, max size= 0
+> em28xx #0: Alternate setting 2, max size= 1448
+> em28xx #0: Alternate setting 3, max size= 2048
+> em28xx #0: Alternate setting 4, max size= 2304
+> em28xx #0: Alternate setting 5, max size= 2580
+> em28xx #0: Alternate setting 6, max size= 2892
+> em28xx #0: Alternate setting 7, max size= 3072
+> em28xx #0: chip ID is em2882/em2883
+> em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 5e 00 d0 12 5c 03 9e 40 de 1c
+> em28xx #0: i2c eeprom 10: 6a 34 27 57 46 07 01 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 1e 00 00
+> em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
+> em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 34 03 54 00 65 00
+> em28xx #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00
+> em28xx #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00
+> em28xx #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 00 00 40 03
+> em28xx #0: i2c eeprom a0: 43 00 69 00 6e 00 65 00 72 00 67 00 79 00 20 00
+> em28xx #0: i2c eeprom b0: 48 00 79 00 62 00 72 00 69 00 64 00 20 00 54 00
+> em28xx #0: i2c eeprom c0: 20 00 55 00 53 00 42 00 20 00 58 00 53 00 20 00
+> em28xx #0: i2c eeprom d0: 28 00 32 00 38 00 38 00 32 00 29 00 00 00 1c 03
+> em28xx #0: i2c eeprom e0: 30 00 37 00 31 00 30 00 30 00 32 00 30 00 30 00
+> em28xx #0: i2c eeprom f0: 36 00 34 00 32 00 38 00 00 00 00 00 00 00 00 00
+> EEPROM ID= 0x9567eb1a, hash = 0x6013b1be
+> Vendor/Product ID= 0ccd:005e
+> AC97 audio (5 sample rates)
+> 500mA max power
+> Table at 0x27, strings=0x409e, 0x1cde, 0x346a
+> em28xx #0:
+>
+> em28xx #0: The support for this board weren't valid yet.
+> em28xx #0: Please send a report of having this working
+> em28xx #0: not to V4L mailing list (and/or to other addresses)
+>
+> tuner' 4-0061: chip found @ 0xc2 (em28xx #0)
+> xc2028 4-0061: creating new instance
+> xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
+> firmware: requesting xc3028-v27.fw
+> xc2028 4-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028
+> firmware, ver 2.7
+> xc2028 4-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+> xc2028 4-0061: Loading firmware for type=(0), id 000000000000b700.
+> SCODE (20000000), id 000000000000b700:
+> xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id
+> 0000000000008000.
+> xc2028 4-0061: i2c input error: rc = -19 (should be 2)
+> xc2028 4-0061: Unable to read tuner registers.
+> xc2028 4-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+> xc2028 4-0061: Loading firmware for type=(0), id 000000000000b700.
+> SCODE (20000000), id 000000000000b700:
+> xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id
+> 0000000000008000.
+> xc2028 4-0061: i2c input error: rc = -19 (should be 2)
+> xc2028 4-0061: Unable to read tuner registers.
+> tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+> tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+> tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+> tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+> tvp5150 4-005c: *** unknown tvp8081 chip detected.
+> tvp5150 4-005c: *** Rom ver is 130.131
+> tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+> tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+> tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+> em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
+> em28xx #0: Found Terratec Hybrid XS (em2882)
+> usbcore: registered new interface driver em28xx
+> tvp5150 4-005c: tvp5150am1 detected.
+>
+>
+> Kernel-System:
+>
+> # uname -a
+> Linux semirhage 2.6.27-gentoo-r4 #3 SMP PREEMPT Sun Nov 30 15:16:17 CET 2008
+> i686 Intel(R) Pentium(R) 4 CPU 3.00GHz GenuineIntel GNU/Linux
+>
+>
+> Loaded Modules:
+>
+> # lsmod | grep dvb
+> dvb_usb                23180  0
+> dvb_core               76392  1 dvb_usb
+> i2c_core               28948  18
+> tuner,tea5767,tda8290,tda18271,tda827x,tuner_xc2028,xc5000,tda9887,tuner_simple,mt20xx,tea5761,v4l2_common,tvp5150,em28xx,tveeprom,dvb_usb,nvidia,i2c_i801
+> usbcore               124120  14
+> em28xx,dvb_usb,uvcvideo,snd_usb_audio,snd_usb_lib,usblp,ati_remote,sl811_hcd,usbhid,ohci_hcd,uhci_hcd,usb_storage,ehci_hcd
+>
+> # lsmod | grep em28
+> em28xx                 61608  0
+> videobuf_vmalloc       14212  1 em28xx
+> ir_common              47748  1 em28xx
+> tveeprom               19076  1 em28xx
+> compat_ioctl32          9472  2 em28xx,uvcvideo
+> videodev               38912  3 tuner,em28xx,uvcvideo
+> i2c_core               28948  18
+> tuner,tea5767,tda8290,tda18271,tda827x,tuner_xc2028,xc5000,tda9887,tuner_simple,mt20xx,tea5761,v4l2_common,tvp5150,em28xx,tveeprom,dvb_usb,nvidia,i2c_i801
+> usbcore               124120  14
+> em28xx,dvb_usb,uvcvideo,snd_usb_audio,snd_usb_lib,usblp,ati_remote,sl811_hcd,usbhid,ohci_hcd,uhci_hcd,usb_storage,ehci_hcd
+> videobuf_core          24708  2 em28xx,videobuf_vmalloc
+>
+>
+> What is wrong here?
+>
+> Oliver
 
-Am Freitag, den 12.12.2008, 00:26 +0100 schrieb Jordi Molse:
-> En/na hermann pitton ha escrit:
-> > Hi,
-> >
-> > Am Donnerstag, den 11.12.2008, 09:05 +0100 schrieb Jordi Moles Blanco:
-> >   
-> >> En/na hermann pitton ha escrit:
-> >>     
-> >>> Am Donnerstag, den 11.12.2008, 02:02 +0100 schrieb Jordi Molse:
-> >>>   
-> >>>       
-> >>>> En/na hermann pitton ha escrit:
-> >>>>     
-> >>>>         
-> >>>>> Hi,
-> >>>>>
-> >>>>> Am Mittwoch, den 10.12.2008, 20:45 +0100 schrieb Jordi Molse:
-> >>>>>   
-> >>>>>       
-> >>>>>           
-> >>>>>> En/na BOUWSMA Barry ha escrit:
-> >>>>>>     
-> >>>>>>         
-> >>>>>>             
-> >>>>>>> On Wed, 10 Dec 2008, Jordi Moles Blanco wrote:
-> >>>>>>>
-> >>>>>>>   
-> >>>>>>>       
-> >>>>>>>           
-> >>>>>>>               
-> >>>>>>>>>> And it doesn't matter if i run "scan -s 1" or "scan -s 2" or "scan -s
-> >>>>>>>>>> 3", it will always scan from "switch 1"
-> >>>>>>>>>>     
-> >>>>>>>>>>         
-> >>>>>>>>>>             
-> >>>>>>>>>>                 
-> >>>>>>>>>>                     
-> >>>>>>>>> Try with -s 0; I'm not sure if it is always the case,
-> >>>>>>>>> but my unhacked `scan' uses 0-3 for DiSEqC positions
-> >>>>>>>>> 1/4 to 4/4 -- I've hacked this to use the range of 1-4
-> >>>>>>>>>       
-> >>>>>>>>>           
-> >>>>>>>>>               
-> >>>>>>>>>                   
-> >>>>>>>   
-> >>>>>>>       
-> >>>>>>>           
-> >>>>>>>               
-> >>>>>>>> hi, thanks for anwsering.
-> >>>>>>>> I've already tried that.
-> >>>>>>>> remember, on switch 1 i've got astra 28.2E and on switch 2 i've got astra 19E
-> >>>>>>>>     
-> >>>>>>>>         
-> >>>>>>>>             
-> >>>>>>>>                 
-> >>>>>>> I realized soon after sending my reply, that I had probably
-> >>>>>>> confused myself about which inputs you had where, and my
-> >>>>>>> advice, while partly correct, wouldn't help...
-> >>>>>>>
-> >>>>>>> Anyway -- the important thing to remember, is that if your
-> >>>>>>> `scan' works as I expect and your kernel modules work properly
-> >>>>>>> and you have a 2/1 DiSEqC switch, that scan -s option...
-> >>>>>>>  0 -- will tune to position 1/2;
-> >>>>>>>  1 -- will tune to position 2/2;
-> >>>>>>>  2 -- will cycle back and tune position 1/2;
-> >>>>>>>  3 -- will again tune position 2/2
-> >>>>>>>  4 -- should spit a warning, I think (something does)
-> >>>>>>>
-> >>>>>>> In other words -- if your system worked properly, `-s 1'
-> >>>>>>> would give you 19E2 and `-s 2' would give you 28E; the
-> >>>>>>> opposite of your switch labels.
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>   
-> >>>>>>>       
-> >>>>>>>           
-> >>>>>>>               
-> >>>>>>>> I don't why but it looks like it doesn't know how to switch to "switch 2"
-> >>>>>>>>     
-> >>>>>>>>         
-> >>>>>>>>             
-> >>>>>>>>                 
-> >>>>>>> If I understand from your original post (re-reading it;
-> >>>>>>> as soon as people start posting distribution or system
-> >>>>>>> details my eyes sort of glaze over, while other people
-> >>>>>>> will get an `aha!' moment that shall remain elusive to
-> >>>>>>> me)...
-> >>>>>>>
-> >>>>>>> An older kernel version + modules worked;
-> >>>>>>> an update of those modules broke DiSEqC;
-> >>>>>>> your original kernel and modules didn't support your card.
-> >>>>>>>
-> >>>>>>> What I would suggest -- keeping in mind that the dvb kernel
-> >>>>>>> modules, which you should see with `lsmod', are where you
-> >>>>>>> should find correct support, are probably in some package
-> >>>>>>> unknown to me which you'd need to downgrade -- would be to
-> >>>>>>> either revert, if possible, whatever contains those modules,
-> >>>>>>> or jump ahead several kernel versions.
-> >>>>>>>
-> >>>>>>> If you feel comfortable compiling and installing a newer
-> >>>>>>> kernel (which is now around the 2.6.28 area), you could do
-> >>>>>>> that.
-> >>>>>>>
-> >>>>>>> Alternatively, and possibly better, would be to upgrade
-> >>>>>>> only the linux-dvb kernel modules, building them against
-> >>>>>>> your 2.6.24-era kernel source, which you may need to
-> >>>>>>> download and install.
-> >>>>>>>
-> >>>>>>> It's simple to download and build the latest linux-dvb
-> >>>>>>> modules even against a 2.6.24 kernel, and that should
-> >>>>>>> make things work -- if not, then something's been broken
-> >>>>>>> for a while, and some expert should be able to help you.
-> >>>>>>>
-> >>>>>>>
-> >>>>>>> barryb ouwsma
-> >>>>>>>
-> >>>>>>> _______________________________________________
-> >>>>>>> linux-dvb mailing list
-> >>>>>>> linux-dvb@linuxtv.org
-> >>>>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >>>>>>>   
-> >>>>>>>       
-> >>>>>>>           
-> >>>>>>>               
-> >>>>>> Hi again,
-> >>>>>>
-> >>>>>> and thanks for the info.
-> >>>>>>
-> >>>>>> Unfortunately, diseqc seems broken, because no matter what i try
-> >>>>>>
-> >>>>>> -s 0, 1 , 2 ,3.... i get 28.2E signal
-> >>>>>>
-> >>>>>> however, 4 shows an error, as you said.
-> >>>>>>
-> >>>>>> It used to work... so i'll try to get back or compile new linux-dvb 
-> >>>>>> module as you suggested.
-> >>>>>>
-> >>>>>> i'm really really newbie in this, i'm using kubuntu, so imagine.... 
-> >>>>>> hahahaha.
-> >>>>>>
-> >>>>>> i don't even know how to get started, i barely install thing by "apt-get"
-> >>>>>>
-> >>>>>> i'll try to find the way or post instead my problem in an ubuntu forum.
-> >>>>>>
-> >>>>>> thanks for the info.
-> >>>>>>
-> >>>>>>     
-> >>>>>>         
-> >>>>>>             
-> >>>>> we need a report at least from 2.6.25 or current v4l-dvb from
-> >>>>> linuxtv.org.
-> >>>>>
-> >>>>> Prior to this patch
-> >>>>> http://linuxtv.org/pipermail/linux-dvb/2007-June/018741.html
-> >>>>> the Trio failed for 13 Volts and tone generation.
-> >>>>> Don't have the hardware, but would expect BBC 1 London to work and BBC 1
-> >>>>> CI to fail.
-> >>>>>
-> >>>>> This patch disabled some lnpb21 boards, which have that one connected in
-> >>>>> such a way, that diseqc forwarding is disabled. They need it from the
-> >>>>> tda10086.
-> >>>>>
-> >>>>> This was fixed by Hartmut with suggestions from Patrick to make it a
-> >>>>> config option, if the tda10086 or the LNB chip in question is active.
-> >>>>>
-> >>>>> All saa7134 DVB-S drivers have this option as diseqc = 0 in the config
-> >>>>> currently and it should be right for the Trio too and the isl6421 should
-> >>>>> forward.
-> >>>>>
-> >>>>> For looking at Ubuntu stuff, they downport a lot of things, because
-> >>>>> always late with kernel releases, we need the exact sources to diff
-> >>>>> against.
-> >>>>>
-> >>>>> I still have only that single dish for initially helping Hartmut with
-> >>>>> the isl6405 devel, but no rotors and switches yet and might be not of
-> >>>>> much help.
-> >>>>>
-> >>>>> Cheers,
-> >>>>> Hermann
-> >>>>>
-> >>>>>
-> >>>>>
-> >>>>>
-> >>>>>
-> >>>>>
-> >>>>>   
-> >>>>>       
-> >>>>>           
-> >>>> hi,
-> >>>>
-> >>>> thanks for the info. I agree that in ubuntu there seem always to be 
-> >>>> "unfinished" things and then rush many things into "stable" releases 
-> >>>> when "it's time".
-> >>>>
-> >>>> Anyway....
-> >>>>
-> >>>> i tried to upgrade the system from "hardy" to "intrepid", which meant a 
-> >>>> lot of ports upgraded, including kernel
-> >>>> 2.6.27.9.13
-> >>>>
-> >>>> that thing you say...
-> >>>>
-> >>>> "All saa7134 DVB-S drivers have this option as diseqc = 0 in the config
-> >>>>
-> >>>> currently and it should be right for the Trio too and the isl6421 should
-> >>>> forward."
-> >>>>
-> >>>>
-> >>>> is there any way i can try this? is there any config file i can edit to 
-> >>>> make that happen (to make diseqc work)?
-> >>>>
-> >>>> i'm not a experienced user ,but i've got the card and i'm really willing 
-> >>>> to help in any posible way.
-> >>>>
-> >>>> just let me know what i can do.
-> >>>>
-> >>>> thanks.
-> >>>>
-> >>>>     
-> >>>>         
-> >>> Hi,
-> >>>
-> >>> on that 2.6.27 "BBC 1 London" _and_ "BBC 1 CI" or equivalent at least
-> >>> should work on 28.2. It does for me on lnpb21 and isl6405.
-> >>>
-> >>> If something is still left for the switch then, either way connected, we
-> >>> can start to scratch our heads or pull hair later, seems to me.
-> >>>
-> >>> Cheers,
-> >>> Hermann
-> >>>  
-> >>>       
-> >
-> >   
-> >>>   
-> >>>       
-> >> hi,
-> >>
-> >> well.. it doesn't work in my case.... double and triple checked, 
-> >> hehehe.... are you using the same card lifeview trio or another one with 
-> >> the same chip?
-> >>
-> >> would you mind telling me what linux system are you working with? i'm 
-> >> desperate for this to work, i will change to any distro that makes 
-> >> diseqc work.
-> >>
-> >> Thanks.
-> >>     
-> >
-> > as said, I have neither the Trio with isl6421 nor any DiSEqC switches in
-> > use.
-> >
-> > But an Asus Tiger 3in1 with lnpb21 and several other cards with isl6405,
-> > like Medion Quads, triple Creatix CTX948 and CTX929 DVB-S only.
-> >
-> > All this cards work for 13/18Volts and low/high band switching, means
-> > all broadcasts are available except DVB-S2 stuff.
-> >
-> > The dual LNB isl6405 is totally identical to the isl6421 concerning the
-> > programming of the first LNB and there have been reports for receiving
-> > over 2000 services on 13.0E with the Trio cardbus. That should indicate
-> > that at least all direct simple voltage and tone low/high switching
-> > should work as well.
-> >
-> > If possible, try to circumvent the switch once and connect directly to a
-> > dish. You should be able to receive low and high band stuff on 13 and 18
-> > Volts.
-> >
-> > For mixed old and new modules loaded, try "make rmmod" twice and "make
-> > rminstall" on top of mercurial v4l-dvb. Check if any modules are left in
-> > your kernel version media modules folder or just delete/backup it
-> > completely.
-> >
-> > Run "make install" and "modprobe -v saa7134" assuming you have
-> > "use_frontend=1" already in your module options.
-> >
-> > Cheers,
-> > Hermann
-> >
-> >
+I figured ones of these days a user of this device would come along.  :-)
 
-Hi,
+This is an em28xx based device we don't have a profile for yet -
+although all the core components are supported -
+em28xx/zarlink/xc3028.
 
-> >   
-> hey,
-> 
-> thanks for the info.
-> 
-> if i don't use diseqc, i can view every possible channels for each 
-> satellite, the problem appears only when it goes through diseqc.
+If you want to get this device supported under Linux, I'll put in in
+my queue of em28xx devices to look at.  I think we are just missing
+the GPIOs and the dvb profile.
 
-OK good.
+Devin
 
-> thanks for the tips on how fixing the system, but because i have no 
-> patiente and i'm a newbie (and have nothing of value in this machine), i 
-> ended up reinstalling everything, which takes less time for me.
-
-I'm not aware of any recent change and think it doesn't matter anyway,
-as long you can change the source to come back to what seemed to be
-working for you.
-
-> i just sent a message to the list, saying if it's possible i've broken 
-> the card somehow. Please, have a look at it and tell me what you think.
-> 
-> thanks.
-
-I really tried hard, until realized the isl6405 is behind the tda10086
-i2c bridge, but think it is close to impossible with what we have around
-and at all, except high voltage occurs from outside without protection.
-
-I would try a cold boot next, say 40 seconds without any power
-connected. The 13 and 18 Volts you can also easily measure at the
-connector of the card.
-
-Good Luck,
-
-Hermann
-
-
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
