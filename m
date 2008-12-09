@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from n8a.bullet.ukl.yahoo.com ([217.146.183.156])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <oliver.maurhart@gmx.net>) id 1LA7Xv-0005A5-TB
-	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 19:43:01 +0100
-From: Oliver Maurhart <oliver.maurhart@gmx.net>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-Date: Tue, 9 Dec 2008 19:42:18 +0100
-References: <200812091251.57007.oliver.maurhart@gmx.net>
-	<200812091911.55699.oliver.maurhart@gmx.net>
-	<412bdbff0812091031h41f9a8a7p2b2b8bd7989a7a96@mail.gmail.com>
-In-Reply-To: <412bdbff0812091031h41f9a8a7p2b2b8bd7989a7a96@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812091942.18877.oliver.maurhart@gmx.net>
+	(envelope-from <btanastasov@yahoo.co.uk>) id 1LA6F3-00070d-Tk
+	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 18:19:26 +0100
+Date: Tue, 9 Dec 2008 19:18:46 +0200
+From: Boyan <btanastasov@yahoo.co.uk>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+Message-Id: <20081209191846.9fb5353d.btanastasov@yahoo.co.uk>
+In-Reply-To: <alpine.LRH.1.10.0812081838450.19364@pub4.ifh.de>
+References: <49005E1C.3010104@yahoo.co.uk>
+	<alpine.LRH.1.10.0812081838450.19364@pub4.ifh.de>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help: /dev/dvb missing with Terratec Cinergy XS
-	Hybrid
+Subject: Re: [linux-dvb] [REGRESSION] - Cable2PC/CableStar 2 DVB-C not
+ detected
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,29 +27,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tuesday 09 December 2008 19:31:27 Devin Heitmueller wrote:
-> On Tue, Dec 9, 2008 at 1:11 PM, Oliver Maurhart <oliver.maurhart@gmx.net> 
-wrote:
-> > Still: kdetv scans all the possible channels on my webcam (!), missing
-> > the fact that my TerraTec Card does now provide a /dev/dvb but as the 2nd
-> > V4L- Device it's on /dev/video1 ... hehehe ... but kaffeine seems quite
-> > smarter and gets around that, showing DVB-TV! Yeah! =)
-> >
-> > What a relief!
->
-> KDETV is an analog TV viewing application.  It does not work with DVB.
->  Kaffeine supports DVB though.
+On Mon, 8 Dec 2008 18:42:08 +0100 (CET)
+Patrick Boettcher <patrick.boettcher@desy.de> wrote:
+> 
+> 
+> On Thu, 23 Oct 2008, Boyan wrote:
+> > There is a regression regarding this DVB-C card from the subject, which
+> > as it looks is not very new, but nobody noticed the problem.
+> > After bisecting I've found the commit which is responsible for this
+> > problem - that the card is not detected.
+> > By the way mercurial bisect was not very useful because some commits
+> > does not compile or load, so I had to "simulate" bisecting.
+> 
+> Hi Boyan,
+> 
+> did you try the latest hg from linuxtv.org recently?
+> 
+> A patch was provided fixing the cablestar support.
+> 
+> Can you please try it ?
+> 
+> regards,
+> Patrick.
 
-Yep. I got that now. Didn't knew it before having DVB (which ocurred just 
-recently *g*).
 
-Took me by surprise, while expecting some TV shows all of a sudden watching 
-myself staring at *myself* - huh! (The webcam is on top of my monitor ...) .. 
-hehehe.
+Hi Patrick,
 
 
+Thanks for asking.
+It's been long time and I've missed the fix in hg.
+The card is now detected. Thanks!
 
-Oliver
+Regards
+
 
 _______________________________________________
 linux-dvb mailing list
