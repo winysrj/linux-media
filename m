@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF8SW4I018752
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:28:32 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBF8SDx7004626
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:28:13 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so2268966wfc.6
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 00:28:13 -0800 (PST)
-Message-ID: <aec7e5c30812150028t11589040g3ae33eb2c82bbf08@mail.gmail.com>
-Date: Mon, 15 Dec 2008 17:28:12 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812150844560.3722@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9EvmKr019161
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 09:57:48 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9EvYsL014489
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 09:57:34 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so835621nfc.21
+	for <video4linux-list@redhat.com>; Tue, 09 Dec 2008 06:57:33 -0800 (PST)
+Message-ID: <412bdbff0812090657o3219611x23d67f3c0f790032@mail.gmail.com>
+Date: Tue, 9 Dec 2008 09:57:33 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "=?ISO-8859-1?Q?P=E1draig_Brady?=" <P@draigbrady.com>
+In-Reply-To: <493E665B.5040509@draigBrady.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
-	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812150844560.3722@axis700.grange>
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add tw9910 driver
+References: <1228493415.439.8.camel@bru02>
+	<412bdbff0812050822q63d946b8y960559f7bca10e6f@mail.gmail.com>
+	<1228499124.2547.6.camel@bru02>
+	<412bdbff0812050949s545547d2v92bd3633b76b478e@mail.gmail.com>
+	<1228583227.6281.1.camel@bru02> <493E665B.5040509@draigBrady.com>
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, Brian Rosenberger <brian@brutex.de>
+Subject: Re: Pinnacle PCTV USB (DVB-T device [eb1a:2870])
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,33 +34,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Dec 15, 2008 at 5:06 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> What happens is that v4l2-ioctl.c::check_fmt() calls soc_camera_s_std(),
-> verifies that it returns 0, and then sets current_norm, which you then use
-> in your driver in tw9910_select_norm(). This way again we have no way to
-> reject an unsupported tv-norm. Like, try selecting a SECAM norm:-) So, we
-> need two patches here: first to add a set_std method to struct
-> soc_camera_ops and call it from soc_camera_s_std():
+On Tue, Dec 9, 2008 at 7:36 AM, Pádraig Brady <P@draigbrady.com> wrote:
+> Brian Rosenberger wrote:
+>> Am Freitag, den 05.12.2008, 12:49 -0500 schrieb Devin Heitmueller:
+>>
+>>> Yes, that's exactly what I needed to know.  If you can get the Windows
+>>> USB trace, we should be able to extract the GPIOs from that and add
+>>> the device support.
 >
-> static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
-> {
->        struct soc_camera_file *icf = file->private_data;
->        struct soc_camera_device *icd = icf->icd;
->        return icd->ops->set_std(icd, a);
-> }
+> Isn't that card already supported here?
+> http://mcentral.de/hg/~mrec/em28xx-new/file/3fe18e8981e5/em28xx-cards.c
 >
-> and second - your driver implementing this method. Or do we have to pass
-> set_std first to the host driver? Looks like neither i.MX31 nor PXA270
-> have anything to do with it, SuperH neither?
+> I'm worried that there is more duplication of work now happening,
+> and things are going to get even more out of sync.
 
-The CEU has nothing to do with it. For our hardware this is handled by
-the TW9910 video decoder. The CEU driver has to be switched to
-interlace mode, but that's about it. =)
+I don't know if Markus's tree supports this device but it wouldn't
+surprise me if it did.
 
-Thanks,
+> Devin, perhaps you could help with merging Markus' driver into mainline?
 
-/ magnus
+Yeah, this is a really crappy situation.  Markus has made very clear
+that he doesn't want his changes merged into the mainline driver.  The
+only solution he is willing to accept is for his driver to be put in
+alongside the mainline driver in its entirety, which has been
+considered unacceptable for a variety of good reasons.
+
+But to answer you question, I have appealed to Markus on multiple
+occasions offering to help merge his driver into the mainline driver,
+and was declined.
+
+I would encourage you to continue helping get this device supported in
+the mainline Linux kernel so all users will benefit.  Of course, you
+are also welcome to switch over to Markus's driver if you goal is for
+it to just work for you.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
