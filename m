@@ -1,30 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LAnlO-0005FK-UG
-	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 16:47:44 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so146911eya.17
-	for <linux-dvb@linuxtv.org>; Thu, 11 Dec 2008 07:47:39 -0800 (PST)
-Date: Thu, 11 Dec 2008 16:47:31 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Jordi Moles Blanco <jordi@cdmon.com>
-In-Reply-To: <49412BF9.5010401@cdmon.com>
-Message-ID: <alpine.DEB.2.00.0812111626260.989@ybpnyubfg.ybpnyqbznva>
-References: <493FFD3A.80209@cdmon.com>
-	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
-	<4940032D.90106@cdmon.com>
-	<alpine.DEB.2.00.0812101956220.989@ybpnyubfg.ybpnyqbznva>
-	<49401C73.1010208@gmail.com>
-	<1228955664.3468.21.camel@pc10.localdom.local>
-	<494066C2.90105@gmail.com>
-	<1228958740.3468.28.camel@pc10.localdom.local>
-	<4940C9D6.2020704@cdmon.com>
-	<alpine.DEB.2.00.0812111415560.989@ybpnyubfg.ybpnyqbznva>
-	<49411A6E.2020107@gmail.com> <49412BF9.5010401@cdmon.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <oliver.maurhart@gmx.net>) id 1LA18j-0002VJ-QC
+	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 12:52:35 +0100
+From: Oliver Maurhart <oliver.maurhart@gmx.net>
+To: linux-dvb@linuxtv.org
+Date: Tue, 9 Dec 2008 12:51:56 +0100
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working	through
- diseqc anymore
+Content-Disposition: inline
+Message-Id: <200812091251.57007.oliver.maurhart@gmx.net>
+Subject: [linux-dvb] Help: /dev/dvb missing with Terratec Cinergy XS Hybrid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,100 +23,134 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 11 Dec 2008, Jordi Moles Blanco wrote:
+Hi *,
 
-> well... i did what i could....
+After months of googling I'm out of  knowledge. I'm the (lucky?) owner of a 
+Terratec Hybrid XS USB Card: 
 
-Thanks, that I did not have to explain how to find the
-kernel source  :-)
+# lsusb | grep TerraTec
+Bus 001 Device 007: ID 0ccd:005e TerraTec Electronic GmbH
 
+I think, I followed each and every hint and tip, but I failed to get a 
+/dev/dvb device created. :(
 
-
-> i extracted the files and run "make". everything worked fine. The problem was
-> that i didn't now how to "load" that new compiled module instead of the
-> "default one"
-
-If you want to do it the way I do, which is to test the
-newly-built kernel modules without actually installing
-them (in case I have more problems with the new than with
-the old), the way I do it is...
-
-% lsmod
-(lists all the loaded kernel modules)
-
-then I `rmmod' every module related to my particular
-device and dvb/video/whatever is related, if I've been
-updating that part of the source.
-
-Then I load by hand, specifying the path to the
-modules I've just built, like
-# insmod /usr/local/src/v4l-dvb-last-before-2.6.16/v4l/[modname].ko
-
-Keeping an eye on `dmesg' to show dependencies, which
-you have experienced below...
+I'm really lost! Please help!
 
 
-> i mean.... if i run "modprobe saa7134"_dvb i'm accessing to the default module
-> that comes with the kernel. is that right? so... i didn't how to load the new
-> module.
+dmesg after pluging in the device:
 
-Yes, this is correct.  If you do not care to keep your
-old modules, you can do a
-# make install
-which should overwrite your old distro modules with the
-new ones you've built, as you have done below...
+usb 1-4: new high speed USB device using ehci_hcd and address 7                                                                                            
+usb 1-4: configuration #1 chosen from 1 choice                                                                                                             
+em28xx v4l2 driver version 0.1.0 loaded                                                                                                                    
+em28xx new video device (0ccd:005e): interface 0, class 255                                                                                                
+em28xx Doesn't have usb audio class                                                                                                                        
+em28xx #0: Alternate settings: 8                                                                                                                           
+em28xx #0: Alternate setting 0, max size= 0                                                                                                                
+em28xx #0: Alternate setting 1, max size= 0                                                                                                                
+em28xx #0: Alternate setting 2, max size= 1448                                                                                                             
+em28xx #0: Alternate setting 3, max size= 2048                                                                                                             
+em28xx #0: Alternate setting 4, max size= 2304                                                                                                             
+em28xx #0: Alternate setting 5, max size= 2580                                                                                                             
+em28xx #0: Alternate setting 6, max size= 2892                                                                                                             
+em28xx #0: Alternate setting 7, max size= 3072                                                                                                             
+em28xx #0: chip ID is em2882/em2883                                                                                                                        
+em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 5e 00 d0 12 5c 03 9e 40 de 1c                                                                                  
+em28xx #0: i2c eeprom 10: 6a 34 27 57 46 07 01 00 00 00 00 00 00 00 00 00                                                                                  
+em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 1e 00 00                                                                                  
+em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00                                                                                  
+em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                                  
+em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                                  
+em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 34 03 54 00 65 00                                                                                  
+em28xx #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00                                                                                  
+em28xx #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00                                                                                  
+em28xx #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 00 00 40 03                                                                                  
+em28xx #0: i2c eeprom a0: 43 00 69 00 6e 00 65 00 72 00 67 00 79 00 20 00                                                                                  
+em28xx #0: i2c eeprom b0: 48 00 79 00 62 00 72 00 69 00 64 00 20 00 54 00                                                                                  
+em28xx #0: i2c eeprom c0: 20 00 55 00 53 00 42 00 20 00 58 00 53 00 20 00                                                                                  
+em28xx #0: i2c eeprom d0: 28 00 32 00 38 00 38 00 32 00 29 00 00 00 1c 03                                                                                  
+em28xx #0: i2c eeprom e0: 30 00 37 00 31 00 30 00 30 00 32 00 30 00 30 00                                                                                  
+em28xx #0: i2c eeprom f0: 36 00 34 00 32 00 38 00 00 00 00 00 00 00 00 00
+EEPROM ID= 0x9567eb1a, hash = 0x6013b1be
+Vendor/Product ID= 0ccd:005e
+AC97 audio (5 sample rates)
+500mA max power
+Table at 0x27, strings=0x409e, 0x1cde, 0x346a
+em28xx #0:
+
+em28xx #0: The support for this board weren't valid yet.
+em28xx #0: Please send a report of having this working
+em28xx #0: not to V4L mailing list (and/or to other addresses)
+
+tuner' 4-0061: chip found @ 0xc2 (em28xx #0)
+xc2028 4-0061: creating new instance
+xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
+firmware: requesting xc3028-v27.fw
+xc2028 4-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 
+firmware, ver 2.7
+xc2028 4-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 4-0061: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
+0000000000008000.
+xc2028 4-0061: i2c input error: rc = -19 (should be 2)
+xc2028 4-0061: Unable to read tuner registers.
+xc2028 4-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 4-0061: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 4-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 
+0000000000008000.
+xc2028 4-0061: i2c input error: rc = -19 (should be 2)
+xc2028 4-0061: Unable to read tuner registers.
+tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+tvp5150 4-005c: *** unknown tvp8081 chip detected.
+tvp5150 4-005c: *** Rom ver is 130.131
+tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+tvp5150 debug 4-005c: i2c i/o error: rc == -19 (should be 1)
+em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
+em28xx #0: Found Terratec Hybrid XS (em2882)
+usbcore: registered new interface driver em28xx
+tvp5150 4-005c: tvp5150am1 detected.
 
 
-> and "make install" so that i could load the new module by just doing "modproe
-> saa7134_dvb". is this right?
+Kernel-System:
 
-> [  240.715593] saa7134: disagrees about version of symbol v4l_compat_ioctl32
-
-I've seen this before on the list, but personally I don't
-know the precise solution -- check the archives, if
-someone else doesn't provide the answer.
+# uname -a
+Linux semirhage 2.6.27-gentoo-r4 #3 SMP PREEMPT Sun Nov 30 15:16:17 CET 2008 
+i686 Intel(R) Pentium(R) 4 CPU 3.00GHz GenuineIntel GNU/Linux
 
 
-> [  240.715604] saa7134: Unknown symbol v4l_compat_ioctl32
-> [  240.776343] saa7134_dvb: Unknown symbol saa7134_tuner_callback
-> [  240.776410] saa7134_dvb: Unknown symbol saa7134_ts_register
-> [  240.776643] saa7134_dvb: Unknown symbol saa7134_set_gpio
-> [  240.776703] saa7134_dvb: Unknown symbol saa7134_ts_qops
-> [  240.776845] saa7134_dvb: Unknown symbol saa7134_i2c_call_clients
-> [  240.776983] saa7134_dvb: Unknown symbol saa7134_ts_unregister
+Loaded Modules:
 
-For the unknown symbols, as I mentioned above, that
-means that needed modules aren't loaded -- as I note,
-the way I do things (not recommended!) is to load
-everything manually, mainly because I want to test
-new hacks without losing my old modules.
+# lsmod | grep dvb
+dvb_usb                23180  0
+dvb_core               76392  1 dvb_usb
+i2c_core               28948  18 
+tuner,tea5767,tda8290,tda18271,tda827x,tuner_xc2028,xc5000,tda9887,tuner_simple,mt20xx,tea5761,v4l2_common,tvp5150,em28xx,tveeprom,dvb_usb,nvidia,i2c_i801
+usbcore               124120  14 
+em28xx,dvb_usb,uvcvideo,snd_usb_audio,snd_usb_lib,usblp,ati_remote,sl811_hcd,usbhid,ohci_hcd,uhci_hcd,usb_storage,ehci_hcd
 
-I would then have to
-# insmod /path/to/new/modules/[related-module].ko
-where the related-modules are usually listed in the
-`lsmod' output -- or else I just guess and load
-anything that looks interesting and relevant.
-
-As a wild guess, you need to load 
- ...drivers/media/video/compat_ioctl32.ko
-in order to get v4l_compat_ioctl32; 
- ...drivers/media/video/saa7134/saa7134.ko
-probably contains the various saa7134_foo symbols
-which are needed by saa7134_dvb...
+# lsmod | grep em28
+em28xx                 61608  0
+videobuf_vmalloc       14212  1 em28xx
+ir_common              47748  1 em28xx
+tveeprom               19076  1 em28xx
+compat_ioctl32          9472  2 em28xx,uvcvideo
+videodev               38912  3 tuner,em28xx,uvcvideo
+i2c_core               28948  18 
+tuner,tea5767,tda8290,tda18271,tda827x,tuner_xc2028,xc5000,tda9887,tuner_simple,mt20xx,tea5761,v4l2_common,tvp5150,em28xx,tveeprom,dvb_usb,nvidia,i2c_i801
+usbcore               124120  14 
+em28xx,dvb_usb,uvcvideo,snd_usb_audio,snd_usb_lib,usblp,ati_remote,sl811_hcd,usbhid,ohci_hcd,uhci_hcd,usb_storage,ehci_hcd
+videobuf_core          24708  2 em28xx,videobuf_vmalloc
 
 
-> any idea how to fix this?
+What is wrong here?
 
-Check the mailing list archives, is my suggestion,
-since my personal answer is `no', not having
-experienced this myself...
+Oliver
 
-Anyway, I'm happy that you're able to work your way
-through this without too much help, and I hope you
-are learning something useful at the same time...
-
-
-barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
