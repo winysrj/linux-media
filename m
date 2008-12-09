@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBI0BE2J031387
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 19:11:14 -0500
-Received: from bay0-omc2-s12.bay0.hotmail.com (bay0-omc2-s12.bay0.hotmail.com
-	[65.54.246.148])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBI0AxEF013061
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 19:10:59 -0500
-Message-ID: <BAY135-W40EFD75EC68542FE991AB0BFF30@phx.gbl>
-From: Lehel Kovach <lehelkovach@hotmail.com>
-To: <moinejf@free.fr>
-Date: Wed, 17 Dec 2008 16:10:58 -0800
-In-Reply-To: <1229496250.1747.4.camel@localhost>
-References: <BAY135-W47952C51F5ED0CAEE9809BFF50@phx.gbl>
-	<1229421997.1745.23.camel@localhost>
-	<BAY135-W526C1AC293891AC584A4B7BFF50@phx.gbl>
-	<1229496250.1747.4.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9NLtZS028045
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 18:21:55 -0500
+Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9NLfVd008979
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 18:21:41 -0500
+Received: from hypnosis.jim.sh (BUCKET.MIT.EDU [18.90.1.139])
+	by psychosis.jim.sh (8.14.3/8.14.3/Debian-5) with SMTP id
+	mB9NLcPQ029536
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=OK)
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 18:21:40 -0500
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Cc: video4linux-list@redhat.com
-Subject: RE: quickcam express
+Content-Transfer-Encoding: 7bit
+Message-Id: <c3eafdd5ba7cb667ed30.1228864539@hypnosis.jim>
+In-Reply-To: <patchbomb.1228864538@hypnosis.jim>
+Date: Tue, 09 Dec 2008 18:15:39 -0500
+From: Jim Paris <jim@jtan.com>
+To: video4linux-list@redhat.com
+Subject: [PATCH 1 of 2] gspca: allow subdrivers to handle v4l2_streamparm
+	requests
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,59 +31,77 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+# HG changeset patch
+# User jim@jtan.com
+# Date 1228860341 18000
+# Node ID c3eafdd5ba7cb667ed301e7feed6b02b57f1aa7a
+# Parent  51458dbe1fdab9f2463a49772fb8be39eabe520c
+gspca: allow subdrivers to handle v4l2_streamparm requests
 
-the old cam has this:
+Add get_streamparm and set_streamparm operations so subdrivers can
+get/set stream parameters such as framerate.
 
-Bus 002 Device 002: ID 046d:0840 Logitech=2C Inc. QuickCam Express
+Signed-off-by: Jim Paris <jim@jtan.com>
 
+diff -r 51458dbe1fda -r c3eafdd5ba7c linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Tue Dec 09 16:55:39 2008 -0500
++++ b/linux/drivers/media/video/gspca/gspca.c	Tue Dec 09 17:05:41 2008 -0500
+@@ -1337,6 +1337,16 @@
+ 	memset(parm, 0, sizeof *parm);
+ 	parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	parm->parm.capture.readbuffers = gspca_dev->nbufread;
++
++	if (gspca_dev->sd_desc->get_streamparm) {
++		int ret;
++		if (mutex_lock_interruptible(&gspca_dev->usb_lock))
++			return -ERESTARTSYS;
++		ret = gspca_dev->sd_desc->get_streamparm(gspca_dev, parm);
++		mutex_unlock(&gspca_dev->usb_lock);
++		return ret;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1351,6 +1361,16 @@
+ 		parm->parm.capture.readbuffers = gspca_dev->nbufread;
+ 	else
+ 		gspca_dev->nbufread = n;
++
++	if (gspca_dev->sd_desc->set_streamparm) {
++		int ret;
++		if (mutex_lock_interruptible(&gspca_dev->usb_lock))
++			return -ERESTARTSYS;
++		ret = gspca_dev->sd_desc->set_streamparm(gspca_dev, parm);
++		mutex_unlock(&gspca_dev->usb_lock);
++		return ret;
++	}
++
+ 	return 0;
+ }
+ 
+diff -r 51458dbe1fda -r c3eafdd5ba7c linux/drivers/media/video/gspca/gspca.h
+--- a/linux/drivers/media/video/gspca/gspca.h	Tue Dec 09 16:55:39 2008 -0500
++++ b/linux/drivers/media/video/gspca/gspca.h	Tue Dec 09 17:05:41 2008 -0500
+@@ -74,6 +74,8 @@
+ typedef int (*cam_cf_op) (struct gspca_dev *, const struct usb_device_id *);
+ typedef int (*cam_jpg_op) (struct gspca_dev *,
+ 				struct v4l2_jpegcompression *);
++typedef int (*cam_streamparm_op) (struct gspca_dev *, 
++				  struct v4l2_streamparm *);
+ typedef int (*cam_qmnu_op) (struct gspca_dev *,
+ 			struct v4l2_querymenu *);
+ typedef void (*cam_pkt_op) (struct gspca_dev *gspca_dev,
+@@ -106,6 +108,8 @@
+ 	cam_jpg_op get_jcomp;
+ 	cam_jpg_op set_jcomp;
+ 	cam_qmnu_op querymenu;
++	cam_streamparm_op get_streamparm;
++	cam_streamparm_op set_streamparm;
+ };
+ 
+ /* packet types when moving from iso buf to frame buf */
 
-[ 2040.384046] usb 2-5: new full speed USB device using ohci_hcd and addres=
-s 4
-[ 2040.594160] usb 2-5: configuration #1 chosen from 1 choice
-[ 2040.596641] quickcam: QuickCam USB camera found (driver version QuickCam=
- USB 0.6.6 $Date: 2006/11/04 08:38:14 $)
-[ 2040.596659] quickcam: Kernel:2.6.27-9-generic bus:2 class:FF subclass:FF=
- vendor:046D product:0840
-[ 2040.611297] quickcam: Sensor HDCS-1000/1100 detected
-[ 2040.621744] quickcam: Registered device: /dev/video0
-
-i bought another quickcam (communicate model) and tried it out and got this=
-:
-
-Bus 002 Device 005: ID 046d:089d Logitech=2C Inc.=20
-
-[ 2190.096046] usb 2-5: new full speed USB device using ohci_hcd and addres=
-s 5
-[ 2190.300304] usb 2-5: configuration #1 chosen from 1 choice
-[ 2190.641232] usbcore: registered new interface driver snd-usb-audio
-
-(the video portion of it didn't register)
-
-
-
-> Subject: RE: quickcam express
-> From: moinejf@free.fr
-> To: lehelkovach@hotmail.com
-> CC: video4linux-list@redhat.com
-> Date: Wed=2C 17 Dec 2008 07:44:10 +0100
->=20
-> On Tue=2C 2008-12-16 at 08:42 -0800=2C Lehel Kovach wrote:
-> > its  a logitech quickcam express -- the old one: model# 961121-0403
-> >=20
-> > im using 0.6.6 i believe (the one with distroed with ubuntu 8.1). =20
->=20
-> Bad answer! I want to know the vendor and product IDs and also which
-> Linux driver handles your webcam. Please do:
-> 	lsusb
-> and
-> 	dmesg | tail -20
-> after connecting the webcam.
->=20
-> --=20
-> Ken ar c'henta=F1 |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
->=20
->=20
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
