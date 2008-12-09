@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHIKQsr011031
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:20:26 -0500
-Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHIKCwh027952
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:20:12 -0500
-To: g.liakhovetski@gmx.de
-References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 17 Dec 2008 19:20:03 +0100
-In-Reply-To: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
-	(Robert Jarzmik's message of "Mon\, 1 Dec 2008 22\:15\:58 +0100")
-Message-ID: <87iqpi4qb0.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9HZBw0002466
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 12:35:11 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9HYvwq027609
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 12:34:57 -0500
+Received: by ewy14 with SMTP id 14so68311ewy.3
+	for <video4linux-list@redhat.com>; Tue, 09 Dec 2008 09:34:57 -0800 (PST)
+Date: Tue, 9 Dec 2008 17:34:58 +0000
+From: Jaime Velasco Juan <jsagarribay@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@infradead.org
+Message-ID: <20081209173458.GA4208@singular.sob>
+References: <1228759826-11929-1-git-send-email-jsagarribay@gmail.com>
+	<200812081933.55462.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200812081933.55462.hverkuil@xs4all.nl>
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] mt9m111: Add automatic white balance control
+Subject: [PATCH v2] stkwebcam: Implement VIDIOC_ENUM_FRAMESIZES ioctl
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,22 +31,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/video/mt9m111.c |   28 +++++++++++++++++++++++++++-
->  1 files changed, 27 insertions(+), 1 deletions(-)
+It is used at least by gstreamer.
 
-Hi Guennadi,
+Signed-off-by: Jaime Velasco Juan <jsagarribay@gmail.com>
+---
+ drivers/media/video/stk-webcam.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-As I see you working for the next tree submission, I wonder if you had seen that
-patch a couple of days ago ?
+Here is a new version of the patch using the vidioc_enum_framesizes callback.
+Thanks for your comments, Hans.
 
-Cheers.
+Regards
 
---
-Robert
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
+index e9eb6d7..5566c23 100644
+--- a/drivers/media/video/stk-webcam.c
++++ b/drivers/media/video/stk-webcam.c
+@@ -1262,6 +1262,25 @@ static int stk_vidioc_g_parm(struct file *filp,
+ 	return 0;
+ }
+ 
++static int stk_vidioc_enum_framesizes(struct file *filp,
++		void *priv, struct v4l2_frmsizeenum *frms)
++{
++	if (frms->index >= ARRAY_SIZE(stk_sizes))
++		return -EINVAL;
++	switch (frms->pixel_format) {
++	case V4L2_PIX_FMT_RGB565:
++	case V4L2_PIX_FMT_RGB565X:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_SBGGR8:
++		frms->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++		frms->discrete.width = stk_sizes[frms->index].w;
++		frms->discrete.height = stk_sizes[frms->index].h;
++		return 0;
++	default: return -EINVAL;
++	}
++}
++
+ static struct file_operations v4l_stk_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = v4l_stk_open,
+@@ -1296,6 +1315,7 @@ static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
+ 	.vidioc_g_ctrl = stk_vidioc_g_ctrl,
+ 	.vidioc_s_ctrl = stk_vidioc_s_ctrl,
+ 	.vidioc_g_parm = stk_vidioc_g_parm,
++	.vidioc_enum_framesizes = stk_vidioc_enum_framesizes,
+ };
+ 
+ static void stk_v4l_dev_release(struct video_device *vd)
+-- 
+1.5.6.5
+
 
 --
 video4linux-list mailing list
