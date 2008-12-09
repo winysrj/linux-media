@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9LLg3S028631
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 16:21:42 -0500
-Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9LLT8n007142
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 16:21:29 -0500
-Date: Tue, 9 Dec 2008 16:21:27 -0500
-From: Jim Paris <jim@jtan.com>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Message-ID: <20081209212127.GB21038@psychosis.jim.sh>
-References: <patchbomb.1228337219@hypnosis.jim>
-	<1228378442.1733.17.camel@localhost>
-	<20081204130557.85799da0.ospite@studenti.unina.it>
-	<patchbomb.1228337219@hypnosis.jim>
-	<1228378442.1733.17.camel@localhost>
-	<20081204171546.GA27230@psychosis.jim.sh>
-	<20081206184200.703fb8e0.ospite@studenti.unina.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB98sm7M023150
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 03:54:48 -0500
+Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB98sDJ4025916
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 03:54:13 -0500
+Message-ID: <493E3217.8050503@nokia.com>
+Date: Tue, 09 Dec 2008 10:53:43 +0200
+From: Sakari Ailus <sakari.ailus@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20081206184200.703fb8e0.ospite@studenti.unina.it>
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 0 of 4] ov534 patches
+To: ext Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+	<20081208194235.4991873d@pedra.chehab.org>
+In-Reply-To: <20081208194235.4991873d@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: v4l <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
+	hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,43 +30,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Antonio Ospite wrote:
-> I need to read something more about UVC.
+ext Mauro Carvalho Chehab wrote:
+> On Thu, 27 Nov 2008 00:14:51 +0530
+> "Trilok Soni" <soni.trilok@gmail.com> wrote:
+> 
+>> +
+>> +/*
+>> + *
+>> + * DMA hardware.
+>> + *
+>> + */
+>> +
+>> +/* Ack all interrupt on CSR and IRQSTATUS_L0 */
+>> +static void omap24xxcam_dmahw_ack_all(unsigned long base)
+> 
+> Oh, no! yet another dma video buffers handling...
+> 
+> Soni, couldn't this be converted to use videobuf?
 
-Me too.  This bridge chip supports it -- maybe we just need to tweak
-the USB descriptors so that the existing UVC driver knows what to do?
+Yes, it could be.
 
-> Ah, and from a quick test on PS3 it looks like the header is not added
-> here, but I haven't had the chance to see what exactly happened.
+The DMA part is definitely the ugliest part of omap24xxcam.
 
-I'm relying on power on defaults, but we can also enable the header
-explicitly if that's more reliable.
+This is actually also a DMA controller driver. The system DMA driver 
+could not be used as such as it was limited to just one controller --- 
+the OMAP 2 camera block has its own DMA controller with four transfers 
+in queue (maximum).
 
--jim
+There's also an MMU, not the system MMU but the camera block MMU. This 
+MMU is not being used now by omap24xxcam at all since when omap24xxcam 
+driver was written, there was not too much time available and no generic 
+MMU framework. So the MMU support was left out. Instead, there's a hack 
+to allocate as large as possible continuous memory areas and avoid 
+overruns that way. DMA transfer overruns happen on large proportion of 
+frames without this hack.
 
---
+Hiroshi Doyu is working on a generic IOMMU framework for OMAPs that 
+could be used here. With that framework available, converting the OMAP 2 
+camera driver to use videobuf would be a lot easier. The performance 
+would be better, too. A generic DMA controller driver would be also good 
+to have but not mandatory.
 
-ov534: explicitly initialize frame format
+Cheers,
 
-Set frame format registers 0x0a and 0x0b to explicit values
-rather than relying on reset-time defaults
-
-Signed-off-by: Jim Paris <jim@jtan.com>
-
-diff -r bc3e6d69f66b linux/drivers/media/video/gspca/ov534.c
---- a/linux/drivers/media/video/gspca/ov534.c	Tue Dec 09 16:06:08 2008 -0500
-+++ b/linux/drivers/media/video/gspca/ov534.c	Tue Dec 09 16:20:30 2008 -0500
-@@ -199,6 +199,10 @@
- 	{ 0x1d, 0x02 }, /* frame size 0x025800 * 4 = 614400 */
- 	{ 0x1d, 0x58 }, /* frame size */
- 	{ 0x1d, 0x00 }, /* frame size */
-+
-+	{ 0x1c, 0x0a },
-+	{ 0x1d, 0x08 }, /* turn on UVC header */
-+	{ 0x1d, 0x0e }, /* .. */
- 
- 	{ 0x8d, 0x1c },
- 	{ 0x8e, 0x80 },
+-- 
+Sakari Ailus
+sakari.ailus@nokia.com
 
 --
 video4linux-list mailing list
