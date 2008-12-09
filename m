@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBV9rXwN013983
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 04:53:33 -0500
-Received: from smtp-vbr13.xs4all.nl (smtp-vbr13.xs4all.nl [194.109.24.33])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBV9qlOs012440
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 04:52:48 -0500
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9II8j9005532
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 13:18:08 -0500
+Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB9II4oZ031421
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 13:18:04 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Wed, 31 Dec 2008 10:52:40 +0100
-References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
-	<20081230203235.1b7eecf3@pedra.chehab.org>
-In-Reply-To: <20081230203235.1b7eecf3@pedra.chehab.org>
+To: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+Date: Tue, 9 Dec 2008 19:18:00 +0100
+References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
+In-Reply-To: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812311052.40693.hverkuil@xs4all.nl>
-Cc: Fabio Belavenuto <belavenuto@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Add TEA5764 radio driver
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_YZrPJF0tjOlrKJY"
+Message-Id: <200812091918.00276.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l2-compat-ioctl32 update?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,45 +27,390 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 30 December 2008 23:32:35 Mauro Carvalho Chehab wrote:
-> On Wed, 17 Dec 2008 20:49:33 -0200
->
-> "Fabio Belavenuto" <belavenuto@gmail.com> wrote:
-> > Add support for radio driver TEA5764 from NXP.
-> > This chip is connected in pxa I2C bus in EZX phones
-> > from Motorola, the chip is used in phone model A1200.
-> > This driver is for OpenEZX project (www.openezx.org)
-> > Tested with A1200 phone, openezx kernel and fm-tools
->
-> Hi Fabio,
->
-> I've committed the patch. Thanks!
->
-> I had to do a few changes, since V4L now have their own fops definition,
-> due to a patch that I've just merged.
->
-> Could you please test and confirm if the changes I made didn't affect the
-> driver?
->
-> Ah, I also fixed 3 small codingsyle violations.
+--Boundary-00=_YZrPJF0tjOlrKJY
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi Mauro,
+On Tuesday 09 December 2008 15:14:46 Hans Verkuil wrote:
+> OK, I'll mail you a diff this evening. In the meantime, can you
+> compile v4l2-ctl for 32-bit? That's the test tool for several of my
+> tests.
 
-Did you see my review of this driver?
+Hi Brandon,
 
-(http://lists-archives.org/video4linux/26062-add-tea5764-radio-driver.html)
+As promised I've attached the diff with my current changes.
 
-IMHO this driver shouldn't be added in this form. It's up to you of course 
-to decide this, but I just want to make sure you read my posting.
+You should be able to test it fairly well with v4l2-ctl. In particular, 
+please test getting and setting controls (MPEG controls use S_EXT_CTRLS 
+while user controls use the older VIDIOC_S_CTRL ioctl).
 
-Regards,
+Also try --get-audio-input, --list-audio-inputs, --get-cropcap,
+--get-input, --set-input and --list-inputs.
+
+Basically test as many ioctls as you can :-) And of course with sagetv!
+
+Thanks,
 
 	Hans
 
+>
+> Regards,
+>
+>        Hans
+>
+> > Hans,
+> >
+> > I would love to test! I am using 3 HVR-1600s and an HD-PVR for
+> > encoders.
+> >
+> > Brandon
+> >
+> > On Tue, Dec 9, 2008 at 9:03 AM, Hans Verkuil <hverkuil@xs4all.nl> 
+wrote:
+> >> Hi Brandon,
+> >>
+> >> As you noticed I found suspicious code in the current source. At
+> >> the moment I have no easy way of testing this, although I hope to
+> >> be able to do that some time in the next week or the week after
+> >> that.
+> >>
+> >> However, if you are able to do some testing for me, then that
+> >> would be very welcome and definitely speed things up.
+> >>
+> >> I have a patch that I can mail you and a bunch of tests to
+> >> perform.
+> >>
+> >> Let me know if you can help.
+> >>
+> >> Regards,
+> >>
+> >>        Hans
+> >>
+> >>> Hi Hans,
+> >>>
+> >>> I noted over the weekend that you were working on updating the
+> >>> v4l2-compat-ioctl32 module, thank you! Do you have a sense of
+> >>> timing for availability in your tree? I know of a few SageTV
+> >>> users who will be glad to see it done. :)
+> >>>
+> >>> Thanks in advance,
+> >>>
+> >>> Brandon
+> >>
+> >> --
+> >> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+
+
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+--Boundary-00=_YZrPJF0tjOlrKJY
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="compat.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="compat.diff"
+
+diff -r 6a9d064fe0ee linux/drivers/media/video/v4l2-compat-ioctl32.c
+--- a/linux/drivers/media/video/v4l2-compat-ioctl32.c	Fri Dec 05 11:49:53 2008 -0200
++++ b/linux/drivers/media/video/v4l2-compat-ioctl32.c	Tue Dec 09 19:09:33 2008 +0100
+@@ -540,6 +540,94 @@
+ 	return 0;
+ }
+ 
++
++struct v4l2_ext_controls32 {
++       __u32 ctrl_class;
++       __u32 count;
++       __u32 error_idx;
++       __u32 reserved[2];
++       compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
++};
++
++static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++{
++	struct v4l2_ext_control __user *ucontrols;
++	struct v4l2_ext_control __user *kcontrols;
++	int n;
++	compat_caddr_t p;
++
++	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_ext_controls32)) ||
++		get_user(kp->ctrl_class, &up->ctrl_class) ||
++		get_user(kp->count, &up->count) ||
++		get_user(kp->error_idx, &up->error_idx) ||
++		copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
++			return -EFAULT;
++	n = kp->count;
++	if (n == 0) {
++		kp->controls = NULL;
++		return 0;
++	}
++	if (get_user(p, &up->controls))
++		return -EFAULT;
++	ucontrols = compat_ptr(p);
++	if (!access_ok(VERIFY_READ, ucontrols, n * sizeof(struct v4l2_ext_control)))
++		return -EFAULT;
++	kcontrols = compat_alloc_user_space(n * sizeof(struct v4l2_ext_control));
++	kp->controls = kcontrols;
++	while (--n >= 0) {
++		if (copy_in_user(&kcontrols->id, &ucontrols->id, sizeof(__u32)))
++			return -EFAULT;
++		if (copy_in_user(&kcontrols->reserved2, &ucontrols->reserved2, sizeof(ucontrols->reserved2)))
++			return -EFAULT;
++		/* Note: if the void * part of the union ever becomes relevant
++		   then we need to know the type of the control in order to do
++		   the right thing here. Luckily, that is not yet an issue. */
++		if (copy_in_user(&kcontrols->value, &ucontrols->value, sizeof(ucontrols->value)))
++			return -EFAULT;
++		ucontrols++;
++		kcontrols++;
++	}
++	return 0;
++}
++
++static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
++{
++	struct v4l2_ext_control __user *ucontrols;
++	int n = kp->count;
++	compat_caddr_t p;
++
++	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_ext_controls32)) ||
++		put_user(kp->ctrl_class, &up->ctrl_class) ||
++		put_user(kp->count, &up->count) ||
++		put_user(kp->error_idx, &up->error_idx) ||
++		copy_to_user(up->reserved, kp->reserved, sizeof(up->reserved)))
++			return -EFAULT;
++	if (!kp->count)
++		return 0;
++
++	if (get_user(p, &up->controls))
++		return -EFAULT;
++	ucontrols = compat_ptr(p);
++	if (!access_ok(VERIFY_WRITE, ucontrols, n * sizeof(struct v4l2_ext_control)))
++		return -EFAULT;
++
++	while (--n >= 0) {
++		if (copy_in_user(&ucontrols->id, &kcontrols->id, sizeof(__u32)))
++			return -EFAULT;
++		if (copy_in_user(&ucontrols->reserved2, &kcontrols->reserved2,
++					sizeof(ucontrols->reserved2)))
++			return -EFAULT;
++		/* Note: if the void * part of the union ever becomes relevant
++		   then we need to know the type of the control in order to do
++		   the right thing here. Luckily, that is not yet an issue. */
++		if (copy_in_user(&ucontrols->value, &kcontrols->value, sizeof(ucontrols->value)))
++			return -EFAULT;
++		ucontrols++;
++		kcontrols++;
++	}
++	return 0;
++}
++
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ struct video_code32 {
+ 	char		loadwhat[16];	/* name or tag of file being passed */
+@@ -588,6 +676,9 @@
+ #define VIDIOC_G_INPUT32	_IOR  ('V', 38, compat_int_t)
+ #define VIDIOC_S_INPUT32	_IOWR ('V', 39, compat_int_t)
+ #define VIDIOC_TRY_FMT32      	_IOWR ('V', 64, struct v4l2_format32)
++#define VIDIOC_G_EXT_CTRLS32    _IOWR ('V', 71, struct v4l2_ext_controls32)
++#define VIDIOC_S_EXT_CTRLS32    _IOWR ('V', 72, struct v4l2_ext_controls32)
++#define VIDIOC_TRY_EXT_CTRLS32  _IOWR ('V', 73, struct v4l2_ext_controls32)
+ 
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ enum {
+@@ -672,6 +763,7 @@
+ 		struct v4l2_standard v2s;
+ 		struct v4l2_input v2i;
+ 		struct v4l2_tuner v2t;
++		struct v4l2_ext_controls v2ecs;
+ 		unsigned long vx;
+ 	} karg;
+ 	void __user *up = compat_ptr(arg);
+@@ -707,6 +799,9 @@
+ 	case VIDIOC_G_INPUT32: realcmd = cmd = VIDIOC_G_INPUT; break;
+ 	case VIDIOC_S_INPUT32: realcmd = cmd = VIDIOC_S_INPUT; break;
+ 	case VIDIOC_TRY_FMT32: realcmd = cmd = VIDIOC_TRY_FMT; break;
++	case VIDIOC_G_EXT_CTRLS32: realcmd = cmd = VIDIOC_G_EXT_CTRLS; break;
++	case VIDIOC_S_EXT_CTRLS32: realcmd = cmd = VIDIOC_S_EXT_CTRLS; break;
++	case VIDIOC_TRY_EXT_CTRLS32: realcmd = cmd = VIDIOC_TRY_EXT_CTRLS; break;
+ 	};
+ 
+ 	switch (cmd) {
+@@ -800,9 +895,16 @@
+ 		compatible_arg = 0;
+ 		break;
+ #endif
+-	};
++
++	case VIDIOC_G_EXT_CTRLS:
++	case VIDIOC_S_EXT_CTRLS:
++	case VIDIOC_TRY_EXT_CTRLS:
++		err = get_v4l2_ext_controls32(&karg.v2ecs, up);
++		compatible_arg = 0;
++		break;
++	}
+ 	if (err)
+-		goto out;
++		return err;
+ 
+ 	if (compatible_arg)
+ 		err = native_ioctl(file, realcmd, (unsigned long)up);
+@@ -813,73 +915,78 @@
+ 		err = native_ioctl(file, realcmd, (unsigned long)&karg);
+ 		set_fs(old_fs);
+ 	}
+-	if (err == 0) {
+-		switch (cmd) {
++	if (err)
++		return err;
++	switch (cmd) {
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+-		case VIDIOCGTUNER:
+-			err = put_video_tuner32(&karg.vt, up);
+-			break;
++	case VIDIOCGTUNER:
++		err = put_video_tuner32(&karg.vt, up);
++		break;
+ 
+-		case VIDIOCGWIN:
+-			err = put_video_window32(&karg.vw, up);
+-			break;
++	case VIDIOCGWIN:
++		err = put_video_window32(&karg.vw, up);
++		break;
+ 
+-		case VIDIOCGFBUF:
+-			err = put_video_buffer32(&karg.vb, up);
+-			break;
++	case VIDIOCGFBUF:
++		err = put_video_buffer32(&karg.vb, up);
++		break;
+ #if 0 /*FIXME*/
+-		case VIDIOCGAUDIO:
+-			err = put_video_audio32(&karg.va, up);
+-			break;
++	case VIDIOCGAUDIO:
++		err = put_video_audio32(&karg.va, up);
++		break;
+ #endif
+ 
+ #endif
+-		case VIDIOC_G_FBUF:
+-			err = put_v4l2_framebuffer32(&karg.v2fb, up);
+-			break;
++	case VIDIOC_G_FBUF:
++		err = put_v4l2_framebuffer32(&karg.v2fb, up);
++		break;
+ 
+-		case VIDIOC_G_FMT:
+-		case VIDIOC_S_FMT:
+-		case VIDIOC_TRY_FMT:
+-			err = put_v4l2_format32(&karg.v2f, up);
+-			break;
++	case VIDIOC_G_FMT:
++	case VIDIOC_S_FMT:
++	case VIDIOC_TRY_FMT:
++		err = put_v4l2_format32(&karg.v2f, up);
++		break;
+ 
+-		case VIDIOC_QUERYBUF:
+-		case VIDIOC_QBUF:
+-		case VIDIOC_DQBUF:
+-			err = put_v4l2_buffer32(&karg.v2b, up);
+-			break;
++	case VIDIOC_QUERYBUF:
++	case VIDIOC_QBUF:
++	case VIDIOC_DQBUF:
++		err = put_v4l2_buffer32(&karg.v2b, up);
++		break;
+ 
+-		case VIDIOC_ENUMSTD:
+-			err = put_v4l2_standard(&karg.v2s, up);
+-			break;
++	case VIDIOC_ENUMSTD:
++		err = put_v4l2_standard(&karg.v2s, up);
++		break;
+ 
+-		case VIDIOC_ENUMSTD32:
+-			err = put_v4l2_standard32(&karg.v2s, up);
+-			break;
++	case VIDIOC_ENUMSTD32:
++		err = put_v4l2_standard32(&karg.v2s, up);
++		break;
+ 
+-		case VIDIOC_G_TUNER:
+-		case VIDIOC_S_TUNER:
+-			err = put_v4l2_tuner(&karg.v2t, up);
+-			break;
++	case VIDIOC_G_TUNER:
++	case VIDIOC_S_TUNER:
++		err = put_v4l2_tuner(&karg.v2t, up);
++		break;
+ 
+-		case VIDIOC_ENUMINPUT:
+-			err = put_v4l2_input(&karg.v2i, up);
+-			break;
++	case VIDIOC_ENUMINPUT:
++		err = put_v4l2_input(&karg.v2i, up);
++		break;
+ 
+-		case VIDIOC_ENUMINPUT32:
+-			err = put_v4l2_input32(&karg.v2i, up);
+-			break;
++	case VIDIOC_ENUMINPUT32:
++		err = put_v4l2_input32(&karg.v2i, up);
++		break;
+ 
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+-		case VIDIOCGFREQ:
++	case VIDIOCGFREQ:
+ #endif
+-		case VIDIOC_G_INPUT:
+-			err = put_user(((u32)karg.vx), (u32 __user *)up);
+-			break;
+-		};
++	case VIDIOC_G_INPUT:
++		err = put_user(((u32)karg.vx), (u32 __user *)up);
++		break;
++
++	case VIDIOC_G_EXT_CTRLS:
++	case VIDIOC_S_EXT_CTRLS:
++	case VIDIOC_TRY_EXT_CTRLS:
++		err = put_v4l2_ext_controls32(&karg.v2ecs, up);
++		break;
+ 	}
+-out:
+ 	return err;
+ }
+ 
+@@ -944,6 +1051,13 @@
+ 	case VIDIOC_S_HW_FREQ_SEEK:
+ 	case VIDIOC_ENUM_FRAMESIZES:
+ 	case VIDIOC_ENUM_FRAMEINTERVALS:
++ 	case VIDIOC_ENCODER_CMD:
++ 	case VIDIOC_TRY_ENCODER_CMD:
++ 	case VIDIOC_G_AUDIO:
++ 	case VIDIOC_S_AUDIO:
++ 	case VIDIOC_S_EXT_CTRLS32:
++ 	case VIDIOC_G_EXT_CTRLS32:
++ 	case VIDIOC_TRY_EXT_CTRLS32:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
+
+--Boundary-00=_YZrPJF0tjOlrKJY
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--Boundary-00=_YZrPJF0tjOlrKJY--
