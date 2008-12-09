@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHJRRtH018025
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:27:27 -0500
-Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
-	[195.238.6.171])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mBHJRDPp031784
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:27:14 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Greg KH <greg@kroah.com>
-Date: Wed, 17 Dec 2008 20:27:13 +0100
-References: <200812082156.26522.hverkuil@xs4all.nl>
-	<200812171437.33695.hverkuil@xs4all.nl>
-	<20081217181645.GA26161@kroah.com>
-In-Reply-To: <20081217181645.GA26161@kroah.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9LJUtb026728
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 16:19:30 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.187])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9LIT3A005155
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 16:18:29 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so42435nfc.21
+	for <video4linux-list@redhat.com>; Tue, 09 Dec 2008 13:18:29 -0800 (PST)
+Message-ID: <de8cad4d0812091318h348d4417lef4e98dc9593445e@mail.gmail.com>
+Date: Tue, 9 Dec 2008 16:18:28 -0500
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200812091918.00276.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812172027.13771.laurent.pinchart@skynet.be>
-Cc: v4l <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
-Subject: Re: [BUG] cdev_put() race condition
+References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
+	<200812091918.00276.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l2-compat-ioctl32 update?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,40 +31,102 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Greg,
+Hi Hans,
 
-On Wednesday 17 December 2008, Greg KH wrote:
-> On Wed, Dec 17, 2008 at 02:37:33PM +0100, Hans Verkuil wrote:
-> > > Again, don't use cdev's reference counting for your own object
-> > > lifecycle, it is different and will cause problems, like you have found
-> > > out.
-> >
-> > Sigh. It has nothing to do with how v4l uses it. And to demonstrate this,
-> > here is how you reproduce it with the sg module (tested it with my USB
-> > harddisk).
-> >
-> > 1) apply this patch to char_dev.c:
+Received the following during compilation:
+
+CC [M]  /root/drivers/hdpvr/v4l/v4l2-compat-ioctl32.o
+/root/drivers/hdpvr/v4l/v4l2-compat-ioctl32.c: In function
+'put_v4l2_ext_controls32':
+/root/drivers/hdpvr/v4l/v4l2-compat-ioctl32.c:615: error: 'kcontrols'
+undeclared (first use in this function)
+/root/drivers/hdpvr/v4l/v4l2-compat-ioctl32.c:615: error: (Each
+undeclared identifier is reported only once
+/root/drivers/hdpvr/v4l/v4l2-compat-ioctl32.c:615: error: for each
+function it appears in.)
+make[3]: *** [/root/drivers/hdpvr/v4l/v4l2-compat-ioctl32.o] Error 1
+make[2]: *** [_module_/root/drivers/hdpvr/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.27-ARCH'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/root/drivers/hdpvr/v4l'
+make: *** [all] Error 2
+
+Brandon
+On Tue, Dec 9, 2008 at 1:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tuesday 09 December 2008 15:14:46 Hans Verkuil wrote:
+>> OK, I'll mail you a diff this evening. In the meantime, can you
+>> compile v4l2-ctl for 32-bit? That's the test tool for several of my
+>> tests.
 >
-> <snip>
+> Hi Brandon,
 >
-> Ok, since I can't convince you that using a cdev for your reference
-> counting is incorrect, I'll have to go change the cdev code to prevent
-> you from doing this :(
-
-Don't give up yet :-)
-
-As v4l isn't the only kernel subsystem wrongly using cdev (Hans showed that sg 
-also suffered from race conditions), people seem not to understand cdev 
-properly. Maybe you should start by explaining what cdev has been designed to 
-handle and how to use it in device drivers (such as sg or v4l) instead of 
-telling us what not to do.
-
-> Anyway, do you have a patch for the cdev code to propose how to fix this
-> issue you are having?
-
-Regards,
-
-Laurent Pinchart
+> As promised I've attached the diff with my current changes.
+>
+> You should be able to test it fairly well with v4l2-ctl. In particular,
+> please test getting and setting controls (MPEG controls use S_EXT_CTRLS
+> while user controls use the older VIDIOC_S_CTRL ioctl).
+>
+> Also try --get-audio-input, --list-audio-inputs, --get-cropcap,
+> --get-input, --set-input and --list-inputs.
+>
+> Basically test as many ioctls as you can :-) And of course with sagetv!
+>
+> Thanks,
+>
+>        Hans
+>
+>>
+>> Regards,
+>>
+>>        Hans
+>>
+>> > Hans,
+>> >
+>> > I would love to test! I am using 3 HVR-1600s and an HD-PVR for
+>> > encoders.
+>> >
+>> > Brandon
+>> >
+>> > On Tue, Dec 9, 2008 at 9:03 AM, Hans Verkuil <hverkuil@xs4all.nl>
+> wrote:
+>> >> Hi Brandon,
+>> >>
+>> >> As you noticed I found suspicious code in the current source. At
+>> >> the moment I have no easy way of testing this, although I hope to
+>> >> be able to do that some time in the next week or the week after
+>> >> that.
+>> >>
+>> >> However, if you are able to do some testing for me, then that
+>> >> would be very welcome and definitely speed things up.
+>> >>
+>> >> I have a patch that I can mail you and a bunch of tests to
+>> >> perform.
+>> >>
+>> >> Let me know if you can help.
+>> >>
+>> >> Regards,
+>> >>
+>> >>        Hans
+>> >>
+>> >>> Hi Hans,
+>> >>>
+>> >>> I noted over the weekend that you were working on updating the
+>> >>> v4l2-compat-ioctl32 module, thank you! Do you have a sense of
+>> >>> timing for availability in your tree? I know of a few SageTV
+>> >>> users who will be glad to see it done. :)
+>> >>>
+>> >>> Thanks in advance,
+>> >>>
+>> >>> Brandon
+>> >>
+>> >> --
+>> >> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
 
 --
 video4linux-list mailing list
