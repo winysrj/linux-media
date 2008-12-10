@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.aster.pl ([212.76.33.45])
+Received: from moutng.kundenserver.de ([212.227.126.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Daniel.Perzynski@aster.pl>) id 1LCMYo-0005q4-Ot
-	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 00:09:11 +0100
-From: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
-To: "'Devin Heitmueller'" <devin.heitmueller@gmail.com>
-References: <4728568367913277327@unknownmsgid>
-	<412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>
-In-Reply-To: <412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>
-Date: Tue, 16 Dec 2008 00:08:24 +0100
-Message-ID: <000e01c95f0a$07d08eb0$1771ac10$@Perzynski@aster.pl>
+	(envelope-from <holger@rusch.name>) id 1LALIK-00010f-7O
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 10:23:50 +0100
+Message-ID: <493F8A81.7040802@rusch.name>
+Date: Wed, 10 Dec 2008 10:23:13 +0100
+From: Holger Rusch <holger@rusch.name>
 MIME-Version: 1.0
-Content-Language: en-us
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Avermedia A312 - patch for review
+To: linux-dvb@linuxtv.org
+References: <cae4ceb0812091511s668dcc5fj793e7efc113fedfd@mail.gmail.com>
+In-Reply-To: <cae4ceb0812091511s668dcc5fj793e7efc113fedfd@mail.gmail.com>
+Subject: [linux-dvb] Quality with linux worse then with Windows
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,46 +24,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
------Original Message-----
-From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com] 
-Sent: Monday, December 15, 2008 11:29 PM
-To: Daniel Perzynski
-Cc: linux-dvb@linuxtv.org
-Subject: Re: Avermedia A312 - patch for review
+i got a
 
-On Mon, Dec 15, 2008 at 5:25 PM, Daniel Perzynski
-<Daniel.Perzynski@aster.pl> wrote:
-> Hi,
->
->
->
-> According to the suggestions I've modified dvb-usb-ids.h and cxusb.c to
-add
-> a support for that card.
->
->
->
-> I would appreciate someone to look at the code below and compare it with
-> spec on the wiki for that card.
->
-<snip>
+TerraTec Cinergy DT USB XS Diversity
+http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity
 
-Does this patch actually work?  Can you watch ATSC TV?
+Running well with v4l (except the problems with the SB700 USB ports of 
+my MB (disconnects here and then) => I am using a PCI USB Card with NEC 
+Chipset and everything works well).
 
-Devin
+One thing that bugs me:
+
+The recording/reception quality is much worse that with windows.
+
+Using the Terratec Software i get 100% signal and 100% quality in 
+check-mode and i NEVER got any frameloss or other picture/sound errors.
+
+Using v4l and vdr i get mpeg-blocks here and then (5 minutes) and even 
+soundloss or complete frame loss.
+
+Femon-Plugin for VDR shows me STR/SNR/BNR values which are in the lower 
+orange area, really close to red. => BAD!
+
+What may be the cause?
+
+This is set:
+options dvb_usb_dib0700 force_lna_activation=1
+
+Would be nice to see help to get 100% signal back.
+
+Tu-Tu Yu schrieb:
+> Hi Sirs:
+> I am working on the Dvico HDTV7 Dual Express TV tuner card under Linux
+> environment with kernel (2.6.26).
+> When I check the snr value and signal status about every 10 seconds,
+> it works fine in first few hours, but it will stop after about 12 - 24
+> hours.
+> I found out if i check the snr and signal status every second. It will
+> stop after 5 hours.
+> If I check the snr and siganl status every time it read PES, it will
+> stop in few minutes.
+> And it will show the message==> value too large for defined data type,
+> Read -1 byte from DVR.
+> Do you think it because the driver is not compatible with my Desktop?
+> Or I shouldnt check the snr value?
+> Thank you so much
+> Tu Tu Yu
+> tutuyu@usc.edu
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
-
-Good question, 
-
-How to check it? What about analog TV?
-
-Daniel 
-
++ Contact? => http://site.rusch.name/ +
 
 _______________________________________________
 linux-dvb mailing list
