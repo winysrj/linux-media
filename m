@@ -1,23 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBMAUj50006811
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 05:30:45 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBMAU5Yq026836
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 05:30:06 -0500
-Date: Mon, 22 Dec 2008 11:30:12 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Schwebel <r.schwebel@pengutronix.de>
-In-Reply-To: <20081222093250.GM22230@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.0812221120260.5241@axis700.grange>
-References: <20081218170015.10DD88E03CC@hormel.redhat.com>
-	<44440.83878.qm@web32104.mail.mud.yahoo.com>
-	<20081222093250.GM22230@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Agustin <gatoguan-os@yahoo.com>, video4linux-list@redhat.com,
-	Sascha Hauer <sha@pengutronix.de>
-Subject: Re: soc-camera: current stack
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBA7kZRc014210
+	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 02:46:35 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.226])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBA7kLWo006318
+	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 02:46:21 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so317134rvb.51
+	for <video4linux-list@redhat.com>; Tue, 09 Dec 2008 23:46:21 -0800 (PST)
+From: Magnus Damm <magnus.damm@gmail.com>
+To: video4linux-list@redhat.com
+Date: Wed, 10 Dec 2008 16:44:35 +0900
+Message-Id: <20081210074435.5727.93374.sendpatchset@rx1.opensource.se>
+Cc: g.liakhovetski@gmx.de
+Subject: [PATCH 00/03] video: nv1x/nvx1 support for the sh_mobile_ceu driver
+	V2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,35 +25,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 22 Dec 2008, Robert Schwebel wrote:
+NV12/NV21/NV16/NV61 support V2:
 
-> Hi Agustin,
-> 
-> On Fri, Dec 19, 2008 at 03:58:46AM -0800, Agustin wrote:
-> > I was about to try this stack on my Phytec i.MX31 system when I found
-> > there is no mx3_camera driver in it. Too bad!
-> 
-> We are working hard on a mainline quality patch series for the
-> phyCORE-i.MX31 and a bunch of these patches already went into the
-> maintainer trees for the 2.6.29 merge window.
-> 
-> One of the next central components is the pmic driver, which hasn't
-> reached mainline quality yet. If that's finished, camera drivers will
-> surely be in a better situation wrt. mainline.
+[PATCH 01/03] sh_mobile_ceu: use new pixel format translation code
+[PATCH 02/03] sh_mobile_ceu: add NV12 and NV21 support
+[PATCH 03/03] sh_mobile_ceu: add NV16 and NV61 support
 
-pmic is good, although, I don't remember it affecting the camera driver 
-_directly_, so, I think, it is perfectly possible to have a good camera 
-driver with no PMIC support. As you know, PMIC is a separate IC, and shall 
-be handled by a separate (regulator?) driver. As you write - your PMIC 
-driver will be relevant for the phyCORE board, and not necessarily so for 
-other designs. So, I don't think this affects the chances of the imx31 
-camera driver to be included in the mainline.
+This patchset is the second version of the nv12/nv21 patch named:
+"video: nv12/nv21 support for the sh_mobile_ceu driver". This time
+YUV support is added by using the new pixel format translation code.
+The bulk of the work is done by the NV12 and NV21 patch and it only
+requires the pixel format translation patches. NV16 and NV61 support
+also requires the NV16/NV61 fourcc patch recently posted.
 
-Thanks
-Guennadi
+Tested with ov772x using soc_camera_platform and the ov772x
+driver on a Migo-R QVGA board.
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+
+ drivers/media/video/sh_mobile_ceu_camera.c |  219 ++++++++++++++++++++++------
+ 1 file changed, 176 insertions(+), 43 deletions(-)
 
 --
 video4linux-list mailing list
