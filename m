@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp126.rog.mail.re2.yahoo.com ([206.190.53.31])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1L9VZy-0004HI-8a
-	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 03:10:35 +0100
-Message-ID: <493C81EF.9010706@rogers.com>
-Date: Sun, 07 Dec 2008 21:09:51 -0500
-From: CityK <cityk@rogers.com>
+Received: from mail-ew0-f16.google.com ([209.85.219.16])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LAWVn-0008LQ-4K
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 22:22:28 +0100
+Received: by ewy9 with SMTP id 9so975290ewy.17
+	for <linux-dvb@linuxtv.org>; Wed, 10 Dec 2008 13:21:53 -0800 (PST)
+Message-ID: <412bdbff0812101321la03034cwc193959e9e9e6767@mail.gmail.com>
+Date: Wed, 10 Dec 2008 16:21:52 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
+In-Reply-To: <-2195289716128877320@unknownmsgid>
 MIME-Version: 1.0
-To: Steve <steve@ganymede.demon.co.uk>
-References: <493C6C68.2060702@ganymede.demon.co.uk>
-In-Reply-To: <493C6C68.2060702@ganymede.demon.co.uk>
+Content-Disposition: inline
+References: <-2195289716128877320@unknownmsgid>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend S2-3600
+Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,30 +28,126 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steve,
-
-> referring back to the message at 
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029830.html I 
-> assume I'm supposed to do something with the attachment 
-> my_s2api_pctv452e.patch but what?
+On Wed, Dec 10, 2008 at 4:00 PM, Daniel Perzynski
+<Daniel.Perzynski@aster.pl> wrote:
+> Hi Devin,
 >
-> If anyone can point out what I'm doing wrong, what I need to do, or if 
-> there is anything I can do to help with support for the TechnoTrend 
-> S2-3600 then please let me know.
->   
-I'm not familiar with the device et al., but what you can attempt to do
-is apply the patch to the source code. If its one or two lines you can
-do this manually or you could use "patch" . ( Download patch if its not
-include in your distro already, then cd into the s2-liplianin source
-code's top most directory and run (but obviously correct for the proper
-pathway) the command "patch -p1 < path_to_/my_s2api_pctv452e.patch". )
-Then rebuild the drivers and give it another shot.
+> Which repository should I use then?
+> I do understand that USB bridge (CY7C68013A) has to be activated.
+> As far as I'm aware that bridge is supported in v4l-dvb drivers but not as a
+> standalone module but rather as a part of other 'main' modules like cx88.
+> The question is if my components are generally supported why are not
+> recognized during modprobe 'modulename' process?
+> Maybe I have to modify the source and add USB id of my card to certain
+> modules?
+>
+> I would like to start with analog first.
+>
+> Regards,
+>
+> -----Original Message-----
+> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+> Sent: Monday, December 08, 2008 11:22 PM
+> To: daniel. perzynski
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
+>
+> On Mon, Dec 8, 2008 at 5:10 PM, daniel. perzynski
+> <daniel.perzynski@aster.pl> wrote:
+>> Hi,
+>>
+>> I'm asking again for more help as I haven't received any response to
+>> my previous e-mail pasted below. I've tried to run
+>> SniffUSB-x64-2.0.0006.zip but is not working under vista :( I've also
+>> found that card is using merlinb.rom and merlinc.rom (they are listed
+>> in device manager in windows vista)
+>>> I've tried to load all v4l modules (one by one) in 2.6.27.4 kernel -
+>>> nothing in syslog :( I've then compiled and tried to load lgdt330x,
+>>> cx25840,tuner-xc2028 and
+>>> wm8739 from http://linuxtv.org/hg/v4l-dvb mercurial repository -
+>>> nothing in syslog :(
+>>>
+>>> At the end I've used http://linuxtv.org/hg/v4l-dvb-experimental
+>>> repository and when doing:
+>>>
+>>> insmod em28xx_cx25843, I've received :) Nov 30 21:43:54 h3xu5
+>>> cx25843.c: starting probe for adapter SMBus
+>>> I801
+>>> adapter at 1200 (0x40004)
+>>> Nov 30 21:43:54 h3xu5 cx25843.c: detecting cx25843 client on address
+>>> 0x88
+>>>
+>>> It is a small progress and I need even more help here. There is a
+>>> question if I'm doing everything right? Do I need to load the modules
+>>> with parameters? Why I need to do next to help in creation of working
+>>> solution for that A312 card?
+>>
+>> Regards,
+>
+> Hello Daniel,
+>
+> Don't use http://linuxtv.org/hg/v4l-dvb-experimental, that's a very old
+> repository.
+>
+> Just loading the modules does nothing.  They won't do anything unless they
+> know about your hardware.
+>
+> I would start with the bridge:  CY7C68013A
+>
+> You need to get the bridge working before you can get any of the peripherals
+> working (such as the lgdt3304 demod, the 3028 tuner, or the cx25843
+> decoder).
+>
+> Once you have the bridge working, you can set the GPIOs to bring the other
+> chips out of reset and then do i2c enumeration and device registration.
+>
+> Do you plan on doing analog support first or digital?
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
-Note: I have no idea if the patch has been already applied to that
-branch or not, or whether if it will still apply properly (if in the
-case where there may have been heavy development changes since whomever
-drew up that patch).
+Hello Daniel,
 
+Please don't top post - it's a violation of list policy.
+
+You should use the v4l-dvb repository as your base.  The other
+repositories are temporary clones of that repository that developers
+used (or are using) to develop support for some new chipset.
+
+You need to put your USB ID into the driver for the ez-usb fx2 driver,
+so that driver will know to associate with your device.
+
+Despite the various chips being supported, you still need to tell the
+driver that your device contains these chips.  This is done by
+registering your device's USB ID in the bridge driver, and then having
+a profile within the bridge driver that tells the kernel which other
+chips are used in your product.  This is the same regardless of
+whether you're talking about a USB bridge like the Cyprus or a device
+that includes a PCI bridge like the cx88.
+
+Let's look at an example:  The HVR-950:
+
+The HVR-950 includes an em2883 USB bridge, an xc3028 tuner, a tvp5150
+analog decoder, and an lgdt3303 digital demodulator.  In order to make
+that work, you would add an entry to em28xx-cards.c including the
+hvr-950's USB ID, and in the device profile you would indicate that it
+contains the tvp5150 and xc3028.  You would also have to configure any
+GPIOs so that the em2883 can bring the other chips out of reset.  For
+digital support, you would need to change em28xx-dvb.c to indicate
+that the HVR-950 contains an lgdt3303 and provide the required
+configuration parameters for how that chip is wired up in that
+product.
+
+For your product, you need to do basically the same thing.
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
