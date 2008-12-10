@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artem@makhutov.org>) id 1LGHPD-0005QG-1U
-	for linux-dvb@linuxtv.org; Fri, 26 Dec 2008 19:27:28 +0100
-Message-ID: <495521F6.9060808@makhutov.org>
-Date: Fri, 26 Dec 2008 19:27:02 +0100
-From: Artem Makhutov <artem@makhutov.org>
-MIME-Version: 1.0
+	(envelope-from <patrick.boettcher@desy.de>) id 1LAXCw-0003zX-8J
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 23:07:06 +0100
+Date: Wed, 10 Dec 2008 23:06:21 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
 To: linux-dvb@linuxtv.org
-References: <20081222142937.GK12059@titan.makhutov-it.de>
-	<8103ad500812221220k2ebee308x673c2ead22c27204@mail.gmail.com>
-In-Reply-To: <8103ad500812221220k2ebee308x673c2ead22c27204@mail.gmail.com>
-Subject: Re: [linux-dvb] DVB-S2 stream partitially broken for Astra HD+ on
- 19.2E with SkyStar HD (stb0899)
+Message-ID: <alpine.LRH.1.10.0812101628500.23745@pub3.ifh.de>
+MIME-Version: 1.0
+Cc: Zinne Enrico <enrico.zinne@gmx.de>, Uwe Bugla <uwe.bugla@gmx.de>
+Subject: [linux-dvb] Technisat SkyStar2 rev 2.8 GPL driver now available
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,92 +23,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hi all,
 
-Konstantin Dimitrov schrieb:
-> hi Artem,
-> 
-> under Windows you can use MPEG2Repair - it is a small tool that can
-> analyze the Transport Stream (TS) for errors. i suspect that the TS
-> created under Linux have (dis)continuity errors.
+Finally and with pleasure, I can announce that I just released the last 
+missing piece to add full GPL support to LinuxTV for the Technisat 
+SkyStar2 rev2.8. The last missing piece in question was the driver for the 
+CX24113 tuner. I just committed the source for that into my repository and 
+will ask Mauro to pull it into the main soon. 
+(http://linuxtv.org/hg/~pb/v4l-dvb/)
 
-The stream has indeed some errors. I am not sure what kind of errors
-this are, but VDR complains about "TS continuity errors".
+Expect support for this card in 2.6.29 .
 
-MPEG2Repair and TSDoctor are not able to repair the stream.
+happy using and best regards,
+Patrick.
 
-The errors are much more frequent on Astra HD+ than on Arte HD and the
-errors only occours with DVB-S2.
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
-Here are some pieces of my VDR logfile:
-
-
-Astra HD+
-[...]
-Dec 26 19:04:09 gandalf vdr: [2669] TS continuity error (3)
-Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (7)
-Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (9)
-Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (13)
-Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (12)
-Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (15)
-Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (14)
-Dec 26 19:04:17 gandalf vdr: [2669] TS continuity error (0)
-Dec 26 19:04:17 gandalf vdr: [2669] TS continuity error (6)
-Dec 26 19:04:41 gandalf vdr: [2669] TS continuity error (8)
-Dec 26 19:04:41 gandalf vdr: [2669] TS continuity error (11)
-Dec 26 19:04:41 gandalf vdr: [2669] TS continuity error (6)
-Dec 26 19:04:44 gandalf vdr: [2669] TS continuity error (3)
-Dec 26 19:04:44 gandalf vdr: [2669] TS continuity error (8)
-Dec 26 19:04:44 gandalf vdr: [2669] TS continuity error (4)
-Dec 26 19:04:52 gandalf vdr: [2669] TS continuity error (6)
-Dec 26 19:04:52 gandalf vdr: [2669] TS continuity error (11)
-Dec 26 19:04:52 gandalf vdr: [2669] TS continuity error (2)
-Dec 26 19:04:56 gandalf vdr: [2669] TS continuity error (7)
-Dec 26 19:04:56 gandalf vdr: [2669] TS continuity error (0)
-Dec 26 19:05:01 gandalf vdr: [2669] TS continuity error (5)
-Dec 26 19:05:04 gandalf vdr: [2669] TS continuity error (14)
-Dec 26 19:05:12 gandalf vdr: [2669] TS continuity error (0)
-Dec 26 19:05:12 gandalf vdr: [2669] TS continuity error (9)
-Dec 26 19:05:12 gandalf vdr: [2669] TS continuity error (4)
-Dec 26 19:05:12 gandalf vdr: [2669] TS continuity error (13)
-Dec 26 19:05:15 gandalf vdr: [2669] TS continuity error (4)
-Dec 26 19:05:15 gandalf vdr: [2669] TS continuity error (6)
-Dec 26 19:05:15 gandalf vdr: [2669] TS continuity error (5)
-Dec 26 19:05:15 gandalf vdr: [2669] TS continuity error (8)
-Dec 26 19:05:19 gandalf vdr: [2669] TS continuity error (6)
-Dec 26 19:05:19 gandalf vdr: [2669] TS continuity error (8)
-Dec 26 19:05:19 gandalf vdr: [2669] TS continuity error (7)
-[...]
-
----
-
-Arte HD:
-[...]
-Dec 26 19:09:59 gandalf vdr: [2743] TS continuity error (10)
-Dec 26 19:09:59 gandalf vdr: [2743] TS continuity error (1)
-Dec 26 19:09:59 gandalf vdr: [2743] TS continuity error (1)
-Dec 26 19:09:59 gandalf vdr: [2743] TS continuity error (8)
-Dec 26 19:09:59 gandalf vdr: [2743] TS continuity error (5)
-Dec 26 19:09:59 gandalf vdr: [2743] TS continuity error (12)
-Dec 26 19:10:26 gandalf vdr: [2743] TS continuity error (6)
-Dec 26 19:10:39 gandalf vdr: [2743] TS continuity error (0)
-Dec 26 19:16:00 gandalf vdr: [2743] TS continuity error (13)
-Dec 26 19:16:00 gandalf vdr: [2743] TS continuity error (4)
-Dec 26 19:16:00 gandalf vdr: [2743] TS continuity error (1)
-Dec 26 19:16:03 gandalf vdr: [2743] TS continuity error (4)
-Dec 26 19:16:03 gandalf vdr: [2743] TS continuity error (7)
-Dec 26 19:17:44 gandalf vdr: [2743] TS continuity error (2)
-Dec 26 19:17:44 gandalf vdr: [2743] TS continuity error (9)
-Dec 26 19:17:44 gandalf vdr: [2743] TS continuity error (4)
-Dec 26 19:17:44 gandalf vdr: [2743] TS continuity error (11)
-Dec 26 19:17:47 gandalf vdr: [2743] TS continuity error (11)
-Dec 26 19:17:47 gandalf vdr: [2743] TS continuity error (14)
-Dec 26 19:17:47 gandalf vdr: [2743] TS continuity error (5)
-[...]
-
-Any Ideas?
-
-Thanks, Artem
 
 _______________________________________________
 linux-dvb mailing list
