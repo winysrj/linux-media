@@ -1,24 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.25])
+Received: from nf-out-0910.google.com ([64.233.182.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1L7bV5-0006ua-H6
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 21:05:40 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so880192qwb.17
-	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 12:05:35 -0800 (PST)
-Message-ID: <c74595dc0812021205x22936540w9ce74549f07339ff@mail.gmail.com>
-Date: Tue, 2 Dec 2008 22:05:35 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: e9hack <e9hack@googlemail.com>
-In-Reply-To: <49358FE8.9020701@googlemail.com>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LAWxC-0002TS-Mf
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 22:50:49 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so164259nfb.11
+	for <linux-dvb@linuxtv.org>; Wed, 10 Dec 2008 13:50:43 -0800 (PST)
+Message-ID: <412bdbff0812101350h5acb2affrb0b58ce236d4a884@mail.gmail.com>
+Date: Wed, 10 Dec 2008 16:50:43 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
+In-Reply-To: <8750445677584112789@unknownmsgid>
 MIME-Version: 1.0
-References: <492168D8.4050900@googlemail.com>
-	<19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>
-	<c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>
-	<49358FE8.9020701@googlemail.com>
+Content-Disposition: inline
+References: <-2195289716128877320@unknownmsgid>
+	<412bdbff0812101321la03034cwc193959e9e9e6767@mail.gmail.com>
+	<8750445677584112789@unknownmsgid>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
-	which outputs the wrong frequency if the current tuned transponder
-	is scanned only
+Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,101 +24,172 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0488520883=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0488520883==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_108095_23449740.1228248335250"
-
-------=_Part_108095_23449740.1228248335250
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-On Tue, Dec 2, 2008 at 9:43 PM, e9hack <e9hack@googlemail.com> wrote:
-
-> Alex Betis schrieb:
->  > I don't understand what's wrong with NIT advartised frequency?
-> > For example, many satelite sites (such as lyngsat) have different
-> > frequencies listed for the same channel, generally a difference of 1 MHz
-> > here and there.
+On Wed, Dec 10, 2008 at 4:36 PM, Daniel Perzynski
+<Daniel.Perzynski@aster.pl> wrote:
+> -----Original Message-----
+> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+> Sent: Wednesday, December 10, 2008 10:22 PM
+> To: Daniel Perzynski
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
 >
-> If I do scan the tuned transponder only (parameter '-c'), scan will copy
-> all NIT entries
-> to the same transponder data. The output contains the last frequency, which
-> was found. On
-> DVB-C, the NIT contains the frequencies of all transponders. If VDR has
-> tuned to the
-> 113MHz transponder and I scan this transponder, I should got 113MHz and
-> QAM64 modulation,
-> but I get e.g. 466MHz and QAM256 modulation. The frequency changes on every
-> scan.
-
-What driver and scan utility do you use?
-If you use S2API driver, please try my scan-s2 from here:
-http://mercurial.intuxication.org/hg/scan-s2/
-
-I did several fixes in that area. If it still doesn't work, please run it
-with "-vv" or "-vvv", (don't remember what level is needed) until you'll see
-a HEX dump of the messages, send it to me and I'll take a look.
-
-
+> On Wed, Dec 10, 2008 at 4:00 PM, Daniel Perzynski
+> <Daniel.Perzynski@aster.pl> wrote:
+>> Hi Devin,
+>>
+>> Which repository should I use then?
+>> I do understand that USB bridge (CY7C68013A) has to be activated.
+>> As far as I'm aware that bridge is supported in v4l-dvb drivers but not as
+> a
+>> standalone module but rather as a part of other 'main' modules like cx88.
+>> The question is if my components are generally supported why are not
+>> recognized during modprobe 'modulename' process?
+>> Maybe I have to modify the source and add USB id of my card to certain
+>> modules?
+>>
+>> I would like to start with analog first.
+>>
+>> Regards,
+>>
+>> -----Original Message-----
+>> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+>> Sent: Monday, December 08, 2008 11:22 PM
+>> To: daniel. perzynski
+>> Cc: linux-dvb@linuxtv.org
+>> Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
+>>
+>> On Mon, Dec 8, 2008 at 5:10 PM, daniel. perzynski
+>> <daniel.perzynski@aster.pl> wrote:
+>>> Hi,
+>>>
+>>> I'm asking again for more help as I haven't received any response to
+>>> my previous e-mail pasted below. I've tried to run
+>>> SniffUSB-x64-2.0.0006.zip but is not working under vista :( I've also
+>>> found that card is using merlinb.rom and merlinc.rom (they are listed
+>>> in device manager in windows vista)
+>>>> I've tried to load all v4l modules (one by one) in 2.6.27.4 kernel -
+>>>> nothing in syslog :( I've then compiled and tried to load lgdt330x,
+>>>> cx25840,tuner-xc2028 and
+>>>> wm8739 from http://linuxtv.org/hg/v4l-dvb mercurial repository -
+>>>> nothing in syslog :(
+>>>>
+>>>> At the end I've used http://linuxtv.org/hg/v4l-dvb-experimental
+>>>> repository and when doing:
+>>>>
+>>>> insmod em28xx_cx25843, I've received :) Nov 30 21:43:54 h3xu5
+>>>> cx25843.c: starting probe for adapter SMBus
+>>>> I801
+>>>> adapter at 1200 (0x40004)
+>>>> Nov 30 21:43:54 h3xu5 cx25843.c: detecting cx25843 client on address
+>>>> 0x88
+>>>>
+>>>> It is a small progress and I need even more help here. There is a
+>>>> question if I'm doing everything right? Do I need to load the modules
+>>>> with parameters? Why I need to do next to help in creation of working
+>>>> solution for that A312 card?
+>>>
+>>> Regards,
+>>
+>> Hello Daniel,
+>>
+>> Don't use http://linuxtv.org/hg/v4l-dvb-experimental, that's a very old
+>> repository.
+>>
+>> Just loading the modules does nothing.  They won't do anything unless they
+>> know about your hardware.
+>>
+>> I would start with the bridge:  CY7C68013A
+>>
+>> You need to get the bridge working before you can get any of the
+> peripherals
+>> working (such as the lgdt3304 demod, the 3028 tuner, or the cx25843
+>> decoder).
+>>
+>> Once you have the bridge working, you can set the GPIOs to bring the other
+>> chips out of reset and then do i2c enumeration and device registration.
+>>
+>> Do you plan on doing analog support first or digital?
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller
+>> http://www.devinheitmueller.com
+>> AIM: devinheitmueller
 >
-> -Hartmut
+>> Hello Daniel,
 >
+>> Please don't top post - it's a violation of list policy.
 >
+>> You should use the v4l-dvb repository as your base.  The other
+>> repositories are temporary clones of that repository that developers
+>> used (or are using) to develop support for some new chipset.
 >
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>> You need to put your USB ID into the driver for the ez-usb fx2 driver,
+>> so that driver will know to associate with your device.
+>
+>> Despite the various chips being supported, you still need to tell the
+>> driver that your device contains these chips.  This is done by
+>> registering your device's USB ID in the bridge driver, and then having
+>> a profile within the bridge driver that tells the kernel which other
+>> chips are used in your product.  This is the same regardless of
+>> whether you're talking about a USB bridge like the Cyprus or a device
+>> that includes a PCI bridge like the cx88.
+>
+>> Let's look at an example:  The HVR-950:
+>
+>> The HVR-950 includes an em2883 USB bridge, an xc3028 tuner, a tvp5150
+>> analog decoder, and an lgdt3303 digital demodulator.  In order to make
+>> that work, you would add an entry to em28xx-cards.c including the
+>> hvr-950's USB ID, and in the device profile you would indicate that it
+>> contains the tvp5150 and xc3028.  You would also have to configure any
+>> GPIOs so that the em2883 can bring the other chips out of reset.  For
+>> digital support, you would need to change em28xx-dvb.c to indicate
+>> that the HVR-950 contains an lgdt3303 and provide the required
+>> configuration parameters for how that chip is wired up in that
+>> product.
+>
+>> For your product, you need to do basically the same thing.
+>>
+>> --
+>> Devin J. Heitmueller
+>> http://www.devinheitmueller.com
+>> AIM: devinheitmueller
+>
+> Hi,
+>
+> Sorry for top post :(
+>
+> What is the name of the source file for ez-usb fx2 driver (to which as I
+> understand I have to add my USB device id)?
+
+I would have to look at the source and I don't have access to it right
+now.  I would recommend you grep the tree for "Cyprus" or "fx2"
+
+> 'For your product, you need to do basically the same thing' - do you want me
+> to add information about my card and its
+> device profile to em28xx-cards.c for analog TV and to em28xx-dvb.c for
+> Digital?
 >
 
-------=_Part_108095_23449740.1228248335250
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+No, I was using that as an example.  The em28xx is a different USB
+bridge.  You would want to register your USB ID with the CY7C68013A
+driver.
 
-<div dir="ltr">On Tue, Dec 2, 2008 at 9:43 PM, e9hack <span dir="ltr">&lt;<a href="mailto:e9hack@googlemail.com">e9hack@googlemail.com</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Alex Betis schrieb:<br>
-<div class="Ih2E3d">&nbsp;&gt; I don&#39;t understand what&#39;s wrong with NIT advartised frequency?<br>
-&gt; For example, many satelite sites (such as lyngsat) have different<br>
-&gt; frequencies listed for the same channel, generally a difference of 1 MHz<br>
-&gt; here and there.<br>
-<br>
-</div>If I do scan the tuned transponder only (parameter &#39;-c&#39;), scan will copy all NIT entries<br>
-to the same transponder data. The output contains the last frequency, which was found. On<br>
-DVB-C, the NIT contains the frequencies of all transponders. If VDR has tuned to the<br>
-113MHz transponder and I scan this transponder, I should got 113MHz and QAM64 modulation,<br>
-but I get e.g. 466MHz and QAM256 modulation. The frequency changes on every scan.</blockquote><div>What driver and scan utility do you use?<br>If you use S2API driver, please try my scan-s2 from here:<br><a href="http://mercurial.intuxication.org/hg/scan-s2/">http://mercurial.intuxication.org/hg/scan-s2/</a><br>
-<br>I did several fixes in that area. If it still doesn&#39;t work, please run it with &quot;-vv&quot; or &quot;-vvv&quot;, (don&#39;t remember what level is needed) until you&#39;ll see a HEX dump of the messages, send it to me and I&#39;ll take a look.<br>
-<br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br>
-<br>
--Hartmut<br>
-<div><div></div><div class="Wj3C7c"><br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</div></div></blockquote></div><br></div>
+Devin
 
-------=_Part_108095_23449740.1228248335250--
-
-
---===============0488520883==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0488520883==--
