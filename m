@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1LDLzH-00060J-7f
-	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 17:44:35 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0KC2003A2ZT33G51@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 18 Dec 2008 11:43:54 -0500 (EST)
-Date: Thu, 18 Dec 2008 11:43:51 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <e816454e0812180809h59d1b75q470f34b438b91ff7@mail.gmail.com>
-To: Andrew Barbaccia <andrew@monolithmc.com>
-Message-id: <494A7DC7.60903@linuxtv.org>
-MIME-version: 1.0
-References: <e816454e0812180809h59d1b75q470f34b438b91ff7@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR 2250 Status
+Received: from smtpd3.aruba.it ([62.149.128.208] helo=smtp7.aruba.it)
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <a.venturi@avalpa.com>) id 1LARoV-0006Va-VT
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 17:21:28 +0100
+Message-ID: <493FEC61.4060609@avalpa.com>
+Date: Wed, 10 Dec 2008 17:20:49 +0100
+From: Andrea Venturi <a.venturi@avalpa.com>
+MIME-Version: 1.0
+To: urishk@yahoo.com
+References: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
+In-Reply-To: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] SMS Host Library
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,13 +25,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andrew Barbaccia wrote:
-> I was wondering how the development on the HVR2250 was coming along. A 
-> mythtv wiki page shows:
+Uri Shkolnik wrote:
+> Andrea, Barry,
+>
+> Finally, I have marketing approval to release the user space SMS host library (binary form) and the associate header file (as source). 
+>   
 
-No progress, the development is on ice for the time being.
+nice to hear again about it. of course this lib bind the SMS host driver 
+interface, right?
 
-- Steve
+is there a sample application to borrow from or same API documentation 
+inside?
+> Now you can test DAB/T-DMB with SMS based devices....
+>
+> One problem still remain, true I can attach the header to a post mailed to this ML, but the library is about 1,3MByte.... 
+>   
+
+for me, you can happily attach the lib to a PM.
+
+for a broader availability, you should look for a ftp/http hosting.
+
+i don't really know if a binary lib fits the scope of linuxtv.org very 
+well, but the web is full of free file hosting services..
+
+ciao
+
+andrea
+
+> Do you think that FTP will be a good solution?
+>
+>
+> Uri
+>
+>
+>       
+>
+>   
+
 
 _______________________________________________
 linux-dvb mailing list
