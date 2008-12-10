@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53])
+Received: from correo.cdmon.com ([212.36.74.112])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LDTPA-0004Rj-5l
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 01:39:49 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Robin Perkins <robin.perkins@internode.on.net>
-In-Reply-To: <A4711CA1-6F97-4D35-8A67-2BF391D3D1ED@internode.on.net>
-References: <A4711CA1-6F97-4D35-8A67-2BF391D3D1ED@internode.on.net>
-Date: Fri, 19 Dec 2008 01:33:56 +0100
-Message-Id: <1229646836.2561.20.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: LinuxTV-DVB <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Junior Dev Help: Compro VideoMate T220
-	driver	questions.
+	(envelope-from <jordi@cdmon.com>) id 1LATKd-0003tx-TH
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 18:58:44 +0100
+Message-ID: <4940032D.90106@cdmon.com>
+Date: Wed, 10 Dec 2008 18:58:05 +0100
+From: Jordi Moles Blanco <jordi@cdmon.com>
+MIME-Version: 1.0
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+References: <493FFD3A.80209@cdmon.com>
+	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working through
+ diseqc anymore
+Reply-To: jordi@cdmon.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,53 +28,78 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+En/na BOUWSMA Barry ha escrit:
+> On Wed, 10 Dec 2008, Jordi Moles Blanco wrote:
+>
+>   
+>> here's what i got from scanning........
+>>
+>> switch 1 (astra 28.2E)
+>>
+>> ********
+>> scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
+>>     
+>>>>> tune to: 10729:v:1:22000
+>>>>>           
+>> 0x0000 0x206c: pmt_pid 0x0100 BSkyB -- E4+1 (running)
+>>     
+>
+>   
+>> switch 2 (astra 19E)
+>> ********
+>> scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
+>>     
+>>>>> tune to: 10788:v:2:22000
+>>>>>           
+>> 0x0000 0x283d: pmt_pid 0x0100 BSkyB -- BBC 1 W Mids (running)
+>>     
+>
+> You are correct, this is a transponder at 28E2 which
+> shares freq,pol+sr with 19E2...
+>
+>
+>   
+>> And it doesn't matter if i run "scan -s 1" or "scan -s 2" or "scan -s
+>> 3", it will always scan from "switch 1"
+>>     
+>
+> Try with -s 0; I'm not sure if it is always the case,
+> but my unhacked `scan' uses 0-3 for DiSEqC positions
+> 1/4 to 4/4 -- I've hacked this to use the range of 1-4
+> on all my `scan' and related tuning/streaming utilities.
+>
+>
+> Personally, I prefer `0' to mean no DiSEqC at all, A/B
+> as appropriate, and 1-4 to match all consumer equipment
+> I've got my hands on (or A-D), but that's me...
+>
+>
+> barry bouwsma
+>   
 
-only at a first look.
+hi, thanks for anwsering.
 
-Am Donnerstag, den 18.12.2008, 12:54 +1000 schrieb Robin Perkins:
-> Hello All, 
-> 
-> 
-> I'm trying to write a driver for my Compro Videomate DVB-T220 card
-> (It's a saa7134 based card). I have made a wiki
-> page: http://www.linuxtv.org/wiki/index.php/Compro_VideoMate_DVB-T220 that contains the state of my card from the start. I have created a patch: IncompletePatchVideoMateT220.rtf that produces this output: dmesgOutput.rtf. Basically all the chipsets are identified, I just can't work out the right way to get them to work together. So I have a number of questions about my patch.
-> 
-> 
-> Firstly, in the card configuration file, how do you determine the
-> right vmux values to use for your inputs. At the moment I have just
-> been attempting to purely guess.
+I've already tried that.
 
-Well done. Start with the most common.
+remember, on switch 1 i've got astra 28.2E and on switch 2 i've got 
+astra 19E
 
-Next could be to look at devices from the same manufacturer.
-Also Philips/NXP m$ .inf files can have some hints.
+no matter what i try...
 
-Else, create enough inputs for composite (0-4) and s-video (6-9) and
-just test.
-
-> Second, my saa7134-dvb.c init and config functions are guesswork based
-> on looking at what other similar cards do in here. Is there any
-> insight as to what I need in here ? 
-
-I would hang here the same way. The tuner and demod address seem to be
-right for sure.
-
-> Finally, from the RegSpy dump on the wiki I can see changes to a few
-> SAA7134 registers. Do I need to worry about integrating these into the
-> driver somehow ?
-
-Seems not.
-
-You can consider to derive a gpio_mask from there and set .gpio per
-input for what is in the mask. Two pins are, the third and highest is in
-off. Only 0-27 are valid.
-
-Cheers,
-Hermann
+scan -s 0 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
+scan -s 0 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
+scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
+scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
+scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
+scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
 
 
+i always get signal from Astra 28.2E
 
+and if i switch cables and i put Astra 19E on switch 1 i'll always get 
+signal from Astra 19.2.
+
+I don't why but it looks like it doesn't know how to switch to "switch 2"
 
 _______________________________________________
 linux-dvb mailing list
