@@ -1,112 +1,95 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dd16712.kasserver.com ([85.13.137.159])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vdr@helmutauer.de>) id 1Kya2g-0000iv-HL
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 23:43:03 +0100
-Received: from [192.168.178.120] (p50812E25.dip0.t-ipconnect.de [80.129.46.37])
-	by dd16712.kasserver.com (Postfix) with ESMTP id F1219180BC519
-	for <linux-dvb@linuxtv.org>; Fri,  7 Nov 2008 23:43:04 +0100 (CET)
-Message-ID: <4914C482.8010306@helmutauer.de>
-Date: Fri, 07 Nov 2008 23:43:14 +0100
-From: Helmut Auer <vdr@helmutauer.de>
+Return-path: <video4linux-list-bounces@redhat.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBANFt2j015074
+	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 18:15:55 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBANFeUs008884
+	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 18:15:40 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Thu, 11 Dec 2008 00:15:45 +0100
+References: <200811271536.46779.laurent.pinchart@skynet.be>
+	<200812082339.14889.laurent.pinchart@skynet.be>
+	<20081208205809.417473c4@pedra.chehab.org>
+In-Reply-To: <20081208205809.417473c4@pedra.chehab.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] tbs 8920 / cx24116 not working
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812110015.45547.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
+Subject: Re: [PATCH 0/4] Add zoom and privacy controls
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+List-ID: <video4linux-list@redhat.com>
 
-Hello List,
+Hi Mauro,
 
-I just tried to get my tbs 8920 running with current S2API and VDR and =
+On Monday 08 December 2008, Mauro Carvalho Chehab wrote:
+> On Mon, 8 Dec 2008 23:39:14 +0100
+>
+> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+> > The documentation part of the patch can't be pushed through mercurial,
+> > and I didn't want to submit it separately.
+>
+> I know.
+>
+> > I will have to resubmit the patches anyway as Hans found a few mistakes.
+> > I will send them by e-mail and ask for an ack, and I'll then send a pull
+> > request.
+>
+> Ok.
+>
+> > Where should the documentation part of the patchset go ? Why isn't
+> > the documentation stored in a repository ?
+>
+> Historical reasons. I would love to have this at kernel tree, but some work
+> is probably required. The doc seems to big to be there, at the way it is.
 
-also with the multiproto drivers and a patch for this card.
-Both versions are failing, with this error:
+I agree with Hans here, moving the doc to the hg repository would make patch 
+submission easier, even if it lives outside the kernel tree.
 
-Nov  7 23:39:26 [kernel] LNB Voltage SEC_VOLTAGE_18
-Nov  7 23:39:26 [vdr] [23138] ERROR (dvbdevice.c,282): Die Operation =
+> > As a side note, is there an equivalent to git reset in Mercurial ? I know
+> > about hg undo but that only supports one level of undo, and once
+> > modifications have been pushed to my linuxtv.org repository there's no
+> > way back. How would I have had to proceed if I had pushed the patchset to
+> > linuxtv.org ? Would I have had to dump the repository, create a brand new
+> > one by cloning and reapply modifications ?
+>
+> There are a few ways to work with. If you have "mq" extension enabled, you
+> can do "hg strip" to remove a set of patches. I think you may also convert
+> a commit into a quilt-like patch.
 
-wird nicht unterst=FCtzt
-Nov  7 23:39:35 [vdr] [23138] frontend 0 timed out while tuning to =
+I'll try that. What happens to the patch queue when I push changes to 
+linuxtv.org ? Do they have to be merged first ? If so it wouldn't really 
+solve my initial problem (or rather worry) as I still wouldn't be able to 
+undo changes pushed the my linuxtv.org repository.
 
-channel 3, tp 112187
-Nov  7 23:39:35 [vdr] [23138] ERROR (dvbdevice.c,282): Die Operation =
+> Another option on mercurial 1.1 (just released) is the "hg rebase" command
+> and "hg bookmarks". The second one is probably the closest feature from
+> what we have in -git. I never tested it.
+>
+> Please, take come care with those features. I had a bad experience some
+> days ago experimenting mercurial 1.1 with rebase and bookmarks. So, I
+> recommend you to test they into a cloned repository and test for a while
+> before using on production.
 
-wird nicht unterst=FCtzt
-Nov  7 23:39:35 [kernel] LNB Voltage SEC_VOLTAGE_18
-Nov  7 23:39:44 [vdr] [23138] ERROR (dvbdevice.c,282): Die Operation =
+Thanks for the information.
 
-wird nicht unterst=FCtzt
-Nov  7 23:39:44 [kernel] LNB Voltage SEC_VOLTAGE_18
+Best regards,
 
-dmesg shows:
+Laurent Pinchart
 
-LNB Voltage SEC_VOLTAGE_off
-ACPI: PCI interrupt for device 0000:01:09.0 disabled
-cx88/2: unregistering cx8802 driver, type: dvb access: shared
-cx88[0]/2: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2 [card=3D71]
-ACPI: PCI interrupt for device 0000:01:09.2 disabled
-Linux video capture interface: v2.00
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-ACPI: PCI Interrupt 0000:01:09.0[A] -> Link [LNKC] -> GSI 11 (level, =
-
-low) -> IRQ 11
-cx88[0]: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2 =
-
-[card=3D72,autodetected], frontend(s): 1
-cx88[0]: TV tuner type 4, Radio tuner type -1
-cx88[0]/0: found at 0000:01:09.0, rev: 5, irq: 11, latency: 165, mmio: =
-
-0xfc000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-cx88[0]/2: cx2388x 8802 Driver Manager
-ACPI: PCI Interrupt 0000:01:09.2[A] -> Link [LNKC] -> GSI 11 (level, =
-
-low) -> IRQ 11
-cx88[0]/2: found at 0000:01:09.2, rev: 5, irq: 11, latency: 64, mmio: =
-
-0xfd000000
-cx8802_probe() allocating 1 frontend(s)
-cx88/2: cx2388x dvb driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: dvb access: shared
-cx88[0]/2: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2 [card=3D72]
-cx88[0]/2: cx2388x based DVB/ATSC card
-DVB: registering new adapter (cx88[0])
-DVB: registering adapter 0 frontend 0 (Conexant CX24116/CX24118)...
-cx24116_firmware_ondemand: Waiting for firmware upload =
-
-(dvb-fe-cx24116.fw)...
-cx24116_firmware_ondemand: Waiting for firmware upload(2)...
-cx24116_load_firmware: FW version 1.22.82.0
-cx24116_firmware_ondemand: Firmware upload complete
-LNB Voltage SEC_VOLTAGE_13
-LNB Voltage SEC_VOLTAGE_18
-
-I also tested this patch:
-http://hg.kewl.org/v4l-dvb/raw-rev/8d6d8974b33d
-
-but without any change.
-
-Any hints whats going wrong here ?
-
--- =
-
-Helmut Auer, helmut@helmutauer.de =
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
