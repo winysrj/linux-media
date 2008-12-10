@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
+Received: from ug-out-1314.google.com ([66.249.92.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1LBptu-0000oB-Gs
-	for linux-dvb@linuxtv.org; Sun, 14 Dec 2008 13:16:47 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so986498fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 14 Dec 2008 04:16:43 -0800 (PST)
-Message-ID: <19a3b7a80812140416i755bf1a0v4f6381fabfe61484@mail.gmail.com>
-Date: Sun, 14 Dec 2008 13:16:42 +0100
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
-In-Reply-To: <006901c95539$51afc3a0$f4c6a5c1@tommy>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LARUR-0004dd-Lt
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 17:00:44 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so134586ugc.16
+	for <linux-dvb@linuxtv.org>; Wed, 10 Dec 2008 08:00:39 -0800 (PST)
+Date: Wed, 10 Dec 2008 17:00:27 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Uri Shkolnik <urishk@yahoo.com>
+In-Reply-To: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
+Message-ID: <alpine.DEB.2.00.0812101655490.989@ybpnyubfg.ybpnyqbznva>
+References: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <006901c95539$51afc3a0$f4c6a5c1@tommy>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-C scan file cz-Moravianet
+Subject: Re: [linux-dvb] SMS Host Library
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,23 +27,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thanks, added :)
+On Wed, 10 Dec 2008, Uri Shkolnik wrote:
 
-Christoph
+> Finally, I have marketing approval to release the user space SMS host library (binary form) and the associate header file (as source). 
+
+Thanks, Uri!  And thanks be given to those responsible for
+this decision...
 
 
-2008/12/3 Tomas Drajsajtl <linux-dvb@drajsajtl.cz>:
-> Hello,
-> I have created new DVB-C scan file for Czech cable operator Moravianet. I
-> got confirmation from them that the content applies for their whole network
-> in all cities.
->
-> Few HD channels should be added before Christmas somewhere in range of
-> 370-458 MHz but the operator provides also correct NIT table, so the new
-> channels will be scanned automatically by dvbscan when they are added.
->
-> Regards,
-> Tomas
+> One problem still remain, true I can attach the header to a post mailed to this ML, but the library is about 1,3MByte.... 
+> Do you think that FTP will be a good solution?
+
+If the library should be available to all, then either
+anonymous FTP, or http/https would be fine.
+
+If you want to restrict it to a few users and developers,
+then you can mail it to me (my @yahoo.com free_beer_for_all
+address is probably best, keeping it internal to yahoo),
+and I can then make it available to others interested,
+while not releasing it to the whole world...
+
+thanks,
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
