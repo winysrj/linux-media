@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpd3.aruba.it ([62.149.128.208] helo=smtp7.aruba.it)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1LARoV-0006Va-VT
-	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 17:21:28 +0100
-Message-ID: <493FEC61.4060609@avalpa.com>
-Date: Wed, 10 Dec 2008 17:20:49 +0100
-From: Andrea Venturi <a.venturi@avalpa.com>
+Received: from ug-out-1314.google.com ([66.249.92.170])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LATC3-000300-Tp
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 18:49:52 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so150013ugc.16
+	for <linux-dvb@linuxtv.org>; Wed, 10 Dec 2008 09:49:48 -0800 (PST)
+Date: Wed, 10 Dec 2008 18:49:38 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Jordi Moles Blanco <jordi@cdmon.com>
+In-Reply-To: <493FFD3A.80209@cdmon.com>
+Message-ID: <alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
+References: <493FFD3A.80209@cdmon.com>
 MIME-Version: 1.0
-To: urishk@yahoo.com
-References: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
-In-Reply-To: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] SMS Host Library
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working through
+ diseqc anymore
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,43 +28,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Uri Shkolnik wrote:
-> Andrea, Barry,
->
-> Finally, I have marketing approval to release the user space SMS host library (binary form) and the associate header file (as source). 
->   
+On Wed, 10 Dec 2008, Jordi Moles Blanco wrote:
 
-nice to hear again about it. of course this lib bind the SMS host driver 
-interface, right?
+> here's what i got from scanning........
+> 
+> switch 1 (astra 28.2E)
+> 
+> ********
+> scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
+> >>> tune to: 10729:v:1:22000
+> 0x0000 0x206c: pmt_pid 0x0100 BSkyB -- E4+1 (running)
 
-is there a sample application to borrow from or same API documentation 
-inside?
-> Now you can test DAB/T-DMB with SMS based devices....
->
-> One problem still remain, true I can attach the header to a post mailed to this ML, but the library is about 1,3MByte.... 
->   
+> 
+> switch 2 (astra 19E)
+> ********
+> scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
+> >>> tune to: 10788:v:2:22000
+> 0x0000 0x283d: pmt_pid 0x0100 BSkyB -- BBC 1 W Mids (running)
 
-for me, you can happily attach the lib to a PM.
+You are correct, this is a transponder at 28E2 which
+shares freq,pol+sr with 19E2...
 
-for a broader availability, you should look for a ftp/http hosting.
 
-i don't really know if a binary lib fits the scope of linuxtv.org very 
-well, but the web is full of free file hosting services..
+> And it doesn't matter if i run "scan -s 1" or "scan -s 2" or "scan -s
+> 3", it will always scan from "switch 1"
 
-ciao
+Try with -s 0; I'm not sure if it is always the case,
+but my unhacked `scan' uses 0-3 for DiSEqC positions
+1/4 to 4/4 -- I've hacked this to use the range of 1-4
+on all my `scan' and related tuning/streaming utilities.
 
-andrea
 
-> Do you think that FTP will be a good solution?
->
->
-> Uri
->
->
->       
->
->   
+Personally, I prefer `0' to mean no DiSEqC at all, A/B
+as appropriate, and 1-4 to match all consumer equipment
+I've got my hands on (or A-D), but that's me...
 
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
