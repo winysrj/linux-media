@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBLKE1Bl010361
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 15:14:01 -0500
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBLKD4UL020561
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 15:13:04 -0500
-Message-ID: <494EA35F.10208@free.fr>
-Date: Sun, 21 Dec 2008 21:13:19 +0100
-From: Thierry Merle <thierry.merle@free.fr>
-MIME-Version: 1.0
-To: Alexey Klimov <klimov.linux@gmail.com>
-References: <1229742563.10297.114.camel@tux.localhost>	<20081220132730.45e9c365@gmail.com>	<30353c3d0812200959h40d525f0t6939c21c6bd4e612@mail.gmail.com>
-	<1229885212.12091.219.camel@tux.localhost>
-In-Reply-To: <1229885212.12091.219.camel@tux.localhost>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: [review patch 2/5] dsbr100: fix codinstyle, make ifs more clear
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBA04hbg011913
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 19:04:43 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBA04R0g028586
+	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 19:04:27 -0500
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+In-Reply-To: <de8cad4d0812090930k75d973em4f21d36777ee02a2@mail.gmail.com>
+References: <de8cad4d0812090930k75d973em4f21d36777ee02a2@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 09 Dec 2008 19:03:06 -0500
+Message-Id: <1228867386.3283.36.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Changes in cx18 - Request more info
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,168 +27,128 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Tue, 2008-12-09 at 12:30 -0500, Brandon Jenkins wrote:
+> Hi Andy,
+> 
+> I noticed you made some code updates in your tree and I am anxious to
+> try them out. Based on the info provided in your notes,
 
-Alexey Klimov a écrit :
-> On Sat, 2008-12-20 at 12:59 -0500, David Ellingsworth wrote:
->> On Sat, Dec 20, 2008 at 10:27 AM, Douglas Schilling Landgraf
->> <dougsland@gmail.com> wrote:
->>> Hello Alexey,
->>>
->>> On Sat, 20 Dec 2008 06:09:23 +0300
->>> Alexey Klimov <klimov.linux@gmail.com> wrote:
->>>
->>>> We should make if-constructions more clear. Introduce int variables in
->>>> some functions to make it this way.
->>>>
->>>> ---
->>>> diff -r a302bfcb23f8 linux/drivers/media/radio/dsbr100.c
->>>> --- a/linux/drivers/media/radio/dsbr100.c     Fri Dec 19 14:34:30
->>>> 2008 +0300 +++ b/linux/drivers/media/radio/dsbr100.c  Sat Dec
->>>> 20 02:31:26 2008 +0300 @@ -200,15 +200,24 @@
->>>>  /* switch on radio */
->>>>  static int dsbr100_start(struct dsbr100_device *radio)
->>>>  {
->>>> +     int first;
->>>> +     int second;
->>>> +
->>>>       mutex_lock(&radio->lock);
->>>> -     if (usb_control_msg(radio->usbdev,
->>>> usb_rcvctrlpipe(radio->usbdev, 0),
->>>> -                     USB_REQ_GET_STATUS,
->>>> -                     USB_TYPE_VENDOR | USB_RECIP_DEVICE |
->>>> USB_DIR_IN,
->>>> -                     0x00, 0xC7, radio->transfer_buffer, 8, 300)
->>>> < 0 ||
->>>> -     usb_control_msg(radio->usbdev,
->>>> usb_rcvctrlpipe(radio->usbdev, 0),
->>>> -                     DSB100_ONOFF,
->>>> -                     USB_TYPE_VENDOR | USB_RECIP_DEVICE |
->>>> USB_DIR_IN,
->>>> -                     0x01, 0x00, radio->transfer_buffer, 8, 300)
->>>> < 0) { +
->>>> +     first = usb_control_msg(radio->usbdev,
->>>> +             usb_rcvctrlpipe(radio->usbdev, 0),
->>>> +             USB_REQ_GET_STATUS,
->>>> +             USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->>>> +             0x00, 0xC7, radio->transfer_buffer, 8, 300);
->>>> +
->>>> +     second = usb_control_msg(radio->usbdev,
->>>> +             usb_rcvctrlpipe(radio->usbdev, 0),
->>>> +             DSB100_ONOFF,
->>>> +             USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->>>> +             0x01, 0x00, radio->transfer_buffer, 8, 300);
->>>> +
->>>> +     if (first < 0 || second < 0) {
->>>>               mutex_unlock(&radio->lock);
->>>>               return -1;
->>>>       }
->>> IMO, we could create a variable like "ret" or "retval" to validate each
->>> usb_control_msg call instead of create 3 variables "first", "second" and "third".
->> The primary problem I have with this patch is that it changes the
->> behavior of the driver. The original way it was written the function
->> would immediately return if one of the calls to usb_control_msg
->> failed. With this patch, if the first call fails it will still make a
->> second call to usb_control_msg.
->>
->> I agree with Douglas, a single "ret" variable should be used and then
->> evaluated after every usb_control_msg call.
->>
->> [snip]
->>
->> Regards,
->>
->> David Ellingsworth
+If trying stuff out early, only use the stuff from 
+
+http://linuxtv.org/hg/~awalls/v4l-dvb
+
+I've tested it on one machine and am testing on my other two machines
+tonight and tomorrow (hopefully).
+
+
+>  I am unable to
+> determine what levels I should set to provide to increase performance
+> of my 3 cards.
+
+Well, what you set depends on what's the most important performance
+parameters to you: memory consumption, system throughput, and/or
+latency.
+
+
+>  Any pointers you can provide would be most appreciated.
+> Here's my current modprobe.conf statement:
 > 
-> Hello, all
-> Yes, you are right, my bad - i missed that thing.
+> options cx18 enc_yuv_buffers=0 enc_vbi_buffers=0 enc_pcm_buffers=0
+> debug=3 enc_mpg_buffers=8 enc_ts_buffers=8
 > 
-> Also, it's better to add dev_err messages that reports in case of
-> retval<0 what usb_control_msg returned, request and what function it
-> was.
+> But it sounds like I should be decreasing buffers and not increasing
+> them to remove artifacts.
+
+Well of the new parameters coming in, here's how I recommend you use
+them:
+
+1. enc_mpg_buffers, enc_ts_buffers, etc.: don't specify these.
+
+They still have almost the same behavior, and I left them in for legacy
+compatibility with existing user setups (per Mauro's suggestion).  They
+still work, but can be overridden by specifying the new enc_mpg_bufs,
+enc_ts_bufs, etc. parameters.
+
+
+2. enc_mpg_bufsize, enc_ts_bufsize, enc_yuv_bufsize, etc.: These are the
+size of individual transfer buffers in kB for each stream.  For better
+responsiveness (lower latency on buffer transfers) for live TV, set
+lower numbers, for better system I/O throughput and lower CPU
+utilization, set larger numbers.
+
+Note the defaults for the MPEG and TS stream are 32 kB, YUV has a
+default of 128 kB, and PCM audio has a default of 4 kB.  Specifying
+numbers that are not a multiple of the standard 4 kB page size will
+waste some memory.  Specifying number below 4 kB really doesn't make
+sense, unless you really need very low latency and are willing to throw
+away memory to get it.
+
+3. enc_mpg_bufs, enc_ts_bufs, enc_yuv_bufs, etc.:  These specify the
+number of buffers to be used by that stream type.  To save memory, you
+can specify these lower, as long as your application can keep emptying
+the buffers fast enough and return them.  If you have a really app
+that's really slow at times when it can't process buffers rapidly, set
+this number higher to make sure the firmware always has buffers
+available.
+
+Note this (approximate) relationship:
+
+enc_mpg_buffers = enc_mpg_bufsize * enc_mpg_bufs / 1024
+
+Which is why I say not to bother with specifying the older enc_*_buffers
+parameters.
+
+
+Since the firmware only can handle 63 buffers at a time, additional
+buffer tracking logic is now in the cx18 driver to handle the tasks of
+keeping the number of buffers available to firmware as high as possible
+(~63), while still allowing more than that to be allocated for use in
+case of slow applications.
+
+Because of the special handling of the digital TS buffers directly by
+the dvb subsystem, it makes no sense to specify more than
+enc_ts_buffers=64 for the TS: 1 buffer being given to the DVB subsystem
+while the firmware has the other 63 for use.
+
+Note YUV buffers take up 128 kB, so there's only 8 YUV buffers by
+default.  BTW it's okay to specify buffer counts lower than 63 as far as
+the driver is concerned, but a sometimes slow app may end up starving
+the firmware of buffers for period of time if the number you use is too
+low.
+
+
+
+So maybe I'd try something like this for a one card system running myth
+TV watching live TV:
+
+modprobe cx18 enc_mpg_bufs=128 enc_mpg_bufsize=16 enc_ts_bufs=64 \
+	enc_ts_bufsize=16 enc_yuv_bufs=0
+
+I have no data recorded on PCM data buffer depth required, but the
+default seems a little ridiculous now: 277 buffers of 4 kB.  I left that
+that way as it was: close to the approximate amount being allocated
+before - but I think it's way overkill.
+
+
+Anyway happy testing!  Let me know how it goes.  My initial cut at it
+over the weekend had mystery buffer handling problems that resulted in
+frequent artifacts in the MPEG stream.  By Sunday afternoon I had it
+worked out using a new technique for moving buffers around.
+
+
+After this, I'm getting the raw VBI changes worked in, some firmware
+loading changes (in hopes to improve audio problems) and a laundry list
+of items ivtv-* list users have collected for me to fix to get rid of
+video/audio skips, and reported PAL problems.
+
+
+Regards,
+Andy
+
+> Regards,
 > 
-> I suppose example could look like this:
+> Brandon
 > 
-> static int dsbr100_start(struct dsbr100_device *radio)
-> {
->         int retval;
-> 
->         mutex_lock(&radio->lock);
-> 
->         retval = usb_control_msg(radio->usbdev,
->                 usb_rcvctrlpipe(radio->usbdev, 0),
->                 USB_REQ_GET_STATUS,
->                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->                 0x00, 0xC7, radio->transfer_buffer, 8, 300);
-> 
->         if (retval < 0) {
->                 mutex_unlock(&radio->lock);
->                 dev_err(&radio->usbdev->dev,
->                         "usb_control_msg returned %i, request %i in %s\n",
-> 				retval, USB_REQ_GET_STATUS, __func__);
->                 return -1;
->         }
-> 
->         retval = usb_control_msg(radio->usbdev,
->                 usb_rcvctrlpipe(radio->usbdev, 0),
->                 DSB100_ONOFF,
->                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->                 0x01, 0x00, radio->transfer_buffer, 8, 300);
-> 
->         if (retval < 0) {
->                 mutex_unlock(&radio->lock);
->                 dev_err(&radio->usbdev->dev,
->                         "usb_control_msg returned %i, request %i in %s\n",
-> 				retval, DSB100_ONOFF, __func__);
->                 return -1;
->         }
-> ...<snip>
-> 
-> But it looks, that more comfortable to create macro, may be smth that looks like:
-> 
-> #define dsbr_usb_control_msg_err(arg)                                   \
->                 dev_err(&radio->usbdev->dev,                    	\
->                         "%s - usb_control_msg returned %i, request %i\n",\
->                                 __func__, retval, arg)
-> 
-> And then i can use: 
-> 
->         retval = usb_control_msg(radio->usbdev,
->                 usb_rcvctrlpipe(radio->usbdev, 0),
->                 USB_REQ_GET_STATUS,
->                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->                 0x00, 0xC7, radio->transfer_buffer, 8, 300);
-> 
->         if (retval < 0) {
->                 mutex_unlock(&radio->lock);
->                 dsbr_usb_control_msg_err(USB_REQ_GET_STATUS);
->                 return -1;
->         }
-> 
->         retval = usb_control_msg(radio->usbdev,
->                 usb_rcvctrlpipe(radio->usbdev, 0),
->                 DSB100_ONOFF,
->                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->                 0x01, 0x00, radio->transfer_buffer, 8, 300);
-> 
->         if (retval < 0) {
->                 mutex_unlock(&radio->lock);
->                 dsbr_usb_control_msg_err(DSB100_ONOFF);
->                 return -1;
->         }
-> 
-> We should see what function and request failed.
-> I didn't mean that this is right thing, it's just approach, that i can
-> offer.
-> 
-> What do you think ?
-> 
-> 
-I would use a goto.
-This is the most readable and efficient way to manage exeptions in C.
-Take a look at linux/drivers/media/video/v4l2-dev.c for an example of goto usage.
-Cheers,
-Thierry
 
 --
 video4linux-list mailing list
