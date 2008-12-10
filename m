@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
+Received: from smtp1.aster.pl ([212.76.33.45])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1LBpm4-0008JH-8z
-	for linux-dvb@linuxtv.org; Sun, 14 Dec 2008 13:08:41 +0100
-Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mBEC8aP0019447
-	for <linux-dvb@linuxtv.org>; Sun, 14 Dec 2008 13:08:36 +0100
-Message-ID: <4944F744.5070201@cadsoft.de>
-Date: Sun, 14 Dec 2008 13:08:36 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+	(envelope-from <Daniel.Perzynski@aster.pl>) id 1LAWB2-0006f9-Kp
+	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 22:01:02 +0100
+From: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
+To: <devin.heitmueller@gmail.com>
+Date: Wed, 10 Dec 2008 22:00:20 +0100
+Message-ID: <001201c95b0a$4fb91520$ef2b3f60$@Perzynski@aster.pl>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <4943A606.5060502@cadsoft.de>
-	<200812141302.47851@orion.escape-edv.de>
-In-Reply-To: <200812141302.47851@orion.escape-edv.de>
-Subject: Re: [linux-dvb] DiSEqC handling in S2API
+Content-Language: en-us
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,22 +24,87 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 14.12.2008 13:02, Oliver Endriss wrote:
-> Klaus Schmidinger wrote:
->> While adapting VDR to the S2API driver, I saw that there are also
->> facilities to handle DiSEqC via the new API, like DTV_VOLTAGE and
->> DTV_TONE. However, I can't seem to find out how the "legacy"
->> FE_DISEQC_SEND_BURST and FE_DISEQC_SEND_MASTER_CMD could be handled
->> with S2API.
->> Is this not implemented?
-> 
-> LNB control works perfectly with the old api.
-> Imho DTV_VOLTAGE and DTV_TONE should be removed.
-> They duplicate existing functions and do not offer any advantage.
+Hi Devin,
 
-Thanks, so I'll leave this with the "old" API.
+Which repository should I use then?
+I do understand that USB bridge (CY7C68013A) has to be activated. 
+As far as I'm aware that bridge is supported in v4l-dvb drivers but not as a
+standalone module but rather as a part of other 'main' modules like cx88.
+The question is if my components are generally supported why are not
+recognized during modprobe 'modulename' process?
+Maybe I have to modify the source and add USB id of my card to certain
+modules?
 
-Klaus
+I would like to start with analog first.
+
+Regards,
+
+-----Original Message-----
+From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+Sent: Monday, December 08, 2008 11:22 PM
+To: daniel. perzynski
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fw: Re: Avermedia A312 wiki page
+
+On Mon, Dec 8, 2008 at 5:10 PM, daniel. perzynski
+<daniel.perzynski@aster.pl> wrote:
+> Hi,
+>
+> I'm asking again for more help as I haven't received any response to 
+> my previous e-mail pasted below. I've tried to run 
+> SniffUSB-x64-2.0.0006.zip but is not working under vista :( I've also 
+> found that card is using merlinb.rom and merlinc.rom (they are listed 
+> in device manager in windows vista)
+>> I've tried to load all v4l modules (one by one) in 2.6.27.4 kernel - 
+>> nothing in syslog :( I've then compiled and tried to load lgdt330x, 
+>> cx25840,tuner-xc2028 and
+>> wm8739 from http://linuxtv.org/hg/v4l-dvb mercurial repository - 
+>> nothing in syslog :(
+>>
+>> At the end I've used http://linuxtv.org/hg/v4l-dvb-experimental
+>> repository and when doing:
+>>
+>> insmod em28xx_cx25843, I've received :) Nov 30 21:43:54 h3xu5 
+>> cx25843.c: starting probe for adapter SMBus
+>> I801
+>> adapter at 1200 (0x40004)
+>> Nov 30 21:43:54 h3xu5 cx25843.c: detecting cx25843 client on address
+>> 0x88
+>>
+>> It is a small progress and I need even more help here. There is a 
+>> question if I'm doing everything right? Do I need to load the modules 
+>> with parameters? Why I need to do next to help in creation of working 
+>> solution for that A312 card?
+>
+> Regards,
+
+Hello Daniel,
+
+Don't use http://linuxtv.org/hg/v4l-dvb-experimental, that's a very old
+repository.
+
+Just loading the modules does nothing.  They won't do anything unless they
+know about your hardware.
+
+I would start with the bridge:  CY7C68013A
+
+You need to get the bridge working before you can get any of the peripherals
+working (such as the lgdt3304 demod, the 3028 tuner, or the cx25843
+decoder).
+
+Once you have the bridge working, you can set the GPIOs to bring the other
+chips out of reset and then do i2c enumeration and device registration.
+
+Do you plan on doing analog support first or digital?
+
+Devin
+
+--
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
+
+
 
 _______________________________________________
 linux-dvb mailing list
