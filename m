@@ -1,24 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5Ix35f029890
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 13:59:04 -0500
-Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5Iw1uG021879
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 13:58:02 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Tony Lindgren <tony@atomide.com>
-Date: Sat, 6 Dec 2008 00:27:41 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E90E75B9@dbde02.ent.ti.com>
-In-Reply-To: <20081204234534.GJ7054@atomide.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBK0wLo020938
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:00:58 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBBJxjOp026057
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 14:59:45 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so556606fga.7
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 11:59:45 -0800 (PST)
+Message-ID: <412bdbff0812111159t79fd8647w6f883496350b8585@mail.gmail.com>
+Date: Thu, 11 Dec 2008 14:59:44 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+In-Reply-To: <alpine.DEB.1.10.0812112053560.26420@bakacsin.ki.iif.hu>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	Koen Kooi <k.kooi@student.utwente.nl>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
-Subject: RE: [PATCH] Add OMAP2 camera driver
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
+	<alpine.DEB.1.10.0811271936080.6927@bakacsin.ki.iif.hu>
+	<412bdbff0812110832h1ab889b7jc30f6e84993456c4@mail.gmail.com>
+	<alpine.DEB.1.10.0812112053560.26420@bakacsin.ki.iif.hu>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,61 +39,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Thu, Dec 11, 2008 at 2:56 PM, Kiss Gabor (Bitman)
+<kissg@ssg.ki.iif.hu> wrote:
+>> Are you there?  I would really like to get this support checked in, so
+>> if you could please get back to me I would appreciate it.
+>
+> Hi Devin,
+>
+> I'm just coming from my brother. On his machine we could capture
+> further USB sessions with channel switch.
+>
+> Within a few minutes I prepare and publish the files.
+>
+> Cheers
+>
+> Gabor
 
+Hello Gabor,
 
-Thanks,
-Vaibhav Hiremath
+Please, do not make any channel switches.  Just start the USB capture,
+plug in the device, tune to a single channel, wait two seconds, and
+stop USB capture.
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, December 05, 2008 5:16 AM
-> To: Hiremath, Vaibhav
-> Cc: Koen Kooi; Trilok Soni; Hans Verkuil; Sakari Ailus; linux-
-> omap@vger.kernel.org Mailing List; video4linux-list@redhat.com
-> Subject: Re: [PATCH] Add OMAP2 camera driver
-> 
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [081203 01:38]:
-> >
-> >
-> > Thanks,
-> > Vaibhav Hiremath
-> >
-> > > -----Original Message-----
-> > > From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
-> > > Sent: Wednesday, December 03, 2008 3:04 PM
-> > > To: Hiremath, Vaibhav
-> > > Cc: Trilok Soni; Hans Verkuil; Sakari Ailus; linux-
-> > > omap@vger.kernel.org Mailing List; video4linux-list@redhat.com
-> > > Subject: Re: [PATCH] Add OMAP2 camera driver
-> > >
-> > >
-> > > Op 3 dec 2008, om 08:05 heeft Hiremath, Vaibhav het volgende
-> > > geschreven:
-> > > > OMAP3 -
-> > > > 	Display - (Posted twice with old DSS library)
-> > > > 		- omap_vout.c
-> > > > 		- omap_voutlib.c
-> > > > 		- omap_voutlib.h
-> > > > 		- omap_voutdef.h
-> > > > 	Camera - (Will come soon)
-> > > > 		- omap34xxcam.c
-> > > > 		- omap34xxcam.h
-> > > > 	ISP - (Will come soon)
-> > > > 		- Here definitely we will plenty number of files.
-> > >
-> > > Isn't DSS2 supposed to work on omap2 (and perhaps omap1) as
-> well?
-> > >
-> > [Hiremath, Vaibhav] yes, but the DSS2 library goes under
-> arch/arm/plat-omap/dss/. The above files are belongs to the driver
-> underneath.
-> 
-> Huh? Why would it need to be under plat-omap?
-> 
-[Hiremath, Vaibhav] This is low level library which will export Kernel API's to top level driver like, Frame buffer and V4L2 driver. So this has to be in some common directory, and both patches on DSS (from Tomi and from TI) aligned to the same thing.
+The problem I'm having right now is that is appears you kept switching
+channels and putting multiple connects/disconnects in the same
+capture.
 
-> Tony
+Regards,
 
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
