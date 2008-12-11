@@ -1,31 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVDiCMF016149
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 08:44:12 -0500
-Received: from patsy.thehobsons.co.uk (patsy.thehobsons.co.uk [81.174.135.208])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVDhxGg017402
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 08:44:00 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by patsy.thehobsons.co.uk (Postfix) with ESMTP id CBDEB1B4745
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 13:43:58 +0000 (GMT)
-Received: from patsy.thehobsons.co.uk ([127.0.0.1])
-	by localhost (patsy.thehobsons.co.uk [127.0.0.1]) (amavisd-new,
-	port 10024)
-	with ESMTP id 35prL25MuA9x for <video4linux-list@redhat.com>;
-	Wed, 31 Dec 2008 13:43:58 +0000 (GMT)
-Received: from simon.thehobsons.co.uk (Simons-MacBookPro.thehobsons.co.uk
-	[192.168.0.149])
-	by patsy.thehobsons.co.uk (Postfix) with ESMTP id 78B4A1B4740
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 13:43:58 +0000 (GMT)
-Mime-Version: 1.0
-Message-Id: <a0624080bc58126e6561c@simon.thehobsons.co.uk>
-In-Reply-To: <a06240804c580f44d7a48@simon.thehobsons.co.uk>
-References: <a06240804c580f44d7a48@simon.thehobsons.co.uk>
-Date: Wed, 31 Dec 2008 13:43:54 +0000
-To: video4linux-list@redhat.com
-From: Simon Hobson <linux@thehobsons.co.uk>
-Content-Type: text/plain; charset="us-ascii" ; format="flowed"
-Subject: Re: Problem setting up HVR-1110
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBGWfEm008967
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 11:32:41 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBBGWML0006131
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 11:32:22 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so499311fga.7
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 08:32:22 -0800 (PST)
+Message-ID: <412bdbff0812110832h1ab889b7jc30f6e84993456c4@mail.gmail.com>
+Date: Thu, 11 Dec 2008 11:32:22 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+In-Reply-To: <alpine.DEB.1.10.0811271936080.6927@bakacsin.ki.iif.hu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
+	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
+	<alpine.DEB.1.10.0811271936080.6927@bakacsin.ki.iif.hu>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,37 +39,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I wrote:
->I've got MythTV installed and bought a Hauppage HVR-1110 card for 
->it. The card is detected and the saa7134 driver loaded - but that 
->seems to be it. Everything I can find suggests that the card should 
->be identified automatically (and the TDA1004X driver & firmware 
->loaded), but it isn't.
+Gabor,
 
-<snip>
+Are you there?  I would really like to get this support checked in, so
+if you could please get back to me I would appreciate it.
 
->uname -a reports :
->>Linux eddi 2.6.18-6-xen-amd64 #1 SMP Fri Dec 12 07:02:03 UTC 2008 
->>x86_64 GNU/Linux
+Thanks,
+
+Devin
+
+On Thu, Nov 27, 2008 at 1:38 PM, Kiss Gabor (Bitman)
+<kissg@ssg.ki.iif.hu> wrote:
+>> > ADS Tech "Instant TV USB", USBAV-704
+>>
+>> Great.
 >
+>> Do you know which chips this device contains?  If not, could you
+>> please open the unit and send me some high-resolution photographs of
+>> the circuit board?
 >
->Yes, this is running in a Xen guest - but I've also tried booting 
->the machine into a non-Xen mode (with non-Xen kernel) and it behaves 
->exactly the same. In both cases, the OS is Debian Lenny.
+> Dear Devin,
+>
+> Here are the pictures:
+> http://bakacsin.ki.iif.hu/~kissg/albums/tv/index.html
+> (Click to enlarge to 1600x1200)
+>
+> Cheers
+>
+> Gabor
+>
 
-Hmm, memory isn't what it used to be :-(
 
-Went back and double checked, my Dom0 is Etch. Long story short - 
-upgraded guest to 2.6.26, upgraded Xen to run it, fixed all the 
-things the Xen upgrade changes, and it now is recognised and the 
-firmware loaded etc.
 
 -- 
-Simon Hobson
-
-Visit http://www.magpiesnestpublishing.co.uk/ for books by acclaimed
-author Gladys Hobson. Novels - poetry - short stories - ideal as
-Christmas stocking fillers. Some available as e-books.
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
