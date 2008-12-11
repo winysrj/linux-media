@@ -1,25 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1IVBBn007810
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:31:11 -0500
-Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1IUwWL002776
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 13:30:59 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <87bpwvyx19.fsf@free.fr>
-	<1225835978-14548-1-git-send-email-robert.jarzmik@free.fr>
-	<1225835978-14548-2-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0812011458230.3915@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Mon, 01 Dec 2008 19:30:42 +0100
-In-Reply-To: <Pine.LNX.4.64.0812011458230.3915@axis700.grange> (Guennadi
-	Liakhovetski's message of "Mon\,
-	1 Dec 2008 14\:59\:23 +0100 \(CET\)")
-Message-ID: <87wseju4rx.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBKG3uu029752
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:16:03 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBBKFJci003706
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:15:30 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so560818fga.7
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 12:15:19 -0800 (PST)
+Message-ID: <412bdbff0812111215o2b3eeba9y3dba1818b1e137d6@mail.gmail.com>
+Date: Thu, 11 Dec 2008 15:15:18 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+In-Reply-To: <alpine.DEB.1.10.0812112100190.26420@bakacsin.ki.iif.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] mt9m111: add all yuv format combinations.
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
+	<alpine.DEB.1.10.0811271936080.6927@bakacsin.ki.iif.hu>
+	<412bdbff0812110832h1ab889b7jc30f6e84993456c4@mail.gmail.com>
+	<alpine.DEB.1.10.0812112053560.26420@bakacsin.ki.iif.hu>
+	<412bdbff0812111159t79fd8647w6f883496350b8585@mail.gmail.com>
+	<alpine.DEB.1.10.0812112100190.26420@bakacsin.ki.iif.hu>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,23 +39,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-
-> On Tue, 4 Nov 2008, Robert Jarzmik wrote:
+On Thu, Dec 11, 2008 at 3:11 PM, Kiss Gabor (Bitman)
+<kissg@ssg.ki.iif.hu> wrote:
+>> Please, do not make any channel switches.  Just start the USB capture,
+>> plug in the device, tune to a single channel, wait two seconds, and
+>> stop USB capture.
 >
->> The Micron mt9m111 offers 4 byte orders for YCbCr
->> output. This patchs adds all possible outputs capabilities
->> to the mt9m111 driver.
->> 
->> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> Eeeerrrr... it's too late.
+> I cannot go back to my brother till next week to make further measurements.
+> However captures made so far are almost like you need.
+> Except that there was no antenna cable attached.
 >
-> Robert, could you please confirm, that this patch is still correct?
-Yes, confirmed.
+>> The problem I'm having right now is that is appears you kept switching
+>> channels and putting multiple connects/disconnects in the same
+>> capture.
+>
+> I can't understand. This was the first occasion the tuner was tuned
+> and I could see any picture. No channel switchings can be recorded.
+>
+> Meanwhile ... today logs are here:
+> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-1.log.gz
+> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-2.log.gz
+> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-3.log.gz
+> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-4.log.gz
+>
+> Gabor
 
-I'm using it for some time now, without modification.
+Alright, I'll see what is here.
 
---
-Robert
+Thanks,
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
