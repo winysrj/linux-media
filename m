@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail129.messagelabs.com ([216.82.250.147])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <aturbide@rogers.com>) id 1L7aaL-0000kO-2i
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 20:07:02 +0100
-Received: from cr344472a (unknown [172.28.23.212])
-	by imap1.toshiba.ca (Postfix) with SMTP id 8F8583FC8B
-	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 13:58:01 -0500 (EST)
-Message-ID: <007801c954b1$29b4d030$0000fea9@cr344472a>
-From: "Alain Turbide" <aturbide@rogers.com>
-To: <linux-dvb@linuxtv.org>
-References: <99503.50867.qm@web88302.mail.re4.yahoo.com>
-	<003301c953fc$84e23110$0000fea9@cr344472a>
-	<a3ef07920812020937jb0feff7q695f91dbd2156b5e@mail.gmail.com>
-Date: Tue, 2 Dec 2008 14:05:44 -0500
+Received: from mta005e.interbusiness.it ([88.44.62.5])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <a.venturi@avalpa.com>) id 1LAisA-0003dw-N0
+	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 11:34:23 +0100
+Message-ID: <4940EC87.3060404@avalpa.com>
+Date: Thu, 11 Dec 2008 11:33:43 +0100
+From: Andrea Venturi <a.venturi@avalpa.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020,
-	bt_8xx driver + frontend
+To: urishk@yahoo.com
+References: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
+In-Reply-To: <558327.47179.qm@web110807.mail.gq1.yahoo.com>
+Content-Type: multipart/mixed; boundary="------------070804030408090905090406"
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] SMS Host Library
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,86 +20,84 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Well, it's not a difficult fix now that I see it.  The issue was that the 
-original default for FE_ALGO_SW was 0 while FE_ALGO_HW was 1.
-Since there is an older documented option for the dst module called dst_algo 
-that some people might still be using to force the tuning algo to sofware by 
-setting dst_algo=0, there is no choice but to also make the default of 
-DVBFE_ALGO_SW to also be 0 so that the values will match and the new code 
-will still function with users who force dst_algo=0 on the dst module load..
-The fix would thus be to go from: this in dvb_frontend.h
-enum dvbfe_algo {
-        DVBFE_ALGO_HW                   = (1 <<  0),
-        DVBFE_ALGO_SW                   = (1 << 1),
-        DVBFE_ALGO_CUSTOM               = (1 <<  2),
-        DVBFE_ALGO_RECOVERY             = (1 << 31)
-};
+This is a multi-part message in MIME format.
+--------------070804030408090905090406
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-to this:
-enum dvbfe_algo {
-        DVBFE_ALGO_HW                   = (1 <<  0),
-        DVBFE_ALGO_SW                   = 0,
-        DVBFE_ALGO_CUSTOM               = (1 <<  2),
-        DVBFE_ALGO_RECOVERY             = (1 << 31)
-};
-
-This is what I've done now and works well. This is the only change required 
-to fix the issue.   In dst.c we could also default dst_algo to 
-DVB_FRONTEND_SW instead of 0 to make it more robust.  I can't see any code 
-else where that depends on DVBFE_ALGO_SW being set to 2.
-
-For those that do not want to patch code, the alternate way to get the cards 
-to work is to simply load the dst module with the dst_algo parm set. to 2:
-ie. modprobe dst dst_algo=2   ( to have the dst module return the current 
-value of DVBFE_ALGO_SW) back to the front end code.
-
-
-
-
-
------ Original Message ----- 
-From: "VDR User" <user.vdr@gmail.com>
-To: "Alain Turbide" <aturbide@rogers.com>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Tuesday, December 02, 2008 12:37 PM
-Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020, bt_8xx driver 
-+ frontend
-
-
-> 2008/12/1 Alain Turbide <aturbide@rogers.com>:
->> Digging in a little further.The dst_algo (which the twinhan uses) is set 
->> to
->> return  0 as the default setting for the SW algo in dst.c, yet in
->> dvb_frontend.h, the DVBFE_ALGO_SW algo is defined as 2.  Which is the
->> correct one here? Should dst.c be changed to return 2 as sw or is 0 the
->> correct number for the SW algo and thus DVBFE_ALGO_SW be changed to 
->> return
->> 0?
+Uri Shkolnik wrote:
+> Andrea, Barry,
 >
-> Is nobody else looking into this?!  I would think this bug would have
-> received a little more attention considering the number of people
-> affected!
+> Finally, I have marketing approval to release the user space SMS host library (binary form) and the associate header file (as source). 
+>   
+
+nice to hear again about it. of course this lib bind the SMS host driver
+interface, right?
+
+is there a sample application to borrow from or same API documentation
+inside?
+
+> Now you can test DAB/T-DMB with SMS based devices....
 >
-> Please keep up the work, it's much appreciated!  I, on behalf of
-> several others who aren't subscribed to the ml, am monitoring this
-> thread in hopes of a proper fix.
+> One problem still remain, true I can attach the header to a post mailed to this ML, but the library is about 1,3MByte.... 
+>   
+
+for me, you can happily attach the lib to a PM.
+
+for a broader availability, you should look for a ftp/http hosting.
+
+i don't really know if a binary lib fits the scope of linuxtv.org very
+well, but the web is full of free file hosting services..
+
+ciao
+
+andrea
+
+> Do you think that FTP will be a good solution?
 >
-> Thanks!
-> -Derek 
+>
+> Uri
+>
+>
+>       
+>
+>   
 
 
-______________________________________________________________________
-This email has been scanned by the MessageLabs Email Security System.
-For more information please visit http://www.messagelabs.com/email 
-______________________________________________________________________
+
+--------------070804030408090905090406
+Content-Type: text/x-vcard; charset=utf-8;
+ name="a_venturi.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="a_venturi.vcf"
+
+begin:vcard
+fn:Andrea Venturi
+n:;Andrea Venturi
+org:Avalpa Digital Engineering SRL
+adr;dom:;;Via dell'Arcoveggio 49/5;Bologna;BO;40129
+email;internet:a.venturi@avalpa.com
+title:CEO
+tel;work:+39 0514187531
+tel;cell:+39 3477142994
+url:www.avalpa.com
+version:2.1
+end:vcard
+
+
+--------------070804030408090905090406
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------070804030408090905090406--
