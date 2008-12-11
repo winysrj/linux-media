@@ -1,17 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.170])
+Received: from ey-out-2122.google.com ([74.125.78.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gavermer@gmail.com>) id 1L7yJt-0007mC-81
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 21:27:38 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so3433323ugc.16
-	for <linux-dvb@linuxtv.org>; Wed, 03 Dec 2008 12:27:33 -0800 (PST)
-Message-ID: <468e5d620812031227i18f646ebk1b098b88b2e56289@mail.gmail.com>
-Date: Wed, 3 Dec 2008 21:27:32 +0100
-From: "ga ver" <gavermer@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LAlq1-0005Js-QB
+	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 14:44:25 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so143245eya.17
+	for <linux-dvb@linuxtv.org>; Thu, 11 Dec 2008 05:44:18 -0800 (PST)
+Date: Thu, 11 Dec 2008 14:44:11 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Jordi Moles Blanco <jordi@cdmon.com>
+In-Reply-To: <4940C9D6.2020704@cdmon.com>
+Message-ID: <alpine.DEB.2.00.0812111415560.989@ybpnyubfg.ybpnyqbznva>
+References: <493FFD3A.80209@cdmon.com>
+	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
+	<4940032D.90106@cdmon.com>
+	<alpine.DEB.2.00.0812101956220.989@ybpnyubfg.ybpnyqbznva>
+	<49401C73.1010208@gmail.com>
+	<1228955664.3468.21.camel@pc10.localdom.local>
+	<494066C2.90105@gmail.com>
+	<1228958740.3468.28.camel@pc10.localdom.local>
+	<4940C9D6.2020704@cdmon.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] error in make for scan-s2-51eceb97c3bd
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working	through
+ diseqc anymore
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,25 +36,87 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Thu, 11 Dec 2008, Jordi Moles Blanco wrote:
 
-I try to update my channels.conf file for vdr-1.7.0 and want tu use scan-s2
-make scan-s2..... gives
+> would you mind telling me what linux system are you working with? i'm 
+> desperate for this to work, i will change to any distro that makes 
+> diseqc work.
 
-:/usr/local/src/scan-s2# make
-gcc -I../s2/linux/include -c diseqc.c -o diseqc.o
-In file included from diseqc.c:7:
-scan.h:86: fout: expected specifier-qualifier-list before 'fe_rolloff_t'
-make: *** [diseqc.o] Fout 1
+If you are willing to get your hands dirty with kernel
+source and possibly a source-control system, then you
+may be able to get a working system, without the need to
+change distributions -- maybe.
 
-Fout=Error
+The drawback to the convenience of packaged distributions
+is that they are frozen at a particular point in time,
+which can lock you out of improvements.  That's one of
+the tradeoffs for the convenience about not having to
+worry about these things, which is great, when it works.
 
-I use Ubuntu 8.10
-Kernel : Linux gv3 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC
-2008 x86_64 GNU/Linux
 
-thanks in advance
-gavermer
+The linux-dvb source should be self-contained for all
+that you need to get your device working.  (But not
+always...)  So, the easiest way would be for you to
+build the linux-dvb source as modules against your
+present kernel version, whatever that may be.
+
+This will also allow you to go back in time, should
+your device fail to work with the latest source, and
+go back to the point where it did work -- and thereby
+help the developers to get the latest source to work
+again.
+
+
+Anyway, you will need to update/download...
+the sources for the kernel you are using
+the latest linux-dvb source or tarball
+
+The latter can be found at
+http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
+or, slightly larger,
+http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.gz
+
+This is the latest source; if you look around the
+linuxtv.org site, you will also see a way to download
+the entire history of the source which will help you
+go back in time -- such as I've done today in order
+to try to see if my production 2.6.14-ish machine
+can use the last useable release without problems.
+
+
+Are you comfortable working with the command line?
+I hope so, because that's exclusively what I use.
+When you've downloaded one of the above archives,
+you'll need to extract it into a suitable playground,
+perhaps like
+% cd ~/
+% mkdir src
+% cd src
+% tar z(or j or y)xvf ~/tip.tar.(whatever)
+% cd (whatever-has-been-created)
+% make
+
+This expects you to have downloaded the source for
+your kernel as well -- if you're unsure of how to get
+this, someone familiar with your distribution should
+be able to help, if there isn't anything on the wiki
+to give details of building this.
+
+If you don't have the proper kernel source, your attempt
+to `make' will fail with lots of complaints.
+
+If you do have the source, it's also possible your
+attempted `make' will fail, and probably someone here
+or elsewhere can help fix what's needed (if the source
+is not found where it is expected, for example)
+
+
+If all goes will, you will have the very latest kernel
+modules that support your device, and can try them, to
+see if they work, or if there are still problems.
+
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
