@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1AhEtk014065
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 05:43:14 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB1Ah1Ma028115
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 05:43:01 -0500
-Date: Mon, 1 Dec 2008 11:43:04 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Maik Steuer <Maik.Steuer@gmx.de>
-In-Reply-To: <20081201103505.79550@gmx.net>
-Message-ID: <Pine.LNX.4.64.0812011140350.3915@axis700.grange>
-References: <20081128145844.244860@gmx.net>
-	<Pine.LNX.4.64.0811281613160.4430@axis700.grange>
-	<20081128162609.107740@gmx.net>
-	<Pine.LNX.4.64.0811281755510.4430@axis700.grange>
-	<20081201103505.79550@gmx.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBB19VOb031971
+	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 20:09:32 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.169])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBB18jjd030138
+	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 20:09:08 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so413028wfc.6
+	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 17:08:44 -0800 (PST)
+Message-ID: <d7e40be30812101708s2e7426afyd31c1b2f293768e4@mail.gmail.com>
+Date: Thu, 11 Dec 2008 12:08:44 +1100
+From: "Ben Klein" <shacklein@gmail.com>
+To: "Mikko Rauhala" <mjrauhal@cc.helsinki.fi>
+In-Reply-To: <1228953501.6908.21.camel@phantom.hip>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, kernel@pengutronix.de,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: testing soc_camera with mt9m001 on pxa270
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <1228953501.6908.21.camel@phantom.hip>
+Cc: video4linux-list@redhat.com
+Subject: Re: Getting "Unknown em28xx video grabber" to work?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,52 +30,155 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 1 Dec 2008, Maik Steuer wrote:
+I've personally had a lot of trouble with xawtv and mplayer. I use
+tvtime as my v4l viewing program (and playing around with vlc).
 
-> -------- Original-Nachricht --------
-> > Datum: Fri, 28 Nov 2008 18:00:47 +0100 (CET)
-> > Von: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > An: Maik Steuer <Maik.Steuer@gmx.de>
-> > CC: kernel@pengutronix.de, video4linux-list@redhat.com
-> > Betreff: Re: testing soc_camera with mt9m001 on pxa270
-> 
-> > On Fri, 28 Nov 2008, Maik Steuer wrote:
-> > 
-> > > > I would suggest you tell us what camera you are going to use, maybe 
-> > > > someone is already working on a driver for it. If not - you write a
-> > driver
-> > > > yourself and start working with a real hardware.
-> > > 
-> > > At the moment the camera is only a FPGA which sends 8 Bit dummy data 
-> > > with hsync, vsync and pixclock. So I can change all necessary parameters
-> > > for pxa requirements.
-> > > 
-> > > I throught that the ioctl (fd, VIDIOC_REQBUFS, &req) starts 
-> > > soc_camera_reqbufs() but it isn't so.
-> > 
-> > Yes, this is indeed what should happen: see __video_do_ioctl() and around 
-> > it. You're saying, that VIDIOC_REQBUFS is the first failing ioctl? Then 
-> 
-> Yes, VIDIOC_REQBUFS is the first failling. The right case construction 
-> wasn't called. I printed out the commited ioctl cmd and the unsigned 
-> integer value for VIDIOC_REQBUFS:
-> 
-> <7>pxa27x-camera: VIDIOC_REQBUFS
-> <7>switch(c0105608) VIDIOC_REQBUFS = c0145608
-> 
-> They are different! That's the problem. The capture.c example use 
-> #include <linux/videodev2.h> but the v4l2-ioctl.c use declarations in 
-> #include <media/v4l2-ioctl.h> for the VIDIOC_REQBUF define macro.
-> 
-> Is there a known version conflict?
+If you can find the vendor and product id's for the video capture
+component of the DVD drive, that's probably going to be useful for the
+v4l devs :) You should be able to identify the device with lsusb.
 
-Oops, not to me. Mauro?
+It may also be helpful to describe what A/V connections the DVD drive
+has (composite, svideo, etc).
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+2008/12/11 Mikko Rauhala <mjrauhal@cc.helsinki.fi>:
+> Hello
+>
+> I just noticed that my external LG DVD drive, which happens to have
+> video input, is actually recognized by Ubuntu 8.10's kernel as a v4l
+> device:
+>
+> [   58.236269] em28xx #0: V4L2 device registered as /dev/video0
+> and /dev/vbi0
+> [   58.236272] em28xx #0: Found Unknown EM2750/28xx video grabber
+> [   58.236350] em28xx audio device (eb1a:2861): interface 1, class 1
+> [...]
+> [   11.640274] scsi 6:0:0:0: CD-ROM            HL-DT-ST DVD-RAM GSA-E20N
+> 1.03 PQ: 0 ANSI: 0
+>
+> Now, it could be handy sometimes to get some video input in through
+> there, so I tried it with my pocket cam's video output (which hopefully
+> works itself...). Nothing worked, in the end, getting blackness or
+> sometimes blackness with the bottom of the screen including green lines
+> (that with streamer -n pal -s 720x576 -o foo.ppm). cat /dev/video0, like
+> other ways to try to access the device, do light up an access led on the
+> drive.
+>
+> Is there some idiot-proof way to see if it can be set up properly to
+> receive video or is there just no support for this particular thing?
+> I've not much experience with v4l, but see below for some stuff I tried.
+>
+> mjr@phantom:~$ xawtv
+> This is xawtv-3.95.dfsg.1, running on Linux/x86_64 (2.6.27-9-generic)
+> xinerama 0: 1920x1200+1920+0
+> xinerama 1: 1920x1200+0+0
+> WARNING: No DGA direct video mode for this display.
+> /dev/video0 [v4l2]: no overlay support
+> v4l-conf had some trouble, trying to continue anyway
+> Warning: Cannot convert string
+> "-*-ledfixed-medium-r-*--39-*-*-*-c-*-*-*" to type FontStruct
+> ioctl: VIDIOC_S_INPUT(int=0): Invalid argument
+>
+> mjr@phantom:~$ v4lctl -c /dev/video0 setinput Composite
+> invalid value for input: Composite
+> valid choices for "input":
+>
+> (Yes, there's nothing there for valid choices.)
+>
+> mjr@phantom:~$ dov4l -q
+> dov4l v0.9, (C) 2003-2006 by folkert@vanheusden.com
+>
+> Canonical name for this interface: Unknown EM2750/28xx video grabb
+> Type of interface:
+>  Can capture to memory
+>
+> Number of radio/tv channels if appropriate: 0
+> Number of audio devices if appropriate: 0
+> Maximum capture width in pixels: 720
+> Maximum capture height in pixels: 576
+> Minimum capture width in pixels: 48
+> Minimum capture height in pixels: 32
+>
+> Image size (x,y): 720, 576
+>
+> Brightness: 32896
+> Hue: 32896
+> Colour: 32896
+> Contrast: 32896
+> Whiteness: 0
+> Depth: 16
+> Palette: Describe me
+>
+> mjr@phantom:~$ mplayer tv://
+> MPlayer 1.0rc2-4.3.2 (C) 2000-2007 MPlayer Team
+> CPU: AMD Athlon(tm) 64 X2 Dual Core Processor 4400+ (Family: 15, Model:
+> 35, Stepping: 2)
+> CPUflags:  MMX: 1 MMX2: 1 3DNow: 1 3DNow2: 1 SSE: 1 SSE2: 1
+> Compiled with runtime CPU detection.
+> mplayer: could not connect to socket
+> mplayer: No such file or directory
+> Failed to open LIRC support. You will not be able to use your remote
+> control.
+>
+> Playing tv://.
+> TV file format detected.
+> Selected driver: v4l2
+>  name: Video 4 Linux 2 input
+>  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
+>  comment: first try, more to come ;-)
+> Selected device: Unknown EM2750/28xx video grabb
+>  Capabilites:  video capture  audio  read/write  streaming
+>  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4
+> = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK; 10 =
+> PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM; 15 = SECAM-B;
+> 16 = SECAM-G; 17 = SECAM-H; 18 = SECAM-DK; 19 = SECAM-L; 20 = SECAM-Lc;
+>  inputs:
+>  Current input: 0
+>  Current format: YUYV
+> v4l2: ioctl enum input failed: Invalid argument
+> Selected input hasn't got a tuner!
+> xscreensaver_disable: Could not find XScreenSaver window.
+> GNOME screensaver disabled
+> ==========================================================================
+> Opening video decoder: [raw] RAW Uncompressed Video
+> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
+> VDec: using Packed YUY2 as output csp (no 0)
+> Movie-Aspect is undefined - no prescaling applied.
+> VO: [xv] 640x480 => 640x480 Packed YUY2
+> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
+> ==========================================================================
+> Audio: no sound
+> Starting playback...
+> ^C
+>
+> mjr@phantom:~$ cat /dev/video0 | od -x
+> 0000000 8010 8010 8010 8010 8010 8010 8010 8010
+> *
+> ^C
+> mjr@phantom:~$ cat /dev/video0 | od -x
+> [...]
+> 3075400 0000 0000 0000 0000 0000 0000 0000 0000
+> *
+> 3100240 8010 8010 8010 8010 8010 8010 8010 8010
+> *
+> 3103100 0000 0000 0000 0000 0000 0000 0000 0000
+> *
+> 3105740 8010 8010 8010 8010 8010 8010 8010 8010
+> [...]
+>
+> And so forth; any suggestions?
+>
+> --
+> Mikko Rauhala <mjr@iki.fi>       - http://www.iki.fi/mjr/blog/
+> The Finnish Pirate Party         - http://piraattipuolue.fi/
+> World Transhumanist Association  - http://transhumanism.org/
+> Singularity Institute            - http://singinst.org/
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
