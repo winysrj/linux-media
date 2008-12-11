@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from ey-out-2122.google.com ([74.125.78.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1L76w9-0002p5-LY
-	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 12:27:34 +0100
-Date: Mon, 1 Dec 2008 12:26:55 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: =?ISO-8859-15?Q?Antti_Sepp=E4l=E4?= <a.seppala+linux-dvb@gmail.com>
-In-Reply-To: <492D96AB.9020009@gmail.com>
-Message-ID: <alpine.LRH.1.10.0812011226160.19122@pub1.ifh.de>
-References: <492D96AB.9020009@gmail.com>
+	(envelope-from <jordi.moles@gmail.com>) id 1LAlv9-000620-W3
+	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 14:49:41 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so143423eya.17
+	for <linux-dvb@linuxtv.org>; Thu, 11 Dec 2008 05:49:36 -0800 (PST)
+Message-ID: <49411A6E.2020107@gmail.com>
+Date: Thu, 11 Dec 2008 14:49:34 +0100
+From: Jordi Molse <jordi.moles@gmail.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="579714831-1788931758-1228130815=:19122"
-Cc: Linux DVB <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] Cablestar 2 i2c retries
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>, linux-dvb@linuxtv.org
+References: <493FFD3A.80209@cdmon.com>	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>	<4940032D.90106@cdmon.com>	<alpine.DEB.2.00.0812101956220.989@ybpnyubfg.ybpnyqbznva>	<49401C73.1010208@gmail.com>	<1228955664.3468.21.camel@pc10.localdom.local>	<494066C2.90105@gmail.com>	<1228958740.3468.28.camel@pc10.localdom.local>	<4940C9D6.2020704@cdmon.com>
+	<alpine.DEB.2.00.0812111415560.989@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0812111415560.989@ybpnyubfg.ybpnyqbznva>
+Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working	through
+ diseqc anymore
+Reply-To: jordi.moles@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,43 +23,116 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+En/na BOUWSMA Barry ha escrit:
+> On Thu, 11 Dec 2008, Jordi Moles Blanco wrote:
+>
+>   
+>> would you mind telling me what linux system are you working with? i'm 
+>> desperate for this to work, i will change to any distro that makes 
+>> diseqc work.
+>>     
+>
+> If you are willing to get your hands dirty with kernel
+> source and possibly a source-control system, then you
+> may be able to get a working system, without the need to
+> change distributions -- maybe.
+>
+> The drawback to the convenience of packaged distributions
+> is that they are frozen at a particular point in time,
+> which can lock you out of improvements.  That's one of
+> the tradeoffs for the convenience about not having to
+> worry about these things, which is great, when it works.
+>
+>
+> The linux-dvb source should be self-contained for all
+> that you need to get your device working.  (But not
+> always...)  So, the easiest way would be for you to
+> build the linux-dvb source as modules against your
+> present kernel version, whatever that may be.
+>
+> This will also allow you to go back in time, should
+> your device fail to work with the latest source, and
+> go back to the point where it did work -- and thereby
+> help the developers to get the latest source to work
+> again.
+>
+>
+> Anyway, you will need to update/download...
+> the sources for the kernel you are using
+> the latest linux-dvb source or tarball
+>
+> The latter can be found at
+> http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
+> or, slightly larger,
+> http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.gz
+>
+> This is the latest source; if you look around the
+> linuxtv.org site, you will also see a way to download
+> the entire history of the source which will help you
+> go back in time -- such as I've done today in order
+> to try to see if my production 2.6.14-ish machine
+> can use the last useable release without problems.
+>
+>
+> Are you comfortable working with the command line?
+> I hope so, because that's exclusively what I use.
+> When you've downloaded one of the above archives,
+> you'll need to extract it into a suitable playground,
+> perhaps like
+> % cd ~/
+> % mkdir src
+> % cd src
+> % tar z(or j or y)xvf ~/tip.tar.(whatever)
+> % cd (whatever-has-been-created)
+> % make
+>
+> This expects you to have downloaded the source for
+> your kernel as well -- if you're unsure of how to get
+> this, someone familiar with your distribution should
+> be able to help, if there isn't anything on the wiki
+> to give details of building this.
+>
+> If you don't have the proper kernel source, your attempt
+> to `make' will fail with lots of complaints.
+>
+> If you do have the source, it's also possible your
+> attempted `make' will fail, and probably someone here
+> or elsewhere can help fix what's needed (if the source
+> is not found where it is expected, for example)
+>
+>
+> If all goes will, you will have the very latest kernel
+> modules that support your device, and can try them, to
+> see if they work, or if there are still problems.
+>
+>
+> barry bouwsma
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>   
+hi,
 
---579714831-1788931758-1228130815=:19122
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id mB1BQtTN020869
+thanks for all the information provided, it's great!!..
 
-Hi Antti,
+i'm not and experienced user, but i get along well with command shell, 
+and i'm able to run gcc and install thing form the scratch.
 
-On Wed, 26 Nov 2008, Antti Sepp=E4l=E4 wrote:
-> The reason is that the earlier version of the driver used to retry=20
-> unsuccessful i2c operations. The demodulator of Cablestar 2 cards=20
-> (stv0297) seems to be very dependent on these retries and adding them=20
-> back fixes Cablestar detection.
+i'll give a try to see if i can compile and use those modules you suggest.
 
-Thanks a lot for your fix.
+i'll report back with what i've found.
 
-It is committed and asked to be pulled.
-
-Patrick.
-
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
---579714831-1788931758-1228130815=:19122
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+thanks.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---579714831-1788931758-1228130815=:19122--
