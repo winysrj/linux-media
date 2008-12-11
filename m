@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.tech.numericable.fr ([82.216.111.37])
+Received: from fk-out-0910.google.com ([209.85.128.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tanguy.pruvot@gmail.com>) id 1L7Qaz-0005kS-EX
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 09:27:02 +0100
-Received: from EPSYLON (ip-128.net-89-2-80.rev.numericable.fr [89.2.80.128])
-	by smtp1.tech.numericable.fr (Postfix) with ESMTP id 0BC48E081A
-	for <linux-dvb@linuxtv.org>; Tue,  2 Dec 2008 09:26:56 +0100 (CET)
-Date: Tue, 2 Dec 2008 09:26:55 +0100
-From: Tanguy Pruvot <tanguy.pruvot@gmail.com>
-Message-ID: <116652354.20081202092655@gmail.com>
-To: Linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <xweber.alex@googlemail.com>) id 1LAnEH-00031F-Hs
+	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 16:13:30 +0100
+Received: by fk-out-0910.google.com with SMTP id f40so839638fka.1
+	for <linux-dvb@linuxtv.org>; Thu, 11 Dec 2008 07:13:25 -0800 (PST)
+Message-ID: <49412E14.5090001@googlemail.com>
+Date: Thu, 11 Dec 2008 16:13:24 +0100
+From: Alexander Weber <xweber.alex@googlemail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] [TUA6030] Infineon TUA6030 driver available... =)
-Reply-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+To: linux-dvb@linuxtv.org
+References: <493AC65E.3010900@googlemail.com> <493D593F.7010707@googlemail.com>
+	<337548152.20081208193816@gmail.com>
+	<493D62F5.4010207@googlemail.com>
+	<1228770724.2587.16.camel@pc10.localdom.local>
+	<493D9545.4080605@googlemail.com>
+	<1689947513.20081209045705@gmail.com>
+In-Reply-To: <1689947513.20081209045705@gmail.com>
+Subject: Re: [linux-dvb] saa7134 with Avermedia M115S hybrid card
+Reply-To: xweber.alex@googlemail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,26 +32,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Tanguy Pruvot wrote:
+>   Mini  PCI  Cards  are  often  (but  not always) accessible under the
+>   laptop, like RAM or Hard disk, because that could be an option of the laptop...
+> 
+>   Did you take a look closer ?
+> 
 
-   You can find the configuration needed for this multi tuner on this page :
+Hi all,
 
-   This tuner can do everything analog (PAL (including SECAM)/ NTSC / FM))
+yes today i took a closer look and have taken some hires pictures from 
+that mini-pc card. Now I am looking for a smooth place to upload them. 
+Is the a "central-point" in linuxtv.org wiki for those kind of 
+"documentation"?
 
-      http://tanguy.ath.cx/index.php?q=SAA7130
+For the impatient ;)
+the main chips are labeled with
 
+SAA7135HL/203
+CK2534    03
+TSG07522
 
-   Full PC-Basic SAA7130/TUA6030 card driver will follow soon (Graphics)
-   when IR remote control will be configured correctly... GPIOs
+NEC
+D61151F1 A02
+0741E3005
 
+ESMT
+M12L64322A-     7T
+AZG1P72G4     0747
 
-   Hope this code could be included in v4l kernel sources !
-   Cheers
-
---
-Tanguy Pruvot                         email : tanguy.pruvot@gmail.com
-
-
+Alex
 
 _______________________________________________
 linux-dvb mailing list
