@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4Efeo2007747
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 09:41:40 -0500
-Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4EfQH1016955
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 09:41:27 -0500
-Message-ID: <49367FD3.6080003@nokia.com>
-Date: Wed, 03 Dec 2008 14:47:15 +0200
-From: Sakari Ailus <sakari.ailus@nokia.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBC93mHS014324
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 04:03:48 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBC93Zt0011620
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 04:03:35 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so1112915wfc.6
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 01:03:35 -0800 (PST)
+Message-ID: <aec7e5c30812120103g417fdbafu649f782e8347fa40@mail.gmail.com>
+Date: Fri, 12 Dec 2008 18:03:35 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: morimoto.kuninori@renesas.com
+In-Reply-To: <uzlj1vlg2.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-References: <19F8576C6E063C45BE387C64729E739403E90E6E06@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E6E06@dbde02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH] Add OMAP2 camera driver
+Content-Disposition: inline
+References: <20081210074435.5727.93374.sendpatchset@rx1.opensource.se>
+	<uzlj1vlg2.wl%morimoto.kuninori@renesas.com>
+Cc: video4linux-list@redhat.com, g.liakhovetski@gmx.de
+Subject: Re: [PATCH 00/03] video: nv1x/nvx1 support for the sh_mobile_ceu
+	driver V2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,30 +32,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-ext Hiremath, Vaibhav wrote:
-> OMAP3 - 
-> 	Display - (Posted twice with old DSS library)
-> 		- omap_vout.c
-> 		- omap_voutlib.c
-> 		- omap_voutlib.h
-> 		- omap_voutdef.h
-> 	Camera - (Will come soon)
-> 		- omap34xxcam.c
-> 		- omap34xxcam.h
-> 	ISP - (Will come soon)
-> 		- Here definitely we will plenty number of files.
+Hi Morimoto-san,
 
-I think that the OMAP 3 stuff could go into a separate directory, say 
-omap3 or omap3isp. But for the OMAP 1 or OMAP 2 camera drivers, I'd 
-perhaps just prefix those with corresponding OMAP (omap1 etc.).
+On Fri, Dec 12, 2008 at 5:37 PM,  <morimoto.kuninori@renesas.com> wrote:
+>
+> Hi Magnus, Guennadi
+>
+>> [PATCH 01/03] sh_mobile_ceu: use new pixel format translation code
+>> [PATCH 02/03] sh_mobile_ceu: add NV12 and NV21 support
+>
+> It works well on my environment !!
+> I can not test NV16/61
+> Thanks
+>
+> Acked-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-The current OMAP 3 camera driver has few dependencies to OMAP 3 left so 
-it seems that it's going to be generic. It's just a question of when the 
-OMAP 3 ISP driver can offer a better interface towards the camera driver.
+Thanks for testing. Regarding NV16 and NV61, there is very little
+support in open source tools for these formats. I've heard a positive
+NV16 status report from other people using an internal NV16-extended
+version of the my old NV12 patch, so I'm fairly confident in my NV16
+implementation. Especially since the only logic changes from NV12 are
+12bpp->16bpp and the no-lineskip setting. =)
 
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+Cheers,
+
+/ magnus
 
 --
 video4linux-list mailing list
