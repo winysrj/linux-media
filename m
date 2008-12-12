@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBFEafeP027869
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 09:36:41 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBFEZFhF003362
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 09:35:16 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so1198861fga.7
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 06:35:15 -0800 (PST)
-Message-ID: <412bdbff0812150635x7187a9feh9e8a42b3034c67df@mail.gmail.com>
-Date: Mon, 15 Dec 2008 09:35:15 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-In-Reply-To: <200812151106.24382.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBC9Ujr4026860
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 04:30:45 -0500
+Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
+	[209.85.217.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBC9UWUJ025877
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 04:30:32 -0500
+Received: by gxk8 with SMTP id 8so1635558gxk.3
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 01:30:32 -0800 (PST)
+Message-ID: <aec7e5c30812120130j6c488450t9ba3f25a5c0b6c13@mail.gmail.com>
+Date: Fri, 12 Dec 2008 18:30:31 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: "Kuninori Morimoto" <morimoto.kuninori@renesas.com>
+In-Reply-To: <u3agtx39i.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <412bdbff0812141701j3ee744daq49f47da9150124f4@mail.gmail.com>
-	<200812151106.24382.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: Template for a new driver
+References: <u3agtx39i.wl%morimoto.kuninori@renesas.com>
+Cc: V4L-Linux <video4linux-list@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH re-send v2] Add interlace support to
+	sh_mobile_ceu_camera.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,51 +33,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Dec 15, 2008 at 5:06 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Monday 15 December 2008 02:01:14 Devin Heitmueller wrote:
->> Hello,
->>
->> I am writing a new driver for a video decoder, and wanted to ask if
->> there was any particular driver people would suggest as a model to
->> look at for new drivers.  For example, I am not completely familiar
->> with which interfaces are deprecated, and want to make sure I use a
->> driver as a template that reflects the latest standards/conventions.
->>
->> Suggestions welcome.
->>
->> Thanks in advance,
->>
->> Devin
->
-> Hi Devin,
->
-> You definitely want to use the new v4l2_subdev framework for this. Read
-> Documentation/video4linux/v4l2-framework.txt for more info.
->
-> A good example template is probably saa7115.c. Not as big and
-> complicated as the audio-video decoder cx25840, but still a good
-> non-trivial example.
->
-> I also recommend using struct v4l2_i2c_driver_data if you desire to be
-> compatible with older kernels. The main reason for having this struct
-> is to hide all the ugly kernel #ifdefs.
->
-> Regards,
->
->        Hans
+[CEU interlace patch v2]
 
-Thanks for the feedback.  Because I didn't wait for more responses
-last night, I ended up using the cx25840 driver as the base, which
-seems to have been a good choice.
+On Fri, Dec 12, 2008 at 4:09 PM, Kuninori Morimoto
+<morimoto.kuninori@renesas.com> wrote:
+>
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
 
-Cheers,
+I've tested this briefly on top of my nv1x/nvx1 patches with an
+unpatched Migo-R board. The code compiles, ov772x works well. The
+ov772x chip is however not using interlace mode and my board is
+lacking the FLD signal to the video decoder so it's difficult to test
+interlace mode. I do however know that Morimoto-san tested this patch
+together with the TW9910 driver, so I'm confident that it works as
+expected.
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
 
 --
 video4linux-list mailing list
