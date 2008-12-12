@@ -1,23 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBKcBw4012587
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:38:11 -0500
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBBKbuRC020507
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:37:57 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Thu, 11 Dec 2008 14:37:43 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415E6E194@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Fri, 12 Dec 2008 14:25:01 +0100
+References: <200812121401.55277.laurent.pinchart@skynet.be>
+	<200812121410.36590.laurent.pinchart@skynet.be>
+In-Reply-To: <200812121410.36590.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>
-Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812121425.01922.hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Schimek <mschimek@gmx.at>
+Subject: Re: [PATCH v2 3/4] v4l2: Add missing control names
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,27 +25,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi Laurent,
 
-I'm sending the following patchset for review to the relevant lists (linux-omap and v4l).
+Just one tiny suggestion:
 
-Includes:
- - Omap3 camera core + ISP drivers.
- - Preview and Resizer Wrappers for Memory to Memory operation of the ISP.
- - MT9P012 sensor driver (adapted to 3430SDP)
- - DW9710 lens driver ()
- - Necessary v4l2-int-device changes to make above drivers work
+On Friday 12 December 2008 14:10:36 Laurent Pinchart wrote:
+> +	/* CAMERA controls */
+> +	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+> +	case V4L2_CID_EXPOSURE_AUTO:		return "Auto-Exposure";
 
-Some notes:
- - Uses v4l2-int-device solution.
- - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
- - Applies cleanly on top of commit 249d6164958e1c8de46fbb30396de9ae6e9a3a50 by David Brownell (ARM: OMAP: use gpio_to_irq)
- - Needed "ARM: OMAP: use GPIO standard in OneNAND driver" patch to be able to compile resulting kernel image using omap_3430sdp_defconfig.
-
-I appreciate in advance your time.
+I would suggest "Auto Exposure" (no dash). It seems to be the most 
+common way to write it. At least to my eyes the dash looks strange. 
+Perhaps some native English speakers can help out here?
 
 Regards,
-Sergio
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
