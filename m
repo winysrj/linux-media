@@ -1,22 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mognix.dark-green.com ([88.116.226.179])
+Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gimli@dark-green.com>) id 1LDijQ-0005aj-GN
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 18:01:45 +0100
-Received: from webmail.dark-green.com
-	(83-64-96-243.bad-voeslau.xdsl-line.inode.at [83.64.96.243])
-	by mognix.dark-green.com (Postfix) with ESMTP id 29EAB5AC098
-	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 18:02:36 +0100 (CET)
-Message-ID: <59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
-In-Reply-To: <b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
-Date: Fri, 19 Dec 2008 18:01:40 +0100 (CET)
-From: "gimli" <gimli@dark-green.com>
+	(envelope-from <halim.sahin@t-online.de>) id 1LBEUK-0001c8-7h
+	for linux-dvb@linuxtv.org; Fri, 12 Dec 2008 21:19:53 +0100
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id 93BD033A730
+	for <linux-dvb@linuxtv.org>; Fri, 12 Dec 2008 21:19:32 +0100 (CET)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id XlPZGfJ2-SfR for <linux-dvb@linuxtv.org>;
+	Fri, 12 Dec 2008 21:19:32 +0100 (CET)
+Received: from halim.local (p54AE4A0A.dip.t-dialin.net [84.174.74.10])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id 6735733A6E7
+	for <linux-dvb@linuxtv.org>; Fri, 12 Dec 2008 21:19:32 +0100 (CET)
+Date: Fri, 12 Dec 2008 21:19:16 +0100
+From: Halim Sahin <halim.sahin@t-online.de>
 To: linux-dvb@linuxtv.org
+Message-ID: <20081212201916.GA17289@halim.local>
+References: <610460.22660.qm@web26105.mail.ukl.yahoo.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] S2API drivers sync
-Reply-To: gimli@dark-green.com
+Content-Disposition: inline
+In-Reply-To: <610460.22660.qm@web26105.mail.ukl.yahoo.com>
+Subject: Re: [linux-dvb] Best dvb-t tuner ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,39 +37,13 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The DVB-S2 stuff smells all like a big bullshit.
-In the first step a big hurry to get S2API in
-the mainline kernel and now nothing at all from
-the DVB-S2 front. This is a completly big mess
-in my eyes.
+Hi,
+I am using a twinhan dtv alpha stick since three years.
+i don't know if that version is available today but the stick works realy well.
 
-cu
-
-Edgar (gimli) Hucek
-
-P.S.: Childish political games which are played on
-the shoulders of the users. Hurray, well done.
-
-> Hi,
->
-> 2008/12/18 gimli <gimli@dark-green.com>:
->> What about syncing up with Igor M. Liplianin's
->> S2API tree to get more S2API drivers in the
->> v4l-hg tree ?
->
-> Very good idea, but it's impossible. For sync Mauro needs ACK or
-> Sign-Off from Manu. And they blocks all changes. Politic.
->
-> Regards
-> Oleg Roitburd
->
-> P.S. For me works s2-liplianin with tt s2-3200 much stabler than v4l-dvb.
->
-> P.P.S. What's about signal statistic for stv0899 in v4l-dvb? What's
-> about another devices based on stv0899 (mantis, USB)?
->
->
->
+If you want to buy a pci card look at the technisat airstar pci products!
+HTH.
+halim
 
 
 
