@@ -1,22 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53])
+Received: from ug-out-1314.google.com ([66.249.92.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LAZaY-0003Sz-QP
-	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 01:39:36 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: jordi.moles@gmail.com
-In-Reply-To: <49401C73.1010208@gmail.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LB3Dq-0005Jt-N1
+	for linux-dvb@linuxtv.org; Fri, 12 Dec 2008 09:18:08 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so259146ugc.16
+	for <linux-dvb@linuxtv.org>; Fri, 12 Dec 2008 00:18:03 -0800 (PST)
+Date: Fri, 12 Dec 2008 09:17:52 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Jordi Molse <jordi.moles@gmail.com>
+In-Reply-To: <4941A076.3060107@gmail.com>
+Message-ID: <alpine.DEB.2.00.0812120822530.989@ybpnyubfg.ybpnyqbznva>
 References: <493FFD3A.80209@cdmon.com>
 	<alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
 	<4940032D.90106@cdmon.com>
 	<alpine.DEB.2.00.0812101956220.989@ybpnyubfg.ybpnyqbznva>
 	<49401C73.1010208@gmail.com>
-Date: Thu, 11 Dec 2008 01:34:24 +0100
-Message-Id: <1228955664.3468.21.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	<1228955664.3468.21.camel@pc10.localdom.local>
+	<494066C2.90105@gmail.com>
+	<1228958740.3468.28.camel@pc10.localdom.local>
+	<4940C9D6.2020704@cdmon.com>
+	<alpine.DEB.2.00.0812111415560.989@ybpnyubfg.ybpnyqbznva>
+	<49411A6E.2020107@gmail.com> <49412BF9.5010401@cdmon.com>
+	<alpine.DEB.2.00.0812111626260.989@ybpnyubfg.ybpnyqbznva>
+	<4941A076.3060107@gmail.com>
+MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working
-	through	diseqc anymore
+Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working through
+ diseqc anymore
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,151 +40,132 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Fri, 12 Dec 2008, Jordi Molse wrote:
 
-Am Mittwoch, den 10.12.2008, 20:45 +0100 schrieb Jordi Molse:
-> En/na BOUWSMA Barry ha escrit:
-> > On Wed, 10 Dec 2008, Jordi Moles Blanco wrote:
-> >
-> >   
-> >>>> And it doesn't matter if i run "scan -s 1" or "scan -s 2" or "scan -s
-> >>>> 3", it will always scan from "switch 1"
-> >>>>     
-> >>>>         
-> >>> Try with -s 0; I'm not sure if it is always the case,
-> >>> but my unhacked `scan' uses 0-3 for DiSEqC positions
-> >>> 1/4 to 4/4 -- I've hacked this to use the range of 1-4
-> >>>       
-> >
-> >
-> >   
-> >> hi, thanks for anwsering.
-> >> I've already tried that.
-> >> remember, on switch 1 i've got astra 28.2E and on switch 2 i've got astra 19E
-> >>     
-> >
-> > I realized soon after sending my reply, that I had probably
-> > confused myself about which inputs you had where, and my
-> > advice, while partly correct, wouldn't help...
-> >
-> > Anyway -- the important thing to remember, is that if your
-> > `scan' works as I expect and your kernel modules work properly
-> > and you have a 2/1 DiSEqC switch, that scan -s option...
-> >  0 -- will tune to position 1/2;
-> >  1 -- will tune to position 2/2;
-> >  2 -- will cycle back and tune position 1/2;
-> >  3 -- will again tune position 2/2
-> >  4 -- should spit a warning, I think (something does)
-> >
-> > In other words -- if your system worked properly, `-s 1'
-> > would give you 19E2 and `-s 2' would give you 28E; the
-> > opposite of your switch labels.
-> >
-> >
-> >
-> >   
-> >> I don't why but it looks like it doesn't know how to switch to "switch 2"
-> >>     
-> >
-> > If I understand from your original post (re-reading it;
-> > as soon as people start posting distribution or system
-> > details my eyes sort of glaze over, while other people
-> > will get an `aha!' moment that shall remain elusive to
-> > me)...
-> >
-> > An older kernel version + modules worked;
-> > an update of those modules broke DiSEqC;
-> > your original kernel and modules didn't support your card.
-> >
-> > What I would suggest -- keeping in mind that the dvb kernel
-> > modules, which you should see with `lsmod', are where you
-> > should find correct support, are probably in some package
-> > unknown to me which you'd need to downgrade -- would be to
-> > either revert, if possible, whatever contains those modules,
-> > or jump ahead several kernel versions.
-> >
-> > If you feel comfortable compiling and installing a newer
-> > kernel (which is now around the 2.6.28 area), you could do
-> > that.
-> >
-> > Alternatively, and possibly better, would be to upgrade
-> > only the linux-dvb kernel modules, building them against
-> > your 2.6.24-era kernel source, which you may need to
-> > download and install.
-> >
-> > It's simple to download and build the latest linux-dvb
-> > modules even against a 2.6.24 kernel, and that should
-> > make things work -- if not, then something's been broken
-> > for a while, and some expert should be able to help you.
-> >
-> >
-> > barryb ouwsma
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >   
-> 
-> Hi again,
-> 
-> and thanks for the info.
-> 
-> Unfortunately, diseqc seems broken, because no matter what i try
-> 
-> -s 0, 1 , 2 ,3.... i get 28.2E signal
-> 
-> however, 4 shows an error, as you said.
-> 
-> It used to work... so i'll try to get back or compile new linux-dvb 
-> module as you suggested.
-> 
-> i'm really really newbie in this, i'm using kubuntu, so imagine.... 
-> hahahaha.
-> 
-> i don't even know how to get started, i barely install thing by "apt-get"
-> 
-> i'll try to find the way or post instead my problem in an ubuntu forum.
-> 
-> thanks for the info.
-> 
+> However, i haven't been able to get diseqc working and i don't think i
+> will....
 
-we need a report at least from 2.6.25 or current v4l-dvb from
-linuxtv.org.
+It is too early to give up now!!1!  At least, I shall not
+give up until the sun melts away enough of the snow, so that
+I can go out and get more beer, though the melted snow
+will probably freeze into slick ice, and I'll probably
+end up hurting more than last time, this time with broken
+glass embedded into my body...  A direct infusion of that
+evil alcohol into by bloodstream without the middleman of
+passing the lips, gums, tongue, nose -- heck, why bother
+searching to find excellent-tasting beer when I won't notice
+and appreciate the difference anyway...
 
-Prior to this patch
-http://linuxtv.org/pipermail/linux-dvb/2007-June/018741.html
-the Trio failed for 13 Volts and tone generation.
-Don't have the hardware, but would expect BBC 1 London to work and BBC 1
-CI to fail.
 
-This patch disabled some lnpb21 boards, which have that one connected in
-such a way, that diseqc forwarding is disabled. They need it from the
-tda10086.
+> i used to have this card running in a dual boot with windows xp, where
+> everything worked like a charm, and another one where i kept installing linux
+> distros without any luck until "kubuntu hardy" came out. At that point, as the
+> card with diseqc worked "out of the box", i decided to erase all data and move
 
-This was fixed by Hartmut with suggestions from Patrick to make it a
-config option, if the tda10086 or the LNB chip in question is active.
+One card, worked in two boxes; the first box a 'doze box,
+the second box Kubuntu Hardy...  (unsupported before then)
 
-All saa7134 DVB-S drivers have this option as diseqc = 0 in the config
-currently and it should be right for the Trio too and the isl6421 should
-forward.
 
-For looking at Ubuntu stuff, they downport a lot of things, because
-always late with kernel releases, we need the exact sources to diff
-against.
+> then i upgraded the system and also moved the tower from its place to next to
+> the tv (to be a medicenter computer :) ). Then i couldn't view the channels
+> anymore. I tried to retune with no luck... I check all the cables, just in
+> case one of them was in bad shape. I even replaced the T connectors, just in
 
-I still have only that single dish for initially helping Hartmut with
-the isl6405 devel, but no rotors and switches yet and might be not of
-much help.
+System `upgraded' and stopped DiSEqC working; but also,
+system moved.  No success since then.
 
-Cheers,
-Hermann
+Question:
+
+When you moved the system, did you have to add new cable?
+If so, how long was the length of cable from your machine
+to the DiSEqC switch before you moved it, and how long is
+this cable now, or is it the same length and same cable?
+
+Other question, what do you mean by a `T connector'?
+For satellite, I am familiar with the `F' connector, and
+I am also familiar with other types of `T' connector,
+but they should have no place in a satellite system...
 
 
 
+> so... is it possible that somehow i've broken the card someone? the truth is
+
+Not too likely -- DiSEqC switching is basically the same
+as a modulated version of the 22kHz tone which is used to
+switch between low (below 11700) and high (above 11700)
+frequencies by the LNB.
+
+However, I have had experience with several different
+2/1 and 4/1 DiSEqC switches at the end of long cable
+runs, which could not be properly switched by some DVB-S
+cards, but could -- or could not be switched by a consumer
+satellite receiver, but which worked flawlessly when located
+a few metres from the receiver, instead of nearly 100m away.
+The cable length attenuated or otherwise corrupted the
+DiSEqC bursts from some devices so that they failed to work.
+
+
+> that what used to work in windows... doesn't work anymore... this evening i
+> went back to windows just to check if the card, the diseqc and everything was
+> fine... and i had so many problems to get the satellite working as before. i
+> used to use progdvb, which supported diseqc for my card and now it just can't
+> tune through diseqc, none of the two satellites. other software does know how
+> to get through diseqc, but only switch 1.
+
+So, the same setup, apart from being moved, now no longer
+works the same as it used to work with 'doze, and 'doze
+either no longer works at all, or fails to switch DiSEqC?
+
+Note that a typical DiSEqC switch will simply pass along
+its 1/2 or 1/4 or 1/8 or 1/whatever input, when it does
+not receive the switching signal to select 2/2 or whatever.
 
 
 
+> i've checked cables and i don't think it's an issue from the diseq thing,
+> cause i've got two and both give the same problem.
+
+Two?  Two what -- DiSEqC switches, two cables to switches?
+
+Do you have a normal consumer satellite receiver, as well
+as your different computer boxes?
+
+
+I'm going to guess based on where I think you are located,
+that you have something like the following -- please correct
+me where I ass-u-me wrong, and add any additional info that
+is missing from this...
+
+Dish+LNB pointed at 28E, large enough to receive BBC/ITV/etc
+Dish+LNB pointed at 19E (or offset mounted on 28E dish)
+DiSEqC switch(es) located near dishes -- or near your tuner
+so you can connect directly from each LNB as a test?
+Single cable run from switch to computer, or two cable runs
+from two switches?
+
+LNB19E--
+        \               long cable run
+         2/1 DiSEqC----------------------------Computer
+        /
+LNB28E--
+
+You also mention DVB-T/radio from this card; if you could
+mention how that affects the above, if at all (it should
+not, but I never know for sure)
+
+Also, if you have any spares (a pile of DiSEqC switches,
+other DVB-S capable cards, etc), it would be handy for me
+to know -- in the case of my 4/1 switches located more
+than 50m from my tuners, it was partially a case of
+swapping in other switches from my pile of them until
+finding a working combination, or running an additional
+several hundred metres of cable to permit me to switch
+the four positions close to the tuners...
+
+
+thanks,
+barry bouwsma
+not an expert, by any means
 
 _______________________________________________
 linux-dvb mailing list
