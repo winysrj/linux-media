@@ -1,17 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Sat, 6 Dec 2008 19:34:00 +0100
-References: <200811271536.46779.laurent.pinchart@skynet.be>
-In-Reply-To: <200811271536.46779.laurent.pinchart@skynet.be>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBC14v3k020456
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 20:04:57 -0500
+Received: from server2.n0sq.us (mo-65-41-216-18.sta.embarqhsd.net
+	[65.41.216.18])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBC14jTd000637
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 20:04:45 -0500
+Received: from server2.localnet (server2 [127.0.0.1])
+	by server2.n0sq.us (Postfix) with ESMTP id 99B2E124060
+	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 18:04:44 -0700 (MST)
+From: engage <engage@n0sq.us>
+To: "V4L-Linux" <video4linux-list@redhat.com>
+Date: Thu, 11 Dec 2008 18:04:43 -0700
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812061934.00750.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
-Subject: Re: [PATCH 0/4] Add zoom and privacy controls
+Message-Id: <200812111804.43852.engage@n0sq.us>
+Subject: (no subject)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,25 +30,6 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
-
-On Thursday 27 November 2008, Laurent Pinchart wrote:
-> Hi,
->
-> this patch series adds support for zoom and privacy controls to V4L2:
->
-> - the first two patches add the controls to videodev2.h
-> - the 3rd patch updates v4l2-common.c with missing control names
-> - the 4th patch updates the v4l2 api documentation
->
-> I've split the additions to videodev2.h in two patches to document the new
-> controls in the patches description as requested by Mauro.
-
-Is there anything that prevents those patches from being applied ?
-
-Best regards,
-
-Laurent Pinchart
 
 --
 video4linux-list mailing list
