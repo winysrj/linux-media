@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJ0vJsO016755
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 19:57:19 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJ0v5BM022250
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 19:57:05 -0500
-Date: Thu, 18 Dec 2008 20:57:06 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <20081218205706.60bf1526@caramujo.chehab.org>
-In-Reply-To: <Pine.LNX.4.64.0812190026180.8046@axis700.grange>
-References: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
-	<20081218160841.GA13851@linux-sh.org>
-	<Pine.LNX.4.64.0812181717320.5510@axis700.grange>
-	<20081218162439.GA27151@linux-sh.org>
-	<Pine.LNX.4.64.0812181730080.5510@axis700.grange>
-	<20081218191839.78cb627d@caramujo.chehab.org>
-	<Pine.LNX.4.64.0812190026180.8046@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBC8iKxY006020
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 03:44:20 -0500
+Received: from mail-qy0-f21.google.com (mail-qy0-f21.google.com
+	[209.85.221.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBC8i6IQ003055
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 03:44:06 -0500
+Received: by qyk14 with SMTP id 14so1509890qyk.3
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 00:44:06 -0800 (PST)
+Message-ID: <49422453.8080000@gmail.com>
+Date: Fri, 12 Dec 2008 03:44:03 -0500
+From: Robert William Fuller <hydrologiccycle@gmail.com>
+MIME-Version: 1.0
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+References: <A24693684029E5489D1D202277BE894415E6E1A4@dlee02.ent.ti.com>
+	<208cbae30812112203o6be4974epb87b3810e2de3581@mail.gmail.com>
+In-Reply-To: <208cbae30812112203o6be4974epb87b3810e2de3581@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Magnus Damm <damm@igel.co.jp>, video4linux-list@redhat.com,
-	Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org
-Subject: Re: A patch got applied to v4l bypassing v4l lists
+Subject: Re: [REVIEW PATCH 13/14] OMAP: CAM: Add Lens Driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,27 +30,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 19 Dec 2008 00:30:05 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+Alexey Klimov wrote:
 
-> > A side note: maybe the design of pxa_camera could be improved to avoid needing
-> > to be touched as architecture changes. This is the only v4l driver that includes
-> > asm/arch header files.
-> 
-> The patch in question was for sh_mobile_ceu_camera.c - not for pxa, and 
-> even though that one doesn't include any asm headers, as you see, it is 
-> also tied pretty closely with respective platform code.
+<snip>
 
-> As for including asm headers in pxa_camera.c - it wouldn't be easy to get 
-> rid of them, one of the main obstacles is the use of the pxa-specific 
-> dma-channel handling API.
+ > I didn't ever see two "=" in one line in code. Is it okay ?
 
-Ok. I dunno the specific details of the sh and pxa bindings, but it would be
-better to have it more independent from architecture specific implementation
-details.
+If you do not understand the C programming language, why are you in a 
+position to review code?
 
-Cheers,
-Mauro
+The "=" operator associates from right to left.  Hence, in the case of 
+"a = b = c", c is first assigned to b, then b is assigned to a.
+
+You should understand the concepts of operator precedence and operator 
+associativity before you are in a position to review C code.  This is 
+elementary.
 
 --
 video4linux-list mailing list
