@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJCp3Kg032482
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 07:51:03 -0500
-Received: from www20.your-server.de (www20.your-server.de [213.133.104.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJCon27011444
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 07:50:49 -0500
-Received: from [82.83.49.146] (helo=[192.168.242.4])
-	by www20.your-server.de with esmtpa (Exim 4.69)
-	(envelope-from <xl@xlsigned.net>) id 1LDeob-0000Es-7V
-	for video4linux-list@redhat.com; Fri, 19 Dec 2008 13:50:49 +0100
-Message-ID: <494B98A4.8000801@xlsigned.net>
-Date: Fri, 19 Dec 2008 13:50:44 +0100
-From: "Dyks, Axel (XL)" <xl@xlsigned.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBCFQSq2022568
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 10:26:28 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBCFQDos023011
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 10:26:13 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so716979fga.7
+	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 07:26:12 -0800 (PST)
+Message-ID: <412bdbff0812120726n34d11265xe13f1faae2395ec3@mail.gmail.com>
+Date: Fri, 12 Dec 2008 10:26:12 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: brucetheturboguy@yahoo.com
+In-Reply-To: <724114.61792.qm@web51406.mail.re2.yahoo.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: cx88: Tuner not detected when driver build into kernel (broken in
- 2.6.26/27, fixed in 2.6.28-rc)
+Content-Disposition: inline
+References: <724114.61792.qm@web51406.mail.re2.yahoo.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: HVR950Q no /dev/video0
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,58 +30,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, Dec 12, 2008 at 3:21 AM, Bruce Ascroft
+<brucetheturboguy@yahoo.com> wrote:
+> Hi all,
+>
+> I don't know if this is an appropriate list to post this question to, but, I'm kinda frustrated and figger what the hell.
+>
+> I've got the Hauppauge HVR-950Q and I'm currently running intrepid ibex on a number of machines (desktop and laptop).  The card is recognized but there is no /dev/video0 created.  I've confirmed that the device works correctly in M$.  I've tried the bleeding edge V4l, and  the firmware is correct.
+>
+> I've read til my eyes bled, but no luck, and yet I see on this list that
+> people have found that the device works "out of the box". sigh.  I would
+> certainly appreciate any input or advice.
+>
+> Let me know if I should supply any additional info to help diagnose.
+>
+> Thanks,
+> Bruce.
+>
+> relevant dmesg output:
+>
+> [84420.692041] usb 3-3: new high speed USB device using ehci_hcd and address 3
+> [84420.846764] usb 3-3: configuration #1 chosen from 1 choice
+> [84421.204817] au0828: i2c bus registered
+> [84421.302531] tveeprom 0-0050: Hauppauge model 72001, rev B3F0, serial#
+> 4756341
+> [84421.302537] tveeprom 0-0050: MAC address is 00-0D-FE-48-93-75
+> [84421.302539] tveeprom 0-0050: tuner model is Xceive XC5000 (idx 150, type 4)
+> [84421.302542] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom
+> 0x88)
+> [84421.302546] tveeprom 0-0050: audio processor is AU8522 (idx 44)
+> [84421.302548] tveeprom 0-0050: decoder processor is AU8522 (idx 42)
+> [84421.302551] tveeprom 0-0050: has no radio, has IR receiver, has no IR
+> transmitter
+> [84421.302553] hauppauge_eeprom: hauppauge eeprom: model=72001
+> [84421.307962] xc5000 0-0061: creating new instance
+> [84421.310152] xc5000: Successfully identified at address 0x61
+> [84421.310156] xc5000: Firmware has not been loaded previously
+> [84421.310159] DVB: registering new adapter (au0828)
+> [84421.310162] DVB: registering adapter 0 frontend 0 (Auvitek AU8522 QAM/8VSB
+> Frontend)...
+> [84421.310479] Registered device AU0828 [Hauppauge HVR950Q]
+>
+> b@crankshaft:/dev$ lsusb
+> Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 001 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 007 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 003 Device 003: ID 2040:7200 Hauppauge
+> Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>
+> b@crankshaft:/dev$ ls -l /dev/dvb/adapter0/
+> total 0
+> crw-rw---- 1 root video 212, 1 2008-12-11 22:42 demux0
+> crw-rw---- 1 root video 212, 2 2008-12-11 22:42 dvr0
+> crw-rw---- 1 root video 212, 0 2008-12-11 22:42 frontend0
+> crw-rw---- 1 root video 212, 3 2008-12-11 22:42 net0
 
-I'm currently working on a bug report from a gentoo user who spotted
-a 2.6.26 regression that seems to be fixed meanwhile (2.6.28-rc).
+Hello Bruce,
 
-The problem is that the (analog only) tuner of his WinTV card isn't
-detected (even not when tuner type is passed as a kernel parameter)
-when the cx88 driver is build into the kernel. It works, when cx88
-is build as a module.
+The analog support for the HVR-950Q is not yet implemented.
 
-This is a dmesg excerpt from a 2.6.26 kernel with cx88 build in.
-----------------------------------------------------------------
-  cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-  ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
-  ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [APC1] -> GSI 16 (level, low) -> IRQ 16
-  cx88[0]: subsystem: 0070:3401, board: Hauppauge WinTV 34xxx models [card=1,autodetected]
-  cx88[0]: TV tuner type -1, Radio tuner type -1
-  tveeprom 0-0050: Hauppauge model 34504, rev E148, serial# 7041745
-  tveeprom 0-0050: tuner model is LG TP18PSB11D (idx 48, type 29)
-  tveeprom 0-0050: TV standards PAL(B/G) (eeprom 0x04)
-  tveeprom 0-0050: audio processor is CX881 (idx 31)
-  tveeprom 0-0050: has radio
-  cx88[0]: warning: unknown hauppauge model #34504
-  cx88[0]: hauppauge eeprom: model=34504
-  input: cx88 IR (Hauppauge WinTV 34xxx  as /class/input/input2
-  cx88[0]/0: found at 0000:01:06.0, rev: 3, irq: 16, latency: 32, mmio: 0xf3000000
-  cx88[0]/0: registered device video0 [v4l2]
-  cx88[0]/0: registered device vbi0
-  cx88[0]/0: registered device radio0
-  cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-  tuner' 0-0061: chip found @ 0xc2 (cx88[0])
-  ...
-  tuner' 0-0061: tuner type not set
-----------------------------------------------------------------
+Devin
 
-We've spotted the commit that introduced the regression and were able
-to verify that reverting the commit fixes it on 2.6.26.
-
- cx88: fix tuner setup
- http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=4bf1226a7018bf79d05e0ce59244d702819529d1
-
-Now I would like to backport the patch(es) that fixed it in 2.6.28-rc
-to 2.6.27, but it's quite hard to figure it out, especially because
-many of the patches depend on each other.
-
-So any hints on which patch(es) might have fixed it are welcome.
-
-Thanks,
-
-Axel
-
-P. S.: Link to gentoo bug report: http://bugs.gentoo.org/show_bug.cgi?id=250609
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
