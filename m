@@ -1,19 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.225])
+Received: from rouge.crans.org ([138.231.136.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <balrogg@gmail.com>) id 1LHWek-0001lO-KI
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 05:56:41 +0100
-Received: by rv-out-0506.google.com with SMTP id b25so5038443rvf.41
-	for <linux-dvb@linuxtv.org>; Mon, 29 Dec 2008 20:56:34 -0800 (PST)
-Message-ID: <fb249edb0812292056u32019ddbt4dc29de03a938368@mail.gmail.com>
-Date: Tue, 30 Dec 2008 05:56:33 +0100
-From: "andrzej zaborowski" <balrogg@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <fb249edb0812292050s2e3e46a0u8588d79cf3cf858e@mail.gmail.com>
+	(envelope-from <braice@braice.net>) id 1LBcFT-00017o-2r
+	for linux-dvb@linuxtv.org; Sat, 13 Dec 2008 22:42:08 +0100
+Received: from localhost (localhost.crans.org [127.0.0.1])
+	by rouge.crans.org (Postfix) with ESMTP id C6A54807D
+	for <linux-dvb@linuxtv.org>; Sat, 13 Dec 2008 17:49:50 +0100 (CET)
+Received: from rouge.crans.org ([10.231.136.3])
+	by localhost (rouge.crans.org [10.231.136.3]) (amavisd-new, port 10024)
+	with LMTP id 2udGgoVJDu1I for <linux-dvb@linuxtv.org>;
+	Sat, 13 Dec 2008 17:49:50 +0100 (CET)
+Received: from [192.168.1.10] (205.pool85-50-79.dynamic.orange.es
+	[85.50.79.205])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by rouge.crans.org (Postfix) with ESMTP id 7C2868073
+	for <linux-dvb@linuxtv.org>; Sat, 13 Dec 2008 17:49:50 +0100 (CET)
+Message-ID: <4943E7AD.3020608@braice.net>
+Date: Sat, 13 Dec 2008 17:49:49 +0100
+From: Brice DUBOST <braice@braice.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <fb249edb0812292050s2e3e46a0u8588d79cf3cf858e@mail.gmail.com>
-Subject: [linux-dvb] V4L2 Bug and/or Bad Docs for VIDIOC_REQBUFS ioctl()
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Problem with libdvben50221
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,42 +35,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-[Forwarding from a coder who wants to be anonymous]
+Hello
 
-The documentation at:
+I'm currently playing around with the libdvben50221
+I started from the code of gnutv and zap_ca
+It works very well but I have one problem.
 
- http://v4l2spec.bytesex.org/spec-single/v4l2.html#VIDIOC-REQBUFS
+When I close the cam my program is freezed when I do :
 
-says that the VIDIOC_REQBUFS ioctl(), used to initiate memory mapping
-or user pointer i/o on V4L2 devices, returns a 0 upon success, or a -1
-on error, and sets errno to either EBUSY or EINVAL. The code, however,
-does not follow this logic.
+cam_params->stdcam->destroy(cam_params->stdcam, 1);
 
-In /usr/src/linux/drivers/media/video/videobuf-core.c, in the function
+cam_params is a structure wich contains my cam parameters
 
- int videobuf_reqbufs(struct videobuf_queue *q, \
-                      struct v4l2_requestbuffers *req);
+I looked a bit more in the code and I discover that the freezing point is :
+ pthread_mutex_lock(&tl->slots[slot_id].slot_lock);
 
-If an error occours, "return -EINVAL" is called. If an error does not
-occour, execution reaches the following statement:
+  I give you some manual backtrace :
+  en50221_tl_destroy_slot(llci->tl, llci->tl_slot_id);
+  llci_cam_removed(llci);
+  static void en50221_stdcam_llci_destroy(struct en50221_stdcam *stdcam,
+int closefd)
 
- retval = __videobuf_mmap_setup(q, count, size, req->memory);
+Gnutv does not experience this freezing.
 
-followed by:
+Do you have an idea of what can it be ?
 
- req->count = retval;
+Regards,
 
-and:
 
- return retval;
 
-So, the value being returned, upon success, is the value returned from
-the call to __videobuf_mmap_setup(). Looking inside the code for this
-function, the buffers are setup inside a for() loop, and the last value
-of "i" used as a counter for that loop is returned. In other words, the
-buffers allocated count is returned.
+-- 
+Brice
 
-So, is the documentation wrong ? or is the code wrong ?
+A: Yes.
+>Q: Are you sure?
+>>A: Because it reverses the logical flow of conversation.
+>>>Q: Why is top posting annoying in email?
 
 _______________________________________________
 linux-dvb mailing list
