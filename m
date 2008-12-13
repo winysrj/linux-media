@@ -1,22 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBI9Gq4f007013
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 04:16:52 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBI9GbZQ031806
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 04:16:38 -0500
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>) id 1LDEzr-0001Hg-Cl
-	for video4linux-list@redhat.com; Thu, 18 Dec 2008 10:16:43 +0100
-Date: Thu, 18 Dec 2008 10:16:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0812180949460.3963@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBDEkT7b012060
+	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 09:46:29 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBDEkGYm004913
+	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 09:46:17 -0500
+Received: by ewy14 with SMTP id 14so2180266ewy.3
+	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 06:46:16 -0800 (PST)
+Message-ID: <de8cad4d0812130646m44beaeeeu88e55bcb89a4a891@mail.gmail.com>
+Date: Sat, 13 Dec 2008 09:46:15 -0500
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <de8cad4d0812100152w4636cf83rd0dc4997d80125ea@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Subject: partial linux kernel repository and backwards compatibility for
- platform-based video devices
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
+	<200812091918.00276.hverkuil@xs4all.nl>
+	<de8cad4d0812091318h348d4417lef4e98dc9593445e@mail.gmail.com>
+	<200812092232.52716.hverkuil@xs4all.nl>
+	<de8cad4d0812100152w4636cf83rd0dc4997d80125ea@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l2-compat-ioctl32 update?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,64 +35,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+On Wed, Dec 10, 2008 at 4:52 AM, Brandon Jenkins <bcjenkins@tvwhere.com> wrote:
+> Hi Hans,
+>
+> I have patched the module, rebooted and ran a script to query
+> dev/video (HVR-1600) for all of the get and list controls in the help
+> output.
+>
+> I am attaching the output of that, the dmesg output, and dmesg output
+> while running captures using SageTV. I will work on a script to
+> execute the set commands. Please let me know if I can be doing this
+> better.
+>
+> Regards,
+>
+> Brandon
 
-I know I'm pretty new to the v4l world and still learning and I am sure 
-the currently established development model has its good reasons (yes, I 
-know some of them) and its important advantages, but I'd like to ask if it 
-were not possible to adjust / extend it in some way to make it more 
-convenient for developers and testers working with platform-based video 
-devices.
+Hi Hans,
 
-The issue is, AFAIU, until recently v4l dealt only with PCI and USB 
-devices, with which the APIs are most of the time _relatively_ well 
-defined and stable, and v4l development is mostly isolated, i.e., it 
-certainly happened in the past, but most likely not very often, that while 
-working on some v4l code one had to modify USB / PCI code simultaneously. 
-Whereas in most cases the development takes place only under drivers/media 
-and respective include directories and files.
+Is this data useful? I will work on the script to test setting this
+weekend but would like to make sure it is the output you would like to
+see.
 
-This is not the case with platform-based v4l devices, which are currently 
-represented in the kernel by int-device (omap, more?) and soc-camera (pxa, 
-sh, i.mx31, i.mx27 - latter two not yet in the mainline) APIs. These video 
-devices (at least the host part) are closely coupled to the rest of the 
-kernel, e.g., to respective arch/ directories by means of platform data. 
-And development _most_ usually takes place globally, i.e., while 
-developing video code one also adjusts platform code. Same holds for 
-testing - one would most usually test drivers with the kernel together, I 
-do not think there are many (if any) developers / testers out there, that 
-use out-of-tree compilation of v4l drivers with platform-based video 
-devices. Please, correct me if I am wrong. Which means, the value of this 
-possibility and the backwards-compatibility code in v4l mercurial 
-repositories is virtually 0 for this group of developers and testers. OTOH 
-the cost of supporting this model is clearly > 0. I think I will not be 
-mistaken if I say, that most developers in this group verify their work 
-with some snapshot of the -next or at least of Linus' tree, whether they 
-use git or not. So, what they end up doing is
+Regards,
 
-1. develop / test and produce patches in the complete kernel tree
-2. convert them to format suitable for hg
-3. merge them into hg if they do not apply cleanly immediately, e.g., 
-   because of the backwards-compatibility code
-4. do _not_ test results of their merge
-5. submit those results, hoping they still work
-6. those results get stripped down to get rid of compatibility code before 
-   re-exporting them and re-importing them into git
-7. if nothing broke down in the process, they might still work...
-
-Yes, most of the overhead tasks above are scriptable, maybe only apart 
-from (3), but still - is it all worth it?
-
-Could we maybe come up with some adjustment / extension to the current 
-development model to make the process more simple? This would mean either 
-skipping the hg stage completely, or at least removing all 
-backwards-compatibility code from platform-based drivers?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Brandon
 
 --
 video4linux-list mailing list
