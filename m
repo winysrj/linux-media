@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <sinter.mann@gmx.de>) id 1LDmcq-0004TC-Na
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 22:11:13 +0100
-From: sinter <sinter.mann@gmx.de>
-To: "Michael Krufky" <mkrufky@linuxtv.org>,
- linux-dvb@linuxtv.org
-Date: Fri, 19 Dec 2008 22:08:42 +0100
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
-	<37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>
-In-Reply-To: <37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>
+Received: from rv-out-0506.google.com ([209.85.198.232])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <picholicho@gmail.com>) id 1LBuSu-0006rF-M6
+	for linux-dvb@linuxtv.org; Sun, 14 Dec 2008 18:09:13 +0100
+Received: by rv-out-0506.google.com with SMTP id b25so2200708rvf.41
+	for <linux-dvb@linuxtv.org>; Sun, 14 Dec 2008 09:09:07 -0800 (PST)
+Message-ID: <7b1b1f8d0812140909s63e74ab8g838f755f891c073f@mail.gmail.com>
+Date: Sun, 14 Dec 2008 19:09:06 +0200
+From: "Ilia Penev" <picholicho@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812192208.42849.sinter.mann@gmx.de>
-Subject: Re: [linux-dvb] S2API drivers sync
+Subject: [linux-dvb] Gigabyte U8000 remote control who to use it?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,136 +18,91 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0927799980=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Friday 19 December 2008 21:31:08 schrieben Sie:
-> On Fri, Dec 19, 2008 at 3:11 PM, Markus Rechberger
->
-> <mrechberger@gmail.com> wrote:
-> > On Fri, Dec 19, 2008 at 8:58 PM, sinter <sinter.mann@gmx.de> wrote:
-> >> Am Friday 19 December 2008 20:29:52 schrieben Sie:
-> >>> On Fri, Dec 19, 2008 at 7:43 PM, sinter <sinter.mann@gmx.de> wrote:
-> >>> > Am Freitag 19 Dezember 2008 18:01:40 schrieb gimli:
-> >>> >> The DVB-S2 stuff smells all like a big bullshit.
-> >>> >> In the first step a big hurry to get S2API in
-> >>> >> the mainline kernel and now nothing at all from
-> >>> >> the DVB-S2 front. This is a completly big mess
-> >>> >> in my eyes.
-> >>> >>
-> >>> >> cu
-> >>> >>
-> >>> >> Edgar (gimli) Hucek
-> >>> >>
-> >>> >> P.S.: Childish political games which are played on
-> >>> >> the shoulders of the users. Hurray, well done.
-> >>> >
-> >>> > Yes, Edgar, exactly: This is what the name Manu A. stands for since
-> >>> > this guy was recruited as a DVB "maintainer" by Johannes Stezenbach:
-> >>> >
-> >>> > Kiddish political games which are played on the shoulders of the
-> >>> > users. Also those kiddish games are ideal to hide the discovery of
-> >>> > one's own personal mediocrity / incapability in coding issues.
-> >>> >
-> >>> > There are people who ask themselves why Manu A. still owes a
-> >>> > repository at linuxtv.org. I guess this runs under "utilitarianism of
-> >>> > human beings".
-> >>> >
-> >>> > And also: a huge mass of (inactive) nominal members looks nice for a
-> >>> > career at redhat.com, doesn't it?
-> >>>
-> >>> This looks like a respect email.
-> >>
-> >> No, not in any context at all!
-> >> It's you who ignores the sarcasm behind my words!
-> >> Just use your brain, austrian!
-> >>
-> >>> Best would have been if Manu wouldn't
-> >>> have had released
-> >>> any code and would just have forwarded his code to his friends they
-> >>> wouldn't have complained and
-> >>> even probably would have paid some beer and invited him for some
-> >>> parties.
-> >>
-> >> YES! This would have made everything easier: NOT to have persons like
-> >> YOU and Manu A. around here, as nobody needs anti-team working
-> >> big-mouth-nut-shuts here.
-> >>
-> >>> It takes time to get documentation for a certain chip, to get the
-> >>> agreement for it and finally to write
-> >>> a driver for it.
-> >>
-> >> Yesno! It also takes social behaviour to maintain written code, and if
-> >> someone does not respect social behaviour but claims to be chief DVB
-> >> maintainer at the same time then this indian person called A. is counter
-> >> productive / ridiculous!
-> >> And that's all about him.
-> >> We gotta get rid of people like you, Markus, and Manu A. too because you
-> >> two are like an incarnation of the living copounter productive pest,
-> >> arenn't you?
-> >>
-> >>> As user it's certainly easier to complain about all
-> >>> that and think that everything's free.
-> >>> Even google is playing around with the content of the mails I send
-> >>> here and earning money by doing
-> >>> statistics out of that.
-> >>
-> >> Stop ranting, Austrian! Shut up man!!!!
-> >
-> > ah this is Uwe, welcome back.
->
-> Please stop with the flames... this is ridiculous.
->
-> It's true that not everybody gets along well, but it is also true that
-> both of the developers that you've mentioned here are highly
-> intelligent and really know how to do what they do.
->
-> This is open-source development.  There is no reason to tell somebody
-> to STOP working for free.
->
-> These flames are the reason why the active developers that DO get
-> stuff done have stopped following the mailing lists.
->
-> I have my gmail set to forward mails to me that I'll find interesting,
-> based on keywords and filters.  Every once in a while, I see a flame
-> like this and it reminds me why I'd rather write new code than read
-> about people complaining.
->
-> Get over it.  The longer this keeps up, the more of an audience will
-> be lost.  The amount of people that read this list is dwindling every
-> day.
->
-> Next time you want to flame, think twice.  You might think that you're
-> making a statement, but all you're doing is pushing the developers
-> away from the mailing lists.
->
-> (all of the above is directed to the flamers) ...
->
-> side note:
->
-> Markus, you and I should definitely have a beer sometime.  I think
-> we'd really get along in person.  Emails and chat suck -- you will
-> never get a feel for personality that way.  Let me know next time
-> you're in New York City.  I have never been to Europe, but I do hope
-> to visit one day.
->
-> It's snowing here in New York -- I plan to write code all weekend.
-> Y'all should keep your pants on, and maybe you'll realize that there
-> really is nothing to complain about.  Free work == no bitching
-> allowed!
->
-> /rant
->
-> -Mike
+--===============0927799980==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_22929_4290039.1229274546824"
 
-Manu Abraham??????
----------------------------------------------------------> /dev/null !!!!!!!!
+------=_Part_22929_4290039.1229274546824
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+Hello there.
+i decide to find out how to run remote control.
+dmesg says some codes.
+*dib0700*: *Unknown remote controller* key : 18 43
+
+i write them in dib0700_device.c
+/*Gigabyte keys*/
+    { 0x18,0x43, KEY_POWER },
+    { 0x1e, 0x7d, KEY_0 },
+    { 0x14, 0x7f, KEY_1 },
+    { 0x19, 0x7c, KEY_2 },
+    { 0x1d, 0x7d, KEY_3 },
+    { 0x1c, 0x72, KEY_4 },
+    { 0x13, 0x4e, KEY_5 },
+    { 0x1b, 0x4c, KEY_6 },
+    { 0x14, 0x70, KEY_7 },
+    { 0x1e, 0x72, KEY_8 },
+    { 0x11, 0x4e, KEY_9 },
+    { 0x14, 0x40, KEY_VOLUMEUP },
+    { 0x1c, 0x42, KEY_VOLUMEDOWN },
+    { 0x10, 0x41, KEY_CHANNELUP },
+    { 0x1b, 0x7c, KEY_CHANNELDOWN },
+    { 0x13, 0x7e, KEY_MUTE },
+//    { 0x12, 0x7e, KEY_FM },
+//    { 0x1d, 0x42, KEY_VIDEOS },
+    { 0x15, 0x40, KEY_TV },
+//    { 0x1a, 0x7c, KEY_SNAPSHOT },
+    { 0x11, 0x41, KEY_LAST },
+    { 0x18, 0x7c, KEY_EPG },
+    { 0x1a, 0x43, KEY_BACK },
+    { 0x19, 0x4c, KEY_OK },
+    { 0x16, 0x70, KEY_UP },
+    { 0x12, 0x41, KEY_DOWN },
+    { 0x16, 0x7F, KEY_LEFT },
+    { 0x19, 0x43, KEY_RIGHT },
+
+how to define commented keys? in ir-keymaps.c? or somewhere else.
+i have problem when i put 1.20 firmware nothing happens with the remote
+control. with 1.10 when i press 5 apears 5 in console or where it is the
+cursor.
+remote appears as /dev/input/eventXX
+tell me some suggestions.
+many thanks :)
+
+Ilia
+
+------=_Part_22929_4290039.1229274546824
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hello there. <br>i decide to find out how to run remote control. <br>dmesg says some codes.<br><em>dib0700</em>: <em>Unknown remote controller</em> key : 18 43 <br><br>i write them in dib0700_device.c<br>/*Gigabyte keys*/<br>
+&nbsp;&nbsp;&nbsp; { 0x18,0x43, KEY_POWER },<br>&nbsp;&nbsp;&nbsp; { 0x1e, 0x7d, KEY_0 },<br>&nbsp;&nbsp;&nbsp; { 0x14, 0x7f, KEY_1 },<br>&nbsp;&nbsp;&nbsp; { 0x19, 0x7c, KEY_2 },<br>&nbsp;&nbsp;&nbsp; { 0x1d, 0x7d, KEY_3 },<br>&nbsp;&nbsp;&nbsp; { 0x1c, 0x72, KEY_4 },<br>&nbsp;&nbsp;&nbsp; { 0x13, 0x4e, KEY_5 },<br>&nbsp;&nbsp;&nbsp; { 0x1b, 0x4c, KEY_6 },<br>
+&nbsp;&nbsp;&nbsp; { 0x14, 0x70, KEY_7 },<br>&nbsp;&nbsp;&nbsp; { 0x1e, 0x72, KEY_8 },<br>&nbsp;&nbsp;&nbsp; { 0x11, 0x4e, KEY_9 },<br>&nbsp;&nbsp;&nbsp; { 0x14, 0x40, KEY_VOLUMEUP },<br>&nbsp;&nbsp;&nbsp; { 0x1c, 0x42, KEY_VOLUMEDOWN },<br>&nbsp;&nbsp;&nbsp; { 0x10, 0x41, KEY_CHANNELUP },<br>&nbsp;&nbsp;&nbsp; { 0x1b, 0x7c, KEY_CHANNELDOWN },<br>
+&nbsp;&nbsp;&nbsp; { 0x13, 0x7e, KEY_MUTE },<br>//&nbsp;&nbsp;&nbsp; { 0x12, 0x7e, KEY_FM },<br>//&nbsp;&nbsp;&nbsp; { 0x1d, 0x42, KEY_VIDEOS },<br>&nbsp;&nbsp;&nbsp; { 0x15, 0x40, KEY_TV },<br>//&nbsp;&nbsp;&nbsp; { 0x1a, 0x7c, KEY_SNAPSHOT },<br>&nbsp;&nbsp;&nbsp; { 0x11, 0x41, KEY_LAST },<br>&nbsp;&nbsp;&nbsp; { 0x18, 0x7c, KEY_EPG },<br>
+&nbsp;&nbsp;&nbsp; { 0x1a, 0x43, KEY_BACK },<br>&nbsp;&nbsp;&nbsp; { 0x19, 0x4c, KEY_OK },<br>&nbsp;&nbsp;&nbsp; { 0x16, 0x70, KEY_UP },<br>&nbsp;&nbsp;&nbsp; { 0x12, 0x41, KEY_DOWN },<br>&nbsp;&nbsp;&nbsp; { 0x16, 0x7F, KEY_LEFT },<br>&nbsp;&nbsp;&nbsp; { 0x19, 0x43, KEY_RIGHT },<br><br>how to define commented keys? in ir-keymaps.c? or somewhere else. <br>
+i have problem when i put 1.20 firmware nothing happens with the remote control. with 1.10 when i press 5 apears 5 in console or where it is the cursor. <br>remote appears as /dev/input/eventXX<br>tell me some suggestions. <br>
+many thanks :)<br><br>Ilia<br><br><br><br>
+
+------=_Part_22929_4290039.1229274546824--
+
+
+--===============0927799980==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0927799980==--
