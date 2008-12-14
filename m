@@ -1,32 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVKwpMA012105
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:58:51 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVKwZcj022748
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:58:36 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so5805196wfc.6
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 12:58:34 -0800 (PST)
-Message-ID: <c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
-Date: Wed, 31 Dec 2008 13:58:34 -0700
-From: "Paul Thomas" <pthomas8589@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBE1LitG017866
+	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 20:21:44 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBE1LU8s001532
+	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 20:21:30 -0500
+Date: Sat, 13 Dec 2008 23:21:05 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20081213232105.14e18a03@caramujo.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0812132252090.10954@axis700.grange>
+References: <20081210074435.5727.93374.sendpatchset@rx1.opensource.se>
+	<20081210074457.5727.59206.sendpatchset@rx1.opensource.se>
+	<Pine.LNX.4.64.0812132252090.10954@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<412bdbff0812311133y7c3c4f28u9d9ed99cbc18233b@mail.gmail.com>
-	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
-	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
-	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
-	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
-	<c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
-	<412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
-	<c785bba30812311209k16ef6f04jc3d8867a64d4cb93@mail.gmail.com>
-	<c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
-Subject: Re: em28xx issues
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 03/03] sh_mobile_ceu: add NV16 and NV61 support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,97 +29,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-When I start camstream with the new driver this is what I get. This is
-a slightly different setup that I first described. It a x86_64 with
-Fedora 9.
+On Sat, 13 Dec 2008 22:56:37 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-CCamWindow::CCamWindow()
-CWebCamViewer::CWebCamViewer(0xfbf8c0, 0x0)
-CVideoDevice::Init()
-Using mmap(), VMBuf.size = 6651904
-CVideoDevice::Init(): mmap() failed (22). Falling back to non-mmap()ed mode.
-Allocating own buffer.
-Trying to find video options for PointNix Intra-Oral Camera:/dev/video0
-Creating new video options
-<!DOCTYPE Configuration>
-<config>
- <defaults/>
- <videodevices>
-  <videoconfiguration name="PointNix Intra-Oral Camera" >
-   <basename>snapshot</basename>
-   <textfont>system</textfont>
-   <textcolor>#ffff00</textcolor>
-   <timeinimage>false</timeinimage>
-   <fileformat>PNG</fileformat>
-   <savetodisk>true</savetodisk>
-   <ftptoserver>false</ftptoserver>
-   <saveoption>1</saveoption>
-   <maxsequence>1000</maxsequence>
-   <sequence>0</sequence>
-   <ftpserver></ftpserver>
-   <ftppath></ftppath>
-   <ftpuser></ftpuser>
-   <ftppass></ftppass>
-   <ftppassive>false</ftppassive>
-   <ftpunique>true</ftpunique>
-  </videoconfiguration>
- </videodevices>
-</config>
+> On Wed, 10 Dec 2008, Magnus Damm wrote:
+> 
+> > From: Magnus Damm <damm@igel.co.jp>
+> > 
+> > This patch adds NV16/NV61 support to the sh_mobile_ceu driver.
+> 
+> I guess I cannot apply / push this patch befor your NV16 / NV61 is 
+> applied, or shall I pull that patch too, Mauro?
+> 
+Guennadi,
 
-CSnapshotSettingsDlg::CSnapshotSettingsDlg(...)
-QFont::setRawName(): Invalid XLFD: "system"
-CVideoSettingsDlg::SizeChanged(720x576)
-CVideoSettingsDlg::FramerateChanged(10)
-CCamPanel::SetSize(720x576)
-CCamPanel::SetImageSize(720x576)
-CCamPanel::SetVisibleSize(720x576)
-CCamPanel::SetSize(720x576)
-CCamPanel::SetImageSize(720x576)
-CCamPanel::SetVisibleSize(720x576)
-RecalcTotalViewSize: resize viewport(720x576)
-EnableRGB: +
-CVideoDevice::SetPalette picked palette 8 [yuyv]
-CVideoDevice::CreateImagesRGB()
- allocating space for RGB
-CVideoDevice::StartCapture() go!
-Segmentation fault
+You can apply it on your tree. I'll then pull from you on your next pull request.
 
-On Wed, Dec 31, 2008 at 1:20 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
-> OK, after a restart the driver loads properly. It's still not working,
-> but I have to look at a couple of things.
->
-> thanks,
-> Paul
->
-> On Wed, Dec 31, 2008 at 1:09 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->> The v4l-dvb directory is clean aside from the KERNEL_VERSION(2, 6, 27) change.
->>
->> thanks,
->> Paul
->>
->> On Wed, Dec 31, 2008 at 1:06 PM, Devin Heitmueller
->> <devin.heitmueller@gmail.com> wrote:
->>> On Wed, Dec 31, 2008 at 3:03 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->>>> OK, I can compile now, but when I go to modprobe em28xx I get this error.
->>>>
->>>> em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
->>>>
->>>> thanks,
->>>> Paul
->>>
->>> Do you have some mix of files from the em28xx-new and the v4l-dvb
->>> codebase?  Or did you jam a reference in the include path to
->>> em28xx-new's include directory?
->>>
->>> Devin
->>>
->>> --
->>> Devin J. Heitmueller
->>> http://www.devinheitmueller.com
->>> AIM: devinheitmueller
->>>
->>
->
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
