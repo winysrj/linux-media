@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.185])
+Received: from rn-out-0910.google.com ([64.233.170.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <davideshay@gmail.com>) id 1LDCLK-0004rT-VF
-	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 07:27:10 +0100
-Received: by rn-out-0910.google.com with SMTP id j43so216008rne.2
-	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 22:26:38 -0800 (PST)
-Message-ID: <9b7b1af0812172226w7e677fcat5808a97fd5554e41@mail.gmail.com>
-Date: Thu, 18 Dec 2008 00:26:38 -0600
-From: "David Shay" <davideshay@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <christophpfister@gmail.com>) id 1LBqUs-0003ze-0y
+	for linux-dvb@linuxtv.org; Sun, 14 Dec 2008 13:55:00 +0100
+Received: by rn-out-0910.google.com with SMTP id j43so1828821rne.2
+	for <linux-dvb@linuxtv.org>; Sun, 14 Dec 2008 04:54:53 -0800 (PST)
+Message-ID: <19a3b7a80812140454r295a83edtd93ba28cc7e8a47f@mail.gmail.com>
+Date: Sun, 14 Dec 2008 13:54:53 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+In-Reply-To: <003a01c954d2$2305ae50$217da8c0@tdrpc>
 MIME-Version: 1.0
-Subject: [linux-dvb] DVICO FusionHDTV5 USB unable to find symbol
-	lgdt330x_attach
+Content-Disposition: inline
+References: <938eabef0811270552t16fb1f7drc95988373f8c61fc@mail.gmail.com>
+	<938eabef0811270559pb48bdf6lc2d22818c71a559c@mail.gmail.com>
+	<19a3b7a80812020750o17c2b00ibd9d5663353564d8@mail.gmail.com>
+	<alpine.DEB.2.00.0812022158510.9198@ybpnyubfg.ybpnyqbznva>
+	<alpine.DEB.2.00.0812022241370.9198@ybpnyubfg.ybpnyqbznva>
+	<003a01c954d2$2305ae50$217da8c0@tdrpc>
+Cc: Martin Jaburek <longmatys@gmail.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] New scan file for cz-Praha
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,110 +27,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1383668995=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1383668995==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_38534_7072146.1229581598102"
-
-------=_Part_38534_7072146.1229581598102
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-I'm having a problem with the device listed above.
-Relevant facts:
-
-DVICO FusionHDTV5 USB device (USB device ID 0fe9:d501)
-Gentoo 2.6.26, running kernel gentoo-sources 2.6.26-r4 (dvb drivers
-initially from kernel only)
-
-The following is the dmesg log at bootup:
-
-dvb-usb: found a 'DViCO FusionHDTV5 USB Gold' in warm state.
-i2c-adapter i2c-1: adapter [DViCO FusionHDTV5 USB Gold] registered
-dvb-usb: will pass the complete MPEG2 transport stream to the software
-demuxer.
-DVB: registering new adapter (DViCO FusionHDTV5 USB Gold)
-DVB: Unable to find symbol lgdt330x_attach()
-dvb-usb: no frontend was attached by 'DViCO FusionHDTV5 USB Gold'
-input: IR-receiver inside an USB DVB receiver as /class/input/input5
-dvb-usb: schedule remote query interval to 100 msecs.
-dvb-usb: DViCO FusionHDTV5 USB Gold successfully initialized and connected.
-usbcore: registered new interface driver dvb_usb_cxusb
-
-Main error here is the unable to find symbol lgdt330x_attach() line. Not
-sure what is happening here. Was on #linuxtv last night and on a hunch, we
-disconnected the device, manually modprobe'd lgdt330x and reconnected, and
-all was fine.  Recommendation was to install from the latest drivers from
-mercurial, which I have done.  I still get the same symptoms as indicated
-above.  If I then disconnect and reconnect (even without the modprobe), I
-get the rest of the log, as indicated below, which makes everything
-successful:
-
-
-usb 1-4: USB disconnect, address 3
-i2c-adapter i2c-1: adapter [DViCO FusionHDTV5 USB Gold] unregistered
-dvb-usb: DViCO FusionHDTV5 USB Gold successfully deinitialized and
-disconnected
-
-usb 1-4: new high speed USB device using ehci_hcd and address 4
-usb 1-4: configuration #1 chosen from 1 choice
-dvb-usb: found a 'DViCO FusionHDTV5 USB Gold' in cold state, will try to
-load a
-firmware
-firmware: requesting dvb-usb-bluebird-01.fw
-dvb-usb: downloading firmware from file 'dvb-usb-bluebird-01.fw'
-usb 1-4: USB disconnect, address 4
-dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
-usb 1-4: new high speed USB device using ehci_hcd and address 5
-usb 1-4: configuration #1 chosen from 1 choice
-dvb-usb: found a 'DViCO FusionHDTV5 USB Gold' in warm state.
-i2c-adapter i2c-1: adapter [DViCO FusionHDTV5 USB Gold] registered
-dvb-usb: will pass the complete MPEG2 transport stream to the software
-demuxer.
-DVB: registering new adapter (DViCO FusionHDTV5 USB Gold)
-DVB: Unable to find symbol lgdt330x_attach()
-dvb-usb: no frontend was attached by 'DViCO FusionHDTV5 USB Gold'
-input: IR-receiver inside an USB DVB receiver as /class/input/input6
-dvb-usb: schedule remote query interval to 100 msecs.
-dvb-usb: DViCO FusionHDTV5 USB Gold successfully initialized and connected.
-
-Any ideas here?
-
-------=_Part_38534_7072146.1229581598102
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-I&#39;m having a problem with the device listed above.<div><br></div><div>Relevant facts:</div><div><br></div><div>DVICO FusionHDTV5 USB device (USB device ID 0fe9:d501)</div><div>Gentoo 2.6.26, running kernel gentoo-sources 2.6.26-r4 (dvb drivers initially from kernel only)</div>
-<div><br></div><div>The following is the dmesg log at bootup:</div><div><br></div><div><div><div>dvb-usb: found a &#39;DViCO FusionHDTV5 USB Gold&#39; in warm state.</div><div>i2c-adapter i2c-1: adapter [DViCO FusionHDTV5 USB Gold] registered</div>
-<div>dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.</div><div>DVB: registering new adapter (DViCO FusionHDTV5 USB Gold)</div><div>DVB: Unable to find symbol lgdt330x_attach()</div><div>dvb-usb: no frontend was attached by &#39;DViCO FusionHDTV5 USB Gold&#39;</div>
-<div>input: IR-receiver inside an USB DVB receiver as /class/input/input5</div><div>dvb-usb: schedule remote query interval to 100 msecs.</div><div>dvb-usb: DViCO FusionHDTV5 USB Gold successfully initialized and connected.</div>
-<div>usbcore: registered new interface driver dvb_usb_cxusb</div><div><br></div><div>Main error here is the unable to find symbol lgdt330x_attach() line. Not sure what is happening here. Was on #linuxtv last night and on a hunch, we disconnected the device, manually modprobe&#39;d lgdt330x and reconnected, and all was fine. &nbsp;Recommendation was to install from the latest drivers from mercurial, which I have done. &nbsp;I still get the same symptoms as indicated above. &nbsp;If I then disconnect and reconnect (even without the modprobe), I get the rest of the log, as indicated below, which makes everything successful:</div>
-<div><br></div><div><br></div><div>usb 1-4: USB disconnect, address 3<br></div><div>i2c-adapter i2c-1: adapter [DViCO FusionHDTV5 USB Gold] unregistered</div><div>dvb-usb: DViCO FusionHDTV5 USB Gold successfully deinitialized and disconnected</div>
-<div><br></div><div>usb 1-4: new high speed USB device using ehci_hcd and address 4</div><div>usb 1-4: configuration #1 chosen from 1 choice</div><div>dvb-usb: found a &#39;DViCO FusionHDTV5 USB Gold&#39; in cold state, will try to load a</div>
-<div>firmware</div><div>firmware: requesting dvb-usb-bluebird-01.fw</div><div>dvb-usb: downloading firmware from file &#39;dvb-usb-bluebird-01.fw&#39;</div><div>usb 1-4: USB disconnect, address 4</div><div>dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.</div>
-<div>usb 1-4: new high speed USB device using ehci_hcd and address 5</div><div>usb 1-4: configuration #1 chosen from 1 choice</div><div>dvb-usb: found a &#39;DViCO FusionHDTV5 USB Gold&#39; in warm state.</div><div>i2c-adapter i2c-1: adapter [DViCO FusionHDTV5 USB Gold] registered</div>
-<div>dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.</div><div>DVB: registering new adapter (DViCO FusionHDTV5 USB Gold)</div><div>DVB: Unable to find symbol lgdt330x_attach()</div><div>dvb-usb: no frontend was attached by &#39;DViCO FusionHDTV5 USB Gold&#39;</div>
-<div>input: IR-receiver inside an USB DVB receiver as /class/input/input6</div><div>dvb-usb: schedule remote query interval to 100 msecs.</div><div>dvb-usb: DViCO FusionHDTV5 USB Gold successfully initialized and connected.</div>
-<div><br></div><div>Any ideas here?</div></div></div>
-
-------=_Part_38534_7072146.1229581598102--
-
-
---===============1383668995==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1383668995==--
+SGkgZ3V5cywKCkknbSB1cGRhdGluZyB0aGF0IGZpbGUgYWNjb3JkaW5nIHRvIHRoZSBkaWdpem9u
+ZS5jeiBpbmZvcm1hdGlvbiB5b3UKbWVudGlvbiBoZXJlOyBqdXN0IHRoYXQgSSBhbHJlYWR5IHVz
+ZSB0aGUgMTUuMTIuMDggc2V0dGluZ3MgZm9yIG11eDMKKEkgZG9uJ3Qgd2FudCB0byB1cGRhdGUg
+dGhlIGZpbGUgdG9tb3Jyb3cgYWdhaW4gOykKCkhvcGVmdWxseSBpdCB3b3JrcyBhcyBleHBlY3Rl
+ZCBhbmQgdGhhbmtzLAoKQ2hyaXN0b3BoCgoKMjAwOC8xMi8zIFRvbWFzIERyYWpzYWp0bCA8bGlu
+dXgtZHZiQGRyYWpzYWp0bC5jej46Cj4gSGVyZSBpcyB0aGUgYWN0dWFsIG1hcDogaHR0cDovL3d3
+dy5kaWdpem9uZS5jei90ZXh0eS9tYXB5LXBva3J5dGkvCj4KPiBTbyBmb3IgUHJhZ3VlOgo+Cj4g
+bXV4IDEgQ2Vza2EgdGVsZXZpemUKPiBodHRwOi8vd3d3LmRpZ2l6b25lLmN6L3RleHR5L211bHRp
+cGxleC0xLW1hcHktcG9rcnl0aS1jZXNrYS10ZWxldml6ZS8KPiBjaGFubmVsIDUzLCA4IE1Ieiwg
+OGssIGd1YXJkIDEvNCwgZmVjIDIvMywgcWFtIDY0LCBoaWVyIG5vbmUKPgo+IG11eCAyIENlc2tl
+IHJhZGlva29tdW5pa2FjZSBodHRwOi8vd3d3LmRpZ2l6b25lLmN6L3RleHR5L3Bva3J5dGktc2l0
+LWEvCj4gY2hhbm5lbCA0MSwgOCBNSHosIDhrLCBndWFyZCAxLzQsIGZlYyAyLzMsIHFhbSA2NCwg
+aGllciBub25lCj4KPiBtdXggMyBDemVjaCBEaWdpdGFsIEdyb3VwIGh0dHA6Ly93d3cuZGlnaXpv
+bmUuY3ovdGV4dHkvcG9rcnl0aS1zaXQtYi8KPiBjaGFubmVsIDQ2LCA/Pz8gKHByb2JhYmx5IHRo
+ZSBzYW1lLCBpdCdzIHRoZSBzYW1lIGluIEJybm8sIHdoZXJlIEkgbGl2ZQo+IG5lYXJieSkKPgo+
+IG11eCA0IFRlbGVmb25pY2EgTzIgaHR0cDovL3d3dy5kaWdpem9uZS5jei90ZXh0eS9wb2tyeXRp
+LXNpdC1jLwo+IGNoYW5uZWwgNjQsIDggTUh6LCA4aywgZ3VhcmQgMS84LCBmZWMgMi8zLCBxYW0g
+NjQsIGhpZXIgbm9uZQo+IChvbmx5IGhlcmUgdGhlIGd1YXJkIGludGVydmFsIGlzIGRpZmZlcmVu
+dCBhcyBpbiBCcm5vKQo+Cj4gQWNjb3JkaW5nIHRvIHRoZQo+IGh0dHA6Ly93d3cuZGlnaXpvbmUu
+Y3ovdGV4dHkvbXVsdGlwbGV4LTEtbWFweS1wb2tyeXRpLWNlc2thLXRlbGV2aXplLyAgdGhlCj4g
+Y2hhbm5lbCA1NzAgTWh6IChjaGFubmVsIDMzKSBpcyBqdXN0IGEgd2VhayBjb3B5IG9mIG11eCAx
+IGZyb20gVXN0aSBuLkwuCj4KPiBJIGhvcGUgSSB3aWxsIGNhbGN1bGF0ZSBjb3JyZWN0bHksIHBs
+ZWFzZSBjaGVjay4KPiBtdXggMTogY2hhbm5lbCA1MyAtPiA3MzAgTUh6Cj4gbXV4IDI6IGNoYW5u
+ZWwgNDEgLT4gNjM0IE1Iego+IG11eCAzOiBjaGFubmVsIDQ2IC0+IDY3NCBNSHoKPiBtdXggNDog
+Y2hhbm5lbCA2NCAtPiA4MTggTUh6Cj4KPiBZb3UgY2FuIHVzZSB0aGUgY3otQnJubyBmaWxlIEkg
+cG9zdGVkIGhlcmUgYSBtb250aCBhZ28gd2hpY2ggc2hvdWxkIGJlIG5vdwo+IGNvbW1pdGVkIGlu
+IHRoZSB0cmVlLiBKdXN0IHJlcGxhY2UgdGhlIGZyZXF1ZW5jaWVzIGluIHRoYXQgZmlsZS4KPgo+
+IFJlZ2FyZHMsCj4gVG9tYXMKPgo+Cj4gLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLQo+IEZy
+b206ICJCT1VXU01BIEJhcnJ5IiA8ZnJlZWJlZXIuYm91d3NtYUBnbWFpbC5jb20+Cj4gVG86ICJN
+YXJ0aW4gSmFidXJlayIgPGxvbmdtYXR5c0BnbWFpbC5jb20+Cj4gQ2M6IDxsaW51eC1kdmJAbGlu
+dXh0di5vcmc+Cj4gU2VudDogVHVlc2RheSwgRGVjZW1iZXIgMDIsIDIwMDggMTE6MTQgUE0KPiBT
+dWJqZWN0OiBSZTogW2xpbnV4LWR2Yl0gTmV3IHNjYW4gZmlsZSBmb3IgY3otUHJhaGEKPgo+Cj4g
+T29vaCwgcmVwbHlpbmcgdG8gbXlzZWxmLiAgV2hhdCBhbiBlZ29pc3QuICBVTkZJVCBUTyBEUklW
+RQo+IE9OIFRIRUUgSU5URVJORVQuICBTaGFtZWZ1bC4gIE1heSBhcyB3ZWxsIHdyaXRlIGEgbm92
+ZWwKPiBvZiBub3RoaW5nIGJ1dCB0YWxraW5nIHRvIGhpbXNlbGYuICBHRVQgQSBST09NIQo+Cj4g
+T24gVHVlLCAyIERlYyAyMDA4LCBCT1VXU01BIEJhcnJ5IHNsb2JiZXJlZCBhbmQgZHJpYmJsZWQ6
+Cj4KPj4gT3IsIGEgcXVpY2sgc2VhcmNoICh3aXRoIG5vIGJhY2tncm91bmQpIHNob3dzIHRoaXMg
+ZnJlcXVlbmN5Cj4+IGlzIGluIHVzZSBhdCBVc3RpIG4uTGFiZW0gKG5vcnRoLWlzaDsgd291bGQg
+aGF2ZSB0byBzZWFyY2ggbXkKPj4gbWFwcyB0byBxdW90ZSBhY3R1YWwgYW50ZW5uYSBkaXN0YW5j
+ZSBhbmQgdmlldyB0ZXJyYWluIGFuZAo+Cj4gUmVseWluZyBvbiBnMDBnbGUgY2FjaGUgd2l0aCBy
+ZXN1bHRzIGZvciBgZHZiLXQgcHJhaGEnLCBpdAo+IHNlZW1zIHRoYXQgYGBkeHJhZGlvLmN6IC0g
+cMWZZWhsZWQgRFZCLVQgdnlzw61sYcSNxa8gdiDEjGVza3UnJwo+IGxpc3RzIGZyZXF1ZW5jaWVz
+IGluIHVzZSBhdCBwcmVzZW50LCBhbmQgYGBEaWdpdMOhbG7DrVRlbGV2aXplLmN6ID4KPiBQb3pl
+bW7DrSBkaWdpdMOhbG7DrSB2eXPDrWzDoW7DrSB2IMSMZXNrw6kgcmVwdWJsaWNlJycgbGlzdHMg
+cGxhbm5lZAo+IGZyZXF1ZW5jaWVzIC0tIHBvc3NpYmx5IG1vZHVsYXRpb24gcGFyYW1ldGVycyBh
+cmUgbGlua2VkIGZyb20KPiB0aGUgbGF0dGVyLCBJIGhhdmVuJ3QgeWV0IGNoZWNrZWQsIGJ1dCBS
+ZWFsIFNvb24gTm93IEkgc2hvdWxkCj4gbWFwIG91dCBhIGN6LWFsbCBmaWxlIGNvbXBhcmFibGUg
+dG8gbXkgQmFkZW4tV3VlcnR0ZW1iZXJnIGZpbGUKPiB0byBnZXQgYSBiZXR0ZXIgb3ZlcnZpZXcu
+Li4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgt
+ZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2
+Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
