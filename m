@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHC5ISo004723
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 07:05:18 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF87HY5010717
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:07:17 -0500
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHC51BL011368
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 07:05:02 -0500
-Date: Wed, 17 Dec 2008 13:05:10 +0100 (CET)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBF86ilB027554
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:06:44 -0500
+Date: Mon, 15 Dec 2008 09:06:50 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-In-Reply-To: <aec7e5c30812160234s392b29aep63821c45d69f6eb9@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0812171302000.5465@axis700.grange>
-References: <uabawh14z.wl%morimoto.kuninori@renesas.com>
-	<aec7e5c30812160234s392b29aep63821c45d69f6eb9@mail.gmail.com>
+To: morimoto.kuninori@renesas.com
+In-Reply-To: <umyeyuivo.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812150844560.3722@axis700.grange>
+References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
+	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH v4] Add interlace support to sh_mobile_ceu_camera.c
+Subject: Re: [PATCH] Add tw9910 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,27 +28,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Magnus,
+On Mon, 15 Dec 2008, morimoto.kuninori@renesas.com wrote:
 
-On Tue, 16 Dec 2008, Magnus Damm wrote:
+> > > +static const struct tw9910_scale_ctrl tw9910_pal_scales[] = {
+> > > +	{
+> > > +		.name   = "PAL SQ",
+> > > +		.width  = 768,
+> > > +		.height = 576,
+> > > +		.hscale = 0x0100,
+> > > +		.vscale = 0x0100,
+> > > +	},
+> (snip)
+> > At the moment there's no way to switch to any of these PAL norms, as 
+> > soc-camera doesn't support s_std yet. I suspect, we shall expect a patch 
+> > for that soon?:-)
+> 
+> ? really ?
+> I can select PAL by mplayer.
+> icd->vdev->current_norm == V4L2_STD_PAL is works well on tw9910_select_norm.
 
-> [V4 of the interlace patch]
-> 
-> On Tue, Dec 16, 2008 at 7:12 PM, Kuninori Morimoto
-> <morimoto.kuninori@renesas.com> wrote:
-> >
-> > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> > ---
-> > v3 -> v4
-> 
-> Looking good, thank you!
-> 
-> Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Indeed, you are right, sorry for confusion. But then it is even worse:-) 
+What happens is that v4l2-ioctl.c::check_fmt() calls soc_camera_s_std(), 
+verifies that it returns 0, and then sets current_norm, which you then use 
+in your driver in tw9910_select_norm(). This way again we have no way to 
+reject an unsupported tv-norm. Like, try selecting a SECAM norm:-) So, we 
+need two patches here: first to add a set_std method to struct 
+soc_camera_ops and call it from soc_camera_s_std():
 
-I'll make an Acked-by out of your Sob, ok? Sob applies when you handle a 
-patch - either you write it, or you pass it on to the next maintainer. You 
-could also use Reviewed-by or Tested-by, if you prefer. Let me know if you 
-do not agree with the Acked-by.
+static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
+{
+	struct soc_camera_file *icf = file->private_data;
+	struct soc_camera_device *icd = icf->icd;
+	return icd->ops->set_std(icd, a);
+}
+
+and second - your driver implementing this method. Or do we have to pass 
+set_std first to the host driver? Looks like neither i.MX31 nor PXA270 
+have anything to do with it, SuperH neither?
+
+In fact, I think, this your device is rather different from what we've 
+been doing up to now - only CMOS sensors. soc_camera_enum_input() seems to 
+be doing the wrong thing for you now too. Shouldn't it return 
+V4L2_INPUT_TYPE_TUNER and your current norm? Maybe more changes are needed 
+to soc_camera.c, that I don't see ATM.
 
 Thanks
 Guennadi
