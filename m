@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8Mx3jR006416
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 17:59:03 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB8MwHOW007803
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 17:58:17 -0500
-Date: Mon, 8 Dec 2008 20:58:09 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20081208205809.417473c4@pedra.chehab.org>
-In-Reply-To: <200812082339.14889.laurent.pinchart@skynet.be>
-References: <200811271536.46779.laurent.pinchart@skynet.be>
-	<200812061934.00750.laurent.pinchart@skynet.be>
-	<20081208200627.5894e44e@pedra.chehab.org>
-	<200812082339.14889.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF11Uw8031655
+	for <video4linux-list@redhat.com>; Sun, 14 Dec 2008 20:01:30 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBF11Eb2008754
+	for <video4linux-list@redhat.com>; Sun, 14 Dec 2008 20:01:15 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so1088846fga.7
+	for <video4linux-list@redhat.com>; Sun, 14 Dec 2008 17:01:14 -0800 (PST)
+Message-ID: <412bdbff0812141701j3ee744daq49f47da9150124f4@mail.gmail.com>
+Date: Sun, 14 Dec 2008 20:01:14 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: V4L <video4linux-list@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
-Subject: Re: [PATCH 0/4] Add zoom and privacy controls
+Content-Disposition: inline
+Subject: Template for a new driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,48 +27,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 8 Dec 2008 23:39:14 +0100
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+Hello,
 
-> The documentation part of the patch can't be pushed through mercurial, and I 
-> didn't want to submit it separately.
+I am writing a new driver for a video decoder, and wanted to ask if
+there was any particular driver people would suggest as a model to
+look at for new drivers.  For example, I am not completely familiar
+with which interfaces are deprecated, and want to make sure I use a
+driver as a template that reflects the latest standards/conventions.
 
-I know.
+Suggestions welcome.
 
-> I will have to resubmit the patches anyway as Hans found a few mistakes. I 
-> will send them by e-mail and ask for an ack, and I'll then send a pull 
-> request. 
+Thanks in advance,
 
-Ok.
+Devin
 
-> Where should the documentation part of the patchset go ? Why isn't 
-> the documentation stored in a repository ?
-
-Historical reasons. I would love to have this at kernel tree, but some work is
-probably required. The doc seems to big to be there, at the way it is.
-
-> As a side note, is there an equivalent to git reset in Mercurial ? I know 
-> about hg undo but that only supports one level of undo, and once 
-> modifications have been pushed to my linuxtv.org repository there's no way 
-> back. How would I have had to proceed if I had pushed the patchset to 
-> linuxtv.org ? Would I have had to dump the repository, create a brand new one 
-> by cloning and reapply modifications ?
-
-There are a few ways to work with. If you have "mq" extension enabled, you can
-do "hg strip" to remove a set of patches. I think you may also convert a commit
-into a quilt-like patch.
-
-Another option on mercurial 1.1 (just released) is the "hg rebase" command and
-"hg bookmarks". The second one is probably the closest feature from what we
-have in -git. I never tested it.
-
-Please, take come care with those features. I had a bad experience some days
-ago experimenting mercurial 1.1 with rebase and bookmarks. So, I recommend you
-to test they into a cloned repository and test for a while before using on
-production.
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
