@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBQA84H6004392
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 05:08:04 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBQA7pDw019069
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 05:07:51 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so2968570ugc.13
-	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 02:07:50 -0800 (PST)
-Message-ID: <a21d779b0812260207i6681133n9aa0b9b436184b21@mail.gmail.com>
-Date: Fri, 26 Dec 2008 12:07:50 +0200
-From: "=?ISO-8859-2?Q?Andr=E1s_L=F5rincz?=" <andras.lorincz@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF8SW4I018752
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:28:32 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBF8SDx7004626
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:28:13 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so2268966wfc.6
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 00:28:13 -0800 (PST)
+Message-ID: <aec7e5c30812150028t11589040g3ae33eb2c82bbf08@mail.gmail.com>
+Date: Mon, 15 Dec 2008 17:28:12 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0812150844560.3722@axis700.grange>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: Asus My Cinema U3000 Hybrid
+References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
+	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0812150844560.3722@axis700.grange>
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add tw9910 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,12 +33,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Mon, Dec 15, 2008 at 5:06 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> What happens is that v4l2-ioctl.c::check_fmt() calls soc_camera_s_std(),
+> verifies that it returns 0, and then sets current_norm, which you then use
+> in your driver in tw9910_select_norm(). This way again we have no way to
+> reject an unsupported tv-norm. Like, try selecting a SECAM norm:-) So, we
+> need two patches here: first to add a set_std method to struct
+> soc_camera_ops and call it from soc_camera_s_std():
+>
+> static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
+> {
+>        struct soc_camera_file *icf = file->private_data;
+>        struct soc_camera_device *icd = icf->icd;
+>        return icd->ops->set_std(icd, a);
+> }
+>
+> and second - your driver implementing this method. Or do we have to pass
+> set_std first to the host driver? Looks like neither i.MX31 nor PXA270
+> have anything to do with it, SuperH neither?
 
-I've seen in the kernel changelog for 2.6.28 that dvb-t support was
-added for the device mentioned in the title but I couldn't find out if
-the analogue part works or not. Could someone confirm if the analogue
-part is working or not? Thanks.
+The CEU has nothing to do with it. For our hardware this is handled by
+the TW9910 video decoder. The CEU driver has to be switched to
+interlace mode, but that's about it. =)
+
+Thanks,
+
+/ magnus
 
 --
 video4linux-list mailing list
