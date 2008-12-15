@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOEE4w3010511
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 09:14:04 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOEDmbi025622
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 09:13:48 -0500
-Date: Wed, 24 Dec 2008 12:12:52 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID: <20081224121252.7560391e@caramujo.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: linux-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	linux-kernel@vger.kernel.org
-Subject: [GIT PATCHES for 2.6.28] V4L/DVB fixes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF9fGoJ021793
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 04:41:16 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBF9exkG009645
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 04:41:00 -0500
+Date: Mon, 15 Dec 2008 10:41:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+In-Reply-To: <Pine.LNX.4.64.0812150844560.3722@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0812151031420.4416@axis700.grange>
+References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
+	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0812150844560.3722@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH re-send v2] Add interlace support to
+	sh_mobile_ceu_camera.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,66 +30,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Linus,
+On Mon, 15 Dec 2008, morimoto.kuninori@renesas.com wrote:
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+> Thank you for checking my patch and some advice.
+> 
+> > Thei in sh_ceu_mobile you re-implement the test above from soc_camera.c, 
+> > extending it with INTERLACED after calling icd->ops->try_fmt(icd, f), 
+> > something like
+> > 
+> > 	switch (field) {
+> > 	case V4L2_FIELD_INTERLACED:
+> > 		pcdev->is_interlace = 1;
+> > 		break;
+> > 	case V4L2_FIELD_ANY:
+> > 		f->fmt.pix.field = V4L2_FIELD_NONE;
+> > 	case V4L2_FIELD_NONE:
+> > 		pcdev->is_interlace = 0;
+> > 		break;
+> > 	default:
+> > 		return -EINVAL;
+> > 	}
+> 
+> Now I understand that we need some patch like this.
+> Is it correct ? or not ?
+> 
+> o add set_std to soc_camera         -> for check norm
 
-For a few last time driver fixes:
+Not add, it is already there, just modify as I described in another reply 
+to you (slightly extended):
 
-   - dib0700: Stop repeating after user stops pushing button
-   - Cablestar 2 I2C retries (fix CableStar2 support)
-   - gspca - main: Fix vidioc_s_jpegcomp locking.
-   - drivers/media Kconfig fix (bugzilla #12204)
-   - v4l2-compat: test for unlocked_ioctl as well.
-   - MAINTAINERS: mark linux-uvc-devel as subscribers only
-   - em28xx: fix NULL pointer dereference in call to VIDIOC_INT_RESET command
+> static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
+> {
+> 	struct soc_camera_file *icf = file->private_data;
+> 	struct soc_camera_device *icd = icf->icd;
+> 	if (!icd->ops->set_std)
+> 		return 0;
+> 	return icd->ops->set_std(icd, a);
+> }
 
-Cheers,
-Mauro.
+of course, also adding the respective field to struct soc_camera_ops
 
+> o fix soc_camera_enum_input         -> for use V4L2_INPUT_TYPE_TUNER or CAMERA
+
+Yes, I am not quite sure how best to do this though. I think, we also want 
+to continue supporting the default behaviour, so, we should add a 
+enum_input method to struct soc_camera_ops, if defined - call it, if not, 
+fallback to default current behaviour.
+
+> o fix field test on soc_camera      -> remove field test (or add allow INTERLACED)
+
+Remove. But this patch I can do myself, because I will also have to patch 
+pxa_camera.c, you just assume this test is not there, for your tests just 
+remove it.
+
+> o interlace mode patch to sh_mobile_ceu
+> o tw9910 driver
+
+Yep.
+
+Thanks
+Guennadi
 ---
-
- MAINTAINERS                                 |    2 +-
- drivers/media/dvb/b2c2/Kconfig              |    2 +-
- drivers/media/dvb/b2c2/flexcop-fe-tuner.c   |    2 +
- drivers/media/dvb/b2c2/flexcop-i2c.c        |    6 +++-
- drivers/media/dvb/bt8xx/Kconfig             |    2 +-
- drivers/media/dvb/dvb-usb/Kconfig           |   46 +++++++++++++-------------
- drivers/media/dvb/dvb-usb/dib0700_devices.c |    6 ++--
- drivers/media/dvb/ttpci/Kconfig             |    2 +-
- drivers/media/video/compat_ioctl32.c        |    2 +-
- drivers/media/video/cx18/Kconfig            |    2 +-
- drivers/media/video/cx23885/Kconfig         |    4 +-
- drivers/media/video/cx88/Kconfig            |    2 +-
- drivers/media/video/em28xx/em28xx-video.c   |    3 +-
- drivers/media/video/gspca/gspca.c           |    4 +-
- drivers/media/video/pvrusb2/Kconfig         |    2 +-
- drivers/media/video/saa7134/Kconfig         |    4 +-
- 16 files changed, 49 insertions(+), 42 deletions(-)
-
-
-Antti Seppälä (1):
-      V4L/DVB (9781): [PATCH] Cablestar 2 I2C retries (fix CableStar2 support)
-
-Devin Heitmueller (2):
-      V4L/DVB (9780): dib0700: Stop repeating after user stops pushing button
-      V4L/DVB (9920): em28xx: fix NULL pointer dereference in call to VIDIOC_INT_RESET command
-
-Hans Verkuil (1):
-      V4L/DVB (9906): v4l2-compat: test for unlocked_ioctl as well.
-
-Jim Paris (1):
-      V4L/DVB (9875): gspca - main: Fix vidioc_s_jpegcomp locking.
-
-Jiri Slaby (1):
-      V4L/DVB (9908a): MAINTAINERS: mark linux-uvc-devel as subscribers only
-
-Mauro Carvalho Chehab (1):
-      V4L/DVB (9885): drivers/media Kconfig's: fix bugzilla #12204
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
