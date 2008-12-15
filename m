@@ -1,27 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mail1.aster.pl ([212.76.33.23])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1LDo0i-0005Wk-VI
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 23:39:57 +0100
-Received: from [10.11.11.138] (user-54424d25.l5.c2.dsl.pol.co.uk [84.66.77.37])
-	by mail.youplala.net (Postfix) with ESMTP id AC083D880A7
-	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 23:39:09 +0100 (CET)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <494C1B1F.40205@gmx.net>
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<200812191943.00696.sinter.mann@gmx.de>
-	<d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>
-	<200812192058.58686.sinter.mann@gmx.de>
-	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
-	<37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>
-	<412bdbff0812191247j60480e61wa3c1aea74f1e118@mail.gmail.com>
-	<1229720907.31427.18.camel@youkaida>  <494C1B1F.40205@gmx.net>
-Date: Fri, 19 Dec 2008 22:39:07 +0000
-Message-Id: <1229726347.31427.20.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Adding info to the wiki,
- Was: Re:  S2API drivers sync
+	(envelope-from <Daniel.Perzynski@aster.pl>) id 1LCMtT-00007h-0w
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 00:30:31 +0100
+From: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
+To: "'Devin Heitmueller'" <devin.heitmueller@gmail.com>
+References: <4728568367913277327@unknownmsgid>	
+	<412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>	
+	<8829222570103551382@unknownmsgid>	
+	<412bdbff0812151512k72f70d70j88427b5761585d16@mail.gmail.com>	
+	<2944906433286851876@unknownmsgid>
+	<412bdbff0812151527l43029409q2dbacce63ea60cc9@mail.gmail.com>
+In-Reply-To: <412bdbff0812151527l43029409q2dbacce63ea60cc9@mail.gmail.com>
+Date: Tue, 16 Dec 2008 00:30:14 +0100
+Message-ID: <001001c95f0d$14e97eb0$3ebc7c10$@Perzynski@aster.pl>
+MIME-Version: 1.0
+Content-Language: en-us
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Avermedia A312 - patch for review
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,19 +31,110 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-12-19 at 23:07 +0100, Jos Hoekstra wrote:
+
+
+-----Original Message-----
+From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com] 
+Sent: Tuesday, December 16, 2008 12:28 AM
+To: Daniel Perzynski
+Cc: linux-dvb@linuxtv.org
+Subject: Re: Avermedia A312 - patch for review
+
+On Mon, Dec 15, 2008 at 6:23 PM, Daniel Perzynski
+<Daniel.Perzynski@aster.pl> wrote:
+>
+>
+> -----Original Message-----
+> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+> Sent: Tuesday, December 16, 2008 12:12 AM
+> To: Daniel Perzynski
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: Avermedia A312 - patch for review
+>
+> On Mon, Dec 15, 2008 at 6:08 PM, Daniel Perzynski
+> <Daniel.Perzynski@aster.pl> wrote:
+>>
+>> -----Original Message-----
+>> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+>> Sent: Monday, December 15, 2008 11:29 PM
+>> To: Daniel Perzynski
+>> Cc: linux-dvb@linuxtv.org
+>> Subject: Re: Avermedia A312 - patch for review
+>>
+>> On Mon, Dec 15, 2008 at 5:25 PM, Daniel Perzynski
+>> <Daniel.Perzynski@aster.pl> wrote:
+>>> Hi,
+>>>
+>>>
+>>>
+>>> According to the suggestions I've modified dvb-usb-ids.h and cxusb.c to
+>> add
+>>> a support for that card.
+>>>
+>>>
+>>>
+>>> I would appreciate someone to look at the code below and compare it with
+>>> spec on the wiki for that card.
+>>>
+>> <snip>
+>>
+>> Does this patch actually work?  Can you watch ATSC TV?
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller
+>> http://www.devinheitmueller.com
+>> AIM: devinheitmueller
+>>
+>> Good question,
+>>
+>> How to check it? What about analog TV?
+>>
+>> Daniel
+>
+>> Well, the /dev/dvb/adapter0/* files are for the ATSC interface (using
+>> the lgdt3303).  You would use tools like scan, azap, mplayer to test
+>> digital support:
+>
+>> http://linuxtv.org/wiki/index.php/Testing_your_DVB_device
+>>
+>> I'm not sure which analog video decoder that device uses and I'm not
+>> confident you have provided any configuration to specify the decoder.
+>> Do you have a /dev/video0 device?
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller
+>> http://www.devinheitmueller.com
+>> AIM: devinheitmueller
+>
+> Devin,
+>
+> The problem is that I'm in Poland and we don't have ATSC here as far as
+I'm
+> aware but I will try to test it anyway.
+> Could you please look at the wiki for that card and tell me what will be
+the
+> analog video decoder for that card (I don't have /dev/videoX device).
+
+> Hmm....  It's a cx25843.  I would have to look at the code to see how
+> to hook that into the CY7C68013A bridge.  I'll take a look tonight
+> when I get home.
+>
+> Devin
 > 
-> Is it ok if I add it as a minor edit to:
-> 
-> http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices#Afatech_AF9013_and_AF9015
-> ?
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
-Of course it is. This is also the best place to put the documentation.
+Thank you very much, I would appreciate that.
 
-You are not going to deface it, and anyway there is a built-in version
-control that you can also use.
+Daniel,
 
-Nico
+
 
 
 _______________________________________________
