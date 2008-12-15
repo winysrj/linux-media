@@ -1,25 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bobrnet.cust.inethome.cz ([88.146.180.6]
-	helo=mailserver.bobrnet.net)
+Received: from fg-out-1718.google.com ([72.14.220.157])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pavel.hofman@insite.cz>) id 1L9oSR-0004gR-KK
-	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 23:20:07 +0100
-Message-ID: <493D9D8B.9010106@insite.cz>
-Date: Mon, 08 Dec 2008 23:19:55 +0100
-From: Pavel Hofman <pavel.hofman@insite.cz>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LCMbq-0006Rg-47
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 00:12:20 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1292362fga.25
+	for <linux-dvb@linuxtv.org>; Mon, 15 Dec 2008 15:12:14 -0800 (PST)
+Message-ID: <412bdbff0812151512k72f70d70j88427b5761585d16@mail.gmail.com>
+Date: Mon, 15 Dec 2008 18:12:11 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
+In-Reply-To: <8829222570103551382@unknownmsgid>
 MIME-Version: 1.0
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
-	<4935B72F.1000505@insite.cz>
-	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
-	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
-	<49371511.1060703@insite.cz> <493BE666.8030007@insite.cz>
-	<c74595dc0812070822p73746bdel9894de34c87a733f@mail.gmail.com>
-	<493D69C8.2080904@insite.cz>
-	<alpine.DEB.2.00.0812082101180.14915@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0812082101180.14915@ybpnyubfg.ybpnyqbznva>
+Content-Disposition: inline
+References: <4728568367913277327@unknownmsgid>
+	<412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>
+	<8829222570103551382@unknownmsgid>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
+Subject: Re: [linux-dvb] Avermedia A312 - patch for review
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,48 +30,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-
-BOUWSMA Barry napsal(a):
-> On Mon, 8 Dec 2008, Pavel Hofman wrote:
-> 
->> Results of the scan give very often zero APID, VPID:
+On Mon, Dec 15, 2008 at 6:08 PM, Daniel Perzynski
+<Daniel.Perzynski@aster.pl> wrote:
+>
+> -----Original Message-----
+> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+> Sent: Monday, December 15, 2008 11:29 PM
+> To: Daniel Perzynski
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: Avermedia A312 - patch for review
+>
+> On Mon, Dec 15, 2008 at 5:25 PM, Daniel Perzynski
+> <Daniel.Perzynski@aster.pl> wrote:
+>> Hi,
 >>
->> Sky Cust Ch:11934:v:0:27500:0:0:4505:5
->> Cartoon Network Game 4:12012:v:0:27500:0:2603:8005:5
->> Video Application Val:12012:v:0:27500:2518:2519:8015:5
->> Sky Bingo:12012:v:0:27500:0:0:8032:5
->> Sky Bet, Vegas & Sky Poker:12012:v:0:27500:0:0:8076:5
-> 
-> These are all programmes -- or rather, data services or MHP/
-> OpenTV/whatever BSkyB uses -- at 28E -- nowhere else.
-> 
-> Your sat dish is clearly misaligned -- you are probably
-> receiving your CZ/SK/Kabel Deutschland/NL correctly at
-> 23E5, but instead of 19E2, you are receiving 28E, with
-> english speaking programmes for the UK -- the majority
-> of the 19E2 programmes are german language, with a few
-> french, spanish, and a handful of other languages.
-> 
-> Do you have a normal satellite receiver?  If so, use
-> that, as you move your dish slightly in one direction
-> (to the direction of the sunset) until you receive your
-> CZ stations -- although now they will be received on
-> the other LNB input -- and then you should be seeing
-> the programmes from 19E2.
-> 
-> As long as you are receiving FreeSat/BSkyB programmes,
-> there is no way that an Astra 19E2 scanfile will help.
-> 
-> 
-> barry bouwsma
+>>
+>>
+>> According to the suggestions I've modified dvb-usb-ids.h and cxusb.c to
+> add
+>> a support for that card.
+>>
+>>
+>>
+>> I would appreciate someone to look at the code below and compare it with
+>> spec on the wiki for that card.
+>>
+> <snip>
+>
+> Does this patch actually work?  Can you watch ATSC TV?
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
+> Good question,
+>
+> How to check it? What about analog TV?
+>
+> Daniel
 
-Hi Barry,
+Well, the /dev/dvb/adapter0/* files are for the ATSC interface (using
+the lgdt3303).  You would use tools like scan, azap, mplayer to test
+digital support:
 
-You are of course right, it took me a while to get it :) Scanning with 
-Astra 28E2 revealed all the programs. Thanks a lot for your help.
+http://linuxtv.org/wiki/index.php/Testing_your_DVB_device
 
-Pavel.
+I'm not sure which analog video decoder that device uses and I'm not
+confident you have provided any configuration to specify the decoder.
+Do you have a /dev/video0 device?
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
