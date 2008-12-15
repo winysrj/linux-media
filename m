@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.187])
+Received: from smtp1.aster.pl ([212.76.33.45])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <d.belimov@gmail.com>) id 1L6y5U-0005UQ-Ua
-	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 03:00:39 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so1312683nfb.11
-	for <linux-dvb@linuxtv.org>; Sun, 30 Nov 2008 18:00:32 -0800 (PST)
-Date: Mon, 1 Dec 2008 11:02:16 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Behzat <b3hzat@gmail.com>
-Message-ID: <20081201110216.4c2d600d@glory.loctelecom.ru>
-In-Reply-To: <200811291557.57092.b3hzat@gmail.com>
-References: <200811291557.57092.b3hzat@gmail.com>
-Mime-Version: 1.0
+	(envelope-from <Daniel.Perzynski@aster.pl>) id 1LCMYo-0005q4-Ot
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 00:09:11 +0100
+From: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
+To: "'Devin Heitmueller'" <devin.heitmueller@gmail.com>
+References: <4728568367913277327@unknownmsgid>
+	<412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>
+In-Reply-To: <412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>
+Date: Tue, 16 Dec 2008 00:08:24 +0100
+Message-ID: <000e01c95f0a$07d08eb0$1771ac10$@Perzynski@aster.pl>
+MIME-Version: 1.0
+Content-Language: en-us
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to write driver for xilinx spartan iie xc2s50e
+Subject: Re: [linux-dvb] Avermedia A312 - patch for review
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,18 +27,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi 
- 
-> I want to write driver for xilinx spartan iie xc2s50e chipset.
-> 
-> How to start for this case. Could you give me any suggest or idea for
-> this?
 
-This is FPGA Field Programmed Array. A hardware designer write some code on VHDL or Verilog
-describing howto it should be worked and programm this FPGA. For work with current firmware in FPGA
-you should have description or API. If you have, write your driver as for common chip.
+-----Original Message-----
+From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com] 
+Sent: Monday, December 15, 2008 11:29 PM
+To: Daniel Perzynski
+Cc: linux-dvb@linuxtv.org
+Subject: Re: Avermedia A312 - patch for review
 
-With my best regards, Dmitry.
+On Mon, Dec 15, 2008 at 5:25 PM, Daniel Perzynski
+<Daniel.Perzynski@aster.pl> wrote:
+> Hi,
+>
+>
+>
+> According to the suggestions I've modified dvb-usb-ids.h and cxusb.c to
+add
+> a support for that card.
+>
+>
+>
+> I would appreciate someone to look at the code below and compare it with
+> spec on the wiki for that card.
+>
+<snip>
+
+Does this patch actually work?  Can you watch ATSC TV?
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
+
+Good question, 
+
+How to check it? What about analog TV?
+
+Daniel 
+
 
 _______________________________________________
 linux-dvb mailing list
