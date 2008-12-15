@@ -1,28 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1F7pJ6026487
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 10:07:53 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1F6ttm028883
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 10:06:55 -0500
-Date: Mon, 1 Dec 2008 13:06:43 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20081201130643.661f5743@pedra.chehab.org>
-In-Reply-To: <200812011524.43499.laurent.pinchart@skynet.be>
-References: <200812011246.08885.hverkuil@xs4all.nl>
-	<200812011429.54019.laurent.pinchart@skynet.be>
-	<200812011445.50115.hverkuil@xs4all.nl>
-	<200812011524.43499.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com,
-	davinci-linux-open-source-bounces@linux.davincidsp.com,
-	linux-kernel@vger.kernel.org, v4l-dvb
-	maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBFAPAoT009505
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 05:25:10 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBFAOujw032447
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 05:24:57 -0500
+Date: Mon, 15 Dec 2008 11:25:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <ufxkpvjbp.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812151120130.4416@axis700.grange>
+References: <ufxkpvjbp.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add new enum_input function on soc_camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,73 +26,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+On Mon, 15 Dec 2008, Kuninori Morimoto wrote:
 
-On Mon, 1 Dec 2008 15:24:43 +0100
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
-
-> > > I am all for pushing the changes to the v4l-dvb repository so they
-> > > can get broader testing. I am, however, a bit more concerned about
-> > > pushing the changes to Linus yet.
-> >
-> > They will of course go to linux-next and end up in 2.6.29 when the merge
-> > window opens. It's obviously not for 2.6.28.
+> This patch presents new method to be able to select V4L2 input type
 > 
-> I would say 2.6.29 is a bit early, but I can live with that.
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/soc_camera.c |   17 +++++++++++++----
+>  include/media/soc_camera.h       |    1 +
+>  2 files changed, 14 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index 36ee55b..758c310 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -93,14 +93,23 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+>  static int soc_camera_enum_input(struct file *file, void *priv,
+>  				 struct v4l2_input *inp)
+>  {
+> +	struct soc_camera_file *icf = file->private_data;
+> +	struct soc_camera_device *icd = icf->icd;
+> +	int ret = 0;
+> +
+>  	if (inp->index != 0)
+>  		return -EINVAL;
+>  
 
-It also seems a bit early to me, but it may work. I'll try to schedule some
-time this week for a deep review.
+Yeah... this is enough as long as we don't have clients with more than 1 
+input... But to support > 1 input we'd also have to modify 
+soc_camera_s_input and soc_camera_g_input, so, I'd say we leave it at 1 
+input for now, agree?
 
-> > In addition, these changes make it easier as well to use the new i2c API
-> > in bridge drivers (in 2.6.29 the old-style I2C probing will be
-> > deprecated, so we need to convert). So we get many benefits with just
-> > these changes.
+> -	inp->type = V4L2_INPUT_TYPE_CAMERA;
+> -	inp->std = V4L2_STD_UNKNOWN;
+> -	strcpy(inp->name, "Camera");
+> +	if (icd->ops->enum_input)
+> +		ret = icd->ops->enum_input(icd, inp);
+> +	else {
 
-IMO, this is one of the top priorities: the old-style i2c used on some bridge
-drivers like saa7134 and cx88 are causing malfunctions that can't be easily
-solved. I would like to see a fix for this for 2.6.29.
+I think, CodingStyle requires braces before and after else, if at least 
+one of them has them, but checkpatch.pl doesn't complain, so, we just 
+leave it. Or I fix it when committing - if I remember to.
 
-> > Of course, I want to add more v4l2 framework support to these new
-> > structures, but I don't have any code yet for that anyway, just lots of
-> > ideas. Start simple, then expand.
-> >
-> > > I don't know if that's possible at all, or if all changes in v4l-dvb
-> > > are automatically selected for a push to the git repository whenever
-> > > Mauro triggers the hg->git process.
-> >
-> > Well, they go to linux-next, but is that a problem?
+> +		/* default is camera */
+> +		inp->type = V4L2_INPUT_TYPE_CAMERA;
+> +		inp->std  = V4L2_STD_UNKNOWN;
+> +		strcpy(inp->name, "Camera");
+> +	}
+>  
+> -	return 0;
+> +	return ret;
+>  }
+>  
+>  static int soc_camera_g_input(struct file *file, void *priv, unsigned int *i)
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index f1fe91d..0ee34f8 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -164,6 +164,7 @@ struct soc_camera_ops {
+>  	int (*get_chip_id)(struct soc_camera_device *,
+>  			   struct v4l2_chip_ident *);
+>  	int (*set_std)(struct soc_camera_device *, v4l2_std_id *);
+> +	int (*enum_input)(struct soc_camera_device *, struct v4l2_input *);
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	int (*get_register)(struct soc_camera_device *, struct v4l2_register *);
+>  	int (*set_register)(struct soc_camera_device *, struct v4l2_register *);
+> -- 
+> 1.5.6.3
+> 
 
-I only send Linus the patches that are already ok, but I generally prefer to
-postpone a merge for the end of a merge window, when the patch is not meant to
-be at the next version.
-
-> In a few months time (probably even earlier) the v4l2_device structure will be 
-> reworked (and possible renamed). 
-
-Hmm... why? it would be better to try to have the KABI changes for it at the
-same kernel release if possible.
-
-> I'm fine with it going to linux-next now if 
-> we agree on the following.
-
-> - We should only advocate v4l2_device usage for subdevices-aware video 
-> devices. Porting all drivers to v4l2_device is currently pointless and will 
-> only make future transitions more difficult.
-
-This makes sense to me.
-
-> - v4l2_device should be marked as experimental. I don't want to hear any 
-> API/ABI breakage argument in a few months time when the framework will 
-> evolve.
-
-Are you meaning marking this as experimental at Kconfig? This seems too
-complex, since we'll need to test for some var on every driver that were
-converted, providing two KABI options for each converted driver (the legacy and
-the v4l2_device way). This doesn't seem to be a good idea, since will add a lot
-of extra complexity to debug bugs.
-
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
