@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4J1bFx003419
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 14:01:37 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4J1Lpv031248
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 14:01:21 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so4658900ugc.13
-	for <video4linux-list@redhat.com>; Thu, 04 Dec 2008 11:01:21 -0800 (PST)
-Message-ID: <412bdbff0812041101i7a2a5bebjeed2299a2065f79@mail.gmail.com>
-Date: Thu, 4 Dec 2008 14:01:20 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Steve Fink" <sphink@gmail.com>
-In-Reply-To: <7d7f2e8c0812041009w487b5aabwaf27d5c7d917b1ab@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF8W3Oa020974
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:32:03 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBF8Vm5J006308
+	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:31:49 -0500
+Date: Mon, 15 Dec 2008 09:31:54 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <u3agtx39i.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812150910190.3722@axis700.grange>
+References: <u3agtx39i.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <7d7f2e8c0812032307y3b12f74cr8c00175618add7a1@mail.gmail.com>
-	<412bdbff0812040659l2c441ed8mcc9cd00573b3f939@mail.gmail.com>
-	<7d7f2e8c0812041009w487b5aabwaf27d5c7d917b1ab@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l support for "Pinnacle PCTV HD Pro USB Stick"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH re-send v2] Add interlace support to
+	sh_mobile_ceu_camera.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,31 +27,86 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Dec 4, 2008 at 1:09 PM, Steve Fink <sphink@gmail.com> wrote:
-> Ok, thanks. I guess I'll try returning this one, then.
->
-> I wonder if there's any way to apply pressure -- I mean, encouragement
-> -- to manufacturers to either change model numbers or at least release
-> serial number ranges or something along with specs for their hardware.
-> The only reason I bought this device was because it had composite
-> input and Linux support -- or at least, the earlier version with
-> exactly the same description did.
->
-> I suppose I could take a quick stab at making my app decode the mpeg
-> frames, but it's really suboptimal for my setup (I am very sensitive
-> to latency and CPU load.)
+On Fri, 12 Dec 2008, Kuninori Morimoto wrote:
 
-Just to be clear, the analog is not being converted into MPEG inside
-the device.  Analog isn't supported at all.  When somebody finally
-does get around to adding the device driver support, it will behave
-just like any other v4l device (providing uncompressed video).
+> @@ -640,7 +658,15 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+>  	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+>  
+>  	/* limit to sensor capabilities */
+> -	return icd->ops->try_fmt(icd, f);
+> +	ret = icd->ops->try_fmt(icd, f);
+> +
+> +	pcdev->is_interlace = 0;
+> +	if (V4L2_FIELD_INTERLACED == f->fmt.pix.field) {
+> +		pcdev->is_interlace = 1;
+> +		f->fmt.pix.field = V4L2_FIELD_NONE;
+> +	}
+> +
+> +	return ret;
+>  }
+>  
+>  static int sh_mobile_ceu_reqbufs(struct soc_camera_file *icf,
 
-Devin
+...and once again I do not understand how this can work with the present 
+soc_camera.c:
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+	/*
+	 * TODO: this might also have to migrate to host-drivers, if anyone
+	 * wishes to support other fields
+	 */
+	field = f->fmt.pix.field;
+
+	if (field == V4L2_FIELD_ANY) {
+		f->fmt.pix.field = V4L2_FIELD_NONE;
+	} else if (field != V4L2_FIELD_NONE) {
+		dev_err(&icd->dev, "Field type invalid.\n");
+		return -EINVAL;
+	}
+
+	/* limit format to hardware capabilities */
+	ret = ici->ops->try_fmt(icd, f);
+
+I do not understand how you can get in your driver anything other than 
+V4L2_FIELD_NONE, do you? Ahhh... I see now:
+
++static int tw9910_try_fmt(struct soc_camera_device *icd,
++			      struct v4l2_format *f)
++{
+...
++	pix->field = V4L2_FIELD_INTERLACED;
+
+Noooo... We don't want to do this. We first require that the user only 
+requests NONE or ANY, and then rewrite it to INTERLACED... And then again 
+you rewrite it to NONE... No, please, let's do this properly. That "TODO" 
+above is for a reason there:-)
+
+I would suggest, please, base your patches on soc_camera.c as if that 
+field test was not there, and I'll take care to remove it. I.e., in tw9910 
+you should just check for INTERLACED or ANY, if ANY rewrite it to 
+INTERLACED, or return -EINVAL.
+
+Thei in sh_ceu_mobile you re-implement the test above from soc_camera.c, 
+extending it with INTERLACED after calling icd->ops->try_fmt(icd, f), 
+something like
+
+	switch (field) {
+	case V4L2_FIELD_INTERLACED:
+		pcdev->is_interlace = 1;
+		break;
+	case V4L2_FIELD_ANY:
+		f->fmt.pix.field = V4L2_FIELD_NONE;
+	case V4L2_FIELD_NONE:
+		pcdev->is_interlace = 0;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
