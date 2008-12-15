@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9GAfsv008749
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 11:10:41 -0500
-Received: from mail1.mxsweep.com (mail152.ix.emailantidote.com
-	[89.167.219.152])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB9GALsK013965
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 11:10:22 -0500
-Message-ID: <493E9834.8000908@draigBrady.com>
-Date: Tue, 9 Dec 2008 16:09:24 +0000
-From: =?ISO-8859-1?Q?P=E1draig_Brady?= <P@draigBrady.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF4fjM3005119
+	for <video4linux-list@redhat.com>; Sun, 14 Dec 2008 23:41:45 -0500
+Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBF4fSxl018958
+	for <video4linux-list@redhat.com>; Sun, 14 Dec 2008 23:41:29 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>, V4L
+	<video4linux-list@redhat.com>
+Date: Mon, 15 Dec 2008 10:11:17 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECC737F6@dbde02.ent.ti.com>
+In-Reply-To: <412bdbff0812141701j3ee744daq49f47da9150124f4@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <1228493415.439.8.camel@bru02>	
-	<412bdbff0812050822q63d946b8y960559f7bca10e6f@mail.gmail.com>	
-	<1228499124.2547.6.camel@bru02>	
-	<412bdbff0812050949s545547d2v92bd3633b76b478e@mail.gmail.com>	
-	<1228583227.6281.1.camel@bru02> <493E665B.5040509@draigBrady.com>
-	<412bdbff0812090657o3219611x23d67f3c0f790032@mail.gmail.com>
-In-Reply-To: <412bdbff0812090657o3219611x23d67f3c0f790032@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, Brian Rosenberger <brian@brutex.de>
-Subject: Re: Pinnacle PCTV USB (DVB-T device [eb1a:2870])
+Cc: 
+Subject: RE: Template for a new driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,43 +28,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Devin Heitmueller wrote:
-> On Tue, Dec 9, 2008 at 7:36 AM, Pádraig Brady <P@draigbrady.com> wrote:
->> Brian Rosenberger wrote:
->>> Am Freitag, den 05.12.2008, 12:49 -0500 schrieb Devin Heitmueller:
->>>
->>>> Yes, that's exactly what I needed to know.  If you can get the Windows
->>>> USB trace, we should be able to extract the GPIOs from that and add
->>>> the device support.
->> Isn't that card already supported here?
->> http://mcentral.de/hg/~mrec/em28xx-new/file/3fe18e8981e5/em28xx-cards.c
->>
->> I'm worried that there is more duplication of work now happening,
->> and things are going to get even more out of sync.
+
+
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
+> bounces@redhat.com] On Behalf Of Devin Heitmueller
+> Sent: Monday, December 15, 2008 6:31 AM
+> To: V4L
+> Subject: Template for a new driver
 > 
-> I don't know if Markus's tree supports this device but it wouldn't
-> surprise me if it did.
+> Hello,
 > 
->> Devin, perhaps you could help with merging Markus' driver into mainline?
+> I am writing a new driver for a video decoder, and wanted to ask if
+> there was any particular driver people would suggest as a model to
+> look at for new drivers.  For example, I am not completely familiar
+> with which interfaces are deprecated, and want to make sure I use a
+> driver as a template that reflects the latest standards/conventions.
 > 
-> Yeah, this is a really crappy situation.  Markus has made very clear
-> that he doesn't want his changes merged into the mainline driver.  The
-> only solution he is willing to accept is for his driver to be put in
-> alongside the mainline driver in its entirety, which has been
-> considered unacceptable for a variety of good reasons.
+> Suggestions welcome.
+> 
+[Hiremath, Vaibhav] I would suggest using new sub-device framework which recently Hans has submitted, since all other frameworks are going to be deprecated.
+Please refer to the mail-chain for more info - 
 
-Hmm. Is there anything supported by the mainline driver
-that's not supported by Markus' driver?
+http://marc.info/?l=linux-video&m=122756460125873&w=2
 
-If not, then perhaps the pragmatic solution is to put markus' driver
-in parallel and deprecate the existing one, like was done
-with the e100 and eepro100 for example?
+http://marc.info/?l=linux-video&m=122808129216519&w=2
 
-I think that would benefit all users immediately,
-and developers can sort out the merging/removal later.
 
-thanks,
-Pádraig.
+> Thanks in advance,
+> 
+> Devin
+> 
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-
+> request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 
 --
