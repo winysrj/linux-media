@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBV0l6qw000479
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 19:47:06 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.170])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBV0kYWN028866
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 19:46:34 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so5436195wfc.6
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 16:46:34 -0800 (PST)
-Message-ID: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-Date: Tue, 30 Dec 2008 17:46:34 -0700
-From: "Paul Thomas" <pthomas8589@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGL1OG0031650
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 16:01:24 -0500
+Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGL0u0I020870
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 16:00:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Greg KH <greg@kroah.com>
+Date: Tue, 16 Dec 2008 22:00:51 +0100
+References: <200812082156.26522.hverkuil@xs4all.nl>
+	<20081216202248.GA3653@kroah.com>
+In-Reply-To: <20081216202248.GA3653@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: em28xx issues
+Message-Id: <200812162200.52260.hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
+Subject: Re: [BUG] cdev_put() race condition
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,57 +30,89 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Tuesday 16 December 2008 21:22:48 Greg KH wrote:
+> On Mon, Dec 08, 2008 at 09:56:26PM +0100, Hans Verkuil wrote:
+> > Hi Greg,
+> > 
+> > Laurent found a race condition in the uvc driver that we traced to the 
+> > way chrdev_open and cdev_put/get work.
+> > 
+> > You need the following ingredients to reproduce it:
+> > 
+> > 1) a hot-pluggable char device like an USB webcam.
+> > 2) a manually created device node for such a webcam instead of relying 
+> > on udev.
+> > 
+> > In order to easily force this situation you would also need to add a  
+> > delay to the char device's release() function. For webcams that would 
+> > be at the top of v4l2_chardev_release() in 
+> > drivers/media/video/v4l2-dev.c. But adding a delay to e.g. cdev_purge 
+> > would have the same effect.
+> > 
+> > The sequence of events in the case of a webcam is as follows:
+> > 
+> > 1) The USB device is removed, causing a disconnect.
+> > 
+> > 2) The webcam driver unregisters the video device which in turn calls 
+> > cdev_del().
+> > 
+> > 3) When the last application using the device is closed, the cdev is 
+> > released when the kref of the cdev's kobject goes to 0.
+> > 
+> > 4) If the kref's release() call takes a while due to e.g. extra cleanup 
+> > in the case of a webcam, then another application can try to open the 
+> > video device. Note that this requires a device node created with mknod, 
+> > otherwise the device nodes would already have been removed by udev.
+> > 
+> > 5) chrdev_open checks inode->i_cdev. If this is NULL (i.e. this device 
+> > node was never accessed before), then all is fine since kobj_lookup 
+> > will fail because cdev_del() has been called earlier. However, if this 
+> > device node was used earlier, then the else part is called: 
+> > cdev_get(p). This 'p' is the cdev that is being released. Since the 
+> > kref count is 0 you will get a WARN message from kref_get, but the code 
+> > continues on, the f_op->open will (hopefully) return more-or-less 
+> > gracefully with an error and the cdev_put at the end will cause the 
+> > refcount to go to 0 again, which results in a SECOND call to the kref's 
+> > release function!
+> > 
+> > See this link for the original discussion on the v4l list containing 
+> > stack traces an a patch that you need if you want to (and can) test 
+> > this with the uvc driver:
+> > 
+> > http://www.spinics.net/lists/vfl/msg39967.html
+> 
+> The second sentence in that message shows your problem here:
+> 	To avoid the need of a reference count in every v4l2 driver,
+> 	v4l2 moved to cdev which includes its own reference counting
+> 	infrastructure based on kobject.
+> 
+> cdev is not ment to handle the reference counting of any object outside
+> of itself, and should never be embedded within anything.  I've been
+> thinking of taking the real "kobject" out of that structure for a long
+> time now, incase someone did something foolish like this.
+> 
+> Seems I was too late :(
+> 
+> So, to solve this, just remove the reliance on struct cdev in your own
+> structures, you don't want to do this for the very reason you have now
+> found (and for others, like the fact that this isn't a "real" struct
+> kobject in play here, just a fake one.)
+> 
+> Ick, what a mess.
 
-I'm trying to get a Empia EM2860 board working (specifically the "DVD
-Maker USB 2.0"). Everything seems OK to start with, when I plug in the
-board I get a reasonable dmesg (posted at the bottom).
+Sorry, but this makes no sense. First of all the race condition exists regardless of how v4l uses it. Other drivers using cdev with a hot-pluggable device in combination with a manually created device node should show the same problem. It's just that we found it with v4l because the release callback takes longer than usual, thus increasing the chances of hitting the race.
 
-I then try to use cheese or camstream and all I get is a black screen
-or a black screen with a green stripe at the bottom. I've tested it
-with a Windows box so I know there's nothing wrong with the video
-input.
+The core problem is simply that it is possible to call cdev_get while in cdev_put! That should never happen.
 
-Are cheese & camstream the appropriate v4l2 frontends for testing
-with. Is there something more low level I could test with?
+Secondly, why shouldn't struct cdev be embedded in anything? It's used in lots of drivers that way. I really don't see what's unusual or messy about v4l in that respect.
 
-I using Fedora 10, my kernel version is 2.6.27.9-159.fc10.i686.
+Regards,
 
-Thanks in advance.
+	Hans
 
--Paul
 
-usb 1-2: new high speed USB device using ehci_hcd and address 20
-usb 1-2: configuration #1 chosen from 1 choice
-em28xx new video device (eb1a:2860): interface 0, class 255
-em28xx Doesn't have usb audio class
-em28xx #0: Alternate settings: 8
-em28xx #0: Alternate setting 0, max size= 0
-em28xx #0: Alternate setting 1, max size= 0
-em28xx #0: Alternate setting 2, max size= 1448
-em28xx #0: Alternate setting 3, max size= 2048
-em28xx #0: Alternate setting 4, max size= 2304
-em28xx #0: Alternate setting 5, max size= 2580
-em28xx #0: Alternate setting 6, max size= 2892
-em28xx #0: Alternate setting 7, max size= 3072
-em28xx #0: chip ID is em2860
-saa7115' 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-em28xx #0: found i2c device @ 0x4a [saa7113h]
-em28xx #0: Your board has no unique USB ID.
-em28xx #0: A hint were successfully done, based on i2c devicelist hash.
-em28xx #0: This method is not 100% failproof.
-em28xx #0: If the board were missdetected, please email this log to:
-em28xx #0: 	V4L Mailing List  <video4linux-list@redhat.com>
-em28xx #0: Board detected as PointNix Intra-Oral Camera
-em28xx #0: Registering snapshot button...
-input: em28xx snapshot button as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-2/input/input16
-em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-em28xx-audio.c: probing for em28x1 non standard usbaudio
-em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-em28xx #0: Found PointNix Intra-Oral Camera
-usb 1-2: New USB device found, idVendor=eb1a, idProduct=2860
-usb 1-2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
