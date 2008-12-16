@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGFtsx0010587
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 10:55:54 -0500
-Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mBGFtf7q011661
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 10:55:41 -0500
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBG95eTW002246
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:05:40 -0500
+Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBG94TeC016937
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:04:32 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-Date: Tue, 16 Dec 2008 16:55:39 +0100
-References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
-	<de8cad4d0812100152w4636cf83rd0dc4997d80125ea@mail.gmail.com>
-	<de8cad4d0812130646m44beaeeeu88e55bcb89a4a891@mail.gmail.com>
-In-Reply-To: <de8cad4d0812130646m44beaeeeu88e55bcb89a4a891@mail.gmail.com>
+To: video4linux-list@redhat.com
+Date: Tue, 16 Dec 2008 10:04:28 +0100
+References: <412bdbff0812151315j768feb89j5deaf4db4650749e@mail.gmail.com>
+In-Reply-To: <412bdbff0812151315j768feb89j5deaf4db4650749e@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812161655.39431.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l2-compat-ioctl32 update?
+Message-Id: <200812161004.28556.hverkuil@xs4all.nl>
+Cc: 
+Subject: Re: v4l audio enumeration API
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,41 +29,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 13 December 2008 15:46:15 Brandon Jenkins wrote:
-> On Wed, Dec 10, 2008 at 4:52 AM, Brandon Jenkins 
-<bcjenkins@tvwhere.com> wrote:
-> > Hi Hans,
-> >
-> > I have patched the module, rebooted and ran a script to query
-> > dev/video (HVR-1600) for all of the get and list controls in the
-> > help output.
-> >
-> > I am attaching the output of that, the dmesg output, and dmesg
-> > output while running captures using SageTV. I will work on a script
-> > to execute the set commands. Please let me know if I can be doing
-> > this better.
-> >
-> > Regards,
-> >
-> > Brandon
+On Monday 15 December 2008 22:15:40 Devin Heitmueller wrote:
+> Hello,
 >
-> Hi Hans,
+> A longstanding problem with some devices that provide uncompressed
+> video has to do with there being no way to associate an ALSA audio
+> device with the video.  For example, the HVR-950 provides it's analog
+> video stream and has a USB audio device for the audio, and there is
+> no way to know the two are associated.  This isn't an issue with
+> devices that have an MPEG encoder, since the card multiplexes the
+> audio into the MPEG stream automatically.
 >
-> Is this data useful? I will work on the script to test setting this
-> weekend but would like to make sure it is the output you would like
-> to see.
+> This has lead to some pretty crazy solutions from users such as
+> running tvtime or xawtv and arecord/aplay or sox at the same time,
+> with obvious problems with synchronization.  Markus was nice enough
+> to hack a version of tvtime that works for certain cards, but really
+> this is something the device be telling the application.  Having a
+> situation where every application out there needs to have custom
+> logic for each device is less than ideal.
+>
+> Has anyone proposed an API for associating a video stream with an
+> audio device?  Does anyone see a downside in having a call that will
+> tell the calling application where to find the audio stream?
+>
+> If nobody has done this before, I will take a closer look at the API
+> and make a proposal.
+>
+> Devin
 
-Hi Brandon,
+Hi Devin,
 
-Please test with this tree:
+Yes, I've made a proposal for this (and more) in this RFC:
 
-http://linuxtv.org/hg/~hverkuil/v4l-dvb-compat32
+http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.html
 
-All V4L1 and V4L2 ioctls are now supported and several broken 
-conversions are fixed. This should work pretty good and it should not 
-result in any kernel log messages.
+It's been on hold since there was no point in working on this unless I 
+could get the lower level v4l2_device and v4l2_subdev structs in first. 
+But I hope to start working on this early next year.
 
-At least, that's the case when I test with ivtv.
+In a nutshell, the idea is to create a media controller device that 
+allows you to query meta information (such as which v4l2/alsa/dvb/fb 
+devices there are) for a particular media card.
 
 Regards,
 
