@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB11f6UX028553
-	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 20:41:06 -0500
-Received: from smtp123.rog.mail.re2.yahoo.com (smtp123.rog.mail.re2.yahoo.com
-	[206.190.53.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB11ethQ020388
-	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 20:40:55 -0500
-Message-ID: <493340A6.5050308@rogers.com>
-Date: Sun, 30 Nov 2008 20:40:54 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBG95dPM002232
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:05:39 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBG948Tc016773
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:04:16 -0500
+Date: Tue, 16 Dec 2008 10:03:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+In-Reply-To: <uej08h569.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812161001000.4630@axis700.grange>
+References: <uk5a0hna0.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0812160904131.4630@axis700.grange>
+	<uej08h569.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-To: V4L <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: KWorld ATSC 110 and NTSC [was: 2.6.25+ and KWorld ATSC 110 inputs]
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH v3] Add tw9910 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,32 +28,81 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-stuart wrote:
-> V4L support for the KWorld ATSC120 is limited.  There a numerous threads 
-> here which talk about the problems and some work arounds.  The 
-> developers have talked about adding support but consider new features at 
-> the cost of an overhaul of the current driver.
->
-> Right now I believe you can not use both ATSC and NTSC tuners w/o power 
-> cycling your computer and bringing it up with (only) the appropriate 
-> driver.  Also, I don't believe the IR receiver works under V4L.  This 
-> card replaced the Kworld 110 and Kworld 115 tuners.  If you can find 
-> these older Kworld ATSC tuners, I would buy them instead as I believe 
-> they are better supported under V4L (I also have a Kworld ATSC110 - but 
-> only use it for ATSC tuning as well).
->
-> Go here and read up on how people are setting this card up:
-> > http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120
->
-> I'm using the Kworld 120 as an ATSC tuner and nothing else in a Debian 
-> mythtv slave back end system.
+On Tue, 16 Dec 2008, morimoto.kuninori@renesas.com wrote:
 
-Stuart, while I don't know for sure, I believe that information about
-the power cycling is now obsolete and the driver for the ATSC 120 is
-working.
+> > > +static int tw9910_try_fmt(struct soc_camera_device *icd,
+> > > +			      struct v4l2_format *f)
+> > > +{
+> > > +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > > +	__u32 wmax = (__u32)icd->width_max;
+> > > +	__u32 wmin = (__u32)icd->width_min;
+> > > +	__u32 hmax = (__u32)icd->height_max;
+> > > +	__u32 hmin = (__u32)icd->height_min;
+> > > +
+> > > +	pix->width  = min(pix->width,  wmax);
+> > > +	pix->width  = max(pix->width,  wmin);
+> > > +	pix->height = min(pix->height, hmax);
+> > > +	pix->height = max(pix->height, hmin);
+> > > +
+> > > +	pix->field = V4L2_FIELD_INTERLACED;
+> > > +
+> > > +	return 0;
+> > > +}
+> > 
+> > You forgot to fix this one. Please, look again what O've written to you 
+> > regarding this function. You may replace the field, if it is 
+> > V4L2_FIELD_ANY, but if it is something different, you have to return 
+> > -EINVAL.
+> 
+> Sorry I forget to tell you about this.
+> I tried it.
+> but pix->field was V4L2_FIELD_NONE when tw9910_try_fmt was 1st called.
 
-In any regard, such things are not related to the difficulties Bill is
-experiencing with his 110 card.  I'll detail in the next message.
+Yes, that's fine. This depends on your application - whatever you use. And 
+I would expect, if you first return -EINVAL in reply to FIELD_NONE, the 
+application then will try either ANY or INTERLACED, and you will get a 
+chance to select a suitable field.
+
+> debug code is like this
+> 
+> ----------------------------------------------------------
+> static int tw9910_try_fmt(struct soc_camera_device *icd,
+> 			      struct v4l2_format *f)
+> {
+>         struct v4l2_pix_format *pix = &f->fmt.pix;
+> ....
+>         if(pix->field == V4L2_FIELD_NONE)
+>                       printk("V4L2_FIELD_NONE\n")
+>         if(pix->field == V4L2_FIELD_ANY)
+>                       printk("V4L2_FIELD_ANY\n")
+>         if(pix->field == V4L2_FIELD_NONE)
+>                       printk("V4L2_FIELD_INTERLACED\n")
+> ...
+> }
+> ----------------------------------------------------------
+> 
+> answer is 
+> 
+> ----------------------------------------------------------
+> ...
+> V4L2_FIELD_NONE
+> V4L2_FIELD_ANY
+> V4L2_FIELD_INTERLACED
+> V4L2_FIELD_ANY
+> ...
+> ----------------------------------------------------------
+> 
+> I just removed field check from soc_camera.c :: soc_camera_fry_fmt_vid_cap
+> It it not enough ?
+
+It is, this looks fine. Just try returning -EINVAL on NONE and see if the 
+application manages it.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
