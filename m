@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <Hartmut.Niemann@gmx.de>) id 1LFmBz-0003bA-NJ
-	for linux-dvb@linuxtv.org; Thu, 25 Dec 2008 10:07:44 +0100
-From: Hartmut Niemann <Hartmut.Niemann@gmx.de>
+Received: from mail-ew0-f16.google.com ([209.85.219.16])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tutuyu@usc.edu>) id 1LCikO-0000Ii-Ld
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 23:50:37 +0100
+Received: by ewy9 with SMTP id 9so3792996ewy.17
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 14:49:59 -0800 (PST)
+Message-ID: <cae4ceb0812161449g139c0289y1c51b8b4938756f7@mail.gmail.com>
+Date: Tue, 16 Dec 2008 14:49:59 -0800
+From: "Tu-Tu Yu" <tutuyu@usc.edu>
 To: linux-dvb@linuxtv.org
-Date: Thu, 25 Dec 2008 09:40:13 +0100
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200812250940.13582.Hartmut.Niemann@gmx.de>
-Subject: [linux-dvb] cx88 (Hauppauge Nova-S-Plus DVB-S) doesn't like to
-	share interrupt?
+Subject: [linux-dvb] Question about Dvico HDTV7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,30 +25,12 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello!
-With debian stable (kernel 2.6.24-etchnhalf.1-686 #1 SMP) on AMD Athlon(tm) XP 2600+, 
-MSI KT4AV (VIA KT400) my Hauppauge Nova-S-Plus DVB-S does not work well.
-
-The DVB receiver used to share an interrupt with an 
-USB / firewire combo interface board.
-After a few minutes of viewing TV (kaffeine 0.8.3), the system started
-skipping frames, until it displayed only 3 or 4 frames a second,
-with heavily distorted audio. Sometimes stopping and restarting helps.
-
-Since I moved the USB interface to a different PCI slot, this problem
-seems to be gone.
-
-This is a regression, because as far as I can remember,
-when I set up the system some time ago,
-it worked far better than now. But I can't tell which change in the system
-did this.
-
-Is this a known problem?
-Would a dist upgrade to "debian testing" help?
-
-With best regards 
-Hartmut Niemann
-
+Dear sirs:
+After I run the tv tuner card for few hours (6-24hours), the tv tuner
+will stop. I checked the snr value it goes down to 013dB. I wanna know
+if anyone has same problem as me, Thank you
+Tu Tu Yu
+tutuyu@usc.edu
 
 _______________________________________________
 linux-dvb mailing list
