@@ -1,28 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB16WHbL025925
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:32:17 -0500
-Received: from tomts43-srv.bellnexxia.net (tomts43-srv.bellnexxia.net
-	[209.226.175.110])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB16W2dn026479
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:32:02 -0500
-Received: from toip5.srvr.bell.ca ([209.226.175.88])
-	by tomts43-srv.bellnexxia.net
-	(InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP id
-	<20081201063201.OLFM1582.tomts43-srv.bellnexxia.net@toip5.srvr.bell.ca>
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 01:32:01 -0500
-From: Bill Pringlemeir <bpringle@sympatico.ca>
-To: CityK <cityk@rogers.com>
-References: <49334769.8070908@rogers.com>
-Date: Mon, 01 Dec 2008 02:29:10 -0500
-In-Reply-To: <49334769.8070908@rogers.com> (cityk@rogers.com's message of
-	"Sun, 30 Nov 2008 21:09:45 -0500")
-Message-ID: <87k5akbbg9.fsf@sympatico.ca>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGFacbZ027827
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 10:37:14 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGF4L8j023606
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 10:04:22 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so1455988fga.7
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 07:04:16 -0800 (PST)
+Message-ID: <412bdbff0812160704m32adfbcejbfe735dbc237eeff@mail.gmail.com>
+Date: Tue, 16 Dec 2008 10:04:16 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200812161004.28556.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: V4L <video4linux-list@redhat.com>, Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: KWorld ATSC 110 and NTSC
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <412bdbff0812151315j768feb89j5deaf4db4650749e@mail.gmail.com>
+	<200812161004.28556.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l audio enumeration API
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,67 +31,73 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 30 Nov 2008, cityk@rogers.com wrote:
+On Tue, Dec 16, 2008 at 4:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Monday 15 December 2008 22:15:40 Devin Heitmueller wrote:
+>> Hello,
+>>
+>> A longstanding problem with some devices that provide uncompressed
+>> video has to do with there being no way to associate an ALSA audio
+>> device with the video.  For example, the HVR-950 provides it's analog
+>> video stream and has a USB audio device for the audio, and there is
+>> no way to know the two are associated.  This isn't an issue with
+>> devices that have an MPEG encoder, since the card multiplexes the
+>> audio into the MPEG stream automatically.
+>>
+>> This has lead to some pretty crazy solutions from users such as
+>> running tvtime or xawtv and arecord/aplay or sox at the same time,
+>> with obvious problems with synchronization.  Markus was nice enough
+>> to hack a version of tvtime that works for certain cards, but really
+>> this is something the device be telling the application.  Having a
+>> situation where every application out there needs to have custom
+>> logic for each device is less than ideal.
+>>
+>> Has anyone proposed an API for associating a video stream with an
+>> audio device?  Does anyone see a downside in having a call that will
+>> tell the calling application where to find the audio stream?
+>>
+>> If nobody has done this before, I will take a closer look at the API
+>> and make a proposal.
+>>
+>> Devin
+>
+> Hi Devin,
+>
+> Yes, I've made a proposal for this (and more) in this RFC:
+>
+> http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.html
+>
+> It's been on hold since there was no point in working on this unless I
+> could get the lower level v4l2_device and v4l2_subdev structs in first.
+> But I hope to start working on this early next year.
+>
+> In a nutshell, the idea is to create a media controller device that
+> allows you to query meta information (such as which v4l2/alsa/dvb/fb
+> devices there are) for a particular media card.
+>
+> Regards,
+>
+>        Hans
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
 
-> Bill Pringlemeir wrote:
+Hello Hans,
 
->> I have experimented with this a bit further.  Here are some of my
->> observations,
+Thank you for providing the proposal.  Admittedly, I've been focusing
+on the linux-dvb side and not paying enough attention to what has been
+going on in v4l.
 
->> I switch the antenna feed between top and bottom inputs with no effect
->> on getting the NTSC signal.
-
-> The NTSC issue is a known problem.
-
-http://marc.info/?l=linux-video&m=121210186625441&w=2
-
-[... blah blah blah ...]
-
-I did investigate some of the difference between 2.6.24 and more
-recent kernels.  The code is far better; user should expect some pain.
-I was just hoping I was helping with a new issue; but I guess the
-kernel lags behind mecurial.
-
-> I tracked the error down to a commit Mauro had made (IIRC, back in
-> April) which ended up causing a regression on some boards (e.g. KWorld
-> ATSC 110/115).  M.Krufky spun a quick patch (which works fine), but it
-> cannot be applied to the main Hg sources as it too would break other
-> things, and so some discussion would be needed to resolve the underlying
-> problem.  I was going to bug Mauro about the issue, but never got around
-> to it, and I don't know if Mike discussed this with Mauro at the recent
-> Plummers conference.  (I have cc'ed both in on the message).
-
-> Several posters on AVS forums were complaining of this and I posted a
-> link to Mike's patch and instructions (including a warning that it could
-> break support with other cards).  AFAIK, zero feedback was achieved from
-> that, as posters were either too scared by the warning or couldn't
-> follow the instructions, nor responded to further posts.  Whatever.
-
-Google was not helpful at showing me this thread.  I patch and used
-'rmmod tuner; modprobe tuner'.  This allow NTSC reception.
-
-> In any regard, Mike's patch, as I said, works fine, albeit is not a
-> perfect solution as it requires some manual intervention (or script) on
-> the part of the user to enable the analogue TV functionality.
-
-> Mauro -- the exact changeset in question is:   7753:67faa17a5bcb
-> Mike's patch is located at:
-> http://linuxtv.org/~mkrufky/fix-broken-atsc110-analog.patch
-
-No, having an i2c driver muck with a tuner is not nice (it is what was
-in the 2.6.24 kernel).
-
-Couldn't the nxt200x driver be placing outputs in OC state via a
-'hw_init' and 'hw_fini' type callback (or maybe
-hw_quiescent). Switching between analog and digital demodulators would
-need something like this?  When tuner-simple switches A/D, it needs to
-make a call up to the main saa7134 driver to ask for the demodulators
-(nxt200x) to be put in the right state (or is the saa7134 already
-aware of this switch?).  At least, that is what somebody who knows
-nothing about this code would expect.
+If there is anything I can do to help make this happen, please let me know.
 
 Thanks,
-Bill Pringlemeir.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
