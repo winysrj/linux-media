@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJCQnE6021767
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 07:26:49 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.169])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJCQYit031245
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 07:26:35 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so941946wfc.6
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 04:26:34 -0800 (PST)
-Message-ID: <aec7e5c30812190426ja9252a6k95b626c2ce87a909@mail.gmail.com>
-Date: Fri, 19 Dec 2008 21:26:33 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812171938460.8733@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGGh2e9016221
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 11:43:03 -0500
+Received: from bay0-omc1-s28.bay0.hotmail.com (bay0-omc1-s28.bay0.hotmail.com
+	[65.54.246.100])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGGglwq003387
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 11:42:47 -0500
+Message-ID: <BAY135-W526C1AC293891AC584A4B7BFF50@phx.gbl>
+From: Lehel Kovach <lehelkovach@hotmail.com>
+To: <video4linux-list@redhat.com>
+Date: Tue, 16 Dec 2008 08:42:46 -0800
+In-Reply-To: <1229421997.1745.23.camel@localhost>
+References: <BAY135-W47952C51F5ED0CAEE9809BFF50@phx.gbl>
+	<1229421997.1745.23.camel@localhost>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_35819_7128533.1229689593954"
-References: <Pine.LNX.4.64.0812171938460.8733@axis700.grange>
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 3/4] soc-camera: add new bus width and signal polarity
-	flags
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Subject: RE: quickcam express
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,68 +28,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_35819_7128533.1229689593954
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-On Thu, Dec 18, 2008 at 3:45 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> In preparation for i.MX31 camera host driver add flags for 4 and 15 bit bus
-> widths and for data lines polarity inversion.
->
-> Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
-> ---
+its  a logitech quickcam express -- the old one: model# 961121-0403
 
-This is a good plan...
+im using 0.6.6 i believe (the one with distroed with ubuntu 8.1). =20
 
-> Careful, soc_camera_bus_param_compatible() is more selective with this
-> patch, some configurations might break.
 
-...but you break the SuperH Migo-R board with this patch. You need to
-add flags to the Migo-R board code as well to avoid breakage, see the
-half-assed attached patch. Thanks to Morimoto-san for pointing out the
-breakage.
 
-I wonder if it's a better strategy to break this patch into two parts
-- one with the flags only for early merge and another one that handles
-the part doing soc_camera_bus_param_compatible(). But maybe you depend
-on the latter to probe or attach properly?
 
-Cheers,
 
-/ magnus
-
-------=_Part_35819_7128533.1229689593954
-Content-Type: application/octet-stream; name=v4l-degrade-20081219.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fowtag3e0
-Content-Disposition: attachment; filename=v4l-degrade-20081219.patch
-
-LS0tIDAwMDcvYXJjaC9zaC9ib2FyZHMvbWFjaC1taWdvci9zZXR1cC5jCisrKyB3b3JrL2FyY2gv
-c2gvYm9hcmRzL21hY2gtbWlnb3Ivc2V0dXAuYwkyMDA4LTEyLTE5IDIxOjA4OjU3LjAwMDAwMDAw
-MCArMDkwMApAQCAtNDA0LDcgKzQwNCw4IEBAIHN0YXRpYyBzdHJ1Y3Qgc29jX2NhbWVyYV9wbGF0
-Zm9ybV9pbmZvIG8KIAkJLmhlaWdodCA9IDI0MCwKIAl9LAogCS5idXNfcGFyYW0gPSAgU09DQU1f
-UENMS19TQU1QTEVfUklTSU5HIHwgU09DQU1fSFNZTkNfQUNUSVZFX0hJR0ggfAotCVNPQ0FNX1ZT
-WU5DX0FDVElWRV9ISUdIIHwgU09DQU1fTUFTVEVSIHwgU09DQU1fREFUQVdJRFRIXzgsCisJU09D
-QU1fVlNZTkNfQUNUSVZFX0hJR0ggfCBTT0NBTV9NQVNURVIgfCBTT0NBTV9EQVRBV0lEVEhfOAor
-CXwgU09DQU1fREFUQV9BQ1RJVkVfSElHSCwKIAkucG93ZXIgPSBjYW1lcmFfcG93ZXIsCiAJLnNl
-dF9jYXB0dXJlID0gb3Y3NzJ4X3NldF9jYXB0dXJlLAogfTsKQEAgLTQxOSw3ICs0MjAsOCBAQCBz
-dGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSBtaWdvcl9jYW1lCiAKIHN0YXRpYyBzdHJ1Y3Qg
-c2hfbW9iaWxlX2NldV9pbmZvIHNoX21vYmlsZV9jZXVfaW5mbyA9IHsKIAkuZmxhZ3MgPSBTT0NB
-TV9NQVNURVIgfCBTT0NBTV9EQVRBV0lEVEhfOCB8IFNPQ0FNX1BDTEtfU0FNUExFX1JJU0lORyBc
-Ci0JfCBTT0NBTV9IU1lOQ19BQ1RJVkVfSElHSCB8IFNPQ0FNX1ZTWU5DX0FDVElWRV9ISUdILAor
-CXwgU09DQU1fSFNZTkNfQUNUSVZFX0hJR0ggfCBTT0NBTV9WU1lOQ19BQ1RJVkVfSElHSCBcCisJ
-fCBTT0NBTV9EQVRBX0FDVElWRV9ISUdILAogfTsKIAogc3RhdGljIHN0cnVjdCByZXNvdXJjZSBt
-aWdvcl9jZXVfcmVzb3VyY2VzW10gPSB7Cg==
-------=_Part_35819_7128533.1229689593954
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
+> Subject: Re: quickcam express
+> From: moinejf@free.fr
+> To: lehelkovach@hotmail.com
+> CC:=20
+> Date: Tue=2C 16 Dec 2008 11:06:37 +0100
+>=20
+> On Tue=2C 2008-12-16 at 02:41 -0800=2C Lehel Kovach wrote:
+> > does v4l have an issue with quickcam express?  i keep getting this unkn=
+own error 515 and dont know if its a v4l issue or an issue of my quickcam d=
+river:
+> >=20
+> > ### video4linux device info [/dev/video0] ###
+> > general info
+> >     VIDIOCGCAP
+> >     name                    : "Logitech QuickCam USB"
+> >     type                    : 0x0 []
+> >     channels                : 1
+> >     audios                  : 0
+> >     maxwidth                : 360
+> >     maxheight               : 296
+> >     minwidth                : 32
+> >     minheight               : 32
+> >=20
+> > libv4l2: error getting capabilities: Unknown error 515
+> > ioctl: VIDIOC_QUERYCAP(driver=3D""=3Bcard=3D""=3Bbus_info=3D""=3Bversio=
+n=3D0.0.0=3Bcapabilities=3D0x0 []): Unknown error 515
+>=20
+> May you give more information about your webcam?
+> - vend:prod
+> - used driver
+>=20
+> --=20
+> Ken ar c'henta=F1 |             ** Breizh ha Linux atav! **
+> Jef             |               http://moinejf.free.fr/
+>=20
+>=20
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_35819_7128533.1229689593954--
