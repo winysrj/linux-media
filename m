@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVJTf6A022692
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 14:29:41 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVJS85l018760
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 14:28:08 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so5776721wfc.6
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 11:28:06 -0800 (PST)
-Message-ID: <c785bba30812311128u27f9326ah16728a17a5fce7e3@mail.gmail.com>
-Date: Wed, 31 Dec 2008 12:28:06 -0700
-From: "Paul Thomas" <pthomas8589@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <20081231155344.4cc4594a@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBG9rIXk005636
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:53:18 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBG9r55G015564
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:53:05 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so2831575wfc.6
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 01:53:04 -0800 (PST)
+Message-ID: <aec7e5c30812160153m7a906d2eu8a7f5b1019ab144d@mail.gmail.com>
+Date: Tue, 16 Dec 2008 18:53:04 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: "Kuninori Morimoto" <morimoto.kuninori@renesas.com>
+In-Reply-To: <uljughnao.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<20081231155344.4cc4594a@gmail.com>
-Subject: Re: em28xx issues
+References: <uljughnao.wl%morimoto.kuninori@renesas.com>
+Cc: V4L-Linux <video4linux-list@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3] Add interlace support to sh_mobile_ceu_camera.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,106 +31,71 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Markus & Douglas,
+Hi Morimoto-san,
 
-Thanks for your help. Do I need more than just the kernel headers
-installed? Both the full v4l-dvb and em28xx-new start to compile, but
-generate errors an error before finishing.
+On Tue, Dec 16, 2008 at 11:09 AM, Kuninori Morimoto
+<morimoto.kuninori@renesas.com> wrote:
+>
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+> v2 -> v3
+>
+> o rename phys_addr_t -> phys_addr_top
+> o fix phys_addr_bottom calculation method. thank you Magnus
+> o fix check method about f->fmt.pix.field
 
-thanks,
-Paul
+This patch looks much better. I still have two things to ask you
+though, sorry for not commenting on this earlier.
 
-On Wed, Dec 31, 2008 at 10:53 AM, Douglas Schilling Landgraf
-<dougsland@gmail.com> wrote:
-> Hello Paul,
+> --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> @@ -467,10 +476,16 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
+>                cdwdr_width = buswidth == 16 ? width * 2 : width;
+>        }
 >
->  I'm working to put SilverCrest webcam to work with em28xx module
-> (the same module that yours work). I will keep you update when I finish
-> it okay?
+> +       height = icd->height;
+> +       if (pcdev->is_interlace) {
+> +               height      /= 2;
+
+Please just use a single space between "height" and "/=".
+
+> @@ -646,7 +663,25 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+>        f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
 >
-> Let me: Did you test with lastest v4l-dvb tree?
+>        /* limit to sensor capabilities */
+> -       return icd->ops->try_fmt(icd, f);
+> +       ret = icd->ops->try_fmt(icd, f);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       switch (f->fmt.pix.field) {
+> +       case V4L2_FIELD_INTERLACED:
+> +               pcdev->is_interlace = 1;
+> +               break;
+> +       case V4L2_FIELD_ANY:
+> +               f->fmt.pix.field = V4L2_FIELD_NONE;
+
+Here it would be good to insert a "fall-through" comment here to show
+that the missing "break" is intentional.
+
+> +       case V4L2_FIELD_NONE:
+> +               pcdev->is_interlace = 0;
+> +               break;
+> +       default:
+> +               ret = -EINVAL;
+> +               break;
+> +       }
+> +
+> +       return ret;
+>  }
 >
-> If not, please remove your webcam from your computer and restart it.
->
-> Download lastest:
->  hg clone http://linuxtv.org/hg/v4l-dvb
->
-> Compile:
->
->  cd v4l-dvb
->  make
->  make install
->
-> Plug your device again and try to use with your favorite application.
->
-> Fell free to ping me or email-me okay?
->
-> Thanks,
-> Douglas
->
->
->
-> On Tue, 30 Dec
-> 2008 17:46:34 -0700 "Paul Thomas" <pthomas8589@gmail.com> wrote:
->
->> Hello,
->>
->> I'm trying to get a Empia EM2860 board working (specifically the "DVD
->> Maker USB 2.0"). Everything seems OK to start with, when I plug in the
->> board I get a reasonable dmesg (posted at the bottom).
->>
->> I then try to use cheese or camstream and all I get is a black screen
->> or a black screen with a green stripe at the bottom. I've tested it
->> with a Windows box so I know there's nothing wrong with the video
->> input.
->>
->> Are cheese & camstream the appropriate v4l2 frontends for testing
->> with. Is there something more low level I could test with?
->>
->> I using Fedora 10, my kernel version is 2.6.27.9-159.fc10.i686.
->>
->> Thanks in advance.
->>
->> -Paul
->>
->> usb 1-2: new high speed USB device using ehci_hcd and address 20
->> usb 1-2: configuration #1 chosen from 1 choice
->> em28xx new video device (eb1a:2860): interface 0, class 255
->> em28xx Doesn't have usb audio class
->> em28xx #0: Alternate settings: 8
->> em28xx #0: Alternate setting 0, max size= 0
->> em28xx #0: Alternate setting 1, max size= 0
->> em28xx #0: Alternate setting 2, max size= 1448
->> em28xx #0: Alternate setting 3, max size= 2048
->> em28xx #0: Alternate setting 4, max size= 2304
->> em28xx #0: Alternate setting 5, max size= 2580
->> em28xx #0: Alternate setting 6, max size= 2892
->> em28xx #0: Alternate setting 7, max size= 3072
->> em28xx #0: chip ID is em2860
->> saa7115' 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
->> em28xx #0: found i2c device @ 0x4a [saa7113h]
->> em28xx #0: Your board has no unique USB ID.
->> em28xx #0: A hint were successfully done, based on i2c devicelist
->> hash. em28xx #0: This method is not 100% failproof.
->> em28xx #0: If the board were missdetected, please email this log to:
->> em28xx #0:    V4L Mailing List  <video4linux-list@redhat.com>
->> em28xx #0: Board detected as PointNix Intra-Oral Camera
->> em28xx #0: Registering snapshot button...
->> input: em28xx snapshot button as
->> /devices/pci0000:00/0000:00:1d.7/usb1/1-2/input/input16
->> em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
->> em28xx-audio.c: probing for em28x1 non standard usbaudio
->> em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
->> em28xx #0: Found PointNix Intra-Oral Camera
->> usb 1-2: New USB device found, idVendor=eb1a, idProduct=2860
->> usb 1-2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe
->> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+>  static int sh_mobile_ceu_reqbufs(struct soc_camera_file *icf,
+> --
+> 1.5.6.3
+
+Please fix up these two things and repost. Thank you!
+
+/ magnus
 
 --
 video4linux-list mailing list
