@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail55.messagelabs.com ([216.82.241.163])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <aturbide@rogers.com>) id 1L7GP0-0003U9-J4
-	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 22:34:01 +0100
-Received: from cr344472a (unknown [172.28.23.228])
-	by imap1.toshiba.ca (Postfix) with SMTP id 41ED13FC7A
-	for <linux-dvb@linuxtv.org>; Mon,  1 Dec 2008 16:25:14 -0500 (EST)
-Message-ID: <003301c953fc$84e23110$0000fea9@cr344472a>
-From: "Alain Turbide" <aturbide@rogers.com>
-To: <linux-dvb@linuxtv.org>
-References: <99503.50867.qm@web88302.mail.re4.yahoo.com>
-Date: Mon, 1 Dec 2008 16:31:15 -0500
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alannisota@gmail.com>) id 1LCeGe-0004af-T0
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 19:03:38 +0100
+Received: by bwz11 with SMTP id 11so7045599bwz.17
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 10:03:03 -0800 (PST)
+Message-ID: <4947EC68.6080403@gmail.com>
+Date: Tue, 16 Dec 2008 09:59:04 -0800
+From: Alan Nisota <alannisota@gmail.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] [FIXEd]  Bug Report - Twinhan vp-1020,
-	bt_8xx driver + frontend
+To: Janne Grunau <janne-dvb@grunau.be>
+References: <200812161740.46186.janne-dvb@grunau.be>
+In-Reply-To: <200812161740.46186.janne-dvb@grunau.be>
+Content-Type: multipart/mixed; boundary="------------060706010601060206030508"
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] (Try 2) Convert GP8PSK module to use S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,209 +22,279 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0953259766=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 This is a multi-part message in MIME format.
+--------------060706010601060206030508
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
---===============0953259766==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0025_01C953D2.3B3EF8B0"
+Janne, Thanks for your' response.  Hopefuly this patch addresses all of 
+your concerns.
 
-This is a multi-part message in MIME format.
+I am not including the API changes at the moment.  I'll try again on 
+that after this gets committed (the number of folks working with DCII is 
+very small, as far as I'm aware, so the other modulation types can be 
+handled later)
 
-------=_NextPart_000_0025_01C953D2.3B3EF8B0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+There were a fewquestions which I'll try to answer here as well:
 
-Digging=20in=20a=20little=20further.The=20dst_algo=20(which=20the=20twinha=
-n=20uses)=20is=20set=20to=20return=20=200=20as=20the=20default=20setting=20=
-for=20the=20SW=20algo=20in=20dst.c,=20yet=20in=20dvb_frontend.h,=20the=20D=
-VBFE_ALGO_SW=20algo=20is=20defined=20as=202.=20=20Which=20is=20the=20corre=
-ct=20one=20here?=20Should=20dst.c=20be=20changed=20to=20return=202=20as=20=
-sw=20or=20is=200=20the=20correct=20number=20for=20the=20SW=20algo=20and=20=
-thus=20DVBFE_ALGO_SW=20be=20changed=20to=20return=200?
-=20=20-----=20Original=20Message=20-----=20
-=20=20From:=20Alain=20
-=20=20To:=20linux-dvb@linuxtv.org=20
-=20=20Sent:=20Monday,=20December=2001,=202008=2012:18=20PM
-=20=20Subject:=20Re:=20[linux-dvb]=20Bug=20Report=20-=20Twinhan=20vp-1020,=
-bt_8xx=20driver=20+=20frontend
+> Do the values for the FEC in cmd[9] depend on the
+> modulation?
+Yes, each modulation can have completely different meanings for cmd[9]
 
+> I would prefer a S2API command DTV_TURBO_MODES over duplicating
+> modulations. Especially since the the implemtation in the driver differs
+> only for QPSK and QPSK_TURBO.
+>   
+The downside to this is that it requires more changes inside of the 
+user-space software to do something special with these modulations.  
+They really are completely different than non-turbo modes.  But as the 
+only interesting case is Turbo-QPSK, and I'm not sure which satellites 
+even broadcast it, that may be ok.
 
-=20=20Found=20the=20problem=20I=20believe.=20=20The=20original=20code=20al=
-ways=20ran=20dvb_frontend_swzigzag(fe)=20even=20if=20the=20algo=20=20is=20=
-0
-=20=20This=20fixes=20the=20issue=20for=20me.
+>> +	QPSK_DCII_C,
+>> +	QPSK_DCII_I,
+>> +	QPSK_DCII_Q,
+>>     
+>
+> Are all three needed? What does the last character mean?
+>   
+I'm not an expert in DCII, and don't know much about it.  This set of 
+code came directly from the vendor.  Here is the best description of 
+DCII that I've seen though:
+http://www.coolstf.com/mpeg/#dcii
 
-=20=20---=20dvb_frontend.c=20=20=20=20=20=202008-12-01=2012:07:28.00000000=
-0=20-0500
-=20=20+++=20/dvb_frontend.c=20=20=20=20=202008-12-01=2012:07:16.000000000=20=
--0500
-=20=20@@=20-645,6=20+645,8=20@@
-=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
-=20=20=20=20=20=20=20=20=20break;
-=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
-=20default:
-=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
-=20=20=20=20=20=20=20=20=20dprintk("%s:=20UNDEFINED=20ALGO=20!\n",=20__fun=
-c__);
-=20=20+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
-=20=20=20=20=20=20=20=20dvb_frontend_swzigzag(fe);
-=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
-=20=20=20=20=20=20=20=20=20break;
-=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
-=20}
-=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20}=20else=20{
+----------------------
+This patch converts the gp8psk module to use the S2API.
+It pretends to be  DVB-S2 capable in order to allow the various 
+supported modulations (8PSK, QPSK-Turbo, etc), and keep software 
+compatibility with the S2API patches for Mythtv and VDR.
+
+Signed-off by: Alan Nisota <alannisota@gmail.com>
 
 
 
+--------------060706010601060206030508
+Content-Type: text/x-diff;
+ name="gp8psk_dvbs2.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gp8psk_dvbs2.patch"
 
+diff -r 086c580cf0e7 linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+--- a/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c	Tue Dec 16 10:46:32 2008 +0100
++++ b/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c	Tue Dec 16 09:36:32 2008 -0800
+@@ -24,6 +24,20 @@ struct gp8psk_fe_state {
+ 	unsigned long next_status_check;
+ 	unsigned long status_check_interval;
+ };
++
++static int gp8psk_tuned_to_DCII(struct dvb_frontend* fe)
++{
++	struct gp8psk_fe_state *st = fe->demodulator_priv;
++	u8 status;
++	gp8psk_usb_in_op(st->d, GET_8PSK_CONFIG, 0,0,&status,1);
++	return (status & bmDCtuned);
++}
++
++static int gp8psk_set_tuner_mode(struct dvb_frontend* fe, int mode)
++{
++	struct gp8psk_fe_state *state = fe->demodulator_priv;
++	return gp8psk_usb_out_op(state->d, SET_8PSK_CONFIG, mode,0,NULL,0);
++}
+ 
+ static int gp8psk_fe_update_status(struct gp8psk_fe_state *st)
+ {
+@@ -99,38 +113,100 @@ static int gp8psk_fe_get_tune_settings(s
+ 	return 0;
+ }
+ 
++static int gp8psk_fe_set_property(struct dvb_frontend *fe,
++	struct dtv_property *tvp)
++{
++	deb_fe("%s(..)\n", __func__);
++	return 0;
++}
++
++static int gp8psk_fe_get_property(struct dvb_frontend *fe,
++	struct dtv_property *tvp)
++{
++	deb_fe("%s(..)\n", __func__);
++	return 0;
++}
++
++
+ static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
+ 				  struct dvb_frontend_parameters *fep)
+ {
+ 	struct gp8psk_fe_state *state = fe->demodulator_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u8 cmd[10];
+ 	u32 freq = fep->frequency * 1000;
++	int gp_product_id = le16_to_cpu(state->d->udev->descriptor.idProduct);
++
++	deb_fe("%s()\n", __func__);
+ 
+ 	cmd[4] = freq         & 0xff;
+ 	cmd[5] = (freq >> 8)  & 0xff;
+ 	cmd[6] = (freq >> 16) & 0xff;
+ 	cmd[7] = (freq >> 24) & 0xff;
+ 
+-	switch(fe->ops.info.type) {
+-	case FE_QPSK:
+-		cmd[0] =  fep->u.qpsk.symbol_rate        & 0xff;
+-		cmd[1] = (fep->u.qpsk.symbol_rate >>  8) & 0xff;
+-		cmd[2] = (fep->u.qpsk.symbol_rate >> 16) & 0xff;
+-		cmd[3] = (fep->u.qpsk.symbol_rate >> 24) & 0xff;
++	switch (c->delivery_system) {
++	case SYS_DVBS:
++		/* Only QPSK is supported for DVB-S */
++		if (c->modulation != QPSK) {
++			deb_fe("%s: unsupported modulation selected (%d)\n",
++				__func__, c->modulation);
++			return -EOPNOTSUPP;
++		}
++		c->fec_inner = FEC_AUTO;
++		break;
++	case SYS_DVBS2:
++		deb_fe("%s: DVB-S2 delivery system selected\n", __func__);
++		break;
++
++	default:
++		deb_fe("%s: unsupported delivery system selected (%d)\n",
++			__func__, c->delivery_system);
++		return -EOPNOTSUPP;
++	}
++
++	cmd[0] =  c->symbol_rate        & 0xff;
++	cmd[1] = (c->symbol_rate >>  8) & 0xff;
++	cmd[2] = (c->symbol_rate >> 16) & 0xff;
++	cmd[3] = (c->symbol_rate >> 24) & 0xff;
++	switch (c->modulation) {
++	case QPSK:
++		if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
++			if (gp8psk_tuned_to_DCII(fe))
++				gp8psk_bcm4500_reload(state->d);
++		switch (c->fec_inner) {
++		case FEC_1_2:  cmd[9] = 0; break;
++		case FEC_2_3:  cmd[9] = 1; break;
++		case FEC_3_4:  cmd[9] = 2; break;
++		case FEC_5_6:  cmd[9] = 3; break;
++		case FEC_7_8:  cmd[9] = 4; break;
++		case FEC_AUTO: cmd[9] = 5; break;
++		default:       cmd[9] = 5; break;
++		}
+ 		cmd[8] = ADV_MOD_DVB_QPSK;
+-		cmd[9] = 0x03; /*ADV_MOD_FEC_XXX*/
+ 		break;
+-	default:
+-		// other modes are unsuported right now
+-		cmd[0] = 0;
+-		cmd[1] = 0;
+-		cmd[2] = 0;
+-		cmd[3] = 0;
+-		cmd[8] = 0;
++	case PSK_8: /* PSK_8 is for compatibility with DN */
++		cmd[8] = ADV_MOD_TURBO_8PSK;
++		switch (c->fec_inner) {
++		case FEC_2_3:  cmd[9] = 0; break;
++		case FEC_3_4:  cmd[9] = 1; break;
++		case FEC_3_5:  cmd[9] = 2; break;
++		case FEC_5_6:  cmd[9] = 3; break;
++		case FEC_8_9:  cmd[9] = 4; break;
++		default:       cmd[9] = 0; break;
++		}
++		break;
++	case QAM_16: /* QAM_16 is for compatibility with DN */
++		cmd[8] = ADV_MOD_TURBO_16QAM;
+ 		cmd[9] = 0;
+ 		break;
++	default: /* Unknown modulation */
++		deb_fe("%s: unsupported modulation selected (%d)\n",
++			__func__, c->modulation);
++		return -EOPNOTSUPP;
+ 	}
+ 
++	if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
++		gp8psk_set_tuner_mode(fe,0);
+ 	gp8psk_usb_out_op(state->d,TUNE_8PSK,0,0,cmd,10);
+ 
+ 	state->lock = 0;
+@@ -139,13 +215,6 @@ static int gp8psk_fe_set_frontend(struct
+ 
+ 	return 0;
+ }
+-
+-static int gp8psk_fe_get_frontend(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *fep)
+-{
+-	return 0;
+-}
+-
+ 
+ static int gp8psk_fe_send_diseqc_msg (struct dvb_frontend* fe,
+ 				    struct dvb_diseqc_master_cmd *m)
+@@ -261,9 +330,11 @@ static struct dvb_frontend_ops gp8psk_fe
+ 		.symbol_rate_max        = 45000000,
+ 		.symbol_rate_tolerance  = 500,  /* ppm */
+ 		.caps = FE_CAN_INVERSION_AUTO |
+-				FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+-				FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+-				FE_CAN_QPSK
++			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
++			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
++			// FE_CAN_QAM_16 is for compatibility 
++			// (Myth incorrectly detects Turbo-QPSK as plain QAM-16)
++			FE_CAN_QPSK | FE_CAN_QAM_16
+ 	},
+ 
+ 	.release = gp8psk_fe_release,
+@@ -271,8 +342,10 @@ static struct dvb_frontend_ops gp8psk_fe
+ 	.init = NULL,
+ 	.sleep = NULL,
+ 
++	.set_property = gp8psk_fe_set_property,
++	.get_property = gp8psk_fe_get_property,
+ 	.set_frontend = gp8psk_fe_set_frontend,
+-	.get_frontend = gp8psk_fe_get_frontend,
++
+ 	.get_tune_settings = gp8psk_fe_get_tune_settings,
+ 
+ 	.read_status = gp8psk_fe_read_status,
+diff -r 086c580cf0e7 linux/drivers/media/dvb/dvb-usb/gp8psk.c
+--- a/linux/drivers/media/dvb/dvb-usb/gp8psk.c	Tue Dec 16 10:46:32 2008 +0100
++++ b/linux/drivers/media/dvb/dvb-usb/gp8psk.c	Tue Dec 16 09:36:32 2008 -0800
+@@ -174,7 +174,6 @@ static int gp8psk_power_ctrl(struct dvb_
+ 	return 0;
+ }
+ 
+-#if 0
+ int gp8psk_bcm4500_reload(struct dvb_usb_device *d)
+ {
+ 	u8 buf;
+@@ -191,7 +190,6 @@ int gp8psk_bcm4500_reload(struct dvb_usb
+ 			return EINVAL;
+ 	return 0;
+ }
+-#endif  /*  0  */
+ 
+ static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+diff -r 086c580cf0e7 linux/drivers/media/dvb/dvb-usb/gp8psk.h
+--- a/linux/drivers/media/dvb/dvb-usb/gp8psk.h	Tue Dec 16 10:46:32 2008 +0100
++++ b/linux/drivers/media/dvb/dvb-usb/gp8psk.h	Tue Dec 16 09:36:32 2008 -0800
+@@ -92,5 +92,6 @@ extern int gp8psk_usb_in_op(struct dvb_u
+ extern int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+ extern int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 			     u16 index, u8 *b, int blen);
++extern int gp8psk_bcm4500_reload(struct dvb_usb_device *d);
+ 
+ #endif
 
---------------------------------------------------------------------------=
-----
-
-
-
---------------------------------------------------------------------------=
-----
-
-
-=20=20_______________________________________________
-=20=20linux-dvb=20mailing=20list
-=20=20linux-dvb@linuxtv.org
-=20=20http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-______________________________________________________________________
-This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20Sec=
-urity=20System.
-For=20more=20information=20please=20visit=20http://www.messagelabs.com/ema=
-il=20
-______________________________________________________________________
-------=_NextPart_000_0025_01C953D2.3B3EF8B0
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE=20HTML=20PUBLIC=20"-//W3C//DTD=20HTML=204.0=20Transitional//EN">=
-
-<HTML><HEAD>
-<META=20http-equiv=3DContent-Type=20content=3D"text/html;=20charset=3Diso-=
-8859-1">
-<STYLE=20type=3Dtext/css>DIV=20{
-=09MARGIN:=200px
-}
-</STYLE>
-
-<META=20content=3D"MSHTML=206.00.6000.16735"=20name=3DGENERATOR></HEAD>
-<BODY=20bgColor=3D#ffffff>
-<DIV><FONT=20face=3DArial=20size=3D2>Digging=20in=20a=20little=20further.T=
-he=20dst_algo=20(which=20
-the&nbsp;twinhan=20uses)&nbsp;is=20set=20to=20return=20&nbsp;0=20as=20the=20=
-default&nbsp;setting=20
-for=20the=20SW=20algo&nbsp;in=20dst.c,=20yet=20in=20dvb_frontend.h,=20the=20=
-DVBFE_ALGO_SW=20algo=20is=20
-defined=20as=202.&nbsp;=20Which=20is=20the=20correct=20one=20here?=20Shoul=
-d=20dst.c=20be=20changed=20to=20
-return=202=20as=20sw=20or=20is=200=20the=20correct=20number=20for=20the=20=
-SW=20algo=20and=20thus=20DVBFE_ALGO_SW=20
-be=20changed=20to=20return=200?</FONT></DIV>
-<BLOCKQUOTE=20
-style=3D"PADDING-RIGHT:=200px;=20PADDING-LEFT:=205px;=20MARGIN-LEFT:=205px=
-;=20BORDER-LEFT:=20#000000=202px=20solid;=20MARGIN-RIGHT:=200px">
-=20=20<DIV=20style=3D"FONT:=2010pt=20arial">-----=20Original=20Message=20-=
-----=20</DIV>
-=20=20<DIV=20
-=20=20style=3D"BACKGROUND:=20#e4e4e4;=20FONT:=2010pt=20arial;=20font-color=
-:=20black"><B>From:</B>=20
-=20=20<A=20title=3Daturbide@rogers.com=20href=3D"mailto:aturbide@rogers.co=
-m">Alain</A>=20
-</DIV>
-=20=20<DIV=20style=3D"FONT:=2010pt=20arial"><B>To:</B>=20<A=20title=3Dlinu=
-x-dvb@linuxtv.org=20
-=20=20href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>=20</=
-DIV>
-=20=20<DIV=20style=3D"FONT:=2010pt=20arial"><B>Sent:</B>=20Monday,=20Decem=
-ber=2001,=202008=2012:18=20
-=20=20PM</DIV>
-=20=20<DIV=20style=3D"FONT:=2010pt=20arial"><B>Subject:</B>=20Re:=20[linux=
--dvb]=20Bug=20Report=20-=20
-=20=20Twinhan=20vp-1020,bt_8xx=20driver=20+=20frontend</DIV>
-=20=20<DIV><BR></DIV>
-=20=20<DIV=20
-=20=20style=3D"FONT-SIZE:=2012pt;=20FONT-FAMILY:=20times=20new=20roman,=20=
-new=20york,=20times,=20serif">
-=20=20<DIV>
-=20=20<DIV>Found=20the=20problem=20I=20believe.&nbsp;=20The=20original=20c=
-ode=20always=20ran=20
-=20=20dvb_frontend_swzigzag(fe)=20even=20if=20the=20algo&nbsp;=20is=200</D=
-IV>
-=20=20<DIV>This=20fixes=20the=20issue=20for=20me.</DIV>
-=20=20<DIV>&nbsp;</DIV>
-=20=20<DIV>---=20dvb_frontend.c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=202008-12-01=
-=20
-=20=2012:07:28.000000000=20-0500<BR>+++=20/dvb_frontend.c&nbsp;&nbsp;&nbsp=
-;&nbsp;=20
-=20=202008-12-01=2012:07:16.000000000=20-0500<BR>@@=20-645,6=20+645,8=20
-=20=20@@<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-=20=20break;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;=20
-=20=20default:<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-=20=20dprintk("%s:=20UNDEFINED=20ALGO=20!\n",=20
-=20=20__func__);<BR>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-=20=20dvb_frontend_swzigzag(fe);<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-=20
-=20=20break;<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;=20
-=20=20}<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-=20=20}=20else=20{<BR><BR></DIV></DIV>
-=20=20<DIV=20
-=20=20style=3D"FONT-SIZE:=2012pt;=20FONT-FAMILY:=20times=20new=20roman,=20=
-new=20york,=20times,=20serif"><BR>
-=20=20<DIV=20
-=20=20style=3D"FONT-SIZE:=2012pt;=20FONT-FAMILY:=20times=20new=20roman,=20=
-new=20york,=20times,=20serif"><FONT=20
-=20=20face=3DTahoma=20size=3D2>
-=20=20<HR=20SIZE=3D1>
-=20=20</FONT></DIV></DIV></DIV>
-=20=20<P>
-=20=20<HR>
-
-=20=20<P></P>_______________________________________________<BR>linux-dvb=20=
-mailing=20
-=20=20list<BR>linux-dvb@linuxtv.org<BR>http://www.linuxtv.org/cgi-bin/mail=
-man/listinfo/linux-dvb</BLOCKQUOTE>
-<BR>
-______________________________________________________________________<BR>=
-
-This=20email=20has=20been=20scanned=20by=20the=20MessageLabs=20Email=20Sec=
-urity=20System.<BR>
-For=20more=20information=20please=20visit=20http://www.messagelabs.com/ema=
-il=20<BR>
-______________________________________________________________________<BR>=
-
-</BODY></HTML>
-
-------=_NextPart_000_0025_01C953D2.3B3EF8B0--
-
-
-
---===============0953259766==
+--------------060706010601060206030508
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -233,4 +304,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0953259766==--
+--------------060706010601060206030508--
