@@ -1,22 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.181])
+Received: from qb-out-0506.google.com ([72.14.204.225])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1L7ZCA-0002a0-LG
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 18:37:59 +0100
-Received: by ik-out-1112.google.com with SMTP id c28so3047345ika.1
-	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 09:37:55 -0800 (PST)
-Message-ID: <a3ef07920812020937jb0feff7q695f91dbd2156b5e@mail.gmail.com>
-Date: Tue, 2 Dec 2008 09:37:54 -0800
-From: "VDR User" <user.vdr@gmail.com>
-To: "Alain Turbide" <aturbide@rogers.com>
-In-Reply-To: <003301c953fc$84e23110$0000fea9@cr344472a>
+	(envelope-from <stefan.ubben@googlemail.com>) id 1LCgwI-0000Ia-Ux
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 21:54:47 +0100
+Received: by qb-out-0506.google.com with SMTP id e11so1764235qbe.25
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 12:54:41 -0800 (PST)
+Message-ID: <784821c40812161254u24fc691dr3db83b07834d5098@mail.gmail.com>
+Date: Tue, 16 Dec 2008 21:54:41 +0100
+From: "Stefan Ubben" <stefan.ubben@googlemail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <99503.50867.qm@web88302.mail.re4.yahoo.com>
-	<003301c953fc$84e23110$0000fea9@cr344472a>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [FIXEd] Bug Report - Twinhan vp-1020,
-	bt_8xx driver + frontend
+Subject: [linux-dvb] Terratec Cinergy S PCI
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,32 +18,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0671710574=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/12/1 Alain Turbide <aturbide@rogers.com>:
-> Digging in a little further.The dst_algo (which the twinhan uses) is set to
-> return  0 as the default setting for the SW algo in dst.c, yet in
-> dvb_frontend.h, the DVBFE_ALGO_SW algo is defined as 2.  Which is the
-> correct one here? Should dst.c be changed to return 2 as sw or is 0 the
-> correct number for the SW algo and thus DVBFE_ALGO_SW be changed to return
-> 0?
+--===============0671710574==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_6404_13319579.1229460881495"
 
-Is nobody else looking into this?!  I would think this bug would have
-received a little more attention considering the number of people
-affected!
+------=_Part_6404_13319579.1229460881495
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Please keep up the work, it's much appreciated!  I, on behalf of
-several others who aren't subscribed to the ml, am monitoring this
-thread in hopes of a proper fix.
+Hi List,
+I am searching for a kernel driver which supports the 'Terratec Cinergy S
+PCI' card.
 
-Thanks!
--Derek
+The card is based on the Conexant CX2388 Chip but it is not listed in the
+CX88 hardware list.
+Is there anybody working in this area ? I saw two posts from Julian Picht
+regarding this issue.
+Is there any progress resp. patch I could try ? If not, I would like to
+start implementation ;-)
+
+Thanks
+
+Stefan
+
+------=_Part_6404_13319579.1229460881495
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi List,<div><br></div><div>I am searching for a kernel driver which supports the &#39;Terratec Cinergy S PCI&#39; card.</div><div><br></div><div>The card is based on the Conexant CX2388 Chip but it is not listed in the CX88 hardware list.</div>
+<div>Is there anybody working in this area ? I saw two posts from Julian Picht regarding this issue.&nbsp;</div><div>Is there&nbsp;any progress resp. patch I could try ? If not, I would like to start implementation ;-)</div><div><br>
+</div><div>Thanks</div><div><br></div><div>Stefan &nbsp;</div>
+
+------=_Part_6404_13319579.1229460881495--
+
+
+--===============0671710574==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0671710574==--
