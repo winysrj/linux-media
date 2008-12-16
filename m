@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpgw01.world4you.com ([80.243.163.21])
+Received: from tichy.grunau.be ([85.131.189.73])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <treitmayr@devbase.at>) id 1LHHgV-0002ew-1R
-	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 13:57:27 +0100
-Received: from [85.127.250.87] (helo=[192.168.1.76])
-	by smtpgw01.world4you.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.67) (envelope-from <treitmayr@devbase.at>)
-	id 1LHHft-0002P4-TX
-	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 13:56:53 +0100
-From: Thomas Reitmayr <treitmayr@devbase.at>
+	(envelope-from <janne-dvb@grunau.be>) id 1LCcyW-0008Pd-7E
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 17:40:50 +0100
+Received: from aniel.localnet (unknown [78.52.192.69])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by tichy.grunau.be (Postfix) with ESMTPSA id B10B5900C1
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 17:40:54 +0100 (CET)
 To: linux-dvb@linuxtv.org
-Date: Mon, 29 Dec 2008 13:56:49 +0100
-Message-Id: <1230555409.14295.11.camel@localhost>
-Mime-Version: 1.0
-Subject: [linux-dvb] [PATCH] usb-urb.c: Fix initialization of URB list.
+Content-Disposition: inline
+From: Janne Grunau <janne-dvb@grunau.be>
+Date: Tue, 16 Dec 2008 17:40:59 +0100
+MIME-Version: 1.0
+Message-Id: <200812161740.59390.janne-dvb@grunau.be>
+Subject: Re: [linux-dvb] [PATCH] Convert GP8PSK module to use S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,31 +28,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The following patch was sent to this list back in May 2008
-(http://linuxtv.org/pipermail/linux-dvb/2008-May/025952.html) and had a
-followup of myself in October 2008.
-As the kernel oops with USB DVB receivers happens again and again I want
-to propose to finally apply this patch to the v4l-dvb repository.
-Thanks,
--Thomas
+On Tuesday 16 December 2008 15:20:30 Alan Nisota wrote:
+> Alan Nisota wrote:
+> > This patch converts the gp8psk module to use the S2API.
+> > It pretends to be  DVB-S2 capable in order to allow the various
+> > supported modulations (8PSK, QPSK-Turbo, etc), and keep software
+> > compatibility with the S2API patches for Mythtv and VDR.
+> >
+> > Signed-off by: Alan Nisota <alannisota@gmail.com>
+>
+> Is there anything I need to do to get this committed?
 
-Signed-off-by: Thomas Reitmayr <treitmayr@devbase.at>
+There are a couple of Issues in the patch, see my review
 
---- linux-old/drivers/media/dvb/dvb-usb/usb-urb.c	2008-12-29 13:50:33.000000000 +0100
-+++ linux/drivers/media/dvb/dvb-usb/usb-urb.c	2008-12-29 13:52:19.000000000 +0100
-@@ -160,7 +160,8 @@ static int usb_bulk_urb_init(struct usb_
- 				stream->props.u.bulk.buffersize,
- 				usb_urb_complete, stream);
- 
--		stream->urb_list[i]->transfer_flags = 0;
-+		stream->urb_list[i]->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
-+		stream->urb_list[i]->transfer_dma = stream->dma_addr[i];
- 		stream->urbs_initialized++;
- 	}
- 	return 0;
+> There are many
+> folks using this hardware, who would love to not need to patch their
+> kernel to use it.
 
+I would love to see it committed to get rid of the previous EXTENDED_API in 
+mythtv.
 
-
+Janne
 
 
 _______________________________________________
