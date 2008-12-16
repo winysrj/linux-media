@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB91Ihdg014490
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 20:18:43 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB91HH1X025978
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 20:18:27 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so1008940fga.7
-	for <video4linux-list@redhat.com>; Mon, 08 Dec 2008 17:18:27 -0800 (PST)
-Message-ID: <30353c3d0812081620v1e633530qa3539888c18a1cda@mail.gmail.com>
-Date: Mon, 8 Dec 2008 19:20:18 -0500
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Alexey Klimov" <klimov.linux@gmail.com>
-In-Reply-To: <208cbae30812081410i37ad8da8ue43f907ad9a54b@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBG9cZnN029810
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:38:35 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBG9augu005562
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 04:36:56 -0500
+Date: Tue, 16 Dec 2008 10:37:02 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200812151145.54346.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0812161033090.5450@axis700.grange>
+References: <200812151145.54346.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <1228752855.1809.93.camel@tux.localhost>
-	<30353c3d0812081403p11f1fcaam1b15a2650f05bcdf@mail.gmail.com>
-	<208cbae30812081410i37ad8da8ue43f907ad9a54b@mail.gmail.com>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/2] radio-mr800: correct unplug, fix to previous patch
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: v4l <video4linux-list@redhat.com>
+Subject: Re: Integrating v4l2_device/v4l2_subdev into the soc_camera
+	framework
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,21 +27,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Dec 8, 2008 at 5:10 PM, Alexey Klimov <klimov.linux@gmail.com> wrote:
-> On Tue, Dec 9, 2008 at 1:03 AM, David Ellingsworth
-> <david@identd.dyndns.org> wrote:
->> This patch looks good, but I think it should remove the now unused
->> user member of the amradio struct as well.
->
-> Should i remake this patch now ? Or make one more patch ?
->
+Hi Hans,
 
-I'd make a separate patch. Leaving the users member variable doesn't
-cause any harm; removing it is just a driver simplification/cleanup.
+On Mon, 15 Dec 2008, Hans Verkuil wrote:
 
-Regards,
+> Hi Guennadi,
+> 
+> Now that the v4l2_device and v4l2_subdev structs are merged into the 
+> master v4l-dvb repository it is time to look at what needs to be done 
+> to integrate it into the soc-camera framework.
+> 
+> The goal is to make the i2c sub-device drivers independent from how they 
+> are used. That is, whether a sensor is used in an embedded device or in 
+> a USB webcam or something else should not matter for the sensor driver.
+> 
+> I would really appreciate it if you can take a good look at what would 
+> be needed to achieve this. We can then discuss that and make a plan on 
+> how to proceed.
+> 
+> I'll be happy to answer any questions you have or help you in whatever 
+> way you want.
 
-David Ellingsworth
+Wow, that's a generous offer, perhaps, the most generous I've got in my 
+entire life!:-)
+
+Yes, I'll have a look at it (again) and will think how we can best 
+integrate the two APIs. Although, I will not have too much time for this 
+work, so, I'll be looking for the easiest / cheapest acceptible 
+solution:-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
