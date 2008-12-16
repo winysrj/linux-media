@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2HKon7009111
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 12:20:50 -0500
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGGuJtF024972
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 11:56:19 -0500
 Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id mB2HKSMT019843
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 12:20:29 -0500
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGGtJR9011979
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 11:55:20 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: video4linux-list@redhat.com
-Date: Tue, 2 Dec 2008 18:20:21 +0100
-References: <hvaibhav@ti.com>
-	<1228232142-11934-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <1228232142-11934-1-git-send-email-hvaibhav@ti.com>
+Date: Tue, 16 Dec 2008 17:55:12 +0100
+References: <A24693684029E5489D1D202277BE894415E6E19C@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894415E6E19C@dlee02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812021820.21645.hverkuil@xs4all.nl>
-Cc: linux-omap@vger.kernel.org, Karicheri Muralidharan <m-karicheri2@ti.com>,
-	davinci-linux-open-source-bounces@linux.davincidsp.com
-Subject: Re: [PATCH 2/2] TVP514x Driver with Review comments fixed [V4]
+Message-Id: <200812161755.13140.hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
+Subject: Re: [REVIEW PATCH 07/14] OMAP: CAM: Add ISP CSI2 API
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,2222 +32,2393 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Vaibhav,
+On Thursday 11 December 2008 21:38:04 Aguirre Rodriguez, Sergio Alberto wrote:
+> >From c442f389de719b47f8ec63f0ae07b5e2c2ef7b9d Mon Sep 17 00:00:00 2001
+> From: Sergio Aguirre <saaguirre@ti.com>
+> Date: Thu, 11 Dec 2008 13:35:49 -0600
+> Subject: [PATCH] OMAP: CAM: Add ISP CSI2 API
+> 
+> Add ISP CSI2 API for operating OMAP3430 CSI2 receiver registers
+> 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  drivers/media/video/isp/ispcsi2.c | 2106 +++++++++++++++++++++++++++++++++++++
+>  drivers/media/video/isp/ispcsi2.h |  232 ++++
+>  2 files changed, 2338 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/isp/ispcsi2.c
+>  create mode 100644 drivers/media/video/isp/ispcsi2.h
+> 
+> diff --git a/drivers/media/video/isp/ispcsi2.c b/drivers/media/video/isp/ispcsi2.c
+> new file mode 100644
+> index 0000000..423ea3a
+> --- /dev/null
+> +++ b/drivers/media/video/isp/ispcsi2.c
+> @@ -0,0 +1,2106 @@
+> +/*
+> + * drivers/media/video/isp/ispcsi2.c
+> + *
+> + * Driver Library for ISP CSI Control module in TI's OMAP3 Camera ISP
+> + * ISP CSI interface and IRQ related APIs are defined here.
+> + *
+> + * Copyright (C) 2008 Texas Instruments.
+> + *
+> + * Contributors:
+> + *     Sergio Aguirre <saaguirre@ti.com>
+> + *     Dominic Curran <dcurran@ti.com>
+> + *
+> + * This package is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+> + */
+> +
+> +#include <linux/errno.h>
+> +#include <linux/delay.h>
+> +#include <linux/device.h>
+> +#include <linux/types.h>
+> +#include <asm/mach-types.h>
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-int-device.h>
+> +#include <linux/io.h>
+> +#include <mach/io.h>
+> +
+> +#include "isp.h"
+> +#include "ispreg.h"
+> +#include "ispcsi2.h"
+> +
+> +static struct isp_csi2_cfg current_csi2_cfg;
+> +static struct isp_csi2_cfg_update current_csi2_cfg_update;
+> +
+> +static bool update_complexio_cfg1;
+> +static bool update_phy_cfg0;
+> +static bool update_phy_cfg1;
+> +static bool update_ctx_ctrl1[8];
+> +static bool update_ctx_ctrl2[8];
+> +static bool update_ctx_ctrl3[8];
+> +static bool update_timing;
+> +static bool update_ctrl;
+> +static bool uses_videoport;
+> +
+> +/**
+> + * isp_csi2_complexio_lanes_config - Configuration of CSI2 ComplexIO lanes.
+> + * @reqcfg: Pointer to structure containing desired lane configuration
+> + *
+> + * Validates and saves to internal driver memory the passed configuration.
+> + * Returns 0 if successful, or -EINVAL if null pointer is passed, invalid
+> + * lane position or polarity is set, and if 2 lanes try to occupy the same
+> + * position. To apply this settings, use the isp_csi2_complexio_lanes_update()
+> + * function just after calling this function.
+> + **/
+> +int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg)
+> +{
+> +       int i;
+> +       bool pos_occupied[5] = {false, false, false, false, false};
+> +       struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
+> +       struct isp_csi2_lanes_cfg_update *currlanes_u =
+> +                                       &current_csi2_cfg_update.lanes;
+> +
+> +       /* Validating parameters sent by driver */
+> +       if (reqcfg == NULL) {
+> +               printk(KERN_ERR "Invalid Complex IO Configuration sent by"
+> +                                                               " sensor\n");
+> +               goto err_einval;
+> +       }
+> +
+> +       /* Data lanes verification */
+> +       for (i = 0; i < 4; i++) {
+> +               if ((reqcfg->data[i].pol > 1) || (reqcfg->data[i].pos > 5)) {
+> +                       printk(KERN_ERR "Invalid CSI-2 Complex IO configuration"
+> +                                       " parameters for data lane #%d\n", i);
+> +                       goto err_einval;
+> +               }
+> +               if ((pos_occupied[reqcfg->data[i].pos - 1] == true) &&
+> +                                               reqcfg->data[i].pos > 0) {
+> +                       printk(KERN_ERR "Lane #%d already occupied\n",
+> +                                                       reqcfg->data[i].pos);
+> +                       goto err_einval;
+> +               } else
+> +                       pos_occupied[reqcfg->data[i].pos - 1] = true;
+> +       }
+> +
+> +       /* Clock lane verification */
+> +       if ((reqcfg->clk.pol > 1) || (reqcfg->clk.pos > 5) ||
+> +                                               (reqcfg->clk.pos == 0)) {
+> +               printk(KERN_ERR "Invalid CSI-2 Complex IO configuration"
+> +                                               " parameters for clock lane\n");
+> +               goto err_einval;
+> +       }
+> +       if (pos_occupied[reqcfg->clk.pos - 1] == true) {
+> +               printk(KERN_ERR "Lane #%d already occupied",
+> +                                                       reqcfg->clk.pos);
+> +               goto err_einval;
+> +       } else
+> +               pos_occupied[reqcfg->clk.pos - 1] = true;
+> +
+> +       for (i = 0; i < 4; i++) {
+> +               if (currlanes->data[i].pos != reqcfg->data[i].pos) {
+> +                       currlanes->data[i].pos = reqcfg->data[i].pos;
+> +                       currlanes_u->data[i] = true;
+> +                       update_complexio_cfg1 = true;
+> +               }
+> +               if (currlanes->data[i].pol != reqcfg->data[i].pol) {
+> +                       currlanes->data[i].pol = reqcfg->data[i].pol;
+> +                       currlanes_u->data[i] = true;
+> +                       update_complexio_cfg1 = true;
+> +               }
+> +       }
+> +
+> +       if (currlanes->clk.pos != reqcfg->clk.pos) {
+> +               currlanes->clk.pos = reqcfg->clk.pos;
+> +               currlanes_u->clk = true;
+> +               update_complexio_cfg1 = true;
+> +       }
+> +       if (currlanes->clk.pol != reqcfg->clk.pol) {
+> +               currlanes->clk.pol = reqcfg->clk.pol;
+> +               currlanes_u->clk = true;
+> +               update_complexio_cfg1 = true;
+> +       }
+> +       return 0;
+> +err_einval:
+> +       return -EINVAL;
+> +}
+> +
+> +/**
+> + * isp_csi2_complexio_lanes_update - Applies CSI2 ComplexIO lanes configuration.
+> + * @force_update: Flag to force rewrite of registers, even if they haven't been
+> + *                updated with the isp_csi2_complexio_lanes_config() function.
+> + *
+> + * It only saves settings when they were previously updated using the
+> + * isp_csi2_complexio_lanes_config() function, unless the force_update flag is
+> + * set to true.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_complexio_lanes_update(bool force_update)
+> +{
+> +       struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
+> +       struct isp_csi2_lanes_cfg_update *currlanes_u =
+> +                                       &current_csi2_cfg_update.lanes;
+> +       u32 reg;
+> +       int i;
+> +
+> +       if ((update_complexio_cfg1 == false) && (force_update == false))
+> +               return 0;
+> +
+> +       reg = omap_readl(ISPCSI2_COMPLEXIO_CFG1);
+> +       for (i = 0; i < 4; i++) {
+> +               if ((currlanes_u->data[i] == true) || (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(i + 1) |
+> +                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK(i +
+> +                                                                       1));
+> +                       reg |= (currlanes->data[i].pol <<
+> +                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i + 1));
+> +                       reg |= (currlanes->data[i].pos <<
+> +                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i +
+> +                                                                       1));
+> +                       currlanes_u->data[i] = false;
+> +               }
+> +       }
+> +
+> +       if ((currlanes_u->clk == true) || (force_update == true)) {
 
-I'm sorry, but this is still wrong. You basically renamed s_input with 
-s_routing while still using the list with user inputs from the platform 
-data. 
+Why not just:
 
-These three fields in struct tvp514x_platform_data should be removed as 
-they do not belong here:
+	if (currlanes_u->clk || force_update) {
 
-> +	/* Input params */
-> +	int num_inputs;
-> +	const struct tvp514x_input_info *input_list;
-> +	int default_input;
-
-This is all high-level stuff that does not belong in an i2c driver. It's 
-the master driver that has to translate the input as specified by the 
-user to a pin of the tvp514x (like INPUT_CVBS_VI1A).
-
-Also, ioctl_g_routing() can be removed as I have yet to see a master 
-driver that is interested in obtaining this information. Besides, that 
-function looks very strange because it is calling ioctl_s_routing. A 
-get function that sets something?!?
-
-Eventually the whole tvp514x_platform_data will have to be removed. 
-Everything that's in there should be passed to the i2c driver using 
-v4l2_subdev ops. But that's something for the future.
-
-I'm available in the #v4l IRC channel tomorrow for further discussions 
-on this.
-
-BTW1, struct tvp514x_decoder shouldn't be in include/media/tvp514x.h. 
-It's internal to the driver (at least, I sincerely hope so), so it can 
-be moved to either the source or the tvp514x_regs.h header.
-
-BTW2, I'm not going to make it a blocking issue, but those callback 
-functions in tvp514x_platform_data are horrible. The priv_data_set 
-callback is the clearest example of what's wrong with this design: a 
-master driver calls ioctl_g_priv in tvp whose only action is to call 
-priv_data_set in the platform code! The master driver shouldn't have to 
-go through the i2c driver for that! The only reason a low level v4l i2c 
-driver would ever make a call to higher level code is for 
-notifications.
+The same unnecessary test against 'true' is used in a lot of places.
 
 Regards,
 
 	Hans
 
-On Tuesday 02 December 2008 16:35:42 hvaibhav@ti.com wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
->
-> I have fixed all the review commentsreceived so far.
-> Here are the details -
->
-> FIXSES:
->     Make use of i2c_smbus_read/write_byte API:
->         Probe function now checks for SMBUS capability,
-> 	and read/write functions make use of the above API.
->
->     Error check for I2C Read/Write:
->         Added error condition check for both read and write
-> 	API.
-> 	This has been added for completeness.
->
->     input set/get ioctl:
->         As we do have support for set and get routing ioctl,
-> 	instead of adding new ioctl used them.
->
->     enum_ioctl:
->         After discussing with Hans verkuil, came to conclusion
-> 	that as of now just remove support for enum_ioctl from
-> 	decoder, since this has to handle at master driver level.
->
-> TODO LIST:
->     OMAP Master capture driver:
->         This should be completely aligned with the current
-> 	discussion.
->
->     Migration to sub_device framework:
->         Immediately after all the above task, migrate both
-> 	Master and slave driver to sub_device framework.
->
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> Signed-off-by: R Sivaraj <sivaraj@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
-> ---
->  drivers/media/video/Kconfig        |   11 +
->  drivers/media/video/Makefile       |    1 +
->  drivers/media/video/tvp514x.c      | 1521
-> ++++++++++++++++++++++++++++++++++++
-> drivers/media/video/tvp514x_regs.h |  292 +++++++
->  include/media/tvp514x.h            |  232 ++++++
->  5 files changed, 2057 insertions(+), 0 deletions(-)
->  create mode 100755 drivers/media/video/tvp514x.c
->  create mode 100755 drivers/media/video/tvp514x_regs.h
->  create mode 100755 include/media/tvp514x.h
->
-> diff --git a/drivers/media/video/Kconfig
-> b/drivers/media/video/Kconfig index 47102c2..2e5dc3e 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -361,6 +361,17 @@ config VIDEO_SAA7191
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called saa7191.
->
-> +config VIDEO_TVP514X
-> +	tristate "Texas Instruments TVP514x video decoder"
-> +	depends on VIDEO_V4L2 && I2C
-> +	---help---
-> +	  This is a Video4Linux2 sensor-level driver for the TI TVP5146/47
-> +	  decoder. It is currently working with the TI OMAP3 camera
-> +	  controller.
+> +               reg &= ~(ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MASK |
+> +                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MASK);
+> +               reg |= (currlanes->clk.pol <<
+> +                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT);
+> +               reg |= (currlanes->clk.pos <<
+> +                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT);
+> +               currlanes_u->clk = false;
+> +       }
+> +       omap_writel(reg, ISPCSI2_COMPLEXIO_CFG1);
 > +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called tvp514x.
+> +       update_complexio_cfg1 = false;
+> +       return 0;
+> +}
 > +
->  config VIDEO_TVP5150
->  	tristate "Texas Instruments TVP5150 video decoder"
->  	depends on VIDEO_V4L2 && I2C
-> diff --git a/drivers/media/video/Makefile
-> b/drivers/media/video/Makefile index 16962f3..cdbbf38 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -66,6 +66,7 @@ obj-$(CONFIG_VIDEO_CX88) += cx88/
->  obj-$(CONFIG_VIDEO_EM28XX) += em28xx/
->  obj-$(CONFIG_VIDEO_USBVISION) += usbvision/
->  obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
-> +obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
->  obj-$(CONFIG_VIDEO_PVRUSB2) += pvrusb2/
->  obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
->  obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
-> diff --git a/drivers/media/video/tvp514x.c
-> b/drivers/media/video/tvp514x.c new file mode 100755
-> index 0000000..c0834e4
-> --- /dev/null
-> +++ b/drivers/media/video/tvp514x.c
-> @@ -0,0 +1,1521 @@
-> +/*
-> + * drivers/media/video/tvp514x.c
+> +/**
+> + * isp_csi2_complexio_lanes_get - Gets CSI2 ComplexIO lanes configuration.
 > + *
-> + * TI TVP5146/47 decoder driver
-> + *
-> + * Copyright (C) 2008 Texas Instruments Inc
-> + * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-> + *
-> + * Contributors:
-> + *     Sivaraj R <sivaraj@ti.com>
-> + *     Brijesh R Jadav <brijesh.j@ti.com>
-> + *     Hardik Shah <hardik.shah@ti.com>
-> + *     Manjunath Hadli <mrh@ti.com>
-> + *     Karicheri Muralidharan <m-karicheri2@ti.com>
-> + *
-> + * This package is free software; you can redistribute it and/or
-> modify + * it under the terms of the GNU General Public License
-> version 2 as + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + *
-> + */
-> +
-> +#include <linux/i2c.h>
-> +#include <linux/delay.h>
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-int-device.h>
-> +#include <media/tvp514x.h>
-> +
-> +#include "tvp514x_regs.h"
-> +
-> +#define MODULE_NAME	TVP514X_MODULE_NAME
-> +
-> +/* Debug functions */
-> +static int debug;
-> +module_param(debug, bool, 0644);
-> +MODULE_PARM_DESC(debug, "Debug level (0-1)");
-> +
-> +#define dump_reg(client, reg, val)				\
-> +	do {							\
-> +		val = tvp514x_read_reg(client, reg);		\
-> +		v4l_info(client, "Reg(0x%.2X): 0x%.2X\n", reg, val); \
-> +	} while (0)
-> +
-> +
-> +/* TVP514x default register values */
-> +static struct tvp514x_reg tvp514x_reg_list[] = {
-> +	{TOK_WRITE, REG_INPUT_SEL, 0x05},	/* Composite selected */
-> +	{TOK_WRITE, REG_AFE_GAIN_CTRL, 0x0F},
-> +	{TOK_WRITE, REG_VIDEO_STD, 0x00},	/* Auto mode */
-> +	{TOK_WRITE, REG_OPERATION_MODE, 0x00},
-> +	{TOK_SKIP, REG_AUTOSWITCH_MASK, 0x3F},
-> +	{TOK_WRITE, REG_COLOR_KILLER, 0x10},
-> +	{TOK_WRITE, REG_LUMA_CONTROL1, 0x00},
-> +	{TOK_WRITE, REG_LUMA_CONTROL2, 0x00},
-> +	{TOK_WRITE, REG_LUMA_CONTROL3, 0x02},
-> +	{TOK_WRITE, REG_BRIGHTNESS, 0x80},
-> +	{TOK_WRITE, REG_CONTRAST, 0x80},
-> +	{TOK_WRITE, REG_SATURATION, 0x80},
-> +	{TOK_WRITE, REG_HUE, 0x00},
-> +	{TOK_WRITE, REG_CHROMA_CONTROL1, 0x00},
-> +	{TOK_WRITE, REG_CHROMA_CONTROL2, 0x0E},
-> +	{TOK_SKIP, 0x0F, 0x00},	/* Reserved */
-> +	{TOK_WRITE, REG_COMP_PR_SATURATION, 0x80},
-> +	{TOK_WRITE, REG_COMP_Y_CONTRAST, 0x80},
-> +	{TOK_WRITE, REG_COMP_PB_SATURATION, 0x80},
-> +	{TOK_SKIP, 0x13, 0x00},	/* Reserved */
-> +	{TOK_WRITE, REG_COMP_Y_BRIGHTNESS, 0x80},
-> +	{TOK_SKIP, 0x15, 0x00},	/* Reserved */
-> +	{TOK_SKIP, REG_AVID_START_PIXEL_LSB, 0x55},	/* NTSC timing */
-> +	{TOK_SKIP, REG_AVID_START_PIXEL_MSB, 0x00},
-> +	{TOK_SKIP, REG_AVID_STOP_PIXEL_LSB, 0x25},
-> +	{TOK_SKIP, REG_AVID_STOP_PIXEL_MSB, 0x03},
-> +	{TOK_SKIP, REG_HSYNC_START_PIXEL_LSB, 0x00},	/* NTSC timing */
-> +	{TOK_SKIP, REG_HSYNC_START_PIXEL_MSB, 0x00},
-> +	{TOK_SKIP, REG_HSYNC_STOP_PIXEL_LSB, 0x40},
-> +	{TOK_SKIP, REG_HSYNC_STOP_PIXEL_MSB, 0x00},
-> +	{TOK_SKIP, REG_VSYNC_START_LINE_LSB, 0x04},	/* NTSC timing */
-> +	{TOK_SKIP, REG_VSYNC_START_LINE_MSB, 0x00},
-> +	{TOK_SKIP, REG_VSYNC_STOP_LINE_LSB, 0x07},
-> +	{TOK_SKIP, REG_VSYNC_STOP_LINE_MSB, 0x00},
-> +	{TOK_SKIP, REG_VBLK_START_LINE_LSB, 0x01},	/* NTSC timing */
-> +	{TOK_SKIP, REG_VBLK_START_LINE_MSB, 0x00},
-> +	{TOK_SKIP, REG_VBLK_STOP_LINE_LSB, 0x15},
-> +	{TOK_SKIP, REG_VBLK_STOP_LINE_MSB, 0x00},
-> +	{TOK_SKIP, 0x26, 0x00},	/* Reserved */
-> +	{TOK_SKIP, 0x27, 0x00},	/* Reserved */
-> +	{TOK_SKIP, REG_FAST_SWTICH_CONTROL, 0xCC},
-> +	{TOK_SKIP, 0x29, 0x00},	/* Reserved */
-> +	{TOK_SKIP, REG_FAST_SWTICH_SCART_DELAY, 0x00},
-> +	{TOK_SKIP, 0x2B, 0x00},	/* Reserved */
-> +	{TOK_SKIP, REG_SCART_DELAY, 0x00},
-> +	{TOK_SKIP, REG_CTI_DELAY, 0x00},
-> +	{TOK_SKIP, REG_CTI_CONTROL, 0x00},
-> +	{TOK_SKIP, 0x2F, 0x00},	/* Reserved */
-> +	{TOK_SKIP, 0x30, 0x00},	/* Reserved */
-> +	{TOK_SKIP, 0x31, 0x00},	/* Reserved */
-> +	{TOK_WRITE, REG_SYNC_CONTROL, 0x00},	/* HS, VS active high */
-> +	{TOK_WRITE, REG_OUTPUT_FORMATTER1, 0x00},	/* 10-bit BT.656 */
-> +	{TOK_WRITE, REG_OUTPUT_FORMATTER2, 0x11},	/* Enable clk & data */
-> +	{TOK_WRITE, REG_OUTPUT_FORMATTER3, 0xEE},	/* Enable AVID & FLD */
-> +	{TOK_WRITE, REG_OUTPUT_FORMATTER4, 0xAF},	/* Enable VS & HS */
-> +	{TOK_WRITE, REG_OUTPUT_FORMATTER5, 0xFF},
-> +	{TOK_WRITE, REG_OUTPUT_FORMATTER6, 0xFF},
-> +	{TOK_WRITE, REG_CLEAR_LOST_LOCK, 0x01},	/* Clear status */
-> +	{TOK_TERM, 0, 0},
-> +};
-> +
-> +/* List of image formats supported by TVP5146/47 decoder
-> + * Currently we are using 8 bit mode only, but can be
-> + * extended to 10/20 bit mode.
-> + */
-> +static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
-> +	{
-> +	 .index = 0,
-> +	 .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> +	 .flags = 0,
-> +	 .description = "8-bit UYVY 4:2:2 Format",
-> +	 .pixelformat = V4L2_PIX_FMT_UYVY,
-> +	},
-> +};
-> +
-> +#define TVP514X_NUM_FORMATS		ARRAY_SIZE(tvp514x_fmt_list)
-> +
-> +/*
-> + * Supported standards -
-> + *
-> + * Currently supports two standards only, need to add support for
-> rest of the + * modes, like SECAM, etc...
-> + */
-> +static struct tvp514x_std_info tvp514x_std_list[] = {
-> +	/* Standard: STD_NTSC_MJ */
-> +	[STD_NTSC_MJ] = {
-> +	 .width = NTSC_NUM_ACTIVE_PIXELS,
-> +	 .height = NTSC_NUM_ACTIVE_LINES,
-> +	 .video_std = VIDEO_STD_NTSC_MJ_BIT,
-> +	 .standard = {
-> +		      .index = 0,
-> +		      .id = V4L2_STD_NTSC,
-> +		      .name = "NTSC",
-> +		      .frameperiod = {1001, 30000},
-> +		      .framelines = 525
-> +		     },
-> +	/* Standard: STD_PAL_BDGHIN */
-> +	},
-> +	[STD_PAL_BDGHIN] = {
-> +	 .width = PAL_NUM_ACTIVE_PIXELS,
-> +	 .height = PAL_NUM_ACTIVE_LINES,
-> +	 .video_std = VIDEO_STD_PAL_BDGHIN_BIT,
-> +	 .standard = {
-> +		      .index = 1,
-> +		      .id = V4L2_STD_PAL,
-> +		      .name = "PAL",
-> +		      .frameperiod = {1, 25},
-> +		      .framelines = 625
-> +		     },
-> +	},
-> +	/* Standard: need to add for additional standard */
-> +};
-> +
-> +#define TVP514X_NUM_STANDARDS		ARRAY_SIZE(tvp514x_std_list)
-> +
-> +/* Supported controls */
-> +static const struct tvp514x_ctrl_info tvp514x_ctrl_list[] = {
-> +	{
-> +	 .reg_address = REG_BRIGHTNESS,
-> +	 .query_ctrl = {
-> +			.id = V4L2_CID_BRIGHTNESS,
-> +			.name = "BRIGHTNESS",
-> +			.type = V4L2_CTRL_TYPE_INTEGER,
-> +			.minimum = 0,
-> +			.maximum = 255,
-> +			.step = 1,
-> +			.default_value = 128
-> +			},
-> +	}, {
-> +	 .reg_address = REG_CONTRAST,
-> +	 .query_ctrl = {
-> +			.id = V4L2_CID_CONTRAST,
-> +			.name = "CONTRAST",
-> +			.type = V4L2_CTRL_TYPE_INTEGER,
-> +			.minimum = 0,
-> +			.maximum = 255,
-> +			.step = 1,
-> +			.default_value = 128
-> +			},
-> +	}, {
-> +	 .reg_address = REG_SATURATION,
-> +	 .query_ctrl = {
-> +			.id = V4L2_CID_SATURATION,
-> +			.name = "SATURATION",
-> +			.type = V4L2_CTRL_TYPE_INTEGER,
-> +			.minimum = 0,
-> +			.maximum = 255,
-> +			.step = 1,
-> +			.default_value = 128
-> +			},
-> +	}, {
-> +	 .reg_address = REG_HUE,
-> +	 .query_ctrl = {
-> +			.id = V4L2_CID_HUE,
-> +			.name = "HUE",
-> +			.type = V4L2_CTRL_TYPE_INTEGER,
-> +			.minimum = -180,
-> +			.maximum = 180,
-> +			.step = 180,
-> +			.default_value = 0
-> +			},
-> +	}, {
-> +	 .reg_address = REG_AFE_GAIN_CTRL,
-> +	 .query_ctrl = {
-> +			.id = V4L2_CID_AUTOGAIN,
-> +			.name = "Automatic Gain Control",
-> +			.type = V4L2_CTRL_TYPE_BOOLEAN,
-> +			.minimum = 0,
-> +			.maximum = 1,
-> +			.step = 1,
-> +			.default_value = 1
-> +			},
-> +	 },
-> +};
-> +
-> +#define TVP514X_NUM_CONTROLS		ARRAY_SIZE(tvp514x_ctrl_list)
-> +
-> +/*
-> + * Read a value from a register in an TVP5146/47 decoder device.
-> + * Returns value read if successful, or non-zero (-1) otherwise.
-> + */
-> +static int tvp514x_read_reg(struct i2c_client *client, u8 reg)
+> + * Gets settings from HW registers and fills in the internal driver memory
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_complexio_lanes_get(void)
 > +{
-> +	int err;
-> +	int retry = 0;
-> +read_again:
+> +       struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
+> +       struct isp_csi2_lanes_cfg_update *currlanes_u =
+> +                                       &current_csi2_cfg_update.lanes;
+> +       u32 reg;
+> +       int i;
 > +
-> +	err = i2c_smbus_read_byte_data(client, reg);
-> +	if (err == -1) {
-> +		if (retry <= I2C_RETRY_COUNT) {
-> +			v4l_warn(client, "Read: retry ... %d\n", retry);
-> +			retry++;
-> +			msleep_interruptible(10);
-> +			goto read_again;
-> +		}
-> +	}
+> +       reg = omap_readl(ISPCSI2_COMPLEXIO_CFG1);
+> +       for (i = 0; i < 4; i++) {
+> +               currlanes->data[i].pol = (reg &
+> +                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(i + 1)) >>
+> +                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i + 1);
+> +               currlanes->data[i].pos = (reg &
+> +                       ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK(i + 1)) >>
+> +                       ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i + 1);
+> +               currlanes_u->data[i] = false;
+> +       }
+> +       currlanes->clk.pol = (reg & ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MASK) >>
+> +                                       ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT;
+> +       currlanes->clk.pos = (reg &
+> +                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MASK) >>
+> +                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT;
+> +       currlanes_u->clk = false;
 > +
-> +	return err;
+> +       update_complexio_cfg1 = false;
+> +       return 0;
 > +}
 > +
-> +/*
-> + * Write a value to a register in an TVP5146/47 decoder device.
-> + * Returns zero if successful, or non-zero otherwise.
-> + */
-> +static int tvp514x_write_reg(struct i2c_client *client, u8 reg, u8
-> val) +{
-> +	int err;
-> +	int retry = 0;
-> +write_again:
-> +
-> +	err = i2c_smbus_write_byte_data(client, reg, val);
-> +	if (err) {
-> +		if (retry <= I2C_RETRY_COUNT) {
-> +			v4l_warn(client, "Write: retry ... %d\n", retry);
-> +			retry++;
-> +			msleep_interruptible(10);
-> +			goto write_again;
-> +		}
-> +	}
-> +
-> +	return err;
-> +}
-> +
-> +/*
-> + * tvp514x_write_regs : Initializes a list of TVP5146/47 registers
-> + *		if token is TOK_TERM, then entire write operation terminates
-> + *		if token is TOK_DELAY, then a delay of 'val' msec is introduced
-> + *		if token is TOK_SKIP, then the register write is skipped
-> + *		if token is TOK_WRITE, then the register write is performed
+> +/**
+> + * isp_csi2_complexio_power_status - Gets CSI2 ComplexIO power status.
 > + *
-> + * reglist - list of registers to be written
-> + * Returns zero if successful, or non-zero otherwise.
-> + */
-> +static int tvp514x_write_regs(struct i2c_client *client,
-> +			      const struct tvp514x_reg reglist[])
+> + * Returns 3 possible valid states: ISP_CSI2_POWER_OFF, ISP_CSI2_POWER_ON,
+> + * and ISP_CSI2_POWER_ULPW.
+> + **/
+> +static enum isp_csi2_power_cmds isp_csi2_complexio_power_status(void)
 > +{
-> +	int err;
-> +	const struct tvp514x_reg *next = reglist;
+> +       enum isp_csi2_power_cmds ret;
+> +       u32 reg;
 > +
-> +	for (; next->token != TOK_TERM; next++) {
-> +		if (next->token == TOK_DELAY) {
-> +			msleep(next->val);
-> +			continue;
-> +		}
-> +
-> +		if (next->token == TOK_SKIP)
-> +			continue;
-> +
-> +		err = tvp514x_write_reg(client, next->reg, (u8) next->val);
-> +		if (err) {
-> +			v4l_err(client, "Write failed. Err[%d]\n", err);
-> +			return err;
-> +		}
-> +	}
-> +	return 0;
+> +       reg = omap_readl(ISPCSI2_COMPLEXIO_CFG1) &
+> +                                       ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_MASK;
+> +       switch (reg) {
+> +       case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_OFF:
+> +               ret = ISP_CSI2_POWER_OFF;
+> +               break;
+> +       case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ON:
+> +               ret = ISP_CSI2_POWER_ON;
+> +               break;
+> +       case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ULPW:
+> +               ret = ISP_CSI2_POWER_ULPW;
+> +               break;
+> +       default:
+> +               return -EINVAL;
+> +       }
+> +       return ret;
 > +}
 > +
-> +/*
-> + * tvp514x_get_current_std:
-> + * Returns the current standard detected by TVP5146/47
-> + */
-> +static enum tvp514x_std tvp514x_get_current_std(struct
-> tvp514x_decoder +						*decoder)
+> +/**
+> + * isp_csi2_complexio_power_autoswitch - Sets CSI2 ComplexIO power autoswitch.
+> + * @enable: Sets or clears the autoswitch function enable flag.
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_complexio_power_autoswitch(bool enable)
 > +{
-> +	u8 std, std_status;
+> +       u32 reg;
 > +
-> +	std = tvp514x_read_reg(decoder->client, REG_VIDEO_STD);
-> +	if ((std & VIDEO_STD_MASK) == VIDEO_STD_AUTO_SWITCH_BIT) {
-> +		/* use the standard status register */
-> +		std_status = tvp514x_read_reg(decoder->client,
-> +				REG_VIDEO_STD_STATUS);
-> +	} else
-> +		std_status = std;	/* use the standard register itself */
+> +       reg = omap_readl(ISPCSI2_COMPLEXIO_CFG1);
+> +       reg &= ~ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_MASK;
 > +
-> +	switch (std_status & VIDEO_STD_MASK) {
-> +	case VIDEO_STD_NTSC_MJ_BIT:
-> +		return STD_NTSC_MJ;
+> +       if (enable == true)
+> +               reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_ENABLE;
+> +       else
+> +               reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_DISABLE;
 > +
-> +	case VIDEO_STD_PAL_BDGHIN_BIT:
-> +		return STD_PAL_BDGHIN;
-> +
-> +	default:
-> +		return STD_INVALID;
-> +	}
-> +
-> +	return STD_INVALID;
+> +       omap_writel(reg, ISPCSI2_COMPLEXIO_CFG1);
+> +       return 0;
 > +}
 > +
-> +/*
-> + * TVP5146/47 register dump function
-> + */
-> +void tvp514x_reg_dump(struct tvp514x_decoder *decoder)
+> +/**
+> + * isp_csi2_complexio_power - Sets the desired power command for CSI2 ComplexIO.
+> + * @power_cmd: Power command to be set.
+> + *
+> + * Returns 0 if successful, or -EBUSY if the retry count is exceeded.
+> + **/
+> +int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd)
 > +{
-> +	u8 value;
+> +       enum isp_csi2_power_cmds current_state;
+> +       u32 reg;
+> +       u8 retry_count;
 > +
-> +	dump_reg(decoder->client, REG_INPUT_SEL, value);
-> +	dump_reg(decoder->client, REG_AFE_GAIN_CTRL, value);
-> +	dump_reg(decoder->client, REG_VIDEO_STD, value);
-> +	dump_reg(decoder->client, REG_OPERATION_MODE, value);
-> +	dump_reg(decoder->client, REG_COLOR_KILLER, value);
-> +	dump_reg(decoder->client, REG_LUMA_CONTROL1, value);
-> +	dump_reg(decoder->client, REG_LUMA_CONTROL2, value);
-> +	dump_reg(decoder->client, REG_LUMA_CONTROL3, value);
-> +	dump_reg(decoder->client, REG_BRIGHTNESS, value);
-> +	dump_reg(decoder->client, REG_CONTRAST, value);
-> +	dump_reg(decoder->client, REG_SATURATION, value);
-> +	dump_reg(decoder->client, REG_HUE, value);
-> +	dump_reg(decoder->client, REG_CHROMA_CONTROL1, value);
-> +	dump_reg(decoder->client, REG_CHROMA_CONTROL2, value);
-> +	dump_reg(decoder->client, REG_COMP_PR_SATURATION, value);
-> +	dump_reg(decoder->client, REG_COMP_Y_CONTRAST, value);
-> +	dump_reg(decoder->client, REG_COMP_PB_SATURATION, value);
-> +	dump_reg(decoder->client, REG_COMP_Y_BRIGHTNESS, value);
-> +	dump_reg(decoder->client, REG_AVID_START_PIXEL_LSB, value);
-> +	dump_reg(decoder->client, REG_AVID_START_PIXEL_MSB, value);
-> +	dump_reg(decoder->client, REG_AVID_STOP_PIXEL_LSB, value);
-> +	dump_reg(decoder->client, REG_AVID_STOP_PIXEL_MSB, value);
-> +	dump_reg(decoder->client, REG_HSYNC_START_PIXEL_LSB, value);
-> +	dump_reg(decoder->client, REG_HSYNC_START_PIXEL_MSB, value);
-> +	dump_reg(decoder->client, REG_HSYNC_STOP_PIXEL_LSB, value);
-> +	dump_reg(decoder->client, REG_HSYNC_STOP_PIXEL_MSB, value);
-> +	dump_reg(decoder->client, REG_VSYNC_START_LINE_LSB, value);
-> +	dump_reg(decoder->client, REG_VSYNC_START_LINE_MSB, value);
-> +	dump_reg(decoder->client, REG_VSYNC_STOP_LINE_LSB, value);
-> +	dump_reg(decoder->client, REG_VSYNC_STOP_LINE_MSB, value);
-> +	dump_reg(decoder->client, REG_VBLK_START_LINE_LSB, value);
-> +	dump_reg(decoder->client, REG_VBLK_START_LINE_MSB, value);
-> +	dump_reg(decoder->client, REG_VBLK_STOP_LINE_LSB, value);
-> +	dump_reg(decoder->client, REG_VBLK_STOP_LINE_MSB, value);
-> +	dump_reg(decoder->client, REG_SYNC_CONTROL, value);
-> +	dump_reg(decoder->client, REG_OUTPUT_FORMATTER1, value);
-> +	dump_reg(decoder->client, REG_OUTPUT_FORMATTER2, value);
-> +	dump_reg(decoder->client, REG_OUTPUT_FORMATTER3, value);
-> +	dump_reg(decoder->client, REG_OUTPUT_FORMATTER4, value);
-> +	dump_reg(decoder->client, REG_OUTPUT_FORMATTER5, value);
-> +	dump_reg(decoder->client, REG_OUTPUT_FORMATTER6, value);
-> +	dump_reg(decoder->client, REG_CLEAR_LOST_LOCK, value);
+> +       reg = omap_readl(ISPCSI2_COMPLEXIO_CFG1) &
+> +                                       ~ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_MASK;
+> +       switch (power_cmd) {
+> +       case ISP_CSI2_POWER_OFF:
+> +               reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_OFF;
+> +               break;
+> +       case ISP_CSI2_POWER_ON:
+> +               reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ON;
+> +               break;
+> +       case ISP_CSI2_POWER_ULPW:
+> +               reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ULPW;
+> +               break;
+> +       default:
+> +               printk(KERN_ERR "CSI2: ERROR - Wrong Power command!\n");
+> +               return -EINVAL;
+> +       }
+> +       omap_writel(reg, ISPCSI2_COMPLEXIO_CFG1);
+> +
+> +       retry_count = 0;
+> +       do {
+> +               udelay(50);
+> +               current_state = isp_csi2_complexio_power_status();
+> +
+> +               if (current_state != power_cmd) {
+> +                       printk(KERN_DEBUG "CSI2: Complex IO power command not"
+> +                                                               " yet taken.");
+> +                       if (++retry_count < 100) {
+> +                               printk(KERN_DEBUG " Retrying...\n");
+> +                               udelay(50);
+> +                       } else {
+> +                               printk(KERN_DEBUG " Retry count exceeded!\n");
+> +                       }
+> +               }
+> +       } while ((current_state != power_cmd) && (retry_count < 100));
+> +
+> +       if (retry_count == 100)
+> +               return -EBUSY;
+> +
+> +       return 0;
 > +}
 > +
-> +/*
-> + * Configure the TVP5146/47 with the current register settings
-> + * Returns zero if successful, or non-zero otherwise.
-> + */
-> +static int tvp514x_configure(struct tvp514x_decoder *decoder)
+> +/**
+> + * isp_csi2_ctrl_config_frame_mode - Configure if_en behaviour for CSI2
+> + * @frame_mode: Desired action for IF_EN switch off. 0 - disable IF immediately
+> + *              1 - disable after all Frame end Code is received in all
+> + *              contexts.
+> + *
+> + * Validates and saves to internal driver memory the passed configuration.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_config_frame_mode(enum isp_csi2_frame_mode frame_mode)
 > +{
-> +	int err;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	/* common register initialization */
-> +	err =
-> +	    tvp514x_write_regs(decoder->client, tvp514x_reg_list);
-> +	if (err)
-> +		return err;
-> +
-> +	if (debug)
-> +		tvp514x_reg_dump(decoder);
-> +
-> +	return 0;
+> +       if (currctrl->frame_mode != frame_mode) {
+> +               currctrl->frame_mode = frame_mode;
+> +               currctrl_u->frame_mode = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
-> +/*
-> + * Detect if an tvp514x is present, and if so which revision.
-> + * A device is considered to be detected if the chip ID (LSB and
-> MSB) + * registers match the expected values.
-> + * Any value of the rom version register is accepted.
-> + * Returns ENODEV error number if no device is detected, or zero
-> + * if a device is detected.
-> + */
-> +static int tvp514x_detect(struct tvp514x_decoder *decoder)
+> +/**
+> + * isp_csi2_ctrl_config_vp_clk_enable - Enables/disables CSI2 Videoport clock.
+> + * @vp_clk_enable: Boolean value to specify the Videoport clock state.
+> + *
+> + * Validates and saves to internal driver memory the passed configuration.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_config_vp_clk_enable(bool vp_clk_enable)
 > +{
-> +	u8 chip_id_msb, chip_id_lsb, rom_ver;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	chip_id_msb = tvp514x_read_reg(decoder->client, REG_CHIP_ID_MSB);
-> +	chip_id_lsb = tvp514x_read_reg(decoder->client, REG_CHIP_ID_LSB);
-> +	rom_ver = tvp514x_read_reg(decoder->client, REG_ROM_VERSION);
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +		 "chip id detected msb:0x%x lsb:0x%x rom version:0x%x\n",
-> +		 chip_id_msb, chip_id_lsb, rom_ver);
-> +	if ((chip_id_msb != TVP514X_CHIP_ID_MSB)
-> +		|| ((chip_id_lsb != TVP5146_CHIP_ID_LSB)
-> +		&& (chip_id_lsb != TVP5147_CHIP_ID_LSB))) {
-> +		/* We didn't read the values we expected, so this must not be
-> +		 * an TVP5146/47.
-> +		 */
-> +		v4l_err(decoder->client,
-> +			"chip id mismatch msb:0x%x lsb:0x%x\n",
-> +			chip_id_msb, chip_id_lsb);
-> +		return -ENODEV;
-> +	}
-> +
-> +	decoder->ver = rom_ver;
-> +	decoder->state = STATE_DETECTED;
-> +
-> +	v4l_info(decoder->client,
-> +			"\n%s found at 0x%x (%s)\n", decoder->client->name,
-> +			decoder->client->addr << 1,
-> +			decoder->client->adapter->name);
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Following are decoder interface functions implemented by
-> + * TVP5146/47 decoder driver.
-> + */
-> +
-> +/**
-> + * ioctl_querystd - V4L2 decoder interface handler for
-> VIDIOC_QUERYSTD ioctl + * @s: pointer to standard V4L2 device
-> structure
-> + * @std_id: standard V4L2 std_id ioctl enum
-> + *
-> + * Returns the current standard detected by TVP5146/47. If no active
-> input is + * detected, returns -EINVAL
-> + */
-> +static int ioctl_querystd(struct v4l2_int_device *s, v4l2_std_id
-> *std_id) +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	enum tvp514x_std current_std;
-> +	enum tvp514x_input input_sel;
-> +	u8 sync_lock_status, lock_mask;
-> +
-> +	if (std_id == NULL)
-> +		return -EINVAL;
-> +
-> +	/* get the current standard */
-> +	current_std = tvp514x_get_current_std(decoder);
-> +	if (current_std == STD_INVALID)
-> +		return -EINVAL;
-> +
-> +	input_sel =
-> decoder->pdata->input_list[decoder->inputidx].input_sel; +
-> +	switch (input_sel) {
-> +	case INPUT_CVBS_VI1A:
-> +	case INPUT_CVBS_VI1B:
-> +	case INPUT_CVBS_VI1C:
-> +	case INPUT_CVBS_VI2A:
-> +	case INPUT_CVBS_VI2B:
-> +	case INPUT_CVBS_VI2C:
-> +	case INPUT_CVBS_VI3A:
-> +	case INPUT_CVBS_VI3B:
-> +	case INPUT_CVBS_VI3C:
-> +	case INPUT_CVBS_VI4A:
-> +		lock_mask = STATUS_CLR_SUBCAR_LOCK_BIT |
-> +			STATUS_HORZ_SYNC_LOCK_BIT |
-> +			STATUS_VIRT_SYNC_LOCK_BIT;
-> +		break;
-> +
-> +	case INPUT_SVIDEO_VI2A_VI1A:
-> +	case INPUT_SVIDEO_VI2B_VI1B:
-> +	case INPUT_SVIDEO_VI2C_VI1C:
-> +	case INPUT_SVIDEO_VI2A_VI3A:
-> +	case INPUT_SVIDEO_VI2B_VI3B:
-> +	case INPUT_SVIDEO_VI2C_VI3C:
-> +	case INPUT_SVIDEO_VI4A_VI1A:
-> +	case INPUT_SVIDEO_VI4A_VI1B:
-> +	case INPUT_SVIDEO_VI4A_VI1C:
-> +	case INPUT_SVIDEO_VI4A_VI3A:
-> +	case INPUT_SVIDEO_VI4A_VI3B:
-> +	case INPUT_SVIDEO_VI4A_VI3C:
-> +		lock_mask = STATUS_HORZ_SYNC_LOCK_BIT |
-> +			STATUS_VIRT_SYNC_LOCK_BIT;
-> +		break;
-> +		/*Need to add other interfaces*/
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +	/* check whether signal is locked */
-> +	sync_lock_status = tvp514x_read_reg(decoder->client, REG_STATUS1);
-> +	if (lock_mask != (sync_lock_status & lock_mask))
-> +		return -EINVAL;	/* No input detected */
-> +
-> +	decoder->current_std = current_std;
-> +	*std_id = decoder->std_list[current_std].standard.id;
-> +
-> +	v4l_dbg(1, debug, decoder->client, "Current STD: %s",
-> +			decoder->std_list[current_std].standard.name);
-> +	return 0;
+> +       if (currctrl->vp_clk_enable != vp_clk_enable) {
+> +               currctrl->vp_clk_enable = vp_clk_enable;
+> +               currctrl_u->vp_clk_enable = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_s_std - V4L2 decoder interface handler for VIDIOC_S_STD
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @std_id: standard V4L2 v4l2_std_id ioctl enum
+> + * isp_csi2_ctrl_config_vp_only_enable - Sets CSI2 Videoport clock as exclusive
+> + * @vp_only_enable: Boolean value to specify if the Videoport clock is
+> + *                  exclusive, setting the OCP port as disabled.
 > + *
-> + * If std_id is supported, sets the requested standard. Otherwise,
-> returns + * -EINVAL
-> + */
-> +static int ioctl_s_std(struct v4l2_int_device *s, v4l2_std_id
-> *std_id) +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int err, i;
-> +
-> +	if (std_id == NULL)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < decoder->num_stds; i++)
-> +		if (*std_id & decoder->std_list[i].standard.id)
-> +			break;
-> +
-> +	if ((i == decoder->num_stds) || (i == STD_INVALID))
-> +		return -EINVAL;
-> +
-> +	err = tvp514x_write_reg(decoder->client, REG_VIDEO_STD,
-> +				decoder->std_list[i].video_std);
-> +	if (err)
-> +		return err;
-> +
-> +	decoder->current_std = i;
-> +	tvp514x_reg_list[REG_VIDEO_STD].val =
-> decoder->std_list[i].video_std; +
-> +	v4l_dbg(1, debug, decoder->client, "Standard set to: %s",
-> +			decoder->std_list[i].standard.name);
-> +	return 0;
-> +}
-> +
-> +/**
-> + * ioctl_s_routing - V4L2 decoder interface handler for
-> VIDIOC_S_INPUT ioctl + * @s: pointer to standard V4L2 device
-> structure
-> + * @index: number of the input
-> + *
-> + * If index is valid, selects the requested input. Otherwise,
-> returns -EINVAL if + * the input is not supported or there is no
-> active signal present in the + * selected input.
-> + */
-> +static int ioctl_s_routing(struct v4l2_int_device *s, int index)
+> + * Validates and saves to internal driver memory the passed configuration.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_config_vp_only_enable(bool vp_only_enable)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int err;
-> +	enum tvp514x_input input_sel;
-> +	enum tvp514x_std current_std = STD_INVALID;
-> +	u8 sync_lock_status, lock_mask;
-> +	int try_count = LOCK_RETRY_COUNT;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	if ((index >= decoder->pdata->num_inputs) || (index < 0))
-> +		return -EINVAL;	/* Index out of bound */
-> +
-> +	/* Get the register value to be written to select the requested
-> input */ +	input_sel = decoder->pdata->input_list[index].input_sel;
-> +	err = tvp514x_write_reg(decoder->client, REG_INPUT_SEL, input_sel);
-> +	if (err)
-> +		return err;
-> +
-> +	decoder->inputidx = index;
-> +	tvp514x_reg_list[REG_INPUT_SEL].val = input_sel;
-> +
-> +	/* Clear status */
-> +	msleep(LOCK_RETRY_DELAY);
-> +	err =
-> +	    tvp514x_write_reg(decoder->client, REG_CLEAR_LOST_LOCK, 0x01);
-> +	if (err)
-> +		return err;
-> +
-> +	switch (input_sel) {
-> +	case INPUT_CVBS_VI1A:
-> +	case INPUT_CVBS_VI1B:
-> +	case INPUT_CVBS_VI1C:
-> +	case INPUT_CVBS_VI2A:
-> +	case INPUT_CVBS_VI2B:
-> +	case INPUT_CVBS_VI2C:
-> +	case INPUT_CVBS_VI3A:
-> +	case INPUT_CVBS_VI3B:
-> +	case INPUT_CVBS_VI3C:
-> +	case INPUT_CVBS_VI4A:
-> +		lock_mask = STATUS_CLR_SUBCAR_LOCK_BIT |
-> +			STATUS_HORZ_SYNC_LOCK_BIT |
-> +			STATUS_VIRT_SYNC_LOCK_BIT;
-> +		break;
-> +
-> +	case INPUT_SVIDEO_VI2A_VI1A:
-> +	case INPUT_SVIDEO_VI2B_VI1B:
-> +	case INPUT_SVIDEO_VI2C_VI1C:
-> +	case INPUT_SVIDEO_VI2A_VI3A:
-> +	case INPUT_SVIDEO_VI2B_VI3B:
-> +	case INPUT_SVIDEO_VI2C_VI3C:
-> +	case INPUT_SVIDEO_VI4A_VI1A:
-> +	case INPUT_SVIDEO_VI4A_VI1B:
-> +	case INPUT_SVIDEO_VI4A_VI1C:
-> +	case INPUT_SVIDEO_VI4A_VI3A:
-> +	case INPUT_SVIDEO_VI4A_VI3B:
-> +	case INPUT_SVIDEO_VI4A_VI3C:
-> +		lock_mask = STATUS_HORZ_SYNC_LOCK_BIT |
-> +			STATUS_VIRT_SYNC_LOCK_BIT;
-> +		break;
-> +	/*Need to add other interfaces*/
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	while (try_count-- > 0) {
-> +		/* Allow decoder to sync up with new input */
-> +		msleep(LOCK_RETRY_DELAY);
-> +
-> +		/* get the current standard for future reference */
-> +		current_std = tvp514x_get_current_std(decoder);
-> +		if (current_std == STD_INVALID)
-> +			continue;
-> +
-> +		sync_lock_status = tvp514x_read_reg(decoder->client,
-> +				REG_STATUS1);
-> +		if (lock_mask == (sync_lock_status & lock_mask))
-> +			break;	/* Input detected */
-> +	}
-> +
-> +	if ((current_std == STD_INVALID) || (try_count < 0))
-> +		return -EINVAL;
-> +
-> +	decoder->current_std = current_std;
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +			"Input set to: index - %d (%s)",
-> +			decoder->pdata->input_list[index].input.index,
-> +			decoder->pdata->input_list[index].input.name);
-> +	return 0;
+> +       if (currctrl->vp_only_enable != vp_only_enable) {
+> +               currctrl->vp_only_enable = vp_only_enable;
+> +               currctrl_u->vp_only_enable = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_g_routing - V4L2 decoder interface handler for
-> VIDIOC_G_INPUT ioctl + * @s: pointer to standard V4L2 device
-> structure
-> + * @index: returns the current selected input
+> + * isp_csi2_ctrl_config_vp_out_ctrl - Sets CSI2 Videoport clock divider
+> + * @vp_out_ctrl: Divider value for setting videoport clock frequency based on
+> + *               OCP port frequency, valid dividers are between 1 and 4.
 > + *
-> + * Returns the current selected input. Returns -EINVAL if any error
-> occurs + */
-> +static int ioctl_g_routing(struct v4l2_int_device *s, int *index)
+> + * Validates and saves to internal driver memory the passed configuration.
+> + * Returns 0 if successful, or -EINVAL if wrong divider value is passed.
+> + **/
+> +int isp_csi2_ctrl_config_vp_out_ctrl(u8 vp_out_ctrl)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int err = -EINVAL, i, inputidx;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	if (index == NULL)
-> +		return err;
+> +       if ((vp_out_ctrl == 0) || (vp_out_ctrl > 4)) {
+> +               printk(KERN_ERR "CSI2: Wrong divisor value. Must be between"
+> +                                                               " 1 and 4");
+> +               return -EINVAL;
+> +       }
 > +
-> +	/* Search through the input list for active inputs */
-> +	inputidx = decoder->inputidx;
-> +	for (i = 0; i < decoder->pdata->num_inputs; i++) {
-> +		inputidx++;	/* Move to next input */
-> +		if (inputidx >= decoder->pdata->num_inputs)
-> +			inputidx = 0;	/* fall back to first input */
-> +
-> +		err = ioctl_s_routing(s, inputidx);
-> +		if (!err) {
-> +			/* Active input found - select it and return success */
-> +			*index = inputidx;
-> +			return 0;
-> +		}
-> +	}
-> +
-> +	return err;
+> +       if (currctrl->vp_out_ctrl != vp_out_ctrl) {
+> +               currctrl->vp_out_ctrl = vp_out_ctrl;
+> +               currctrl_u->vp_out_ctrl = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_queryctrl - V4L2 decoder interface handler for
-> VIDIOC_QUERYCTRL ioctl + * @s: pointer to standard V4L2 device
-> structure
-> + * @qc: standard V4L2 VIDIOC_QUERYCTRL ioctl structure
+> + * isp_csi2_ctrl_config_debug_enable - Sets CSI2 debug
+> + * @debug_enable: Boolean for setting debug configuration on CSI2.
 > + *
-> + * If the requested control is supported, returns the control
-> information + * from the ctrl_list[] array. Otherwise, returns
-> -EINVAL if the + * control is not supported.
-> + */
-> +static int
-> +ioctl_queryctrl(struct v4l2_int_device *s, struct v4l2_queryctrl
-> *qctrl) +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int id, index;
-> +	const struct tvp514x_ctrl_info *control = NULL;
-> +
-> +	if (qctrl == NULL)
-> +		return -EINVAL;
-> +
-> +	id = qctrl->id;
-> +	memset(qctrl, 0, sizeof(struct v4l2_queryctrl));
-> +	qctrl->id = id;
-> +
-> +	for (index = 0; index < decoder->num_ctrls; index++) {
-> +		control = &decoder->ctrl_list[index];
-> +		if (control->query_ctrl.id == qctrl->id)
-> +			break;	/* Match found */
-> +	}
-> +	if (index == decoder->num_ctrls)
-> +		return -EINVAL;	/* Index out of bound */
-> +
-> +	memcpy(qctrl, &control->query_ctrl, sizeof(struct v4l2_queryctrl));
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +			"Query Control: %s : Min - %d, Max - %d, Def - %d",
-> +			control->query_ctrl.name,
-> +			control->query_ctrl.minimum,
-> +			control->query_ctrl.maximum,
-> +			control->query_ctrl.default_value);
-> +	return 0;
-> +}
-> +
-> +/**
-> + * ioctl_g_ctrl - V4L2 decoder interface handler for VIDIOC_G_CTRL
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @vc: standard V4L2 VIDIOC_G_CTRL ioctl structure
-> + *
-> + * If the requested control is supported, returns the control's
-> current + * value from the decoder. Otherwise, returns -EINVAL if the
-> control is not + * supported.
-> + */
-> +static int
-> +ioctl_g_ctrl(struct v4l2_int_device *s, struct v4l2_control *ctrl)
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_config_debug_enable(bool debug_enable)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int index, value;
-> +	const struct tvp514x_ctrl_info *control = NULL;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	if (ctrl == NULL)
-> +		return -EINVAL;
-> +
-> +	for (index = 0; index < decoder->num_ctrls; index++) {
-> +		control = &decoder->ctrl_list[index];
-> +		if (control->query_ctrl.id == ctrl->id)
-> +			break;	/* Match found */
-> +	}
-> +	if (index == decoder->num_ctrls)
-> +		return -EINVAL;	/* Index out of bound */
-> +
-> +	value =
-> +	    tvp514x_read_reg(decoder->client, control->reg_address);
-> +
-> +	/* cross check */
-> +	if (value != tvp514x_reg_list[control->reg_address].val)
-> +		return -EINVAL;	/* Driver & TVP5146/47 setting mismatch */
-> +
-> +	if (V4L2_CID_AUTOGAIN == ctrl->id) {
-> +		if ((value & 0x3) == 3)
-> +			value = 1;
-> +		else
-> +			value = 0;
-> +	}
-> +
-> +	if (V4L2_CID_HUE == ctrl->id) {
-> +		if (value == 0x7F)
-> +			value = 180;
-> +		else if (value == 0x80)
-> +			value = -180;
-> +		else
-> +			value = 0;
-> +	}
-> +
-> +	ctrl->value = value;
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +			"Get Cotrol: %s - %d",
-> +			control->query_ctrl.name, value);
-> +	return 0;
+> +       if (currctrl->debug_enable != debug_enable) {
+> +               currctrl->debug_enable = debug_enable;
+> +               currctrl_u->debug_enable = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_s_ctrl - V4L2 decoder interface handler for VIDIOC_S_CTRL
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @vc: standard V4L2 VIDIOC_S_CTRL ioctl structure
+> + * isp_csi2_ctrl_config_burst_size - Sets CSI2 burst size.
+> + * @burst_size: Burst size of the memory saving capability of receiver.
 > + *
-> + * If the requested control is supported, sets the control's current
-> + * value in HW. Otherwise, returns -EINVAL if the control is not
-> supported. + */
-> +static int
-> +ioctl_s_ctrl(struct v4l2_int_device *s, struct v4l2_control *ctrl)
+> + * Returns 0 if successful, or -EINVAL if burst size is wrong.
+> + **/
+> +int isp_csi2_ctrl_config_burst_size(u8 burst_size)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int err, value, index;
-> +	const struct tvp514x_ctrl_info *control = NULL;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
+> +       if (burst_size > 3) {
+> +               printk(KERN_ERR "CSI2: Wrong burst size. Must be between"
+> +                                                               " 0 and 3");
+> +               return -EINVAL;
+> +       }
 > +
-> +	if (ctrl == NULL)
-> +		return -EINVAL;
-> +
-> +	value = (__s32) ctrl->value;
-> +	for (index = 0; index < decoder->num_ctrls; index++) {
-> +		control = &decoder->ctrl_list[index];
-> +		if (control->query_ctrl.id == ctrl->id)
-> +			break;	/* Match found */
-> +	}
-> +	if (index == decoder->num_ctrls)
-> +		return -EINVAL;	/* Index out of bound */
-> +
-> +	if (V4L2_CID_AUTOGAIN == ctrl->id) {
-> +		if (value == 1)
-> +			value = 0x0F;
-> +		else if (value == 0)
-> +			value = 0x0C;
-> +		else
-> +			return -ERANGE;
-> +	} else if (V4L2_CID_HUE == ctrl->id) {
-> +		if (value == 180)
-> +			value = 0x7F;
-> +		else if (value == -180)
-> +			value = 0x80;
-> +		else if (value == 0)
-> +			value = 0;
-> +		else
-> +			return -ERANGE;
-> +	} else {
-> +		if ((value < control->query_ctrl.minimum)
-> +			|| (value > control->query_ctrl.maximum))
-> +			return -ERANGE;
-> +	}
-> +
-> +	err =
-> +	    tvp514x_write_reg(decoder->client, control->reg_address,
-> +				value);
-> +	if (err)
-> +		return err;
-> +
-> +	tvp514x_reg_list[control->reg_address].val = value;
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +			"Set Cotrol: %s - %d",
-> +			control->query_ctrl.name, value);
-> +	return err;
+> +       if (currctrl->burst_size != burst_size) {
+> +               currctrl->burst_size = burst_size;
+> +               currctrl_u->burst_size = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_enum_fmt_cap - Implement the CAPTURE buffer VIDIOC_ENUM_FMT
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @fmt: standard V4L2 VIDIOC_ENUM_FMT ioctl structure
+> + * isp_csi2_ctrl_config_ecc_enable - Enables ECC on CSI2 Receiver
+> + * @ecc_enable: Boolean to enable/disable the CSI2 receiver ECC handling.
 > + *
-> + * Implement the VIDIOC_ENUM_FMT ioctl to enumerate supported
-> formats + */
-> +static int
-> +ioctl_enum_fmt_cap(struct v4l2_int_device *s, struct v4l2_fmtdesc
-> *fmt) +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int index;
-> +
-> +	if (fmt == NULL)
-> +		return -EINVAL;
-> +
-> +	index = fmt->index;
-> +	if ((index >= decoder->num_fmts) || (index < 0))
-> +		return -EINVAL;	/* Index out of bound */
-> +
-> +	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;	/* only capture is supported */
-> +
-> +	memcpy(fmt, &decoder->fmt_list[index],
-> +		sizeof(struct v4l2_fmtdesc));
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +			"Current FMT: index - %d (%s)",
-> +			decoder->fmt_list[index].index,
-> +			decoder->fmt_list[index].description);
-> +	return 0;
-> +}
-> +
-> +/**
-> + * ioctl_try_fmt_cap - Implement the CAPTURE buffer VIDIOC_TRY_FMT
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @f: pointer to standard V4L2 VIDIOC_TRY_FMT ioctl structure
-> + *
-> + * Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type.
-> This + * ioctl is used to negotiate the image capture size and pixel
-> format + * without actually making it take effect.
-> + */
-> +static int
-> +ioctl_try_fmt_cap(struct v4l2_int_device *s, struct v4l2_format *f)
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_config_ecc_enable(bool ecc_enable)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int ifmt;
-> +	struct v4l2_pix_format *pix;
-> +	enum tvp514x_std current_std;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	if (f == NULL)
-> +		return -EINVAL;
-> +
-> +	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +
-> +	pix = &f->fmt.pix;
-> +
-> +	/* Calculate height and width based on current standard */
-> +	current_std = tvp514x_get_current_std(decoder);
-> +	if (current_std == STD_INVALID)
-> +		return -EINVAL;
-> +
-> +	decoder->current_std = current_std;
-> +	pix->width = decoder->std_list[current_std].width;
-> +	pix->height = decoder->std_list[current_std].height;
-> +
-> +	for (ifmt = 0; ifmt < decoder->num_fmts; ifmt++) {
-> +		if (pix->pixelformat ==
-> +			decoder->fmt_list[ifmt].pixelformat)
-> +			break;
-> +	}
-> +	if (ifmt == decoder->num_fmts)
-> +		ifmt = 0;	/* None of the format matched, select default */
-> +	pix->pixelformat = decoder->fmt_list[ifmt].pixelformat;
-> +
-> +	pix->field = V4L2_FIELD_INTERLACED;
-> +	pix->bytesperline = pix->width * 2;
-> +	pix->sizeimage = pix->bytesperline * pix->height;
-> +	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	pix->priv = 0;
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +			"Try FMT: pixelformat - %s, bytesperline - %d"
-> +			"Width - %d, Height - %d",
-> +			decoder->fmt_list[ifmt].description, pix->bytesperline,
-> +			pix->width, pix->height);
-> +	return 0;
+> +       if (currctrl->ecc_enable != ecc_enable) {
+> +               currctrl->ecc_enable = ecc_enable;
+> +               currctrl_u->ecc_enable = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_s_fmt_cap - V4L2 decoder interface handler for VIDIOC_S_FMT
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @f: pointer to standard V4L2 VIDIOC_S_FMT ioctl structure
+> + * isp_csi2_ctrl_config_ecc_enable - Enables ECC on CSI2 Receiver
+> + * @ecc_enable: Boolean to enable/disable the CSI2 receiver ECC handling.
 > + *
-> + * If the requested format is supported, configures the HW to use
-> that + * format, returns error code if format not supported or HW
-> can't be + * correctly configured.
-> + */
-> +static int
-> +ioctl_s_fmt_cap(struct v4l2_int_device *s, struct v4l2_format *f)
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_config_secure_mode(bool secure_mode)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	struct v4l2_pix_format *pix;
-> +	int rval;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	if (f == NULL)
-> +		return -EINVAL;
-> +
-> +	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;	/* only capture is supported */
-> +
-> +	pix = &f->fmt.pix;
-> +	rval = ioctl_try_fmt_cap(s, f);
-> +	if (rval)
-> +		return rval;
-> +	else
-> +		decoder->pix = *pix;
-> +
-> +	return rval;
+> +       if (currctrl->secure_mode != secure_mode) {
+> +               currctrl->secure_mode = secure_mode;
+> +               currctrl_u->secure_mode = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_g_fmt_cap - V4L2 decoder interface handler for
-> ioctl_g_fmt_cap + * @s: pointer to standard V4L2 device structure
-> + * @f: pointer to standard V4L2 v4l2_format structure
+> + * isp_csi2_ctrl_config_if_enable - Enables CSI2 Receiver interface.
+> + * @if_enable: Boolean to enable/disable the CSI2 receiver interface.
 > + *
-> + * Returns the decoder's current pixel format in the v4l2_format
-> + * parameter.
-> + */
-> +static int
-> +ioctl_g_fmt_cap(struct v4l2_int_device *s, struct v4l2_format *f)
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_config_if_enable(bool if_enable)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
 > +
-> +	if (f == NULL)
-> +		return -EINVAL;
-> +
-> +	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;	/* only capture is supported */
-> +
-> +	f->fmt.pix = decoder->pix;
-> +
-> +	v4l_dbg(1, debug, decoder->client,
-> +			"Current FMT: bytesperline - %d"
-> +			"Width - %d, Height - %d",
-> +			decoder->pix.bytesperline,
-> +			decoder->pix.width, decoder->pix.height);
-> +	return 0;
+> +       if (currctrl->if_enable != if_enable) {
+> +               currctrl->if_enable = if_enable;
+> +               currctrl_u->if_enable = true;
+> +               update_ctrl = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_g_parm - V4L2 decoder interface handler for VIDIOC_G_PARM
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @a: pointer to standard V4L2 VIDIOC_G_PARM ioctl structure
+> + * isp_csi2_ctrl_update - Applies CSI2 control configuration.
+> + * @force_update: Flag to force rewrite of registers, even if they haven't been
+> + *                updated with the isp_csi2_ctrl_config_*() functions.
 > + *
-> + * Returns the decoder's video CAPTURE parameters.
-> + */
-> +static int
-> +ioctl_g_parm(struct v4l2_int_device *s, struct v4l2_streamparm *a)
+> + * It only saves settings when they were previously updated using the
+> + * isp_csi2_ctrl_config_*() functions, unless the force_update flag is
+> + * set to true.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_update(bool force_update)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	struct v4l2_captureparm *cparm;
-> +	enum tvp514x_std current_std;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
+> +       u32 reg;
 > +
-> +	if (a == NULL)
-> +		return -EINVAL;
-> +
-> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;	/* only capture is supported */
-> +
-> +	memset(a, 0, sizeof(*a));
-> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +
-> +	/* get the current standard */
-> +	current_std = tvp514x_get_current_std(decoder);
-> +	if (current_std == STD_INVALID)
-> +		return -EINVAL;
-> +
-> +	decoder->current_std = current_std;
-> +
-> +	cparm = &a->parm.capture;
-> +	cparm->capability = V4L2_CAP_TIMEPERFRAME;
-> +	cparm->timeperframe =
-> +		decoder->std_list[current_std].standard.frameperiod;
-> +
-> +	return 0;
+> +       if ((update_ctrl == true) || (force_update == true)) {
+> +               reg = omap_readl(ISPCSI2_CTRL);
+> +               if ((currctrl_u->frame_mode == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_FRAME_MASK;
+> +                       if (currctrl->frame_mode)
+> +                               reg |= ISPCSI2_CTRL_FRAME_DISABLE_FEC;
+> +                       else
+> +                               reg |= ISPCSI2_CTRL_FRAME_DISABLE_IMM;
+> +                       currctrl_u->frame_mode = false;
+> +               }
+> +               if ((currctrl_u->vp_clk_enable == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_VP_CLK_EN_MASK;
+> +                       if (currctrl->vp_clk_enable)
+> +                               reg |= ISPCSI2_CTRL_VP_CLK_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTRL_VP_CLK_EN_DISABLE;
+> +                       currctrl_u->vp_clk_enable = false;
+> +               }
+> +               if ((currctrl_u->vp_only_enable == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_VP_ONLY_EN_MASK;
+> +                       uses_videoport = currctrl->vp_only_enable;
+> +                       if (currctrl->vp_only_enable)
+> +                               reg |= ISPCSI2_CTRL_VP_ONLY_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTRL_VP_ONLY_EN_DISABLE;
+> +                       currctrl_u->vp_only_enable = false;
+> +               }
+> +               if ((currctrl_u->vp_out_ctrl == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_VP_OUT_CTRL_MASK;
+> +                       reg |= (currctrl->vp_out_ctrl - 1) <<
+> +                                               ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT;
+> +                       currctrl_u->vp_out_ctrl = false;
+> +               }
+> +               if ((currctrl_u->debug_enable == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_DBG_EN_MASK;
+> +                       if (currctrl->debug_enable)
+> +                               reg |= ISPCSI2_CTRL_DBG_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTRL_DBG_EN_DISABLE;
+> +                       currctrl_u->debug_enable = false;
+> +               }
+> +               if ((currctrl_u->burst_size == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_BURST_SIZE_MASK;
+> +                       reg |= currctrl->burst_size <<
+> +                                               ISPCSI2_CTRL_BURST_SIZE_SHIFT;
+> +                       currctrl_u->burst_size = false;
+> +               }
+> +               if ((currctrl_u->ecc_enable == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_ECC_EN_MASK;
+> +                       if (currctrl->ecc_enable)
+> +                               reg |= ISPCSI2_CTRL_ECC_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTRL_ECC_EN_DISABLE;
+> +                       currctrl_u->ecc_enable = false;
+> +               }
+> +               if ((currctrl_u->secure_mode == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_SECURE_MASK;
+> +                       if (currctrl->secure_mode)
+> +                               reg |= ISPCSI2_CTRL_SECURE_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTRL_SECURE_DISABLE;
+> +                       currctrl_u->secure_mode = false;
+> +               }
+> +               if ((currctrl_u->if_enable == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2_CTRL_IF_EN_MASK;
+> +                       if (currctrl->if_enable)
+> +                               reg |= ISPCSI2_CTRL_IF_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTRL_IF_EN_DISABLE;
+> +                       currctrl_u->if_enable = false;
+> +               }
+> +               omap_writel(reg, ISPCSI2_CTRL);
+> +               update_ctrl = false;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_s_parm - V4L2 decoder interface handler for VIDIOC_S_PARM
-> ioctl + * @s: pointer to standard V4L2 device structure
-> + * @a: pointer to standard V4L2 VIDIOC_S_PARM ioctl structure
+> + * isp_csi2_ctrl_get - Gets CSI2 control configuration
 > + *
-> + * Configures the decoder to use the input parameters, if possible.
-> If + * not possible, returns the appropriate error code.
-> + */
-> +static int
-> +ioctl_s_parm(struct v4l2_int_device *s, struct v4l2_streamparm *a)
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctrl_get(void)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	struct v4l2_fract *timeperframe;
-> +	enum tvp514x_std current_std;
+> +       struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
+> +       struct isp_csi2_ctrl_cfg_update *currctrl_u =
+> +                                               &current_csi2_cfg_update.ctrl;
+> +       u32 reg;
 > +
-> +	if (a == NULL)
-> +		return -EINVAL;
+> +       reg = omap_readl(ISPCSI2_CTRL);
+> +       currctrl->frame_mode = (reg & ISPCSI2_CTRL_FRAME_MASK) >>
+> +                                               ISPCSI2_CTRL_FRAME_SHIFT;
+> +       currctrl_u->frame_mode = false;
 > +
-> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;	/* only capture is supported */
+> +       if ((reg & ISPCSI2_CTRL_VP_CLK_EN_MASK) ==
+> +                                               ISPCSI2_CTRL_VP_CLK_EN_ENABLE)
+> +               currctrl->vp_clk_enable = true;
+> +       else
+> +               currctrl->vp_clk_enable = false;
+> +       currctrl_u->vp_clk_enable = false;
 > +
-> +	timeperframe = &a->parm.capture.timeperframe;
+> +       if ((reg & ISPCSI2_CTRL_VP_ONLY_EN_MASK) ==
+> +                                               ISPCSI2_CTRL_VP_ONLY_EN_ENABLE)
+> +               currctrl->vp_only_enable = true;
+> +       else
+> +               currctrl->vp_only_enable = false;
+> +       uses_videoport = currctrl->vp_only_enable;
+> +       currctrl_u->vp_only_enable = false;
 > +
-> +	/* get the current standard */
-> +	current_std = tvp514x_get_current_std(decoder);
-> +	if (current_std == STD_INVALID)
-> +		return -EINVAL;
+> +       currctrl->vp_out_ctrl = ((reg & ISPCSI2_CTRL_VP_OUT_CTRL_MASK) >>
+> +                                       ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT) + 1;
+> +       currctrl_u->vp_out_ctrl = false;
 > +
-> +	decoder->current_std = current_std;
+> +       if ((reg & ISPCSI2_CTRL_DBG_EN_MASK) == ISPCSI2_CTRL_DBG_EN_ENABLE)
+> +               currctrl->debug_enable = true;
+> +       else
+> +               currctrl->debug_enable = false;
+> +       currctrl_u->debug_enable = false;
 > +
-> +	*timeperframe =
-> +	    decoder->std_list[current_std].standard.frameperiod;
+> +       currctrl->burst_size = (reg & ISPCSI2_CTRL_BURST_SIZE_MASK) >>
+> +                                       ISPCSI2_CTRL_BURST_SIZE_SHIFT;
+> +       currctrl_u->burst_size = false;
 > +
-> +	return 0;
+> +       if ((reg & ISPCSI2_CTRL_ECC_EN_MASK) == ISPCSI2_CTRL_ECC_EN_ENABLE)
+> +               currctrl->ecc_enable = true;
+> +       else
+> +               currctrl->ecc_enable = false;
+> +       currctrl_u->ecc_enable = false;
+> +
+> +       if ((reg & ISPCSI2_CTRL_SECURE_MASK) == ISPCSI2_CTRL_SECURE_ENABLE)
+> +               currctrl->secure_mode = true;
+> +       else
+> +               currctrl->secure_mode = false;
+> +       currctrl_u->secure_mode = false;
+> +
+> +       if ((reg & ISPCSI2_CTRL_IF_EN_MASK) == ISPCSI2_CTRL_IF_EN_ENABLE)
+> +               currctrl->if_enable = true;
+> +       else
+> +               currctrl->if_enable = false;
+> +       currctrl_u->if_enable = false;
+> +
+> +       update_ctrl = false;
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_g_ifparm - V4L2 decoder interface handler for
-> vidioc_int_g_ifparm_num + * @s: pointer to standard V4L2 device
-> structure
-> + * @p: pointer to standard V4L2 vidioc_int_g_ifparm_num ioctl
-> structure + *
-> + * Gets slave interface parameters.
-> + * Calculates the required xclk value to support the requested
-> + * clock parameters in p. This value is returned in the p
-> + * parameter.
-> + */
-> +static int ioctl_g_ifparm(struct v4l2_int_device *s, struct
-> v4l2_ifparm *p) +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int rval;
-> +
-> +	if (p == NULL)
-> +		return -EINVAL;
-> +
-> +	if (NULL == decoder->pdata->ifparm)
-> +		return -EINVAL;
-> +
-> +	rval = decoder->pdata->ifparm(p);
-> +	if (rval) {
-> +		v4l_err(decoder->client, "g_ifparm.Err[%d]\n", rval);
-> +		return rval;
-> +	}
-> +
-> +	p->u.bt656.clock_curr = TVP514X_XCLK_BT656;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * ioctl_g_priv - V4L2 decoder interface handler for
-> vidioc_int_g_priv_num + * @s: pointer to standard V4L2 device
-> structure
-> + * @p: void pointer to hold decoder's private data address
+> + * isp_csi2_ctx_validate - Validates the context number value
+> + * @ctxnum: Pointer to variable containing context number.
 > + *
-> + * Returns device's (decoder's) private data area address in p
-> parameter + */
-> +static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
+> + * If the value is not in range (3 bits), it is being ANDed with 0x7 to force
+> + * it to be on range.
+> + **/
+> +static void isp_csi2_ctx_validate(u8 *ctxnum)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +
-> +	if (NULL == decoder->pdata->priv_data_set)
-> +		return -EINVAL;
-> +
-> +	return decoder->pdata->priv_data_set(p);
+> +       if (*ctxnum > 7) {
+> +               printk(KERN_ERR "Invalid context number. Forcing valid"
+> +                                                               " value...\n");
+> +               *ctxnum &= ~(0x7);
+> +       }
 > +}
 > +
 > +/**
-> + * ioctl_s_power - V4L2 decoder interface handler for
-> vidioc_int_s_power_num + * @s: pointer to standard V4L2 device
-> structure
-> + * @on: power state to which device is to be set
+> + * isp_csi2_ctx_config_virtual_id - Maps a virtual ID with a CSI2 Rx context
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @virtual_id: CSI2 Virtual ID to associate with specified context number.
 > + *
-> + * Sets devices power state to requrested state, if possible.
-> + */
-> +static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power
-> on) +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int err = 0;
-> +
-> +	switch (on) {
-> +	case V4L2_POWER_OFF:
-> +		/* Power Down Sequence */
-> +		err =
-> +		    tvp514x_write_reg(decoder->client, REG_OPERATION_MODE,
-> +					0x01);
-> +		/* Disable mux for TVP5146/47 decoder data path */
-> +		if (decoder->pdata->power_set)
-> +			err |= decoder->pdata->power_set(on);
-> +		decoder->state = STATE_NOT_DETECTED;
-> +		break;
-> +
-> +	case V4L2_POWER_STANDBY:
-> +		if (decoder->pdata->power_set)
-> +			err = decoder->pdata->power_set(on);
-> +		break;
-> +
-> +	case V4L2_POWER_ON:
-> +		/* Enable mux for TVP5146/47 decoder data path */
-> +		if ((decoder->pdata->power_set) &&
-> +				(decoder->state == STATE_NOT_DETECTED)) {
-> +			int i;
-> +			struct tvp514x_init_seq *int_seq =
-> +				(struct tvp514x_init_seq *)
-> +				decoder->id->driver_data;
-> +
-> +			err = decoder->pdata->power_set(on);
-> +
-> +			/* Power Up Sequence */
-> +			for (i = 0; i < int_seq->no_regs; i++) {
-> +				err |= tvp514x_write_reg(decoder->client,
-> +						int_seq->init_reg_seq[i].reg,
-> +						int_seq->init_reg_seq[i].val);
-> +			}
-> +			/* Detect the sensor is not already detected */
-> +			err |= tvp514x_detect(decoder);
-> +			if (err) {
-> +				v4l_err(decoder->client,
-> +						"Unable to detect decoder\n");
-> +				return err;
-> +			}
-> +		}
-> +		err |= tvp514x_configure(decoder);
-> +		break;
-> +
-> +	default:
-> +		err = -ENODEV;
-> +		break;
-> +	}
-> +
-> +	return err;
-> +}
-> +
-> +/**
-> + * ioctl_init - V4L2 decoder interface handler for VIDIOC_INT_INIT
-> + * @s: pointer to standard V4L2 device structure
-> + *
-> + * Initialize the decoder device (calls tvp514x_configure())
-> + */
-> +static int ioctl_init(struct v4l2_int_device *s)
+> + * Returns 0 if successful, or -EINVAL if Virtual ID is not in range (0-3).
+> + **/
+> +int isp_csi2_ctx_config_virtual_id(u8 ctxnum, u8 virtual_id)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
 > +
-> +	/* Set default standard to auto */
-> +	tvp514x_reg_list[REG_VIDEO_STD].val =
-> +	    VIDEO_STD_AUTO_SWITCH_BIT;
+> +       isp_csi2_ctx_validate(&ctxnum);
 > +
-> +	return tvp514x_configure(decoder);
+> +       if (virtual_id > 3) {
+> +               printk(KERN_ERR "Wrong requested virtual_id\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->virtual_id != virtual_id) {
+> +               selected_ctx->virtual_id = virtual_id;
+> +               selected_ctx_u->virtual_id = true;
+> +               update_ctx_ctrl2[ctxnum] = true;
+> +       }
+> +
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_dev_exit - V4L2 decoder interface handler for
-> vidioc_int_dev_exit_num + * @s: pointer to standard V4L2 device
-> structure
+> + * isp_csi2_ctx_config_frame_count - Sets frame count to be received in CSI2 Rx.
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @frame_count: Number of frames to acquire.
 > + *
-> + * Delinitialise the dev. at slave detach. The complement of
-> ioctl_dev_init. + */
-> +static int ioctl_dev_exit(struct v4l2_int_device *s)
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_config_frame_count(u8 ctxnum, u8 frame_count)
 > +{
-> +	return 0;
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->frame_count != frame_count) {
+> +               selected_ctx->frame_count = frame_count;
+> +               selected_ctx_u->frame_count = true;
+> +               update_ctx_ctrl1[ctxnum] = true;
+> +       }
+> +
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ioctl_dev_init - V4L2 decoder interface handler for
-> vidioc_int_dev_init_num + * @s: pointer to standard V4L2 device
-> structure
+> + * isp_csi2_ctx_config_format - Maps a pixel format to a specified context.
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @pixformat: V4L2 structure for pixel format.
 > + *
-> + * Initialise the device when slave attaches to the master. Returns
-> 0 if + * TVP5146/47 device could be found, otherwise returns
-> appropriate error. + */
-> +static int ioctl_dev_init(struct v4l2_int_device *s)
+> + * Returns 0 if successful, or -EINVAL if the format is not supported by the
+> + * receiver.
+> + **/
+> +int isp_csi2_ctx_config_format(u8 ctxnum, u32 pixformat)
 > +{
-> +	struct tvp514x_decoder *decoder = s->priv;
-> +	int err;
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +       struct v4l2_pix_format pix;
 > +
-> +	err = tvp514x_detect(decoder);
-> +	if (err < 0) {
-> +		v4l_err(decoder->client,
-> +			"Unable to detect decoder\n");
-> +		return err;
-> +	}
+> +       isp_csi2_ctx_validate(&ctxnum);
 > +
-> +	v4l_info(decoder->client,
-> +		 "chip version 0x%.2x detected\n", decoder->ver);
+> +       pix.pixelformat = pixformat;
+> +       switch (pix.pixelformat) {
+> +       case V4L2_PIX_FMT_RGB565:
+> +       case V4L2_PIX_FMT_RGB565X:
+> +       case V4L2_PIX_FMT_YUYV:
+> +       case V4L2_PIX_FMT_UYVY:
+> +       case V4L2_PIX_FMT_RGB555:
+> +       case V4L2_PIX_FMT_RGB555X:
+> +       case V4L2_PIX_FMT_SGRBG10:
+> +       break;
+> +       default:
+> +               printk(KERN_ERR "Context config pixel format unsupported\n");
+> +               return -EINVAL;
+> +       }
 > +
-> +	return 0;
-> +}
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
 > +
-> +static struct v4l2_int_ioctl_desc tvp514x_ioctl_desc[] = {
-> +	{vidioc_int_dev_init_num, (v4l2_int_ioctl_func*) ioctl_dev_init},
-> +	{vidioc_int_dev_exit_num, (v4l2_int_ioctl_func*) ioctl_dev_exit},
-> +	{vidioc_int_s_power_num, (v4l2_int_ioctl_func*) ioctl_s_power},
-> +	{vidioc_int_g_priv_num, (v4l2_int_ioctl_func*) ioctl_g_priv},
-> +	{vidioc_int_g_ifparm_num, (v4l2_int_ioctl_func*) ioctl_g_ifparm},
-> +	{vidioc_int_init_num, (v4l2_int_ioctl_func*) ioctl_init},
-> +	{vidioc_int_enum_fmt_cap_num,
-> +	 (v4l2_int_ioctl_func *) ioctl_enum_fmt_cap},
-> +	{vidioc_int_try_fmt_cap_num,
-> +	 (v4l2_int_ioctl_func *) ioctl_try_fmt_cap},
-> +	{vidioc_int_g_fmt_cap_num,
-> +	 (v4l2_int_ioctl_func *) ioctl_g_fmt_cap},
-> +	{vidioc_int_s_fmt_cap_num,
-> +	 (v4l2_int_ioctl_func *) ioctl_s_fmt_cap},
-> +	{vidioc_int_g_parm_num, (v4l2_int_ioctl_func *) ioctl_g_parm},
-> +	{vidioc_int_s_parm_num, (v4l2_int_ioctl_func *) ioctl_s_parm},
-> +	{vidioc_int_queryctrl_num,
-> +	 (v4l2_int_ioctl_func *) ioctl_queryctrl},
-> +	{vidioc_int_g_ctrl_num, (v4l2_int_ioctl_func *) ioctl_g_ctrl},
-> +	{vidioc_int_s_ctrl_num, (v4l2_int_ioctl_func *) ioctl_s_ctrl},
-> +	{vidioc_int_querystd_num, (v4l2_int_ioctl_func *) ioctl_querystd},
-> +	{vidioc_int_s_std_num, (v4l2_int_ioctl_func *) ioctl_s_std},
-> +	{vidioc_int_g_video_routing_num,
-> +		(v4l2_int_ioctl_func *) ioctl_g_routing},
-> +	{vidioc_int_s_video_routing_num,
-> +		(v4l2_int_ioctl_func *) ioctl_s_routing},
-> +};
+> +       selected_ctx->format = pix;
+> +       selected_ctx_u->format = true;
+> +       update_ctx_ctrl2[ctxnum] = true;
 > +
-> +static struct v4l2_int_slave tvp514x_slave = {
-> +	.ioctls = tvp514x_ioctl_desc,
-> +	.num_ioctls = ARRAY_SIZE(tvp514x_ioctl_desc),
-> +};
-> +
-> +static struct tvp514x_decoder tvp514x_dev = {
-> +	.state = STATE_NOT_DETECTED,
-> +
-> +	.num_fmts = TVP514X_NUM_FORMATS,
-> +	.fmt_list = tvp514x_fmt_list,
-> +
-> +	.pix = {		/* Default to NTSC 8-bit YUV 422 */
-> +		.width = NTSC_NUM_ACTIVE_PIXELS,
-> +		.height = NTSC_NUM_ACTIVE_LINES,
-> +		.pixelformat = V4L2_PIX_FMT_UYVY,
-> +		.field = V4L2_FIELD_INTERLACED,
-> +		.bytesperline = NTSC_NUM_ACTIVE_PIXELS * 2,
-> +		.sizeimage =
-> +		NTSC_NUM_ACTIVE_PIXELS * 2 * NTSC_NUM_ACTIVE_LINES,
-> +		.colorspace = V4L2_COLORSPACE_SMPTE170M,
-> +		},
-> +
-> +	.current_std = STD_NTSC_MJ,
-> +	.num_stds = TVP514X_NUM_STANDARDS,
-> +	.std_list = tvp514x_std_list,
-> +
-> +	.num_ctrls = TVP514X_NUM_CONTROLS,
-> +	.ctrl_list = tvp514x_ctrl_list,
-> +
-> +};
-> +
-> +static struct v4l2_int_device tvp514x_int_device = {
-> +	.module = THIS_MODULE,
-> +	.name = MODULE_NAME,
-> +	.priv = &tvp514x_dev,
-> +	.type = v4l2_int_type_slave,
-> +	.u = {
-> +	      .slave = &tvp514x_slave,
-> +	      },
-> +};
-> +
-> +/**
-> + * tvp514x_probe - decoder driver i2c probe handler
-> + * @client: i2c driver client device structure
-> + *
-> + * Register decoder as an i2c client device and V4L2
-> + * device.
-> + */
-> +static int
-> +tvp514x_probe(struct i2c_client *client, const struct i2c_device_id
-> *id) +{
-> +	struct tvp514x_decoder *decoder = &tvp514x_dev;
-> +	int err;
-> +
-> +	/* Check if the adapter supports the needed features */
-> +	if (!i2c_check_functionality(client->adapter,
-> I2C_FUNC_SMBUS_BYTE_DATA)) +		return -EIO;
-> +
-> +	decoder->pdata = client->dev.platform_data;
-> +	if (!decoder->pdata) {
-> +		v4l_err(client, "No platform data\n!!");
-> +		return -ENODEV;
-> +	}
-> +	/*
-> +	 * Fetch platform specific data, and configure the
-> +	 * tvp514x_reg_list[] accordingly. Since this is one
-> +	 * time configuration, no need to preserve.
-> +	 */
-> +	decoder->inputidx = decoder->pdata->default_input;
-> +	tvp514x_reg_list[REG_OUTPUT_FORMATTER2].val |=
-> +			(decoder->pdata->clk_polarity << 1);
-> +	tvp514x_reg_list[REG_OUTPUT_FORMATTER1].val |=
-> +			decoder->pdata->fmt;
-> +	tvp514x_reg_list[REG_SYNC_CONTROL].val |=
-> +			((decoder->pdata->hs_polarity << 2) |
-> +			(decoder->pdata->vs_polarity << 3));
-> +	/*
-> +	 * Save the id data, required for power up sequence
-> +	 */
-> +	decoder->id = (struct i2c_device_id *)id;
-> +	/* Attach to Master */
-> +	strcpy(tvp514x_int_device.u.slave->attach_to,
-> decoder->pdata->master); +	decoder->v4l2_int_device =
-> &tvp514x_int_device;
-> +	decoder->client = client;
-> +	i2c_set_clientdata(client, decoder);
-> +
-> +	/* Register with V4L2 layer as slave device */
-> +	err = v4l2_int_device_register(decoder->v4l2_int_device);
-> +	if (err) {
-> +		i2c_set_clientdata(client, NULL);
-> +		v4l_err(client,
-> +			"Unable to register to v4l2. Err[%d]\n", err);
-> +
-> +	} else
-> +		v4l_info(client, "Registered to v4l2 master %s!!\n",
-> +				decoder->pdata->master);
-> +
-> +	return 0;
+> +       return 0;
 > +}
 > +
 > +/**
-> + * tvp514x_remove - decoder driver i2c remove handler
-> + * @client: i2c driver client device structure
+> + * isp_csi2_ctx_config_alpha - Sets the alpha value for pixel format
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @alpha: Alpha value.
 > + *
-> + * Unregister decoder as an i2c client device and V4L2
-> + * device. Complement of tvp514x_probe().
-> + */
-> +static int __exit tvp514x_remove(struct i2c_client *client)
+> + * Returns 0 if successful, or -EINVAL if the alpha value is bigger than 16383.
+> + **/
+> +int isp_csi2_ctx_config_alpha(u8 ctxnum, u16 alpha)
 > +{
-> +	struct tvp514x_decoder *decoder = i2c_get_clientdata(client);
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
 > +
-> +	if (!client->adapter)
-> +		return -ENODEV;	/* our client isn't attached */
+> +       isp_csi2_ctx_validate(&ctxnum);
 > +
-> +	v4l2_int_device_unregister(decoder->v4l2_int_device);
-> +	i2c_set_clientdata(client, NULL);
+> +       if (alpha > 0x3FFF) {
+> +               printk(KERN_ERR "Wrong alpha value\n");
+> +               return -EINVAL;
+> +       }
 > +
-> +	return 0;
-> +}
-> +/*
-> + * TVP5146 Init/Power on Sequence
-> + */
-> +static struct tvp514x_reg tvp5146_init_reg_seq[] = {
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS1, 0x02},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS2, 0x00},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS3, 0x80},
-> +	{TOK_WRITE, REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR, 0x01},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS1, 0x60},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS2, 0x00},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS3, 0xB0},
-> +	{TOK_WRITE, REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR, 0x01},
-> +	{TOK_WRITE, REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR, 0x00},
-> +	{TOK_WRITE, REG_OPERATION_MODE, 0x01},
-> +	{TOK_WRITE, REG_OPERATION_MODE, 0x00},
-> +};
-> +static struct tvp514x_init_seq tvp5146_init = {
-> +	.no_regs = ARRAY_SIZE(tvp5146_init_reg_seq),
-> +	.init_reg_seq = tvp5146_init_reg_seq,
-> +};
-> +/*
-> + * TVP5147 Init/Power on Sequence
-> + */
-> +static struct tvp514x_reg tvp5147_init_reg_seq[] =	{
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS1, 0x02},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS2, 0x00},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS3, 0x80},
-> +	{TOK_WRITE, REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR, 0x01},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS1, 0x60},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS2, 0x00},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS3, 0xB0},
-> +	{TOK_WRITE, REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR, 0x01},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS1, 0x16},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS2, 0x00},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS3, 0xA0},
-> +	{TOK_WRITE, REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR, 0x16},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS1, 0x60},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS2, 0x00},
-> +	{TOK_WRITE, REG_VBUS_ADDRESS_ACCESS3, 0xB0},
-> +	{TOK_WRITE, REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR, 0x00},
-> +	{TOK_WRITE, REG_OPERATION_MODE, 0x01},
-> +	{TOK_WRITE, REG_OPERATION_MODE, 0x00},
-> +};
-> +static struct tvp514x_init_seq tvp5147_init = {
-> +	.no_regs = ARRAY_SIZE(tvp5147_init_reg_seq),
-> +	.init_reg_seq = tvp5147_init_reg_seq,
-> +};
-> +/*
-> + * TVP5146M2/TVP5147M1 Init/Power on Sequence
-> + */
-> +static struct tvp514x_reg tvp514xm_init_reg_seq[] = {
-> +	{TOK_WRITE, REG_OPERATION_MODE, 0x01},
-> +	{TOK_WRITE, REG_OPERATION_MODE, 0x00},
-> +};
-> +static struct tvp514x_init_seq tvp514xm_init = {
-> +	.no_regs = ARRAY_SIZE(tvp514xm_init_reg_seq),
-> +	.init_reg_seq = tvp514xm_init_reg_seq,
-> +};
-> +/*
-> + * I2C Device Table -
-> + *
-> + * name - Name of the actual device/chip.
-> + * driver_data - Driver data
-> + */
-> +static const struct i2c_device_id tvp514x_id[] = {
-> +	{"tvp5146", (unsigned int)&tvp5146_init},
-> +	{"tvp5146m2", (unsigned int)&tvp514xm_init},
-> +	{"tvp5147", (unsigned int)&tvp5147_init},
-> +	{"tvp5147m1", (unsigned int)&tvp514xm_init},
-> +	{},
-> +};
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
 > +
-> +MODULE_DEVICE_TABLE(i2c, tvp514x_id);
-> +
-> +static struct i2c_driver tvp514x_i2c_driver = {
-> +	.driver = {
-> +		   .name = MODULE_NAME,
-> +		   .owner = THIS_MODULE,
-> +		   },
-> +	.probe = tvp514x_probe,
-> +	.remove = __exit_p(tvp514x_remove),
-> +	.id_table = tvp514x_id,
-> +};
-> +
-> +/**
-> + * tvp514x_init
-> + *
-> + * Module init function
-> + */
-> +static int __init tvp514x_init(void)
-> +{
-> +	int err;
-> +
-> +	err = i2c_add_driver(&tvp514x_i2c_driver);
-> +	if (err) {
-> +		printk(KERN_ERR "Failed to register " MODULE_NAME ".\n");
-> +		return err;
-> +	}
-> +	return 0;
+> +       if (selected_ctx->alpha != alpha) {
+> +               selected_ctx->alpha = alpha;
+> +               selected_ctx_u->alpha = true;
+> +               update_ctx_ctrl3[ctxnum] = true;
+> +       }
+> +       return 0;
 > +}
 > +
 > +/**
-> + * tvp514x_cleanup
+> + * isp_csi2_ctx_config_data_offset - Sets the offset between received lines
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @data_offset: Offset between first pixel of each 2 contiguous lines.
 > + *
-> + * Module exit function
-> + */
-> +static void __exit tvp514x_cleanup(void)
+> + * Returns 0 if successful, or -EINVAL if the line offset is bigger than 1023.
+> + **/
+> +int isp_csi2_ctx_config_data_offset(u8 ctxnum, u16 data_offset)
 > +{
-> +	i2c_del_driver(&tvp514x_i2c_driver);
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       if (data_offset > 0x3FF) {
+> +               printk(KERN_ERR "Wrong line offset\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->data_offset != data_offset) {
+> +               selected_ctx->data_offset = data_offset;
+> +               selected_ctx_u->data_offset = true;
+> +       }
+> +       return 0;
 > +}
 > +
-> +module_init(tvp514x_init);
-> +module_exit(tvp514x_cleanup);
+> +/**
+> + * isp_csi2_ctx_config_ping_addr - Sets Ping address for CSI2 Rx. buffer saving
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @ping_addr: 32 bit ISP MMU mapped address.
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_config_ping_addr(u8 ctxnum, u32 ping_addr)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       ping_addr &= ~(0x1F);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->ping_addr != ping_addr) {
+> +               selected_ctx->ping_addr = ping_addr;
+> +               selected_ctx_u->ping_addr = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_config_pong_addr - Sets Pong address for CSI2 Rx. buffer saving
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @pong_addr: 32 bit ISP MMU mapped address.
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_config_pong_addr(u8 ctxnum, u32 pong_addr)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       pong_addr &= ~(0x1F);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->pong_addr != pong_addr) {
+> +               selected_ctx->pong_addr = pong_addr;
+> +               selected_ctx_u->pong_addr = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_config_eof_enabled - Enables EOF signal assertion
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @eof_enabled: Boolean to enable/disable EOF signal assertion on received
+> + *               packets.
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_config_eof_enabled(u8 ctxnum, bool eof_enabled)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->eof_enabled != eof_enabled) {
+> +               selected_ctx->eof_enabled = eof_enabled;
+> +               selected_ctx_u->eof_enabled = true;
+> +               update_ctx_ctrl1[ctxnum] = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_config_eol_enabled - Enables EOL signal assertion
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @eol_enabled: Boolean to enable/disable EOL signal assertion on received
+> + *               packets.
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_config_eol_enabled(u8 ctxnum, bool eol_enabled)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->eol_enabled != eol_enabled) {
+> +               selected_ctx->eol_enabled = eol_enabled;
+> +               selected_ctx_u->eol_enabled = true;
+> +               update_ctx_ctrl1[ctxnum] = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_config_checksum_enabled - Enables Checksum check in rcvd packets
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @checksum_enabled: Boolean to enable/disable Checksum check on received
+> + *                    packets
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_config_checksum_enabled(u8 ctxnum, bool checksum_enabled)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->checksum_enabled != checksum_enabled) {
+> +               selected_ctx->checksum_enabled = checksum_enabled;
+> +               selected_ctx_u->checksum_enabled = true;
+> +               update_ctx_ctrl1[ctxnum] = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_config_enabled - Enables specified CSI2 context
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @enabled: Boolean to enable/disable specified context.
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_config_enabled(u8 ctxnum, bool enabled)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if (selected_ctx->enabled != enabled) {
+> +               selected_ctx->enabled = enabled;
+> +               selected_ctx_u->enabled = true;
+> +               update_ctx_ctrl1[ctxnum] = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_update - Applies CSI2 context configuration.
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + * @force_update: Flag to force rewrite of registers, even if they haven't been
+> + *                updated with the isp_csi2_ctx_config_*() functions.
+> + *
+> + * It only saves settings when they were previously updated using the
+> + * isp_csi2_ctx_config_*() functions, unless the force_update flag is
+> + * set to true.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_update(u8 ctxnum, bool force_update)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +       u32 reg;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       if ((update_ctx_ctrl1[ctxnum] == true) || (force_update == true)) {
+> +               reg = omap_readl(ISPCSI2_CTX_CTRL1(ctxnum));
+> +               if ((selected_ctx_u->frame_count == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_CTX_CTRL1_COUNT_MASK);
+> +                       reg |= selected_ctx->frame_count <<
+> +                                               ISPCSI2_CTX_CTRL1_COUNT_SHIFT;
+> +                       selected_ctx_u->frame_count = false;
+> +               }
+> +               if ((selected_ctx_u->eof_enabled == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_CTX_CTRL1_EOF_EN_MASK);
+> +                       if (selected_ctx->eof_enabled == true)
+> +                               reg |= ISPCSI2_CTX_CTRL1_EOF_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTX_CTRL1_EOF_EN_DISABLE;
+> +                       selected_ctx_u->eof_enabled = false;
+> +               }
+> +               if ((selected_ctx_u->eol_enabled == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_CTX_CTRL1_EOL_EN_MASK);
+> +                       if (selected_ctx->eol_enabled == true)
+> +                               reg |= ISPCSI2_CTX_CTRL1_EOL_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTX_CTRL1_EOL_EN_DISABLE;
+> +                       selected_ctx_u->eol_enabled = false;
+> +               }
+> +               if ((selected_ctx_u->checksum_enabled == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_CTX_CTRL1_CS_EN_MASK);
+> +                       if (selected_ctx->checksum_enabled == true)
+> +                               reg |= ISPCSI2_CTX_CTRL1_CS_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTX_CTRL1_CS_EN_DISABLE;
+> +                       selected_ctx_u->checksum_enabled = false;
+> +               }
+> +               if ((selected_ctx_u->enabled == true) ||
+> +                                       (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_CTX_CTRL1_CTX_EN_MASK);
+> +                       if (selected_ctx->enabled == true)
+> +                               reg |= ISPCSI2_CTX_CTRL1_CTX_EN_ENABLE;
+> +                       else
+> +                               reg |= ISPCSI2_CTX_CTRL1_CTX_EN_DISABLE;
+> +                       selected_ctx_u->enabled = false;
+> +               }
+> +               omap_writel(reg, ISPCSI2_CTX_CTRL1(ctxnum));
+> +               update_ctx_ctrl1[ctxnum] = false;
+> +       }
+> +
+> +       if ((update_ctx_ctrl2[ctxnum] == true) || (force_update == true)) {
+> +               reg = omap_readl(ISPCSI2_CTX_CTRL2(ctxnum));
+> +               if ((selected_ctx_u->virtual_id == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_CTX_CTRL2_VIRTUAL_ID_MASK);
+> +                       reg |= selected_ctx->virtual_id <<
+> +                                       ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT;
+> +                       selected_ctx_u->virtual_id = false;
+> +               }
+> +
+> +               if ((selected_ctx_u->format == true) ||
+> +                                               (force_update == true)) {
+> +                       struct v4l2_pix_format *pix;
+> +                       u16 new_format = 0;
+> +
+> +                       reg &= ~(ISPCSI2_CTX_CTRL2_FORMAT_MASK);
+> +                       pix = &selected_ctx->format;
+> +                       switch (pix->pixelformat) {
+> +                       case V4L2_PIX_FMT_RGB565:
+> +                       case V4L2_PIX_FMT_RGB565X:
+> +                               new_format = 0x22;
+> +                               break;
+> +                       case V4L2_PIX_FMT_YUYV:
+> +                       case V4L2_PIX_FMT_UYVY:
+> +                               if (uses_videoport)
+> +                                       new_format = 0x9E;
+> +                               else
+> +                                       new_format = 0x1E;
+> +                               break;
+> +                       case V4L2_PIX_FMT_RGB555:
+> +                       case V4L2_PIX_FMT_RGB555X:
+> +                               new_format = 0xA1;
+> +                               break;
+> +                       case V4L2_PIX_FMT_SGRBG10:
+> +                               if (uses_videoport)
+> +                                       new_format = 0x12F;
+> +                               else
+> +                                       new_format = 0xAB;
+> +                               break;
+> +                       }
+> +                       reg |= (new_format << ISPCSI2_CTX_CTRL2_FORMAT_SHIFT);
+> +                       selected_ctx_u->format = false;
+> +               }
+> +               omap_writel(reg, ISPCSI2_CTX_CTRL2(ctxnum));
+> +               update_ctx_ctrl2[ctxnum] = false;
+> +       }
+> +
+> +       if ((update_ctx_ctrl3[ctxnum] == true) || (force_update == true)) {
+> +               reg = omap_readl(ISPCSI2_CTX_CTRL3(ctxnum));
+> +               if ((selected_ctx_u->alpha == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~(ISPCSI2_CTX_CTRL3_ALPHA_MASK);
+> +                       reg |= (selected_ctx->alpha <<
+> +                                               ISPCSI2_CTX_CTRL3_ALPHA_SHIFT);
+> +                       selected_ctx_u->alpha = false;
+> +               }
+> +               omap_writel(reg, ISPCSI2_CTX_CTRL3(ctxnum));
+> +               update_ctx_ctrl3[ctxnum] = false;
+> +       }
+> +
+> +       if (selected_ctx_u->data_offset == true) {
+> +               reg = omap_readl(ISPCSI2_CTX_DAT_OFST(ctxnum));
+> +               reg &= ~ISPCSI2_CTX_DAT_OFST_OFST_MASK;
+> +               reg |= selected_ctx->data_offset <<
+> +                                               ISPCSI2_CTX_DAT_OFST_OFST_SHIFT;
+> +               omap_writel(reg, ISPCSI2_CTX_DAT_OFST(ctxnum));
+> +               selected_ctx_u->data_offset = false;
+> +       }
+> +
+> +       if (selected_ctx_u->ping_addr == true) {
+> +               reg = selected_ctx->ping_addr;
+> +               omap_writel(reg, ISPCSI2_CTX_DAT_PING_ADDR(ctxnum));
+> +               selected_ctx_u->ping_addr = false;
+> +       }
+> +
+> +       if (selected_ctx_u->pong_addr == true) {
+> +               reg = selected_ctx->pong_addr;
+> +               omap_writel(reg, ISPCSI2_CTX_DAT_PONG_ADDR(ctxnum));
+> +               selected_ctx_u->pong_addr = false;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_get - Gets specific CSI2 Context configuration
+> + * @ctxnum: Context number, valid between 0 and 7 values.
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_get(u8 ctxnum)
+> +{
+> +       struct isp_csi2_ctx_cfg *selected_ctx;
+> +       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
+> +       u32 reg;
+> +
+> +       isp_csi2_ctx_validate(&ctxnum);
+> +
+> +       selected_ctx = &current_csi2_cfg.contexts[ctxnum];
+> +       selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
+> +
+> +       reg = omap_readl(ISPCSI2_CTX_CTRL1(ctxnum));
+> +       selected_ctx->frame_count = (reg & ISPCSI2_CTX_CTRL1_COUNT_MASK) >>
+> +                                               ISPCSI2_CTX_CTRL1_COUNT_SHIFT;
+> +       selected_ctx_u->frame_count = false;
+> +
+> +       if ((reg & ISPCSI2_CTX_CTRL1_EOF_EN_MASK) ==
+> +                                               ISPCSI2_CTX_CTRL1_EOF_EN_ENABLE)
+> +               selected_ctx->eof_enabled = true;
+> +       else
+> +               selected_ctx->eof_enabled = false;
+> +       selected_ctx_u->eof_enabled = false;
+> +
+> +       if ((reg & ISPCSI2_CTX_CTRL1_EOL_EN_MASK) ==
+> +                                               ISPCSI2_CTX_CTRL1_EOL_EN_ENABLE)
+> +               selected_ctx->eol_enabled = true;
+> +       else
+> +               selected_ctx->eol_enabled = false;
+> +       selected_ctx_u->eol_enabled = false;
+> +
+> +       if ((reg & ISPCSI2_CTX_CTRL1_CS_EN_MASK) ==
+> +                                               ISPCSI2_CTX_CTRL1_CS_EN_ENABLE)
+> +               selected_ctx->checksum_enabled = true;
+> +       else
+> +               selected_ctx->checksum_enabled = false;
+> +       selected_ctx_u->checksum_enabled = false;
+> +
+> +       if ((reg & ISPCSI2_CTX_CTRL1_CTX_EN_MASK) ==
+> +                                               ISPCSI2_CTX_CTRL1_CTX_EN_ENABLE)
+> +               selected_ctx->enabled = true;
+> +       else
+> +               selected_ctx->enabled = false;
+> +       selected_ctx_u->enabled = false;
+> +       update_ctx_ctrl1[ctxnum] = false;
+> +
+> +       reg = omap_readl(ISPCSI2_CTX_CTRL2(ctxnum));
+> +
+> +       selected_ctx->virtual_id = (reg & ISPCSI2_CTX_CTRL2_VIRTUAL_ID_MASK) >>
+> +                                       ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT;
+> +       selected_ctx_u->virtual_id = false;
+> +
+> +       switch ((reg & ISPCSI2_CTX_CTRL2_FORMAT_MASK) >>
+> +                               ISPCSI2_CTX_CTRL2_FORMAT_SHIFT) {
+> +       case 0x22:
+> +               selected_ctx->format.pixelformat = V4L2_PIX_FMT_RGB565;
+> +               break;
+> +       case 0x9E:
+> +       case 0x1E:
+> +               selected_ctx->format.pixelformat = V4L2_PIX_FMT_YUYV;
+> +               break;
+> +       case 0xA1:
+> +               selected_ctx->format.pixelformat = V4L2_PIX_FMT_RGB555;
+> +               break;
+> +       case 0xAB:
+> +       case 0x12F:
+> +               selected_ctx->format.pixelformat = V4L2_PIX_FMT_SGRBG10;
+> +               break;
+> +       }
+> +       selected_ctx_u->format = false;
+> +       update_ctx_ctrl2[ctxnum] = false;
+> +
+> +       selected_ctx->alpha = (omap_readl(ISPCSI2_CTX_CTRL3(ctxnum)) &
+> +                                       ISPCSI2_CTX_CTRL3_ALPHA_MASK) >>
+> +                                       ISPCSI2_CTX_CTRL3_ALPHA_SHIFT;
+> +       selected_ctx_u->alpha = false;
+> +       update_ctx_ctrl3[ctxnum] = false;
+> +
+> +       selected_ctx->data_offset = (omap_readl(ISPCSI2_CTX_DAT_OFST(ctxnum)) &
+> +                               ISPCSI2_CTX_DAT_OFST_OFST_MASK) >>
+> +                               ISPCSI2_CTX_DAT_OFST_OFST_SHIFT;
+> +       selected_ctx_u->data_offset = false;
+> +
+> +       selected_ctx->ping_addr = omap_readl(ISPCSI2_CTX_DAT_PING_ADDR(ctxnum));
+> +       selected_ctx_u->ping_addr = false;
+> +
+> +       selected_ctx->pong_addr = omap_readl(ISPCSI2_CTX_DAT_PONG_ADDR(ctxnum));
+> +       selected_ctx_u->pong_addr = false;
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_update_all - Applies all CSI2 context configuration.
+> + * @force_update: Flag to force rewrite of registers, even if they haven't been
+> + *                updated with the isp_csi2_ctx_config_*() functions.
+> + *
+> + * It only saves settings when they were previously updated using the
+> + * isp_csi2_ctx_config_*() functions, unless the force_update flag is
+> + * set to true.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_update_all(bool force_update)
+> +{
+> +       u8 ctxnum;
+> +
+> +       for (ctxnum = 0; ctxnum < 8; ctxnum++)
+> +               isp_csi2_ctx_update(ctxnum, force_update);
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_ctx_get_all - Gets all CSI2 Context configurations
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_ctx_get_all(void)
+> +{
+> +       u8 ctxnum;
+> +
+> +       for (ctxnum = 0; ctxnum < 8; ctxnum++)
+> +               isp_csi2_ctx_get(ctxnum);
+> +
+> +       return 0;
+> +}
+> +
+> +int isp_csi2_phy_config(struct isp_csi2_phy_cfg *desiredphyconfig)
+> +{
+> +       struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
+> +       struct isp_csi2_phy_cfg_update *currphy_u =
+> +                                               &current_csi2_cfg_update.phy;
+> +
+> +       if ((desiredphyconfig->tclk_term > 0x7f) ||
+> +                               (desiredphyconfig->tclk_miss > 0x3)) {
+> +               printk(KERN_ERR "Invalid PHY configuration sent by the"
+> +                                                               " driver\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       if (currphy->ths_term != desiredphyconfig->ths_term) {
+> +               currphy->ths_term = desiredphyconfig->ths_term;
+> +               currphy_u->ths_term = true;
+> +               update_phy_cfg0 = true;
+> +       }
+> +       if (currphy->ths_settle != desiredphyconfig->ths_settle) {
+> +               currphy->ths_settle = desiredphyconfig->ths_settle;
+> +               currphy_u->ths_settle = true;
+> +               update_phy_cfg0 = true;
+> +       }
+> +       if (currphy->tclk_term != desiredphyconfig->tclk_term) {
+> +               currphy->tclk_term = desiredphyconfig->tclk_term;
+> +               currphy_u->tclk_term = true;
+> +               update_phy_cfg1 = true;
+> +       }
+> +       if (currphy->tclk_miss != desiredphyconfig->tclk_miss) {
+> +               currphy->tclk_miss = desiredphyconfig->tclk_miss;
+> +               currphy_u->tclk_miss = true;
+> +               update_phy_cfg1 = true;
+> +       }
+> +       if (currphy->tclk_settle != desiredphyconfig->tclk_settle) {
+> +               currphy->tclk_settle = desiredphyconfig->tclk_settle;
+> +               currphy_u->tclk_settle = true;
+> +               update_phy_cfg1 = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_calc_phy_cfg0 - Calculates D-PHY config based on the MIPIClk speed.
+> + * @mipiclk: MIPI clock frequency being used with CSI2 sensor.
+> + * @lbound_hs_settle: Lower bound for CSI2 High Speed Settle transition.
+> + * @ubound_hs_settle: Upper bound for CSI2 High Speed Settle transition.
+> + *
+> + * From TRM, we have the same calculation for HS Termination signal.
+> + *  THS_TERM  = ceil( 12.5ns / DDRCLK period ) - 1
+> + * But for Settle, we use the mid value between the two passed boundaries from
+> + * sensor:
+> + *  THS_SETTLE = (Upper bound + Lower bound) / 2
+> + *
+> + * Always returns 0.
+> + */
+> +int isp_csi2_calc_phy_cfg0(u32 mipiclk, u32 lbound_hs_settle,
+> +                                                       u32 ubound_hs_settle)
+> +{
+> +       struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
+> +       struct isp_csi2_phy_cfg_update *currphy_u =
+> +                                               &current_csi2_cfg_update.phy;
+> +       u32 tmp, ddrclk = mipiclk >> 1;
+> +
+> +       /* Calculate THS_TERM */
+> +       tmp = ddrclk / 80000000;
+> +       if ((ddrclk % 80000000) > 0)
+> +               tmp++;
+> +       currphy->ths_term = tmp - 1;
+> +       currphy_u->ths_term = true;
+> +
+> +       /* Calculate THS_SETTLE */
+> +       currphy->ths_settle = (ubound_hs_settle + lbound_hs_settle) / 2;
+> +
+> +       currphy_u->ths_settle = true;
+> +       isp_csi2_phy_update(true);
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL(isp_csi2_calc_phy_cfg0);
+> +
+> +/**
+> + * isp_csi2_phy_update - Applies CSI2 D-PHY configuration.
+> + * @force_update: Flag to force rewrite of registers, even if they haven't been
+> + *                updated with the isp_csi2_phy_config_*() functions.
+> + *
+> + * It only saves settings when they were previously updated using the
+> + * isp_csi2_phy_config_*() functions, unless the force_update flag is
+> + * set to true.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_phy_update(bool force_update)
+> +{
+> +       struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
+> +       struct isp_csi2_phy_cfg_update *currphy_u =
+> +                                               &current_csi2_cfg_update.phy;
+> +       u32 reg;
+> +
+> +       if ((update_phy_cfg0 == true) || (force_update == true)) {
+> +               reg = omap_readl(ISPCSI2PHY_CFG0);
+> +               if ((currphy_u->ths_term == true) || (force_update == true)) {
+> +                       reg &= ~ISPCSI2PHY_CFG0_THS_TERM_MASK;
+> +                       reg |= (currphy->ths_term <<
+> +                                       ISPCSI2PHY_CFG0_THS_TERM_SHIFT);
+> +                       currphy_u->ths_term = false;
+> +               }
+> +               if ((currphy_u->ths_settle == true) || (force_update == true)) {
+> +                       reg &= ~ISPCSI2PHY_CFG0_THS_SETTLE_MASK;
+> +                       reg |= (currphy->ths_settle <<
+> +                                       ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT);
+> +                       currphy_u->ths_settle = false;
+> +               }
+> +               omap_writel(reg, ISPCSI2PHY_CFG0);
+> +               update_phy_cfg0 = false;
+> +       }
+> +
+> +       if ((update_phy_cfg1 == true) || (force_update == true)) {
+> +               reg = omap_readl(ISPCSI2PHY_CFG1);
+> +               if ((currphy_u->tclk_term == true) || (force_update == true)) {
+> +                       reg &= ~ISPCSI2PHY_CFG1_TCLK_TERM_MASK;
+> +                       reg |= (currphy->tclk_term <<
+> +                                       ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT);
+> +                       currphy_u->tclk_term = false;
+> +               }
+> +               if ((currphy_u->tclk_miss == true) || (force_update == true)) {
+> +                       reg &= ~ISPCSI2PHY_CFG1_TCLK_MISS_MASK;
+> +                       reg |= (currphy->tclk_miss <<
+> +                                       ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT);
+> +                       currphy_u->tclk_miss = false;
+> +               }
+> +               if ((currphy_u->tclk_settle == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK;
+> +                       reg |= (currphy->tclk_settle <<
+> +                                       ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT);
+> +                       currphy_u->tclk_settle = false;
+> +               }
+> +               omap_writel(reg, ISPCSI2PHY_CFG1);
+> +               update_phy_cfg1 = false;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_phy_get - Gets CSI2 D-PHY configuration
+> + *
+> + * Gets settings from HW registers and fills in the internal driver memory
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_phy_get(void)
+> +{
+> +       struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
+> +       struct isp_csi2_phy_cfg_update *currphy_u =
+> +                                               &current_csi2_cfg_update.phy;
+> +       u32 reg;
+> +
+> +       reg = omap_readl(ISPCSI2PHY_CFG0);
+> +       currphy->ths_term = (reg & ISPCSI2PHY_CFG0_THS_TERM_MASK) >>
+> +                                               ISPCSI2PHY_CFG0_THS_TERM_SHIFT;
+> +       currphy_u->ths_term = false;
+> +
+> +       currphy->ths_settle = (reg & ISPCSI2PHY_CFG0_THS_SETTLE_MASK) >>
+> +                                       ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT;
+> +       currphy_u->ths_settle = false;
+> +       update_phy_cfg0 = false;
+> +
+> +       reg = omap_readl(ISPCSI2PHY_CFG1);
+> +
+> +       currphy->tclk_term = (reg & ISPCSI2PHY_CFG1_TCLK_TERM_MASK) >>
+> +                                               ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT;
+> +       currphy_u->tclk_term = false;
+> +
+> +       currphy->tclk_miss = (reg & ISPCSI2PHY_CFG1_TCLK_MISS_MASK) >>
+> +                                               ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT;
+> +       currphy_u->tclk_miss = false;
+> +
+> +       currphy->tclk_settle = (reg & ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK) >>
+> +                                       ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT;
+> +       currphy_u->tclk_settle = false;
+> +
+> +       update_phy_cfg1 = false;
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_config_forcerxmode - Sets Force Rx mode on stop state count
+> + * @force_rx_mode: Boolean to enable/disable forcing Rx mode in CSI2 receiver
+> + *
+> + * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
+> + **/
+> +int isp_csi2_timings_config_forcerxmode(u8 io, bool force_rx_mode)
+> +{
+> +       struct isp_csi2_timings_cfg *currtimings;
+> +       struct isp_csi2_timings_cfg_update *currtimings_u;
+> +
+> +       if (io > 2) {
+> +               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       currtimings = &current_csi2_cfg.timings[io - 1];
+> +       currtimings_u = &current_csi2_cfg_update.timings[io - 1];
+> +       if (currtimings->force_rx_mode != force_rx_mode) {
+> +               currtimings->force_rx_mode = force_rx_mode;
+> +               currtimings_u->force_rx_mode = true;
+> +               update_timing = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_config_stopstate_16x - Sets 16x factor for L3 cycles
+> + * @stop_state_16x: Boolean to use or not use the 16x multiplier for stop count
+> + *
+> + * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
+> + **/
+> +int isp_csi2_timings_config_stopstate_16x(u8 io, bool stop_state_16x)
+> +{
+> +       struct isp_csi2_timings_cfg *currtimings;
+> +       struct isp_csi2_timings_cfg_update *currtimings_u;
+> +
+> +       if (io > 2) {
+> +               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       currtimings = &current_csi2_cfg.timings[io - 1];
+> +       currtimings_u = &current_csi2_cfg_update.timings[io - 1];
+> +       if (currtimings->stop_state_16x != stop_state_16x) {
+> +               currtimings->stop_state_16x = stop_state_16x;
+> +               currtimings_u->stop_state_16x = true;
+> +               update_timing = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_config_stopstate_4x - Sets 4x factor for L3 cycles
+> + * @stop_state_4x: Boolean to use or not use the 4x multiplier for stop count
+> + *
+> + * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
+> + **/
+> +int isp_csi2_timings_config_stopstate_4x(u8 io, bool stop_state_4x)
+> +{
+> +       struct isp_csi2_timings_cfg *currtimings;
+> +       struct isp_csi2_timings_cfg_update *currtimings_u;
+> +
+> +       if (io > 2) {
+> +               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       currtimings = &current_csi2_cfg.timings[io - 1];
+> +       currtimings_u = &current_csi2_cfg_update.timings[io - 1];
+> +       if (currtimings->stop_state_4x != stop_state_4x) {
+> +               currtimings->stop_state_4x = stop_state_4x;
+> +               currtimings_u->stop_state_4x = true;
+> +               update_timing = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_config_stopstate_cnt - Sets L3 cycles
+> + * @stop_state_counter: Stop state counter value for L3 cycles
+> + *
+> + * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
+> + **/
+> +int isp_csi2_timings_config_stopstate_cnt(u8 io, u16 stop_state_counter)
+> +{
+> +       struct isp_csi2_timings_cfg *currtimings;
+> +       struct isp_csi2_timings_cfg_update *currtimings_u;
+> +
+> +       if (io > 2) {
+> +               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       currtimings = &current_csi2_cfg.timings[io - 1];
+> +       currtimings_u = &current_csi2_cfg_update.timings[io - 1];
+> +       if (currtimings->stop_state_counter != stop_state_counter) {
+> +               currtimings->stop_state_counter = (stop_state_counter & 0x1FFF);
+> +               currtimings_u->stop_state_counter = true;
+> +               update_timing = true;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_update - Applies specified CSI2 timing configuration.
+> + * @io: IO number (1 or 2) which specifies which ComplexIO are we updating
+> + * @force_update: Flag to force rewrite of registers, even if they haven't been
+> + *                updated with the isp_csi2_timings_config_*() functions.
+> + *
+> + * It only saves settings when they were previously updated using the
+> + * isp_csi2_timings_config_*() functions, unless the force_update flag is
+> + * set to true.
+> + * Returns 0 if successful, or -EINVAL if invalid IO number is passed.
+> + **/
+> +int isp_csi2_timings_update(u8 io, bool force_update)
+> +{
+> +       struct isp_csi2_timings_cfg *currtimings;
+> +       struct isp_csi2_timings_cfg_update *currtimings_u;
+> +       u32 reg;
+> +
+> +       if (io > 2) {
+> +               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       currtimings = &current_csi2_cfg.timings[io - 1];
+> +       currtimings_u = &current_csi2_cfg_update.timings[io - 1];
+> +
+> +       if ((update_timing == true) || (force_update == true)) {
+> +               reg = omap_readl(ISPCSI2_TIMING);
+> +               if ((currtimings_u->force_rx_mode == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(io);
+> +                       if (currtimings->force_rx_mode == true)
+> +                               reg |= ISPCSI2_TIMING_FORCE_RX_MODE_IO_ENABLE
+> +                                                                       (io);
+> +                       else
+> +                               reg |= ISPCSI2_TIMING_FORCE_RX_MODE_IO_DISABLE
+> +                                                                       (io);
+> +                       currtimings_u->force_rx_mode = false;
+> +               }
+> +               if ((currtimings_u->stop_state_16x == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(io);
+> +                       if (currtimings->stop_state_16x == true)
+> +                               reg |= ISPCSI2_TIMING_STOP_STATE_X16_IO_ENABLE
+> +                                                                       (io);
+> +                       else
+> +                               reg |= ISPCSI2_TIMING_STOP_STATE_X16_IO_DISABLE
+> +                                                                       (io);
+> +                       currtimings_u->stop_state_16x = false;
+> +               }
+> +               if ((currtimings_u->stop_state_4x == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(io);
+> +                       if (currtimings->stop_state_4x == true) {
+> +                               reg |= ISPCSI2_TIMING_STOP_STATE_X4_IO_ENABLE
+> +                                                                       (io);
+> +                       } else {
+> +                               reg |= ISPCSI2_TIMING_STOP_STATE_X4_IO_DISABLE
+> +                                                                       (io);
+> +                       }
+> +                       currtimings_u->stop_state_4x = false;
+> +               }
+> +               if ((currtimings_u->stop_state_counter == true) ||
+> +                                               (force_update == true)) {
+> +                       reg &= ~ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MASK(io);
+> +                       reg |= currtimings->stop_state_counter <<
+> +                               ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(io);
+> +                       currtimings_u->stop_state_counter = false;
+> +               }
+> +               omap_writel(reg, ISPCSI2_TIMING);
+> +               update_timing = false;
+> +       }
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_get - Gets specific CSI2 ComplexIO timing configuration
+> + * @io: IO number (1 or 2) which specifies which ComplexIO are we getting
+> + *
+> + * Gets settings from HW registers and fills in the internal driver memory
+> + * Returns 0 if successful, or -EINVAL if invalid IO number is passed.
+> + **/
+> +int isp_csi2_timings_get(u8 io)
+> +{
+> +       struct isp_csi2_timings_cfg *currtimings;
+> +       struct isp_csi2_timings_cfg_update *currtimings_u;
+> +       u32 reg;
+> +
+> +       if (io > 2) {
+> +               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       currtimings = &current_csi2_cfg.timings[io - 1];
+> +       currtimings_u = &current_csi2_cfg_update.timings[io - 1];
+> +
+> +       reg = omap_readl(ISPCSI2_TIMING);
+> +       if ((reg & ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(io)) ==
+> +                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_ENABLE(io))
+> +               currtimings->force_rx_mode = true;
+> +       else
+> +               currtimings->force_rx_mode = false;
+> +       currtimings_u->force_rx_mode = false;
+> +
+> +       if ((reg & ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(io)) ==
+> +                               ISPCSI2_TIMING_STOP_STATE_X16_IO_ENABLE(io))
+> +               currtimings->stop_state_16x = true;
+> +       else
+> +               currtimings->stop_state_16x = false;
+> +       currtimings_u->stop_state_16x = false;
+> +
+> +       if ((reg & ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(io)) ==
+> +                               ISPCSI2_TIMING_STOP_STATE_X4_IO_ENABLE(io))
+> +               currtimings->stop_state_4x = true;
+> +       else
+> +               currtimings->stop_state_4x = false;
+> +       currtimings_u->stop_state_4x = false;
+> +
+> +       currtimings->stop_state_counter = (reg &
+> +                       ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MASK(io)) >>
+> +                       ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(io);
+> +       currtimings_u->stop_state_counter = false;
+> +       update_timing = false;
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_update_all - Applies specified CSI2 timing configuration.
+> + * @force_update: Flag to force rewrite of registers, even if they haven't been
+> + *                updated with the isp_csi2_timings_config_*() functions.
+> + *
+> + * It only saves settings when they were previously updated using the
+> + * isp_csi2_timings_config_*() functions, unless the force_update flag is
+> + * set to true.
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_timings_update_all(bool force_update)
+> +{
+> +       int i;
+> +
+> +       for (i = 0; i < 2; i++)
+> +               isp_csi2_timings_update(i, force_update);
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_timings_get_all - Gets all CSI2 ComplexIO timing configurations
+> + *
+> + * Always returns 0.
+> + **/
+> +int isp_csi2_timings_get_all(void)
+> +{
+> +       int i;
+> +
+> +       for (i = 0; i < 2; i++)
+> +               isp_csi2_timings_get(i);
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_isr - CSI2 interrupt handling.
+> + **/
+> +void isp_csi2_isr(void)
+> +{
+> +       u32 csi2_irqstatus, cpxio1_irqstatus, ctxirqstatus;
+> +
+> +       csi2_irqstatus = omap_readl(ISPCSI2_IRQSTATUS);
+> +       omap_writel(csi2_irqstatus, ISPCSI2_IRQSTATUS);
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ) {
+> +               cpxio1_irqstatus = omap_readl(ISPCSI2_COMPLEXIO1_IRQSTATUS);
+> +               omap_writel(cpxio1_irqstatus, ISPCSI2_COMPLEXIO1_IRQSTATUS);
+> +               printk(KERN_ERR "CSI2: ComplexIO Error IRQ %x\n",
+> +                                                       cpxio1_irqstatus);
+> +       }
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_CONTEXT(0)) {
+> +               ctxirqstatus = omap_readl(ISPCSI2_CTX_IRQSTATUS(0));
+> +               omap_writel(ctxirqstatus, ISPCSI2_CTX_IRQSTATUS(0));
+> +       }
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_OCP_ERR_IRQ)
+> +               printk(KERN_ERR "CSI2: OCP Transmission Error\n");
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ)
+> +               printk(KERN_ERR "CSI2: Short packet receive error\n");
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ)
+> +               printk(KERN_DEBUG "CSI2: ECC correction done\n");
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ)
+> +               printk(KERN_ERR "CSI2: ECC correction failed\n");
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ)
+> +               printk(KERN_ERR "CSI2: ComplexIO #2 failed\n");
+> +
+> +       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ)
+> +               printk(KERN_ERR "CSI2: FIFO overflow error\n");
+> +
+> +       return;
+> +}
+> +EXPORT_SYMBOL(isp_csi2_isr);
+> +
+> +/**
+> + * isp_csi2_irq_complexio1_set - Enables CSI2 ComplexIO IRQs.
+> + * @enable: Enable/disable CSI2 ComplexIO #1 interrupts
+> + **/
+> +void isp_csi2_irq_complexio1_set(int enable)
+> +{
+> +       u32 reg;
+> +       reg = ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMEXIT |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMENTER |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM5 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL5 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC5 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS5 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS5 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM4 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL4 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC4 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS4 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS4 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM3 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL3 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC3 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS3 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS3 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM2 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL2 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC2 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS2 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS2 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM1 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL1 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC1 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS1 |
+> +                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS1;
+> +       omap_writel(reg, ISPCSI2_COMPLEXIO1_IRQSTATUS);
+> +       if (enable)
+> +               reg |= omap_readl(ISPCSI2_COMPLEXIO1_IRQENABLE);
+> +       else
+> +               reg = 0;
+> +       omap_writel(reg, ISPCSI2_COMPLEXIO1_IRQENABLE);
+> +}
+> +EXPORT_SYMBOL(isp_csi2_irq_complexio1_set);
+> +
+> +/**
+> + * isp_csi2_irq_ctx_set - Enables CSI2 Context IRQs.
+> + * @enable: Enable/disable CSI2 Context interrupts
+> + **/
+> +void isp_csi2_irq_ctx_set(int enable)
+> +{
+> +       u32 reg;
+> +       int i;
+> +
+> +       reg = ISPCSI2_CTX_IRQSTATUS_FS_IRQ | ISPCSI2_CTX_IRQSTATUS_FE_IRQ;
+> +       for (i = 0; i < 8; i++) {
+> +               omap_writel(reg, ISPCSI2_CTX_IRQSTATUS(i));
+> +               if (enable) {
+> +                       omap_writel(omap_readl(ISPCSI2_CTX_IRQENABLE(i)) | reg,
+> +                                               ISPCSI2_CTX_IRQENABLE(i));
+> +               } else
+> +                       omap_writel(0, ISPCSI2_CTX_IRQENABLE(i));
+> +       }
+> +
+> +}
+> +EXPORT_SYMBOL(isp_csi2_irq_ctx_set);
+> +
+> +/**
+> + * isp_csi2_irq_status_set - Enables CSI2 Status IRQs.
+> + * @enable: Enable/disable CSI2 Status interrupts
+> + **/
+> +void isp_csi2_irq_status_set(int enable)
+> +{
+> +       u32 reg;
+> +       reg = ISPCSI2_IRQSTATUS_OCP_ERR_IRQ |
+> +                               ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ |
+> +                               ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ |
+> +                               ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ |
+> +                               ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ |
+> +                               ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ |
+> +                               ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ |
+> +                               ISPCSI2_IRQSTATUS_CONTEXT(0);
+> +       omap_writel(reg, ISPCSI2_IRQSTATUS);
+> +       if (enable)
+> +               reg |= omap_readl(ISPCSI2_IRQENABLE);
+> +       else
+> +               reg = 0;
+> +
+> +       omap_writel(reg, ISPCSI2_IRQENABLE);
+> +}
+> +EXPORT_SYMBOL(isp_csi2_irq_status_set);
+> +
+> +/**
+> + * isp_csi2_irq_status_set - Enables main CSI2 IRQ.
+> + * @enable: Enable/disable main CSI2 interrupt
+> + **/
+> +void isp_csi2_irq_set(int enable)
+> +{
+> +       if (enable) {
+> +               omap_writel(IRQ0STATUS_CSIA_IRQ, ISP_IRQ0STATUS);
+> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) | IRQ0ENABLE_CSIA_IRQ,
+> +                                                               ISP_IRQ0ENABLE);
+> +       } else {
+> +               omap_writel(IRQ0STATUS_CSIA_IRQ, ISP_IRQ0STATUS);
+> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) & ~IRQ0ENABLE_CSIA_IRQ,
+> +                                                               ISP_IRQ0ENABLE);
+> +       }
+> +}
+> +EXPORT_SYMBOL(isp_csi2_irq_set);
+> +
+> +/**
+> + * isp_csi2_irq_all_set - Enable/disable CSI2 interrupts.
+> + * @enable: 0-Disable, 1-Enable.
+> + **/
+> +void isp_csi2_irq_all_set(int enable)
+> +{
+> +       if (enable) {
+> +               isp_csi2_irq_complexio1_set(enable);
+> +               isp_csi2_irq_ctx_set(enable);
+> +               isp_csi2_irq_status_set(enable);
+> +               isp_csi2_irq_set(enable);
+> +       } else {
+> +               isp_csi2_irq_set(enable);
+> +               isp_csi2_irq_status_set(enable);
+> +               isp_csi2_irq_ctx_set(enable);
+> +               isp_csi2_irq_complexio1_set(enable);
+> +       }
+> +       return;
+> +}
+> +EXPORT_SYMBOL(isp_csi2_irq_all_set);
+> +
+> +/**
+> + * isp_csi2_reset - Resets the CSI2 module.
+> + *
+> + * Returns 0 if successful, or -EBUSY if power command didn't respond.
+> + **/
+> +int isp_csi2_reset(void)
+> +{
+> +       u32 reg;
+> +       u8 soft_reset_retries = 0;
+> +       int i;
+> +
+> +       reg = omap_readl(ISPCSI2_SYSCONFIG);
+> +       reg |= ISPCSI2_SYSCONFIG_SOFT_RESET_RESET;
+> +       omap_writel(reg, ISPCSI2_SYSCONFIG);
+> +
+> +       do {
+> +               reg = omap_readl(ISPCSI2_SYSSTATUS) &
+> +                               ISPCSI2_SYSSTATUS_RESET_DONE_MASK;
+> +               if (reg == ISPCSI2_SYSSTATUS_RESET_DONE_DONE)
+> +                       break;
+> +               soft_reset_retries++;
+> +               if (soft_reset_retries < 5)
+> +                       udelay(100);
+> +       } while (soft_reset_retries < 5);
+> +
+> +       if (soft_reset_retries == 5) {
+> +               printk(KERN_ERR "CSI2: Soft reset try count exceeded!\n");
+> +               return -EBUSY;
+> +       }
+> +
+> +       reg = omap_readl(ISPCSI2_SYSCONFIG);
+> +       reg &= ~ISPCSI2_SYSCONFIG_MSTANDBY_MODE_MASK;
+> +       reg |= ISPCSI2_SYSCONFIG_MSTANDBY_MODE_NO;
+> +       reg &= ~ISPCSI2_SYSCONFIG_AUTO_IDLE_MASK;
+> +       omap_writel(reg, ISPCSI2_SYSCONFIG);
+> +
+> +       uses_videoport = false;
+> +       update_complexio_cfg1 = false;
+> +       update_phy_cfg0 = false;
+> +       update_phy_cfg1 = false;
+> +       for (i = 0; i < 8; i++) {
+> +               update_ctx_ctrl1[i] = false;
+> +               update_ctx_ctrl2[i] = false;
+> +               update_ctx_ctrl3[i] = false;
+> +       }
+> +       update_timing = false;
+> +       update_ctrl = false;
+> +
+> +       isp_csi2_complexio_lanes_get();
+> +       isp_csi2_ctrl_get();
+> +       isp_csi2_ctx_get_all();
+> +       isp_csi2_phy_get();
+> +       isp_csi2_timings_get_all();
+> +
+> +       isp_csi2_complexio_power_autoswitch(true);
+> +       isp_csi2_complexio_power(ISP_CSI2_POWER_ON);
+> +
+> +       isp_csi2_timings_config_forcerxmode(1, true);
+> +       isp_csi2_timings_config_stopstate_cnt(1, 0x1FF);
+> +       isp_csi2_timings_update_all(true);
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+> + * isp_csi2_enable - Enables the CSI2 module.
+> + * @enable: Enables/disables the CSI2 module.
+> + **/
+> +void isp_csi2_enable(int enable)
+> +{
+> +       if (enable) {
+> +               isp_csi2_ctx_config_enabled(0, true);
+> +               isp_csi2_ctx_config_eof_enabled(0, true);
+> +               isp_csi2_ctx_config_checksum_enabled(0, true);
+> +               isp_csi2_ctx_update(0, false);
+> +
+> +               isp_csi2_ctrl_config_ecc_enable(true);
+> +               isp_csi2_ctrl_config_if_enable(true);
+> +               isp_csi2_ctrl_update(false);
+> +       } else {
+> +               isp_csi2_ctx_config_enabled(0, false);
+> +               isp_csi2_ctx_config_eof_enabled(0, false);
+> +               isp_csi2_ctx_config_checksum_enabled(0, false);
+> +               isp_csi2_ctx_update(0, false);
+> +
+> +               isp_csi2_ctrl_config_ecc_enable(false);
+> +               isp_csi2_ctrl_config_if_enable(false);
+> +               isp_csi2_ctrl_update(false);
+> +       }
+> +}
+> +EXPORT_SYMBOL(isp_csi2_enable);
+> +
+> +/**
+> + * isp_csi2_regdump - Prints CSI2 debug information.
+> + **/
+> +void isp_csi2_regdump(void)
+> +{
+> +       printk(KERN_DEBUG "-------------Register dump-------------\n");
+> +
+> +       printk(KERN_DEBUG "ISP_CTRL: %x\n", omap_readl(ISP_CTRL));
+> +       printk(KERN_DEBUG "ISP_TCTRL_CTRL: %x\n", omap_readl(ISP_TCTRL_CTRL));
+> +
+> +       printk(KERN_DEBUG "ISPCCDC_SDR_ADDR: %x\n",
+> +                                               omap_readl(ISPCCDC_SDR_ADDR));
+> +       printk(KERN_DEBUG "ISPCCDC_SYN_MODE: %x\n",
+> +                                               omap_readl(ISPCCDC_SYN_MODE));
+> +       printk(KERN_DEBUG "ISPCCDC_CFG: %x\n", omap_readl(ISPCCDC_CFG));
+> +       printk(KERN_DEBUG "ISPCCDC_FMTCFG: %x\n", omap_readl(ISPCCDC_FMTCFG));
+> +       printk(KERN_DEBUG "ISPCCDC_HSIZE_OFF: %x\n",
+> +                                               omap_readl(ISPCCDC_HSIZE_OFF));
+> +       printk(KERN_DEBUG "ISPCCDC_HORZ_INFO: %x\n",
+> +                                               omap_readl(ISPCCDC_HORZ_INFO));
+> +       printk(KERN_DEBUG "ISPCCDC_VERT_START: %x\n",
+> +                                               omap_readl(ISPCCDC_VERT_START));
+> +       printk(KERN_DEBUG "ISPCCDC_VERT_LINES: %x\n",
+> +                                               omap_readl(ISPCCDC_VERT_LINES));
+> +
+> +       printk(KERN_DEBUG "ISPCSI2_COMPLEXIO_CFG1: %x\n",
+> +                                       omap_readl(ISPCSI2_COMPLEXIO_CFG1));
+> +       printk(KERN_DEBUG "ISPCSI2_SYSSTATUS: %x\n",
+> +                                               omap_readl(ISPCSI2_SYSSTATUS));
+> +       printk(KERN_DEBUG "ISPCSI2_SYSCONFIG: %x\n",
+> +                                               omap_readl(ISPCSI2_SYSCONFIG));
+> +       printk(KERN_DEBUG "ISPCSI2_IRQENABLE: %x\n",
+> +                                               omap_readl(ISPCSI2_IRQENABLE));
+> +       printk(KERN_DEBUG "ISPCSI2_IRQSTATUS: %x\n",
+> +                                               omap_readl(ISPCSI2_IRQSTATUS));
+> +
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_IRQENABLE(0): %x\n",
+> +                                       omap_readl(ISPCSI2_CTX_IRQENABLE(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_IRQSTATUS(0): %x\n",
+> +                                       omap_readl(ISPCSI2_CTX_IRQSTATUS(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_TIMING: %x\n", omap_readl(ISPCSI2_TIMING));
+> +       printk(KERN_DEBUG "ISPCSI2PHY_CFG0: %x\n", omap_readl(ISPCSI2PHY_CFG0));
+> +       printk(KERN_DEBUG "ISPCSI2PHY_CFG1: %x\n", omap_readl(ISPCSI2PHY_CFG1));
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_CTRL1(0): %x\n",
+> +                                       omap_readl(ISPCSI2_CTX_CTRL1(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_CTRL2(0): %x\n",
+> +                                       omap_readl(ISPCSI2_CTX_CTRL2(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_CTRL3(0): %x\n",
+> +                                       omap_readl(ISPCSI2_CTX_CTRL3(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_DAT_OFST(0): %x\n",
+> +                                       omap_readl(ISPCSI2_CTX_DAT_OFST(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_DAT_PING_ADDR(0): %x\n",
+> +                               omap_readl(ISPCSI2_CTX_DAT_PING_ADDR(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_CTX_DAT_PONG_ADDR(0): %x\n",
+> +                               omap_readl(ISPCSI2_CTX_DAT_PONG_ADDR(0)));
+> +       printk(KERN_DEBUG "ISPCSI2_CTRL: %x\n", omap_readl(ISPCSI2_CTRL));
+> +       printk(KERN_DEBUG "---------------------------------------\n");
+> +}
+> +
+> +/**
+> + * isp_csi2_cleanup - Routine for module driver cleanup
+> + **/
+> +void __exit isp_csi2_cleanup(void)
+> +{
+> +       return;
+> +}
+> +
+> +/**
+> + * isp_csi2_init - Routine for module driver init
+> + **/
+> +int __init isp_csi2_init(void)
+> +{
+> +       int i;
+> +
+> +       update_complexio_cfg1 = false;
+> +       update_phy_cfg0 = false;
+> +       update_phy_cfg1 = false;
+> +       for (i = 0; i < 8; i++) {
+> +               update_ctx_ctrl1[i] = false;
+> +               update_ctx_ctrl2[i] = false;
+> +               update_ctx_ctrl3[i] = false;
+> +       }
+> +       update_timing = false;
+> +       update_ctrl = false;
+> +
+> +       memset(&current_csi2_cfg, 0, sizeof(current_csi2_cfg));
+> +       memset(&current_csi2_cfg_update, 0, sizeof(current_csi2_cfg_update));
+> +       return 0;
+> +}
 > +
 > +MODULE_AUTHOR("Texas Instruments");
-> +MODULE_DESCRIPTION("TVP514X linux decoder driver");
+> +MODULE_DESCRIPTION("ISP CSI2 Receiver Module");
 > +MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/video/tvp514x_regs.h
-> b/drivers/media/video/tvp514x_regs.h new file mode 100755
-> index 0000000..003a3c1
+> diff --git a/drivers/media/video/isp/ispcsi2.h b/drivers/media/video/isp/ispcsi2.h
+> new file mode 100644
+> index 0000000..1419bda
 > --- /dev/null
-> +++ b/drivers/media/video/tvp514x_regs.h
-> @@ -0,0 +1,292 @@
-> +/*
-> + * drivers/media/video/tvp514x_regs.h
-> + *
-> + * Copyright (C) 2008 Texas Instruments Inc
-> + * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-> + *
-> + * Contributors:
-> + *     Sivaraj R <sivaraj@ti.com>
-> + *     Brijesh R Jadav <brijesh.j@ti.com>
-> + *     Hardik Shah <hardik.shah@ti.com>
-> + *     Manjunath Hadli <mrh@ti.com>
-> + *     Karicheri Muralidharan <m-karicheri2@ti.com>
-> + *
-> + * This package is free software; you can redistribute it and/or
-> modify + * it under the terms of the GNU General Public License
-> version 2 as + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + *
-> + */
-> +
-> +#ifndef _TVP514X_REGS_H
-> +#define _TVP514X_REGS_H
-> +
-> +/*
-> + * TVP5146/47 registers
-> + */
-> +#define REG_INPUT_SEL			(0x00)
-> +#define REG_AFE_GAIN_CTRL		(0x01)
-> +#define REG_VIDEO_STD			(0x02)
-> +#define REG_OPERATION_MODE		(0x03)
-> +#define REG_AUTOSWITCH_MASK		(0x04)
-> +
-> +#define REG_COLOR_KILLER		(0x05)
-> +#define REG_LUMA_CONTROL1		(0x06)
-> +#define REG_LUMA_CONTROL2		(0x07)
-> +#define REG_LUMA_CONTROL3		(0x08)
-> +
-> +#define REG_BRIGHTNESS			(0x09)
-> +#define REG_CONTRAST			(0x0A)
-> +#define REG_SATURATION			(0x0B)
-> +#define REG_HUE				(0x0C)
-> +
-> +#define REG_CHROMA_CONTROL1		(0x0D)
-> +#define REG_CHROMA_CONTROL2		(0x0E)
-> +
-> +/* 0x0F Reserved */
-> +
-> +#define REG_COMP_PR_SATURATION		(0x10)
-> +#define REG_COMP_Y_CONTRAST		(0x11)
-> +#define REG_COMP_PB_SATURATION		(0x12)
-> +
-> +/* 0x13 Reserved */
-> +
-> +#define REG_COMP_Y_BRIGHTNESS		(0x14)
-> +
-> +/* 0x15 Reserved */
-> +
-> +#define REG_AVID_START_PIXEL_LSB	(0x16)
-> +#define REG_AVID_START_PIXEL_MSB	(0x17)
-> +#define REG_AVID_STOP_PIXEL_LSB		(0x18)
-> +#define REG_AVID_STOP_PIXEL_MSB		(0x19)
-> +
-> +#define REG_HSYNC_START_PIXEL_LSB	(0x1A)
-> +#define REG_HSYNC_START_PIXEL_MSB	(0x1B)
-> +#define REG_HSYNC_STOP_PIXEL_LSB	(0x1C)
-> +#define REG_HSYNC_STOP_PIXEL_MSB	(0x1D)
-> +
-> +#define REG_VSYNC_START_LINE_LSB	(0x1E)
-> +#define REG_VSYNC_START_LINE_MSB	(0x1F)
-> +#define REG_VSYNC_STOP_LINE_LSB		(0x20)
-> +#define REG_VSYNC_STOP_LINE_MSB		(0x21)
-> +
-> +#define REG_VBLK_START_LINE_LSB		(0x22)
-> +#define REG_VBLK_START_LINE_MSB		(0x23)
-> +#define REG_VBLK_STOP_LINE_LSB		(0x24)
-> +#define REG_VBLK_STOP_LINE_MSB		(0x25)
-> +
-> +/* 0x26 - 0x27 Reserved */
-> +
-> +#define REG_FAST_SWTICH_CONTROL		(0x28)
-> +
-> +/* 0x29 Reserved */
-> +
-> +#define REG_FAST_SWTICH_SCART_DELAY	(0x2A)
-> +
-> +/* 0x2B Reserved */
-> +
-> +#define REG_SCART_DELAY			(0x2C)
-> +#define REG_CTI_DELAY			(0x2D)
-> +#define REG_CTI_CONTROL			(0x2E)
-> +
-> +/* 0x2F - 0x31 Reserved */
-> +
-> +#define REG_SYNC_CONTROL		(0x32)
-> +#define REG_OUTPUT_FORMATTER1		(0x33)
-> +#define REG_OUTPUT_FORMATTER2		(0x34)
-> +#define REG_OUTPUT_FORMATTER3		(0x35)
-> +#define REG_OUTPUT_FORMATTER4		(0x36)
-> +#define REG_OUTPUT_FORMATTER5		(0x37)
-> +#define REG_OUTPUT_FORMATTER6		(0x38)
-> +#define REG_CLEAR_LOST_LOCK		(0x39)
-> +
-> +#define REG_STATUS1			(0x3A)
-> +#define REG_STATUS2			(0x3B)
-> +
-> +#define REG_AGC_GAIN_STATUS_LSB		(0x3C)
-> +#define REG_AGC_GAIN_STATUS_MSB		(0x3D)
-> +
-> +/* 0x3E Reserved */
-> +
-> +#define REG_VIDEO_STD_STATUS		(0x3F)
-> +#define REG_GPIO_INPUT1			(0x40)
-> +#define REG_GPIO_INPUT2			(0x41)
-> +
-> +/* 0x42 - 0x45 Reserved */
-> +
-> +#define REG_AFE_COARSE_GAIN_CH1		(0x46)
-> +#define REG_AFE_COARSE_GAIN_CH2		(0x47)
-> +#define REG_AFE_COARSE_GAIN_CH3		(0x48)
-> +#define REG_AFE_COARSE_GAIN_CH4		(0x49)
-> +
-> +#define REG_AFE_FINE_GAIN_PB_B_LSB	(0x4A)
-> +#define REG_AFE_FINE_GAIN_PB_B_MSB	(0x4B)
-> +#define REG_AFE_FINE_GAIN_Y_G_CHROMA_LSB	(0x4C)
-> +#define REG_AFE_FINE_GAIN_Y_G_CHROMA_MSB	(0x4D)
-> +#define REG_AFE_FINE_GAIN_PR_R_LSB	(0x4E)
-> +#define REG_AFE_FINE_GAIN_PR_R_MSB	(0x4F)
-> +#define REG_AFE_FINE_GAIN_CVBS_LUMA_LSB	(0x50)
-> +#define REG_AFE_FINE_GAIN_CVBS_LUMA_MSB	(0x51)
-> +
-> +/* 0x52 - 0x68 Reserved */
-> +
-> +#define REG_FBIT_VBIT_CONTROL1		(0x69)
-> +
-> +/* 0x6A - 0x6B Reserved */
-> +
-> +#define REG_BACKEND_AGC_CONTROL		(0x6C)
-> +
-> +/* 0x6D - 0x6E Reserved */
-> +
-> +#define REG_AGC_DECREMENT_SPEED_CONTROL	(0x6F)
-> +#define REG_ROM_VERSION			(0x70)
-> +
-> +/* 0x71 - 0x73 Reserved */
-> +
-> +#define REG_AGC_WHITE_PEAK_PROCESSING	(0x74)
-> +#define REG_FBIT_VBIT_CONTROL2		(0x75)
-> +#define REG_VCR_TRICK_MODE_CONTROL	(0x76)
-> +#define REG_HORIZONTAL_SHAKE_INCREMENT	(0x77)
-> +#define REG_AGC_INCREMENT_SPEED		(0x78)
-> +#define REG_AGC_INCREMENT_DELAY		(0x79)
-> +
-> +/* 0x7A - 0x7F Reserved */
-> +
-> +#define REG_CHIP_ID_MSB			(0x80)
-> +#define REG_CHIP_ID_LSB			(0x81)
-> +
-> +/* 0x82 Reserved */
-> +
-> +#define REG_CPLL_SPEED_CONTROL		(0x83)
-> +
-> +/* 0x84 - 0x96 Reserved */
-> +
-> +#define REG_STATUS_REQUEST		(0x97)
-> +
-> +/* 0x98 - 0x99 Reserved */
-> +
-> +#define REG_VERTICAL_LINE_COUNT_LSB	(0x9A)
-> +#define REG_VERTICAL_LINE_COUNT_MSB	(0x9B)
-> +
-> +/* 0x9C - 0x9D Reserved */
-> +
-> +#define REG_AGC_DECREMENT_DELAY		(0x9E)
-> +
-> +/* 0x9F - 0xB0 Reserved */
-> +
-> +#define REG_VDP_TTX_FILTER_1_MASK1	(0xB1)
-> +#define REG_VDP_TTX_FILTER_1_MASK2	(0xB2)
-> +#define REG_VDP_TTX_FILTER_1_MASK3	(0xB3)
-> +#define REG_VDP_TTX_FILTER_1_MASK4	(0xB4)
-> +#define REG_VDP_TTX_FILTER_1_MASK5	(0xB5)
-> +#define REG_VDP_TTX_FILTER_2_MASK1	(0xB6)
-> +#define REG_VDP_TTX_FILTER_2_MASK2	(0xB7)
-> +#define REG_VDP_TTX_FILTER_2_MASK3	(0xB8)
-> +#define REG_VDP_TTX_FILTER_2_MASK4	(0xB9)
-> +#define REG_VDP_TTX_FILTER_2_MASK5	(0xBA)
-> +#define REG_VDP_TTX_FILTER_CONTROL	(0xBB)
-> +#define REG_VDP_FIFO_WORD_COUNT		(0xBC)
-> +#define REG_VDP_FIFO_INTERRUPT_THRLD	(0xBD)
-> +
-> +/* 0xBE Reserved */
-> +
-> +#define REG_VDP_FIFO_RESET		(0xBF)
-> +#define REG_VDP_FIFO_OUTPUT_CONTROL	(0xC0)
-> +#define REG_VDP_LINE_NUMBER_INTERRUPT	(0xC1)
-> +#define REG_VDP_PIXEL_ALIGNMENT_LSB	(0xC2)
-> +#define REG_VDP_PIXEL_ALIGNMENT_MSB	(0xC3)
-> +
-> +/* 0xC4 - 0xD5 Reserved */
-> +
-> +#define REG_VDP_LINE_START		(0xD6)
-> +#define REG_VDP_LINE_STOP		(0xD7)
-> +#define REG_VDP_GLOBAL_LINE_MODE	(0xD8)
-> +#define REG_VDP_FULL_FIELD_ENABLE	(0xD9)
-> +#define REG_VDP_FULL_FIELD_MODE		(0xDA)
-> +
-> +/* 0xDB - 0xDF Reserved */
-> +
-> +#define REG_VBUS_DATA_ACCESS_NO_VBUS_ADDR_INCR	(0xE0)
-> +#define REG_VBUS_DATA_ACCESS_VBUS_ADDR_INCR	(0xE1)
-> +#define REG_FIFO_READ_DATA			(0xE2)
-> +
-> +/* 0xE3 - 0xE7 Reserved */
-> +
-> +#define REG_VBUS_ADDRESS_ACCESS1	(0xE8)
-> +#define REG_VBUS_ADDRESS_ACCESS2	(0xE9)
-> +#define REG_VBUS_ADDRESS_ACCESS3	(0xEA)
-> +
-> +/* 0xEB - 0xEF Reserved */
-> +
-> +#define REG_INTERRUPT_RAW_STATUS0	(0xF0)
-> +#define REG_INTERRUPT_RAW_STATUS1	(0xF1)
-> +#define REG_INTERRUPT_STATUS0		(0xF2)
-> +#define REG_INTERRUPT_STATUS1		(0xF3)
-> +#define REG_INTERRUPT_MASK0		(0xF4)
-> +#define REG_INTERRUPT_MASK1		(0xF5)
-> +#define REG_INTERRUPT_CLEAR0		(0xF6)
-> +#define REG_INTERRUPT_CLEAR1		(0xF7)
-> +
-> +/* 0xF8 - 0xFF Reserved */
-> +
-> +/*
-> + * Mask and bit definitions of TVP5146/47 registers
-> + */
-> +/* The ID values we are looking for */
-> +#define TVP514X_CHIP_ID_MSB		(0x51)
-> +#define TVP5146_CHIP_ID_LSB		(0x46)
-> +#define TVP5147_CHIP_ID_LSB		(0x47)
-> +
-> +#define VIDEO_STD_MASK			(0x07)
-> +#define VIDEO_STD_AUTO_SWITCH_BIT	(0x00)
-> +#define VIDEO_STD_NTSC_MJ_BIT		(0x01)
-> +#define VIDEO_STD_PAL_BDGHIN_BIT	(0x02)
-> +#define VIDEO_STD_PAL_M_BIT		(0x03)
-> +#define VIDEO_STD_PAL_COMBINATION_N_BIT	(0x04)
-> +#define VIDEO_STD_NTSC_4_43_BIT		(0x05)
-> +#define VIDEO_STD_SECAM_BIT		(0x06)
-> +#define VIDEO_STD_PAL_60_BIT		(0x07)
-> +
-> +/*
-> + * Status bit
-> + */
-> +#define STATUS_TV_VCR_BIT		(1<<0)
-> +#define STATUS_HORZ_SYNC_LOCK_BIT	(1<<1)
-> +#define STATUS_VIRT_SYNC_LOCK_BIT	(1<<2)
-> +#define STATUS_CLR_SUBCAR_LOCK_BIT	(1<<3)
-> +#define STATUS_LOST_LOCK_DETECT_BIT	(1<<4)
-> +#define STATUS_FEILD_RATE_BIT		(1<<5)
-> +#define STATUS_LINE_ALTERNATING_BIT	(1<<6)
-> +#define STATUS_PEAK_WHITE_DETECT_BIT	(1<<7)
-> +
-> +/**
-> + * struct tvp514x_reg - Structure for TVP5146/47 register
-> initialization values + * @token - Token: TOK_WRITE, TOK_TERM etc..
-> + * @reg - Register offset
-> + * @val - Register Value for TOK_WRITE or delay in ms for TOK_DELAY
-> + */
-> +struct tvp514x_reg {
-> +	u8 token;
-> +	u8 reg;
-> +	u32 val;
-> +};
-> +
-> +/**
-> + * struct tvp514x_init_seq - Structure for TVP5146/47/46M2/47M1
-> power up + *		Sequence.
-> + * @ no_regs - Number of registers to write for power up sequence.
-> + * @ init_reg_seq - Array of registers and respective value to
-> write. + */
-> +struct tvp514x_init_seq {
-> +	unsigned int no_regs;
-> +	struct tvp514x_reg *init_reg_seq;
-> +};
-> +#endif				/* ifndef _TVP514X_REGS_H */
-> diff --git a/include/media/tvp514x.h b/include/media/tvp514x.h
-> new file mode 100755
-> index 0000000..2fee5e7
-> --- /dev/null
-> +++ b/include/media/tvp514x.h
+> +++ b/drivers/media/video/isp/ispcsi2.h
 > @@ -0,0 +1,232 @@
 > +/*
-> + * drivers/media/video/tvp514x.h
+> + * drivers/media/video/isp/ispcsi2.h
 > + *
-> + * Copyright (C) 2008 Texas Instruments Inc
-> + * Author: Vaibhav Hiremath <hvaibhav@ti.com>
+> + * Copyright (C) 2008 Texas Instruments.
 > + *
 > + * Contributors:
-> + *     Sivaraj R <sivaraj@ti.com>
-> + *     Brijesh R Jadav <brijesh.j@ti.com>
-> + *     Hardik Shah <hardik.shah@ti.com>
-> + *     Manjunath Hadli <mrh@ti.com>
-> + *     Karicheri Muralidharan <m-karicheri2@ti.com>
+> + *     Sergio Aguirre <saaguirre@ti.com>
+> + *     Dominic Curran <dcurran@ti.com>
 > + *
-> + * This package is free software; you can redistribute it and/or
-> modify + * it under the terms of the GNU General Public License
-> version 2 as + * published by the Free Software Foundation.
+> + * This package is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
 > + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + *
+> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 > + */
 > +
-> +#ifndef _TVP514X_H
-> +#define _TVP514X_H
+> +#ifndef OMAP_ISP_CSI2_API_H
+> +#define OMAP_ISP_CSI2_API_H
+> +#include <linux/videodev2.h>
 > +
-> +/*
-> + * Other macros
-> + */
-> +#define TVP514X_MODULE_NAME		"tvp514x"
-> +#define TVP514X_I2C_DELAY		(3)
-> +#define I2C_RETRY_COUNT			(5)
-> +#define LOCK_RETRY_COUNT		(5)
-> +#define LOCK_RETRY_DELAY		(200)
-> +
-> +#define TOK_WRITE			(0)	/* token for write operation */
-> +#define TOK_TERM			(1)	/* terminating token */
-> +#define TOK_DELAY			(2)	/* delay token for reg list */
-> +#define TOK_SKIP			(3)	/* token to skip a register */
-> +
-> +#define TVP514X_XCLK_BT656		(27000000)
-> +
-> +/* Number of pixels and number of lines per frame for different
-> standards */ +#define NTSC_NUM_ACTIVE_PIXELS		(720)
-> +#define NTSC_NUM_ACTIVE_LINES		(480)
-> +#define PAL_NUM_ACTIVE_PIXELS		(720)
-> +#define PAL_NUM_ACTIVE_LINES		(576)
-> +
-> +/**
-> + * enum tvp514x_std - enum for supported standards
-> + */
-> +enum tvp514x_std {
-> +	STD_NTSC_MJ = 0,
-> +	STD_PAL_BDGHIN,
-> +	STD_INVALID
+> +enum isp_csi2_irqevents {
+> +       OCP_ERR_IRQ = 0x4000,
+> +       SHORT_PACKET_IRQ = 0x2000,
+> +       ECC_CORRECTION_IRQ = 0x1000,
+> +       ECC_NO_CORRECTION_IRQ = 0x800,
+> +       COMPLEXIO2_ERR_IRQ = 0x400,
+> +       COMPLEXIO1_ERR_IRQ = 0x200,
+> +       FIFO_OVF_IRQ = 0x100,
+> +       CONTEXT7 = 0x80,
+> +       CONTEXT6 = 0x40,
+> +       CONTEXT5 = 0x20,
+> +       CONTEXT4 = 0x10,
+> +       CONTEXT3 = 0x8,
+> +       CONTEXT2 = 0x4,
+> +       CONTEXT1 = 0x2,
+> +       CONTEXT0 = 0x1,
 > +};
 > +
-> +/**
-> + * enum tvp514x_state - enum for different decoder states
-> + */
-> +enum tvp514x_state {
-> +	STATE_NOT_DETECTED,
-> +	STATE_DETECTED
+> +enum isp_csi2_ctx_irqevents {
+> +       CTX_ECC_CORRECTION = 0x100,
+> +       CTX_LINE_NUMBER = 0x80,
+> +       CTX_FRAME_NUMBER = 0x40,
+> +       CTX_CS = 0x20,
+> +       CTX_LE = 0x8,
+> +       CTX_LS = 0x4,
+> +       CTX_FE = 0x2,
+> +       CTX_FS = 0x1,
 > +};
 > +
-> +/**
-> + * enum tvp514x_input - enum for different decoder input pin
-> + *		configuration.
-> + */
-> +enum tvp514x_input {
-> +	/*
-> +	 * CVBS input selection
-> +	 */
-> +	INPUT_CVBS_VI1A = 0x0,
-> +	INPUT_CVBS_VI1B,
-> +	INPUT_CVBS_VI1C,
-> +	INPUT_CVBS_VI2A = 0x04,
-> +	INPUT_CVBS_VI2B,
-> +	INPUT_CVBS_VI2C,
-> +	INPUT_CVBS_VI3A = 0x08,
-> +	INPUT_CVBS_VI3B,
-> +	INPUT_CVBS_VI3C,
-> +	INPUT_CVBS_VI4A = 0x0C,
-> +	/*
-> +	 * S-Video input selection
-> +	 */
-> +	INPUT_SVIDEO_VI2A_VI1A = 0x44,
-> +	INPUT_SVIDEO_VI2B_VI1B,
-> +	INPUT_SVIDEO_VI2C_VI1C,
-> +	INPUT_SVIDEO_VI2A_VI3A = 0x54,
-> +	INPUT_SVIDEO_VI2B_VI3B,
-> +	INPUT_SVIDEO_VI2C_VI3C,
-> +	INPUT_SVIDEO_VI4A_VI1A = 0x4C,
-> +	INPUT_SVIDEO_VI4A_VI1B,
-> +	INPUT_SVIDEO_VI4A_VI1C,
-> +	INPUT_SVIDEO_VI4A_VI3A = 0x5C,
-> +	INPUT_SVIDEO_VI4A_VI3B,
-> +	INPUT_SVIDEO_VI4A_VI3C
-> +
-> +	/* Need to add entries for
-> +	 * RGB, YPbPr and SCART.
-> +	 */
+> +enum isp_csi2_power_cmds {
+> +       ISP_CSI2_POWER_OFF,
+> +       ISP_CSI2_POWER_ON,
+> +       ISP_CSI2_POWER_ULPW,
 > +};
 > +
-> +/**
-> + * enum tvp514x_output_fmt - enum for output format
-> + *			supported.
-> + */
-> +enum tvp514x_output_fmt {
-> +	OUTPUT_10BIT_422_EMBEDDED_SYNC = 0,
-> +	OUTPUT_20BIT_422_SEPERATE_SYNC,
-> +	OUTPUT_10BIT_422_SEPERATE_SYNC = 3,
-> +	OUTPUT_INVALID
+> +enum isp_csi2_frame_mode {
+> +       ISP_CSI2_FRAME_IMMEDIATE,
+> +       ISP_CSI2_FRAME_AFTERFEC,
 > +};
 > +
-> +/**
-> + * struct tvp514x_std_info - Structure to store standard
-> informations + * @width: Line width in pixels
-> + * @height:Number of active lines
-> + * @video_std: Value to write in REG_VIDEO_STD register
-> + * @standard: v4l2 standard structure information
-> + */
-> +struct tvp514x_std_info {
-> +	unsigned long width;
-> +	unsigned long height;
-> +	u8 video_std;
-> +	struct v4l2_standard standard;
+> +struct csi2_lanecfg {
+> +       u8 pos;
+> +       u8 pol;
 > +};
 > +
-> +/**
-> + * struct tvp514x_ctrl_info - Information regarding supported
-> controls + * @reg_address: Register offset of control register
-> + * @query_ctrl: v4l2 query control information
-> + */
-> +struct tvp514x_ctrl_info {
-> +	u8 reg_address;
-> +	struct v4l2_queryctrl query_ctrl;
+> +struct isp_csi2_lanes_cfg {
+> +       struct csi2_lanecfg data[4];
+> +       struct csi2_lanecfg clk;
 > +};
 > +
-> +/**
-> + * struct tvp514x_input_info - Information regarding supported
-> inputs + * @input_sel: Input select register
-> + * @lock_mask: lock mask - depends on Svideo/CVBS
-> + * @input: v4l2 input information
-> + */
-> +struct tvp514x_input_info {
-> +	enum tvp514x_input input_sel;
-> +	struct v4l2_input input;
+> +struct isp_csi2_lanes_cfg_update {
+> +       bool data[4];
+> +       bool clk;
 > +};
 > +
-> +/**
-> + * struct tvp514x_platform_data - Platform data values and access
-> functions + * @power_set: Power state access function, zero is off,
-> non-zero is on. + * @ifparm: Interface parameters access function
-> + * @priv_data_set: Device private data (pointer) access function
-> + * @reg_list: The board dependent driver should fill the default
-> value for + *            required registers depending on board
-> layout. The TVP5146/47 + *            driver will update this
-> register list for the registers + *            whose values should be
-> maintained across open()/close() like + *            setting
-> brightness as defined in V4L2.
-> + *            The register list should be in the same order as
-> defined in + *            TVP5146/47 datasheet including reserved
-> registers. As of now + *            the driver expects the size of
-> this list to be a minimum of + *            57 + 1 (upto regsiter
-> REG_CLEAR_LOST_LOCK).
-> + *            The last member should be of the list should be
-> + *            {TOK_TERM, 0, 0} to indicate the end of register list.
-> + * @num_inputs: Number of input connection in board
-> + * @input_list: Input information list for num_inputs
-> + */
-> +struct tvp514x_platform_data {
-> +	char *master;
-> +	int (*power_set) (enum v4l2_power on);
-> +	int (*ifparm) (struct v4l2_ifparm *p);
-> +	int (*priv_data_set) (void *);
-> +	/* Input params */
-> +	int num_inputs;
-> +	const struct tvp514x_input_info *input_list;
-> +	int default_input;
-> +	/* Interface control params */
-> +	enum tvp514x_output_fmt fmt;
-> +	bool clk_polarity;
-> +	bool hs_polarity;
-> +	bool vs_polarity;
+> +struct isp_csi2_phy_cfg {
+> +       u8 ths_term;
+> +       u8 ths_settle;
+> +       u8 tclk_term;
+> +       unsigned tclk_miss:1;
+> +       u8 tclk_settle;
 > +};
 > +
-> +/**
-> + * struct tvp514x_decoded - TVP5146/47 decoder object
-> + * @v4l2_int_device: Slave handle
-> + * @pdata: Board specific
-> + * @client: I2C client data
-> + * @id: Entry from I2C table
-> + * @ver: Chip version
-> + * @state: TVP5146/47 decoder state - detected or not-detected
-> + * @pix: Current pixel format
-> + * @num_fmts: Number of formats
-> + * @fmt_list: Format list
-> + * @current_std: Current standard
-> + * @num_stds: Number of standards
-> + * @std_list: Standards list
-> + * @num_ctrls: Number of controls
-> + * @ctrl_list: Control list
-> + */
-> +struct tvp514x_decoder {
-> +	struct v4l2_int_device *v4l2_int_device;
-> +	const struct tvp514x_platform_data *pdata;
-> +	struct i2c_client *client;
-> +
-> +	struct i2c_device_id *id;
-> +
-> +	int ver;
-> +	enum tvp514x_state state;
-> +
-> +	struct v4l2_pix_format pix;
-> +	int num_fmts;
-> +	const struct v4l2_fmtdesc *fmt_list;
-> +
-> +	enum tvp514x_std current_std;
-> +	int num_stds;
-> +	struct tvp514x_std_info *std_list;
-> +
-> +	int num_ctrls;
-> +	const struct tvp514x_ctrl_info *ctrl_list;
-> +
-> +	int inputidx;
+> +struct isp_csi2_phy_cfg_update {
+> +       bool ths_term;
+> +       bool ths_settle;
+> +       bool tclk_term;
+> +       bool tclk_miss;
+> +       bool tclk_settle;
 > +};
 > +
-> +#endif				/* ifndef _TVP514X_H */
+> +struct isp_csi2_ctx_cfg {
+> +       u8 virtual_id;
+> +       u8 frame_count;
+> +       struct v4l2_pix_format format;
+> +       u16 alpha;
+> +       u16 data_offset;
+> +       u32 ping_addr;
+> +       u32 pong_addr;
+> +       bool eof_enabled;
+> +       bool eol_enabled;
+> +       bool checksum_enabled;
+> +       bool enabled;
+> +};
+> +
+> +struct isp_csi2_ctx_cfg_update {
+> +       bool virtual_id;
+> +       bool frame_count;
+> +       bool format;
+> +       bool alpha;
+> +       bool data_offset;
+> +       bool ping_addr;
+> +       bool pong_addr;
+> +       bool eof_enabled;
+> +       bool eol_enabled;
+> +       bool checksum_enabled;
+> +       bool enabled;
+> +};
+> +
+> +struct isp_csi2_timings_cfg {
+> +       bool force_rx_mode;
+> +       bool stop_state_16x;
+> +       bool stop_state_4x;
+> +       u16 stop_state_counter;
+> +};
+> +
+> +struct isp_csi2_timings_cfg_update {
+> +       bool force_rx_mode;
+> +       bool stop_state_16x;
+> +       bool stop_state_4x;
+> +       bool stop_state_counter;
+> +};
+> +
+> +struct isp_csi2_ctrl_cfg {
+> +       bool vp_clk_enable;
+> +       bool vp_only_enable;
+> +       u8 vp_out_ctrl;
+> +       bool debug_enable;
+> +       u8 burst_size;
+> +       enum isp_csi2_frame_mode frame_mode;
+> +       bool ecc_enable;
+> +       bool secure_mode;
+> +       bool if_enable;
+> +};
+> +
+> +struct isp_csi2_ctrl_cfg_update {
+> +       bool vp_clk_enable;
+> +       bool vp_only_enable;
+> +       bool vp_out_ctrl;
+> +       bool debug_enable;
+> +       bool burst_size;
+> +       bool frame_mode;
+> +       bool ecc_enable;
+> +       bool secure_mode;
+> +       bool if_enable;
+> +};
+> +
+> +struct isp_csi2_cfg {
+> +       struct isp_csi2_lanes_cfg lanes;
+> +       struct isp_csi2_phy_cfg phy;
+> +       struct isp_csi2_ctx_cfg contexts[8];
+> +       struct isp_csi2_timings_cfg timings[2];
+> +       struct isp_csi2_ctrl_cfg ctrl;
+> +};
+> +
+> +struct isp_csi2_cfg_update {
+> +       struct isp_csi2_lanes_cfg_update lanes;
+> +       struct isp_csi2_phy_cfg_update phy;
+> +       struct isp_csi2_ctx_cfg_update contexts[8];
+> +       struct isp_csi2_timings_cfg_update timings[2];
+> +       struct isp_csi2_ctrl_cfg_update ctrl;
+> +};
+> +
+> +int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg);
+> +int isp_csi2_complexio_lanes_update(bool force_update);
+> +int isp_csi2_complexio_lanes_get(void);
+> +int isp_csi2_complexio_power_autoswitch(bool enable);
+> +int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd);
+> +int isp_csi2_ctrl_config_frame_mode(enum isp_csi2_frame_mode frame_mode);
+> +int isp_csi2_ctrl_config_vp_clk_enable(bool vp_clk_enable);
+> +int isp_csi2_ctrl_config_vp_only_enable(bool vp_only_enable);
+> +int isp_csi2_ctrl_config_debug_enable(bool debug_enable);
+> +int isp_csi2_ctrl_config_burst_size(u8 burst_size);
+> +int isp_csi2_ctrl_config_ecc_enable(bool ecc_enable);
+> +int isp_csi2_ctrl_config_secure_mode(bool secure_mode);
+> +int isp_csi2_ctrl_config_if_enable(bool if_enable);
+> +int isp_csi2_ctrl_config_vp_out_ctrl(u8 vp_out_ctrl);
+> +int isp_csi2_ctrl_update(bool force_update);
+> +int isp_csi2_ctrl_get(void);
+> +int isp_csi2_ctx_config_virtual_id(u8 ctxnum, u8 virtual_id);
+> +int isp_csi2_ctx_config_frame_count(u8 ctxnum, u8 frame_count);
+> +int isp_csi2_ctx_config_format(u8 ctxnum, u32 pixformat);
+> +int isp_csi2_ctx_config_alpha(u8 ctxnum, u16 alpha);
+> +int isp_csi2_ctx_config_data_offset(u8 ctxnum, u16 data_offset);
+> +int isp_csi2_ctx_config_ping_addr(u8 ctxnum, u32 ping_addr);
+> +int isp_csi2_ctx_config_pong_addr(u8 ctxnum, u32 pong_addr);
+> +int isp_csi2_ctx_config_eof_enabled(u8 ctxnum, bool eof_enabled);
+> +int isp_csi2_ctx_config_eol_enabled(u8 ctxnum, bool eol_enabled);
+> +int isp_csi2_ctx_config_checksum_enabled(u8 ctxnum, bool checksum_enabled);
+> +int isp_csi2_ctx_config_enabled(u8 ctxnum, bool enabled);
+> +int isp_csi2_ctx_update(u8 ctxnum, bool force_update);
+> +int isp_csi2_ctx_get(u8 ctxnum);
+> +int isp_csi2_ctx_update_all(bool force_update);
+> +int isp_csi2_ctx_get_all(void);
+> +int isp_csi2_phy_config(struct isp_csi2_phy_cfg *desiredphyconfig);
+> +int isp_csi2_calc_phy_cfg0(u32 mipiclk, u32 lbound_hs_settle,
+> +                                                       u32 ubound_hs_settle);
+> +int isp_csi2_phy_update(bool force_update);
+> +int isp_csi2_phy_get(void);
+> +int isp_csi2_timings_config_forcerxmode(u8 io, bool force_rx_mode);
+> +int isp_csi2_timings_config_stopstate_16x(u8 io, bool stop_state_16x);
+> +int isp_csi2_timings_config_stopstate_4x(u8 io, bool stop_state_4x);
+> +int isp_csi2_timings_config_stopstate_cnt(u8 io, u16 stop_state_counter);
+> +int isp_csi2_timings_update(u8 io, bool force_update);
+> +int isp_csi2_timings_get(u8 io);
+> +int isp_csi2_timings_update_all(bool force_update);
+> +int isp_csi2_timings_get_all(void);
+> +void isp_csi2_irq_complexio1_set(int enable);
+> +void isp_csi2_irq_ctx_set(int enable);
+> +void isp_csi2_irq_status_set(int enable);
+> +void isp_csi2_irq_set(int enable);
+> +void isp_csi2_irq_all_set(int enable);
+> +
+> +void isp_csi2_isr(void);
+> +int isp_csi2_reset(void);
+> +void isp_csi2_enable(int enable);
+> +void isp_csi2_regdump(void);
+> +
+> +#endif /* OMAP_ISP_CSI2_H */
+> +
 > --
-> 1.5.6
->
+> 1.5.6.5
+> 
+> 
 > --
 > video4linux-list mailing list
-> Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 > https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> 
 
 
 
