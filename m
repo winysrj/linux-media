@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1CvTqj029555
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:57:29 -0500
-Received: from smtp-vbr15.xs4all.nl (smtp-vbr15.xs4all.nl [194.109.24.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1CvKHd011496
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 07:57:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Trilok Soni" <soni.trilok@gmail.com>
-Date: Mon, 1 Dec 2008 13:57:09 +0100
-References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
-	<492E69C9.9080904@nokia.com>
-	<5d5443650811280207o7e91eb75geb7627b0e555480d@mail.gmail.com>
-In-Reply-To: <5d5443650811280207o7e91eb75geb7627b0e555480d@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGFEaZt005539
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 10:14:36 -0500
+Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
+	[209.85.218.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGFDNrn030894
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 10:13:24 -0500
+Received: by bwz13 with SMTP id 13so10718987bwz.3
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 07:13:23 -0800 (PST)
+Message-ID: <d9def9db0812160713n58d8a78cw5139f94a7bfd6530@mail.gmail.com>
+Date: Tue, 16 Dec 2008 16:13:14 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200812161450.56695.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812011357.09474.hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
-	video4linux-list@redhat.com
-Subject: Re: [PATCH] Add OMAP2 camera driver
+References: <200812161332.52475.hverkuil@xs4all.nl>
+	<d9def9db0812160515h4c96a009w1226ca2fb3c64a9a@mail.gmail.com>
+	<200812161450.56695.hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>, Michael Schimek <mschimek@gmx.at>
+Subject: Re: V4L2 spec typo for V4L2_PIX_FMT_BGR32 format?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,27 +33,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 28 November 2008 11:07:15 Trilok Soni wrote:
-> Hi Hans
+On Tue, Dec 16, 2008 at 2:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tuesday 16 December 2008 14:15:18 Markus Rechberger wrote:
+>> On Tue, Dec 16, 2008 at 1:32 PM, Hans Verkuil <hverkuil@xs4all.nl>
+> wrote:
+>> > Hi,
+>> >
+>> > The v4l2 spec says this
+>> > (http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-sin
+>> >gle/v4l2.html#PIXFMT-RGB):
+>> >
+>> > V4L2_PIX_FMT_BGR32  'BGR4'
+>> >   b7b6b5b4b3b2b1b0 g7g6g5g4g3g2g1g0 r7r6r5r4r3r2r1r0
+>> > a7a6a5a4a3a2a1a0 V4L2_PIX_FMT_RGB32  'RGB4'
+>> >   r7r6r5r4r3r2r1r0 g7g6g5g4g3g2g1g0 b7b6b5b4b3b2b1b0
+>> > a7a6a5a4a3a2a1a0
+>> >
+>> > But I'm pretty sure this should be:
+>> >
+>> > V4L2_PIX_FMT_BGR32  'BGR4'
+>> >   a7a6a5a4a3a2a1a0 b7b6b5b4b3b2b1b0 g7g6g5g4g3g2g1g0
+>> > r7r6r5r4r3r2r1r0 V4L2_PIX_FMT_RGB32  'RGB4'
+>> >   r7r6r5r4r3r2r1r0 g7g6g5g4g3g2g1g0 b7b6b5b4b3b2b1b0
+>> > a7a6a5a4a3a2a1a0
+>> >
+>> > since the only difference should be endianess.
+>> >
+>> > Or am I mistaken?
+>>
+>> The openGL specs have BGRA defined..
+>> http://opengl.org/registry/specs/EXT/bgra.txt
+>>
+>> BGRA_EXT              Component       B, G, R, A              Color
+>>
+>> Markus
 >
-> > I'm in if the aim is to get this back to linux-omap. :-) (Waiting
-> > for the next patch from Trilok.)
->
-> Attached the updated patch for OMAP2 camera driver.
+> Hmm, so the spec conforms to the openGL spec, but in practice it is used
+> as a swapped version of RGB4. What a mess.
 
-Hi Trilok, Sakari,
+well they have also defined ABGR
+http://www.opengl.org/registry/specs/EXT/abgr.txt
 
-I've merged it in my tree: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
+BGR32 seems to be confusing somehow it can easily be interpreted as
+both, whereas
+ABGR doesn't seem to be defined with v4l2 for real. Both pixelformats
+should be supported
+of course.
 
-Is it OK for me to issue a pull request for that it can be merged in the 
-v4l-dvb master?
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Markus
 
 --
 video4linux-list mailing list
