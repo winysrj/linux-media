@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate01.web.de ([217.72.192.221])
+Received: from mail-fx0-f18.google.com ([209.85.220.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <martinpauly@web.de>) id 1LGu9q-00063o-Jz
-	for linux-dvb@linuxtv.org; Sun, 28 Dec 2008 12:50:11 +0100
-Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 4C393FB239EA
-	for <linux-dvb@linuxtv.org>; Sun, 28 Dec 2008 12:49:37 +0100 (CET)
-Received: from [79.233.70.181] (helo=[192.168.2.101])
-	by smtp07.web.de with asmtp (WEB.DE 4.110 #273) id 1LGu9J-0004Ee-00
-	for linux-dvb@linuxtv.org; Sun, 28 Dec 2008 12:49:37 +0100
-From: Martin Pauly <martinpauly@web.de>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1230340151.6819.16.camel@martin>
-References: <1230340151.6819.16.camel@martin>
-Date: Sun, 28 Dec 2008 12:49:36 +0100
-Message-Id: <1230464976.6668.1.camel@martin>
-Mime-Version: 1.0
-Subject: [linux-dvb] AverTv Hybrid Nano Express
+	(envelope-from <alannisota@gmail.com>) id 1LCaoN-0007qX-Py
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 15:22:12 +0100
+Received: by fxm11 with SMTP id 11so842311fxm.17
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 06:21:38 -0800 (PST)
+Message-ID: <4947B92E.2040705@gmail.com>
+Date: Tue, 16 Dec 2008 06:20:30 -0800
+From: Alan Nisota <alannisota@gmail.com>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <4931745D.5030008@gmail.com>
+In-Reply-To: <4931745D.5030008@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Convert GP8PSK module to use S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,25 +26,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Hi,
-
-I've been trying to install my AverTv Hybrid Nano Express.
-Until now I had no succes. I created a page in the wiki for this card.
-but here is my problem: I'm using ubuntu 8.10. I installed the LinuxTV
-drivers via mercurial. 
-I got no /dev/dvb folder. But in /dev/.static/dev/dvb/  I have adapters
-0 to 3 listed, each one a folder, with textfiles(audio0, ca0, ...) in
-them, each of them with size 0 bytes. 
-Anybody any ideas how I could make it work?
-or is this something about my setup (i use a crypted partition and
-ubuntu)? 
-
-thanks for any help
-regards,
-martin
-
-
+Alan Nisota wrote:
+> This patch converts the gp8psk module to use the S2API.
+> It pretends to be  DVB-S2 capable in order to allow the various 
+> supported modulations (8PSK, QPSK-Turbo, etc), and keep software 
+> compatibility with the S2API patches for Mythtv and VDR.
+>
+> Signed-off by: Alan Nisota <alannisota@gmail.com>
+>
+Is there anything I need to do to get this committed?  There are many 
+folks using this hardware, who would love to not need to patch their 
+kernel to use it.
 
 _______________________________________________
 linux-dvb mailing list
