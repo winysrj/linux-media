@@ -1,31 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]
-	helo=mail.wilsonet.com) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarod@wilsonet.com>) id 1LD0Bv-0001ki-HH
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 18:28:12 +0100
-Received: from mail.wilsonet.com (chronos.wilsonet.com [127.0.0.1])
-	by mail.wilsonet.com (Postfix) with ESMTP id CE0C517B13
-	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 12:28:06 -0500 (EST)
-Received: from mail.wilsonet.com ([127.0.0.1])
-	by mail.wilsonet.com (mail.wilsonet.com [127.0.0.1]) (amavisd-maia,
-	port 10024) with ESMTP id 26178-06 for <linux-dvb@linuxtv.org>;
-	Wed, 17 Dec 2008 12:28:03 -0500 (EST)
-Received: from [172.31.27.2] (static-72-93-233-5.bstnma.fios.verizon.net
-	[72.93.233.5])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested) (Authenticated sender: jarod)
-	by mail.wilsonet.com (Postfix) with ESMTPSA id 03E2817B12
-	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 12:28:03 -0500 (EST)
-From: Jarod Wilson <jarod@wilsonet.com>
+Received: from tichy.grunau.be ([85.131.189.73])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <janne-dvb@grunau.be>) id 1LCcyL-0008O3-79
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 17:40:38 +0100
 To: linux-dvb@linuxtv.org
-In-Reply-To: <4948E149.4040502@gmx.net>
-References: <20081217002735.GF45924@dereel.lemis.com>
-	<1229488967.8328.2.camel@icarus.wilsonet.com>
-	<4948E149.4040502@gmx.net>
-Date: Wed, 17 Dec 2008 12:28:02 -0500
-Message-Id: <1229534882.1124.9.camel@xavier.wilsonet.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Support for Afatech 9035 (Aldi Fission USB tuner)
+Content-Disposition: inline
+From: Janne Grunau <janne-dvb@grunau.be>
+Date: Tue, 16 Dec 2008 17:40:46 +0100
+MIME-Version: 1.0
+Message-Id: <200812161740.46186.janne-dvb@grunau.be>
+Cc: Alan Nisota <alannisota@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Convert GP8PSK module to use S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -39,53 +24,326 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 2008-12-17 at 12:23 +0100, Jos Hoekstra wrote:
-> Jarod Wilson schreef op 17-12-2008 5:42:
-> > On Wed, 2008-12-17 at 11:27 +1100, Greg 'groggy' Lehey wrote:
-> >> I have a dual USB tuner from Aldi, which they call a Fission dual high
-> >> definition DVB-T receiver.
-> > [...]
-> >> dmesg output (complete version is attached)
-> >> says:
-> >>
-> >> [  789.696018] usb 4-3: new high speed USB device using ehci_hcd and
-> >> address 2
-> >> [  789.846003] usb 4-3: configuration #1 chosen from 1 choice
-> >> [  790.052259] usbcore: registered new interface driver hiddev
-> >> [  790.056703] input: Afa Technologies Inc. AF9035A USB Device
-> >> as /devices/pci0000:00/0000:00:10.3/usb4/4-3/4-3:1.1/input/input8
-> >> [  790.057902] input,hidraw0: USB HID v1.01 Keyboard [Afa Technologies
-> >> Inc. AF9035A USB Device] on usb-0000:00:10.3-3
-> >> [  790.058287] usbcore: registered new interface driver usbhid
-> >> [  790.058511] usbhid: v2.6:USB HID core driver
-> >>
-> >> I've been following the instructions on the wiki, and I've got hold of
-> >> the firmware files dvb-usb-af9015.fw and xc3028-v27.fw.  The former
-> >> doesn't get loaded; the latter gets loaded even if the stick isn't
-> >> present
-> > 
-> >> >From your dmesg output, it appears the usbhid driver has claimed the
-> > device, thus the dvb driver can't grab it. If I recall correctly, usbhid
-> > is a module on ubuntu, so you should be able to tell it not to load
-> > w/some modprobe options (which I don't remember off the top of my head).
+On Saturday 29 November 2008 17:57:01 Alan Nisota wrote:
+> This patch converts the gp8psk module to use the S2API.
+> It pretends to be  DVB-S2 capable in order to allow the various
+> supported modulations (8PSK, QPSK-Turbo, etc), and keep software
+> compatibility with the S2API patches for Mythtv and VDR.
 >
-> Which would be something like this:
-> options usbhid quirks=15a4:1001:0x0004
-> in your case.
+> Signed-off by: Alan Nisota <alannisota@gmail.com>
+>
+> diff -r 7100e78482d7 linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+> --- a/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c	Sat Nov 29 00:46:43
+> 2008 -0200 +++ b/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c	Sat Nov 29
+> 08:46:45 2008 -0800 @@ -24,6 +24,20 @@ struct gp8psk_fe_state {
+>  	unsigned long next_status_check;
+>  	unsigned long status_check_interval;
+>  };
+> +
+> +static int gp8psk_tuned_to_DCII(struct dvb_frontend* fe)
+> +{
+> +	struct gp8psk_fe_state *st = fe->demodulator_priv;
+> +	u8 status;
+> +	gp8psk_usb_in_op(st->d, GET_8PSK_CONFIG, 0,0,&status,1);
+> +	return (status & bmDCtuned);
+> +}
+> +
+> +static int gp8psk_set_tuner_mode(struct dvb_frontend* fe, int mode)
+> +{
+> +	struct gp8psk_fe_state *state = fe->demodulator_priv;
+> +	return gp8psk_usb_out_op(state->d, SET_8PSK_CONFIG, mode,0,NULL,0);
+> +}
+>
+>  static int gp8psk_fe_update_status(struct gp8psk_fe_state *st)
+>  {
+> @@ -99,38 +113,149 @@ static int gp8psk_fe_get_tune_settings(s
+>  	return 0;
+>  }
+>
+> +static int gp8psk_fe_set_property(struct dvb_frontend *fe,
+> +	struct dtv_property *tvp)
+> +{
+> +	deb_fe("%s(..)\n", __func__);
+> +	return 0;
+> +}
+> +
+> +static int gp8psk_fe_get_property(struct dvb_frontend *fe,
+> +	struct dtv_property *tvp)
+> +{
+> +	deb_fe("%s(..)\n", __func__);
+> +	return 0;
+> +}
+> +
+> +
+>  static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
+>  				  struct dvb_frontend_parameters *fep)
+>  {
+>  	struct gp8psk_fe_state *state = fe->demodulator_priv;
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>  	u8 cmd[10];
+>  	u32 freq = fep->frequency * 1000;
+> +	int gp_product_id = le16_to_cpu(state->d->udev->descriptor.idProduct);
+> +
+> +	deb_fe("%s()\n", __func__);
+>
+>  	cmd[4] = freq         & 0xff;
+>  	cmd[5] = (freq >> 8)  & 0xff;
+>  	cmd[6] = (freq >> 16) & 0xff;
+>  	cmd[7] = (freq >> 24) & 0xff;
+>
+> -	switch(fe->ops.info.type) {
+> -	case FE_QPSK:
+> -		cmd[0] =  fep->u.qpsk.symbol_rate        & 0xff;
+> -		cmd[1] = (fep->u.qpsk.symbol_rate >>  8) & 0xff;
+> -		cmd[2] = (fep->u.qpsk.symbol_rate >> 16) & 0xff;
+> -		cmd[3] = (fep->u.qpsk.symbol_rate >> 24) & 0xff;
+> +	switch (c->delivery_system) {
+> +	case SYS_DVBS:
+> +		/* Only QPSK is supported for DVB-S */
+> +		if (c->modulation != QPSK) {
+> +			deb_fe("%s: unsupported modulation selected (%d)\n",
+> +				__func__, c->modulation);
+> +			return -EOPNOTSUPP;
+> +		}
+> +		c->fec_inner = FEC_AUTO;
+> +		break;
+> +	case SYS_DVBS2:
+> +		deb_fe("%s: DVB-S2 delivery system selected\n", __func__);
+> +
+> +		/*
+> +		 * NBC 8PSK/QPSK with DVB-S is supported for DVB-S2,
+> +		 * but not hardware auto detection
+> +		 */
+> +		if (c->modulation != PSK_8 && c->modulation != QPSK) {
+> +			deb_fe("%s: unsupported modulation selected (%d)\n",
+> +				__func__, c->modulation);
+> +			return -EOPNOTSUPP;
+> +		}
+> +		break;
+> +
+> +	default:
+> +		deb_fe("%s: unsupported delivery system selected (%d)\n",
+> +			__func__, c->delivery_system);
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	cmd[0] =  c->symbol_rate        & 0xff;
+> +	cmd[1] = (c->symbol_rate >>  8) & 0xff;
+> +	cmd[2] = (c->symbol_rate >> 16) & 0xff;
+> +	cmd[3] = (c->symbol_rate >> 24) & 0xff;
+> +	switch (c->modulation) {
+> +	case QPSK:
+> +		if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
+> +			if (gp8psk_tuned_to_DCII(fe))
+> +				gp8psk_bcm4500_reload(state->d);
+> +		switch (c->fec_inner) {
+> +		case FEC_1_2:  cmd[9] = 0; break;
+> +		case FEC_2_3:  cmd[9] = 1; break;
+> +		case FEC_3_4:  cmd[9] = 2; break;
+> +		case FEC_5_6:  cmd[9] = 3; break;
+> +		case FEC_7_8:  cmd[9] = 4; break;
+> +		case FEC_AUTO: cmd[9] = 5; break;
+> +		default:       cmd[9] = 5; break;
+> +		}
+>  		cmd[8] = ADV_MOD_DVB_QPSK;
+> -		cmd[9] = 0x03; /*ADV_MOD_FEC_XXX*/
+> +		cmd[9] = 5;
 
-Yeah, that'd be it. Can also slap an 0x in front of the device ID
-components too, seems that's not a requirement though.
+you're always overriding the fec to FEC_AUTO. Either this line has to go
+or the switch above. Do the values for the FEC in cmd[9] depend on the
+modulation? You're using later after the fill_fec: label different values.
+ 
+>  		break;
+> -	default:
+> -		// other modes are unsuported right now
+> -		cmd[0] = 0;
+> -		cmd[1] = 0;
+> -		cmd[2] = 0;
+> -		cmd[3] = 0;
+> -		cmd[8] = 0;
+> +	case QPSK_TURBO:
 
-> Not totally sure about the 0x0004 though.
+this is impossible, you return -ENOTSUPP if modulation differs
+from QPSK or PSK_8 in the delivery system check
 
-The 0x0004 flag is HID_QUIRK_IGNORE, which tells the usbhid driver to
-ignore the device.
+> +		cmd[8] = ADV_MOD_TURBO_QPSK;
+> +		switch (c->fec_inner) {
+> +		case FEC_1_4:  cmd[9] = 0; break;
+> +		case FEC_1_2:  cmd[9] = 1; break;
+> +		case FEC_2_3:  cmd[9] = 0; cmd[8] = ADV_MOD_TURBO_16QAM; break;
+> +		case FEC_3_4:  cmd[9] = 2; break;
+> +		default:       cmd[9] = 0; break;
+> +		}
+> +		break;
+> +	case PSK_8: /* PSK_8 is for compatibility with DN */
+> +	case PSK_8_TURBO:
+> +		cmd[8] = ADV_MOD_TURBO_8PSK;
+> +		switch (c->fec_inner) {
+> +		case FEC_2_3:  cmd[9] = 0; break;
+> +		case FEC_3_4:  cmd[9] = 1; break;
+> +		case FEC_3_5:  cmd[9] = 2; break;
+> +		case FEC_5_6:  cmd[9] = 3; break;
+> +		case FEC_8_9:  cmd[9] = 4; break;
+> +		default:       cmd[9] = 0; break;
+> +		}
+> +		break;
+> +	case QAM_16: /* QAM_16 is for compatibility with DN */
+> +	case QAM_16_TURBO:
+> +		cmd[8] = ADV_MOD_TURBO_16QAM;
+>  		cmd[9] = 0;
+> +		break;
+> +	case QPSK_DCII_C:
+> +		cmd[8] = ADV_MOD_DCII_C_QPSK;
+> +		goto fill_fec;
+> +	case QPSK_DCII_I:
+> +		cmd[8] = ADV_MOD_DCII_I_QPSK;
+> +		goto fill_fec;
+> +	case QPSK_DCII_Q:
+> +		cmd[8] = ADV_MOD_DCII_Q_QPSK;
+> +		goto fill_fec;
+> +	case OQPSK_DCII_C:
+> +		cmd[8] = ADV_MOD_DCII_C_OQPSK;
+> +fill_fec:
+> +		switch (c->fec_inner) {
+> +		case FEC_5_11: cmd[9] = 0; break;
+> +		case FEC_1_2:  cmd[9] = 1; break;
+> +		case FEC_3_5:  cmd[9] = 2; break;
+> +		case FEC_2_3:  cmd[9] = 3; break;
+> +		case FEC_3_4:  cmd[9] = 4; break;
+> +		case FEC_4_5:  cmd[9] = 5; break;
+> +		case FEC_5_6:  cmd[9] = 6; break;
+> +		case FEC_7_8:  cmd[9] = 7; break;
+> +		case FEC_AUTO: cmd[9] = 8; break;
+> +		default:       cmd[9] = 8; break;
+> +		}
+> +		break;
+> +	default: /* DSS QPSK is not supported right now */
+> +		info("WRONG modulation selected");
+> +		cmd[8] = ADV_MOD_DVB_QPSK;
+> +		cmd[9] = 5;  /* FEC_AUTO */
+>  		break;
+
+break is unneeded and returning an error instead of falling back to
+QPSK.
+
+>  	}
+>
+> +	if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
+> +		gp8psk_set_tuner_mode(fe,0);
+>  	gp8psk_usb_out_op(state->d,TUNE_8PSK,0,0,cmd,10);
+>
+>  	state->lock = 0;
+> @@ -139,13 +264,6 @@ static int gp8psk_fe_set_frontend(struct
+>
+>  	return 0;
+>  }
+> -
+> -static int gp8psk_fe_get_frontend(struct dvb_frontend* fe,
+> -				  struct dvb_frontend_parameters *fep)
+> -{
+> -	return 0;
+> -}
+> -
+>
+>  static int gp8psk_fe_send_diseqc_msg (struct dvb_frontend* fe,
+>  				    struct dvb_diseqc_master_cmd *m)
+> @@ -261,9 +379,11 @@ static struct dvb_frontend_ops gp8psk_fe
+>  		.symbol_rate_max        = 45000000,
+>  		.symbol_rate_tolerance  = 500,  /* ppm */
+>  		.caps = FE_CAN_INVERSION_AUTO |
+> -				FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+> -				FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+> -				FE_CAN_QPSK
+> +			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+> +			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+> +			// FE_CAN_QAM_16 is for compatibility
+> +			// (Myth incorrectly detects Turbo-QPSK as plain QAM-16)
+> +			FE_CAN_QPSK | FE_CAN_QAM_16
+>  	},
+>
+>  	.release = gp8psk_fe_release,
+> @@ -271,8 +391,10 @@ static struct dvb_frontend_ops gp8psk_fe
+>  	.init = NULL,
+>  	.sleep = NULL,
+>
+> +	.set_property = gp8psk_fe_set_property,
+> +	.get_property = gp8psk_fe_get_property,
+>  	.set_frontend = gp8psk_fe_set_frontend,
+> -	.get_frontend = gp8psk_fe_get_frontend,
+> +
+>  	.get_tune_settings = gp8psk_fe_get_tune_settings,
+>
+>  	.read_status = gp8psk_fe_read_status,
+> diff -r 7100e78482d7 linux/drivers/media/dvb/dvb-usb/gp8psk.c
+> --- a/linux/drivers/media/dvb/dvb-usb/gp8psk.c	Sat Nov 29 00:46:43 2008
+> -0200 +++ b/linux/drivers/media/dvb/dvb-usb/gp8psk.c	Sat Nov 29 08:46:45
+> 2008 -0800 @@ -174,7 +174,6 @@ static int gp8psk_power_ctrl(struct dvb_
+>  	return 0;
+>  }
+>
+> -#if 0
+>  int gp8psk_bcm4500_reload(struct dvb_usb_device *d)
+>  {
+>  	u8 buf;
+> @@ -191,7 +190,6 @@ int gp8psk_bcm4500_reload(struct dvb_usb
+>  			return EINVAL;
+>  	return 0;
+>  }
+> -#endif  /*  0  */
+>
+>  static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int
+> onoff) {
+> diff -r 7100e78482d7 linux/drivers/media/dvb/dvb-usb/gp8psk.h
+> --- a/linux/drivers/media/dvb/dvb-usb/gp8psk.h	Sat Nov 29 00:46:43 2008
+> -0200 +++ b/linux/drivers/media/dvb/dvb-usb/gp8psk.h	Sat Nov 29 08:46:45
+> 2008 -0800 @@ -92,5 +92,6 @@ extern int gp8psk_usb_in_op(struct dvb_u
+>  extern int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value,
+> u16 index, u8 *b, int blen); extern int gp8psk_usb_out_op(struct
+> dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+> +extern int gp8psk_bcm4500_reload(struct dvb_usb_device *d);
+>
+>  #endif
+> diff -r 7100e78482d7 linux/include/linux/dvb/frontend.h
+> --- a/linux/include/linux/dvb/frontend.h	Sat Nov 29 00:46:43 2008 -0200
+> +++ b/linux/include/linux/dvb/frontend.h	Sat Nov 29 08:46:45 2008 -0800
+
+I would prefer the API changes in a different patch
+
+> @@ -151,6 +151,8 @@ typedef enum fe_code_rate {
+>  	FEC_AUTO,
+>  	FEC_3_5,
+>  	FEC_9_10,
+> +	FEC_1_4,
+> +	FEC_5_11,
+>  } fe_code_rate_t;
+>
+>
+> @@ -168,6 +170,13 @@ typedef enum fe_modulation {
+>  	APSK_16,
+>  	APSK_32,
+>  	DQPSK,
+> +	QPSK_TURBO,
+> +	PSK_8_TURBO,
+> +	QAM_16_TURBO,
+
+I would prefer a S2API command DTV_TURBO_MODES over duplicating
+modulations. Especially since the the implemtation in the driver differs
+only for QPSK and QPSK_TURBO.
+
+> +	QPSK_DCII_C,
+> +	QPSK_DCII_I,
+> +	QPSK_DCII_Q,
+
+Are all three needed? What does the last character mean?
+
+> +	OQPSK_DCII_C,
+>  } fe_modulation_t;
+>
+>  typedef enum fe_transmit_mode {
+
+Janne
 
 
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
 
 
 _______________________________________________
