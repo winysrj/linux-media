@@ -1,28 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-1.epublica.de ([213.238.59.6])
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abos@hanno.de>) id 1LBC8B-0002Nb-1h
-	for linux-dvb@linuxtv.org; Fri, 12 Dec 2008 18:48:52 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by mail-1.epublica.de (Postfix) with ESMTP id D0C9730453EB
-	for <linux-dvb@linuxtv.org>; Fri, 12 Dec 2008 18:48:47 +0100 (CET)
-Received: from mail-1.epublica.de ([127.0.0.1])
-	by localhost (mail-1.rz.epublica.de [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id jHhNmjnPUOU7 for <linux-dvb@linuxtv.org>;
-	Fri, 12 Dec 2008 18:48:47 +0100 (CET)
-Received: from [192.168.178.41] (hmbg-4dba18e4.pool.einsundeins.de
-	[77.186.24.228])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: hanno.zulla@hanno.de)
-	by mail-1.epublica.de (Postfix) with ESMTP id 9E94C30453EA
-	for <linux-dvb@linuxtv.org>; Fri, 12 Dec 2008 18:48:47 +0100 (CET)
-Message-ID: <4942A3FF.3090203@hanno.de>
-Date: Fri, 12 Dec 2008 18:48:47 +0100
-From: Hanno Zulla <abos@hanno.de>
+	(envelope-from <drappa@iinet.net.au>) id 1LCUU5-0003DW-HO
+	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 08:36:52 +0100
+Message-ID: <3373E53765AB44F8BF670FDF42C3CD3A@mce>
+From: "drappa" <drappa@iinet.net.au>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 16 Dec 2008 17:36:55 +1000
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] How to debug skips & async with FF dvb card & vdr?
+Subject: [linux-dvb] DViCO FusionHDTV DVB-T Dual Digital 4 (rev 2) - Remote
+	Control Key Mapping
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,57 +23,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-[This is an updated repost from the vdr mailing list,
-there was no solution found there.]
+Hello
 
-Hi,
+I installed a DVICO Dual digital 4 revision2 DVB-T card in a Mythbuntu 8.10 
+system
 
-since upgrading to the most recent Ubuntu release 8.10 (Intrepid), my FF
-card is having problems. It is async with audio, both for some live TV
-channels and some recordings. It is also skipping while watching live
-TV. (This is not a full diagnosis, but the skipping appears to be
-limited to encrypted channels.) [1]
+The card wasn't originally detected so I built the driver from the current 
+v4l-dvb tree and it works great.
+Only problem is the included DVICO remote control has very limited 
+functionality. Apart from the numeric keypad only three keys work.
 
-vdr didn't show this behaviour with the previous setup (based on Hardy
-with default Ubuntu kernel).
+DMESG is below.
 
-However, the logs show nothing. Nothing at all.
+Any pointers to getting the proper key mapping, please?
 
-So how can I debug this if the system thinks that everything is fine?
+Ta
+D
 
-As suggested in [4], I have tried the most recent v4l drivers, already,
-but that didn't help.
-
-Thanks,
-
-Hanno
-
-
-
-Here's the setup:
-
-Athlon X2 CPU
-
-vdr 1.6.0-2, self-compiled e-tobi binary for Ubuntu Intrepid [2]
-(e-tobi version number: 1.6.0-8)
-
-Budget DVB-C card used as input,
-with CAM and Kabel Deutschland smartcard,
-using the driver that comes with Ubuntu's default 2.6.27 kernel
-(problem persists with the most recent v4l driver)
-
-FF DVB-C card without CAM, used as input and output,
-using the ttpci driver that comes with Ubuntu's default 2.6.27 kernel
-plus the modified firmware from [3]
-(problem persists with the most recent v4l driver)
-
-
-Links are mostly German:
-
-[1] http://vdr-portal.de/board/thread.php?threadid=82518
-[2] http://www.hanno.de/blog/category/vdr/
-[3] http://www.vdr-portal.de/board/thread.php?threadid=59746
-[4] http://www.linuxtv.org/pipermail/vdr/2008-December/018754.html
+[   13.921567] dvb-usb: found a ' in warm state.
+[   13.921802] dvb-usb: will pass the complete MPEG2 transport stream to the 
+software demuxer.
+[   13.952919] DVB: registering new adapter (DViCO FusionHDTV DVB-T Dual 
+Digital 4 (rev 2))
+[   13.994729] input: PC Speaker as /devices/platform/pcspkr/input/input4
+[   14.117557] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+[   14.120807] Linux agpgart interface v0.103
+[   14.275066] DiB0070: successfully identified
+[   14.275641] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:08.0/0000:01:08.2/usb5/5-1/input/input5
+[   14.304726] dvb-usb: schedule remote query interval to 100 msecs.
+[   14.304733] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 2) 
+successfully initialized and connected.
+[   14.304750] dvb-usb: found a 'DViCO FusionHDTV DVB-T Dual Digital 4 (rev 
+2)' in warm state.
+[   14.304877] dvb-usb: will pass the complete MPEG2 transport stream to the 
+software demuxer.
+[   14.335977] DVB: registering new adapter (DViCO FusionHDTV DVB-T Dual 
+Digital 4 (rev 2))
+[   14.355636] nvidia: module license 'NVIDIA' taints kernel.
+[   14.497865] DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
+[   14.611161] ACPI: PCI Interrupt Link [SGRU] enabled at IRQ 20
+[   14.611169] nvidia 0000:02:00.0: PCI INT A -> Link[SGRU] -> GSI 20 
+(level, low) -> IRQ 20
+[   14.611175] nvidia 0000:02:00.0: setting latency timer to 64
+[   14.611408] NVRM: loading NVIDIA UNIX x86 Kernel Module  177.80  Wed Oct 
+1 14:38:10 PDT 2008
+[   14.655134] DiB0070: successfully identified
+[   14.655812] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:08.0/0000:01:08.2/usb5/5-2/input/input6
+[   14.680687] dvb-usb: schedule remote query interval to 100 msecs.
+[   14.680693] dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 2) 
+successfully initialized and connected.
+[   14.680723] usbcore: registered new interface driver dvb_usb_cxusb 
 
 
 _______________________________________________
