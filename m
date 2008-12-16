@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHIUPK9016402
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:30:25 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHIUB5G002710
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:30:12 -0500
-Date: Wed, 17 Dec 2008 19:30:23 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <87iqpi4qb0.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0812171921420.8733@axis700.grange>
-References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
-	<87iqpi4qb0.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGJmqpk015743
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 14:48:52 -0500
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGJmc4j005181
+	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 14:48:38 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren
+	<tony@atomide.com>
+Date: Tue, 16 Dec 2008 13:48:28 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415F3E752@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894415F3E741@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: soc-camera: current stack (was Re: [PATCH] mt9m111: Add automatic
- white balance control)
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
+Subject: RE: [REVIEW PATCH 14/14] OMAP34XX: CAM: Add Sensors Support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,36 +32,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 17 Dec 2008, Robert Jarzmik wrote:
-
-> Robert Jarzmik <robert.jarzmik@free.fr> writes:
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > * Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [081215 09:02]:
+> > > > From: Tony Lindgren [mailto:tony@atomide.com]
+> > > > * Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [081211
+> 12:44]:
+> > > > > +	case V4L2_POWER_OFF:
+> > > > > +		/* Power Down Sequence */
+> > > > > +#ifdef CONFIG_TWL4030_CORE
+> > > > > +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> > > > > +				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
+> > > > > +#else
+> > > > > +#error "no power companion board defined!"
+> > > > > +#endif
+> > > >
+> > > > These checks look unecessary. How about just handle it with Kconfig?
+> > > >
+> > > [Aguirre, Sergio] But how? Don't you think that if I do that, I'll
+> > tighten the sensor driver to this board only?
+> > >
+> >
+> > See what we've done with arch/arm/mach-omap2/mmc-twl4030.c for example
+> > in linux-omap tree.
+> [Aguirre, Sergio] Hmm, I'm a bit confused here. Can you help me clarify?
 > 
-> > Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> > ---
-> >  drivers/media/video/mt9m111.c |   28 +++++++++++++++++++++++++++-
-> >  1 files changed, 27 insertions(+), 1 deletions(-)
+> I see that you're adding mmc-twl4030 compilation in Makefile for every
+> board that supports it and adding twl4030_mmc_init() call to the
+> corresponding board init function. I see that you're also conditioning
+> almost all code inside mmc-twl4030.c with "if
+> defined(CONFIG_TWL4030_CORE)" compiler check.
 > 
-> Hi Guennadi,
+> Can you help me see how is this different to what I'm doing?
 > 
-> As I see you working for the next tree submission, I wonder if you had seen that
-> patch a couple of days ago ?
+[Aguirre, Sergio] Or maybe you meant to condition all sensors support with "#if defined(CONFIG_TWL4030_CORE)" check, without returning error on else case?
 
-Yes. My current stack is at
 
-http://gross-embedded.homelinux.org/~lyakh/v4l-20081217/
+> > The twl and mmc patches are on their way to the mainline
+> > kernel too hopfully this merge window.
+> >
+> > Regards,
+> >
+> > Tony
+> 
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
-the first 9 of those patch have been pushed upstream with a previous 
-request.
-
-Everyone who has contributed to soc-camera is kindly requested to have a 
-look, if I have missed anything, besides, we should very well test it - 
-there are a lot of changes there in the core and in all drivers.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
