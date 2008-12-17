@@ -1,26 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBK0jpdf012460
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 19:45:51 -0500
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBK0jaDc020664
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 19:45:37 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l-dvb-maintainer@linuxtv.org
-Date: Sat, 20 Dec 2008 01:45:07 +0100
-References: <200812192254.mBJMsfia029162@imap1.linux-foundation.org>
-	<494C3E20.1070800@oracle.com>
-In-Reply-To: <494C3E20.1070800@oracle.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHIOogv012747
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:24:50 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mBHIOYti006276
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:24:34 -0500
+Date: Wed, 17 Dec 2008 16:23:27 -0200 (BRST)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0812171802300.5465@axis700.grange>
+Message-ID: <alpine.LRH.2.00.0812171620480.30974@caramujo.chehab.org>
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
+	<20080205080038.GB8232@plankton.ifup.org>
+	<20080205102409.4b7acb01@gaivota>
+	<20080213202055.GA26352@plankton.ifup.org>
+	<20080214174602.4ed91987@gaivota>
+	<Pine.LNX.4.64.0812171444420.5465@axis700.grange>
+	<49490A4B.90609@linuxtv.org>
+	<Pine.LNX.4.64.0812171527140.5465@axis700.grange>
+	<alpine.LRH.2.00.0812171449530.30974@caramujo.chehab.org>
+	<Pine.LNX.4.64.0812171802300.5465@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812200145.08394.hverkuil@xs4all.nl>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, video4linux-list@redhat.com,
-	linux-kernel@vger.kernel.org, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] [PATCH -next/mmotm] media/video/tuner: fix
-	tuner_ioctl build error
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
+	v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,52 +38,73 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 20 December 2008 01:36:48 Randy Dunlap wrote:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
+On Wed, 17 Dec 2008, Guennadi Liakhovetski wrote:
+
+> On Wed, 17 Dec 2008, Mauro Carvalho Chehab wrote:
 >
-> Fix drivers/media/video/tuner-core.c so that it will build when
-> CONFIG_VIDEO_ALLOW_V4L1=n:
+>> On Wed, 17 Dec 2008, Guennadi Liakhovetski wrote:
+>>
+>>> Maybe... So, if I take a patch produced by git-format-patch, and add a
+>>> line at the top like
+>>>
+>>> # User myname <myaddress@myprovider.com>
+>>>
+>>> and then "hg import" this patch, then this line will be used by hg for the
+>>> "user" field and the "From: " line that git produced will be kept... emn
+>>> no, it will not, because it belongs to the header. But ok, I think, I know
+>>> what should be done. I'll just move the "From: " from the header to below
+>>> the "Subject: ", and, optionally add one more "# User " or "From: " for
+>>> the user... uhhh...
+>>
+>> I use here a simpler procedure to retrieve patches from other file systems.
+>> Instead of doing "hg import <patch>", I use:
+>>
+>> ./mailimport <patch>
+>>
+>> The mailimport script do the proper patch import, and also allows you to
+>> review the patch before committing.
 >
-> drivers/media/video/tuner-core.c:1111: error: 'tuner_ioctl' undeclared
-> here (not in a function)
+> and in which form does the patch have to be when using mailimport? Would
+> output from git-format-patch suit?
+
+I made it to accept several common formats, including -git and also akpm 
+posts for -mm series.
 >
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> cc: v4l-dvb-maintainer@linuxtv.org
-> cc: video4linux-list@redhat.com
+> In the meantime here's an example of what my self-baked script produces
+> (after "hg import" as seen per "hg export"):
+>
+> # HG changeset patch
+> # User Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> # Date 1229533267 -3600
+> # Node ID 3fd17fb56af0a556ab85509fb50956a477b14916
+> # Parent  3cc7daa31234ca3c9bd0a58eb825f61499a65826
+> mt9m111: mt9m111_get_global_gain() - unsigned >= 0 is always true
+> From: roel kluin <roel.kluin@gmail.com>
+>
+> unsigned >= 0 is always true and fix formula
+>
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > ---
->  drivers/media/video/tuner-core.c |    5 +++++
->  1 file changed, 5 insertions(+)
+> drivers/media/video/mt9m111.c |   13 +++++--------
+> 1 files changed, 5 insertions(+), 8 deletions(-)
 >
-> --- mmotm-2008-1219-1438.orig/drivers/media/video/tuner-core.c
-> +++ mmotm-2008-1219-1438/drivers/media/video/tuner-core.c
-> @@ -919,6 +919,11 @@ static int tuner_ioctl(struct v4l2_subde
->  	}
->  	return -ENOIOCTLCMD;
->  }
-> +#else
-> +static int tuner_ioctl(struct v4l2_subdev *sd, int cmd, void *arg)
-> +{
-> +	return -ENOIOCTLCMD;
-> +}
->  #endif
+> diff -r 3cc7daa31234 -r 3fd17fb56af0 linux/drivers/media/video/mt9m111.c
+> --- a/linux/drivers/media/video/mt9m111.c       Tue Dec 16 23:04:56 2008 -0200
+> +++ b/linux/drivers/media/video/mt9m111.c       Wed Dec 17 18:01:07 2008 +0100
+> @@ -634,18 +634,15 @@ static int mt9m111_set_flip(struct soc_c
+> ...
 >
->  static int tuner_s_config(struct v4l2_subdev *sd, const struct
-> v4l2_priv_tun_config *cfg)
+> Should work, right?
 
-NAK. I've already made a better fix for this and asked Mauro to pull this 
-from my tree. The tuner_ioctl function pointer should have been under the 
-CONFIG_VIDEO_ALLOW_V4L1 #ifdef as well avoiding the need to make an empty 
-function.
-
-Nevertheless, thanks for the effort!
-
-Regards,
-
-	Hans
+Should work. We generally add a space after the first line and From:
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Cheers,
+Mauro Carvalho Chehab
+http://linuxtv.org
+mchehab@infradead.org
 
 --
 video4linux-list mailing list
