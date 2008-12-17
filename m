@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from ug-out-1314.google.com ([66.249.92.172])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1L7gqD-0002Ki-0z
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 02:47:49 +0100
-From: Andy Walls <awalls@radix.net>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-In-Reply-To: <alpine.DEB.2.00.0812030110260.9198@ybpnyubfg.ybpnyqbznva>
-References: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
-	<alpine.DEB.2.00.0812030110260.9198@ybpnyubfg.ybpnyqbznva>
-Date: Tue, 02 Dec 2008 20:48:42 -0500
-Message-Id: <1228268922.3861.55.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Pinnacle 80e support: not going to happen...
+	(envelope-from <glemsom@gmail.com>) id 1LCvaU-0000sT-69
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 13:33:16 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so327896ugc.16
+	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 04:33:10 -0800 (PST)
+Message-ID: <d65b1b150812170433j717c673ak4489cdbbc10c29a3@mail.gmail.com>
+Date: Wed, 17 Dec 2008 13:33:10 +0100
+From: "Glenn Sommer" <glemsom@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] TT c-1501 getting timed out waiting for end of xfer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,23 +25,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 2008-12-03 at 01:32 +0100, BOUWSMA Barry wrote:
+I'm using a TT c-1501 card on a asrock p43twin1600 mainbaord.
 
-> barry bouwsma
-> wanders off muttering about how dissatisfying it is to
-> throw a USB stick out the window; oh how I miss being able
-> to hurl a rack filled with valves (tubes for you wrong-
-> pondians) and chokes and real transformers leaking oily
-> PCBs down to the parking lot below.
+I keep getting these messages: "saa7146 (0) saa7146_i2c_writeout
+[irq]: timed out waiting for end of xfer"
+As far as I can see it happens often during tuning to channels.
 
-Don't forget about the mercury in those smashed tubes, um, valves.
+Google tells me other people have seen this - but I'm unable to find a
+solution... And I cannot quite figure out why it happens?
 
-Man, it's been years since I've seen the blue glow of a *real* diode.
-
-Regards,
-Andy
+(I've tried the latest snapshot of v4l-dvb.)
 
 
+Regards
+Glenn Sommer
 
 _______________________________________________
 linux-dvb mailing list
