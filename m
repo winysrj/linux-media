@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outmailhost.telefonica.net ([213.4.149.242]
-	helo=ctsmtpout4.frontal.correo)
+Received: from fg-out-1718.google.com ([72.14.220.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jareguero@telefonica.net>) id 1LEtLN-0001yy-I4
-	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 23:33:46 +0100
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-dvb@linuxtv.org
-Date: Mon, 22 Dec 2008 23:33:08 +0100
-References: <4936FF66.3020109@robertoragusa.it> <494C0002.1060204@scram.de>
-	<494C0CB3.6090109@iki.fi>
-In-Reply-To: <494C0CB3.6090109@iki.fi>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LCwcb-0004AA-FK
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 14:39:30 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1635401fga.25
+	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 05:39:26 -0800 (PST)
+Message-ID: <412bdbff0812170539n62490614ia7fee4e1689f91@mail.gmail.com>
+Date: Wed, 17 Dec 2008 08:39:26 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: pongo_bob@yahoo.co.uk
+In-Reply-To: <262721.56824.qm@web27701.mail.ukl.yahoo.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200812222333.09509.jareguero@telefonica.net>
-Cc: Antti Palosaari <crope@iki.fi>, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] MC44S803 frontend
+References: <262721.56824.qm@web27701.mail.ukl.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge Nova-TD-500 84xxx remote control
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,68 +22,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-El Viernes, 19 de Diciembre de 2008, Antti Palosaari escribi=F3:
-> Jochen Friedrich wrote:
-> > Hi Roberto,
-> >
-> >> Is there any plan to include this frontend in mainline kernels?
-> >> I used to run this driver months ago and it was working well.
-> >
-> > The reason is the huge memory footprint due to the included frequency
-> > table. I worked a bit on the driver to get rid of this table. Could you
-> > try this version:
-> >
-> > 1. Patch for AF9015:
-> >
-> > http://git.bocc.de/cgi-bin/gitweb.cgi?p=3Ddbox2.git;a=3Dcommitdiff;h=3D=
-e5d7398a
-> >4b2d3c520d949e53bbf7667a481e9690
-> >
-> > 2. MC44S80x tuner driver:
-> >
-> > http://git.bocc.de/cgi-bin/gitweb.cgi?p=3Ddbox2.git;a=3Dblob;f=3Ddriver=
-s/media/
-> >common/tuners/mc44s80x.c;h=3Db8dd335e64b03b8544b4c95e2d7f3dbd968078a0;hb=
-=3D4bd
-> >e668b4eca90f8bdcc5916dfc88c115a3dfd20
-> > http://git.bocc.de/cgi-bin/gitweb.cgi?p=3Ddbox2.git;a=3Dblob;f=3Ddriver=
-s/media/
-> >common/tuners/mc44s80x.h;h=3Dc6e76da6bf51163c90f0ead259c0e54d4f637671;hb=
-=3D4bd
-> >e668b4eca90f8bdcc5916dfc88c115a3dfd20
-> > http://git.bocc.de/cgi-bin/gitweb.cgi?p=3Ddbox2.git;a=3Dblob;f=3Ddriver=
-s/media/
-> >common/tuners/mc44s80x_reg.h;h=3D299c1be9a80a3777fb46f65d6070965de975478=
-7;hb
-> >=3D4bde668b4eca90f8bdcc5916dfc88c115a3dfd20
+On Wed, Dec 17, 2008 at 7:14 AM, Bob <pongo_bob@yahoo.co.uk> wrote:
+> Hi,
+>  I used the following kludge :
 >
-> Is it possible to add this driver to the linuxtv.org repo? My, or Manu
-> or you? Looks like there is only one device using this driver currently.
+>  The code for handling the remote is missing in linux/drivers/media/dvb/dvb-usb/dib0700_devices.c. Around line 1402 in you need to add
 >
-> Also Manu's original mxl500x driver seems to be much more sensitive than
-> current mxl5005s. I don't know what we should do with this driver, but
-> from users perspective this situation is not good. There is rather many
-> devices using this tuner.
+>                        },
+>                },
 >
-
-Are your drive using MXL_TF_DEFAULT?
-I noticed that in the new driver MXL_TF_DEFAULT is missing in the code.
-
-Jose Alberto
-
-> > Thanks,
-> > Jochen
+>                .rc_interval      = DEFAULT_RC_INTERVAL,
+>                .rc_key_map       = dib0700_rc_keys,
+>                .rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+>                .rc_query         = dib0700_rc_query
 >
-> regards
-> Antti
+> pinched from the remotes above.
+>
+> This enables the remote if you recompile and reload the module you should see a new input device in dmesg, in my case I can cat /dev/input/event4 and see the key presses.
+>
+> Unfortunately , the code in dib0700_rc_query always returns the last key pressed so you get an event every 150mS with the same key in it. So on to the next kludge :
+>
+> At the top of dib0700_rc_query I added:
+>
+> static int toggle;
+>
+> and after i = dib0700_ctrl_rd( blah blah) :
+>
+> if ( key[2] == toggle )
+>  return 0;
+> toggle = key[2];
+>
+> This checks if the key fetched from the remote is the same as the last and returns if it is thus dumping all the repeats from dib0700_ctrl_rd;
+>
+> Now you should find that UP , DOWN , LEFT and RIGHT keys work ok but not much else.
+>
+> Kludge No.3 coming up :
+> Starting around line 612 in dib0700_devices.c are the key mappings for the Hauppauge remote. I changed the mapping for KEY_OK to KEY_ENTER so now I can navigate menus and select items.
+>
+> And that is as far as I've got ..
 
+Hello Bob,
 
+Are you using the latest code and 1.20 firmware?  I pushed in a fix on
+December 8 that as far as I know addressed the last of the remaining
+dib0700 IR issues.
+
+It is possible that your device is missing it's RC declaration, which
+I can add.  But you shouldn't be seeing any more repeat problems.
+
+If people are still having dib0700 IR issues, I would like to hear
+about it, since I thought I fixed them all...
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
