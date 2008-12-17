@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHB6bmN011108
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 06:06:42 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHB3l2h007728
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 06:03:47 -0500
-Date: Wed, 17 Dec 2008 12:03:54 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20081217084505.654dabd5@caramujo.chehab.org>
-Message-ID: <Pine.LNX.4.64.0812171151050.5465@axis700.grange>
-References: <uk5a0hna0.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812160904131.4630@axis700.grange>
-	<uej08h569.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812161001000.4630@axis700.grange>
-	<ud4fsh3h6.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812161051240.5450@axis700.grange>
-	<20081217084505.654dabd5@caramujo.chehab.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHCrNFN029268
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 07:53:23 -0500
+Received: from mail.anno.name (baal.anno.name [92.51.131.125])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHCqB0k007598
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 07:52:53 -0500
+Received: from [192.168.178.24] (p579C250E.dip.t-dialin.net [87.156.37.14])
+	by mail.anno.name (Postfix) with ESMTPA id A163E22C4C242
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:52:10 +0100 (CET)
+Message-ID: <4948F603.1070906@wakelift.de>
+Date: Wed, 17 Dec 2008 13:52:19 +0100
+From: Timo Paulssen <timo@wakelift.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: S_FMT error handling (was Re: [PATCH v3] Add tw9910 driver)
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Subject: zc3xx webcam (041e:4034 Creative Webcam Instant) stopped working
+ some time ago (since gspca kernel integration?)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,43 +28,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-(discussed shortly on IRC with Hans yesterday, so, added to cc:)
+Hello,
 
-On Wed, 17 Dec 2008, Mauro Carvalho Chehab wrote:
+I recently tried using my webcam, the Creative Webcam Instant (usb ID
+041e:4034) again, but I can't get it to work any more.
 
-> On Tue, 16 Dec 2008 11:09:21 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > so, here it is trying ANY... OTOH, the comment above says the driver 
-> > shouldn't fail this call, and http://v4l2spec.bytesex.org/spec/r10944.htm 
-> > confirms that. Which also means, that vivi.c does it wrongly. Mauro, you 
-> > are listed as one of the authors of vivi.c, and it looks like calling 
-> > S_FMT on it with field != ANY && field != INTERLACED will produce -EINVAL, 
-> > which seems to contradict the API. What is the correct behavious? Is this 
-> > a bug in vivi.c?
-> 
-> Yes, it is a bug at vivi. Could you please provide us a patch for it?
+When I started using this webcam, i could get it to work with the
+spca5xx driver, which I usually compiled per hand and inserted into the
+kernel. Then came gspcav1, which worked, too. But with the gspca, that
+is integrated in the kernel now (I'm using 2.6.27.9 retrieved from
+kernel.org) the webcam won't work.
 
-I looked at several other drivers, all I have seen act in S_FMT a bit more 
-creatively than the API requires. Do we really want to fix them all? TBH, 
-I like the implementations better than the standard: we do provide TRY_FMT 
-exactly for this purpose - for applications to figure out what is 
-supported. And if they still don't obey, returning an error seems like a 
-sane thing to do to me. Besides, modifying all drivers that behave wrongly 
-with this respect seems not quite trivial - you have to select some 
-supported format possibly close to the requested one... May we not just 
-interpret such requests as "ambiguous," following [1]?
+The first symptom is, that spcaview won't start any more and camstream
+spits out these lines while showing a black window at the size i requested:
 
-I could probably make a reasonable patch for vivi.c, but I don't think I 
-would be able to fix this misbehaviour in all drivers.
 
-[1] http://v4l2spec.bytesex.org/spec/r10944.htm
+W: run(): VIDIOCSYNC(1) failed (Invalid argument)
+W: VDLinux::run() VIDIOCMCAPTURE failed (Invalid argument)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+
+similarly, spcaview tells me:
+
+
+cvsync err
+: Invalid argument
+cmcapture: Invalid argument
+>>cmcapture err -1
+cvsync err
+: Invalid argument
+
+
+and then segfaults.
+
+More interestingly, spcaview now complains, that my camera is "Not an
+Spca5xx Camera !!".
+
+Any help on how to get the camera working again would be very appreciated :)
+
+Thanks for all the hard and good work,
+
+  - Timo
 
 --
 video4linux-list mailing list
