@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail.icp-qv1-irony-out4.iinet.net.au ([203.59.1.152])
+Received: from ug-out-1314.google.com ([66.249.92.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sonofzev@iinet.net.au>) id 1LHb92-0007Ew-V9
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 10:44:13 +0100
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LCrjP-0001cM-0g
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 09:26:12 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so312807ugc.16
+	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 00:26:07 -0800 (PST)
+Date: Wed, 17 Dec 2008 09:26:00 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Ian Molton <ian@mnementh.co.uk>
+In-Reply-To: <4948B5AB.7020500@mnementh.co.uk>
+Message-ID: <alpine.DEB.2.00.0812170921540.18619@ybpnyubfg.ybpnyqbznva>
+References: <4948B5AB.7020500@mnementh.co.uk>
 MIME-Version: 1.0
-From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
-To: linux-dvb@linuxtv.org,
-	"'sonofzev @ iinet . net . au'" <sonofzev@iinet.net.au>
-Date: Tue, 30 Dec 2008 18:44:06 +0900
-Message-Id: <62259.1230630246@iinet.net.au>
-Subject: Re: [linux-dvb] kernel 2.6.28 Fusion Dual Express only one tuner
-	registering - solved
-Reply-To: sonofzev@iinet.net.au
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] freecom dvb-t v4
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,146 +21,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1937121308=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1937121308==
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="utf-8"
+On Wed, 17 Dec 2008, Ian Molton wrote:
 
-<HTML>
-<BR>
-Hi <BR>
-<BR>
-I've fixed this. It was the v4l compatible option.. I was using the depreca=
-ted version. Basically as I had been using the hg version I hadn't taken no=
-tice of the options. <BR>
-<BR>
-Sorry.. but hopefully this will help someone else. <BR>
-<BR>
-cheers<BR>
-<BR>
-Allan<BR>
- <BR>
-<BR>
-<span style=3D"font-weight: bold;">On Tue Dec 30 12:57 , "sonofzev@iinet.ne=
-t.au" <sonofzev@iinet.net.au> sent:<BR>
-<BR>
-</sonofzev@iinet.net.au></span><blockquote style=3D"border-left: 2px solid =
-rgb(245, 245, 245); margin-left: 5px; margin-right: 0px; padding-left: 5px;=
- padding-right: 0px;">
-HI All<BR>
+> I can build the source, but the module fails to load complaaining of:
+> dvb_usb_rtl2831u: Unknown symbol dvb_usb_device_init
 
-<BR>
+A `grep' in my modules shows this is apparently provided by
+dvb-usb.ko.
 
-I've just updated to 2.6.28 and have noticed something happening. Only one =
-tuner appears to be registering.&nbsp; I have done this remotely so can't c=
-heck the actual TV output, but noticed only 2 adaptors under /dev/dvb inste=
-ad of 3 (I also have a Fusion Lite in the system)<BR>
-
-<BR>
-
-I previously have been using the mercurial repository for the DVB drivers b=
-ut this time, as I noticed my card (DViCO FusionHDTV DVB-T Dual Express) wa=
-s supported, went for the in-kernel drivers.. <BR>
-
-<BR>
-
-I am wondering if I am doing something wrong with kernel config or if there=
- is an issue with the in-kernel driver.. There have been no hardware change=
-s. <BR>
-
-<BR>
-
-Here is the output from "dmesg | grep cx23885" <BR>
-
-<BR>
-
-media1 conf.d # dmesg | grep cx23885<BR>
-
-cx23885 driver version 0.0.1 loaded<BR>
-
-cx23885 0000:03:00.0: PCI INT A -&gt; Link[APC1] -&gt; GSI 16 (level, low) =
--&gt; IRQ 16<BR>
-
-CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO FusionHDTV DVB-T Dual E=
-xpress [card=3D11,autodetected]<BR>
-
-ir-kbd-i2c: i2c IR (FusionHDTV) detected at i2c-3/3-006b/ir0 [cx23885[0]]<B=
-R>
-
-cx23885_dvb_register() allocating 1 frontend(s)<BR>
-
-cx23885[0]: cx23885 based dvb card<BR>
-
-cx23885[0]: frontend initialization failed<BR>
-
-cx23885_dvb_register() dvb_register failed err =3D -1<BR>
-
-cx23885_dev_setup() Failed to register dvb adapters on VID_B<BR>
-
-cx23885_dvb_register() allocating 1 frontend(s)<BR>
-
-cx23885[0]: cx23885 based dvb card<BR>
-
-DVB: registering new adapter (cx23885[0])<BR>
-
-cx23885_dev_checkrevision() Hardware revision =3D 0xb0<BR>
-
-cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xf=
-d600000<BR>
-
-cx23885 0000:03:00.0: setting latency timer to 64<BR>
-
-<BR>
-
-Here is the output from "dmesg | grep xc2028"&nbsp; the only thing of note =
-being only one tuner is registered<BR>
-
-xc2028 4-0061: creating new instance<BR>
-
-xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner<BR>
-
-xc2028 4-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 =
-firmware, ver 2.7<BR>
-
-xc2028 4-0061: Loading firmware for type=3DBASE F8MHZ (3), id 0000000000000=
-000.<BR>
-
-xc2028 4-0061: Loading firmware for type=3DD2633 DTV7 (90), id 000000000000=
-0000.<BR>
-
-xc2028 4-0061: Loading SCODE for type=3DDTV6 QAM DTV7 DTV78 DTV8 ZARLINK456=
- SCODE HAS_IF_4760 (620003e0), id 0000000000000000.<BR>
-
-<BR>
-
-<BR>
-
-&nbsp;<BR>
-
-<BR>
-
-<BR>
-
- <BR>
-
-</blockquote></HTML>
-<BR>=
+Does `lsmod' reveal a line similar to
+dvb_usb                15532  2 dvb_usb_cxusb,dvb_usb_opera
+ ?
 
 
---===============1937121308==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Of course, this is with old source/modules, so if something
+has changed, then I'm wasting your time...
+
+thanks
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1937121308==--
