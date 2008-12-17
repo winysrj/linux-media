@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from fg-out-1718.google.com ([72.14.220.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <morgan.torvolt@gmail.com>) id 1L8N9Y-0002yt-4t
-	for linux-dvb@linuxtv.org; Thu, 04 Dec 2008 23:58:37 +0100
-Received: by yx-out-2324.google.com with SMTP id 8so1790238yxg.41
-	for <linux-dvb@linuxtv.org>; Thu, 04 Dec 2008 14:58:31 -0800 (PST)
-Message-ID: <3cc3561f0812041458m5344f0e8v7e0dec95e91e7735@mail.gmail.com>
-Date: Thu, 4 Dec 2008 22:58:31 +0000
-From: "=?ISO-8859-1?Q?Morgan_T=F8rvolt?=" <morgan.torvolt@gmail.com>
-To: Linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <mkrufky@gmail.com>) id 1LCngG-0003LE-15
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 05:06:42 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1559761fga.25
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 20:06:35 -0800 (PST)
+Message-ID: <37219a840812162006h33118a2fr109638bb0802603@mail.gmail.com>
+Date: Tue, 16 Dec 2008 23:06:35 -0500
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0812161931r17fc2371mfcb28306a3acc610@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] A bug in libdvben50221?
+References: <412bdbff0812161931r17fc2371mfcb28306a3acc610@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] RFC - xc5000 init_fw option is broken for HVR-950q
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,66 +28,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all.
+Devin,
 
-This might be a stupid question, please feel free to call me a moron
-and tell me how to solve this little problem I am having. I have tried
-getting in touch with someone on the irc channel to help me sort this
-out without much luck. Hopefully someone here has some knowledge of
-the libdvben50221 library. I would imagine that very many use this
-library with their dvb cards, so there should be someone out there.
+On Tue, Dec 16, 2008 at 10:31 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> It looks like because the reset callback is set *after* the
+> dvb_attach(xc5000...), the if the init_fw option is set the firmware
+> load will fail (saying "xc5000: no tuner reset callback function,
+> fatal")
+>
+> We need to be setting the callback *before* the dvb_attach() to handle
+> this case.
+>
+> Let me know if anybody sees anything wrong with this proposed patch,
+> otherwise I will submit a pull request.
+>
+> Thanks,
+>
+> Devin
+>
+> diff -r 95d2c94ec371 linux/drivers/media/video/au0828/au0828-dvb.c
+> --- a/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+> 21:35:23 2008 -0500
+> +++ b/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+> 22:27:57 2008 -0500
+> @@ -382,6 +382,9 @@
+>
+>        dprintk(1, "%s()\n", __func__);
+>
+> +       /* define general-purpose callback pointer */
+> +       dvb->frontend->callback = au0828_tuner_callback;
+> +
+>        /* init frontend */
+>        switch (dev->board) {
+>        case AU0828_BOARD_HAUPPAUGE_HVR850:
+> @@ -431,8 +434,6 @@
+>                       __func__);
+>                return -1;
+>        }
+> -       /* define general-purpose callback pointer */
+> -       dvb->frontend->callback = au0828_tuner_callback;
+>
+>        /* register everything */
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
-The camthread in gnutv, which continuously polls the stdcam, calls the
-stdcam's poll function (obviously). The poll function is in my
-pointing to the en50221_stdcam_llci_poll function. This function in
-turn calls en50221_tl_poll, but without passing the return value of
-this on to the camthread function of gnutv. What happened in my case
-was that the transport layer crashed in some obscure way (this has
-only happened once actually), and the en50221_tl_poll function
-returned -1 all the time, and set the error state to be -3, which is
-EN50221ERR_TIMEOUT. It did not recover in over an hour of waiting.
-This message was spamming my console window:
-en50221_stdcam_llci_poll: Error reported by stack:-3
 
-After looking high and low for a way to be able to detect this state,
-I have come up with nothing. I cannot read the error value directly
-out of the stuct as it is a forward declaration in the header file and
-actually declared in the .c file. I can access the error data using
-the en50221_tl_get_error() function, but that only tells me that at
-some point there was an error with the given error value.
+This patch is fine & correct - Thanks - Please have it merged into master.
 
-At least on my cam I get this message often when I start a program:
-"en50221_stdcam_llci_poll: Error reported by stack:-7", which is a
-message I can test with. My testing suggest that the error is set to
--7 and is left there until a new error occurs. In other words, it is
-not possible to detect if the error -7 occurs every second, every
-minute, or just once at the start and no errors since then. The same
-problem exists with the timeout error I had. gnutv could have detected
-that there had been a timeout error, but could in no way I can see,
-find out if it had resolved itself or not.
-
-The error I saw was a timeout error that happened after more than 24
-hours from starting the program, and the transport layer was returning
--3 continuously.
-
-I can think of a few ways to solve this problem.
- * One would be a callback function on transport layer error in the stdcam
- * Have an error counter in the transport layer struct, and a function
-to read the counter. Must be reflected in the session layer as well it
-seems.
- * Return the transport layer poll's return value in some way from the
-stdcam poll function. Possibly by setting adding to the stdcam_status
-enum a value like "EN50221_STDCAM_TL_ERROR". Maybe a bitshifted value
-as well? It should then be easy to check the error using the
-en50221_tl_get_error function.
- * This is already solved trough some other solution, and I have been
-to blind to see it all along.
-
-I prefer the options from bottom to top.
-Any takers?
-
-Best regards
-Morgan
+Acked-by: Michael Krufky <mkrufky@linuxtv.org>
 
 _______________________________________________
 linux-dvb mailing list
