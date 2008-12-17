@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBT0c9Vx029931
-	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 19:38:09 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBT0buaD004630
-	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 19:37:56 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so4464987wfc.6
-	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 16:37:55 -0800 (PST)
-Message-ID: <199bcede0812281637se69e759m2bc750f0cc84b6ca@mail.gmail.com>
-Date: Sun, 28 Dec 2008 18:37:55 -0600
-From: "David Lonie" <loniedavid@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHEXCwP020206
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:33:12 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHEWtuN003654
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:32:56 -0500
+Date: Wed, 17 Dec 2008 15:33:05 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <49490A4B.90609@linuxtv.org>
+Message-ID: <Pine.LNX.4.64.0812171527140.5465@axis700.grange>
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
+	<20080205080038.GB8232@plankton.ifup.org>
+	<20080205102409.4b7acb01@gaivota>
+	<20080213202055.GA26352@plankton.ifup.org>
+	<20080214174602.4ed91987@gaivota>
+	<Pine.LNX.4.64.0812171444420.5465@axis700.grange>
+	<49490A4B.90609@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: KWorld ATSC-115 strange problems
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, v4lm <v4l-dvb-maintainer@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,31 +34,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I recently started setting up a KWorld PlusTV ATSC-115 to work
-alongside my PVR-150 in a mythtv box.
+On Wed, 17 Dec 2008, Michael Krufky wrote:
 
-For the first few attempts at using it I got black screens in xawtv
-and myth. I followed the mythtv wiki, asked around on IRC and got
-nothing.
+> Please take a look at one of the hg patches within the repository:
+> 
+> http://linuxtv.org/hg/v4l-dvb/raw-rev/3cc7daa31234
+> 
+> This patch is the same type of output that you would get from using "hg export
+> 3cc7daa31234"
+> 
+> Notice the "From:" line -- that line is used to indicate author.
+> 
+> Notice the "User" line (line 2) -- that line is used to indicate committer.
+> 
+> Does that help to clear it up for you?
 
-Eventually (I have no idea what changed...) I got a picture! No sound,
-but I could see all the channel's from my analog cable signal in both
-myth and xawtv. I rebooted to see if this would work by default, and
-when I did I got static. I switched the cable from the top to the
-bottom connector and the picture came back (!). I have no clue why the
-card spontaneously changed inputs like that...
+Maybe... So, if I take a patch produced by git-format-patch, and add a 
+line at the top like
 
-Problem is, there's still no sound and I can't change channels. I'm
-stuck listening to some big-haired bimbo go on and on about who the
-sexiest tv doctor is on the charter channel.
+# User myname <myaddress@myprovider.com>
 
-I fooled around a bit, trying the v4l hg drivers, the 2.6.27 drivers,
-etc, but no luck. I've reconfigured the card in myth a dozen times,
-unloaded and reloaded the module, etc. Any ideas what I should try
-next? Any output that may be useful to anyone? I've run out of ideas
-myself.
+and then "hg import" this patch, then this line will be used by hg for the 
+"user" field and the "From: " line that git produced will be kept... emn 
+no, it will not, because it belongs to the header. But ok, I think, I know 
+what should be done. I'll just move the "From: " from the header to below 
+the "Subject: ", and, optionally add one more "# User " or "From: " for 
+the user... uhhh...
 
-Dave
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
