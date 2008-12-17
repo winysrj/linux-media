@@ -1,24 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4Exu1C018547
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 09:59:56 -0500
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.25])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB4ExdPQ001588
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 09:59:39 -0500
-Received: by ey-out-2122.google.com with SMTP id 4so1668379eyf.39
-	for <video4linux-list@redhat.com>; Thu, 04 Dec 2008 06:59:39 -0800 (PST)
-Message-ID: <412bdbff0812040659l2c441ed8mcc9cd00573b3f939@mail.gmail.com>
-Date: Thu, 4 Dec 2008 09:59:39 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Steve Fink" <sphink@gmail.com>
-In-Reply-To: <7d7f2e8c0812032307y3b12f74cr8c00175618add7a1@mail.gmail.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHEQEAw016341
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:26:14 -0500
+Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHEQ14c031224
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:26:01 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id B7C2B134DF4F
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:26:00 +0000 (GMT)
+Received: from ian.pickworth.me.uk ([127.0.0.1])
+	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id v7fpOexSJr6W for <video4linux-list@redhat.com>;
+	Wed, 17 Dec 2008 14:26:00 +0000 (GMT)
+Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 62493134DF4B
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:26:00 +0000 (GMT)
+Message-ID: <49490BF7.8010902@pickworth.me.uk>
+Date: Wed, 17 Dec 2008 14:25:59 +0000
+From: Ian Pickworth <ian@pickworth.me.uk>
 MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <4948F603.1070906@wakelift.de> <49490182.3000507@pickworth.me.uk>
+	<494906F5.40102@wakelift.de>
+In-Reply-To: <494906F5.40102@wakelift.de>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <7d7f2e8c0812032307y3b12f74cr8c00175618add7a1@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l support for "Pinnacle PCTV HD Pro USB Stick"
+Subject: Re: zc3xx webcam (041e:4034 Creative Webcam Instant) stopped working
+ some time ago (since gspca kernel integration?)
+Reply-To: ian@pickworth.me.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,50 +39,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Dec 4, 2008 at 2:07 AM, Steve Fink <sphink@gmail.com> wrote:
-> After getting some help from this list, I ended up buying the
-> "Pinnacle PCTV HD Pro USB Stick"
-> <http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)>.
-> Unfortunately, it turned out to be the newer version, which appears to
-> only have DVB support (despite having a cx25843 chip for analog
-> decoding.) Is there any way to access to the raw frames coming from
-> the A/D converter?
->
-> I've read up on the wiki, and I now understand what DVB stands for.
-> But in practice, it appears that DVB support means you'll get handed
-> encoded mpeg-2 frames, whereas if your device has v4l support, you can
-> get back decoded frames. I want raw frames. I don't want to watch TV;
-> I just want a stream of analog NTSC frames to get digitized and handed
-> over to me via USB. It appears to me that the only driver that
-> supports my device is a DVB driver, but that driver really is just a
-> DVB driver and so won't handle my analog input even though that A/D
-> converter is supported elsewhere for other drivers. Is that accurate,
-> or is there some way of using the dvb-usb stuff to get to the raw
-> digitized stream and start frame grabbing?
->
-> It's also very possible that I'm completely confused about how
-> everything fits together. Hints appreciated.
->
-> Thanks,
-> Steve
->
-> (argh -- I wonder if I can return this damn tv stick...)
+Timo Paulssen wrote:
+> Thank you very much! This made it work. I wonder why this information
+> isn't made prominent somewhere on some v4l information place (linuxtv
+> wiki?). Is it because the driver's not yet stable?
 
-No Steve, you're not confused.  I only implemented the digital
-ATSC/QAM support on the stick and not the analog support.  This was
-because the framework used for the dibcom driver doesn't currently
-have analog support, so it will be a significant amount of work.  If
-the dibcom framework gets analog support, then making this device work
-within that framework would be relatively simple.
+I forgot another thing - after the driver change I found that the
+exposure was all wrong. The answer for that is another user space
+program - v4l2ucp - which adjusts the exposure rate, white balance etc.
 
-The LinuxTV wiki does properly reflect the status of the device.
+Its project page is here:
 
-Devin
+http://sourceforge.net/projects/v4l2ucp/
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Don't know about the documentation. I think v4l is a tricky area to
+document, it keeps changing.
+
+Regards
+Ian
 
 --
 video4linux-list mailing list
