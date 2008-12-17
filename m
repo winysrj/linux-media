@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBK39Db6026839
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 22:09:13 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBK38dLv011331
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 22:09:08 -0500
-Received: by mail-ew0-f21.google.com with SMTP id 14so1312232ewy.3
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 19:09:08 -0800 (PST)
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain
-Date: Sat, 20 Dec 2008 06:09:23 +0300
-Message-Id: <1229742563.10297.114.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: [review patch 2/5] dsbr100: fix codinstyle, make ifs more clear
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHIj69W024477
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:45:06 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHIiOwv013042
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:44:27 -0500
+Date: Wed, 17 Dec 2008 19:44:34 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0812171935040.8733@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: 
+Subject: [PATCH 1/4] pxa-camera: call try_fmt() camera device method with
+ correct pixel format
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,233 +25,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-We should make if-constructions more clear. Introduce int variables in
-some functions to make it this way.
+With the introduction of the format conversion support in soc-camera, we now
+also have to take care to pass the correct pixel format to the camera driver
+when calling its try_fmt() method.
 
+Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
 ---
-diff -r a302bfcb23f8 linux/drivers/media/radio/dsbr100.c
---- a/linux/drivers/media/radio/dsbr100.c	Fri Dec 19 14:34:30 2008 +0300
-+++ b/linux/drivers/media/radio/dsbr100.c	Sat Dec 20 02:31:26 2008 +0300
-@@ -200,15 +200,24 @@
- /* switch on radio */
- static int dsbr100_start(struct dsbr100_device *radio)
- {
-+	int first;
-+	int second;
+
+These 4 patches are for everyone to review / comment upon. They are in my 
+stack since a while, but I haven't sent them to the list yet. They are 
+otherwise not related, and will probably not apply well to any existing 
+state. To test one needs all the other patches currently on the queue:
+
+http://gross-embedded.homelinux.org/~lyakh/v4l-20081217/
+
+Magnus, you probably want to add a similar work-around for 
+sh_mobile_ceu_camera.c
+
+ drivers/media/video/pxa_camera.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index f72851e..56f972f 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1218,6 +1218,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	__u32 pixfmt = pix->pixelformat;
++	int ret;
+ 
+ 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+ 	if (!xlate) {
+@@ -1240,8 +1241,13 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 		DIV_ROUND_UP(xlate->host_fmt->depth, 8);
+ 	pix->sizeimage = pix->height * pix->bytesperline;
+ 
++	/* camera has to see its format, but the user the original one */
++	pix->pixelformat = xlate->cam_fmt->fourcc;
+ 	/* limit to sensor capabilities */
+-	return icd->ops->try_fmt(icd, f);
++	ret = icd->ops->try_fmt(icd, f);
++	pix->pixelformat = xlate->host_fmt->fourcc;
 +
- 	mutex_lock(&radio->lock);
--	if (usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
--			USB_REQ_GET_STATUS,
--			USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--			0x00, 0xC7, radio->transfer_buffer, 8, 300) < 0 ||
--	usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
--			DSB100_ONOFF,
--			USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--			0x01, 0x00, radio->transfer_buffer, 8, 300) < 0) {
-+
-+	first = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
-+		USB_REQ_GET_STATUS,
-+		USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		0x00, 0xC7, radio->transfer_buffer, 8, 300);
-+
-+	second = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
-+		DSB100_ONOFF,
-+		USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		0x01, 0x00, radio->transfer_buffer, 8, 300);
-+
-+	if (first < 0 || second < 0) {
- 		mutex_unlock(&radio->lock);
- 		return -1;
- 	}
-@@ -222,15 +231,24 @@
- /* switch off radio */
- static int dsbr100_stop(struct dsbr100_device *radio)
- {
-+	int first;
-+	int second;
-+
- 	mutex_lock(&radio->lock);
--	if (usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
--			USB_REQ_GET_STATUS,
--			USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--			0x16, 0x1C, radio->transfer_buffer, 8, 300) < 0 ||
--	usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
--			DSB100_ONOFF,
--			USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--			0x00, 0x00, radio->transfer_buffer, 8, 300) < 0) {
-+
-+	first = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
-+		USB_REQ_GET_STATUS,
-+		USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		0x16, 0x1C, radio->transfer_buffer, 8, 300);
-+
-+	second = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
-+		DSB100_ONOFF,
-+		USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		0x00, 0x00, radio->transfer_buffer, 8, 300);
-+
-+	if (first < 0 || second < 0) {
- 		mutex_unlock(&radio->lock);
- 		return -1;
- 	}
-@@ -243,21 +261,33 @@
- /* set a frequency, freq is defined by v4l's TUNER_LOW, i.e. 1/16th kHz */
- static int dsbr100_setfreq(struct dsbr100_device *radio, int freq)
- {
-+	int first;
-+	int second;
-+	int third;
-+
- 	freq = (freq / 16 * 80) / 1000 + 856;
- 	mutex_lock(&radio->lock);
--	if (usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
--			DSB100_TUNE,
--			USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--			(freq >> 8) & 0x00ff, freq & 0xff,
--			radio->transfer_buffer, 8, 300) < 0 ||
--	   usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
--			USB_REQ_GET_STATUS,
--			USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--			0x96, 0xB7, radio->transfer_buffer, 8, 300) < 0 ||
--	usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
--			USB_REQ_GET_STATUS,
--			USB_TYPE_VENDOR | USB_RECIP_DEVICE |  USB_DIR_IN,
--			0x00, 0x24, radio->transfer_buffer, 8, 300) < 0) {
-+
-+	first = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
-+		DSB100_TUNE,
-+		USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		(freq >> 8) & 0x00ff, freq & 0xff,
-+		radio->transfer_buffer, 8, 300);
-+
-+	second = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
-+		USB_REQ_GET_STATUS,
-+		USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
-+		0x96, 0xB7, radio->transfer_buffer, 8, 300);
-+
-+	third = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
-+		USB_REQ_GET_STATUS,
-+		USB_TYPE_VENDOR | USB_RECIP_DEVICE |  USB_DIR_IN,
-+		0x00, 0x24, radio->transfer_buffer, 8, 300);
-+
-+	if (first < 0 || second < 0 || third < 0) {
- 		radio->stereo = -1;
- 		mutex_unlock(&radio->lock);
- 		return -1;
-@@ -272,14 +302,21 @@
- sees a stereo signal or not.  Pity. */
- static void dsbr100_getstat(struct dsbr100_device *radio)
- {
-+	int retval;
-+
- 	mutex_lock(&radio->lock);
--	if (usb_control_msg(radio->usbdev, usb_rcvctrlpipe(radio->usbdev, 0),
-+
-+	retval = usb_control_msg(radio->usbdev,
-+		usb_rcvctrlpipe(radio->usbdev, 0),
- 		USB_REQ_GET_STATUS,
- 		USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--		0x00 , 0x24, radio->transfer_buffer, 8, 300) < 0)
-+		0x00 , 0x24, radio->transfer_buffer, 8, 300);
-+
-+	if (retval < 0)
- 		radio->stereo = -1;
- 	else
- 		radio->stereo = !(radio->transfer_buffer[0] & 0x01);
-+
- 	mutex_unlock(&radio->lock);
++	return ret;
  }
  
-@@ -361,13 +398,15 @@
- 				struct v4l2_frequency *f)
- {
- 	struct dsbr100_device *radio = video_drvdata(file);
-+	int retval;
- 
- 	/* safety check */
- 	if (radio->removed)
- 		return -EIO;
- 
- 	radio->curfreq = f->frequency;
--	if (dsbr100_setfreq(radio, radio->curfreq) == -1)
-+	retval = dsbr100_setfreq(radio, radio->curfreq);
-+	if (retval == -1)
- 		dev_warn(&radio->usbdev->dev, "Set frequency failed\n");
- 	return 0;
- }
-@@ -421,6 +460,7 @@
- 				struct v4l2_control *ctrl)
- {
- 	struct dsbr100_device *radio = video_drvdata(file);
-+	int retval;
- 
- 	/* safety check */
- 	if (radio->removed)
-@@ -429,13 +469,15 @@
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
- 		if (ctrl->value) {
--			if (dsbr100_stop(radio) == -1) {
-+			retval = dsbr100_stop(radio);
-+			if (retval == -1) {
- 				dev_warn(&radio->usbdev->dev,
- 					 "Radio did not respond properly\n");
- 				return -EBUSY;
- 			}
- 		} else {
--			if (dsbr100_start(radio) == -1) {
-+			retval = dsbr100_start(radio);
-+			if (retval == -1) {
- 				dev_warn(&radio->usbdev->dev,
- 					 "Radio did not respond properly\n");
- 				return -EBUSY;
-@@ -487,7 +529,8 @@
- 	radio->users = 1;
- 	radio->muted = 1;
- 
--	if (dsbr100_start(radio) < 0) {
-+	retval = dsbr100_start(radio);
-+	if (retval < 0) {
- 		dev_warn(&radio->usbdev->dev,
- 			 "Radio did not start up properly\n");
- 		radio->users = 0;
-@@ -496,7 +539,6 @@
- 	}
- 
- 	retval = dsbr100_setfreq(radio, radio->curfreq);
--
- 	if (retval == -1)
- 		dev_warn(&radio->usbdev->dev,
- 			"set frequency failed\n");
-@@ -604,6 +646,7 @@
- 				const struct usb_device_id *id)
- {
- 	struct dsbr100_device *radio;
-+	int retval;
- 
- 	radio = kmalloc(sizeof(struct dsbr100_device), GFP_KERNEL);
- 
-@@ -625,7 +668,8 @@
- 	radio->usbdev = interface_to_usbdev(intf);
- 	radio->curfreq = FREQ_MIN * FREQ_MUL;
- 	video_set_drvdata(&radio->videodev, radio);
--	if (video_register_device(&radio->videodev, VFL_TYPE_RADIO, radio_nr) < 0) {
-+	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO, radio_nr);
-+	if (retval < 0) {
- 		dev_warn(&intf->dev, "Could not register video device\n");
- 		kfree(radio->transfer_buffer);
- 		kfree(radio);
-
-
+ static int pxa_camera_reqbufs(struct soc_camera_file *icf,
 -- 
-Best regards, Klimov Alexey
+1.5.4
 
 --
 video4linux-list mailing list
