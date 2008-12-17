@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB4IArLx031736
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 13:10:53 -0500
-Received: from mail-qy0-f21.google.com (mail-qy0-f21.google.com
-	[209.85.221.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB4I9r7N027172
-	for <video4linux-list@redhat.com>; Thu, 4 Dec 2008 13:09:53 -0500
-Received: by qyk14 with SMTP id 14so4939091qyk.3
-	for <video4linux-list@redhat.com>; Thu, 04 Dec 2008 10:09:52 -0800 (PST)
-Message-ID: <7d7f2e8c0812041009w487b5aabwaf27d5c7d917b1ab@mail.gmail.com>
-Date: Thu, 4 Dec 2008 10:09:52 -0800
-From: "Steve Fink" <sphink@gmail.com>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812040659l2c441ed8mcc9cd00573b3f939@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHBnjMR029368
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 06:49:45 -0500
+Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHBnSiR001727
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 06:49:29 -0500
+Received: from tervel.nabble.com ([192.168.236.150])
+	by kuber.nabble.com with esmtp (Exim 4.63)
+	(envelope-from <bounces@n2.nabble.com>) id 1LCuu8-0002MK-FI
+	for video4linux-list@redhat.com; Wed, 17 Dec 2008 03:49:28 -0800
+Message-ID: <1229514568468-1667543.post@n2.nabble.com>
+Date: Wed, 17 Dec 2008 03:49:28 -0800 (PST)
+From: Umar <unix.co@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <7d7f2e8c0812032307y3b12f74cr8c00175618add7a1@mail.gmail.com>
-	<412bdbff0812040659l2c441ed8mcc9cd00573b3f939@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l support for "Pinnacle PCTV HD Pro USB Stick"
+Subject: Pinnacle USB Stick 2870
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,69 +28,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Ok, thanks. I guess I'll try returning this one, then.
 
-I wonder if there's any way to apply pressure -- I mean, encouragement
--- to manufacturers to either change model numbers or at least release
-serial number ranges or something along with specs for their hardware.
-The only reason I bought this device was because it had composite
-input and Linux support -- or at least, the earlier version with
-exactly the same description did.
+Hi Dear Members!
 
-I suppose I could take a quick stab at making my app decode the mpeg
-frames, but it's really suboptimal for my setup (I am very sensitive
-to latency and CPU load.)
+I am trying to get my Pinnacle PCTV USB (DVB-T device [eb1a:2870]) to
+work on my Slackware 12.1 Linux. I fetched sources from
+http://linuxtv.org/hg/v4l-dvb and then did a make, make install and make
+load.
 
-Anyway, thanks for your work!
-Steve
+After the reboot I did try tvtime. A blank screen is appear there no
+picture.
 
-On Thu, Dec 4, 2008 at 6:59 AM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Thu, Dec 4, 2008 at 2:07 AM, Steve Fink <sphink@gmail.com> wrote:
->> After getting some help from this list, I ended up buying the
->> "Pinnacle PCTV HD Pro USB Stick"
->> <http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)>.
->> Unfortunately, it turned out to be the newer version, which appears to
->> only have DVB support (despite having a cx25843 chip for analog
->> decoding.) Is there any way to access to the raw frames coming from
->> the A/D converter?
->>
->> I've read up on the wiki, and I now understand what DVB stands for.
->> But in practice, it appears that DVB support means you'll get handed
->> encoded mpeg-2 frames, whereas if your device has v4l support, you can
->> get back decoded frames. I want raw frames. I don't want to watch TV;
->> I just want a stream of analog NTSC frames to get digitized and handed
->> over to me via USB. It appears to me that the only driver that
->> supports my device is a DVB driver, but that driver really is just a
->> DVB driver and so won't handle my analog input even though that A/D
->> converter is supported elsewhere for other drivers. Is that accurate,
->> or is there some way of using the dvb-usb stuff to get to the raw
->> digitized stream and start frame grabbing?
->>
->> It's also very possible that I'm completely confused about how
->> everything fits together. Hints appreciated.
->>
->> Thanks,
->> Steve
->>
->> (argh -- I wonder if I can return this damn tv stick...)
->
-> No Steve, you're not confused.  I only implemented the digital
-> ATSC/QAM support on the stick and not the analog support.  This was
-> because the framework used for the dibcom driver doesn't currently
-> have analog support, so it will be a significant amount of work.  If
-> the dibcom framework gets analog support, then making this device work
-> within that framework would be relatively simple.
->
-> The LinuxTV wiki does properly reflect the status of the device.
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+Here is my dmesg logs.
+
+usb 1-6: new high speed USB device using ehci_hcd and address 3
+usb 1-6: configuration #1 chosen from 1 choice
+em28xx: New device USB 2870 Device @ 480 Mbps (eb1a:2870, interface 0, class
+0)
+em28xx #0: Identified as Pinnacle PCTV USB 2 (card=3)
+em28xx #0: em28xx chip ID = 35
+Chip ID is not zero. It is not a TEA5767
+tuner' 2-0060: chip found @ 0xc0 (em28xx #0)
+em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 70 28 c0 12 81 00 6a 22 00 00
+em28xx #0: i2c eeprom 10: 00 00 04 57 02 0d 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 02 00 00 00 00 00 5b 00 00 00
+em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 9f 4f a5 4a
+em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 22 03 55 00 53 00
+em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 37 00 30 00 20 00 44 00
+em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xcf6a1fc3
+em28xx #0: EEPROM info:
+em28xx #0: No audio on board.
+em28xx #0: 500mA max power
+em28xx #0: Table at 0x04, strings=0x226a, 0x0000, 0x0000
+tuner-simple 2-0060: creating new instance
+tuner-simple 2-0060: type set to 56 (Philips PAL/SECAM multi (FQ1216AME
+MK4))
+em28xx #0: Config register raw data: 0xc0
+em28xx #0: No AC97 audio processor
+em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+em28xx-audio.c: probing for em28x1 non standard usbaudio
+em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+
+
+Please help what should i do?
+
+Regards,
+
+Umar
+-- 
+View this message in context: http://n2.nabble.com/Pinnacle-USB-Stick-2870-tp1667543p1667543.html
+Sent from the video4linux-list mailing list archive at Nabble.com.
 
 --
 video4linux-list mailing list
