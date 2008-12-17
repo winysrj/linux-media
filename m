@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.24])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LGKXh-0002NU-Pv
-	for linux-dvb@linuxtv.org; Fri, 26 Dec 2008 22:48:26 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so1808425qwb.17
-	for <linux-dvb@linuxtv.org>; Fri, 26 Dec 2008 13:48:20 -0800 (PST)
-Message-ID: <412bdbff0812261348h35b28437m5c87f43a3e6a5e33@mail.gmail.com>
-Date: Fri, 26 Dec 2008 16:48:20 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
+Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
+	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lamikr@pilppa.org>) id 1LD3wX-0004bQ-9m
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 22:28:33 +0100
+Date: Wed, 17 Dec 2008 23:28:24 +0200 (EET)
+From: Mika Laitio <lamikr@pilppa.org>
+To: ga ver <gavermer@gmail.com>
+In-Reply-To: <468e5d620812171159g49b87f0bu484d5445c695249f@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0812172317020.21437@shogun.pilppa.org>
+References: <468e5d620812171159g49b87f0bu484d5445c695249f@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] mxl5005s tuner analog support
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Linux DVB driver API version 5.0?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,35 +25,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+> I download the S2API driver from
+> hg clone http://mercurial.intuxication.org/hg/s2-liplianin
+> make and make install OK
+>
+> I try to install scan-s2 and got
+> /usr/local/src# cd scan-s2
+> root@gv3:/usr/local/src/scan-s2# make
+> gcc -I../s2/linux/include -c diseqc.c -o diseqc.o
+> In file included from diseqc.c:7:
+> scan.h:86: fout: expected specifier-qualifier-list before 'fe_rolloff_t'
+> make: *** [diseqc.o] Fout 1
 
-I working on the analog support for the Pinnacle Ultimate 880e
-support, and that device includes an mxl5005s tuner.
+You need to edit the Makefile and change from there the include
+"-I../s2/linux/include" to point your "s2-liplianin/linux/include"
+directory.
 
-I went to do the normal changes to em28xx to support another tuner,
-which prompted me to wonder:
+> Installing vdr-1.7.2 gives
+> /usr/local/src/vdr-1.7.2# make
+> In file included from audio.c:12:
+> dvbdevice.h:19:2: error: #error VDR requires Linux DVB driver API version 5.0!
+> In file included from dvbdevice.c:10:
+> dvbdevice.h:19:2: error: #error VDR requires Linux DVB driver API version 5.0!
+> In file included from dvbosd.c:15:
+>
+> Is this not de right driver?, or what is wrong
 
-Is the analog support known to to work in Linux for this tuner for any
-other device?
+I do not know is there some better way but I always do these steps in vdr 
+dir.
+1) cp Make.config.template Make.config
 
-The reason I ask is because I hit an oops and when I looked at the
-source I found some suspicious things:
+2) edit Make.config and set DVBDIR to point your liblianin driver 
+directory. (something like)
+DVBDIR   = <abcdkissakavelee>/s2-liplianin/linux
 
-* No entry in tuner.h
-* No attach command in tuner-core.c
-* No definition of set_analog_params() callback in mxl5005s.c
+3) make
+4) make plugins
+5) copy working remote.conf file from older vdr version (or answer to VDR 
+questions during the first startup)
+6) edit runvdr so that all of your plugins are launched and then launch 
+vdr with "./runvdr". If you have tv connected to ff card, you should now 
+see the picture. If not, use xineliboutput or streamdev plugins for 
+connecting to vdr.
 
-I wonder if perhaps the driver was ported from some other source and
-nobody ever got around to getting the analog support working?  If
-that's the case then that is fine (I'll make it work), but I want to
-know if I am just missing something obvious here....
+Mika
 
-Devin
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
