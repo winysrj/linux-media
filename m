@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1LAA89-0006fn-7m
-	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 22:28:33 +0100
-Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id mB9LSYeB001617
-	for <linux-dvb@linuxtv.org>; Tue, 9 Dec 2008 21:28:34 GMT
-Message-ID: <493EE2FC.4000504@koala.ie>
-Date: Tue, 09 Dec 2008 21:28:28 +0000
-From: Simon Kenyon <simon@koala.ie>
+Message-ID: <412bdbff0812162029v78e10fc5u926e52e807263981@mail.gmail.com>
+Date: Tue, 16 Dec 2008 23:29:21 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <37219a840812162022g4c53d521v19a74ccf97a50ef9@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] problems with a TerraTec Cinergy Hybrid T USB XS
-	(0ccd:0042)
+Content-Type: multipart/mixed; boundary="----=_Part_331_6245630.1229488161926"
+References: <412bdbff0812161931r17fc2371mfcb28306a3acc610@mail.gmail.com>
+	<37219a840812162006h33118a2fr109638bb0802603@mail.gmail.com>
+	<37219a840812162022g4c53d521v19a74ccf97a50ef9@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] RFC - xc5000 init_fw option is broken for HVR-950q
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,80 +18,132 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-with drivers from mercurial it works fine on my x86 laptop
-but when i try to plug it into my amd64 machine i get this (note the 
-failure three lines from the end):
+------=_Part_331_6245630.1229488161926
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-anybody got and ideas?
---
-simon
+On Tue, Dec 16, 2008 at 11:22 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Tue, Dec 16, 2008 at 11:06 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> Devin,
+>>
+>> On Tue, Dec 16, 2008 at 10:31 PM, Devin Heitmueller
+>> <devin.heitmueller@gmail.com> wrote:
+>>> It looks like because the reset callback is set *after* the
+>>> dvb_attach(xc5000...), the if the init_fw option is set the firmware
+>>> load will fail (saying "xc5000: no tuner reset callback function,
+>>> fatal")
+>>>
+>>> We need to be setting the callback *before* the dvb_attach() to handle
+>>> this case.
+>>>
+>>> Let me know if anybody sees anything wrong with this proposed patch,
+>>> otherwise I will submit a pull request.
+>>>
+>>> Thanks,
+>>>
+>>> Devin
+>>>
+>>> diff -r 95d2c94ec371 linux/drivers/media/video/au0828/au0828-dvb.c
+>>> --- a/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+>>> 21:35:23 2008 -0500
+>>> +++ b/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+>>> 22:27:57 2008 -0500
+>>> @@ -382,6 +382,9 @@
+>>>
+>>>        dprintk(1, "%s()\n", __func__);
+>>>
+>>> +       /* define general-purpose callback pointer */
+>>> +       dvb->frontend->callback = au0828_tuner_callback;
+>>> +
+>>>        /* init frontend */
+>>>        switch (dev->board) {
+>>>        case AU0828_BOARD_HAUPPAUGE_HVR850:
+>>> @@ -431,8 +434,6 @@
+>>>                       __func__);
+>>>                return -1;
+>>>        }
+>>> -       /* define general-purpose callback pointer */
+>>> -       dvb->frontend->callback = au0828_tuner_callback;
+>>>
+>>>        /* register everything */
+>>>
+>>> --
+>>> Devin J. Heitmueller
+>>> http://www.devinheitmueller.com
+>>> AIM: devinheitmueller
+>>
+>>
+>> This patch is fine & correct - Thanks - Please have it merged into master.
+>>
+>> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+>>
+>
+> Devin and I  (mostly Devin, actually) just realized that
+> "dvb->frontend = NULL until after the demod is attached.  The line
+> needs to be between the two dvb_attach() calls."
+>
+> So, I think we should leave the callback assignment where it is, and
+> just get rid of the init_fw parameter for the xc5000 driver.
+>
+> I added this init_fw option in the first place, and we really dont
+> need it there anymore.
+>
+> -Mike
+>
 
-em28xx v4l2 driver version 0.1.0 
-loaded                                                                                                               
+Updated patch attached which removes the init_fw option entirely.
 
-em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS @ 
-480 Mbps (0ccd:0042, interface 0, class 
-0)                                     
-em28xx #0: Identified as Terratec Hybrid XS 
-(card=11)                                                                                                 
+Devin
 
-em28xx #0: chip ID is 
-em2882/em2883                                                                                                                   
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
-em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 42 00 50 12 5c 03 6a 32 9c 34
-em28xx #0: i2c eeprom 10: 00 00 06 57 46 07 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 00 00 00
-em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
-em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 32 03 43 00 69 00
-em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 48 00 79 00
-em28xx #0: i2c eeprom 80: 62 00 72 00 69 00 64 00 20 00 54 00 20 00 55 00
-em28xx #0: i2c eeprom 90: 53 00 42 00 20 00 58 00 53 00 00 00 34 03 54 00
-em28xx #0: i2c eeprom a0: 65 00 72 00 72 00 61 00 54 00 65 00 63 00 20 00
-em28xx #0: i2c eeprom b0: 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00
-em28xx #0: i2c eeprom c0: 69 00 63 00 20 00 47 00 6d 00 62 00 48 00 00 00
-em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x41d0bf96
-em28xx #0: EEPROM info:
-em28xx #0:      AC97 audio (5 sample rates)
-em28xx #0:      500mA max power
-em28xx #0:      Table at 0x06, strings=0x326a, 0x349c, 0x0000
-tuner' 5-0061: chip found @ 0xc2 (em28xx #0)
-xc2028 5-0061: creating new instance
-xc2028 5-0061: type set to XCeive xc2028/xc3028 tuner
-firmware: requesting xc3028-v27.fw
-xc2028 5-0061: Loading 80 firmware images from xc3028-v27.fw, type: 
-xc2028 firmware, ver 2.7
-xc2028 5-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-xc2028 5-0061: Loading firmware for type=(0), id 000000000000b700.
-SCODE (20000000), id 000000000000b700:
-xc2028 5-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), 
-id 0000000000008000.
-em28xx #0: Config register raw data: 0x50
-em28xx #0: AC97 vendor ID = 0x83847652
-em28xx #0: AC97 features = 0x6a90
-em28xx #0: Sigmatel audio processor detected(stac 9752)
-tvp5150 5-005c: tvp5150am1 detected.
-em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-em28xx audio device (0ccd:0042): interface 1, class 1
-em28xx audio device (0ccd:0042): interface 2, class 1
-usbcore: registered new interface driver em28xx
-zl10353_read_register: readreg error (reg=127, ret==-19)
-em28xx #0/2: dvb frontend not attached. Can't attach xc3028
-Em28xx: Initialized (Em28xx dvb Extension) extension
+------=_Part_331_6245630.1229488161926
+Content-Type: application/octet-stream; name=xc5000_remove_init_fw
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fothh2d90
+Content-Disposition: attachment; filename=xc5000_remove_init_fw
 
-
+eGM1MDAwOiByZW1vdmUgaW5pdF9mdyBvcHRpb24KCkZyb206IERldmluIEhlaXRtdWVsbGVyIDxk
+aGVpdG11ZWxsZXJAbGludXh0di5vcmc+CgpUaGUgaW5pdF9mdyBvcHRpb24gd2FzIGJyb2tlbiBm
+b3IgdGhlIEhWUi05NTBxIGJlY2F1c2Ugd2Ugd291bGQgY2FsbCB0aGUgcmVzZXQKY2FsbGJhY2sg
+aW5zaWRlIG9mIGR2Yl9hdHRhY2goKSBhbmQgdGhlIGNhbGxiYWNrIGhhZCBub3QgYmVlbiBzZXR1
+cCB5ZXQuCgpNa3J1Zmt5KHdobyBhZGRlZCB0aGUgaW5pdF9mdyBmZWF0dXJlKSBzYXlzIGl0J3Mg
+bm8gbG9uZ2VyIHJlcXVpcmVkLCBzbyBqdXN0CnJlbW92ZSB0aGUgb3B0aW9uIGNvbXBsZXRlbHku
+CgpUaGFua3MgdG8gdXNlciBaemVpc3MgZnJvbSAjbGludXh0diBjaGF0IGZvciByZXBvcnRpbmcg
+dGhlIGlzc3VlIGFuZApNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4gZm9yIHBy
+b3Bvc2luZyB0aGUgZml4LgoKUHJpb3JpdHk6IG5vcm1hbAoKU2lnbmVkLW9mZi1ieTogRGV2aW4g
+SGVpdG11ZWxsZXIgPGRoZWl0bXVlbGxlckBsaW51eHR2Lm9yZz4gCgpkaWZmIC1yIDk1ZDJjOTRl
+YzM3MSBsaW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMveGM1MDAwLmMKLS0tIGEvbGlu
+dXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3hjNTAwMC5jCVR1ZSBEZWMgMTYgMjE6MzU6
+MjMgMjAwOCAtMDUwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMveGM1
+MDAwLmMJVHVlIERlYyAxNiAyMzoyNDo0OSAyMDA4IC0wNTAwCkBAIC0zNSwxMCArMzUsNiBAQAog
+c3RhdGljIGludCBkZWJ1ZzsKIG1vZHVsZV9wYXJhbShkZWJ1ZywgaW50LCAwNjQ0KTsKIE1PRFVM
+RV9QQVJNX0RFU0MoZGVidWcsICJUdXJuIG9uL29mZiBkZWJ1Z2dpbmcgKGRlZmF1bHQ6b2ZmKS4i
+KTsKLQotc3RhdGljIGludCB4YzUwMDBfbG9hZF9md19vbl9hdHRhY2g7Ci1tb2R1bGVfcGFyYW1f
+bmFtZWQoaW5pdF9mdywgeGM1MDAwX2xvYWRfZndfb25fYXR0YWNoLCBpbnQsIDA2NDQpOwotTU9E
+VUxFX1BBUk1fREVTQyhpbml0X2Z3LCAiTG9hZCBmaXJtd2FyZSBkdXJpbmcgZHJpdmVyIGluaXRp
+YWxpemF0aW9uLiIpOwogCiBzdGF0aWMgREVGSU5FX01VVEVYKHhjNTAwMF9saXN0X211dGV4KTsK
+IHN0YXRpYyBMSVNUX0hFQUQoaHlicmlkX3R1bmVyX2luc3RhbmNlX2xpc3QpOwpAQCAtMTAzNiw5
+ICsxMDMyLDYgQEAKIAltZW1jcHkoJmZlLT5vcHMudHVuZXJfb3BzLCAmeGM1MDAwX3R1bmVyX29w
+cywKIAkJc2l6ZW9mKHN0cnVjdCBkdmJfdHVuZXJfb3BzKSk7CiAKLQlpZiAoeGM1MDAwX2xvYWRf
+Zndfb25fYXR0YWNoKQotCQl4YzUwMDBfaW5pdChmZSk7Ci0KIAlyZXR1cm4gZmU7CiBmYWlsOgog
+CW11dGV4X3VubG9jaygmeGM1MDAwX2xpc3RfbXV0ZXgpOwo=
+------=_Part_331_6245630.1229488161926
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_331_6245630.1229488161926--
