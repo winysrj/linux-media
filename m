@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout09.t-online.de ([194.25.134.84])
+Received: from fg-out-1718.google.com ([72.14.220.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rohde.d@t-online.de>) id 1LDyEq-0004wo-1O
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 10:35:13 +0100
-Message-ID: <494CBC3A.3040908@t-online.de>
-Date: Sat, 20 Dec 2008 10:34:50 +0100
-From: Detlef Rohde <rohde.d@t-online.de>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LCn89-00026g-0Y
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 04:31:27 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1556174fga.25
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 19:31:21 -0800 (PST)
+Message-ID: <412bdbff0812161931r17fc2371mfcb28306a3acc610@mail.gmail.com>
+Date: Tue, 16 Dec 2008 22:31:21 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <494C2CFC.3040605@t-online.de> <494C31DA.6060904@iki.fi>
-In-Reply-To: <494C31DA.6060904@iki.fi>
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [linux-dvb] cinergy t usb xe v2, attn: Manu Abraham,
-	Jochen Friedrich
+Content-Disposition: inline
+Subject: [linux-dvb] RFC - xc5000 init_fw option is broken for HVR-950q
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,73 +25,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
-tnx to Antti writing me! Hopefully Manu or Jochen finds time to fix this 
-problem. Meanwhile I will try to use the links Antti has provided. Will 
-report here if being successful. One thing I should add: It's funny to 
-notice that the stick is reported being in "warm state" but remains cold 
-and the control LED does not lit..
-Best regards + Merry Christmas
-Detlef
+Hello,
 
-Antti Palosaari schrieb:
-> Detlef Rohde wrote:
->> Hi Antti,
->> can you please answer a simple question: Is there any effort done to 
->> fix the tuner problem with the cinergy stick?
-> It is Manu Abraham driver, you should ask him (and/or Jochen 
-> Friedrich). Actually there is driver and it is working, but Manu has 
-> not merged it. We just talked this situation in the ml:
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030982.html
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030988.html
->
-> Was using the AF9015 FW more
->> or less successfully when running kernel 2.6.27-7. After updating to 
->> -9 all was messed. Although the stick is known to the system and 
->> being in "warm state" tuning fails because lack of an appropriate 
->> tuner driver for "MC44S803". Tried various versions (4) from your 
->> webpage with no success. See attached some Kernel messages:
->> detlef@detlef-desktop:~$ tail -f /var/log/messages
->> Dec 19 23:46:09 detlef-desktop kernel: [  969.543794] DVB: 
->> registering new adapter (TerraTec Cinergy T USB XE)
->> Dec 19 23:46:09 detlef-desktop kernel: [  969.805306] dvb_af901x: 
->> disagrees about version of symbol dvb_usb_device_init
->> Dec 19 23:46:09 detlef-desktop kernel: [  969.805366] dvb_af901x: 
->> Unknown symbol dvb_usb_device_init
->> Dec 19 23:46:09 detlef-desktop kernel: [  969.805612] dvb_af901x: 
->> disagrees about version of symbol dvb_usb_device_exit
->> Dec 19 23:46:09 detlef-desktop kernel: [  969.805619] dvb_af901x: 
->> Unknown symbol dvb_usb_device_exit
->
-> dvb_af901x output is not coming from my driver. You have mixed some 
-> other driver, that print this.
->
->> Dec 19 23:46:09 detlef-desktop kernel: [  970.015208] af9013: 
->> firmware version:4.95.0
->> Dec 19 23:46:09 detlef-desktop kernel: [  970.025213] DVB: 
->> registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
->> Dec 19 23:46:09 detlef-desktop kernel: [  970.031873] af9015: 
->> Freescale MC44S803 tuner found but no driver for thattuner. Look at 
->> the Linuxtv.org for tuner driverstatus.
->> Dec 19 23:46:09 detlef-desktop kernel: [  970.031924] dvb-usb: 
->> TerraTec Cinergy T USB XE successfully initialized and connected.
->> Dec 20 00:11:09 detlef-desktop -- MARK --
->>
->> Have invested much time trying to solve this problem, hope you can 
->> help a linux newbie..
->
-> Look this thread:
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030982.html
-> write to linux-dvb mailing list and ask Manu and Jochen. I cannot do 
-> much because tuner driver is not mine.
->
->> Regards,
->> Detlef
->
-> regards
-> Antti
+It looks like because the reset callback is set *after* the
+dvb_attach(xc5000...), the if the init_fw option is set the firmware
+load will fail (saying "xc5000: no tuner reset callback function,
+fatal")
 
+We need to be setting the callback *before* the dvb_attach() to handle
+this case.
 
+Let me know if anybody sees anything wrong with this proposed patch,
+otherwise I will submit a pull request.
+
+Thanks,
+
+Devin
+
+diff -r 95d2c94ec371 linux/drivers/media/video/au0828/au0828-dvb.c
+--- a/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+21:35:23 2008 -0500
++++ b/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+22:27:57 2008 -0500
+@@ -382,6 +382,9 @@
+
+        dprintk(1, "%s()\n", __func__);
+
++       /* define general-purpose callback pointer */
++       dvb->frontend->callback = au0828_tuner_callback;
++
+        /* init frontend */
+        switch (dev->board) {
+        case AU0828_BOARD_HAUPPAUGE_HVR850:
+@@ -431,8 +434,6 @@
+                       __func__);
+                return -1;
+        }
+-       /* define general-purpose callback pointer */
+-       dvb->frontend->callback = au0828_tuner_callback;
+
+        /* register everything */
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
