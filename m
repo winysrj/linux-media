@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8GEqIg021475
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 11:14:52 -0500
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB8GE23R030942
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 11:14:35 -0500
-Received: by ey-out-2122.google.com with SMTP id 4so444057eyf.39
-	for <video4linux-list@redhat.com>; Mon, 08 Dec 2008 08:14:34 -0800 (PST)
-From: Alexey Klimov <klimov.linux@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHEC4P2009182
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:12:04 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHEBqmA021724
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:11:52 -0500
+Date: Wed, 17 Dec 2008 15:12:02 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain
-Date: Mon, 08 Dec 2008 19:14:31 +0300
-Message-Id: <1228752871.1809.94.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, David Ellingsworth <david@identd.dyndns.org>
-Subject: [PATCH 2/2] radio-mr800: disable autosuspend support
+In-Reply-To: <20080214174602.4ed91987@gaivota>
+Message-ID: <Pine.LNX.4.64.0812171444420.5465@axis700.grange>
+References: <20080205012451.GA31004@plankton.ifup.org>
+	<Pine.LNX.4.64.0802050815200.3863@axis700.grange>
+	<20080205080038.GB8232@plankton.ifup.org>
+	<20080205102409.4b7acb01@gaivota>
+	<20080213202055.GA26352@plankton.ifup.org>
+	<20080214174602.4ed91987@gaivota>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, v4lm <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: [v4l-dvb-maintainer] Moving to git for v4l-dvb
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,30 +31,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Because this device doesn't provide any powermanagment capabilities(may
-be they exist but unknown to me yet, so they are not implemented), we
-should turn them off.
-Patch sets support_autosuspend equal to 0. 
+Sorry for reviving this almost-a-year-old thread, but after my last 
+failure to formst hg-commits correctly, I'd like to have this clarified 
+before causing Mauro extra manual editing of my commits again.
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+On Thu, 14 Feb 2008, Mauro Carvalho Chehab wrote:
 
+[snip]
+
+> -git trees have two different meta-tags to represent the tree owner _and_ the
+> patch author. A patch can be committed by a maintainer, preserving author's
+> ownership. On Mercurial, there's only one meta-tag. So, each developer needs to
+> manually add a line with:
+> 	From: someone <some@email>
+> To represent the missing authorship. I need some scripts to convert this "From"
+> artificial field into an Author, before generating the -git.
+
+later
+
+On Tue, 22 Apr 2008, Mauro Carvalho Chehab wrote:
+
+> In general, you ask me to pull a patch series with yours and also third part
+> patches. Please, be sure to add a "From: " line at the patch, since Mercurial
+> has no meta-tag to indicate patch authorship. The only meta tag for someone is
+> "user". We use this meta-tag to help tracking from what tree a changeset were 
+> merged.
+
+and recently
+
+On Mon, 8 Dec 2008, Mauro Carvalho Chehab wrote:
+
+> On -git, you have two different fields: the committer and the patch author.
+> Since mercurial has just one field, we should take some care, since, depending
+> on the way you import things into mercurial, you may lead to bad author
+> attribution.
+> 
+> To avoid this risk, we've added an extra tag on all mercurial commits. Also, my
+> -git import scripts don't automatically merge any patch that comes without the 
+> "from" field. Those patches require manual work to forward. This way, I have a 
+> double check procedure there.
+
+So, what should a patch header look like to be imported into hg per "hg 
+import" for later push to linuxtv to be pulled by Mauro?
+
+Looks like it should have two "From: " lines - one will be used by hg for 
+the user field and should contain my address, the second "From: " line 
+should contain the actual patch author? All quotes above mention only one 
+"From: ", and this is what a git-format-patch produces, but it looks like 
+this single "From: " is then consumed by hg to form its "user" field, so 
+nothing is left for a subsequent re-export to git.
+
+Thanks
+Guennadi
 ---
-diff -r bc48582f8776 linux/drivers/media/radio/radio-mr800.c
---- a/linux/drivers/media/radio/radio-mr800.c	Mon Dec 08 17:42:20 2008 +0300
-+++ b/linux/drivers/media/radio/radio-mr800.c	Mon Dec 08 17:45:34 2008 +0300
-@@ -169,7 +169,7 @@
- 	.reset_resume		= usb_amradio_resume,
- #endif
- 	.id_table		= usb_amradio_device_table,
--	.supports_autosuspend	= 1,
-+	.supports_autosuspend	= 0,
- };
- 
- /* switch on radio. Send 8 bytes to device. */
-
-
--- 
-Best regards, Klimov Alexey
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
