@@ -1,22 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LERDh-0005fB-Mb
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 17:31:59 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so583591qwb.17
-	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 08:31:53 -0800 (PST)
-Message-ID: <412bdbff0812210831w2c8930eal5181c766857b0aa8@mail.gmail.com>
-Date: Sun, 21 Dec 2008 11:31:53 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Holger Rusch" <holger@rusch.name>
-In-Reply-To: <494E61B4.2040006@rusch.name>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <cae4ceb0812091511s668dcc5fj793e7efc113fedfd@mail.gmail.com>
-	<493F8A81.7040802@rusch.name> <494E61B4.2040006@rusch.name>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy DT USB XS Diversity (Quality with
-	linux worse then with Windows)
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]
+	helo=mail.wilsonet.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jarod@wilsonet.com>) id 1LCoFM-0006V7-Kb
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 05:42:58 +0100
+Received: from mail.wilsonet.com (chronos.wilsonet.com [127.0.0.1])
+	by mail.wilsonet.com (Postfix) with ESMTP id CA7DF17B0A
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 23:42:51 -0500 (EST)
+Received: from mail.wilsonet.com ([127.0.0.1])
+	by mail.wilsonet.com (mail.wilsonet.com [127.0.0.1]) (amavisd-maia,
+	port 10024) with ESMTP id 10572-05 for <linux-dvb@linuxtv.org>;
+	Tue, 16 Dec 2008 23:42:48 -0500 (EST)
+Received: from [172.31.27.12] (static-72-93-233-5.bstnma.fios.verizon.net
+	[72.93.233.5])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: jarod)
+	by mail.wilsonet.com (Postfix) with ESMTPSA id 219BA17AB2
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 23:42:48 -0500 (EST)
+From: Jarod Wilson <jarod@wilsonet.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <20081217002735.GF45924@dereel.lemis.com>
+References: <20081217002735.GF45924@dereel.lemis.com>
+Date: Tue, 16 Dec 2008 23:42:47 -0500
+Message-Id: <1229488967.8328.2.camel@icarus.wilsonet.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Support for Afatech 9035 (Aldi Fission USB tuner)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,28 +37,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Dec 21, 2008 at 10:33 AM, Holger Rusch <holger@rusch.name> wrote:
-> Shameless repost. No idea? Anybody?
+On Wed, 2008-12-17 at 11:27 +1100, Greg 'groggy' Lehey wrote:
+> I have a dual USB tuner from Aldi, which they call a Fission dual high
+> definition DVB-T receiver.
+[...]
+> dmesg output (complete version is attached)
+> says:
+> 
+> [  789.696018] usb 4-3: new high speed USB device using ehci_hcd and
+> address 2
+> [  789.846003] usb 4-3: configuration #1 chosen from 1 choice
+> [  790.052259] usbcore: registered new interface driver hiddev
+> [  790.056703] input: Afa Technologies Inc. AF9035A USB Device
+> as /devices/pci0000:00/0000:00:10.3/usb4/4-3/4-3:1.1/input/input8
+> [  790.057902] input,hidraw0: USB HID v1.01 Keyboard [Afa Technologies
+> Inc. AF9035A USB Device] on usb-0000:00:10.3-3
+> [  790.058287] usbcore: registered new interface driver usbhid
+> [  790.058511] usbhid: v2.6:USB HID core driver
+> 
+> I've been following the instructions on the wiki, and I've got hold of
+> the firmware files dvb-usb-af9015.fw and xc3028-v27.fw.  The former
+> doesn't get loaded; the latter gets loaded even if the stick isn't
+> present
 
-Hello Holger,
+>From your dmesg output, it appears the usbhid driver has claimed the
+device, thus the dvb driver can't grab it. If I recall correctly, usbhid
+is a module on ubuntu, so you should be able to tell it not to load
+w/some modprobe options (which I don't remember off the top of my head).
 
-Are you using the latest code from http://linuxtv.org/hg/v4l-dvb,
-including the newer 1.20 firmware?
+--jarod
 
-Have you tried turning off the LNA and see if there is any difference
-in SNR?  While an amplifier can be a good thing in some cases, if
-you're to close to the transmitter the LNA may be driving the signal
-too hard for the demodulator.
 
-Is the SNR level always being reported as poor, or only when the
-signal is dropping out?
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
