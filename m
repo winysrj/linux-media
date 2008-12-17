@@ -1,32 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVLOqde018601
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 16:24:52 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.169])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVLOUtS031679
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 16:24:31 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so5812849wfc.6
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 13:24:29 -0800 (PST)
-Message-ID: <c785bba30812311324x17088a2hc3e45f3c00f3f402@mail.gmail.com>
-Date: Wed, 31 Dec 2008 14:24:29 -0700
-From: "Paul Thomas" <pthomas8589@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHJRRtH018025
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:27:27 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mBHJRDPp031784
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:27:14 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Greg KH <greg@kroah.com>
+Date: Wed, 17 Dec 2008 20:27:13 +0100
+References: <200812082156.26522.hverkuil@xs4all.nl>
+	<200812171437.33695.hverkuil@xs4all.nl>
+	<20081217181645.GA26161@kroah.com>
+In-Reply-To: <20081217181645.GA26161@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
-	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
-	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
-	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
-	<c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
-	<412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
-	<c785bba30812311209k16ef6f04jc3d8867a64d4cb93@mail.gmail.com>
-	<c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
-	<c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
-Subject: Re: em28xx issues
+Message-Id: <200812172027.13771.laurent.pinchart@skynet.be>
+Cc: v4l <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
+Subject: Re: [BUG] cdev_put() race condition
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,113 +32,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Well I've got it to sort of work. If I use the skype and look at the
-video preview then it seems to work. However if I close skype and
-reopen it, it no longer works. I have to un-plug and plug the device
-to get it to work again. And no other program works yet.
+Hi Greg,
 
-Here is the status of the other cam programs:
-camstream                 -> seg fault
-gstreamer-properties  -> seg fault
-cheese                      -> uses test input
-fswebcam                  -> black screen with green stripe
+On Wednesday 17 December 2008, Greg KH wrote:
+> On Wed, Dec 17, 2008 at 02:37:33PM +0100, Hans Verkuil wrote:
+> > > Again, don't use cdev's reference counting for your own object
+> > > lifecycle, it is different and will cause problems, like you have found
+> > > out.
+> >
+> > Sigh. It has nothing to do with how v4l uses it. And to demonstrate this,
+> > here is how you reproduce it with the sg module (tested it with my USB
+> > harddisk).
+> >
+> > 1) apply this patch to char_dev.c:
+>
+> <snip>
+>
+> Ok, since I can't convince you that using a cdev for your reference
+> counting is incorrect, I'll have to go change the cdev code to prevent
+> you from doing this :(
 
-thanks,
-Paul
+Don't give up yet :-)
 
-On Wed, Dec 31, 2008 at 1:58 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
-> When I start camstream with the new driver this is what I get. This is
-> a slightly different setup that I first described. It a x86_64 with
-> Fedora 9.
->
-> CCamWindow::CCamWindow()
-> CWebCamViewer::CWebCamViewer(0xfbf8c0, 0x0)
-> CVideoDevice::Init()
-> Using mmap(), VMBuf.size = 6651904
-> CVideoDevice::Init(): mmap() failed (22). Falling back to non-mmap()ed mode.
-> Allocating own buffer.
-> Trying to find video options for PointNix Intra-Oral Camera:/dev/video0
-> Creating new video options
-> <!DOCTYPE Configuration>
-> <config>
->  <defaults/>
->  <videodevices>
->  <videoconfiguration name="PointNix Intra-Oral Camera" >
->   <basename>snapshot</basename>
->   <textfont>system</textfont>
->   <textcolor>#ffff00</textcolor>
->   <timeinimage>false</timeinimage>
->   <fileformat>PNG</fileformat>
->   <savetodisk>true</savetodisk>
->   <ftptoserver>false</ftptoserver>
->   <saveoption>1</saveoption>
->   <maxsequence>1000</maxsequence>
->   <sequence>0</sequence>
->   <ftpserver></ftpserver>
->   <ftppath></ftppath>
->   <ftpuser></ftpuser>
->   <ftppass></ftppass>
->   <ftppassive>false</ftppassive>
->   <ftpunique>true</ftpunique>
->  </videoconfiguration>
->  </videodevices>
-> </config>
->
-> CSnapshotSettingsDlg::CSnapshotSettingsDlg(...)
-> QFont::setRawName(): Invalid XLFD: "system"
-> CVideoSettingsDlg::SizeChanged(720x576)
-> CVideoSettingsDlg::FramerateChanged(10)
-> CCamPanel::SetSize(720x576)
-> CCamPanel::SetImageSize(720x576)
-> CCamPanel::SetVisibleSize(720x576)
-> CCamPanel::SetSize(720x576)
-> CCamPanel::SetImageSize(720x576)
-> CCamPanel::SetVisibleSize(720x576)
-> RecalcTotalViewSize: resize viewport(720x576)
-> EnableRGB: +
-> CVideoDevice::SetPalette picked palette 8 [yuyv]
-> CVideoDevice::CreateImagesRGB()
->  allocating space for RGB
-> CVideoDevice::StartCapture() go!
-> Segmentation fault
->
-> On Wed, Dec 31, 2008 at 1:20 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->> OK, after a restart the driver loads properly. It's still not working,
->> but I have to look at a couple of things.
->>
->> thanks,
->> Paul
->>
->> On Wed, Dec 31, 2008 at 1:09 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->>> The v4l-dvb directory is clean aside from the KERNEL_VERSION(2, 6, 27) change.
->>>
->>> thanks,
->>> Paul
->>>
->>> On Wed, Dec 31, 2008 at 1:06 PM, Devin Heitmueller
->>> <devin.heitmueller@gmail.com> wrote:
->>>> On Wed, Dec 31, 2008 at 3:03 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->>>>> OK, I can compile now, but when I go to modprobe em28xx I get this error.
->>>>>
->>>>> em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
->>>>>
->>>>> thanks,
->>>>> Paul
->>>>
->>>> Do you have some mix of files from the em28xx-new and the v4l-dvb
->>>> codebase?  Or did you jam a reference in the include path to
->>>> em28xx-new's include directory?
->>>>
->>>> Devin
->>>>
->>>> --
->>>> Devin J. Heitmueller
->>>> http://www.devinheitmueller.com
->>>> AIM: devinheitmueller
->>>>
->>>
->>
->
+As v4l isn't the only kernel subsystem wrongly using cdev (Hans showed that sg 
+also suffered from race conditions), people seem not to understand cdev 
+properly. Maybe you should start by explaining what cdev has been designed to 
+handle and how to use it in device drivers (such as sg or v4l) instead of 
+telling us what not to do.
+
+> Anyway, do you have a patch for the cdev code to propose how to fix this
+> issue you are having?
+
+Regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
