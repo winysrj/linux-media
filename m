@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.189])
+Received: from mail-qy0-f16.google.com ([209.85.221.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <xweber.alex@googlemail.com>) id 1LAnEH-00031F-Hs
-	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 16:13:30 +0100
-Received: by fk-out-0910.google.com with SMTP id f40so839638fka.1
-	for <linux-dvb@linuxtv.org>; Thu, 11 Dec 2008 07:13:25 -0800 (PST)
-Message-ID: <49412E14.5090001@googlemail.com>
-Date: Thu, 11 Dec 2008 16:13:24 +0100
-From: Alexander Weber <xweber.alex@googlemail.com>
+	(envelope-from <alex.betis@gmail.com>) id 1LD3fb-000338-E0
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 22:11:04 +0100
+Received: by qyk9 with SMTP id 9so115028qyk.17
+	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 13:10:28 -0800 (PST)
+Message-ID: <c74595dc0812171310n3f8862b2w18f1f15c272af231@mail.gmail.com>
+Date: Wed, 17 Dec 2008 23:10:27 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: "ga ver" <gavermer@gmail.com>
+In-Reply-To: <468e5d620812171159g49b87f0bu484d5445c695249f@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <493AC65E.3010900@googlemail.com> <493D593F.7010707@googlemail.com>
-	<337548152.20081208193816@gmail.com>
-	<493D62F5.4010207@googlemail.com>
-	<1228770724.2587.16.camel@pc10.localdom.local>
-	<493D9545.4080605@googlemail.com>
-	<1689947513.20081209045705@gmail.com>
-In-Reply-To: <1689947513.20081209045705@gmail.com>
-Subject: Re: [linux-dvb] saa7134 with Avermedia M115S hybrid card
-Reply-To: xweber.alex@googlemail.com
+References: <468e5d620812171159g49b87f0bu484d5445c695249f@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Linux DVB driver API version 5.0?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,44 +21,110 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1641627978=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Tanguy Pruvot wrote:
->   Mini  PCI  Cards  are  often  (but  not always) accessible under the
->   laptop, like RAM or Hard disk, because that could be an option of the laptop...
-> 
->   Did you take a look closer ?
-> 
+--===============1641627978==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_12966_23045972.1229548227174"
 
-Hi all,
+------=_Part_12966_23045972.1229548227174
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-yes today i took a closer look and have taken some hires pictures from 
-that mini-pc card. Now I am looking for a smooth place to upload them. 
-Is the a "central-point" in linuxtv.org wiki for those kind of 
-"documentation"?
+On Wed, Dec 17, 2008 at 9:59 PM, ga ver <gavermer@gmail.com> wrote:
 
-For the impatient ;)
-the main chips are labeled with
+> Hi
+> I download the S2API driver from
+> hg clone http://mercurial.intuxication.org/hg/s2-liplianin
+> make and make install OK
+>
+> I try to install scan-s2 and got
+> /usr/local/src# cd scan-s2
+> root@gv3:/usr/local/src/scan-s2# make
+> gcc -I../s2/linux/include -c diseqc.c -o diseqc.o
+> In file included from diseqc.c:7:
+> scan.h:86: fout: expected specifier-qualifier-list before 'fe_rolloff_t'
+> make: *** [diseqc.o] Fout 1
+>
+> Installing vdr-1.7.2 gives
+> /usr/local/src/vdr-1.7.2# make
+> In file included from audio.c:12:
+> dvbdevice.h:19:2: error: #error VDR requires Linux DVB driver API version
+> 5.0!
+> In file included from dvbdevice.c:10:
+> dvbdevice.h:19:2: error: #error VDR requires Linux DVB driver API version
+> 5.0!
+> In file included from dvbosd.c:15:
+>
+> Is this not de right driver?, or what is wrong
 
-SAA7135HL/203
-CK2534    03
-TSG07522
+Hint: README
 
-NEC
-D61151F1 A02
-0741E3005
 
-ESMT
-M12L64322A-     7T
-AZG1P72G4     0747
+>
+>
+> gaver
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-Alex
+------=_Part_12966_23045972.1229548227174
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">On Wed, Dec 17, 2008 at 9:59 PM, ga ver <span dir="ltr">&lt;<a href="mailto:gavermer@gmail.com">gavermer@gmail.com</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi<br>
+I download the S2API driver from<br>
+hg clone <a href="http://mercurial.intuxication.org/hg/s2-liplianin" target="_blank">http://mercurial.intuxication.org/hg/s2-liplianin</a><br>
+make and make install OK<br>
+<br>
+I try to install scan-s2 and got<br>
+/usr/local/src# cd scan-s2<br>
+root@gv3:/usr/local/src/scan-s2# make<br>
+gcc -I../s2/linux/include -c diseqc.c -o diseqc.o<br>
+In file included from diseqc.c:7:<br>
+scan.h:86: fout: expected specifier-qualifier-list before &#39;fe_rolloff_t&#39;<br>
+make: *** [diseqc.o] Fout 1<br>
+<br>
+Installing vdr-1.7.2 gives<br>
+/usr/local/src/vdr-1.7.2# make<br>
+In file included from audio.c:12:<br>
+dvbdevice.h:19:2: error: #error VDR requires Linux DVB driver API version 5.0!<br>
+In file included from dvbdevice.c:10:<br>
+dvbdevice.h:19:2: error: #error VDR requires Linux DVB driver API version 5.0!<br>
+In file included from dvbosd.c:15:<br>
+<br>
+Is this not de right driver?, or what is wrong</blockquote><div>Hint: README<br>&nbsp;<br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<br>
+<br>
+gaver<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</blockquote></div><br></div>
+
+------=_Part_12966_23045972.1229548227174--
+
+
+--===============1641627978==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1641627978==--
