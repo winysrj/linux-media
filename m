@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx34.mail.ru ([194.67.23.200])
+Received: from fg-out-1718.google.com ([72.14.220.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1LGTth-00029g-3t
-	for linux-dvb@linuxtv.org; Sat, 27 Dec 2008 08:47:45 +0100
-Received: from [92.101.140.5] (port=9681 helo=localhost.localdomain)
-	by mx34.mail.ru with asmtp id 1LGTt7-000PMO-00
-	for linux-dvb@linuxtv.org; Sat, 27 Dec 2008 10:47:09 +0300
-Date: Sat, 27 Dec 2008 10:52:40 +0300
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081227105240.20a11714@bk.ru>
-In-Reply-To: <495521F6.9060808@makhutov.org>
-References: <20081222142937.GK12059@titan.makhutov-it.de>
-	<8103ad500812221220k2ebee308x673c2ead22c27204@mail.gmail.com>
-	<495521F6.9060808@makhutov.org>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] TS continuity error (was - DVB-S2 stream
- partitially broken for Astra HD+ on 19.2E with SkyStar HD (stb0899))
+	(envelope-from <mkrufky@gmail.com>) id 1LCnvh-0004di-Uk
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 05:22:41 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1561247fga.25
+	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 20:22:34 -0800 (PST)
+Message-ID: <37219a840812162022g4c53d521v19a74ccf97a50ef9@mail.gmail.com>
+Date: Tue, 16 Dec 2008 23:22:34 -0500
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <37219a840812162006h33118a2fr109638bb0802603@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <412bdbff0812161931r17fc2371mfcb28306a3acc610@mail.gmail.com>
+	<37219a840812162006h33118a2fr109638bb0802603@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] RFC - xc5000 init_fw option is broken for HVR-950q
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,36 +29,72 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > under Windows you can use MPEG2Repair - it is a small tool that can
-> > analyze the Transport Stream (TS) for errors. i suspect that the TS
-> > created under Linux have (dis)continuity errors.
-> 
-> The stream has indeed some errors. I am not sure what kind of errors
-> this are, but VDR complains about "TS continuity errors".
-> 
-> MPEG2Repair and TSDoctor are not able to repair the stream.
-> 
-> The errors are much more frequent on Astra HD+ than on Arte HD and the
-> errors only occours with DVB-S2.
-> 
-> Here are some pieces of my VDR logfile:
-> 
-> 
-> Astra HD+
-> [...]
-> Dec 26 19:04:09 gandalf vdr: [2669] TS continuity error (3)
-> Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (7)
-> Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (9)
-> Dec 26 19:04:14 gandalf vdr: [2669] TS continuity error (13)
+On Tue, Dec 16, 2008 at 11:06 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Devin,
+>
+> On Tue, Dec 16, 2008 at 10:31 PM, Devin Heitmueller
+> <devin.heitmueller@gmail.com> wrote:
+>> It looks like because the reset callback is set *after* the
+>> dvb_attach(xc5000...), the if the init_fw option is set the firmware
+>> load will fail (saying "xc5000: no tuner reset callback function,
+>> fatal")
+>>
+>> We need to be setting the callback *before* the dvb_attach() to handle
+>> this case.
+>>
+>> Let me know if anybody sees anything wrong with this proposed patch,
+>> otherwise I will submit a pull request.
+>>
+>> Thanks,
+>>
+>> Devin
+>>
+>> diff -r 95d2c94ec371 linux/drivers/media/video/au0828/au0828-dvb.c
+>> --- a/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+>> 21:35:23 2008 -0500
+>> +++ b/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
+>> 22:27:57 2008 -0500
+>> @@ -382,6 +382,9 @@
+>>
+>>        dprintk(1, "%s()\n", __func__);
+>>
+>> +       /* define general-purpose callback pointer */
+>> +       dvb->frontend->callback = au0828_tuner_callback;
+>> +
+>>        /* init frontend */
+>>        switch (dev->board) {
+>>        case AU0828_BOARD_HAUPPAUGE_HVR850:
+>> @@ -431,8 +434,6 @@
+>>                       __func__);
+>>                return -1;
+>>        }
+>> -       /* define general-purpose callback pointer */
+>> -       dvb->frontend->callback = au0828_tuner_callback;
+>>
+>>        /* register everything */
+>>
+>> --
+>> Devin J. Heitmueller
+>> http://www.devinheitmueller.com
+>> AIM: devinheitmueller
+>
+>
+> This patch is fine & correct - Thanks - Please have it merged into master.
+>
+> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+>
 
+Devin and I  (mostly Devin, actually) just realized that
+"dvb->frontend = NULL until after the demod is attached.  The line
+needs to be between the two dvb_attach() calls."
 
-yes,  I can confirm that I have also this problem even with dvb-s2 h264 channels with standard definition ,  see my report
-here http://www.linuxtv.org/pipermail/vdr/2008-November/018223.html (I have hvr4000)
+So, I think we should leave the callback assignment where it is, and
+just get rid of the init_fw parameter for the xc5000 driver.
 
-It's really annoying problem. I think it doesn't have any link with ffmpeg as software decoder. Artem - have you the same
-problem under Windows with recording recorded under Linux with szap-s2 ?
+I added this init_fw option in the first place, and we really dont
+need it there anymore.
 
-Goga
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
