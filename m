@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
+Received: from mail-in-13.arcor-online.net ([151.189.21.53])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1LCngG-0003LE-15
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 05:06:42 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so1559761fga.25
-	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 20:06:35 -0800 (PST)
-Message-ID: <37219a840812162006h33118a2fr109638bb0802603@mail.gmail.com>
-Date: Tue, 16 Dec 2008 23:06:35 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812161931r17fc2371mfcb28306a3acc610@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <412bdbff0812161931r17fc2371mfcb28306a3acc610@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] RFC - xc5000 init_fw option is broken for HVR-950q
+	(envelope-from <hermann-pitton@arcor.de>) id 1LCnj4-0003tA-8W
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 05:09:35 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: BlackWhiteEagle <blackwhiteeagle@googlemail.com>
+In-Reply-To: <49481D64.3030606@googlemail.com>
+References: <49481D64.3030606@googlemail.com>
+Date: Wed, 17 Dec 2008 05:03:39 +0100
+Message-Id: <1229486619.2612.27.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] SAA7130HL Tuner: SU1278/SHA - STV0299B doesn't	work
+	anymore with the saa7134 (_dvb) module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,66 +20,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Devin,
-
-On Tue, Dec 16, 2008 at 10:31 PM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> It looks like because the reset callback is set *after* the
-> dvb_attach(xc5000...), the if the init_fw option is set the firmware
-> load will fail (saying "xc5000: no tuner reset callback function,
-> fatal")
->
-> We need to be setting the callback *before* the dvb_attach() to handle
-> this case.
->
-> Let me know if anybody sees anything wrong with this proposed patch,
-> otherwise I will submit a pull request.
->
-> Thanks,
->
-> Devin
->
-> diff -r 95d2c94ec371 linux/drivers/media/video/au0828/au0828-dvb.c
-> --- a/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
-> 21:35:23 2008 -0500
-> +++ b/linux/drivers/media/video/au0828/au0828-dvb.c     Tue Dec 16
-> 22:27:57 2008 -0500
-> @@ -382,6 +382,9 @@
->
->        dprintk(1, "%s()\n", __func__);
->
-> +       /* define general-purpose callback pointer */
-> +       dvb->frontend->callback = au0828_tuner_callback;
-> +
->        /* init frontend */
->        switch (dev->board) {
->        case AU0828_BOARD_HAUPPAUGE_HVR850:
-> @@ -431,8 +434,6 @@
->                       __func__);
->                return -1;
->        }
-> -       /* define general-purpose callback pointer */
-> -       dvb->frontend->callback = au0828_tuner_callback;
->
->        /* register everything */
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
-
-
-This patch is fine & correct - Thanks - Please have it merged into master.
-
-Acked-by: Michael Krufky <mkrufky@linuxtv.org>
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGkhCgpTY3JhdGNoaW5nIGhlYWQsIGJ1dCBub3cgSSBoYXZlIGl0IGJhY2suCgpBbSBEaWVuc3Rh
+ZywgZGVuIDE2LjEyLjIwMDgsIDIyOjI4ICswMTAwIHNjaHJpZWIgQmxhY2tXaGl0ZUVhZ2xlOgo+
+IEhlbGxvLAo+IGkndmUgYm91Z2h0IHNvbWUgbW9udGhzIGFnbyBhIFNhdHRlbGl0ZS1DYXJkIGNh
+bGxlZCBGbHlEVkItUyB3aXRoIGFuCj4gZW1wdHkgRUVQUk9NIQo+IENoaXA6IFNBQTcxMzBITAo+
+IFR1bmVyOiBTVTEyNzgvU0hBCj4gSW4gdGhlIHR1bmVyIGlzIGEgU1RWMDI5OUIgKGF0bWVsIDMw
+NiAyNGMwMm4gU0kyNyBhbmQgdGRhODA2MHRzKQo+IAo+IFRoZSBlZXByb20gaXMgZW1wdHkgKGFs
+bCBieXRlcyB3aXRoIEZGKSBzbyBpIGhhZCB0byBmb3JjZSB0byBsb2FkIHRoZQo+IGRyaXZlciB3
+aXRoOgo+IG1vZHByb2JlIHNhYTcxMzQgY2FyZD0xMjgKPiAKPiBJdCB3b3JrZWQgZmluZSBhZnRl
+ciBhIGtlcm5lbCB1cGRhdGUgdG8gMi42LjI3LjkKPiBUaGUgc25hcHNob3QgdmVyc2lvbiBmcm9t
+IGxpbnV4dHYub3JnIG1hZGUgdGhlIHNhbWUgcHJvYmxlbS4KPiBtb2Rwcm9iZSBzYWE3MTM0IGNh
+cmQ9OTcgZG9lc24ndCB3b3JrLiBUaGUgZnJvbnRlbmQgY2FuJ3QgYmUgaW5pdGlhbGl6ZWQ/IQoK
+VGhlIGN1cnJlbnQgRmx5RFZCLVMgY2FyZD05NyBoYXMgYSB0ZGExMDA4NiBkZW1vZCBhbmQgdGRh
+ODI2eCBzaWxpY29uCnR1bmVyIGFuZCBjYW4ndCB3b3JrLiAKCj4gc2FhNzEzMC8zNDogdjRsMiBk
+cml2ZXIgdmVyc2lvbiAwLjIuMTQgbG9hZGVkCj4gc2FhNzEzMFswXTogZm91bmQgYXQgMDAwMDow
+MDowYi4wLCByZXY6IDEsIGlycTogMTgsIGxhdGVuY3k6IDMyLCBtbWlvOgo+IDB4ZGZmZmRjMDAK
+PiBzYWE3MTMwWzBdOiBzdWJzeXN0ZW06IDAwMDA6MDAwMCwgYm9hcmQ6IExpZmVWaWV3IEZseURW
+Qi1TIC9BY29ycAo+IFRWMTM0RFMgW2NhcmQ9OTcsaW5zbW9kIG9wdGlvbl0KPiBzYWE3MTMwWzBd
+OiBib2FyZCBpbml0OiBncGlvIGlzIDAKPiBpbnB1dDogc2FhNzEzNCBJUiAoTGlmZVZpZXcgRmx5
+RFZCLVMgLyBhcyAvY2xhc3MvaW5wdXQvaW5wdXQ3Cj4gdHVuZXInIDQtMDA2ODogY2hpcCBmb3Vu
+ZCBAIDB4ZDAgKHNhYTcxMzBbMF0pCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSAwMDogZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3MTMwWzBdOiBp
+MmMgZWVwcm9tIDEwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gMjA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSAzMDogZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3MTMwWzBd
+OiBpMmMgZWVwcm9tIDQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gNTA6IGZmIGZmIGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSA2MDog
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3MTMw
+WzBdOiBpMmMgZWVwcm9tIDcwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gODA6IGZmIGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSA5
+MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3
+MTMwWzBdOiBpMmMgZWVwcm9tIGEwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gYjA6IGZmIGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJv
+bSBjMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBz
+YWE3MTMwWzBdOiBpMmMgZWVwcm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gZTA6IGZmIGZmIGZmIGZm
+IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVl
+cHJvbSBmMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYK
+PiBzYWE3MTMwWzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgW3Y0bDJdCj4gc2FhNzEzMFsw
+XTogcmVnaXN0ZXJlZCBkZXZpY2UgdmJpMAo+IGR2Yl9pbml0KCkgYWxsb2NhdGluZyAxIGZyb250
+ZW5kCj4gc2FhNzEzMFswXS9kdmI6IGZyb250ZW5kIGluaXRpYWxpemF0aW9uIGZhaWxlZAo+IAo+
+IEZsYXNoaW5nIHRoZSBlZXByb20gd2l0aCB0aGVzZSB0d28gYmxvY2tzIGFuZCBhIHJlYm9vdCBk
+b2Vzbid0IHdvcmsKPiAwMDY4NTEwMDAzNTQyMDFDMDA0MzQzQTkxQzU1RDJCMjkyMjBGRjg2MEZG
+RjIwRkZGRkZGRkZGRkZGRkZGRkZGRkYwMTQwMDEwMzAzRkYwMTAzMDhGRjAxMjhGRkZGRkZGRkZG
+RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkYxRDAwQzBGRjFDMDFGMEZGRkZGRkZGRkZG
+RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
+RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkYKPiAKPiAwMDQyNEUw
+MDAzNTQyMDFDMDA0MzQzQTkxQzU1RDJCMjkyMjBGRjg2MEZGRjIwRkZGRkZGRkZGRkZGRkZGRkZG
+RkYwMTQwMDEwMzAzRkYwMTAzMDhGRjAxRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
+RkZGRkZGRkZGRkYxRDAwQzBGRjFDMDFGMEZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
+RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
+RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkYKPiAKPiBBbnkgaWRlYXM/Cj4gVGhhbmtzIQo+IE1hemUn
+Cj4gCgpZb3UgbXVzdCBoYXZlIGFwcGxpZWQgdGhlIHBhdGNoIGZyb20gUmFsZiBmb3IgdGhpcyBl
+ZXByb20gc3BlY2lhbCBEVkItUwpjYXJkLCB3aGljaCBjYW1lIGluIG92ZXIgTWljaGFlbCBNw7Zo
+bGUuCgpUaGF0IGlzIHNvbWUgcHJvYmxlbSB0b28uIFRoZSBzaWduZWQtb2ZmLWJ5IG11c3QgY29t
+ZSBhdCBsZWFzdCBvbmNlIGZvcm0KdGhlIGF1dGhvciBkaXJlY3RseSBhbmQgY2FuIG5vdCBiZSBz
+aW1wbHkgY2xhaW1lZCBieSBzb21lb25lIGVsc2UgYW5kIEkKdGhpbmsgd2UgZG9uJ3QgaGF2ZSBp
+dC4KCmh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1kdmJAbGludXh0di5vcmcvbXNn
+MjM3MzcuaHRtbAoKSW4gYWJzZW5jZSBvZiBIYXJ0bXV0IEkgYWNrZWQgYXQgbGVhc3QgdGhlIHNh
+YTcxMzQgc3BlY2lmaWMgc3R1ZmYsIGJ1dAp0aGlzIHdhcyBkdXJpbmcgdHVuZXIgcmVmYWN0b3Jp
+bmcgYW5kIHRoZXJlIGhhdmUgYmVlbiBhcmd1bWVudHMgdGhlCnR1bmVyIHNob3VsZCBnbyB0byBk
+dmItcGxsLgoKSXQgaXMgb2YgY291cnNlIHRvdGFsbHkgcmlkaWN1bG91cywgdGhhdCBhIHBhdGNo
+IGJ5IFJhbGYgZ2V0cyBsb3N0IHRoaXMKd2F5LCBidXQgYXQgdGhlc2UgdGltZXMgYXQgbGVhc3Qg
+b25lIG9mIHRoZSBkdmItbWFpbnRhaW5lcnMgc2hvdWxkIGhhdmUKZ2l2ZSBhbiBBQ0sgdG9vIGFu
+ZCBwdWxsIGl0IGluIG9yIFJhbGYgc2hvdWxkIGhhdmUgYXNrZWQgZGlyZWN0bHkuCgpXZSBjYW4g
+YWRvcHQgaXQgdG8gY3VycmVudCBhbmQgc3RhcnQgbGlrZSBzdWdnZXN0ZWQgYW5kIHRoZW4gc2Vl
+IHdoYXQKZnVydGhlciBuZWVkcyB0byBiZSBkb25lLgoKQW55IG9iamVjdGlvbnM/CgpDaGVlcnMs
+Ckhlcm1hbm4KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3
+dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
