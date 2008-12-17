@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1L7opb-00066G-6r
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 11:19:44 +0100
-Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 4935DA5F00003C94 for linux-dvb@linuxtv.org;
-	Wed, 3 Dec 2008 11:19:39 +0100
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Wed, 3 Dec 2008 11:23:14 +0100
-References: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
-	<d9def9db0812021510r1e68e949i603e08be9dfc209@mail.gmail.com>
-	<412bdbff0812021521m163a4d61q52e96de4cf3d2518@mail.gmail.com>
-In-Reply-To: <412bdbff0812021521m163a4d61q52e96de4cf3d2518@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812031123.14065.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] Pinnacle 80e support: not going to happen...
+	(envelope-from <awalls@radix.net>) id 1LD4qQ-0007oe-Sj
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 23:26:20 +0100
+From: Andy Walls <awalls@radix.net>
+To: John Sager <john@sager.me.uk>
+In-Reply-To: <494913C4.9060704@sager.me.uk>
+References: <494913C4.9060704@sager.me.uk>
+Date: Wed, 17 Dec 2008 17:28:20 -0500
+Message-Id: <1229552900.3109.24.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: LinuxTV-DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] pci_abort messages from cx88 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,66 +25,78 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wednesday 03 December 2008 00:21:08 Devin Heitmueller wrote:
-> On Tue, Dec 2, 2008 at 6:10 PM, Markus Rechberger 
-<mrechberger@gmail.com> wrote:
-> > On Tue, Dec 2, 2008 at 11:55 PM, Devin Heitmueller
-> >
-> > <devin.heitmueller@gmail.com> wrote:
-> >> For those of you waiting for Linux support for the Pinnacle 80e,
-> >> I have some bad news:  it's not going to happen.
-> >>
-> >> After investing over 100 hours doing the driver work, adding
-> >> support for the Empia em2874, integrating with the Linux
-> >> tda18271 driver, incorporating the Micronas drx reference driver
-> >> source, and doing all the testing, Micronas has effectively
-> >> killed the project.  They decided that their intellectual
-> >> property was too valuable to make available their reference
-> >> driver code in source code form.  Even worse, because I've seen
-> >> the sources I am effectively prevented from writing any sort of
-> >> reverse engineered driver for the drx-j.
-> >
-> > Not so fast, even though I wasn't involved at knocking this down.
-> > We have a custom player now which is capable of directly
-> > interfacing the I2C chips from those devices. Another feature is
-> > that it supports all the features of those devices, there won't
-> > be any need of different applications anymore. There's also the
-> > thought about publishing an SDK, most applications have problems
-> > of detecting all corresponding devicenodes which are required for
-> > those devices anyway. i2c-dev is an already available and
-> > accepted kernel interface
-> > to userland just as usbfs is.
->
-> Hello Markus,
->
-> Yeah, I saw the screenshots for Empia eeeTV on your website a few
-> days ago - it looks like a neat application and there is certainly
-> a place for a well written application to watch TV.
->
-> For those of you not familiar, Markus is working on his own
-> dedicated TV watching application for Linux and BSD:
-> http://mcentral.de/wiki/index.php5/ISDB-T
->
-> I agree that it is certainly true that a closed-source application
-> could be used with the Pinnacle 80e (since such application would
-> be able to accommodate the Micronas binary-only licensing), however
-> this approach does restrict access to those devices to that
-> specific application and is not a more general solution that would
-> work with whatever application the user wants to use (such as
-> MythTV, Kaffeine, mplayer, etc).
->
-> So for many people, this could be a viable approach.
->
-> Regards,
->
-> Devin
+On Wed, 2008-12-17 at 14:59 +0000, John Sager wrote:
+> This seems to have cropped up sporadically on mailing lists and fora,
+> with no real resolution indicated. I have just bought a Hauppauge
+> WinTV-NOVA-HD-S2 card (recognised as HVR4000(Lite)) which exhibits
+> this problem in my system. I'm running Mythbuntu 8.10 on a quad core
+> Intel-based system - P35/ICH9 chipset - with the v4l-dvb drivers
+> cloned on 16th December. I don't get the problem on first start-up,
+> but if I change channels it starts to appear. However it does seem to
+> stop sometimes on channel change. I suspect the problem is either some
+> kind of race condition between the Intel & Conexant PCI controllers, or
+> some kind of missed or wrong step in chip reconfiguration after a channel
+> change.
+> 
+> When this error occurs, the standard behaviour of the code in cx88-mpeg.c
+> is to stop the DMA current transfer & then restart the queue. This drops
+> data, leading to blocky visuals & sound glitches. As an experiment, I
+> changed the test for general errors in cx8802_mpeg_irq() to ignore the
+> pci_abort error (change 0x1f0100 to 0x170100), and this completely
+> eliminates the dropped data problem. This suggests that the pci transfers
+> complete properly and the pci_abort status is a spurious indication.
 
-what makes Micronas believe that in order to have the High Privilege
-of using their products bought with their money people are willing to
-sacrifice their freedom and hope that someone will adapt
-existing players? I can tell you with absolute certainty that mplayer
-will never adapt and I will reject any (unlikely to come) patch to
-support that library
+You've logically leaped too far.  You can only say that the aborted PCI
+transfers, if any actually happened, didn't matter to apparent proper
+operation of the device in it's current mode of operation.
+
+That said, maybe the best course of action is to ignore PCI aborts when
+a capture is ongoing.  It however, may not be the best idea to ignore
+such errors when setting up for a capture or controlling I2C device
+through the chip.
+
+
+> I also fixed the mask in the test for cx88_print_irqbits() to stop these
+> messages filling up the log (change ~0xff to ~0x800ff).
+> 
+> It may be worth fixing this in the main code to hide the problem for
+> unfortunate users of this & related cards until the real problem is
+> found. Unfortunately I doubt I can help there as a detailed knowledge
+> of the Conexant PCI interface device is probably required to pursue it.
+
+Maybe not.  Look at the cx18 driver where a similar issue was
+confronted.
+
+1) All the PCI MMIO accesses were wrapper-ed  into functions defined in
+cx18-io.[ch]
+
+2) All PCI writes were double checked for a proper readback & retried;
+PCI reads were checked for being 0xffffffff and retried; and statistics
+were collected on how often this happened and what actions
+mattered/helped.
+
+3) The read retires were eliminated - they never helped fix anything.
+Some of the write retries were modified slightly: some registers will
+never readback what you just wrote to them, by the very nature of their
+operation (e.g. clearing interrupt masks)
+
+4) The statistics gathering was removed.
+
+
+A lot of work that toughed almost every file in the driver and was a
+real pain to implement.  It was needed for reliable operation of the
+device, especially in older systems.
+
+So much for a "software transparent IO bus" that PCI was supposed to be.
+
+Regards,
+Andy
+
+> regards,
+> 
+> John
+
+
 
 _______________________________________________
 linux-dvb mailing list
