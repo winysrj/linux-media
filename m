@@ -1,30 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVK3o5V031623
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:03:50 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVK3Xut000756
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:03:34 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so5788573wfc.6
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 12:03:32 -0800 (PST)
-Message-ID: <c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
-Date: Wed, 31 Dec 2008 13:03:32 -0700
-From: "Paul Thomas" <pthomas8589@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHIUPK9016402
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:30:25 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHIUB5G002710
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:30:12 -0500
+Date: Wed, 17 Dec 2008 19:30:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87iqpi4qb0.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0812171921420.8733@axis700.grange>
+References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+	<87iqpi4qb0.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<20081231155344.4cc4594a@gmail.com>
-	<c785bba30812311128u27f9326ah16728a17a5fce7e3@mail.gmail.com>
-	<412bdbff0812311133y7c3c4f28u9d9ed99cbc18233b@mail.gmail.com>
-	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
-	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
-	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
-	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
-Subject: Re: em28xx issues
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: soc-camera: current stack (was Re: [PATCH] mt9m111: Add automatic
+ white balance control)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,45 +28,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-OK, I can compile now, but when I go to modprobe em28xx I get this error.
+On Wed, 17 Dec 2008, Robert Jarzmik wrote:
 
-em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
+> Robert Jarzmik <robert.jarzmik@free.fr> writes:
+> 
+> > Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> > ---
+> >  drivers/media/video/mt9m111.c |   28 +++++++++++++++++++++++++++-
+> >  1 files changed, 27 insertions(+), 1 deletions(-)
+> 
+> Hi Guennadi,
+> 
+> As I see you working for the next tree submission, I wonder if you had seen that
+> patch a couple of days ago ?
 
-thanks,
-Paul
+Yes. My current stack is at
 
-On Wed, Dec 31, 2008 at 12:42 PM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Wed, Dec 31, 2008 at 2:39 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->> Devin,
->>
->> I just ran the "hg clone http://linuxtv.org/hg/v4l-dvb" command a few
->> minutes ago. Is there a different way to get the latest version?
->>
->> thanks,
->> Paul
->
-> Hmmm...  No, that should have done it.
->
-> As a workaround you can just edit v4l/compat.h and look
->
-> To work around the issue, edit v4l/compat.h as follows.  Find the block:
->
-> #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 28)
-> #define snd_BUG_ON(cond) ?? ?? ?? ??WARN((cond), "BUG? (%s)\n",
-> __stringify(cond))
-> #define pci_ioremap_bar(pci, a) ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? \
-> ?? ?? ?? ?? ioremap_nocache(pci_resource_start(pci, a), ?? ??\
-> ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? pci_resource_len(pci, a))
-> #endif
->
-> and change the KERNEL_VERSION(2, 6, 28) to KERNEL_VERSION(2, 6, 27)
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+http://gross-embedded.homelinux.org/~lyakh/v4l-20081217/
+
+the first 9 of those patch have been pushed upstream with a previous 
+request.
+
+Everyone who has contributed to soc-camera is kindly requested to have a 
+look, if I have missed anything, besides, we should very well test it - 
+there are a lot of changes there in the core and in all drivers.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
