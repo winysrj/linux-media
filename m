@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L8v0H-0003Nw-Fh
-	for linux-dvb@linuxtv.org; Sat, 06 Dec 2008 12:07:18 +0100
-Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mB6B7DFx013537
-	for <linux-dvb@linuxtv.org>; Sat, 6 Dec 2008 12:07:13 +0100
-Message-ID: <493A5CE1.7000009@cadsoft.de>
-Date: Sat, 06 Dec 2008 12:07:13 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+Received: from web27707.mail.ukl.yahoo.com ([217.146.177.241])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <pongo_bob@yahoo.co.uk>) id 1LCxNQ-0007A2-7X
+	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 15:27:53 +0100
+Date: Wed, 17 Dec 2008 14:27:18 +0000 (GMT)
+From: Bob <pongo_bob@yahoo.co.uk>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0812170539n62490614ia7fee4e1689f91@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <alpine.LRH.1.10.0810191843050.31488@pub2.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0810191843050.31488@pub2.ifh.de>
-Subject: Re: [linux-dvb] DVBv5 (S2API) API for DVB-T
+Message-ID: <730052.59111.qm@web27707.mail.ukl.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge Nova-TD-500 84xxx remote control
+Reply-To: pongo_bob@yahoo.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,40 +25,101 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 19.10.2008 20:31, Patrick Boettcher wrote:
-> Hi Steve and others,
-> 
-> I was quite busy recently and only found now the time to do what I
-> should have done some time ago as it turned out. I could beat myself.
-> 
-> When I checked how DVB-T is now implemented I saw that there is one
-> thing which was wrong in the DVBv3 API already and is still in DVBv5.
-> 
-> It is regarding hierarchical transmissions and the selection of
-> high-priority and low-priority streams. This was not possible with DVBv3.
-> 
-> I quickly changed how I think it should be done and the resulting patch
-> can be found attached.
-> 
-> The worst is, that this patch changes the frontend.h and thus the user
-> interface. I put some comments in the code I wrote which hopefully helps
-> to understand why I think this is necessary.
-> 
-> I hope it is not too late to apply this and to go for 2.6.28 . If it is,
-> my bad and everyone can blame me for not having a proper hierarchical
-> mode implemented.
-> 
-> Sorry again,
-> Patrick.
 
-[ see http://linuxtv.org/pipermail/linux-dvb/2008-October/029852.html for the patch ]
+--- On Wed, 17/12/08, Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
 
-I'm at the "final approach" of releasing an S2API adapted version of
-VDR 1.7.2, so I'm wondering if this change is going to be adopted in the
-driver or not, or whether it is at all feasible. There haven't been any
-comments in almost two months...
+> From: Devin Heitmueller <devin.heitmueller@gmail.com>
+> Subject: Re: [linux-dvb] Hauppauge Nova-TD-500 84xxx remote control
+> To: pongo_bob@yahoo.co.uk
+> Cc: linux-dvb@linuxtv.org
+> Date: Wednesday, 17 December, 2008, 1:39 PM
+> On Wed, Dec 17, 2008 at 7:14 AM, Bob
+> <pongo_bob@yahoo.co.uk> wrote:
+> > Hi,
+> >  I used the following kludge :
+> >
+> >  The code for handling the remote is missing in
+> linux/drivers/media/dvb/dvb-usb/dib0700_devices.c. Around
+> line 1402 in you need to add
+> >
+> >                        },
+> >                },
+> >
+> >                .rc_interval      =
+> DEFAULT_RC_INTERVAL,
+> >                .rc_key_map       = dib0700_rc_keys,
+> >                .rc_key_map_size  =
+> ARRAY_SIZE(dib0700_rc_keys),
+> >                .rc_query         = dib0700_rc_query
+> >
+> > pinched from the remotes above.
+> >
+> > This enables the remote if you recompile and reload
+> the module you should see a new input device in dmesg, in my
+> case I can cat /dev/input/event4 and see the key presses.
+> >
+> > Unfortunately , the code in dib0700_rc_query always
+> returns the last key pressed so you get an event every 150mS
+> with the same key in it. So on to the next kludge :
+> >
+> > At the top of dib0700_rc_query I added:
+> >
+> > static int toggle;
+> >
+> > and after i = dib0700_ctrl_rd( blah blah) :
+> >
+> > if ( key[2] == toggle )
+> >  return 0;
+> > toggle = key[2];
+> >
+> > This checks if the key fetched from the remote is the
+> same as the last and returns if it is thus dumping all the
+> repeats from dib0700_ctrl_rd;
+> >
+> > Now you should find that UP , DOWN , LEFT and RIGHT
+> keys work ok but not much else.
+> >
+> > Kludge No.3 coming up :
+> > Starting around line 612 in dib0700_devices.c are the
+> key mappings for the Hauppauge remote. I changed the mapping
+> for KEY_OK to KEY_ENTER so now I can navigate menus and
+> select items.
+> >
+> > And that is as far as I've got ..
+> 
+> Hello Bob,
+> 
+> Are you using the latest code and 1.20 firmware?  I pushed
+> in a fix on
+> December 8 that as far as I know addressed the last of the
+> remaining
+> dib0700 IR issues.
+> 
+> It is possible that your device is missing it's RC
+> declaration, which
+> I can add.  But you shouldn't be seeing any more repeat
+> problems.
+> 
+> If people are still having dib0700 IR issues, I would like
+> to hear
+> about it, since I thought I fixed them all...
+> 
+> Devin
+> 
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
-Klaus
+Hi Devin ,
+ I am running the 1.20 firmware but missed that fix. I've just downloaded and tested the latest code and it works fine after enabling the remote. 
+
+Many thanks for your help with this.
+
+
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
