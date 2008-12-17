@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5LqWhA026747
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 16:52:32 -0500
-Received: from smtp.seznam.cz (smtp.seznam.cz [77.75.72.43])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5LovkU028410
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 16:50:58 -0500
-To: video4linux-list@redhat.com
-Content-Disposition: inline
-From: Oldrich Jedlicka <oldium.pro@seznam.cz>
-Date: Fri, 5 Dec 2008 22:49:49 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHIKQsr011031
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:20:26 -0500
+Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHIKCwh027952
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 13:20:12 -0500
+To: g.liakhovetski@gmx.de
+References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 17 Dec 2008 19:20:03 +0100
+In-Reply-To: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+	(Robert Jarzmik's message of "Mon\, 1 Dec 2008 22\:15\:58 +0100")
+Message-ID: <87iqpi4qb0.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200812052249.49816.oldium.pro@seznam.cz>
-Subject: AverMedia CardBus E501R/E506R remote control
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] mt9m111: Add automatic white balance control
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,22 +27,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-Had anybody tried to figure out how the remote control interacts with the 
-card? My old E501R has remote control with chip RT1221 that generates 0.56ms 
-long pulses with variable length space (1.12ms for "0", 2.24ms for "1"). I 
-guess E506R has the same chip, but I do not want to open it (that breaks 
-warranty).
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/video/mt9m111.c |   28 +++++++++++++++++++++++++++-
+>  1 files changed, 27 insertions(+), 1 deletions(-)
 
-If anybody had success getting those pulses on some GPIO bit, please let me 
-know. The protocol decoding is rather easy, but I was not able to get the raw 
-bits.
+Hi Guennadi,
 
-(Note: Also sent to linux-dvb mailing list)
+As I see you working for the next tree submission, I wonder if you had seen that
+patch a couple of days ago ?
 
-Regards,
-Oldrich.
+Cheers.
+
+--
+Robert
 
 --
 video4linux-list mailing list
