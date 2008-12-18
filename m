@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp6-g19.free.fr ([212.27.42.36])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ttk22@free.fr>) id 1LDxGu-0002Jz-Cx
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 09:33:17 +0100
-Received: from smtp6-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id E2635737
-	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 09:33:01 +0100 (CET)
-Received: from [192.168.0.2] (lns-bzn-47f-62-147-251-209.adsl.proxad.net
-	[62.147.251.209])
-	by smtp6-g19.free.fr (Postfix) with ESMTP id E89ED6C2
-	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 09:32:58 +0100 (CET)
-Message-ID: <494CADBA.5010809@free.fr>
-Date: Sat, 20 Dec 2008 09:32:58 +0100
-From: Roland HAMON <ttk22@free.fr>
+Received: from n6a.bullet.ukl.yahoo.com ([217.146.183.154])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1LD7ok-0001Tc-QS
+	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 02:36:47 +0100
+Date: Wed, 17 Dec 2008 21:36:08 -0400
+From: Emmanuel ALLAUD <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <1229023292.21398.0@manu-laptop>
+	<752414.24014.qm@web23206.mail.ird.yahoo.com>
+In-Reply-To: <752414.24014.qm@web23206.mail.ird.yahoo.com> (from
+	newspaperman_germany@yahoo.com on Wed Dec 17 19:11:52 2008)
+Message-Id: <1229564168.9612.3@manu-laptop>
 MIME-Version: 1.0
-To: Linux-dvb list <linux-dvb@linuxtv.org>
-References: <200812181804.34557.lawrence@softsystem.co.uk>	<200812191127.35952.lawrence@softsystem.co.uk>	<7882.1229683311@kewl.org>
-	<200812191216.38259.lawrence@softsystem.co.uk>
-In-Reply-To: <200812191216.38259.lawrence@softsystem.co.uk>
-Subject: Re: [linux-dvb] Nova-S-Plus audio line input
+Content-Disposition: inline
+Subject: [linux-dvb] Re : TT 3200: S2 transponder kind of locks with
+ multiproto but not at all with S2 API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,21 +22,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Le 17.12.2008 19:11:52, Newsy Paper a =E9crit=A0:
+> Hi Emmanuel,
+> =
 
-I have the same pci card, it does not work under kernel 2.6.27 ..
-Do you think I should consider downgrading to 2.624 or something could
-be done to get the card supported under recent kernels ?
+> this is the driver bug TT 3200 has, it has been discussed several
+> times here, but noone knows solution.
+> =
 
-Thx
--- 
- Roland "TTK".
+> kind regards
+> =
+
+
+Hmm OK. But at least now we know that the multiproto driver seems to =
+
+make a little difference as the demod seems to lock here.
+Anyway I hope to be able to get some info to at least be able to help =
+
+the debugging.
+Bye
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
