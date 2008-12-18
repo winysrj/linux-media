@@ -1,33 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBK0wLo020938
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:00:58 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBBJxjOp026057
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 14:59:45 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so556606fga.7
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 11:59:45 -0800 (PST)
-Message-ID: <412bdbff0812111159t79fd8647w6f883496350b8585@mail.gmail.com>
-Date: Thu, 11 Dec 2008 14:59:44 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-In-Reply-To: <alpine.DEB.1.10.0812112053560.26420@bakacsin.ki.iif.hu>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIBWK5k011464
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 06:32:20 -0500
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIBW3ts005124
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 06:32:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Thu, 18 Dec 2008 12:31:41 +0100
+References: <200812180109.51813.hverkuil@xs4all.nl> <494A2492.2050106@hhs.nl>
+In-Reply-To: <494A2492.2050106@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
-	<alpine.DEB.1.10.0811271936080.6927@bakacsin.ki.iif.hu>
-	<412bdbff0812110832h1ab889b7jc30f6e84993456c4@mail.gmail.com>
-	<alpine.DEB.1.10.0812112053560.26420@bakacsin.ki.iif.hu>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200812181231.41885.hverkuil@xs4all.nl>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Please test: using the device release() callback instead of the
+	cdev release
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,40 +31,73 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Dec 11, 2008 at 2:56 PM, Kiss Gabor (Bitman)
-<kissg@ssg.ki.iif.hu> wrote:
->> Are you there?  I would really like to get this support checked in, so
->> if you could please get back to me I would appreciate it.
+On Thursday 18 December 2008 11:23:14 Hans de Goede wrote:
+> <resend with reply to all>
 >
-> Hi Devin,
+> Hans Verkuil wrote:
+> > Hi all,
+> >
+> > My tree http://linuxtv.org/hg/~hverkuil/v4l-dvb drops the cdev release
+> > code in favor of using the refcounting and release callback from the
+> > device struct. Based on the discussion on the kernel list regarding the
+> > use of cdev refcounting it became clear that that was not the right
+> > solution, hence this change.
 >
-> I'm just coming from my brother. On his machine we could capture
-> further USB sessions with channel switch.
+> I haven't tested it, but I have reviewed it. In general it looks ok, but:
 >
-> Within a few minutes I prepare and publish the files.
->
-> Cheers
->
-> Gabor
+> I do not like the VFL_FL_REGISTERED trickery. Why not just hold the
+> videodev_lock in video_register_device_index until completely done? It is
+> not like these are functions which will get called many times a second.
+> This will also lead to cleaner code.
 
-Hello Gabor,
+This flag is meant to handle the case where a USB device is disconnected 
+while an application is still using the video device. In that case the 
+disconnect routine unregisters the video device, but it is still possible 
+to open the device if the device node was made with mknod instead of 
+handled by udev. So it is still possible to call open. Currently drivers 
+need to check for this, but it is much easier to catch this in the v4l core 
+directly.
 
-Please, do not make any channel switches.  Just start the USB capture,
-plug in the device, tune to a single channel, wait two seconds, and
-stop USB capture.
+Note that eventually all the file_operations that v4l drivers use will go 
+through similar code as is now done for open and release. So all those 
+operations will do the same test and hopefully drivers don't need to be 
+bothered about it. There are some other neat things you can do if all ops 
+go through some standard function first (e.g. proper priority handling), 
+but that's for the future.
 
-The problem I'm having right now is that is appears you kept switching
-channels and putting multiple connects/disconnects in the same
-capture.
+> The correct return code in v4l2_open when cfd == NULL, so the device has
+> been removed underneath the open call is -ENODEV, not -EBUSY.
+
+Oops, you are correct. Stupid of me.
+
+> last, device_* seem to have the same problem as cdev_*, when
+> video_unregister_device and v4l2_release race, we can still end up with a
+> kref_put race. I see you've fixed this by taking videodev_lock around
+> device_unregister() and device_put(), but IMHO this really should happen
+> in drivers/base/core.c, other drivers might vary well hit the same issue.
+> Seems you need to hit gkh a bit more with that clue stick of yours :)
+> (note this last one is not a blocker, but would be nice to get fixed
+> eventually).
+
+It seems that the rule is that drivers need to take care of their own 
+locking. Personally I suspect that there are no doubt a lot of drivers that 
+don't do that properly. I don't think it is a terribly good idea to start 
+messing with this, though. I prefer to concentrate on doing the right thing 
+in the v4l framework, that's already difficult enough.
+
+One change I made is that the video_device release() callback is now called 
+without holding the global mutex. Since the release() can take some time 
+depending on what it is doing it's much better not to hold that lock. It 
+takes a bit of extra code, but it's well worth it.
+
+Both changes are now pushed to my tree for review.
 
 Regards,
 
-Devin
+	Hans
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
