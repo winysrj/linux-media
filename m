@@ -1,30 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2JNpR4029963
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 14:23:51 -0500
-Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
-	[195.238.6.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB2JNBZZ028364
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 14:23:11 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Tue, 2 Dec 2008 17:58:35 +0100
-References: <200812011246.08885.hverkuil@xs4all.nl>
-	<200812011524.43499.laurent.pinchart@skynet.be>
-	<20081201130643.661f5743@pedra.chehab.org>
-In-Reply-To: <20081201130643.661f5743@pedra.chehab.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBI0BE2J031387
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 19:11:14 -0500
+Received: from bay0-omc2-s12.bay0.hotmail.com (bay0-omc2-s12.bay0.hotmail.com
+	[65.54.246.148])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBI0AxEF013061
+	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 19:10:59 -0500
+Message-ID: <BAY135-W40EFD75EC68542FE991AB0BFF30@phx.gbl>
+From: Lehel Kovach <lehelkovach@hotmail.com>
+To: <moinejf@free.fr>
+Date: Wed, 17 Dec 2008 16:10:58 -0800
+In-Reply-To: <1229496250.1747.4.camel@localhost>
+References: <BAY135-W47952C51F5ED0CAEE9809BFF50@phx.gbl>
+	<1229421997.1745.23.camel@localhost>
+	<BAY135-W526C1AC293891AC584A4B7BFF50@phx.gbl>
+	<1229496250.1747.4.camel@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812021758.35503.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com,
-	davinci-linux-open-source-bounces@linux.davincidsp.com,
-	linux-kernel@vger.kernel.org,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: video4linux-list@redhat.com
+Subject: RE: quickcam express
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,53 +31,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
 
-On Monday 01 December 2008, Mauro Carvalho Chehab wrote:
-> Hi Hans,
->
-> On Mon, 1 Dec 2008 15:24:43 +0100
->
-> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
-[snip]
+the old cam has this:
 
-> > In a few months time (probably even earlier) the v4l2_device structure
-> > will be reworked (and possible renamed).
->
-> Hmm... why? it would be better to try to have the KABI changes for it at
-> the same kernel release if possible.
+Bus 002 Device 002: ID 046d:0840 Logitech=2C Inc. QuickCam Express
 
-Because Hans is working on more changes.
 
-> > I'm fine with it going to linux-next now if
-> > we agree on the following.
-> >
-> > - We should only advocate v4l2_device usage for subdevices-aware video
-> > devices. Porting all drivers to v4l2_device is currently pointless and
-> > will only make future transitions more difficult.
->
-> This makes sense to me.
->
-> > - v4l2_device should be marked as experimental. I don't want to hear any
-> > API/ABI breakage argument in a few months time when the framework will
-> > evolve.
->
-> Are you meaning marking this as experimental at Kconfig? This seems too
-> complex, since we'll need to test for some var on every driver that were
-> converted, providing two KABI options for each converted driver (the legacy
-> and the v4l2_device way). This doesn't seem to be a good idea, since will
-> add a lot of extra complexity to debug bugs.
+[ 2040.384046] usb 2-5: new full speed USB device using ohci_hcd and addres=
+s 4
+[ 2040.594160] usb 2-5: configuration #1 chosen from 1 choice
+[ 2040.596641] quickcam: QuickCam USB camera found (driver version QuickCam=
+ USB 0.6.6 $Date: 2006/11/04 08:38:14 $)
+[ 2040.596659] quickcam: Kernel:2.6.27-9-generic bus:2 class:FF subclass:FF=
+ vendor:046D product:0840
+[ 2040.611297] quickcam: Sensor HDCS-1000/1100 detected
+[ 2040.621744] quickcam: Registered device: /dev/video0
 
-Not at the Kconfig level, just in the documentation (and possible headers).
+i bought another quickcam (communicate model) and tried it out and got this=
+:
 
-This is a work in progress. Hans wants the changes to go mainline to get 
-broader testing, which is a valid reason, but I'd like to make sure people 
-understand that more changes are coming.
+Bus 002 Device 005: ID 046d:089d Logitech=2C Inc.=20
 
-Best regards,
+[ 2190.096046] usb 2-5: new full speed USB device using ohci_hcd and addres=
+s 5
+[ 2190.300304] usb 2-5: configuration #1 chosen from 1 choice
+[ 2190.641232] usbcore: registered new interface driver snd-usb-audio
 
-Laurent Pinchart
+(the video portion of it didn't register)
 
+
+
+> Subject: RE: quickcam express
+> From: moinejf@free.fr
+> To: lehelkovach@hotmail.com
+> CC: video4linux-list@redhat.com
+> Date: Wed=2C 17 Dec 2008 07:44:10 +0100
+>=20
+> On Tue=2C 2008-12-16 at 08:42 -0800=2C Lehel Kovach wrote:
+> > its  a logitech quickcam express -- the old one: model# 961121-0403
+> >=20
+> > im using 0.6.6 i believe (the one with distroed with ubuntu 8.1). =20
+>=20
+> Bad answer! I want to know the vendor and product IDs and also which
+> Linux driver handles your webcam. Please do:
+> 	lsusb
+> and
+> 	dmesg | tail -20
+> after connecting the webcam.
+>=20
+> --=20
+> Ken ar c'henta=F1 |             ** Breizh ha Linux atav! **
+> Jef             |               http://moinejf.free.fr/
+>=20
+>=20
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
