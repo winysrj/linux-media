@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ch-smtp02.sth.basefarm.net ([80.76.149.213])
+Received: from saturn.adsl24.co.uk ([84.234.17.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aeriksson@fastmail.fm>) id 1LHbRI-0000da-OD
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 11:03:05 +0100
-To: Martin Dauskardt <md001@gmx.de>
-In-reply-to: <200812300909.49996.md001@gmx.de>
-References: <200812300909.49996.md001@gmx.de>
-Mime-Version: 1.0
-Date: Tue, 30 Dec 2008 11:02:54 +0100
-From: Anders Eriksson <aeriksson@fastmail.fm>
-Message-Id: <20081230100254.644B0942B31@tippex.mynet.homeunix.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Where to buy Anysee E30C in Europe ("Euroland")?
+	(envelope-from <john@sager.me.uk>) id 1LDK2E-00081z-5u
+	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 15:39:30 +0100
+Message-ID: <494A607E.9030105@sager.me.uk>
+Date: Thu, 18 Dec 2008 14:38:54 +0000
+From: John Sager <john@sager.me.uk>
+MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+References: <494913C4.9060704@sager.me.uk>
+	<1229552900.3109.24.camel@palomino.walls.org>
+In-Reply-To: <1229552900.3109.24.camel@palomino.walls.org>
+Cc: LinuxTV-DVB <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] pci_abort messages from cx88 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,26 +26,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Andy,
 
-Got one in sweden (Elgiganten, 1000 SEK iirc), but the card reader (CA/CI
-thing) turned out to be unsupported. Reading the kernel sources for the driver,
-i found a comment indicating that the CA/CI reader was not (yet) supported.
+Thanks for the reply.
 
-Luckily, Elgiganten had a free 30 day return policy, so I returned mine.
+Andy Walls wrote:
 
-/Anders
+> 
+> You've logically leaped too far.  You can only say that the aborted PCI
+> transfers, if any actually happened, didn't matter to apparent proper
+> operation of the device in it's current mode of operation.
+> 
+> That said, maybe the best course of action is to ignore PCI aborts when
+> a capture is ongoing.  It however, may not be the best idea to ignore
+> such errors when setting up for a capture or controlling I2C device
+> through the chip.
 
+The interrupts in question are specifically related to the transport
+stream.
 
-md001@gmx.de said:
-> It looks like this box is the only DVB-C USB 2.0 device working with Linux. I
-> cannot find any distributor in Germany, so I am willing to order it from
-> other europe countrys where I can pay in Euro currency. 
+> 
+>>
+>> It may be worth fixing this in the main code to hide the problem for
+>> unfortunate users of this & related cards until the real problem is
+>> found. Unfortunately I doubt I can help there as a detailed knowledge
+>> of the Conexant PCI interface device is probably required to pursue it.
+> 
+> Maybe not.  Look at the cx18 driver where a similar issue was
+> confronted.
 
-> If anyone knows a respectable webshop in his country which can deliver it,
-> feel free to contact me directly. 
+Yuk. I see what you mean. I don't think I really want to go that far.
+The fix is minor so I don't mind patching kernels for my own use
+when they get upgraded. If I start getting other problems as a consequence
+I may just give up on the card but fingers-crossed it's working OK
+for now.
 
+regards,
 
-
+John
 
 _______________________________________________
 linux-dvb mailing list
