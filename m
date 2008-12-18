@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOHYksj020658
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:34:46 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBOHYUCD002347
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:34:30 -0500
-Date: Wed, 24 Dec 2008 18:34:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <87wsdplc29.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0812241831210.5463@axis700.grange>
-References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
-	<87iqpi4qb0.fsf@free.fr>
-	<Pine.LNX.4.64.0812171921420.8733@axis700.grange>
-	<Pine.LNX.4.64.0812200104090.9649@axis700.grange>
-	<87wsdplc29.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBICaSdg014060
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 07:36:28 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBICa7B9009423
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 07:36:08 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Thu, 18 Dec 2008 13:36:09 +0100
+References: <200812180109.51813.hverkuil@xs4all.nl> <494A2492.2050106@hhs.nl>
+In-Reply-To: <494A2492.2050106@hhs.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: soc-camera: current stack
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200812181336.09846.laurent.pinchart@skynet.be>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Please test: using the device release() callback instead of the
+	cdev release
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,57 +32,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 24 Dec 2008, Robert Jarzmik wrote:
-
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > This should produce an equivalent of what is currently in my hg tree - at 
-> > least in what soc-camera concerns. If there's any interest, I might look 
-> > into installing a git-server and providing a git-tree with soc-camera 
-> > patches on that server, for 3 users to pull 5 putches every 2 weeks my 
-> > 400MHz ARM9 on a dyndns ADSL line should be enough:-)
+On Thursday 18 December 2008, Hans de Goede wrote:
+> <resend with reply to all>
+>
+> Hans Verkuil wrote:
+> > Hi all,
 > >
-> > Next on queue (not yet in any of the directories on that server)
-> 
-> Hi Guennadi,
-> 
-> I made some tests of your patches against mainline tree (2.6.28-rc4 actually),
-> on pxa271 + mt9m111.
-> 
-> I have one little problem I can't remember having before :
-> 
-> [  728.372987] Backtrace:
-> [  728.378014] [<bf05f230>] (mt9m111_set_register+0x0/0x80 [mt9m111]) from [<bf056300>] (soc_camera_s_register+0x2c/0x38 [soc_camera])
-> [  728.388248]  r5:039e6cf0 r4:00000018
-> [  728.393278] [<bf0562d4>] (soc_camera_s_register+0x0/0x38 [soc_camera]) from [<c0164734>] (__video_ioctl2+0x684/0x39a4)
-> [  728.403419] [<c01640b0>] (__video_ioctl2+0x0/0x39a4) from [<c0167a70>] (video_ioctl2+0x1c/0x20)
-> [  728.413404] [<c0167a54>] (video_ioctl2+0x0/0x20) from [<c009a8fc>] (vfs_ioctl+0x74/0x78)
-> [  728.423393] [<c009a888>] (vfs_ioctl+0x0/0x78) from [<c009acb8>] (do_vfs_ioctl+0x390/0x4ac)
-> [  728.433342]  r5:039e6cf0 r4:c39d3340
-> [  728.438221] [<c009a928>] (do_vfs_ioctl+0x0/0x4ac) from [<c009ae14>] (sys_ioctl+0x40/0x68)
-> [  728.447976] [<c009add4>] (sys_ioctl+0x0/0x68) from [<c0024e80>] (ret_fast_syscall+0x0/0x2c)
-> [  728.457785]  r7:00000036 r6:4018564f r5:039e6cf0 r4:00000000
-> [  728.462692] Code: e89da800 e1a0c00d e92dd830 e24cb004 (e5913000)
-> [  728.468135] ---[ end trace a231255d0862dac6 ]---
+> > My tree http://linuxtv.org/hg/~hverkuil/v4l-dvb drops the cdev release
+> > code in favor of using the refcounting and release callback from the
+> > device struct. Based on the discussion on the kernel list regarding the
+> > use of cdev refcounting it became clear that that was not the right
+> > solution, hence this change.
+>
+> I haven't tested it, but I have reviewed it. In general it looks ok, but:
+>
+> I do not like the VFL_FL_REGISTERED trickery. Why not just hold the
+> videodev_lock in video_register_device_index until completely done? It is
+> not like these are functions which will get called many times a second.
+> This will also lead to cleaner code.
+>
+> The correct return code in v4l2_open when cfd == NULL, so the device has
+> been removed underneath the open call is -ENODEV, not -EBUSY.
+>
+> last, device_* seem to have the same problem as cdev_*, when
+> video_unregister_device and v4l2_release race, we can still end up with a
+> kref_put race. I see you've fixed this by taking videodev_lock around
+> device_unregister() and device_put(), but IMHO this really should happen in
+> drivers/base/core.c, other drivers might vary well hit the same issue.
+> Seems you need to hit gkh a bit more with that clue stick of yours :) (note
+> this last one is not a blocker, but would be nice to get fixed eventually).
 
-You didn't post the top part - from ---[ start trace ... ]--- (or whatever 
-it is marked), it shows the exact PC and the reason for the Oops. But it's 
-strange - I don't think anything has changed aroung controls / 
-get/set_register. Have you replaced both the kernel and the modules? 
-Sorry, stupid question, but it really looks strange.
+That would be a performance killer. We need a global lock to prevent races, 
+and I'm pretty sure a single global lock across all devices will be rejected 
+(especially if it's a mutex). Handling locking at the subsystem level still 
+requires a global lock, but we will have one per subsystem.
 
-> I'm not sure whether the problem is not on my setup, I hadn't touched it for
-> days. I know after opening the video device, I setup a camera register before
-> taking the picture (to set up the test pattern and automate my non-regression
-> tests).
-> 
-> Will check after Christmas :)
+Regards,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Laurent Pinchart
 
 --
 video4linux-list mailing list
