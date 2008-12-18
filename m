@@ -1,23 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIANofP006132
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 05:23:50 -0500
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIANhRo031675
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 05:23:44 -0500
-Message-ID: <494A2492.2050106@hhs.nl>
-Date: Thu, 18 Dec 2008 11:23:14 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <200812180109.51813.hverkuil@xs4all.nl>
-In-Reply-To: <200812180109.51813.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJ0vJsO016755
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 19:57:19 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJ0v5BM022250
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 19:57:05 -0500
+Date: Thu, 18 Dec 2008 20:57:06 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20081218205706.60bf1526@caramujo.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0812190026180.8046@axis700.grange>
+References: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
+	<20081218160841.GA13851@linux-sh.org>
+	<Pine.LNX.4.64.0812181717320.5510@axis700.grange>
+	<20081218162439.GA27151@linux-sh.org>
+	<Pine.LNX.4.64.0812181730080.5510@axis700.grange>
+	<20081218191839.78cb627d@caramujo.chehab.org>
+	<Pine.LNX.4.64.0812190026180.8046@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Please test: using the device release() callback instead of the
- cdev release
+Cc: Magnus Damm <damm@igel.co.jp>, video4linux-list@redhat.com,
+	Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org
+Subject: Re: A patch got applied to v4l bypassing v4l lists
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,40 +34,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-<resend with reply to all>
+On Fri, 19 Dec 2008 00:30:05 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-Hans Verkuil wrote:
-> Hi all,
+> > A side note: maybe the design of pxa_camera could be improved to avoid needing
+> > to be touched as architecture changes. This is the only v4l driver that includes
+> > asm/arch header files.
 > 
-> My tree http://linuxtv.org/hg/~hverkuil/v4l-dvb drops the cdev release code 
-> in favor of using the refcounting and release callback from the device 
-> struct. Based on the discussion on the kernel list regarding the use of 
-> cdev refcounting it became clear that that was not the right solution, 
-> hence this change.
-> 
+> The patch in question was for sh_mobile_ceu_camera.c - not for pxa, and 
+> even though that one doesn't include any asm headers, as you see, it is 
+> also tied pretty closely with respective platform code.
 
-I haven't tested it, but I have reviewed it. In general it looks ok, but:
+> As for including asm headers in pxa_camera.c - it wouldn't be easy to get 
+> rid of them, one of the main obstacles is the use of the pxa-specific 
+> dma-channel handling API.
 
-I do not like the VFL_FL_REGISTERED trickery. Why not just hold the
-videodev_lock in video_register_device_index until completely done? It is not
-like these are functions which will get called many times a second. This will
-also lead to cleaner code.
+Ok. I dunno the specific details of the sh and pxa bindings, but it would be
+better to have it more independent from architecture specific implementation
+details.
 
-The correct return code in v4l2_open when cfd == NULL, so the device has been
-removed underneath the open call is -ENODEV, not -EBUSY.
-
-last, device_* seem to have the same problem as cdev_*, when
-video_unregister_device and v4l2_release race, we can still end up with a
-kref_put race. I see you've fixed this by taking videodev_lock around
-device_unregister() and device_put(), but IMHO this really should happen in
-drivers/base/core.c, other drivers might vary well hit the same issue. Seems
-you need to hit gkh a bit more with that clue stick of yours :) (note this last
-one is not a blocker, but would be nice to get fixed eventually).
-
-Regards,
-
-Hans (the other Hans)
-
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
