@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25])
+Received: from mognix.dark-green.com ([88.116.226.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <storkus@storkus.com>) id 1L8ITF-0004W4-4K
-	for linux-dvb@linuxtv.org; Thu, 04 Dec 2008 18:58:38 +0100
-Received: from compute1.internal (compute1.internal [10.202.2.41])
-	by out1.messagingengine.com (Postfix) with ESMTP id 407781CC942
-	for <linux-dvb@linuxtv.org>; Thu,  4 Dec 2008 12:58:31 -0500 (EST)
-Message-Id: <1228413511.30817.1288290035@webmail.messagingengine.com>
-From: storkus@storkus.com
+	(envelope-from <gimli@dark-green.com>) id 1LDNEQ-0001F6-HC
+	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 19:04:20 +0100
+Received: from webmail.dark-green.com
+	(83-64-96-243.bad-voeslau.xdsl-line.inode.at [83.64.96.243])
+	by mognix.dark-green.com (Postfix) with ESMTP id 656D35AC09B
+	for <linux-dvb@linuxtv.org>; Thu, 18 Dec 2008 19:04:51 +0100 (CET)
+Message-ID: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+Date: Thu, 18 Dec 2008 19:04:03 +0100 (CET)
+From: "gimli" <gimli@dark-green.com>
 To: linux-dvb@linuxtv.org
-Content-Transfer-Encoding: 7bit
-Content-Type: multipart/mixed; boundary="_----------=_1228413511308170";
-	charset="ISO-8859-1"
 MIME-Version: 1.0
-Date: Thu, 04 Dec 2008 10:58:31 -0700
-Subject: [linux-dvb] Strange problem with loading firmware on HVR-950Q
-	(XC5000)
-Reply-To: storkus@storkus.com
+Subject: [linux-dvb] S2API drivers sync
+Reply-To: gimli@dark-green.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,133 +21,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+What about syncing up with Igor M. Liplianin's
+S2API tree to get more S2API drivers in the
+v4l-hg tree ?
 
---_----------=_1228413511308170
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="ISO-8859-1"
-MIME-Version: 1.0
-X-Mailer: MessagingEngine.com Webmail Interface
-Date: Thu, 4 Dec 2008 17:58:31 UT
+cu
 
-Apologies in advance if the attachment doesn't work: I'm on web-mail.
+Edgar (gimli) Hucek
 
-Anyway, my kernel-fu isn't very good and I can't make heads or tails of
-the following, other than this appeared exactly the same way even before
-I realized I needed to extract firmware for the XC5000.  It lives in
-/lib/firmware now, but no difference, as I said.
-
-I saw this exact same thing on another message in another list, but
-there were no replies (probably because it wasn't a DVB list).
-
-Thanks for any and all help!
-
-Mike
-
-
---_----------=_1228413511308170
-Content-Disposition: attachment; filename="dmesg.txt"
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; name="dmesg.txt"
-MIME-Version: 1.0
-X-Mailer: MessagingEngine.com Webmail Interface
-Date: Thu, 4 Dec 2008 17:58:31 UT
-
-eGM1MDAwOiB3YWl0aW5nIGZvciBmaXJtd2FyZSB1cGxvYWQgKGR2Yi1mZS14
-YzUwMDAtMS4xLmZ3KS4uLgpmaXJtd2FyZTogcmVxdWVzdGluZyBkdmItZmUt
-eGM1MDAwLTEuMS5mdwotLS0tLS0tLS0tLS1bIGN1dCBoZXJlIF0tLS0tLS0t
-LS0tLS0KV0FSTklORzogYXQgZnMvc3lzZnMvZGlyLmM6NDYzIHN5c2ZzX2Fk
-ZF9vbmUrMHgzMy8weDNhKCkKc3lzZnM6IGR1cGxpY2F0ZSBmaWxlbmFtZSAn
-aTJjLTAnIGNhbiBub3QgYmUgY3JlYXRlZApNb2R1bGVzIGxpbmtlZCBpbjog
-c25kX3NlcV9vc3Mgc25kX3NlcV9taWRpX2V2ZW50IHNuZF9zZXEgc25kX3Bj
-bV9vc3Mgc25kX21peGVyX29zcyB4YzUwMDAgYXU4NTIyIHdsYW5fc2Nhbl9z
-dGEgYXRoX3JhdGVfc2FtcGxlIHNuZF91c2JfYXVkaW8gc25kX2hkYV9pbnRl
-bCBzbmRfdXNiX2xpYiBzbmRfcGNtIGF1MDgyOCBzbmRfcmF3bWlkaSBkdmJf
-Y29yZSBzbmRfdGltZXIgc25kX3NlcV9kZXZpY2Ugc25kX2h3ZGVwIHV2Y3Zp
-ZGVvIGNvbXBhdF9pb2N0bDMyIGF0aF9wY2kgbnZpZGlhKFApIHNuZCB2aWRl
-b2RldiB3bGFuIHNkaGNpX3BjaSBvaGNpMTM5NCBhdGhfaGFsKFApIHNkaGNp
-IG1tY19jb3JlIGllZWUxMzk0IHNuZF9wYWdlX2FsbG9jIHJpY29oX21tYyB2
-NGwxX2NvbXBhdCB0dmVlcHJvbQpQaWQ6IDE1NTYsIGNvbW06IGtkdmItZmUt
-MCBUYWludGVkOiBQICAgTSAgICAgIDIuNi4yNy43ICMyCgpDYWxsIFRyYWNl
-OgogWzxmZmZmZmZmZjgwMjMyOTJkPl0gd2Fybl9zbG93cGF0aCsweGI0LzB4
-ZGYKIFs8ZmZmZmZmZmY4MDIzYWZjND5dIGxvY2tfdGltZXJfYmFzZSsweDI2
-LzB4NGIKIFs8ZmZmZmZmZmY4MDQ0N2RmNj5dIF9zcGluX3VubG9ja19pcnFy
-ZXN0b3JlKzB4MzEvMHgzZAogWzxmZmZmZmZmZjgwMmZhZmQ0Pl0gc3RyaW5n
-KzB4MzQvMHg5MQogWzxmZmZmZmZmZjgwMmZiMzNjPl0gdnNucHJpbnRmKzB4
-MzBiLzB4NTg2CiBbPGZmZmZmZmZmODA0NDZiMWM+XSBzY2hlZHVsZV90aW1l
-b3V0KzB4OTIvMHhhZAogWzxmZmZmZmZmZjgwMmY2M2MzPl0gaWRyX2dldF9l
-bXB0eV9zbG90KzB4MTVkLzB4MjJjCiBbPGZmZmZmZmZmODAyOTM0YTg+XSBm
-aW5kX2lub2RlKzB4MjgvMHg2YwogWzxmZmZmZmZmZjgwMmMyN2U0Pl0gc3lz
-ZnNfaWxvb2t1cF90ZXN0KzB4MC8weGYKIFs8ZmZmZmZmZmY4MDJjMmEyMz5d
-IHN5c2ZzX2ZpbmRfZGlyZW50KzB4MWIvMHgyZgogWzxmZmZmZmZmZjgwMmMy
-YjAxPl0gc3lzZnNfYWRkX29uZSsweDMzLzB4M2EKIFs8ZmZmZmZmZmY4MDJj
-MzA1ZD5dIGNyZWF0ZV9kaXIrMHg0Zi8weDdjCiBbPGZmZmZmZmZmODAyYzMw
-YmY+XSBzeXNmc19jcmVhdGVfZGlyKzB4MzUvMHg0YQogWzxmZmZmZmZmZjgw
-NDQ3YWM3Pl0gX3NwaW5fdW5sb2NrKzB4MmYvMHgzYwogWzxmZmZmZmZmZjgw
-MmY3MGUzPl0ga29iamVjdF9hZGRfaW50ZXJuYWwrMHhkMi8weDE4ZAogWzxm
-ZmZmZmZmZjgwMmY3NmNlPl0ga29iamVjdF9hZGQrMHg3NC8weDdjCiBbPGZm
-ZmZmZmZmODAyMzMzMmY+XSB2cHJpbnRrKzB4MmUwLzB4MmZiCiBbPGZmZmZm
-ZmZmYTA4YmE0NjI+XSBpMmNfd2FpdF9kb25lKzB4MTkvMHgzYiBbYXUwODI4
-XQogWzxmZmZmZmZmZjgwMjMzMzk4Pl0gcHJpbnRrKzB4NGUvMHg1NgogWzxm
-ZmZmZmZmZjgwMzU0NjE3Pl0gZGV2aWNlX2FkZCsweDlmLzB4NGRhCiBbPGZm
-ZmZmZmZmODAyZjZkOTA+XSBrb2JqZWN0X2luaXRfaW50ZXJuYWwrMHgxMi8w
-eDJjCiBbPGZmZmZmZmZmODAyZjZlMDg+XSBrb2JqZWN0X2luaXQrMHg0MS8w
-eDY5CiBbPGZmZmZmZmZmODAzNTllYjk+XSBfcmVxdWVzdF9maXJtd2FyZSsw
-eDFiNC8weDM4ZgogWzxmZmZmZmZmZmEwOTQxYTdhPl0geGNfbG9hZF9md19h
-bmRfaW5pdF90dW5lcisweDY2LzB4MjdkIFt4YzUwMDBdCiBbPGZmZmZmZmZm
-YTA5NDFjY2U+XSB4YzUwMDBfaW5pdCsweDNkLzB4NmYgW3hjNTAwMF0KIFs8
-ZmZmZmZmZmZhMDhhMmIzNj5dIGR2Yl9mcm9udGVuZF9pbml0KzB4NDkvMHg2
-MyBbZHZiX2NvcmVdCiBbPGZmZmZmZmZmYTA4YTNlNTc+XSBkdmJfZnJvbnRl
-bmRfdGhyZWFkKzB4ODYvMHgzMjMgW2R2Yl9jb3JlXQogWzxmZmZmZmZmZmEw
-OGEzZGQxPl0gZHZiX2Zyb250ZW5kX3RocmVhZCsweDAvMHgzMjMgW2R2Yl9j
-b3JlXQogWzxmZmZmZmZmZjgwMjQzZTdiPl0ga3RocmVhZCsweDQ3LzB4NzQK
-IFs8ZmZmZmZmZmY4MDIyZWQ2Nz5dIHNjaGVkdWxlX3RhaWwrMHgyOC8weDYw
-CiBbPGZmZmZmZmZmODAyMGM0Yjk+XSBjaGlsZF9yaXArMHhhLzB4MTEKIFs8
-ZmZmZmZmZmY4MDI0M2UzND5dIGt0aHJlYWQrMHgwLzB4NzQKIFs8ZmZmZmZm
-ZmY4MDIwYzRhZj5dIGNoaWxkX3JpcCsweDAvMHgxMQoKLS0tWyBlbmQgdHJh
-Y2UgODNkMGNjM2M0NjQzNzRlMCBdLS0tCmtvYmplY3RfYWRkX2ludGVybmFs
-IGZhaWxlZCBmb3IgaTJjLTAgd2l0aCAtRUVYSVNULCBkb24ndCB0cnkgdG8g
-cmVnaXN0ZXIgdGhpbmdzIHdpdGggdGhlIHNhbWUgbmFtZSBpbiB0aGUgc2Ft
-ZSBkaXJlY3RvcnkuClBpZDogMTU1NiwgY29tbToga2R2Yi1mZS0wIFRhaW50
-ZWQ6IFAgICBNICAgIFcgMi42LjI3LjcgIzIKCkNhbGwgVHJhY2U6CiBbPGZm
-ZmZmZmZmODAyZjcxNWY+XSBrb2JqZWN0X2FkZF9pbnRlcm5hbCsweDE0ZS8w
-eDE4ZAogWzxmZmZmZmZmZjgwMmY3NmNlPl0ga29iamVjdF9hZGQrMHg3NC8w
-eDdjCiBbPGZmZmZmZmZmODAyMzMzMmY+XSB2cHJpbnRrKzB4MmUwLzB4MmZi
-CiBbPGZmZmZmZmZmYTA4YmE0NjI+XSBpMmNfd2FpdF9kb25lKzB4MTkvMHgz
-YiBbYXUwODI4XQogWzxmZmZmZmZmZjgwMjMzMzk4Pl0gcHJpbnRrKzB4NGUv
-MHg1NgogWzxmZmZmZmZmZjgwMzU0NjE3Pl0gZGV2aWNlX2FkZCsweDlmLzB4
-NGRhCiBbPGZmZmZmZmZmODAyZjZkOTA+XSBrb2JqZWN0X2luaXRfaW50ZXJu
-YWwrMHgxMi8weDJjCiBbPGZmZmZmZmZmODAyZjZlMDg+XSBrb2JqZWN0X2lu
-aXQrMHg0MS8weDY5CiBbPGZmZmZmZmZmODAzNTllYjk+XSBfcmVxdWVzdF9m
-aXJtd2FyZSsweDFiNC8weDM4ZgogWzxmZmZmZmZmZmEwOTQxYTdhPl0geGNf
-bG9hZF9md19hbmRfaW5pdF90dW5lcisweDY2LzB4MjdkIFt4YzUwMDBdCiBb
-PGZmZmZmZmZmYTA5NDFjY2U+XSB4YzUwMDBfaW5pdCsweDNkLzB4NmYgW3hj
-NTAwMF0KIFs8ZmZmZmZmZmZhMDhhMmIzNj5dIGR2Yl9mcm9udGVuZF9pbml0
-KzB4NDkvMHg2MyBbZHZiX2NvcmVdCiBbPGZmZmZmZmZmYTA4YTNlNTc+XSBk
-dmJfZnJvbnRlbmRfdGhyZWFkKzB4ODYvMHgzMjMgW2R2Yl9jb3JlXQogWzxm
-ZmZmZmZmZmEwOGEzZGQxPl0gZHZiX2Zyb250ZW5kX3RocmVhZCsweDAvMHgz
-MjMgW2R2Yl9jb3JlXQogWzxmZmZmZmZmZjgwMjQzZTdiPl0ga3RocmVhZCsw
-eDQ3LzB4NzQKIFs8ZmZmZmZmZmY4MDIyZWQ2Nz5dIHNjaGVkdWxlX3RhaWwr
-MHgyOC8weDYwCiBbPGZmZmZmZmZmODAyMGM0Yjk+XSBjaGlsZF9yaXArMHhh
-LzB4MTEKIFs8ZmZmZmZmZmY4MDI0M2UzND5dIGt0aHJlYWQrMHgwLzB4NzQK
-IFs8ZmZmZmZmZmY4MDIwYzRhZj5dIGNoaWxkX3JpcCsweDAvMHgxMQoKZndf
-cmVnaXN0ZXJfZGV2aWNlOiBkZXZpY2VfcmVnaXN0ZXIgZmFpbGVkCnhjNTAw
-MDogVXBsb2FkIGZhaWxlZC4gKGZpbGUgbm90IGZvdW5kPykKeGM1MDAwOiBV
-bmFibGUgdG8gaW5pdGlhbGlzZSB0dW5lcgo=
-
---_----------=_1228413511308170
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---_----------=_1228413511308170--
