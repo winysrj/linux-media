@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHEJtWr012425
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:19:55 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIGnPc2027191
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 11:49:25 -0500
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBHEJeUq026255
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:19:40 -0500
-Date: Wed, 17 Dec 2008 15:19:51 +0100 (CET)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBIGmvBR025387
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 11:49:02 -0500
+Date: Thu, 18 Dec 2008 17:49:09 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20081201124313.4d233311@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.64.0812171514180.5465@axis700.grange>
-References: <Pine.LNX.4.64.0812011412050.3915@axis700.grange>
-	<20081201124313.4d233311@pedra.chehab.org>
+To: Paul Mundt <lethal@linux-sh.org>
+In-Reply-To: <20081218162439.GA27151@linux-sh.org>
+Message-ID: <Pine.LNX.4.64.0812181730080.5510@axis700.grange>
+References: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
+	<20081218160841.GA13851@linux-sh.org>
+	<Pine.LNX.4.64.0812181717320.5510@axis700.grange>
+	<20081218162439.GA27151@linux-sh.org>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: Patches, affecting directories not in hg/linux
+Cc: Magnus Damm <damm@igel.co.jp>, video4linux-list@redhat.com,
+	linux-sh@vger.kernel.org
+Subject: Re: A patch got applied to v4l bypassing v4l lists
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,53 +30,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 1 Dec 2008, Mauro Carvalho Chehab wrote:
+On Fri, 19 Dec 2008, Paul Mundt wrote:
 
-> On Mon, 1 Dec 2008 14:22:17 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> It should not cause extra work at all. The only time it may cause extra
+> work is if you are talking about splitting up the patch and pulling in
+> the v4l specific parts in to your v4l tree. My point is that this is
+> absolutely the wrong thing to do, since the changes are tied together for
+> a reason.
 > 
-> > Hi Mauro,
-> > 
-> > I have a series of two patches, of which the first _amends_ a pxa-header, 
-> > creates a header under drivers/media/video/, and changes pxa_camera.c to 
-> > include the new header:
-> > 
-> >  arch/arm/mach-pxa/include/mach/pxa-regs.h |   95 -----------------------------
-> >  drivers/media/video/pxa_camera.c          |    2 +
-> >  drivers/media/video/pxa_camera.h          |   95 +++++++++++++++++++++++++++++
-> >  3 files changed, 97 insertions(+), 95 deletions(-)
-> >  create mode 100644 drivers/media/video/pxa_camera.h
-> > 
-> > and the second one is based on the first: it only touches files under 
-> > drivers/media/video, but needs results of the first one:
-> > 
-> >  drivers/media/video/pxa_camera.c |  204 ++++++++++++++++++++++++++++++--------
-> >  drivers/media/video/pxa_camera.h |   95 ------------------
-> >  2 files changed, 162 insertions(+), 137 deletions(-)
-> >  delete mode 100644 drivers/media/video/pxa_camera.h
-> > 
-> > (yes, it deletes drivers/media/video/pxa_camera.h again... No, I don't 
-> > like it either)
+> The last time you went down this splitting of the patch path you
+> completely broke bisection for us for an extended period of time, and
+> choosing policy over functionality is simply not something I will be part
+> of. If you want to split the patch up and merge parts in to your own
+> tree, that is perfectly fine, but it is both unnecessary, and I will
+> still be merging the change including its dependencies in one shot
+> without the split in my own tree so as to not break bi-section.
 > 
-> Argh! Why inserting the header file just to delete on the next patch?
-> 
-> > I acked the first one and it is going to be merged over the ARM tree, the 
-> > second one we should merge ourselves.
-> > 
-> > Shall we wait until the first one is in "next", so we can resync with it 
-> > and then push the second one or how would you prefer to do this?
-> 
-> For sure we need to wait for the first one to be at -next. Then, we should
-> apply it, with a meta tag "kernel-sync:", to not break the compilation of
-> v4l/dvb tree[1], and apply the second one.
-> 
-> [1] The meta-tag will sign to my scripts to discard the patch, not exporting it to -git.
+> If v4l has a policy that anything modifying drivers/media in anyway
+> whatsoever needs to be split out and merged through the v4l tree, you
+> might consider rethinking your policy and reshaping it in to something
+> that actually makes sense. Breaking bisection is not acceptable, period.
 
-So, the commit is now in next. Shall I create a pseudo-patch with only 
-that one drivers/media/video/pxa_camera.h file added and a respective 
-#include added to pxa_camera.c and merge it in my hg-tree for you to pull 
-from? I understand I should just add a line with "kernel-sync:" alone in 
-it in the patch description?
+Agree - breaking bisection is not something I'm looking into.
+
+If you like, I can explain to you where this extra work comes from. That's 
+my current understanding of the work flow on v4l, it might still be not 
+quite right, so I'll be happy if anyone corrects me and tells me a better 
+way to handle this.
+
+v4l uses mercurial repositories as primary dveelopment trees. These 
+repositories do not contain complete kernel trees, instead, they present a 
+directory with some tools, where linux is a subdirectory of, and that's 
+where a part of the kernel is reproduced.
+
+That part includes of course drivers/media, include/media, some files 
+under include/linux, and a couple more random files which has at some 
+moment been integrated because they were relevant or because some patch 
+touched simultaneously those files and v4l code.
+
+These trees are used for out-of-tree driver development, besides, they are 
+trying to make this development and testing possible with a few kernel 
+versions back, which means they have to modify sources to include various
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27)
+...
+#else
+...
+#endif
+
+blocks etc.
+
+Now, it is implicitly assumed, that any development touching v4l code goes 
+only in one direction - from these hg trees towards mainline. Any changes 
+coming in the other direction involve extra work - they have to be 
+back-ported to those hg-trees and specially marked to avoid scripts 
+attempting to push them into git-trees again.
+
+So, that's exactly what I had to do this time - find your patch, split off 
+the v4l part, commit it marking "not for upstream".
+
+So, now I'd really love to hear that I'm wrong and I oversee much easier 
+ways to do this.
 
 Thanks
 Guennadi
