@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBT9PjKt029562
-	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 04:25:45 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBINUIcq006804
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 18:30:18 -0500
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBT9PTI2007477
-	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 04:25:29 -0500
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>) id 1LHEH3-0001Ax-0s
-	for video4linux-list@redhat.com; Mon, 29 Dec 2008 10:18:57 +0100
-Date: Mon, 29 Dec 2008 10:18:56 +0100 (CET)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBINU3Pe012608
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 18:30:04 -0500
+Date: Fri, 19 Dec 2008 00:30:05 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0812291016250.3949@axis700.grange>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20081218191839.78cb627d@caramujo.chehab.org>
+Message-ID: <Pine.LNX.4.64.0812190026180.8046@axis700.grange>
+References: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
+	<20081218160841.GA13851@linux-sh.org>
+	<Pine.LNX.4.64.0812181717320.5510@axis700.grange>
+	<20081218162439.GA27151@linux-sh.org>
+	<Pine.LNX.4.64.0812181730080.5510@axis700.grange>
+	<20081218191839.78cb627d@caramujo.chehab.org>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Subject: Re: Micron mt9m001
+Cc: Magnus Damm <damm@igel.co.jp>, video4linux-list@redhat.com,
+	Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org
+Subject: Re: A patch got applied to v4l bypassing v4l lists
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,66 +32,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've got a direct request regarding the mt9m001 driver, which I tried to 
-reply to, however, I haven't been able to do so even after multiple 
-attempts to persuade the recepient's spam-filter that I am not a spammer. 
-So, the only way for me to try to deliver my reply is to send it to the 
-list and hope the OP reads it some time...
+On Thu, 18 Dec 2008, Mauro Carvalho Chehab wrote:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+> Hi Paul,
+> 
+> > On Fri, 19 Dec 2008, Paul Mundt wrote:
+> > 
+> > > It should not cause extra work at all. The only time it may cause extra
+> > > work is if you are talking about splitting up the patch and pulling in
+> > > the v4l specific parts in to your v4l tree. My point is that this is
+> > > absolutely the wrong thing to do, since the changes are tied together for
+> > > a reason.
+> 
+> Not sure why, buy your replies didn't arrive at the ML. Anyway, from my side,
+> it is ok to tie the v4l and sh changes together and commit it via either sh or
+> v4l tree, provided that the patch won't break bisect.
+> 
+> Yet, it is nice if you can c/c us on such patches, in order to help to avoid
+> future merge conflicts (since, otherwise, development may be done using the
+> previous version). Otherwise, I'll backport the patch into the development tree
+> only after reaching Linus tree.
+> 
+> A side note: maybe the design of pxa_camera could be improved to avoid needing
+> to be touched as architecture changes. This is the only v4l driver that includes
+> asm/arch header files.
 
----------- Forwarded message ----------
-Date: Mon, 29 Dec 2008 08:55:14 +0100 (CET)
-From: Guennadi Liakhovetski <lyakh@axis700.grange>
-To: singingfalls <mohair@singingfalls.com>
-Subject: Re: Micron mt9m001
+The patch in question was for sh_mobile_ceu_camera.c - not for pxa, and 
+even though that one doesn't include any asm headers, as you see, it is 
+also tied pretty closely with respective platform code.
 
-Hello Stan
-
-On Sun, 28 Dec 2008, singingfalls wrote:
-
-> Forgive my forwardness. I have a microscope camera with the Micron
-> mt9m001 chip. Is there a driver for Hardy Ubuntu?
-
-At first, one small request to you - if you reply to this email or if you 
-otherwise would like to contact me (or any other video4linux developer) in 
-the future, please, also cc the respective mailing list 
-(video4linux-list@redhat.com for video4linux, or another respective list 
-for different topics). This way others can also benefit from our 
-discussion.
-
-As for your question, the problem is not a specific distribution / kernel 
-version, but the way the mt9m001 camera chip is connected to your CPU. As 
-you mention Ubuntu I take it your microscope is connected to a PC or a 
-Mac. I am not an expert in microscopes, but those I saw in shops connect 
-to PCs over USB. If this also the case with yours, then it means, that 
-mt9m001 is first connected to at least some kind of a I2C+video--to--USB 
-converter chip, or even some microprocessor with own firmware.
-
-The in-kernel mt9m001 driver handles the mt9m001 chip _only_ - up to its 
-I2C interface. It doesn't handle any interfacing chips. So, most likely, 
-this driver will not be able to drive your microscope in its present form. 
-What would be needed is an additional driver to control the interface 
-ch"p. And that will not be easy, because if your microscope is an 
-"ordinary" one bought at an "ordinary" store, presumably, we will never be 
-able to get details (datasheets / technical documentation) about that 
-interface controller. And I am not sure if anyone will ever be interested 
-in reverse-engineering a driver for it.
-
-So, I am sorry to say this, but if my guesses are correct, then most 
-likely you won't be able to interface your microscope to Linux.
-
-However, please do write to the list, it might also turn out that I'm 
-wrong and that someone already handles your device with a completely 
-different driver. But please provide more detail if you write to the list 
-- how your microscope is connected to your PC and what it is called.
-
-> Stan Petrowski
-> www.singingfalls.com
+As for including asm headers in pxa_camera.c - it wouldn't be easy to get 
+rid of them, one of the main obstacles is the use of the pxa-specific 
+dma-channel handling API.
 
 Thanks
 Guennadi
