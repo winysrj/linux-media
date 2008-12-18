@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3KmM54024193
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:22 -0500
-Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3Km8vM010723
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 15:48:09 -0500
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIKDv1K010002
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 15:13:57 -0500
+Received: from mail-qy0-f21.google.com (mail-qy0-f21.google.com
+	[209.85.221.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIKDf6O006997
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 15:13:41 -0500
+Received: by qyk14 with SMTP id 14so559194qyk.3
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 12:13:41 -0800 (PST)
+Message-ID: <494ABD00.8070106@gmail.com>
+Date: Thu, 18 Dec 2008 18:13:36 -0300
+From: =?ISO-8859-1?Q?F=E1bio_Belavenuto?= <belavenuto@gmail.com>
 MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
+	<200812181252.24661.hverkuil@xs4all.nl>
+In-Reply-To: <200812181252.24661.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <61c8d2959dd6ad1b45e0.1228337222@hypnosis.jim>
-In-Reply-To: <patchbomb.1228337219@hypnosis.jim>
-Date: Wed, 03 Dec 2008 15:47:02 -0500
-From: Jim Paris <jim@jtan.com>
-To: video4linux-list@redhat.com
-Cc: 
-Subject: [PATCH 3 of 4] ov534: Fix frame size so we don't miss the last pixel
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Add TEA5764 radio driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,58 +31,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-# HG changeset patch
-# User jim@jtan.com
-# Date 1228334850 18000
-# Node ID 61c8d2959dd6ad1b45e0d8bf12b3d5748fc6a568
-# Parent  893107a5df87228bb6766f26226fcef8069e3fc8
-ov534: Fix frame size so we don't miss the last pixel
+Hans Verkuil escreveu:
+> Hi Fabio,
+>
+> On Wednesday 17 December 2008 23:49:33 Fabio Belavenuto wrote:
+>   
+>> Add support for radio driver TEA5764 from NXP.
+>> This chip is connected in pxa I2C bus in EZX phones
+>> from Motorola, the chip is used in phone model A1200.
+>> This driver is for OpenEZX project (www.openezx.org)
+>> Tested with A1200 phone, openezx kernel and fm-tools
+>>
+>> Signed-off-by: Fabio Belavenuto <belavenuto@gmail.com>
+>>
+>>  drivers/media/radio/Kconfig         |   19 +
+>>  drivers/media/radio/Makefile        |    1 +
+>>  drivers/media/radio/radio-tea5764.c |  641
+>> +++++++++++++++++++++++++++++++++++ 3 files changed, 661 insertions(+), 0
+>> deletions(-)
+>>
+>>     
+>
+> I'm sorry, but this isn't the right approach. This chip is a radio tuner and 
+> as such can be used in many other products. So the tea5764 driver should be 
+> implemented as a tuner driver instead. See drivers/media/common/tuners for 
+> other such drivers, including the close cousins tea5761 and tea5767.
+>
+> Next to that you need a v4l radio driver for this platform that loads the 
+> tuner module and sets it up correctly.
+>
+> Basically this driver needs to be split into a tuner driver and a v4l driver 
+> for this platform.
+>
+> The big advantage is that the tea5764 driver can be reused in other 
+> products, and also that it is easy to change the v4l driver if another 
+> tuner chip is chosen in the future.
+>
+> BTW, it might be possible that the tea5764 is very similar to the existing 
+> tea radio drivers. In that case you might want to consider adding support 
+> for this new variant to an existing driver, rather than creating a new 
+> driver. I've never looked at the datasheets for these chips, so I don't 
+> know how feasible that is.
+>
+> Regards,
+>
+> 	Hans
+>
+>   
 
-The frame size is too small, so we lose the last YUYV pixel.
-Fix the setup and remove the last_pixel hack.
-
-Signed-off-by: Jim Paris <jim@jtan.com>
-
-diff -r 893107a5df87 -r 61c8d2959dd6 linux/drivers/media/video/gspca/ov534.c
---- a/linux/drivers/media/video/gspca/ov534.c	Wed Dec 03 15:06:54 2008 -0500
-+++ b/linux/drivers/media/video/gspca/ov534.c	Wed Dec 03 15:07:30 2008 -0500
-@@ -198,9 +198,9 @@
- 	{ 0x1d, 0x40 },
- 	{ 0x1d, 0x02 },
- 	{ 0x1d, 0x00 },
--	{ 0x1d, 0x02 },
--	{ 0x1d, 0x57 },
--	{ 0x1d, 0xff },
-+	{ 0x1d, 0x02 }, /* frame size 0x025800 * 4 = 614400 */
-+	{ 0x1d, 0x58 }, /* frame size */
-+	{ 0x1d, 0x00 }, /* frame size */
- 
- 	{ 0x8d, 0x1c },
- 	{ 0x8e, 0x80 },
-@@ -398,19 +398,12 @@
- static void sd_pkt_scan(struct gspca_dev *gspca_dev, struct gspca_frame *frame,
- 			__u8 *data, int len)
- {
--	/*
--	 * The current camera setup doesn't stream the last pixel, so we set it
--	 * to a dummy value
--	 */
--	__u8 last_pixel[4] = { 0, 0, 0, 0 };
- 	int framesize = gspca_dev->cam.bulk_size;
- 
--	if (len == framesize - 4) {
--		frame =
--		    gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, len);
--		frame =
--		    gspca_frame_add(gspca_dev, LAST_PACKET, frame, last_pixel,
--				    4);
-+	if (len == framesize) {
-+		frame = gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
-+					data, len);
-+		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame, data, 0);
- 	} else
- 		PDEBUG(D_PACK, "packet len = %d, framesize = %d", len,
- 		       framesize);
+Thank you, I understand, I will do so.
 
 --
 video4linux-list mailing list
