@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBMDCWEP010594
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 08:12:32 -0500
-Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBMDAiuK012093
-	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 08:10:44 -0500
-Message-ID: <494F91EF.9010109@free.fr>
-Date: Mon, 22 Dec 2008 14:11:11 +0100
-From: Thierry Merle <thierry.merle@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBI9Gq4f007013
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 04:16:52 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBI9GbZQ031806
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 04:16:38 -0500
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>) id 1LDEzr-0001Hg-Cl
+	for video4linux-list@redhat.com; Thu, 18 Dec 2008 10:16:43 +0100
+Date: Thu, 18 Dec 2008 10:16:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0812180949460.3963@axis700.grange>
 MIME-Version: 1.0
-To: Michael Zapf <newsmail08@mizapf.eu>
-References: <494ED217.4000807@mizapf.eu>
-In-Reply-To: <494ED217.4000807@mizapf.eu>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: USBVision: Camtel USB Video Genie Supported?
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: partial linux kernel repository and backwards compatibility for
+ platform-based video devices
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,56 +28,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Michael,
+Hi all,
 
-Michael Zapf wrote:
-> Hello,
-> 
-> I somehow can't get the USB Video Genie to work with VLC or xawtv, so I
-> suppose the problem starts in v4l. The device is a small USB box with a
-> grey button and a S-Video and a Composite input jack. Plugging the USB
-> box in, I get
-> 
-> kernel: usb 6-2: new full speed USB device using uhci_hcd and address 2
-> kernel: usb 6-2: new device found, idVendor=0573, idProduct=0003
-> kernel: usb 6-2: new device strings: Mfr=0, Product=0, SerialNumber=0
-> kernel: usb 6-2: configuration #1 chosen from 1 choice
-> kernel: Linux video capture interface: v2.00
-> kernel: usbvision_probe: USBGear USBG-V1 resp. HAMA USB found
-> kernel: USBVision[0]: registered USBVision Video device /dev/video0 [v4l2]
-> kernel: USBVision[0]: registered USBVision VBI device /dev/vbi0 [v4l2]
-> (Not Working Yet!)
-> kernel: usbcore: registered new interface driver usbvision
-> kernel: USBVision USB Video Device Driver for Linux : 0.9.9
-> kernel: saa7115 1-0024: saa7111 found (1f7111d1e200000) @ 0x48
-> (usbvision #0)
-> 
-> That's all I find in the log. From v4l-info I get
-> 
-> ### v4l2 device info [/dev/video0] ###
-> general info
->     VIDIOC_QUERYCAP
->         driver                  : "USBVision"
->         card                    : "USBGear USBG-V1 resp. HAMA USB"
->         bus_info                : "6-2"
->         version                 : 0.9.9
->         capabilities            : 0x5020001
-> [VIDEO_CAPTURE,AUDIO,READWRITE,STREAMING]
-> 
-> ...
-> 
-> VLC does not open a window when I select the device for play; doing a
-> plain "cat /dev/video0" does not produce anything. Tried the different
-> inputs, no result. Am I missing something here? Do I require a special
-> firmware for this device?
-Please try with mplayer for example:
-mplayer -tv driver=v4l2:width=320:height=240:norm=SECAM:outfmt=yuy2:channels=21-F2 tv://
-Customize the norm, and channel to your needs.
-vlc should work with a line like this:
-vlc v4l2:///dev/video0:width=320:height=240:standard=PAL:input=2
-this for looking at the S-video input.
+I know I'm pretty new to the v4l world and still learning and I am sure 
+the currently established development model has its good reasons (yes, I 
+know some of them) and its important advantages, but I'd like to ask if it 
+were not possible to adjust / extend it in some way to make it more 
+convenient for developers and testers working with platform-based video 
+devices.
 
-Thierry
+The issue is, AFAIU, until recently v4l dealt only with PCI and USB 
+devices, with which the APIs are most of the time _relatively_ well 
+defined and stable, and v4l development is mostly isolated, i.e., it 
+certainly happened in the past, but most likely not very often, that while 
+working on some v4l code one had to modify USB / PCI code simultaneously. 
+Whereas in most cases the development takes place only under drivers/media 
+and respective include directories and files.
+
+This is not the case with platform-based v4l devices, which are currently 
+represented in the kernel by int-device (omap, more?) and soc-camera (pxa, 
+sh, i.mx31, i.mx27 - latter two not yet in the mainline) APIs. These video 
+devices (at least the host part) are closely coupled to the rest of the 
+kernel, e.g., to respective arch/ directories by means of platform data. 
+And development _most_ usually takes place globally, i.e., while 
+developing video code one also adjusts platform code. Same holds for 
+testing - one would most usually test drivers with the kernel together, I 
+do not think there are many (if any) developers / testers out there, that 
+use out-of-tree compilation of v4l drivers with platform-based video 
+devices. Please, correct me if I am wrong. Which means, the value of this 
+possibility and the backwards-compatibility code in v4l mercurial 
+repositories is virtually 0 for this group of developers and testers. OTOH 
+the cost of supporting this model is clearly > 0. I think I will not be 
+mistaken if I say, that most developers in this group verify their work 
+with some snapshot of the -next or at least of Linus' tree, whether they 
+use git or not. So, what they end up doing is
+
+1. develop / test and produce patches in the complete kernel tree
+2. convert them to format suitable for hg
+3. merge them into hg if they do not apply cleanly immediately, e.g., 
+   because of the backwards-compatibility code
+4. do _not_ test results of their merge
+5. submit those results, hoping they still work
+6. those results get stripped down to get rid of compatibility code before 
+   re-exporting them and re-importing them into git
+7. if nothing broke down in the process, they might still work...
+
+Yes, most of the overhead tasks above are scriptable, maybe only apart 
+from (3), but still - is it all worth it?
+
+Could we maybe come up with some adjustment / extension to the current 
+development model to make the process more simple? This would mean either 
+skipping the hg stage completely, or at least removing all 
+backwards-compatibility code from platform-based drivers?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
