@@ -1,15 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vps1.tull.net ([66.180.172.116])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1L8Z7P-00023d-SJ
-	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 12:45:14 +0100
-MIME-Version: 1.0
-Message-Id: <1a1281c692af423bc751.1228477485@marcab.local.tull.net>
-In-Reply-To: <patchbomb.1228477483@marcab.local.tull.net>
-Date: Fri, 05 Dec 2008 22:44:45 +1100
-From: Nick Andrew <nick-linuxtv@nick-andrew.net>
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1LDL7D-0003DH-9m
+	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 16:48:43 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0KC200JPMX856WF1@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 18 Dec 2008 10:48:08 -0500 (EST)
+Date: Thu, 18 Dec 2008 10:48:05 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <49293640.10808@cadsoft.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [PATCH 2 of 2] Fix spelling of 'lose'
+Message-id: <494A70B5.6050500@linuxtv.org>
+MIME-version: 1.0
+References: <49293640.10808@cadsoft.de>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,29 +30,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-# HG changeset patch
-# User Nick Andrew <nick@nick-andrew.net>
-# Date 1228476802 -39600
-# Node ID 1a1281c692af423bc75106daaba7b890da6728dc
-# Parent  6810946716817a6c1172912541b9e348b1a44401
-Fix spelling of 'lose'
+Klaus Schmidinger wrote:
+> The attached patch adds a capability flag that allows an application
+> to determine whether a particular device can handle "second generation
+> modulation" transponders. This is necessary in order for applications
+> to be able to decide which device to use for a given channel in
+> a multi device environment, where DVB-S and DVB-S2 devices are mixed.
+> 
+> It is assumed that a device capable of handling "second generation
+> modulation" can implicitly handle "first generation modulation".
+> The flag is not named anything with DVBS2 in order to allow its
+> use with future DVBT2 devices as well (should they ever come).
+> 
+> Signed-off by: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
 
-Change 'loose' to 'lose' where the latter is intended.
+This looks good.
 
-Signed-off-by: Nick Andrew <nick@nick-andrew.net>
+Acked-By: Steven Toth <stoth@linuxtv.org>
 
-diff -r 681094671681 -r 1a1281c692af v4l2-apps/lib/libv4l/ChangeLog
---- a/v4l2-apps/lib/libv4l/ChangeLog	Fri Dec 05 22:31:44 2008 +1100
-+++ b/v4l2-apps/lib/libv4l/ChangeLog	Fri Dec 05 22:33:22 2008 +1100
-@@ -182,7 +182,7 @@
- * Do not get in the way of mmap calls made by V4L2 applications
- * Fix swapping of red and blue in bayer -> bgr24 decode routine
- * Remember the v4l1 palette asked for with SPICT and return that, as
--  otherwise we loose information when going v4l1 -> v4l2 -> v4l1, for example
-+  otherwise we lose information when going v4l1 -> v4l2 -> v4l1, for example
-   YUV420P becomes YUV420, which are separate in v4l1.
- 
- 
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
