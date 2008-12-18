@@ -1,30 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBR6NsSe017111
-	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 01:23:54 -0500
-Received: from outbound.mail.nauticom.net (outbound.mail.nauticom.net
-	[72.22.18.105])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBR6Nbli008420
-	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 01:23:37 -0500
-Received: from [192.168.0.124] (27.craf1.xdsl.nauticom.net [209.195.160.60])
-	(authenticated bits=0)
-	by outbound.mail.nauticom.net (8.13.8/8.13.8) with ESMTP id
-	mBR6NZp6021247
-	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 01:23:36 -0500 (EST)
-From: Rick Bilonick <rab@nauticom.net>
-To: video4linux-list <video4linux-list@redhat.com>
-In-Reply-To: <1230353764.3450.79.camel@localhost.localdomain>
-References: <1230233794.3450.33.camel@localhost.localdomain>
-	<20081226010307.2c7e3b55@gmail.com>
-	<1230269443.3450.48.camel@localhost.localdomain>
-	<20081226174129.7c752fc6@gmail.com>
-	<1230353764.3450.79.camel@localhost.localdomain>
-Content-Type: text/plain
-Date: Sat, 27 Dec 2008 01:23:30 -0500
-Message-Id: <1230359011.3450.88.camel@localhost.localdomain>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIANofP006132
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 05:23:50 -0500
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIANhRo031675
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 05:23:44 -0500
+Message-ID: <494A2492.2050106@hhs.nl>
+Date: Thu, 18 Dec 2008 11:23:14 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <200812180109.51813.hverkuil@xs4all.nl>
+In-Reply-To: <200812180109.51813.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Re: Compiling v4l-dvb-kernel for Ubuntu and for F8
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Please test: using the device release() callback instead of the
+ cdev release
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,27 +29,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+<resend with reply to all>
 
-On Fri, 2008-12-26 at 23:56 -0500, Rick Bilonick wrote:
+Hans Verkuil wrote:
+> Hi all,
 > 
-> So far, I haven't been able to find dvb-fe-xc5000-1.1.fw. (I had
-> previously installed a firmware file (version 4), but apparently the
-> needed firmware is not in the tar file.
-> 
-> Thanks for the help. I'm going to continue looking for the firmware.
-> 
-> I'm not sure if this firmware is absolutely necessary given it appears
-> to be the IR receiver. I am trying to use xine (I have a channel.conf
-> file that I created for a different tuner in another computer) but so
-> far have not gotten xine to display the digital signal.
-> 
-> Rick B.
+> My tree http://linuxtv.org/hg/~hverkuil/v4l-dvb drops the cdev release code 
+> in favor of using the refcounting and release callback from the device 
+> struct. Based on the discussion on the kernel list regarding the use of 
+> cdev refcounting it became clear that that was not the right solution, 
+> hence this change.
 > 
 
-OK, I found the firmware on-line via MythTV
-( http://www.mythtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_(800i)#Firmware ) at http://www.steventoth.net/linux/xc5000 . (I guess I could have taken this from the CD that came with the tuner.) This contains the the windows drivers with a shell script to extract the firmware (both for the tuner and the ir receiver - the device apparently won't work without both pieces of firmware). So the device now works on the HP2133 mini-notebook running Ubuntu 8.10. Now onto getting this to run on Fedora 8 and 10. Douglas, thanks for your help.
+I haven't tested it, but I have reviewed it. In general it looks ok, but:
 
-Rick B.
+I do not like the VFL_FL_REGISTERED trickery. Why not just hold the
+videodev_lock in video_register_device_index until completely done? It is not
+like these are functions which will get called many times a second. This will
+also lead to cleaner code.
+
+The correct return code in v4l2_open when cfd == NULL, so the device has been
+removed underneath the open call is -ENODEV, not -EBUSY.
+
+last, device_* seem to have the same problem as cdev_*, when
+video_unregister_device and v4l2_release race, we can still end up with a
+kref_put race. I see you've fixed this by taking videodev_lock around
+device_unregister() and device_put(), but IMHO this really should happen in
+drivers/base/core.c, other drivers might vary well hit the same issue. Seems
+you need to hit gkh a bit more with that clue stick of yours :) (note this last
+one is not a blocker, but would be nice to get fixed eventually).
+
+Regards,
+
+Hans (the other Hans)
+
 
 --
 video4linux-list mailing list
