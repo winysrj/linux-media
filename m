@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from [195.7.61.12] (helo=killala.koala.ie)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oroitburd@gmail.com>) id 1LDiaE-0004cq-Ka
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 17:52:15 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so421449fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 08:52:11 -0800 (PST)
-Message-ID: <b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
-Date: Fri, 19 Dec 2008 17:52:10 +0100
-From: "Oleg Roitburd" <oroitburd@gmail.com>
-To: gimli@dark-green.com
-In-Reply-To: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+	(envelope-from <simon@koala.ie>) id 1LDHeu-00009f-KD
+	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 13:07:17 +0100
+Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id mBIC7IcA001013
+	for <linux-dvb@linuxtv.org>; Thu, 18 Dec 2008 12:07:19 GMT
+Message-ID: <494A3BB7.4000808@koala.ie>
+Date: Thu, 18 Dec 2008 12:01:59 +0000
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API drivers sync
+To: linux-dvb@linuxtv.org
+References: <493EE2FC.4000504@koala.ie>
+In-Reply-To: <493EE2FC.4000504@koala.ie>
+Subject: Re: [linux-dvb] problems with a TerraTec Cinergy Hybrid T USB XS
+ (0ccd:0042)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,23 +29,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Simon Kenyon wrote:
+> with drivers from mercurial it works fine on my x86 laptop
+> but when i try to plug it into my amd64 machine i get this (note the 
+> failure three lines from the end):
+>
+> anybody got and ideas?
+> --
+> simon
+>   
+anybody else have this problem?
+or is it just me?
 
-2008/12/18 gimli <gimli@dark-green.com>:
-> What about syncing up with Igor M. Liplianin's
-> S2API tree to get more S2API drivers in the
-> v4l-hg tree ?
 
-Very good idea, but it's impossible. For sync Mauro needs ACK or
-Sign-Off from Manu. And they blocks all changes. Politic.
+is there another repository that i can try?
 
-Regards
-Oleg Roitburd
-
-P.S. For me works s2-liplianin with tt s2-3200 much stabler than v4l-dvb.
-
-P.P.S. What's about signal statistic for stv0899 in v4l-dvb? What's
-about another devices based on stv0899 (mantis, USB)?
+regards
+--
+simon
 
 _______________________________________________
 linux-dvb mailing list
