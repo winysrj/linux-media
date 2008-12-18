@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIKDv1K010002
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 15:13:57 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIKD5kn009652
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 15:13:05 -0500
 Received: from mail-qy0-f21.google.com (mail-qy0-f21.google.com
 	[209.85.221.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIKDf6O006997
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 15:13:41 -0500
-Received: by qyk14 with SMTP id 14so559194qyk.3
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 12:13:41 -0800 (PST)
-Message-ID: <494ABD00.8070106@gmail.com>
-Date: Thu, 18 Dec 2008 18:13:36 -0300
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIKClnV006357
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 15:12:47 -0500
+Received: by qyk14 with SMTP id 14so558764qyk.3
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 12:12:47 -0800 (PST)
+Message-ID: <494ABCCA.2040103@gmail.com>
+Date: Thu, 18 Dec 2008 18:12:42 -0300
 From: =?ISO-8859-1?Q?F=E1bio_Belavenuto?= <belavenuto@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
+To: Alexey Klimov <klimov.linux@gmail.com>
 References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
-	<200812181252.24661.hverkuil@xs4all.nl>
-In-Reply-To: <200812181252.24661.hverkuil@xs4all.nl>
+	<1229565443.8079.56.camel@tux.localhost>
+In-Reply-To: <1229565443.8079.56.camel@tux.localhost>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
@@ -31,55 +31,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans Verkuil escreveu:
-> Hi Fabio,
->
-> On Wednesday 17 December 2008 23:49:33 Fabio Belavenuto wrote:
->   
->> Add support for radio driver TEA5764 from NXP.
->> This chip is connected in pxa I2C bus in EZX phones
->> from Motorola, the chip is used in phone model A1200.
->> This driver is for OpenEZX project (www.openezx.org)
->> Tested with A1200 phone, openezx kernel and fm-tools
->>
->> Signed-off-by: Fabio Belavenuto <belavenuto@gmail.com>
->>
->>  drivers/media/radio/Kconfig         |   19 +
->>  drivers/media/radio/Makefile        |    1 +
->>  drivers/media/radio/radio-tea5764.c |  641
->> +++++++++++++++++++++++++++++++++++ 3 files changed, 661 insertions(+), 0
->> deletions(-)
->>
->>     
->
-> I'm sorry, but this isn't the right approach. This chip is a radio tuner and 
-> as such can be used in many other products. So the tea5764 driver should be 
-> implemented as a tuner driver instead. See drivers/media/common/tuners for 
-> other such drivers, including the close cousins tea5761 and tea5767.
->
-> Next to that you need a v4l radio driver for this platform that loads the 
-> tuner module and sets it up correctly.
->
-> Basically this driver needs to be split into a tuner driver and a v4l driver 
-> for this platform.
->
-> The big advantage is that the tea5764 driver can be reused in other 
-> products, and also that it is easy to change the v4l driver if another 
-> tuner chip is chosen in the future.
->
-> BTW, it might be possible that the tea5764 is very similar to the existing 
-> tea radio drivers. In that case you might want to consider adding support 
-> for this new variant to an existing driver, rather than creating a new 
-> driver. I've never looked at the datasheets for these chips, so I don't 
-> know how feasible that is.
->
-> Regards,
->
-> 	Hans
+Alexey Klimov escreveu:
+> Hello, Fabio
+> May i tell some suggestion here ?
 >
 >   
+Yes, I appreciate.
+> So, you used printk + KBUILD_MODNAME here and then you used it in code.
+> As i know(may be i'm wrong) that using KBUILD_MODNAME here is bad.
+> Better way is doing something like this:
+>
+> #define TEA5764_DRIVER_NAME "radio-tea5764"
+>
+> (defined driver name should be unique)
+>
+> #define PINFO(format, ...)					\
+> 	printk(KERN_INFO TEA5764_DRIVER_NAME": " 		\
+> 		DRIVER_VERSION ": " format "\n", ## __VA_ARGS__)
+> Later, you can(should?) use TEA5764_DRIVER_NAME in static const struct
+> i2c_device_id tea5764_id and in static struct i2c_driver
+> tea5764_i2c_driver.
+>
+> But, really good way is using dev_info, dev_warn, dev_err macros. You
+> can look for examples in dsbr100.c or radio-mr800.c. Or in other
+> drivers.
+>
+>   
+Thank you, I will use this constant and macros dev_*.
+>  
+>   
+> It will be really nice to hear what other developers think about making
+> header file for structures and a lot of defines. Should it go to
+> separate .h file ?
+>
+>
+>   
+I study on the use of headers, I thought it was complicated to create 
+more headlines.
+>
+> Here. You can insert TEA5764_DRIVER_NAME instead of "radio-tea5764".
+>
+>   
+Ok.
+> Please, reformat the patch. All rest code looks good for my eyes.
+>
+>
+>   
+Thank you, I will.
 
-Thank you, I understand, I will do so.
 
 --
 video4linux-list mailing list
