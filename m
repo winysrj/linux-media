@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpi1.ngi.it ([88.149.128.20])
+Received: from rn-out-0910.google.com ([64.233.170.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mail@robertoragusa.it>) id 1LE5dh-0003EA-62
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 18:29:22 +0100
-Message-ID: <494D2B6B.2070501@robertoragusa.it>
-Date: Sat, 20 Dec 2008 18:29:15 +0100
-From: Roberto Ragusa <mail@robertoragusa.it>
+	(envelope-from <mrechberger@gmail.com>) id 1LDJds-000650-M8
+	for linux-dvb@linuxtv.org; Thu, 18 Dec 2008 15:14:21 +0100
+Received: by rn-out-0910.google.com with SMTP id j43so306942rne.2
+	for <linux-dvb@linuxtv.org>; Thu, 18 Dec 2008 06:14:16 -0800 (PST)
+Message-ID: <d9def9db0812180614u50be7de6i8d8407e0315ddf39@mail.gmail.com>
+Date: Thu, 18 Dec 2008 15:14:15 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Simon Kenyon" <simon@koala.ie>
+In-Reply-To: <494A3BB7.4000808@koala.ie>
 MIME-Version: 1.0
-To: Jochen Friedrich <jochen@scram.de>
-References: <4936FF66.3020109@robertoragusa.it> <494C0002.1060204@scram.de>
-In-Reply-To: <494C0002.1060204@scram.de>
-Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] MC44S803 frontend
+Content-Disposition: inline
+References: <493EE2FC.4000504@koala.ie> <494A3BB7.4000808@koala.ie>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] problems with a TerraTec Cinergy Hybrid T USB XS
+	(0ccd:0042)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,37 +29,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jochen Friedrich wrote:
-> Hi Roberto,
-> 
->> Is there any plan to include this frontend in mainline kernels?
->> I used to run this driver months ago and it was working well.
-> 
-> The reason is the huge memory footprint due to the included frequency table.
-> I worked a bit on the driver to get rid of this table. Could you try this version:
-> 
-> 1. Patch for AF9015:
-> 
-> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=commitdiff;h=e5d7398a4b2d3c520d949e53bbf7667a481e9690
-> 
-> 2. MC44S80x tuner driver:
-> 
-> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=blob;f=drivers/media/common/tuners/mc44s80x.c;h=b8dd335e64b03b8544b4c95e2d7f3dbd968078a0;hb=4bde668b4eca90f8bdcc5916dfc88c115a3dfd20
-> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=blob;f=drivers/media/common/tuners/mc44s80x.h;h=c6e76da6bf51163c90f0ead259c0e54d4f637671;hb=4bde668b4eca90f8bdcc5916dfc88c115a3dfd20
-> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=blob;f=drivers/media/common/tuners/mc44s80x_reg.h;h=299c1be9a80a3777fb46f65d6070965de9754787;hb=4bde668b4eca90f8bdcc5916dfc88c115a3dfd20
+On Thu, Dec 18, 2008 at 1:01 PM, Simon Kenyon <simon@koala.ie> wrote:
+> Simon Kenyon wrote:
+>> with drivers from mercurial it works fine on my x86 laptop
+>> but when i try to plug it into my amd64 machine i get this (note the
+>> failure three lines from the end):
+>>
+>> anybody got and ideas?
+>> --
+>> simon
+>>
+> anybody else have this problem?
+> or is it just me?
+>
+>
+> is there another repository that i can try?
+>
 
-Hi Jochen,
+well you know
+http://mcentral.de/hg/~mrec/em28xx-new
 
-thank you for your work. I see the table values are gone and
-parameters are computed by the code.
+The latest patches aren't yet in there for the latest kernels - they
+can be found on the em28xx mailinglist
 
-I will only be able to test this driver in a couple of days, as I do
-not have the hardware (Cinergy T USB XE Ver.2) with me at the moment.
-
-Do you prefer me to apply the patch to one tree in particular?
-
--- 
-   Roberto Ragusa    mail at robertoragusa.it
+regards,
+Markus
 
 _______________________________________________
 linux-dvb mailing list
