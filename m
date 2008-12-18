@@ -1,18 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200812121425.01922.hverkuil@xs4all.nl>
-References: <200812121401.55277.laurent.pinchart@skynet.be>
-	<200812121410.36590.laurent.pinchart@skynet.be>
-	<200812121425.01922.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Fri, 12 Dec 2008 12:51:20 -0500
-Message-Id: <1229104280.3176.18.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Schimek <mschimek@gmx.at>
-Subject: Re: [PATCH v2 3/4] v4l2: Add missing control names
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIFNwmS024150
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 10:23:58 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBIFNglS023806
+	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 10:23:42 -0500
+Date: Thu, 18 Dec 2008 16:23:53 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <damm@igel.co.jp>
+Message-ID: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, Paul Mundt <lethal@linux-sh.org>,
+	linux-sh@vger.kernel.org
+Subject: A patch got applied to v4l bypassing v4l lists
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,51 +25,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2008-12-12 at 14:25 +0100, Hans Verkuil wrote:
-> Hi Laurent,
-> 
-> Just one tiny suggestion:
-> 
-> On Friday 12 December 2008 14:10:36 Laurent Pinchart wrote:
-> > +	/* CAMERA controls */
-> > +	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-> > +	case V4L2_CID_EXPOSURE_AUTO:		return "Auto-Exposure";
-> 
-> I would suggest "Auto Exposure" (no dash). It seems to be the most 
-> common way to write it. At least to my eyes the dash looks strange. 
-> Perhaps some native English speakers can help out here?
+Hi Magnus, Paul,
 
-You actually need a professional English teacher, professor, editor, or
-writer for that answer.  The hyphen has, to me, rather confusing rules.
+just stumbled upon a patch
 
-IANAET, but....
+sh: sh_mobile ceu clock framework support
 
-For example when modifying a noun you, would likely hyphenate
-adjective-noun modifiers:
+http://marc.info/?l=linux-sh&m=122545217725877&w=2
 
-"Auto-exposure setting"
+with diffstat
 
-But in simple adjective-noun pairs, you would not, as adjectives are
-understood to modify nouns:
+ arch/sh/boards/board-ap325rxa.c            |    2 +-
+ arch/sh/boards/mach-migor/setup.c          |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c |   20 +++++++++++++++++++-
+ 3 files changed, 21 insertions(+), 3 deletions(-)
 
-"Auto exposure"
+that has been pulled through linux-sh ML and the sh tree without even 
+being cc-ed to the v4l list, which wasn't a very good idea IMHO. Now this 
+patch has to be manually "back-ported" to v4l hg repos using the 
+"kernel-sync:" tag and only in part, because arch/sh directory is not in 
+hg at all. Can we please avoid this in the future?
 
-
-Also, new compound words in English often get hyphenated when
-introduced, but the hyphen disappears when the word comes into common
-usage: e-mail vs. email.  But even if this were the path "auto-exposure"
-took initially in English, I, as a native English speaker, would likely
-never write "autoexposure".  "o" and "e" as directly adjacent syllabic
-vowels in a written word just seems "wrong".  
-
-Regards,
-Andy
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
