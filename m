@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.aster.pl ([212.76.33.23])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Daniel.Perzynski@aster.pl>) id 1LCMmv-0007PW-BT
-	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 00:23:45 +0100
-From: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
-To: "'Devin Heitmueller'" <devin.heitmueller@gmail.com>
-References: <4728568367913277327@unknownmsgid>	
-	<412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>	
-	<8829222570103551382@unknownmsgid>
-	<412bdbff0812151512k72f70d70j88427b5761585d16@mail.gmail.com>
-In-Reply-To: <412bdbff0812151512k72f70d70j88427b5761585d16@mail.gmail.com>
-Date: Tue, 16 Dec 2008 00:23:28 +0100
-Message-ID: <000f01c95f0c$22fbe6b0$68f3b410$@Perzynski@aster.pl>
+	(envelope-from <mrechberger@gmail.com>) id 1LDl47-0002Ut-Nk
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 20:31:16 +0100
+Received: by bwz11 with SMTP id 11so2326710bwz.17
+	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 11:30:41 -0800 (PST)
+Message-ID: <d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>
+Date: Fri, 19 Dec 2008 20:29:52 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: sinter <sinter.mann@gmx.de>
+In-Reply-To: <200812191943.00696.sinter.mann@gmx.de>
 MIME-Version: 1.0
-Content-Language: en-us
+Content-Disposition: inline
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+	<b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
+	<59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
+	<200812191943.00696.sinter.mann@gmx.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Avermedia A312 - patch for review
+Subject: Re: [linux-dvb] S2API drivers sync
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,84 +31,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-
------Original Message-----
-From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com] 
-Sent: Tuesday, December 16, 2008 12:12 AM
-To: Daniel Perzynski
-Cc: linux-dvb@linuxtv.org
-Subject: Re: Avermedia A312 - patch for review
-
-On Mon, Dec 15, 2008 at 6:08 PM, Daniel Perzynski
-<Daniel.Perzynski@aster.pl> wrote:
->
-> -----Original Message-----
-> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
-> Sent: Monday, December 15, 2008 11:29 PM
-> To: Daniel Perzynski
-> Cc: linux-dvb@linuxtv.org
-> Subject: Re: Avermedia A312 - patch for review
->
-> On Mon, Dec 15, 2008 at 5:25 PM, Daniel Perzynski
-> <Daniel.Perzynski@aster.pl> wrote:
->> Hi,
+On Fri, Dec 19, 2008 at 7:43 PM, sinter <sinter.mann@gmx.de> wrote:
+> Am Freitag 19 Dezember 2008 18:01:40 schrieb gimli:
+>> The DVB-S2 stuff smells all like a big bullshit.
+>> In the first step a big hurry to get S2API in
+>> the mainline kernel and now nothing at all from
+>> the DVB-S2 front. This is a completly big mess
+>> in my eyes.
 >>
+>> cu
 >>
+>> Edgar (gimli) Hucek
 >>
->> According to the suggestions I've modified dvb-usb-ids.h and cxusb.c to
-> add
->> a support for that card.
->>
->>
->>
->> I would appreciate someone to look at the code below and compare it with
->> spec on the wiki for that card.
->>
-> <snip>
+>> P.S.: Childish political games which are played on
+>> the shoulders of the users. Hurray, well done.
 >
-> Does this patch actually work?  Can you watch ATSC TV?
+> Yes, Edgar, exactly: This is what the name Manu A. stands for since this guy
+> was recruited as a DVB "maintainer" by Johannes Stezenbach:
 >
-> Devin
+> Kiddish political games which are played on the shoulders of the users.
+> Also those kiddish games are ideal to hide the discovery of one's own personal
+> mediocrity / incapability in coding issues.
 >
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
+> There are people who ask themselves why Manu A. still owes a repository at
+> linuxtv.org. I guess this runs under "utilitarianism of human beings".
 >
-> Good question,
+> And also: a huge mass of (inactive) nominal members looks nice for a career at
+> redhat.com, doesn't it?
 >
-> How to check it? What about analog TV?
->
-> Daniel
 
-> Well, the /dev/dvb/adapter0/* files are for the ATSC interface (using
-> the lgdt3303).  You would use tools like scan, azap, mplayer to test
-> digital support:
-
-> http://linuxtv.org/wiki/index.php/Testing_your_DVB_device
->
-> I'm not sure which analog video decoder that device uses and I'm not
-> confident you have provided any configuration to specify the decoder.
-> Do you have a /dev/video0 device?
->
-> Devin
->
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
-
-Devin,
-
-The problem is that I'm in Poland and we don't have ATSC here as far as I'm
-aware but I will try to test it anyway.
-Could you please look at the wiki for that card and tell me what will be the
-analog video decoder for that card (I don't have /dev/videoX device).
-
-Regards,
-
-
+This looks like a respect email. Best would have been if Manu wouldn't
+have had released
+any code and would just have forwarded his code to his friends they
+wouldn't have complained and
+even probably would have paid some beer and invited him for some parties.
+It takes time to get documentation for a certain chip, to get the
+agreement for it and finally to write
+a driver for it. As user it's certainly easier to complain about all
+that and think that everything's free.
+Even google is playing around with the content of the mails I send
+here and earning money by doing
+statistics out of that.
 
 _______________________________________________
 linux-dvb mailing list
