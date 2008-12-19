@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.172])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LHkNT-0000da-MJ
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 20:35:47 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so1059725ugc.16
-	for <linux-dvb@linuxtv.org>; Tue, 30 Dec 2008 11:35:40 -0800 (PST)
-Date: Tue, 30 Dec 2008 20:34:49 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Thierry Lelegard <thierry.lelegard@tv-numeric.com>
-In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAaoT72bWgvUOpMz3wlvxejAEAAAAA@tv-numeric.com>
-Message-ID: <alpine.DEB.2.00.0812302027170.29535@ybpnyubfg.ybpnyqbznva>
-References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAaoT72bWgvUOpMz3wlvxejAEAAAAA@tv-numeric.com>
+Message-ID: <412bdbff0812191431k27f1da67m3c347d93060f50ef@mail.gmail.com>
+Date: Fri, 19 Dec 2008 17:31:37 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Nicolas Will" <nico@youplala.net>
+In-Reply-To: <1229720907.31427.18.camel@youkaida>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] RE :  Compile error,
- bug in compat.h with kernel 2.6.27.9 ?
+Content-Disposition: inline
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+	<200812191943.00696.sinter.mann@gmx.de>
+	<d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>
+	<200812192058.58686.sinter.mann@gmx.de>
+	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
+	<37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>
+	<412bdbff0812191247j60480e61wa3c1aea74f1e118@mail.gmail.com>
+	<1229720907.31427.18.camel@youkaida>
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] S2API drivers sync
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,36 +29,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 30 Dec 2008, Thierry Lelegard wrote:
+On Fri, Dec 19, 2008 at 4:08 PM, Nicolas Will <nico@youplala.net> wrote:
+> As a user, even a user who does not know how to code to save his life,
+> you can do other things to help.
+>
+> You can start by being polite.
+>
+> Then you can ask nicely.
+>
+> In exchange for new code you can take charge of a few things.
+>
+> For example coders usually hate to document outside of their own code.
+> Take charge of the wiki page of your device and make sure that it is
+> clear and up-to-date.
+>
+> Then prod, poke, ask, politely.
+>
+> When new code comes in, test, and give feedback, constructive and polite
+> feedback.
+>
+> And document some more.
+>
+> And prod, poke, ask, politely.
+>
+> and test.. and give feedback... and ask again...
+>
+> After a while you usually end up with working code, and happy.
+>
+> And if you stop there because your device is working fine and your job
+> and family are taking 110% of you time, than sit back and enjoy your
+> working TV system in the remaining 40%. ;o)
+>
+> In any case you were not completely selfish.
+>
+> It worked for me and the Nova-T-500.
 
-> OK, looking into the source RPM for the latest Fedora 10 update
-> kernel (kernel-2.6.27.9-159.fc10.src.rpm), it appears that
-> the definition of pci_ioremap_bar in pci.h was introduced by
-> linux-2.6.27.7-alsa-driver-fixups.patch
-> 
-> I assume that this is a Fedora-specific patch (or more generally Red Hat),
-> back-porting 2.6.28 stuff.
+Nicholas has provided a very good list of constructive ways that
+non-developers can improve support for devices.  Here are a few other
+ways people can help out:
 
-There may be hope for a dirty hack...
+Improve the wiki:  help out CityK with the linux-dvb/v4l unification
+and make sure the information is correct.
 
-As part of this, I also see
---- a/include/linux/input.h
-+++ b/include/linux/input.h
-@@ -644,6 +644,7 @@ struct input_absinfo {
- #define SW_RADIO               SW_RFKILL_ALL   /* deprecated */
- #define SW_MICROPHONE_INSERT   0x04  /* set = inserted */
- #define SW_DOCK                        0x05  /* set = plugged into dock */
-+#define SW_LINEOUT_INSERT      0x06  /* set = plugged into dock 
-*/
+Lurk on #linux-dvb and #v4l, and help out less experienced users.  New
+users often jump onto those two lists asking for help getting their
+devices up and running.  In many cases, their device is supported but
+they're just having trouble installing the latest v4l-dvb code or
+using tools such as scan, zap, Kaffeine, tvtime, VDR, etc.  Help those
+users work through their issues.  If the device doesn't work, walk
+them through collecting the necessary debug info required to report
+the problem on the mailing list.
 
-which is not yet in my latest 2.6.28 git kernel...
+Not only are these things helpful to other users - it allows the
+developers can focus on adding driver support rather than spending
+that time helping out new users...
 
-These both seem to be present since -r1.1 through HEAD,
-so I would guess you can special-case this check into
-a 2.6.27 version test.
+Devin
 
-
-Of course, I have no idea what I'm talking about...
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
