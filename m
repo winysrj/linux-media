@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.233])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e.grammatico@gmail.com>) id 1LE6GK-0005pI-Qm
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 19:09:17 +0100
-Received: by rv-out-0506.google.com with SMTP id b25so1437865rvf.41
-	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 10:09:12 -0800 (PST)
-Message-ID: <77649f260812201009i13ea3059qf2af74faee91a448@mail.gmail.com>
-Date: Sat, 20 Dec 2008 19:09:11 +0100
-From: "Eric GRAMMATICO" <e.grammatico@gmail.com>
-To: "hermann pitton" <hermann-pitton@arcor.de>
-In-Reply-To: <1229792642.3111.8.camel@pc10.localdom.local>
+	(envelope-from <mkrufky@linuxtv.org>) id 1LDmFW-0000Yg-Ld
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 21:47:07 +0100
+Message-ID: <494C083F.2010306@linuxtv.org>
+Date: Fri, 19 Dec 2008 15:46:55 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <77649f260812200330g3b76fb31jb7b16c4e6a4c5443@mail.gmail.com>
-	<1229792642.3111.8.camel@pc10.localdom.local>
+To: Simon Kenyon <simon@koala.ie>
+References: <494B9754.6000403@koala.ie>
+	<37219a840812191046o68406337wda5fec55a4bf1fcf@mail.gmail.com>
+	<494C0793.9080904@koala.ie>
+In-Reply-To: <494C0793.9080904@koala.ie>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Unable to lock signal on FlyDVB-T
+Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,69 +27,74 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thanks Hermann,
-
-That worked !
-
-Cheers,
-
-Eric.
-
-2008/12/20 hermann pitton <hermann-pitton@arcor.de>:
-> Hi,
->
-> Am Samstag, den 20.12.2008, 12:30 +0100 schrieb Eric GRAMMATICO:
->> Hello All,
+Simon Kenyon wrote:
+> Michael Krufky wrote:
+>> On Fri, Dec 19, 2008 at 7:45 AM, Simon Kenyon <simon@koala.ie> wrote:
+>>  
+>>> just bought what i though was a t-500 and when i opened the box it
+>>> contained a td-500
+>>>
+>>> the wiki says (in bright bold colours) that it is not (and never would
+>>> be) supported
+>>>
+>>> however, from looking at the mailing list it appear to be supported
+>>>
+>>> i can of course take it out of the sealed bag and try
+>>>
+>>> however, to preserve any change of swapping it i thought i would ask
+>>> here first
+>>>     
 >>
->> I am trying desperately to lock signal on a FlyDVB-T. My system is
->> # uname -a
->> Linux mythtv 2.6.27.5-117.fc10.i686 #1 SMP Tue Nov 18 12:19:59 EST
->> 2008 i686 athlon i386 GNU/Linux
+>> There is a very old version of the board that is not supported.  There
+>> are very few of those boards around nowadays.
 >>
->> It's like there is no data coming from... But my TV set is able to lock...
+>> The new Nova-TD-500 is definitely supported.  Look for the 84xxx model
+>> number -- that is the new revision.  This is the one that you are
+>> likely to have, if you recently purchased that board.
 >>
->> I left all interesting information on
->> http://e.grammatico.free.fr/linuxDVB/
+>> Regards,
 >>
->> Any help is very welcome,
+>> Mike
 >>
+>>   
+> thanks for that
+> the box says:
 >
-> there is a slight chance that the transmitter uses a positive offset of
-> about 167000Hz. It is quite common in France and the tda10046 can't find
-> this on its own.
+> WinTV-NOVA-T-500
+> model 289
+> S-289-V2.1-UK
 >
-> Modify the initial scan file like this.
+> and the board says:
 >
-> #### Cannes - Vallauris ####
-> #R1
-> T 490167000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> #R2
-> T 514167000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> #R3
-> T 578167000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> #R4
-> T 730167000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> #R5
-> T 690167000 8MHz AUTO NONE QAM64 8k AUTO NONE
-> #R6
-> T 642167000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> 840000-04 LF
 >
-> Copy and paste and try with "scan" again.
+> with the markings on the tuner can:
 >
-> Cheers,
-> Hermann
+> WinTV-NOVA-TD-500
+> DVB-T
+> 84109 LF
+> REV D1F4
 >
+> o hopefully i am ok
+> will install it tomorrow and report back
 >
+> by the way, what do JP1 and JP2 do?
 >
->
->
->
->
+> sthanks for the help
 
+Simon,
 
+I'm just telling you that the device is well supported under recent 
+Linux kernels.  For vendor-specific information about the product, 
+you'll have to contact Hauppauge Technical Support.
 
--- 
-Tico.
+They have phone numbers and email posted on the Hauppauge web site.
+
+http://www.hauppauge.com
+
+Good Luck,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
