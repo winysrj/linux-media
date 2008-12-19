@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.188])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1LEovd-0003TJ-Mc
-	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 18:50:54 +0100
-Received: by fk-out-0910.google.com with SMTP id f40so1412561fka.1
-	for <linux-dvb@linuxtv.org>; Mon, 22 Dec 2008 09:50:50 -0800 (PST)
-Message-ID: <d9def9db0812220950rca45482ie6443d336084cecb@mail.gmail.com>
-Date: Mon, 22 Dec 2008 18:50:49 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812220752p4f4d3bf0t741472a8349db683@mail.gmail.com>
+	(envelope-from <crope@iki.fi>) id 1LDnmx-0003dz-37
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 23:25:43 +0100
+Message-ID: <494C1F62.2040901@iki.fi>
+Date: Sat, 20 Dec 2008 00:25:38 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <25864d030812220513i22938f4dt28b0190f8aaafeba@mail.gmail.com>
-	<412bdbff0812220752p4f4d3bf0t741472a8349db683@mail.gmail.com>
-Cc: Matt R <mattr121@gmail.com>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Pinnacle USB TV tuner sticks
+To: Jos Hoekstra <joshoekstra@gmx.net>
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>	<200812191943.00696.sinter.mann@gmx.de>	<d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>	<200812192058.58686.sinter.mann@gmx.de>	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>	<37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>	<412bdbff0812191247j60480e61wa3c1aea74f1e118@mail.gmail.com>	<1229720907.31427.18.camel@youkaida>
+	<494C1B1F.40205@gmx.net>
+In-Reply-To: <494C1B1F.40205@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Adding info to the wiki,
+ Was: Re:  S2API drivers sync
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,115 +27,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Dec 22, 2008 at 4:52 PM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Mon, Dec 22, 2008 at 8:13 AM, Matt R <mattr121@gmail.com> wrote:
->> Dear Devin,
->>
->> I recently purchased a Pinnacle PCTV HD Pro Stick (801e) without realizing
->> that it's different from the 800e version of the model. I was able to play
->> OTA digital channels on a Jaunty snapshop (dec 12) of Ubuntu after copying
->> in the more recent firmware version(s) mentioned  at the wiki page for this
->> model.
->>
->> I was wondering whether and which of these features of the 801e currently
->> work or might be supported in the near future:
->> 1. clear QAM digital cable
->> 2. analog
->> 3. FM radio
->> as I am considering returning the unit if support for clear QAM and FM by
->> open source projects such a linuxtv/mythtv is going to take some time. What
->> would be your recommendation on this, and what is your recommendation for
->> the best USB tuner stick out there in terms of both model features as well
->> as current/forthcoming linux support for those features?
->>
->> Also, in this mailing list thread, were you referring to Pinnacle's new
->> "Ultimate" stick (whose number seems to be 880e and not 80e)? If so, I am a
->> bit confused about what Markus Rechberger said in response:
->>
->> Not so fast, even though I wasn't involved at knocking this down.
->> We have a custom player now which is capable of directly interfacing the
->> I2C chips from those devices. Another feature is that it supports all the
->>
->> features of those devices, there won't be any need of different applications
->> anymore. There's also the thought about publishing an SDK, most applications
->> have problems of detecting all corresponding devicenodes which are required
->>
->> for those devices anyway. i2c-dev is an already available and accepted
->> kernel interface
->> to userland just as usbfs is.
->>
->> best regards,
->> Markus Rechberger
->>
->> Is a full-featured custom player (including device drivers) is available for
->> that model? If so, are you able to point me where to look for it?
->>
->> Thanks and best regards
->> Matt
->
-> Putting the ML on the CC so others can benefit from the information.
->
-> First off - the mistake you made in buying the 801e thinking you were
-> getting an 800e is a common one - I made that mistake myself and that
-> is what prompted me to add Linux support for the 801e (for the record
-> though, I later added the 800e support too).
->
-> Just to make things confusing, Pinnacle makes four different products
-> with nearly identical model numbers (800e, 801e, 880e, 80e).
->
-> Let's start with the one you have: the 801e (Pro).  This device
-> supports ATSC, ClearQAM, analog, and radio.  However, only the ATSC
-> and ClearQAM are implemented in Linux.  Because of some limitations in
-> the Linux dvb_usb stack, I couldn't make the analog support work
-> without adding all the necessary infrastructure.  And the FM support
-> falls under analog.  Also, the ClearQAM support should work in theory
-> but I couldn't test it when I added support since I didn't have access
-> to cable.  I really do need to follow up on that now and correct any
-> problems I find.
->
-> The 800e (Pro) is the older version of the product you have.  The ATSC
-> and analog both are supported, however the hardware does not support
-> ClearQAM or FM Radio.
->
-> The 880e (Ultimate) hardware supports ATSC, ClearQAM, analog, but no
-> FM radio.  The device is currently completely unsupported in Linux as
-> I have just last week gotten the datasheets and started working on
-> analog support (it uses chips that are not supported at all in Linux
-> so it will take longer).
->
-> The 80e (Mini) hardware only has ATSC and ClearQAM support (no analog
-> or FM).  As indicated in the Wiki, this device will never be supported
-> in an open source manner because Micronas refused to let me release
-> the driver source (after I did all the work).
->
-> Regarding your question on Markus's player, he is working on a piece
-> of commercial software for playing video, and because it is closed
-> source and he has relationships with Micronas he was able to include
-> their driver source required for the 80e Mini.  That said, his player
-> will not allow you to use applications such as MythTV or Kaffeine, as
-> none of those projects are going to create a dependency on his
-> closed-source player.  Also, his product is locked to Empia based
-> devices, so it will not work with products such as the 801e.  You can
-> go to his website at http://mcentral.de for more information.
->
-> You're going to be hard pressed to find a USB product that does all
-> four in Linux - ATSC, ClearQAM, analog, and FM.  Most of the older
-> products that do ATSC have analog/FM working (but the hardware doesn't
-> support QAM), but most of the products that do ClearQAM and ATSC do
-> not have any analog or FM support implemented in the Linux driver.
-> The Pinnacle Ultimate driver I am working on (when it is completed)
-> will support ClearQAM, ATSC, and analog, but the hardware doesn't
-> support FM).
+Jos Hoekstra wrote:
+> I would like to add some pointers on making the Avermedia Volar X DVB-T 
+> device work to the wiki, but I'm not sure if this 'supported or unsupported?
 
+It is supported. Anyhow, with this tuner driver performance is not 100%. 
+Driver merged to the 2.6.28 Kernel.
 
-You should also refer that eg. BSD does the whole tuner and demod
-configuration stuff does in Userland (cx88 freebsd), I guess sooner or
-later there will be a library interface (or the calls can just be
-overriden with LD_PRELOAD without modifying existing applications).
-There are a few possibilities which got mentioned earlier already.
+> Case:
+> Avermedia Volar X DVB-T with AF9015-NT* & MXL5003S
+> Works with compiling the source from:
+> http://linuxtv.org/hg/~anttip/af9015/
 
-Markus
+You can also use v4l-dvb-master or wait 2.6.28.
+
+> and firmware from:
+> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
+> 
+> Is it ok if I add it as a minor edit to:
+> 
+> http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices#Afatech_AF9013_and_AF9015
+> ?
+
+yes?
+
+> Regards,
+> 
+> Jos Hoekstra
+
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
