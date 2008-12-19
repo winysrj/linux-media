@@ -1,13 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <494C0793.9080904@koala.ie>
-Date: Fri, 19 Dec 2008 20:44:03 +0000
-From: Simon Kenyon <simon@koala.ie>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb@linuxtv.org
-References: <494B9754.6000403@koala.ie>
-	<37219a840812191046o68406337wda5fec55a4bf1fcf@mail.gmail.com>
-In-Reply-To: <37219a840812191046o68406337wda5fec55a4bf1fcf@mail.gmail.com>
-Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
+Received: from joan.kewl.org ([212.161.35.248])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <darron@kewl.org>) id 1LDcnr-0008T1-6F
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 11:41:56 +0100
+From: Darron Broad <darron@kewl.org>
+To: Lawrence Rust <lawrence@softsystem.co.uk>
+In-reply-to: <200812191127.35952.lawrence@softsystem.co.uk> 
+References: <200812181804.34557.lawrence@softsystem.co.uk>
+	<3103.1229627861@kewl.org>
+	<200812191127.35952.lawrence@softsystem.co.uk>
+Date: Fri, 19 Dec 2008 10:41:51 +0000
+Message-ID: <7882.1229683311@kewl.org>
+Cc: Linux-dvb list <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Nova-S-Plus audio line input
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -15,67 +20,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> On Fri, Dec 19, 2008 at 7:45 AM, Simon Kenyon <simon@koala.ie> wrote:
->   
->> just bought what i though was a t-500 and when i opened the box it
->> contained a td-500
+In message <200812191127.35952.lawrence@softsystem.co.uk>, Lawrence Rust wrote:
+
+Hiya.
+
+>On Thursday 18 December 2008 20:17:41 Darron Broad wrote:
+>> hi
 >>
->> the wiki says (in bright bold colours) that it is not (and never would
->> be) supported
+>> >I have a Hauppauge Nova-S-plus PCI card and it works great with satellite
+>> >reception.  However, I would also like to use it with an external DVB-T
+>> > box that outputs composite video and line audio but when I select the
+>> > composite video input I can see a picture but get no sound.
+>> >
+>> >I'm using kernel version 2.6.24 so I dug around those sources and I see in
+>> >cx88-cards.c that there's no provision for line audio in.  However, the
+>> >latest v4l top of tree sources have added support for I2S audio input
+>> >and 'audioroute's.
+>> >
+>> >So I modded my 2.6.24 sources to support the external ADC and enable I2S
+>> > audio input using the struct cx88_board cx88_boards.extadc flag, similar
+>> > to the changes made in the current top of tree.  This now means that I
+>> > can watch DVB-T :-)  I don't believe the changes affect any other cards.
+>> >
+>> >I would like to see support added for the Nova-S-Plus audio line input in
+>> > the kernel tree asap.  What's the best way of achieving this?  I can
+>> > supply a diff for 2.6.24 or the current top of tree.
 >>
->> however, from looking at the mailing list it appear to be supported
+>> I would be interested to see what changes you made to achieve this
+>> and am able to test. Please share your patch for testing.
 >>
->> i can of course take it out of the sealed bag and try
->>
->> however, to preserve any change of swapping it i thought i would ask
->> here first
->>     
+>> Thanks
+>> darron
 >
-> There is a very old version of the board that is not supported.  There
-> are very few of those boards around nowadays.
+>Diffs for linux kernel 2.6.24 and the current v4l tip attached.
 >
-> The new Nova-TD-500 is definitely supported.  Look for the 84xxx model
-> number -- that is the new revision.  This is the one that you are
-> likely to have, if you recently purchased that board.
+>The change for the current top of tree is minimal - just a few lines in the 
+>static configuration data of cx88-cards.c.
 >
-> Regards,
+>The changes for 2.6.24 parallel the changes made for audioroutes in the 
+>current tip.
 >
-> Mike
+>Note the changes to cx88_alsa.c to remove the tuner volume control if there's 
+>no TV tuner and to re-group the switches more logically.  I was thinking of 
+>adding some code to adjust the WM8775 gain - what do you think?
 >
->   
-thanks for that
-the box says:
+>HTH.
 
-WinTV-NOVA-T-500
-model 289
-S-289-V2.1-UK
+Thanks for that Lawrence. I will test this soon.
 
-and the board says:
+With regard to the gain control on the WM8775, perhaps you can
+look at this:
 
-840000-04 LF
+http://hg.kewl.org/v4l-dvb-test/shortlog
 
-with the markings on the tuner can:
+You can find some patches here:
+http://hg.kewl.org/v4l-dvb-test/rev/c1d603af3bef
+http://hg.kewl.org/v4l-dvb-test/rev/302d51bf2baf
+http://hg.kewl.org/v4l-dvb-test/rev/8b24b8211fc9
 
-WinTV-NOVA-TD-500
-DVB-T
-84109 LF
-REV D1F4
+Which sound like they would do what you desire?
 
-o hopefully i am ok
-will install it tomorrow and report back
+I should rebuild these patches soon to for better testing purposes
+but in the meantime please test if you are interested.
 
-by the way, what do JP1 and JP2 do?
+Cheers
 
-sthanks for the help
+darron
+
+>-- Lawrence Rust
+<snip>
+
 --
-simon
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
 
 _______________________________________________
