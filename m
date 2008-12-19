@@ -1,24 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9EHKTY024492
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 09:17:20 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.186])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9EH7YA022207
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 09:17:08 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so827200nfc.21
-	for <video4linux-list@redhat.com>; Tue, 09 Dec 2008 06:17:07 -0800 (PST)
-Message-ID: <de8cad4d0812090610w7a0b6c94ye7b0e21804f2bc5@mail.gmail.com>
-Date: Tue, 9 Dec 2008 09:10:51 -0500
-From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-In-Reply-To: <15601.62.70.2.252.1228831416.squirrel@webmail.xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJ5CSFa008361
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 00:12:28 -0500
+Received: from m13-97.163.com (m13-97.163.com [220.181.13.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBJ5CC14002430
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 00:12:13 -0500
+Date: Fri, 19 Dec 2008 12:55:45 +0800 (CST)
+From: xuujiaa <xuujiaa@163.com>
+To: video4linux-list@redhat.com
+Message-ID: <3181914.240711229662545035.JavaMail.coremail@bj163app97.163.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <15601.62.70.2.252.1228831416.squirrel@webmail.xs4all.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: v4l2-compat-ioctl32 update?
+Content-Type: text/plain; charset=gbk
+Content-Transfer-Encoding: quoted-printable
+Subject: about tm6000-xc3028 firmware
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,47 +24,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans,
+ Dear sir:
+  I obtain the driver for the tm6000 chip from the website http://linuxtv.o=
+rg/hg/~mchehab/tm6010/. Now I try it on my computer,it can=20
+initialize  my 10moons tv card(a tm6000 based tv card) in spite of several =
+samll warnings.
+   The problem now is i need the tridvid.sys file to extract the tm6000-xc3=
+028 firmware file to let tv card function properly.I read the get_firmware.=
+pl file,
+it looks like it need a certain tridvid.sys whose md5 is "e9c6ce5d4c872a5f4=
+4964e0dacc4d9ef" to extract.
+  I looked around but can not found the  certain tridvid.sys  file with the=
+ md5 "e9c6ce5d4c872a5f44964e0dacc4d9ef".Can you tell me where i can get tha=
+t tridvid.sys  file  or the tm6000-xc3028  file,if both of the files are un=
+available,would you give me any suggestion on extract tm6000-xc3028 from ot=
+her tridvid.sys  file.
+                                                          Best regards
 
-I would love to test! I am using 3 HVR-1600s and an HD-PVR for encoders.
 
-Brandon
-On Tue, Dec 9, 2008 at 9:03 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Brandon,
->
-> As you noticed I found suspicious code in the current source. At the
-> moment I have no easy way of testing this, although I hope to be able to
-> do that some time in the next week or the week after that.
->
-> However, if you are able to do some testing for me, then that would be
-> very welcome and definitely speed things up.
->
-> I have a patch that I can mail you and a bunch of tests to perform.
->
-> Let me know if you can help.
->
-> Regards,
->
->        Hans
->
->> Hi Hans,
->>
->> I noted over the weekend that you were working on updating the
->> v4l2-compat-ioctl32 module, thank you! Do you have a sense of timing
->> for availability in your tree? I know of a few SageTV users who will
->> be glad to see it done. :)
->>
->> Thanks in advance,
->>
->> Brandon
->>
->
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
->
->
 
+[=B9=E3=B8=E6] =D6=D8=BD=B1 =D0=FC=C9=CDkfc3v3 =C7=F2=D2=C2
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
