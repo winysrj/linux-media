@@ -1,14 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ipmail01.adl6.internode.on.net ([203.16.214.146])
+Received: from mognix.dark-green.com ([88.116.226.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <andy@ziv.id.au>) id 1L9HGE-0005CL-NC
-	for linux-dvb@linuxtv.org; Sun, 07 Dec 2008 11:53:17 +0100
-Message-ID: <493BAAF0.9020801@ziv.id.au>
-Date: Sun, 07 Dec 2008 21:22:32 +1030
-From: Andy Zivkovic <andy@ziv.id.au>
-MIME-Version: 1.0
+	(envelope-from <gimli@dark-green.com>) id 1LDijQ-0005aj-GN
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 18:01:45 +0100
+Received: from webmail.dark-green.com
+	(83-64-96-243.bad-voeslau.xdsl-line.inode.at [83.64.96.243])
+	by mognix.dark-green.com (Postfix) with ESMTP id 29EAB5AC098
+	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 18:02:36 +0100 (CET)
+Message-ID: <59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
+In-Reply-To: <b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+	<b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
+Date: Fri, 19 Dec 2008 18:01:40 +0100 (CET)
+From: "gimli" <gimli@dark-green.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Mantis driver locks system (Twinhan 1034)
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] S2API drivers sync
+Reply-To: gimli@dark-green.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,34 +30,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I recently got a Twinhan 1034 DVB-S card and installed it on a system 
-that was running mythtv with two Nova T 500's for months without problem.
+The DVB-S2 stuff smells all like a big bullshit.
+In the first step a big hurry to get S2API in
+the mainline kernel and now nothing at all from
+the DVB-S2 front. This is a completly big mess
+in my eyes.
 
-Within 2 days of installing the Twinhan 1034, the computer locked up, no 
-moving picture on the TV, no sound, and wouldn't respond to the network 
-(neither samba and sshd would respond).  After rebooting (pressing reset 
-switch on case), system worked again for about 2 days before freezing.
+cu
 
-I used the driver from http://jusst.de/hg/
+Edgar (gimli) Hucek
+
+P.S.: Childish political games which are played on
+the shoulders of the users. Hurray, well done.
+
+> Hi,
+>
+> 2008/12/18 gimli <gimli@dark-green.com>:
+>> What about syncing up with Igor M. Liplianin's
+>> S2API tree to get more S2API drivers in the
+>> v4l-hg tree ?
+>
+> Very good idea, but it's impossible. For sync Mauro needs ACK or
+> Sign-Off from Manu. And they blocks all changes. Politic.
+>
+> Regards
+> Oleg Roitburd
+>
+> P.S. For me works s2-liplianin with tt s2-3200 much stabler than v4l-dvb.
+>
+> P.P.S. What's about signal statistic for stv0899 in v4l-dvb? What's
+> about another devices based on stv0899 (mantis, USB)?
+>
+>
+>
 
 
-Also, I didn't do enough homework before buying this card, as I need to 
-use a irdeto CAM to view my provider's programs. It wasn't until after I 
-bought the card and spent a few hours trying the card and CAM in both 
-linux and Windows that I found out the mantis driver doesn't support 
-CAMs. The latest I could find was a post to this list in September 
-saying the maintainer was trying to get technical info from the 
-manufacturer. Has there been any progress that I haven't been able to 
-find with google?
-
-
-Although I am a programmer, I don't think I have the knowledge or 
-ability to help much, but would be willing to try if there's anything 
-anyone wants me to try. For now I've taken the card out because I don't 
-want to miss a recording because the computer froze, but it wouldn't 
-take me long to put it back to test something.
-
-Andy.
 
 _______________________________________________
 linux-dvb mailing list
