@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBNBZhoQ028550
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 06:35:43 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBNBZShC019861
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 06:35:29 -0500
-Date: Tue, 23 Dec 2008 12:35:28 +0100 (CET)
-From: Guennadi Liakhovetski <lg@denx.de>
-To: video4linux-list@redhat.com
-In-Reply-To: <Pine.LNX.4.64.0812231225520.5188@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0812231230090.5188@axis700.grange>
-References: <Pine.LNX.4.64.0812231225520.5188@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: 
-Subject: [PATCH 1/3 v2] plat-mxc: define CONSISTENT_DMA_SIZE to 8M - needed
- by the camera driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJBfomb001449
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 06:41:50 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJBfSRL004123
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 06:41:28 -0500
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Fri, 19 Dec 2008 06:39:40 -0500
+Message-Id: <1229686780.3120.10.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org
+Subject: cs5435: break; in S_CTRL routine appears bogus
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,33 +25,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The mx3-camera soc-camera driver uses contiguous memory regions for its DMA
-buffers. Reserve 8M RAM for consistent DMA allocations instead of the default
-2M.
+Hans,
 
-Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
----
+The break; statement you pointed out in the cs5435 driver does appear to
+be bogus.  I haven't tested removing it yet.
 
-I know there has been a patch arond, making CONSISTENT_DMA_SIZE 
-configurable. If it gets upstream, this patch can be dropped.
+Unfortunately there is no history in the hg log about this particular
+line.  I can rationalize how it got there from a cx18-centric testing
+point of view.  But obviously this module needs to work for other
+drivers in the future.
 
- arch/arm/plat-mxc/include/mach/memory.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Regards,
+Andy
 
-diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
-index 203688e..d28cd4d 100644
---- a/arch/arm/plat-mxc/include/mach/memory.h
-+++ b/arch/arm/plat-mxc/include/mach/memory.h
-@@ -13,4 +13,7 @@
- 
- #include <mach/hardware.h>
- 
-+/* We allocate 6MB for the camera driver video buffers */
-+#define CONSISTENT_DMA_SIZE SZ_8M
-+
- #endif /* __ASM_ARCH_MXC_MEMORY_H__ */
--- 
-1.5.4
 
 --
 video4linux-list mailing list
