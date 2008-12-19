@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ch-smtp02.sth.basefarm.net ([80.76.149.213])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aeriksson@fastmail.fm>) id 1LI1Z8-0008RN-Om
-	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 14:56:55 +0100
-To: Antti Palosaari <crope@iki.fi>
-In-reply-to: <495AAE96.5060207@iki.fi>
-References: <200812300909.49996.md001@gmx.de>
-	<20081230100254.644B0942B31@tippex.mynet.homeunix.org>
-	<495A849D.30307@iki.fi>
-	<20081230223923.B62BE6BC001@tippex.mynet.homeunix.org>
-	<495AAE96.5060207@iki.fi>
-Mime-Version: 1.0
-Date: Wed, 31 Dec 2008 14:56:34 +0100
-From: Anders Eriksson <aeriksson@fastmail.fm>
-Message-Id: <20081231135634.B6AD46BC05D@tippex.mynet.homeunix.org>
-Cc: linux-dvb@linuxtv.org, Martin Dauskardt <md001@gmx.de>
-Subject: Re: [linux-dvb] Where to buy Anysee E30C in Europe ("Euroland")?
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <sinter.mann@gmx.de>) id 1LDkLs-0007Wy-4L
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 19:45:32 +0100
+From: sinter <sinter.mann@gmx.de>
+To: gimli@dark-green.com
+Date: Fri, 19 Dec 2008 19:43:00 +0100
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+	<b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
+	<59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
+In-Reply-To: <59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200812191943.00696.sinter.mann@gmx.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API drivers sync
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,31 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Am Freitag 19 Dezember 2008 18:01:40 schrieb gimli:
+> The DVB-S2 stuff smells all like a big bullshit.
+> In the first step a big hurry to get S2API in
+> the mainline kernel and now nothing at all from
+> the DVB-S2 front. This is a completly big mess
+> in my eyes.
+>
+> cu
+>
+> Edgar (gimli) Hucek
+>
+> P.S.: Childish political games which are played on
+> the shoulders of the users. Hurray, well done.
 
+Yes, Edgar, exactly: This is what the name Manu A. stands for since this guy 
+was recruited as a DVB "maintainer" by Johannes Stezenbach:
 
-crope@iki.fi said:
-> >> Anysee have standard ISO 7816 card reader interface + SoftCAM in the driver. 
-> >> I did not implemented card reader due to lack of time &  interest. It 
-> >> probably needs own driver module for card reader and there  is no very 
-> >> similar module that can be used of base of the mode. 
-> 
-> > Am I right in understanding that all information required to drive the driver
-> > is available? No lack of specs? I was thinking that we mught want to forward
-> > it to the gregkh. He once put up an offer to write drivers for any hw if
-> > specs were provided.
+Kiddish political games which are played on the shoulders of the users.
+Also those kiddish games are ideal to hide the discovery of one's own personal 
+mediocrity / incapability in coding issues.
 
-> No, there is no specs available. I did current driver by  reverse-engineering.
-> Reverse-engineering USB-protocol is not usually  very bad task. 
+There are people who ask themselves why Manu A. still owes a repository at 
+linuxtv.org. I guess this runs under "utilitarianism of human beings".
 
-Hi Antti,
-
-Any chance we can persuade you to create the driver? I'm on the ComHem Swedish 
-cable operator myself, and would be happy to assist with debugging etc. 
-Unfortunately, I have no idea where to start a usb reverse engineering task 
-myself as a solo activity. :-(
-
-Regards,
-/Anders
+And also: a huge mass of (inactive) nominal members looks nice for a career at 
+redhat.com, doesn't it?
 
 
 _______________________________________________
