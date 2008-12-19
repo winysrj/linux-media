@@ -1,30 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB59dfXs007033
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 04:39:41 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB59cU3e007247
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 04:39:11 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so4855976rvb.51
-	for <video4linux-list@redhat.com>; Fri, 05 Dec 2008 01:38:29 -0800 (PST)
-Message-ID: <f17812d70812050138vafd5774od491024c89f1558e@mail.gmail.com>
-Date: Fri, 5 Dec 2008 17:38:29 +0800
-From: "Eric Miao" <eric.y.miao@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812050944440.4162@axis700.grange>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJ8csIf018398
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 03:38:54 -0500
+Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
+	[209.85.218.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mBJ8cdnB017814
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 03:38:39 -0500
+Received: by bwz13 with SMTP id 13so2493897bwz.3
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 00:38:38 -0800 (PST)
+Message-ID: <d9def9db0812190038l5b5bbf87g115a6cdf252b7c9b@mail.gmail.com>
+Date: Fri, 19 Dec 2008 09:38:38 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Craig Whitmore" <lennon@orcon.net.nz>
+In-Reply-To: <1229671771.25835.99.camel@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <f17812d70811271731s1473f23cn81ca782172acc1cd@mail.gmail.com>
-	<Pine.LNX.4.64.0811280807120.3990@axis700.grange>
-	<f17812d70811272356iddc5207rb2bb99cc7c88dcac@mail.gmail.com>
-	<f17812d70811272357t5fb043e3oee6bd9a269f4efaa@mail.gmail.com>
-	<Pine.LNX.4.64.0812050944440.4162@axis700.grange>
-Cc: video4linux-list@redhat.com,
-	ARM Linux <linux-arm-kernel@lists.arm.linux.org.uk>
-Subject: Re: Fwd: [PATCH 2/2] V4L/DVB: pxa-camera: use memory mapped IO
-	access for camera (QCI) registers
+References: <494B4CAC.7070706@foopara.de> <1229671771.25835.99.camel@localhost>
+Cc: video4linux-list@redhat.com
+Subject: Re: creating a new device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,23 +31,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Dec 5, 2008 at 4:46 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Eric,
+On Fri, Dec 19, 2008 at 8:29 AM, Craig Whitmore <lennon@orcon.net.nz> wrote:
+> On Fri, 2008-12-19 at 08:26 +0100, Norman Specht wrote:
+>> Hi,
+>>
+>> i'm trying to develop a image preprocessor which takes the image from a
+>> webcam (e.g /dev/video0), modifies it and render it to a second
+>> device (e.g /dev/myVideo0).
+>>
+>> Grabbing the picture from the webcam isn't the problem but my problem is: How can i create a device which behaves like a webcam?
+>>
+>> I'm running a ubuntu 8.10, and i tried including the kernel headers (media/v4l2-common.h, etc.) in many different ways to make my g++ compile my program. Is there some special way to do this?
 >
-> On Fri, 28 Nov 2008, Eric Miao wrote:
->
-> ...
->
->> And again, I'm OK if you can do a trivial merge and I expect
->> the final patch will be a bit different than this one.
->
-> below is a version of your patch that I'm going to push upstream. Just
-> removed superfluous parenthesis and one trailing tab. Please confirm that
-> that is ok with you.
+> google for dvbloopback..
 >
 
-Looks fine, thanks.
+dvb loopback?
+
+vloopback and v4l2vd
+
+http://v4l2vd.sourceforge.net/
+
+Markus
 
 --
 video4linux-list mailing list
