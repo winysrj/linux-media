@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47])
+Received: from smtp2b.orange.fr ([80.12.242.145])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LEWyo-0007RD-6X
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 23:40:59 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Artem Makhutov <artem@makhutov.org>
-In-Reply-To: <20081221135926.GI12059@titan.makhutov-it.de>
-References: <20081220224557.GF12059@titan.makhutov-it.de>
-	<alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
-	<1229827473.2557.11.camel@pc10.localdom.local>
-	<20081221135926.GI12059@titan.makhutov-it.de>
-Date: Sun, 21 Dec 2008 23:41:31 +0100
-Message-Id: <1229899291.2584.75.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
+	(envelope-from <hftom@free.fr>) id 1LDpAT-0002ej-QO
+	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 00:54:06 +0100
+From: Christophe Thommeret <hftom@free.fr>
+To: linux-dvb@linuxtv.org
+Date: Sat, 20 Dec 2008 00:53:34 +0100
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+	<200812192058.58686.sinter.mann@gmx.de>
+	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
+In-Reply-To: <d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200812200053.34744.hftom@free.fr>
+Subject: Re: [linux-dvb] S2API drivers sync
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,73 +21,91 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Le vendredi 19 d=E9cembre 2008 21:11:11 Markus Rechberger, vous avez =E9cri=
+t=A0:
+> On Fri, Dec 19, 2008 at 8:58 PM, sinter <sinter.mann@gmx.de> wrote:
+> > Am Friday 19 December 2008 20:29:52 schrieben Sie:
+> >> On Fri, Dec 19, 2008 at 7:43 PM, sinter <sinter.mann@gmx.de> wrote:
+> >> > Am Freitag 19 Dezember 2008 18:01:40 schrieb gimli:
+> >> >> The DVB-S2 stuff smells all like a big bullshit.
+> >> >> In the first step a big hurry to get S2API in
+> >> >> the mainline kernel and now nothing at all from
+> >> >> the DVB-S2 front. This is a completly big mess
+> >> >> in my eyes.
+> >> >>
+> >> >> cu
+> >> >>
+> >> >> Edgar (gimli) Hucek
+> >> >>
+> >> >> P.S.: Childish political games which are played on
+> >> >> the shoulders of the users. Hurray, well done.
+> >> >
+> >> > Yes, Edgar, exactly: This is what the name Manu A. stands for since
+> >> > this guy was recruited as a DVB "maintainer" by Johannes Stezenbach:
+> >> >
+> >> > Kiddish political games which are played on the shoulders of the
+> >> > users. Also those kiddish games are ideal to hide the discovery of
+> >> > one's own personal mediocrity / incapability in coding issues.
+> >> >
+> >> > There are people who ask themselves why Manu A. still owes a
+> >> > repository at linuxtv.org. I guess this runs under "utilitarianism of
+> >> > human beings".
+> >> >
+> >> > And also: a huge mass of (inactive) nominal members looks nice for a
+> >> > career at redhat.com, doesn't it?
+> >>
+> >> This looks like a respect email.
+> >
+> > No, not in any context at all!
+> > It's you who ignores the sarcasm behind my words!
+> > Just use your brain, austrian!
+> >
+> >> Best would have been if Manu wouldn't
+> >> have had released
+> >> any code and would just have forwarded his code to his friends they
+> >> wouldn't have complained and
+> >> even probably would have paid some beer and invited him for some
+> >> parties.
+> >
+> > YES! This would have made everything easier: NOT to have persons like Y=
+OU
+> > and Manu A. around here, as nobody needs anti-team working
+> > big-mouth-nut-shuts here.
+> >
+> >> It takes time to get documentation for a certain chip, to get the
+> >> agreement for it and finally to write
+> >> a driver for it.
+> >
+> > Yesno! It also takes social behaviour to maintain written code, and if
+> > someone does not respect social behaviour but claims to be chief DVB
+> > maintainer at the same time then this indian person called A. is counter
+> > productive / ridiculous!
+> > And that's all about him.
+> > We gotta get rid of people like you, Markus, and Manu A. too because you
+> > two are like an incarnation of the living copounter productive pest,
+> > arenn't you?
+> >
+> >> As user it's certainly easier to complain about all
+> >> that and think that everything's free.
+> >> Even google is playing around with the content of the mails I send
+> >> here and earning money by doing
+> >> statistics out of that.
+> >
+> > Stop ranting, Austrian! Shut up man!!!!
+>
+> ah this is Uwe, welcome back.
 
-Am Sonntag, den 21.12.2008, 14:59 +0100 schrieb Artem Makhutov:
-> Hi,
-> 
-> On Sun, Dec 21, 2008 at 03:44:33AM +0100, hermann pitton wrote:
-> > I must admit that I did not read it all yet this time.
-> > 
-> > But a good probe might be to save the HD S2 stuff to a file and then try
-> > to get it over a nfs mount with xine for example on other PCs.
-> > 
-> > On consumer level it only has advantages, skip the commercials ...
-> > 
-> > This works since stoneage within local networks.
-> > 
-> > If you are trying to get it out over the internet, it might cause some
-> > more questions of course.
-> 
-> The STB can only playpack UDP Streams, so NFS will not help me much.
+LOL
 
-should have read better.
+-- =
 
-> I have recorded the stream to a file and will try to playback it under windows.
-> My CPU is too slow to playback the stream without GPU acceleration under linux.
-> 
-
-The pDVD with GPU acceleration plays my Linux recorded BBC HD 1080i
-stuff without any visible issues. So that should work in any case at
-first I guess. (all on saa7134 DVB-S stuff)
-
-I recently tried libxine with vdpau support, but on Linux recorded 1080i
-BBC HD stuff it shows only a grey surface. The same recorded under
-windows it plays already fine, but it often needs several attempts to
-get playback started and it does not like seeking. It also doesn't like
-my channels.conf yet, but I don't expect it to do any better on live
-watching for now.
-
-The recent mplayer vdpau patches do work fine for playback of all
-recorded 1080i stuff and mpeg2 sound is without any sync issues.
-It is only a simple 9500GT here, but the GPU stays totally cool and no
-fan turns on like some supposed. 
-
-The only issue left are some flashing green and purple blocks at the
-bottom line, but others seem not to have it and it might be related to
-the current implementation of that video card.
-
-Unfortunately on vdpau live watching mplayer loses A/V sync like it does
-with -vo xv even for playback only. That works mostly fine with kaffeine
-xv against that libxine as long it stays with mpeg2 audio, but really
-safe is only to playback from recordings, since they fumble around with
-audio and that sort of AC3 they have seems not to be for me yet.
-CPUs are of course at 30% on the amd quad with xv and ffmpeg h264 then.
-
-Cheers,
-Hermann
-
-
-
- 
-
-
+Christophe Thommeret
 
 
 _______________________________________________
