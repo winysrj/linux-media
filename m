@@ -1,29 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBLL0V0R022836
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 16:00:31 -0500
-Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
-	[209.85.218.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBLL0Ih5005796
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 16:00:18 -0500
-Received: by bwz13 with SMTP id 13so4933616bwz.3
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 13:00:18 -0800 (PST)
-Message-ID: <208cbae30812211300l537445a1n76118650949b0567@mail.gmail.com>
-Date: Mon, 22 Dec 2008 00:00:18 +0300
-From: "Alexey Klimov" <klimov.linux@gmail.com>
-To: "Thierry Merle" <thierry.merle@free.fr>
-In-Reply-To: <208cbae30812211251h2a310a07v5b046cbe3a24fd1e@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJ7FUYC019810
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 02:15:30 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBJ7FGZu029593
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 02:15:16 -0500
+Date: Fri, 19 Dec 2008 08:15:19 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20081218205706.60bf1526@caramujo.chehab.org>
+Message-ID: <Pine.LNX.4.64.0812190808390.3922@axis700.grange>
+References: <Pine.LNX.4.64.0812181613050.5510@axis700.grange>
+	<20081218160841.GA13851@linux-sh.org>
+	<Pine.LNX.4.64.0812181717320.5510@axis700.grange>
+	<20081218162439.GA27151@linux-sh.org>
+	<Pine.LNX.4.64.0812181730080.5510@axis700.grange>
+	<20081218191839.78cb627d@caramujo.chehab.org>
+	<Pine.LNX.4.64.0812190026180.8046@axis700.grange>
+	<20081218205706.60bf1526@caramujo.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <1229742563.10297.114.camel@tux.localhost>
-	<20081220132730.45e9c365@gmail.com>
-	<30353c3d0812200959h40d525f0t6939c21c6bd4e612@mail.gmail.com>
-	<1229885212.12091.219.camel@tux.localhost> <494EA35F.10208@free.fr>
-	<208cbae30812211251h2a310a07v5b046cbe3a24fd1e@mail.gmail.com>
-Cc: video4linux-list@redhat.com, David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: [review patch 2/5] dsbr100: fix codinstyle, make ifs more clear
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Magnus Damm <damm@igel.co.jp>, video4linux-list@redhat.com,
+	Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org
+Subject: Re: A patch got applied to v4l bypassing v4l lists
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,53 +34,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-<snip>
+On Thu, 18 Dec 2008, Mauro Carvalho Chehab wrote:
 
->> I would use a goto.
->> This is the most readable and efficient way to manage exeptions in C.
->> Take a look at linux/drivers/media/video/v4l2-dev.c for an example of goto usage.
->> Cheers,
->> Thierry
->
-> So, do you mean that i can use this method ?
->
-> static int dsbr100_stop(struct dsbr100_device *radio)
-> {
->        int retval;
->        int request;
->
->        mutex_lock(&radio->lock);
->
->        retval = usb_control_msg(radio->usbdev,
->                usb_rcvctrlpipe(radio->usbdev, 0),
->                USB_REQ_GET_STATUS,
->                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->                0x16, 0x1C, radio->transfer_buffer, 8, 300);
->
->        if (retval < 0) {
->                request = USB_REQ_GET_STATUS;
->                goto usb_control_msg_failed;
->        }
->
->        retval = usb_control_msg(radio->usbdev,
->                usb_rcvctrlpipe(radio->usbdev, 0),
->                DSB100_ONOFF,
->                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
->                0x00, 0x00, radio->transfer_buffer, 8, 300);
->
->        if (retval < 0) {
->                request = DSB100_ONOFF;
->                goto usb_control_msg_failed;
->        }
->
->        radio->muted=1;
->        mutex_unlock(&radio->lock);
->        return (radio->transfer_buffer)[0];
->
-> :usb_control_msg_failed:
+> On Fri, 19 Dec 2008 00:30:05 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> 
+> > > A side note: maybe the design of pxa_camera could be improved to avoid needing
+> > > to be touched as architecture changes. This is the only v4l driver that includes
+> > > asm/arch header files.
+> > 
+> > The patch in question was for sh_mobile_ceu_camera.c - not for pxa, and 
+> > even though that one doesn't include any asm headers, as you see, it is 
+> > also tied pretty closely with respective platform code.
+> 
+> > As for including asm headers in pxa_camera.c - it wouldn't be easy to get 
+> > rid of them, one of the main obstacles is the use of the pxa-specific 
+> > dma-channel handling API.
+> 
+> Ok. I dunno the specific details of the sh and pxa bindings, but it would be
+> better to have it more independent from architecture specific implementation
+> details.
 
-Oh, sorry. Of course, there is no ":" before usb_control_msg_failed.
-Only after.
+...that's what I'm saying - we have to work with the complete kernel tree. 
+Working with a part of it is no fun. Just think about one thing - changing 
+platform data struct layout. It will still compile as long as you preserve 
+the name, because that's just a void * you get from platform, but you 
+better don't try to run that... Or take this clock change now to the 
+sh_mobile_ceu_camera.c. It will still compile with older kernels, but it 
+won't run.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
