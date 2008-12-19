@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.170])
+Received: from fg-out-1718.google.com ([72.14.220.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LATC3-000300-Tp
-	for linux-dvb@linuxtv.org; Wed, 10 Dec 2008 18:49:52 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so150013ugc.16
-	for <linux-dvb@linuxtv.org>; Wed, 10 Dec 2008 09:49:48 -0800 (PST)
-Date: Wed, 10 Dec 2008 18:49:38 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Jordi Moles Blanco <jordi@cdmon.com>
-In-Reply-To: <493FFD3A.80209@cdmon.com>
-Message-ID: <alpine.DEB.2.00.0812101844230.989@ybpnyubfg.ybpnyqbznva>
-References: <493FFD3A.80209@cdmon.com>
+	(envelope-from <oroitburd@gmail.com>) id 1LDiaE-0004cq-Ka
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 17:52:15 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so421449fga.25
+	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 08:52:11 -0800 (PST)
+Message-ID: <b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
+Date: Fri, 19 Dec 2008 17:52:10 +0100
+From: "Oleg Roitburd" <oroitburd@gmail.com>
+To: gimli@dark-green.com
+In-Reply-To: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] lifeview pci trio (saa7134) not working through
- diseqc anymore
+Subject: Re: [linux-dvb] S2API drivers sync
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,43 +28,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 10 Dec 2008, Jordi Moles Blanco wrote:
+Hi,
 
-> here's what i got from scanning........
-> 
-> switch 1 (astra 28.2E)
-> 
-> ********
-> scan -s 1 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-28.2E
-> >>> tune to: 10729:v:1:22000
-> 0x0000 0x206c: pmt_pid 0x0100 BSkyB -- E4+1 (running)
+2008/12/18 gimli <gimli@dark-green.com>:
+> What about syncing up with Igor M. Liplianin's
+> S2API tree to get more S2API drivers in the
+> v4l-hg tree ?
 
-> 
-> switch 2 (astra 19E)
-> ********
-> scan -s 2 /home/servidor/.kde/share/apps/kaffeine/dvb-s/Astra-19.2E
-> >>> tune to: 10788:v:2:22000
-> 0x0000 0x283d: pmt_pid 0x0100 BSkyB -- BBC 1 W Mids (running)
+Very good idea, but it's impossible. For sync Mauro needs ACK or
+Sign-Off from Manu. And they blocks all changes. Politic.
 
-You are correct, this is a transponder at 28E2 which
-shares freq,pol+sr with 19E2...
+Regards
+Oleg Roitburd
 
+P.S. For me works s2-liplianin with tt s2-3200 much stabler than v4l-dvb.
 
-> And it doesn't matter if i run "scan -s 1" or "scan -s 2" or "scan -s
-> 3", it will always scan from "switch 1"
-
-Try with -s 0; I'm not sure if it is always the case,
-but my unhacked `scan' uses 0-3 for DiSEqC positions
-1/4 to 4/4 -- I've hacked this to use the range of 1-4
-on all my `scan' and related tuning/streaming utilities.
-
-
-Personally, I prefer `0' to mean no DiSEqC at all, A/B
-as appropriate, and 1-4 to match all consumer equipment
-I've got my hands on (or A-D), but that's me...
-
-
-barry bouwsma
+P.P.S. What's about signal statistic for stv0899 in v4l-dvb? What's
+about another devices based on stv0899 (mantis, USB)?
 
 _______________________________________________
 linux-dvb mailing list
