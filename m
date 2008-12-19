@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOGoFgi004311
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 11:50:15 -0500
-Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOGnCBB012610
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 11:49:12 -0500
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Stefano Sabatini <stefano.sabatini-lala@poste.it>
-In-Reply-To: <20081224160038.GD475@geppetto>
-References: <20081224160038.GD475@geppetto>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Wed, 24 Dec 2008 17:47:04 +0100
-Message-Id: <1230137224.1700.10.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list Mailing List <video4linux-list@redhat.com>
-Subject: Re: gspca, linux 2.6.26 and ioctl(VIDIOC_QUERYCAP) returning -1,
-	what's wrong?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJCp3Kg032482
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 07:51:03 -0500
+Received: from www20.your-server.de (www20.your-server.de [213.133.104.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJCon27011444
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 07:50:49 -0500
+Received: from [82.83.49.146] (helo=[192.168.242.4])
+	by www20.your-server.de with esmtpa (Exim 4.69)
+	(envelope-from <xl@xlsigned.net>) id 1LDeob-0000Es-7V
+	for video4linux-list@redhat.com; Fri, 19 Dec 2008 13:50:49 +0100
+Message-ID: <494B98A4.8000801@xlsigned.net>
+Date: Fri, 19 Dec 2008 13:50:44 +0100
+From: "Dyks, Axel (XL)" <xl@xlsigned.net>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Subject: cx88: Tuner not detected when driver build into kernel (broken in
+ 2.6.26/27, fixed in 2.6.28-rc)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,31 +29,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 2008-12-24 at 17:00 +0100, Stefano Sabatini wrote:
-> Hi all,
+Hi,
 
-Hi Stefano,
+I'm currently working on a bug report from a gentoo user who spotted
+a 2.6.26 regression that seems to be fixed meanwhile (2.6.28-rc).
 
-> I'm using linux 2.6.26 and the Debian gspca module, and I'm getting
-> ioctl(VIDIOC_QUERYCAP) return -1 after the device is opened.
-	[snip]
-> stefano@geppetto ~/s/ffmpeg> sudo modinfo gspca 
-> filename:       /lib/modules/2.6.26-1-686/kernel/drivers/usb/media/gspca.ko
-> author:         Michel Xhaard <mxhaard@users.sourceforge.net> based on spca50x driver by Joel Crisp <cydergoth@users.sourceforge.net>,ov511 driver by Mark McClelland <mwm@i.am>
-> description:    GSPCA/SPCA5XX USB Camera Driver
-	[snip]
+The problem is that the (analog only) tuner of his WinTV card isn't
+detected (even not when tuner type is passed as a kernel parameter)
+when the cx88 driver is build into the kernel. It works, when cx88
+is build as a module.
 
-You use the gspca version 1. This one is obsoleted by the gspca v2 which
-is included in the latest linux kernels (>= 2.6.27). You should try the
-stable or development versions at LinuxTv.org. Look at my page (see
-below) for more information.
+This is a dmesg excerpt from a 2.6.26 kernel with cx88 build in.
+----------------------------------------------------------------
+  cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+  ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
+  ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [APC1] -> GSI 16 (level, low) -> IRQ 16
+  cx88[0]: subsystem: 0070:3401, board: Hauppauge WinTV 34xxx models [card=1,autodetected]
+  cx88[0]: TV tuner type -1, Radio tuner type -1
+  tveeprom 0-0050: Hauppauge model 34504, rev E148, serial# 7041745
+  tveeprom 0-0050: tuner model is LG TP18PSB11D (idx 48, type 29)
+  tveeprom 0-0050: TV standards PAL(B/G) (eeprom 0x04)
+  tveeprom 0-0050: audio processor is CX881 (idx 31)
+  tveeprom 0-0050: has radio
+  cx88[0]: warning: unknown hauppauge model #34504
+  cx88[0]: hauppauge eeprom: model=34504
+  input: cx88 IR (Hauppauge WinTV 34xxx  as /class/input/input2
+  cx88[0]/0: found at 0000:01:06.0, rev: 3, irq: 16, latency: 32, mmio: 0xf3000000
+  cx88[0]/0: registered device video0 [v4l2]
+  cx88[0]/0: registered device vbi0
+  cx88[0]/0: registered device radio0
+  cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+  tuner' 0-0061: chip found @ 0xc2 (cx88[0])
+  ...
+  tuner' 0-0061: tuner type not set
+----------------------------------------------------------------
 
-Regards.
+We've spotted the commit that introduced the regression and were able
+to verify that reverting the commit fixes it on 2.6.26.
 
--- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
+ cx88: fix tuner setup
+ http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=4bf1226a7018bf79d05e0ce59244d702819529d1
 
+Now I would like to backport the patch(es) that fixed it in 2.6.28-rc
+to 2.6.27, but it's quite hard to figure it out, especially because
+many of the patches depend on each other.
+
+So any hints on which patch(es) might have fixed it are welcome.
+
+Thanks,
+
+Axel
+
+P. S.: Link to gentoo bug report: http://bugs.gentoo.org/show_bug.cgi?id=250609
 
 --
 video4linux-list mailing list
