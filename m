@@ -1,16 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <sinter.mann@gmx.de>) id 1LAo5v-00079K-Mb
-	for linux-dvb@linuxtv.org; Thu, 11 Dec 2008 17:08:56 +0100
-From: sinter <sinter.mann@gmx.de>
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <nico@youplala.net>) id 1LDo0i-0005Wk-VI
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 23:39:57 +0100
+Received: from [10.11.11.138] (user-54424d25.l5.c2.dsl.pol.co.uk [84.66.77.37])
+	by mail.youplala.net (Postfix) with ESMTP id AC083D880A7
+	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 23:39:09 +0100 (CET)
+From: Nicolas Will <nico@youplala.net>
 To: linux-dvb@linuxtv.org
-Date: Thu, 11 Dec 2008 17:06:25 +0100
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812111706.25702.sinter.mann@gmx.de>
-Subject: [linux-dvb] Technisat Skystar rev 2.8 - application problems with
-	the driver
+In-Reply-To: <494C1B1F.40205@gmx.net>
+References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
+	<200812191943.00696.sinter.mann@gmx.de>
+	<d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>
+	<200812192058.58686.sinter.mann@gmx.de>
+	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
+	<37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>
+	<412bdbff0812191247j60480e61wa3c1aea74f1e118@mail.gmail.com>
+	<1229720907.31427.18.camel@youkaida>  <494C1B1F.40205@gmx.net>
+Date: Fri, 19 Dec 2008 22:39:07 +0000
+Message-Id: <1229726347.31427.20.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Adding info to the wiki,
+ Was: Re:  S2API drivers sync
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,47 +35,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+On Fri, 2008-12-19 at 23:07 +0100, Jos Hoekstra wrote:
+> 
+> Is it ok if I add it as a minor edit to:
+> 
+> http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices#Afatech_AF9013_and_AF9015
+> ?
 
-There is one problem with that driver revision 2.8:
+Of course it is. This is also the best place to put the documentation.
 
-What you need to reproduce the problem:
-- a channels.conf with FTA channels only
-- the technisat card Revision 2.8 as the only card in your system
-- xine or mplayer
-- mtt and / or dvbrowse, which are essential parts of Gerd Knorr's xawtv-4.0 
-pre
-  which you can download here: http://dl.bytesex.org/cvs-
-snapshots/xawtv-20081014-100645.tar.gz
+You are not going to deface it, and anyway there is a built-in version
+control that you can also use.
 
-You can reproduce the problem with the following procedure:
-1. Either start mplayer dvb:// or xine dvb:// (the "master application")
-2. Start mtt after successfully compiling xawtv-4.0 pre (the "slave 
-application")
-
-Then please zap on / change channel using mplayer or xine.
-
-Under normal conditions mtt should stop now and wait as "slave application" 
-for the
-"master application" to tune a new channel.
-If that new channel has been tuned correctly mtt should continue and show the 
-new videotext.
-
-But what happens instead is the following:
-mtt stops and waits for the new channel, but for unknown reasons the new 
-channel is not being tuned.
-The consequence are the typical timeout-based errors known from xine or 
-mplayer.
-Zapping is only successful if mtt as videotext application is not involved at 
-all parallely.
-
-Question:
-Can someone please reproduce this problem / error?
-Can someone please offer a fix for that problem?
-
-A thousand thanks
-
-sinter
+Nico
 
 
 _______________________________________________
