@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailhost.terions.de ([81.16.53.101] helo=pm1.terions.de)
+Received: from pne-smtpout2-sn1.fre.skanova.net ([81.228.11.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alles@bredde.de>) id 1L7QdD-0006HA-EZ
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 09:29:20 +0100
-Message-ID: <4934F1CA.1000805@bredde.de>
-Date: Tue, 02 Dec 2008 09:28:58 +0100
-From: Mark Breddemann <alles@bredde.de>
+	(envelope-from <jyrki.n@telia.com>) id 1LDjre-0004eH-2E
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 19:14:18 +0100
+Message-ID: <494BE451.3080407@telia.com>
+Date: Fri, 19 Dec 2008 19:13:37 +0100
+From: Jyrki Niskala <jyrki.n@telia.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <492F1FF4.7030600@bredde.de>
-In-Reply-To: <492F1FF4.7030600@bredde.de>
-Subject: Re: [linux-dvb] Cinergy Hybrid XE with tm6010 chip
+To: Simon Kenyon <simon@koala.ie>
+References: <494B9754.6000403@koala.ie>
+In-Reply-To: <494B9754.6000403@koala.ie>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,40 +25,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nobody?
-
-br wrote:
-> Hi,
-> I've got a Cinergy Hybrid XE DVB-T USB Stick, which has got a tm6010
-> chip inside (I opened the case just to get sure). Quite fast I realized,
-> that there are no stable Linux drivers out there, so i tried the
-> unstable one.
-> 
-> So I checked out the repo at http://linuxtv.org/hg/~mchehab/tm6010/ and
-> compiled (without DVB), installed, loaded the module and then inserted
-> the stick and well.. nothing happened, because the driver did not knew
-> about my device. To fix this, i added the line
-> { USB_DEVICE(0x0ccd, 0x0086), .driver_info = TM6010_BOARD_GENERIC },
-> to file tm6000-cards.c (my lsusb output is 'Bus 008 Device 004: ID
-> 0ccd:0086 TerraTec Electronic GmbH'). I do not know, whether
-> TM6010_BOARD_GENERIC is the correct one, but for me it seemed to be the
-> best solution.
-> Afterward, the driver recognized my stick and began to work:
-> http://pastebin.com/f79722ed2 . In short: The firmware's missing. So I
-> extracted the firmware with help of a python script I found on the
-> internet and put it to the right place. Here's the (long) result:
-> http://pastebin.com/f6c853b43
-> 
-> I'm not surprised that my journey has failed, because I do not really
-> know what my added line does (good old try'n'error), so my question:
-> Where to go from here?
-> 
-> Mark
-> 
+Simon Kenyon wrote:
+> just bought what i though was a t-500 and when i opened the box it 
+> contained a td-500
+>
+> the wiki says (in bright bold colours) that it is not (and never would 
+> be) supported
+>
+> however, from looking at the mailing list it appear to be supported
+>
+> i can of course take it out of the sealed bag and try
+>
+> however, to preserve any change of swapping it i thought i would ask 
+> here first
+>
+> regards
+> --
+> simon
+>
 > _______________________________________________
 > linux-dvb mailing list
 > linux-dvb@linuxtv.org
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>   
+Hi
+
+For me it's still kind of 80% working status, it works on 4 of 5 muxes 
+(read more about it here: 
+http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030601.html).
+I been tracking the problem from time to time by comparing usbsnoop logs 
+from the windows driver. Windows driver works on all 5 muxes. For the 
+moment I have found some differences in demod driver (dib7000p) and the 
+tuner driver (dib0700). I will have some more time during Christmas 
+holiday to investigate it further.
+
+Regards, Jyrki
 
 _______________________________________________
 linux-dvb mailing list
