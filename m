@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1LHSEo-0004a4-Me
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 01:13:35 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so1833894fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 29 Dec 2008 16:13:31 -0800 (PST)
-Message-ID: <19a3b7a80812291613kc566f0cua89156b43f1ec7d7@mail.gmail.com>
-Date: Tue, 30 Dec 2008 01:13:30 +0100
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: "Koos van den Hout" <koos@kzdoos.xs4all.nl>
-In-Reply-To: <20081224112111.GA15004@kzdoos.xs4all.nl>
+Received: from web62108.mail.re1.yahoo.com ([69.147.74.246])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <kiwigb@yahoo.com>) id 1LDWKP-00013f-0S
+	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 04:47:06 +0100
+Date: Thu, 18 Dec 2008 19:46:26 -0800 (PST)
+From: Greg Balle <kiwigb@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20081224112111.GA15004@kzdoos.xs4all.nl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Scan file dvb-t nl-Utrecht
+Message-ID: <995535.96989.qm@web62108.mail.re1.yahoo.com>
+Subject: [linux-dvb] Toshiba DVB (USB stick) p/n PX1256E-1TVH
+Reply-To: kiwigb@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,31 +23,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hi all,
 
-2008/12/24 Koos van den Hout <koos@kzdoos.xs4all.nl>:
-> As attached, tested yesterday evening with scan from Ubuntu dvb-utils
-> 1.1.1-3.
->
-> I see fec values in nl-Randstad and nl-AlphenaandenRijn that aren't valid
-> (anymore) compared to the information source I have. Should I send those
-> in with my 'theoretical' fixes or should I wait until I can try them (or
-> ask people to try them).
+anybody know anything about linux driver support for this beastly thing?
 
-Those nl-* files were removed in favour of a nl-All file 11 months
-ago. I've recreated the nl-All file as some channels have changed
-since then [1], so all issues should be solved now.
+kernel messages on plug-in:
 
-Christoph
+Dec 19 16:32:26 yodasan kernel: [ 3667.720645] usb 1-3: new high speed USB device using ehci_hcd and address 9
+Dec 19 16:32:26 yodasan kernel: [ 3667.853676] usb 1-3: configuration #1 chosen from 1 choice
+
+lsusb relevant line:
+
+Bus 001 Device 009: ID 04ca:f004 Lite-On Technology Corp.
+
+It seems like there is support for previous versions (cold # vendor: 04ca:f000 and hot # vendor: 04ca:f001?) but not this chip, is that correct or is there some other history that is known about?
+
+Cheers for any help,
+
+Greg B.
+
+PS: I have spent hours on it and is biggest waste of money I have ever spent on Toshiba hardware, ever, and doesn't even work properly under Windows with supplied software (not that I wanted it to).
 
 
->                                          Koos van den Hout
->
-> --
-> Koos van den Hout                         Homepage: http://idefix.net/~koos/
->                        PGP keyid DSS/1024 0xF0D7C263 or RSA/1024 0xCA845CB5
-> Webprojects:              Camp Wireless        http://www.camp-wireless.org/
->                      The Virtual Bookcase   http://www.virtualbookcase.com/
+
+      Get the world&#39;s best email - http://nz.mail.yahoo.com/
 
 _______________________________________________
 linux-dvb mailing list
