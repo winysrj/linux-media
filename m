@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122])
+Received: from pne-smtpout1-sn2.hy.skanova.net ([81.228.8.83])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb.list@sustik.com>) id 1LE7gS-0003VH-EX
-	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 20:40:24 +0100
-Received: from [192.168.1.17] (really [66.69.251.66])
-	by hrndva-omta05.mail.rr.com with ESMTP
-	id <20081220193944.GODU13791.hrndva-omta05.mail.rr.com@[192.168.1.17]>
-	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 19:39:44 +0000
-Message-ID: <494D4A00.6020305@sustik.com>
-Date: Sat, 20 Dec 2008 13:39:44 -0600
-From: Matyas Sustik <linux-dvb.list@sustik.com>
+	(envelope-from <jyrki.n@telia.com>) id 1LDw8U-0007cT-Lp
+	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 08:20:31 +0100
+Received: from [192.168.128.33] (90.228.209.229) by
+	pne-smtpout1-sn2.hy.skanova.net (7.3.129) (authenticated as
+	u49403269) id 48A144C502155D8A for linux-dvb@linuxtv.org;
+	Sat, 20 Dec 2008 08:19:57 +0100
+Message-ID: <494C9CA8.6010500@telia.com>
+Date: Sat, 20 Dec 2008 08:20:08 +0100
+From: Jyrki Niskala <jyrki.n@telia.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Fusion HDTV7 again
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <492D441D.1050108@telia.com>
+In-Reply-To: <492D441D.1050108@telia.com>
+Subject: Re: [linux-dvb] Can't get signal lock with Hauppauge Nova TD-500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,52 +28,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
+Jyrki Niskala wrote:
+> Hello
+>
+> I'm stucked here with a problem with a new Hauppauge card called Nova 
+> TD-500.
+> When tuning, I got lock on 4 of 5 muxes.  The fifth, non working mux, is 
+> at 778 MHz.
+> It's same behaviour on both tuners, with tzap or MythTV,  with or 
+> without lna option.
+> I have also tried with another computer with same result.
+> The signal is not a problem. I have 3 other dvb-t cards up and running 
+> for the moment...
+> All muxes are from 538 MHz to 778 MHz (64 QAM, 8 MHz bandwith, 8k 
+> transmission mode)
+>
+>   
+Hi again,
 
-After a dist-upgrade my HDTV7 Dual Express card stopped working.  I managed
-to get it to work before, from the logs from Dec 15:
+For completeness and reference for others I need to close this issue.
 
-Dec 15 23:47:47 cheetah kernel: [   10.701054] cx23885 driver version 0.0.1 load
-ed
-Dec 15 23:47:47 cheetah kernel: [   10.701117] ACPI: PCI Interrupt 0000:02:00.0[
-A] -> GSI 16 (level, low) -> IRQ 16
-Dec 15 23:47:47 cheetah kernel: [   10.701237] CORE cx23885[0]: subsystem:
-18ac:d618, board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
-Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 0 registered
-Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 1 registered
-Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 2 registered
-Dec 15 23:47:47 cheetah kernel: [   10.870102] cx23885[0]: cx23885 based dvb card
+By comparing usbsnoop logs from Windows driver with source code of the 
+demod (dib7000p) I found out that the windows driver is using auto guard 
+interval when tuning. My channel configurations,  tzap and MythTV, was 
+using manual guard interval at 1/8.  After changing my configurations to 
+use auto guard interval I got 5:th mux working.
+Now the card is back in duty ...
 
-That was with linux-image-2.6.26-1-amd64_2.6.26-11_amd64.deb and compiled the
-cx23885 module from the mercurial repo.
+Merry Christmas,
 
-The current kernel is from: linux-image-2.6.26-1-amd64_2.6.26-12_amd64.deb.
-I pulled the mercurial sources again did make and make install, rebooted but
-I still get:
+/ Jyrki
 
-Dec 20 13:15:02 cheetah kernel: [   11.801129] cx23885: disagrees about
-version of symbol v4l_compat_ioctl32
-Dec 20 13:15:02 cheetah kernel: [   11.801133] cx23885: Unknown symbol
-v4l_compat_ioctl32
-
-I have seen this before, but I cannot figure out what is happening.  I would
-appreciate if someone could explain to me what is going on here.  That may
-reduce my frustration somewhat.
-
-If there is some documentation on how to debug a problem like this I would be
-willing to do some debug and even work on it.  I suspect that the kernel
-interface got updated and changes for the driver is needed.  Maybe this is a
-simple enough project to get started with open source.  (Let me know if
-not...)  I have not contributed to open source yet, so please be gentle.
-
-I tried reinstalling the old linux-image package but that now does not work
-either.  There must be some other software/libs that got updated from apt-get
-dist-upgrade rendering the cx23885 module unusable at the present.
-
-Any insight would be appreciated.
-Matyas
--
-Every hardware eventually breaks.  Every software eventually works.
 
 _______________________________________________
 linux-dvb mailing list
