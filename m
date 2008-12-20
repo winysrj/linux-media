@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lindsay@softlog.com.au>) id 1LDSpP-0002Nx-5N
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 01:02:52 +0100
-Received: from [192.168.5.99] by softlog.com.au (MDaemon PRO v9.5.6)
-	with ESMTP id 24-md50000010395.msg
-	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 10:01:44 +1000
-Message-ID: <494AE460.2030801@softlog.com.au>
-Date: Fri, 19 Dec 2008 10:01:36 +1000
-From: Lindsay Mathieson <lindsay@softlog.com.au>
-MIME-Version: 1.0
+	(envelope-from <artem@moelleritberatung.de>) id 1LEAaI-0000PH-I8
+	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 23:46:11 +0100
+Date: Sat, 20 Dec 2008 23:45:57 +0100
+From: Artem Makhutov <artem@makhutov.org>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Test
+Message-ID: <20081220224557.GF12059@titan.makhutov-it.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,11 +23,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Lats couple of messages I have sent to the list failed.
--- 
-Lindsay
-Softlog Systems
+Hello,
 
+I would like to stream a DVB-S2, H264 channel over my network to an STB.
+
+I an using the TT 3200 DVB-S2 card with multiproto drivers from Igors repository.
+
+So faar I have tried 3 different solutions:
+
+1. Using szap2 & dvbstream
+
+# szap2 -r -p 'ASTRA HD'
+# dvbstream -udp -i 239.255.0.1 -r 1234
+
+2. Using szap2 and VLC
+
+# szap2 -r -p 'ASTRA HD'
+and setup VLC using the GUI to read from
+/dev/dvb/adapter0/dvr0 and stream to 239.255.0.1
+
+3. Use Windows with ProgDVB and stream to 239.255.0.1
+
+Basically only the solution using Windows is working.
+
+The streams from linux are all broken.
+The video and audio stops every 5 seconds for 1 second.
+
+So I can imagine 2 scenarios:
+
+1. The stb0899 driver is broken and is producing a bad stream
+2. The network streaming of VLC and dvbstream is broken
+
+Do you know any other methods to stream a DVB-S2 channel over network?
+
+Thanks, Artem
 
 _______________________________________________
 linux-dvb mailing list
