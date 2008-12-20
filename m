@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pne-smtpout2-sn1.fre.skanova.net ([81.228.11.159])
+Received: from rv-out-0506.google.com ([209.85.198.233])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jyrki.n@telia.com>) id 1LDjre-0004eH-2E
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 19:14:18 +0100
-Message-ID: <494BE451.3080407@telia.com>
-Date: Fri, 19 Dec 2008 19:13:37 +0100
-From: Jyrki Niskala <jyrki.n@telia.com>
+	(envelope-from <e.grammatico@gmail.com>) id 1LE6GK-0005pI-Qm
+	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 19:09:17 +0100
+Received: by rv-out-0506.google.com with SMTP id b25so1437865rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 10:09:12 -0800 (PST)
+Message-ID: <77649f260812201009i13ea3059qf2af74faee91a448@mail.gmail.com>
+Date: Sat, 20 Dec 2008 19:09:11 +0100
+From: "Eric GRAMMATICO" <e.grammatico@gmail.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <1229792642.3111.8.camel@pc10.localdom.local>
 MIME-Version: 1.0
-To: Simon Kenyon <simon@koala.ie>
-References: <494B9754.6000403@koala.ie>
-In-Reply-To: <494B9754.6000403@koala.ie>
+Content-Disposition: inline
+References: <77649f260812200330g3b76fb31jb7b16c4e6a4c5443@mail.gmail.com>
+	<1229792642.3111.8.camel@pc10.localdom.local>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
+Subject: Re: [linux-dvb] Unable to lock signal on FlyDVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,41 +29,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simon Kenyon wrote:
-> just bought what i though was a t-500 and when i opened the box it 
-> contained a td-500
->
-> the wiki says (in bright bold colours) that it is not (and never would 
-> be) supported
->
-> however, from looking at the mailing list it appear to be supported
->
-> i can of course take it out of the sealed bag and try
->
-> however, to preserve any change of swapping it i thought i would ask 
-> here first
->
-> regards
-> --
-> simon
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-Hi
+Thanks Hermann,
 
-For me it's still kind of 80% working status, it works on 4 of 5 muxes 
-(read more about it here: 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030601.html).
-I been tracking the problem from time to time by comparing usbsnoop logs 
-from the windows driver. Windows driver works on all 5 muxes. For the 
-moment I have found some differences in demod driver (dib7000p) and the 
-tuner driver (dib0700). I will have some more time during Christmas 
-holiday to investigate it further.
+That worked !
 
-Regards, Jyrki
+Cheers,
+
+Eric.
+
+2008/12/20 hermann pitton <hermann-pitton@arcor.de>:
+> Hi,
+>
+> Am Samstag, den 20.12.2008, 12:30 +0100 schrieb Eric GRAMMATICO:
+>> Hello All,
+>>
+>> I am trying desperately to lock signal on a FlyDVB-T. My system is
+>> # uname -a
+>> Linux mythtv 2.6.27.5-117.fc10.i686 #1 SMP Tue Nov 18 12:19:59 EST
+>> 2008 i686 athlon i386 GNU/Linux
+>>
+>> It's like there is no data coming from... But my TV set is able to lock...
+>>
+>> I left all interesting information on
+>> http://e.grammatico.free.fr/linuxDVB/
+>>
+>> Any help is very welcome,
+>>
+>
+> there is a slight chance that the transmitter uses a positive offset of
+> about 167000Hz. It is quite common in France and the tda10046 can't find
+> this on its own.
+>
+> Modify the initial scan file like this.
+>
+> #### Cannes - Vallauris ####
+> #R1
+> T 490167000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R2
+> T 514167000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R3
+> T 578167000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R4
+> T 730167000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R5
+> T 690167000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R6
+> T 642167000 8MHz AUTO NONE QAM64 8k AUTO NONE
+>
+> Copy and paste and try with "scan" again.
+>
+> Cheers,
+> Hermann
+>
+>
+>
+>
+>
+>
+>
+
+
+
+-- 
+Tico.
 
 _______________________________________________
 linux-dvb mailing list
