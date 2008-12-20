@@ -1,38 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1EJ4B5019136
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:19:04 -0500
-Received: from omzesmtp02a.verizonbusiness.com
-	(omzesmtp02a.verizonbusiness.com [199.249.25.198])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1EIgDf028333
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:18:42 -0500
-Received: from dgismtp05.wcomnet.com ([166.38.58.88])
-	by firewall.verizonbusiness.com
-	(Sun Java(tm) System Messaging Server 6.3-5.02 (built Oct 12 2007;
-	32bit))
-	with ESMTP id <0KB70071BBPNO300@firewall.verizonbusiness.com> for
-	video4linux-list@redhat.com; Mon, 01 Dec 2008 14:17:47 +0000 (GMT)
-Received: from dgismtp05.wcomnet.com ([127.0.0.1])
-	by dgismtp05.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
-	(built Sep
-	22 2005)) with SMTP id <0KB7002QBBPNZC@dgismtp05.mcilink.com> for
-	video4linux-list@redhat.com; Mon, 01 Dec 2008 14:17:47 +0000 (GMT)
-Received: from [127.0.0.1] ([166.34.133.101])
-	by dgismtp05.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
-	(built Sep
-	22 2005)) with ESMTP id <0KB70038TBPJ4B@dgismtp05.mcilink.com> for
-	video4linux-list@redhat.com; Mon, 01 Dec 2008 14:17:47 +0000 (GMT)
-Date: Mon, 01 Dec 2008 07:17:43 -0700
-From: Mark Paulus <mark.paulus@verizonbusiness.com>
-In-reply-to: <e5df86c90811291616s65209d26q3471213958bdfde6@mail.gmail.com>
-To: Mark Jenks <mjenks1968@gmail.com>
-Message-id: <4933F207.7050309@verizonbusiness.com>
-MIME-version: 1.0
-Content-type: multipart/mixed; boundary=------------060603050604020309060108
-References: <e5df86c90811291616s65209d26q3471213958bdfde6@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBKHxfBU011550
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 12:59:41 -0500
+Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
+	[209.85.218.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBKHxSo1020638
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 12:59:28 -0500
+Received: by bwz13 with SMTP id 13so4107752bwz.3
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 09:59:28 -0800 (PST)
+Message-ID: <30353c3d0812200959h40d525f0t6939c21c6bd4e612@mail.gmail.com>
+Date: Sat, 20 Dec 2008 12:59:27 -0500
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Douglas Schilling Landgraf" <dougsland@gmail.com>
+In-Reply-To: <20081220132730.45e9c365@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <1229742563.10297.114.camel@tux.localhost>
+	<20081220132730.45e9c365@gmail.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: S-Video analog Capture.
-Reply-To: mark.paulus@verizonbusiness.com
+Subject: Re: [review patch 2/5] dsbr100: fix codinstyle, make ifs more clear
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -44,54 +32,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------060603050604020309060108
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+On Sat, Dec 20, 2008 at 10:27 AM, Douglas Schilling Landgraf
+<dougsland@gmail.com> wrote:
+> Hello Alexey,
+>
+> On Sat, 20 Dec 2008 06:09:23 +0300
+> Alexey Klimov <klimov.linux@gmail.com> wrote:
+>
+>> We should make if-constructions more clear. Introduce int variables in
+>> some functions to make it this way.
+>>
+>> ---
+>> diff -r a302bfcb23f8 linux/drivers/media/radio/dsbr100.c
+>> --- a/linux/drivers/media/radio/dsbr100.c     Fri Dec 19 14:34:30
+>> 2008 +0300 +++ b/linux/drivers/media/radio/dsbr100.c  Sat Dec
+>> 20 02:31:26 2008 +0300 @@ -200,15 +200,24 @@
+>>  /* switch on radio */
+>>  static int dsbr100_start(struct dsbr100_device *radio)
+>>  {
+>> +     int first;
+>> +     int second;
+>> +
+>>       mutex_lock(&radio->lock);
+>> -     if (usb_control_msg(radio->usbdev,
+>> usb_rcvctrlpipe(radio->usbdev, 0),
+>> -                     USB_REQ_GET_STATUS,
+>> -                     USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+>> USB_DIR_IN,
+>> -                     0x00, 0xC7, radio->transfer_buffer, 8, 300)
+>> < 0 ||
+>> -     usb_control_msg(radio->usbdev,
+>> usb_rcvctrlpipe(radio->usbdev, 0),
+>> -                     DSB100_ONOFF,
+>> -                     USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+>> USB_DIR_IN,
+>> -                     0x01, 0x00, radio->transfer_buffer, 8, 300)
+>> < 0) { +
+>> +     first = usb_control_msg(radio->usbdev,
+>> +             usb_rcvctrlpipe(radio->usbdev, 0),
+>> +             USB_REQ_GET_STATUS,
+>> +             USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>> +             0x00, 0xC7, radio->transfer_buffer, 8, 300);
+>> +
+>> +     second = usb_control_msg(radio->usbdev,
+>> +             usb_rcvctrlpipe(radio->usbdev, 0),
+>> +             DSB100_ONOFF,
+>> +             USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>> +             0x01, 0x00, radio->transfer_buffer, 8, 300);
+>> +
+>> +     if (first < 0 || second < 0) {
+>>               mutex_unlock(&radio->lock);
+>>               return -1;
+>>       }
+>
+> IMO, we could create a variable like "ret" or "retval" to validate each
+> usb_control_msg call instead of create 3 variables "first", "second" and "third".
 
-Mark Jenks wrote:
-> I have been trying to get my 2 HVR-1800's to work with my time-warner cable
-> box without much success at all.
-> 
-> Good thing I bought 2 of these, since they are exactly what I needed, and
-> can't use them at all except OTA, since there are lots of problem with the
-> analog input of these.
-> 
-> I am looking for a good analog capture card that can get S-video and maybe
-> audio from my TW box, so that I can use them in Mythtv.
-> 
-> Does anyone have any suggestions on what cards have analog S-video support?
-> 
-> Thanks!
-> 
-> -Mark
+The primary problem I have with this patch is that it changes the
+behavior of the driver. The original way it was written the function
+would immediately return if one of the calls to usb_control_msg
+failed. With this patch, if the first call fails it will still make a
+second call to usb_control_msg.
 
-I currently use a Hauppauge PVR-150 to capture from my 
-DCT-2524 (Comcast).  There's a nice channel change script 
-to talk to the DCT-2524.  You could also use a PVR-250.
-Don't know about how many SVideo inputs the PVR-500 has.
+I agree with Douglas, a single "ret" variable should be used and then
+evaluated after every usb_control_msg call.
 
---------------060603050604020309060108
-Content-Type: text/x-vcard; charset=utf-8;
- name="mark_paulus.vcf"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="mark_paulus.vcf"
+[snip]
 
-YmVnaW46dmNhcmQNCmZuOk1hcmsgUGF1bHVzDQpuOlBhdWx1cztNYXJrDQpvcmc6TUNJO0xl
-YyBJbnRlcmZhY2VzIC8gNDA0MTkNCmFkcjtkb206OzsyNDI0IEdhcmRlbiBvZiB0aGUgR29k
-cyBSZDtDb2xvcmFkbyBTcHJpbmdzO0NPOzgwOTE5DQplbWFpbDtpbnRlcm5ldDptYXJrLnBh
-dWx1c0B2ZXJpem9uYnVzaW5lc3MuY29tDQp0aXRsZTpNYXJrIFBhdWx1cw0KdGVsO3dvcms6
-NzE5LTUzNS01NTc4DQp0ZWw7cGFnZXI6ODAwLXBhZ2VtY2kgLyAxNDA2MDUyDQp0ZWw7aG9t
-ZTp2NjIyLTU1NzgNCnZlcnNpb246Mi4xDQplbmQ6dmNhcmQNCg0K
---------------060603050604020309060108
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards,
+
+David Ellingsworth
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------060603050604020309060108--
