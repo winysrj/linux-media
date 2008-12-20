@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHAjhDM032259
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 05:45:43 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHAjPf6030970
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 05:45:25 -0500
-Date: Wed, 17 Dec 2008 08:45:05 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <20081217084505.654dabd5@caramujo.chehab.org>
-In-Reply-To: <Pine.LNX.4.64.0812161051240.5450@axis700.grange>
-References: <uk5a0hna0.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812160904131.4630@axis700.grange>
-	<uej08h569.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812161001000.4630@axis700.grange>
-	<ud4fsh3h6.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812161051240.5450@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBK39RGb026904
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 22:09:27 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBK38dLw011331
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 22:09:13 -0500
+Received: by mail-ew0-f21.google.com with SMTP id 14so1312232ewy.3
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 19:09:13 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain
+Date: Sat, 20 Dec 2008 06:09:28 +0300
+Message-Id: <1229742568.10297.115.camel@tux.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH v3] Add tw9910 driver
+Cc: video4linux-list@redhat.com
+Subject: [review patch 3/5] dsbr100: dev_err insted of dev_warn
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,21 +28,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 16 Dec 2008 11:09:21 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+We should use dev_err here.
 
-> so, here it is trying ANY... OTOH, the comment above says the driver 
-> shouldn't fail this call, and http://v4l2spec.bytesex.org/spec/r10944.htm 
-> confirms that. Which also means, that vivi.c does it wrongly. Mauro, you 
-> are listed as one of the authors of vivi.c, and it looks like calling 
-> S_FMT on it with field != ANY && field != INTERLACED will produce -EINVAL, 
-> which seems to contradict the API. What is the correct behavious? Is this 
-> a bug in vivi.c?
+---
+diff -r 5fad9278bd8e linux/drivers/media/radio/dsbr100.c
+--- a/linux/drivers/media/radio/dsbr100.c	Sat Dec 20 02:33:51 2008 +0300
++++ b/linux/drivers/media/radio/dsbr100.c	Sat Dec 20 02:48:48 2008 +0300
+@@ -670,7 +670,7 @@
+ 	video_set_drvdata(&radio->videodev, radio);
+ 	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO, radio_nr);
+ 	if (retval < 0) {
+-		dev_warn(&intf->dev, "Could not register video device\n");
++		dev_err(&intf->dev, "couldn't register video device\n");
+ 		kfree(radio->transfer_buffer);
+ 		kfree(radio);
+ 		return -EIO;
 
-Yes, it is a bug at vivi. Could you please provide us a patch for it?
-
-Cheers,
-Mauro
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
