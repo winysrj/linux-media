@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF9fGoJ021793
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 04:41:16 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBK1EVJS022553
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 20:14:31 -0500
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBF9exkG009645
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 04:41:00 -0500
-Date: Mon, 15 Dec 2008 10:41:08 +0100 (CET)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBK1ECmv000558
+	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 20:14:12 -0500
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>) id 1LDqQ3-0002lb-Jn
+	for video4linux-list@redhat.com; Sat, 20 Dec 2008 02:14:15 +0100
+Date: Sat, 20 Dec 2008 02:14:15 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-In-Reply-To: <Pine.LNX.4.64.0812150844560.3722@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0812151031420.4416@axis700.grange>
-References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
-	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812150844560.3722@axis700.grange>
+To: video4linux-list@redhat.com
+In-Reply-To: <Pine.LNX.4.64.0812171921420.8733@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0812200104090.9649@axis700.grange>
+References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+	<87iqpi4qb0.fsf@free.fr>
+	<Pine.LNX.4.64.0812171921420.8733@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH re-send v2] Add interlace support to
-	sh_mobile_ceu_camera.c
+Subject: Re: soc-camera: current stack
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,69 +31,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 15 Dec 2008, morimoto.kuninori@renesas.com wrote:
+I uploaded an updated version of the soc-camera patch stack at
 
-> Thank you for checking my patch and some advice.
-> 
-> > Thei in sh_ceu_mobile you re-implement the test above from soc_camera.c, 
-> > extending it with INTERLACED after calling icd->ops->try_fmt(icd, f), 
-> > something like
-> > 
-> > 	switch (field) {
-> > 	case V4L2_FIELD_INTERLACED:
-> > 		pcdev->is_interlace = 1;
-> > 		break;
-> > 	case V4L2_FIELD_ANY:
-> > 		f->fmt.pix.field = V4L2_FIELD_NONE;
-> > 	case V4L2_FIELD_NONE:
-> > 		pcdev->is_interlace = 0;
-> > 		break;
-> > 	default:
-> > 		return -EINVAL;
-> > 	}
-> 
-> Now I understand that we need some patch like this.
-> Is it correct ? or not ?
-> 
-> o add set_std to soc_camera         -> for check norm
+http://gross-embedded.homelinux.org/~lyakh/v4l-20081219/
 
-Not add, it is already there, just modify as I described in another reply 
-to you (slightly extended):
+This should produce an equivalent of what is currently in my hg tree - at 
+least in what soc-camera concerns. If there's any interest, I might look 
+into installing a git-server and providing a git-tree with soc-camera 
+patches on that server, for 3 users to pull 5 putches every 2 weeks my 
+400MHz ARM9 on a dyndns ADSL line should be enough:-)
 
-> static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
-> {
-> 	struct soc_camera_file *icf = file->private_data;
-> 	struct soc_camera_device *icd = icf->icd;
-> 	if (!icd->ops->set_std)
-> 		return 0;
-> 	return icd->ops->set_std(icd, a);
-> }
+Next on queue (not yet in any of the directories on that server)
 
-of course, also adding the respective field to struct soc_camera_ops
+mt9t031
+tw9910
+i.MX31
+prepare pxa, sh, and all cameras to handle extra SOCAM_ flags being 
+	checked in soc_camera_bus_param_compatible()
+check extra SOCAM_ flags in soc_camera_bus_param_compatible()
 
-> o fix soc_camera_enum_input         -> for use V4L2_INPUT_TYPE_TUNER or CAMERA
-
-Yes, I am not quite sure how best to do this though. I think, we also want 
-to continue supporting the default behaviour, so, we should add a 
-enum_input method to struct soc_camera_ops, if defined - call it, if not, 
-fallback to default current behaviour.
-
-> o fix field test on soc_camera      -> remove field test (or add allow INTERLACED)
-
-Remove. But this patch I can do myself, because I will also have to patch 
-pxa_camera.c, you just assume this test is not there, for your tests just 
-remove it.
-
-> o interlace mode patch to sh_mobile_ceu
-> o tw9910 driver
-
-Yep.
+we'll try to do the latter two slowly and carefully...
 
 Thanks
 Guennadi
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
