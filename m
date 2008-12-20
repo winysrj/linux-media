@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.26])
+Received: from mail-in-06.arcor-online.net ([151.189.21.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LHrHw-0006JA-RQ
-	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 03:58:30 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so2666902qwb.17
-	for <linux-dvb@linuxtv.org>; Tue, 30 Dec 2008 18:58:24 -0800 (PST)
-Message-ID: <412bdbff0812301858r1ea7fae1v7daef43af2255ee1@mail.gmail.com>
-Date: Tue, 30 Dec 2008 21:58:24 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: sonofzev@iinet.net.au
-In-Reply-To: <60716.1230692148@iinet.net.au>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <60716.1230692148@iinet.net.au>
+	(envelope-from <hermann-pitton@arcor.de>) id 1LE9VU-0003bq-BB
+	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 22:37:10 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Matyas Sustik <linux-dvb.list@sustik.com>
+In-Reply-To: <494D4A00.6020305@sustik.com>
+References: <494D4A00.6020305@sustik.com>
+Date: Sat, 20 Dec 2008 22:37:58 +0100
+Message-Id: <1229809078.4702.34.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO dual express incorrect readback of firmware
-	message (2.6.28 kernel)
+Subject: Re: [linux-dvb] Fusion HDTV7 again
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,248 +25,107 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Dec 30, 2008 at 9:55 PM, sonofzev@iinet.net.au
-<sonofzev@iinet.net.au> wrote:
-> Upgrade to latest hg...
->
-> Issue is still occurring.
->
-> I also noticed some other messages in dmesg that I didn't see before that
-> hopefully may help.
->
-> cheers
-> Allan
->
-> Here is the output..
->
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> zl10353: write to reg 5f failed (err = -5)!
-> zl10353: write to reg 71 failed (err = -5)!
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 3-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 4)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> zl10353: write to reg 5f failed (err = -5)!
-> zl10353: write to reg 71 failed (err = -5)!
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 3-0061: Incorrect readback of firmware version.
-> zl10353_read_register: readreg error (reg=6, ret==-5)
-> zl10353: write to reg 55 failed (err = -5)!
-> zl10353: write to reg ea failed (err = -5)!
-> zl10353: write to reg ea failed (err = -5)!
-> zl10353: write to reg 56 failed (err = -5)!
-> zl10353: write to reg 5e failed (err = -5)!
-> zl10353: write to reg 5c failed (err = -5)!
-> zl10353: write to reg 64 failed (err = -5)!
-> zl10353: write to reg cc failed (err = -5)!
-> zl10353: write to reg 65 failed (err = -5)!
-> zl10353: write to reg 66 failed (err = -5)!
-> zl10353: write to reg 6c failed (err = -5)!
-> zl10353: write to reg 6d failed (err = -5)!
-> zl10353: write to reg 6e failed (err = -5)!
-> zl10353: write to reg 6f failed (err = -5)!
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> zl10353: write to reg 5f failed (err = -5)!
-> zl10353: write to reg 71 failed (err = -5)!
-> zl10353_read_register: readreg error (reg=6, ret==-5)
-> zl10353: write to reg 55 failed (err = -5)!
-> zl10353: write to reg ea failed (err = -5)!
-> zl10353: write to reg ea failed (err = -5)!
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 4-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 3-0061: Incorrect readback of firmware version.
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 4)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> zl10353: write to reg 5f failed (err = -5)!
-> zl10353: write to reg 71 failed (err = -5)!
-> zl10353_read_register: readreg error (reg=6, ret==-5)
-> zl10353: write to reg 55 failed (err = -5)!
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> zl10353: write to reg ea failed (err = -5)!
-> zl10353: write to reg ea failed (err = -5)!
-> zl10353: write to reg 56 failed (err = -5)!
-> zl10353: write to reg 5e failed (err = -5)!
-> zl10353: write to reg 5c failed (err = -5)!
-> zl10353: write to reg 64 failed (err = -5)!
-> zl10353: write to reg cc failed (err = -5)!
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> zl10353: write to reg 65 failed (err = -5)!
-> zl10353: write to reg 66 failed (err = -5)!
-> zl10353: write to reg 6c failed (err = -5)!
-> zl10353: write to reg 6d failed (err = -5)!
-> zl10353: write to reg 6e failed (err = -5)!
-> zl10353: write to reg 6f failed (err = -5)!
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> xc2028 3-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> zl10353: write to reg 5f failed (err = -5)!
-> zl10353: write to reg 71 failed (err = -5)!
-> zl10353_read_register: readreg error (reg=6, ret==-5)
-> zl10353: write to reg 55 failed (err = -5)!
-> zl10353: write to reg ea failed (err = -5)!
-> zl10353: write to reg ea failed (err = -5)!
-> zl10353: write to reg 56 failed (err = -5)!
-> zl10353: write to reg 5e failed (err = -5)!
-> zl10353: write to reg 5c failed (err = -5)!
-> zl10353: write to reg 64 failed (err = -5)!
-> zl10353: write to reg cc failed (err = -5)!
-> zl10353: write to reg 65 failed (err = -5)!
-> zl10353: write to reg 66 failed (err = -5)!
-> zl10353: write to reg 6c failed (err = -5)!
-> zl10353: write to reg 6d failed (err = -5)!
-> zl10353: write to reg 6e failed (err = -5)!
-> zl10353: write to reg 6f failed (err = -5)!
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 3-0061: Incorrect readback of firmware version.
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 4-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 3-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 4-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 4)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: i2c output error: rc = -5 (should be 64)
-> xc2028 4-0061: -5 returned from send
-> xc2028 4-0061: Error -22 while loading base firmware
-> zl10353: write to reg 5f failed (err = -5)!
-> zl10353: write to reg 71 failed (err = -5)!
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 3-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 4-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 3-0061: Incorrect readback of firmware version.
-> xc2028 4-0061: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456
-> SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-> xc2028 4-0061: Incorrect readback of firmware version.
-> xc2028 3-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 4-0061: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
+Hi Matyas,
 
-Do me a favor and please stop top posting.  It's a violation of list policy.
+Am Samstag, den 20.12.2008, 13:39 -0600 schrieb Matyas Sustik:
+> Hi All,
+> 
+> After a dist-upgrade my HDTV7 Dual Express card stopped working.  I managed
+> to get it to work before, from the logs from Dec 15:
+> 
+> Dec 15 23:47:47 cheetah kernel: [   10.701054] cx23885 driver version 0.0.1 load
+> ed
+> Dec 15 23:47:47 cheetah kernel: [   10.701117] ACPI: PCI Interrupt 0000:02:00.0[
+> A] -> GSI 16 (level, low) -> IRQ 16
+> Dec 15 23:47:47 cheetah kernel: [   10.701237] CORE cx23885[0]: subsystem:
+> 18ac:d618, board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
+> Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 0 registered
+> Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 1 registered
+> Dec 15 23:47:47 cheetah kernel: [   10.842540] cx23885[0]: i2c bus 2 registered
+> Dec 15 23:47:47 cheetah kernel: [   10.870102] cx23885[0]: cx23885 based dvb card
+> 
+> That was with linux-image-2.6.26-1-amd64_2.6.26-11_amd64.deb and compiled the
+> cx23885 module from the mercurial repo.
+> 
+> The current kernel is from: linux-image-2.6.26-1-amd64_2.6.26-12_amd64.deb.
+> I pulled the mercurial sources again did make and make install, rebooted but
+> I still get:
+> 
+> Dec 20 13:15:02 cheetah kernel: [   11.801129] cx23885: disagrees about
+> version of symbol v4l_compat_ioctl32
+> Dec 20 13:15:02 cheetah kernel: [   11.801133] cx23885: Unknown symbol
+> v4l_compat_ioctl32
+> 
+> I have seen this before, but I cannot figure out what is happening.  I would
+> appreciate if someone could explain to me what is going on here.  That may
+> reduce my frustration somewhat.
+> 
+> If there is some documentation on how to debug a problem like this I would be
+> willing to do some debug and even work on it.  I suspect that the kernel
+> interface got updated and changes for the driver is needed.  Maybe this is a
+> simple enough project to get started with open source.  (Let me know if
+> not...)  I have not contributed to open source yet, so please be gentle.
+> 
+> I tried reinstalling the old linux-image package but that now does not work
+> either.  There must be some other software/libs that got updated from apt-get
+> dist-upgrade rendering the cx23885 module unusable at the present.
+> 
+> Any insight would be appreciated.
+> Matyas
+> -
 
-Were those there before you upgraded to the latest hg?
+if you install the first time mercurial v4l-dvb on older kernels,
+it always can happen that module names have changed and new modules are
+added.
 
-I suspect that perhaps the components are powered down, which is why
-the i2c calls are failing.  Very strange.
+Since you don't know what is going on in details, you are not aware of.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+In this case the old compat-ioctl32 is not replaced by the new
+v4l2-compat-ioctl32 module.
+
+If you do on top of the modules of your kernel version
+"less modules.symbols |grep ioctl32",
+you likely will see this.
+alias symbol:v4l_compat_ioctl32 compat_ioctl32
+alias symbol:v4l_compat_ioctl32 v4l2-compat-ioctl32
+
+But it should be only that.
+less modules.symbols |grep ioctl32
+alias symbol:v4l_compat_ioctl32 v4l2-compat-ioctl32
+
+On top of the mercurial v4l-dvb do
+"make rmmod", since some complaints are visible do it again.
+
+Then "make rminstall" should remove all old modules,
+but renamed ones or such in distribution specific wrong locations
+remain.
+
+Check with "ls -R |grep .ko" on top of your kernel's media modules
+folder.
+
+Delete the media folder or the modules.
+
+Now on "make install" everything is created new and a "depmod -a" on the
+end of it will automatically create all dependencies and module.symbols.
+
+Only in case of a deprecated module is not unloaded with "make rmmod",
+you might have to do this manually or reboot.
+
+>From now on everything will work automatically until again modules are
+changed.
+
+Use "modprobe -v" for loading, since this will also reveal possibly
+conflicting kernel modules in other locations than the media folder.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
