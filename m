@@ -1,22 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.186])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1LDjMi-00027y-Oz
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 18:42:21 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so163703nfb.11
-	for <linux-dvb@linuxtv.org>; Fri, 19 Dec 2008 09:42:16 -0800 (PST)
-Message-ID: <a3ef07920812190942s732cb34bo85f951b7e89fffc0@mail.gmail.com>
-Date: Fri, 19 Dec 2008 09:42:16 -0800
-From: "VDR User" <user.vdr@gmail.com>
-To: gimli@dark-green.com
-In-Reply-To: <59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
+Received: from web111410.mail.gq1.yahoo.com ([67.195.15.186])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cncook001@yahoo.com>) id 1LE2dI-0006Vr-WE
+	for linux-dvb@linuxtv.org; Sat, 20 Dec 2008 15:16:45 +0100
+Date: Sat, 20 Dec 2008 06:16:09 -0800 (PST)
+From: Craig Cook <cncook001@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<b42fca4d0812190852i3826ea38if9ce9e3ad5607175@mail.gmail.com>
-	<59101.62.178.208.71.1229706100.squirrel@webmail.dark-green.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API drivers sync
+Message-ID: <643644.88230.qm@web111410.mail.gq1.yahoo.com>
+Subject: [linux-dvb] DViCO FusionHDTV7 Dual Express analog support status?
+Reply-To: cncook001@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,16 +23,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I was under the impression that stb0899+mantis would be coming soon to
-the main v4l tree.  I sure hope it's true because trying to have a
-usable dvb box when you need to use all these different trees is a
-complete mess.  In the worst case scenario I guess I'll have to
-replace all my cards with ones I know are properly supported in v4l.
-I hope that won't be required though!
+Back in Sept 2008 Tim Lucas attempted to port analog support from the HVR-1500.  Does anyone know if analog is supported in the FusionHDTV7 Dual Express now?
 
-And I also don't believe it's just coincidence that there was a huge
-rush to get s2api in the kernel and the moment it happened, poof!
-Almost nothing came from it.  You'd be a fool not to question that.
+Thanks
+
+Craig
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
