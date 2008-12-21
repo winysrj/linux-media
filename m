@@ -1,30 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7G6r-0001to-OL
-	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 22:15:15 +0100
-Received: from compute2.internal (compute2.internal [10.202.2.42])
-	by out1.messagingengine.com (Postfix) with ESMTP id 8B4CF1C95DE
-	for <linux-dvb@linuxtv.org>; Mon,  1 Dec 2008 16:15:09 -0500 (EST)
-Message-Id: <1228166109.13667.1287679483@webmail.messagingengine.com>
-From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
-To: "Linux-dvb" <linux-dvb@linuxtv.org>
-Content-Disposition: inline
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LEPSZ-0005Uc-57
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 15:39:13 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so604956ugc.16
+	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 06:39:07 -0800 (PST)
+Date: Sun, 21 Dec 2008 15:39:02 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Artem Makhutov <artem@makhutov.org>
+In-Reply-To: <20081221135926.GI12059@titan.makhutov-it.de>
+Message-ID: <alpine.DEB.2.00.0812211524260.22383@ybpnyubfg.ybpnyqbznva>
+References: <20081220224557.GF12059@titan.makhutov-it.de>
+	<alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
+	<1229827473.2557.11.camel@pc10.localdom.local>
+	<20081221135926.GI12059@titan.makhutov-it.de>
 MIME-Version: 1.0
-References: <412bdbff0811200714j5fcd3d62nb2cd46e49a350ce0@mail.gmail.com>
-	<1227213591.29403.1285914127@webmail.messagingengine.com>
-	<412bdbff0811201246x7df23a4ak2a6b29a06d67240@mail.gmail.com>
-	<1227228030.18353.1285952745@webmail.messagingengine.com>
-	<412bdbff0811302059p23155b1dka4c67fcb8f17eb0e@mail.gmail.com>
-	<1228152690.22348.1287628393@webmail.messagingengine.com>
-	<412bdbff0812011054j21fe1831hcf6b6bc2c0f77bff@mail.gmail.com>
-	<1228162425.30518.1287666879@webmail.messagingengine.com>
-	<1228164038.5106.1287670679@webmail.messagingengine.com>
-	<412bdbff0812011247l600103bdn6b18bf0533b7a981@mail.gmail.com>
-In-Reply-To: <412bdbff0812011247l600103bdn6b18bf0533b7a981@mail.gmail.com>
-Date: Mon, 01 Dec 2008 21:15:09 +0000
-Subject: Re: [linux-dvb] dib0700 remote control support fixed
-Reply-To: linuxtv@hotair.fastmail.co.uk
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,33 +30,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 1 Dec 2008 15:47:54 -0500, "Devin Heitmueller"
-<devin.heitmueller@gmail.com> said:
-> 
-> Woah.  You didn't mention it was doing a panic.
-> 
-> I'm not sure what is going on there.  You're getting errors in
-> af9013/af9016, so it's not specific to the mt2060 like other people
-> were reporting issues.
-> 
-> I'll look at the backtrace tonight and see if I can figure out what
-> happened.  In the meantime, could you please update to the hg
-> immediately before and after the November 16th changeset and confirm
-> that IR change definitely caused the issue?
+On Sun, 21 Dec 2008, Artem Makhutov wrote:
 
-I've since removed the Kworld (Afatech device) and it is still doing the
-same on reboot.
+> I have recorded the stream to a file and will try to playback it under windows.
+> My CPU is too slow to playback the stream without GPU acceleration under linux.
 
-The problems can be reproduced with just the Nova-T 500.  The same OS
-image runs fine on boxes running with the afatech and connexant devices
-I have available.  It will take me a while to re-arrange my test
-hardware to test the Nova-TD in isolation.
+A common occurrence, I say, fondling my beloved 200MHz
+production machine that records four streams flawlessly
+(save for two devices being USB1 and thus only good for
+radio or selected TV clamped to a maximum bitrate, for
+now)
 
-I'll go back to the rev 9638, as you suggest.  Again, it will take me
-overnight to get that sorted.
 
-I'm signing off for a couple of hours now but I am as keen to get to the
-bottom of this as you.
+I pass all my recordings through a two-pass process to
+check for problems (for radio, obviously just one pass)
+
+I have a script that extracts the audio payload using a
+hack to `dvb_mpegtools' and passes it to `mpg123'.  The
+`dvb_mpegtools' serves to check the integrity of the
+Transport Stream (usually when bad weather affects my
+satellite reception, or when my DVB-T receiving antenna
+is placed in a poor location); `mpg123 -v -t' zips through
+the file and spits out any corrupted audio frames.
+
+(The version of mpg123 I use doesn't seem to do anything
+with the CRC when used, and it gets confused when the
+CRC is toggled during a stream, which has happened a few
+times during recordings I've made.  That's something
+which I should work on, because I have a few recordings
+with audible blorps that pass the `mpg123' test, probably
+due to flipped bits in the payload rather than dropped
+data.)
+
+
+Then I use `mplayer' to check the video, using the
+options `-nosound -vo null' and in the case of MPEG-2
+video, `-vc ffmpeg12'.  This will spit out errors due
+to corruption of the video data -- though you need to
+hack in some newlines if you want to actually see the
+PTS timestamp where the error(s) occurred.
+
+For H.264 video, there is no alternative to `-vc ffh264'
+that I know of, but it will similarly spew out errors
+if there's damage to your source.
+
+Sure, it takes my machines more than a day to chew through
+an hour of H.264 1080i video, but I know whether I need
+to re-record the programme later to get a clean file that
+I can watch in some ten years when people throw away the
+gamer machines of today.  Yeah, I'm cheap.  What of it?
+
+
+That's a lot easier than suffering eyestrain watching a
+screen for some scarcely-visible corruption, which I
+used to do long ago...
+
+
+barry bouwsma
+stingy scrooge
 
 _______________________________________________
 linux-dvb mailing list
