@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f15.google.com ([209.85.217.15])
+Received: from moutng.kundenserver.de ([212.227.126.171])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1L7eO8-0007jl-PW
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 00:10:43 +0100
-Received: by gxk8 with SMTP id 8so615480gxk.17
-	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 15:10:05 -0800 (PST)
-Message-ID: <d9def9db0812021510r1e68e949i603e08be9dfc209@mail.gmail.com>
-Date: Wed, 3 Dec 2008 00:10:04 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
+	(envelope-from <holger+linux-dvb@rusch.name>) id 1LETBW-0005Sb-RT
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 19:37:51 +0100
+Resent-Message-Id: <494E8CDD.4070902@rusch.name>
+Message-ID: <494E8B97.7030608@rusch.name>
+Date: Sun, 21 Dec 2008 19:31:51 +0100
+From: Holger Rusch <holger@rusch.name>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Pinnacle 80e support: not going to happen...
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <cae4ceb0812091511s668dcc5fj793e7efc113fedfd@mail.gmail.com>	<493F8A81.7040802@rusch.name>
+	<494E61B4.2040006@rusch.name>
+	<412bdbff0812210831w2c8930eal5181c766857b0aa8@mail.gmail.com>
+In-Reply-To: <412bdbff0812210831w2c8930eal5181c766857b0aa8@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TerraTec Cinergy DT USB XS Diversity (Quality with
+ linux worse then with Windows)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,33 +29,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Dec 2, 2008 at 11:55 PM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> For those of you waiting for Linux support for the Pinnacle 80e, I
-> have some bad news:  it's not going to happen.
->
-> After investing over 100 hours doing the driver work, adding support
-> for the Empia em2874, integrating with the Linux tda18271 driver,
-> incorporating the Micronas drx reference driver source, and doing all
-> the testing, Micronas has effectively killed the project.  They
-> decided that their intellectual property was too valuable to make
-> available their reference driver code in source code form.  Even
-> worse, because I've seen the sources I am effectively prevented from
-> writing any sort of reverse engineered driver for the drx-j.
->
+Devin Heitmueller schrieb:
+> On Sun, Dec 21, 2008 at 10:33 AM, Holger Rusch <holger@rusch.name> wrote:
+>> Shameless repost. No idea? Anybody?
+> 
+> Are you using the latest code from http://linuxtv.org/hg/v4l-dvb,
 
-Not so fast, even though I wasn't involved at knocking this down.
-We have a custom player now which is capable of directly interfacing the
-I2C chips from those devices. Another feature is that it supports all the
-features of those devices, there won't be any need of different applications
-anymore. There's also the thought about publishing an SDK, most applications
-have problems of detecting all corresponding devicenodes which are required
-for those devices anyway. i2c-dev is an already available and accepted
-kernel interface
-to userland just as usbfs is.
+Yes, i use the hg tree.
 
-best regards,
-Markus Rechberger
+> including the newer 1.20 firmware?
+
+storage:/lib/firmware# ls -la dvb-usb-dib0700-1.20.fw
+-r--r--r-- 1 root root 33768 20. Nov 14:08 dvb-usb-dib0700-1.20.fw
+
+(the only .fw file in the directory
+
+storage:/lib/firmware# md5sum dvb-usb-dib0700-1.20.fw
+f42f86e2971fd994003186a055813237  dvb-usb-dib0700-1.20.fw
+
+Where do i get the newest one, if this one isnt the newest?
+
+> Have you tried turning off the LNA and see if there is any difference
+> in SNR?  While an amplifier can be a good thing in some cases, if
+> you're to close to the transmitter the LNA may be driving the signal
+> too hard for the demodulator.
+
+I changed:
+options dvb_usb_dib0700 force_lna_activation=1
+to
+options dvb_usb_dib0700 force_lna_activation=0
+
+and retried (rebootet).
+
+It did not help.
+
+> Is the SNR level always being reported as poor, or only when the
+> signal is dropping out?
+
+SNR is constantly poor <45%.
+
+And now?
+
+-- 
++ Contact? => http://site.rusch.name/ +
+
 
 _______________________________________________
 linux-dvb mailing list
