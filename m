@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1Bkga1024675
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 06:46:42 -0500
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1BkS9l003099
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 06:46:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "v4l-dvb maintainer list" <v4l-dvb-maintainer@linuxtv.org>
-Date: Mon, 1 Dec 2008 12:46:08 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBL21ZTw008457
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:01:35 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBL21Lsq012466
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:01:21 -0500
+Date: Sun, 21 Dec 2008 03:01:26 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uy6ycr129.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812210201450.23780@axis700.grange>
+References: <uy6ycr129.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812011246.08885.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	linux-kernel@vger.kernel.org,
-	davinci-linux-open-source-bounces@linux.davincidsp.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH v6] Add tw9910 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,89 +26,265 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+On Thu, 18 Dec 2008, Kuninori Morimoto wrote:
 
-Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for the 
-following:
+> This patch adds tw9910 driver that use soc_camera framework.
+> It was tested on SH Migo-r board and mplayer.
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-- v4l2: add v4l2_device and v4l2_subdev structs to the v4l2 framework.
-- v4l2-common: add i2c helper functions
-- cs53l32a: convert to v4l2_subdev.
-- cx25840: convert to v4l2_subdev.
-- m52790: convert to v4l2_subdev.
-- msp3400: convert to v4l2_subdev.
-- saa7115: convert to v4l2_subdev.
-- saa7127: convert to v4l2_subdev.
-- saa717x: convert to v4l2_subdev.
-- tuner: convert to v4l2_subdev.
-- upd64031a: convert to v4l2_subdev.
-- upd64083: convert to v4l2_subdev.
-- vp27smpx: convert to v4l2_subdev.
-- wm8739: convert to v4l2_subdev.
-- wm8775: convert to v4l2_subdev.
-- ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
+Ok, let's do it this way. We take this version as a basis, but I only 
+commit it after I get an incremental improvement patch from you:
 
-All points raised in reviews are addressed so I think it is time to get 
-this merged so people can start to use it.
+> +static const struct tw9910_scale_ctrl*
+> +tw9910_select_norm(struct soc_camera_device *icd, struct v4l2_pix_format *pix)
+> +{
+> +	const struct tw9910_scale_ctrl *scale;
+> +	const struct tw9910_scale_ctrl *ret;
+> +	v4l2_std_id norm = icd->vdev->current_norm;
+> +	int size;
+> +	int diff, tmp;
+> +	int i;
+> +
+> +	if (norm & V4L2_STD_NTSC) {
+> +		scale = tw9910_ntsc_scales;
+> +		size = ARRAY_SIZE(tw9910_ntsc_scales);
+> +	} else if (norm & V4L2_STD_PAL) {
+> +		scale = tw9910_pal_scales;
+> +		size = ARRAY_SIZE(tw9910_pal_scales);
+> +	} else {
+> +		return NULL;
+> +	}
+> +
+> +	diff = icd->width_max + icd->height_max;
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@skynet.be>
-Reviewed-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Reviewed-by: Andy Walls <awalls@radix.net>
-Reviewed-by: David Brownell <david-b@pacbell.net>
+Here diff = 768 + 576 = 1344. Now if anyone requests something big like 
+2048x1536 you don't find any scale for it. Then pix->width and pix->height 
+are of type __u32. Then if anyone sets them to 0xffffffff (maybe to get 
+the maximum possible picture) you get a problem with your int diff, tmp.
+Better
 
-Once this is in I'll start on converting the other i2c drivers.
++	__u32 diff = 0xffffffff, tmp;
 
-Thanks,
+> +	ret = NULL;
+> +
+> +	for (i = 0; i < size; i++) {
+> +		tmp = abs(pix->width - scale[i].width) +
+> +			abs(pix->height - scale[i].height);
+> +		if (tmp < diff) {
+> +			diff = tmp;
+> +			ret  = scale + i;
+> +		}
+> +	}
+> +
+> +	return ret;
+> +}
 
-        Hans
+[snip]
 
-diffstat:
- b/linux/Documentation/video4linux/v4l2-framework.txt |  362 ++++++++
- b/linux/drivers/media/video/v4l2-device.c            |   86 +
- b/linux/drivers/media/video/v4l2-subdev.c            |  108 ++
- b/linux/include/media/v4l2-device.h                  |  109 ++
- b/linux/include/media/v4l2-subdev.h                  |  188 ++++
- linux/drivers/media/video/Makefile                   |    2
- linux/drivers/media/video/cs53l32a.c                 |  186 ++--
- linux/drivers/media/video/cx25840/cx25840-audio.c    |   14
- linux/drivers/media/video/cx25840/cx25840-core.c     |  459 ++++++----
- linux/drivers/media/video/cx25840/cx25840-core.h     |    7
- linux/drivers/media/video/cx25840/cx25840-firmware.c |    2
- linux/drivers/media/video/cx25840/cx25840-vbi.c      |    2
- linux/drivers/media/video/ivtv/ivtv-controls.c       |   16
- linux/drivers/media/video/ivtv/ivtv-driver.c         |  220 +----
- linux/drivers/media/video/ivtv/ivtv-driver.h         |   52 -
- linux/drivers/media/video/ivtv/ivtv-fileops.c        |   44 -
- linux/drivers/media/video/ivtv/ivtv-gpio.c           |  354 +++++---
- linux/drivers/media/video/ivtv/ivtv-gpio.h           |    3
- linux/drivers/media/video/ivtv/ivtv-i2c.c            |  340 +------
- linux/drivers/media/video/ivtv/ivtv-i2c.h            |   13
- linux/drivers/media/video/ivtv/ivtv-ioctl.c          |   73 -
- linux/drivers/media/video/ivtv/ivtv-routing.c        |   12
- linux/drivers/media/video/ivtv/ivtv-streams.c        |   13
- linux/drivers/media/video/ivtv/ivtv-vbi.c            |   17
- linux/drivers/media/video/ivtv/ivtvfb.c              |   91 +-
- linux/drivers/media/video/m52790.c                   |  172 ++-
- linux/drivers/media/video/msp3400-driver.c           |  408 +++++----
- linux/drivers/media/video/msp3400-driver.h           |    7
- linux/drivers/media/video/msp3400-kthreads.c         |   34
- linux/drivers/media/video/saa7115.c                  |  829 
-+++++++++----------
- linux/drivers/media/video/saa7127.c                  |  425 +++++----
- linux/drivers/media/video/saa717x.c                  |  600 
-+++++++------
- linux/drivers/media/video/tuner-core.c               |  403 +++++----
- linux/drivers/media/video/upd64031a.c                |  193 ++--
- linux/drivers/media/video/upd64083.c                 |  176 ++--
- linux/drivers/media/video/v4l2-common.c              |  170 +++
- linux/drivers/media/video/vp27smpx.c                 |  134 ++-
- linux/drivers/media/video/wm8739.c                   |  198 ++--
- linux/drivers/media/video/wm8775.c                   |  217 +++-
- linux/include/media/v4l2-common.h                    |   41
- 40 files changed, 4098 insertions(+), 2682 deletions(-)
+> +static int tw9910_start_capture(struct soc_camera_device *icd)
+> +{
+> +	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> +
+> +	if (!priv->scale) {
+> +		dev_err(&icd->dev, "norm select error\n");
+> +		return -EPERM;
+> +	}
+> +
+> +	dev_dbg(&icd->dev, "%s %dx%d\n",
+> +		 priv->scale->name,
+> +		 priv->scale->width,
+> +		 priv->scale->height);
+> +
+> +	return 0;
+> +}
+> +
+> +static int tw9910_stop_capture(struct soc_camera_device *icd)
+> +{
+> +	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> +
+> +	priv->scale = NULL;
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+This is wrong. If someone does
+
+S_FMT
+STREAMON
+STREAMOFF
+STREAMON
+
+you fail.
+
+> +	icd->vdev->current_norm = V4L2_STD_NTSC;
+> +
+> +	tw9910_reset(priv->client);
+
+I think, you should leave your driver and the chip configured, so, both of 
+these should go.
+
+> +	return 0;
+> +}
+> +
+> +static int tw9910_set_bus_param(struct soc_camera_device *icd,
+> +				unsigned long flags)
+> +{
+> +	return 0;
+> +}
+> +
+> +static unsigned long tw9910_query_bus_param(struct soc_camera_device *icd)
+> +{
+> +	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> +	struct soc_camera_link *icl = priv->client->dev.platform_data;
+> +	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
+> +		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
+> +		SOCAM_DATA_ACTIVE_HIGH | priv->info->buswidth;
+> +
+> +	return soc_camera_apply_sensor_flags(icl, flags);
+> +}
+> +
+> +static int tw9910_get_chip_id(struct soc_camera_device *icd,
+> +			      struct v4l2_chip_ident *id)
+> +{
+> +	id->ident    = V4L2_IDENT_TW9910;
+> +	id->revision = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +static int tw9910_set_std(struct soc_camera_device *icd,
+> +			  v4l2_std_id *a)
+> +{
+> +	int ret = -EINVAL;
+> +
+> +	if (*a & V4L2_STD_NTSC || *a & V4L2_STD_PAL)
+
++	if (*a & (V4L2_STD_NTSC | V4L2_STD_PAL))
+
+would be enough
+
+[snip]
+
+> +static int tw9910_set_fmt(struct soc_camera_device *icd, __u32 pixfmt,
+> +			      struct v4l2_rect *rect)
+> +{
+> +	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> +	int                 ret  = -EINVAL;
+> +	u8                  val;
+> +
+> +	/*
+> +	 * reset hardware
+> +	 */
+> +	tw9910_reset(priv->client);
+> +	ret = tw9910_write_array(priv->client, tw9910_default_regs);
+> +	if (ret < 0)
+> +		return ret;
+> +	/*
+> +	 * set bus width
+> +	 */
+> +	val = 0x00;
+> +	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
+> +		val = LEN;
+> +
+> +	ret = tw9910_mask_set(priv->client, OPFORM, LEN, val);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/*
+> +	 * select MPOUT behavior
+> +	 */
+> +	switch (priv->info->mpout) {
+> +	case MPO_VLOSS:
+> +		val = RTSEL_VLOSS; break;
+> +	case MPO_HLOCK:
+> +		val = RTSEL_HLOCK; break;
+> +	case MPO_SLOCK:
+> +		val = RTSEL_SLOCK; break;
+> +	case MPO_VLOCK:
+> +		val = RTSEL_VLOCK; break;
+> +	case MPO_MONO:
+> +		val = RTSEL_MONO;  break;
+> +	case MPO_DET50:
+> +		val = RTSEL_DET50; break;
+> +	case MPO_FIELD:
+> +		val = RTSEL_FIELD; break;
+> +	case MPO_RTCO:
+> +		val = RTSEL_RTCO;  break;
+> +	default:
+> +		val = 0;
+> +	}
+> +
+> +	ret = tw9910_mask_set(priv->client, VBICNTL, RTSEL_MASK, val);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/*
+> +	 * set scale
+> +	 */
+> +	ret = tw9910_set_scale(priv->client, priv->scale);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/*
+> +	 * set cropping
+> +	 */
+> +	ret = tw9910_set_cropping(priv->client, &tw9910_cropping_ctrl);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/*
+> +	 * set hsync
+> +	 */
+> +	ret = tw9910_set_hsync(priv->client, &tw9910_hsync_ctrl);
+> +
+> +	return ret;
+> +}
+> +
+> +static int tw9910_try_fmt(struct soc_camera_device *icd,
+> +			      struct v4l2_format *f)
+> +{
+> +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> +	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> +
+> +	if (V4L2_FIELD_ANY == pix->field) {
+> +		pix->field = V4L2_FIELD_INTERLACED;
+> +	} else if (V4L2_FIELD_INTERLACED != pix->field) {
+> +		dev_err(&icd->dev, "Field type invalid.\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	priv->scale = tw9910_select_norm(icd, pix);
+
+This is wrong too. According to the API TRY_FMT may be called at any time 
+(also during a running streaming) and should _not_ change driver's state. 
+And as you can see in soc_camera.c::soc_camera_s_fmt_vid_cap() we're not 
+holding the mutex while calling soc_camera_try_fmt_vid_cap(), so, you have 
+no guarantee in your set_fmt, that your try_fmt was last called from 
+soc_camera_s_fmt_vid_cap() or even worse that it's not being called 
+concurrently. Therefore, you have to call tw9910_select_norm() once more 
+in your set_fmt, and in try_fmt you only verify if a suitable norm can be 
+found and set pix->height and pix->width accordingly.
+
+> +enum MPOUT_pin {
+> +	MPO_VLOSS,
+> +	MPO_HLOCK,
+> +	MPO_SLOCK,
+> +	MPO_VLOCK,
+> +	MPO_MONO,
+> +	MPO_DET50,
+> +	MPO_FIELD,
+> +	MPO_RTCO,
+> +};
+
+This is an exported enum, so, please make it
+
+enum tw9910_mpout_pin {
+	TW9910_MPO_VLOSS,
+	...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
