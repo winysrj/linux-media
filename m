@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.173])
+Received: from imo-m14.mx.aol.com ([64.12.138.204])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L7ff6-0006kB-9N
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 01:32:17 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so3181828ugc.16
-	for <linux-dvb@linuxtv.org>; Tue, 02 Dec 2008 16:32:12 -0800 (PST)
-Date: Wed, 3 Dec 2008 01:32:09 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
-Message-ID: <alpine.DEB.2.00.0812030110260.9198@ybpnyubfg.ybpnyqbznva>
-References: <412bdbff0812021455n221ee909nba6c7e546f1a0650@mail.gmail.com>
+	(envelope-from <dbox2alpha@netscape.net>) id 1LEX3S-0008Ds-BV
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 23:45:46 +0100
+Received: from dbox2alpha@netscape.net
+	by imo-m14.mx.aol.com  (mail_out_v39.1.) id m.c8f.39c30ff8 (34899)
+	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 17:44:55 -0500 (EST)
+To: linux-dvb@linuxtv.org
+Date: Sun, 21 Dec 2008 17:44:49 -0500
 MIME-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Pinnacle 80e support: not going to happen...
+From: dbox2alpha@netscape.net
+Message-Id: <8CB31D4DD3B74C2-C48-6AA@WEBMAIL-MC16.sysops.aol.com>
+Subject: [linux-dvb] TT-3600 on kernel 2.6.27 doesn't work... any help?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,58 +19,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0513576893=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2 Dec 2008, Devin Heitmueller wrote:
 
-> Obviously, I would have preferred they told me this *before* I spent
-> all the time doing the work, but there's not a whole lot I can do
-
-Let me personally extend my gratitude and thanks to you for
-any and all work you've done, and I'm sure that others feel
-the same way.  And that goes for anyone else too who
-contributes, no matter whether I can leech from your hard
-labour or not.
+--===============0513576893==
+Content-Type: multipart/alternative;
+ boundary="--------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com"
 
 
-> I wouldn't suggest buying any devices that make use of the drx-j,
-> drx-k, or drx-d devices under the expectation that support for those
-> chipsets will be available under Linux at some point.  In terms of
+----------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 
-I've just spent quite a bit of time kicking myself rather
-mercilessly around the face and groin area, and I must say,
-it's rather painful.  Oh well, you lose some and I lose
-some.
+hi, 
+I'm trying to get the TT-3600 USB DVB-S2 to work on a PlayStation 3 but so far I have not been successful.
+
+I'm using the latest DVB-S2 API and driver: s2-liplianin-aed3dd42ac28
+which compiles and installs fine.
+Driver also seems to initialize fine.
+But when I use szap-s2 FE_SET_PROPERTY DTV_CLEAR fails.
+problem with the following ioctl: 
+ioctl32(szap-s2:32528): Unknown cmd fd(3) cmd(80086f52){t:'o';sz:8} arg(ff835360) on /dev/dvb/adapter0/frontend0
+
+[root@ps3 szap-s2-a75cabee2e95]# ./szap-s2 -c channels.conf -rn 2
+reading channels from file 'channels.conf'
+zapping to 2 'SAT.1;ProSiebenSat.1':
+delivery DVB-S, modulation QPSK
+sat 0, frequency 12544 MHz H, symbolrate 22000000, coderate 5/6, rolloff 0.35
+vpid 0x00ff, apid 0x0100, sid 0x0020
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+FE_SET_PROPERTY DTV_CLEAR failed: Invalid argument
+[root@ps3 szap-s2-a75cabee2e95]#
+
+Any help? Thanks.
+
+----------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com
+Content-Transfer-Encoding: 7bit
+Content-Type: text/html; charset="us-ascii"
+
+<font face="Arial, Helvetica, sans-serif">hi, <br>
+I'm trying to get the TT-3600 USB DVB-S2 to work on a PlayStation 3 but so far I have not been successful.<br>
+<br>
+I'm using the latest DVB-S2 API and driver: s2-liplianin-aed3dd42ac28<br>
+which compiles and installs fine.<br>
+Driver also seems to initialize fine.<br>
+But when I use szap-s2 FE_SET_PROPERTY DTV_CLEAR fails.<br>
+problem with the following ioctl: <br>
+ioctl32(szap-s2:32528): Unknown cmd fd(3) cmd(80086f52){t:'o';sz:8} arg(ff835360) on /dev/dvb/adapter0/frontend0<br>
+<br>
+[root@ps3 szap-s2-a75cabee2e95]# ./szap-s2 -c channels.conf -rn 2<br>
+reading channels from file 'channels.conf'<br>
+zapping to 2 'SAT.1;ProSiebenSat.1':<br>
+delivery DVB-S, modulation QPSK<br>
+sat 0, frequency 12544 MHz H, symbolrate 22000000, coderate 5/6, rolloff 0.35<br>
+vpid 0x00ff, apid 0x0100, sid 0x0020<br>
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'<br>
+FE_SET_PROPERTY DTV_CLEAR failed: Invalid argument<br>
+[root@ps3 szap-s2-a75cabee2e95]#<br>
+<br>
+Any help? Thanks.<br>
+</font><div id='MAILCIADA018-5bb8494ec6e12c2' class='aol_ad_footer'><BR/><FONT style="color: black; font: normal 10pt ARIAL, SAN-SERIF;"><HR style="MARGIN-TOP: 10px"></HR>Listen to 350+ music, sports, & news radio stations &#150; including songs for the holidays &#150; FREE while you browse. <a href="http://toolbar.aol.com/aolradio/download.html?ncid=emlweusdown00000013">Start Listening Now</a>! </div>
+
+----------MB_8CB31D4DD403972_C48_DEA_WEBMAIL-MC16.sysops.aol.com--
 
 
-Which brings me to ask, in case someone out there might
-know -- is anyone familiar with the
-Pinnacle PCTV Quatro 73A, DVB-T/DVB-C/analog, USB 2.0
-device, recently introduced, primarily in german-speaking
-areas of europe and nearby?
-
-Would this be yet another Empia+Micronas product, similar
-to the other two I've asked about?
-
-
-thanks
-barry bouwsma
-wanders off muttering about how dissatisfying it is to
-throw a USB stick out the window; oh how I miss being able
-to hurl a rack filled with valves (tubes for you wrong-
-pondians) and chokes and real transformers leaking oily
-PCBs down to the parking lot below.  I mean, I could fill
-the hole made there by Real Equipment with dozens of these
-unsupported USB sticks.  And usually I could just clamp
-a bus-bar back onto the Real Equipment and pass a few
-hundred amperes through it like new, after hauling it back
-up the twenty flights of stairs.  mutter grumble
+--===============0513576893==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0513576893==--
