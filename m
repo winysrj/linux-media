@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-1.epublica.de ([213.238.59.6])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abos@hanno.de>) id 1LCWBG-0000qF-1s
-	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 10:25:30 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by mail-1.epublica.de (Postfix) with ESMTP id 073E4303F335
-	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 10:25:26 +0100 (CET)
-Received: from mail-1.epublica.de ([127.0.0.1])
-	by localhost (mail-1.rz.epublica.de [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id P7UIqK5lDdql for <linux-dvb@linuxtv.org>;
-	Tue, 16 Dec 2008 10:25:25 +0100 (CET)
-Received: from [10.23.21.14] (hanno.intern.epublica.de [10.23.21.14])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: hanno.zulla@epublica.de)
-	by mail-1.epublica.de (Postfix) with ESMTP id DD0F1303F334
-	for <linux-dvb@linuxtv.org>; Tue, 16 Dec 2008 10:25:25 +0100 (CET)
-Message-ID: <49477405.505@hanno.de>
-Date: Tue, 16 Dec 2008 10:25:25 +0100
-From: Hanno Zulla <abos@hanno.de>
+	(envelope-from <artem@moelleritberatung.de>) id 1LEOq9-0001gQ-V7
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 14:59:32 +0100
+Date: Sun, 21 Dec 2008 14:59:26 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20081221135926.GI12059@titan.makhutov-it.de>
+References: <20081220224557.GF12059@titan.makhutov-it.de>
+	<alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
+	<1229827473.2557.11.camel@pc10.localdom.local>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <4942A3FF.3090203@hanno.de>
-In-Reply-To: <4942A3FF.3090203@hanno.de>
-Subject: Re: [linux-dvb] How to debug skips & async with FF dvb card & vdr?
+Content-Disposition: inline
+In-Reply-To: <1229827473.2557.11.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -39,9 +30,25 @@ List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
 
-> So how can I debug this if the system thinks that everything is fine?
+On Sun, Dec 21, 2008 at 03:44:33AM +0100, hermann pitton wrote:
+> I must admit that I did not read it all yet this time.
+> 
+> But a good probe might be to save the HD S2 stuff to a file and then try
+> to get it over a nfs mount with xine for example on other PCs.
+> 
+> On consumer level it only has advantages, skip the commercials ...
+> 
+> This works since stoneage within local networks.
+> 
+> If you are trying to get it out over the internet, it might cause some
+> more questions of course.
 
-Hmm, anyone?
+The STB can only playpack UDP Streams, so NFS will not help me much.
+
+I have recorded the stream to a file and will try to playback it under windows.
+My CPU is too slow to playback the stream without GPU acceleration under linux.
+
+Regards, Artem
 
 _______________________________________________
 linux-dvb mailing list
