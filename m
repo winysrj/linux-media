@@ -1,26 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBN5q51v024705
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 00:52:05 -0500
-Received: from mta03.xtra.co.nz (mta03.xtra.co.nz [210.54.141.252])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBN5pgXI007846
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 00:51:43 -0500
-Received: from goofy.kelhome.nz ([125.239.250.107]) by mta03.xtra.co.nz
-	with ESMTP
-	id <20081223055141.XSJG26672.mta03.xtra.co.nz@goofy.kelhome.nz>
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 18:51:41 +1300
-Received: from [192.168.9.1] (unknown [192.168.9.1])
-	by goofy.kelhome.nz (Postfix) with ESMTP id D283550D03EB
-	for <video4linux-list@redhat.com>;
-	Tue, 23 Dec 2008 18:51:40 +1300 (NZDT)
-From: Kelvin Smith <kelvins@kelhome.dyndns.org>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Tue, 23 Dec 2008 18:51:40 +1300
-Message-Id: <1230011500.30985.8.camel@goofy.kelhome.nz>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBL2hp5a020037
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:43:51 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBL2hU7w023003
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:43:36 -0500
+Received: by ewy14 with SMTP id 14so1622259ewy.3
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 18:43:29 -0800 (PST)
+Message-ID: <de8cad4d0812201843m59b006a0n13a062cc39b34464@mail.gmail.com>
+Date: Sat, 20 Dec 2008 21:43:29 -0500
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <de8cad4d0812201819k189055fdq68527a84d8a0b0e1@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: cannot get pac7311 data viewed by anything....
+Content-Disposition: inline
+References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
+	<200812161655.39431.hverkuil@xs4all.nl>
+	<de8cad4d0812170904x474a5503ve5fcef84ebfeba65@mail.gmail.com>
+	<200812181009.09836.hverkuil@xs4all.nl>
+	<de8cad4d0812201755v846c5dcn536736a6f56fd008@mail.gmail.com>
+	<1229825356.2557.1.camel@pc10.localdom.local>
+	<de8cad4d0812201819k189055fdq68527a84d8a0b0e1@mail.gmail.com>
+Cc: video4linux-list@redhat.com, Janne Grunau <j@jannau.net>
+Subject: Re: v4l2-compat-ioctl32 update?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,127 +37,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Not sure where to post this, so if this is the wrong list, can someone
-point me in the corect direction.
+On Sat, Dec 20, 2008 at 9:19 PM, Brandon Jenkins <bcjenkins@tvwhere.com> wrote:
+> On Sat, Dec 20, 2008 at 9:09 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
+>
+>>
+>> it is over here too.
+>> http://linuxtv.org/pipermail/linux-dvb/2008-December/031012.html
+>>
+>> Let's know how it goes without the old module.
+>>
+>> Cheers,
+>> Hermann
+>>
+>>
+>>
+>
+> Hermann,
+>
+> Perfect! Thank you, I wasn't clear on what Hans had meant until I just
+> read it there. Testing now.
+>
+> Brandon
+>
 
-Have a Philips SPC610NC webcam.  I have installed the snapshots from the
-linuxtv.org website, and plugging in my camera.  Below is the output
-from v4l-info.  I used to be able to go xawtv -d /dev/video0 and see a
-picture, now it is corrupt/missing.  I gather because the picture format
-is in PJPG is the reason why I cannot see any picture (just black
-screen, or black with random dots down 1/3 of the image).  
+Hans,
 
-How do I get this to work with applications like XAWTV and zoneminder. 
+This was clearly a case of me missing the true understanding of your
+comments. I just reviewed your email and sure enough you stated in
+there what I should have looked for. I apologize for not being as
+thorough as you needed. I have removed all traces of the old module
+and ran through my test script and there are no further messages!
+Thank you for doing this, I'll update my post in the SageTV boards to
+make sure this step is not overlooked there as well.
 
+Once again, thank you for all of your efforts! Everything that you,
+Andy, and Janne have done this year has helped make all my devices
+work well in my machine. (3 CX18s and 1 HDPVR) I truly appreciate it.
 
-
-### v4l2 device info [/dev/video0] ###
-general info
-    VIDIOC_QUERYCAP
-        driver                  : "pac7311"
-        card                    : "VGA Single Chip"
-        bus_info                : "0000:00:02.0"
-        version                 : 2.4.0
-        capabilities            : 0x5000001
-[VIDEO_CAPTURE,READWRITE,STREAMING]
-
-standards
-
-inputs
-    VIDIOC_ENUMINPUT(0)
-        index                   : 0
-        name                    : "pac7311"
-        type                    : CAMERA
-        audioset                : 0
-        tuner                   : 0
-        std                     : 0x0 []
-        status                  : 0x0 []
-
-video capture
-    VIDIOC_ENUM_FMT(0,VIDEO_CAPTURE)
-        index                   : 0
-        type                    : VIDEO_CAPTURE
-        flags                   : 0
-        description             : "PJPG"
-        pixelformat             : 0x47504a50 [PJPG]
-    VIDIOC_G_FMT(VIDEO_CAPTURE)
-        type                    : VIDEO_CAPTURE
-        fmt.pix.width           : 320
-        fmt.pix.height          : 240
-        fmt.pix.pixelformat     : 0x47504a50 [PJPG]
-        fmt.pix.field           : NONE
-        fmt.pix.bytesperline    : 320
-        fmt.pix.sizeimage       : 29390
-        fmt.pix.colorspace      : JPEG
-        fmt.pix.priv            : 1
-
-controls
-    VIDIOC_QUERYCTRL(BASE+1)
-        id                      : 9963777
-        type                    : INTEGER
-        name                    : "Contrast"
-        minimum                 : 0
-        maximum                 : 255
-        step                    : 1
-        default_value           : 127
-        flags                   : 0
-
-### video4linux device info [/dev/video0] ###
-general info
-    VIDIOCGCAP
-        name                    : "VGA Single Chip"
-        type                    : 0x1 [CAPTURE]
-        channels                : 1
-        audios                  : 0
-        maxwidth                : 640
-        maxheight               : 480
-        minwidth                : 48
-        minheight               : 32
-
-channels
-    VIDIOCGCHAN(0)
-        channel                 : 0
-        name                    : "pac7311"
-        tuners                  : 0
-        flags                   : 0x0 []
-        type                    : CAMERA
-        norm                    : 0
-
-tuner
-ioctl VIDIOCGTUNER: Invalid argument
-
-audio
-    VIDIOCGAUDIO
-        audio                   : 0
-        volume                  : 0
-        bass                    : 0
-        treble                  : 0
-
-picture
-    VIDIOCGPICT
-        brightness              : 0
-        hue                     : 0
-        colour                  : 0
-        contrast                : 65535
-        whiteness               : 0
-        depth                   : 8
-        palette                 : unknown
-
-buffer
-ioctl VIDIOCGFBUF: Invalid argument
-
-window
-    VIDIOCGWIN
-        x                       : 0
-        y                       : 0
-        width                   : 320
-        height                  : 240
-        chromakey               : 0
-        flags                   : 0
-
-
--- 
-Kelvin Smith <kelvins@kelhome.dyndns.org>
+Brandon
 
 --
 video4linux-list mailing list
