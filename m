@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBTKkPqM024577
-	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 15:46:25 -0500
-Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBTKkDAW032438
-	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 15:46:13 -0500
-Date: Mon, 29 Dec 2008 15:46:12 -0500
-From: Jim Paris <jim@jtan.com>
-To: Timo Paulssen <timo@wakelift.de>
-Message-ID: <20081229204611.GA9421@psychosis.jim.sh>
-References: <49528845.20904@wakelift.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBL1undO007068
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 20:56:49 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBL1tk2b011153
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 20:55:46 -0500
+Received: by ewy14 with SMTP id 14so1614725ewy.3
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 17:55:46 -0800 (PST)
+Message-ID: <de8cad4d0812201755v846c5dcn536736a6f56fd008@mail.gmail.com>
+Date: Sat, 20 Dec 2008 20:55:45 -0500
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200812181009.09836.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <49528845.20904@wakelift.de>
+References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
+	<200812161655.39431.hverkuil@xs4all.nl>
+	<de8cad4d0812170904x474a5503ve5fcef84ebfeba65@mail.gmail.com>
+	<200812181009.09836.hverkuil@xs4all.nl>
 Cc: video4linux-list@redhat.com
-Subject: Re: recording from a playstation eye
+Subject: Re: v4l2-compat-ioctl32 update?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,87 +34,193 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Timo,
+On Thu, Dec 18, 2008 at 4:09 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Hi Brandon,
+>
+> This can't be right. Are you sure that you are using the right
+> v4l2_compat_ioctl32 module? Check that you do not accidentally have the old
+> compat_ioctl32 module instead. VIDIOC_S_EXT_CTRLS works fine here, and in
+> any case, these compat_ioctl32 messages you get should have a newline at
+> the end as well.
+>
+> Regards,
+>
+>        Hans
+>
+>>
+>> Brandon
+>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
 
-> 1. mencoder.
-> I couldn't get mencoder to work at all, used something like this:
-> mencoder -cache 128 -tv
-> driver=v4l2:width=640:height=480:outfmt=i420:fps=60:forceaudio:adevice=/dev/dsp:immediatemode=0:forceaudio
-> tv:// -oac copy -ovc copy -o test.avi
-> which led to a "floating point exception"
+Hi Hans,
 
-The crash is here, stream/tvi_v4l2.c:
+I have verified the time stamp of the module is from today and the
+source file includes your copyright which is part of the patch. My
+method of building the driver is to clone from Janne's hdpvr source
+tree and pull in the changes from yours. (Please note that I also
+pulled a clone from just your repo and the same/similar item popped
+up: [ 1784.808655] compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_S_EXT_CTRLS<7>compat_ioctl32: VIDIOC_S_EXT_CTRLS<6>cx18-2 info:
+Start encoder stream encoder MPEG)
 
-    /* setup video parameters */
-    if (!priv->tv_param->noaudio) {
-        if (priv->video_buffer_size_max < (3*priv->standard.frameperiod.denominator) /
-                                               priv->standard.frameperiod.numerator
-            *priv->audio_secs_per_block) {
-            mp_msg(MSGT_TV, MSGL_ERR, "Video buffer shorter than 3 times audio frame duration.\n"
-                   "You will probably experience heavy framedrops.\n");
-        }
-    }
+Rest of the note below, thanks!
 
-There is no video standard set by the ov534 driver, so it's a
-divide-by-zero.  If you comment out this section and rebuild mencoder,
-it will work better, although there are still issues with framerate.
+Brandon
 
-To fix it for real, we probably need gspca to handle VIDIOC_G_STD.
-Currently gspca leaves this up to v4l2 which returns a successful
-error code, but no meaningful standard.  If VIDIOC_G_STD returned an
-error instead, mplayer would fall back to VIDIOC_G_PARM which might
-work correctly (or maybe not, my quick tests failed.  I think mplayer
-needs some work in this area.)
+I am still seeing:
 
+[  876.565494] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:4706):
+Unknown cmd fd(54) cmd(40345622){t:'V';sz:52} arg(aea69b34) on
+/dev/v4l/video3
 
-> 2. cheese.
-> All i see is the gstreamer test video input signal, even though I set it
-> correctly in gstreamer-properties and even the preview works.
+[ 1001.370070] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
+Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
+/dev/v4l/video1
+[ 1001.370114] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
+Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
+/dev/v4l/video1
+[ 1001.370172] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
+Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
+/dev/v4l/video1
+[ 1001.370244] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
+Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
+/dev/v4l/video1
+[ 1001.370285] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
+Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
+/dev/v4l/video1
+[ 1001.370325] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:7144):
+Unknown cmd fd(47) cmd(c0185648){t:'V';sz:24} arg(ac0ad720) on
+/dev/v4l/video1
 
-I don't know what's going on with cheese, it flashes the LED once
-briefly for me, but doesn't show video.  gstreamer-properties crashes
-when I hit preview after showing the first frame for a split second.
+[ 2308.076933] compat_ioctl32: VIDIOC_S_AUDIOioctl32(java:26646):
+Unknown cmd fd(54) cmd(40345622){t:'V';sz:52} arg(ac65cd44) on
+/dev/v4l/video3
 
+[ 2312.841316] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:26646):
+Unknown cmd fd(54) cmd(c0185648){t:'V';sz:24} arg(ac65c920) on
+/dev/v4l/video3
+[ 2312.841363] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:26646):
+Unknown cmd fd(54) cmd(c0185648){t:'V';sz:24} arg(ac65c920) on
+/dev/v4l/video3
+[ 2312.841400] compat_ioctl32: VIDIOC_S_EXT_CTRLSioctl32(java:26646):
+Unknown cmd fd(54) cmd(c0185648){t:'V';sz:24} arg(ac65c920) on
+/dev/v4l/video3
 
-> 3. gstreamer.
-> When running gst-launch-0.10 v4l2src device="/dev/video0" ! xvimagesink
-> I get a nice video, but its framerate is way too low and there is a
-> ~1sec delay; this is unacceptable. when i try to set framerate=60, it
-> claims to not know the framerate option, even though the documentation
-> clearly states its existance.
+compat_ioctl32: VIDIOC_ENCODER_CMDioctl32(java:26727): Unknown cmd
+fd(101) cmd(c028564d){t:'V';sz:40} arg(ac05cce4) on /dev/v4l/video3
 
-This seems to fix the framerate and delay with gst-launch:
+video3 is a HDPVR
+video1 is a cx18
 
-gst-launch-0.10 v4l2src ! video/x-raw-yuv, framerate=60/1 ! xvimagesink
+The java process is SageTV.
 
+I ran through my script again and it produced errors in:
 
-> 4. ffmpeg.
-> when running ffplay -f video4linux2 /dev/video0 -s 640x480, I get
-> "[video4linux2 @ 0xb801f680]The v4l2 frame is 614400 bytes, but 460800
-> bytes are expected" multiple times.
-> when using any of the two libv4l shared libraries I get half a second
-> worth of frames out of it, then the image freezes and i get
-> "[video4linux2 @ 0xb7f49680]ioctl(VIDIOC_DQBUF): Input/output error".
-
-No idea about that I/O error, but it seems to work reasonably well
-with v4l1 and v4l1compat here:
-
-LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so ffplay -f video4linux /dev/video0 -s 640x480
-
-
-> 5. spcaview.
-> (when using the preloads) Video is fine, recorded from wrong microphone,
-> mv'd /dev/dsp1 to /dev/dsp, but now I get really bad sound - everytime
-> there is sound, it sounds really trashy.
-
-I can't get spcaview to do sound at all over here.  Anyway, you might
-verify that the sound is working independently with e.g. audacity.
-Maybe your app is getting confused by the 4-channel audio.  If you
-tell audacity to use "Oss: /dev/dsp1" and set the number of channels
-to 4, you get a nice view of the effects of the camera's microphone
-array.
-
--jim
+[ 3335.252229] compat_ioctl : unexpected VIDIOC_FMT type 8
+[ 3335.253804] compat_ioctl32:
+VIDIOC_G_SLICED_VBI_CAP<7>compat_ioctl32:
+VIDIOC_G_SLICED_VBI_CAPcompat_ioctl : unexpected VIDIOC_FMT type 6
+[ 3335.258891] compat_ioctl : unexpected VIDIOC_FMT type 7
+[ 3335.262139] compat_ioctl : unexpected VIDIOC_FMT type 5
+[ 3335.267127] compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
+VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
+VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_AUDIO<7>compat_ioctl32:
+VIDIOC_G_AUDOUT<7>compat_ioctl32: VIDIOC_ENUMAUDOUT<7>compat_ioctl32:
+VIDIOC_ENUMAUDIOcompat_ioctl : unexpected VIDIOC_FMT type 2
+[ 3363.895405] compat_ioctl : unexpected VIDIOC_FMT type 8
+[ 3363.895408] compat_ioctl : unexpected VIDIOC_FMT type 6
+[ 3363.895410] compat_ioctl : unexpected VIDIOC_FMT type 7
+[ 3363.895430] compat_ioctl : unexpected VIDIOC_FMT type 5
+[ 3363.895438] compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
+VIDIOC_G_OUTPUT<7>compat_ioctl32: VIDIOC_G_AUDIO<7>compat_ioctl32:
+VIDIOC_G_AUDOUT<7>compat_ioctl32: VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_G_EXT_CTRLS<7>compat_ioctl32:
+VIDIOC_ENUMOUTPUT<7>compat_ioctl32: VIDIOC_G_OUTPUTcompat_ioctl :
+unexpected VIDIOC_FMT type 2
+[ 3363.922264] compat_ioctl : unexpected VIDIOC_FMT type 8
+[ 3363.923846] compat_ioctl32:
+VIDIOC_G_SLICED_VBI_CAP<7>compat_ioctl32:
+VIDIOC_G_SLICED_VBI_CAPcompat_ioctl : unexpected VIDIOC_FMT type 6
+[ 3363.928925] compat_ioctl : unexpected VIDIOC_FMT type 7
+[ 3363.932176] compat_ioctl : unexpected VIDIOC_FMT type 5
+[ 3363.937120] compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
+VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_CROP<7>compat_ioctl32:
+VIDIOC_G_CROP<7>compat_ioctl32: VIDIOC_G_AUDIO<7>compat_ioctl32:
+VIDIOC_G_AUDOUT<7>compat_ioctl32: VIDIOC_ENUMAUDOUT<7>compat_ioctl32:
+VIDIOC_ENUMAUDIO
 
 --
 video4linux-list mailing list
