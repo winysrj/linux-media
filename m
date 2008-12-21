@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp100.rog.mail.re2.yahoo.com ([206.190.36.78])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1LH8MF-0007GH-J1
-	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 03:59:56 +0100
-Message-ID: <49583D09.5080507@rogers.com>
-Date: Sun, 28 Dec 2008 21:59:21 -0500
-From: CityK <cityk@rogers.com>
+Received: from yx-out-2324.google.com ([74.125.44.30])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ernstp@gmail.com>) id 1LEIyT-0000xA-MG
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 08:43:42 +0100
+Received: by yx-out-2324.google.com with SMTP id 8so630488yxg.41
+	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 23:43:36 -0800 (PST)
+Message-ID: <8e2e399f0812202343o2b88ab1ap4c92d0e99dd90af0@mail.gmail.com>
+Date: Sun, 21 Dec 2008 08:43:36 +0100
+From: "Ernst Persson" <ernstp@gmail.com>
+To: "Glenn Sommer" <glemsom@gmail.com>
+In-Reply-To: <d65b1b150812170433j717c673ak4489cdbbc10c29a3@mail.gmail.com>
 MIME-Version: 1.0
-To: Mark Jenks <mjenks1968@gmail.com>
-References: <e5df86c90812270840w2fd6be64l40f9838aef23db4f@mail.gmail.com>	
-	<1230500176.3120.60.camel@palomino.walls.org>	
-	<e5df86c90812281451o111e3ebem77c7d9bb8469e149@mail.gmail.com>	
-	<49580FAB.2000003@rogers.com>
-	<e5df86c90812281701x561691ej219ee83604bbb083@mail.gmail.com>
-In-Reply-To: <e5df86c90812281701x561691ej219ee83604bbb083@mail.gmail.com>
+References: <d65b1b150812170433j717c673ak4489cdbbc10c29a3@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with kernel oops when installing HVR-1800.
+Subject: Re: [linux-dvb] TT c-1501 getting timed out waiting for end of xfer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,30 +21,91 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0991203325=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mark Jenks wrote:
-> On Sun, Dec 28, 2008 at 5:45 PM, CityK <cityk@rogers.com
-> <mailto:cityk@rogers.com>> wrote:
->
->
->     The HVR-1250 device itself supports analogue, but such support is not
->     yet realized within the cx23885 driver.
->
->
-> Wow, actually it has an svideo in that I never paid attention to. 
-> Maybe someday I'll be able to use both of the analog in for both the
-> 1250 and the 1800 
+--===============0991203325==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_63644_22278150.1229845416403"
 
-To be clear, just so everyone is on the same page, the device's analogue
-input facilities include both that from its analog TV tuner and from its
-(as mentioned above) A/V inputs
+------=_Part_63644_22278150.1229845416403
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,
+I'm thinking about buying one of those cards.
+Have you found any solution?
+Is it a problem?
+Does the card work fine otherwise?
+
+regards
+/Ernst
+
+On Wed, Dec 17, 2008 at 13:33, Glenn Sommer <glemsom@gmail.com> wrote:
+
+> I'm using a TT c-1501 card on a asrock p43twin1600 mainbaord.
+>
+> I keep getting these messages: "saa7146 (0) saa7146_i2c_writeout
+> [irq]: timed out waiting for end of xfer"
+> As far as I can see it happens often during tuning to channels.
+>
+> Google tells me other people have seen this - but I'm unable to find a
+> solution... And I cannot quite figure out why it happens?
+>
+> (I've tried the latest snapshot of v4l-dvb.)
+>
+>
+> Regards
+> Glenn Sommer
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_63644_22278150.1229845416403
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,<br>I&#39;m thinking about buying one of those cards.<br>Have you found any solution?<br>Is it a problem?<br>Does the card work fine otherwise?<br><br>regards<br>/Ernst<br><br><div class="gmail_quote">On Wed, Dec 17, 2008 at 13:33, Glenn Sommer <span dir="ltr">&lt;<a href="mailto:glemsom@gmail.com">glemsom@gmail.com</a>&gt;</span> wrote:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">I&#39;m using a TT c-1501 card on a asrock p43twin1600 mainbaord.<br>
+<br>
+I keep getting these messages: &quot;saa7146 (0) saa7146_i2c_writeout<br>
+[irq]: timed out waiting for end of xfer&quot;<br>
+As far as I can see it happens often during tuning to channels.<br>
+<br>
+Google tells me other people have seen this - but I&#39;m unable to find a<br>
+solution... And I cannot quite figure out why it happens?<br>
+<br>
+(I&#39;ve tried the latest snapshot of v4l-dvb.)<br>
+<br>
+<br>
+Regards<br>
+Glenn Sommer<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</blockquote></div><br>
+
+------=_Part_63644_22278150.1229845416403--
+
+
+--===============0991203325==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0991203325==--
