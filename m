@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9NLoRb028005
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 18:21:50 -0500
-Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9NLdNZ008947
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 18:21:39 -0500
-Received: from hypnosis.jim.sh (BUCKET.MIT.EDU [18.90.1.139])
-	by psychosis.jim.sh (8.14.3/8.14.3/Debian-5) with SMTP id
-	mB9NLaVL029533
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=OK)
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 18:21:37 -0500
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBLNX1cx030179
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 18:33:01 -0500
+Received: from h1431883.stratoserver.net (mizapf.de [85.214.33.99])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBLNW02j023213
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 18:32:01 -0500
+Received: from [192.168.71.7] (p4FDC6362.dip.t-dialin.net [79.220.99.98])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by h1431883.stratoserver.net (Postfix) with ESMTP id 732FB15EA6F8
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 00:31:59 +0100 (CET)
+Message-ID: <494ED217.4000807@mizapf.eu>
+Date: Mon, 22 Dec 2008 00:32:39 +0100
+From: Michael Zapf <newsmail08@mizapf.eu>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <patchbomb.1228864538@hypnosis.jim>
-Date: Tue, 09 Dec 2008 18:15:38 -0500
-From: Jim Paris <jim@jtan.com>
 To: video4linux-list@redhat.com
-Subject: [PATCH 0 of 2] gspca, ov534 framerate support
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Subject: USBVision: Camtel USB Video Genie Supported?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,32 +29,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello,
 
-These two patches add frame rate support to ov534, as expected by
-programs like luvcview.  The first adds a gspca passthrough for
-VIDIOC_G_PARM and VIDIOC_S_PARM to subdrivers, and the second adds
-their implementation to ov534.
+I somehow can't get the USB Video Genie to work with VLC or xawtv, so I
+suppose the problem starts in v4l. The device is a small USB box with a
+grey button and a S-Video and a Composite input jack. Plugging the USB
+box in, I get
 
-Mplayer still doesn't get the FPS (it must do something different),
-but luvcview works correctly:
+kernel: usb 6-2: new full speed USB device using uhci_hcd and address 2
+kernel: usb 6-2: new device found, idVendor=0573, idProduct=0003
+kernel: usb 6-2: new device strings: Mfr=0, Product=0, SerialNumber=0
+kernel: usb 6-2: configuration #1 chosen from 1 choice
+kernel: Linux video capture interface: v2.00
+kernel: usbvision_probe: USBGear USBG-V1 resp. HAMA USB found
+kernel: USBVision[0]: registered USBVision Video device /dev/video0 [v4l2]
+kernel: USBVision[0]: registered USBVision VBI device /dev/vbi0 [v4l2]
+(Not Working Yet!)
+kernel: usbcore: registered new interface driver usbvision
+kernel: USBVision USB Video Device Driver for Linux : 0.9.9
+kernel: saa7115 1-0024: saa7111 found (1f7111d1e200000) @ 0x48
+(usbvision #0)
 
-$ luvcview -i 50
-luvcview 0.2.4
+That's all I find in the log. From v4l-info I get
 
-SDL information:
-  Video driver: x11
-  A window manager is available
-Device information:
-  Device path:  /dev/video0
-Stream settings:
-  Frame format: YUYV (MJPG is not supported by device)
-  Frame size:   640x480
-  Frame rate:   50 fps
+### v4l2 device info [/dev/video0] ###
+general info
+    VIDIOC_QUERYCAP
+        driver                  : "USBVision"
+        card                    : "USBGear USBG-V1 resp. HAMA USB"
+        bus_info                : "6-2"
+        version                 : 0.9.9
+        capabilities            : 0x5020001
+[VIDEO_CAPTURE,AUDIO,READWRITE,STREAMING]
 
-Comments?
+...
 
--jim
+VLC does not open a window when I select the device for play; doing a
+plain "cat /dev/video0" does not produce anything. Tried the different
+inputs, no result. Am I missing something here? Do I require a special
+firmware for this device?
+
+Thanks for any help,
+
+Michael
 
 --
 video4linux-list mailing list
