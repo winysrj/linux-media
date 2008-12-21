@@ -1,21 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB9M9pxE025061
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 17:09:51 -0500
-Received: from psychosis.jim.sh (a.jim.sh [75.150.123.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB9M9ZoU002214
-	for <video4linux-list@redhat.com>; Tue, 9 Dec 2008 17:09:35 -0500
-Date: Tue, 9 Dec 2008 17:08:58 -0500
-From: Jim Paris <jim@jtan.com>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Message-ID: <20081209220858.GA25496@psychosis.jim.sh>
-References: <20081209215837.GA24743@psychosis.jim.sh> <493EEA59.2040406@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBLBpafF007161
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 06:51:36 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBLBpKrS025865
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 06:51:21 -0500
+Received: by ewy14 with SMTP id 14so1715251ewy.3
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 03:51:20 -0800 (PST)
+Message-ID: <de8cad4d0812210351uf3cc7e8i2aa1c20a7e48057c@mail.gmail.com>
+Date: Sun, 21 Dec 2008 06:51:19 -0500
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <1229828548.3109.37.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <493EEA59.2040406@hhs.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: gspca: fix vidioc_s_jpegcomp locking
+References: <8ffeff430812010520v5e37c21bu784798e3a7482093@mail.gmail.com>
+	<8ffeff430812011353k253e8a25tf09e231d4f484eba@mail.gmail.com>
+	<1228177537.3117.14.camel@palomino.walls.org>
+	<8ffeff430812020707g458688f2g5390016fa09a995f@mail.gmail.com>
+	<COL107-W456D1FD3E2739520ED2875CE000@phx.gbl>
+	<8ffeff430812201215y30d45065idd2f26d88554bd75@mail.gmail.com>
+	<1229812414.3109.5.camel@palomino.walls.org>
+	<8ffeff430812201646p3ed218e1xc1b9c7c807fe0751@mail.gmail.com>
+	<e5df86c90812201719y3a633dfdg2f836e6b7cd1861f@mail.gmail.com>
+	<1229828548.3109.37.camel@palomino.walls.org>
+Cc: video4linux-list@redhat.com,
+	User discussion about IVTV <ivtv-users@ivtvdriver.org>,
+	ivtv-devel@ivtvdriver.org
+Subject: Re: [ivtv-users] hvr-1600 update
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,46 +42,103 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans de Goede wrote:
-> Jim Paris wrote:
->> This locking looked wrong.
+On Sat, Dec 20, 2008 at 10:02 PM, Andy Walls <awalls@radix.net> wrote:
+> On Sat, 2008-12-20 at 19:19 -0600, Mark Jenks wrote:
+>> On Sat, Dec 20, 2008 at 6:46 PM, Al McIntosh <al@allanmcintosh.com>
+>> wrote:
+>>         Oh, wow! Okay, I was wondering what kind of testing or data
+>>         would be
+>>         helpful but sounds as though it's all covered. Impressive
+>>         work  Andy.
 >>
+>>         Al
 >
-> Hi,
+> Al,
 >
-> I appreciate the effort, but please do not send patches just because 
-> something looks wrong. The original code is perfectly fine. It check if 
-> the sub driver supports set_jcomp at all, this check does not need 
-> locking.
-
-Well, the patch was a request for comments.  But please double-check.
-In the current code, if set_jcomp is NULL, the lock is taken but never
-released.
-
-I agree that the check does not need locking, which is why my change
-moved the check outside the lock.
-
--jim
-
->> gspca: fix vidioc_s_jpegcomp locking
+> Don't thank me, thank Mike and Jeff for the reporting and debugging.
+> The "hard" part for me was building a spreadsheet to compute the correct
+> PLL parameter values - that was pretty mechanical.
+>
+>>         > Jeff Campbell and Mike Bradley have been doing extensive (!)
+>>         > investigation and pointed out problem areas too me.  Due to
+>>         their
+>>         > prompting and what they've found, I've got some fixes in
+>>         progress this
+>>         > weekend that should be good enough for the average user.  It
+>>         should make
+>>         > SVideo and CVBS watchable with buffering.
+>>         >
+>>         > The problems are mostly audio and clock related.  Maybe by
+>>         Sunday night
+>>         > I'll have something checked into my v4l-dvb repo.
+>>         >
+>>         > Regards,
+>>         > Andy
+>>         >
+>>         >
+>>         >> Al
 >>
->> Signed-off-by: Jim Paris <jim@jtan.com>
+>> Hey Al!
 >>
->> diff -r b50857fea6df linux/drivers/media/video/gspca/gspca.c
->> --- a/linux/drivers/media/video/gspca/gspca.c	Tue Dec 09 16:20:31 2008 -0500
->> +++ b/linux/drivers/media/video/gspca/gspca.c	Tue Dec 09 16:55:39 2008 -0500
->> @@ -1320,10 +1320,10 @@
->>  	struct gspca_dev *gspca_dev = priv;
->>  	int ret;
->> +	if (!gspca_dev->sd_desc->set_jcomp)
->> +		return -EINVAL;
->>  	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
->>  		return -ERESTARTSYS;
->> -	if (!gspca_dev->sd_desc->set_jcomp)
->> -		return -EINVAL;
->>  	ret = gspca_dev->sd_desc->set_jcomp(gspca_dev, jpegcomp);
->>  	mutex_unlock(&gspca_dev->usb_lock);
->>  	return ret;
+>> I was working on setting up a hvr-1600 today with svideo/audio
+>> capturing to mpeg for mythv from a SA4250HD.  Everything went great
+>> except for the video skipping issue that I could not get rid of.  I
+>> was very happy to find this thread and I am extremely glad to see that
+>> a fix might be right around the corner for this.
+>>
+>> I would of picked up a pvr-250, if they were easier to find, but I
+>> heard that this card would work. (it does, except for that one
+>> glitch).
+>>
+>> I am awaiting directions to try out your patch when it shows up.  If
+>> you need me to run a test on it, it might take me a few days, but I
+>> can get it for you.
+>
+> Mark and Al,
+>
+> If you really want to test something, look in
+>
+> http://linuxtv.org/hg/~awalls/v4l-dvb
+>
+> the two latest changes should give you something decent for SVideo and
+> CVBS.  The first analog capture after modprobe will be goofy as always.
+> (Still working on that one...)
+>
+> If you set the stream type to TS instead of the default PS, you may be
+> able to run with unbuffered playback  Although you may want to set the
+> enc_mpg_bufsize=16 parameter, as the default of a 32 kB individual
+> buffer sizes may seem a little jumpy if played back unbuffered.
+>
+> This might be the only changes I get done this weekend, due to holiday
+> plans and obligations.
+>
+> Regards,
+> Andy
+>
+>> FYI, it's running a M3N78 Pro motherboard, quadcore,4gb of ram w/ HDMI
+>> video & audio out.
+>>
+>> -Mark
+>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+
+Hi Andy,
+
+I have pulled your changes and installed the modules. The playback
+pausing issue is now gone. As you noted there is an issue with the
+first capture. I get no audio until I stop the capture and start
+again. To work around this, I put a capture script in my rc.local to
+"initialize" the cards.
+
+Thanks again and have a great holiday!
+
+Brandon
 
 --
 video4linux-list mailing list
