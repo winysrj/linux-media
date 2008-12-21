@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <oliver.maurhart@gmx.net>) id 1LA74Y-0002AA-15
-	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 19:12:39 +0100
-From: Oliver Maurhart <oliver.maurhart@gmx.net>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-Date: Tue, 9 Dec 2008 19:11:55 +0100
-References: <200812091251.57007.oliver.maurhart@gmx.net>
-	<412bdbff0812090739n831d446tf19faab40c85763@mail.gmail.com>
-In-Reply-To: <412bdbff0812090739n831d446tf19faab40c85763@mail.gmail.com>
+Received: from ey-out-2122.google.com ([74.125.78.24])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LEP6f-0003KW-Fk
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 15:16:38 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so169148eya.17
+	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 06:16:30 -0800 (PST)
+Date: Sun, 21 Dec 2008 15:16:18 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Artem Makhutov <artem@makhutov.org>
+In-Reply-To: <20081221132637.GG12059@titan.makhutov-it.de>
+Message-ID: <alpine.DEB.2.00.0812211444330.22383@ybpnyubfg.ybpnyqbznva>
+References: <20081220224557.GF12059@titan.makhutov-it.de>
+	<494E4176.2000003@verbraak.org>
+	<20081221132637.GG12059@titan.makhutov-it.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200812091911.55699.oliver.maurhart@gmx.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help: /dev/dvb missing with Terratec Cinergy XS
-	Hybrid
+Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,43 +29,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tuesday 09 December 2008 16:39:54 Devin Heitmueller wrote:
-> On Tue, Dec 9, 2008 at 6:51 AM, Oliver Maurhart <oliver.maurhart@gmx.net> 
-wrote:
-> > Hi *,
-> >
-> > After months of googling I'm out of  knowledge. I'm the (lucky?) owner of
-> > a Terratec Hybrid XS USB Card:
-> >
-> > # lsusb | grep TerraTec
-> > Bus 001 Device 007: ID 0ccd:005e TerraTec Electronic GmbH
-...
-> I figured ones of these days a user of this device would come along.  :-)
->
-> This is an em28xx based device we don't have a profile for yet -
-> although all the core components are supported -
-> em28xx/zarlink/xc3028.
->
-> If you want to get this device supported under Linux, I'll put in in
-> my queue of em28xx devices to look at.  I think we are just missing
-> the GPIOs and the dvb profile.
+On Sun, 21 Dec 2008, Artem Makhutov wrote:
 
-Never mind! Markus Rechberger pointed me to the drivers at mcentral.de. I 
-checked out the em28xx-new and ... it worked!!!
+> I just checked it out. It looks interesing, but I need UDP streaming,
+> as the STB can only receive UDP-Streams.
 
-Geee! I was running around this issue for months.
+What sort of UDP do you need -- an RTP Transport Stream,
+an RTP Program Stream, a simple raw Transport stream, or
+what?
 
-Still: kdetv scans all the possible channels on my webcam (!), missing the 
-fact that my TerraTec Card does now provide a /dev/dvb but as the 2nd V4L-
-Device it's on /dev/video1 ... hehehe ... but kaffeine seems quite smarter and 
-gets around that, showing DVB-TV! Yeah! =)
+Unless you're using a different `dvbstream' than I, it
+sends out RTP (partial or not) Transport Streams, with
+UDP packet size equal to the TS frame size (I hacked this
+to fill as much of an ethernet frame as possible).
 
-What a relief!
+I don't know if your `szap2' program simply sets up the
+frontend to the desired frequency, or if it also sets
+hardware PID filters on your card -- I've always been able
+to use other utilities with bog-standard `t/szap' to work
+on the entire TS.
 
-THX!
+If bandwidth is an issue, a HD H.264 stream is likely to
+weigh in around 10 to 20Mbit/sec; a full S2 transport
+stream is higher (DVB-S streams from Astra are on the
+order of 36Mbit/sec; S2 will likely be slightly more).
 
-kR,
-Oliver
+Add the overhead for UDP encapsulation of the 188-byte
+packets, and I wouldn't be surprised if you push close
+to some hardware limits of a 100Mbit/sec network, given
+the unreliable nature of UDP, and that a single dropped
+or corrupt packet can appear as a video stream error.
+
+Although, as you said, your 'Doze works, so the sum of
+your hardware should be able to handle the traffic.
+
+Something I just learned a few seconds ago, dvbstream:
+-net ip:prt IP address:port combination to be followed by pids 
+list. Can be repeated to generate multiple RTP streams
+
+This will filter your ~50Mbit/sec transponder down to a
+manageable size.  Be sure to specify all the PIDs for
+ASTRA HD or whatever; for the DVB-S Eins Festival that
+will start tomorrow (Mo) with non-upscaled 720p content
+again, that should be
+0  1600  -v 1601   -a 1602   1603  1606
+(as arguments to standalone `dvbstream')
+
+
+Just some additional things to keep in mind...
+
+
+By the way, I also received some personal mail which I
+don't think made it to the list, and this may be of use
+to you, so I'll quote from that here, so that others may
+benefit:
+DUBOST Brice wrote:
+``You can try mumudvb : http://mumudvb.braice.net, I think it will answer
+your needs''
+
+
+thankz
+baz bouwsma
 
 _______________________________________________
 linux-dvb mailing list
