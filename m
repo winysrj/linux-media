@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qmta05.westchester.pa.mail.comcast.net ([76.96.62.48])
+Received: from mail-in-07.arcor-online.net ([151.189.21.47])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jeffd@i2k.com>) id 1L7YKd-0006yf-R6
-	for linux-dvb@linuxtv.org; Tue, 02 Dec 2008 17:42:40 +0100
-Date: Tue, 2 Dec 2008 11:42:02 -0500
-From: Jeff DeFouw <jeffd@i2k.com>
-To: djamil <djamil@djamil.net>
-Message-ID: <20081202164202.GA18160@blorp.plorb.com>
-References: <20081122195252.GA26727@blorp.plorb.com>
-	<1228199374.7788.2.camel@toptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1228199374.7788.2.camel@toptop>
+	(envelope-from <hermann-pitton@arcor.de>) id 1LEWyo-0007RD-6X
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 23:40:59 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Artem Makhutov <artem@makhutov.org>
+In-Reply-To: <20081221135926.GI12059@titan.makhutov-it.de>
+References: <20081220224557.GF12059@titan.makhutov-it.de>
+	<alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
+	<1229827473.2557.11.camel@pc10.localdom.local>
+	<20081221135926.GI12059@titan.makhutov-it.de>
+Date: Sun, 21 Dec 2008 23:41:31 +0100
+Message-Id: <1229899291.2584.75.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] notes and code for HVR-1800 S-Video
+Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,24 +28,68 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Dec 02, 2008 at 07:29:34AM +0100, djamil wrote:
-> I am trying to do the same thing on my HVR 1400, can you give me clues
-> on how i can hack it up
+Hi,
+
+Am Sonntag, den 21.12.2008, 14:59 +0100 schrieb Artem Makhutov:
+> Hi,
 > 
-> I want to get analog working for svideo/composite inputs ...
+> On Sun, Dec 21, 2008 at 03:44:33AM +0100, hermann pitton wrote:
+> > I must admit that I did not read it all yet this time.
+> > 
+> > But a good probe might be to save the HD S2 stuff to a file and then try
+> > to get it over a nfs mount with xine for example on other PCs.
+> > 
+> > On consumer level it only has advantages, skip the commercials ...
+> > 
+> > This works since stoneage within local networks.
+> > 
+> > If you are trying to get it out over the internet, it might cause some
+> > more questions of course.
 > 
-> Any tools under windows to spy on it ...
+> The STB can only playpack UDP Streams, so NFS will not help me much.
 
-I used the RegSpy tool from DScaler:
-http://www.dscaler.org/
+should have read better.
 
-It reads the PCI registers and tracks the changes.  You have to program 
-the registers in and make it recognize your card.  I modified my copy to 
-control one of the I2C units and read the I2C registers at the cx25840 
-address.
+> I have recorded the stream to a file and will try to playback it under windows.
+> My CPU is too slow to playback the stream without GPU acceleration under linux.
+> 
 
--- 
-Jeff DeFouw <jeffd@i2k.com>
+The pDVD with GPU acceleration plays my Linux recorded BBC HD 1080i
+stuff without any visible issues. So that should work in any case at
+first I guess. (all on saa7134 DVB-S stuff)
+
+I recently tried libxine with vdpau support, but on Linux recorded 1080i
+BBC HD stuff it shows only a grey surface. The same recorded under
+windows it plays already fine, but it often needs several attempts to
+get playback started and it does not like seeking. It also doesn't like
+my channels.conf yet, but I don't expect it to do any better on live
+watching for now.
+
+The recent mplayer vdpau patches do work fine for playback of all
+recorded 1080i stuff and mpeg2 sound is without any sync issues.
+It is only a simple 9500GT here, but the GPU stays totally cool and no
+fan turns on like some supposed. 
+
+The only issue left are some flashing green and purple blocks at the
+bottom line, but others seem not to have it and it might be related to
+the current implementation of that video card.
+
+Unfortunately on vdpau live watching mplayer loses A/V sync like it does
+with -vo xv even for playback only. That works mostly fine with kaffeine
+xv against that libxine as long it stays with mpeg2 audio, but really
+safe is only to playback from recordings, since they fumble around with
+audio and that sort of AC3 they have seems not to be for me yet.
+CPUs are of course at 30% on the amd quad with xv and ffmpeg h264 then.
+
+Cheers,
+Hermann
+
+
+
+ 
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
