@@ -1,29 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBABhZhC025064
-	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 06:43:35 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBABhDwX030591
-	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 06:43:13 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so124765wfc.6
-	for <video4linux-list@redhat.com>; Wed, 10 Dec 2008 03:43:13 -0800 (PST)
-Message-ID: <5d5443650812100343t41fb7db8p1956d6aa0b184c26@mail.gmail.com>
-Date: Wed, 10 Dec 2008 17:13:12 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Sakari Ailus" <sakari.ailus@nokia.com>
-In-Reply-To: <493E3217.8050503@nokia.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBL2JjgI013746
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:19:45 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBL2JTpe017125
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 21:19:30 -0500
+Received: by ewy14 with SMTP id 14so1618395ewy.3
+	for <video4linux-list@redhat.com>; Sat, 20 Dec 2008 18:19:29 -0800 (PST)
+Message-ID: <de8cad4d0812201819k189055fdq68527a84d8a0b0e1@mail.gmail.com>
+Date: Sat, 20 Dec 2008 21:19:29 -0500
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <1229825356.2557.1.camel@pc10.localdom.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
-	<20081208194235.4991873d@pedra.chehab.org>
-	<493E3217.8050503@nokia.com>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
-	hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Add OMAP2 camera driver
+References: <15114.62.70.2.252.1228832086.squirrel@webmail.xs4all.nl>
+	<200812161655.39431.hverkuil@xs4all.nl>
+	<de8cad4d0812170904x474a5503ve5fcef84ebfeba65@mail.gmail.com>
+	<200812181009.09836.hverkuil@xs4all.nl>
+	<de8cad4d0812201755v846c5dcn536736a6f56fd008@mail.gmail.com>
+	<1229825356.2557.1.camel@pc10.localdom.local>
+Cc: video4linux-list@redhat.com
+Subject: Re: v4l2-compat-ioctl32 update?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,43 +36,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Sakari,
-
-On Tue, Dec 9, 2008 at 2:23 PM, Sakari Ailus <sakari.ailus@nokia.com> wrote:
-> The DMA part is definitely the ugliest part of omap24xxcam.
->
-> This is actually also a DMA controller driver. The system DMA driver could
-> not be used as such as it was limited to just one controller --- the OMAP 2
-> camera block has its own DMA controller with four transfers in queue
-> (maximum).
->
-> There's also an MMU, not the system MMU but the camera block MMU. This MMU
-> is not being used now by omap24xxcam at all since when omap24xxcam driver
-> was written, there was not too much time available and no generic MMU
-> framework. So the MMU support was left out. Instead, there's a hack to
-> allocate as large as possible continuous memory areas and avoid overruns
-> that way. DMA transfer overruns happen on large proportion of frames without
-> this hack.
-
-This is due to legacy and carried forward to every new kernel version
-from year 2004. I hope someone having H4 EVM can do it lot faster than
-me, as I only have N8xx tablets, and debugging on them might be slow.
+On Sat, Dec 20, 2008 at 9:09 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
 
 >
-> Hiroshi Doyu is working on a generic IOMMU framework for OMAPs that could be
-> used here. With that framework available, converting the OMAP 2 camera
-> driver to use videobuf would be a lot easier. The performance would be
-> better, too. A generic DMA controller driver would be also good to have but
-> not mandatory.
+> it is over here too.
+> http://linuxtv.org/pipermail/linux-dvb/2008-December/031012.html
+>
+> Let's know how it goes without the old module.
+>
+> Cheers,
+> Hermann
+>
+>
+>
 
-This is not yet mainlined, so let's incorporate IOMMU bits once it
-gets mainlined.
+Hermann,
 
+Perfect! Thank you, I wasn't clear on what Hans had meant until I just
+read it there. Testing now.
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Brandon
 
 --
 video4linux-list mailing list
