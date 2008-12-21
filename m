@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.179])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LEPlY-0007AE-Jc
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 15:58:53 +0100
-Received: by ik-out-1112.google.com with SMTP id c28so513216ika.1
-	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 06:58:45 -0800 (PST)
-Date: Sun, 21 Dec 2008 15:58:37 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Artem Makhutov <artem@makhutov.org>
-In-Reply-To: <20081221140416.GJ12059@titan.makhutov-it.de>
-Message-ID: <alpine.DEB.2.00.0812211542250.22383@ybpnyubfg.ybpnyqbznva>
+	(envelope-from <artem@moelleritberatung.de>) id 1LEOup-0002HC-G7
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 15:04:28 +0100
+Date: Sun, 21 Dec 2008 15:04:16 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Message-ID: <20081221140416.GJ12059@titan.makhutov-it.de>
 References: <20081220224557.GF12059@titan.makhutov-it.de>
 	<alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
-	<20081221140416.GJ12059@titan.makhutov-it.de>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
 Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
@@ -29,57 +27,70 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 21 Dec 2008, Artem Makhutov wrote:
+Hi,
 
-> > Use the `-o:' option of `dvbstream' to write to a file,
-> > then see if this file is corrupted or damaged.  If this
-> > is so, then case 1 above would be correct.
+On Sun, Dec 21, 2008 at 03:29:45AM +0100, BOUWSMA Barry wrote:
+> On Sat, 20 Dec 2008, Artem Makhutov wrote:
+> 
+> > 1. The stb0899 driver is broken and is producing a bad stream
+> > 2. The network streaming of VLC and dvbstream is broken
+> 
+> Use the `-o:' option of `dvbstream' to write to a file,
+> then see if this file is corrupted or damaged.  If this
+> is so, then case 1 above would be correct.
+> 
+> 
+> > Do you know any other methods to stream a DVB-S2 channel over network?
+> 
+> There's no difference between a DVB-S2 channel and any
+> other source of 188-byte Transport Stream packets, be
+> they video, radio, data, or whatever.
+> 
+> I've used `dvbstream' in the past to stream multicast
+> data; the problem I had was in the limited support of
+> the players I was using to handle the stream properly.
+> I also think I may have had to hack `dvbstream' slightly
+> to properly support and tag the payloads, though I may
+> be mis-remembering.
+> 
+> At the moment I'm using `dvbstream' to stdout, then
+> piping that to extract the audio payload of interest,
+> which I then pipe to a different streaming program that
+> performs better for a simple audio stream without the
+> excess overhead of the TS, and it's working well.
+> 
+> The only problem I've had has been the interaction with
+> the various hardware I use on the purity of the stream
+> -- if the USB ethernet is connected one way, it causes
+> the stream from the DVB receiver to be corrupted, and
+> if the receiver is connected through a particular USB
+> hub, its stream is again corrupted occasionally.  It is
+> all very annoying when I forget, and confusing to try
+> and track down these imperfections -- for example, I've
+> now determined that a particular external USB->HDD
+> adapter cannot be connected directly to my EHCI card,
+> nor to the first hub, but seems fine when a second hub
+> is connected to the first, then the disk to that
+> daisy-chain.  And on another machine, the two EHCI USB
+> ports don't work at all, while working wonderfully with
+> NetBSD.
+> 
+> That off-topic rambling was to note that problems often
+> may be caused by seemingly unrelated things for reasons
+> which I cannot understand, not being intimate with the
+> kernel internals or how hardware works.
+> 
+> Back on-topic, I have used `dvbstream' to multicast TS
+> of radio and video, tuning directly with it (i.e., no
+> `szap' needed) with no real problems, though it is the
+> standard `dvbtools' version that I've undoubtedly hacked.
 
-> Everything looks like my SkyStar HD/TT-3200 is producing a little bit
-> currupt stream for DVB-S2 under linux. DVB-S looks prette good.
-> I will try to playback the recorded stream under Windows
-> today afternoon.
+Everything looks like my SkyStar HD/TT-3200 is producing a little bit
+currupt stream for DVB-S2 under linux. DVB-S looks prette good.
+I will try to playback the recorded stream under Windows
+today afternoon.
 
-Hi, me again :-)  Sorry to be writing so much today...
-
-I actually do not know if you are receiving ASTRA HD from
-19E2, or from elsewhere, and I now realize that earlier,
-I assumed that you did...
-
-As I noted in my last mail, please try `mplayer -vo null
-etc.' to detect corrupted video.  The `-nosound' option
-means that every frame will be checked, no matter how
-slow my^H^H your machine.
-
-In case the bandwidth is of concern, because I do not
-know what to expect from HD DVB-S2 transponders...
-
-I'm assuming, from your headers, you're somewhere in
-germany -- if you are within the Astra 2D footprint at
-28E2, meaning, the west or northwest, you can receive
-the BBC-HD signal with a reasonable dish -- this will
-fill about 7 to 8GB per hour on disk, and is sent via
-DVB-S at present.  Around Berlin, you'll need perhaps a
-2 metre dish.  If you can tune it, this will give a DVB-S 
-reference at a decent bitrate, probably similar to ASTRA
-HD.
-
-Alternatively, on DVB-S, Eins Festival HD starts in less
-than 24 hours; the bitrate is not so high -- I have some
-files from the past Easter holiday that require, for
-example, 21GB from somtime after 13h to just after 17h,
-so a bit better than good quality SD video, but slightly
-less than the BBC-HD stream.  Both these are H.264.
-
-With a few hours of suitable HD recording, you can then
-definitively say, oh yeah, the -S2 transport streams are
-indeed corrupt and the -S streams perfect, or not, or
-something.  That would be very useful, if it isn't
-already widely known.
-
-
-thnks,
-barry bouwsma
+Thanks and Regards, Artem
 
 _______________________________________________
 linux-dvb mailing list
