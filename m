@@ -1,14 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <udo_richter@gmx.de>) id 1LEZZx-0002jH-5l
-	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 02:27:29 +0100
-Message-ID: <494EECDD.6000106@gmx.de>
-Date: Mon, 22 Dec 2008 02:26:53 +0100
-From: Udo Richter <udo_richter@gmx.de>
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.124])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <linux-dvb.list@sustik.com>) id 1LEPao-0006CZ-Cr
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 15:47:52 +0100
+Message-ID: <494E56EA.7080604@sustik.com>
+Date: Sun, 21 Dec 2008 08:47:06 -0600
+From: Matyas Sustik <linux-dvb.list@sustik.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] How to runtime-detect S2API kernel?
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <494D4A00.6020305@sustik.com>
+	<1229809078.4702.34.camel@pc10.localdom.local>
+In-Reply-To: <1229809078.4702.34.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fusion HDTV7 again
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,23 +26,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi list,
+hermann pitton wrote:
+> Hi Matyas,
+> In this case the old compat-ioctl32 is not replaced by the new
+> v4l2-compat-ioctl32 module.
+> 
+> If you do on top of the modules of your kernel version
+> "less modules.symbols |grep ioctl32",
+> you likely will see this.
+> alias symbol:v4l_compat_ioctl32 compat_ioctl32
+> alias symbol:v4l_compat_ioctl32 v4l2-compat-ioctl32
+> 
+> But it should be only that.
+> less modules.symbols |grep ioctl32
+> alias symbol:v4l_compat_ioctl32 v4l2-compat-ioctl32
+> 
+> On top of the mercurial v4l-dvb do
+> "make rmmod", since some complaints are visible do it again.
+> 
+> Then "make rminstall" should remove all old modules,
+> but renamed ones or such in distribution specific wrong locations
+> remain.
+> 
+> Check with "ls -R |grep .ko" on top of your kernel's media modules
+> folder.
+> 
+> Delete the media folder or the modules.
 
+I edited modules.symbols to comply to your suggestion.  I made sure that
+the old modules are gone.  After a recompile, install and reboot the driver
+started to work again!
 
-Is there an official safe way to detect S2API capable DVB drivers at 
-runtime, so that a program compiled against S2API headers can check for 
-S2API drivers and switch to old API otherwise?
-
-Does it work to call FE_HAS_EXTENDED_CAPS? Do all old drivers return 
-this flag under the new API, or only S2API-aware drivers?
-
-Or is it better to call FE_SET_PROPERTY with num=0 commands? Does this 
-always return success under S2API?
-
-
-Cheers,
-
-Udo
+Thanks a lot.
+Matyas
+-
+Every hardware eventually breaks.  Every software eventually works.
 
 _______________________________________________
 linux-dvb mailing list
