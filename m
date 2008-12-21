@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBPLPAYH015201
-	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 16:25:10 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBLKq5Qi020251
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 15:52:05 -0500
 Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
 	[209.85.218.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBPLOpFC028483
-	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 16:24:51 -0500
-Received: by bwz13 with SMTP id 13so10635501bwz.3
-	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 13:24:51 -0800 (PST)
-Message-ID: <d9def9db0812251324p715e819dr9e52de50d200395a@mail.gmail.com>
-Date: Thu, 25 Dec 2008 22:24:50 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Rick Bilonick" <rab@nauticom.net>
-In-Reply-To: <1230233794.3450.33.camel@localhost.localdomain>
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBLKppTh002141
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 15:51:52 -0500
+Received: by bwz13 with SMTP id 13so4928412bwz.3
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 12:51:51 -0800 (PST)
+Message-ID: <208cbae30812211251h2a310a07v5b046cbe3a24fd1e@mail.gmail.com>
+Date: Sun, 21 Dec 2008 23:51:51 +0300
+From: "Alexey Klimov" <klimov.linux@gmail.com>
+To: "Thierry Merle" <thierry.merle@free.fr>
+In-Reply-To: <494EA35F.10208@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <1230233794.3450.33.camel@localhost.localdomain>
-Cc: video4linux-list@redhat.com
-Subject: Re: Compiling v4l-dvb-kernel for Ubuntu and for F8
+References: <1229742563.10297.114.camel@tux.localhost>
+	<20081220132730.45e9c365@gmail.com>
+	<30353c3d0812200959h40d525f0t6939c21c6bd4e612@mail.gmail.com>
+	<1229885212.12091.219.camel@tux.localhost> <494EA35F.10208@free.fr>
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: [review patch 2/5] dsbr100: fix codinstyle, make ifs more clear
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,73 +34,218 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Sun, Dec 21, 2008 at 11:13 PM, Thierry Merle <thierry.merle@free.fr> wrote:
+> Hello,
+>
+> Alexey Klimov a écrit :
+>> On Sat, 2008-12-20 at 12:59 -0500, David Ellingsworth wrote:
+>>> On Sat, Dec 20, 2008 at 10:27 AM, Douglas Schilling Landgraf
+>>> <dougsland@gmail.com> wrote:
+>>>> Hello Alexey,
+>>>>
+>>>> On Sat, 20 Dec 2008 06:09:23 +0300
+>>>> Alexey Klimov <klimov.linux@gmail.com> wrote:
+>>>>
+>>>>> We should make if-constructions more clear. Introduce int variables in
+>>>>> some functions to make it this way.
+>>>>>
+>>>>> ---
+>>>>> diff -r a302bfcb23f8 linux/drivers/media/radio/dsbr100.c
+>>>>> --- a/linux/drivers/media/radio/dsbr100.c     Fri Dec 19 14:34:30
+>>>>> 2008 +0300 +++ b/linux/drivers/media/radio/dsbr100.c  Sat Dec
+>>>>> 20 02:31:26 2008 +0300 @@ -200,15 +200,24 @@
+>>>>>  /* switch on radio */
+>>>>>  static int dsbr100_start(struct dsbr100_device *radio)
+>>>>>  {
+>>>>> +     int first;
+>>>>> +     int second;
+>>>>> +
+>>>>>       mutex_lock(&radio->lock);
+>>>>> -     if (usb_control_msg(radio->usbdev,
+>>>>> usb_rcvctrlpipe(radio->usbdev, 0),
+>>>>> -                     USB_REQ_GET_STATUS,
+>>>>> -                     USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+>>>>> USB_DIR_IN,
+>>>>> -                     0x00, 0xC7, radio->transfer_buffer, 8, 300)
+>>>>> < 0 ||
+>>>>> -     usb_control_msg(radio->usbdev,
+>>>>> usb_rcvctrlpipe(radio->usbdev, 0),
+>>>>> -                     DSB100_ONOFF,
+>>>>> -                     USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+>>>>> USB_DIR_IN,
+>>>>> -                     0x01, 0x00, radio->transfer_buffer, 8, 300)
+>>>>> < 0) { +
+>>>>> +     first = usb_control_msg(radio->usbdev,
+>>>>> +             usb_rcvctrlpipe(radio->usbdev, 0),
+>>>>> +             USB_REQ_GET_STATUS,
+>>>>> +             USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>>>>> +             0x00, 0xC7, radio->transfer_buffer, 8, 300);
+>>>>> +
+>>>>> +     second = usb_control_msg(radio->usbdev,
+>>>>> +             usb_rcvctrlpipe(radio->usbdev, 0),
+>>>>> +             DSB100_ONOFF,
+>>>>> +             USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>>>>> +             0x01, 0x00, radio->transfer_buffer, 8, 300);
+>>>>> +
+>>>>> +     if (first < 0 || second < 0) {
+>>>>>               mutex_unlock(&radio->lock);
+>>>>>               return -1;
+>>>>>       }
+>>>> IMO, we could create a variable like "ret" or "retval" to validate each
+>>>> usb_control_msg call instead of create 3 variables "first", "second" and "third".
+>>> The primary problem I have with this patch is that it changes the
+>>> behavior of the driver. The original way it was written the function
+>>> would immediately return if one of the calls to usb_control_msg
+>>> failed. With this patch, if the first call fails it will still make a
+>>> second call to usb_control_msg.
+>>>
+>>> I agree with Douglas, a single "ret" variable should be used and then
+>>> evaluated after every usb_control_msg call.
+>>>
+>>> [snip]
+>>>
+>>> Regards,
+>>>
+>>> David Ellingsworth
+>>
+>> Hello, all
+>> Yes, you are right, my bad - i missed that thing.
+>>
+>> Also, it's better to add dev_err messages that reports in case of
+>> retval<0 what usb_control_msg returned, request and what function it
+>> was.
+>>
+>> I suppose example could look like this:
+>>
+>> static int dsbr100_start(struct dsbr100_device *radio)
+>> {
+>>         int retval;
+>>
+>>         mutex_lock(&radio->lock);
+>>
+>>         retval = usb_control_msg(radio->usbdev,
+>>                 usb_rcvctrlpipe(radio->usbdev, 0),
+>>                 USB_REQ_GET_STATUS,
+>>                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>>                 0x00, 0xC7, radio->transfer_buffer, 8, 300);
+>>
+>>         if (retval < 0) {
+>>                 mutex_unlock(&radio->lock);
+>>                 dev_err(&radio->usbdev->dev,
+>>                         "usb_control_msg returned %i, request %i in %s\n",
+>>                               retval, USB_REQ_GET_STATUS, __func__);
+>>                 return -1;
+>>         }
+>>
+>>         retval = usb_control_msg(radio->usbdev,
+>>                 usb_rcvctrlpipe(radio->usbdev, 0),
+>>                 DSB100_ONOFF,
+>>                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>>                 0x01, 0x00, radio->transfer_buffer, 8, 300);
+>>
+>>         if (retval < 0) {
+>>                 mutex_unlock(&radio->lock);
+>>                 dev_err(&radio->usbdev->dev,
+>>                         "usb_control_msg returned %i, request %i in %s\n",
+>>                               retval, DSB100_ONOFF, __func__);
+>>                 return -1;
+>>         }
+>> ...<snip>
+>>
+>> But it looks, that more comfortable to create macro, may be smth that looks like:
+>>
+>> #define dsbr_usb_control_msg_err(arg)                                   \
+>>                 dev_err(&radio->usbdev->dev,                          \
+>>                         "%s - usb_control_msg returned %i, request %i\n",\
+>>                                 __func__, retval, arg)
+>>
+>> And then i can use:
+>>
+>>         retval = usb_control_msg(radio->usbdev,
+>>                 usb_rcvctrlpipe(radio->usbdev, 0),
+>>                 USB_REQ_GET_STATUS,
+>>                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>>                 0x00, 0xC7, radio->transfer_buffer, 8, 300);
+>>
+>>         if (retval < 0) {
+>>                 mutex_unlock(&radio->lock);
+>>                 dsbr_usb_control_msg_err(USB_REQ_GET_STATUS);
+>>                 return -1;
+>>         }
+>>
+>>         retval = usb_control_msg(radio->usbdev,
+>>                 usb_rcvctrlpipe(radio->usbdev, 0),
+>>                 DSB100_ONOFF,
+>>                 USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+>>                 0x01, 0x00, radio->transfer_buffer, 8, 300);
+>>
+>>         if (retval < 0) {
+>>                 mutex_unlock(&radio->lock);
+>>                 dsbr_usb_control_msg_err(DSB100_ONOFF);
+>>                 return -1;
+>>         }
+>>
+>> We should see what function and request failed.
+>> I didn't mean that this is right thing, it's just approach, that i can
+>> offer.
+>>
+>> What do you think ?
+>>
+>>
+> I would use a goto.
+> This is the most readable and efficient way to manage exeptions in C.
+> Take a look at linux/drivers/media/video/v4l2-dev.c for an example of goto usage.
+> Cheers,
+> Thierry
 
-On Thu, Dec 25, 2008 at 8:36 PM, Rick Bilonick <rab@nauticom.net> wrote:
-> I'm trying to get em28xx working under Ubuntu and F8, but when I "make"
-> I get errors saying that dmxdev.h, dvb_demux.h, dvb_net.h, and
-> dvb_frontend.h cannot be found.
->
-> I get the same errors in F7 with v4l-dvb-experimental (same with
-> v4l-dvb-kernel):
->
-> [root@localhost v4l-dvb-experimental]# make
->
-> running ./build.sh build
->
-> make[1]: Entering directory `/usr/local/src/v4l-dvb-experimental'
-> rm -rf Module.symvers;
-> make -C /lib/modules/`if [ -d /lib/modules/2.6.21.4-eeepc ]; then echo
-> 2.6.21.4-eeepc; else uname -r; fi`/build SUBDIRS=`pwd` modules
-> make[2]: Entering directory `/usr/src/kernels/2.6.26.6-49.fc8-i686'
->  CC [M]  /usr/local/src/v4l-dvb-experimental/em2880-dvb.o
-> In file included
-> from /usr/local/src/v4l-dvb-experimental/em2880-dvb.c:33:
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:31:20: error: dmxdev.h: No
-> such file or directory
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:32:23: error: dvb_demux.h:
-> No such file or directory
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:33:21: error: dvb_net.h: No
-> such file or directory
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:34:26: error:
-> dvb_frontend.h: No such file or directory
-> In file included
-> from /usr/local/src/v4l-dvb-experimental/em2880-dvb.c:33:
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:557: error: field 'demux'
-> has incomplete type
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:565: error: field 'adapter'
-> has incomplete type
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:568: error: field 'dmxdev'
-> has incomplete type
-> /usr/local/src/v4l-dvb-experimental/em28xx.h:570: error: field 'dvbnet'
-> has incomplete type
-> In file included
-> from /usr/local/src/v4l-dvb-experimental/em2880-dvb.c:40:
-> /usr/local/src/v4l-dvb-experimental/mt352/mt352.h: In function
-> 'mt352_write':
->
-> I'm not sure what is missing. I followed all the steps (same set of
-> steps at several web sites, one was
-> http://mcentral.de/wiki/index.php5/Em2880 )
->
-> Any help would be appreciated.
->
+So, do you mean that i can use this method ?
 
-you need to set up the kernel sources,
+static int dsbr100_stop(struct dsbr100_device *radio)
+{
+        int retval;
+        int request;
 
-http://www.mail-archive.com/em28xx@mcentral.de/msg01345.html
+        mutex_lock(&radio->lock);
 
-maybe this one helps a bit further.
+        retval = usb_control_msg(radio->usbdev,
+                usb_rcvctrlpipe(radio->usbdev, 0),
+                USB_REQ_GET_STATUS,
+                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+                0x16, 0x1C, radio->transfer_buffer, 8, 300);
 
-Markus
+        if (retval < 0) {
+                request = USB_REQ_GET_STATUS;
+                goto usb_control_msg_failed;
+        }
 
-> Rick B.
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+        retval = usb_control_msg(radio->usbdev,
+                usb_rcvctrlpipe(radio->usbdev, 0),
+                DSB100_ONOFF,
+                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+                0x00, 0x00, radio->transfer_buffer, 8, 300);
+
+        if (retval < 0) {
+                request = DSB100_ONOFF;
+                goto usb_control_msg_failed;
+        }
+
+        radio->muted=1;
+        mutex_unlock(&radio->lock);
+        return (radio->transfer_buffer)[0];
+
+:usb_control_msg_failed:
+
+        mutex_unlock(&radio->lock);
+        dev_err(&radio->usbdev->dev,
+                "%s - usb_control_msg returned %i, request %i\n",
+                        __func__, retval, request);
+        return -1;
+}
+
+And i have to make it in three functions ?
+
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
