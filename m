@@ -1,15 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web26105.mail.ukl.yahoo.com ([217.146.182.146])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <linuxcbon@yahoo.fr>) id 1LBCBV-00030a-2A
-	for linux-dvb@linuxtv.org; Fri, 12 Dec 2008 18:52:18 +0100
-Date: Fri, 12 Dec 2008 17:51:43 +0000 (GMT)
-From: linuxcbon <linuxcbon@yahoo.fr>
-To: linux-dvb@linuxtv.org
+Received: from smtp08.online.nl ([194.134.42.53])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <michel@verbraak.org>) id 1LEO9l-0006Yq-I7
+	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 14:15:43 +0100
+Message-ID: <494E4176.2000003@verbraak.org>
+Date: Sun, 21 Dec 2008 14:15:34 +0100
+From: Michel Verbraak <michel@verbraak.org>
 MIME-Version: 1.0
-Message-ID: <610460.22660.qm@web26105.mail.ukl.yahoo.com>
-Subject: [linux-dvb] Best dvb-t tuner ?
-Reply-To: linuxcbon@yahoo.fr
+To: Artem Makhutov <artem@makhutov.org>, linux-dvb@linuxtv.org
+References: <20081220224557.GF12059@titan.makhutov-it.de>
+In-Reply-To: <20081220224557.GF12059@titan.makhutov-it.de>
+Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,26 +24,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
+Artem Makhutov schreef:
+> Hello,
+>
+> I would like to stream a DVB-S2, H264 channel over my network to an STB.
+>
+> I an using the TT 3200 DVB-S2 card with multiproto drivers from Igors repository.
+>
+> So faar I have tried 3 different solutions:
+>
+> 1. Using szap2 & dvbstream
+>
+> # szap2 -r -p 'ASTRA HD'
+> # dvbstream -udp -i 239.255.0.1 -r 1234
+>
+> 2. Using szap2 and VLC
+>
+> # szap2 -r -p 'ASTRA HD'
+> and setup VLC using the GUI to read from
+> /dev/dvb/adapter0/dvr0 and stream to 239.255.0.1
+>
+> 3. Use Windows with ProgDVB and stream to 239.255.0.1
+>
+> Basically only the solution using Windows is working.
+>
+> The streams from linux are all broken.
+> The video and audio stops every 5 seconds for 1 second.
+>
+> So I can imagine 2 scenarios:
+>
+> 1. The stb0899 driver is broken and is producing a bad stream
+> 2. The network streaming of VLC and dvbstream is broken
+>
+> Do you know any other methods to stream a DVB-S2 channel over network?
+>
+> Thanks, Artem
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>   
+Artem,
 
-there are many dvb-t tuners for the PC.
-Can you help me chose the best :p
+Have a look at my tvpump program which is part of my set of programs I 
+use to view livetv (http://www.verbraak.org/wiki/index.php/TVSuite).
+I use ffplay to view HD content but I currently also have problems 
+viewing HD content because my computer for viewing is a bit to slow.
 
-I read PCI have better sensibility than USB bvecause they have a special antenna circuit ?
-I read that "diversity" receives better but it is only in USB, and doesnt work in linux ?
-I read most of tuners have only 40dB AGC range so they need a LNA, and others have 80dB AGC range (MT2067 has even 110dB).
+Regards,
 
-Do I need time-shifting ?
-Do I need a radio tuner ?
-
-Also there are new HD products, I am lost...
-
-Regards
-
-
-
-
-      
+Michel.
 
 _______________________________________________
 linux-dvb mailing list
