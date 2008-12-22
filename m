@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBUIQbVC010982
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 13:26:37 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.239])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBUIPeMm020674
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 13:26:24 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so5567814rvb.51
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 10:26:24 -0800 (PST)
-Message-ID: <fb249edb0812301026u2675abah5e0bfb63a1668b7c@mail.gmail.com>
-Date: Tue, 30 Dec 2008 19:26:24 +0100
-From: "andrzej zaborowski" <balrogg@gmail.com>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812301015j17488464r7a77b325acb4e2ce@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBMBC5JO023582
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 06:12:05 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBMBBihX012498
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 06:11:45 -0500
+Date: Mon, 22 Dec 2008 09:11:33 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <20081222091133.417c1273@pedra.chehab.org>
+In-Reply-To: <200812201345.56672.hverkuil@xs4all.nl>
+References: <200812201345.56672.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <fb249edb0812301007k245d3506k6d9dbe717ccd5284@mail.gmail.com>
-	<412bdbff0812301015j17488464r7a77b325acb4e2ce@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Adding Sabrent SC-PVS4 Capture Board to hardware list
+Cc: Jean Delvare <khali@linux-fr.org>, v4l <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [REVIEW] v4l2 debugging: match drivers by name instead of the
+ deprecated ID
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,104 +29,90 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/12/30 Devin Heitmueller <devin.heitmueller@gmail.com>:
-> On Tue, Dec 30, 2008 at 1:07 PM, andrzej zaborowski <balrogg@gmail.com> wrote:
-<snip>
->> Here is all the information I know about the card. If anyone would
->> like to know more about it, or I have left something out that is
->> required to add this card to the officially supported hardware, please
->> let me know.
->>
->> --------------------------------------------------------
->> dmesg output:
->> --------------------------------------------------------
->>
->> saa7130/34: v4l2 driver version 0.2.14 loaded
->> saa7130[0]: found at 0000:02:0c.0, rev: 1, irq: 18, latency: 32, mmio:
->> 0xfa000000
->> saa7130[0]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
->> [card=33,insmod option]
->> saa7130[0]: board init: gpio is 10000
->> saa7130[0]: Huh, no eeprom present (err=-5)?
->> saa7130[0]: registered device video0 [v4l2]
->> saa7130[0]: registered device vbi0
->> saa7130[1]: found at 0000:02:0d.0, rev: 1, irq: 19, latency: 32, mmio:
->> 0xfa001000
->> saa7130[1]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
->> [card=33,insmod option]
->> saa7130[1]: board init: gpio is 10000
->> saa7130[1]: Huh, no eeprom present (err=-5)?
->> saa7130[1]: registered device video1 [v4l2]
->> saa7130[1]: registered device vbi1
->> saa7130[2]: found at 0000:02:0e.0, rev: 1, irq: 16, latency: 32, mmio:
->> 0xfa002000
->> saa7130[2]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
->> [card=33,insmod option]
->> saa7130[2]: board init: gpio is 10000
->> saa7130[2]: Huh, no eeprom present (err=-5)?
->> saa7130[2]: registered device video2 [v4l2]
->> saa7130[2]: registered device vbi2
->> saa7130[3]: found at 0000:02:0f.0, rev: 1, irq: 20, latency: 32, mmio:
->> 0xfa003000
->> saa7130[3]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
->> [card=33,insmod option]
->> saa7130[3]: board init: gpio is 10000
->> saa7130[3]: Huh, no eeprom present (err=-5)?
->> saa7130[3]: registered device video3 [v4l2]
->> saa7130[3]: registered device vbi3
->> irq 16: nobody cared (try booting with the "irqpoll" option)
->>
->> --------------------------------------------------------
->> lspci output:
->> --------------------------------------------------------
->>
->> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
->> Broadcast Decoder (rev 01)
->> 02:0d.0 Multimedia controller: Philips Semiconductors SAA7130 Video
->> Broadcast Decoder (rev 01)
->> 02:0e.0 Multimedia controller: Philips Semiconductors SAA7130 Video
->> Broadcast Decoder (rev 01)
->> 02:0f.0 Multimedia controller: Philips Semiconductors SAA7130 Video
->> Broadcast Decoder (rev 01)
->>
->> --------------------------------------------------------
->> lspci -vv output ( first entry only ):
->> --------------------------------------------------------
->>
->> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
->> Broadcast Decoder (rev 01)
->> Subsystem: Philips Semiconductors Device 0000
->> Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
->> Stepping- SERR- FastB2B- DisINTx-
->> Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
->> <TAbort- <MAbort- >SERR- <PERR- INTx-
->> Latency: 32 (3750ns min, 9500ns max)
->> Interrupt: pin A routed to IRQ 18
->> Region 0: Memory at fa000000 (32-bit, non-prefetchable) [size=1K]
->> Capabilities: [40] Power Management version 1
->> Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
->> Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->> Kernel driver in use: saa7134
->> Kernel modules: saa7134
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->
-> Could you please also provide the output of "lspci -n" so we can see
-> what the actual PCI ID is? (I don't see it in the lspci -v output for
-> some reason)
+On Sat, 20 Dec 2008 13:45:56 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
---------------------------------------------------------
-lspci -n output ( all 4 board/ic entries ):
---------------------------------------------------------
+> Hi all,
+> 
+> Jean Delvare has stated repeatedly that the I2C driver IDs will have to go. 
+> However, one major user inside V4L2 are the VIDIOC_G_CHIP_IDENT and 
+> VIDIOC_DBG_G/S_REGISTER ioctls.
+> 
+> These ioctls are meant as debugging and testing ioctls and (in the case of 
+> G_CHIP_IDENT) for internal use in the kernel (e.g. a bridge driver that 
+> needs to know which I2C chip variant is present).
+> 
+> These ioctls should not be used in applications and luckily this is indeed 
+> the case. I scanned the major applications and did a google search and 
+> everything came up clean.
+> 
+> I made the following changes:
+> 
+> #define V4L2_CHIP_MATCH_HOST       0  /* Match against chip ID on host (0 
+> for the host) */
+> #define V4L2_CHIP_MATCH_I2C_DRIVER 1  /* Match against I2C driver name */
+> #define V4L2_CHIP_MATCH_I2C_ADDR   2  /* Match against I2C 7-bit address */
+> 
+> struct v4l2_match_info {
+>         __u32 type; /* Match type */
+>         union {
+>                 __u32 addr;
+>                 char name[32];
+>         };
+> } __attribute__ ((packed));
+> 
+> struct v4l2_register {
+>         struct v4l2_match_info match;
+>         __u64 reg;
+>         __u64 val;
+> } __attribute__ ((packed));
+> 
+> /* VIDIOC_DBG_G_CHIP_IDENT */
+> struct v4l2_chip_ident {
+>         struct v4l2_match_info match;
+>         __u32 ident;
+>         __u32 revision;
+> } __attribute__ ((packed));
+> 
+> So the match will now be done against either a chip address or a driver 
+> name.
+> 
+> I also added additional comments in videodev2.h, warning against ever using 
+> it in applications:
+> 
+> #if 1 /*KEEP*/
+> /* Experimental, meant for debugging, testing and internal use.
+>    Only implemented if CONFIG_VIDEO_ADV_DEBUG is defined.
+>    You must be root to use these ioctls. Never use these in applications! */
+> #define VIDIOC_DBG_S_REGISTER    _IOW('V', 79, struct v4l2_register)
+> #define VIDIOC_DBG_G_REGISTER   _IOWR('V', 80, struct v4l2_register)
+> 
+> /* Experimental, meant for debugging, testing and internal use.
+>    Never use this ioctl in applications! */
+> #define VIDIOC_DBG_G_CHIP_IDENT _IOWR('V', 81, struct v4l2_chip_ident)
+> #endif
+> 
+> And VIDIOC_G_CHIP_IDENT was renamed to VIDIOC_DBG_G_CHIP_IDENT, again to 
+> clearly mark this as a debugging API.
+> 
+> All this is available in this tree:
+> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-drvid
 
-02:0c.0 0480: 1131:7130 (rev 01)
-02:0d.0 0480: 1131:7130 (rev 01)
-02:0e.0 0480: 1131:7130 (rev 01)
-02:0f.0 0480: 1131:7130 (rev 01)
+Seems ok to me, but, while you're there, you should add another field to
+get/set register routines, in order to provide the size of the register. This
+will allow removing some hacks at the debug application needed by some usb
+devices.
+
+> Now, the main question I have is whether I should keep the old 
+> VIDIOC_G_CHIP_IDENT around for 2.6.29 with a big warning if someone tries 
+> to use it, or do we just change it since 1) it is marked experimental and 
+> for debugging purposes only, and 2) I cannot find a single application that 
+> uses it and even Google throws up only a handful of pages.
+
+IMO, return -EINVAL and print an error at dmesg.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
