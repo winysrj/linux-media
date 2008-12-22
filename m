@@ -1,25 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.175])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L9mQn-0003d4-Bv
-	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 21:10:15 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so738837ugc.16
-	for <linux-dvb@linuxtv.org>; Mon, 08 Dec 2008 12:10:09 -0800 (PST)
-Date: Mon, 8 Dec 2008 21:10:53 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Pavel Hofman <pavel.hofman@insite.cz>
-In-Reply-To: <493D69C8.2080904@insite.cz>
-Message-ID: <alpine.DEB.2.00.0812082101180.14915@ybpnyubfg.ybpnyqbznva>
-References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>
-	<4935B72F.1000505@insite.cz>
-	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>
-	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
-	<49371511.1060703@insite.cz> <493BE666.8030007@insite.cz>
-	<c74595dc0812070822p73746bdel9894de34c87a733f@mail.gmail.com>
-	<493D69C8.2080904@insite.cz>
+	(envelope-from <artem@makhutov.org>) id 1LEivj-0000nO-7b
+	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 12:26:36 +0100
+Message-ID: <494F7969.3020100@makhutov.org>
+Date: Mon, 22 Dec 2008 12:26:33 +0100
+From: Artem Makhutov <artem@makhutov.org>
 MIME-Version: 1.0
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+References: <20081220224557.GF12059@titan.makhutov-it.de>
+	<alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
+	<1229827473.2557.11.camel@pc10.localdom.local>
+	<20081221135926.GI12059@titan.makhutov-it.de>
+	<alpine.DEB.2.00.0812211524260.22383@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0812211524260.22383@ybpnyubfg.ybpnyqbznva>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
+Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,38 +29,83 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 8 Dec 2008, Pavel Hofman wrote:
+Hi,
 
-> Results of the scan give very often zero APID, VPID:
+BOUWSMA Barry schrieb:
+> On Sun, 21 Dec 2008, Artem Makhutov wrote:
 > 
-> Sky Cust Ch:11934:v:0:27500:0:0:4505:5
-> Cartoon Network Game 4:12012:v:0:27500:0:2603:8005:5
-> Video Application Val:12012:v:0:27500:2518:2519:8015:5
-> Sky Bingo:12012:v:0:27500:0:0:8032:5
-> Sky Bet, Vegas & Sky Poker:12012:v:0:27500:0:0:8076:5
+>> I have recorded the stream to a file and will try to playback it under windows.
+>> My CPU is too slow to playback the stream without GPU acceleration under linux.
+> 
+> A common occurrence, I say, fondling my beloved 200MHz
+> production machine that records four streams flawlessly
+> (save for two devices being USB1 and thus only good for
+> radio or selected TV clamped to a maximum bitrate, for
+> now)
+> 
+> 
+> I pass all my recordings through a two-pass process to
+> check for problems (for radio, obviously just one pass)
+> 
+> I have a script that extracts the audio payload using a
+> hack to `dvb_mpegtools' and passes it to `mpg123'.  The
+> `dvb_mpegtools' serves to check the integrity of the
+> Transport Stream (usually when bad weather affects my
+> satellite reception, or when my DVB-T receiving antenna
+> is placed in a poor location); `mpg123 -v -t' zips through
+> the file and spits out any corrupted audio frames.
+> 
+> (The version of mpg123 I use doesn't seem to do anything
+> with the CRC when used, and it gets confused when the
+> CRC is toggled during a stream, which has happened a few
+> times during recordings I've made.  That's something
+> which I should work on, because I have a few recordings
+> with audible blorps that pass the `mpg123' test, probably
+> due to flipped bits in the payload rather than dropped
+> data.)
+> 
+> 
+> Then I use `mplayer' to check the video, using the
+> options `-nosound -vo null' and in the case of MPEG-2
+> video, `-vc ffmpeg12'.  This will spit out errors due
+> to corruption of the video data -- though you need to
+> hack in some newlines if you want to actually see the
+> PTS timestamp where the error(s) occurred.
+> 
+> For H.264 video, there is no alternative to `-vc ffh264'
+> that I know of, but it will similarly spew out errors
+> if there's damage to your source.
+> 
+> Sure, it takes my machines more than a day to chew through
+> an hour of H.264 1080i video, but I know whether I need
+> to re-record the programme later to get a clean file that
+> I can watch in some ten years when people throw away the
+> gamer machines of today.  Yeah, I'm cheap.  What of it?
+> 
+> 
+> That's a lot easier than suffering eyestrain watching a
+> screen for some scarcely-visible corruption, which I
+> used to do long ago...
 
-These are all programmes -- or rather, data services or MHP/
-OpenTV/whatever BSkyB uses -- at 28E -- nowhere else.
+Thats interesting. Thanks.
 
-Your sat dish is clearly misaligned -- you are probably
-receiving your CZ/SK/Kabel Deutschland/NL correctly at
-23E5, but instead of 19E2, you are receiving 28E, with
-english speaking programmes for the UK -- the majority
-of the 19E2 programmes are german language, with a few
-french, spanish, and a handful of other languages.
+I have replayed the recorded video file on Windows and I saw some
+artifacts in the stream. So the stream is corrupted.
 
-Do you have a normal satellite receiver?  If so, use
-that, as you move your dish slightly in one direction
-(to the direction of the sunset) until you receive your
-CZ stations -- although now they will be received on
-the other LNB input -- and then you should be seeing
-the programmes from 19E2.
+Today I have also replaced my 60cm dish with a 80cm one.
 
-As long as you are receiving FreeSat/BSkyB programmes,
-there is no way that an Astra 19E2 scanfile will help.
+Now I have much less curruptions in the stream.
+
+The most interesting thing is, that I had absolutly no corruptions in
+the stream under windows with the 60cm dish, and under Linux I still
+have some corruptions with the 80cm dish.
+
+So the reception is much better with windows then with linux...
+
+Regards, Artem
 
 
-barry bouwsma
+
 
 _______________________________________________
 linux-dvb mailing list
