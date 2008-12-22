@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25])
+Received: from fk-out-0910.google.com ([209.85.128.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1L7Ezp-0002T2-72
-	for linux-dvb@linuxtv.org; Mon, 01 Dec 2008 21:03:55 +0100
-Received: from compute2.internal (compute2.internal [10.202.2.42])
-	by out1.messagingengine.com (Postfix) with ESMTP id 6F9971C948C
-	for <linux-dvb@linuxtv.org>; Mon,  1 Dec 2008 15:03:48 -0500 (EST)
-Message-Id: <1228161828.28118.1287661397@webmail.messagingengine.com>
-From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
-To: "linux-dvb" <linux-dvb@linuxtv.org>
-Content-Disposition: inline
+	(envelope-from <mrechberger@gmail.com>) id 1LEovd-0003TJ-Mc
+	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 18:50:54 +0100
+Received: by fk-out-0910.google.com with SMTP id f40so1412561fka.1
+	for <linux-dvb@linuxtv.org>; Mon, 22 Dec 2008 09:50:50 -0800 (PST)
+Message-ID: <d9def9db0812220950rca45482ie6443d336084cecb@mail.gmail.com>
+Date: Mon, 22 Dec 2008 18:50:49 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0812220752p4f4d3bf0t741472a8349db683@mail.gmail.com>
 MIME-Version: 1.0
-Date: Mon, 01 Dec 2008 20:03:48 +0000
-Subject: Re: [linux-dvb] dib0700 remote control support fixed
-Reply-To: linuxtv@hotair.fastmail.co.uk
+Content-Disposition: inline
+References: <25864d030812220513i22938f4dt28b0190f8aaafeba@mail.gmail.com>
+	<412bdbff0812220752p4f4d3bf0t741472a8349db683@mail.gmail.com>
+Cc: Matt R <mattr121@gmail.com>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Pinnacle USB TV tuner sticks
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,40 +29,115 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 1 Dec 2008 13:54:19 -0500, "Devin Heitmueller"
-<devin.heitmueller@gmail.com> said:
-> Hello Peter,
-> 
-> Of the devices that you have, which are the ones that are failing?
-> Both of the dibcom devices?
-> 
-> I am not familiar with how lirc interacts with the dib0700 driver,
-> since the driver polls the bulk endpoint every 50ms and injects the
-> keys directly.  I will have to look at the driver and see how this
-> hooks into lirc.
-> 
-> I suspect that most people are not using lirc at all, since the device
-> works without it.  This would explain why you are the only person I
-> know of still reporting these problems.
-> 
-> Could you please send my your lirc configuration so I can attempt to
-> reproduce the issue locally?  If I can get an environment that
-> reproduces the issue, I can almost certainly fix it.
-> 
-> Thanks,
-> 
-> Devin
-> 
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
+On Mon, Dec 22, 2008 at 4:52 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Mon, Dec 22, 2008 at 8:13 AM, Matt R <mattr121@gmail.com> wrote:
+>> Dear Devin,
+>>
+>> I recently purchased a Pinnacle PCTV HD Pro Stick (801e) without realizing
+>> that it's different from the 800e version of the model. I was able to play
+>> OTA digital channels on a Jaunty snapshop (dec 12) of Ubuntu after copying
+>> in the more recent firmware version(s) mentioned  at the wiki page for this
+>> model.
+>>
+>> I was wondering whether and which of these features of the 801e currently
+>> work or might be supported in the near future:
+>> 1. clear QAM digital cable
+>> 2. analog
+>> 3. FM radio
+>> as I am considering returning the unit if support for clear QAM and FM by
+>> open source projects such a linuxtv/mythtv is going to take some time. What
+>> would be your recommendation on this, and what is your recommendation for
+>> the best USB tuner stick out there in terms of both model features as well
+>> as current/forthcoming linux support for those features?
+>>
+>> Also, in this mailing list thread, were you referring to Pinnacle's new
+>> "Ultimate" stick (whose number seems to be 880e and not 80e)? If so, I am a
+>> bit confused about what Markus Rechberger said in response:
+>>
+>> Not so fast, even though I wasn't involved at knocking this down.
+>> We have a custom player now which is capable of directly interfacing the
+>> I2C chips from those devices. Another feature is that it supports all the
+>>
+>> features of those devices, there won't be any need of different applications
+>> anymore. There's also the thought about publishing an SDK, most applications
+>> have problems of detecting all corresponding devicenodes which are required
+>>
+>> for those devices anyway. i2c-dev is an already available and accepted
+>> kernel interface
+>> to userland just as usbfs is.
+>>
+>> best regards,
+>> Markus Rechberger
+>>
+>> Is a full-featured custom player (including device drivers) is available for
+>> that model? If so, are you able to point me where to look for it?
+>>
+>> Thanks and best regards
+>> Matt
+>
+> Putting the ML on the CC so others can benefit from the information.
+>
+> First off - the mistake you made in buying the 801e thinking you were
+> getting an 800e is a common one - I made that mistake myself and that
+> is what prompted me to add Linux support for the 801e (for the record
+> though, I later added the 800e support too).
+>
+> Just to make things confusing, Pinnacle makes four different products
+> with nearly identical model numbers (800e, 801e, 880e, 80e).
+>
+> Let's start with the one you have: the 801e (Pro).  This device
+> supports ATSC, ClearQAM, analog, and radio.  However, only the ATSC
+> and ClearQAM are implemented in Linux.  Because of some limitations in
+> the Linux dvb_usb stack, I couldn't make the analog support work
+> without adding all the necessary infrastructure.  And the FM support
+> falls under analog.  Also, the ClearQAM support should work in theory
+> but I couldn't test it when I added support since I didn't have access
+> to cable.  I really do need to follow up on that now and correct any
+> problems I find.
+>
+> The 800e (Pro) is the older version of the product you have.  The ATSC
+> and analog both are supported, however the hardware does not support
+> ClearQAM or FM Radio.
+>
+> The 880e (Ultimate) hardware supports ATSC, ClearQAM, analog, but no
+> FM radio.  The device is currently completely unsupported in Linux as
+> I have just last week gotten the datasheets and started working on
+> analog support (it uses chips that are not supported at all in Linux
+> so it will take longer).
+>
+> The 80e (Mini) hardware only has ATSC and ClearQAM support (no analog
+> or FM).  As indicated in the Wiki, this device will never be supported
+> in an open source manner because Micronas refused to let me release
+> the driver source (after I did all the work).
+>
+> Regarding your question on Markus's player, he is working on a piece
+> of commercial software for playing video, and because it is closed
+> source and he has relationships with Micronas he was able to include
+> their driver source required for the 80e Mini.  That said, his player
+> will not allow you to use applications such as MythTV or Kaffeine, as
+> none of those projects are going to create a dependency on his
+> closed-source player.  Also, his product is locked to Empia based
+> devices, so it will not work with products such as the 801e.  You can
+> go to his website at http://mcentral.de for more information.
+>
+> You're going to be hard pressed to find a USB product that does all
+> four in Linux - ATSC, ClearQAM, analog, and FM.  Most of the older
+> products that do ATSC have analog/FM working (but the hardware doesn't
+> support QAM), but most of the products that do ClearQAM and ATSC do
+> not have any analog or FM support implemented in the Linux driver.
+> The Pinnacle Ultimate driver I am working on (when it is completed)
+> will support ClearQAM, ATSC, and analog, but the hardware doesn't
+> support FM).
 
-The Nova-T 500 and the Nova TD USB stick are the two dibcom devices.
 
-What output should I be getting from the remote control?  Having
-previously seen RC signals coming through on /dev/input I need some
-clues for where to look if things have changed.
+You should also refer that eg. BSD does the whole tuner and demod
+configuration stuff does in Userland (cx88 freebsd), I guess sooner or
+later there will be a library interface (or the calls can just be
+overriden with LD_PRELOAD without modifying existing applications).
+There are a few possibilities which got mentioned earlier already.
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
