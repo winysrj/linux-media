@@ -1,25 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB37Zi21002056
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 02:35:44 -0500
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB37WBpV019920
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 02:32:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Wed, 3 Dec 2008 08:32:02 +0100
-References: <19F8576C6E063C45BE387C64729E739403E90E6E06@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E6E06@dbde02.ent.ti.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBM7nsGT010576
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 02:49:54 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBM7nZAq016260
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 02:49:35 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so1918834wfc.6
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 23:49:34 -0800 (PST)
+Message-ID: <5d5443650812212349s793de6abk4eb83dee1bf4db30@mail.gmail.com>
+Date: Mon, 22 Dec 2008 13:19:34 +0530
+From: "Trilok Soni" <soni.trilok@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200812071139.47936.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812030832.02869.hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>,
+References: <5d5443650811280216r450c6f02v3fb0db2e1580594a@mail.gmail.com>
+	<5d5443650812010451o321e76e6s2681b3486e7c3c24@mail.gmail.com>
+	<5d5443650812070140w423d6fe9ua2f0ff9d2974bbd7@mail.gmail.com>
+	<200812071139.47936.hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>,
 	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add OMAP2 camera driver
+	Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,90 +35,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wednesday 03 December 2008 08:05:08 Hiremath, Vaibhav wrote:
-> Thanks,
-> Vaibhav Hiremath
->
-> > -----Original Message-----
-> > From: Trilok Soni [mailto:soni.trilok@gmail.com]
-> > Sent: Wednesday, December 03, 2008 12:18 PM
-> > To: Hiremath, Vaibhav
-> > Cc: Hans Verkuil; Sakari Ailus; linux-omap@vger.kernel.org Mailing
-> > List; video4linux-list@redhat.com
-> > Subject: Re: [PATCH] Add OMAP2 camera driver
-> >
-> > Hi Vaibhav,
-> >
-> > > [Hiremath, Vaibhav] How about making a separate directory for
-> >
-> > OMAP, which will contain OMAP1/2/3 specific drivers?
-> >
-> >
-> > I really don't want omap directory for OMAP1 and OMAP2 atleast.
-> > Even in my next patches for OMAP1 camera controller I am going to 
-> > remove "omap/" directory existing on linux-omap git history. For
-> > omap1 it is
-> > just two files camera_core.c and omap16xxcam.c, so no need of
-> > directory here. Even going further I am going to merge camera_core
-> > and
-> > omap16xxcam into one file, as I don't see code for any other omap1
-> > platform like omap15xxcam.
-> >
-> > I don't know about OMAP3 ISP code, some one from TI should refresh
-> > those patches.
->
-> [Hiremath, Vaibhav] I can tell you that for OMAP3 we do have lot of
-> files coming in, and it really brings more confusion if we have OMAP1
-> and OMAP2 lying outside and OMAP3 code (Display + capture) say under
-> omap/ or omap3/.
->
-> It makes sense to have omap/ directory, and all the versions/devices
-> of OMAP get handled from omap/Kconfig and omap/Makefile. Even if they
-> have single file it would be nice to follow directory layers.
->
-> Hans, Sakari or Mauro can provide their opinion on this, and decide
-> how to handle this.
->
-> I am just providing details, so that it would be easy to take
-> decision -
->
-> OMAP1 - (I have listed names from old O-L tree)
-> 	- omap16xxcam.c
-> 	- camera_core.c
-> 	- camera_hw_if.h
-> 	- omap16xxcam.h
-> 	- camera_core.h
->
-> OMAP2 - (I have listed names from old O-L tree)
-> 	- omap24xxcam.c
-> 	- omap24xxcam-dma.c
-> 	- omap24xxcam.h
->
-> In future may be display will add here.
->
-> OMAP3 -
-> 	Display - (Posted twice with old DSS library)
-> 		- omap_vout.c
-> 		- omap_voutlib.c
-> 		- omap_voutlib.h
-> 		- omap_voutdef.h
-> 	Camera - (Will come soon)
-> 		- omap34xxcam.c
-> 		- omap34xxcam.h
-> 	ISP - (Will come soon)
-> 		- Here definitely we will plenty number of files.
+Hi Hans,
 
-Looking at this I would say that there are enough files to make it 
-sensible to add an omap directory. I would also suggest that some 
-naming convention for the sources is kept: e.g. omap1-. omap2-, omap3- 
-prefixes to clearly show for which omap version a source is.
+Sorry for the delay in reply.
 
-Regards,
+>>
+>> Attached the updated ov9640 sensor patch.
+>
+> Thanks. Here is my review:
+>
+> 1) Don't use this: static struct ov9640_sensor ov9640;
+>
+> This allows only one sensor instance. This should be dynamic. Remember
+> that it should be possible (once the new v4l2_device/v4l2_subdev
+> framework is merged) to reuse this driver in other products as well. So
+> it should be possible to use two webcams with this sensor at the same
+> time. It's only a small amount of work to make this struct dynamic.
+> Ditto for the 'current_value' field of the static struct vcontrol: this
+> too is per-instance.
 
-	Hans
+Hopefully kzallocing in the probe ?
+
+>
+> 2) Looking at all the YUV and RGB register settings I notice that they
+> seem to fall into two parts: all MTX regs and some COM regs are
+> identical for either RGB or YUV. It's a good idea to have only two
+> arrays for these registers rather than duplicating them for each
+> format. You might want to consider setting the remaining COM regs
+> directly in a switch (fmt) statement. Try it and see what is more
+> readable.
+
+I will try this.
+
+>
+> 3) There already exists a standard autoexposure control:
+> V4L2_CID_EXPOSURE_AUTO.
+
+Ok.
+
+>
+> 4) What does V4L2_CID_FREEZE_AGCAEC do?
+>
+
+I need to pull out some docs on this, but not looked at them from long time.
+
+> 5) We have standardized the camera control names. A patch for this is
+> still pending, but I recommend that in the meantime you use these
+> names:
+>
+> AUTOGAIN: "Gain, Automatic"
+> AUTO_WHITE_BALANCE: "White Balance, Automatic"
+> HFLIP: "Horizontal Flip"
+> VFLIP: "Vertical Flip"
+>
+> AUTO_EXPOSURE will probably change to "Exposure, Automatic", but this is
+> still under discussion.
+
+Ok.
+
+>
+> 6) include/media/ov9640.h: what part of this header needs to be visible
+> to other parts of the kernel? A lot seems to be internal to the driver
+> and so should be moved to the driver source (or a ov9640_regs.h headers
+> next to the driver source).
+
+I will bring regs inside the source file and remove ov9640.h from
+include/media if there is no need of platform data dependency from
+board-xxx.c files.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
 
 --
 video4linux-list mailing list
