@@ -1,20 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.158])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LCLvo-000380-NF
-	for linux-dvb@linuxtv.org; Mon, 15 Dec 2008 23:29:03 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so1285107fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 15 Dec 2008 14:28:49 -0800 (PST)
-Message-ID: <412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>
-Date: Mon, 15 Dec 2008 17:28:49 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
-In-Reply-To: <4728568367913277327@unknownmsgid>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <udo_richter@gmx.de>) id 1LEZZx-0002jH-5l
+	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 02:27:29 +0100
+Message-ID: <494EECDD.6000106@gmx.de>
+Date: Mon, 22 Dec 2008 02:26:53 +0100
+From: Udo Richter <udo_richter@gmx.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <4728568367913277327@unknownmsgid>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Avermedia A312 - patch for review
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] How to runtime-detect S2API kernel?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,30 +22,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Dec 15, 2008 at 5:25 PM, Daniel Perzynski
-<Daniel.Perzynski@aster.pl> wrote:
-> Hi,
->
->
->
-> According to the suggestions I've modified dvb-usb-ids.h and cxusb.c to add
-> a support for that card.
->
->
->
-> I would appreciate someone to look at the code below and compare it with
-> spec on the wiki for that card.
->
-<snip>
+Hi list,
 
-Does this patch actually work?  Can you watch ATSC TV?
 
-Devin
+Is there an official safe way to detect S2API capable DVB drivers at 
+runtime, so that a program compiled against S2API headers can check for 
+S2API drivers and switch to old API otherwise?
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Does it work to call FE_HAS_EXTENDED_CAPS? Do all old drivers return 
+this flag under the new API, or only S2API-aware drivers?
+
+Or is it better to call FE_SET_PROPERTY with num=0 commands? Does this 
+always return success under S2API?
+
+
+Cheers,
+
+Udo
 
 _______________________________________________
 linux-dvb mailing list
