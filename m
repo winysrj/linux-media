@@ -1,27 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBN901CP023284
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 04:00:01 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBN8w6MF032449
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 03:58:06 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so2441504wfc.6
-	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 00:58:06 -0800 (PST)
-Message-ID: <5d5443650812230058j1d316ef6w9397437798a3984a@mail.gmail.com>
-Date: Tue, 23 Dec 2008 14:28:06 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E768D@dbde02.ent.ti.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBMDGNf7011941
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 08:16:23 -0500
+Received: from mailrelay008.isp.belgacom.be (mailrelay008.isp.belgacom.be
+	[195.238.6.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBMDFe9F015096
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 08:15:42 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Johannes Berg <johannes@sipsolutions.net>
+Date: Mon, 22 Dec 2008 14:15:42 +0100
+References: <1229889214.3050.8.camel@johannes>
+	<200812221050.57039.laurent.pinchart@skynet.be>
+	<569cef5eecd374b8343a566c1e65a4a3@localhost>
+In-Reply-To: <569cef5eecd374b8343a566c1e65a4a3@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <5d5443650812070140w423d6fe9ua2f0ff9d2974bbd7@mail.gmail.com>
-	<19F8576C6E063C45BE387C64729E739403E90E768D@dbde02.ent.ti.com>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
+Message-Id: <200812221415.42804.laurent.pinchart@skynet.be>
+Cc: video4linux-list <video4linux-list@redhat.com>, lkml@vger.kernel.org
+Subject: Re: uvcvideo prints lots of "unknown event"
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,20 +32,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Vaibhav,
+Hi Johannes,
 
+On Monday 22 December 2008, Johannes Berg wrote:
+> On Mon, 22 Dec 2008 10:50:56 +0100, Laurent Pinchart
 >
+> <laurent.pinchart@skynet.be> wrote:
+> > Could you please try the attached patched ?
 >
-> [Hiremath, Vaibhav] I just had quick walk through of code and I think you may want to take look at the review comments received for TVP514x driver (Especially for I2C).
->
+> Ok, that looks like it'll fix it (not tested yet), do you think there would
+> be any value in reverse engineering the proprietary status protocol?
 
-I will not go for smbus_read/write APIs as of now. I will look at rest
-of the comments.
+That's hard to tell, as I have no idea what the camera outputs :-)
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+> Should be fairly simple, if you think it has some useful information I'll
+> take a look.
+
+If you have time to take a look please do. I'm quite curious to know what the 
+interrupt endpoint is used for. Whether or not the UVC driver will use the 
+data will obviously depend on their usefulness.
+
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
