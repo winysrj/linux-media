@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f16.google.com ([209.85.219.16])
+Received: from qw-out-2122.google.com ([74.125.92.24])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LA7NJ-0003N2-GP
-	for linux-dvb@linuxtv.org; Tue, 09 Dec 2008 19:32:04 +0100
-Received: by ewy9 with SMTP id 9so107368ewy.17
-	for <linux-dvb@linuxtv.org>; Tue, 09 Dec 2008 10:31:27 -0800 (PST)
-Message-ID: <412bdbff0812091031h41f9a8a7p2b2b8bd7989a7a96@mail.gmail.com>
-Date: Tue, 9 Dec 2008 13:31:27 -0500
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LEplC-00065t-QA
+	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 19:44:12 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so815778qwb.17
+	for <linux-dvb@linuxtv.org>; Mon, 22 Dec 2008 10:44:06 -0800 (PST)
+Message-ID: <412bdbff0812221044v3caf8f2ladbfb8fb27fda9e@mail.gmail.com>
+Date: Mon, 22 Dec 2008 13:44:06 -0500
 From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Oliver Maurhart" <oliver.maurhart@gmx.net>
-In-Reply-To: <200812091911.55699.oliver.maurhart@gmx.net>
+To: "Matt R" <mattr121@gmail.com>
+In-Reply-To: <25864d030812221027i6fc25460lc0e0592558772dab@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <200812091251.57007.oliver.maurhart@gmx.net>
-	<412bdbff0812090739n831d446tf19faab40c85763@mail.gmail.com>
-	<200812091911.55699.oliver.maurhart@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Help: /dev/dvb missing with Terratec Cinergy XS
-	Hybrid
+References: <25864d030812220513i22938f4dt28b0190f8aaafeba@mail.gmail.com>
+	<412bdbff0812220752p4f4d3bf0t741472a8349db683@mail.gmail.com>
+	<25864d030812221027i6fc25460lc0e0592558772dab@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Pinnacle USB TV tuner sticks
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,44 +30,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Dec 9, 2008 at 1:11 PM, Oliver Maurhart <oliver.maurhart@gmx.net> wrote:
-> On Tuesday 09 December 2008 16:39:54 Devin Heitmueller wrote:
->> On Tue, Dec 9, 2008 at 6:51 AM, Oliver Maurhart <oliver.maurhart@gmx.net>
-> wrote:
->> > Hi *,
->> >
->> > After months of googling I'm out of  knowledge. I'm the (lucky?) owner of
->> > a Terratec Hybrid XS USB Card:
->> >
->> > # lsusb | grep TerraTec
->> > Bus 001 Device 007: ID 0ccd:005e TerraTec Electronic GmbH
-> ...
->> I figured ones of these days a user of this device would come along.  :-)
->>
->> This is an em28xx based device we don't have a profile for yet -
->> although all the core components are supported -
->> em28xx/zarlink/xc3028.
->>
->> If you want to get this device supported under Linux, I'll put in in
->> my queue of em28xx devices to look at.  I think we are just missing
->> the GPIOs and the dvb profile.
->
-> Never mind! Markus Rechberger pointed me to the drivers at mcentral.de. I
-> checked out the em28xx-new and ... it worked!!!
->
-> Geee! I was running around this issue for months.
->
-> Still: kdetv scans all the possible channels on my webcam (!), missing the
-> fact that my TerraTec Card does now provide a /dev/dvb but as the 2nd V4L-
-> Device it's on /dev/video1 ... hehehe ... but kaffeine seems quite smarter and
-> gets around that, showing DVB-TV! Yeah! =)
->
-> What a relief!
+Hello Matt,
 
-KDETV is an analog TV viewing application.  It does not work with DVB.
- Kaffeine supports DVB though.
+On Mon, Dec 22, 2008 at 1:27 PM, Matt R <mattr121@gmail.com> wrote:
+> Avermedia's "Hybrid Volar Max" has all four (ATSC/QAM/NTSC/FM) tuning
+> features (and one can buy a remote from aver directly, completing its
+> feature set nicely except for recording). I noticed that some of their
+> non-US models from a year ago declared support for linux (and I even
+> downloaded some sources for them!). Do you know if their US models have
+> either Aver-provided or OSS support for linux?
+
+Just to be clear, some of the problems are not that the hardware
+doesn't support all four - it is the Linux driver support that is the
+issue.  For example, the 801e hardware supports all four, but because
+of issues in the framework I wouldn't have been able to get the analog
+working without a ton of work (several weeks of development).
+
+Hmm....  I don't know much about the Avermedia products.  However, if
+they are making source available and we aren't already integrating it
+then I should look into that...  Could you send me a link including to
+where you are getting the source?
+
+> It looks like if this "Hybrid Volar Max" is a no go, the best options for
+> now might be:
+> 1. Hauppauge's 950Q
+
+Bear in mind the 950Q has no analog support currently in the Linux
+driver.  But the ClearQAM support I am sure is better tested and known
+to work.
+
+> 2. Pinnacle 800e
+
+Bear in mind the 800e hardware has no ClearQAM support so if that's
+important to you then that's a showstopper.
+
+> with 801 potentially working in the future. Do you agree?
+
+Certainly if people don't see ClearQAM working for this device then
+it's my fault and I should spend the cycles to figure out what is
+going on there.  There's probably only a few hours of work required
+once I get the environment setup.
+
+> If I go ahead and keep the 801e, I will be glad to help you with some
+> testing (and if more time is available, perhaps some coding as well,
+> although I would have to learn the ropes first on these devices and device
+> programming in general.)
+
+I've got access to cable now so I should be able to get the ClearQAM
+working.  I just never got around to testing it and nobody said they
+were having problems so I assumed it worked.
+
+Out of curiosity, what application are you using?
+
+Cheers,
 
 Devin
+
 
 -- 
 Devin J. Heitmueller
