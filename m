@@ -1,31 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1DTx3Z016532
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 08:29:59 -0500
-Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
-	[195.238.6.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1DTjiV031094
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 08:29:46 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 1 Dec 2008 14:29:53 +0100
-References: <200812011246.08885.hverkuil@xs4all.nl>
-	<200812011331.25676.laurent.pinchart@skynet.be>
-	<200812011351.55323.hverkuil@xs4all.nl>
-In-Reply-To: <200812011351.55323.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBM2TSuT014560
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 21:29:28 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBM2TF1r012685
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 21:29:15 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so1836171wfc.6
+	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 18:29:15 -0800 (PST)
+Message-ID: <aec7e5c30812211829t2b1b6dffvbc17f095ee24153b@mail.gmail.com>
+Date: Mon, 22 Dec 2008 11:29:15 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0812191403540.4536@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812011429.54019.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com,
-	davinci-linux-open-source-bounces@linux.davincidsp.com,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng
+References: <Pine.LNX.4.64.0812171938460.8733@axis700.grange>
+	<aec7e5c30812190426ja9252a6k95b626c2ce87a909@mail.gmail.com>
+	<Pine.LNX.4.64.0812191403540.4536@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 3/4] soc-camera: add new bus width and signal polarity
+	flags
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,71 +33,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+Hi Guennadi,
 
-On Monday 01 December 2008, Hans Verkuil wrote:
-> On Monday 01 December 2008 13:31:25 Laurent Pinchart wrote:
-> > On Monday 01 December 2008, Hans Verkuil wrote:
-> > > Hi Mauro,
-> > >
-> > > Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng for
-> > > the following:
-> > >
-> > > - v4l2: add v4l2_device and v4l2_subdev structs to the v4l2
-> > > framework. - v4l2-common: add i2c helper functions
-> > > - cs53l32a: convert to v4l2_subdev.
-> > > - cx25840: convert to v4l2_subdev.
-> > > - m52790: convert to v4l2_subdev.
-> > > - msp3400: convert to v4l2_subdev.
-> > > - saa7115: convert to v4l2_subdev.
-> > > - saa7127: convert to v4l2_subdev.
-> > > - saa717x: convert to v4l2_subdev.
-> > > - tuner: convert to v4l2_subdev.
-> > > - upd64031a: convert to v4l2_subdev.
-> > > - upd64083: convert to v4l2_subdev.
-> > > - vp27smpx: convert to v4l2_subdev.
-> > > - wm8739: convert to v4l2_subdev.
-> > > - wm8775: convert to v4l2_subdev.
-> > > - ivtv/ivtvfb: convert to v4l2_device/v4l2_subdev.
-> > >
-> > > All points raised in reviews are addressed so I think it is time to
-> > > get this merged so people can start to use it.
-> >
-> > Does linuxtv.org and Mercurial provide the necessary infrastructure
-> > to integrate those changes into the v4l-dvb repository while not
-> > pushing them upstream yet ? I'd like to see more people testing (and
-> > breaking and fixing :-)) your changes before they reach the mainline
-> > kernel.
+[updated version, flags only]
+
+On Fri, Dec 19, 2008 at 10:07 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> From 1d89b241f4553a5ceb5b6fd9870f02324cc281fe Mon Sep 17 00:00:00 2001
+> From: Guennadi Liakhovetski <lg@denx.de>
+> Date: Mon, 15 Dec 2008 00:49:41 +0100
+> Subject: [PATCH] soc-camera: add new bus width and signal polarity flags
 >
-> That's basically why I want this to go into the v4l-dvb repository: this
-> makes it easier for people to start working with it. It doesn't affect
-> existing drivers, except for the i2c driver changes and those changes
-> are just transforming a big switch to a set of functions. So I really
-> consider this a pretty low-risk merge.
+> In preparation for i.MX31 camera host driver add flags for 4 and 15 bit bus
+> widths and for data lines polarity inversion.
 >
-> If someone is willing to do some testing with my tree in the next two
-> weeks then I don't mind waiting, but it's been in development now from
-> early September (if not earlier) and been reviewed several times. In
-> addition, ivtv has been modified to work with it and that driver uses
-> more sub-devices by far than any other driver.
->
-> I don't know what more I can do, to be honest.
+> Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
+> ---
+>  include/media/soc_camera.h |   23 ++++++++++++++---------
+>  1 files changed, 14 insertions(+), 9 deletions(-)
 
-I am all for pushing the changes to the v4l-dvb repository so they can get 
-broader testing. I am, however, a bit more concerned about pushing the 
-changes to Linus yet. Shouldn't it wait until you convert other drivers and 
-make the v4l2_device (infra)structure more powerful, as you announced you 
-would ? There will probably be API/ABI breakage then, it patches will 
-probably benefit from a few iterations in v4l-dvb before we push them to 
-mainline.
+This version solves the problem. Thanks for your help!
 
-I don't know if that's possible at all, or if all changes in v4l-dvb are 
-automatically selected for a push to the git repository whenever Mauro 
-triggers the hg->git process.
-
-Best regards,
-
-Laurent Pinchart
+Acked-by: Magnus Damm <damm@igel.co.jp>
 
 --
 video4linux-list mailing list
