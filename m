@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LHdso-0006qn-OZ
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 13:39:39 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so530876eya.17
-	for <linux-dvb@linuxtv.org>; Tue, 30 Dec 2008 04:39:35 -0800 (PST)
-Date: Tue, 30 Dec 2008 13:39:31 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Dmitry Podyachev <vdp@teletec.com.ua>
-In-Reply-To: <495A0E46.6030903@teletec.com.ua>
-Message-ID: <alpine.DEB.2.00.0812301329490.29535@ybpnyubfg.ybpnyqbznva>
-References: <mailman.1.1230548402.10016.linux-dvb@linuxtv.org>
-	<495A0E46.6030903@teletec.com.ua>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <udo_richter@gmx.de>) id 1LEnjN-00082n-5a
+	for linux-dvb@linuxtv.org; Mon, 22 Dec 2008 17:34:10 +0100
+Message-ID: <494FC15C.6020400@gmx.de>
+Date: Mon, 22 Dec 2008 17:33:32 +0100
+From: Udo Richter <udo_richter@gmx.de>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvb-t config for Ukraine_Kiev (ua)
+To: linux-dvb@linuxtv.org
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de>
+In-Reply-To: <492DC5F5.3060501@gmx.de>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,30 +25,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 30 Dec 2008, Dmitry Podyachev wrote:
+On 26.11.2008 22:56, Udo Richter wrote:
+> What does a DVB app need to know? A DVB app probably just needs to know
+> "What devices are capable of tuning to channel XYZ?". The API could
+> answer this the same way as it would tune to channel XYZ, just without
+> actually doing it. Try-before-you-buy.
 
-> #T freq     bw   fec_hi fec_lo  mod     transmission-mode guard-interval 
-> hierarchy
-> T 634000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
-> T 650000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
-> T 714000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
-> T 818000000 8MHz AUTO   NONE    QAM64   8k                AUTO          NONE
+After some insights to S2API interface, this looks even better to me:
 
-I think the following parameters can be used in place of
-`AUTO' for all the above...
-FEC 2/3
-Guard Interval 1/32
+properties.num = 1;
+properties.props[0].cmd = DTV_DELIVERY_SYSTEM;
+properties.props[0].u.data = SYS_DVBS2;
+if (ioctl(d, FE_CAP_SET_PROPERTY, &properties) >= 0) {
+     // has S2 capability
+}
 
-Can you verify this by parsing the NIT info on PID 16
-(PID 0x10) on all frequencies?  This matches the results
-from 650MHz below...
+A generic frontend test function that delivers the necessary S2 
+capability information, and many other capabilities too. And there are a 
+lot more delivery systems that seem to be hard to detect, so a query 
+function 'can do SYS_XXXX' seems necessary anyway.
 
-Particularly as I read that there's apparently a SFN,
-making me wonder about the guard interval...
 
-thanks
+Cheers,
 
-> MEGASPORT:650000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:4321:4322:2
+Udo
 
 _______________________________________________
 linux-dvb mailing list
