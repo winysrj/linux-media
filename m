@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB42mZC9011108
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 21:48:35 -0500
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB42mKXH016536
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 21:48:20 -0500
-From: Andy Walls <awalls@radix.net>
-To: Mark Jenks <mjenks1968@gmail.com>
-In-Reply-To: <e5df86c90812031712oa73fb5av3a4b239ae0b5f76e@mail.gmail.com>
-References: <e5df86c90811291616s65209d26q3471213958bdfde6@mail.gmail.com>
-	<de8cad4d0812022114n11544dc1ve8fbca5d2d21eb57@mail.gmail.com>
-	<e5df86c90812030409m736a45b1xb851b01e349d23eb@mail.gmail.com>
-	<de8cad4d0812031245n5a47c330o5fe1fafa52703820@mail.gmail.com>
-	<e5df86c90812031712oa73fb5av3a4b239ae0b5f76e@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 03 Dec 2008 21:50:12 -0500
-Message-Id: <1228359012.3104.64.camel@palomino.walls.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBN3nAZu021537
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 22:49:10 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBN3mqJv019917
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 22:48:53 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so231520eyf.39
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 19:48:52 -0800 (PST)
+Date: Tue, 23 Dec 2008 12:51:38 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Message-ID: <20081223125138.4b2c16de@glory.loctelecom.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: S-Video analog Capture.
+Content-Type: multipart/mixed; boundary="MP_/ndqVF=p1wNmYMpdjp41A503"
+Cc: 
+Subject: [PATCH 2/3] Add support DVB-T for the Beholder H6 card.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,60 +26,150 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 2008-12-03 at 19:12 -0600, Mark Jenks wrote:
-> On Wed, Dec 3, 2008 at 2:45 PM, Brandon Jenkins <bcjenkins@tvwhere.com>wrote:
-> 
-> > On Wed, Dec 3, 2008 at 7:09 AM, Mark Jenks <mjenks1968@gmail.com> wrote:
-> > > No, I don't need PCI, PCIe is just what I had room for and bought it.
-> > The
-> > > Backend is sitting in a media closet, so it's a fullsize case. ;)
-> > >
-> > > So, with the 1600, Svideo in, w/ Audio interleaved in mpg format, you say
-> > it
-> > > works?
-> > >
-> > > Can anyone verify this, before I go out and purchase this, or a PVR-250.
-> > >
-> > > -Mark
-> > >
-> >
-> > I run three of them using DCT700 set top boxes on Verizon FiOS. (Note:
-> > I use CommandIR II for control) via svideo and r/l minijack inputs.
-> > This is in SageTV though, if that matters.
-> >
-> > Brandon
-> 
-> 
-> No, that does not matter, as long as you can catch a mpeg stream, it should
-> work just fine.   I already have 1394 channel changing working without a
-> hitch.
+--MP_/ndqVF=p1wNmYMpdjp41A503
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Mark,
+Hi all
 
-Just to manage expectations, you may want to read the ivtv-users and
-ivtv-driver mailing list archive for the past month or so.  Some users
-have absolutely no problems.  Others have noticed some audio or video
-playback annoyances with analog captures (which I am working to get
-resolved).
+Change configuration of the Beholder H6 card.
 
-Personally, I like my HVR-1600's and don't have problems with analog and
-digital tuner captures.  I don't use S-Video or CVBS composite
-regularly.  You will need to do buffered playback, which MythTV does
-always, and mplayer does when you use the '-cache 8192' commandline
-option.  (I'm hoping to resolve the need for that too.)
+diff -r 6032ecd6ad7e linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Aug 30 11:07:04 2008 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Oct 07 09:06:25 2008 +1000
+@@ -4427,26 +4427,25 @@
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+ 		.tda9887_conf   = TDA9887_PRESENT,
+-		.inputs         = {{
+-			.name = name_tv,
+-			.vmux = 3,
+-			.amux = TV,
+-			.tv   = 1,
+-		}, {
+-			.name = name_comp1,
+-			.vmux = 1,
+-			.amux = LINE1,
+-		}, {
+-			.name = name_svideo,
+-			.vmux = 8,
+-			.amux = LINE1,
+-		} },
+-		.radio = {
+-			.name = name_radio,
+-			.amux = LINE2,
+-		},
+-		/* no DVB support for now */
+-		/* .mpeg           = SAA7134_MPEG_DVB, */
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
+ 	},
+ };
+ 
+@@ -5853,6 +5852,7 @@
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
++	case SAA7134_BOARD_BEHOLD_H6:
+ 		dev->has_remote = SAA7134_REMOTE_I2C;
+ 		break;
+ 	case SAA7134_BOARD_AVERMEDIA_A169_B:
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
 
-> Time to hunt out a 1600.
+With my best regards, Dmitry.
+--MP_/ndqVF=p1wNmYMpdjp41A503
+Content-Type: text/x-patch; name=saa7134_cards_h6.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=saa7134_cards_h6.patch
 
-NewEgg or e-Bay. :)
+diff -r 6032ecd6ad7e linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Aug 30 11:07:04 2008 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Oct 07 09:06:25 2008 +1000
+@@ -4427,26 +4427,25 @@
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+ 		.tda9887_conf   = TDA9887_PRESENT,
+-		.inputs         = {{
+-			.name = name_tv,
+-			.vmux = 3,
+-			.amux = TV,
+-			.tv   = 1,
+-		}, {
+-			.name = name_comp1,
+-			.vmux = 1,
+-			.amux = LINE1,
+-		}, {
+-			.name = name_svideo,
+-			.vmux = 8,
+-			.amux = LINE1,
+-		} },
+-		.radio = {
+-			.name = name_radio,
+-			.amux = LINE2,
+-		},
+-		/* no DVB support for now */
+-		/* .mpeg           = SAA7134_MPEG_DVB, */
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
+ 	},
+ };
+ 
+@@ -5853,6 +5852,7 @@
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
++	case SAA7134_BOARD_BEHOLD_H6:
+ 		dev->has_remote = SAA7134_REMOTE_I2C;
+ 		break;
+ 	case SAA7134_BOARD_AVERMEDIA_A169_B:
 
-Regards,
-Andy
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-
-> -Mark
+--MP_/ndqVF=p1wNmYMpdjp41A503
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--MP_/ndqVF=p1wNmYMpdjp41A503--
