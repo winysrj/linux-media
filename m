@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF8aZC1023109
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:39:07 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBF8BI9M029565
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:11:18 -0500
-Date: Mon, 15 Dec 2008 08:44:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-In-Reply-To: <aec7e5c30812141840v50214099n43891d18f5b9acfa@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0812150828140.3722@axis700.grange>
-References: <20081210074435.5727.93374.sendpatchset@rx1.opensource.se>
-	<20081210074450.5727.83002.sendpatchset@rx1.opensource.se>
-	<Pine.LNX.4.64.0812132244130.10954@axis700.grange>
-	<aec7e5c30812141840v50214099n43891d18f5b9acfa@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBN4omGk006039
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 23:50:48 -0500
+Received: from mail-ew0-f33.google.com (mail-ew0-f33.google.com
+	[209.85.219.33])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBN4oV0C016520
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 23:50:31 -0500
+Received: by ewy14 with SMTP id 14so1079512ewy.3
+	for <video4linux-list@redhat.com>; Mon, 22 Dec 2008 20:50:31 -0800 (PST)
+Message-ID: <2ac79fa40812222050p79b810chddd9db19ae5e07e9@mail.gmail.com>
+Date: Tue, 23 Dec 2008 11:50:31 +0700
+From: "=?UTF-8?Q?Nam_Ph=E1=BA=A1m_Th=C3=A0nh?=" <phamthanhnam.ptn@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 02/03] sh_mobile_ceu: add NV12 and NV21 support
+Content-Type: multipart/mixed;
+	boundary="----=_Part_80040_26364384.1230007831107"
+Cc: kraxel@bytesex.org
+Subject: [PATCH] Add support for AverMedia AverTV GO 007 FM Plus (1461:f31d)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,103 +28,188 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 15 Dec 2008, Magnus Damm wrote:
+------=_Part_80040_26364384.1230007831107
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-> On Sun, Dec 14, 2008 at 6:52 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > On Wed, 10 Dec 2008, Magnus Damm wrote:
-> >> This patch adds NV12/NV21 support to the sh_mobile_ceu driver.
-> >>
-> >> Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> >> ---
-> >>
-> >>  drivers/media/video/sh_mobile_ceu_camera.c |  114 ++++++++++++++++++++++++----
-> >>  1 file changed, 99 insertions(+), 15 deletions(-)
-> >>
-> >> --- 0031/drivers/media/video/sh_mobile_ceu_camera.c
-> >> +++ work/drivers/media/video/sh_mobile_ceu_camera.c   2008-12-10 13:09:43.000000000 +0900
-> >> @@ -158,6 +160,9 @@ static void free_buffer(struct videobuf_
-> >>
-> >>  static void sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
-> >>  {
-> >> +     struct soc_camera_device *icd = pcdev->icd;
-> >> +     unsigned long phys_addr;
-> >
-> > dma_addr_t
-> 
-> Yeah, good plan.
-> 
-> >> +
-> >>       ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) & ~1);
-> >>       ceu_write(pcdev, CETCR, ~ceu_read(pcdev, CETCR) & 0x0317f313);
-> >>       ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) | 1);
-> >> @@ -166,11 +171,21 @@ static void sh_mobile_ceu_capture(struct
-> >>
-> >>       ceu_write(pcdev, CETCR, 0x0317f313 ^ 0x10);
-> >>
-> >> -     if (pcdev->active) {
-> >> -             pcdev->active->state = VIDEOBUF_ACTIVE;
-> >> -             ceu_write(pcdev, CDAYR, videobuf_to_dma_contig(pcdev->active));
-> >> -             ceu_write(pcdev, CAPSR, 0x1); /* start capture */
-> >> +     if (!pcdev->active)
-> >> +             return;
-> >> +
-> >> +     phys_addr = videobuf_to_dma_contig(pcdev->active);
-> >> +     ceu_write(pcdev, CDAYR, phys_addr);
-> >
-> > Hm, looks like someone could have reviewed this driver a bit better on
-> > submission:-) I think, your ceu_write() should really take a u32 as an
-> > argument, not unsigned long, respectively, ceu_read() should return u32.
-> 
-> Well, to fit nicely together with ioread32() and iowrite32() i suppose
-> u32 is a better fit. Otoh, both u32 and unsigned longs are 32-bit on
-> regular 32-bit SuperH unless I'm mistaken.
+SSBib3VnaHQgYW4gQXZlcm1lZGlhIEFWZXJUViBHTyAwMDcgRk0KUGx1czxodHRwOi8vd3d3LmF2
+ZXJtZWRpYS5jb20vYXZlcnR2L1Byb2R1Y3QvUHJvZHVjdERldGFpbC5hc3B4P0lkPTI4Nz5UVgpj
+YXJkIHNldmVyYWwgeWVhcnMgYWdvLgpUaG91Z2ggSSBjYW4gdXNlIHRoaXMgY2FyZCB3aXRoIHNh
+YTcxMzQgY2FyZD01NyAoIEF2ZXJtZWRpYSBBVmVyVFYgR08gMDA3CkZNKSwgYnV0IGZtIHJhZGlv
+IGhhcyBzdG9wcGVkIHdvcmtpbmcgc2luY2UgRmVkb3JhIDUgb3IgRmVkb3JhIDYgKEkgY2FuJ3QK
+a25vdyBleGFjdGx5IHdoaWNoIGtlcm5lbCB2ZXJzaW9uKS4KVGhpcyBjYXJkIGhhcyBhIGJpdCBk
+aWZmZXJlbmNlczoKSXQgZG9lc24ndCBoYXZlIENvbXBvc2l0ZSBpbnB1dCwgaXQgaGFzIG9ubHkg
+Uy1WaWRlbyBpbnB1dC4KSXQgaGFzIExpbmUtSW4gYXVkaW8gaW5wdXQsIGJ1dCBpdCBkb2Vzbid0
+IGhhdmUgTGluZS1PdXQuIEluc3RlYWQsIGF1ZGlvCnN0cmVhbSBpcyBmb3J3YXJkZWQgdG8gc291
+bmQgY2FyZCBieSBXaW5kb3dzIGRyaXZlci4KUmFkaW8gYXVkaW8gaXMgb24gdGhlIHNhbWUgaW5w
+dXQgdG8gVFYgYXVkaW8uCkkgZG9uJ3Qgd2FudCBoYWNrIGFuZCByZWNvbXBpbGUgdHYgY2FyZCBk
+cml2ZXIgYXQgZWFjaCBrZXJuZWwgdXBncmFkZSAoaXQKbWFrZXMgbWUgdGlyZWQpLiBTbyBJIGRl
+Y2lkZWQgdG8gYWRkIHRoaXMgdG8gc2FhNzEzNCBjYXJkIGxpc3QuIEhvcGUgdGhhdCBpdAp3aWxs
+IGJlIGludGVncmF0ZWQgaW4gdGhlIG5leHQga2VybmVsIHZlcnNpb25zLgpUZXN0ZWQgcmVzdWx0
+cyBvbiBVYnVudHUgOC4xMCAoa2VybmVsIHZlcnNpb24gMi42LjI3LTctZ2VuZXJpYyBhbmQKMi42
+LjI3LTktZ2VuZXJpYykgd2l0aCB0dnRpbWUsIGdub21lcmFkaW86Cm1vZHByb2JlIHNhYTcxMzQg
+Y2FyZD0xNTQKRm9yIGdldHRpbmcgYXVkaW8gb3V0LCBJIHVzZSBzb3ggKGRyaXZlciBzYWE3MTM0
+LWFsc2EgaXMgYXV0b21hdGljYWxseQpsb2FkZWQgYWZ0ZXIgc2FhNzEzNCk6CnNveCAtciAzMjAw
+MCAtdyAtdCBhbHNhIGh3OjEsMCAtdCBhbHNhIGh3OjAsMApUViB0dW5lcjogV29ya3MuIFRlc3Rl
+ZCB3aXRoIFBBTCBub3JtLCBjaGFubmVsIGxpc3QgaXMgbGlrZSBvbmUgaW4gV2luZG93cy4KVmlk
+ZW86IFdvcmtzLiBDb2xvciBpbnZlcnNpb24sIG1pcnJvciBpbWFnZSwgY2hyb21hIGtpbGxlciB3
+b3JrLCB0b28uCkZNIHR1bmVyOiBXb3Jrcywgd2VhayBzaWduYWwgY2hhbm5lbHMgYWxzbyBkZXRl
+Y3RlZCAoaSBkb24ndCBsaWtlIHRoaXMsCmJlY2F1c2UgdGhleSBhcmUgb25seSBub2lzZWQgY2hh
+bm5lbHMpLiBJIG11c3Qgd2FpdCBnbm9tZXJhZGlvIHRvIGZpbmlzaCAodXAKdG8gMTUgbWludXRl
+cyBub3QgcmVzcG9uZGluZyBvbiB0aGUgc2NyZWVuKS4gU2lnbmFsIHN0cmVuZ3RoIGFsc28gZGV0
+ZWN0ZWQKaW4gZ25vbWVyYWRpby4KUmFkaW86IFdvcmtzLiBTdGVyZW8gYXVkaW8gd29ya3MsIHRv
+byAoSSBrbm93IHRoaXMgYmVjYXVzZSBpbiBteSBjb3VudHJ5LAp0aGVyZSBhcmUgc29tZSBmbSBj
+aGFubmVscyBpbiBzdGVyZW8gYW5kIHRoZXNlIGNoYW5uZWxzIGFyZSBkaXNwbGF5ZWQgYXMKU3Rl
+cmVvIGluIGdub21lcmFkaW8gd2hpbGUgb3RoZXJzIGFyZSBkaXNwbGF5ZWQgYXMgTW9ubykuIEkg
+Y2FuIHJlY29yZCBmbQpyYWRpbyB3aXRoIGFyZWNvcmQuClMtVmlkZW8gKyBMaW5lLUluOiBXb3Jr
+cy4gSSB0ZXN0ZWQgd2l0aCBteSBoYW5keSBjYW1jb3JkZXIuCkluZnJhcmVkIHJlbW90ZTogV29y
+a3MuIHhldiByZWNvZ25pemVkIHNvbWUgYnV0dG9ucy4gVXNpbmcgbGlyYyB3aXRoICJMaW51eApJ
+bnB1dCBMYXllciIgZHJpdmVyLCBJIGNhbiB1c2UgYWxsIGJ1dHRvbnMuCktub3duIGlzc3VlczoK
+TXV0aW5nIG9yIGNoYW5naW5nIHZvbHVtZSBpbiBhbHNhbWl4ZXIgb3IgVm9sdW1lIENvbnRyb2wg
+aGFzIG5vIGVmZmVjdHMgKFRWCmF1ZGlvLCByYWRpbywgbGluZSBpbikuIEkgYWx3YXlzIGhlYXIg
+YXVkaW8gYXQgb25lIHZvbHVtZSBsZXZlbCAobWF5YmUgYSBidWcKb2Ygc2FhNzEzNC1hbHNhPyku
+CgpkaWZmIC1yIDJjNjgzNWFhYThlYSBsaW51eC9Eb2N1bWVudGF0aW9uL3ZpZGVvNGxpbnV4L0NB
+UkRMSVNULnNhYTcxMzQKLS0tIGEvbGludXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJE
+TElTVC5zYWE3MTM0ICAgIDIwMDgtMTItMjIKMTc6NTQ6MDUuMDAwMDAwMDAwICswNzAwCisrKyBi
+L2xpbnV4L0RvY3VtZW50YXRpb24vdmlkZW80bGludXgvQ0FSRExJU1Quc2FhNzEzNCAgICAyMDA4
+LTEyLTIyCjE5OjMzOjA2LjAwMDAwMDAwMCArMDcwMApAQCAtMTUyLDMgKzE1Miw0IEBACiAxNTEg
+LT4gQURTIFRlY2ggSW5zdGFudCBIRFRWICAgICAgICAgICAgICAgICAgICBbMTQyMTowMzgwXQog
+MTUyIC0+IEFzdXMgVGlnZXIgUmV2OjEuMDAgICAgICAgICAgICAgICAgICAgICAgWzEwNDM6NDg1
+N10KIDE1MyAtPiBLd29ybGQgUGx1cyBUViBBbmFsb2cgTGl0ZSBQQ0kgICAgICAgICAgIFsxN2Rl
+OjcxMjhdCisxNTQgLT4gQXZlcm1lZGlhIEFWZXJUViBHTyAwMDcgRk0gUGx1cyAgICAgICAgICBb
+MTQ2MTpmMzFkXQpkaWZmIC1yIDJjNjgzNWFhYThlYSBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+c2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMgICAgMjAwOC0xMi0yMgoxNzo1NDowNS4wMDAwMDAwMDAg
+KzA3MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY2Fy
+ZHMuYyAgICAyMDA4LTEyLTIyCjE5OjM1OjM0LjAwMDAwMDAwMCArMDcwMApAQCAtNDY4Miw2ICs0
+NjgyLDM4IEBACiAgICAgICAgICAgICAuYW11eCA9IDIsCiAgICAgICAgIH0sCiAgICAgfSwKKyAg
+ICBbU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfR09fMDA3X0ZNX1BMVVNdID0geworICAgICAgICAu
+bmFtZSAgICAgICAgICAgPSAiQXZlcm1lZGlhIEFWZXJUViBHTyAwMDcgRk0gUGx1cyIsCisgICAg
+ICAgIC5hdWRpb19jbG9jayAgICA9IDB4MDAxODdkZTcsCisgICAgICAgIC50dW5lcl90eXBlICAg
+ICA9IFRVTkVSX1BISUxJUFNfVERBODI5MCwKKyAgICAgICAgLnJhZGlvX3R5cGUgICAgID0gVU5T
+RVQsCisgICAgICAgIC50dW5lcl9hZGRyICAgID0gQUREUl9VTlNFVCwKKyAgICAgICAgLnJhZGlv
+X2FkZHIgICAgPSBBRERSX1VOU0VULAorICAgICAgICAuZ3Bpb21hc2sgICAgICAgPSAweDAwMzAw
+MDAzLAorICAgICAgICAvKiAuZ3Bpb21hc2sgICAgICAgPSAweDhjMjQwMDAzLCAqLworICAgICAg
+ICAuaW5wdXRzICAgICAgICAgPSB7eworICAgICAgICAgICAgLm5hbWUgPSBuYW1lX3R2LAorICAg
+ICAgICAgICAgLnZtdXggPSAxLAorICAgICAgICAgICAgLmFtdXggPSBUViwKKyAgICAgICAgICAg
+IC50diAgID0gMSwKKyAgICAgICAgICAgIC5ncGlvID0gMHgwMSwKKyAgICAgICAgfSx7CisgICAg
+ICAgICAgICAubmFtZSA9IG5hbWVfc3ZpZGVvLAorICAgICAgICAgICAgLnZtdXggPSA2LAorICAg
+ICAgICAgICAgLmFtdXggPSBMSU5FMSwKKyAgICAgICAgICAgIC5ncGlvID0gMHgwMiwKKyAgICAg
+ICAgfX0sCisgICAgICAgIC5yYWRpbyA9IHsKKyAgICAgICAgICAgIC5uYW1lID0gbmFtZV9yYWRp
+bywKKyAgICAgICAgICAgIC5hbXV4ID0gVFYsCisgICAgICAgICAgICAuZ3BpbyA9IDB4MDAzMDAw
+MDEsCisgICAgICAgIH0sCisgICAgICAgIC5tdXRlID0geworICAgICAgICAgICAgLm5hbWUgPSBu
+YW1lX211dGUsCisgICAgICAgICAgICAuYW11eCA9IFRWLAorICAgICAgICAgICAgLmdwaW8gPSAw
+eDAxLAorICAgICAgICB9LAorICAgIH0sCiB9OwoKIGNvbnN0IHVuc2lnbmVkIGludCBzYWE3MTM0
+X2Jjb3VudCA9IEFSUkFZX1NJWkUoc2FhNzEzNF9ib2FyZHMpOwpAQCAtNTc3OSw2ICs1ODExLDEz
+IEBACiAgICAgICAgIC5zdWJkZXZpY2UgICAgPSBQQ0lfQU5ZX0lELAogICAgICAgICAuZHJpdmVy
+X2RhdGEgID0gU0FBNzEzNF9CT0FSRF9VTktOT1dOLAogICAgIH0seworICAgICAgICAudmVuZG9y
+ICAgICAgID0gUENJX1ZFTkRPUl9JRF9QSElMSVBTLAorICAgICAgICAuZGV2aWNlICAgICAgID0g
+UENJX0RFVklDRV9JRF9QSElMSVBTX1NBQTcxMzMsCisgICAgICAgIC5zdWJ2ZW5kb3IgICAgPSAw
+eDE0NjEsIC8qIEF2ZXJtZWRpYSBUZWNobm9sb2dpZXMgSW5jICovCisgICAgICAgIC5zdWJkZXZp
+Y2UgICAgPSAweGYzMWQsCisgICAgICAgIC5kcml2ZXJfZGF0YSAgPSBTQUE3MTM0X0JPQVJEX0FW
+RVJNRURJQV9HT18wMDdfRk1fUExVUywKKworICAgIH0sewogICAgICAgICAvKiAtLS0gZW5kIG9m
+IGxpc3QgLS0tICovCiAgICAgfQogfTsKQEAgLTYwMjksNiArNjA2OCw3IEBACiAgICAgY2FzZSBT
+QUE3MTM0X0JPQVJEX0dFTklVU19UVkdPX0ExMU1DRToKICAgICBjYXNlIFNBQTcxMzRfQk9BUkRf
+UkVBTF9BTkdFTF8yMjA6CiAgICAgY2FzZSBTQUE3MTM0X0JPQVJEX0tXT1JMRF9QTFVTX1RWX0FO
+QUxPRzoKKyAgICBjYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX0dPXzAwN19GTV9QTFVTOgog
+ICAgICAgICBkZXYtPmhhc19yZW1vdGUgPSBTQUE3MTM0X1JFTU9URV9HUElPOwogICAgICAgICBi
+cmVhazsKICAgICBjYXNlIFNBQTcxMzRfQk9BUkRfRkxZRFZCU19MUjMwMDoKZGlmZiAtciAyYzY4
+MzVhYWE4ZWEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaAotLS0g
+YS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC5oICAgIDIwMDgtMTIt
+MjIKMTc6NTQ6MDUuMDAwMDAwMDAwICswNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vc2FhNzEzNC9zYWE3MTM0LmggICAgMjAwOC0xMi0yMgoxOTowNzozMi4wMDAwMDAwMDAgKzA3
+MDAKQEAgLTI3Nyw2ICsyNzcsNyBAQAogI2RlZmluZSBTQUE3MTM0X0JPQVJEX0FEU19JTlNUQU5U
+X0hEVFZfUENJICAxNTEKICNkZWZpbmUgU0FBNzEzNF9CT0FSRF9BU1VTVGVLX1RJR0VSICAgICAg
+ICAgMTUyCiAjZGVmaW5lIFNBQTcxMzRfQk9BUkRfS1dPUkxEX1BMVVNfVFZfQU5BTE9HIDE1Mwor
+I2RlZmluZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV9HT18wMDdfRk1fUExVUyAxNTQKCiAjZGVm
+aW5lIFNBQTcxMzRfTUFYQk9BUkRTIDMyCiAjZGVmaW5lIFNBQTcxMzRfSU5QVVRfTUFYIDgKZGlm
+ZiAtciAyYzY4MzVhYWE4ZWEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcx
+MzQtaW5wdXQuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEz
+NC1pbnB1dC5jICAgIDIwMDgtMTItMjIKMTc6NTQ6MDUuMDAwMDAwMDAwICswNzAwCisrKyBiL2xp
+bnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlucHV0LmMgICAgMjAwOC0x
+Mi0yMwowODoyNToyOC4wMDAwMDAwMDAgKzA3MDAKQEAgLTQ0OSw2ICs0NDksNyBAQAogICAgIGNh
+c2UgU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfU1RVRElPXzUwNzoKICAgICBjYXNlIFNBQTcxMzRf
+Qk9BUkRfQVZFUk1FRElBX0dPXzAwN19GTToKICAgICBjYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1F
+RElBX00xMDI6CisgICAgY2FzZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV9HT18wMDdfRk1fUExV
+UzoKICAgICAgICAgaXJfY29kZXMgICAgID0gaXJfY29kZXNfYXZlcm1lZGlhOwogICAgICAgICBt
+YXNrX2tleWNvZGUgPSAweDAwMDdDODsKICAgICAgICAgbWFza19rZXlkb3duID0gMHgwMDAwMTA7
+CgpTaWduZWQtb2ZmLWJ5OiBQaGFtIFRoYW5oIE5hbSA8cGhhbXRoYW5obmFtLnB0bkBnbWFpbC5j
+b20+Ci0tIApQaOG6oW0gVGjDoG5oIE5hbQo=
+------=_Part_80040_26364384.1230007831107
+Content-Type: text/x-patch; name=AVerTVGO007FMPlus.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fp22twsk0
+Content-Disposition: attachment; filename=AVerTVGO007FMPlus.patch
 
-Yes, they would be, still, it is cleaner to use the same type, not just 
-one that happens to mean the same:-)
-
-> > So there is even less motivation for "unsigned long phys_addr" above. A
-> > patch to change these functions would be welcome:-)
-> 
-> Usually physically addresses are kept as unsigned longs in the kernel.
-> That's the reason behind the unsigned longs. The best would of course
-> be to use an unsigned long to keep a pfn, but I'd say having an
-> unsigned long to keep the physical address as-is is close enough since
-> the hardware is using 32-bit registers for destination addresses
-> anyway. dma_addr_t sounds like a good plan though.
-
-I usually try to select variable types to match their use - either to 
-store return values from functions, or to match argument types if they are 
-used as arguments to functions. phys_addr is used first to store return 
-from videobuf_to_dma_contig(), which is dma_addr_t, then as an argument to 
-ceu_write(), which after your clean-up will be u32. And it is also used in 
-calculations:
-
-> +		phys_addr += (icd->width * icd->height);
-
-I think, dma_addr_t is never smaller than 32-bit, so, it sort of makes 
-sense to first use it to make sure all calculations fit, and then 
-(implicitly) truncate it to u32 when passing as an argument to 
-ceu_write().
-
-> I agree about the parenthesis issues - I'll suspect I used them
-> because of compiler warnings, but I'll have a look.
-
-Definitly not all of them.
-
-> I will post a cleanup patch that you can apply on top of this patch
-> and the interlace patch. This to avoid changing the interlace patch.
-
-Hm, yeah... Ok, let's do that, but then, please, also fix extra 
-parenthesis that that patch introduces, ok?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+ZGlmZiAtciAyYzY4MzVhYWE4ZWEgbGludXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJE
+TElTVC5zYWE3MTM0Ci0tLSBhL2xpbnV4L0RvY3VtZW50YXRpb24vdmlkZW80bGludXgvQ0FSRExJ
+U1Quc2FhNzEzNAkyMDA4LTEyLTIyIDE3OjU0OjA1LjAwMDAwMDAwMCArMDcwMAorKysgYi9saW51
+eC9Eb2N1bWVudGF0aW9uL3ZpZGVvNGxpbnV4L0NBUkRMSVNULnNhYTcxMzQJMjAwOC0xMi0yMiAx
+OTozMzowNi4wMDAwMDAwMDAgKzA3MDAKQEAgLTE1MiwzICsxNTIsNCBAQAogMTUxIC0+IEFEUyBU
+ZWNoIEluc3RhbnQgSERUViAgICAgICAgICAgICAgICAgICAgWzE0MjE6MDM4MF0KIDE1MiAtPiBB
+c3VzIFRpZ2VyIFJldjoxLjAwICAgICAgICAgICAgICAgICAgICAgIFsxMDQzOjQ4NTddCiAxNTMg
+LT4gS3dvcmxkIFBsdXMgVFYgQW5hbG9nIExpdGUgUENJICAgICAgICAgICBbMTdkZTo3MTI4XQor
+MTU0IC0+IEF2ZXJtZWRpYSBBVmVyVFYgR08gMDA3IEZNIFBsdXMgICAgICAgICAgWzE0NjE6ZjMx
+ZF0KZGlmZiAtciAyYzY4MzVhYWE4ZWEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0
+L3NhYTcxMzQtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQv
+c2FhNzEzNC1jYXJkcy5jCTIwMDgtMTItMjIgMTc6NTQ6MDUuMDAwMDAwMDAwICswNzAwCisrKyBi
+L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMJMjAwOC0x
+Mi0yMiAxOTozNTozNC4wMDAwMDAwMDAgKzA3MDAKQEAgLTQ2ODIsNiArNDY4MiwzOCBAQAogCQkJ
+LmFtdXggPSAyLAogCQl9LAogCX0sCisJW1NBQTcxMzRfQk9BUkRfQVZFUk1FRElBX0dPXzAwN19G
+TV9QTFVTXSA9IHsKKwkJLm5hbWUgICAgICAgICAgID0gIkF2ZXJtZWRpYSBBVmVyVFYgR08gMDA3
+IEZNIFBsdXMiLAorCQkuYXVkaW9fY2xvY2sgICAgPSAweDAwMTg3ZGU3LAorCQkudHVuZXJfdHlw
+ZSAgICAgPSBUVU5FUl9QSElMSVBTX1REQTgyOTAsCisJCS5yYWRpb190eXBlICAgICA9IFVOU0VU
+LAorCQkudHVuZXJfYWRkcgk9IEFERFJfVU5TRVQsCisJCS5yYWRpb19hZGRyCT0gQUREUl9VTlNF
+VCwKKwkJLmdwaW9tYXNrICAgICAgID0gMHgwMDMwMDAwMywKKwkJLyogLmdwaW9tYXNrICAgICAg
+ID0gMHg4YzI0MDAwMywgKi8KKwkJLmlucHV0cyAgICAgICAgID0ge3sKKwkJCS5uYW1lID0gbmFt
+ZV90diwKKwkJCS52bXV4ID0gMSwKKwkJCS5hbXV4ID0gVFYsCisJCQkudHYgICA9IDEsCisJCQku
+Z3BpbyA9IDB4MDEsCisJCX0seworCQkJLm5hbWUgPSBuYW1lX3N2aWRlbywKKwkJCS52bXV4ID0g
+NiwKKwkJCS5hbXV4ID0gTElORTEsCisJCQkuZ3BpbyA9IDB4MDIsCisJCX19LAorCQkucmFkaW8g
+PSB7CisJCQkubmFtZSA9IG5hbWVfcmFkaW8sCisJCQkuYW11eCA9IFRWLAorCQkJLmdwaW8gPSAw
+eDAwMzAwMDAxLAorCQl9LAorCQkubXV0ZSA9IHsKKwkJCS5uYW1lID0gbmFtZV9tdXRlLAorCQkJ
+LmFtdXggPSBUViwKKwkJCS5ncGlvID0gMHgwMSwKKwkJfSwKKwl9LAogfTsKIAogY29uc3QgdW5z
+aWduZWQgaW50IHNhYTcxMzRfYmNvdW50ID0gQVJSQVlfU0laRShzYWE3MTM0X2JvYXJkcyk7CkBA
+IC01Nzc5LDYgKzU4MTEsMTMgQEAKIAkJLnN1YmRldmljZSAgICA9IFBDSV9BTllfSUQsCiAJCS5k
+cml2ZXJfZGF0YSAgPSBTQUE3MTM0X0JPQVJEX1VOS05PV04sCiAJfSx7CisJCS52ZW5kb3IgICAg
+ICAgPSBQQ0lfVkVORE9SX0lEX1BISUxJUFMsCisJCS5kZXZpY2UgICAgICAgPSBQQ0lfREVWSUNF
+X0lEX1BISUxJUFNfU0FBNzEzMywKKwkJLnN1YnZlbmRvciAgICA9IDB4MTQ2MSwgLyogQXZlcm1l
+ZGlhIFRlY2hub2xvZ2llcyBJbmMgKi8KKwkJLnN1YmRldmljZSAgICA9IDB4ZjMxZCwKKwkJLmRy
+aXZlcl9kYXRhICA9IFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX0dPXzAwN19GTV9QTFVTLAorCisJ
+fSx7CiAJCS8qIC0tLSBlbmQgb2YgbGlzdCAtLS0gKi8KIAl9CiB9OwpAQCAtNjAyOSw2ICs2MDY4
+LDcgQEAKIAljYXNlIFNBQTcxMzRfQk9BUkRfR0VOSVVTX1RWR09fQTExTUNFOgogCWNhc2UgU0FB
+NzEzNF9CT0FSRF9SRUFMX0FOR0VMXzIyMDoKIAljYXNlIFNBQTcxMzRfQk9BUkRfS1dPUkxEX1BM
+VVNfVFZfQU5BTE9HOgorCWNhc2UgU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfR09fMDA3X0ZNX1BM
+VVM6CiAJCWRldi0+aGFzX3JlbW90ZSA9IFNBQTcxMzRfUkVNT1RFX0dQSU87CiAJCWJyZWFrOwog
+CWNhc2UgU0FBNzEzNF9CT0FSRF9GTFlEVkJTX0xSMzAwOgpkaWZmIC1yIDJjNjgzNWFhYThlYSBs
+aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC5oCi0tLSBhL2xpbnV4L2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LmgJMjAwOC0xMi0yMiAxNzo1NDowNS4w
+MDAwMDAwMDAgKzA3MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3Nh
+YTcxMzQuaAkyMDA4LTEyLTIyIDE5OjA3OjMyLjAwMDAwMDAwMCArMDcwMApAQCAtMjc3LDYgKzI3
+Nyw3IEBACiAjZGVmaW5lIFNBQTcxMzRfQk9BUkRfQURTX0lOU1RBTlRfSERUVl9QQ0kgIDE1MQog
+I2RlZmluZSBTQUE3MTM0X0JPQVJEX0FTVVNUZUtfVElHRVIgICAgICAgICAxNTIKICNkZWZpbmUg
+U0FBNzEzNF9CT0FSRF9LV09STERfUExVU19UVl9BTkFMT0cgMTUzCisjZGVmaW5lIFNBQTcxMzRf
+Qk9BUkRfQVZFUk1FRElBX0dPXzAwN19GTV9QTFVTIDE1NAogCiAjZGVmaW5lIFNBQTcxMzRfTUFY
+Qk9BUkRTIDMyCiAjZGVmaW5lIFNBQTcxMzRfSU5QVVRfTUFYIDgKZGlmZiAtciAyYzY4MzVhYWE4
+ZWEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaW5wdXQuYwotLS0g
+YS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jCTIwMDgt
+MTItMjIgMTc6NTQ6MDUuMDAwMDAwMDAwICswNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlucHV0LmMJMjAwOC0xMi0yMyAwODoyNToyOC4wMDAwMDAw
+MDAgKzA3MDAKQEAgLTQ0OSw2ICs0NDksNyBAQAogCWNhc2UgU0FBNzEzNF9CT0FSRF9BVkVSTUVE
+SUFfU1RVRElPXzUwNzoKIAljYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX0dPXzAwN19GTToK
+IAljYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX00xMDI6CisJY2FzZSBTQUE3MTM0X0JPQVJE
+X0FWRVJNRURJQV9HT18wMDdfRk1fUExVUzoKIAkJaXJfY29kZXMgICAgID0gaXJfY29kZXNfYXZl
+cm1lZGlhOwogCQltYXNrX2tleWNvZGUgPSAweDAwMDdDODsKIAkJbWFza19rZXlkb3duID0gMHgw
+MDAwMTA7CgpTaWduZWQtb2ZmLWJ5OiBQaGFtIFRoYW5oIE5hbSA8cGhhbXRoYW5obmFtLnB0bkBn
+bWFpbC5jb20+Cg==
+------=_Part_80040_26364384.1230007831107
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_80040_26364384.1230007831107--
