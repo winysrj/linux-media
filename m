@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBC8N9gT028133
-	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 03:23:09 -0500
-Received: from web51406.mail.re2.yahoo.com (web51406.mail.re2.yahoo.com
-	[206.190.38.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBC8LIcI026394
-	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 03:21:18 -0500
-Date: Fri, 12 Dec 2008 00:21:17 -0800 (PST)
-From: Bruce Ascroft <brucetheturboguy@yahoo.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBNN0CpR030653
+	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 18:00:12 -0500
+Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
+	[209.85.218.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBNMxidD023655
+	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 17:59:45 -0500
+Received: by bwz13 with SMTP id 13so8620389bwz.3
+	for <video4linux-list@redhat.com>; Tue, 23 Dec 2008 14:59:43 -0800 (PST)
+Message-ID: <208cbae30812231459k7fd4308cw93140e97e8b7593c@mail.gmail.com>
+Date: Wed, 24 Dec 2008 01:59:43 +0300
+From: "Alexey Klimov" <klimov.linux@gmail.com>
+To: "Guennadi Liakhovetski" <lg@denx.de>
+In-Reply-To: <Pine.LNX.4.64.0812231232500.5188@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Message-ID: <724114.61792.qm@web51406.mail.re2.yahoo.com>
-Subject: HVR950Q no /dev/video0
-Reply-To: brucetheturboguy@yahoo.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <Pine.LNX.4.64.0812231225520.5188@axis700.grange>
+	<Pine.LNX.4.64.0812231232500.5188@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 3/3 v2] soc-camera: board bindings for camera host
+	driver for i.MX3x SoCs
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,64 +33,191 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Hello, Guennadi
+As it happens i noticed few things, may be i'm wrong at all.
 
-I don't know if this is an appropriate list to post this question to, but, I'm kinda frustrated and figger what the hell.
+On Tue, Dec 23, 2008 at 2:35 PM, Guennadi Liakhovetski <lg@denx.de> wrote:
+> The driver has been tested on a pcm037 test-board from Phycore. The driver
+> uses a coherent memory buffer, because although i.MX31 supports video to
+> scatter-gather lists, it can only pack an integer number of rows in an
+> sg-buffer, which makes it useless with fixed size sg-elements, and
+> videobuf-dma-sg.c uses fixed page-sized buffers.
+>
+> Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
+> ---
+>  arch/arm/mach-mx3/devices.c                 |   60 +++++++++++++++++++++++++++
+>  arch/arm/mach-mx3/pcm037.c                  |   46 ++++++++++++++++++++
+>  arch/arm/plat-mxc/include/mach/mx3_camera.h |    2 +
+>  3 files changed, 108 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-mx3/devices.c b/arch/arm/mach-mx3/devices.c
+> index 1654028..40c68ec 100644
+> --- a/arch/arm/mach-mx3/devices.c
+> +++ b/arch/arm/mach-mx3/devices.c
+> @@ -28,6 +28,7 @@
+>  #include <mach/iomux-mx3.h>
+>  #include <mach/ipu.h>
+>  #include <mach/mx3fb.h>
+> +#include <mach/mx3_camera.h>
+>
+>  static struct resource uart0[] = {
+>        {
+> @@ -237,6 +238,65 @@ int __init mx3_register_fb(const char *name, const struct fb_videomode *modes,
+>        return platform_device_register(&mx3_fb);
+>  }
+>
+> +struct mx3_camera_pdata camera_pdata = {
+> +       .dma_dev = &mx3_ipu.dev,
+> +};
+> +
+> +static struct resource camera_resources[] = {
+> +       {
+> +               .start = IPU_CTRL_BASE_ADDR + 0x60,
+> +               .end = IPU_CTRL_BASE_ADDR + 0x87,
+> +               .flags = IORESOURCE_MEM,
+> +       }, {
+> +               .start = IPU_IRQ_SENSOR_EOF,
+> +               .end = IPU_IRQ_SENSOR_EOF,
+> +               .flags = IORESOURCE_IRQ,
+> +       },
+> +};
+> +
+> +static struct platform_device mx3_camera = {
+> +       .name           = "mx3-camera",
 
-I've got the Hauppauge HVR-950Q and I'm currently running intrepid ibex on a number of machines (desktop and laptop).  The card is recognized but there is no /dev/video0 created.  I've confirmed that the device works correctly in M$.  I've tried the bleeding edge V4l, and  the firmware is correct.
+You include mach/mx3_camera.h in this file. Why don't define
+MX3_CAM_DRV_NAME "mx3-camera" in mach/mx3_camera.h file(you defined it
+in /drivers/media/video/mx3_camera.c file) ? So you can use variable
+in that c-file and here, in this file.
 
-I've read til my eyes bled, but no luck, and yet I see on this list that 
-people have found that the device works "out of the box". sigh.  I would 
-certainly appreciate any input or advice.
+> +       .id             = 0,
+> +       .num_resources  = ARRAY_SIZE(camera_resources),
+> +       .resource       = camera_resources,
+> +       .dev            = {
+> +               .platform_data          = &camera_pdata,
+> +               .coherent_dma_mask      = DMA_32BIT_MASK,
+> +       },
+> +};
+> +
+> +int __init mx3_register_camera(size_t buf_size, unsigned long flags,
+> +                              unsigned long mclk_freq_10khz)
+> +{
+> +       dma_addr_t dma_handle;
+> +       void *buf;
+> +
+> +       if (!ipu_registered) {
+> +               int ret = platform_device_register(&mx3_ipu);
+> +               if (ret < 0)
+> +                       return ret;
+> +               ipu_registered = true;
+> +       }
+> +
+> +       buf = dma_alloc_coherent(NULL, buf_size, &dma_handle,
+> +                                GFP_KERNEL);
+> +       if (!buf) {
+> +               pr_err("%s: cannot allocate camera buffer-memory\n", __func__);
+> +               return -ENOMEM;
+> +       }
+> +
+> +       memset(buf, 0, buf_size);
+> +
+> +       dma_declare_coherent_memory(&mx3_camera.dev,
+> +                                   dma_handle, dma_handle, buf_size,
+> +                                   DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+> +
+> +       camera_pdata.flags = flags;
+> +       camera_pdata.mclk_10khz = mclk_freq_10khz;
+> +
+> +       return platform_device_register(&mx3_camera);
+> +}
+> +
+>  /* Resource definition for the I2C1 */
+>  static struct resource mxci2c1_resources[] = {
+>        [0] = {
+> diff --git a/arch/arm/mach-mx3/pcm037.c b/arch/arm/mach-mx3/pcm037.c
+> index d110b7a..bd40444 100644
+> --- a/arch/arm/mach-mx3/pcm037.c
+> +++ b/arch/arm/mach-mx3/pcm037.c
+> @@ -42,6 +42,7 @@
+>  #include <mach/iomux-mx3.h>
+>  #include <mach/board-pcm037.h>
+>  #include <mach/mx3fb.h>
+> +#include <mach/mx3_camera.h>
+>
+>  #include "devices.h"
+>
+> @@ -132,6 +133,12 @@ static struct i2c_board_info __initdata pcm037_i2c_devices[] = {
+>        },
+>  };
+>
+> +/*
+> + * Try to reserve buffer space enough for 8 buffers 320x240@1 for
+> + * streaming plus 2 buffers 2048x1536@1 for still image < 10MB
+> + */
+> +#define PCM037_CAMERA_MEM_SIZE (4 * 1024 * 1024)
+> +
+>  static struct platform_device *devices[] __initdata = {
+>        &pcm037_flash,
+>        &pcm037_eth,
+> @@ -183,6 +190,8 @@ static const struct fb_videomode fb_modedb[] = {
+>  */
+>  static void __init mxc_board_init(void)
+>  {
+> +       int ret;
+> +
+>        platform_add_devices(devices, ARRAY_SIZE(devices));
+>
+>        mxc_iomux_mode(MX31_PIN_CTS1__CTS1);
+> @@ -238,6 +247,43 @@ static void __init mxc_board_init(void)
+>        mxc_iomux_mode(IOMUX_MODE(MX31_PIN_D3_CLS, IOMUX_CONFIG_FUNC));
+>
+>        mx3_register_fb(fb_modedb[1].name, fb_modedb, ARRAY_SIZE(fb_modedb));
+> +
+> +       /* CSI */
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D6, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D7, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D8, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D9, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D10, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D11, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D12, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D13, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D14, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D15, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_HSYNC, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_MCLK, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_PIXCLK, IOMUX_CONFIG_FUNC));
+> +       mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_VSYNC, IOMUX_CONFIG_FUNC));
+> +
+> +       /* ATA power off, disable ATA Buffer, enable CSI buffer  */
+> +       ret = gpio_request(IOMUX_TO_GPIO(MX31_PIN_CSI_D4), "CSI D4");
+> +       if (!ret) {
+> +               mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D4, IOMUX_CONFIG_GPIO));
+> +               gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_CSI_D4), 0);
+> +       } else
+> +               printk(KERN_WARNING "Could not get GPIO %u\n",
+> +                      IOMUX_TO_GPIO(MX31_PIN_CSI_D4));
 
-Let me know if I should supply any additional info to help diagnose.
+If people wanted to define where this message come from do this
+information in this printk will be enough ? May be it's better to add
+module name here(or something), is it ?
 
-Thanks,
-Bruce.
+> +
+> +       ret = gpio_request(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), "CSI D5");
+> +       if (!ret) {
+> +               mxc_iomux_mode(IOMUX_MODE(MX31_PIN_CSI_D5, IOMUX_CONFIG_GPIO));
+> +               gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), 1);
+> +       } else
+> +               printk(KERN_WARNING "Could not get GPIO %u\n",
+> +                      IOMUX_TO_GPIO(MX31_PIN_CSI_D5));
 
-relevant dmesg output:
+And the same here.
+May be i'm wrong, Guennadi
 
-[84420.692041] usb 3-3: new high speed USB device using ehci_hcd and address 3
-[84420.846764] usb 3-3: configuration #1 chosen from 1 choice
-[84421.204817] au0828: i2c bus registered
-[84421.302531] tveeprom 0-0050: Hauppauge model 72001, rev B3F0, serial# 
-4756341
-[84421.302537] tveeprom 0-0050: MAC address is 00-0D-FE-48-93-75
-[84421.302539] tveeprom 0-0050: tuner model is Xceive XC5000 (idx 150, type 4)
-[84421.302542] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 
-0x88)
-[84421.302546] tveeprom 0-0050: audio processor is AU8522 (idx 44)
-[84421.302548] tveeprom 0-0050: decoder processor is AU8522 (idx 42)
-[84421.302551] tveeprom 0-0050: has no radio, has IR receiver, has no IR 
-transmitter
-[84421.302553] hauppauge_eeprom: hauppauge eeprom: model=72001
-[84421.307962] xc5000 0-0061: creating new instance
-[84421.310152] xc5000: Successfully identified at address 0x61
-[84421.310156] xc5000: Firmware has not been loaded previously
-[84421.310159] DVB: registering new adapter (au0828)
-[84421.310162] DVB: registering adapter 0 frontend 0 (Auvitek AU8522 QAM/8VSB 
-Frontend)...
-[84421.310479] Registered device AU0828 [Hauppauge HVR950Q]
+<snip>
 
-b@crankshaft:/dev$ lsusb
-Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 007 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 003 Device 003: ID 2040:7200 Hauppauge
-Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-
-b@crankshaft:/dev$ ls -l /dev/dvb/adapter0/
-total 0
-crw-rw---- 1 root video 212, 1 2008-12-11 22:42 demux0
-crw-rw---- 1 root video 212, 2 2008-12-11 22:42 dvr0
-crw-rw---- 1 root video 212, 0 2008-12-11 22:42 frontend0
-crw-rw---- 1 root video 212, 3 2008-12-11 22:42 net0
-
-
-      
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
