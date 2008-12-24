@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHKIqSe021169
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 15:18:52 -0500
-Received: from smtp-vbr6.xs4all.nl (smtp-vbr6.xs4all.nl [194.109.24.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHKIYgo014567
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 15:18:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Greg KH <greg@kroah.com>
-Date: Wed, 17 Dec 2008 21:18:29 +0100
-References: <200812082156.26522.hverkuil@xs4all.nl>
-	<200812172039.03436.hverkuil@xs4all.nl>
-	<20081217195329.GB25211@kroah.com>
-In-Reply-To: <20081217195329.GB25211@kroah.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOHQMUQ018053
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:26:22 -0500
+Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOHQ8EA031232
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:26:08 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+	<87iqpi4qb0.fsf@free.fr>
+	<Pine.LNX.4.64.0812171921420.8733@axis700.grange>
+	<Pine.LNX.4.64.0812200104090.9649@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 24 Dec 2008 18:26:06 +0100
+In-Reply-To: <Pine.LNX.4.64.0812200104090.9649@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sat\,
+	20 Dec 2008 02\:14\:15 +0100 \(CET\)")
+Message-ID: <87wsdplc29.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812172118.29574.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: [BUG] cdev_put() race condition
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: soc-camera: current stack
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,46 +31,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wednesday 17 December 2008 20:53:29 Greg KH wrote:
-> On Wed, Dec 17, 2008 at 08:39:03PM +0100, Hans Verkuil wrote:
-> > On Wednesday 17 December 2008 20:30:32 Hans Verkuil wrote:
-> > > This solves this particular problem. But this will certainly break
-> > > v4l as it is right now, since the spin_lock means that the kref's
-> > > release cannot do any sleeps, which is possible in v4l. If we want to
-> > > allow that in cdev, then the spinlock has to be replaced by a mutex.
-> > > But I have the strong feeling that that's not going to happen :-)
-> >
-> > Note that if we ever allow drivers to hook in their own release
-> > callback, then we certainly should switch to a mutex in the cdev
-> > struct, rather than a global mutex. It obviously makes life more
-> > complicated for cdev, but much easier for drivers.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+
+> This should produce an equivalent of what is currently in my hg tree - at 
+> least in what soc-camera concerns. If there's any interest, I might look 
+> into installing a git-server and providing a git-tree with soc-camera 
+> patches on that server, for 3 users to pull 5 putches every 2 weeks my 
+> 400MHz ARM9 on a dyndns ADSL line should be enough:-)
 >
-> I don't see it being easier for drivers, you should provide this kind of
-> infrastructure within your framework already.
->
-> Actually, we already do provide this kind of framework, what's wrong
-> with using "struct device" for this, like the rest of the kernel does?
-> That is the device you need to be doing the reference counting and
-> release code for, it is exactly what it is there for.
->
-> So why is V4L different than the rest of the kernel in that it wishes to
-> do things differently?
+> Next on queue (not yet in any of the directories on that server)
 
-Because it has almost no proper framework to speak of and what little there 
-is has been pretty much unchanged since the very beginning.
+Hi Guennadi,
 
-I'm trying to develop a decent framework that should help support upcoming 
-devices and generally make life easier for v4l driver developers.
+I made some tests of your patches against mainline tree (2.6.28-rc4 actually),
+on pxa271 + mt9m111.
 
-And I've no idea why we don't just use the device's release() callback for 
-this. I'm going to implement this right now :-)
+I have one little problem I can't remember having before :
 
-Regards,
+[  728.372987] Backtrace:
+[  728.378014] [<bf05f230>] (mt9m111_set_register+0x0/0x80 [mt9m111]) from [<bf056300>] (soc_camera_s_register+0x2c/0x38 [soc_camera])
+[  728.388248]  r5:039e6cf0 r4:00000018
+[  728.393278] [<bf0562d4>] (soc_camera_s_register+0x0/0x38 [soc_camera]) from [<c0164734>] (__video_ioctl2+0x684/0x39a4)
+[  728.403419] [<c01640b0>] (__video_ioctl2+0x0/0x39a4) from [<c0167a70>] (video_ioctl2+0x1c/0x20)
+[  728.413404] [<c0167a54>] (video_ioctl2+0x0/0x20) from [<c009a8fc>] (vfs_ioctl+0x74/0x78)
+[  728.423393] [<c009a888>] (vfs_ioctl+0x0/0x78) from [<c009acb8>] (do_vfs_ioctl+0x390/0x4ac)
+[  728.433342]  r5:039e6cf0 r4:c39d3340
+[  728.438221] [<c009a928>] (do_vfs_ioctl+0x0/0x4ac) from [<c009ae14>] (sys_ioctl+0x40/0x68)
+[  728.447976] [<c009add4>] (sys_ioctl+0x0/0x68) from [<c0024e80>] (ret_fast_syscall+0x0/0x2c)
+[  728.457785]  r7:00000036 r6:4018564f r5:039e6cf0 r4:00000000
+[  728.462692] Code: e89da800 e1a0c00d e92dd830 e24cb004 (e5913000)
+[  728.468135] ---[ end trace a231255d0862dac6 ]---
 
-	Hans
+I'm not sure whether the problem is not on my setup, I hadn't touched it for
+days. I know after opening the video device, I setup a camera register before
+taking the picture (to set up the test pattern and automate my non-regression
+tests).
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Will check after Christmas :)
+
+Cheers.
+
+--
+Robert
 
 --
 video4linux-list mailing list
