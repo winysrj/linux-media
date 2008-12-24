@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB7Ae7QX029853
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 05:40:07 -0500
-Received: from smtp-vbr1.xs4all.nl (smtp-vbr1.xs4all.nl [194.109.24.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB7Adr1v015500
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 05:39:53 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Trilok Soni" <soni.trilok@gmail.com>
-Date: Sun, 7 Dec 2008 11:39:47 +0100
-References: <5d5443650811280216r450c6f02v3fb0db2e1580594a@mail.gmail.com>
-	<5d5443650812010451o321e76e6s2681b3486e7c3c24@mail.gmail.com>
-	<5d5443650812070140w423d6fe9ua2f0ff9d2974bbd7@mail.gmail.com>
-In-Reply-To: <5d5443650812070140w423d6fe9ua2f0ff9d2974bbd7@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOAi8N4032515
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 05:44:08 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBOAhrHN023808
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 05:43:54 -0500
+Date: Wed, 24 Dec 2008 11:43:59 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+In-Reply-To: <uzlim9tlu.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812241106540.4017@axis700.grange>
+References: <uy6ycr129.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0812210201450.23780@axis700.grange>
+	<uzlim9tlu.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812071139.47936.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH v6] Add tw9910 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,74 +28,165 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Trilok,
+On Wed, 24 Dec 2008, morimoto.kuninori@renesas.com wrote:
 
-On Sunday 07 December 2008 10:40:51 Trilok Soni wrote:
-> Hi Hans,
->
-> On Mon, Dec 1, 2008 at 6:21 PM, Trilok Soni <soni.trilok@gmail.com> 
-wrote:
-> > Hi Hans,
-> >
-> >> I reviewed this sensor driver and it's fine except for one thing:
-> >> setting the default registers from outside the driver. This is a
-> >> really bad idea. I2C drivers should be self-contained. I've made
-> >> the same comment in the tvp514x driver review which I'm copying
-> >> below (with some small edits):
-> >
-> > I knew that you are going to comment on that, and I agree on those
-> > points. I will pull in that register initialization to the driver.
->
-> Attached the updated ov9640 sensor patch.
+> > Ok, let's do it this way. We take this version as a basis, but I only 
+> > commit it after I get an incremental improvement patch from you:
+> 
+> v7 patch ?
 
-Thanks. Here is my review:
+You may choose - what's easier for you. Either you make a v7, or we keep 
+v6, and you make an _incremental_ (i.e., based on v6) patch to address 
+issues that I point out here. If you decide to make an incremental patch, 
+I think, I might merge it with v6, show it to you once more for 
+confirmation and commit that in one go. But just please choose what's 
+easier for you.
 
-1) Don't use this: static struct ov9640_sensor ov9640;
+> > > +static int tw9910_stop_capture(struct soc_camera_device *icd)
+> > > +{
+> > > +	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> > > +
+> > > +	priv->scale = NULL;
+> > > +	icd->vdev->current_norm = V4L2_STD_NTSC;
+> > > +
+> > > +	tw9910_reset(priv->client);
+> > 
+> > I think, you should leave your driver and the chip configured, so, both of 
+> > these should go.
+> 
+> sorry. I can not understand about this.
+> 
+> Do you say that it is better ?
+> 
+> --------------------
+> static int tw9910_stop_capture(struct soc_camera_device *icd)
+> {
+> 	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> 	tw9910_reset(priv->client);
+>         return 0;
+> }
+> --------------------
 
-This allows only one sensor instance. This should be dynamic. Remember 
-that it should be possible (once the new v4l2_device/v4l2_subdev 
-framework is merged) to reuse this driver in other products as well. So 
-it should be possible to use two webcams with this sensor at the same 
-time. It's only a small amount of work to make this struct dynamic. 
-Ditto for the 'current_value' field of the static struct vcontrol: this 
-too is per-instance.
+No, not quite. Here's what I've written last time:
 
-2) Looking at all the YUV and RGB register settings I notice that they 
-seem to fall into two parts: all MTX regs and some COM regs are 
-identical for either RGB or YUV. It's a good idea to have only two 
-arrays for these registers rather than duplicating them for each 
-format. You might want to consider setting the remaining COM regs 
-directly in a switch (fmt) statement. Try it and see what is more 
-readable.
+> > S_FMT	- set_fmt
+> > STREAMON	- start_capture
+> > STREAMOFF	- stop_capture
+> > STREAMON	-start_capture
 
-3) There already exists a standard autoexposure control: 
-V4L2_CID_EXPOSURE_AUTO.
+i.e., you should be prepared to restart capture after a stop_capture with 
+the same configuration. By setting
 
-4) What does V4L2_CID_FREEZE_AGCAEC do? 
+	icd->vdev->current_norm = V4L2_STD_NTSC;
 
-5) We have standardized the camera control names. A patch for this is 
-still pending, but I recommend that in the meantime you use these 
-names:
+you change driver's configuration, and by calling
 
-AUTOGAIN: "Gain, Automatic"
-AUTO_WHITE_BALANCE: "White Balance, Automatic"
-HFLIP: "Horizontal Flip"
-VFLIP: "Vertical Flip"
+	tw9910_reset(priv->client);
 
-AUTO_EXPOSURE will probably change to "Exposure, Automatic", but this is 
-still under discussion.
+you change chip's configuration (I assume). So, re-starting capture after 
+this might be problematic. The only thing one should do in stop_capture is 
+tell the sensor to stop the scan - if it supports it. Not all chips do. 
+With one of my drivers I switch it to snapshot mode, in which case it 
+stops scanning and waits for a trigger. See if your chip supports anything 
+similar, or just do nothing.
 
-6) include/media/ov9640.h: what part of this header needs to be visible 
-to other parts of the kernel? A lot seems to be internal to the driver 
-and so should be moved to the driver source (or a ov9640_regs.h headers 
-next to the driver source).
+> > > +static unsigned long tw9910_query_bus_param(struct soc_camera_device *icd)
+> > > +{
+> > > +	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
+> > > +	struct soc_camera_link *icl = priv->client->dev.platform_data;
+> > > +	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
+> > > +		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
+> > > +		SOCAM_DATA_ACTIVE_HIGH | priv->info->buswidth;
+> > > +
+> > > +	return soc_camera_apply_sensor_flags(icl, flags);
+> > > +}
+> 
+> In current git (2008-12-19),
+> ${LINUX}/include/media/soc_camera.h :: soc_camera_bus_param_compatible
+> doesn't check SOCAM_DATA_ACTIVE_XXX.
+> So I think SOCAM_DATA_ACTIVE_HIGH is not needed here.
+> But should I add it ? or not ?
 
-Regards,
+Well, this is the query() method, it just tells your capabilities. 
+Currently we don't check for SOCAM_DATA_ACTIVE_* in 
+soc_camera_bus_param_compatible(), that's correct, but it is good to have 
+your driver ready for the time when we do this. With a later patch we're 
+going to update camera host drivers and camera device, and after that 
+we'll update soc_camera_bus_param_compatible(). So, it is good that you 
+already have it.
 
-	Hans
+> > This is wrong too. According to the API TRY_FMT may be called at any time 
+> > (also during a running streaming) and should _not_ change driver's state. 
+> > And as you can see in soc_camera.c::soc_camera_s_fmt_vid_cap() we're not 
+> > holding the mutex while calling soc_camera_try_fmt_vid_cap(), so, you have 
+> > no guarantee in your set_fmt, that your try_fmt was last called from 
+> > soc_camera_s_fmt_vid_cap() or even worse that it's not being called 
+> > concurrently. Therefore, you have to call tw9910_select_norm() once more 
+> > in your set_fmt, 
+> 
+> OK. I could understand.
+> 
+> > and in try_fmt you only verify if a suitable norm can be 
+> > found and set pix->height and pix->width accordingly.
+> 
+> So I think set_fmt and try_fmt will be like this.
+> It's OK ?
+> 
+> --------------------
+> static const struct tw9910_scale_ctrl*
+> tw9910_select_norm(struct soc_camera_device *icd, struct v4l2_rect *rect)
+> {
+> ...
+> }
+> 
+> static int tw9910_set_fmt( xxx )
+> {
+>         ...
+> 
+> 	/*
+> 	 * select suitable norm
+> 	 */
+> 	priv->scale = tw9910_select_norm(icd, rect);
+> 	if (!priv->scale)
+> 		return ret;
+> 
+> 	....
+> }
+> 
+> static int tw9910_try_fmt( xxx )
+> {
+> 	struct v4l2_rect rect;
+>         ...
+> 
+>         /*
+>          * check pix->field is ANY or INTERLACED
+>          */
+>          ....
+> 
+> 	/*
+> 	 * select suitable norm
+> 	 */
+> 	rect.width  = pix->width;
+> 	rect.height = pix->height;
+> 
+> 	scale = tw9910_select_norm(icd, &rect);
+> 	if (!scale) 
+> 		return -EINVAL;
+> 
+> 	pix->width  = scale->width;
+> 	pix->height = scale->height;
+> 
+> 	return 0;
+> }
+> --------------------
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Yes, this looks good as far as I can see.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
