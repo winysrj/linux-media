@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB6C9nIu013368
-	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 07:09:49 -0500
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB6C9Ywh018943
-	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 07:09:34 -0500
-Received: from tervel.nabble.com ([192.168.236.150])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <bounces@n2.nabble.com>) id 1L8vyX-0004ka-U0
-	for video4linux-list@redhat.com; Sat, 06 Dec 2008 04:09:33 -0800
-Message-ID: <1228565373925-1621999.post@n2.nabble.com>
-Date: Sat, 6 Dec 2008 04:09:33 -0800 (PST)
-From: alexWe <hondansx@gmx.de>
-To: video4linux-list@redhat.com
-In-Reply-To: <510940.57134.qm@web51804.mail.re2.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOJ74b2028306
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 14:07:04 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOJ6p0V013727
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 14:06:52 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so1212943fga.7
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 11:06:51 -0800 (PST)
+Message-ID: <30353c3d0812241106ie3ac395p2800ee88947d5a13@mail.gmail.com>
+Date: Wed, 24 Dec 2008 14:06:51 -0500
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Manas Bhattacharya" <bhattacharya.manas@gmail.com>
+In-Reply-To: <b9476b930812240930l60e1ca74ua53c4b16c40ecc85@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-References: <510940.57134.qm@web51804.mail.re2.yahoo.com>
-Subject: Re: bttv timeouts
+Content-Disposition: inline
+References: <b9476b930812240930l60e1ca74ua53c4b16c40ecc85@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: help: v4l2 pixel format setting
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,19 +30,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, Dec 24, 2008 at 12:30 PM, Manas Bhattacharya
+<bhattacharya.manas@gmail.com> wrote:
+> Hi all
+>  I  need help in setting pixel values to my wecam. My camera is Frontech
+> ecam jil 2220 model
+> The PC cam controller installed  Sn9c120  .Any pixel format i want to
+> set(say yuyv,yuv420 etc) VIDIOC_S_FORMAT returns me Bayer Rgb (sbggr8)
+> format .can u please help me in identifying the problem
+>       Manas Bhattacharya
 
-Hi,
+Correct, this looks like the right behavior. The vidioc_s_format ioctl
+only requests that the camera return the data in the format requested.
+If the camera does not support the requested format then it will set
+the format to something it does support and return that format to you.
+The reasoning behind this is that format conversions are not allowed
+to be done in kernel space. If you really need yuyv, yuv420, etc. from
+a camera that only supports sbggr8 then you should look at using
+libv4l which will happily convert from the camera's native format to
+the one you require.
 
-Maybe this can help you. See here: 
-http://n2.nabble.com/Pre-crash-log-td1515298.html#a1621996
+Regards,
 
-
-BR,
-Alex
-
--- 
-View this message in context: http://n2.nabble.com/bttv-timeouts-tp1614747p1621999.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
+David Ellingsworth
 
 --
 video4linux-list mailing list
