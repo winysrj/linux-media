@@ -1,16 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1LOYZX025846
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 16:24:36 -0500
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB1LG1I6017939
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 16:16:38 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de
-Date: Mon,  1 Dec 2008 22:15:58 +0100
-Message-Id: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
-Cc: video4linux-list@redhat.com
-Subject: [PATCH] mt9m111: Add automatic white balance control
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOJ6adW028054
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 14:06:36 -0500
+Received: from mail.anno.name (baal.anno.name [92.51.131.125])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOJ6LdO013415
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 14:06:22 -0500
+Received: from [192.168.178.37] (p579C26DC.dip.t-dialin.net [87.156.38.220])
+	by mail.anno.name (Postfix) with ESMTPA id 9D73922C4C24E
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 20:06:20 +0100 (CET)
+Message-ID: <49528845.20904@wakelift.de>
+Date: Wed, 24 Dec 2008 20:06:45 +0100
+From: Timo Paulssen <timo@wakelift.de>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Subject: recording from a playstation eye
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,94 +27,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/mt9m111.c |   28 +++++++++++++++++++++++++++-
- 1 files changed, 27 insertions(+), 1 deletions(-)
+Hello folks,
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index 9b9b377..208ec6c 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -90,7 +90,7 @@
- #define MT9M111_OUTPUT_FORMAT_CTRL2_B	0x19b
- 
- #define MT9M111_OPMODE_AUTOEXPO_EN	(1 << 14)
--
-+#define MT9M111_OPMODE_AUTOWHITEBAL_EN	(1 << 1)
- 
- #define MT9M111_OUTFMT_PROCESSED_BAYER	(1 << 14)
- #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
-@@ -163,6 +163,7 @@ struct mt9m111 {
- 	unsigned int swap_rgb_red_blue:1;
- 	unsigned int swap_yuv_y_chromas:1;
- 	unsigned int swap_yuv_cb_cr:1;
-+	unsigned int autowhitebalance:1;
- };
- 
- static int reg_page_map_set(struct i2c_client *client, const u16 reg)
-@@ -701,6 +702,23 @@ static int mt9m111_set_autoexposure(struct soc_camera_device *icd, int on)
- 
- 	return ret;
- }
-+
-+static int mt9m111_set_autowhitebalance(struct soc_camera_device *icd, int on)
-+{
-+	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
-+	int ret;
-+
-+	if (on)
-+		ret = reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
-+	else
-+		ret = reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
-+
-+	if (!ret)
-+		mt9m111->autowhitebalance = on;
-+
-+	return ret;
-+}
-+
- static int mt9m111_get_control(struct soc_camera_device *icd,
- 			       struct v4l2_control *ctrl)
- {
-@@ -737,6 +755,9 @@ static int mt9m111_get_control(struct soc_camera_device *icd,
- 	case V4L2_CID_EXPOSURE_AUTO:
- 		ctrl->value = mt9m111->autoexposure;
- 		break;
-+	case V4L2_CID_AUTO_WHITE_BALANCE:
-+		ctrl->value = mt9m111->autowhitebalance;
-+		break;
- 	}
- 	return 0;
- }
-@@ -770,6 +791,9 @@ static int mt9m111_set_control(struct soc_camera_device *icd,
- 	case V4L2_CID_EXPOSURE_AUTO:
- 		ret =  mt9m111_set_autoexposure(icd, ctrl->value);
- 		break;
-+	case V4L2_CID_AUTO_WHITE_BALANCE:
-+		ret =  mt9m111_set_autowhitebalance(icd, ctrl->value);
-+		break;
- 	default:
- 		ret = -EINVAL;
- 	}
-@@ -788,6 +812,7 @@ static int mt9m111_restore_state(struct soc_camera_device *icd)
- 	mt9m111_set_flip(icd, mt9m111->vflip, MT9M111_RMB_MIRROR_ROWS);
- 	mt9m111_set_global_gain(icd, icd->gain);
- 	mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
-+	mt9m111_set_autowhitebalance(icd, mt9m111->autowhitebalance);
- 	return 0;
- }
- 
-@@ -882,6 +907,7 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
- 		goto eisis;
- 
- 	mt9m111->autoexposure = 1;
-+	mt9m111->autowhitebalance = 1;
- 
- 	mt9m111->swap_rgb_even_odd = 1;
- 	mt9m111->swap_rgb_red_blue = 1;
--- 
-1.5.6.5
+I just got a Playstation Eye (yay for Jesus!), but I am struggling to
+record anything with it.
+My log of attempts so far:
+
+1. mencoder.
+I couldn't get mencoder to work at all, used something like this:
+mencoder -cache 128 -tv
+driver=v4l2:width=640:height=480:outfmt=i420:fps=60:forceaudio:adevice=/dev/dsp:immediatemode=0:forceaudio
+tv:// -oac copy -ovc copy -o test.avi
+which led to a "floating point exception"
+
+2. cheese.
+All i see is the gstreamer test video input signal, even though I set it
+correctly in gstreamer-properties and even the preview works.
+
+3. gstreamer.
+When running gst-launch-0.10 v4l2src device="/dev/video0" ! xvimagesink
+I get a nice video, but its framerate is way too low and there is a
+~1sec delay; this is unacceptable. when i try to set framerate=60, it
+claims to not know the framerate option, even though the documentation
+clearly states its existance.
+
+4. ffmpeg.
+when running ffplay -f video4linux2 /dev/video0 -s 640x480, I get
+"[video4linux2 @ 0xb801f680]The v4l2 frame is 614400 bytes, but 460800
+bytes are expected" multiple times.
+when using any of the two libv4l shared libraries I get half a second
+worth of frames out of it, then the image freezes and i get
+"[video4linux2 @ 0xb7f49680]ioctl(VIDIOC_DQBUF): Input/output error".
+
+5. spcaview.
+(when using the preloads) Video is fine, recorded from wrong microphone,
+mv'd /dev/dsp1 to /dev/dsp, but now I get really bad sound - everytime
+there is sound, it sounds really trashy.
+
+
+
+I am out of ideas now. I appreciate any pointers in the right direction :)
+  - Timo
 
 --
 video4linux-list mailing list
