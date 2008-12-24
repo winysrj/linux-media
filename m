@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBIMueci022381
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 17:56:40 -0500
-Received: from smtp-vbr13.xs4all.nl (smtp-vbr13.xs4all.nl [194.109.24.33])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBIMuQTN030473
-	for <video4linux-list@redhat.com>; Thu, 18 Dec 2008 17:56:26 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Thu, 18 Dec 2008 23:56:24 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOHeCtx023180
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:40:12 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBOHdjIs005075
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:39:45 -0500
+Date: Wed, 24 Dec 2008 18:39:59 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87r63xlbkc.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0812241839220.5463@axis700.grange>
+References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+	<87iqpi4qb0.fsf@free.fr>
+	<Pine.LNX.4.64.0812171921420.8733@axis700.grange>
+	<Pine.LNX.4.64.0812200104090.9649@axis700.grange>
+	<87wsdplc29.fsf@free.fr> <87r63xlbkc.fsf@free.fr>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200812182356.24739.hverkuil@xs4all.nl>
-Cc: 
-Subject: [PATCH] Please review V3 of v4l2-dev.c
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: soc-camera: current stack
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,64 +30,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-OK, I think I finally got it right.
+On Wed, 24 Dec 2008, Robert Jarzmik wrote:
 
-The latest version is in my usual ~hverkuil/v4l-dvb hg tree. The diff is not 
-useful, I recommend looking at the source itself.
+> Robert Jarzmik <robert.jarzmik@free.fr> writes:
+> 
+> > I made some tests of your patches against mainline tree (2.6.28-rc4 actually),
+> > on pxa271 + mt9m111.
+> >
+> > I'm not sure whether the problem is not on my setup, I hadn't touched it for
+> > days. I know after opening the video device, I setup a camera register before
+> > taking the picture (to set up the test pattern and automate my non-regression
+> > tests).
+> 
+> OK, I found. Was on my side, my kernel and my modules were not in sync (the
+> CONFIG_VIDEO_ADV_DEBUG was in modules, not in kernel).
 
-One big difference between this and the previous version is that v4l2-dev 
-now overrides all file_operations (at least the ones used by the v4l2 
-drivers) rather than only open and release. It turned out that you cannot 
-embed a file_operations struct inside video_device since after video_device 
-is released and freed the kernel __fput function still uses a reference to 
-it.
+So, my guess was right:-)
 
-So now v4l2-dev has two const static file_operations structs: one for 
-drivers using unlocked_ioctl and one for drivers using the normal ioctl. 
-The kernel assumes only one of these is set, so I can't merge it.
+> So you should know the whole serie is working fine on my setup :)))
 
-One useful property of using the release() callback of the device struct is 
-that once the device is unregistered it is not possible to obtain a new 
-reference to it since it is removed from all the internal data structs. So 
-when the refcount finally goes to 0 there is no race condition anymore 
-(like with cdev) where someone else can obtain a new reference while the 
-kref's release() is called.
+Great, thanks for testing!
 
-For the same reason we do not need to lock when refcounting. The only tricky 
-bit is to ensure that open() will fail if the device is unregistered. 
-Marking or testing the 'unregistered' flag and using or changing the global 
-video_device array must all be done under the videodev_lock mutex, 
-otherwise we cannot rely on a consistent state.
-
-Note that the file_operations overrides look a bit odd since each op uses a 
-different return value when the driver doesn't support that op. I carefully 
-checked which value the kernel uses in case a driver doesn't support the op 
-and used that here as well.
-
-The cdev field in video_device is now a pointer since after the video_device 
-is freed the cdev might still be in use. By allocating it dynamically cdev 
-will automatically free itself when its refcount goes to 0.
-
-I haven't been able to break it and I think it is now really correct.
-
-Some notes on future work:
-
-An obvious change to the drivers would be to create our own file_operations 
-(v4l2_operations) that only contains the subset that is currently 
-overridden. It allows us to pass the vfd pointer directly to the driver (no 
-need to look it up in the driver). In addition we can remove the 
-compat_ioctl op altogether since that can be handled directly in v4l2-dev. 
-We also need this so that we can catch new drivers that try to use a new op 
-that's not yet overridden in v4l2-dev.
-
-Please test and review!
-
-Thanks,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Regards
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
