@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBDkbOL023873
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 08:46:37 -0500
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBBDkOif023517
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 08:46:25 -0500
-Received: from tervel.nabble.com ([192.168.236.150])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <bounces@n2.nabble.com>) id 1LAls0-0004My-Ag
-	for video4linux-list@redhat.com; Thu, 11 Dec 2008 05:46:24 -0800
-Message-ID: <1229003184324-1643171.post@n2.nabble.com>
-Date: Thu, 11 Dec 2008 05:46:24 -0800 (PST)
-From: apiper <andy.piper@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <491C8EE1.5050203@home.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOG2eJA017956
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 11:02:40 -0500
+Received: from relay-pt2.poste.it (relay-pt2.poste.it [62.241.5.253])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOG2Q6W018379
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 11:02:26 -0500
+Received: from geppetto.reilabs.com (78.15.202.84) by relay-pt2.poste.it
+	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+	id 49517C0000006C4E for video4linux-list@redhat.com;
+	Wed, 24 Dec 2008 17:02:26 +0100
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1LFWA2-00077t-GG
+	for video4linux-list@redhat.com; Wed, 24 Dec 2008 17:00:38 +0100
+Date: Wed, 24 Dec 2008 17:00:38 +0100
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+To: video4linux-list Mailing List <video4linux-list@redhat.com>
+Message-ID: <20081224160038.GD475@geppetto>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-References: <491726CF.4050008@home.se>
-	<da493cc0811110526k49afdebtf278c9255de4791d@mail.gmail.com>
-	<491C8EE1.5050203@home.se>
-Content-Transfer-Encoding: 8bit
-Subject: Re: Failing to build em28xx-new
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: gspca, linux 2.6.26 and ioctl(VIDIOC_QUERYCAP) returning -1,
+	what's wrong?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,304 +32,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi all,
 
-Hi folks,
+I'm using linux 2.6.26 and the Debian gspca module, and I'm getting
+ioctl(VIDIOC_QUERYCAP) return -1 after the device is opened.
 
-I just ran into this problem myself when compiling em28xx-new on Ubuntu
-8.10, thanks for the fix!
+Do you have any hint to share?
 
-Did you ever file that bug report Andreas?
+Here there are some relevant informations:
 
-Cheers
+stefano@geppetto ~/s/ffmpeg> uname -a
+Linux geppetto 2.6.26-1-686 #1 SMP Sat Oct 18 16:22:25 UTC 2008 i686 GNU/Linux
+stefano@geppetto ~/s/ffmpeg> sudo modinfo gspca 
+filename:       /lib/modules/2.6.26-1-686/kernel/drivers/usb/media/gspca.ko
+author:         Michel Xhaard <mxhaard@users.sourceforge.net> based on spca50x driver by Joel Crisp <cydergoth@users.sourceforge.net>,ov511 driver by Mark McClelland <mwm@i.am>
+description:    GSPCA/SPCA5XX USB Camera Driver
+license:        GPL
+vermagic:       2.6.26-1-686 SMP mod_unload modversions 686 
+depends:        usbcore,videodev
+alias:          usb:v093Ap2463d*dc*dsc*dp*ic*isc*ip*
+[...]
+parm:           force_gamma_id:Forced assigning ID of contrast settings (0=default,1,2,3) Zc03xx only (int)
+parm:           force_sensor_id:Forced assigning ID sensor (Zc03xx only). Dangerous, only for experts !!! (int)
+parm:           lightfreq:Light frequency banding filter. Set to 50 or 60 Hz, or 0 for NoFlicker (default=50) Zc03xx only (int)
+parm:           usbgrabber:Is a usb grabber 0x0733:0x0430 ? (default 1)  (int)
+parm:           compress:Turn on/off compression (not functional yet) (int)
+parm:           GGreen:Gain Green setting range 0 to 512 /256  (int)
+parm:           GBlue:Gain Blue setting range 0 to 512 /256  (int)
+parm:           GRed:Gain Red setting range 0 to 512 /256  (int)
+parm:           OffGreen:OffGreen setting range -128 to 128 (int)
+parm:           OffBlue:OffBlue setting range -128 to 128 (int)
+parm:           OffRed:OffRed setting range -128 to 128 (int)
+parm:           gamma:gamma setting range 0 to 7 3-> gamma=1 (int)
+parm:           force_rgb:Read RGB instead of BGR (int)
+parm:           debug:Debug level: 0=none, 1=init/detection, 2=warning, 3=config/control, 4=function call, 5=max (int)
+parm:           autoexpo:Enable/Disable auto exposure (default=1: enabled) (PC-CAM 600/Zc03xx/spca561a/Etoms Only !!!) (int)
 
--Andy
+stefano@geppetto ~/s/ffmpeg> dmesg
+[...]
+[38586.942147] Linux video capture interface: v2.00
+[38586.945359] gspca: USB GSPCA camera found.(ZC3XX) 
+[38586.945359] gspca: [spca5xx_probe:4275] Camera type JPEG 
+[38587.582486] gspca: [zc3xx_config:669] Find Sensor HV7131R(c)
+[38587.586948] gspca: [spca5xx_getcapability:1249] maxw 640 maxh 480 minw 160 minh 120
+[38587.586948] usbcore: registered new interface driver gspca
+[38587.586948] gspca: gspca driver 01.00.20 registered
+[38611.561635] gspca: [spca5xx_set_light_freq:1932] Sensor currently not support light frequency banding filters.
+[38611.561740] gspca: [gspca_set_isoc_ep:945] ISO EndPoint found 0x81 AlternateSet 7
+[38627.563632] gspca: [spca5xx_set_light_freq:1932] Sensor currently not support light frequency banding filters.
+[38627.563726] gspca: [gspca_set_isoc_ep:945] ISO EndPoint found 0x81 AlternateSet 7
+[38629.217385] gspca: [spca5xx_do_ioctl:2124] Bridge ZC301-2 
+[38634.087208] gspca: [spca5xx_set_light_freq:1932] Sensor currently not support light frequency banding filters.
+[38634.087208] gspca: [gspca_set_isoc_ep:945] ISO EndPoint found 0x81 AlternateSet 7
 
+The failing application is ffplay (ffplay -s 320x240 -f video4linux2
+/dev/video0) if that matters.
 
-
-Andreas Lunderhage wrote:
-> 
-> Great!
-> 
-> Now it was just a matter of make, make install, plugin the receiver and 
-> start watching TV. Thanks!
-> 
-> But I'm suprised those header files wheren't in the linux-headers 
-> package in Ubuntu... Since not many dvb receivers are in the kernel, 
-> those headers are needed in linux-headers. Maybe I should file a bug on 
-> it...
-> 
-> Regards
-> /Andreas
-> 
-> Seláf Szabolcs wrote:
->> Hi,
->>
->> I found same issue. To resolve put your kernel source into
->> /lib/modules/`uname -r`/source directory or just create a link like me:
->> ln -sf /lib/modules/2.6.26-1-amd64/source /usr/src/linux-source-2.6.26
->>
->> Regards,
->> Selu
->>
->> On Sun, Nov 9, 2008 at 7:07 PM, Andreas Lunderhage
->> <lunderhage@home.se>wrote:
->>
->>   
->>> Hi,
->>>
->>> I fail to build the em28xx-new driver due to missing files.
->>>
->>> dmxdev.h, dvb_demux.h, dvb_net.h and dvb_frontend.h.
->>>
->>> Where are these files? I have searched the whole repository of Ubuntu
->>> 8.10 and only found them one time in a package that did seem to be too
->>> old for use with this code.
->>>
->>> My question is: How do you build em28xx-new in Ubuntu 8.10?
->>>
->>> BR
->>> /Lunderhage
->>>
->>> I attach the output of trying to build this module:
->>>
->>> lunderhage@Lunsectop:~/em28xx-new$ ./build.sh build
->>> rm -rf Module.symvers;
->>> make -C /lib/modules/`if [ -d /lib/modules/2.6.21.4-eeepc ]; then echo
->>> 2.6.21.4-eeepc; else uname -r; fi`/build SUBDIRS=`pwd` modules
->>> make[1]: Entering directory `/usr/src/linux-headers-2.6.27-7-generic'
->>> CC [M] /home/lunderhage/em28xx-new/em2880-dvb.o
->>> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:33:
->>> /home/lunderhage/em28xx-new/em28xx.h:32:20: error: dmxdev.h: No such
->>> file or directory
->>> /home/lunderhage/em28xx-new/em28xx.h:33:23: error: dvb_demux.h: No such
->>> file or directory
->>> /home/lunderhage/em28xx-new/em28xx.h:34:21: error: dvb_net.h: No such
->>> file or directory
->>> /home/lunderhage/em28xx-new/em28xx.h:35:26: error: dvb_frontend.h: No
->>> such file or directory
->>> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:33:
->>> /home/lunderhage/em28xx-new/em28xx.h:553: error: field 'demux' has
->>> incomplete type
->>> /home/lunderhage/em28xx-new/em28xx.h:561: error: field 'adapter' has
->>> incomplete type
->>> /home/lunderhage/em28xx-new/em28xx.h:564: error: field 'dmxdev' has
->>> incomplete type
->>> /home/lunderhage/em28xx-new/em28xx.h:566: error: field 'dvbnet' has
->>> incomplete type
->>> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:40:
->>> /home/lunderhage/em28xx-new/mt352/mt352.h: In function 'mt352_write':
->>> /home/lunderhage/em28xx-new/mt352/mt352.h:68: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/mt352/mt352.h:69: error: dereferencing
->>> pointer to incomplete type
->>> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:42:
->>> /home/lunderhage/em28xx-new/drx3973d/drx3973d_demod.h: At top level:
->>> /home/lunderhage/em28xx-new/drx3973d/drx3973d_demod.h:9: error: field
->>> 'frontend' has incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:48:22: error: lgdt330x.h: No
->>> such file or directory
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em2880_complete_irq':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:256: error: implicit
->>> declaration of function 'dvb_dmx_swfilter'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: At top level:
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:365: warning: 'struct
->>> dvb_demux_feed' declared inside parameter list
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:365: warning: its scope is only
->>> this definition or declaration, which is probably not what you want
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em2880_start_feed':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:367: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:368: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: At top level:
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:382: warning: 'struct
->>> dvb_demux_feed' declared inside parameter list
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em2880_stop_feed':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:384: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:385: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_ts_bus_ctrl':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:411: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'mt352_pinnacle_init':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:462: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: At top level:
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:488: error: variable
->>> 'em2880_lgdt3303_dev' has initializer but incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:489: error: unknown field
->>> 'demod_address' specified in initializer
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:489: warning: excess elements
->>> in struct initializer
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:489: warning: (near
->>> initialization for 'em2880_lgdt3303_dev')
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:490: error: unknown field
->>> 'demod_chip' specified in initializer
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:490: error: 'LGDT3303'
->>> undeclared here (not in a function)
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:491: warning: excess elements
->>> in struct initializer
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:491: warning: (near
->>> initialization for 'em2880_lgdt3303_dev')
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'kworld355u_i2c_gate_ctrl':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:505: error: field 'frontend'
->>> has incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:511: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_set_params':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:525: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:534: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_get_frequency':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:652: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_get_bandwidth':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:659: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em28xx_dvb_init':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:667: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_s921_init':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:723: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_zl10353_init':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:740: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_zl10353_sleep':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:785: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->>> 'em28xx_dvb_sleep':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:797: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em2880_dvb_init':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:866: error: implicit
->>> declaration of function 'dvb_attach'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:870: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:889: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:892: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:897: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:903: error: 'lgdt330x_attach'
->>> undeclared (first use in this function)
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:903: error: (Each undeclared
->>> identifier is reported only once
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:903: error: for each function
->>> it appears in.)
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:904: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:913: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:918: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:924: warning: assignment makes
->>> pointer from integer without a cast
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:927: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:928: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:929: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:950: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:951: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:953: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:955: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:959: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:961: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:970: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:984: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:986: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:987: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1005: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1008: error: implicit
->>> declaration of function 'dvb_register_adapter'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1026: error: implicit
->>> declaration of function 'dvb_register_frontend'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1033: error: 'DMX_TS_FILTERING'
->>> undeclared (first use in this function)
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1034: error:
->>> 'DMX_SECTION_FILTERING' undeclared (first use in this function)
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1035: error:
->>> 'DMX_MEMORY_BASED_FILTERING' undeclared (first use in this function)
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1037: error: implicit
->>> declaration of function 'dvb_dmx_init'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1048: error: implicit
->>> declaration of function 'dvb_dmxdev_init'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1052: error: implicit
->>> declaration of function 'dvb_dmxdev_release'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1063: error: implicit
->>> declaration of function 'dvb_net_init'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1063: error: dereferencing
->>> pointer to incomplete type
->>> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em2880_dvb_fini':
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1083: error: implicit
->>> declaration of function 'dvb_net_release'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1084: error: implicit
->>> declaration of function 'dvb_unregister_frontend'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1085: error: implicit
->>> declaration of function 'dvb_frontend_detach'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1089: error: implicit
->>> declaration of function 'dvb_dmx_release'
->>> /home/lunderhage/em28xx-new/em2880-dvb.c:1091: error: implicit
->>> declaration of function 'dvb_unregister_adapter'
->>> make[2]: *** [/home/lunderhage/em28xx-new/em2880-dvb.o] Error 1
->>> make[1]: *** [_module_/home/lunderhage/em28xx-new] Error 2
->>> make[1]: Leaving directory `/usr/src/linux-headers-2.6.27-7-generic'
-> 
->>> make: *** [default] Error 2
->>> lunderhage@Lunsectop:~/em28xx-new$
->>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe
->>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
->>>     
->>
->>
->>
->>   
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-> 
-
--- 
-View this message in context: http://n2.nabble.com/Failing-to-build-em28xx-new-tp1478019p1643171.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
-
+Regards.
 
 --
 video4linux-list mailing list
