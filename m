@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBM2TSuT014560
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 21:29:28 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBM2TF1r012685
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 21:29:15 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so1836171wfc.6
-	for <video4linux-list@redhat.com>; Sun, 21 Dec 2008 18:29:15 -0800 (PST)
-Message-ID: <aec7e5c30812211829t2b1b6dffvbc17f095ee24153b@mail.gmail.com>
-Date: Mon, 22 Dec 2008 11:29:15 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812191403540.4536@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOHYksj020658
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:34:46 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBOHYUCD002347
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:34:30 -0500
+Date: Wed, 24 Dec 2008 18:34:44 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87wsdplc29.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0812241831210.5463@axis700.grange>
+References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+	<87iqpi4qb0.fsf@free.fr>
+	<Pine.LNX.4.64.0812171921420.8733@axis700.grange>
+	<Pine.LNX.4.64.0812200104090.9649@axis700.grange>
+	<87wsdplc29.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <Pine.LNX.4.64.0812171938460.8733@axis700.grange>
-	<aec7e5c30812190426ja9252a6k95b626c2ce87a909@mail.gmail.com>
-	<Pine.LNX.4.64.0812191403540.4536@axis700.grange>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 3/4] soc-camera: add new bus width and signal polarity
-	flags
+Subject: Re: soc-camera: current stack
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,28 +30,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
+On Wed, 24 Dec 2008, Robert Jarzmik wrote:
 
-[updated version, flags only]
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > This should produce an equivalent of what is currently in my hg tree - at 
+> > least in what soc-camera concerns. If there's any interest, I might look 
+> > into installing a git-server and providing a git-tree with soc-camera 
+> > patches on that server, for 3 users to pull 5 putches every 2 weeks my 
+> > 400MHz ARM9 on a dyndns ADSL line should be enough:-)
+> >
+> > Next on queue (not yet in any of the directories on that server)
+> 
+> Hi Guennadi,
+> 
+> I made some tests of your patches against mainline tree (2.6.28-rc4 actually),
+> on pxa271 + mt9m111.
+> 
+> I have one little problem I can't remember having before :
+> 
+> [  728.372987] Backtrace:
+> [  728.378014] [<bf05f230>] (mt9m111_set_register+0x0/0x80 [mt9m111]) from [<bf056300>] (soc_camera_s_register+0x2c/0x38 [soc_camera])
+> [  728.388248]  r5:039e6cf0 r4:00000018
+> [  728.393278] [<bf0562d4>] (soc_camera_s_register+0x0/0x38 [soc_camera]) from [<c0164734>] (__video_ioctl2+0x684/0x39a4)
+> [  728.403419] [<c01640b0>] (__video_ioctl2+0x0/0x39a4) from [<c0167a70>] (video_ioctl2+0x1c/0x20)
+> [  728.413404] [<c0167a54>] (video_ioctl2+0x0/0x20) from [<c009a8fc>] (vfs_ioctl+0x74/0x78)
+> [  728.423393] [<c009a888>] (vfs_ioctl+0x0/0x78) from [<c009acb8>] (do_vfs_ioctl+0x390/0x4ac)
+> [  728.433342]  r5:039e6cf0 r4:c39d3340
+> [  728.438221] [<c009a928>] (do_vfs_ioctl+0x0/0x4ac) from [<c009ae14>] (sys_ioctl+0x40/0x68)
+> [  728.447976] [<c009add4>] (sys_ioctl+0x0/0x68) from [<c0024e80>] (ret_fast_syscall+0x0/0x2c)
+> [  728.457785]  r7:00000036 r6:4018564f r5:039e6cf0 r4:00000000
+> [  728.462692] Code: e89da800 e1a0c00d e92dd830 e24cb004 (e5913000)
+> [  728.468135] ---[ end trace a231255d0862dac6 ]---
 
-On Fri, Dec 19, 2008 at 10:07 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> From 1d89b241f4553a5ceb5b6fd9870f02324cc281fe Mon Sep 17 00:00:00 2001
-> From: Guennadi Liakhovetski <lg@denx.de>
-> Date: Mon, 15 Dec 2008 00:49:41 +0100
-> Subject: [PATCH] soc-camera: add new bus width and signal polarity flags
->
-> In preparation for i.MX31 camera host driver add flags for 4 and 15 bit bus
-> widths and for data lines polarity inversion.
->
-> Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
-> ---
->  include/media/soc_camera.h |   23 ++++++++++++++---------
->  1 files changed, 14 insertions(+), 9 deletions(-)
+You didn't post the top part - from ---[ start trace ... ]--- (or whatever 
+it is marked), it shows the exact PC and the reason for the Oops. But it's 
+strange - I don't think anything has changed aroung controls / 
+get/set_register. Have you replaced both the kernel and the modules? 
+Sorry, stupid question, but it really looks strange.
 
-This version solves the problem. Thanks for your help!
+> I'm not sure whether the problem is not on my setup, I hadn't touched it for
+> days. I know after opening the video device, I setup a camera register before
+> taking the picture (to set up the test pattern and automate my non-regression
+> tests).
+> 
+> Will check after Christmas :)
 
-Acked-by: Magnus Damm <damm@igel.co.jp>
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
