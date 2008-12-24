@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB1F048D015444
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 10:00:04 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mB1ExpNk023525
-	for <video4linux-list@redhat.com>; Mon, 1 Dec 2008 09:59:51 -0500
-Date: Mon, 1 Dec 2008 16:00:00 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20081201124313.4d233311@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.64.0812011551460.3915@axis700.grange>
-References: <Pine.LNX.4.64.0812011412050.3915@axis700.grange>
-	<20081201124313.4d233311@pedra.chehab.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOHb6xG021962
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:37:07 -0500
+Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOHaqcc003990
+	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 12:36:52 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1228166159-18164-1-git-send-email-robert.jarzmik@free.fr>
+	<87iqpi4qb0.fsf@free.fr>
+	<Pine.LNX.4.64.0812171921420.8733@axis700.grange>
+	<Pine.LNX.4.64.0812200104090.9649@axis700.grange>
+	<87wsdplc29.fsf@free.fr>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 24 Dec 2008 18:36:51 +0100
+In-Reply-To: <87wsdplc29.fsf@free.fr> (Robert Jarzmik's message of "Wed\,
+	24 Dec 2008 18\:26\:06 +0100")
+Message-ID: <87r63xlbkc.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: video4linux-list@redhat.com
-Subject: Re: Patches, affecting directories not in hg/linux
+Subject: Re: soc-camera: current stack
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,80 +31,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 1 Dec 2008, Mauro Carvalho Chehab wrote:
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-> On Mon, 1 Dec 2008 14:22:17 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > Hi Mauro,
-> > 
-> > I have a series of two patches, of which the first _amends_ a pxa-header, 
-> > creates a header under drivers/media/video/, and changes pxa_camera.c to 
-> > include the new header:
-> > 
-> >  arch/arm/mach-pxa/include/mach/pxa-regs.h |   95 -----------------------------
-> >  drivers/media/video/pxa_camera.c          |    2 +
-> >  drivers/media/video/pxa_camera.h          |   95 +++++++++++++++++++++++++++++
-> >  3 files changed, 97 insertions(+), 95 deletions(-)
-> >  create mode 100644 drivers/media/video/pxa_camera.h
-> > 
-> > and the second one is based on the first: it only touches files under 
-> > drivers/media/video, but needs results of the first one:
-> > 
-> >  drivers/media/video/pxa_camera.c |  204 ++++++++++++++++++++++++++++++--------
-> >  drivers/media/video/pxa_camera.h |   95 ------------------
-> >  2 files changed, 162 insertions(+), 137 deletions(-)
-> >  delete mode 100644 drivers/media/video/pxa_camera.h
-> > 
-> > (yes, it deletes drivers/media/video/pxa_camera.h again... No, I don't 
-> > like it either)
-> 
-> Argh! Why inserting the header file just to delete on the next patch?
+> I made some tests of your patches against mainline tree (2.6.28-rc4 actually),
+> on pxa271 + mt9m111.
+>
+> I'm not sure whether the problem is not on my setup, I hadn't touched it for
+> days. I know after opening the video device, I setup a camera register before
+> taking the picture (to set up the test pattern and automate my non-regression
+> tests).
 
-Yeah... good question. At first Eric has done everything in one patch: 
-moved defines like
+OK, I found. Was on my side, my kernel and my modules were not in sync (the
+CONFIG_VIDEO_ADV_DEBUG was in modules, not in kernel).
 
--#define CICR0		__REG(0x50000000)
--#define CICR1		__REG(0x50000004)
+So you should know the whole serie is working fine on my setup :)))
 
-away from arch/arm/mach-pxa/include/mach/pxa-regs.h thus cleaning it up, 
-and replaced them with
+Cheers.
 
-+#define CICR0		(0x0000)
-+#define CICR1		(0x0004)
-
-because in the same patch he switch pxa_camera.c from IO-style register 
-access like
-
-	CICR0 = x;
-
-to memmapped IO. So, I asked him to split that patch into two, also to 
-make a clean separation between the ARM and the v4l parts. And this is 
-what he came up with - a header file that is created only to be removed 
-with the next patch. Whereas I hoped he would just first move defines to 
-pxa_camera.c as is, and then replace them _there_ with offsets... But I 
-didn't consider this too bad of a problem to ask him about yet another 
-revision... If you disagree - we can probably still do this.
-
-> > I acked the first one and it is going to be merged over the ARM tree, the 
-> > second one we should merge ourselves.
-> > 
-> > Shall we wait until the first one is in "next", so we can resync with it 
-> > and then push the second one or how would you prefer to do this?
-> 
-> For sure we need to wait for the first one to be at -next. Then, we should
-> apply it, with a meta tag "kernel-sync:", to not break the compilation of
-> v4l/dvb tree[1], and apply the second one.
-> 
-> [1] The meta-tag will sign to my scripts to discard the patch, not exporting it to -git.
-
-Yep... I'll ask him to let me know when the first patch gets in.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+--
+Robert
 
 --
 video4linux-list mailing list
