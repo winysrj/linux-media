@@ -1,25 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.190])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1LBqUs-0003ze-0y
-	for linux-dvb@linuxtv.org; Sun, 14 Dec 2008 13:55:00 +0100
-Received: by rn-out-0910.google.com with SMTP id j43so1828821rne.2
-	for <linux-dvb@linuxtv.org>; Sun, 14 Dec 2008 04:54:53 -0800 (PST)
-Message-ID: <19a3b7a80812140454r295a83edtd93ba28cc7e8a47f@mail.gmail.com>
-Date: Sun, 14 Dec 2008 13:54:53 +0100
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
-In-Reply-To: <003a01c954d2$2305ae50$217da8c0@tdrpc>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <Hartmut.Niemann@gmx.de>) id 1LFmBz-0003bA-NJ
+	for linux-dvb@linuxtv.org; Thu, 25 Dec 2008 10:07:44 +0100
+From: Hartmut Niemann <Hartmut.Niemann@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Thu, 25 Dec 2008 09:40:13 +0100
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <938eabef0811270552t16fb1f7drc95988373f8c61fc@mail.gmail.com>
-	<938eabef0811270559pb48bdf6lc2d22818c71a559c@mail.gmail.com>
-	<19a3b7a80812020750o17c2b00ibd9d5663353564d8@mail.gmail.com>
-	<alpine.DEB.2.00.0812022158510.9198@ybpnyubfg.ybpnyqbznva>
-	<alpine.DEB.2.00.0812022241370.9198@ybpnyubfg.ybpnyqbznva>
-	<003a01c954d2$2305ae50$217da8c0@tdrpc>
-Cc: Martin Jaburek <longmatys@gmail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New scan file for cz-Praha
+Message-Id: <200812250940.13582.Hartmut.Niemann@gmx.de>
+Subject: [linux-dvb] cx88 (Hauppauge Nova-S-Plus DVB-S) doesn't like to
+	share interrupt?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,60 +18,38 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkgZ3V5cywKCkknbSB1cGRhdGluZyB0aGF0IGZpbGUgYWNjb3JkaW5nIHRvIHRoZSBkaWdpem9u
-ZS5jeiBpbmZvcm1hdGlvbiB5b3UKbWVudGlvbiBoZXJlOyBqdXN0IHRoYXQgSSBhbHJlYWR5IHVz
-ZSB0aGUgMTUuMTIuMDggc2V0dGluZ3MgZm9yIG11eDMKKEkgZG9uJ3Qgd2FudCB0byB1cGRhdGUg
-dGhlIGZpbGUgdG9tb3Jyb3cgYWdhaW4gOykKCkhvcGVmdWxseSBpdCB3b3JrcyBhcyBleHBlY3Rl
-ZCBhbmQgdGhhbmtzLAoKQ2hyaXN0b3BoCgoKMjAwOC8xMi8zIFRvbWFzIERyYWpzYWp0bCA8bGlu
-dXgtZHZiQGRyYWpzYWp0bC5jej46Cj4gSGVyZSBpcyB0aGUgYWN0dWFsIG1hcDogaHR0cDovL3d3
-dy5kaWdpem9uZS5jei90ZXh0eS9tYXB5LXBva3J5dGkvCj4KPiBTbyBmb3IgUHJhZ3VlOgo+Cj4g
-bXV4IDEgQ2Vza2EgdGVsZXZpemUKPiBodHRwOi8vd3d3LmRpZ2l6b25lLmN6L3RleHR5L211bHRp
-cGxleC0xLW1hcHktcG9rcnl0aS1jZXNrYS10ZWxldml6ZS8KPiBjaGFubmVsIDUzLCA4IE1Ieiwg
-OGssIGd1YXJkIDEvNCwgZmVjIDIvMywgcWFtIDY0LCBoaWVyIG5vbmUKPgo+IG11eCAyIENlc2tl
-IHJhZGlva29tdW5pa2FjZSBodHRwOi8vd3d3LmRpZ2l6b25lLmN6L3RleHR5L3Bva3J5dGktc2l0
-LWEvCj4gY2hhbm5lbCA0MSwgOCBNSHosIDhrLCBndWFyZCAxLzQsIGZlYyAyLzMsIHFhbSA2NCwg
-aGllciBub25lCj4KPiBtdXggMyBDemVjaCBEaWdpdGFsIEdyb3VwIGh0dHA6Ly93d3cuZGlnaXpv
-bmUuY3ovdGV4dHkvcG9rcnl0aS1zaXQtYi8KPiBjaGFubmVsIDQ2LCA/Pz8gKHByb2JhYmx5IHRo
-ZSBzYW1lLCBpdCdzIHRoZSBzYW1lIGluIEJybm8sIHdoZXJlIEkgbGl2ZQo+IG5lYXJieSkKPgo+
-IG11eCA0IFRlbGVmb25pY2EgTzIgaHR0cDovL3d3dy5kaWdpem9uZS5jei90ZXh0eS9wb2tyeXRp
-LXNpdC1jLwo+IGNoYW5uZWwgNjQsIDggTUh6LCA4aywgZ3VhcmQgMS84LCBmZWMgMi8zLCBxYW0g
-NjQsIGhpZXIgbm9uZQo+IChvbmx5IGhlcmUgdGhlIGd1YXJkIGludGVydmFsIGlzIGRpZmZlcmVu
-dCBhcyBpbiBCcm5vKQo+Cj4gQWNjb3JkaW5nIHRvIHRoZQo+IGh0dHA6Ly93d3cuZGlnaXpvbmUu
-Y3ovdGV4dHkvbXVsdGlwbGV4LTEtbWFweS1wb2tyeXRpLWNlc2thLXRlbGV2aXplLyAgdGhlCj4g
-Y2hhbm5lbCA1NzAgTWh6IChjaGFubmVsIDMzKSBpcyBqdXN0IGEgd2VhayBjb3B5IG9mIG11eCAx
-IGZyb20gVXN0aSBuLkwuCj4KPiBJIGhvcGUgSSB3aWxsIGNhbGN1bGF0ZSBjb3JyZWN0bHksIHBs
-ZWFzZSBjaGVjay4KPiBtdXggMTogY2hhbm5lbCA1MyAtPiA3MzAgTUh6Cj4gbXV4IDI6IGNoYW5u
-ZWwgNDEgLT4gNjM0IE1Iego+IG11eCAzOiBjaGFubmVsIDQ2IC0+IDY3NCBNSHoKPiBtdXggNDog
-Y2hhbm5lbCA2NCAtPiA4MTggTUh6Cj4KPiBZb3UgY2FuIHVzZSB0aGUgY3otQnJubyBmaWxlIEkg
-cG9zdGVkIGhlcmUgYSBtb250aCBhZ28gd2hpY2ggc2hvdWxkIGJlIG5vdwo+IGNvbW1pdGVkIGlu
-IHRoZSB0cmVlLiBKdXN0IHJlcGxhY2UgdGhlIGZyZXF1ZW5jaWVzIGluIHRoYXQgZmlsZS4KPgo+
-IFJlZ2FyZHMsCj4gVG9tYXMKPgo+Cj4gLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLQo+IEZy
-b206ICJCT1VXU01BIEJhcnJ5IiA8ZnJlZWJlZXIuYm91d3NtYUBnbWFpbC5jb20+Cj4gVG86ICJN
-YXJ0aW4gSmFidXJlayIgPGxvbmdtYXR5c0BnbWFpbC5jb20+Cj4gQ2M6IDxsaW51eC1kdmJAbGlu
-dXh0di5vcmc+Cj4gU2VudDogVHVlc2RheSwgRGVjZW1iZXIgMDIsIDIwMDggMTE6MTQgUE0KPiBT
-dWJqZWN0OiBSZTogW2xpbnV4LWR2Yl0gTmV3IHNjYW4gZmlsZSBmb3IgY3otUHJhaGEKPgo+Cj4g
-T29vaCwgcmVwbHlpbmcgdG8gbXlzZWxmLiAgV2hhdCBhbiBlZ29pc3QuICBVTkZJVCBUTyBEUklW
-RQo+IE9OIFRIRUUgSU5URVJORVQuICBTaGFtZWZ1bC4gIE1heSBhcyB3ZWxsIHdyaXRlIGEgbm92
-ZWwKPiBvZiBub3RoaW5nIGJ1dCB0YWxraW5nIHRvIGhpbXNlbGYuICBHRVQgQSBST09NIQo+Cj4g
-T24gVHVlLCAyIERlYyAyMDA4LCBCT1VXU01BIEJhcnJ5IHNsb2JiZXJlZCBhbmQgZHJpYmJsZWQ6
-Cj4KPj4gT3IsIGEgcXVpY2sgc2VhcmNoICh3aXRoIG5vIGJhY2tncm91bmQpIHNob3dzIHRoaXMg
-ZnJlcXVlbmN5Cj4+IGlzIGluIHVzZSBhdCBVc3RpIG4uTGFiZW0gKG5vcnRoLWlzaDsgd291bGQg
-aGF2ZSB0byBzZWFyY2ggbXkKPj4gbWFwcyB0byBxdW90ZSBhY3R1YWwgYW50ZW5uYSBkaXN0YW5j
-ZSBhbmQgdmlldyB0ZXJyYWluIGFuZAo+Cj4gUmVseWluZyBvbiBnMDBnbGUgY2FjaGUgd2l0aCBy
-ZXN1bHRzIGZvciBgZHZiLXQgcHJhaGEnLCBpdAo+IHNlZW1zIHRoYXQgYGBkeHJhZGlvLmN6IC0g
-cMWZZWhsZWQgRFZCLVQgdnlzw61sYcSNxa8gdiDEjGVza3UnJwo+IGxpc3RzIGZyZXF1ZW5jaWVz
-IGluIHVzZSBhdCBwcmVzZW50LCBhbmQgYGBEaWdpdMOhbG7DrVRlbGV2aXplLmN6ID4KPiBQb3pl
-bW7DrSBkaWdpdMOhbG7DrSB2eXPDrWzDoW7DrSB2IMSMZXNrw6kgcmVwdWJsaWNlJycgbGlzdHMg
-cGxhbm5lZAo+IGZyZXF1ZW5jaWVzIC0tIHBvc3NpYmx5IG1vZHVsYXRpb24gcGFyYW1ldGVycyBh
-cmUgbGlua2VkIGZyb20KPiB0aGUgbGF0dGVyLCBJIGhhdmVuJ3QgeWV0IGNoZWNrZWQsIGJ1dCBS
-ZWFsIFNvb24gTm93IEkgc2hvdWxkCj4gbWFwIG91dCBhIGN6LWFsbCBmaWxlIGNvbXBhcmFibGUg
-dG8gbXkgQmFkZW4tV3VlcnR0ZW1iZXJnIGZpbGUKPiB0byBnZXQgYSBiZXR0ZXIgb3ZlcnZpZXcu
-Li4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgt
-ZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2
-Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hello!
+With debian stable (kernel 2.6.24-etchnhalf.1-686 #1 SMP) on AMD Athlon(tm) XP 2600+, 
+MSI KT4AV (VIA KT400) my Hauppauge Nova-S-Plus DVB-S does not work well.
+
+The DVB receiver used to share an interrupt with an 
+USB / firewire combo interface board.
+After a few minutes of viewing TV (kaffeine 0.8.3), the system started
+skipping frames, until it displayed only 3 or 4 frames a second,
+with heavily distorted audio. Sometimes stopping and restarting helps.
+
+Since I moved the USB interface to a different PCI slot, this problem
+seems to be gone.
+
+This is a regression, because as far as I can remember,
+when I set up the system some time ago,
+it worked far better than now. But I can't tell which change in the system
+did this.
+
+Is this a known problem?
+Would a dist upgrade to "debian testing" help?
+
+With best regards 
+Hartmut Niemann
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
