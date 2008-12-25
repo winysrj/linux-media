@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3INxr0008260
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 13:23:59 -0500
-Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3INi1t023358
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 13:23:45 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: ivtv-devel@ivtvdriver.org
-Date: Wed, 3 Dec 2008 19:22:13 +0100
-References: <de8cad4d0812022131h29832960y1881b79137b9fa46@mail.gmail.com>
-In-Reply-To: <de8cad4d0812022131h29832960y1881b79137b9fa46@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812031922.13561.hverkuil@xs4all.nl>
-Cc: linux-dvb@linuxtv.org, video4linux-list@redhat.com,
-	ivtv-users@ivtvdriver.org, Cody Pisto <cpisto@gmail.com>
-Subject: Re: [ivtv-devel] Update request for attached patch:
-	v4l2-compat-ioctl32.c
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBP9CpL7012001
+	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 04:12:51 -0500
+Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBP9CbZI021293
+	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 04:12:37 -0500
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Timo Paulssen <timo@wakelift.de>
+In-Reply-To: <49528845.20904@wakelift.de>
+References: <49528845.20904@wakelift.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Thu, 25 Dec 2008 10:10:24 +0100
+Message-Id: <1230196224.1728.10.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: recording from a playstation eye
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,44 +27,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wednesday 03 December 2008 06:31:53 Brandon Jenkins wrote:
-> Greetings all,
->
-> Would anyone on the list be interested in updating the attached patch
-> to work with the new structure of the v4l2-compat-ioctl32.c file? I
-> use SageTV which is 32-bit on my 64-bit system and the newer driver
-> base does not work with the attached patch. I attempted to contact
-> the original dev of the patch and while someone volunteered to
-> update, no update has been provided by the time discussed. As a
-> result I am seeing messages like:
->
-> compat_ioctl32: VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32:
-> VIDIOC_S_EXT_CTRLS<7>compat_ioctl32: VIDIOC_S_EXT_CTRLS<6>cx18-1
-> info: Start encoder stream encoder MPEG
->
-> Thanks in advance,
->
-> Brandon
->
-> PS - I am not sure which list to post this on.
+On Wed, 2008-12-24 at 20:06 +0100, Timo Paulssen wrote:
+> Hello folks,
 
-Hi Brandon,
+Hello Timo,
 
-Ah, yes, I received work-in-progress for this in the past from Cody, but 
-never a final version.
+> I just got a Playstation Eye (yay for Jesus!), but I am struggling to
+> record anything with it.
+> My log of attempts so far:
+	[snip]
 
-Cody, do you have anything newer? And can you mail a Signed-off-by line 
-for me? I can work on it a bit more to make it more complete.
+Which webcam is it, and what is the associated driver? (do
+"dmesg | tail -20" after plugging the webcam).
 
-Regards,
-
-	Hans
+Regards.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
