@@ -1,29 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <halim.sahin@t-online.de>) id 1LBEUK-0001c8-7h
-	for linux-dvb@linuxtv.org; Fri, 12 Dec 2008 21:19:53 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.as-10.de (Postfix) with ESMTP id 93BD033A730
-	for <linux-dvb@linuxtv.org>; Fri, 12 Dec 2008 21:19:32 +0100 (CET)
-Received: from mail.as-10.de ([127.0.0.1])
-	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id XlPZGfJ2-SfR for <linux-dvb@linuxtv.org>;
-	Fri, 12 Dec 2008 21:19:32 +0100 (CET)
-Received: from halim.local (p54AE4A0A.dip.t-dialin.net [84.174.74.10])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested) (Authenticated sender: web11p28)
-	by mail.as-10.de (Postfix) with ESMTPSA id 6735733A6E7
-	for <linux-dvb@linuxtv.org>; Fri, 12 Dec 2008 21:19:32 +0100 (CET)
-Date: Fri, 12 Dec 2008 21:19:16 +0100
-From: Halim Sahin <halim.sahin@t-online.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <Hartmut.Niemann@gmx.de>) id 1LFmC0-0003bB-7n
+	for linux-dvb@linuxtv.org; Thu, 25 Dec 2008 10:07:45 +0100
+From: Hartmut Niemann <Hartmut.Niemann@gmx.de>
 To: linux-dvb@linuxtv.org
-Message-ID: <20081212201916.GA17289@halim.local>
-References: <610460.22660.qm@web26105.mail.ukl.yahoo.com>
+Date: Thu, 25 Dec 2008 09:41:48 +0100
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <610460.22660.qm@web26105.mail.ukl.yahoo.com>
-Subject: Re: [linux-dvb] Best dvb-t tuner ?
+Message-Id: <200812250941.48449.Hartmut.Niemann@gmx.de>
+Subject: [linux-dvb] cx88 (Hauppauge Nova-S-Plus DVB-S) occasionally skips,
+	kaffeine says: EIT (0:0): buffer overflow! Rejected
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,15 +24,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-I am using a twinhan dtv alpha stick since three years.
-i don't know if that version is available today but the stick works realy well.
+Hello!
+With debian stable (kernel 2.6.24-etchnhalf.1-686 #1 SMP) on AMD Athlon(tm) XP 2600+, 
+MSI KT4AV (VIA KT400)
+my Hauppauge Nova-S-Plus DVB-S does not work well.
+When I record DVB-S with kaffeine (0.8.3), it loses parts of the stream and spits out
+  EIT (0:0): buffer overflow! Rejected
+  Stop parsing EIT (0:0)
+(about 60 times during a  1,5 h recording)
+and now and then a few seconds of the film seem to be missing.
 
-If you want to buy a pci card look at the technisat airstar pci products!
-HTH.
-halim
+It doesn't crash, though.
 
+The same seems to happen when viewing.
 
+I believe this is a regression, because when I set up the system some time ago,
+it worked far better than now.
+
+Is this a known problem?
+Would a dist upgrade to debian testing help?
+
+I can't believe that my system is too slow for recording (on an 
+otherwise idle X desktop / KDE).
+
+With best regards
+Hartmut Niemann
 
 _______________________________________________
 linux-dvb mailing list
