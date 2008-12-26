@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB7JhNUg018762
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 14:43:23 -0500
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB7Jh9t0017036
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 14:43:09 -0500
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 7 Dec 2008 20:43:06 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBQEVtpY004319
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 09:31:55 -0500
+Received: from mail-ew0-f33.google.com (mail-ew0-f33.google.com
+	[209.85.219.33])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBQEVgO6022359
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 09:31:42 -0500
+Received: by ewy14 with SMTP id 14so1551629ewy.3
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 06:31:42 -0800 (PST)
+Message-ID: <2ac79fa40812260631r7f34d2a5nc49233866d010047@mail.gmail.com>
+Date: Fri, 26 Dec 2008 21:31:41 +0700
+From: "=?UTF-8?Q?Nam_Ph=E1=BA=A1m_Th=C3=A0nh?=" <phamthanhnam.ptn@gmail.com>
+To: mchehab@infradead.org, hverkuil@xs4all.nl
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_KdCPJO+Vv0UijDy"
-Message-Id: <200812072043.06672.hverkuil@xs4all.nl>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [BUG] Race condition between open and disconnect
+Content-Type: multipart/mixed;
+	boundary="----=_Part_110088_6551156.1230301901952"
+Cc: video4linux-list@redhat.com
+Subject: [PATCH] Add support for Avermedia AVerTV GO 007 FM Plus (1461:f31d)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,193 +28,195 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---Boundary-00=_KdCPJO+Vv0UijDy
-Content-Type: text/plain;
-  charset="iso-8859-15"
+------=_Part_110088_6551156.1230301901952
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-(Reposting this again, I'm not sure whether it was sent correctly the 
-first time)
+Hi all
+I've tested carefully this patch on 4 cards (one is mine and 3 other
+cards from 3 different stores (I can borrow them freely)) with kernel
+2.6.27. I don't need any additional configuration, just patch the
+module, reboot and they work (auto detected). TV, radio, sound, infrared
+remote, S-Video, Line... almost work perfectly.
+So, please add this support to make it easy for me and to help many
+people in the world who have this TV card.
+Best regards.
 
-Hi Laurent,
+diff -ur 2c6835aaa8ea linux/Documentation/video4linux/CARDLIST.saa7134
+--- a/linux/Documentation/video4linux/CARDLIST.saa7134    2008-12-22
+17:54:05.000000000 +0700
++++ b/linux/Documentation/video4linux/CARDLIST.saa7134    2008-12-22
+19:33:06.000000000 +0700
+@@ -152,3 +152,4 @@
+ 151 -> ADS Tech Instant HDTV                    [1421:0380]
+ 152 -> Asus Tiger Rev:1.00                      [1043:4857]
+ 153 -> Kworld Plus TV Analog Lite PCI           [17de:7128]
++154 -> Avermedia AVerTV GO 007 FM Plus          [1461:f31d]
+diff -ur 2c6835aaa8ea linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c    2008-12-22
+17:54:05.000000000 +0700
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c    2008-12-23
+16:23:35.000000000 +0700
+@@ -4682,6 +4682,38 @@
+             .amux = 2,
+         },
+     },
++    [SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS] = {
++        .name           = "Avermedia AVerTV GO 007 FM Plus",
++        .audio_clock    = 0x00187de7,
++        .tuner_type     = TUNER_PHILIPS_TDA8290,
++        .radio_type     = UNSET,
++        .tuner_addr    = ADDR_UNSET,
++        .radio_addr    = ADDR_UNSET,
++        .gpiomask       = 0x00300003,
++        /* .gpiomask       = 0x8c240003, */
++        .inputs         = {{
++            .name = name_tv,
++            .vmux = 1,
++            .amux = TV,
++            .tv   = 1,
++            .gpio = 0x01,
++        },{
++            .name = name_svideo,
++            .vmux = 6,
++            .amux = LINE1,
++            .gpio = 0x02,
++        }},
++        .radio = {
++            .name = name_radio,
++            .amux = TV,
++            .gpio = 0x00300001,
++        },
++        .mute = {
++            .name = name_mute,
++            .amux = TV,
++            .gpio = 0x01,
++        },
++    },
+ };
 
-On Sunday 07 December 2008 13:14:17 Laurent Pinchart wrote:
-> Hi everybody,
->
-> I'm afraid to report that the move to the cdev interface in 2.6.28
-> has introduced a race condition between open and disconnect.
->
-> To avoid the need of a reference count in every v4l2 driver, v4l2
-> moved to cdev which includes its own reference counting
-> infrastructure based on kobject.
-
-It actually seems to be a cdev race condition that can happen with other 
-char devices as well. However, there is also a bug in v4l2-dev that 
-makes it worse.
-
-Please try attached patch. You will still get the kref WARN, but 
-otherwise it should work OK.
-
-Did you get these WARN and BUG messages in a 'real-life' situation as 
-well, or only when you put in an msleep?
-
-Regards,
-
-	Hans
-
-> kobject_(get|put) calls on which the reference counting code relies
-> (kobject_get being called by cdev_get in chrdev_open, and kobject_put
-> being called by device_unregister in video_device_unregister) call
-> use the embedded kref_(get|put). Unfortunately, while those calls use
-> atomic operations to access the reference counter, they are not
-> thread-safe. A call to kref_get can succeed even though a call to
-> kref_put has released the last reference.
->
-> I've modified the UVC driver to remove the thread-safe reference
-> counting that was supposed not to be required anymore with the move
-> to cdev and added an msleep(3000) at the beginning of
-> v4l2_chardev_release to make the race condition easier to reproduce
-> (patch against my hg tree attached).
->
-> Steps to reproduce:
->
-> - load the uvcvideo module
-> - connect a UVC camera
-> - start any video application
-> - close the application
-> - disconnect the camera
-> - within 3 seconds of the disconnection, start the video application
-> - check dmesg for the bug report and enjoy
->
->
-> usb 2-1: USB disconnect, address 6
-> ------------[ cut here ]------------
-> WARNING: at lib/kref.c:43 kref_get+0x1c/0x20()
-> Modules linked in: snd_usb_audio snd_usb_lib snd_rawmidi snd_hwdep
-> uvcvideo videodev v4l2_compat_ioctl32 v4l1_compat radeon drm arc4 ecb
-> ieee80211_crypt_tkip rfcomm l2cap hci_usb ipw2200 bluetooth ieee80211
-> r8169 snd_intel8x0m ieee80211_crypt
-> Pid: 19247, comm: luvcview Not tainted 2.6.27 #36
->  [<c011cd6f>] warn_on_slowpath+0x5f/0x90
->  [<c01192bf>] try_to_wake_up+0xaf/0xc0
->  [<c01806e7>] __d_lookup+0xf7/0x150
->  [<c01d70e0>] xattr_lookup_poison+0x0/0xa0
->  [<c01762c5>] do_lookup+0x65/0x1a0
->  [<c018005c>] dput+0x1c/0x160
->  [<c0178331>] __link_path_walk+0xb01/0xc90
->  [<c025e6ac>] kref_get+0x1c/0x20
->  [<c025d8ef>] kobject_get+0xf/0x20
->  [<c01710c2>] cdev_get+0x22/0x90
->  [<c01717c7>] chrdev_open+0x37/0x1e0
->  [<c0171790>] chrdev_open+0x0/0x1e0
->  [<c016ce24>] __dentry_open+0xd4/0x260the
->  [<c016cff5>] nameidata_to_filp+0x45/0x60
->  [<c0179617>] do_filp_open+0x187/0x720
->  [<c02a2488>] tty_write+0x1b8/0x1e0
->  [<c016cbfe>] do_sys_open+0x4e/0xe0
->  [<c016cd0c>] sys_open+0x2c/0x40
->  [<c0103119>] sysenter_do_call+0x12/0x21
->  [<c0440000>] pfkey_add+0x4f0/0x7f0
->  =======================
-> ---[ end trace 32937b1bc9a02398 ]---
-> ------------[ cut here ]------------
-> kernel BUG at drivers/media/video/v4l2-dev.c:119!
-> invalid opcode: 0000 [#1] PREEMPT
-> Modules linked in: snd_usb_audio snd_usb_lib snd_rawmidi snd_hwdep
-> uvcvideo videodev v4l2_compat_ioctl32 v4l1_compat radeon drm arc4 ecb
-> ieee80211_crypt_tkip rfcomm l2cap hci_usb ipw2200 bluetooth ieee80211
-> r8169 snd_intel8x0m ieee80211_crypt
->
-> Pid: 19247, comm: luvcview Tainted: G        W (2.6.27 #36)
-> EIP: 0060:[<f09d14e7>] EFLAGS: 00010202 CPU: 0
-> EIP is at v4l2_chardev_release+0x37/0x80 [videodev]
-> EAX: f09d8a90 EBX: ed069c00 ECX: 00000003 EDX: 00000000
-> ESI: ed069d20 EDI: 00000000 EBP: d836968c ESP: e9005e6c
->  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-> Process luvcview (pid: 19247, ti=e9004000 task=e90f31a0
-> task.ti=e9004000) Stack: ed069d20 f09d8a9c c025d896 ed069d3c c025d860
-> ffffffed c025e659 f0c0f500 00000001 c017121d ed069d20 c0171887
-> ed2ddb40 00000006 ed2ddb40 d836968c 00000000 c0171790 c016ce24
-> ef80d1c0 d7861760 ed2ddb40 e9005f10 00000026 Call Trace:
->  [<c025d896>] kobject_release+0x36/0x80
->  [<c025d860>] kobject_release+0x0/0x80
->  [<c025e659>] kref_put+0x29/0x60
->  [<c017121d>] cdev_put+0xd/0x20
->  [<c0171887>] chrdev_open+0xf7/0x1e0
->  [<c0171790>] chrdev_open+0x0/0x1e0
->  [<c016ce24>] __dentry_open+0xd4/0x260
->  [<c016cff5>] nameidata_to_filp+0x45/0x60
->  [<c0179617>] do_filp_open+0x187/0x720
->  [<c02a2488>] tty_write+0x1b8/0x1e0
->  [<c016cbfe>] do_sys_open+0x4e/0xe0
->  [<c016cd0c>] sys_open+0x2c/0x40
->  [<c0103119>] sysenter_do_call+0x12/0x21
->  [<c0440000>] pfkey_add+0x4f0/0x7f0
->  =======================
-> Code: 0b 00 00 e8 cc 47 75 cf b8 90 8a 9d f0 e8 a2 8b a7 cf 8b 83 88
-> 01 00 00 3b 1c 85 00 8d 9d f0 74 0e b8 90 8a 9d f0 e8 99 8b a7 cf
-> <0f> 0b eb fe 31 c9 89 0c 85 00 8d 9d f0 8b 83 84 01 00 00 0f b7
-> EIP: [<f09d14e7>] v4l2_chardev_release+0x37/0x80 [videodev] SS:ESP
-> 0068:e9005e6c
-> ---[ end trace 32937b1bc9a02398 ]---
->
-> Best regards,
->
-> Laurent Pinchart
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
---Boundary-00=_KdCPJO+Vv0UijDy
-Content-Type: text/x-diff;
-  charset="iso-8859-15";
-  name="v4l2-dev.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="v4l2-dev.c.diff"
-
-diff -r 1dc46cdcf365 linux/drivers/media/video/v4l2-dev.c
---- a/linux/drivers/media/video/v4l2-dev.c	Sat Dec 06 11:29:33 2008 +0100
-+++ b/linux/drivers/media/video/v4l2-dev.c	Sun Dec 07 16:28:47 2008 +0100
-@@ -110,11 +110,23 @@
- static void v4l2_chardev_release(struct kobject *kobj)
- {
- 	struct video_device *vfd = container_of(kobj, struct video_device, cdev.kobj);
-+	
-+	/* Release the character device, ensures that afterwards this
-+	   chardev cannot be opened again. */
-+	vfd->cdev_release(kobj);
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -5741,6 +5773,13 @@
+         .subdevice    = 0x7128,
+         .driver_data  = SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG,
+     }, {
++        .vendor       = PCI_VENDOR_ID_PHILIPS,
++        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++        .subvendor    = 0x1461, /* Avermedia Technologies Inc */
++        .subdevice    = 0xf31d,
++        .driver_data  = SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS,
 +
-+	/* If someone tried to open this chardev while we are still in the
-+	   process of deleting it then the refcount will be non-zero. */
-+	if (atomic_read(&kobj->kref.refcount)) {
-+		/* Do nothing, the next time the refcount goes to zero
-+		   we will be called again. */
-+		return;
-+	}
- 
- 	mutex_lock(&videodev_lock);
- 	if (video_device[vfd->minor] != vfd) {
- 		mutex_unlock(&videodev_lock);
--		BUG();
-+		WARN(1, "Inconsistent vfd on minor %d!\n", vfd->minor);
- 		return;
- 	}
- 
-@@ -123,8 +135,6 @@
- 	clear_bit(vfd->num, video_nums[vfd->vfl_type]);
- 	mutex_unlock(&videodev_lock);
- 
--	/* Release the character device */
--	vfd->cdev_release(kobj);
- 	/* Release video_device and perform other
- 	   cleanups as needed. */
- 	if (vfd->release)
++    }, {
+         /* --- boards without eeprom + subsystem ID --- */
+         .vendor       = PCI_VENDOR_ID_PHILIPS,
+         .device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -6029,6 +6068,7 @@
+     case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
+     case SAA7134_BOARD_REAL_ANGEL_220:
+     case SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG:
++    case SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS:
+         dev->has_remote = SAA7134_REMOTE_GPIO;
+         break;
+     case SAA7134_BOARD_FLYDVBS_LR300:
+diff -ur 2c6835aaa8ea linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h    2008-12-22
+17:54:05.000000000 +0700
++++ b/linux/drivers/media/video/saa7134/saa7134.h    2008-12-22
+19:07:32.000000000 +0700
+@@ -277,6 +277,7 @@
+ #define SAA7134_BOARD_ADS_INSTANT_HDTV_PCI  151
+ #define SAA7134_BOARD_ASUSTeK_TIGER         152
+ #define SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG 153
++#define SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS 154
 
---Boundary-00=_KdCPJO+Vv0UijDy
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+diff -ur 2c6835aaa8ea linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c    2008-12-22
+17:54:05.000000000 +0700
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c    2008-12-23
+08:25:28.000000000 +0700
+@@ -449,6 +449,7 @@
+     case SAA7134_BOARD_AVERMEDIA_STUDIO_507:
+     case SAA7134_BOARD_AVERMEDIA_GO_007_FM:
+     case SAA7134_BOARD_AVERMEDIA_M102:
++    case SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS:
+         ir_codes     = ir_codes_avermedia;
+         mask_keycode = 0x0007C8;
+         mask_keydown = 0x000010;
+
+Signed-off-by: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>
+
+------=_Part_110088_6551156.1230301901952
+Content-Type: text/x-patch; name=AverTVGO007FMPlus.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fp6xx97q
+Content-Disposition: attachment; filename=AverTVGO007FMPlus.patch
+
+ZGlmZiAtdXIgMmM2ODM1YWFhOGVhIGxpbnV4L0RvY3VtZW50YXRpb24vdmlkZW80bGludXgvQ0FS
+RExJU1Quc2FhNzEzNAotLS0gYS9saW51eC9Eb2N1bWVudGF0aW9uL3ZpZGVvNGxpbnV4L0NBUkRM
+SVNULnNhYTcxMzQJMjAwOC0xMi0yMiAxNzo1NDowNS4wMDAwMDAwMDAgKzA3MDAKKysrIGIvbGlu
+dXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5zYWE3MTM0CTIwMDgtMTItMjIg
+MTk6MzM6MDYuMDAwMDAwMDAwICswNzAwCkBAIC0xNTIsMyArMTUyLDQgQEAKIDE1MSAtPiBBRFMg
+VGVjaCBJbnN0YW50IEhEVFYgICAgICAgICAgICAgICAgICAgIFsxNDIxOjAzODBdCiAxNTIgLT4g
+QXN1cyBUaWdlciBSZXY6MS4wMCAgICAgICAgICAgICAgICAgICAgICBbMTA0Mzo0ODU3XQogMTUz
+IC0+IEt3b3JsZCBQbHVzIFRWIEFuYWxvZyBMaXRlIFBDSSAgICAgICAgICAgWzE3ZGU6NzEyOF0K
+KzE1NCAtPiBBdmVybWVkaWEgQVZlclRWIEdPIDAwNyBGTSBQbHVzICAgICAgICAgIFsxNDYxOmYz
+MWRdCmRpZmYgLXVyIDJjNjgzNWFhYThlYSBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcx
+MzQvc2FhNzEzNC1jYXJkcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEz
+NC9zYWE3MTM0LWNhcmRzLmMJMjAwOC0xMi0yMiAxNzo1NDowNS4wMDAwMDAwMDAgKzA3MDAKKysr
+IGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY2FyZHMuYwkyMDA4
+LTEyLTIzIDE2OjIzOjM1LjAwMDAwMDAwMCArMDcwMApAQCAtNDY4Miw2ICs0NjgyLDM4IEBACiAJ
+CQkuYW11eCA9IDIsCiAJCX0sCiAJfSwKKwlbU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfR09fMDA3
+X0ZNX1BMVVNdID0geworCQkubmFtZSAgICAgICAgICAgPSAiQXZlcm1lZGlhIEFWZXJUViBHTyAw
+MDcgRk0gUGx1cyIsCisJCS5hdWRpb19jbG9jayAgICA9IDB4MDAxODdkZTcsCisJCS50dW5lcl90
+eXBlICAgICA9IFRVTkVSX1BISUxJUFNfVERBODI5MCwKKwkJLnJhZGlvX3R5cGUgICAgID0gVU5T
+RVQsCisJCS50dW5lcl9hZGRyCT0gQUREUl9VTlNFVCwKKwkJLnJhZGlvX2FkZHIJPSBBRERSX1VO
+U0VULAorCQkuZ3Bpb21hc2sgICAgICAgPSAweDAwMzAwMDAzLAorCQkvKiAuZ3Bpb21hc2sgICAg
+ICAgPSAweDhjMjQwMDAzLCAqLworCQkuaW5wdXRzICAgICAgICAgPSB7eworCQkJLm5hbWUgPSBu
+YW1lX3R2LAorCQkJLnZtdXggPSAxLAorCQkJLmFtdXggPSBUViwKKwkJCS50diAgID0gMSwKKwkJ
+CS5ncGlvID0gMHgwMSwKKwkJfSx7CisJCQkubmFtZSA9IG5hbWVfc3ZpZGVvLAorCQkJLnZtdXgg
+PSA2LAorCQkJLmFtdXggPSBMSU5FMSwKKwkJCS5ncGlvID0gMHgwMiwKKwkJfX0sCisJCS5yYWRp
+byA9IHsKKwkJCS5uYW1lID0gbmFtZV9yYWRpbywKKwkJCS5hbXV4ID0gVFYsCisJCQkuZ3BpbyA9
+IDB4MDAzMDAwMDEsCisJCX0sCisJCS5tdXRlID0geworCQkJLm5hbWUgPSBuYW1lX211dGUsCisJ
+CQkuYW11eCA9IFRWLAorCQkJLmdwaW8gPSAweDAxLAorCQl9LAorCX0sCiB9OwogCiBjb25zdCB1
+bnNpZ25lZCBpbnQgc2FhNzEzNF9iY291bnQgPSBBUlJBWV9TSVpFKHNhYTcxMzRfYm9hcmRzKTsK
+QEAgLTU3NDEsNiArNTc3MywxMyBAQAogCQkuc3ViZGV2aWNlICAgID0gMHg3MTI4LAogCQkuZHJp
+dmVyX2RhdGEgID0gU0FBNzEzNF9CT0FSRF9LV09STERfUExVU19UVl9BTkFMT0csCiAJfSwgewor
+CQkudmVuZG9yICAgICAgID0gUENJX1ZFTkRPUl9JRF9QSElMSVBTLAorCQkuZGV2aWNlICAgICAg
+ID0gUENJX0RFVklDRV9JRF9QSElMSVBTX1NBQTcxMzMsCisJCS5zdWJ2ZW5kb3IgICAgPSAweDE0
+NjEsIC8qIEF2ZXJtZWRpYSBUZWNobm9sb2dpZXMgSW5jICovCisJCS5zdWJkZXZpY2UgICAgPSAw
+eGYzMWQsCisJCS5kcml2ZXJfZGF0YSAgPSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV9HT18wMDdf
+Rk1fUExVUywKKworCX0sIHsKIAkJLyogLS0tIGJvYXJkcyB3aXRob3V0IGVlcHJvbSArIHN1YnN5
+c3RlbSBJRCAtLS0gKi8KIAkJLnZlbmRvciAgICAgICA9IFBDSV9WRU5ET1JfSURfUEhJTElQUywK
+IAkJLmRldmljZSAgICAgICA9IFBDSV9ERVZJQ0VfSURfUEhJTElQU19TQUE3MTM0LApAQCAtNjAy
+OSw2ICs2MDY4LDcgQEAKIAljYXNlIFNBQTcxMzRfQk9BUkRfR0VOSVVTX1RWR09fQTExTUNFOgog
+CWNhc2UgU0FBNzEzNF9CT0FSRF9SRUFMX0FOR0VMXzIyMDoKIAljYXNlIFNBQTcxMzRfQk9BUkRf
+S1dPUkxEX1BMVVNfVFZfQU5BTE9HOgorCWNhc2UgU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfR09f
+MDA3X0ZNX1BMVVM6CiAJCWRldi0+aGFzX3JlbW90ZSA9IFNBQTcxMzRfUkVNT1RFX0dQSU87CiAJ
+CWJyZWFrOwogCWNhc2UgU0FBNzEzNF9CT0FSRF9GTFlEVkJTX0xSMzAwOgpkaWZmIC11ciAyYzY4
+MzVhYWE4ZWEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaAotLS0g
+YS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC5oCTIwMDgtMTItMjIg
+MTc6NTQ6MDUuMDAwMDAwMDAwICswNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+c2FhNzEzNC9zYWE3MTM0LmgJMjAwOC0xMi0yMiAxOTowNzozMi4wMDAwMDAwMDAgKzA3MDAKQEAg
+LTI3Nyw2ICsyNzcsNyBAQAogI2RlZmluZSBTQUE3MTM0X0JPQVJEX0FEU19JTlNUQU5UX0hEVFZf
+UENJICAxNTEKICNkZWZpbmUgU0FBNzEzNF9CT0FSRF9BU1VTVGVLX1RJR0VSICAgICAgICAgMTUy
+CiAjZGVmaW5lIFNBQTcxMzRfQk9BUkRfS1dPUkxEX1BMVVNfVFZfQU5BTE9HIDE1MworI2RlZmlu
+ZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV9HT18wMDdfRk1fUExVUyAxNTQKIAogI2RlZmluZSBT
+QUE3MTM0X01BWEJPQVJEUyAzMgogI2RlZmluZSBTQUE3MTM0X0lOUFVUX01BWCA4CmRpZmYgLXVy
+IDJjNjgzNWFhYThlYSBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1p
+bnB1dC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlu
+cHV0LmMJMjAwOC0xMi0yMiAxNzo1NDowNS4wMDAwMDAwMDAgKzA3MDAKKysrIGIvbGludXgvZHJp
+dmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaW5wdXQuYwkyMDA4LTEyLTIzIDA4OjI1
+OjI4LjAwMDAwMDAwMCArMDcwMApAQCAtNDQ5LDYgKzQ0OSw3IEBACiAJY2FzZSBTQUE3MTM0X0JP
+QVJEX0FWRVJNRURJQV9TVFVESU9fNTA3OgogCWNhc2UgU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFf
+R09fMDA3X0ZNOgogCWNhc2UgU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfTTEwMjoKKwljYXNlIFNB
+QTcxMzRfQk9BUkRfQVZFUk1FRElBX0dPXzAwN19GTV9QTFVTOgogCQlpcl9jb2RlcyAgICAgPSBp
+cl9jb2Rlc19hdmVybWVkaWE7CiAJCW1hc2tfa2V5Y29kZSA9IDB4MDAwN0M4OwogCQltYXNrX2tl
+eWRvd24gPSAweDAwMDAxMDsKClNpZ25lZC1vZmYtYnk6IFBoYW0gVGhhbmggTmFtIDxwaGFtdGhh
+bmhuYW0ucHRuQGdtYWlsLmNvbT4K
+------=_Part_110088_6551156.1230301901952
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -221,4 +226,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---Boundary-00=_KdCPJO+Vv0UijDy--
+------=_Part_110088_6551156.1230301901952--
