@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.175])
+Received: from smtp19.orange.fr ([80.12.242.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LEE52-0007ha-5l
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 03:30:09 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so587408ugc.16
-	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 18:30:04 -0800 (PST)
-Date: Sun, 21 Dec 2008 03:29:45 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Artem Makhutov <artem@makhutov.org>
-In-Reply-To: <20081220224557.GF12059@titan.makhutov-it.de>
-Message-ID: <alpine.DEB.2.00.0812210301090.22383@ybpnyubfg.ybpnyqbznva>
-References: <20081220224557.GF12059@titan.makhutov-it.de>
+	(envelope-from <kafifi@orange.fr>) id 1LGB4k-0002km-2c
+	for linux-dvb@linuxtv.org; Fri, 26 Dec 2008 12:41:56 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf1921.orange.fr (SMTP Server) with ESMTP id 378B61C00099
+	for <linux-dvb@linuxtv.org>; Fri, 26 Dec 2008 12:41:20 +0100 (CET)
+Received: from pcserver (ASte-Genev-Bois-151-1-79-83.w81-48.abo.wanadoo.fr
+	[81.48.108.83])
+	by mwinf1921.orange.fr (SMTP Server) with ESMTP id EFE221C00094
+	for <linux-dvb@linuxtv.org>; Fri, 26 Dec 2008 12:41:19 +0100 (CET)
+Received: from pcserver ([192.168.200.1]) by pcserver (602LAN SUITE 2004) id
+	389cea9f for linux-dvb@linuxtv.org; Fri, 26 Dec 2008 12:40:52 +0100
+From: "kafifi" <kafifi@orange.fr>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 26 Dec 2008 12:40:52 +0100
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
+Message-Id: <20081226114119.EFE221C00094@mwinf1921.orange.fr>
+Subject: [linux-dvb] "scan" doesn't tune on all dvb-t  multiplex
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,62 +31,146 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 20 Dec 2008, Artem Makhutov wrote:
+Hello,
 
-> 1. The stb0899 driver is broken and is producing a bad stream
-> 2. The network streaming of VLC and dvbstream is broken
+I've some problem with "scan" utilities, which doesn't find all TNT channels
+from Eiffel Tower - Paris.
+The multiplex R5 and L8 are missing. My installation is correct, because
+when I've tried with a standard 
+demudulator, all multiplex and channels were found.
 
-Use the `-o:' option of `dvbstream' to write to a file,
-then see if this file is corrupted or damaged.  If this
-is so, then case 1 above would be correct.
+I am using :
+- Hauppauge Nova T-500 (under Ubuntu 8.10).
+- scan version from
+http://linuxtv.org/hg/dvb-apps/file/a3e6e8487082/util/scan/dvb-t/
 
 
-> Do you know any other methods to stream a DVB-S2 channel over network?
+I don't know if all the "tuning failed" messages are due to a bad
+"sources.conf", or something else.
+Could you please help me to find what's wrong ?
 
-There's no difference between a DVB-S2 channel and any
-other source of 188-byte Transport Stream packets, be
-they video, radio, data, or whatever.
+Thanks a lot.
 
-I've used `dvbstream' in the past to stream multicast
-data; the problem I had was in the limited support of
-the players I was using to handle the stream properly.
-I also think I may have had to hack `dvbstream' slightly
-to properly support and tag the payloads, though I may
-be mis-remembering.
+________________________________________________________________
+sources.conf 
+	# Paris - France - various DVB-T transmitters
+	# contributed by Alexis de Lattre <alexis@via.ecp.fr>
+	# Paris - Tour Eiffel      : 21 24 27 29 32 35
+	# T freq bw fec_hi fec_lo mod transmission-mode guard-interval
+hierarchy
+	T 474166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 498166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 522166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 538166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
+	T 714166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
+	T 738166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 754166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 762166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 786166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	T 810166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
 
-At the moment I'm using `dvbstream' to stdout, then
-piping that to extract the audio payload of interest,
-which I then pipe to a different streaming program that
-performs better for a simple audio stream without the
-excess overhead of the TS, and it's working well.
+________________________________________________________________
+Log
+	root@pcsat:/usr/local/src# scan -a 2 -o vdr -p fr-Paris >
+channels.conf
+	scanning fr-Paris
+	using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+	initial transponder 474166000 0 2 9 3 1 0 0
+	initial transponder 498166000 0 2 9 3 1 0 0
+	initial transponder 522166000 0 2 9 3 1 0 0
+	initial transponder 538166000 0 2 9 3 1 0 0
+	initial transponder 562166000 0 2 9 3 1 0 0
+	initial transponder 586166000 0 3 9 3 1 2 0
+	initial transponder 714166000 0 3 9 3 1 2 0
+	initial transponder 738166000 0 2 9 3 1 0 0
+	initial transponder 754166000 0 2 9 3 1 0 0
+	initial transponder 762166000 0 2 9 3 1 0 0
+	initial transponder 786166000 0 2 9 3 1 0 0
+	initial transponder 810166000 0 2 9 3 1 0 0
+	>>> tune to: 474166:I999B8C23D999M64T8G32Y0:T:27500:
+	0x0000 0x0201: pmt_pid 0x0500 NTN -- Direct 8 (running)
+	0x0000 0x0203: pmt_pid 0x0502 NTN -- BFM TV (running)
+	0x0000 0x0204: pmt_pid 0x0503 NTN -- i>TELE (running)
+	0x0000 0x0205: pmt_pid 0x0504 NTN -- Virgin 17 (running)
+	0x0000 0x0206: pmt_pid 0x0505 NTN -- Gulli (running)
+	0x0000 0x0207: pmt_pid 0x0506 NTN -- France 4 (running)
+	Network Name 'F'
+	>>> tune to: 498166:I999B8C23D999M64T8G32Y0:T:27500:
+	Network Name 'F'
+	0x0000 0x0406: pmt_pid 0x0000 MULTI4 -- temp (running, scrambled)
+	0x0000 0x0407: pmt_pid 0x02c6 Multi 4 -- ARTE HD (running)
+	0x0000 0x0404: pmt_pid 0x019a MULTI4 -- PARIS PREMIERE (running)
+	0x0000 0x0401: pmt_pid 0x006e MULTI4 -- M6 (running)
+	0x0000 0x0402: pmt_pid 0x00d2 MULTI4 -- W9 (running)
+	0x0000 0x0403: pmt_pid 0x0136 MULTI4 -- NT1 (running)
+	>>> tune to: 522166:I999B8C23D999M64T8G32Y0:T:27500:
+	0x0000 0x0301: pmt_pid 0x0000 CNH -- CANAL+ (running)
+	0x0000 0x0302: pmt_pid 0x0000 CNH -- CANAL+ CINEMA
+(running,scrambled)
+	0x0000 0x0303: pmt_pid 0x0000 CNH -- CANAL+ SPORT (running)
+	0x0000 0x0304: pmt_pid 0x0000 CNH -- PLANETE (running, scrambled)
+	0x0000 0x0305: pmt_pid 0x0000 CNH -- CANAL J (running, scrambled)
+	0x0000 0x0306: pmt_pid 0x0000 CNH -- TPS STAR (running)
+	0x0000 0x03f0: pmt_pid 0x0000 CNH -- (null) (running)
+	0x0000 0x03f1: pmt_pid 0x0000 CNH -- (null) (running)
+	Network Name 'F'
+	>>> tune to: 538166:I999B8C23D999M64T8G32Y0:T:27500:
+	WARNING: >>> tuning failed!!!
+	>>> tune to: 538166:I999B8C23D999M64T8G32Y0:T:27500: (tuning failed)
+	WARNING: >>> tuning failed!!!
+	>>> tune to: 562166:I999B8C23D999M64T8G32Y0:T:27500:
+	0x0000 0x0601: pmt_pid 0x0064 SMR6 -- TF1 (running)
+	0x0000 0x0602: pmt_pid 0x00c8 SMR6 -- NRJ12 (running)
+	0x0000 0x0604: pmt_pid 0x0190 SMR6 -- Eurosport  (running,scrambled)
+	0x0000 0x0603: pmt_pid 0x012c SMR6 -- LCI (running, scrambled)
+	0x0000 0x0606: pmt_pid 0x0258 SMR6 -- TMC (running)
+	0x0000 0x0605: pmt_pid 0x01f4 SMR6 -- TF6 (running, scrambled)
+	Network Name 'F'
+	>>> tune to: 586166:I999B8C34D999M64T8G8Y0:T:27500:
+	0x0000 0x0111: pmt_pid 0x00d2 GR1 -- France 3 (running)
+	0x0000 0x0101: pmt_pid 0x006e GR1 -- France 2 (running)
+	0x0000 0x0104: pmt_pid 0x0136 GR1 -- France 5 (running)
+	0x0000 0x0106: pmt_pid 0x0262 GR1 -- LCP (running)
+	0x0000 0x0105: pmt_pid 0x01fe GR1 -- ARTE (running)
+	0x0000 0x0176: pmt_pid 0x02c6 GR1 -- France   (running)
+	Network Name 'F'
+	>>> tune to: 714166:I999B8C34D999M64T8G8Y0:T:27500:
+	WARNING: filter timeout pid 0x0011
+	WARNING: filter timeout pid 0x0000
+	WARNING: filter timeout pid 0x0010
+	>>> tune to: 738166:I999B8C23D999M64T8G32Y0:T:27500:
+	WARNING: filter timeout pid 0x0011
+	WARNING: filter timeout pid 0x0000
+	WARNING: filter timeout pid 0x0010
+	>>> tune to: 754166:I999B8C23D999M64T8G32Y0:T:27500:
+	WARNING: filter timeout pid 0x0011
+	WARNING: filter timeout pid 0x0000
+	WARNING: filter timeout pid 0x0010
+	>>> tune to: 762166:I999B8C23D999M64T8G32Y0:T:27500:
+	WARNING: filter timeout pid 0x0011
+	WARNING: filter timeout pid 0x0000
+	WARNING: filter timeout pid 0x0010
+	>>> tune to: 786166:I999B8C23D999M64T8G32Y0:T:27500:
+	WARNING: filter timeout pid 0x0011
+	WARNING: filter timeout pid 0x0000
+	WARNING: filter timeout pid 0x0010
+	>>> tune to: 810166:I999B8C23D999M64T8G32Y0:T:27500:
+	WARNING: filter timeout pid 0x0011
+	WARNING: filter timeout pid 0x0000
+	WARNING: filter timeout pid 0x0010
+	>>> tune to: 4294967:I999B8C999D12M64T8G32Y0:T:27500:
+	__tune_to_transponder:1508: ERROR: Setting frontend parameters
+failed: 22 Invalid argument
+	>>> tune to: 4294967:I999B8C999D12M64T8G32Y0:T:27500:
+	__tune_to_transponder:1508: ERROR: Setting frontend parameters
+failed: 22 Invalid argument
+	dumping lists (35 services)
+	Done.
+________________________________________________________________   
 
-The only problem I've had has been the interaction with
-the various hardware I use on the purity of the stream
--- if the USB ethernet is connected one way, it causes
-the stream from the DVB receiver to be corrupted, and
-if the receiver is connected through a particular USB
-hub, its stream is again corrupted occasionally.  It is
-all very annoying when I forget, and confusing to try
-and track down these imperfections -- for example, I've
-now determined that a particular external USB->HDD
-adapter cannot be connected directly to my EHCI card,
-nor to the first hub, but seems fine when a second hub
-is connected to the first, then the disk to that
-daisy-chain.  And on another machine, the two EHCI USB
-ports don't work at all, while working wonderfully with
-NetBSD.
 
-That off-topic rambling was to note that problems often
-may be caused by seemingly unrelated things for reasons
-which I cannot understand, not being intimate with the
-kernel internals or how hardware works.
-
-Back on-topic, I have used `dvbstream' to multicast TS
-of radio and video, tuning directly with it (i.e., no
-`szap' needed) with no real problems, though it is the
-standard `dvbtools' version that I've undoubtedly hacked.
-
-barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
