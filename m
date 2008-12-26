@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF9NU8q012431
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 04:23:30 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBF9NGaI031997
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 04:23:17 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so2713698rvb.51
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 01:23:16 -0800 (PST)
-Message-ID: <aec7e5c30812150123i25ecf9dx139c45a7534e2c16@mail.gmail.com>
-Date: Mon, 15 Dec 2008 18:23:16 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0812151000280.4416@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBQHQnL1015051
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 12:26:49 -0500
+Received: from cp-out9.libero.it (cp-out9.libero.it [212.52.84.109])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBQHQb8o026546
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 12:26:38 -0500
+Received: from [192.168.1.102] (151.48.19.203) by cp-out9.libero.it (8.5.016.1)
+	id 492C050B045A2B6B for video4linux-list@redhat.com;
+	Fri, 26 Dec 2008 18:26:37 +0100
+To: video4linux-list@redhat.com
+From: Fabio Rossi <rossi.f@inwind.it>
+Date: Fri, 26 Dec 2008 18:26:18 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
-	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812150844560.3722@axis700.grange>
-	<aec7e5c30812150028t11589040g3ae33eb2c82bbf08@mail.gmail.com>
-	<Pine.LNX.4.64.0812150932320.3722@axis700.grange>
-	<aec7e5c30812150055y4bd8b1f4rb969be546456fb93@mail.gmail.com>
-	<Pine.LNX.4.64.0812151000280.4416@axis700.grange>
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add tw9910 driver
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_6ORVJEYcScBWqp7"
+Message-Id: <200812261826.18796.rossi.f@inwind.it>
+Subject: [PATCH] gspca: add support to the Logitech QuickCam E2500
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,54 +27,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Dec 15, 2008 at 6:11 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Mon, 15 Dec 2008, Magnus Damm wrote:
->> On Mon, Dec 15, 2008 at 5:33 PM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > Good, then passing it directly to the camera driver should be enough for
->> > now.
->>
->> Yeah. I guess this all means that we have to rework things a bit. So
->> the interlace patch needs to be updated. Which affects my cleanup
->> patch. Do you have any preference on how to proceed? I'd go with just
->> keep on adding things - this means my cleanup patch that i'm about to
->> send will still apply - but I'm fine rewriting and reposting as well.
->
-> As you see, patches
->
-> [PATCH 02/03] sh_mobile_ceu: add NV12 and NV21 support
-> [PATCH] Add interlace support to sh_mobile_ceu_camera.c
-> [PATCH] Add tw9910 driver
->
-> need modifications, so, I would prefer to have them re-done instead of
-> incrementally fixing them. This doesn't include of course parenthesis and
-> ceu_write / ceu_read typing fixes to existing code - this should be a
-> separate patch.
+--Boundary-00=_6ORVJEYcScBWqp7
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hm, I thought you only needed a NV12 patch consisting of more or less
-cosmetic changes? I guess the dma_addr_t change may be in a gray zone
-though. I'd prefer not to touch the NV12 and NV16 patches except for a
-cleanup patch if possible, but I will of course update and resend the
-NV12 patch if you prefer that.
+Here is a trivial patch for supporting the Logitech QuickCam E2500.
 
-> BTW, you realise, that I'm not handling this your patch:
->
-> [PATCH] videobuf-dma-contig: fix USERPTR free handling
->
-> Have you got an ack for it yet?
+Signed-off-by: Fabio Rossi <rossi.f@inwind.it>
+---
+diff --git a/Documentation/video4linux/gspca.txt 
+b/Documentation/video4linux/gspca.txt
+index 004818f..fb7e654 100644
+--- a/Documentation/video4linux/gspca.txt
++++ b/Documentation/video4linux/gspca.txt
+@@ -53,6 +53,7 @@ zc3xx         0461:0a00       MicroInnovation WebCam320
+ spca500                046d:0890       Logitech QuickCam traveler
+ vc032x         046d:0892       Logitech Orbicam
+ vc032x         046d:0896       Logitech Orbicam
++zc3xx          046d:089d       Logitech QuickCam E2500
+ zc3xx          046d:08a0       Logitech QC IM
+ zc3xx          046d:08a1       Logitech QC IM 0x08A1 +sound
+ zc3xx          046d:08a2       Labtec Webcam Pro
+diff --git a/drivers/media/video/gspca/zc3xx.c 
+b/drivers/media/video/gspca/zc3xx.c
+index 0befacf..3bb9f42 100644
+--- a/drivers/media/video/gspca/zc3xx.c
++++ b/drivers/media/video/gspca/zc3xx.c
+@@ -7530,6 +7530,7 @@ static const __devinitdata struct usb_device_id 
+device_table[] = {
+        {USB_DEVICE(0x0458, 0x700c)},
+        {USB_DEVICE(0x0458, 0x700f)},
+        {USB_DEVICE(0x0461, 0x0a00)},
++       {USB_DEVICE(0x046d, 0x089d), .driver_info = SENSOR_MC501CB},
+        {USB_DEVICE(0x046d, 0x08a0)},
+        {USB_DEVICE(0x046d, 0x08a1)},
+        {USB_DEVICE(0x046d, 0x08a2)},
 
-No, I haven't. Not so strange though since that the CEU driver is the
-only user. =) And most programs simply do mmap() so I don't think
-Morimoto-san is running into this issue. But getting it included would
-be great. Also the NV16 fourcc definitions would be nice to have
-included.
+--Boundary-00=_6ORVJEYcScBWqp7
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="qc_e2500.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="qc_e2500.patch"
 
-Thanks.
+diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
+index 004818f..fb7e654 100644
+--- a/Documentation/video4linux/gspca.txt
++++ b/Documentation/video4linux/gspca.txt
+@@ -53,6 +53,7 @@ zc3xx		0461:0a00	MicroInnovation WebCam320
+ spca500		046d:0890	Logitech QuickCam traveler
+ vc032x		046d:0892	Logitech Orbicam
+ vc032x		046d:0896	Logitech Orbicam
++zc3xx		046d:089d	Logitech QuickCam E2500
+ zc3xx		046d:08a0	Logitech QC IM
+ zc3xx		046d:08a1	Logitech QC IM 0x08A1 +sound
+ zc3xx		046d:08a2	Labtec Webcam Pro
+diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
+index 0befacf..3bb9f42 100644
+--- a/drivers/media/video/gspca/zc3xx.c
++++ b/drivers/media/video/gspca/zc3xx.c
+@@ -7530,6 +7530,7 @@ static const __devinitdata struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x0458, 0x700c)},
+ 	{USB_DEVICE(0x0458, 0x700f)},
+ 	{USB_DEVICE(0x0461, 0x0a00)},
++	{USB_DEVICE(0x046d, 0x089d), .driver_info = SENSOR_MC501CB},
+ 	{USB_DEVICE(0x046d, 0x08a0)},
+ 	{USB_DEVICE(0x046d, 0x08a1)},
+ 	{USB_DEVICE(0x046d, 0x08a2)},
 
-/ magnus
+--Boundary-00=_6ORVJEYcScBWqp7
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--Boundary-00=_6ORVJEYcScBWqp7--
