@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from smtp2a.orange.fr ([80.12.242.140])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1LHIfc-0005zn-QO
-	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 15:00:37 +0100
-Date: Mon, 29 Dec 2008 14:59:49 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Thomas Reitmayr <treitmayr@devbase.at>
-In-Reply-To: <1230555409.14295.11.camel@localhost>
-Message-ID: <alpine.LRH.1.10.0812291459180.11737@pub6.ifh.de>
-References: <1230555409.14295.11.camel@localhost>
+	(envelope-from <kafifi@orange.fr>) id 1LGCKH-0000bJ-GK
+	for linux-dvb@linuxtv.org; Fri, 26 Dec 2008 14:02:02 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2a23.orange.fr (SMTP Server) with ESMTP id 106E0700009B
+	for <linux-dvb@linuxtv.org>; Fri, 26 Dec 2008 14:01:28 +0100 (CET)
+Received: from pcserver (ASte-Genev-Bois-151-1-79-83.w81-48.abo.wanadoo.fr
+	[81.48.108.83])
+	by mwinf2a23.orange.fr (SMTP Server) with ESMTP id E31657000084
+	for <linux-dvb@linuxtv.org>; Fri, 26 Dec 2008 14:01:27 +0100 (CET)
+Received: from pcserver ([192.168.200.1]) by pcserver (602LAN SUITE 2004) id
+	389d07e9 for linux-dvb@linuxtv.org; Fri, 26 Dec 2008 14:00:49 +0100
+From: "kafifi" <kafifi@orange.fr>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 26 Dec 2008 14:00:48 +0100
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] usb-urb.c: Fix initialization of URB list.
+In-Reply-To: <20081226114119.EFE221C00094@mwinf1921.orange.fr>
+Message-Id: <20081226130127.E31657000084@mwinf2a23.orange.fr>
+Subject: Re: [linux-dvb] "scan" doesn't tune on all dvb-t  multiplex
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,48 +26,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Thomas,
+Hi again,
+I found the problem : sources.conf was incomplete and some parameters was
+wrong.
+To receive dvb-t from Eiffel Tower, here is the correct "sources.conf" I use
+with vdr :
 
-On Mon, 29 Dec 2008, Thomas Reitmayr wrote:
+	# Paris - France - various DVB-T transmitters
+	# Paris - Tour Eiffel      : 21 23 24 27 29 32 35   <<  updated by
+me @ 26-12-2008
+	# Paris Est - Chennevi=E8res : 35 51 54 57 60 63
+	# Paris Nord - Sannois     : 35 51 54 57 60 63
+	# Paris Sud - Villebon     : 35 51 56 57 60 63
+	# T freq bw fec_hi fec_lo mod transmission-mode guard-interval
+hierarchy
 
-> The following patch was sent to this list back in May 2008
-> (http://linuxtv.org/pipermail/linux-dvb/2008-May/025952.html) and had a
-> followup of myself in October 2008.
-> As the kernel oops with USB DVB receivers happens again and again I want
-> to propose to finally apply this patch to the v4l-dvb repository.
-> Thanks,
-> -Thomas
->
-> Signed-off-by: Thomas Reitmayr <treitmayr@devbase.at>
->
-> --- linux-old/drivers/media/dvb/dvb-usb/usb-urb.c	2008-12-29 13:50:33.000000000 +0100
-> +++ linux/drivers/media/dvb/dvb-usb/usb-urb.c	2008-12-29 13:52:19.000000000 +0100
-> @@ -160,7 +160,8 @@ static int usb_bulk_urb_init(struct usb_
-> 				stream->props.u.bulk.buffersize,
-> 				usb_urb_complete, stream);
->
-> -		stream->urb_list[i]->transfer_flags = 0;
-> +		stream->urb_list[i]->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
-> +		stream->urb_list[i]->transfer_dma = stream->dma_addr[i];
-> 		stream->urbs_initialized++;
-> 	}
-> 	return 0;
+	# Canal 21
+	T 474166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 23
+	T 490166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 24
+	T 498166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 27
+	T 522166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 29
+	T 538166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
+	# Canal 32
+	T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 35
+	T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
 
-Committed and ask for pull request.
+	# Canal 51
+	T 714166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
+	# Canal 54
+	T 738166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 56
+	T 754166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 57
+	T 762166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 60
+	T 786166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+	# Canal 63
+	T 810166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
 
-Thanks and sorry for the delay.
 
-Patrick.
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
