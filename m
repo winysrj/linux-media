@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBFA6dWV001806
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 05:06:39 -0500
-Received: from smtp-vbr15.xs4all.nl (smtp-vbr15.xs4all.nl [194.109.24.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBFA6PaU023255
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 05:06:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Mon, 15 Dec 2008 11:06:24 +0100
-References: <412bdbff0812141701j3ee744daq49f47da9150124f4@mail.gmail.com>
-In-Reply-To: <412bdbff0812141701j3ee744daq49f47da9150124f4@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBRHTUXj032519
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 12:29:30 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBRHTFcL005409
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 12:29:16 -0500
+Date: Sat, 27 Dec 2008 18:29:26 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uocyziigu.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812271829040.4409@axis700.grange>
+References: <uocyziigu.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812151106.24382.hverkuil@xs4all.nl>
-Cc: 
-Subject: Re: Template for a new driver
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] dev_info to dev_dbg on ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,40 +26,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Monday 15 December 2008 02:01:14 Devin Heitmueller wrote:
-> Hello,
->
-> I am writing a new driver for a video decoder, and wanted to ask if
-> there was any particular driver people would suggest as a model to
-> look at for new drivers.  For example, I am not completely familiar
-> with which interfaces are deprecated, and want to make sure I use a
-> driver as a template that reflects the latest standards/conventions.
->
-> Suggestions welcome.
->
-> Thanks in advance,
->
-> Devin
+On Thu, 18 Dec 2008, Kuninori Morimoto wrote:
 
-Hi Devin,
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-You definitely want to use the new v4l2_subdev framework for this. Read 
-Documentation/video4linux/v4l2-framework.txt for more info.
+Queued.
 
-A good example template is probably saa7115.c. Not as big and 
-complicated as the audio-video decoder cx25840, but still a good 
-non-trivial example.
+Thanks
+Guennadi
 
-I also recommend using struct v4l2_i2c_driver_data if you desire to be 
-compatible with older kernels. The main reason for having this struct 
-is to hide all the ugly kernel #ifdefs.
+> ---
+>  drivers/media/video/ov772x.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+> index 0657048..15721f0 100644
+> --- a/drivers/media/video/ov772x.c
+> +++ b/drivers/media/video/ov772x.c
+> @@ -637,7 +637,6 @@ static int ov772x_start_capture(struct soc_camera_device *icd)
+>  	struct ov772x_priv *priv = container_of(icd, struct ov772x_priv, icd);
+>  	int                 ret;
+>  
+> -
+>  	if (!priv->win)
+>  		priv->win = &ov772x_win_vga;
+>  	if (!priv->fmt)
+> @@ -690,7 +689,7 @@ static int ov772x_start_capture(struct soc_camera_device *icd)
+>  			goto start_end;
+>  	}
+>  
+> -	dev_info(&icd->dev,
+> +	dev_dbg(&icd->dev,
+>  		 "format %s, win %s\n", priv->fmt->name, priv->win->name);
+>  
+>  start_end:
+> -- 
+> 1.5.6.3
+> 
 
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
