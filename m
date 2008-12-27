@@ -1,24 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBOJ74b2028306
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 14:07:04 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBOJ6p0V013727
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 14:06:52 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so1212943fga.7
-	for <video4linux-list@redhat.com>; Wed, 24 Dec 2008 11:06:51 -0800 (PST)
-Message-ID: <30353c3d0812241106ie3ac395p2800ee88947d5a13@mail.gmail.com>
-Date: Wed, 24 Dec 2008 14:06:51 -0500
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Manas Bhattacharya" <bhattacharya.manas@gmail.com>
-In-Reply-To: <b9476b930812240930l60e1ca74ua53c4b16c40ecc85@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBR0ZxNB012058
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 19:35:59 -0500
+Received: from outbound.mail.nauticom.net (outbound.mail.nauticom.net
+	[72.22.18.105])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBR0ZhZm016882
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 19:35:43 -0500
+Received: from [192.168.0.124] (27.craf1.xdsl.nauticom.net [209.195.160.60])
+	(authenticated bits=0)
+	by outbound.mail.nauticom.net (8.14.0/8.14.0) with ESMTP id
+	mBR0Zhsg046175
+	for <video4linux-list@redhat.com>; Fri, 26 Dec 2008 19:35:43 -0500 (EST)
+From: Rick Bilonick <rab@nauticom.net>
+To: video4linux-list <video4linux-list@redhat.com>
+In-Reply-To: <20081226174129.7c752fc6@gmail.com>
+References: <1230233794.3450.33.camel@localhost.localdomain>
+	<20081226010307.2c7e3b55@gmail.com>
+	<1230269443.3450.48.camel@localhost.localdomain>
+	<20081226174129.7c752fc6@gmail.com>
+Content-Type: text/plain
+Date: Fri, 26 Dec 2008 19:35:42 -0500
+Message-Id: <1230338142.3450.68.camel@localhost.localdomain>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <b9476b930812240930l60e1ca74ua53c4b16c40ecc85@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: help: v4l2 pixel format setting
+Subject: Re: Compiling v4l-dvb-kernel for Ubuntu and for F8
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,29 +35,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Dec 24, 2008 at 12:30 PM, Manas Bhattacharya
-<bhattacharya.manas@gmail.com> wrote:
-> Hi all
->  I  need help in setting pixel values to my wecam. My camera is Frontech
-> ecam jil 2220 model
-> The PC cam controller installed  Sn9c120  .Any pixel format i want to
-> set(say yuyv,yuv420 etc) VIDIOC_S_FORMAT returns me Bayer Rgb (sbggr8)
-> format .can u please help me in identifying the problem
->       Manas Bhattacharya
 
-Correct, this looks like the right behavior. The vidioc_s_format ioctl
-only requests that the camera return the data in the format requested.
-If the camera does not support the requested format then it will set
-the format to something it does support and return that format to you.
-The reasoning behind this is that format conversions are not allowed
-to be done in kernel space. If you really need yuyv, yuv420, etc. from
-a camera that only supports sbggr8 then you should look at using
-libv4l which will happily convert from the camera's native format to
-the one you require.
+On Fri, 2008-12-26 at 17:41 -0200, Douglas Schilling Landgraf wrote:
+> Hello,
+> 
+> On Fri, 26 Dec 2008 00:30:43 -0500
+> Rick Bilonick <rab@nauticom.net> wrote:
+> 
+> > I don't know what you mean by "upstream" driver. In Ubuntu 8.10, I did
+> > an "lsmod" and both the em28xx and em28xx_dvb modules show up.
+> > "modprobe -l | grep em28" also shows these modules. Does that mean I
+> > don't have to compile them from scratch? If they already exist, what
+> > else do I have to do to get the HD Pro to receive broadcasts?
+> 
+> Upstream means "official", in this case official supported driver. 
+> 
+> I'd like to suggest:
+> 
+> Remove your device from usb before start your computer:
+> 
+> Clone official driver from linuxtv host:
+> 
+> shell> hg clone http://linuxtv.org/hg/v4l-dvb
+> shell> cd v4l-dvb
+> shell> make 
+> shell> make install
+> 
+> Plug your device and try to play your favorite tv application.
+> If you get any problem or sucess with drivers from v4l-dvb tree send
+> your report to this mail-list with lsusb and dmesg output. 
+> 
+> p.s:
+> There is a link at linuxtv wiki about compilation process from
+> v4l-dvb tree:
+> http://www.linuxtv.org/wiki/index.php/How_to_build_from_Mercurial
+> 
+> Cheers,
+> Douglas
 
-Regards,
+Thanks. I started the make and so far no errors. It looks like it will
+take a while to compile everything. None of the other many web pages I
+looked at showed these steps. (I'm not a programmer by profession, so
+when I compile software, especially complex software, I need very
+specific instructions to follow!) I will report back when finished.
+Hopefully this will be successful.
 
-David Ellingsworth
+Rick B.
 
 --
 video4linux-list mailing list
