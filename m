@@ -1,27 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rouge.crans.org ([138.231.136.3])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <braice@braice.net>) id 1LBcFT-00017o-2r
-	for linux-dvb@linuxtv.org; Sat, 13 Dec 2008 22:42:08 +0100
-Received: from localhost (localhost.crans.org [127.0.0.1])
-	by rouge.crans.org (Postfix) with ESMTP id C6A54807D
-	for <linux-dvb@linuxtv.org>; Sat, 13 Dec 2008 17:49:50 +0100 (CET)
-Received: from rouge.crans.org ([10.231.136.3])
-	by localhost (rouge.crans.org [10.231.136.3]) (amavisd-new, port 10024)
-	with LMTP id 2udGgoVJDu1I for <linux-dvb@linuxtv.org>;
-	Sat, 13 Dec 2008 17:49:50 +0100 (CET)
-Received: from [192.168.1.10] (205.pool85-50-79.dynamic.orange.es
-	[85.50.79.205])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by rouge.crans.org (Postfix) with ESMTP id 7C2868073
-	for <linux-dvb@linuxtv.org>; Sat, 13 Dec 2008 17:49:50 +0100 (CET)
-Message-ID: <4943E7AD.3020608@braice.net>
-Date: Sat, 13 Dec 2008 17:49:49 +0100
-From: Brice DUBOST <braice@braice.net>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem with libdvben50221
+	(envelope-from <awalls@radix.net>) id 1LGf87-0002tN-Lp
+	for linux-dvb@linuxtv.org; Sat, 27 Dec 2008 20:47:24 +0100
+From: Andy Walls <awalls@radix.net>
+To: Artem Makhutov <artem@makhutov.org>
+In-Reply-To: <20081227180001.GS12059@titan.makhutov-it.de>
+References: <20081227180001.GS12059@titan.makhutov-it.de>
+Date: Sat, 27 Dec 2008 14:49:30 -0500
+Message-Id: <1230407370.3121.19.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Compile DVB drivers for kernel 2.6.11
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,42 +25,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello
+On Sat, 2008-12-27 at 19:00 +0100, Artem Makhutov wrote:
+> Hello,
+> 
+> I would like to compile current dvb-drivers from hg for kernel 2.6.11.12.
+> 
+> Is this possible?
 
-I'm currently playing around with the libdvben50221
-I started from the code of gnutv and zap_ca
-It works very well but I have one problem.
+The oldest supported kernel version is 2.6.16.
 
-When I close the cam my program is freezed when I do :
 
-cam_params->stdcam->destroy(cam_params->stdcam, 1);
+> Has somebody experience with this?
 
-cam_params is a structure wich contains my cam parameters
+Hans Verkuil did a lot of work and testing in the area of ensuring valid
+support of older kernels.   I recall Hans stating that supporting
+kernels earlier than 2.6.12 was not feasible.  I can't remember the
+reasons why 2.6.12-2.6.15 are not supported.  Check the linux-dvb and
+video4linux list archives.
 
-I looked a bit more in the code and I discover that the freezing point is :
- pthread_mutex_lock(&tl->slots[slot_id].slot_lock);
 
-  I give you some manual backtrace :
-  en50221_tl_destroy_slot(llci->tl, llci->tl_slot_id);
-  llci_cam_removed(llci);
-  static void en50221_stdcam_llci_destroy(struct en50221_stdcam *stdcam,
-int closefd)
+> The first problem I am running into is that 2.6.11 has no linux/mutex.h.
 
-Gnutv does not experience this freezing.
-
-Do you have an idea of what can it be ?
+That's probably because the non-spinning mutual exclusion mechanism was
+kernel semaphores way back then.
 
 Regards,
+Andy
+
+> Thanks, Artem
 
 
-
--- 
-Brice
-
-A: Yes.
->Q: Are you sure?
->>A: Because it reverses the logical flow of conversation.
->>>Q: Why is top posting annoying in email?
 
 _______________________________________________
 linux-dvb mailing list
