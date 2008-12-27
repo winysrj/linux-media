@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBPJax1e024770
-	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 14:36:59 -0500
-Received: from outbound.mail.nauticom.net (outbound.mail.nauticom.net
-	[72.22.18.105])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBPJagp7024890
-	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 14:36:42 -0500
-Received: from [192.168.0.124] (27.craf1.xdsl.nauticom.net [209.195.160.60])
-	(authenticated bits=0)
-	by outbound.mail.nauticom.net (8.13.8/8.13.8) with ESMTP id
-	mBPJadmc022011
-	for <video4linux-list@redhat.com>; Thu, 25 Dec 2008 14:36:40 -0500 (EST)
-From: Rick Bilonick <rab@nauticom.net>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 25 Dec 2008 14:36:34 -0500
-Message-Id: <1230233794.3450.33.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Compiling v4l-dvb-kernel for Ubuntu and for F8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBRIa91s014877
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 13:36:09 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBRIZtt7031057
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 13:35:55 -0500
+Date: Sat, 27 Dec 2008 19:36:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <umyejiigq.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812271820480.4409@axis700.grange>
+References: <umyejiigq.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] fix try_fmt calculation method for ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,55 +26,117 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'm trying to get em28xx working under Ubuntu and F8, but when I "make"
-I get errors saying that dmxdev.h, dvb_demux.h, dvb_net.h, and
-dvb_frontend.h cannot be found.
+On Thu, 25 Dec 2008, Kuninori Morimoto wrote:
 
-I get the same errors in F7 with v4l-dvb-experimental (same with
-v4l-dvb-kernel):
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-[root@localhost v4l-dvb-experimental]# make
+For patches touching more than about 3 lines, a description is very 
+helpful (which doesn't mean, of course, that anything below 4 lines needs 
+no description:-)). Yes, I understand what you're fixing here, but saying 
+something like
 
-running ./build.sh build
+Don't modify driver's state in try_fmt, just verify format acceptability 
+or adjust it to driver's capabilities.
 
-make[1]: Entering directory `/usr/local/src/v4l-dvb-experimental'
-rm -rf Module.symvers; 
-make -C /lib/modules/`if [ -d /lib/modules/2.6.21.4-eeepc ]; then echo
-2.6.21.4-eeepc; else uname -r; fi`/build SUBDIRS=`pwd` modules
-make[2]: Entering directory `/usr/src/kernels/2.6.26.6-49.fc8-i686'
-  CC [M]  /usr/local/src/v4l-dvb-experimental/em2880-dvb.o
-In file included
-from /usr/local/src/v4l-dvb-experimental/em2880-dvb.c:33:
-/usr/local/src/v4l-dvb-experimental/em28xx.h:31:20: error: dmxdev.h: No
-such file or directory
-/usr/local/src/v4l-dvb-experimental/em28xx.h:32:23: error: dvb_demux.h:
-No such file or directory
-/usr/local/src/v4l-dvb-experimental/em28xx.h:33:21: error: dvb_net.h: No
-such file or directory
-/usr/local/src/v4l-dvb-experimental/em28xx.h:34:26: error:
-dvb_frontend.h: No such file or directory
-In file included
-from /usr/local/src/v4l-dvb-experimental/em2880-dvb.c:33:
-/usr/local/src/v4l-dvb-experimental/em28xx.h:557: error: field ‘demux’
-has incomplete type
-/usr/local/src/v4l-dvb-experimental/em28xx.h:565: error: field ‘adapter’
-has incomplete type
-/usr/local/src/v4l-dvb-experimental/em28xx.h:568: error: field ‘dmxdev’
-has incomplete type
-/usr/local/src/v4l-dvb-experimental/em28xx.h:570: error: field ‘dvbnet’
-has incomplete type
-In file included
-from /usr/local/src/v4l-dvb-experimental/em2880-dvb.c:40:
-/usr/local/src/v4l-dvb-experimental/mt352/mt352.h: In function
-‘mt352_write’:
+Would help. If you agree with the above description, please, just ack it 
+and I'll insert it for you in the patch. Or you can certainly suggest your 
+own description.
 
-I'm not sure what is missing. I followed all the steps (same set of
-steps at several web sites, one was
-http://mcentral.de/wiki/index.php5/Em2880 )
+Thanks
+Guennadi
 
-Any help would be appreciated.
+> ---
+>  drivers/media/video/ov772x.c |   55 ++++++++++++++++++++++++++---------------
+>  1 files changed, 35 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+> index c11be56..380df93 100644
+> --- a/drivers/media/video/ov772x.c
+> +++ b/drivers/media/video/ov772x.c
+> @@ -767,6 +767,27 @@ static int ov772x_set_register(struct soc_camera_device *icd,
+>  }
+>  #endif
+>  
+> +static const struct ov772x_win_size*
+> +ov772x_select_win(u32 width, u32 height)
+> +{
+> +	__u32 diff;
+> +	const struct ov772x_win_size *win;
+> +
+> +	/* default is QVGA */
+> +	diff = abs(width - ov772x_win_qvga.width) +
+> +		abs(height - ov772x_win_qvga.height);
+> +	win = &ov772x_win_qvga;
+> +
+> +	/* VGA */
+> +	if (diff >
+> +	    abs(width  - ov772x_win_vga.width) +
+> +	    abs(height - ov772x_win_vga.height))
+> +		win = &ov772x_win_vga;
+> +
+> +	return win;
+> +}
+> +
+> +
+>  static int ov772x_set_fmt(struct soc_camera_device *icd,
+>  			  __u32                     pixfmt,
+>  			  struct v4l2_rect         *rect)
+> @@ -787,34 +808,28 @@ static int ov772x_set_fmt(struct soc_camera_device *icd,
+>  		}
+>  	}
+>  
+> +	/*
+> +	 * select win
+> +	 */
+> +	priv->win = ov772x_select_win(rect->width, rect->height);
+> +
+>  	return ret;
+>  }
+>  
+>  static int ov772x_try_fmt(struct soc_camera_device *icd,
+>  			  struct v4l2_format       *f)
+>  {
+> -	struct v4l2_pix_format *pix  = &f->fmt.pix;
+> -	struct ov772x_priv     *priv;
+> -
+> -	priv = container_of(icd, struct ov772x_priv, icd);
+> -
+> -	/* QVGA */
+> -	if (pix->width  <= ov772x_win_qvga.width ||
+> -	    pix->height <= ov772x_win_qvga.height) {
+> -		priv->win   = &ov772x_win_qvga;
+> -		pix->width  =  ov772x_win_qvga.width;
+> -		pix->height =  ov772x_win_qvga.height;
+> -	}
+> +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> +	const struct ov772x_win_size *win;
+>  
+> -	/* VGA */
+> -	else if (pix->width  <= ov772x_win_vga.width ||
+> -		 pix->height <= ov772x_win_vga.height) {
+> -		priv->win   = &ov772x_win_vga;
+> -		pix->width  =  ov772x_win_vga.width;
+> -		pix->height =  ov772x_win_vga.height;
+> -	}
+> +	/*
+> +	 * select suitable win
+> +	 */
+> +	win = ov772x_select_win(pix->width, pix->height);
+>  
+> -	pix->field = V4L2_FIELD_NONE;
+> +	pix->width  = win->width;
+> +	pix->height = win->height;
+> +	pix->field  = V4L2_FIELD_NONE;
+>  
+>  	return 0;
+>  }
+> -- 
+> 1.5.6.3
+> 
 
-Rick B.
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
