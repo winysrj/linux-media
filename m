@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBJF44Je004657
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 10:04:04 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBJF2sLT026091
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 10:02:54 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so168759qwe.39
-	for <video4linux-list@redhat.com>; Fri, 19 Dec 2008 07:02:54 -0800 (PST)
-Message-ID: <412bdbff0812190702r7db244a5m5efbb01ad1fcf57a@mail.gmail.com>
-Date: Fri, 19 Dec 2008 10:02:54 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: H725 <forromale@katamail.com>
-In-Reply-To: <1229696785.5940.23.camel@debian.debian>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBRHU1h9032579
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 12:30:01 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBRHTkKO005580
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 12:29:47 -0500
+Date: Sat, 27 Dec 2008 18:29:56 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uprjfiigy.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0812271829420.4409@axis700.grange>
+References: <uprjfiigy.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <1229696785.5940.23.camel@debian.debian>
-Cc: video4linux-list@redhat.com
-Subject: Re: USB 2.0 DVB-T TV STICK LOG
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Settle i2c client data on ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,32 +26,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Dec 19, 2008 at 9:26 AM, H725 <forromale@katamail.com> wrote:
-> Hello,
-> I just tried to see TV on linux, but with no success (for now).
-> I have an USB tv receiver , on its pack is written "USB 2.0 DVB-T TV
-> STICK", but I didn't find the brand (I think it came from China).
-> Anyway, I connected it and dmesg shows a message where says to write to
-> this ML and paste the log.
->
-<snip>
+On Thu, 18 Dec 2008, Kuninori Morimoto wrote:
 
-The first thing you need to do is find out what chips the device it
-contains.  Take the device apart and take digital photos of the device
-and create a page on the linuxtv.org wiki.
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-Then email the mailing list.  From there, the developers can determine
-whether the chipsets are supported and what else is required.
+Queued.
 
-Regards,
+Thanks
+Guennadi
 
-Devin
+> ---
+>  drivers/media/video/ov772x.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+> index 0cc7ea4..c7a2420 100644
+> --- a/drivers/media/video/ov772x.c
+> +++ b/drivers/media/video/ov772x.c
+> @@ -944,8 +944,10 @@ static int ov772x_probe(struct i2c_client          *client,
+>  
+>  	ret = soc_camera_device_register(icd);
+>  
+> -	if (ret)
+> +	if (ret) {
+> +		i2c_set_clientdata(client, NULL);
+>  		kfree(priv);
+> +	}
+>  
+>  	return ret;
+>  }
+> @@ -955,6 +957,7 @@ static int ov772x_remove(struct i2c_client *client)
+>  	struct ov772x_priv *priv = i2c_get_clientdata(client);
+>  
+>  	soc_camera_device_unregister(&priv->icd);
+> +	i2c_set_clientdata(client, NULL);
+>  	kfree(priv);
+>  	return 0;
+>  }
+> -- 
+> 1.5.6.3
+> 
 
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+---
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
