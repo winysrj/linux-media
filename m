@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
+Received: from mail-fx0-f18.google.com ([209.85.220.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LCwcb-0004AA-FK
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 14:39:30 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so1635401fga.25
-	for <linux-dvb@linuxtv.org>; Wed, 17 Dec 2008 05:39:26 -0800 (PST)
-Message-ID: <412bdbff0812170539n62490614ia7fee4e1689f91@mail.gmail.com>
-Date: Wed, 17 Dec 2008 08:39:26 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: pongo_bob@yahoo.co.uk
-In-Reply-To: <262721.56824.qm@web27701.mail.ukl.yahoo.com>
+	(envelope-from <kmieciu@jabster.pl>) id 1LGeMT-0005TP-UX
+	for linux-dvb@linuxtv.org; Sat, 27 Dec 2008 19:58:12 +0100
+Received: by fxm11 with SMTP id 11so674578fxm.17
+	for <linux-dvb@linuxtv.org>; Sat, 27 Dec 2008 10:57:36 -0800 (PST)
+Message-ID: <49567A9E.8080700@jabster.pl>
+Date: Sat, 27 Dec 2008 19:57:34 +0100
+From: kmieciu <kmieciu@jabster.pl>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <262721.56824.qm@web27701.mail.ukl.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge Nova-TD-500 84xxx remote control
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Avermedia AVerTV GO 007 FM don't work with kernels >=
+	2.6.27
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,63 +25,86 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Dec 17, 2008 at 7:14 AM, Bob <pongo_bob@yahoo.co.uk> wrote:
-> Hi,
->  I used the following kludge :
->
->  The code for handling the remote is missing in linux/drivers/media/dvb/dvb-usb/dib0700_devices.c. Around line 1402 in you need to add
->
->                        },
->                },
->
->                .rc_interval      = DEFAULT_RC_INTERVAL,
->                .rc_key_map       = dib0700_rc_keys,
->                .rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
->                .rc_query         = dib0700_rc_query
->
-> pinched from the remotes above.
->
-> This enables the remote if you recompile and reload the module you should see a new input device in dmesg, in my case I can cat /dev/input/event4 and see the key presses.
->
-> Unfortunately , the code in dib0700_rc_query always returns the last key pressed so you get an event every 150mS with the same key in it. So on to the next kludge :
->
-> At the top of dib0700_rc_query I added:
->
-> static int toggle;
->
-> and after i = dib0700_ctrl_rd( blah blah) :
->
-> if ( key[2] == toggle )
->  return 0;
-> toggle = key[2];
->
-> This checks if the key fetched from the remote is the same as the last and returns if it is thus dumping all the repeats from dib0700_ctrl_rd;
->
-> Now you should find that UP , DOWN , LEFT and RIGHT keys work ok but not much else.
->
-> Kludge No.3 coming up :
-> Starting around line 612 in dib0700_devices.c are the key mappings for the Hauppauge remote. I changed the mapping for KEY_OK to KEY_ENTER so now I can navigate menus and select items.
->
-> And that is as far as I've got ..
+Hi
 
-Hello Bob,
+I have Avermedia AVerTV GO 007 FM PCI card (1461:f31d). Card works fine with kernel 2.6.24. There was tuner detection bug in kernels 2.6.25 and 2.6.26 which was fixed in 2.6.27 but my card still don't work with 2.6.27 and 2.6.28 kernels - no video and no audio. I load module saa7134 with card=57 tuner=54 options. I'm using tvtime.
 
-Are you using the latest code and 1.20 firmware?  I pushed in a fix on
-December 8 that as far as I know addressed the last of the remaining
-dib0700 IR issues.
+Here goes dmesg for working and not working kernels and lspci:
 
-It is possible that your device is missing it's RC declaration, which
-I can add.  But you shouldn't be seeing any more repeat problems.
+Linux version 2.6.24-gentoo-r8 (root@kmieciu) (gcc version 4.2.4 (Gentoo 4.2.4 p1.0)) #1 SMP PREEMPT Thu Jun 19 19:42:04 CEST 2008
+Linux video capture interface: v2.00
+saa7130/34: v4l2 driver version 0.2.14 loaded
+ACPI: PCI Interrupt Link [LNK1] enabled at IRQ 11
+ACPI: PCI Interrupt 0000:01:08.0[A] -> Link [LNK1] -> GSI 11 (level, low) -> IRQ 11
+saa7133[0]: found at 0000:01:08.0, rev: 209, irq: 11, latency: 32, mmio: 0xfb000000
+saa7133[0]: subsystem: 1461:f31d, board: Avermedia AVerTV GO 007 FM [card=57,insmod option]
+saa7133[0]: board init: gpio is 807c8
+input: saa7134 IR (Avermedia AVerTV GO as /devices/pci0000:00/0000:00:06.0/0000:01:08.0/input/input2
+saa7133[0]: i2c eeprom 00: 61 14 1d f3 ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: ff d2 fe ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+saa7134 ALSA driver for DMA sound loaded
+saa7133[0]/alsa: saa7133[0] at 0xfb000000 irq 11 registered as card 1
+tuner 2-004b: chip found @ 0x96 (saa7133[0])
+tda8290 2-004b: setting tuner address to 61
+tuner 2-004b: type set to tda8290+75a
+tda8290 2-004b: setting tuner address to 61
+tuner 2-004b: type set to tda8290+75a
 
-If people are still having dib0700 IR issues, I would like to hear
-about it, since I thought I fixed them all...
+Linux version 2.6.28-gentoo (root@kmieciu) (gcc version 4.3.2 (Gentoo 4.3.2-r1 p1.3, pie-10.1.3) ) #1 SMP PREEMPT Sat Dec 27 17:08:17 CET 2008
+Linux video capture interface: v2.00
+saa7130/34: v4l2 driver version 0.2.14 loaded
+ACPI: PCI Interrupt Link [LNK1] enabled at IRQ 11
+saa7134 0000:01:08.0: PCI INT A -> Link[LNK1] -> GSI 11 (level, low) -> IRQ 11
+saa7133[0]: found at 0000:01:08.0, rev: 209, irq: 11, latency: 32, mmio: 0xfb000000
+saa7133[0]: subsystem: 1461:f31d, board: Avermedia AVerTV GO 007 FM [card=57,insmod option]
+saa7133[0]: board init: gpio is 807c8
+input: saa7134 IR (Avermedia AVerTV GO as /devices/pci0000:00/0000:00:06.0/0000:01:08.0/input/input3
+saa7133[0]: i2c eeprom 00: 61 14 1d f3 ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: ff d2 fe ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+tda829x 2-004b: setting tuner address to 61
+DVB: Unable to find symbol tda827x_attach()
+tda829x 2-004b: type set to tda8290+75a
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+saa7134 ALSA driver for DMA sound loaded
+saa7133[0]/alsa: saa7133[0] at 0xfb000000 irq 11 registered as card 1
 
-Devin
+01:08.0 Multimedia controller [0480]: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+	Subsystem: Avermedia Technologies Inc Device [1461:f31d]
+	Flags: bus master, medium devsel, latency 32, IRQ 11
+	Memory at fb000000 (32-bit, non-prefetchable) [size=2K]
+	Capabilities: [40] Power Management version 2
+	Kernel driver in use: saa7134
+	Kernel modules: saa7134
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+With 2.6.24 kernel I load tuner module manually after saa7134 and saa7134_alsa. With 2.6.28 kernel tuner module is loaded automatically by saa7134 module.
+
+
 
 _______________________________________________
 linux-dvb mailing list
