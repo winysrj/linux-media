@@ -1,33 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBBKG3uu029752
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:16:03 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBBKFJci003706
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 15:15:30 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so560818fga.7
-	for <video4linux-list@redhat.com>; Thu, 11 Dec 2008 12:15:19 -0800 (PST)
-Message-ID: <412bdbff0812111215o2b3eeba9y3dba1818b1e137d6@mail.gmail.com>
-Date: Thu, 11 Dec 2008 15:15:18 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-In-Reply-To: <alpine.DEB.1.10.0812112100190.26420@bakacsin.ki.iif.hu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBS1lI3b025775
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 20:47:18 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBS1kbZV007369
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 20:46:37 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so1620816qwe.39
+	for <video4linux-list@redhat.com>; Sat, 27 Dec 2008 17:46:37 -0800 (PST)
+Date: Sat, 27 Dec 2008 23:46:31 -0200
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Rick Bilonick <rab@nauticom.net>
+Message-ID: <20081227234631.29803f4b@gmail.com>
+In-Reply-To: <1230359011.3450.88.camel@localhost.localdomain>
+References: <1230233794.3450.33.camel@localhost.localdomain>
+	<20081226010307.2c7e3b55@gmail.com>
+	<1230269443.3450.48.camel@localhost.localdomain>
+	<20081226174129.7c752fc6@gmail.com>
+	<1230353764.3450.79.camel@localhost.localdomain>
+	<1230359011.3450.88.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
-	<alpine.DEB.1.10.0811271936080.6927@bakacsin.ki.iif.hu>
-	<412bdbff0812110832h1ab889b7jc30f6e84993456c4@mail.gmail.com>
-	<alpine.DEB.1.10.0812112053560.26420@bakacsin.ki.iif.hu>
-	<412bdbff0812111159t79fd8647w6f883496350b8585@mail.gmail.com>
-	<alpine.DEB.1.10.0812112100190.26420@bakacsin.ki.iif.hu>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Cc: video4linux-list <video4linux-list@redhat.com>
+Subject: Re: Compiling v4l-dvb-kernel for Ubuntu and for F8
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,42 +34,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Dec 11, 2008 at 3:11 PM, Kiss Gabor (Bitman)
-<kissg@ssg.ki.iif.hu> wrote:
->> Please, do not make any channel switches.  Just start the USB capture,
->> plug in the device, tune to a single channel, wait two seconds, and
->> stop USB capture.
->
-> Eeeerrrr... it's too late.
-> I cannot go back to my brother till next week to make further measurements.
-> However captures made so far are almost like you need.
-> Except that there was no antenna cable attached.
->
->> The problem I'm having right now is that is appears you kept switching
->> channels and putting multiple connects/disconnects in the same
->> capture.
->
-> I can't understand. This was the first occasion the tuner was tuned
-> and I could see any picture. No channel switchings can be recorded.
->
-> Meanwhile ... today logs are here:
-> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-1.log.gz
-> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-2.log.gz
-> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-3.log.gz
-> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-4.log.gz
->
-> Gabor
+Hello Rick,
 
-Alright, I'll see what is here.
+On Sat, 27 Dec 2008 01:23:30 -0500
+Rick Bilonick <rab@nauticom.net> wrote:
 
-Thanks,
+> OK, I found the firmware on-line via MythTV
+> ( http://www.mythtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_(800i)#Firmware )
+> at http://www.steventoth.net/linux/xc5000 . (I guess I could have
+> taken this from the CD that came with the tuner.) This contains the
+> the windows drivers with a shell script to extract the firmware (both
+> for the tuner and the ir receiver - the device apparently won't work
+> without both pieces of firmware). So the device now works on the
+> HP2133 mini-notebook running Ubuntu 8.10. Now onto getting this to
+> run on Fedora 8 and 10. Douglas, thanks for your help.
 
-Devin
+Welcome, thanks for your feedback.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Cheers,
+Douglas
 
 --
 video4linux-list mailing list
