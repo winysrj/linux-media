@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1LDmFW-0000Yg-Ld
-	for linux-dvb@linuxtv.org; Fri, 19 Dec 2008 21:47:07 +0100
-Message-ID: <494C083F.2010306@linuxtv.org>
-Date: Fri, 19 Dec 2008 15:46:55 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from smtp101.rog.mail.re2.yahoo.com ([206.190.36.79])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1LH5Kv-0001ZK-IR
+	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 00:46:22 +0100
+Message-ID: <49580FAB.2000003@rogers.com>
+Date: Sun, 28 Dec 2008 18:45:47 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-To: Simon Kenyon <simon@koala.ie>
-References: <494B9754.6000403@koala.ie>
-	<37219a840812191046o68406337wda5fec55a4bf1fcf@mail.gmail.com>
-	<494C0793.9080904@koala.ie>
-In-Reply-To: <494C0793.9080904@koala.ie>
+To: Mark Jenks <mjenks1968@gmail.com>
+References: <e5df86c90812270840w2fd6be64l40f9838aef23db4f@mail.gmail.com>	<1230500176.3120.60.camel@palomino.walls.org>
+	<e5df86c90812281451o111e3ebem77c7d9bb8469e149@mail.gmail.com>
+In-Reply-To: <e5df86c90812281451o111e3ebem77c7d9bb8469e149@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] can you confirm that the nova-td-500 is supported
+Subject: Re: [linux-dvb] Problems with kernel oops when installing HVR-1800.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,74 +26,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simon Kenyon wrote:
-> Michael Krufky wrote:
->> On Fri, Dec 19, 2008 at 7:45 AM, Simon Kenyon <simon@koala.ie> wrote:
->>  
->>> just bought what i though was a t-500 and when i opened the box it
->>> contained a td-500
->>>
->>> the wiki says (in bright bold colours) that it is not (and never would
->>> be) supported
->>>
->>> however, from looking at the mailing list it appear to be supported
->>>
->>> i can of course take it out of the sealed bag and try
->>>
->>> however, to preserve any change of swapping it i thought i would ask
->>> here first
->>>     
->>
->> There is a very old version of the board that is not supported.  There
->> are very few of those boards around nowadays.
->>
->> The new Nova-TD-500 is definitely supported.  Look for the 84xxx model
->> number -- that is the new revision.  This is the one that you are
->> likely to have, if you recently purchased that board.
->>
->> Regards,
->>
->> Mike
->>
->>   
-> thanks for that
-> the box says:
+Mark Jenks wrote:
 >
-> WinTV-NOVA-T-500
-> model 289
-> S-289-V2.1-UK
 >
-> and the board says:
+> On Sun, Dec 28, 2008 at 3:36 PM, Andy Walls <awalls@radix.net
+> <mailto:awalls@radix.net>> wrote:
 >
-> 840000-04 LF
+>     If one of these devices only has DVB support and no analog V4L
+>     support,
+>     then it would make sense why one of them would have "h->video_dev" set
+>     to NULL.  The device shouldn't have a V4L2 "video_dev" if it doesn't
+>     support analog (V4L2) devices.  I believe the 1800 supports analog
+>     video
+>     but the 1250 does not (someone correct me on this if I'm wrong -
+>     I'm no
+>     expert on these devices).
 >
-> with the markings on the tuner can:
 >
-> WinTV-NOVA-TD-500
-> DVB-T
-> 84109 LF
-> REV D1F4
+> Andy,
+>  
+> You are correct.  They are both are cx23885 cards, and only one of
+> them has an analog input to it. The 1250 is a DVB and the 1800 is DVB,
+> but is a MCE card with analog(svideo, etc), in.
 >
-> o hopefully i am ok
-> will install it tomorrow and report back
->
-> by the way, what do JP1 and JP2 do?
->
-> sthanks for the help
 
-Simon,
-
-I'm just telling you that the device is well supported under recent 
-Linux kernels.  For vendor-specific information about the product, 
-you'll have to contact Hauppauge Technical Support.
-
-They have phone numbers and email posted on the Hauppauge web site.
-
-http://www.hauppauge.com
-
-Good Luck,
-
-Mike
+The HVR-1250 device itself supports analogue, but such support is not
+yet realized within the cx23885 driver.
 
 _______________________________________________
 linux-dvb mailing list
