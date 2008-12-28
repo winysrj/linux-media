@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp04.online.nl ([194.134.41.34])
+Received: from mail-in-14.arcor-online.net ([151.189.21.54])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michel@verbraak.org>) id 1L8U5b-0003sB-I7
-	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 07:23:01 +0100
-Received: from smtp04.online.nl (localhost [127.0.0.1])
-	by smtp04.online.nl (Postfix) with ESMTP id BBE6CE056
-	for <linux-dvb@linuxtv.org>; Fri,  5 Dec 2008 07:22:53 +0100 (CET)
-Received: from asterisk.verbraak.thuis (s55939d86.adsl.wanadoo.nl
-	[85.147.157.134]) by smtp04.online.nl (Postfix) with ESMTP
-	for <linux-dvb@linuxtv.org>; Fri,  5 Dec 2008 07:22:53 +0100 (CET)
-Message-ID: <4938C8BB.5040406@verbraak.org>
-Date: Fri, 05 Dec 2008 07:22:51 +0100
-From: Michel Verbraak <michel@verbraak.org>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <49346726.7010303@insite.cz>
-	<4934D218.4090202@verbraak.org>		<4935B72F.1000505@insite.cz>		<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
-	<49371511.1060703@insite.cz>
-In-Reply-To: <49371511.1060703@insite.cz>
-Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan (possible diseqc
-	problem)
+	(envelope-from <hermann-pitton@arcor.de>) id 1LGmhB-0001WF-GZ
+	for linux-dvb@linuxtv.org; Sun, 28 Dec 2008 04:52:07 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: kmieciu <kmieciu@jabster.pl>
+In-Reply-To: <49567A9E.8080700@jabster.pl>
+References: <49567A9E.8080700@jabster.pl>
+Date: Sun, 28 Dec 2008 04:52:10 +0100
+Message-Id: <1230436330.2545.11.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Avermedia AVerTV GO 007 FM don't work with
+	kernels	>= 2.6.27
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,194 +20,110 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0673528300=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============0673528300==
-Content-Type: multipart/alternative;
- boundary="------------070001050704080302080602"
+Hi,
 
-This is a multi-part message in MIME format.
---------------070001050704080302080602
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Am Samstag, den 27.12.2008, 19:57 +0100 schrieb kmieciu:
+> Hi
+> 
+> I have Avermedia AVerTV GO 007 FM PCI card (1461:f31d). Card works fine with kernel 2.6.24. There was tuner detection bug in kernels 2.6.25 and 2.6.26 which was fixed in 2.6.27 but my card still don't work with 2.6.27 and 2.6.28 kernels - no video and no audio. I load module saa7134 with card=57 tuner=54 options. I'm using tvtime.
 
-Pavel Hofman schreef:
-> Alex Betis napsal(a):
->   
->> On Wed, Dec 3, 2008 at 9:32 AM, Alex Betis <alex.betis@gmail.com 
->> <mailto:alex.betis@gmail.com>> wrote:
->>
->>
->>     On Wed, Dec 3, 2008 at 12:31 AM, Pavel Hofman
->>     <pavel.hofman@insite.cz <mailto:pavel.hofman@insite.cz>> wrote:
->>
->>         pavel@htpc:~/project/satelit2/szap-s2$
->>         <mailto:pavel@htpc:~/project/satelit2/szap-s2$> ./szap-s2 -x
->>         EinsFestival
->>         reading channels from file '/home/pavel/.szap/channels.conf'
->>         zapping to 5 'EinsFestival':
->>         delivery DVB-S, modulation QPSK
->>         sat 0, frequency 12110 MHz H, symbolrate 27500000, coderate auto,
->>
->>     I don't think there is 12110 channel on Astra 19.2, at least not
->>     accirding to lyngsat.
->>
->> My bad, there is such channel... I somehow got to Astra 1G only page 
->> instead of all Atras in that position.
->> Try other frequencies anyway.
->>  
->> Maybe you have diseqc problems?
->>
->>     
->
-> Alex,
->
-> Thanks a lot for your help. I tested the card on a different computer 
-> with Windows and I could scan and view both Astra 19.2E and Astra 23.5E 
-> free-to-air programs through A and B parts of the dual LNB. I have no 
-> decoding card yet, nor any adapter.
->
-> Since the computer was different, I will test my final computer/setup in 
-> windows (just have to install them first here :) ). Nevertheless I think 
-> it will work in windows.
->
-> I will get back with result.
->
-> Regards,
->
-> Pavel.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-Alex,
+there is also a patch for your card on the video4linux-list.
 
-I have the following problem. I'm not able to rotate my rotor with my 
-HD2 card and any of the drivers (liplianin, v4l-dvb, Manu). I tried 
-GotoX diseqc commands as well as the goto position used by scan-s2.
-As Pavel also has problems with diseqc (switch with A B input) I think 
-it is not in the scan-s2 an szap-s2 utilities but in the driver.
+> Here goes dmesg for working and not working kernels and lspci:
+> 
+> Linux version 2.6.24-gentoo-r8 (root@kmieciu) (gcc version 4.2.4 (Gentoo 4.2.4 p1.0)) #1 SMP PREEMPT Thu Jun 19 19:42:04 CEST 2008
+> Linux video capture interface: v2.00
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> ACPI: PCI Interrupt Link [LNK1] enabled at IRQ 11
+> ACPI: PCI Interrupt 0000:01:08.0[A] -> Link [LNK1] -> GSI 11 (level, low) -> IRQ 11
+> saa7133[0]: found at 0000:01:08.0, rev: 209, irq: 11, latency: 32, mmio: 0xfb000000
+> saa7133[0]: subsystem: 1461:f31d, board: Avermedia AVerTV GO 007 FM [card=57,insmod option]
+> saa7133[0]: board init: gpio is 807c8
+> input: saa7134 IR (Avermedia AVerTV GO as /devices/pci0000:00/0000:00:06.0/0000:01:08.0/input/input2
+> saa7133[0]: i2c eeprom 00: 61 14 1d f3 ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: ff d2 fe ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> saa7133[0]: registered device radio0
+> saa7134 ALSA driver for DMA sound loaded
+> saa7133[0]/alsa: saa7133[0] at 0xfb000000 irq 11 registered as card 1
+> tuner 2-004b: chip found @ 0x96 (saa7133[0])
+> tda8290 2-004b: setting tuner address to 61
+> tuner 2-004b: type set to tda8290+75a
+> tda8290 2-004b: setting tuner address to 61
+> tuner 2-004b: type set to tda8290+75a
+> 
+> Linux version 2.6.28-gentoo (root@kmieciu) (gcc version 4.3.2 (Gentoo 4.3.2-r1 p1.3, pie-10.1.3) ) #1 SMP PREEMPT Sat Dec 27 17:08:17 CET 2008
+> Linux video capture interface: v2.00
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> ACPI: PCI Interrupt Link [LNK1] enabled at IRQ 11
+> saa7134 0000:01:08.0: PCI INT A -> Link[LNK1] -> GSI 11 (level, low) -> IRQ 11
+> saa7133[0]: found at 0000:01:08.0, rev: 209, irq: 11, latency: 32, mmio: 0xfb000000
+> saa7133[0]: subsystem: 1461:f31d, board: Avermedia AVerTV GO 007 FM [card=57,insmod option]
+> saa7133[0]: board init: gpio is 807c8
+> input: saa7134 IR (Avermedia AVerTV GO as /devices/pci0000:00/0000:00:06.0/0000:01:08.0/input/input3
+> saa7133[0]: i2c eeprom 00: 61 14 1d f3 ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: ff d2 fe ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+> tda829x 2-004b: setting tuner address to 61
+> DVB: Unable to find symbol tda827x_attach()
+> tda829x 2-004b: type set to tda8290+75a
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> saa7133[0]: registered device radio0
+> saa7134 ALSA driver for DMA sound loaded
+> saa7133[0]/alsa: saa7133[0] at 0xfb000000 irq 11 registered as card 1
+> 
+> 01:08.0 Multimedia controller [0480]: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+> 	Subsystem: Avermedia Technologies Inc Device [1461:f31d]
+> 	Flags: bus master, medium devsel, latency 32, IRQ 11
+> 	Memory at fb000000 (32-bit, non-prefetchable) [size=2K]
+> 	Capabilities: [40] Power Management version 2
+> 	Kernel driver in use: saa7134
+> 	Kernel modules: saa7134
+> 
+> With 2.6.24 kernel I load tuner module manually after saa7134 and saa7134_alsa. With 2.6.28 kernel tuner module is loaded automatically by saa7134 module.
+> 
 
-I changed the subject because I do not know if Pavels problem is only 
-due to diseqc problems.
+Out of some reason the tda827x module must be deselected within tuner
+customization of your later kernels and you don't have it.
 
-I have another card (twinhan vp-1034 mantis) which should be able to 
-rotate my rotor and I will try it next weekend to see if my rotor is not 
-broken and I will also have a look into the driver but this will be not 
-easy beacuse I do not have schematics or any documentation.
+Make sure its build is enabled in the .config of the kernel.
 
-Regards,
+You can also install current v4l-dvb from linuxtv.org to get it.
 
-Michel.
-
-
---------------070001050704080302080602
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Pavel Hofman schreef:
-<blockquote cite="mid:49371511.1060703@insite.cz" type="cite">
-  <pre wrap="">Alex Betis napsal(a):
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">On Wed, Dec 3, 2008 at 9:32 AM, Alex Betis &lt;<a class="moz-txt-link-abbreviated" href="mailto:alex.betis@gmail.com">alex.betis@gmail.com</a> 
-<a class="moz-txt-link-rfc2396E" href="mailto:alex.betis@gmail.com">&lt;mailto:alex.betis@gmail.com&gt;</a>&gt; wrote:
+Cheers,
+Hermann
 
 
-    On Wed, Dec 3, 2008 at 12:31 AM, Pavel Hofman
-    &lt;<a class="moz-txt-link-abbreviated" href="mailto:pavel.hofman@insite.cz">pavel.hofman@insite.cz</a> <a class="moz-txt-link-rfc2396E" href="mailto:pavel.hofman@insite.cz">&lt;mailto:pavel.hofman@insite.cz&gt;</a>&gt; wrote:
-
-        pavel@htpc:~/project/satelit2/szap-s2$
-        <a class="moz-txt-link-rfc2396E" href="mailto:pavel@htpc:~/project/satelit2/szap-s2$">&lt;mailto:pavel@htpc:~/project/satelit2/szap-s2$&gt;</a> ./szap-s2 -x
-        EinsFestival
-        reading channels from file '/home/pavel/.szap/channels.conf'
-        zapping to 5 'EinsFestival':
-        delivery DVB-S, modulation QPSK
-        sat 0, frequency 12110 MHz H, symbolrate 27500000, coderate auto,
-
-    I don't think there is 12110 channel on Astra 19.2, at least not
-    accirding to lyngsat.
-
-My bad, there is such channel... I somehow got to Astra 1G only page 
-instead of all Atras in that position.
-Try other frequencies anyway.
- 
-Maybe you have diseqc problems?
-
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Alex,
-
-Thanks a lot for your help. I tested the card on a different computer 
-with Windows and I could scan and view both Astra 19.2E and Astra 23.5E 
-free-to-air programs through A and B parts of the dual LNB. I have no 
-decoding card yet, nor any adapter.
-
-Since the computer was different, I will test my final computer/setup in 
-windows (just have to install them first here :) ). Nevertheless I think 
-it will work in windows.
-
-I will get back with result.
-
-Regards,
-
-Pavel.
-
-_______________________________________________
-linux-dvb mailing list
-<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
-<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a>
-  </pre>
-</blockquote>
-Alex,<br>
-<br>
-I have the following problem. I'm not able to rotate my rotor with my
-HD2 card and any of the drivers (liplianin, v4l-dvb, Manu). I tried
-GotoX diseqc commands as well as the goto position used by scan-s2.<br>
-As Pavel also has problems with diseqc (switch with A B input) I think
-it is not in the scan-s2 an szap-s2 utilities but in the driver.<br>
-<br>
-I changed the subject because I do not know if Pavels problem is only
-due to diseqc problems.<br>
-<br>
-I have another card (twinhan vp-1034 mantis) which should be able to
-rotate my rotor and I will try it next weekend to see if my rotor is
-not broken and I will also have a look into the driver but this will be
-not easy beacuse I do not have schematics or any documentation.<br>
-<br>
-Regards,<br>
-<br>
-Michel.<br>
-<br>
-</body>
-</html>
-
---------------070001050704080302080602--
-
-
---===============0673528300==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0673528300==--
