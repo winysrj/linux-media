@@ -1,19 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Fri, 12 Dec 2008 14:25:01 +0100
-References: <200812121401.55277.laurent.pinchart@skynet.be>
-	<200812121410.36590.laurent.pinchart@skynet.be>
-In-Reply-To: <200812121410.36590.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBSKZVF3002893
+	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 15:35:33 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBSKYdp4014909
+	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 15:34:39 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so1691492qwe.39
+	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 12:34:39 -0800 (PST)
+Date: Sun, 28 Dec 2008 18:34:33 -0200
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: MrUmunhum@popdial.com
+Message-ID: <20081228183433.1b35c464@gmail.com>
+In-Reply-To: <4956E4C6.8040506@popdial.com>
+References: <4956E4C6.8040506@popdial.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812121425.01922.hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Schimek <mschimek@gmx.at>
-Subject: Re: [PATCH v2 3/4] v4l2: Add missing control names
+Cc: video4linux-list@redhat.com
+Subject: Re: eMPIA camera support?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,25 +29,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Laurent,
+Hello William,
 
-Just one tiny suggestion:
+On Sat, 27 Dec 2008 18:30:30 -0800
+William Estrada <MrUmunhum@popdial.com> wrote:
 
-On Friday 12 December 2008 14:10:36 Laurent Pinchart wrote:
-> +	/* CAMERA controls */
-> +	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-> +	case V4L2_CID_EXPOSURE_AUTO:		return "Auto-Exposure";
+> How can I get my cheapO eMPIA canera working on FC9 with a 2.6.28
+> kernel? I have tried uvcvideo and em28xx but no joy.
 
-I would suggest "Auto Exposure" (no dash). It seems to be the most 
-common way to write it. At least to my eyes the dash looks strange. 
-Perhaps some native English speakers can help out here?
+Yes, please send to mail-list:
 
-Regards,
+1) lsusb output
+shell> lsusb > lsusb-output.txt
 
-	Hans
+2) dmesg 
+shell> dmesg > dmesg-output.txt
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+3) Model 
+
+4) Brand
+
+4) If possible, photos (outside and inside)
+   You can use bttv galery: http://www.bttv-gallery.de/
+
+I received an em28xx based webcam (SilverCrest), I'm working to add
+support for it ASAP.
+
+Thanks,
+Douglas
 
 --
 video4linux-list mailing list
