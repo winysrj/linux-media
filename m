@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web27701.mail.ukl.yahoo.com ([217.146.177.235])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <pongo_bob@yahoo.co.uk>) id 1LCvJ7-0007fr-1z
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 13:15:18 +0100
-Date: Wed, 17 Dec 2008 12:14:43 +0000 (GMT)
-From: Bob <pongo_bob@yahoo.co.uk>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Message-ID: <262721.56824.qm@web27701.mail.ukl.yahoo.com>
-Subject: Re: [linux-dvb] Hauppauge Nova-TD-500 84xxx remote control
-Reply-To: pongo_bob@yahoo.co.uk
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rudy@grumpydevil.homelinux.org>) id 1LH50Q-0008KP-1t
+	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 00:25:10 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+To: Mark Jenks <mjenks1968@gmail.com>
+In-Reply-To: <e5df86c90812281507l75c78a6fva4e59af109edb55a@mail.gmail.com>
+References: <1230505364.23623.45.camel@poledra.romunt.nl>
+	<e5df86c90812281507l75c78a6fva4e59af109edb55a@mail.gmail.com>
+Date: Mon, 29 Dec 2008 00:24:28 +0100
+Message-Id: <1230506668.23623.60.camel@poledra.romunt.nl>
+Mime-Version: 1.0
+Cc: Thijs Wennekes <thijs@wenmed.demon.nl>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-2200 progress
+Reply-To: Rudy@grumpydevil.homelinux.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,47 +27,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
- I used the following kludge :
+Hi Mark,
 
- The code for handling the remote is missing in linux/drivers/media/dvb/dvb-usb/dib0700_devices.c. Around line 1402 in you need to add 
+Op zondag 28-12-2008 om 17:07 uur [tijdzone -0600], schreef Mark Jenks:
+> 
+> 
+> On Sun, Dec 28, 2008 at 5:02 PM, Rudy Zijlstra
+> <rudy@grumpydevil.homelinux.org> wrote:
+>         Hi Steven,
+>         
+>         We (a friend and i) need to replace a PVR-500, and these are
+>         apparently
+>         no longer on the market. Replacement seems to be the HVR-2200.
+>         Some
+>         months ago you stated some progress.
+>         
+>         Is this progress yet at the point that analogue testers are
+>         usefull for
+>         you? For us the HVR-2200 would be used in analogue mode only,
+>         as on
+>         cable we do not have FTA digital signals.
+>         
+>         
+>         Cheers,
+>         
+>         
+>         Rudy
+> 
+> Your best bet would be the 1600. 
 
-			},
-	        },
+The 1600 seems USA only. Cannot find it in Europe, unless they call it
+1700 here, as the 1700 seems to have simmilar spec, but Europe minded. 
 
-		.rc_interval      = DEFAULT_RC_INTERVAL,
-		.rc_key_map       = dib0700_rc_keys,
-		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
-		.rc_query         = dib0700_rc_query
+>   The 2200 has been on hold for way too long. 
 
-pinched from the remotes above.
+Agreeing on this :(
 
-This enables the remote if you recompile and reload the module you should see a new input device in dmesg, in my case I can cat /dev/input/event4 and see the key presses.
+>    I was going to get a 2200, and opted for the 1800.   The 1800 has
+> very poor analog support, and I ended up going to the 1600, and they
+> are working on it right now and support is getting pretty good on it.
+> 
+> -Mark 
+> 
 
-Unfortunately , the code in dib0700_rc_query always returns the last key pressed so you get an event every 150mS with the same key in it. So on to the next kludge :
-
-At the top of dib0700_rc_query I added:
-
-static int toggle;
-
-and after i = dib0700_ctrl_rd( blah blah) :
-
-if ( key[2] == toggle )
-  return 0;
-toggle = key[2];
-
-This checks if the key fetched from the remote is the same as the last and returns if it is thus dumping all the repeats from dib0700_ctrl_rd;
-
-Now you should find that UP , DOWN , LEFT and RIGHT keys work ok but not much else.
-
-Kludge No.3 coming up :
-Starting around line 612 in dib0700_devices.c are the key mappings for the Hauppauge remote. I changed the mapping for KEY_OK to KEY_ENTER so now I can navigate menus and select items.
-
-And that is as far as I've got ..
+Thanks,
 
 
+Rudy
 
-      
 
 _______________________________________________
 linux-dvb mailing list
