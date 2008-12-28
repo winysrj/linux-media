@@ -1,18 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1LHlDS-00048j-9Q
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 21:29:27 +0100
-Message-ID: <495A849D.30307@iki.fi>
-Date: Tue, 30 Dec 2008 22:29:17 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Anders Eriksson <aeriksson@fastmail.fm>, Martin Dauskardt <md001@gmx.de>
-References: <200812300909.49996.md001@gmx.de>
-	<20081230100254.644B0942B31@tippex.mynet.homeunix.org>
-In-Reply-To: <20081230100254.644B0942B31@tippex.mynet.homeunix.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Where to buy Anysee E30C in Europe ("Euroland")?
+	(envelope-from <rudy@grumpydevil.homelinux.org>) id 1LH4fO-0006ah-9k
+	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 00:03:27 +0100
+Received: from oortje-fw.romunt.nl (sdroesen.demon.nl [83.160.1.25])
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id mBSN3Hf7000225
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Mon, 29 Dec 2008 00:03:23 +0100 (CET)
+	(envelope-from rudy@grumpydevil.homelinux.org)
+Received: from hermes.romunt.nl (hermes.romunt.nl [192.168.1.35])
+	by oortje-fw.romunt.nl (8.14.1/8.14.1) with ESMTP id mBSN3GDw009330
+	for <linux-dvb@linuxtv.org>; Mon, 29 Dec 2008 00:03:16 +0100
+Received: from [192.168.1.11] (rudyz@poledra.romunt.nl [192.168.1.11])
+	by hermes.romunt.nl (8.14.1/8.14.1) with ESMTP id mBSN3FIn026872
+	for <linux-dvb@linuxtv.org>; Mon, 29 Dec 2008 00:03:15 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+To: linux-dvb@linuxtv.org
+Date: Mon, 29 Dec 2008 00:02:44 +0100
+Message-Id: <1230505364.23623.45.camel@poledra.romunt.nl>
+Mime-Version: 1.0
+Subject: [linux-dvb] HVR-2200 progress
+Reply-To: Rudy@grumpydevil.homelinux.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,26 +34,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Anders Eriksson wrote:
-> Got one in sweden (Elgiganten, 1000 SEK iirc), but the card reader (CA/CI
-> thing) turned out to be unsupported. Reading the kernel sources for the driver,
-> i found a comment indicating that the CA/CI reader was not (yet) supported.
+Hi Steven,
+        
+We (a friend and i) need to replace a PVR-500, and these are apparently
+no longer on the market. Replacement seems to be the HVR-2200. Some
+months ago you stated some progress. 
+        
+Is this progress yet at the point that analogue testers are usefull for
+you? For us the HVR-2200 would be used in analogue mode only, as on
+cable we do not have FTA digital signals. 
+        
+        
+Cheers,
 
-Anysee have standard ISO 7816 card reader interface + SoftCAM in the 
-driver. I did not implemented card reader due to lack of time & 
-interest. It probably needs own driver module for card reader and there 
-is no very similar module that can be used of base of the mode. However 
-I did some protocol reverse-engineering and those results can be found from:
-http://www.otit.fi/~crope/v4l-dvb/anysee_ca_iso7816_protocol.txt
-Feel free to implement smart card reader module :)
 
-> Luckily, Elgiganten had a free 30 day return policy, so I returned mine.
+Rudy        
 
-This device is rather common in Finland and Sweden. Also found from 
-Netherlands and Latvia.
-
-regards
-Antti
 
 _______________________________________________
 linux-dvb mailing list
