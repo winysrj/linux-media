@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from qw-out-2122.google.com ([74.125.92.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ernstp@gmail.com>) id 1LEIyT-0000xA-MG
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 08:43:42 +0100
-Received: by yx-out-2324.google.com with SMTP id 8so630488yxg.41
-	for <linux-dvb@linuxtv.org>; Sat, 20 Dec 2008 23:43:36 -0800 (PST)
-Message-ID: <8e2e399f0812202343o2b88ab1ap4c92d0e99dd90af0@mail.gmail.com>
-Date: Sun, 21 Dec 2008 08:43:36 +0100
-From: "Ernst Persson" <ernstp@gmail.com>
-To: "Glenn Sommer" <glemsom@gmail.com>
-In-Reply-To: <d65b1b150812170433j717c673ak4489cdbbc10c29a3@mail.gmail.com>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LH33E-0000o1-El
+	for linux-dvb@linuxtv.org; Sun, 28 Dec 2008 22:19:57 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so2057152qwb.17
+	for <linux-dvb@linuxtv.org>; Sun, 28 Dec 2008 13:19:52 -0800 (PST)
+Message-ID: <412bdbff0812281319h73e7379et4a02332d6ca2ec43@mail.gmail.com>
+Date: Sun, 28 Dec 2008 16:19:52 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Ilia Penev" <picholicho@gmail.com>
+In-Reply-To: <7b1b1f8d0812281220o3a8f1558ga330905c063ff069@mail.gmail.com>
 MIME-Version: 1.0
-References: <d65b1b150812170433j717c673ak4489cdbbc10c29a3@mail.gmail.com>
+Content-Disposition: inline
+References: <7b1b1f8d0812281220o3a8f1558ga330905c063ff069@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT c-1501 getting timed out waiting for end of xfer
+Subject: Re: [linux-dvb] Gigabyte U8000 remote control how to use it?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,46 +22,97 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0991203325=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0991203325==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_63644_22278150.1229845416403"
-
-------=_Part_63644_22278150.1229845416403
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi,
-I'm thinking about buying one of those cards.
-Have you found any solution?
-Is it a problem?
-Does the card work fine otherwise?
-
-regards
-/Ernst
-
-On Wed, Dec 17, 2008 at 13:33, Glenn Sommer <glemsom@gmail.com> wrote:
-
-> I'm using a TT c-1501 card on a asrock p43twin1600 mainbaord.
->
-> I keep getting these messages: "saa7146 (0) saa7146_i2c_writeout
-> [irq]: timed out waiting for end of xfer"
-> As far as I can see it happens often during tuning to channels.
->
-> Google tells me other people have seen this - but I'm unable to find a
-> solution... And I cannot quite figure out why it happens?
->
-> (I've tried the latest snapshot of v4l-dvb.)
+2008/12/28 Ilia Penev <picholicho@gmail.com>:
+> i downloaded 1.20 from the link . nothing happens with the remote.
 >
 >
-> Regards
-> Glenn Sommer
+> ---------
+> You can get the firmware from here:
+>
+> http://www.wi-bw.tfh-wildau.de/~pboettch/home/files/dvb-usb-dib0700-1.20.fw
+>
+> Note that the firmware has not changed recently - the bug was in the
+> Linux driver and how it interacted with the 1.20 firmware.
+>
+> Devin
+>
+> 2008/12/14 Devin Heitmueller <devin.heitmueller@gmail.com>
+>>
+>> 2008/12/14 Ilia Penev <picholicho@gmail.com>:
+>> > Hello there.
+>> > i decide to find out how to run remote control.
+>> > dmesg says some codes.
+>> > dib0700: Unknown remote controller key : 18 43
+>> >
+>> > i write them in dib0700_device.c
+>> > /*Gigabyte keys*/
+>> >     { 0x18,0x43, KEY_POWER },
+>> >     { 0x1e, 0x7d, KEY_0 },
+>> >     { 0x14, 0x7f, KEY_1 },
+>> >     { 0x19, 0x7c, KEY_2 },
+>> >     { 0x1d, 0x7d, KEY_3 },
+>> >     { 0x1c, 0x72, KEY_4 },
+>> >     { 0x13, 0x4e, KEY_5 },
+>> >     { 0x1b, 0x4c, KEY_6 },
+>> >     { 0x14, 0x70, KEY_7 },
+>> >     { 0x1e, 0x72, KEY_8 },
+>> >     { 0x11, 0x4e, KEY_9 },
+>> >     { 0x14, 0x40, KEY_VOLUMEUP },
+>> >     { 0x1c, 0x42, KEY_VOLUMEDOWN },
+>> >     { 0x10, 0x41, KEY_CHANNELUP },
+>> >     { 0x1b, 0x7c, KEY_CHANNELDOWN },
+>> >     { 0x13, 0x7e, KEY_MUTE },
+>> > //    { 0x12, 0x7e, KEY_FM },
+>> > //    { 0x1d, 0x42, KEY_VIDEOS },
+>> >     { 0x15, 0x40, KEY_TV },
+>> > //    { 0x1a, 0x7c, KEY_SNAPSHOT },
+>> >     { 0x11, 0x41, KEY_LAST },
+>> >     { 0x18, 0x7c, KEY_EPG },
+>> >     { 0x1a, 0x43, KEY_BACK },
+>> >     { 0x19, 0x4c, KEY_OK },
+>> >     { 0x16, 0x70, KEY_UP },
+>> >     { 0x12, 0x41, KEY_DOWN },
+>> >     { 0x16, 0x7F, KEY_LEFT },
+>> >     { 0x19, 0x43, KEY_RIGHT },
+>> >
+>> > how to define commented keys? in ir-keymaps.c? or somewhere else.
+>> > i have problem when i put 1.20 firmware nothing happens with the remote
+>> > control. with 1.10 when i press 5 apears 5 in console or where it is the
+>> > cursor.
+>> > remote appears as /dev/input/eventXX
+>> > tell me some suggestions.
+>> > many thanks :)
+>> >
+>> > Ilia
+>>
+>> Hell Ilia,
+>>
+>> Given the way dib0700 does remote controls, the change you proposed is
+>> the correct way to add new remotes.  If you send a patch to the
+>> mailing list, Patrick Boettcher is the person likely to merge it since
+>> he is the dib0700 maintainer.
+>>
+>> I really should work on getting the dib0700 driver integrated with
+>> ir_keymaps.c so that the it is consistent with other drivers.
+>>
+>> Regarding the 1.20 firmware, are you running the latest v4l-dvb code
+>> from http://linuxtv.org/hg/v4l-dvb?  There were bugs in firmware
+>> version 1.20 IR support that have been fixed in the last couple of
+>> weeks.
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller
+>> http://www.devinheitmueller.com
+>> AIM: devinheitmueller
+>
 >
 > _______________________________________________
 > linux-dvb mailing list
@@ -68,44 +120,24 @@ On Wed, Dec 17, 2008 at 13:33, Glenn Sommer <glemsom@gmail.com> wrote:
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
 
-------=_Part_63644_22278150.1229845416403
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Please don't top post - it's a violation of list policy.
 
-Hi,<br>I&#39;m thinking about buying one of those cards.<br>Have you found any solution?<br>Is it a problem?<br>Does the card work fine otherwise?<br><br>regards<br>/Ernst<br><br><div class="gmail_quote">On Wed, Dec 17, 2008 at 13:33, Glenn Sommer <span dir="ltr">&lt;<a href="mailto:glemsom@gmail.com">glemsom@gmail.com</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">I&#39;m using a TT c-1501 card on a asrock p43twin1600 mainbaord.<br>
-<br>
-I keep getting these messages: &quot;saa7146 (0) saa7146_i2c_writeout<br>
-[irq]: timed out waiting for end of xfer&quot;<br>
-As far as I can see it happens often during tuning to channels.<br>
-<br>
-Google tells me other people have seen this - but I&#39;m unable to find a<br>
-solution... And I cannot quite figure out why it happens?<br>
-<br>
-(I&#39;ve tried the latest snapshot of v4l-dvb.)<br>
-<br>
-<br>
-Regards<br>
-Glenn Sommer<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br>
+Did you also update to the latest code in addition to installing the
+1.20 firmware?  Also, after installing the 1.20 firmware, did you shut
+down the computer completely - some cards do not get powered down
+properly and thus do not reload the new firmware unless you physically
+power down the PC.
 
-------=_Part_63644_22278150.1229845416403--
+If so, please provide your dmesg ouput.
 
+Devin
 
---===============0991203325==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0991203325==--
