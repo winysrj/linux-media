@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Nicolas Will <nico@youplala.net>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812191247j60480e61wa3c1aea74f1e118@mail.gmail.com>
-References: <53501.62.178.208.71.1229623443.squirrel@webmail.dark-green.com>
-	<200812191943.00696.sinter.mann@gmx.de>
-	<d9def9db0812191129w7188489aq1a2d076ad5198d6a@mail.gmail.com>
-	<200812192058.58686.sinter.mann@gmx.de>
-	<d9def9db0812191211k4b6abf3fv80e489a286e8e3a6@mail.gmail.com>
-	<37219a840812191231i775a1769x8705b644cfb21bab@mail.gmail.com>
-	<412bdbff0812191247j60480e61wa3c1aea74f1e118@mail.gmail.com>
-Date: Fri, 19 Dec 2008 21:08:27 +0000
-Message-Id: <1229720907.31427.18.camel@youkaida>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] S2API drivers sync
+Received: from smtp110.rog.mail.re2.yahoo.com ([206.190.37.120])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1LH5Fp-0000tF-5h
+	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 00:41:06 +0100
+Message-ID: <49580E67.5040906@rogers.com>
+Date: Sun, 28 Dec 2008 18:40:23 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: Rudy@grumpydevil.homelinux.org
+References: <1230505364.23623.45.camel@poledra.romunt.nl>	<e5df86c90812281507l75c78a6fva4e59af109edb55a@mail.gmail.com>
+	<1230506668.23623.60.camel@poledra.romunt.nl>
+In-Reply-To: <1230506668.23623.60.camel@poledra.romunt.nl>
+Cc: Thijs Wennekes <thijs@wenmed.demon.nl>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-2200 progress
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,63 +26,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-12-19 at 15:47 -0500, Devin Heitmueller wrote:
-> > It's snowing here in New York -- I plan to write code all weekend.
-> > Y'all should keep your pants on, and maybe you'll realize that there
-> > really is nothing to complain about.  Free work == no bitching
-> > allowed!
-> >
-> > /rant
-> >
-> > -Mike
-> 
-> Seconded.
-> 
-> To those of you who are dissatisfied with the speed at which device
-> support is coming: do what I did a year ago: learn the codebase and
-> start submitting patches.
-> 
-> This is an understaffed project done by volunteers for no money.
-> Being abused by users who feel they have some entitlement to having
-> their devices supported is unacceptable.
+Rudy Zijlstra wrote:
+> Op zondag 28-12-2008 om 17:07 uur [tijdzone -0600], schreef Mark Jenks:
+>   
+>> Your best bet would be the 1600. 
+>>     
+>
+> The 1600 seems USA only. Cannot find it in Europe, unless they call it
+> 1700 here, as the 1700 seems to have simmilar spec, but Europe minded.
 
-As a user, even a user who does not know how to code to save his life,
-you can do other things to help.
+Correct, the HVR-1600 is for the ATSC market, and I do indeed believe
+that the HVR-1700 is the analogous product targeted to the DVB-T market.
 
-You can start by being polite.
+>  
+>> the 2200 has been on hold for way too long. 
+>>     
+>
+> Agreeing on this :(
 
-Then you can ask nicely.
-
-In exchange for new code you can take charge of a few things.
-
-For example coders usually hate to document outside of their own code.
-Take charge of the wiki page of your device and make sure that it is
-clear and up-to-date.
-
-Then prod, poke, ask, politely.
-
-When new code comes in, test, and give feedback, constructive and polite
-feedback.
-
-And document some more.
-
-And prod, poke, ask, politely.
-
-and test.. and give feedback... and ask again...
-
-After a while you usually end up with working code, and happy.
-
-And if you stop there because your device is working fine and your job
-and family are taking 110% of you time, than sit back and enjoy your
-working TV system in the remaining 40%. ;o)
-
-In any case you were not completely selfish.
-
-It worked for me and the Nova-T-500.
-
-Nico
-yeah, a bit selfish too...
-
+Do note that Steve provided an update 10 days ago (granted the message
+was for the analogous ATSC device, but the unfortunate crux of the
+message will apply here as well):
+http://marc.info/?l=linux-dvb&m=122961870514728&w=2
 
 _______________________________________________
 linux-dvb mailing list
