@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from smtpgw01.world4you.com ([80.243.163.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1LGf87-0002tN-Lp
-	for linux-dvb@linuxtv.org; Sat, 27 Dec 2008 20:47:24 +0100
-From: Andy Walls <awalls@radix.net>
-To: Artem Makhutov <artem@makhutov.org>
-In-Reply-To: <20081227180001.GS12059@titan.makhutov-it.de>
-References: <20081227180001.GS12059@titan.makhutov-it.de>
-Date: Sat, 27 Dec 2008 14:49:30 -0500
-Message-Id: <1230407370.3121.19.camel@palomino.walls.org>
+	(envelope-from <treitmayr@devbase.at>) id 1LHHgV-0002ew-1R
+	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 13:57:27 +0100
+Received: from [85.127.250.87] (helo=[192.168.1.76])
+	by smtpgw01.world4you.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.67) (envelope-from <treitmayr@devbase.at>)
+	id 1LHHft-0002P4-TX
+	for linux-dvb@linuxtv.org; Mon, 29 Dec 2008 13:56:53 +0100
+From: Thomas Reitmayr <treitmayr@devbase.at>
+To: linux-dvb@linuxtv.org
+Date: Mon, 29 Dec 2008 13:56:49 +0100
+Message-Id: <1230555409.14295.11.camel@localhost>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compile DVB drivers for kernel 2.6.11
+Subject: [linux-dvb] [PATCH] usb-urb.c: Fix initialization of URB list.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,34 +27,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 2008-12-27 at 19:00 +0100, Artem Makhutov wrote:
-> Hello,
-> 
-> I would like to compile current dvb-drivers from hg for kernel 2.6.11.12.
-> 
-> Is this possible?
+The following patch was sent to this list back in May 2008
+(http://linuxtv.org/pipermail/linux-dvb/2008-May/025952.html) and had a
+followup of myself in October 2008.
+As the kernel oops with USB DVB receivers happens again and again I want
+to propose to finally apply this patch to the v4l-dvb repository.
+Thanks,
+-Thomas
 
-The oldest supported kernel version is 2.6.16.
+Signed-off-by: Thomas Reitmayr <treitmayr@devbase.at>
+
+--- linux-old/drivers/media/dvb/dvb-usb/usb-urb.c	2008-12-29 13:50:33.000000000 +0100
++++ linux/drivers/media/dvb/dvb-usb/usb-urb.c	2008-12-29 13:52:19.000000000 +0100
+@@ -160,7 +160,8 @@ static int usb_bulk_urb_init(struct usb_
+ 				stream->props.u.bulk.buffersize,
+ 				usb_urb_complete, stream);
+ 
+-		stream->urb_list[i]->transfer_flags = 0;
++		stream->urb_list[i]->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
++		stream->urb_list[i]->transfer_dma = stream->dma_addr[i];
+ 		stream->urbs_initialized++;
+ 	}
+ 	return 0;
 
 
-> Has somebody experience with this?
-
-Hans Verkuil did a lot of work and testing in the area of ensuring valid
-support of older kernels.   I recall Hans stating that supporting
-kernels earlier than 2.6.12 was not feasible.  I can't remember the
-reasons why 2.6.12-2.6.15 are not supported.  Check the linux-dvb and
-video4linux list archives.
-
-
-> The first problem I am running into is that 2.6.11 has no linux/mutex.h.
-
-That's probably because the non-spinning mutual exclusion mechanism was
-kernel semaphores way back then.
-
-Regards,
-Andy
-
-> Thanks, Artem
 
 
 
