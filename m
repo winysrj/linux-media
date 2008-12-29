@@ -1,33 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBHEQEAw016341
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:26:14 -0500
-Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBHEQ14c031224
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 09:26:01 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by ian.pickworth.me.uk (Postfix) with ESMTP id B7C2B134DF4F
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:26:00 +0000 (GMT)
-Received: from ian.pickworth.me.uk ([127.0.0.1])
-	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id v7fpOexSJr6W for <video4linux-list@redhat.com>;
-	Wed, 17 Dec 2008 14:26:00 +0000 (GMT)
-Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
-	by ian.pickworth.me.uk (Postfix) with ESMTP id 62493134DF4B
-	for <video4linux-list@redhat.com>; Wed, 17 Dec 2008 14:26:00 +0000 (GMT)
-Message-ID: <49490BF7.8010902@pickworth.me.uk>
-Date: Wed, 17 Dec 2008 14:25:59 +0000
-From: Ian Pickworth <ian@pickworth.me.uk>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBT9PjKt029562
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 04:25:45 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBT9PTI2007477
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 04:25:29 -0500
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>) id 1LHEH3-0001Ax-0s
+	for video4linux-list@redhat.com; Mon, 29 Dec 2008 10:18:57 +0100
+Date: Mon, 29 Dec 2008 10:18:56 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: video4linux-list@redhat.com
-References: <4948F603.1070906@wakelift.de> <49490182.3000507@pickworth.me.uk>
-	<494906F5.40102@wakelift.de>
-In-Reply-To: <494906F5.40102@wakelift.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: Re: zc3xx webcam (041e:4034 Creative Webcam Instant) stopped working
- some time ago (since gspca kernel integration?)
-Reply-To: ian@pickworth.me.uk
+Message-ID: <Pine.LNX.4.64.0812291016250.3949@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: Re: Micron mt9m001
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,24 +27,72 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Timo Paulssen wrote:
-> Thank you very much! This made it work. I wonder why this information
-> isn't made prominent somewhere on some v4l information place (linuxtv
-> wiki?). Is it because the driver's not yet stable?
+I've got a direct request regarding the mt9m001 driver, which I tried to 
+reply to, however, I haven't been able to do so even after multiple 
+attempts to persuade the recepient's spam-filter that I am not a spammer. 
+So, the only way for me to try to deliver my reply is to send it to the 
+list and hope the OP reads it some time...
 
-I forgot another thing - after the driver change I found that the
-exposure was all wrong. The answer for that is another user space
-program - v4l2ucp - which adjusts the exposure rate, white balance etc.
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
-Its project page is here:
+---------- Forwarded message ----------
+Date: Mon, 29 Dec 2008 08:55:14 +0100 (CET)
+From: Guennadi Liakhovetski <lyakh@axis700.grange>
+To: singingfalls <mohair@singingfalls.com>
+Subject: Re: Micron mt9m001
 
-http://sourceforge.net/projects/v4l2ucp/
+Hello Stan
 
-Don't know about the documentation. I think v4l is a tricky area to
-document, it keeps changing.
+On Sun, 28 Dec 2008, singingfalls wrote:
 
-Regards
-Ian
+> Forgive my forwardness. I have a microscope camera with the Micron
+> mt9m001 chip. Is there a driver for Hardy Ubuntu?
+
+At first, one small request to you - if you reply to this email or if you 
+otherwise would like to contact me (or any other video4linux developer) in 
+the future, please, also cc the respective mailing list 
+(video4linux-list@redhat.com for video4linux, or another respective list 
+for different topics). This way others can also benefit from our 
+discussion.
+
+As for your question, the problem is not a specific distribution / kernel 
+version, but the way the mt9m001 camera chip is connected to your CPU. As 
+you mention Ubuntu I take it your microscope is connected to a PC or a 
+Mac. I am not an expert in microscopes, but those I saw in shops connect 
+to PCs over USB. If this also the case with yours, then it means, that 
+mt9m001 is first connected to at least some kind of a I2C+video--to--USB 
+converter chip, or even some microprocessor with own firmware.
+
+The in-kernel mt9m001 driver handles the mt9m001 chip _only_ - up to its 
+I2C interface. It doesn't handle any interfacing chips. So, most likely, 
+this driver will not be able to drive your microscope in its present form. 
+What would be needed is an additional driver to control the interface 
+ch"p. And that will not be easy, because if your microscope is an 
+"ordinary" one bought at an "ordinary" store, presumably, we will never be 
+able to get details (datasheets / technical documentation) about that 
+interface controller. And I am not sure if anyone will ever be interested 
+in reverse-engineering a driver for it.
+
+So, I am sorry to say this, but if my guesses are correct, then most 
+likely you won't be able to interface your microscope to Linux.
+
+However, please do write to the list, it might also turn out that I'm 
+wrong and that someone already handles your device with a completely 
+different driver. But please provide more detail if you write to the list 
+- how your microscope is connected to your PC and what it is called.
+
+> Stan Petrowski
+> www.singingfalls.com
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
