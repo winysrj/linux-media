@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBF87HY5010717
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:07:17 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBF86ilB027554
-	for <video4linux-list@redhat.com>; Mon, 15 Dec 2008 03:06:44 -0500
-Date: Mon, 15 Dec 2008 09:06:50 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-In-Reply-To: <umyeyuivo.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0812150844560.3722@axis700.grange>
-References: <utz9bmtgn.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0812132131410.10954@axis700.grange>
-	<umyeyuivo.wl%morimoto.kuninori@renesas.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBT2sdH1026827
+	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 21:54:39 -0500
+Received: from smtp130.rog.mail.re2.yahoo.com (smtp130.rog.mail.re2.yahoo.com
+	[206.190.53.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBT2sLKH009313
+	for <video4linux-list@redhat.com>; Sun, 28 Dec 2008 21:54:22 -0500
+Message-ID: <49583BD5.9040505@rogers.com>
+Date: Sun, 28 Dec 2008 21:54:13 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add tw9910 driver
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <4956E4C6.8040506@popdial.com>	<20081228183433.1b35c464@gmail.com>
+	<495811FB.2060904@rogers.com>
+	<1230517784.2695.16.camel@pc10.localdom.local>
+In-Reply-To: <1230517784.2695.16.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, MrUmunhum@popdial.com
+Subject: Re: eMPIA camera support?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,55 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 15 Dec 2008, morimoto.kuninori@renesas.com wrote:
+hermann pitton wrote:
+> let's see. It still has lots of advantages.
+>
+> Hacking of hundreds of tuners and advanced gpio and eeprom detection was
+> coordinated there on requests for research coming up on the lists and it
+> has several thousand contributors. A wiki was not even in sight then.
+>
+> I would prefer to see it further maintained for easy searching on hard
+> facts.
+>
+> At least don't call it third party.
+>
+> That is as mad as if you would call the video4linux-list or bytesex.org
+> third party.
+>
+> It is/was to that point the official hardware resource and Gunther a
+> leading tuner/hardware developer and nothing else.
 
-> > > +static const struct tw9910_scale_ctrl tw9910_pal_scales[] = {
-> > > +	{
-> > > +		.name   = "PAL SQ",
-> > > +		.width  = 768,
-> > > +		.height = 576,
-> > > +		.hscale = 0x0100,
-> > > +		.vscale = 0x0100,
-> > > +	},
-> (snip)
-> > At the moment there's no way to switch to any of these PAL norms, as 
-> > soc-camera doesn't support s_std yet. I suspect, we shall expect a patch 
-> > for that soon?:-)
-> 
-> ? really ?
-> I can select PAL by mplayer.
-> icd->vdev->current_norm == V4L2_STD_PAL is works well on tw9910_select_norm.
+This is true, and I don't mean to offend anyone's sensibilities about
+it.  Likewise, I did state that it remains a very useful resource.
 
-Indeed, you are right, sorry for confusion. But then it is even worse:-) 
-What happens is that v4l2-ioctl.c::check_fmt() calls soc_camera_s_std(), 
-verifies that it returns 0, and then sets current_norm, which you then use 
-in your driver in tw9910_select_norm(). This way again we have no way to 
-reject an unsupported tv-norm. Like, try selecting a SECAM norm:-) So, we 
-need two patches here: first to add a set_std method to struct 
-soc_camera_ops and call it from soc_camera_s_std():
-
-static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
-{
-	struct soc_camera_file *icf = file->private_data;
-	struct soc_camera_device *icd = icf->icd;
-	return icd->ops->set_std(icd, a);
-}
-
-and second - your driver implementing this method. Or do we have to pass 
-set_std first to the host driver? Looks like neither i.MX31 nor PXA270 
-have anything to do with it, SuperH neither?
-
-In fact, I think, this your device is rather different from what we've 
-been doing up to now - only CMOS sensors. soc_camera_enum_input() seems to 
-be doing the wrong thing for you now too. Shouldn't it return 
-V4L2_INPUT_TYPE_TUNER and your current norm? Maybe more changes are needed 
-to soc_camera.c, that I don't see ATM.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+However, I haven't seen a word of boo from Gunther in probably two years
+time.  Secondly, some of those users that I had, in the past, requested
+that they submit material to the bttv-gallery have later written/replied
+to me that their submissions went unanswered/unacknowledged.  Thirdly,
+despite Gunther's distinguished history and involvement, it is likely
+unclear to an unassuming end user that there is anything other then a
+passing relation between the project and the "bttv-gallery".
 
 --
 video4linux-list mailing list
