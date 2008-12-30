@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <xweber.alex@googlemail.com>) id 1L94uA-0001ly-MZ
-	for linux-dvb@linuxtv.org; Sat, 06 Dec 2008 22:41:40 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so399486fga.25
-	for <linux-dvb@linuxtv.org>; Sat, 06 Dec 2008 13:41:35 -0800 (PST)
-Message-ID: <493AF18D.6010400@googlemail.com>
-Date: Sat, 06 Dec 2008 22:41:33 +0100
-From: Alexander Weber <xweber.alex@googlemail.com>
+	(envelope-from <crope@iki.fi>) id 1LHo0l-0002G7-KB
+	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 00:28:35 +0100
+Message-ID: <495AAE96.5060207@iki.fi>
+Date: Wed, 31 Dec 2008 01:28:22 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <493AC65E.3010900@googlemail.com>
-In-Reply-To: <493AC65E.3010900@googlemail.com>
-Subject: Re: [linux-dvb] saa7134 with Avermedia M115S hybrid card
-Reply-To: xweber.alex@googlemail.com
+To: Anders Eriksson <aeriksson@fastmail.fm>
+References: <200812300909.49996.md001@gmx.de>	<20081230100254.644B0942B31@tippex.mynet.homeunix.org>	<495A849D.30307@iki.fi>
+	<20081230223923.B62BE6BC001@tippex.mynet.homeunix.org>
+In-Reply-To: <20081230223923.B62BE6BC001@tippex.mynet.homeunix.org>
+Cc: Martin Dauskardt <md001@gmx.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Where to buy Anysee E30C in Europe ("Euroland")?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +26,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi again,
+Anders Eriksson wrote:
+> 
+> Hi Antti,
+> 
+> crope@iki.fi said:
+>> Anysee have standard ISO 7816 card reader interface + SoftCAM in the  driver.
+>> I did not implemented card reader due to lack of time &  interest. It
+>> probably needs own driver module for card reader and there  is no very
+>> similar module that can be used of base of the mode. 
+> 
+> Am I right in understanding that all information required to drive the driver 
+> is available? No lack of specs? I was thinking that we mught want to forward
+> it to the gregkh. He once put up an offer to write drivers for any hw if specs 
+> were provided.
 
-now i modified the saa7134 as described here:
+No, there is no specs available. I did current driver by 
+reverse-engineering. Reverse-engineering USB-protocol is not usually 
+very bad task.
 
-http://www.spinics.net/lists/linux-dvb/msg27720.html
+> 
+>> However  I did some
+>> protocol reverse-engineering and those results can be found from: http://
+>> www.otit.fi/~crope/v4l-dvb/anysee_ca_iso7816_protocol.txt Feel free to
+>> implement smart card reader module :)
+> 
+> I'm afaraid that's beyond my skill level. :-(
+> 
+> 
+>> This device is rather common in Finland and Sweden. Also found from
+>> Netherlands and Latvia.
+> 
+> So, there should be some interest in getting it supported. Here in Sweden it's 
+> the only DVB-C I've seen available on stores. 
 
+In Finland all DVB-T/C versions are sold (DVB-S/S2 version also exists, 
+but not in Finland)
+http://hintaseuranta.fi/tuote.aspx/44704
+http://hintaseuranta.fi/tuote.aspx/161489
+http://hintaseuranta.fi/tuote.aspx/42648
 
-the output in loading modified saa7134 with card=138:
-
-saa7130/34: v4l2 driver version 0.2.14 loaded
-saa7133[0]: found at 0000:08:04.0, rev: 209, irq: 22, latency: 64, mmio: 
-0xfc006800
-saa7133[0]: subsystem: 1461:e836, board: Avermedia M115 [card=138,insmod 
-option]
-saa7133[0]: board init: gpio is a400000
-saa7133[0]: i2c eeprom 00: 61 14 36 e8 00 00 00 00 00 00 00 00 00 00 00 00
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 00 ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff 65 00 ff c2 00 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: 0d ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-dvb_init() allocating 1 frontend
-mt352_read_register: readreg error (reg=127, ret==-5)
-
-
-Alex
+regards
+Antti
 
 _______________________________________________
 linux-dvb mailing list
