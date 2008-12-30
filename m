@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bobrnet.cust.inethome.cz ([88.146.180.6]
-	helo=mailserver.bobrnet.net)
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pavel.hofman@insite.cz>) id 1L9LDD-0002sy-Jc
-	for linux-dvb@linuxtv.org; Sun, 07 Dec 2008 16:06:24 +0100
-Message-ID: <493BE666.8030007@insite.cz>
-Date: Sun, 07 Dec 2008 16:06:14 +0100
-From: Pavel Hofman <pavel.hofman@insite.cz>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LHdeq-0005N0-LT
+	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 13:25:13 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so1036889ugc.16
+	for <linux-dvb@linuxtv.org>; Tue, 30 Dec 2008 04:25:09 -0800 (PST)
+Date: Tue, 30 Dec 2008 13:25:02 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Artem Makhutov <artem@makhutov.org>
+In-Reply-To: <495A06B7.7060506@makhutov.org>
+Message-ID: <alpine.DEB.2.00.0812301246050.29535@ybpnyubfg.ybpnyqbznva>
+References: <20081227180001.GS12059@titan.makhutov-it.de>
+	<alpine.DEB.2.00.0812300758390.29535@ybpnyubfg.ybpnyqbznva>
+	<495A06B7.7060506@makhutov.org>
 MIME-Version: 1.0
-To: Alex Betis <alex.betis@gmail.com>
-References: <49346726.7010303@insite.cz>
-	<4934D218.4090202@verbraak.org>		<4935B72F.1000505@insite.cz>		<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>
-	<49371511.1060703@insite.cz>
-In-Reply-To: <49371511.1060703@insite.cz>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technisat HD2 cannot szap/scan
+Subject: Re: [linux-dvb] Compile DVB drivers for kernel 2.6.11
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,101 +29,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Pavel Hofman napsal(a):
-> Alex Betis napsal(a):
->> On Wed, Dec 3, 2008 at 9:32 AM, Alex Betis <alex.betis@gmail.com 
->> <mailto:alex.betis@gmail.com>> wrote:
->>
->>
->>     On Wed, Dec 3, 2008 at 12:31 AM, Pavel Hofman
->>     <pavel.hofman@insite.cz <mailto:pavel.hofman@insite.cz>> wrote:
->>
->>         pavel@htpc:~/project/satelit2/szap-s2$
->>         <mailto:pavel@htpc:~/project/satelit2/szap-s2$> ./szap-s2 -x
->>         EinsFestival
->>         reading channels from file '/home/pavel/.szap/channels.conf'
->>         zapping to 5 'EinsFestival':
->>         delivery DVB-S, modulation QPSK
->>         sat 0, frequency 12110 MHz H, symbolrate 27500000, coderate auto,
->>
->>     I don't think there is 12110 channel on Astra 19.2, at least not
->>     accirding to lyngsat.
->>
->> My bad, there is such channel... I somehow got to Astra 1G only page 
->> instead of all Atras in that position.
->> Try other frequencies anyway.
->>  
->> Maybe you have diseqc problems?
->>
-> 
+On Tue, 30 Dec 2008, Artem Makhutov wrote:
+
+> and also this diff:
+> --- s2-liplianin.org/v4l/compat.h       2008-12-27 13:00:38.000000000 +0100
+
+Ah, that's what I was trying to remember --
+
+If you happen to have a snapshot of Markus Rechberger's
+mcentral v4l-dvb-kernel before late November, when it
+was replaced (due to being misleading and/or obsolete)
+with a link to his em28xx source, you should also take
+a look at that compat.h file, as it has quite a few
+version checks to 2.6.9 and earlier.  That may also be
+helpful.
+
+If you don't have this snapshot, I can send you a copy
+of this file that I archived.
 
 
-Hi,
+> Can you send over me the diffs you did?
 
-Partial success :)
+I'll pack them together and send you a personal mail
+with a pointer to them, or an attachment, whatever
+fits best...
 
-I added a few free-to-air channels I was able to tune in WinXP to 
-channels.conf:
+The kernel panics my code gave me are not a NULL
+pointer, but instead, a kernel paging request, that
+looks as if it may be related to later-than-2.6.14-
+hacks which I merged in.  Actually, there appear to
+be several similar panics, as I appear to have been
+tweaking the code during these...
 
-Entertainment:12012:v:0:27500:2582:2581:8037
-SkyNews:12207:v:0:27500:514:645:4707
-WineTV:11555:h:1:27500:2372:2374:50435
-AvaTest:11555:h:1:27500:2329:2330:50446
-Vegas:11515:h:1:27500:3568:3567:8035
-Faith:11515:h:1:27500:2375:2376:50455
-
-
-The first two on LNB0, the rest on LNB1.
-
-For LNB0, I can tune via szap2:
-
-pavel@htpc:~/project/satelit2/szap-s2$ ./szap-s2 -r SkyNews
-reading channels from file '/home/pavel/.szap/channels.conf'
-zapping to 2 'SkyNews':
-delivery DVB-S, modulation QPSK
-sat 0, frequency 12207 MHz V, symbolrate 27500000, coderate auto, 
-rolloff 0.35
-vpid 0x0202, apid 0x0285, sid 0x1263
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 1f | signal 0136 | snr 002d | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-status 1f | signal 0136 | snr 0031 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-
-and view the channels with
-
-mplayer - < /dev/dvb/adapter0/dvr0
-
-For LNB1, it seems I can get signal via szap2:
-
-pavel@htpc:~/project/satelit2/szap-s2$ ./szap-s2 -r Faith
-reading channels from file '/home/pavel/.szap/channels.conf'
-zapping to 6 'Faith':
-delivery DVB-S, modulation QPSK
-sat 1, frequency 11515 MHz H, symbolrate 27500000, coderate auto, 
-rolloff 0.35
-vpid 0x0947, apid 0x0948, sid 0xc517
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 1f | signal 0178 | snr 0051 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-status 1f | signal 0178 | snr 0051 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
-status 1f | signal 0178 | snr 0050 | ber 00000000 | unc fffffffe | 
-FE_HAS_LOCK
+I do get a NULL pointer panic from my attempt to
+add support for one particular device to the 2.6.14
+codebase, that I've tracked to one particular thing
+I've been too lazy or preoccupied to finally fix.
 
 
-However, /dev/dvb/adapter0/dvr0 outputs no data for any of the stations 
-on the second LNB1.
+(now to see if I can *find* those diffs...)
 
-
-Perhaps it is correct and the channels I checked broadcast no stream at 
-this time. Since scan2 keeps failing, please is there a place to 
-download recent channels.conf for Astra 19.2E so that I can test on many 
-more channels?
-
-Thanks a lot,
-
-Pavel.
+barry bouwsma
+disorganised
 
 _______________________________________________
 linux-dvb mailing list
