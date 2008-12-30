@@ -1,24 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt3.poste.it ([62.241.4.129])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nicola.sabbi@poste.it>) id 1LHfwR-0007xv-65
-	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 15:51:32 +0100
-Received: from [192.168.1.116] (79.32.6.6) by relay-pt3.poste.it (7.3.122)
-	(authenticated as nicola.sabbi@poste.it)
-	id 4959650100003BCD for linux-dvb@linuxtv.org;
-	Tue, 30 Dec 2008 15:51:26 +0100
-From: Nico Sabbi <nicola.sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <alpine.DEB.2.00.0812211444330.22383@ybpnyubfg.ybpnyqbznva>
-References: <20081220224557.GF12059@titan.makhutov-it.de>
-	<494E4176.2000003@verbraak.org>
-	<20081221132637.GG12059@titan.makhutov-it.de>
-	<alpine.DEB.2.00.0812211444330.22383@ybpnyubfg.ybpnyqbznva>
-Date: Tue, 30 Dec 2008 15:45:50 +0100
-Message-Id: <1230648350.3863.3.camel@linux-wcrt.site>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
-Reply-To: nicola.sabbi@poste.it
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LHk4S-0007Tl-Ls
+	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 20:16:07 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so1058680ugc.16
+	for <linux-dvb@linuxtv.org>; Tue, 30 Dec 2008 11:16:01 -0800 (PST)
+Date: Tue, 30 Dec 2008 20:15:54 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Dmitry Podyachev <vdp@teletec.com.ua>
+In-Reply-To: <495A6A08.90909@teletec.com.ua>
+Message-ID: <alpine.DEB.2.00.0812302005410.29535@ybpnyubfg.ybpnyqbznva>
+References: <mailman.1.1230548402.10016.linux-dvb@linuxtv.org>
+	<495A0E46.6030903@teletec.com.ua>
+	<alpine.DEB.2.00.0812301329490.29535@ybpnyubfg.ybpnyqbznva>
+	<495A6A08.90909@teletec.com.ua>
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dvb-t config for Ukraine_Kiev (ua)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,25 +30,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Il giorno dom, 21/12/2008 alle 15.16 +0100, BOUWSMA Barry ha scritto:
-> On Sun, 21 Dec 2008, Artem Makhutov wrote:
-> 
-> > I just checked it out. It looks interesing, but I need UDP streaming,
-> > as the STB can only receive UDP-Streams.
-> 
-> What sort of UDP do you need -- an RTP Transport Stream,
-> an RTP Program Stream, a simple raw Transport stream, or
-> what?
-> 
-> Unless you're using a different `dvbstream' than I, it
-> sends out RTP (partial or not) Transport Streams, with
-> UDP packet size equal to the TS frame size (I hacked this
-> to fill as much of an ethernet frame as possible).
+Posting an update to the list...
 
--udp sends plain UDP packets with ~1500 bytes of payload
+On Tue, 30 Dec 2008, Dmitry Podyachev wrote:
 
+> > I think the following parameters can be used in place of
+> > `AUTO' for all the above...
+> > FEC 2/3
+> > Guard Interval 1/32
+
+> hmm, I have problems when use not auto (fec 2/3, GI 1/32):
+
+Actually, I have found another site; apparently at 634MHz,
+the FEC used may be 3/4, while 2/3 is used for all others,
+and all have GI 1/32...
+www.dvbtonline.com
 
 
+> > Can you verify this by parsing the NIT info on PID 16
+> > (PID 0x10) on all frequencies?  This matches the results
+> > from 650MHz below...
+> >   
+> ok, I try, but I see it only at 650MHz...
+
+What you would need to do, is to use something like
+`dvbsnoop -s ts -tssubdecode -if [foo] 16'
+after using something like `dvbstream' to record from
+each frequency, writing to file `-o:[foo]' -- or using
+`tzap' to tune each frequency, and `dvbsnoop' on the
+tuner output directly.
 
 _______________________________________________
 linux-dvb mailing list
