@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1L9dD2-00071H-7W
-	for linux-dvb@linuxtv.org; Mon, 08 Dec 2008 11:19:26 +0100
-Date: Mon, 8 Dec 2008 11:18:40 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-In-Reply-To: <493A5CE1.7000009@cadsoft.de>
-Message-ID: <alpine.LRH.1.10.0812081111150.29262@pub2.ifh.de>
-References: <alpine.LRH.1.10.0810191843050.31488@pub2.ifh.de>
-	<493A5CE1.7000009@cadsoft.de>
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVBv5 (S2API) API for DVB-T
+	(envelope-from <aeriksson@fastmail.fm>) id 1LHnFW-0006Ik-7j
+	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 23:39:43 +0100
+To: Antti Palosaari <crope@iki.fi>
+In-reply-to: <495A849D.30307@iki.fi>
+References: <200812300909.49996.md001@gmx.de>
+	<20081230100254.644B0942B31@tippex.mynet.homeunix.org>
+	<495A849D.30307@iki.fi>
+Mime-Version: 1.0
+Date: Tue, 30 Dec 2008 23:39:23 +0100
+From: Anders Eriksson <aeriksson@fastmail.fm>
+Message-Id: <20081230223923.B62BE6BC001@tippex.mynet.homeunix.org>
+Cc: linux-dvb@linuxtv.org, Martin Dauskardt <md001@gmx.de>
+Subject: Re: [linux-dvb] Where to buy Anysee E30C in Europe ("Euroland")?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,32 +27,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-On Sat, 6 Dec 2008, Klaus Schmidinger wrote:
->> I hope it is not too late to apply this and to go for 2.6.28 . If it is,
->> my bad and everyone can blame me for not having a proper hierarchical
->> mode implemented.
->
-> [ see http://linuxtv.org/pipermail/linux-dvb/2008-October/029852.html for the patch ]
->
-> I'm at the "final approach" of releasing an S2API adapted version of
-> VDR 1.7.2, so I'm wondering if this change is going to be adopted in the
-> driver or not, or whether it is at all feasible. There haven't been any
-> comments in almost two months...
 
-It was not merged and there was no reaction.
+Hi Antti,
 
-As it is now too late (it is, right?), the only solution to fix a possible 
-hierarchical transmission will be to add the "select_stream" command. Like 
-that it will be possible to select high or low priority. It is not as 
-clean as by patch, but it will work and is backward compatible. For that I 
-don't have a patch ready, but at the same time there is also no 
-hierarchical transmission (afaik) in the air nowhere on the world. Only in 
-labs.
+crope@iki.fi said:
+> Anysee have standard ISO 7816 card reader interface + SoftCAM in the  driver.
+> I did not implemented card reader due to lack of time &  interest. It
+> probably needs own driver module for card reader and there  is no very
+> similar module that can be used of base of the mode. 
 
-best regards,
-Patrick.
+Am I right in understanding that all information required to drive the driver 
+is available? No lack of specs? I was thinking that we mught want to forward
+it to the gregkh. He once put up an offer to write drivers for any hw if specs 
+were provided.
+
+> However  I did some
+> protocol reverse-engineering and those results can be found from: http://
+> www.otit.fi/~crope/v4l-dvb/anysee_ca_iso7816_protocol.txt Feel free to
+> implement smart card reader module :)
+
+I'm afaraid that's beyond my skill level. :-(
+
+
+> This device is rather common in Finland and Sweden. Also found from
+> Netherlands and Latvia.
+
+So, there should be some interest in getting it supported. Here in Sweden it's 
+the only DVB-C I've seen available on stores. 
+
+/Anders
+
 
 _______________________________________________
 linux-dvb mailing list
