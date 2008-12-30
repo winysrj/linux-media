@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51])
+Received: from rv-out-0506.google.com ([209.85.198.225])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LGLi0-0007Df-UE
-	for linux-dvb@linuxtv.org; Sat, 27 Dec 2008 00:03:13 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812261348h35b28437m5c87f43a3e6a5e33@mail.gmail.com>
-References: <412bdbff0812261348h35b28437m5c87f43a3e6a5e33@mail.gmail.com>
-Date: Sat, 27 Dec 2008 00:02:51 +0100
-Message-Id: <1230332571.9078.8.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] mxl5005s tuner analog support
+	(envelope-from <balrogg@gmail.com>) id 1LHWek-0001lO-KI
+	for linux-dvb@linuxtv.org; Tue, 30 Dec 2008 05:56:41 +0100
+Received: by rv-out-0506.google.com with SMTP id b25so5038443rvf.41
+	for <linux-dvb@linuxtv.org>; Mon, 29 Dec 2008 20:56:34 -0800 (PST)
+Message-ID: <fb249edb0812292056u32019ddbt4dc29de03a938368@mail.gmail.com>
+Date: Tue, 30 Dec 2008 05:56:33 +0100
+From: "andrzej zaborowski" <balrogg@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <fb249edb0812292050s2e3e46a0u8588d79cf3cf858e@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <fb249edb0812292050s2e3e46a0u8588d79cf3cf858e@mail.gmail.com>
+Subject: [linux-dvb] V4L2 Bug and/or Bad Docs for VIDIOC_REQBUFS ioctl()
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,43 +27,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Devin,
+[Forwarding from a coder who wants to be anonymous]
 
-Am Freitag, den 26.12.2008, 16:48 -0500 schrieb Devin Heitmueller:
-> Hello,
-> 
-> I working on the analog support for the Pinnacle Ultimate 880e
-> support, and that device includes an mxl5005s tuner.
-> 
-> I went to do the normal changes to em28xx to support another tuner,
-> which prompted me to wonder:
-> 
-> Is the analog support known to to work in Linux for this tuner for any
-> other device?
-> 
-> The reason I ask is because I hit an oops and when I looked at the
-> source I found some suspicious things:
-> 
-> * No entry in tuner.h
-> * No attach command in tuner-core.c
-> * No definition of set_analog_params() callback in mxl5005s.c
-> 
-> I wonder if perhaps the driver was ported from some other source and
-> nobody ever got around to getting the analog support working?  If
-> that's the case then that is fine (I'll make it work), but I want to
-> know if I am just missing something obvious here....
-> 
-> Devin
-> 
+The documentation at:
 
-we have lots of hybrid tuners meanwhile, either dealt with in
-tuner-types or dedicated tuner submodules, but if not at least in
-tuner.h, you are right that there is no analogue support yet.
+ http://v4l2spec.bytesex.org/spec-single/v4l2.html#VIDIOC-REQBUFS
 
-Cheers,
-Hermann
+says that the VIDIOC_REQBUFS ioctl(), used to initiate memory mapping
+or user pointer i/o on V4L2 devices, returns a 0 upon success, or a -1
+on error, and sets errno to either EBUSY or EINVAL. The code, however,
+does not follow this logic.
 
+In /usr/src/linux/drivers/media/video/videobuf-core.c, in the function
 
+ int videobuf_reqbufs(struct videobuf_queue *q, \
+                      struct v4l2_requestbuffers *req);
+
+If an error occours, "return -EINVAL" is called. If an error does not
+occour, execution reaches the following statement:
+
+ retval = __videobuf_mmap_setup(q, count, size, req->memory);
+
+followed by:
+
+ req->count = retval;
+
+and:
+
+ return retval;
+
+So, the value being returned, upon success, is the value returned from
+the call to __videobuf_mmap_setup(). Looking inside the code for this
+function, the buffers are setup inside a for() loop, and the last value
+of "i" used as a counter for that loop is returned. In other words, the
+buffers allocated count is returned.
+
+So, is the documentation wrong ? or is the code wrong ?
 
 _______________________________________________
 linux-dvb mailing list
