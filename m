@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBG86apf006317
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 03:06:45 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mBG7koG3008875
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 02:47:42 -0500
-Date: Tue, 16 Dec 2008 08:46:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Agustin <gatoguan-os@yahoo.com>
-In-Reply-To: <994493.36303.qm@web32107.mail.mud.yahoo.com>
-Message-ID: <Pine.LNX.4.64.0812160831130.4630@axis700.grange>
-References: <994493.36303.qm@web32107.mail.mud.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBUI53oC003758
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 13:05:03 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.231])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBUI4js7011657
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 13:04:45 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so5558709rvb.51
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 10:04:44 -0800 (PST)
+Message-ID: <fb249edb0812301004t3cb4538bjb2324819922d5580@mail.gmail.com>
+Date: Tue, 30 Dec 2008 19:04:44 +0100
+From: "andrzej zaborowski" <balrogg@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <fb249edb0812292108x7286207ar84886e998348d8d1@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
-Cc: video4linux list <video4linux-list@redhat.com>
-Subject: Re: SoC-Camera bus width, and "V4LV4L2_PIX_FMT_Y16" for "monochrome
- 10 bit"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <fb249edb0812292050s2e3e46a0u8588d79cf3cf858e@mail.gmail.com>
+	<fb249edb0812292056u32019ddbt4dc29de03a938368@mail.gmail.com>
+	<fb249edb0812292108x7286207ar84886e998348d8d1@mail.gmail.com>
+Subject: V4L2 Bug and/or Bad Docs for VIDIOC_REQBUFS ioctl()
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,142 +31,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-(please, do not top-post)
+[Resending the message because I wasn't subscribed before, hopefully
+it doesn't come doubled now.  It's forwarded from a coder who wants to
+be anonymous]
 
-On Mon, 15 Dec 2008, Agustin wrote:
+The documentation at:
 
-> Hi Guennadi,
-> 
-> According to manual, i.MX31's CSI can handle up to 16 bits wide, not 
-> just 15. I have been checking my hardware limitations and IOMUX options 
-> and 16 bits seems possible.
+ http://v4l2spec.bytesex.org/spec-single/v4l2.html#VIDIOC-REQBUFS
 
-I do not understand where you find this. Table 44-12: 
-IPP_IND_SENSB_DATA[15:1] - 15 bits, most importantly 
-CSI_SENS_CONF[DATA_WIDTH]
+says that the VIDIOC_REQBUFS ioctl(), used to initiate memory mapping
+or user pointer i/o on V4L2 devices, returns a 0 upon success, or a -1
+on error, and sets errno to either EBUSY or EINVAL. The code, however,
+does not follow this logic.
 
-00	2 x 4-bit
-01	8 bit
-10	10 bit
-11	15 bit
+In /usr/src/linux/drivers/media/video/videobuf-core.c, in the function
 
-I don't see any possibility to get all 16 bits.
+ int videobuf_reqbufs(struct videobuf_queue *q, \
+                    struct v4l2_requestbuffers *req);
 
-> However, that's far from my current working status. I am using such a 
-> big frame format (~7700x970x10bits) that it requires a 16MB buffer for a 
-> single frame. I did the required mods to kernel to allow a big enough 
-> coherent DMA to be reserved, and I am trying to work with one single 
-> buffer, though I guess I will use two, sooner or later.
+If an error occours, "return -EINVAL" is called. If an error does not
+occour, execution reaches the following statement:
 
-Again, look in the datasheet, CSI_SENS_FRM_SIZE[SENS_FRM_WIDTH] is a 
-12-bit wide field and codes width - 1, i.e., maximum frame width is 2^12 = 
-4096.
+ retval = __videobuf_mmap_setup(q, count, size, req->memory);
 
-> I have come as far to having the image as to successfully requesting a 
-> video capture from userspace through mmap, then get some message from 
-> mx3_camera that some IRQ is reserved, then select() expires (10 seconds) 
-> and the application stays "zombie" on exit.
-> 
-> Today I am troubleshooting this. I will see if the frame size or bus 
-> 'params' are wrong, and what is the IPU/CSI seeing in the bus, as my 
-> logic analyzer sees a pretty usable thing. Any tips?
+followed by:
 
-Try starting with smaller frames, maybe just VGA, then try bigger ones.
+ req->count = retval;
 
-Thanks
-Guennadi
+and:
 
-> 
-> Regards,
-> --
-> 
-> Agustin Ferrin Pozuelo
-> 
-> Embedded Systems Consultant
-> 
-> http://embedded.ferrin.org/
-> 
-> Tel. +34 610502587
-> 
-> --- El vie, 12/12/08, Guennadi Liakhovetski <g.liakhovetski@gmx.de> escribió:
-> De: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Asunto: Re: SoC-Camera bus width, and "V4LV4L2_PIX_FMT_Y16" for "monochrome 10 bit"
-> Para: "Agustin" <gatoguan-os@yahoo.com>
-> CC: "video4linux list" <video4linux-list@redhat.com>
-> Fecha: viernes, 12 diciembre, 2008 5:52
-> 
-> On Fri, 12 Dec 2008, Agustin wrote:
-> 
-> > (Changing subject)
-> > 
-> > On Fri, 12/12/08, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> wrote:
-> > > On Fri, 12 Dec 2008, Agustin wrote:
-> > > > Absolutely. Right now I am connecting 6 MT9P031, the monochrome
-> > > > type, with 12 bits ADC so I think the right format would be
-> 'Y16'.
-> > > 
-> > > Hm, actually I think it is not. As you might have seen in
-> > > the current soc-camera sources, we now handle two formats:
-> > > one from the sensor to the host controller driver, and one
-> > > from the host driver to the user. i.MX31 can handle 15, 10,
-> > > 8 and 4 bits, so, you will either have to extend your 
-> > > 12 bits to 15, or truncate them to 10 or 8. Respectively
-> > > you will choose a suitable format. But - it will have to be
-> > > "15-bit monochrome", "10-bit monochrome", or
-> "8-bit
-> > > monochrome."
-> > > Currently I only see 8 and 16 bits defined in v4l, so, if
-> > > you use anything different you will have to define it. Yes,
-> > > I know I used V4L2_PIX_FMT_Y16 in mt9m001 for "monochrome
-> > > 10 bit" - this is wrong, as well as using
-> > > V4L2_PIX_FMT_SBGGR16 for "Bayer 10 bit,"
-> > > I will have to fix this some time.
-> > 
-> > According to V4L2 API (http://v4l2spec.bytesex.org/spec/r4246.htm), 
-> > V4L2_PIX_FMT_Y16 ('Y16 ') describes "a grey-scale image with
-> a depth of 
-> > 16 bits per pixel". And it is also stated that "the actual
-> sampling 
-> > precision may be lower than 16 bits, for example 10 bits per pixel".
-> > 
-> > So I think V4L2_PIX_FMT_Y16 is valid for all the monochrome widths in 
-> > i.MX31, isn't it?
-> 
-> Hm, ok, in case of i.MX31 it is the case - if you connect a sensor over 15 
-> bit to it, you get 16 bit (see 44.1.1.3) - 15 _most_ significant bits of a 
-> 16-bit word will be used! This is not the case with pxa270 - it uses 
-> _least_ significant bits, so, if you get a 10-bit monochrome format. Now 
-> with your 12 bits - to get 16 bits out of them you will have to connect 
-> them to high 12 bits of imx31: D11 of a sensor to D14 of imx31 ... D0 of a 
-> sensor to D3 of imx31, then you get 16 bits too. I think, if you connect 
-> 10 bits and configure imx31 for 10 bits, you get 16 bits too, but I 
-> haven't found anything in the datasheet about it.
-> 
-> So, if you connect your sensors correctly _from_ imx31 to the user you get 
-> 8 or 16 bits. But, to describe the format the sensor sends to the imx31 
-> you have to specify 15 bits, so that your sensor works correctly also when 
-> connected to other hosts, e.g., pxa.
-> 
-> > Regarding CSI bus width, I understand it is 'negotiated' through 
-> > soc_camera_ops.query/set_bus_params(). I still don't know who makes
-> the 
-> > choice here, so I am just announcing 10 bit cause is what I need at the 
-> > moment.
-> 
-> The host decides. You will see soon enough whether what you announce is 
-> right:-) Even more so after updates that I hope to push out early next 
-> week, where flags comparison is made even more strict.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski
-> 
+ return retval;
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+So, the value being returned, upon success, is the value returned from
+the call to __videobuf_mmap_setup(). Looking inside the code for this
+function, the buffers are setup inside a for() loop, and the last value
+of "i" used as a counter for that loop is returned. In other words, the
+buffers allocated count is returned.
+
+So, is the documentation wrong ? or is the code wrong ?
 
 --
 video4linux-list mailing list
