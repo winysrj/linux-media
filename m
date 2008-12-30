@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBGKPoC4006005
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 15:25:50 -0500
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBGKPDF5028112
-	for <video4linux-list@redhat.com>; Tue, 16 Dec 2008 15:25:14 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Date: Tue, 16 Dec 2008 14:24:56 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415FC92FD@dlee02.ent.ti.com>
-In-Reply-To: <208cbae30812112203o6be4974epb87b3810e2de3581@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBUI7nBl004416
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 13:07:49 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBUI7XQT013119
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 13:07:33 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so5559934rvb.51
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 10:07:32 -0800 (PST)
+Message-ID: <fb249edb0812301007k245d3506k6d9dbe717ccd5284@mail.gmail.com>
+Date: Tue, 30 Dec 2008 19:07:32 +0100
+From: "andrzej zaborowski" <balrogg@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>
-Subject: RE: [REVIEW PATCH 13/14] OMAP: CAM: Add Lens Driver
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: Adding Sabrent SC-PVS4 Capture Board to hardware list
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,183 +27,111 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Alexey Klimov
-> Sent: Friday, December 12, 2008 12:03 AM
+[Forwarded from the coder who wants to be anonymous.]
 
-> On Thu, Dec 11, 2008 at 11:38 PM, Aguirre Rodriguez, Sergio Alberto
-> <saaguirre@ti.com> wrote:
-> > >From 1341b74f5a90e4aa079a4fcb4fe2127ff344cce7 Mon Sep 17 00:00:00 2001
-> > From: Sergio Aguirre <saaguirre@ti.com>
-> > Date: Thu, 11 Dec 2008 13:35:46 -0600
-> > Subject: [PATCH] OMAP: CAM: Add Lens Driver
-> >
-> > This adds the DW9710 Lens driver
-> >
-> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> > ---
+I recently purchased a video capture board, that is not in the V4L
+drivers officially recognized hardware list, and was asked to post
+information on the card to this mailing list, by an active member of
+the #v4l freenode irc channel, in the hopes of getting it added to
+the official V4L codebase.
 
-> > +#define DRIVER_NAME  "dw9710"
-> 
-> Here you define DRIVER_NAME. I saw patch(for another module) that
-> remover MODULE_NAME and places VIVI_MODULE_NAME there. Here it is:
-> http://linuxtv.org/hg/v4l-dvb/rev/58b95134acb8
-> 
-> May be it's better to define something like this: #define
-> DW9710_DRIVER_NAME  "dw9710" ?
-> 
-> Probably it will help you to avoid possible namespace conflicts and
-> code become a bit more readible.
-[Aguirre, Sergio] You're right. Thanks.
+The board is a "Sabrent SC-PVS4" 4 port, 4 chip, video capture PCI card
+and the manufacturers website link for this card is at:
 
-> 
-> > +static int
-> > +dw9710_probe(struct i2c_client *client, const struct i2c_device_id
-> *id);
-> > +static int __exit dw9710_remove(struct i2c_client *client);
-> > +
-> > +struct dw9710_device {
-> > +       const struct dw9710_platform_data *pdata;
-> > +       struct v4l2_int_device *v4l2_int_device;
-> > +       struct i2c_client *i2c_client;
-> > +       int opened;
-> > +       u16 current_lens_posn;
-> > +       u16 saved_lens_posn;
-> > +       int state;
-> > +       int power_state;
-> > +};
-> > +
-> > +static const struct i2c_device_id dw9710_id[] = {
-> > +       { DW9710_NAME, 0 },
-> > +       { }
-> > +};
-> 
-> Hmmm, looks like you already defined DW9710_NAME in header-file. Why
-> didn't you reformat to use _one_ define for this and previous place ?
-> 
-> > +MODULE_DEVICE_TABLE(i2c, dw9710_id);
-> > +
-> > +static struct i2c_driver dw9710_i2c_driver = {
-> > +       .driver = {
-> > +               .name = DW9710_NAME,
-> 
-> Actually, the same thing here.
-> 
+http://www.sabrent.com/#itemID=142&section=Product&itemName=SURVEILLANCE
 
-[Aguirre, Sergio] Ok, done. Now I use only one define: DW9710_NAME. Thanks.
+It is a relatively inexpensive ( around $60 delivered ) capture board,
+and has an IC on it for each BNC input port. These cards can be found
+around the web at places like newegg.com, amazon.com, geeks.com, etc and
+seem to be fairly popular.
 
-> > +static int
-> > +find_vctrl(int id)
-> > +{
-> > +       int i;
-> > +
-> > +       if (id < V4L2_CID_BASE)
-> > +               return -EDOM;
-> > +
-> > +       for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--)
-> > +               if (video_control[i].qc.id == id)
-> > +                       break;
-> > +       if (i < 0)
-> > +               i = -EINVAL;
-> > +       return i;
-> > +}
-> 
-> In this function you use return after if, and in second place you set
-> i equals to -EINVAL, and then return. Probably, to make it more easily
-> to read it's better to do such thing:
-> 
-> if (i < 0)
-> return -EINVAL;
-> 
-[Aguirre, Sergio] Ok, I agree it's a bit confusing... I have rewritten the function to be more simple, is it ok now?:
+The card did not work "out of the box," and after googleing around I
+found the following post:
 
-static int find_vctrl(int id)
-{
-	int i;
+http://www.zoneminder.com/forums/viewtopic.php?p=46054&sid=f37c6496cc74be2f0689468ca42005ed
 
-	if (id < V4L2_CID_BASE)
-		return -EDOM;
+After adding the suggested module option "card=33,33,33,33" the board
+seems to work properly with the tvtime application. Its in an Athlon64
+3200+ system with integrated VIA Unichrome graphics, and displays
+captured NTSC video at approx 30 fps useing approx 5-10% cpu with
+Xv/Xvmc as a display target from a single input source.
 
-	for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--) {
-		if (video_control[i].qc.id == id)
-			return i;
-	}
+Here is all the information I know about the card. If anyone would
+like to know more about it, or I have left something out that is
+required to add this card to the officially supported hardware, please
+let me know.
 
-	return -EINVAL;
-}
+--------------------------------------------------------
+dmesg output:
+--------------------------------------------------------
 
-> > +       if (wposn != rposn) {
-> > +               printk(KERN_ERR "W/R MISMATCH!\n");
-> 
-> If I were writing it, I'd do the following:
-> 
-> printk(KERN_ERR DRIVER_NAME "W/R MISMATCH!\n");
-> 
-> And driver-name have to be unique, see above.
-> To be onest it's better to provide module name to dmesg if you(or any
-> user) want to catch bad behavour.
-[Aguirre, Sergio] Ok, point taken. Thanks.
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7130[0]: found at 0000:02:0c.0, rev: 1, irq: 18, latency: 32, mmio:
+0xfa000000
+saa7130[0]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+[card=33,insmod option]
+saa7130[0]: board init: gpio is 10000
+saa7130[0]: Huh, no eeprom present (err=-5)?
+saa7130[0]: registered device video0 [v4l2]
+saa7130[0]: registered device vbi0
+saa7130[1]: found at 0000:02:0d.0, rev: 1, irq: 19, latency: 32, mmio:
+0xfa001000
+saa7130[1]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+[card=33,insmod option]
+saa7130[1]: board init: gpio is 10000
+saa7130[1]: Huh, no eeprom present (err=-5)?
+saa7130[1]: registered device video1 [v4l2]
+saa7130[1]: registered device vbi1
+saa7130[2]: found at 0000:02:0e.0, rev: 1, irq: 16, latency: 32, mmio:
+0xfa002000
+saa7130[2]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+[card=33,insmod option]
+saa7130[2]: board init: gpio is 10000
+saa7130[2]: Huh, no eeprom present (err=-5)?
+saa7130[2]: registered device video2 [v4l2]
+saa7130[2]: registered device vbi2
+saa7130[3]: found at 0000:02:0f.0, rev: 1, irq: 20, latency: 32, mmio:
+0xfa003000
+saa7130[3]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+[card=33,insmod option]
+saa7130[3]: board init: gpio is 10000
+saa7130[3]: Huh, no eeprom present (err=-5)?
+saa7130[3]: registered device video3 [v4l2]
+saa7130[3]: registered device vbi3
+irq 16: nobody cared (try booting with the "irqpoll" option)
 
-> > +int dw9710_af_getfocus(u16 *value)
-> > +{
-> > +       int ret = -EINVAL;
-> > +       u16 posn = 0;
-> 
-> Why just don't use int ret;
-> And later in code use return -EINVAL; ?
-> Anyway, you change ret variable with reg_read call.
-[Aguirre, Sergio] Ok, Makes sense. Thanks.
-> 
-> > +       struct dw9710_device *af_dev = &dw9710;
-> > +       struct i2c_client *client = af_dev->i2c_client;
-> > +
-> > +       if ((af_dev->power_state == V4L2_POWER_OFF) ||
-> > +          (af_dev->power_state == V4L2_POWER_STANDBY))
-> > +               return ret;
-> > +
-> > +       ret = camaf_reg_read(client, &posn);
-> > +
-> > +       if (ret) {
-> > +               printk(KERN_ERR "Read of current Lens position
-> failed\n");
-> > +               return ret;
-> > +       }
-> > +       *value = CAMAF_DW9710_DATA_R(posn);
-> > +       dw9710.current_lens_posn = CAMAF_DW9710_DATA_R(posn);
-> > +       return ret;
-> > +}
-> > +EXPORT_SYMBOL(dw9710_af_getfocus);
+--------------------------------------------------------
+lspci output:
+--------------------------------------------------------
 
-> > +       if ((on == V4L2_POWER_ON) && (lens->state == LENS_NOT_DETECTED))
-> {
-> > +               rval = dw9710_detect(c);
-> > +               if (rval < 0) {
-> > +                       dev_err(&c->dev, "Unable to detect "
-> > +                               DRIVER_NAME " lens HW\n");
-> > +                       printk(KERN_ERR "Unable to detect "
-> > +                               DRIVER_NAME " lens HW\n");
-> 
-> Two thing here. As i know it's more preferable to use dev_macro
-> instead of printk if possible.
-> As i know(may be i'm wrong) it's not good to use DRIVER_NAME in dev_err
-> here.
-> Why do you print the same text two times here ?
-[Aguirre, Sergio] Ok, cleaning this up. Thanks
+02:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+Broadcast Decoder (rev 01)
+02:0d.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+Broadcast Decoder (rev 01)
+02:0e.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+Broadcast Decoder (rev 01)
+02:0f.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+Broadcast Decoder (rev 01)
 
-> > +static int __init dw9710_init(void)
-> > +{
-> > +       int err = -EINVAL;
-> 
-> int err = something, and then changed with call to i2c..
-> 
-> This is all i can suggest, it's not about functionality, it's about
-> coding style..
-> Please, use dev_macros if possible instead of printk.
-> 
-[Aguirre, Sergio] Ok, will do that. Thanks
+--------------------------------------------------------
+lspci -vv output ( first entry only ):
+--------------------------------------------------------
 
-I really appreciate all your time doing this.
-
+02:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+Broadcast Decoder (rev 01)
+Subsystem: Philips Semiconductors Device 0000
+Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B- DisINTx-
+Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+Latency: 32 (3750ns min, 9500ns max)
+Interrupt: pin A routed to IRQ 18
+Region 0: Memory at fa000000 (32-bit, non-prefetchable) [size=1K]
+Capabilities: [40] Power Management version 1
+Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+Kernel driver in use: saa7134
+Kernel modules: saa7134
 
 --
 video4linux-list mailing list
