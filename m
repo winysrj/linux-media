@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB5Dj4Nu029856
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 08:45:04 -0500
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB5DhQKI012680
-	for <video4linux-list@redhat.com>; Fri, 5 Dec 2008 08:43:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "v4l-dvb maintainer list" <v4l-dvb-maintainer@linuxtv.org>
-Date: Fri, 5 Dec 2008 14:43:06 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBU0TUaO021289
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 19:29:30 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBU0TDbq026543
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 19:29:14 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so1929529qwe.39
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 16:29:13 -0800 (PST)
+Message-ID: <412bdbff0812291629o72c552ecq1b1fba6c44d99b06@mail.gmail.com>
+Date: Mon, 29 Dec 2008 19:29:13 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Trevor Campbell" <tca42186@bigpond.net.au>
+In-Reply-To: <4959678C.40407@bigpond.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200812051443.06154.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>,
-	davinci-linux-open-source-bounces@linux.davincidsp.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PULL] http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
+References: <495564E3.4070702@bigpond.net.au>
+	<412bdbff0812261919k425a3a24w7910628cc9865a83@mail.gmail.com>
+	<4959678C.40407@bigpond.net.au>
+Cc: video4linux-list@redhat.com
+Subject: Re: em28xx: new board id [1b80:e302]
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,37 +32,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+On Mon, Dec 29, 2008 at 7:13 PM, Trevor Campbell
+<tca42186@bigpond.net.au> wrote:
+> I have created a page as requested at
+> http://www.linuxtv.org/wiki/index.php/Kaiser_Baas_USB_DVD_Maker_2_(KBA0300300)
 
-Please pull from http://www.linuxtv.org/hg/~hverkuil/v4l-dvb for the 
-following:
+Ok, great.  This is just an em2861/saa7113 combination with no tuner
+or digital support.  Should be pretty straightforward.
 
-- omap2: add OMAP2 camera driver.
-- v4l2-int-if: add three new ioctls for std handling and routing
-- v4l: add new tvp514x I2C video decoder driver
+We probably just need a device profile.
 
-Thanks to Nokia and TI for these drivers!
+I'll see about putting together a patch that you can apply and see if
+it works.  Ping me in a few days if you don't hear back from me.
 
 Regards,
 
-        Hans
-
-diffstat:
- b/linux/drivers/media/video/omap24xxcam-dma.c |  601 ++++++++
- b/linux/drivers/media/video/omap24xxcam.c     | 1908 
-++++++++++++++++++++++++++
- b/linux/drivers/media/video/omap24xxcam.h     |  593 ++++++++
- b/linux/drivers/media/video/tvp514x.c         | 1569 
-+++++++++++++++++++++
- b/linux/drivers/media/video/tvp514x_regs.h    |  297 ++++
- b/linux/include/media/tvp514x.h               |  118 +
- linux/drivers/media/video/Kconfig             |   18
- linux/drivers/media/video/Makefile            |    4
- linux/include/media/v4l2-int-device.h         |    6
- 9 files changed, 5114 insertions(+)
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
