@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB3CACVu001950
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 07:10:12 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB3CA0B7001948
-	for <video4linux-list@redhat.com>; Wed, 3 Dec 2008 07:10:00 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so3612578wfc.6
-	for <video4linux-list@redhat.com>; Wed, 03 Dec 2008 04:09:59 -0800 (PST)
-Message-ID: <e5df86c90812030409m736a45b1xb851b01e349d23eb@mail.gmail.com>
-Date: Wed, 3 Dec 2008 06:09:59 -0600
-From: "Mark Jenks" <mjenks1968@gmail.com>
-To: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-In-Reply-To: <de8cad4d0812022114n11544dc1ve8fbca5d2d21eb57@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBUJ09IG022239
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 14:00:09 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.236])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBUIxsig003601
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 13:59:54 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so5583720rvb.51
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 10:59:53 -0800 (PST)
+Message-ID: <199bcede0812301059u6f83fe48ifb85de15feb473fe@mail.gmail.com>
+Date: Tue, 30 Dec 2008 12:59:53 -0600
+From: "David Lonie" <loniedavid@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-References: <e5df86c90811291616s65209d26q3471213958bdfde6@mail.gmail.com>
-	<de8cad4d0812022114n11544dc1ve8fbca5d2d21eb57@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Cc: video4linux-list@redhat.com
-Subject: Re: S-Video analog Capture.
+Subject: KWorld ATSC-115 problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,51 +27,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Dec 2, 2008 at 11:14 PM, Brandon Jenkins <bcjenkins@tvwhere.com>wrote:
+Nothing I can do seems to get this card to work -- I've been trying
+for 4 days now, and I'm very lost as to how to troubleshoot the issue.
+Here's a summary:
 
-> On Sat, Nov 29, 2008 at 7:16 PM, Mark Jenks <mjenks1968@gmail.com> wrote:
-> > I have been trying to get my 2 HVR-1800's to work with my time-warner
-> cable
-> > box without much success at all.
-> >
-> > Good thing I bought 2 of these, since they are exactly what I needed, and
-> > can't use them at all except OTA, since there are lots of problem with
-> the
-> > analog input of these.
-> >
-> > I am looking for a good analog capture card that can get S-video and
-> maybe
-> > audio from my TW box, so that I can use them in Mythtv.
-> >
-> > Does anyone have any suggestions on what cards have analog S-video
-> support?
-> >
-> > Thanks!
-> >
-> > -Mark
-> > --
-> > video4linux-list mailing list
-> > Unsubscribe mailto:video4linux-list-request@redhat.com
-> ?subject=unsubscribe
-> > https://www.redhat.com/mailman/listinfo/video4linux-list
-> >
-> Mark,
+* Card is a KWorld ATSC-115 (using saa7134 drivers)
+* I have a picture using xawtv to capture the analog signal
+* I cannot change the channel
+* There is no sound, even with saa7134-alsa loaded and xawtv set to
+the correct dsp (/dev/dsp2 in my case).
+
+If anyone out there is familiar with this card or troubleshooting this
+driver, what would you do in this situation? I've tried several things
+(see below) and I need help from the list to get it working. If there
+is somewhere else I should be asking,  please let me know.
+
+Thanks,
+
+Dave
+
+
+On Sun, Dec 28, 2008 at 6:37 PM, David Lonie <loniedavid@gmail.com> wrote:
+> I recently started setting up a KWorld PlusTV ATSC-115 to work
+> alongside my PVR-150 in a mythtv box.
 >
-> The HVR-1600 has working capture for analog and digital in PCI. Do you
-> need PCIe?
+> For the first few attempts at using it I got black screens in xawtv
+> and myth. I followed the mythtv wiki, asked around on IRC and got
+> nothing.
 >
-> Brandon
+> Eventually (I have no idea what changed...) I got a picture! No sound,
+> but I could see all the channel's from my analog cable signal in both
+> myth and xawtv. I rebooted to see if this would work by default, and
+> when I did I got static. I switched the cable from the top to the
+> bottom connector and the picture came back (!). I have no clue why the
+> card spontaneously changed inputs like that...
+>
+> Problem is, there's still no sound and I can't change channels. I'm
+> stuck listening to some big-haired bimbo go on and on about who the
+> sexiest tv doctor is on the charter channel.
+>
+> I fooled around a bit, trying the v4l hg drivers, the 2.6.27 drivers,
+> etc, but no luck. I've reconfigured the card in myth a dozen times,
+> unloaded and reloaded the module, etc. Any ideas what I should try
+> next? Any output that may be useful to anyone? I've run out of ideas
+> myself.
+>
+> Dave
 >
 
-No, I don't need PCI, PCIe is just what I had room for and bought it.   The
-Backend is sitting in a media closet, so it's a fullsize case. ;)
-
-So, with the 1600, Svideo in, w/ Audio interleaved in mpg format, you say it
-works?
-
-Can anyone verify this, before I go out and purchase this, or a PVR-250.
-
--Mark
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
