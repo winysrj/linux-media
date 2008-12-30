@@ -1,16 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBDMx8Uv010532
-	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 17:59:08 -0500
-Received: from smtp-out26.alice.it (smtp-out26.alice.it [85.33.2.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBDMwsdu019479
-	for <video4linux-list@redhat.com>; Sat, 13 Dec 2008 17:58:54 -0500
-Message-Id: <20081213225653.943975535@studenti.unina.it>
-Date: Sat, 13 Dec 2008 23:56:53 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: video4linux-list@redhat.com
-Cc: 
-Subject: [PATCH 0/2] ov534: fix typo + show sensor ID
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBU1LT5k001275
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 20:21:29 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBU1LD81009754
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 20:21:13 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so5207012rvb.51
+	for <video4linux-list@redhat.com>; Mon, 29 Dec 2008 17:21:12 -0800 (PST)
+Message-ID: <26aa882f0812291721o2e3c1798oe9ace7faabbf2f0c@mail.gmail.com>
+Date: Mon, 29 Dec 2008 20:21:12 -0500
+From: "Jackson Yee" <jackson@gotpossum.com>
+To: "Gregg Germain" <saville@comcast.net>
+In-Reply-To: <4959707D.4010509@comcast.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <4959707D.4010509@comcast.net>
+Cc: video4linux-list@redhat.com
+Subject: Re: xawtv and 64 bit LINUX systems...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,16 +30,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Xawtv should work fine on 64 bit systems. I've got a gentoo-amd64
+system doing fine with an ImpactVCB card.
 
-printing the sensor ID can useful to find out different sensors attached
-to ov534. I know that, as it is now, it is not going to work always
-because different sensors may be on different i2c slave address, but it
-will serve as a base for some ad-hoc debugging code.
+If you're running Fedora, you probably already have Xawtv available through Yum:
+
+http://www.fedorafaq.org/#installsoftware
+
+Otherwise, one of the packages from Dag should probably work:
+
+http://dag.wieers.com/rpm/packages/xawtv/
 
 Regards,
-   Antonio Ospite
--- 
+Jackson Yee
+The Possum Company
+540-818-4079
+me@gotpossum.com
+
+On Mon, Dec 29, 2008 at 7:51 PM, Gregg Germain <saville@comcast.net> wrote:
+> Hi all,
+>
+>  I'm a newbie to xawtv and I'd like to install it on my Fedora Core 10, 64
+> bit system.
+>
+> Is xawtv-3.95.tar.gz  the package that I should use? will it work with 64
+> bit systems?
+>
+> thanks
+>
+> Gregg
 
 --
 video4linux-list mailing list
