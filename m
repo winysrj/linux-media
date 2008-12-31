@@ -1,23 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVAD7cM020282
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 05:13:07 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVACpLF021276
-	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 05:12:51 -0500
-Date: Wed, 31 Dec 2008 08:12:43 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <20081231081243.0cecad1d@pedra.chehab.org>
-In-Reply-To: <200812311052.40693.hverkuil@xs4all.nl>
-References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
-	<20081230203235.1b7eecf3@pedra.chehab.org>
-	<200812311052.40693.hverkuil@xs4all.nl>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVKA8HU001263
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:10:08 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVK9qFj003535
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:09:53 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so5790636wfc.6
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 12:09:51 -0800 (PST)
+Message-ID: <c785bba30812311209k16ef6f04jc3d8867a64d4cb93@mail.gmail.com>
+Date: Wed, 31 Dec 2008 13:09:51 -0700
+From: "Paul Thomas" <pthomas8589@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, Fabio Belavenuto <belavenuto@gmail.com>
-Subject: Re: [PATCH] Add TEA5764 radio driver
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
+	<20081231155344.4cc4594a@gmail.com>
+	<c785bba30812311128u27f9326ah16728a17a5fce7e3@mail.gmail.com>
+	<412bdbff0812311133y7c3c4f28u9d9ed99cbc18233b@mail.gmail.com>
+	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
+	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
+	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
+	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
+	<c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
+	<412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,47 +38,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 31 Dec 2008 10:52:40 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+The v4l-dvb directory is clean aside from the KERNEL_VERSION(2, 6, 27) change.
 
-> Hi Mauro,
-> 
-> Did you see my review of this driver?
-> 
-> (http://lists-archives.org/video4linux/26062-add-tea5764-radio-driver.html)
-> 
-> IMHO this driver shouldn't be added in this form. It's up to you of course 
-> to decide this, but I just want to make sure you read my posting.
+thanks,
+Paul
 
-No, I haven't seen. I'm not sure why, but patchwork didn't show me your review.
-
-My comments about the points you raised:
-
-a) Yes, the proper approach is to split it into 2 separate drivers:
-	1) a Motorola i2c bridge driver;
-	2) a generic tea5764 driver;
-
-I would very much appreciate if Fabio can do this work, allowing others to use
-tea5764 driver;
-
-b) AFAIK, tea5764 is not so close to tea5767, so probably the right decision is
-to have it as a separate driver;
-
-c) The same design trouble on radio-tea5764 is also present on other radio-*
-drivers;
-
-d) While this design doesn't allow sharing tea5764 driver, for now, we have at
-least something. A future patch may split it into two drivers. That's why I
-decided to apply it.
-
-Fábio,
-
-Could you please work on split it into two drivers? You can use cx88 or saa7134
-as examples. On those drivers, the i2c stuff is at *-i2c.c, and the radio
-interface are at *-video.c.
-
-Cheers,
-Mauro
+On Wed, Dec 31, 2008 at 1:06 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Wed, Dec 31, 2008 at 3:03 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>> OK, I can compile now, but when I go to modprobe em28xx I get this error.
+>>
+>> em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
+>>
+>> thanks,
+>> Paul
+>
+> Do you have some mix of files from the em28xx-new and the v4l-dvb
+> codebase?  Or did you jam a reference in the include path to
+> em28xx-new's include directory?
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
 
 --
 video4linux-list mailing list
