@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB8Kup33023134
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 15:56:51 -0500
-Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mB8KuXmR018769
-	for <video4linux-list@redhat.com>; Mon, 8 Dec 2008 15:56:33 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Greg KH <greg@kroah.com>
-Date: Mon, 8 Dec 2008 21:56:26 +0100
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBV1ZqHq012275
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 20:35:52 -0500
+Received: from po-out-1718.google.com (po-out-1718.google.com [72.14.252.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBV1ZaU6016378
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 20:35:36 -0500
+Received: by po-out-1718.google.com with SMTP id c31so11279338poi.0
+	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 17:35:35 -0800 (PST)
+Message-ID: <2ac79fa40812301735p1c71ab71w1a39b4f9283bf028@mail.gmail.com>
+Date: Wed, 31 Dec 2008 08:35:35 +0700
+From: "=?UTF-8?Q?Nam_Ph=E1=BA=A1m_Th=C3=A0nh?=" <phamthanhnam.ptn@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <20081230102601.4ba511ce@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200812082156.26522.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
-Subject: [BUG] cdev_put() race condition
+Content-Type: multipart/mixed;
+	boundary="----=_Part_122736_22782419.1230687335101"
+References: <2ac79fa40812260631r7f34d2a5nc49233866d010047@mail.gmail.com>
+	<20081230102601.4ba511ce@pedra.chehab.org>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Add support for Avermedia AVerTV GO 007 FM Plus
+	(1461:f31d)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,77 +31,146 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Greg,
+------=_Part_122736_22782419.1230687335101
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-Laurent found a race condition in the uvc driver that we traced to the 
-way chrdev_open and cdev_put/get work.
+SSBtdXN0IHVzZSBHb29nbGUncyB3ZWItbWFpbCBiZWNhdXNlIG15IGluc3RpdHV0ZSBoYXMgYmxv
+Y2tlZCBTTVRQLiBJIHppcHBlZAp0aGUgcGF0Y2gsIGlzIGl0IE9LIG5vdz8KCjIwMDgvMTIvMzAg
+TWF1cm8gQ2FydmFsaG8gQ2hlaGFiIDxtY2hlaGFiQGluZnJhZGVhZC5vcmc+Cgo+IE9uIEZyaSwg
+MjYgRGVjIDIwMDggMjE6MzE6NDEgKzA3MDAKPiAiTmFtIFBo4bqhbSBUaMOgbmgiIDxwaGFtdGhh
+bmhuYW0ucHRuQGdtYWlsLmNvbT4gd3JvdGU6Cj4KPiA+IEhpIGFsbAo+ID4gSSd2ZSB0ZXN0ZWQg
+Y2FyZWZ1bGx5IHRoaXMgcGF0Y2ggb24gNCBjYXJkcyAob25lIGlzIG1pbmUgYW5kIDMgb3RoZXIK
+PiA+IGNhcmRzIGZyb20gMyBkaWZmZXJlbnQgc3RvcmVzIChJIGNhbiBib3Jyb3cgdGhlbSBmcmVl
+bHkpKSB3aXRoIGtlcm5lbAo+ID4gMi42LjI3LiBJIGRvbid0IG5lZWQgYW55IGFkZGl0aW9uYWwg
+Y29uZmlndXJhdGlvbiwganVzdCBwYXRjaCB0aGUKPiA+IG1vZHVsZSwgcmVib290IGFuZCB0aGV5
+IHdvcmsgKGF1dG8gZGV0ZWN0ZWQpLiBUViwgcmFkaW8sIHNvdW5kLCBpbmZyYXJlZAo+ID4gcmVt
+b3RlLCBTLVZpZGVvLCBMaW5lLi4uIGFsbW9zdCB3b3JrIHBlcmZlY3RseS4KPiA+IFNvLCBwbGVh
+c2UgYWRkIHRoaXMgc3VwcG9ydCB0byBtYWtlIGl0IGVhc3kgZm9yIG1lIGFuZCB0byBoZWxwIG1h
+bnkKPiA+IHBlb3BsZSBpbiB0aGUgd29ybGQgd2hvIGhhdmUgdGhpcyBUViBjYXJkLgo+ID4gQmVz
+dCByZWdhcmRzLgo+Cj4gSGkgTmFtLAo+Cj4gWW91IG5lZWQgdG8gc2VuZCB5b3VyIFNpZ25lZC1v
+ZmYtYnk6IHRvZ2V0aGVyIHdpdGggeW91ciBwYXRjaCwgYXMgZGVzY3JpYmVkCj4gb24KPiBodHRw
+Oi8vbGludXh0di5vcmcvaGcvdjRsLWR2Yi9yYXctZmlsZS90aXAvUkVBRE1FLnBhdGNoZXMuCj4K
+PiBBbHNvLCB5b3VyIHBhdGNoIGRpZG4ndCBhcHBseSBvbiBteSB0cmVlLiBQcm9iYWJseSwgeW91
+ciBlbWFpbGVyIGRpZAo+IHNvbWV0aGluZwo+IGJhZCwgbGlrZSByZXBsYWNpbmcgdGFicyB3aXRo
+IHdoaXRlIHNwYWNlcy4KPgo+IENvdWxkIHlvdSBwbGVhc2UgcmUtZ2VuZXJhdGUgaXQ/Cj4KPiBD
+aGVlcnMsCj4gTWF1cm8uCj4KPiA+IGRpZmYgLXVyIDJjNjgzNWFhYThlYSBsaW51eC9Eb2N1bWVu
+dGF0aW9uL3ZpZGVvNGxpbnV4L0NBUkRMSVNULnNhYTcxMzQKPiA+IC0tLSBhL2xpbnV4L0RvY3Vt
+ZW50YXRpb24vdmlkZW80bGludXgvQ0FSRExJU1Quc2FhNzEzNCAgICAyMDA4LTEyLTIyCj4gPiAx
+Nzo1NDowNS4wMDAwMDAwMDAgKzA3MDAKPiA+ICsrKyBiL2xpbnV4L0RvY3VtZW50YXRpb24vdmlk
+ZW80bGludXgvQ0FSRExJU1Quc2FhNzEzNCAgICAyMDA4LTEyLTIyCj4gPiAxOTozMzowNi4wMDAw
+MDAwMDAgKzA3MDAKPiA+IEBAIC0xNTIsMyArMTUyLDQgQEAKPiA+ICAxNTEgLT4gQURTIFRlY2gg
+SW5zdGFudCBIRFRWICAgICAgICAgICAgICAgICAgICBbMTQyMTowMzgwXQo+ID4gIDE1MiAtPiBB
+c3VzIFRpZ2VyIFJldjoxLjAwICAgICAgICAgICAgICAgICAgICAgIFsxMDQzOjQ4NTddCj4gPiAg
+MTUzIC0+IEt3b3JsZCBQbHVzIFRWIEFuYWxvZyBMaXRlIFBDSSAgICAgICAgICAgWzE3ZGU6NzEy
+OF0KPiA+ICsxNTQgLT4gQXZlcm1lZGlhIEFWZXJUViBHTyAwMDcgRk0gUGx1cyAgICAgICAgICBb
+MTQ2MTpmMzFkXQo+ID4gZGlmZiAtdXIgMmM2ODM1YWFhOGVhIGxpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMKPiA+IC0tLSBhL2xpbnV4L2RyaXZlcnMvbWVk
+aWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMgICAgMjAwOC0xMi0yMgo+ID4gMTc6NTQ6
+MDUuMDAwMDAwMDAwICswNzAwCj4gPiArKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3Nh
+YTcxMzQvc2FhNzEzNC1jYXJkcy5jICAgIDIwMDgtMTItMjMKPiA+IDE2OjIzOjM1LjAwMDAwMDAw
+MCArMDcwMAo+ID4gQEAgLTQ2ODIsNiArNDY4MiwzOCBAQAo+ID4gICAgICAgICAgICAgIC5hbXV4
+ID0gMiwKPiA+ICAgICAgICAgIH0sCj4gPiAgICAgIH0sCj4gPiArICAgIFtTQUE3MTM0X0JPQVJE
+X0FWRVJNRURJQV9HT18wMDdfRk1fUExVU10gPSB7Cj4gPiArICAgICAgICAubmFtZSAgICAgICAg
+ICAgPSAiQXZlcm1lZGlhIEFWZXJUViBHTyAwMDcgRk0gUGx1cyIsCj4gPiArICAgICAgICAuYXVk
+aW9fY2xvY2sgICAgPSAweDAwMTg3ZGU3LAo+ID4gKyAgICAgICAgLnR1bmVyX3R5cGUgICAgID0g
+VFVORVJfUEhJTElQU19UREE4MjkwLAo+ID4gKyAgICAgICAgLnJhZGlvX3R5cGUgICAgID0gVU5T
+RVQsCj4gPiArICAgICAgICAudHVuZXJfYWRkciAgICA9IEFERFJfVU5TRVQsCj4gPiArICAgICAg
+ICAucmFkaW9fYWRkciAgICA9IEFERFJfVU5TRVQsCj4gPiArICAgICAgICAuZ3Bpb21hc2sgICAg
+ICAgPSAweDAwMzAwMDAzLAo+ID4gKyAgICAgICAgLyogLmdwaW9tYXNrICAgICAgID0gMHg4YzI0
+MDAwMywgKi8KPiA+ICsgICAgICAgIC5pbnB1dHMgICAgICAgICA9IHt7Cj4gPiArICAgICAgICAg
+ICAgLm5hbWUgPSBuYW1lX3R2LAo+ID4gKyAgICAgICAgICAgIC52bXV4ID0gMSwKPiA+ICsgICAg
+ICAgICAgICAuYW11eCA9IFRWLAo+ID4gKyAgICAgICAgICAgIC50diAgID0gMSwKPiA+ICsgICAg
+ICAgICAgICAuZ3BpbyA9IDB4MDEsCj4gPiArICAgICAgICB9LHsKPiA+ICsgICAgICAgICAgICAu
+bmFtZSA9IG5hbWVfc3ZpZGVvLAo+ID4gKyAgICAgICAgICAgIC52bXV4ID0gNiwKPiA+ICsgICAg
+ICAgICAgICAuYW11eCA9IExJTkUxLAo+ID4gKyAgICAgICAgICAgIC5ncGlvID0gMHgwMiwKPiA+
+ICsgICAgICAgIH19LAo+ID4gKyAgICAgICAgLnJhZGlvID0gewo+ID4gKyAgICAgICAgICAgIC5u
+YW1lID0gbmFtZV9yYWRpbywKPiA+ICsgICAgICAgICAgICAuYW11eCA9IFRWLAo+ID4gKyAgICAg
+ICAgICAgIC5ncGlvID0gMHgwMDMwMDAwMSwKPiA+ICsgICAgICAgIH0sCj4gPiArICAgICAgICAu
+bXV0ZSA9IHsKPiA+ICsgICAgICAgICAgICAubmFtZSA9IG5hbWVfbXV0ZSwKPiA+ICsgICAgICAg
+ICAgICAuYW11eCA9IFRWLAo+ID4gKyAgICAgICAgICAgIC5ncGlvID0gMHgwMSwKPiA+ICsgICAg
+ICAgIH0sCj4gPiArICAgIH0sCj4gPiAgfTsKPiA+Cj4gPiAgY29uc3QgdW5zaWduZWQgaW50IHNh
+YTcxMzRfYmNvdW50ID0gQVJSQVlfU0laRShzYWE3MTM0X2JvYXJkcyk7Cj4gPiBAQCAtNTc0MSw2
+ICs1NzczLDEzIEBACj4gPiAgICAgICAgICAuc3ViZGV2aWNlICAgID0gMHg3MTI4LAo+ID4gICAg
+ICAgICAgLmRyaXZlcl9kYXRhICA9IFNBQTcxMzRfQk9BUkRfS1dPUkxEX1BMVVNfVFZfQU5BTE9H
+LAo+ID4gICAgICB9LCB7Cj4gPiArICAgICAgICAudmVuZG9yICAgICAgID0gUENJX1ZFTkRPUl9J
+RF9QSElMSVBTLAo+ID4gKyAgICAgICAgLmRldmljZSAgICAgICA9IFBDSV9ERVZJQ0VfSURfUEhJ
+TElQU19TQUE3MTMzLAo+ID4gKyAgICAgICAgLnN1YnZlbmRvciAgICA9IDB4MTQ2MSwgLyogQXZl
+cm1lZGlhIFRlY2hub2xvZ2llcyBJbmMgKi8KPiA+ICsgICAgICAgIC5zdWJkZXZpY2UgICAgPSAw
+eGYzMWQsCj4gPiArICAgICAgICAuZHJpdmVyX2RhdGEgID0gU0FBNzEzNF9CT0FSRF9BVkVSTUVE
+SUFfR09fMDA3X0ZNX1BMVVMsCj4gPiArCj4gPiArICAgIH0sIHsKPiA+ICAgICAgICAgIC8qIC0t
+LSBib2FyZHMgd2l0aG91dCBlZXByb20gKyBzdWJzeXN0ZW0gSUQgLS0tICovCj4gPiAgICAgICAg
+ICAudmVuZG9yICAgICAgID0gUENJX1ZFTkRPUl9JRF9QSElMSVBTLAo+ID4gICAgICAgICAgLmRl
+dmljZSAgICAgICA9IFBDSV9ERVZJQ0VfSURfUEhJTElQU19TQUE3MTM0LAo+ID4gQEAgLTYwMjks
+NiArNjA2OCw3IEBACj4gPiAgICAgIGNhc2UgU0FBNzEzNF9CT0FSRF9HRU5JVVNfVFZHT19BMTFN
+Q0U6Cj4gPiAgICAgIGNhc2UgU0FBNzEzNF9CT0FSRF9SRUFMX0FOR0VMXzIyMDoKPiA+ICAgICAg
+Y2FzZSBTQUE3MTM0X0JPQVJEX0tXT1JMRF9QTFVTX1RWX0FOQUxPRzoKPiA+ICsgICAgY2FzZSBT
+QUE3MTM0X0JPQVJEX0FWRVJNRURJQV9HT18wMDdfRk1fUExVUzoKPiA+ICAgICAgICAgIGRldi0+
+aGFzX3JlbW90ZSA9IFNBQTcxMzRfUkVNT1RFX0dQSU87Cj4gPiAgICAgICAgICBicmVhazsKPiA+
+ICAgICAgY2FzZSBTQUE3MTM0X0JPQVJEX0ZMWURWQlNfTFIzMDA6Cj4gPiBkaWZmIC11ciAyYzY4
+MzVhYWE4ZWEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaAo+ID4g
+LS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaCAgICAyMDA4
+LTEyLTIyCj4gPiAxNzo1NDowNS4wMDAwMDAwMDAgKzA3MDAKPiA+ICsrKyBiL2xpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LmggICAgMjAwOC0xMi0yMgo+ID4gMTk6MDc6
+MzIuMDAwMDAwMDAwICswNzAwCj4gPiBAQCAtMjc3LDYgKzI3Nyw3IEBACj4gPiAgI2RlZmluZSBT
+QUE3MTM0X0JPQVJEX0FEU19JTlNUQU5UX0hEVFZfUENJICAxNTEKPiA+ICAjZGVmaW5lIFNBQTcx
+MzRfQk9BUkRfQVNVU1RlS19USUdFUiAgICAgICAgIDE1Mgo+ID4gICNkZWZpbmUgU0FBNzEzNF9C
+T0FSRF9LV09STERfUExVU19UVl9BTkFMT0cgMTUzCj4gPiArI2RlZmluZSBTQUE3MTM0X0JPQVJE
+X0FWRVJNRURJQV9HT18wMDdfRk1fUExVUyAxNTQKPiA+Cj4gPiAgI2RlZmluZSBTQUE3MTM0X01B
+WEJPQVJEUyAzMgo+ID4gICNkZWZpbmUgU0FBNzEzNF9JTlBVVF9NQVggOAo+ID4gZGlmZiAtdXIg
+MmM2ODM1YWFhOGVhIGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlu
+cHV0LmMKPiA+IC0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0
+LWlucHV0LmMgICAgMjAwOC0xMi0yMgo+ID4gMTc6NTQ6MDUuMDAwMDAwMDAwICswNzAwCj4gPiAr
+KysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jICAg
+IDIwMDgtMTItMjMKPiA+IDA4OjI1OjI4LjAwMDAwMDAwMCArMDcwMAo+ID4gQEAgLTQ0OSw2ICs0
+NDksNyBAQAo+ID4gICAgICBjYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX1NUVURJT181MDc6
+Cj4gPiAgICAgIGNhc2UgU0FBNzEzNF9CT0FSRF9BVkVSTUVESUFfR09fMDA3X0ZNOgo+ID4gICAg
+ICBjYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX00xMDI6Cj4gPiArICAgIGNhc2UgU0FBNzEz
+NF9CT0FSRF9BVkVSTUVESUFfR09fMDA3X0ZNX1BMVVM6Cj4gPiAgICAgICAgICBpcl9jb2RlcyAg
+ICAgPSBpcl9jb2Rlc19hdmVybWVkaWE7Cj4gPiAgICAgICAgICBtYXNrX2tleWNvZGUgPSAweDAw
+MDdDODsKPiA+ICAgICAgICAgIG1hc2tfa2V5ZG93biA9IDB4MDAwMDEwOwo+ID4KPiA+IFNpZ25l
+ZC1vZmYtYnk6IFBoYW0gVGhhbmggTmFtIDxwaGFtdGhhbmhuYW0ucHRuQGdtYWlsLmNvbT4KPgo+
+Cj4KPgo+IENoZWVycywKPiBNYXVybwo+CgoKCi0tIApQaOG6oW0gVGjDoG5oIE5hbQo=
+------=_Part_122736_22782419.1230687335101
+Content-Type: application/zip; name=AVerTVGO007FMPlus.patch.zip
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fpdb8p0l0
+Content-Disposition: attachment; filename=AVerTVGO007FMPlus.patch.zip
 
-You need the following ingredients to reproduce it:
-
-1) a hot-pluggable char device like an USB webcam.
-2) a manually created device node for such a webcam instead of relying 
-on udev.
-
-In order to easily force this situation you would also need to add a  
-delay to the char device's release() function. For webcams that would 
-be at the top of v4l2_chardev_release() in 
-drivers/media/video/v4l2-dev.c. But adding a delay to e.g. cdev_purge 
-would have the same effect.
-
-The sequence of events in the case of a webcam is as follows:
-
-1) The USB device is removed, causing a disconnect.
-
-2) The webcam driver unregisters the video device which in turn calls 
-cdev_del().
-
-3) When the last application using the device is closed, the cdev is 
-released when the kref of the cdev's kobject goes to 0.
-
-4) If the kref's release() call takes a while due to e.g. extra cleanup 
-in the case of a webcam, then another application can try to open the 
-video device. Note that this requires a device node created with mknod, 
-otherwise the device nodes would already have been removed by udev.
-
-5) chrdev_open checks inode->i_cdev. If this is NULL (i.e. this device 
-node was never accessed before), then all is fine since kobj_lookup 
-will fail because cdev_del() has been called earlier. However, if this 
-device node was used earlier, then the else part is called: 
-cdev_get(p). This 'p' is the cdev that is being released. Since the 
-kref count is 0 you will get a WARN message from kref_get, but the code 
-continues on, the f_op->open will (hopefully) return more-or-less 
-gracefully with an error and the cdev_put at the end will cause the 
-refcount to go to 0 again, which results in a SECOND call to the kref's 
-release function!
-
-See this link for the original discussion on the v4l list containing 
-stack traces an a patch that you need if you want to (and can) test 
-this with the uvc driver:
-
-http://www.spinics.net/lists/vfl/msg39967.html
-
-Reading Documentation/kref.txt leads me to the conclusion that a mutex 
-should be introduced to prevent cdev_get from being called while 
-cdev_put is in progress. It should be a mutex instead of a spinlock 
-because the kref's release() can do all sorts of cleanups, some of 
-which might involve waits.
-
-I think that replacing cdev_lock with a mutex, adding it to cdev_put(), 
-cdev_del() and removing it from cdev_purge() should do the trick (I 
-hope).
-
-BTW: shouldn't cdev_del() call cdev_put() instead of kobject_put()? If I 
-understand it correctly then cdev_add calls cdev_get (through 
-exact_lock()), so cdev_del should do the reverse, right?
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+UEsDBBQAAAAIAJRDnzmgDlLGyAQAAH4NAAAXABUAQVZlclRWR08wMDdGTVBsdXMucGF0Y2hVVAkA
+A8fKWknIylpJVXgEAOgD6AO1Vltv4joQfoZfYe152V1uzgWSpqdVsyRlo0JASWBPz6qy3MSUqCVB
+ubCtqv73tZ3QQhu2aqvlAWNm5pvxzDdje4swBSuc+QuAgyAFab5axUkG5nEC9DVJliQIMdBnJAHe
+DAzGAEIFnI7A5CZPweeR0O1/AYLcE7S5JAR1N7yKSNCK5/PW5Z0GJgu8BN4CRwtg01//rug+Y9sI
+L9urLDq5WuLwpu3Hy+N6q9WqB+F8DloJEP2eKnUxxirB4CaM8tuOEfv5kkQZzsI46qzDgMRyIenr
+jjG0XK+dYqwIksyQAO681awmQqi2BLElikBQtK6swW4bbj6gARUI641GA1x+DPpAkyQN9l5An5yA
+ltAVmxJosEUGJyd1IHQF0DoGuuECj9ASWVGa4SgD3w1ajIrPT0EWBQ1KKrxgxiI3TmmlvPCKVtAh
+a02gnqtMmTGUJU1Wuwo3lpjx2a84uQmKalOXeoRv4iswDDMCJn1rx1gJiKYIonpRpweQuecd/ryk
+z3bYJYMu/sSBIAkpYtrhmEXGO2WKN2vLx0mQtv0dErzB7s0seC82pUFXk+RKGsg9VWz2QIOvksqZ
+UKvV2niZ34IjIDbZ9oF9069G7aer68wP+jamxEP6zHRGpmHpaDBGNN3odIQmw6l7QU3vqXqtTbuP
+bJXuCHx6pVKfmtwO50EYI/8m9q8LO3gLoaDSwiuFQpZHJEHZ3YqUwN7UNh00+W4NrYmLPENXxQNY
+6CaYgW3pTm3X9LZx6DxKakeU/IaDtoSF4R7h1SqMlzi9fjwaC1Fi+ZW4QucrqNJRfVHmOuBrh+OE
+0SrP0q0U3fPUlbk7AmxB2bpZ/LkuCiOU27JO3qzcZ2sOsREz/0VkxT8PzQrslFNpF7+3iz+0bPMl
+plhgPmwla1P4XQ9ctCfiJ7gieZtAOeYyz0g1JJO8iriFxTj8cFgHdeDHdLKBPEr5BQJCOuPK7kGX
+fpzTLa214+jnyLX+Nz8/ymLWWl8Oedt0FeWAtU1XFYSmIJVt007zy4CsQ58UhaRjC+n2ObIM3kbt
+ooFRgDPMxLu9NLXP7PEPu2i1onnWJAro3bjhBYObmbYxdijihulFnp68Pmoa5szqm1uaqPBXkJOF
++gTPksXmYhNQ0j41KLsHophO4ZCk9D7wN4x9dkx4y8ZpGcifjrhvXFBTXqF7liUaARuoNDYQz+k0
+prVie+qaJobXkBWgB0VegB7sqU2lyL+PU/LM48C0rSmdBjPqUBeEUd/UqhUdUx/SWg3MIRJFuEfp
+7MfYGRo8ZApJ1fXheKDR0Ct0952VQddo9lrHC5yihCxjzvCNsWOOxp6JBhNrfMg0LxOCrw+rwzkd
+nhuzby4aOrRxtA/eZu3FW++x9uJv3GDPUA80qGiSWHl3iYrCKMCWggH/BGQeRi8qYbjIsl1Ptz3E
+HjOIvyboc2evgTt1PXKGPGtgOo9zmT5x9hlU8oI9a+qNPR72kIPayGxEPbca6f9xQxdIFUFY9mTq
+MR2gfvRJw++idzxpSru/8qR5gS0BqGpiVxPV6ieNzCcDW/YPhqcKuN7UsMaoS3n2mupjsV7VHAlQ
+fM9gCBPkxwFJyzm+2SK8mcl8KLAXBbomd0xWXp1Q6as7siD+FW1kUICH9d9QSwECFwMUAAAACACU
+Q585oA5SxsgEAAB+DQAAFwANAAAAAAABAAAApIEAAAAAQVZlclRWR08wMDdGTVBsdXMucGF0Y2hV
+VAUAA8fKWklVeAAAUEsFBgAAAAABAAEAUgAAABIFAAAAAA==
+------=_Part_122736_22782419.1230687335101
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_122736_22782419.1230687335101--
