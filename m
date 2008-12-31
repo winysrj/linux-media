@@ -1,21 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBUMWxDj019087
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 17:32:59 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBUMWhOL004850
-	for <video4linux-list@redhat.com>; Tue, 30 Dec 2008 17:32:43 -0500
-Date: Tue, 30 Dec 2008 20:32:35 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Fabio Belavenuto" <belavenuto@gmail.com>
-Message-ID: <20081230203235.1b7eecf3@pedra.chehab.org>
-In-Reply-To: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
-References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVKwpMA012105
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:58:51 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVKwZcj022748
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:58:36 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so5805196wfc.6
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 12:58:34 -0800 (PST)
+Message-ID: <c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
+Date: Wed, 31 Dec 2008 13:58:34 -0700
+From: "Paul Thomas" <pthomas8589@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Add TEA5764 radio driver
+Content-Disposition: inline
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
+	<412bdbff0812311133y7c3c4f28u9d9ed99cbc18233b@mail.gmail.com>
+	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
+	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
+	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
+	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
+	<c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
+	<412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
+	<c785bba30812311209k16ef6f04jc3d8867a64d4cb93@mail.gmail.com>
+	<c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,28 +38,97 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 17 Dec 2008 20:49:33 -0200
-"Fabio Belavenuto" <belavenuto@gmail.com> wrote:
+When I start camstream with the new driver this is what I get. This is
+a slightly different setup that I first described. It a x86_64 with
+Fedora 9.
 
-> Add support for radio driver TEA5764 from NXP.
-> This chip is connected in pxa I2C bus in EZX phones
-> from Motorola, the chip is used in phone model A1200.
-> This driver is for OpenEZX project (www.openezx.org)
-> Tested with A1200 phone, openezx kernel and fm-tools
+CCamWindow::CCamWindow()
+CWebCamViewer::CWebCamViewer(0xfbf8c0, 0x0)
+CVideoDevice::Init()
+Using mmap(), VMBuf.size = 6651904
+CVideoDevice::Init(): mmap() failed (22). Falling back to non-mmap()ed mode.
+Allocating own buffer.
+Trying to find video options for PointNix Intra-Oral Camera:/dev/video0
+Creating new video options
+<!DOCTYPE Configuration>
+<config>
+ <defaults/>
+ <videodevices>
+  <videoconfiguration name="PointNix Intra-Oral Camera" >
+   <basename>snapshot</basename>
+   <textfont>system</textfont>
+   <textcolor>#ffff00</textcolor>
+   <timeinimage>false</timeinimage>
+   <fileformat>PNG</fileformat>
+   <savetodisk>true</savetodisk>
+   <ftptoserver>false</ftptoserver>
+   <saveoption>1</saveoption>
+   <maxsequence>1000</maxsequence>
+   <sequence>0</sequence>
+   <ftpserver></ftpserver>
+   <ftppath></ftppath>
+   <ftpuser></ftpuser>
+   <ftppass></ftppass>
+   <ftppassive>false</ftppassive>
+   <ftpunique>true</ftpunique>
+  </videoconfiguration>
+ </videodevices>
+</config>
 
-Hi Fabio,
+CSnapshotSettingsDlg::CSnapshotSettingsDlg(...)
+QFont::setRawName(): Invalid XLFD: "system"
+CVideoSettingsDlg::SizeChanged(720x576)
+CVideoSettingsDlg::FramerateChanged(10)
+CCamPanel::SetSize(720x576)
+CCamPanel::SetImageSize(720x576)
+CCamPanel::SetVisibleSize(720x576)
+CCamPanel::SetSize(720x576)
+CCamPanel::SetImageSize(720x576)
+CCamPanel::SetVisibleSize(720x576)
+RecalcTotalViewSize: resize viewport(720x576)
+EnableRGB: +
+CVideoDevice::SetPalette picked palette 8 [yuyv]
+CVideoDevice::CreateImagesRGB()
+ allocating space for RGB
+CVideoDevice::StartCapture() go!
+Segmentation fault
 
-I've committed the patch. Thanks!
-
-I had to do a few changes, since V4L now have their own fops definition, due to
-a patch that I've just merged. 
-
-Could you please test and confirm if the changes I made didn't affect the driver?
-
-Ah, I also fixed 3 small codingsyle violations.
-
-Cheers,
-Mauro
+On Wed, Dec 31, 2008 at 1:20 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+> OK, after a restart the driver loads properly. It's still not working,
+> but I have to look at a couple of things.
+>
+> thanks,
+> Paul
+>
+> On Wed, Dec 31, 2008 at 1:09 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>> The v4l-dvb directory is clean aside from the KERNEL_VERSION(2, 6, 27) change.
+>>
+>> thanks,
+>> Paul
+>>
+>> On Wed, Dec 31, 2008 at 1:06 PM, Devin Heitmueller
+>> <devin.heitmueller@gmail.com> wrote:
+>>> On Wed, Dec 31, 2008 at 3:03 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>>>> OK, I can compile now, but when I go to modprobe em28xx I get this error.
+>>>>
+>>>> em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
+>>>>
+>>>> thanks,
+>>>> Paul
+>>>
+>>> Do you have some mix of files from the em28xx-new and the v4l-dvb
+>>> codebase?  Or did you jam a reference in the include path to
+>>> em28xx-new's include directory?
+>>>
+>>> Devin
+>>>
+>>> --
+>>> Devin J. Heitmueller
+>>> http://www.devinheitmueller.com
+>>> AIM: devinheitmueller
+>>>
+>>
+>
 
 --
 video4linux-list mailing list
