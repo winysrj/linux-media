@@ -1,26 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBC93mHS014324
-	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 04:03:48 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBC93Zt0011620
-	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 04:03:35 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so1112915wfc.6
-	for <video4linux-list@redhat.com>; Fri, 12 Dec 2008 01:03:35 -0800 (PST)
-Message-ID: <aec7e5c30812120103g417fdbafu649f782e8347fa40@mail.gmail.com>
-Date: Fri, 12 Dec 2008 18:03:35 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: morimoto.kuninori@renesas.com
-In-Reply-To: <uzlj1vlg2.wl%morimoto.kuninori@renesas.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVLNbQQ018291
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 16:23:37 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVLNLbE031331
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 16:23:21 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so2366880qwe.39
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 13:23:20 -0800 (PST)
+Message-ID: <412bdbff0812311323rd83eac8l35f29195b599d3e@mail.gmail.com>
+Date: Wed, 31 Dec 2008 16:23:20 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Paul Thomas" <pthomas8589@gmail.com>
+In-Reply-To: <c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <20081210074435.5727.93374.sendpatchset@rx1.opensource.se>
-	<uzlj1vlg2.wl%morimoto.kuninori@renesas.com>
-Cc: video4linux-list@redhat.com, g.liakhovetski@gmx.de
-Subject: Re: [PATCH 00/03] video: nv1x/nvx1 support for the sh_mobile_ceu
-	driver V2
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
+	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
+	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
+	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
+	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
+	<c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
+	<412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
+	<c785bba30812311209k16ef6f04jc3d8867a64d4cb93@mail.gmail.com>
+	<c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
+	<c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,31 +39,117 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Morimoto-san,
-
-On Fri, Dec 12, 2008 at 5:37 PM,  <morimoto.kuninori@renesas.com> wrote:
+On Wed, Dec 31, 2008 at 3:58 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+> When I start camstream with the new driver this is what I get. This is
+> a slightly different setup that I first described. It a x86_64 with
+> Fedora 9.
 >
-> Hi Magnus, Guennadi
+> CCamWindow::CCamWindow()
+> CWebCamViewer::CWebCamViewer(0xfbf8c0, 0x0)
+> CVideoDevice::Init()
+> Using mmap(), VMBuf.size = 6651904
+> CVideoDevice::Init(): mmap() failed (22). Falling back to non-mmap()ed mode.
+> Allocating own buffer.
+> Trying to find video options for PointNix Intra-Oral Camera:/dev/video0
+> Creating new video options
+> <!DOCTYPE Configuration>
+> <config>
+>  <defaults/>
+>  <videodevices>
+>  <videoconfiguration name="PointNix Intra-Oral Camera" >
+>   <basename>snapshot</basename>
+>   <textfont>system</textfont>
+>   <textcolor>#ffff00</textcolor>
+>   <timeinimage>false</timeinimage>
+>   <fileformat>PNG</fileformat>
+>   <savetodisk>true</savetodisk>
+>   <ftptoserver>false</ftptoserver>
+>   <saveoption>1</saveoption>
+>   <maxsequence>1000</maxsequence>
+>   <sequence>0</sequence>
+>   <ftpserver></ftpserver>
+>   <ftppath></ftppath>
+>   <ftpuser></ftpuser>
+>   <ftppass></ftppass>
+>   <ftppassive>false</ftppassive>
+>   <ftpunique>true</ftpunique>
+>  </videoconfiguration>
+>  </videodevices>
+> </config>
 >
->> [PATCH 01/03] sh_mobile_ceu: use new pixel format translation code
->> [PATCH 02/03] sh_mobile_ceu: add NV12 and NV21 support
+> CSnapshotSettingsDlg::CSnapshotSettingsDlg(...)
+> QFont::setRawName(): Invalid XLFD: "system"
+> CVideoSettingsDlg::SizeChanged(720x576)
+> CVideoSettingsDlg::FramerateChanged(10)
+> CCamPanel::SetSize(720x576)
+> CCamPanel::SetImageSize(720x576)
+> CCamPanel::SetVisibleSize(720x576)
+> CCamPanel::SetSize(720x576)
+> CCamPanel::SetImageSize(720x576)
+> CCamPanel::SetVisibleSize(720x576)
+> RecalcTotalViewSize: resize viewport(720x576)
+> EnableRGB: +
+> CVideoDevice::SetPalette picked palette 8 [yuyv]
+> CVideoDevice::CreateImagesRGB()
+>  allocating space for RGB
+> CVideoDevice::StartCapture() go!
+> Segmentation fault
 >
-> It works well on my environment !!
-> I can not test NV16/61
-> Thanks
+> On Wed, Dec 31, 2008 at 1:20 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>> OK, after a restart the driver loads properly. It's still not working,
+>> but I have to look at a couple of things.
+>>
+>> thanks,
+>> Paul
+>>
+>> On Wed, Dec 31, 2008 at 1:09 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>>> The v4l-dvb directory is clean aside from the KERNEL_VERSION(2, 6, 27) change.
+>>>
+>>> thanks,
+>>> Paul
+>>>
+>>> On Wed, Dec 31, 2008 at 1:06 PM, Devin Heitmueller
+>>> <devin.heitmueller@gmail.com> wrote:
+>>>> On Wed, Dec 31, 2008 at 3:03 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>>>>> OK, I can compile now, but when I go to modprobe em28xx I get this error.
+>>>>>
+>>>>> em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
+>>>>>
+>>>>> thanks,
+>>>>> Paul
+>>>>
+>>>> Do you have some mix of files from the em28xx-new and the v4l-dvb
+>>>> codebase?  Or did you jam a reference in the include path to
+>>>> em28xx-new's include directory?
+>>>>
+>>>> Devin
+>>>>
+>>>> --
+>>>> Devin J. Heitmueller
+>>>> http://www.devinheitmueller.com
+>>>> AIM: devinheitmueller
+>>>>
+>>>
+>>
 >
-> Acked-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
-Thanks for testing. Regarding NV16 and NV61, there is very little
-support in open source tools for these formats. I've heard a positive
-NV16 status report from other people using an internal NV16-extended
-version of the my old NV12 patch, so I'm fairly confident in my NV16
-implementation. Especially since the only logic changes from NV12 are
-12bpp->16bpp and the no-lineskip setting. =)
+Seems like the code that attempts to guess what hardware you have if
+it uses the default USB ID resulted in it finding a device with the
+same profile as the PointNix camera.
 
-Cheers,
+Was there anything in the dmesg output when the segfault occurred?
 
-/ magnus
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
