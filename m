@@ -1,21 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2KBuWD026185
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 15:11:56 -0500
-Received: from mk-filter-4-a-1.mail.uk.tiscali.com
-	(mk-filter-4-a-1.mail.uk.tiscali.com [212.74.100.55])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB2KAppu006769
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 15:10:52 -0500
-From: "Chris Grove" <dj_gerbil@tiscali.co.uk>
-To: <video4linux-list@redhat.com>
-Date: Tue, 2 Dec 2008 17:36:25 -0000
-Message-ID: <000c01c954a4$81c59870$8550c950$@co.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVK3o5V031623
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:03:50 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVK3Xut000756
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:03:34 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so5788573wfc.6
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 12:03:32 -0800 (PST)
+Message-ID: <c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
+Date: Wed, 31 Dec 2008 13:03:32 -0700
+From: "Paul Thomas" <pthomas8589@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
 MIME-Version: 1.0
-Content-Language: en-gb
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: WinTV USB Model 566 PAL-I - New Problem.
+Content-Disposition: inline
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
+	<20081231155344.4cc4594a@gmail.com>
+	<c785bba30812311128u27f9326ah16728a17a5fce7e3@mail.gmail.com>
+	<412bdbff0812311133y7c3c4f28u9d9ed99cbc18233b@mail.gmail.com>
+	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
+	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
+	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
+	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,13 +36,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,  with the help of Thierry I've managed to get this device sort of
-working. There seems to be a problem with the tuner bit but Thierry is
-helping me sort that. The problem is that I seem to have found a new
-problem. When I select S-Video I get sound and a perfect picture but, when I
-select composite I get sound and no picture. Now the card has one port which
-it uses for both, in case that makes a difference, and an adapter to convert
-the S-Video port into a phono. Any ideas please???
+OK, I can compile now, but when I go to modprobe em28xx I get this error.
+
+em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
+
+thanks,
+Paul
+
+On Wed, Dec 31, 2008 at 12:42 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Wed, Dec 31, 2008 at 2:39 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>> Devin,
+>>
+>> I just ran the "hg clone http://linuxtv.org/hg/v4l-dvb" command a few
+>> minutes ago. Is there a different way to get the latest version?
+>>
+>> thanks,
+>> Paul
+>
+> Hmmm...  No, that should have done it.
+>
+> As a workaround you can just edit v4l/compat.h and look
+>
+> To work around the issue, edit v4l/compat.h as follows.  Find the block:
+>
+> #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 28)
+> #define snd_BUG_ON(cond) ?? ?? ?? ??WARN((cond), "BUG? (%s)\n",
+> __stringify(cond))
+> #define pci_ioremap_bar(pci, a) ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? \
+> ?? ?? ?? ?? ioremap_nocache(pci_resource_start(pci, a), ?? ??\
+> ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? pci_resource_len(pci, a))
+> #endif
+>
+> and change the KERNEL_VERSION(2, 6, 28) to KERNEL_VERSION(2, 6, 27)
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
 
 --
 video4linux-list mailing list
