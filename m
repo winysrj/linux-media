@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB7LbUiE026102
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 16:37:31 -0500
-Received: from mailrelay010.isp.belgacom.be (mailrelay010.isp.belgacom.be
-	[195.238.6.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB7LbIu7003286
-	for <video4linux-list@redhat.com>; Sun, 7 Dec 2008 16:37:18 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVAD7cM020282
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 05:13:07 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVACpLF021276
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 05:12:51 -0500
+Date: Wed, 31 Dec 2008 08:12:43 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 7 Dec 2008 22:37:23 +0100
-References: <200812071314.17267.laurent.pinchart@skynet.be>
-	<200812071634.46842.hverkuil@xs4all.nl>
-In-Reply-To: <200812071634.46842.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200812072237.23769.laurent.pinchart@skynet.be>
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: [BUG] Race condition between open and disconnect
+Message-ID: <20081231081243.0cecad1d@pedra.chehab.org>
+In-Reply-To: <200812311052.40693.hverkuil@xs4all.nl>
+References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
+	<20081230203235.1b7eecf3@pedra.chehab.org>
+	<200812311052.40693.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, Fabio Belavenuto <belavenuto@gmail.com>
+Subject: Re: [PATCH] Add TEA5764 radio driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,85 +29,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+On Wed, 31 Dec 2008 10:52:40 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-On Sunday 07 December 2008, Hans Verkuil wrote:
-> Hi Laurent,
->
-> On Sunday 07 December 2008 13:14:17 Laurent Pinchart wrote:
-> > Hi everybody,
-> >
-> > I'm afraid to report that the move to the cdev interface in 2.6.28
-> > has introduced a race condition between open and disconnect.
-> >
-> > To avoid the need of a reference count in every v4l2 driver, v4l2
-> > moved to cdev which includes its own reference counting
-> > infrastructure based on kobject.
->
-> It actually seems to be a cdev race condition that can happen with other
-> char devices as well. However, there is also a bug in v4l2-dev that
-> makes it worse.
->
-> Please try attached patch. You will still get the kref WARN, but
-> otherwise it should work OK.
->
-> diff -r 1dc46cdcf365 linux/drivers/media/video/v4l2-dev.c
-> --- a/linux/drivers/media/video/v4l2-dev.c	Sat Dec 06 11:29:33 2008 +0100
-> +++ b/linux/drivers/media/video/v4l2-dev.c	Sun Dec 07 16:28:47 2008 +0100
-> @@ -110,11 +110,23 @@
->  static void v4l2_chardev_release(struct kobject *kobj)
->  {
->  	struct video_device *vfd = container_of(kobj, struct video_device,
-> cdev.kobj); +
-> +	/* Release the character device, ensures that afterwards this
-> +	   chardev cannot be opened again. */
-> +	vfd->cdev_release(kobj);
-> +
-> +	/* If someone tried to open this chardev while we are still in the
-> +	   process of deleting it then the refcount will be non-zero. */
-> +	if (atomic_read(&kobj->kref.refcount)) {
-> +		/* Do nothing, the next time the refcount goes to zero
-> +		   we will be called again. */
-> +		return;
-> +	}
+> Hi Mauro,
+> 
+> Did you see my review of this driver?
+> 
+> (http://lists-archives.org/video4linux/26062-add-tea5764-radio-driver.html)
+> 
+> IMHO this driver shouldn't be added in this form. It's up to you of course 
+> to decide this, but I just want to make sure you read my posting.
 
-This works, but the workaround is quite ugly. We need a proper solution to get 
-rid of the kref WARN.
+No, I haven't seen. I'm not sure why, but patchwork didn't show me your review.
 
->
->  	mutex_lock(&videodev_lock);
->  	if (video_device[vfd->minor] != vfd) {
->  		mutex_unlock(&videodev_lock);
-> -		BUG();
-> +		WARN(1, "Inconsistent vfd on minor %d!\n", vfd->minor);
+My comments about the points you raised:
 
-WARN is indeed much better than BUG here.
+a) Yes, the proper approach is to split it into 2 separate drivers:
+	1) a Motorola i2c bridge driver;
+	2) a generic tea5764 driver;
 
->  		return;
->  	}
->
-> @@ -123,8 +135,6 @@
->  	clear_bit(vfd->num, video_nums[vfd->vfl_type]);
->  	mutex_unlock(&videodev_lock);
->
-> -	/* Release the character device */
-> -	vfd->cdev_release(kobj);
->  	/* Release video_device and perform other
->  	   cleanups as needed. */
->  	if (vfd->release)
->
->
-> Did you get these WARN and BUG messages in a 'real-life' situation as
-> well, or only when you put in an msleep?
+I would very much appreciate if Fabio can do this work, allowing others to use
+tea5764 driver;
 
-msleep doesn't turn real-life situations into virtual situations :-) 
-Reproducing the bug without the delay is much harder as the race window is 
-narrow. The bug can happen without msleep, I just didn't bother trying to 
-reproduce it.
+b) AFAIK, tea5764 is not so close to tea5767, so probably the right decision is
+to have it as a separate driver;
 
-Best regards,
+c) The same design trouble on radio-tea5764 is also present on other radio-*
+drivers;
 
-Laurent Pinchart
+d) While this design doesn't allow sharing tea5764 driver, for now, we have at
+least something. A future patch may split it into two drivers. That's why I
+decided to apply it.
+
+Fábio,
+
+Could you please work on split it into two drivers? You can use cx88 or saa7134
+as examples. On those drivers, the i2c stuff is at *-i2c.c, and the radio
+interface are at *-video.c.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
