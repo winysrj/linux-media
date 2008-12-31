@@ -1,25 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB6JCr4Z020807
-	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 14:12:53 -0500
-Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.180])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB6JCP6x029249
-	for <video4linux-list@redhat.com>; Sat, 6 Dec 2008 14:12:26 -0500
-Received: by wa-out-1112.google.com with SMTP id j4so242886wah.19
-	for <video4linux-list@redhat.com>; Sat, 06 Dec 2008 11:12:25 -0800 (PST)
-Message-ID: <fbab3e0d0812061112g231fa964pcd39c7692c61156e@mail.gmail.com>
-Date: Sat, 6 Dec 2008 11:12:25 -0800
-From: "Erik Tollerud" <erik.tollerud@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVMjD3s005661
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 17:45:13 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVMiwUW026521
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 17:44:58 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so5834456wfc.6
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 14:44:57 -0800 (PST)
+Message-ID: <c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>
+Date: Wed, 31 Dec 2008 15:44:57 -0700
+From: "Paul Thomas" <pthomas8589@gmail.com>
 To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0812050554v1e511ff7o1a4988c4176fe904@mail.gmail.com>
+In-Reply-To: <412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <fbab3e0d0812042322g6b5f3e19rf2a851634ae3df9b@mail.gmail.com>
-	<412bdbff0812050554v1e511ff7o1a4988c4176fe904@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle HDTV Ultimate USB
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
+	<412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
+	<c785bba30812311209k16ef6f04jc3d8867a64d4cb93@mail.gmail.com>
+	<c785bba30812311220pc0a5143i67101e896b62e870@mail.gmail.com>
+	<c785bba30812311258v1349ecb2pa95cd4ffbcf523c1@mail.gmail.com>
+	<412bdbff0812311323rd83eac8l35f29195b599d3e@mail.gmail.com>
+	<c785bba30812311330w26ce5817l10db52d5be98d175@mail.gmail.com>
+	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>
+	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
+	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
+Cc: video4linux-list <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,24 +40,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Great, thanks - I'll try to keep my eye on the list - as I said
-before, if you need a tester feel free to contact me.
+How was it working with Skype? Can we hard code the settings for testing?
 
-On Fri, Dec 5, 2008 at 5:54 AM, Devin Heitmueller
+thanks,
+Paul
+
+On Wed, Dec 31, 2008 at 3:35 PM, Devin Heitmueller
 <devin.heitmueller@gmail.com> wrote:
-> On Fri, Dec 5, 2008 at 2:22 AM, Erik Tollerud <erik.tollerud@gmail.com> wrote:
->> I noticed there was a post last month in the archives stating that the
->> drivers for the Pinnacle HDTV Ultimate were in the works... has there
->> been any news on this front?  (I'd be happy to help with testing, if
->> necessary).
+> On Wed, Dec 31, 2008 at 5:24 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>> Here it is,
+>>
+>> em28xx: New device @ 480 Mbps (eb1a:2860, interface 0, class 0)
+>> em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
+>> em28xx #0: chip ID is em2860
+>> saa7115' 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+>> em28xx #0: board has no eeprom
+>> em28xx #0: found i2c device @ 0x4a [saa7113h]
+>> em28xx #0: Your board has no unique USB ID.
+>> em28xx #0: A hint were successfully done, based on i2c devicelist hash.
+>> em28xx #0: This method is not 100% failproof.
+>> em28xx #0: If the board were missdetected, please email this log to:
+>> em28xx #0:      V4L Mailing List  <video4linux-list@redhat.com>
+>> em28xx #0: Board detected as PointNix Intra-Oral Camera
+>> em28xx #0: Registering snapshot button...
+>> input: em28xx snapshot button as
+>> /devices/pci0000:00/0000:00:02.1/usb1/1-1/1-1.4/input/input15
+>> em28xx #0: Config register raw data: 0x00
+>> em28xx #0: No AC97 audio processor
+>> em28xx #0: v4l2 driver version 0.1.1
+>> em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+>> em28xx-audio.c: probing for em28x1 non standard usbaudio
+>> em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+>> usb 1-1.4: New USB device found, idVendor=eb1a, idProduct=2860
+>> usb 1-1.4: New USB device strings: Mfr=0, Product=0, SerialNumber=0
 >
-> Hello Erik,
+> Yeah, that's going to be a tough one - they're using the default Empia
+> USB ID, they have no eeprom at all to use in a hash, and it does
+> indeed have an identical i2c device layout to the Pointnix camera.
 >
-> I am continuing to work out the NDA issues for the Broadcom and NXP
-> components, but I received word this morning from Pinnacle that there
-> has been some forward progress.
+> I'm not sure how we're going to be able to tell the two apart, which
+> really is a problem since the Pointnix camera has different inputs on
+> the saa7113 than this device.
 >
-> So it's *very* slow going, but the answer is "yes".
+> Mauro, any suggestions?
 >
 > Devin
 >
@@ -57,19 +91,6 @@ On Fri, Dec 5, 2008 at 5:54 AM, Devin Heitmueller
 > http://www.devinheitmueller.com
 > AIM: devinheitmueller
 >
-
-
-
--- 
-Erik Tollerud
-Graduate Student
-Center For Cosmology
-Department of Physics and Astronomy
-2142 Frederick Reines Hall
-University of California, Irvine
-Office Phone: (949)824-2587
-Cell: (651)307-9409
-etolleru@uci.edu
 
 --
 video4linux-list mailing list
