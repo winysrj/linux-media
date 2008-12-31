@@ -1,29 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-qy0-f16.google.com ([209.85.221.16])
+Received: from webmail.icp-qv1-irony-out4.iinet.net.au ([203.59.1.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1L7zHY-00056s-8E
-	for linux-dvb@linuxtv.org; Wed, 03 Dec 2008 22:29:16 +0100
-Received: by qyk9 with SMTP id 9so4580311qyk.17
-	for <linux-dvb@linuxtv.org>; Wed, 03 Dec 2008 13:28:42 -0800 (PST)
-Message-ID: <c74595dc0812031328i32bc9997t632e0f63a8849b03@mail.gmail.com>
-Date: Wed, 3 Dec 2008 23:28:42 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: e9hack@googlemail.com
-In-Reply-To: <9ac6f40e0812031104q1b3a419ub5c1a58d19f96239@mail.gmail.com>
+	(envelope-from <sonofzev@iinet.net.au>) id 1LHpfx-0005Hi-9s
+	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 02:15:11 +0100
 MIME-Version: 1.0
-References: <492168D8.4050900@googlemail.com>
-	<19a3b7a80812020834t265f2cc0vcf485b05b23b6724@mail.gmail.com>
-	<c74595dc0812020849p4d779677ge468871489e7d44@mail.gmail.com>
-	<49358FE8.9020701@googlemail.com>
-	<c74595dc0812021205x22936540w9ce74549f07339ff@mail.gmail.com>
-	<4935B1B3.40709@googlemail.com>
-	<c74595dc0812022323w1df844cegc0c0ef269babed66@mail.gmail.com>
-	<4936BE27.10800@googlemail.com>
-	<9ac6f40e0812031104q1b3a419ub5c1a58d19f96239@mail.gmail.com>
+From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
+To: 'Devin Heitmueller' <devin.heitmueller@gmail.com>
+Date: Wed, 31 Dec 2008 10:14:52 +0900
+Message-Id: <59495.1230686092@iinet.net.au>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH]Fix a bug in scan,
-	which outputs the wrong frequency if the current tuned transponder
-	is scanned only
+Subject: Re: [linux-dvb] DVICO dual express incorrect readback of firmware
+	message (2.6.28 kernel)
+Reply-To: sonofzev@iinet.net.au
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,108 +19,159 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1341024474=="
+Content-Type: multipart/mixed; boundary="===============0557592409=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1341024474==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_129263_23964691.1228339722289"
-
-------=_Part_129263_23964691.1228339722289
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+--===============0557592409==
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
 
-2008/12/3 <e9hack@googlemail.com>
+<HTML>
+<BR>
+oops.. didn't finish the last sentence.. at the time I checked dmesg this m=
+orning, it was displaying this behaviour but nothing was being recorded or =
+watched at that moment in time. <BR>
+<BR>
+In the short term is this something that might be worked around by going ba=
+ck to hg drivers, or would you prefer I stick with the in-kernel ones, to h=
+elp work out what is happening. <BR>
+<BR>
+<BR>
+ <BR>
+<BR>
+<span style=3D"font-weight: bold;">On Wed Dec 31 11:41 , "sonofzev@iinet.ne=
+t.au" <sonofzev@iinet.net.au> sent:<BR>
+<BR>
+</sonofzev@iinet.net.au></span><blockquote style=3D"border-left: 2px solid =
+rgb(245, 245, 245); margin-left: 5px; margin-right: 0px; padding-left: 5px;=
+ padding-right: 0px;">
+This is a MythTV system (backend and frontend).. I have it setup with the o=
+ption to only engage the adaptor when in use (but can't change this at the =
+moment, I'm at work and have been accessing via ssh.. obviously one of the =
+slowest days of the year). I did get my girlfriend to activate the tv playe=
+r as soon as the system came up. <BR>
 
-> 2008/12/3 e9hack <e9hack@googlemail.com>
->
->> For the current transponder scanning, it isn't set any filter for NIT
->> parsing. Since the
->> output format is zap and vdr only, it must be always setup a NIT filter:
->>
->> diff -r 51eceb97c3bd scan.c
->> --- a/scan.c    Mon Dec 01 23:36:50 2008 +0200
->> +++ b/scan.c    Wed Dec 03 18:04:10 2008 +0100
->> @@ -2495,7 +2503,7 @@ static void scan_tp_dvb (void)
->>        add_filter (&s0);
->>        add_filter (&s1);
->>
->> -       if (!current_tp_only) {
->> +       if (/*!current_tp_only*/1) {
->>                setup_filter (&s2, demux_devname, PID_NIT_ST,
->> TID_NIT_ACTUAL, -1, 1, 0,
->> 15); /* NIT */
->>                add_filter (&s2);
->>                if (get_other_nits) {
->>
->
-> I forgot, frequency and modulation are wrong as in the original scan
-> application. The values are from last parsed NIT entry, which isn't from the
-> current transponder.
+<BR>
 
-There is no need for NIT message. I've added query from driver for currently
-tuned parameters - should work for DVB-T and DVB-C users. DVB-S/S2 will get
-IF frequency, which is not the real transponder frequency.
-Please update to latest version.
-Your other patch for DVB-C scan is also there.
+I'm using Gentoo but dont know how to display the timing of the messages. I=
+ can't see anything on the dmesg man page. <BR>
 
-Let me know if it helps.
+<BR>
 
-Regards,
-Alex.
+However, it appears to be almost constantly occurring. If I run dmesg back =
+to back it has written at least one new line (so sub 2 seconds at a very ro=
+ugh estimate). Right now the entire buffer has filled with this message and=
+ appears to be continuously writing it. <BR>
 
->
->
-> Regards,
-> Hartmut
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+<BR>
 
-------=_Part_129263_23964691.1228339722289
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+At the time of discovery (I noticed the jitter last night, but only checked=
+ dmesg today).. <BR>
 
-<div dir="ltr">2008/12/3  <span dir="ltr">&lt;<a href="mailto:e9hack@googlemail.com">e9hack@googlemail.com</a>&gt;</span><br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-2008/12/3 e9hack <span dir="ltr">&lt;<a href="mailto:e9hack@googlemail.com" target="_blank">e9hack@googlemail.com</a>&gt;</span><div class="Ih2E3d"><br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<BR>
 
-For the current transponder scanning, it isn&#39;t set any filter for NIT parsing. Since the<br>
-output format is zap and vdr only, it must be always setup a NIT filter:<br>
-<br>
-diff -r 51eceb97c3bd scan.c<br>
---- a/scan.c &nbsp; &nbsp;Mon Dec 01 23:36:50 2008 +0200<br>
-+++ b/scan.c &nbsp; &nbsp;Wed Dec 03 18:04:10 2008 +0100<br>
-@@ -2495,7 +2503,7 @@ static void scan_tp_dvb (void)<br>
- &nbsp; &nbsp; &nbsp; &nbsp;add_filter (&amp;s0);<br>
- &nbsp; &nbsp; &nbsp; &nbsp;add_filter (&amp;s1);<br>
-<br>
-- &nbsp; &nbsp; &nbsp; if (!current_tp_only) {<br>
-+ &nbsp; &nbsp; &nbsp; if (/*!current_tp_only*/1) {<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;setup_filter (&amp;s2, demux_devname, PID_NIT_ST, TID_NIT_ACTUAL, -1, 1, 0,<br>
-15); /* NIT */<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;add_filter (&amp;s2);<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;if (get_other_nits) {<br></blockquote></div><br></div>I forgot, frequency and modulation are wrong as in the original scan application. The values are from last parsed NIT entry, which isn&#39;t from the current transponder.</blockquote>
-<div>There is no need for NIT message. I&#39;ve added query from driver for currently tuned parameters - should work for DVB-T and DVB-C users. DVB-S/S2 will get IF frequency, which is not the real transponder frequency.<br>
-Please update to latest version.<br>Your other patch for DVB-C scan is also there.<br>&nbsp;<br>Let me know if it helps.<br><br>Regards,<br>Alex.<br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<br>
-<br>Regards,<br>Hartmut<br>
-<br>_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote></div><br></div>
+<BR>
 
-------=_Part_129263_23964691.1228339722289--
+<BR>
+
+<BR>
+
+ <BR>
+
+<BR>
+
+<span style=3D"font-weight: bold;">On Wed Dec 31 11:21 , "Devin Heitmueller=
+" <devin.heitmueller@gmail.com> sent:<BR>
+
+<BR>
+
+</devin.heitmueller@gmail.com></span><blockquote style=3D"border-left: 2px =
+solid rgb(245, 245, 245); margin-left: 5px; margin-right: 0px; padding-left=
+: 5px; padding-right: 0px;">On Tue, Dec 30, 2008 at 7:17 PM, <a target=3D"_=
+blank" href=3D"javascript:top.opencompose%28%27sonofzev@iinet.net.au%27,%27=
+%27,%27%27,%27%27%29">sonofzev@iinet.net.au</a><BR>
 
 
---===============1341024474==
+&lt;<a target=3D"_blank" href=3D"javascript:top.opencompose%28%27sonofzev@i=
+inet.net.au%27,%27%27,%27%27,%27%27%29">sonofzev@iinet.net.au</a>&gt; wrote=
+:<BR>
+
+
+&gt; Here is the full output from startup  (attached as dmesg.txt) .. the l=
+ooping<BR>
+
+
+&gt; message in the original email starts immediately after (re ran dmesg a=
+fter<BR>
+
+
+&gt; writing this file to check)..<BR>
+
+
+&gt; I hope this is useful<BR>
+
+
+&gt;<BR>
+
+
+<snip><BR>
+
+
+<BR>
+
+
+Is this a MythTV system or something that does a scan at startup?<BR>
+
+
+<BR>
+
+
+Also, can you provide any timing info as to the frequency of the<BR>
+
+
+messages (some distributions include the time down to the ms in their<BR>
+
+
+dmesg output, but I don't know how that is configured)<BR>
+
+
+<BR>
+
+
+Devin<BR>
+
+
+<BR>
+
+
+-- <BR>
+
+
+Devin J. Heitmueller<BR>
+
+
+<a href=3D"parse.pl?redirect=3Dhttp://www.devinheitmueller.com" target=3D"_=
+blank"><span style=3D"color: red;">http://www.devinheitmueller.com</span></=
+a><BR>
+
+
+AIM: devinheitmueller<BR>
+
+
+)<BR>
+
+
+</snip></blockquote><BR>
+)
+</blockquote></HTML>
+<BR>=
+
+
+--===============0557592409==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -142,4 +181,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1341024474==--
+--===============0557592409==--
