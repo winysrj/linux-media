@@ -1,22 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mB2NJnbN013970
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 18:19:49 -0500
-Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
-	[151.189.21.50])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mB2NJUMO013564
-	for <video4linux-list@redhat.com>; Tue, 2 Dec 2008 18:19:31 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
-In-Reply-To: <116652354.20081202092655@gmail.com>
-References: <116652354.20081202092655@gmail.com>
-Content-Type: text/plain
-Date: Wed, 03 Dec 2008 00:15:27 +0100
-Message-Id: <1228259727.2588.67.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mBVK767s000316
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:07:06 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mBVK6i3T002280
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 15:06:44 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so2354809qwe.39
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 12:06:43 -0800 (PST)
+Message-ID: <412bdbff0812311206h435e64f2qed62499b339c53d7@mail.gmail.com>
+Date: Wed, 31 Dec 2008 15:06:43 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Paul Thomas" <pthomas8589@gmail.com>
+In-Reply-To: <c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [TUA6030] Infineon TUA6030 driver available... =)
+Content-Disposition: inline
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
+	<20081231155344.4cc4594a@gmail.com>
+	<c785bba30812311128u27f9326ah16728a17a5fce7e3@mail.gmail.com>
+	<412bdbff0812311133y7c3c4f28u9d9ed99cbc18233b@mail.gmail.com>
+	<c785bba30812311134v86c1552o6fb7e76191c50182@mail.gmail.com>
+	<412bdbff0812311137o74aa3aa0y49248109f968f7e8@mail.gmail.com>
+	<c785bba30812311139tc76131fx61deb0a99f99ff1b@mail.gmail.com>
+	<412bdbff0812311142k46fed3adtd152498a0e391715@mail.gmail.com>
+	<c785bba30812311203t405b7a98j42f139e3c3b8134a@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,75 +38,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello!
+On Wed, Dec 31, 2008 at 3:03 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+> OK, I can compile now, but when I go to modprobe em28xx I get this error.
+>
+> em28xx: Unknown symbol ir_codes_ati_tv_wonder_hd_600
+>
+> thanks,
+> Paul
 
-Am Dienstag, den 02.12.2008, 09:26 +0100 schrieb Tanguy Pruvot:
-> Hi,
-> 
->    You can find the configuration needed for this multi tuner on this page :
-> 
->    This tuner can do everything analog (PAL (including SECAM)/ NTSC / FM))
-> 
->       http://tanguy.ath.cx/index.php?q=SAA7130
-> 
-> 
->    Full PC-Basic SAA7130/TUA6030 card driver will follow soon (Graphics)
->    when IR remote control will be configured correctly... GPIOs
-> 
-> 
->    Hope this code could be included in v4l kernel sources !
->    Cheers
-> 
+Do you have some mix of files from the em28xx-new and the v4l-dvb
+codebase?  Or did you jam a reference in the include path to
+em28xx-new's include directory?
 
-These tuners have been seen at first on Hauppauge products as
-replacement for the Philips FM1216ME/I H-3 (MK-3) and a member of the
-video4linux-list in the UK had confirmation from Hauppauge's user
-support there, that they are compatible with the prior tuner=38.
+Devin
 
-This was for a MFPE05-2. (PE = PAL/Europe)
-http://tuner.tcl.com/English/html/enewsproopen.asp?proname=107&url=product
-I think a MFPE05-3-E was reported on some device too.
-
-Since then this tuner is mapped to tuner=38 in media/video/tveeprom.c
-and is on several Hauppauge devices, but also on others. No complaints
-so far.
-
-The layout of the tuner PCB of your MFPE05-2-E and the FM1216ME MK3
-seems to be identical. The most visible difference is, that the on your
-tuner just unused tuner pins 7 and 8 are not present at the Philips at
-all. Means 12 against 14 visible tuner pins according to your
-photograph.
-
-Else only the color of some of the coils differs and instead of TUA 6032
-marked on the pll chip, on the pll used by Philips is only printed B2
-and 230, but both have 38pins connected to the obviously same layout.
-
-You might even have the same original EPCOS SAW filters, but your tuner
-will not support NTSC, needs different filter equipment.
-NTSC is covered by the MFNM05. (NM = NTSC N/M)
-http://tuner.tcl.com/English/html/enewsproopen.asp?proname=108&url=product
-This also causes the different bandswitch takeover frequencies.
-
-On a first look at the main programming table all write and read bytes
-are identical up to every single bit. You can find the datasheet of the
-Philips FM1216ME MK3 we have these days at ivtvdriver.org.
-http://dl.ivtvdriver.org/datasheets/tuners
-
-If we find details not covered by tuner=38, you can get a new tuner
-entry, but the patch must be against recent v4l-dvb. The radio should be
-treated like on the other MK3 tuners in tuner-simple.c I guess.
-IIRC, we have reports for radio working well with port1=1, inactive, FM
-high sensitivity.
-
-We would need a valid signed-off-by line from you as well.
-
-Thanks, especially for the picture of the opened tuner. We did not have
-any further details previously. Just testing results and the Hauppauge
-hint. 
-
-Cheers,
-Hermann
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
