@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aeriksson@fastmail.fm>) id 1LGrP6-0003ND-M1
-	for linux-dvb@linuxtv.org; Sun, 28 Dec 2008 09:53:46 +0100
-to: Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Date: Wed, 31 Dec 2008 09:13:21 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>, Klaus Schmidinger
+	<Klaus.Schmidinger@cadsoft.de>
+Message-ID: <20081231091321.55035a64@pedra.chehab.org>
+In-Reply-To: <1230219306.2336.25.camel@pc10.localdom.local>
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de> <494FC15C.6020400@gmx.de>
+	<495355F1.8020406@helmutauer.de>
+	<1230219306.2336.25.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Date: Sun, 28 Dec 2008 09:53:27 +0100
-From: Anders Eriksson <aeriksson@fastmail.fm>
-Message-Id: <20081228085327.6604F93CD2C@tippex.mynet.homeunix.org>
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] state of Pinnacle 310i remote support
+Cc: linux-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,31 +26,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Thu, 25 Dec 2008 16:35:05 +0100
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-Hi,
+> Hi,
+> 
+> Am Donnerstag, den 25.12.2008, 10:44 +0100 schrieb Helmut Auer:
+> > Hello Udo
+> > > After some insights to S2API interface, this looks even better to me:
+> > >
+> > > properties.num = 1;
+> > > properties.props[0].cmd = DTV_DELIVERY_SYSTEM;
+> > > properties.props[0].u.data = SYS_DVBS2;
+> > > if (ioctl(d, FE_CAP_SET_PROPERTY, &properties) >= 0) {
+> > >      // has S2 capability
+> > > }
+> > >
+> > > A generic frontend test function that delivers the necessary S2 
+> > > capability information, and many other capabilities too. And there are a 
+> > > lot more delivery systems that seem to be hard to detect, so a query 
+> > > function 'can do SYS_XXXX' seems necessary anyway.
+> > >
+> > >
+> > >   
+> > That's a good approach, but I doubt that anyone takes care of it.
+> > This mailing list is like WOM (Write only Memory) when you post patches 
+> > or make suggestions :(
+> > 
+> 
+> if I get the status right for this one, we have from Klaus a fully
+> qualified patch according to README.patches.
+> 
+> http://www.spinics.net/lists/linux-dvb/msg30371.html
+> 
+> Further we have at least an ACK from Steven and no NACK so far.
+> 
+> http://www.spinics.net/lists/linux-dvb/msg30817.html
 
-I reently got myself a 310i and am having troubles getting it to work.
+After reviewing the thread, it seems that Manu also ACKed:
+	http://www.spinics.net/lists/linux-dvb/msg30422.html
 
-1) The video has an added layer of white noise on kernels >2.6.25
-2) The remote doesn't work.
+He only suggested to use a shorter name. 
 
-I tried to bisect 1, but ended up in a big v4l merge which didn't compile after
-all commits. I plan to look into this a bit later.
+I also prefer a shorter name, but both ways work fine. I'll let Klaus to decide
+to take one of the suggested names.
 
-Asking google on 2, I've found many in the same situation, but also a few 
-indications that the remote does (or at last did) work! E.g.
-http://www.video4linux.org/changeset/4781%3A3be8a25192a2
-http://www.mythtv.org/wiki/index.php/Pinnacle_PCTV_MediaCenter_310i
+IMO, "2G" Is clearer than "2ND_GEN". Also, maybe we should keep the association
+with "MODULATION" at the naming. So, I vote for this name:
 
-Can you please tell me is that changeset mentioned on the v4l site actually
-fixed the remote and if so, point me to the exact tree that worked? I'd be more
-than happy to try it out to see if it works with my hardware. I've tried all
-kernels >2.6.13 with no success (just the much spoken of key=.. . raw=...
-sequence)
+	FE_CAN_2G_MODULATION
 
-Thanks in advance!
-/Anders
+> But that ACK also means that he will not forward it himself to Mauro
+> through one of his development repositories by a pull request.
+> 
+> In this case direct mail to Mauro is requested to let him know a patch
+> on the list is considered to be ready, or wait until he gets aware of
+> it.
 
+Yes, please. I generally wait for people to agree on such changes, then someone
+will get the acks and commit on his tree, or reply at the thread asking me
+to get the final patch.
+
+Klaus, 
+
+could you prepare the final patch? and send it to me, keeping the ML C/C?
+
+---
+
+I can't avoid to comment a small CodingStyle issue I noticed at the patch:
+
++        FE_CAN_2ND_GEN_MODULATION       = 0x10000000, // frontend supports "2nd generation modulation" (DVB-S2)
+
+"//" for comments shouldn't happen, since it violates C99 syntax that it is used
+on kernel. 
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
