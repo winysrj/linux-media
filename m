@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LCnj4-0003tA-8W
-	for linux-dvb@linuxtv.org; Wed, 17 Dec 2008 05:09:35 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: BlackWhiteEagle <blackwhiteeagle@googlemail.com>
-In-Reply-To: <49481D64.3030606@googlemail.com>
-References: <49481D64.3030606@googlemail.com>
-Date: Wed, 17 Dec 2008 05:03:39 +0100
-Message-Id: <1229486619.2612.27.camel@pc10.localdom.local>
+Date: Wed, 31 Dec 2008 10:50:36 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+Message-ID: <20081231105036.2f9e6e76@pedra.chehab.org>
+In-Reply-To: <495B5CE6.9010902@cadsoft.de>
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de> <494FC15C.6020400@gmx.de>
+	<495355F1.8020406@helmutauer.de>
+	<1230219306.2336.25.camel@pc10.localdom.local>
+	<20081231091321.55035a64@pedra.chehab.org>
+	<495B5CE6.9010902@cadsoft.de>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] SAA7130HL Tuner: SU1278/SHA - STV0299B doesn't	work
-	anymore with the saa7134 (_dvb) module
+Cc: linux-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,82 +21,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkhCgpTY3JhdGNoaW5nIGhlYWQsIGJ1dCBub3cgSSBoYXZlIGl0IGJhY2suCgpBbSBEaWVuc3Rh
-ZywgZGVuIDE2LjEyLjIwMDgsIDIyOjI4ICswMTAwIHNjaHJpZWIgQmxhY2tXaGl0ZUVhZ2xlOgo+
-IEhlbGxvLAo+IGkndmUgYm91Z2h0IHNvbWUgbW9udGhzIGFnbyBhIFNhdHRlbGl0ZS1DYXJkIGNh
-bGxlZCBGbHlEVkItUyB3aXRoIGFuCj4gZW1wdHkgRUVQUk9NIQo+IENoaXA6IFNBQTcxMzBITAo+
-IFR1bmVyOiBTVTEyNzgvU0hBCj4gSW4gdGhlIHR1bmVyIGlzIGEgU1RWMDI5OUIgKGF0bWVsIDMw
-NiAyNGMwMm4gU0kyNyBhbmQgdGRhODA2MHRzKQo+IAo+IFRoZSBlZXByb20gaXMgZW1wdHkgKGFs
-bCBieXRlcyB3aXRoIEZGKSBzbyBpIGhhZCB0byBmb3JjZSB0byBsb2FkIHRoZQo+IGRyaXZlciB3
-aXRoOgo+IG1vZHByb2JlIHNhYTcxMzQgY2FyZD0xMjgKPiAKPiBJdCB3b3JrZWQgZmluZSBhZnRl
-ciBhIGtlcm5lbCB1cGRhdGUgdG8gMi42LjI3LjkKPiBUaGUgc25hcHNob3QgdmVyc2lvbiBmcm9t
-IGxpbnV4dHYub3JnIG1hZGUgdGhlIHNhbWUgcHJvYmxlbS4KPiBtb2Rwcm9iZSBzYWE3MTM0IGNh
-cmQ9OTcgZG9lc24ndCB3b3JrLiBUaGUgZnJvbnRlbmQgY2FuJ3QgYmUgaW5pdGlhbGl6ZWQ/IQoK
-VGhlIGN1cnJlbnQgRmx5RFZCLVMgY2FyZD05NyBoYXMgYSB0ZGExMDA4NiBkZW1vZCBhbmQgdGRh
-ODI2eCBzaWxpY29uCnR1bmVyIGFuZCBjYW4ndCB3b3JrLiAKCj4gc2FhNzEzMC8zNDogdjRsMiBk
-cml2ZXIgdmVyc2lvbiAwLjIuMTQgbG9hZGVkCj4gc2FhNzEzMFswXTogZm91bmQgYXQgMDAwMDow
-MDowYi4wLCByZXY6IDEsIGlycTogMTgsIGxhdGVuY3k6IDMyLCBtbWlvOgo+IDB4ZGZmZmRjMDAK
-PiBzYWE3MTMwWzBdOiBzdWJzeXN0ZW06IDAwMDA6MDAwMCwgYm9hcmQ6IExpZmVWaWV3IEZseURW
-Qi1TIC9BY29ycAo+IFRWMTM0RFMgW2NhcmQ9OTcsaW5zbW9kIG9wdGlvbl0KPiBzYWE3MTMwWzBd
-OiBib2FyZCBpbml0OiBncGlvIGlzIDAKPiBpbnB1dDogc2FhNzEzNCBJUiAoTGlmZVZpZXcgRmx5
-RFZCLVMgLyBhcyAvY2xhc3MvaW5wdXQvaW5wdXQ3Cj4gdHVuZXInIDQtMDA2ODogY2hpcCBmb3Vu
-ZCBAIDB4ZDAgKHNhYTcxMzBbMF0pCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSAwMDogZmYgZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3MTMwWzBdOiBp
-MmMgZWVwcm9tIDEwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gMjA6IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZm
-IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSAzMDogZmYg
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3MTMwWzBd
-OiBpMmMgZWVwcm9tIDQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gNTA6IGZmIGZmIGZmIGZmIGZmIGZmIGZm
-IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSA2MDog
-ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3MTMw
-WzBdOiBpMmMgZWVwcm9tIDcwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gODA6IGZmIGZmIGZmIGZmIGZmIGZm
-IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJvbSA5
-MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBzYWE3
-MTMwWzBdOiBpMmMgZWVwcm9tIGEwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gYjA6IGZmIGZmIGZmIGZmIGZm
-IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVlcHJv
-bSBjMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKPiBz
-YWE3MTMwWzBdOiBpMmMgZWVwcm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZgo+IHNhYTcxMzBbMF06IGkyYyBlZXByb20gZTA6IGZmIGZmIGZmIGZm
-IGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmCj4gc2FhNzEzMFswXTogaTJjIGVl
-cHJvbSBmMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYK
-PiBzYWE3MTMwWzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgW3Y0bDJdCj4gc2FhNzEzMFsw
-XTogcmVnaXN0ZXJlZCBkZXZpY2UgdmJpMAo+IGR2Yl9pbml0KCkgYWxsb2NhdGluZyAxIGZyb250
-ZW5kCj4gc2FhNzEzMFswXS9kdmI6IGZyb250ZW5kIGluaXRpYWxpemF0aW9uIGZhaWxlZAo+IAo+
-IEZsYXNoaW5nIHRoZSBlZXByb20gd2l0aCB0aGVzZSB0d28gYmxvY2tzIGFuZCBhIHJlYm9vdCBk
-b2Vzbid0IHdvcmsKPiAwMDY4NTEwMDAzNTQyMDFDMDA0MzQzQTkxQzU1RDJCMjkyMjBGRjg2MEZG
-RjIwRkZGRkZGRkZGRkZGRkZGRkZGRkYwMTQwMDEwMzAzRkYwMTAzMDhGRjAxMjhGRkZGRkZGRkZG
-RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkYxRDAwQzBGRjFDMDFGMEZGRkZGRkZGRkZG
-RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
-RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkYKPiAKPiAwMDQyNEUw
-MDAzNTQyMDFDMDA0MzQzQTkxQzU1RDJCMjkyMjBGRjg2MEZGRjIwRkZGRkZGRkZGRkZGRkZGRkZG
-RkYwMTQwMDEwMzAzRkYwMTAzMDhGRjAxRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
-RkZGRkZGRkZGRkYxRDAwQzBGRjFDMDFGMEZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
-RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZG
-RkZGRkZGRkZGRkZGRkZGRkZGRkZGRkYKPiAKPiBBbnkgaWRlYXM/Cj4gVGhhbmtzIQo+IE1hemUn
-Cj4gCgpZb3UgbXVzdCBoYXZlIGFwcGxpZWQgdGhlIHBhdGNoIGZyb20gUmFsZiBmb3IgdGhpcyBl
-ZXByb20gc3BlY2lhbCBEVkItUwpjYXJkLCB3aGljaCBjYW1lIGluIG92ZXIgTWljaGFlbCBNw7Zo
-bGUuCgpUaGF0IGlzIHNvbWUgcHJvYmxlbSB0b28uIFRoZSBzaWduZWQtb2ZmLWJ5IG11c3QgY29t
-ZSBhdCBsZWFzdCBvbmNlIGZvcm0KdGhlIGF1dGhvciBkaXJlY3RseSBhbmQgY2FuIG5vdCBiZSBz
-aW1wbHkgY2xhaW1lZCBieSBzb21lb25lIGVsc2UgYW5kIEkKdGhpbmsgd2UgZG9uJ3QgaGF2ZSBp
-dC4KCmh0dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1kdmJAbGludXh0di5vcmcvbXNn
-MjM3MzcuaHRtbAoKSW4gYWJzZW5jZSBvZiBIYXJ0bXV0IEkgYWNrZWQgYXQgbGVhc3QgdGhlIHNh
-YTcxMzQgc3BlY2lmaWMgc3R1ZmYsIGJ1dAp0aGlzIHdhcyBkdXJpbmcgdHVuZXIgcmVmYWN0b3Jp
-bmcgYW5kIHRoZXJlIGhhdmUgYmVlbiBhcmd1bWVudHMgdGhlCnR1bmVyIHNob3VsZCBnbyB0byBk
-dmItcGxsLgoKSXQgaXMgb2YgY291cnNlIHRvdGFsbHkgcmlkaWN1bG91cywgdGhhdCBhIHBhdGNo
-IGJ5IFJhbGYgZ2V0cyBsb3N0IHRoaXMKd2F5LCBidXQgYXQgdGhlc2UgdGltZXMgYXQgbGVhc3Qg
-b25lIG9mIHRoZSBkdmItbWFpbnRhaW5lcnMgc2hvdWxkIGhhdmUKZ2l2ZSBhbiBBQ0sgdG9vIGFu
-ZCBwdWxsIGl0IGluIG9yIFJhbGYgc2hvdWxkIGhhdmUgYXNrZWQgZGlyZWN0bHkuCgpXZSBjYW4g
-YWRvcHQgaXQgdG8gY3VycmVudCBhbmQgc3RhcnQgbGlrZSBzdWdnZXN0ZWQgYW5kIHRoZW4gc2Vl
-IHdoYXQKZnVydGhlciBuZWVkcyB0byBiZSBkb25lLgoKQW55IG9iamVjdGlvbnM/CgpDaGVlcnMs
-Ckhlcm1hbm4KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3
-dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hi Kaus,
+On Wed, 31 Dec 2008 12:52:06 +0100
+Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de> wrote:
+
+> > "//" for comments shouldn't happen, since it violates C99 syntax that it is used
+> > on kernel.   
+> 
+> I just used the same comment characters as the other lines that were
+> already there ;-)
+
+Yes, I know. We need to sanitize the file ;)
+
+I'll write a separate patch fixing this after merging yours.
+> 
+> Klaus
+
+You just forgot to send me a patch description with your SOB and Stoth's ack ;) Except for that, the patch seems sane on my eyes.
+
+Maybe we may commit it as two separate patches:
+
+The first one with the core changes, and the second one with the driver
+(cx24116 and stb0899) ones. API changes are important enough to deserve their
+own separate commit.
+
+Cheers,
+Mauro.
+
+> 
+> diff -ru linux/drivers/media/dvb/frontends/cx24116.c linux/drivers/media/dvb/frontends/cx24116.c
+> --- linux/drivers/media/dvb/frontends/cx24116.c	2008-11-21 23:00:55.000000000 +0100
+> +++ linux/drivers/media/dvb/frontends/cx24116.c	2008-11-23 11:36:31.000000000 +0100
+> @@ -1480,6 +1480,7 @@
+>  			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+>  			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
+>  			FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+> +			FE_CAN_2G_MODULATION |
+>  			FE_CAN_QPSK | FE_CAN_RECOVER
+>  	},
+>  
+> diff -ru linux/drivers/media/dvb/frontends/stb0899_drv.c linux/drivers/media/dvb/frontends/stb0899_drv.c
+> --- linux/drivers/media/dvb/frontends/stb0899_drv.c	2008-11-21 23:00:55.000000000 +0100
+> +++ linux/drivers/media/dvb/frontends/stb0899_drv.c	2008-11-23 11:37:01.000000000 +0100
+> @@ -1913,6 +1913,7 @@
+>  
+>  		.caps 			= FE_CAN_INVERSION_AUTO	|
+>  					  FE_CAN_FEC_AUTO	|
+> +					  FE_CAN_2G_MODULATION	|
+>  					  FE_CAN_QPSK
+>  	},
+>  
+> diff -ru linux/include/linux/dvb/frontend.h linux/include/linux/dvb/frontend.h
+> --- linux/include/linux/dvb/frontend.h	2008-11-21 23:00:55.000000000 +0100
+> +++ linux/include/linux/dvb/frontend.h	2008-11-23 11:27:21.000000000 +0100
+> @@ -63,6 +63,7 @@
+>  	FE_CAN_8VSB			= 0x200000,
+>  	FE_CAN_16VSB			= 0x400000,
+>  	FE_HAS_EXTENDED_CAPS		= 0x800000,   // We need more bitspace for newer APIs, indicate this.
+> +	FE_CAN_2G_MODULATION		= 0x10000000, // frontend supports "2nd generation modulation" (DVB-S2)
+>  	FE_NEEDS_BENDING		= 0x20000000, // not supported anymore, don't use (frontend requires frequency bending)
+>  	FE_CAN_RECOVER			= 0x40000000, // frontend can recover from a cable unplug automatically
+>  	FE_CAN_MUTE_TS			= 0x80000000  // frontend can stop spurious TS data output
+
+
+
+
+Cheers,
+Mauro
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
