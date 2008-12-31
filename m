@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LCMr5-00085O-8o
-	for linux-dvb@linuxtv.org; Tue, 16 Dec 2008 00:28:04 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so1294640fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 15 Dec 2008 15:27:59 -0800 (PST)
-Message-ID: <412bdbff0812151527l43029409q2dbacce63ea60cc9@mail.gmail.com>
-Date: Mon, 15 Dec 2008 18:27:59 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Daniel Perzynski" <Daniel.Perzynski@aster.pl>
-In-Reply-To: <2944906433286851876@unknownmsgid>
+	(envelope-from <gregoire.favre@gmail.com>) id 1LI1OT-00074L-Dc
+	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 14:45:53 +0100
+Received: by bwz11 with SMTP id 11so12217743bwz.17
+	for <linux-dvb@linuxtv.org>; Wed, 31 Dec 2008 05:45:18 -0800 (PST)
+Date: Wed, 31 Dec 2008 14:45:15 +0100
+To: linux-dvb@linuxtv.org
+Message-ID: <20081231134515.GA3559@gmail.com>
+References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
+	<492DC5F5.3060501@gmx.de> <494FC15C.6020400@gmx.de>
+	<495355F1.8020406@helmutauer.de>
+	<1230219306.2336.25.camel@pc10.localdom.local>
+	<20081231091321.55035a64@pedra.chehab.org>
+	<495B5CE6.9010902@cadsoft.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <4728568367913277327@unknownmsgid>
-	<412bdbff0812151428q798c8f48l79caba49e72306a@mail.gmail.com>
-	<8829222570103551382@unknownmsgid>
-	<412bdbff0812151512k72f70d70j88427b5761585d16@mail.gmail.com>
-	<2944906433286851876@unknownmsgid>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Avermedia A312 - patch for review
+In-Reply-To: <495B5CE6.9010902@cadsoft.de>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,99 +26,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Dec 15, 2008 at 6:23 PM, Daniel Perzynski
-<Daniel.Perzynski@aster.pl> wrote:
->
->
-> -----Original Message-----
-> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
-> Sent: Tuesday, December 16, 2008 12:12 AM
-> To: Daniel Perzynski
-> Cc: linux-dvb@linuxtv.org
-> Subject: Re: Avermedia A312 - patch for review
->
-> On Mon, Dec 15, 2008 at 6:08 PM, Daniel Perzynski
-> <Daniel.Perzynski@aster.pl> wrote:
->>
->> -----Original Message-----
->> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
->> Sent: Monday, December 15, 2008 11:29 PM
->> To: Daniel Perzynski
->> Cc: linux-dvb@linuxtv.org
->> Subject: Re: Avermedia A312 - patch for review
->>
->> On Mon, Dec 15, 2008 at 5:25 PM, Daniel Perzynski
->> <Daniel.Perzynski@aster.pl> wrote:
->>> Hi,
->>>
->>>
->>>
->>> According to the suggestions I've modified dvb-usb-ids.h and cxusb.c to
->> add
->>> a support for that card.
->>>
->>>
->>>
->>> I would appreciate someone to look at the code below and compare it with
->>> spec on the wiki for that card.
->>>
->> <snip>
->>
->> Does this patch actually work?  Can you watch ATSC TV?
->>
->> Devin
->>
->> --
->> Devin J. Heitmueller
->> http://www.devinheitmueller.com
->> AIM: devinheitmueller
->>
->> Good question,
->>
->> How to check it? What about analog TV?
->>
->> Daniel
->
->> Well, the /dev/dvb/adapter0/* files are for the ATSC interface (using
->> the lgdt3303).  You would use tools like scan, azap, mplayer to test
->> digital support:
->
->> http://linuxtv.org/wiki/index.php/Testing_your_DVB_device
->>
->> I'm not sure which analog video decoder that device uses and I'm not
->> confident you have provided any configuration to specify the decoder.
->> Do you have a /dev/video0 device?
->>
->> Devin
->>
->> --
->> Devin J. Heitmueller
->> http://www.devinheitmueller.com
->> AIM: devinheitmueller
->
-> Devin,
->
-> The problem is that I'm in Poland and we don't have ATSC here as far as I'm
-> aware but I will try to test it anyway.
-> Could you please look at the wiki for that card and tell me what will be the
-> analog video decoder for that card (I don't have /dev/videoX device).
+On Wed, Dec 31, 2008 at 12:52:06PM +0100, Klaus Schmidinger wrote:
 
-Hmm....  It's a cx25843.  I would have to look at the code to see how
-to hook that into the CY7C68013A bridge.  I'll take a look tonight
-when I get home.
+Then vdr-1.7.2 should also be patched :-)
 
-Devin
+> I just used the same comment characters as the other lines that were
+> already there ;-)
+> =
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+> Klaus
+
+> diff -ru linux/drivers/media/dvb/frontends/cx24116.c linux/drivers/media/=
+dvb/frontends/cx24116.c
+> --- linux/drivers/media/dvb/frontends/cx24116.c	2008-11-21 23:00:55.00000=
+0000 +0100
+> +++ linux/drivers/media/dvb/frontends/cx24116.c	2008-11-23 11:36:31.00000=
+0000 +0100
+> @@ -1480,6 +1480,7 @@
+>  			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+>  			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
+>  			FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+> +			FE_CAN_2G_MODULATION |
+>  			FE_CAN_QPSK | FE_CAN_RECOVER
+>  	},
+>  =
+
+> diff -ru linux/drivers/media/dvb/frontends/stb0899_drv.c linux/drivers/me=
+dia/dvb/frontends/stb0899_drv.c
+> --- linux/drivers/media/dvb/frontends/stb0899_drv.c	2008-11-21 23:00:55.0=
+00000000 +0100
+> +++ linux/drivers/media/dvb/frontends/stb0899_drv.c	2008-11-23 11:37:01.0=
+00000000 +0100
+> @@ -1913,6 +1913,7 @@
+>  =
+
+>  		.caps 			=3D FE_CAN_INVERSION_AUTO	|
+>  					  FE_CAN_FEC_AUTO	|
+> +					  FE_CAN_2G_MODULATION	|
+>  					  FE_CAN_QPSK
+>  	},
+>  =
+
+> diff -ru linux/include/linux/dvb/frontend.h linux/include/linux/dvb/front=
+end.h
+> --- linux/include/linux/dvb/frontend.h	2008-11-21 23:00:55.000000000 +0100
+> +++ linux/include/linux/dvb/frontend.h	2008-11-23 11:27:21.000000000 +0100
+> @@ -63,6 +63,7 @@
+>  	FE_CAN_8VSB			=3D 0x200000,
+>  	FE_CAN_16VSB			=3D 0x400000,
+>  	FE_HAS_EXTENDED_CAPS		=3D 0x800000,   // We need more bitspace for newe=
+r APIs, indicate this.
+> +	FE_CAN_2G_MODULATION		=3D 0x10000000, // frontend supports "2nd generat=
+ion modulation" (DVB-S2)
+>  	FE_NEEDS_BENDING		=3D 0x20000000, // not supported anymore, don't use (=
+frontend requires frequency bending)
+>  	FE_CAN_RECOVER			=3D 0x40000000, // frontend can recover from a cable u=
+nplug automatically
+>  	FE_CAN_MUTE_TS			=3D 0x80000000  // frontend can stop spurious TS data =
+output
+
+
+-- =
+
+Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
