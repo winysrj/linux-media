@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.25])
+Received: from webmail.icp-qv1-irony-out3.iinet.net.au ([203.59.1.149])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1LEULV-0002Ni-5c
-	for linux-dvb@linuxtv.org; Sun, 21 Dec 2008 20:52:14 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so606070qwb.17
-	for <linux-dvb@linuxtv.org>; Sun, 21 Dec 2008 11:52:08 -0800 (PST)
-Message-ID: <412bdbff0812211152g147aa755xc100988a01a70f5@mail.gmail.com>
-Date: Sun, 21 Dec 2008 14:52:08 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Holger Rusch" <holger@rusch.name>
-In-Reply-To: <494E8B97.7030608@rusch.name>
+	(envelope-from <sonofzev@iinet.net.au>) id 1LHp9K-0002Vd-2v
+	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 01:41:26 +0100
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <cae4ceb0812091511s668dcc5fj793e7efc113fedfd@mail.gmail.com>
-	<493F8A81.7040802@rusch.name> <494E61B4.2040006@rusch.name>
-	<412bdbff0812210831w2c8930eal5181c766857b0aa8@mail.gmail.com>
-	<494E8B97.7030608@rusch.name>
+From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
+To: sonofzev@iinet.net.au, 'Devin Heitmueller' <devin.heitmueller@gmail.com>
+Date: Wed, 31 Dec 2008 09:41:19 +0900
+Message-Id: <59055.1230684079@iinet.net.au>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy DT USB XS Diversity (Quality with
-	linux worse then with Windows)
+Subject: Re: [linux-dvb] DVICO dual express incorrect readback of firmware
+	message (2.6.28 kernel)
+Reply-To: sonofzev@iinet.net.au
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,72 +19,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0355661082=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Dec 21, 2008 at 1:31 PM, Holger Rusch <holger@rusch.name> wrote:
-> Devin Heitmueller schrieb:
->>
->> On Sun, Dec 21, 2008 at 10:33 AM, Holger Rusch <holger@rusch.name> wrote:
->>>
->>> Shameless repost. No idea? Anybody?
->>
->> Are you using the latest code from http://linuxtv.org/hg/v4l-dvb,
->
-> Yes, i use the hg tree.
->
->> including the newer 1.20 firmware?
->
-> storage:/lib/firmware# ls -la dvb-usb-dib0700-1.20.fw
-> -r--r--r-- 1 root root 33768 20. Nov 14:08 dvb-usb-dib0700-1.20.fw
->
-> (the only .fw file in the directory
->
-> storage:/lib/firmware# md5sum dvb-usb-dib0700-1.20.fw
-> f42f86e2971fd994003186a055813237  dvb-usb-dib0700-1.20.fw
->
-> Where do i get the newest one, if this one isnt the newest?
->
->> Have you tried turning off the LNA and see if there is any difference
->> in SNR?  While an amplifier can be a good thing in some cases, if
->> you're to close to the transmitter the LNA may be driving the signal
->> too hard for the demodulator.
->
-> I changed:
-> options dvb_usb_dib0700 force_lna_activation=1
-> to
-> options dvb_usb_dib0700 force_lna_activation=0
->
-> and retried (rebootet).
->
-> It did not help.
->
->> Is the SNR level always being reported as poor, or only when the
->> signal is dropping out?
->
-> SNR is constantly poor <45%.
->
-> And now?
+--===============0355661082==
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
 
-Ok, so you've got the latest code and firmware (there is only one
-version of the 1.20 firmware).  And we know it's not the LNA then.
+<HTML>
+This is a MythTV system (backend and frontend).. I have it setup with the o=
+ption to only engage the adaptor when in use (but can't change this at the =
+moment, I'm at work and have been accessing via ssh.. obviously one of the =
+slowest days of the year). I did get my girlfriend to activate the tv playe=
+r as soon as the system came up. <BR>
+<BR>
+I'm using Gentoo but dont know how to display the timing of the messages. I=
+ can't see anything on the dmesg man page. <BR>
+<BR>
+However, it appears to be almost constantly occurring. If I run dmesg back =
+to back it has written at least one new line (so sub 2 seconds at a very ro=
+ugh estimate). Right now the entire buffer has filled with this message and=
+ appears to be continuously writing it. <BR>
+<BR>
+At the time of discovery (I noticed the jitter last night, but only checked=
+ dmesg today).. <BR>
+<BR>
+<BR>
+<BR>
+<BR>
+ <BR>
+<BR>
+<span style=3D"font-weight: bold;">On Wed Dec 31 11:21 , "Devin Heitmueller=
+" <devin.heitmueller@gmail.com> sent:<BR>
+<BR>
+</devin.heitmueller@gmail.com></span><blockquote style=3D"border-left: 2px =
+solid rgb(245, 245, 245); margin-left: 5px; margin-right: 0px; padding-left=
+: 5px; padding-right: 0px;">On Tue, Dec 30, 2008 at 7:17 PM, <a href=3D"jav=
+ascript:top.opencompose('sonofzev@iinet.net.au','','','')">sonofzev@iinet.n=
+et.au</a><BR>
 
-You said the SNR is < 45%, but as far as I can see the SNR function
-isn't implemented on the dib7000p or the dib7000m, so it should always
-be zero.  Are you sure you weren't referring to strength?  Also, what
-application are you using to watch the stream?
+&lt;<a href=3D"javascript:top.opencompose('sonofzev@iinet.net.au','','','')=
+">sonofzev@iinet.net.au</a>&gt; wrote:<BR>
 
-Devin
+&gt; Here is the full output from startup  (attached as dmesg.txt) .. the l=
+ooping<BR>
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+&gt; message in the original email starts immediately after (re ran dmesg a=
+fter<BR>
+
+&gt; writing this file to check)..<BR>
+
+&gt; I hope this is useful<BR>
+
+&gt;<BR>
+
+<snip><BR>
+
+<BR>
+
+Is this a MythTV system or something that does a scan at startup?<BR>
+
+<BR>
+
+Also, can you provide any timing info as to the frequency of the<BR>
+
+messages (some distributions include the time down to the ms in their<BR>
+
+dmesg output, but I don't know how that is configured)<BR>
+
+<BR>
+
+Devin<BR>
+
+<BR>
+
+-- <BR>
+
+Devin J. Heitmueller<BR>
+
+<a href=3D"parse.pl?redirect=3Dhttp%3A%2F%2Fwww.devinheitmueller.com" targe=
+t=3D"_blank"><span style=3D"color: red;">http://www.devinheitmueller.com</s=
+pan></a><BR>
+
+AIM: devinheitmueller<BR>
+
+)<BR>
+
+</snip></blockquote></HTML>
+<BR>=
+
+
+--===============0355661082==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0355661082==--
