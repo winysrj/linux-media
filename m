@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vps1.tull.net ([66.180.172.116])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <nick-linuxtv@nick-andrew.net>) id 1L8Z7O-00023X-De
-	for linux-dvb@linuxtv.org; Fri, 05 Dec 2008 12:45:13 +0100
+Received: from [194.250.18.140] (helo=tv-numeric.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1LHwiD-0001ox-D7
+	for linux-dvb@linuxtv.org; Wed, 31 Dec 2008 09:45:58 +0100
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: "'BOUWSMA Barry'" <freebeer.bouwsma@gmail.com>,
+	<linux-dvb@linuxtv.org>
+Date: Wed, 31 Dec 2008 09:45:22 +0100
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAKD9Q4NAVr0+H0MAg3L7x3gEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
-Message-Id: <6810946716817a6c1172.1228477484@marcab.local.tull.net>
-In-Reply-To: <patchbomb.1228477483@marcab.local.tull.net>
-Date: Fri, 05 Dec 2008 22:44:44 +1100
-From: Nick Andrew <nick-linuxtv@nick-andrew.net>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [PATCH 1 of 2] Fix spelling of 'lose'
+In-Reply-To: <alpine.DEB.2.00.0812302027170.29535@ybpnyubfg.ybpnyqbznva>
+Subject: [linux-dvb] RE :  Compile error,
+	bug in compat.h with kernel 2.6.27.9 ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,29 +25,78 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-# HG changeset patch
-# User Nick Andrew <nick@nick-andrew.net>
-# Date 1228476704 -39600
-# Node ID 6810946716817a6c1172912541b9e348b1a44401
-# Parent  6bab82c6096e66523ea8c77eb1843550b9a096b9
-Fix spelling of 'lose'
 
-Change 'loose' to 'lose'
+De : BOUWSMA Barry [mailto:freebeer.bouwsma@gmail.com] 
+> 
+> On Tue, 30 Dec 2008, Thierry Lelegard wrote:
+> 
+> > OK, looking into the source RPM for the latest Fedora 10 update
+> > kernel (kernel-2.6.27.9-159.fc10.src.rpm), it appears that
+> > the definition of pci_ioremap_bar in pci.h was introduced by
+> > linux-2.6.27.7-alsa-driver-fixups.patch
+> > 
+> > I assume that this is a Fedora-specific patch (or more 
+> generally Red Hat),
+> > back-porting 2.6.28 stuff.
+> 
+> There may be hope for a dirty hack...
+> 
+> As part of this, I also see
+> --- a/include/linux/input.h
+> +++ b/include/linux/input.h
+> @@ -644,6 +644,7 @@ struct input_absinfo {
+>  #define SW_RADIO               SW_RFKILL_ALL   /* deprecated */
+>  #define SW_MICROPHONE_INSERT   0x04  /* set = inserted */
+>  #define SW_DOCK                        0x05  /* set = 
+> plugged into dock */
+> +#define SW_LINEOUT_INSERT      0x06  /* set = plugged into dock 
+> */
+> 
+> which is not yet in my latest 2.6.28 git kernel...
+> 
+> These both seem to be present since -r1.1 through HEAD,
+> so I would guess you can special-case this check into
+> a 2.6.27 version test.
 
-Signed-off-by: Nick Andrew <nick@nick-andrew.net>
+Good idea. After some more checks, it seems reasonable. I consequently
+propose the following patch:
 
-diff -r 6bab82c6096e -r 681094671681 linux/drivers/media/dvb/ttpci/av7110.c
---- a/linux/drivers/media/dvb/ttpci/av7110.c	Wed Dec 03 15:32:11 2008 -0200
-+++ b/linux/drivers/media/dvb/ttpci/av7110.c	Fri Dec 05 22:31:44 2008 +1100
-@@ -2848,7 +2848,7 @@
- 		 * we must do it here even though saa7146_core did it already),
- 		 * and b) that if we were to disable an edge triggered irq
- 		 * (like the gpio irqs sadly are) temporarily we would likely
--		 * loose some. This sucks :-(
-+		 * lose some. This sucks :-(
- 		 */
- 		SAA7146_IER_DISABLE(av7110->dev, MASK_19);
- 		SAA7146_ISR_CLEAR(av7110->dev, MASK_19);
+====[CUT HERE]====
+--- v4l-dvb.1/v4l/compat.h	2008-12-31 09:16:32.000000000 +0100
++++ v4l-dvb.2/v4l/compat.h	2008-12-31 09:30:08.000000000 +0100
+@@ -31,6 +31,11 @@
+ #include <linux/i2c.h>
+ #endif
+ 
++/* To validate cpp test before pci_ioremap_bar */
++#if LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 27)
++#include <linux/input.h>
++#endif
++
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,23)
+ #define set_freezable()
+ #define cancel_delayed_work_sync cancel_rearming_delayed_work
+@@ -268,7 +273,7 @@
+ })
+ #endif
+ 
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 28)
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 27) || (LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 27) && !defined
+(SW_LINEOUT_INSERT))
+ #define snd_BUG_ON(cond)	WARN((cond), "BUG? (%s)\n", __stringify(cond))
+ 
+ #define pci_ioremap_bar(pci, a)				\
+====[CUT HERE]====
+
+Quite dirty indeed, but isn't it the exact purpose of the compat.h file,
+being the dirty glue to compile latest kernel code inside older kernels ?
+
+I think this would help all Fedora users to have this little path committed
+into the linuxtv.org repository.
+
+Thanks Barry for your idea.
+-Thierry
+
 
 _______________________________________________
 linux-dvb mailing list
