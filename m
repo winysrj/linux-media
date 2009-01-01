@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07HqG2u016899
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 12:52:16 -0500
-Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
-	[75.180.132.120])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07Hq2FK022152
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 12:52:02 -0500
-Message-ID: <20090107175202.UQXRQ.3084.root@cdptpa-web12-z01>
-Date: Wed, 7 Jan 2009 17:52:01 +0000
-From: <marilynnpg@tx.rr.com>
-To: Yan Seiner <yan@seiner.com>, Jackson Yee <jackson@gotpossum.com>
-In-Reply-To: <92538dce1e736997ab82c7a9b2787600.squirrel@www.datavault.us>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01BqItW016125
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 06:52:18 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n01Bq2eJ009294
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 06:52:02 -0500
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>) id 1LIM5x-0001Ux-Hk
+	for video4linux-list@redhat.com; Thu, 01 Jan 2009 12:52:09 +0100
+Date: Thu, 1 Jan 2009 12:52:09 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0812171914550.8733@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Windows vs Linux DVR System?
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: "patches can be modified..."
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,58 +27,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-My problem is that I have stumbled on to the Logitech Quickcam Pro webcam (for the laptop) and I was so impressed with the picture quality (even in low light conditions ) that I packed up my 16 camera DVR which came with eight cameras and returned it to the store.  After looking at the quality image produced by that Logitech camera I was almost tempted to throw my hand held digital video camera in the trash.  That said, due to the excellent image quality,  I wanted to design a DVR security solution around the Logitech Quickcam Pro (for the laptop ) cameras.  Is there an IP camera or an analog camera which rivals the  Logitech Quickcam Pro webcam (for the laptop) in terms of image quality that I can purchase for under $100.00US?
+Hi all,
 
----- Yan Seiner <yan@seiner.com> wrote: 
-> 
-> On Wed, January 7, 2009 9:19 am, Jackson Yee wrote:
-> > I second Yan's suggestion for analog cameras and a capture board if
-> > you're looking for consistent, quality pictures. Eight USB webcams are
-> > possible if you have separate USB hub chips and a good motherboard,
-> > but you're really stretching the hardware thin once you get past four.
-> 
-> Webcams are built for indoor light levels; they wash out in daylight and
-> have poor low-light performance.  They're limited to 14' cable runs.  They
-> have poor frame rates at higher (640x480) resolutions - as low as 3 fps. 
-> Their one advantage is that some of them can be easily modified for IR and
-> are very sensitive so that even a few 20mw LEDs can provide good
-> performance.
-> 
-> > IP cameras are great if you have lots of money to burn, but start
-> > struggling in numbers above eight even on gigabit ethernet due to
-> > bandwidth contention and are not anywhere close to analog systems in
-> > terms of price (The h264 cameras do a decent job, but you can setup an
-> > entire analog system for the price of one).
-> 
-> All too true.  I've been cherry-picking my IPcams and I've been able to
-> find them for $60-70 but they're few and far between and the choices are
-> limited.  I get around the bandwith issue by having motion poll them but
-> that limits me to around 5 fps.  With luck and a good camera I get 12 fps
-> @ 640x480 but not often.
-> 
-> There's nothing like a good hardware capture board and analog cameras. 
-> You get much better choices, interchangeable lenses, good light
-> sensitivity, and so on.
-> 
-> --Yan
-> 
-> -- 
->   o__
->   ,>/'_          o__
->   (_)\(_)        ,>/'_        o__
-> Yan Seiner      (_)\(_)       ,>/'_     o__
->        Personal Trainer      (_)\(_)    ,>/'_        o__
->              Professional Engineer     (_)\(_)       ,>/'_
-> Who says engineers have to be pencil necked geeks?  (_)\(_)
-> 
-> You are an adult when you realize that everyone's an idiot sometimes. You
-> are wise when you include yourself.
-> 
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+everyone who has once got his or her patch committed to v4l received an 
+auto-reply
+
+From: Patch added by Xxxxx Xxxxx <hg-commit@linuxtv.org>
+To: linuxtv-commits@linuxtv.org
+
+with a comment:
+
+<quote>
+The patch number NNNN was added via name <user@provider.com>
+to http://linuxtv.org/hg/v4l-dvb master development tree.
+
+Kernel patches in this development tree may be modified to be backward
+compatible with older kernels. Compatibility modifications will be
+removed before inclusion into the mainstream Kernel
+
+If anyone has any objections, please let us know by sending a message to:
+	v4l-dvb-maintainer@linuxtv.org
+</quote>
+
+What does this mean? Does the last sentence refer to "patches may be 
+modified" or to "patch was added"? And why should objections against 
+either of them be sent to the maintainer instead of being discussed on the 
+list? Don't understand. Does it mean that if a specific author has 
+objections, the respective driver can be left off from the 
+backwards-compatibility conversions?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
