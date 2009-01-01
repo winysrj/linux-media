@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n03KSb4d010870
-	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 15:28:37 -0500
-Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n03KSKVt026689
-	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 15:28:21 -0500
-Received: from smtp3-g21.free.fr (localhost [127.0.0.1])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id EB5928180CE
-	for <video4linux-list@redhat.com>; Sat,  3 Jan 2009 21:28:17 +0100 (CET)
-Received: from [192.168.0.3] (cac94-1-81-57-151-96.fbx.proxad.net
-	[81.57.151.96])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id 00A87818152
-	for <video4linux-list@redhat.com>; Sat,  3 Jan 2009 21:28:14 +0100 (CET)
-Message-ID: <495FCA60.5060008@free.fr>
-Date: Sat, 03 Jan 2009 21:28:16 +0100
-From: matthieu castet <castet.matthieu@free.fr>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01Fc4oW000711
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 10:38:04 -0500
+Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
+	[151.189.21.44])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n01FbmcM025289
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 10:37:48 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Simon Hobson <linux@thehobsons.co.uk>
+In-Reply-To: <a0624080bc58126e6561c@simon.thehobsons.co.uk>
+References: <a06240804c580f44d7a48@simon.thehobsons.co.uk>
+	<a0624080bc58126e6561c@simon.thehobsons.co.uk>
+Content-Type: text/plain
+Date: Thu, 01 Jan 2009 16:38:09 +0100
+Message-Id: <1230824289.2669.2.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: v4l1 doesn't work anymore with bttv on 2.6.26
+Cc: video4linux-list@redhat.com
+Subject: Re: Problem setting up HVR-1110
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,31 +29,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi Simon,
 
-This is a copy of the bugreport i did on debian bugtracker : 
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=510621
+Am Mittwoch, den 31.12.2008, 13:43 +0000 schrieb Simon Hobson:
+> I wrote:
+> >I've got MythTV installed and bought a Hauppage HVR-1110 card for 
+> >it. The card is detected and the saa7134 driver loaded - but that 
+> >seems to be it. Everything I can find suggests that the card should 
+> >be identified automatically (and the TDA1004X driver & firmware 
+> >loaded), but it isn't.
+> 
+> <snip>
+> 
+> >uname -a reports :
+> >>Linux eddi 2.6.18-6-xen-amd64 #1 SMP Fri Dec 12 07:02:03 UTC 2008 
+> >>x86_64 GNU/Linux
+> >
+> >
+> >Yes, this is running in a Xen guest - but I've also tried booting 
+> >the machine into a non-Xen mode (with non-Xen kernel) and it behaves 
+> >exactly the same. In both cases, the OS is Debian Lenny.
+> 
+> Hmm, memory isn't what it used to be :-(
+> 
+> Went back and double checked, my Dom0 is Etch. Long story short - 
+> upgraded guest to 2.6.26, upgraded Xen to run it, fixed all the 
+> things the Xen upgrade changes, and it now is recognised and the 
+> firmware loaded etc.
+> 
 
+yep, 2.6.18 was too old.
 
-I got a v4l1 application that worked for years.
-With the current kernel, it hangs in a state where VIDIOCMCAPTURE always
-return -EBUSY.
+We fixed radio and external audio in recently too.
 
-After some debug, it seems that VIDIOCMCAPTURE fails the first time
-because of videobuf_queue_is_busy 'vbuf: busy: buffer #0 mapped'.
+It is in 2.6.28 and was previously untested.
 
-Then after that error it does a VIDIOCSYNC on all buffer.
-Then every call of VIDIOCMCAPTURE failed because of check_btres
-returning -EBUSY.
+Cheers,
+Hermann
 
-I don't know what cause the first videobuf_queue_is_busy error.
-But for all the other errors I suppose one of the problem is that
-VIDIOCSYNC does a STREAMON but never does a STREAMOFF...
-
-
-Regards,
-
-Matthieu
 
 --
 video4linux-list mailing list
