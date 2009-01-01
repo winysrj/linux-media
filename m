@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0L3EBIH015636
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 22:14:12 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0L3E5GV008134
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 22:14:05 -0500
-Received: by yx-out-2324.google.com with SMTP id 31so1369350yxl.81
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 19:14:04 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01J6wCG013751
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 14:06:58 -0500
+Received: from n69.bullet.mail.sp1.yahoo.com (n69.bullet.mail.sp1.yahoo.com
+	[98.136.44.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n01J6flQ002820
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 14:06:41 -0500
+Date: Thu, 1 Jan 2009 11:06:39 -0800 (PST)
+From: Alex <s_mrite@yahoo.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-In-Reply-To: <96DA7A230D3B2F42BA3EF203A7A1B3B50128BC0919@dlee07.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89441DD73588@dlee02.ent.ti.com>
-	<96DA7A230D3B2F42BA3EF203A7A1B3B50128BC0919@dlee07.ent.ti.com>
-Date: Wed, 21 Jan 2009 04:14:04 +0100
-Message-ID: <d9def9db0901201914ib5cb281q699d1ee2d0bbd20a@mail.gmail.com>
-From: Markus Rechberger <mrechberger@gmail.com>
-To: "Curran, Dominic" <dcurran@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: Appropriate interface ?
+Message-ID: <135963.10009.qm@web45404.mail.sp1.yahoo.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Subject: The gspca from the repository is not compile
+Reply-To: s_mrite@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,30 +26,72 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jan 21, 2009 at 1:49 AM, Curran, Dominic <dcurran@ti.com> wrote:
->
-> Hi
-> I apologies for slightly off-topic question.
->
-> I have a camera which consists of three separate i2c slave devices on the same i2c bus:
->  - sensor              (V4L2 interface)
->  - piezo len driver    (V4L2 interface)
->  - EEPROM (512 bytes)         ?
->
-> The EEPROM is written with factory settings (sensor & lens info).
-> It is meant to be read-only.
->
-> Can anyone suggest an appropriate interface to usermode for the EEPROM ?
-> Should I implement sysfs interface ?
-> Or is there something more appropriate.
->
+Hello,
 
-you might use i2c-dev, you should be able to discover the correct i2c
-node through sysfs.
+My system is Fedora 9, the kernel is 2.6.27.9-73.fc9.i686.
+I have the package kernel-devel installed.
 
-regards,
-Markus
+I have obtained the sources fo the gspca using the command "hg clone http:/=
+/linuxtv.org/hg/~jfrancois/gspca/".
 
+I run "make menuconfig" without changes and without erros.
+When I run make I got the following error after several seconds of compilin=
+g:
+---------------------------------------------------------------------------=
+-----------------------------------------
+=A0CC [M]=A0 /root/Documents/linuxTv/gspca/v4l/bttv-i2c.o
+=A0 CC [M]=A0 /root/Documents/linuxTv/gspca/v4l/bttv-gpio.o
+=A0 CC [M]=A0 /root/Documents/linuxTv/gspca/v4l/bttv-input.o
+In file included from /root/Documents/linuxTv/gspca/v4l/bttvp.h:36,
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from /root/Documents/linux=
+Tv/gspca/v4l/bttv-input.c:28:
+include/linux/pci.h:1126: error: expected declaration specifiers or '...' b=
+efore '(' token
+include/linux/pci.h:1126: error: expected declaration specifiers or '...' b=
+efore '(' token
+include/linux/pci.h:1126: error: static declaration of 'ioremap_nocache' fo=
+llows non-static declaration
+include/asm/io_32.h:111: error: previous declaration of 'ioremap_nocache' w=
+as here
+include/linux/pci.h: In function 'ioremap_nocache':
+include/linux/pci.h:1127: error: number of arguments doesn't match prototyp=
+e
+include/asm/io_32.h:111: error: prototype declaration
+include/linux/pci.h:1131: error: 'pdev' undeclared (first use in this funct=
+ion)
+include/linux/pci.h:1131: error: (Each undeclared identifier is reported on=
+ly once
+include/linux/pci.h:1131: error: for each function it appears in.)
+include/linux/pci.h:1131: error: 'bar' undeclared (first use in this functi=
+on)
+make[3]: *** [/root/Documents/linuxTv/gspca/v4l/bttv-input.o] Error 1
+make[2]: *** [_module_/root/Documents/linuxTv/gspca/v4l] Error 2
+make[2]: Leaving directory `/usr/src/kernels/2.6.27.9-73.fc9.i686'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/root/Documents/linuxTv/gspca/v4l'
+make: *** [all] Error 2
+---------------------------------------------------------------------------=
+-----------------------------------------
+
+The output of the " hg log -l1" is:
+---------------------------------------------------------------------------=
+-----------------------------------------
+changeset:=A0=A0 10167:2b2568c40385
+tag:=A0=A0=A0=A0=A0=A0=A0=A0 tip
+user:=A0=A0=A0=A0=A0=A0=A0 Jean-Francois Moine <moinejf@free.fr>
+date:=A0=A0=A0=A0=A0=A0=A0 Thu Jan 01 17:20:42 2009 +0100
+summary:=A0=A0=A0=A0 gspca - common: Simplify the debug macros.
+---------------------------------------------------------------------------=
+-----------------------------------------
+
+So the sources is up-to-date at the moment of compiling.
+
+Can somebody suggest the way to compile the sources?
+
+Best regards,
+Alex.
+
+=0A=0A=0A      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
