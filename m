@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0D8rNPP018231
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 03:53:23 -0500
-Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0D8r79f017922
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 03:53:07 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0D8r1FR015231
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 02:53:06 -0600
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0D8r1VC013618
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 02:53:01 -0600 (CST)
-From: "Curran, Dominic" <dcurran@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Tue, 13 Jan 2009 02:51:07 -0600
-Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B5011DA52650@dlee07.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Questions about V4L2_CID_FOCUS_RELATIVE ?
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n017wfOu009152
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 02:58:41 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n017wRiM016668
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 02:58:27 -0500
+Received: by ewy14 with SMTP id 14so6666946ewy.3
+	for <video4linux-list@redhat.com>; Wed, 31 Dec 2008 23:58:26 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain
+Date: Thu, 01 Jan 2009 10:58:31 +0300
+Message-Id: <1230796711.5124.18.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: [PATCH] gspca: t613 - small codingstyle fix
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,29 +28,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Lets make usb_driver and sd_desc looks nicer.
 
-hi
-As I understand there are basically two types of lens driver.
+
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+
+---
+diff -r 6f3948c174c1 linux/drivers/media/video/gspca/t613.c
+--- a/linux/drivers/media/video/gspca/t613.c	Wed Dec 31 18:33:53 2008 +0100
++++ b/linux/drivers/media/video/gspca/t613.c	Thu Jan 01 09:55:54 2009 +0300
+@@ -1135,15 +1135,15 @@
  
-To get/set the lens position they use either:
-V4L2_CID_FOCUS_ABSOLUTE
-Or
-V4L2_CID_FOCUS_RELATIVE
+ /* sub-driver description */
+ static const struct sd_desc sd_desc = {
+-	.name = MODULE_NAME,
+-	.ctrls = sd_ctrls,
+-	.nctrls = ARRAY_SIZE(sd_ctrls),
+-	.config = sd_config,
+-	.init = sd_init,
+-	.start = sd_start,
+-	.stopN = sd_stopN,
+-	.pkt_scan = sd_pkt_scan,
+-	.querymenu = sd_querymenu,
++	.name		= MODULE_NAME,
++	.ctrls		= sd_ctrls,
++	.nctrls		= ARRAY_SIZE(sd_ctrls),
++	.config		= sd_config,
++	.init		= sd_init,
++	.start		= sd_start,
++	.stopN		= sd_stopN,
++	.pkt_scan	= sd_pkt_scan,
++	.querymenu	= sd_querymenu,
+ };
  
-Does anyone have an example of a lens driver that uses V4L2_CID_FOCUS_RELATIVE ?
+ /* -- module initialisation -- */
+@@ -1162,13 +1162,13 @@
+ }
  
-I am having difficulty understanding how this ioctl ID is used...
+ static struct usb_driver sd_driver = {
+-	.name = MODULE_NAME,
+-	.id_table = device_table,
+-	.probe = sd_probe,
+-	.disconnect = gspca_disconnect,
++	.name		= MODULE_NAME,
++	.id_table	= device_table,
++	.probe		= sd_probe,
++	.disconnect	= gspca_disconnect,
+ #ifdef CONFIG_PM
+-	.suspend = gspca_suspend,
+-	.resume = gspca_resume,
++	.suspend	= gspca_suspend,
++	.resume		= gspca_resume,
+ #endif
+ };
  
-- I assume that the VIDIO_G_CTRL ioctl does not make sense for an id=V4L2_CID_FOCUS_RELATIVE. Correct ?
- 
-- When using VIDIO_S_CTRL ioctl with id= V4L2_CID_FOCUS_RELATIVE.
-  I assume that the 'value' field passed down in struct v4l2_control is used to determine the direction the lens should move:
-i.e. +ve value = move 'value' steps in infinity direction
-     -ve value = move 'value' steps in macro direction
-  Does this seem correct ?
- 
-Thanks
-dom
+
+
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
