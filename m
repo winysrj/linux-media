@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.179])
+Received: from rouge.crans.org ([138.231.136.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1LRY4Q-0001lB-63
-	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 21:28:35 +0100
-Received: by el-out-1112.google.com with SMTP id s27so1317590ele.14
-	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 12:28:30 -0800 (PST)
+	(envelope-from <braice@braice.net>) id 1LISg8-0000Z9-0C
+	for linux-dvb@linuxtv.org; Thu, 01 Jan 2009 19:53:57 +0100
+Message-ID: <495D113E.9050109@braice.net>
+Date: Thu, 01 Jan 2009 19:53:50 +0100
+From: Brice DUBOST <braice@braice.net>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>
-References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
-	<497A27F7.8020201@to-st.de>
-	<alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>
-Date: Mon, 26 Jan 2009 21:28:29 +0100
-Message-ID: <19a3b7a80901261228v393f5fcbv7559b573c0ca1539@mail.gmail.com>
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary=0015175770b2eafc48046168945c
-Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
-Reply-To: linux-media@vger.kernel.org
+To: Artem Makhutov <artem@makhutov.org>
+References: <20081220224557.GF12059@titan.makhutov-it.de>
+In-Reply-To: <20081220224557.GF12059@titan.makhutov-it.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to stream DVB-S2 channels over network?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,158 +19,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---0015175770b2eafc48046168945c
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Artem Makhutov a =E9crit :
+> Hello,
+> =
 
-2009/1/23 BOUWSMA Barry <freebeer.bouwsma@gmail.com>:
-> Mojn, as people say in the north and to the north of northern
-> germany  ;-)
+> I would like to stream a DVB-S2, H264 channel over my network to an STB.
+> =
+
+> I an using the TT 3200 DVB-S2 card with multiproto drivers from Igors rep=
+ository.
+> =
+
+> So faar I have tried 3 different solutions:
+> =
+
+> [...]
 >
-> On Fri, 23 Jan 2009, Tobias St=C3=B6ber wrote:
-<snip>
->> There is a complete listing including parameters from "in area" and also
->> "out of area" (but with reception in the area) transmitters at
->> http://www.ueberallfernsehen.de/data/senderliste_25_11_2008.pdf
+> Do you know any other methods to stream a DVB-S2 channel over network?
+> =
 
-I've quickly built a collection of scan files according to this
-document - do you mind having a look at them (although the change that
-will happen in Hamburg sometime and possibly other changes that
-happened since 25th November aren't considered yet)?
 
-<snip>
+Hello
 
-> barry bouwsma
+You can try to use mumudvb (http://mumudvb.braice.net)
 
-Thanks,
+In order to stream dvb-s2 I've implemented an option dont_tune in
+mumudvb wich permit to skip the tuning part of mumudvb wich is "old gen".
 
-Christoph
+The solution of using this option and tuning the card before launching
+mumudvb have been reported to work with dvb-s2
 
---0015175770b2eafc48046168945c
-Content-Type: application/zip; name="de-files.zip"
-Content-Disposition: attachment; filename="de-files.zip"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fqfl9vp90
+To get the snapshot with this option, follow this link
+http://gitweb.braice.net/gitweb?p=3Dmumudvb.git;a=3Dsnapshot;h=3Df430989cbe=
+696345872b6ccf66d30e57a8bd8abc
 
-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
---0015175770b2eafc48046168945c
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Best regards,
+
+-- =
+
+Brice
+
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---0015175770b2eafc48046168945c--
