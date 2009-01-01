@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1LKVbx-000740-Oj
-	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 11:26:07 +0100
-Date: Wed, 7 Jan 2009 11:25:27 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Yusuf Altin <yusuf.altin@t-online.de>
-In-Reply-To: <1231284879.3619.2.camel@yusuf.laptop>
-Message-ID: <alpine.LRH.1.10.0901071124460.21687@pub6.ifh.de>
-References: <1231284879.3619.2.camel@yusuf.laptop>
+	(envelope-from <gregoire.favre@gmail.com>) id 1LIWIo-0005a6-Ov
+	for linux-dvb@linuxtv.org; Thu, 01 Jan 2009 23:46:08 +0100
+Received: by bwz11 with SMTP id 11so13296617bwz.17
+	for <linux-dvb@linuxtv.org>; Thu, 01 Jan 2009 14:45:33 -0800 (PST)
+Date: Thu, 1 Jan 2009 23:45:28 +0100
+To: linux-dvb@linuxtv.org
+Message-ID: <20090101224528.GC3592@gmail.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] add Terratec Cinergy T Express to dibcom
- driver
+Content-Disposition: inline
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: [linux-dvb] What tools for S2API ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,141 +19,104 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Yusuf,
+Hello,
 
-your mailer has malformed the patch.
+my Hauppauge budget-ci seems to works well with szap/kaffeine/VDR but my
+Geniatech DVB-S and my Hauppauge HVR-4000 seems to only works with
+kaffeine.
 
-Can you please resent the patch as an attachment?
+>From kaffeine :
+Tuning to: ZDFtheaterkanal / autocount: 0
+DvbCam::probe(): /dev/dvb/adapter1/ca0: : No such file or directory
+Using DVB device 1:0 "Conexant CX24116/CX24118"
+tuning DVB-S to 11953000 h 27500000
+inv:2 fecH:3
+DiSEqC: switch pos 1, 18V, hiband (index 7)
+DiSEqC: e0 10 38 f7 00 00
+. LOCKED.
+NOUT: 1
+dvbEvents 1:0 started
+Tuning delay: 5929 ms
+pipe opened
+xine pipe opened /home/greg/.kaxtv.ts
 
-Thanks
-Patrick.
+But ./szap -c /usr/src/CVS/dvb-apps/util/szap/channels-conf/dvb-s/Astra-19.=
+2E -x -a1 -n19
+reading channels from file '/usr/src/CVS/dvb-apps/util/szap/channels-conf/d=
+vb-s/Astra-19.2E'
+zapping to 19 'ZDF Theaterkanal':
+sat 0, frequency =3D 11954 MHz H, symbolrate 27500000, vpid =3D 0x0456, api=
+d =3D 0x0460 sid =3D 0x6d70
+using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
+status 01 | signal d240 | snr 0000 | ber 00000000 | unc 00000000 | =
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+status 01 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 01 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 01 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 01 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 01 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
 
 
+And after edit :
+./szap -c /usr/src/CVS/dvb-apps/util/szap/channels-conf/dvb-s/Astra-19.2E -=
+x -a1 -n19
+reading channels from file '/usr/src/CVS/dvb-apps/util/szap/channels-conf/d=
+vb-s/Astra-19.2E'
+zapping to 19 'ZDF Theaterkanal':
+sat 0, frequency =3D 11953 MHz H, symbolrate 27500000, vpid =3D 0x0456, api=
+d =3D 0x0460 sid =3D 0x6d70
+using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
+status 03 | signal d240 | snr 0000 | ber 00000000 | unc 00000000 | =
 
-On Wed, 7 Jan 2009, Yusuf Altin wrote:
+status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
 
-> #This patch introduces support for dvb-t for the following dibcom based
-> card:
-> #	Terratec Cinergy T Express (USB-ID: 0ccd:0062)
-> #		Signed-off-by: Yusuf Altin <yusuf.altin@t-online.de>
-> #		Signed-off-by: Albert Comerma <albert.comerma@gmail.com>
->
-> diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
-> --- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Mon Jan 05
-> 02:42:38 2009 -0200
-> +++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Wed Jan 07
-> 00:28:13 2009 +0100
-> @@ -1388,16 +1388,17 @@ struct usb_device_id dib0700_usb_id_tabl
-> 	{ USB_DEVICE(USB_VID_LEADTEK,
-> USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
-> /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE,
-> USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
-> 	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
-> 	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
-> 	{ USB_DEVICE(USB_VID_YUAN,      USB_PID_YUAN_STK7700PH) },
-> 	{ USB_DEVICE(USB_VID_ASUS,	USB_PID_ASUS_U3000H) },
-> /* 40 */{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E) },
-> 	{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E_SE) },
-> +	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_EXPRESS) },
-> 	{ 0 }		/* Terminating entry */
-> };
-> MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
->
-> #define DIB0700_DEFAULT_DEVICE_PROPERTIES \
-> 	.caps              = DVB_USB_IS_AN_I2C_ADAPTER, \
-> 	.usb_ctrl          = DEVICE_SPECIFIC, \
-> 	.firmware          = "dvb-usb-dib0700-1.20.fw", \
-> @@ -1532,17 +1533,18 @@ struct dvb_usb_device_properties dib0700
-> 			},
-> 			{   "Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity",
-> 				{ &dib0700_usb_id_table[13], NULL },
-> 				{ NULL },
-> 			},
-> 			{   "DiBcom STK7700D reference design",
-> 				{ &dib0700_usb_id_table[14], NULL },
-> 				{ NULL },
-> -			}
-> +			},
-> +
-> 		},
->
-> 		.rc_interval      = DEFAULT_RC_INTERVAL,
-> 		.rc_key_map       = dib0700_rc_keys,
-> 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
-> 		.rc_query         = dib0700_rc_query
->
-> 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-> @@ -1552,25 +1554,29 @@ struct dvb_usb_device_properties dib0700
-> 			{
-> 				.frontend_attach  = stk7700P2_frontend_attach,
-> 				.tuner_attach     = stk7700d_tuner_attach,
->
-> 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
-> 			},
-> 		},
->
-> -		.num_device_descs = 2,
-> +		.num_device_descs = 3,
-> 		.devices = {
-> 			{   "ASUS My Cinema U3000 Mini DVBT Tuner",
-> 				{ &dib0700_usb_id_table[23], NULL },
-> 				{ NULL },
-> 			},
-> 			{   "Yuan EC372S",
-> 				{ &dib0700_usb_id_table[31], NULL },
-> 				{ NULL },
-> +			},
-> +			{   "Terratec Cinergy T Express",
-> +				{ &dib0700_usb_id_table[42], NULL },
-> +				{ NULL },
-> 			}
-> 		},
->
-> 		.rc_interval      = DEFAULT_RC_INTERVAL,
-> 		.rc_key_map       = dib0700_rc_keys,
-> 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
-> 		.rc_query         = dib0700_rc_query
-> 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-> diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-> --- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Mon Jan 05 02:42:38
-> 2009 -0200
-> +++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Wed Jan 07 00:28:13
-> 2009 +0100
-> @@ -159,16 +159,17 @@
-> #define USB_PID_AVERMEDIA_HYBRID_ULTRA_USB_M039R_DVBT	0x2039
-> #define USB_PID_AVERMEDIA_VOLAR_X			0xa815
-> #define USB_PID_AVERMEDIA_VOLAR_X_2			0x8150
-> #define USB_PID_AVERMEDIA_A309				0xa309
-> #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
-> #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
-> #define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
-> #define USB_PID_TERRATEC_CINERGY_HT_EXPRESS		0x0060
-> +#define USB_PID_TERRATEC_CINERGY_T_EXPRESS		0x0062
-> #define USB_PID_TERRATEC_CINERGY_T_XXS			0x0078
-> #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
-> #define USB_PID_PINNACLE_PCTV2000E			0x022c
-> #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
-> #define USB_PID_PINNACLE_PCTV_DUAL_DIVERSITY_DVB_T	0x0229
-> #define USB_PID_PINNACLE_PCTV71E			0x022b
-> #define USB_PID_PINNACLE_PCTV72E			0x0236
-> #define USB_PID_PINNACLE_PCTV73E			0x0237
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+status 01 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+status 01 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
+
+
+Also, VDR fails with those two cards ???
+
+I am a bit lost here, does someone got an idea for me ?
+
+I just recompiled the v4l-dvb's hg source, no change (except that I didn't
+patch the source for DVB-S2 capability anymore).
+
+Thanks.
+-- =
+
+Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
