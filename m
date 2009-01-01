@@ -1,133 +1,86 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0CKHE4f020511
-	for <video4linux-list@redhat.com>; Mon, 12 Jan 2009 15:17:14 -0500
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0CKGd0q007721
-	for <video4linux-list@redhat.com>; Mon, 12 Jan 2009 15:16:40 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Mon, 12 Jan 2009 14:16:28 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
-In-Reply-To: <200812161807.37601.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: Sakari Ailus <sakari.ailus@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>
-Subject: RE: [REVIEW PATCH 08/14] OMAP: CAM: Add ISP Core
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail1.radix.net ([207.192.128.31])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <awalls@radix.net>) id 1LICOR-0004lN-M1
+	for linux-dvb@linuxtv.org; Thu, 01 Jan 2009 02:30:37 +0100
+From: Andy Walls <awalls@radix.net>
+To: Greg <thewatchman@gmail.com>
+In-Reply-To: <c715948d0812301528h5a4f2a57xa973099ffb33730@mail.gmail.com>
+References: <c715948d0812301528h5a4f2a57xa973099ffb33730@mail.gmail.com>
+Date: Wed, 31 Dec 2008 20:32:11 -0500
+Message-Id: <1230773531.3121.13.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] pcHDTV-5500 and FC10 (resend, was too big)
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-
-<snip>
-
-> > +               {
-> > +                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
-> > +                       .type = V4L2_CTRL_TYPE_INTEGER,
-> > +                       .name = "Color Effects",
+On Tue, 2008-12-30 at 17:28 -0600, Greg wrote:
+> I have been trying to get my PCHD-5500 card to work  with FC10. So far
+> I am able to get  the analog tuner portion of the card to work but not
+> the digital. Devinheitmueller was pointing me in the direction to
+> look. I am getting a crash in one of the modules, which looks like it
+> is coming from the line:
 > 
-> What does this do? It definitely looks like this should be a menu, not
-> an integer control. Forcing color to B&W is something that other hardware
-> can do as well, so I think this is a very good candidate for a generic
-> user control, rather than driver specific.
-
-This basically enables some common color effects on image processing:
-- Default colors (i.e. original captured colors)
-- Sepia colored images
-- B&W colored images.
-
-I think its generic enough to propose for a new generic user CID.
-
-Ok, so, should I keep the Private CID as a menu type ctrl by now?
-
+> div = ((frequency + t_params->iffreq) * 62500 + offset +
+> tun->stepsize/2) / tun->stepsize;
 > 
-> > +                       .minimum = PREV_DEFAULT_COLOR,
-> > +                       .maximum = PREV_BW_COLOR,
-> > +                       .step = 1,
-> > +                       .default_value = PREV_DEFAULT_COLOR,
-> > +               },
-> > +               .current_value = PREV_DEFAULT_COLOR,
-> > +       }
-> > +};
-> > +
-
-<snip>
-
-> > +
-> > +       if (((isp_obj.if_status == ISP_PARLL) && (if_t == ISP_CSIA)) ||
-> > +                               ((isp_obj.if_status == ISP_CSIA) &&
-> > +                               (if_t == ISP_PARLL)) ||
-> > +                               ((isp_obj.if_status == ISP_CSIA) &&
-> > +                               (if_t == ISP_CSIB)) ||
-> > +                               ((isp_obj.if_status == ISP_CSIB) &&
-> > +                               (if_t == ISP_CSIA)) ||
-> > +                               (isp_obj.if_status == 0)) {
 > 
-> Hard to understand. Why not:
+> The crash is apparently being cased by a zero stepsize. This crash
+> occured when I was scanning for channels either from mythtvset or
+> Kaffeine, or a command line program that came with the card. I also
+> have  Hauppague 250 card in the system which seems to work.  
 > 
->        if ((isp_obj.if_status == ISP_PARLL && if_t == ISP_CSIA) ||
->            (isp_obj.if_status == ISP_CSIA && if_t == ISP_PARLL) ||
->            (isp_obj.if_status == ISP_CSIA && if_t == ISP_CSIB) ||
->            (isp_obj.if_status == ISP_CSIB && if_t == ISP_CSIA) ||
->            isp_obj.if_status == 0) {
+> If I select the digital tuner from mythtv the application just hangs
+> and I get a blank screen.
+> 
+> I tried hacking the tuner-types.mod.c file and adding the following
+> lines to it that I coppied from one of the other cards (though I
+> suspect these values are not right for this card)
+> 
+>     [TUNER_LG_NTSC_TAPE] = { /* LGINNOTEK NTSC */
+>                 .name   = "LG NTSC (TAPE series)",
+>                 .params = tuner_fm1236_mk3_params,
+>                 .count  = ARRAY_SIZE(tuner_fm1236_mk3_params),
+>                 //adding these lines copied from above so that we have
+> no-zero values
+>                 .min = 16 * 53.00,
+>                 .max = 16 * 803.00,
+>                 .stepsize = 62500,
 > 
 
-Done
+The TAPE-Hxxx series tuners are an LG rebrand of the equivalent Phillips
+tuner.  The TAPE-H091F-MK3 and TAPE-Hxxx data sheets I have say this
+about the analog ranges:
 
-> > +               isp_obj.if_status |= if_t;
-> > +               return 0;
-> > +       } else {
-> > +               DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination Serial- \
-> > +                       Parallel interface\n");
-> > +               return -EINVAL;
-> > +       }
-> > +}
-> > +EXPORT_SYMBOL(isp_request_interface);
+Low :   55.25 - 157.25 MHz
+Mid :  163.25 - 439.25 MHz
+High:  445.25 - 801.25 MHz
+FM:     88.00 - 108.00 MHz
 
-<snip>
+The step size is programmable: 31.25 kHz, 50.00 kHz, 62.50 kHz, ...
 
-> > +       /* CONTROL_ */
-> > +       omap_writel(
-> > +               /* CSIb receiver data/clock or data/strobe mode */
-> > +               (config->u.csi.signalling << 10)
-> > +               | BIT(12)       /* Enable differential transceiver */
-> > +               | BIT(13)       /* Disable reset */
-> > +#ifdef TERM_RESISTOR
-> 
-> What is this define? It doesn't seem to be documented.
+With a control byte of 0x8e (as in the tuner_fm1236_mk3_params), you're
+programming a step size of 62.50 kHz.
 
-This define is to enable/disable an OMAP34xx internal resistor for CSIb (CCP2) camera port.
-
-A comment along its declaration should be enough?
-
-Thanks for your time.
+Of course this is an analog M/N system tuner with FM radio.  I suspect
+this isn't the tuner you're looking for, for Digital TV.
 
 Regards,
-Sergio
+Andy
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
