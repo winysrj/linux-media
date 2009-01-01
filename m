@@ -1,25 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01HZgwf025595
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 12:35:42 -0500
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n01HZOxG001992
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 12:35:25 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Simon Hobson <linux@thehobsons.co.uk>
-In-Reply-To: <a0624080fc5829ec402a2@simon.thehobsons.co.uk>
-References: <a06240804c580f44d7a48@simon.thehobsons.co.uk>
-	<a0624080bc58126e6561c@simon.thehobsons.co.uk>
-	<1230824289.2669.2.camel@pc10.localdom.local>
-	<a0624080fc5829ec402a2@simon.thehobsons.co.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01MN5CY022394
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 17:23:05 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n01MMCAt008365
+	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 17:22:12 -0500
+From: Andy Walls <awalls@radix.net>
+To: ivtv-devel@ivtvdriver.org, video4linux-list@redhat.com
 Content-Type: text/plain
-Date: Thu, 01 Jan 2009 18:35:50 +0100
-Message-Id: <1230831350.7045.15.camel@pc10.localdom.local>
+Date: Thu, 01 Jan 2009 17:20:08 -0500
+Message-Id: <1230848408.11900.20.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Problem setting up HVR-1110
+Cc: 
+Subject: [PATCH] cx18, cx2341x, ivtv: Add AC-3 audio encoding control to cx18
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,166 +25,326 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+The patch in line below adds a control to the cx18 driver to request
+AC-3 audio instead of MPEG Layer II.  It doesn't quite work yet due to
+cx18 firmware issues.
 
-Am Donnerstag, den 01.01.2009, 16:30 +0000 schrieb Simon Hobson:
-> hermann pitton wrote:
-> 
-> >yep, 2.6.18 was too old.
-> 
-> Hmm, I'd been going from the Wiki that suggested it was supported in 
-> 2.6.18. From http://www.linuxtv.org/wiki/index.php/DVB-T_PCI_Cards :
-> 
-> >>Supported with the latest 2.6.18 kernel
-> 
-> Anyway, forced me to upgrade a few things AND learn some more about 
-> fixing stuff I broke !
-> 
-> Mind you, it took some time to figure out why I couldn't find any 
-> channels. Borrowed the portable telly from another room to check the 
-> aerial and found ... that I'd got a wonky plug and the pin was pushed 
-> over and shorting out. Works a lot better with a signal :-/
-> 
+However, I think I've got the basic control work done and need a review
+to make sure I didn't muck anything up with the cx2341x or ivtv modules.
 
-2.6.18 does not have it at all and ends here.
+Of particular concern to me is
 
-#define SAA7134_BOARD_KWORLD_ATSC110   90
-#define SAA7134_BOARD_AVERMEDIA_A169_B 91
-#define SAA7134_BOARD_AVERMEDIA_A169_B1 92
-#define SAA7134_BOARD_MD7134_BRIDGE_2     93
-#define SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS 94
-#define SAA7134_BOARD_FLYVIDEO3000_NTSC 95
+a) changing the cx2341x "audio_properties" from a u16 to a u32, as this
+is what rippled down in source code to the to ivtv driver.
 
-We are now there including card=104.
-
-#define SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS 94
-#define SAA7134_BOARD_FLYVIDEO3000_NTSC 95
-#define SAA7134_BOARD_MEDION_MD8800_QUADRO 96
-#define SAA7134_BOARD_FLYDVBS_LR300 97
-#define SAA7134_BOARD_PROTEUS_2309 98
-#define SAA7134_BOARD_AVERMEDIA_A16AR   99
-#define SAA7134_BOARD_ASUS_EUROPA2_HYBRID 100
-#define SAA7134_BOARD_PINNACLE_PCTV_310i  101
-#define SAA7134_BOARD_AVERMEDIA_STUDIO_507 102
-#define SAA7134_BOARD_VIDEOMATE_DVBT_200A  103
-#define SAA7134_BOARD_HAUPPAUGE_HVR1110    104
-#define SAA7134_BOARD_CINERGY_HT_PCMCIA    105
-#define SAA7134_BOARD_ENCORE_ENLTV         106
-#define SAA7134_BOARD_ENCORE_ENLTV_FM      107
-#define SAA7134_BOARD_CINERGY_HT_PCI       108
-#define SAA7134_BOARD_PHILIPS_TIGER_S      109
-#define SAA7134_BOARD_AVERMEDIA_M102	   110
-#define SAA7134_BOARD_ASUS_P7131_4871	   111
-#define SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA 112
-#define SAA7134_BOARD_ECS_TVP3XP_4CB6  113
-#define SAA7134_BOARD_KWORLD_DVBT_210 114
-#define SAA7134_BOARD_SABRENT_TV_PCB05     115
-#define SAA7134_BOARD_10MOONSTVMASTER3     116
-#define SAA7134_BOARD_AVERMEDIA_SUPER_007  117
-#define SAA7134_BOARD_BEHOLD_401  	118
-#define SAA7134_BOARD_BEHOLD_403  	119
-#define SAA7134_BOARD_BEHOLD_403FM	120
-#define SAA7134_BOARD_BEHOLD_405	121
-#define SAA7134_BOARD_BEHOLD_405FM	122
-#define SAA7134_BOARD_BEHOLD_407	123
-#define SAA7134_BOARD_BEHOLD_407FM	124
-#define SAA7134_BOARD_BEHOLD_409	125
-#define SAA7134_BOARD_BEHOLD_505FM	126
-#define SAA7134_BOARD_BEHOLD_507_9FM	127
-#define SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM 128
-#define SAA7134_BOARD_BEHOLD_607_9FM	129
-#define SAA7134_BOARD_BEHOLD_M6		130
-#define SAA7134_BOARD_TWINHAN_DTV_DVB_3056 131
-#define SAA7134_BOARD_GENIUS_TVGO_A11MCE   132
-#define SAA7134_BOARD_PHILIPS_SNAKE        133
-#define SAA7134_BOARD_CREATIX_CTX953       134
-#define SAA7134_BOARD_MSI_TVANYWHERE_AD11  135
-#define SAA7134_BOARD_AVERMEDIA_CARDBUS_506 136
-#define SAA7134_BOARD_AVERMEDIA_A16D       137
-#define SAA7134_BOARD_AVERMEDIA_M115       138
-#define SAA7134_BOARD_VIDEOMATE_T750       139
-#define SAA7134_BOARD_AVERMEDIA_A700_PRO    140
-#define SAA7134_BOARD_AVERMEDIA_A700_HYBRID 141
-#define SAA7134_BOARD_BEHOLD_H6      142
-#define SAA7134_BOARD_BEHOLD_M63      143
-#define SAA7134_BOARD_BEHOLD_M6_EXTRA    144
-#define SAA7134_BOARD_AVERMEDIA_M103    145
-#define SAA7134_BOARD_ASUSTeK_P7131_ANALOG 146
-#define SAA7134_BOARD_ASUSTeK_TIGER_3IN1   147
-#define SAA7134_BOARD_ENCORE_ENLTV_FM53 148
-#define SAA7134_BOARD_AVERMEDIA_M135A    149
-#define SAA7134_BOARD_REAL_ANGEL_220     150
-#define SAA7134_BOARD_ADS_INSTANT_HDTV_PCI  151
-#define SAA7134_BOARD_ASUSTeK_TIGER         152
-#define SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG 153
+b) accidentally adding a bogus options or controls to ivtv.
 
 
+The change can also be found at 
 
-Also Michael added a bunch of them even later including yours.
+http://linuxtv.org/hg/~awalls/v4l-dvb
 
-		.vendor       = PCI_VENDOR_ID_PHILIPS,
-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-		.subvendor    = 0x0070,
-		.subdevice    = 0x6700,
-		.driver_data  = SAA7134_BOARD_HAUPPAUGE_HVR1110,
-	},{
-		.vendor       = PCI_VENDOR_ID_PHILIPS,
-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-		.subvendor    = 0x0070,
-		.subdevice    = 0x6701,
-		.driver_data  = SAA7134_BOARD_HAUPPAUGE_HVR1110,
-	},{
-		.vendor       = PCI_VENDOR_ID_PHILIPS,
-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-		.subvendor    = 0x0070,
-		.subdevice    = 0x6702,
-		.driver_data  = SAA7134_BOARD_HAUPPAUGE_HVR1110,
-	},{
-		.vendor       = PCI_VENDOR_ID_PHILIPS,
-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-		.subvendor    = 0x0070,
-		.subdevice    = 0x6703,
-		.driver_data  = SAA7134_BOARD_HAUPPAUGE_HVR1110,
-	},{
-		.vendor       = PCI_VENDOR_ID_PHILIPS,
-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-		.subvendor    = 0x0070,
-		.subdevice    = 0x6704,
-		.driver_data  = SAA7134_BOARD_HAUPPAUGE_HVR1110,
-	},{
-		.vendor       = PCI_VENDOR_ID_PHILIPS,
-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-		.subvendor    = 0x0070,
-		.subdevice    = 0x6705,
-		.driver_data  = SAA7134_BOARD_HAUPPAUGE_HVR1110,
-	},{
-
-And that's why you had UNKNOWN/GENERIC detected.
-
-What I get in dmesg is :
-
->saa7130/34: v4l2 driver version 0.2.14 loaded
->PCI: Enabling device 0000:00:00.0 (0000 -> 0002)
->saa7133[0]: found at 0000:00:00.0, rev: 209, irq: 17, latency: 32, 
->mmio: 0xf4100000
->saa7133[0]: subsystem: 0070:6701, board: UNKNOWN/GENERIC
-[card=0,autodetected]
->saa7133[0]: board init: gpio is 6400000
-
-Also LNA activation for analog was missing.
-
-http://linuxtv.org/hg/v4l-dvb/rev/b227949c41ad
-
-Yesterday I could not believe that /me should have hardware hitting all
-major bugs in Fedora 10, some known since FC6 and even improved now.
-
-Now I do ...
-
-If in doubt, always trust the code :)
-
-Cheers,
-Hermann
+Regards,
+Andy
 
 
+# HG changeset patch
+# User Andy Walls <awalls@radix.net>
+# Date 1230847351 18000
+# Node ID e9cf344a6749de5d3778fac3c7114476f7f0b647
+# Parent  41242777b3d8bb162c65c2d0b2c542417b72d946
+cx18, cx2341x, ivtv: Add AC-3 audio encoding control to cx18
+
+From: Andy Walls <awalls@radix.net>
+
+Initial addition of controls to set AC-3 audio encoding for the CX23418 - it
+does not work yet due to firmware or cx18 driver issues.  This change affects
+the common cx2341x and ivtv modules due to shared structures and
+common functions.
+
+Priority: normal
+
+Signed-off-by: Andy Walls <awalls@radix.net>
+
+diff -r 41242777b3d8 -r e9cf344a6749 linux/drivers/media/video/cx18/cx18-driver.c
+--- a/linux/drivers/media/video/cx18/cx18-driver.c	Thu Jan 01 10:35:06 2009 -0500
++++ b/linux/drivers/media/video/cx18/cx18-driver.c	Thu Jan 01 17:02:31 2009 -0500
+@@ -592,7 +592,8 @@ static int __devinit cx18_init_struct1(s
+ 		(cx->params.video_temporal_filter_mode << 1) |
+ 		(cx->params.video_median_filter_type << 2);
+ 	cx->params.port = CX2341X_PORT_MEMORY;
+-	cx->params.capabilities = CX2341X_CAP_HAS_TS;
++	cx->params.capabilities = CX2341X_CAP_HAS_TS   | CX2341X_CAP_HAS_AC3 |
++				  CX2341X_CAP_HAS_LPCM;
+ 	init_waitqueue_head(&cx->cap_w);
+ 	init_waitqueue_head(&cx->mb_apu_waitq);
+ 	init_waitqueue_head(&cx->mb_cpu_waitq);
+diff -r 41242777b3d8 -r e9cf344a6749 linux/drivers/media/video/cx18/cx18-driver.h
+--- a/linux/drivers/media/video/cx18/cx18-driver.h	Thu Jan 01 10:35:06 2009 -0500
++++ b/linux/drivers/media/video/cx18/cx18-driver.h	Thu Jan 01 17:02:31 2009 -0500
+@@ -413,7 +413,7 @@ struct cx18 {
+ 
+ 	/* dualwatch */
+ 	unsigned long dualwatch_jiffies;
+-	u16 dualwatch_stereo_mode;
++	u32 dualwatch_stereo_mode;
+ 
+ 	/* Digitizer type */
+ 	int digitizer;		/* 0x00EF = saa7114 0x00FO = saa7115 0x0106 = mic */
+diff -r 41242777b3d8 -r e9cf344a6749 linux/drivers/media/video/cx18/cx18-fileops.c
+--- a/linux/drivers/media/video/cx18/cx18-fileops.c	Thu Jan 01 10:35:06 2009 -0500
++++ b/linux/drivers/media/video/cx18/cx18-fileops.c	Thu Jan 01 17:02:31 2009 -0500
+@@ -128,10 +128,10 @@ static void cx18_dualwatch(struct cx18 *
+ static void cx18_dualwatch(struct cx18 *cx)
+ {
+ 	struct v4l2_tuner vt;
+-	u16 new_bitmap;
+-	u16 new_stereo_mode;
+-	const u16 stereo_mask = 0x0300;
+-	const u16 dual = 0x0200;
++	u32 new_bitmap;
++	u32 new_stereo_mode;
++	const u32 stereo_mask = 0x0300;
++	const u32 dual = 0x0200;
+ 	u32 h;
+ 
+ 	new_stereo_mode = cx->params.audio_properties & stereo_mask;
+diff -r 41242777b3d8 -r e9cf344a6749 linux/drivers/media/video/cx2341x.c
+--- a/linux/drivers/media/video/cx2341x.c	Thu Jan 01 10:35:06 2009 -0500
++++ b/linux/drivers/media/video/cx2341x.c	Thu Jan 01 17:02:31 2009 -0500
+@@ -1,5 +1,5 @@
+ /*
+- * cx2341x - generic code for cx23415/6 based devices
++ * cx2341x - generic code for cx23415/6/8 based devices
+  *
+  * Copyright (C) 2006 Hans Verkuil <hverkuil@xs4all.nl>
+  *
+@@ -31,7 +31,7 @@
+ #include <media/v4l2-common.h>
+ #include "compat.h"
+ 
+-MODULE_DESCRIPTION("cx23415/6 driver");
++MODULE_DESCRIPTION("cx23415/6/8 driver");
+ MODULE_AUTHOR("Hans Verkuil");
+ MODULE_LICENSE("GPL");
+ 
+@@ -46,6 +46,7 @@ const u32 cx2341x_mpeg_ctrls[] = {
+ 	V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ,
+ 	V4L2_CID_MPEG_AUDIO_ENCODING,
+ 	V4L2_CID_MPEG_AUDIO_L2_BITRATE,
++	V4L2_CID_MPEG_AUDIO_AC3_BITRATE,
+ 	V4L2_CID_MPEG_AUDIO_MODE,
+ 	V4L2_CID_MPEG_AUDIO_MODE_EXTENSION,
+ 	V4L2_CID_MPEG_AUDIO_EMPHASIS,
+@@ -95,6 +96,7 @@ static const struct cx2341x_mpeg_params 
+ 	.audio_sampling_freq = V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000,
+ 	.audio_encoding = V4L2_MPEG_AUDIO_ENCODING_LAYER_2,
+ 	.audio_l2_bitrate = V4L2_MPEG_AUDIO_L2_BITRATE_224K,
++	.audio_ac3_bitrate = V4L2_MPEG_AUDIO_AC3_BITRATE_224K,
+ 	.audio_mode = V4L2_MPEG_AUDIO_MODE_STEREO,
+ 	.audio_mode_extension = V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_4,
+ 	.audio_emphasis = V4L2_MPEG_AUDIO_EMPHASIS_NONE,
+@@ -149,6 +151,9 @@ static int cx2341x_get_ctrl(const struct
+ 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE:
+ 		ctrl->value = params->audio_l2_bitrate;
+ 		break;
++	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE:
++		ctrl->value = params->audio_ac3_bitrate;
++		break;
+ 	case V4L2_CID_MPEG_AUDIO_MODE:
+ 		ctrl->value = params->audio_mode;
+ 		break;
+@@ -257,12 +262,23 @@ static int cx2341x_set_ctrl(struct cx234
+ 		params->audio_sampling_freq = ctrl->value;
+ 		break;
+ 	case V4L2_CID_MPEG_AUDIO_ENCODING:
++		if (busy)
++			return -EBUSY;
++		if (params->capabilities & CX2341X_CAP_HAS_AC3 &&
++		    ctrl->value != V4L2_MPEG_AUDIO_ENCODING_LAYER_2 &&
++		    ctrl->value != V4L2_MPEG_AUDIO_ENCODING_AC3)
++			return -EINVAL;
+ 		params->audio_encoding = ctrl->value;
+ 		break;
+ 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE:
+ 		if (busy)
+ 			return -EBUSY;
+ 		params->audio_l2_bitrate = ctrl->value;
++		break;
++	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE:
++		if (busy)
++			return -EBUSY;
++		params->audio_ac3_bitrate = ctrl->value;
+ 		break;
+ 	case V4L2_CID_MPEG_AUDIO_MODE:
+ 		params->audio_mode = ctrl->value;
+@@ -483,6 +499,12 @@ int cx2341x_ctrl_query(const struct cx23
+ 
+ 	switch (qctrl->id) {
+ 	case V4L2_CID_MPEG_AUDIO_ENCODING:
++		if (params->capabilities & CX2341X_CAP_HAS_AC3)
++			return v4l2_ctrl_query_fill(qctrl,
++					V4L2_MPEG_AUDIO_ENCODING_LAYER_2,
++					V4L2_MPEG_AUDIO_ENCODING_AC3, 1,
++					default_params.audio_encoding);
++
+ 		return v4l2_ctrl_query_fill(qctrl,
+ 				V4L2_MPEG_AUDIO_ENCODING_LAYER_2,
+ 				V4L2_MPEG_AUDIO_ENCODING_LAYER_2, 1,
+@@ -497,6 +519,12 @@ int cx2341x_ctrl_query(const struct cx23
+ 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE:
+ 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE:
+ 		return -EINVAL;
++
++	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE:
++		return v4l2_ctrl_query_fill(qctrl,
++				V4L2_MPEG_AUDIO_AC3_BITRATE_48K,
++				V4L2_MPEG_AUDIO_AC3_BITRATE_448K, 1,
++				default_params.audio_ac3_bitrate);
+ 
+ 	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION:
+ 		err = v4l2_ctrl_query_fill_std(qctrl);
+@@ -672,6 +700,15 @@ const char **cx2341x_ctrl_get_menu(const
+ 		NULL
+ 	};
+ 
++	static const char *mpeg_audio_encoding_l2_ac3[] = {
++		"",
++		"MPEG-1/2 Layer II",
++		"",
++		"",
++		"AC-3",
++		NULL
++	};
++
+ 	static const char *cx2341x_video_spatial_filter_mode_menu[] = {
+ 		"Manual",
+ 		"Auto",
+@@ -712,6 +749,9 @@ const char **cx2341x_ctrl_get_menu(const
+ 	case V4L2_CID_MPEG_STREAM_TYPE:
+ 		return (p->capabilities & CX2341X_CAP_HAS_TS) ?
+ 			mpeg_stream_type_with_ts : mpeg_stream_type_without_ts;
++	case V4L2_CID_MPEG_AUDIO_ENCODING:
++		return (p->capabilities & CX2341X_CAP_HAS_AC3) ?
++			mpeg_audio_encoding_l2_ac3 : v4l2_ctrl_get_menu(id);
+ 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE:
+ 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE:
+ 		return NULL;
+@@ -731,16 +771,36 @@ const char **cx2341x_ctrl_get_menu(const
+ }
+ EXPORT_SYMBOL(cx2341x_ctrl_get_menu);
+ 
++/* definitions for audio properties bits 29-28 */
++#define CX2341X_AUDIO_ENCDING_METHOD_MPEG	0
++#define CX2341X_AUDIO_ENCDING_METHOD_AC3	1
++#define CX2341X_AUDIO_ENCDING_METHOD_LPCM	2
++
+ static void cx2341x_calc_audio_properties(struct cx2341x_mpeg_params *params)
+ {
+-	params->audio_properties = (params->audio_sampling_freq << 0) |
+-		((3 - params->audio_encoding) << 2) |
+-		((1 + params->audio_l2_bitrate) << 4) |
++	params->audio_properties =
++		(params->audio_sampling_freq << 0) |
+ 		(params->audio_mode << 8) |
+ 		(params->audio_mode_extension << 10) |
+ 		(((params->audio_emphasis == V4L2_MPEG_AUDIO_EMPHASIS_CCITT_J17)
+ 		  ? 3 : params->audio_emphasis) << 12) |
+ 		(params->audio_crc << 14);
++
++	if ((params->capabilities & CX2341X_CAP_HAS_AC3) &&
++	    params->audio_encoding == V4L2_MPEG_AUDIO_ENCODING_AC3) {
++		params->audio_properties |=
++#if 1
++			/* Not sure if this MPEG Layer II setting is required */
++			((3 - V4L2_MPEG_AUDIO_ENCODING_LAYER_2) << 2) |
++#endif
++			(params->audio_ac3_bitrate << 4) |
++			(CX2341X_AUDIO_ENCDING_METHOD_AC3 << 28);
++	} else {
++		/* Assuming MPEG Layer II */
++		params->audio_properties |=
++			((3 - params->audio_encoding) << 2) |
++			((1 + params->audio_l2_bitrate) << 4);
++	}
+ }
+ 
+ int cx2341x_ext_ctrls(struct cx2341x_mpeg_params *params, int busy,
+@@ -1023,7 +1083,10 @@ void cx2341x_log_status(const struct cx2
+ 		prefix,
+ 		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ),
+ 		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_ENCODING),
+-		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_L2_BITRATE),
++		cx2341x_menu_item(p,
++			   p->audio_encoding == V4L2_MPEG_AUDIO_ENCODING_AC3
++					      ? V4L2_CID_MPEG_AUDIO_AC3_BITRATE
++					      : V4L2_CID_MPEG_AUDIO_L2_BITRATE),
+ 		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_MODE),
+ 		p->audio_mute ? " (muted)" : "");
+ 	if (p->audio_mode == V4L2_MPEG_AUDIO_MODE_JOINT_STEREO)
+diff -r 41242777b3d8 -r e9cf344a6749 linux/drivers/media/video/ivtv/ivtv-driver.h
+--- a/linux/drivers/media/video/ivtv/ivtv-driver.h	Thu Jan 01 10:35:06 2009 -0500
++++ b/linux/drivers/media/video/ivtv/ivtv-driver.h	Thu Jan 01 17:02:31 2009 -0500
+@@ -697,7 +697,7 @@ struct ivtv {
+ 	u64 vbi_data_inserted;          /* number of VBI bytes inserted into the MPEG stream */
+ 	u32 last_dec_timing[3];         /* cache last retrieved pts/scr/frame values */
+ 	unsigned long dualwatch_jiffies;/* jiffies value of the previous dualwatch check */
+-	u16 dualwatch_stereo_mode;      /* current detected dualwatch stereo mode */
++	u32 dualwatch_stereo_mode;      /* current detected dualwatch stereo mode */
+ 
+
+ 	/* VBI state info */
+diff -r 41242777b3d8 -r e9cf344a6749 linux/drivers/media/video/ivtv/ivtv-fileops.c
+--- a/linux/drivers/media/video/ivtv/ivtv-fileops.c	Thu Jan 01 10:35:06 2009 -0500
++++ b/linux/drivers/media/video/ivtv/ivtv-fileops.c	Thu Jan 01 17:02:31 2009 -0500
+@@ -148,10 +148,10 @@ static void ivtv_dualwatch(struct ivtv *
+ static void ivtv_dualwatch(struct ivtv *itv)
+ {
+ 	struct v4l2_tuner vt;
+-	u16 new_bitmap;
+-	u16 new_stereo_mode;
+-	const u16 stereo_mask = 0x0300;
+-	const u16 dual = 0x0200;
++	u32 new_bitmap;
++	u32 new_stereo_mode;
++	const u32 stereo_mask = 0x0300;
++	const u32 dual = 0x0200;
+ 
+ 	new_stereo_mode = itv->params.audio_properties & stereo_mask;
+ 	memset(&vt, 0, sizeof(vt));
+diff -r 41242777b3d8 -r e9cf344a6749 linux/include/media/cx2341x.h
+--- a/linux/include/media/cx2341x.h	Thu Jan 01 10:35:06 2009 -0500
++++ b/linux/include/media/cx2341x.h	Thu Jan 01 17:02:31 2009 -0500
+@@ -1,5 +1,5 @@
+ /*
+-    cx23415/6 header containing common defines.
++    cx23415/6/8 header containing common defines.
+ 
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+@@ -28,6 +28,8 @@ enum cx2341x_cap {
+ enum cx2341x_cap {
+ 	CX2341X_CAP_HAS_SLICED_VBI = 1 << 0,
+ 	CX2341X_CAP_HAS_TS 	   = 1 << 1,
++	CX2341X_CAP_HAS_AC3 	   = 1 << 2,
++	CX2341X_CAP_HAS_LPCM	   = 1 << 3,
+ };
+ 
+ struct cx2341x_mpeg_params {
+@@ -47,11 +49,12 @@ struct cx2341x_mpeg_params {
+ 	enum v4l2_mpeg_audio_sampling_freq audio_sampling_freq;
+ 	enum v4l2_mpeg_audio_encoding audio_encoding;
+ 	enum v4l2_mpeg_audio_l2_bitrate audio_l2_bitrate;
++	enum v4l2_mpeg_audio_ac3_bitrate audio_ac3_bitrate;
+ 	enum v4l2_mpeg_audio_mode audio_mode;
+ 	enum v4l2_mpeg_audio_mode_extension audio_mode_extension;
+ 	enum v4l2_mpeg_audio_emphasis audio_emphasis;
+ 	enum v4l2_mpeg_audio_crc audio_crc;
+-	u16 audio_properties;
++	u32 audio_properties;
+ 	u16 audio_mute;
+ 
+ 	/* video */
 
 
 --
