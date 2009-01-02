@@ -1,28 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-qy0-f16.google.com ([209.85.221.16])
+Received: from fk-out-0910.google.com ([209.85.128.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1LRWol-0003HK-Gw
-	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 20:08:20 +0100
-Received: by qyk9 with SMTP id 9so6661061qyk.17
-	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 11:07:45 -0800 (PST)
+	(envelope-from <gregoire.favre@gmail.com>) id 1LIt84-00082V-GH
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 00:08:34 +0100
+Received: by fk-out-0910.google.com with SMTP id f40so3995923fka.1
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 15:08:28 -0800 (PST)
+Date: Sat, 3 Jan 2009 00:07:59 +0100
+To: linux-dvb@linuxtv.org
+Message-ID: <20090102230759.GA3017@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
-	<157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>
-	<157f4a8c0901260741l4d263b8bk6e34cb5bb56d8c2@mail.gmail.com>
-	<c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>
-	<157f4a8c0901260751l39214908ydfeed5ba12b4d48b@mail.gmail.com>
-	<157f4a8c0901260808i39b784f6m13db53db2f135a37@mail.gmail.com>
-	<c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>
-	<1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
-Date: Mon, 26 Jan 2009 21:07:45 +0200
-Message-ID: <c74595dc0901261107i66125bfdpe35cb7b89144ab11@mail.gmail.com>
-From: Alex Betis <alex.betis@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on
-	HDchannels
-Reply-To: linux-media@vger.kernel.org
+Content-Disposition: inline
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: [linux-dvb] BUG cx88 don't work on S2API/2.6.28 amd64 (disseqc ?)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,126 +19,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0043721123=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0043721123==
-Content-Type: multipart/alternative; boundary=0015175cfb9c2b14da04616774e7
+Hello,
 
---0015175cfb9c2b14da04616774e7
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+just to be sure I don't have an hardware problem I came back to a 2.6.27
+kernel on which I can compil multiproto : all my DVB cards works
+perfectly there.
 
-On Mon, Jan 26, 2009 at 7:50 PM, Manu Abraham <abraham.manu@gmail.com>wrote:
+Under 2.6.28 and today's v4l-dvb hg source the cx88 cards don't tune at
+all (geniatech budget and Hauppauge HVR-4000).
 
->
->
-> On Mon, Jan 26, 2009 at 8:19 PM, Alex Betis <alex.betis@gmail.com> wrote:
->
->>
->> Latest changes I can see at
->>> http://mercurial.intuxication.org/hg/s2-liplianin/ were made about 7
->>> to 10 days ago. Is this correct? If that's correct, then I'm using
->>> latest Igor drivers. And behavior described above is what I'm getting.
->>>
->>> I can't see anything related do high SR channels on Igor repository.
->>
->> He did it few months ago. If you're on latest than you should have it.
->>
->>
->
->
-> It won't. All you will manage to do is burn your demodulator, if you happen
-> to
-> be that lucky one, with that change. At least a few people have burned
-> demodulators by now, from what i do see.
->
-What are the symptoms of burned demodulator? How can someone know if its
-still ok?
+I have three diseqcs for all cards I have, which are each connected to
+three quad lnb (or quattro : those which are like four different lnb and
+need diseqc signals to choose l/h h/v), for example I set up VDR like
+this :
 
-Does your mantis driver work ok with such channels?
+S13.0E 11700 V  9750 t v W15 [E0 10 38 F0] W15 t
+S13.0E 99999 V 10600 t v W15 [E0 10 38 F1] W15 T
+S13.0E 11700 H  9750 t V W15 [E0 10 38 F2] W15 t
+S13.0E 99999 H 10600 t V W15 [E0 10 38 F3] W15 T
+S19.2E 11700 V  9750 t v W15 [E0 10 38 F4] W15 t
+S19.2E 99999 V 10600 t v W15 [E0 10 38 F5] W15 T
+S19.2E 11700 H  9750 t V W15 [E0 10 38 F6] W15 t
+S19.2E 99999 H 10600 t V W15 [E0 10 38 F7] W15 T
+S28.2E 11700 V  9750 t v W15 [E0 10 38 F8] W15 t
+S28.2E 99999 V 10600 t v W15 [E0 10 38 F9] W15 T
+S28.2E 11700 H  9750 t V W15 [E0 10 38 FA] W15 t
+S28.2E 99999 H 10600 t V W15 [E0 10 38 FB] W15 T
 
+I can't tune with the cx88 cards using S2API neither with VDR nor
+szap(.*).
 
->
->
-> Regards,
-> Manu
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+from lspci :
+04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+04:02.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and A=
+udio Decoder (rev 05)
+04:02.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
+ecoder [Audio Port] (rev 05)
+04:02.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
+ecoder [MPEG Port] (rev 05)
+04:02.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
+ecoder [IR Port] (rev 05)
+04:05.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and A=
+udio Decoder (rev 03)
+04:05.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
+ecoder [MPEG Port] (rev 03)
 
---0015175cfb9c2b14da04616774e7
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+If they are any more info I could give to help solve this really annoying
+bug, I would be happy to give them.
 
-<div dir=3D"ltr"><div class=3D"gmail_quote">On Mon, Jan 26, 2009 at 7:50 PM=
-, Manu Abraham <span dir=3D"ltr">&lt;<a href=3D"mailto:abraham.manu@gmail.c=
-om">abraham.manu@gmail.com</a>&gt;</span> wrote:<br><blockquote class=3D"gm=
-ail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt =
-0pt 0pt 0.8ex; padding-left: 1ex;">
-<div dir=3D"ltr"><br><br><div class=3D"gmail_quote">On Mon, Jan 26, 2009 at=
- 8:19 PM, Alex Betis <span dir=3D"ltr">&lt;<a href=3D"mailto:alex.betis@gma=
-il.com" target=3D"_blank">alex.betis@gmail.com</a>&gt;</span> wrote:<br><bl=
-ockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204=
-, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Thank you very much,
+-- =
 
-<div dir=3D"ltr"><div class=3D"gmail_quote"><div><div><br></div><div><block=
-quote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 2=
-04); margin: 0px 0px 0px 0.8ex; padding-left: 1ex;">Latest changes I can se=
-e at<br>
-
-<a href=3D"http://mercurial.intuxication.org/hg/s2-liplianin/" target=3D"_b=
-lank">http://mercurial.intuxication.org/hg/s2-liplianin/</a> were made abou=
-t 7<br>
-to 10 days ago. Is this correct? If that&#39;s correct, then I&#39;m using<=
-br>latest Igor drivers. And behavior described above is what I&#39;m gettin=
-g.<br><br>I can&#39;t see anything related do high SR channels on Igor repo=
-sitory.</blockquote>
-
-
-
-</div></div><div>He did it few months ago. If you&#39;re on latest than you=
- should have it.</div><div>
-<div>&nbsp;</div></div></div></div></blockquote></div><br><br>It won&#39;t.=
- All you will manage to do is burn your demodulator, if you happen to <br>b=
-e that lucky one, with that change. At least a few people have burned <br>d=
-emodulators by now, from what i do see.</div>
-</blockquote><div>What are the symptoms of burned demodulator? How can some=
-one know if its still ok?<br><br>Does your mantis driver work ok with such =
-channels?<br><br></div><blockquote class=3D"gmail_quote" style=3D"border-le=
-ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
-1ex;">
-<div dir=3D"ltr"><br>
-<br><br>Regards,<br>Manu<br><br></div>
-<br>_______________________________________________<br>
-linux-dvb users mailing list<br>
-For V4L/DVB development, please use instead <a href=3D"mailto:linux-media@v=
-ger.kernel.org">linux-media@vger.kernel.org</a><br>
-<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
-t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
-br></blockquote></div><br></div>
-
---0015175cfb9c2b14da04616774e7--
-
-
---===============0043721123==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0043721123==--
