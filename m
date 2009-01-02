@@ -1,32 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n08G3VHE009831
-	for <video4linux-list@redhat.com>; Thu, 8 Jan 2009 11:03:31 -0500
-Received: from anchor-post-2.mail.demon.net (anchor-post-2.mail.demon.net
-	[195.173.77.133])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n08G2PHn021359
-	for <video4linux-list@redhat.com>; Thu, 8 Jan 2009 11:02:36 -0500
-Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
-	helo=pentagram.youmustbejoking.demon.co.uk)
-	by anchor-post-2.mail.demon.net with esmtp (Exim 4.69)
-	id 1LKxKz-0006Ho-jO
-	for video4linux-list@redhat.com; Thu, 08 Jan 2009 16:02:25 +0000
-Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
-	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1LKxKr-0003qb-Bs
-	for video4linux-list@redhat.com; Thu, 08 Jan 2009 16:02:24 +0000
-Date: Thu, 08 Jan 2009 15:59:23 +0000
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-To: video4linux-list@redhat.com
-Message-ID: <501FED41FC%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <20090108093849.0e885ec5@pedra.chehab.org>
-References: <2ac79fa40901072131m10be588axb3de61ef81bb943f@mail.gmail.com>
-	<20090108093849.0e885ec5@pedra.chehab.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02Ege4s003503
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 09:42:40 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n02EgPcI024375
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 09:42:25 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so2571237qwe.39
+	for <video4linux-list@redhat.com>; Fri, 02 Jan 2009 06:42:24 -0800 (PST)
+Message-ID: <412bdbff0901020642n7ef93c7ajff2ffe5e784a2940@mail.gmail.com>
+Date: Fri, 2 Jan 2009 09:42:24 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kuba Irzabek" <vega01@wp.pl>
+In-Reply-To: <495DE5A6.8000404@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH] pwc: add support for webcam snapshot button
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <495DE5A6.8000404@wp.pl>
+Cc: video4linux-list@redhat.com
+Subject: Re: Pinnacle HDTV Ultimate USB and SAA7136
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,24 +30,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I demand that Mauro Carvalho Chehab may or may not have written...
+On Fri, Jan 2, 2009 at 5:00 AM, Kuba Irzabek <vega01@wp.pl> wrote:
+> Hello,
+>
+> I found some posts from december last year about work on Pinnacle HDTV
+> Ultimate USB being in progress and about SAA7136 documentation. I'm
+> interested in getting analog tuner of AverTV Hybrid Volar HX (A827) to work
+> under Linux. It also uses SAA7136 part. There were some posts about this
+> AverTV card on linix-dvb, but I suppose nobody is currently working on it
+> (especially the analog part). I would appreciate any info on the progress of
+> work on the driver for SAA7136.
+>
+> Thank you very much!
+> Regards,
+>
+> Kuba Irzabek
 
-> On Thu, 8 Jan 2009 12:31:48 +0700
-> "Nam Phạm Thành"  <phamthanhnam.ptn@gmail.com> wrote:
->> OK, resent. Hope it's OK now.
+Hello Kuba,
 
-> Unfortunately, it is not 100% ok.
+I have the full documentation for the saa7136 and have been actively
+working on the driver for the last couple of weeks.  I have the
+S-Video and CVBS working, and am now working on the audio support and
+the digital IF support required for the tuner.
 
-I have a somewhat old patch for this, some of which may be useful now:
-http://lists-archives.org/video4linux/11287-pwc-provide-an-input-device-for-the-snapshot-button-types-720-730-and-740.html
+I hope to release something in the next couple of weeks.
 
-[snip]
+Cheers,
+
+Devin
+
 -- 
-| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
-| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
-| + Use more efficient products. Use less.          BE MORE ENERGY EFFICIENT.
-
-Fort Wayne is not the headquarters of F troop.
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
