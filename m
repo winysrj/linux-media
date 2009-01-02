@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1LMke9-0003Hn-7W
-	for linux-dvb@linuxtv.org; Tue, 13 Jan 2009 15:53:38 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-45721e5a.dyn.optonline.net [69.114.30.90]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0KDF00CDD006ULF0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 13 Jan 2009 09:52:55 -0500 (EST)
-Date: Tue, 13 Jan 2009 09:52:54 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <e5df86c90901051829g382b2ef1tecb57c9f3b17c15f@mail.gmail.com>
-To: Mark Jenks <mjenks1968@gmail.com>
-Message-id: <496CAAC6.9010505@linuxtv.org>
-MIME-version: 1.0
-References: <e5df86c90901051829g382b2ef1tecb57c9f3b17c15f@mail.gmail.com>
+	(envelope-from <zdenek.kabelac@gmail.com>) id 1LIjyD-0006jx-Pv
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 14:21:46 +0100
+Received: by bwz11 with SMTP id 11so13723699bwz.17
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 05:21:12 -0800 (PST)
+Message-ID: <c4e36d110901020521l2628634al68d1b5a76884aec3@mail.gmail.com>
+Date: Fri, 2 Jan 2009 14:21:11 +0100
+From: "Zdenek Kabelac" <zdenek.kabelac@gmail.com>
+To: "Kuba Irzabek" <vega01@wp.pl>
+In-Reply-To: <495E00B9.8000202@wp.pl>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <495E00B9.8000202@wp.pl>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 Fix for oops if you install
- HVR-1250 and HVR-1800 in the same computer.
+Subject: Re: [linux-dvb] AverTV Hybrid Volar HX (A827)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,25 +28,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mark Jenks wrote:
-> Analog support for HVR-1250 has not been completed, but does exist for
-> the HVR-1800.
-> 
-> Since both cards use the same driver, it tries to create the analog
-> dev for both devices, which is not possible.
-> 
-> This causes a NULL error to show up in video_open and mpeg_open.
-> 
-> -Mark
-> 
-> Signed-off-by: Mark Jenks <mjenks1968@gmail.com>
+2009/1/2 Kuba Irzabek <vega01@wp.pl>:
+> Hello,
+>
+> I noticed some posts from quite a long time ago from people interested
+> in running AverTV A827 under Linux. Is anyone still interested or
+> working on it? I'm currently mainly interested in getting the analog TV
+> part working.
+>
+> Regards,
+>
+> Kuba Irzabek
 
-This makes sense, thanks for the patch.
+Hi
 
-- Steve
+Currently we have some progress with DVB-T part of this device - the
+only problem is, it's using uncommon USB comunication protocol I've
+not yet seen in other dvb usb tuner - it send BULK request and expect
+Interrupt responce and I'm not yet big expert on USB programming - and
+it needs some time.
+
+Are you experienced USB programmer ?
+
+It might allow us to get at least DVB-T part functional really soon then.
+
+AFAIK there is no work done on Analog part.
+
+Zdenek
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
