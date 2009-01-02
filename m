@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EIjGdX007562
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:45:16 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0EIi8jE022264
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:44:08 -0500
-Received: by ewy14 with SMTP id 14so776833ewy.3
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 10:44:07 -0800 (PST)
-Message-ID: <b24e53350901141044u69f5258cjb86a820802c4a89a@mail.gmail.com>
-Date: Wed, 14 Jan 2009 13:44:07 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02A0Wcm012353
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 05:00:32 -0500
+Received: from mx1.wp.pl (mx1.wp.pl [212.77.101.5])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n02A0Jcm025289
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 05:00:20 -0500
+Received: from ajk10.neoplus.adsl.tpnet.pl (HELO [192.168.0.155])
+	(vega01@[83.25.244.10]) (envelope-sender <vega01@wp.pl>)
+	by smtp.wp.pl (WP-SMTPD) with SMTP
+	for <video4linux-list@redhat.com>; 2 Jan 2009 11:00:07 +0100
+Message-ID: <495DE5A6.8000404@wp.pl>
+Date: Fri, 02 Jan 2009 11:00:06 +0100
+From: Kuba Irzabek <vega01@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
-	<b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
-Subject: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer memory
-	leak and race condition/corruption of capture pointer
+Subject: Pinnacle HDTV Ultimate USB and SAA7136
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,88 +28,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-em28xx: Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
+Hello,
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
+I found some posts from december last year about work on Pinnacle HDTV 
+Ultimate USB being in progress and about SAA7136 documentation. I'm 
+interested in getting analog tuner of AverTV Hybrid Volar HX (A827) to 
+work under Linux. It also uses SAA7136 part. There were some posts about 
+this AverTV card on linix-dvb, but I suppose nobody is currently working 
+on it (especially the analog part). I would appreciate any info on the 
+progress of work on the driver for SAA7136.
 
-Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
+Thank you very much!
+Regards,
 
-Priority: normal
-
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
-
-diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
---- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
-10:06:12 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
-12:47:00 2009 -0500
-@@ -62,11 +62,20 @@
-      int i;
-
-      dprintk("Stopping isoc\n");
--       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
--               usb_unlink_urb(dev->adev.urb[i]);
--               usb_free_urb(dev->adev.urb[i]);
--               dev->adev.urb[i] = NULL;
--       }
-+        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
-+               usb_unlink_urb(dev->adev.urb[i]);
-+               usb_free_urb(dev->adev.urb[i]);
-+               dev->adev.urb[i] = NULL;
-+               if (dev->adev.urb[i]) {
-+                       usb_unlink_urb(dev->adev.urb[i]);
-+                       usb_free_urb(dev->adev.urb[i]);
-+                       dev->adev.urb[i] = NULL;
-+               }
-+                if (dev->adev.transfer_buffer) {
-+                       kfree(dev->adev.transfer_buffer[i]);
-+                       dev->adev.transfer_buffer[i] = NULL;
-+               }
-+        }
-
-      return 0;
- }
-@@ -458,11 +467,15 @@
-                                                  *substream)
- #endif
- {
-+       unsigned long flags;
-+
-      struct em28xx *dev;
--
-      snd_pcm_uframes_t hwptr_done;
-+
-      dev = snd_pcm_substream_chip(substream);
-+       spin_lock_irqsave(&dev->adev.slock, flags);
-      hwptr_done = dev->adev.hwptr_done_capture;
-+       spin_unlock_irqrestore(&dev->adev.slock, flags);
-
-      return hwptr_done;
- }
-
-
-
---
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
-
-
-
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+Kuba Irzabek
 
 --
 video4linux-list mailing list
