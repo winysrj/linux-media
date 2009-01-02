@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1LJCJn-0007Ia-Je
-	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 20:37:56 +0100
-Received: by bwz11 with SMTP id 11so14742666bwz.17
-	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 11:37:22 -0800 (PST)
-Date: Sat, 3 Jan 2009 20:37:18 +0100
-To: linux-dvb@linuxtv.org
-Message-ID: <20090103193718.GB3118@gmail.com>
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+Received: from smtp109.rog.mail.re2.yahoo.com ([68.142.225.207])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1LIkjV-00057c-Ps
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 15:10:40 +0100
+Message-ID: <495E203E.40806@rogers.com>
+Date: Fri, 02 Jan 2009 09:10:06 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+To: "A. F. Cano" <afc@shibaya.lonestar.org>
+References: <20090102043426.GA17583@shibaya.lonestar.org>
+In-Reply-To: <20090102043426.GA17583@shibaya.lonestar.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How is the support of the OnAir Creator these days?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,24 +19,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Well,
+A. F. Cano wrote:
+> Hi,
+>
+> I posted a quite detailed query 2 years ago (how time flies!).  At the
+> time there were problems.  Mike Krufky (if I remember correctly) gave
+> a detailed report of the status at the time.
+>
+> It's been a while and I was wondering what progress there has been
+> in supporting the OnAir Creator usb hdtv tuner.  I'm fine-tuning and
+> configuring debian lenny on a  new HD (kernel  2.6.26) and I'm wondering
+> if I'm finally safe getting this unit, or will I still have an
+> expensive paperweight?
+>
+> If it still doesn't work properly (I'm willing to do some testing
+> and report back, but only if it useable to some degree), what other
+> supported units are comparable these days?
+>
+> Thanks.
+>
+> A.
 
-I would suggest not using S2API as it's seems to be broken for our card
-at this time, I did test steven s2 repo which is better that all other
-S2API repo I have tested but still worse than lipliandvb (multiproto
-hg).
-
-I wrote about the problem of the cx88 cards on this exact same ml ;-)
--- =
-
-Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
-               http://picasaweb.google.com/Gregoire.Favre
+See: http://www.linuxtv.org/wiki/index.php/ATSC_USB_Devices
 
 _______________________________________________
 linux-dvb mailing list
