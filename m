@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from waladir.klfree.cz ([81.201.51.58] helo=culibrk.hrbkovi.eu)
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ludek@hrbkovi.eu>) id 1LNrUu-0004Ww-Ig
-	for linux-dvb@linuxtv.org; Fri, 16 Jan 2009 17:24:41 +0100
-Message-ID: <4970B4F7.8030504@hrbkovi.eu>
-Date: Fri, 16 Jan 2009 17:25:27 +0100
-From: Ludek <ludek@hrbkovi.eu>
+	(envelope-from <mrechberger@gmail.com>) id 1LIlIb-0003Ew-4Z
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 15:46:54 +0100
+Received: by bwz11 with SMTP id 11so13787101bwz.17
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 06:46:19 -0800 (PST)
+Message-ID: <d9def9db0901020646v9ae1c1u57b2474c1765e7fd@mail.gmail.com>
+Date: Fri, 2 Jan 2009 15:46:19 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0901020637l479a6cd0nb8a1e7764c9135e7@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <496C6F77.8070405@hrbkovi.eu>
-	<005101c97578$27bc31a0$f4c6a5c1@tommy>
-In-Reply-To: <005101c97578$27bc31a0$f4c6a5c1@tommy>
-Subject: Re: [linux-dvb] TechniSat CableStar HD2 & CAM
+Content-Disposition: inline
+References: <1230901740.14839.15.camel@localhost> <495E21EB.4090602@rogers.com>
+	<412bdbff0901020637l479a6cd0nb8a1e7764c9135e7@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] em28xx frontend does not attach
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,54 +29,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I've read this posts. I'm afraid it won't be easy to get it work but I 
-hope that Manu will make it. I can provide some information or do some 
-tests if it would be helpful.
-
-Regads,
-
-Ludek
-
-Tomas Drajsajtl napsal(a):
-> Ahoj Ludku,
-> 
-> I have the same card and the same problem. It was already reported to the
-> forum and to Manu, the author of mantis driver. As I understood the
-> VP-2033/VP-2040 based cards CI/CAM is not supported yet.
-> See e.g.
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028995.html
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028857.html
-> 
-> 
-> So I bought TT C-1501 Budget card from dvbshop.net and I wish to Manu to get
-> VP-2040 CAM working soon. Then I can use the CableStar TV tuner as the
-> second card to stream more channels at home. You know, when my son watches
-> JimJam I cannot watch Discovery. ;-)
-> 
-> Regards,
-> Tomas
-> 
-> 
-> 
-> ----- Original Message ----- 
-> From: "Ludek" <ludek@hrbkovi.eu>
-> To: <linux-dvb@linuxtv.org>
-> Sent: Tuesday, January 13, 2009 11:39 AM
-> Subject: [linux-dvb] TechniSat CableStar HD2 & CAM
-> 
-> 
->> Hi,
+On Fri, Jan 2, 2009 at 3:37 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Fri, Jan 2, 2009 at 9:17 AM, CityK <cityk@rogers.com> wrote:
+>> Elio Voci wrote:
+>>> I have generated the firmware from
+>>> http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip,
+>>> Driver85/hcw85bda.sys
+>>>
+>>> em28xx installed correctly, dvb frontend did not:
+>>> zl10353_read_register returned -19
+>>> Below the relevant dmesg section (em28xx modprobed with core_debug=1
+>>> ------------------------------------------------------------------------
+>>>> [ 3435.932331] tuner' 1-0061: chip found @ 0xc2 (em28xx #0)
+>>>> [ 3435.948856] xc2028 1-0061: creating new instance
 >>
->> I've problem with TechniCrypt CAM inserted on my TechniSat CableStar HD2
->>   (DVB-C card) with current mantis driver. I'm able to watch FTA
->> channels only :-(  As I read this list I'm afraid that CAM modules with
->> this card is not supported yet. Does anyone get this card with CAM
-> working?
-> 
+>> Wrong firmware. You want XC3028, not the XC5000.
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>
+> It doesn't matter - the Cinergy Hybrid is known to not work.  It's on
+> my TODO list, but this is complicated by the fact that I have neither
+> the hardware nor the DVB-T signal to debug the issue with.
+>
 
+For the record, the device works properly with the code from mcentral.de.
+
+regards,
+Markus
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
