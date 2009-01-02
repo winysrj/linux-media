@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1LIVc1-0002ap-3I
-	for linux-dvb@linuxtv.org; Thu, 01 Jan 2009 23:01:53 +0100
-Received: by bwz11 with SMTP id 11so13274864bwz.17
-	for <linux-dvb@linuxtv.org>; Thu, 01 Jan 2009 14:01:18 -0800 (PST)
-Date: Thu, 1 Jan 2009 23:01:09 +0100
+	(envelope-from <gregoire.favre@gmail.com>) id 1LIr3j-0005xR-8R
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 21:55:55 +0100
+Received: by bwz11 with SMTP id 11so14090785bwz.17
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 12:55:22 -0800 (PST)
+Date: Fri, 2 Jan 2009 21:55:00 +0100
 To: linux-dvb@linuxtv.org
-Message-ID: <20090101220109.GB3592@gmail.com>
+Message-ID: <20090102205500.GC3499@gmail.com>
+References: <mailman.1.1230807601.410.linux-dvb@linuxtv.org>
+	<BAY108-W3977483AA022795F9D2373FEE20@phx.gbl>
 MIME-Version: 1.0
 Content-Disposition: inline
+In-Reply-To: <BAY108-W3977483AA022795F9D2373FEE20@phx.gbl>
 From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: [linux-dvb] hi/lo-V/H working (all the time) channels for 13E, 19.2E,
-	28.2E ?
+Subject: Re: [linux-dvb] hi/lo-V/H working (all the time) channels for 13E,
+	19.2E, 28.2E ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,16 +31,8 @@ List-ID: <linux-dvb@linuxtv.org>
 
 Hello,
 
-trying to find out what problems are with my system using S2API, I
-wanted to use szap in order to make some testings.
-
-I done so in the past, but the small channels.conf I made then isn't
-usable nowadays :-(
-
-Is there a simple way to get those four combinations of channels for
-those three sats ?
-
-Thank you very much,
+thank you very much, as soon as I get into better mood against S2API
+i'll try this ;-)
 -- =
 
 Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
