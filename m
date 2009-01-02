@@ -1,23 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx38.mail.ru ([194.67.23.16])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1LJO2P-00018x-CG
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 09:08:46 +0100
-Received: from [92.101.131.52] (port=14599 helo=localhost.localdomain)
-	by mx38.mail.ru with asmtp id 1LJO1q-000HOa-00
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 11:08:10 +0300
-Date: Sun, 4 Jan 2009 11:14:29 +0300
-From: Goga777 <goga777@bk.ru>
+Received: from router.whitecitadel.com ([82.68.182.134]
+	helo=mail.whitecitadel.com) by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <paul@whitecitadel.com>) id 1LIghY-0007ZE-U4
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 10:52:24 +0100
+Message-ID: <6969.63.81.117.28.1230889937.squirrel@dagobah.whitecitadel.com>
+Date: Fri, 2 Jan 2009 09:52:17 -0000 (UTC)
+From: "Paul" <paul@whitecitadel.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <20090104111429.1f828fc8@bk.ru>
-In-Reply-To: <20090103193718.GB3118@gmail.com>
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<20090103193718.GB3118@gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+MIME-Version: 1.0
+Subject: [linux-dvb]  RE : Compile error,
+ bug in compat.h with kernel 2.6.27.9 ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,29 +23,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I would suggest not using S2API as it's seems to be broken for our card
-> at this time, 
+Thierry Lelegard thierry.lelegard at tv-numeric.com wrote:
 
-why do you think so ? 
+> De : BOUWSMA Barry [mailto:freebeer.bouwsma at gmail.com]
+> >
+> > On Tue, 30 Dec 2008, Thierry Lelegard wrote:
+> >
+> > > OK, looking into the source RPM for the latest Fedora 10 update
+> > > kernel (kernel-2.6.27.9-159.fc10.src.rpm), it appears that
+> > > the definition of pci_ioremap_bar in pci.h was introduced by
+> > > linux-2.6.27.7-alsa-driver-fixups.patch
+> > >
+> > > I assume that this is a Fedora-specific patch (or more
+> > generally Red Hat),
+> > > back-porting 2.6.28 stuff.
+> >
+> > There may be hope for a dirty hack...
 
->I did test steven s2 repo which is better that all other
-> S2API repo 
+<snip>
 
-have you tested http://mercurial.intuxication.org/hg/s2-liplianin ?
+> > which is not yet in my latest 2.6.28 git kernel...
+> >
+> > These both seem to be present since -r1.1 through HEAD,
+> > so I would guess you can special-case this check into
+> > a 2.6.27 version test.
+>
+> Good idea. After some more checks, it seems reasonable. I consequently
+> propose the following patch:
+>
+> ====[CUT HERE]====
+< snip>				\
+> ====[CUT HERE]====
+>
+> Quite dirty indeed, but isn't it the exact purpose of the compat.h file,
+> being the dirty glue to compile latest kernel code inside older kernels ?
+>
+> I think this would help all Fedora users to have this little path
+> committed
+> into the linuxtv.org repository.
 
->I have tested but still worse than lipliandvb (multiproto
-> hg).
+> Thanks Barry for your idea.
+> -Thierry
 
-please try 
+I just ran into this issue trying to compile v4l-dvb from hg against the
+latest fedora core 10 kernel 2.6.27.9-159.fc10.x86_64, I also tried the
+core 10 original release kernel based on 2.6.25.5 with the same issue and
+was wondering if this patch will be committed or had already been
+committed at 14:00GMT (Jan 1st) yesterday when I pulled v4l-dvb?
 
-http://mercurial.intuxication.org/hg/s2-liplianin (yesterday Igor synchronized it with current v4l-dvb)
-+
-http://hg.kewl.org/dvb2010/ - new dvb scaner 
+Compile still fails for me with the original error posted by the original
+poster, and I was curious if the patch will be committed, or if I would be
+best to look at a vanilla kernel to work around the issue or avoid them
+completely.
 
-for me everything is working without any problem with my hvr4000. Also patched vdr 170 works well with s2api
+I have a new Hauppauge WinTV-NOVA-HD-S2 card and I believe that the latest
+kernel from December 24th 2.6.28.40 contains a cx88 driver that supports
+this card/Conexant CX24118A/Hauppauge WinTV-HVR4000(Lite) DVB-S/S2
+[card=69,autodetected] natively, avoiding the need to compile the latest
+dvb sources completly?
 
-
-Goga
+I would rather avoid manually editing compat.h if I can to keep things
+simple for when I change things later and forget I did that.
 
 
 _______________________________________________
