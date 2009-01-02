@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <d.dalton@iinet.net.au>) id 1LPbCT-0007r3-6k
-	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 12:24:51 +0100
-Date: Wed, 21 Jan 2009 22:24:36 +1100
-From: Daniel Dalton <d.dalton@iinet.net.au>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-Message-ID: <20090121112436.GA3612@debian-hp.lan>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
-	<20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi>
-	<20090121003915.GA6120@debian-hp.lan>
-	<alpine.DEB.2.00.0901210711360.11623@ybpnyubfg.ybpnyqbznva>
-	<20090121082412.GA3615@debian-hp.lan>
-	<alpine.DEB.2.00.0901210940220.11623@ybpnyubfg.ybpnyqbznva>
+	(envelope-from <thomas.schorpp@googlemail.com>) id 1LIbq7-00010D-JD
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 05:40:53 +0100
+Received: by bwz11 with SMTP id 11so13449055bwz.17
+	for <linux-dvb@linuxtv.org>; Thu, 01 Jan 2009 20:40:18 -0800 (PST)
+Message-ID: <495D9AAE.3060501@gmail.com>
+Date: Fri, 02 Jan 2009 05:40:14 +0100
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0901210940220.11623@ybpnyubfg.ybpnyqbznva>
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] getting started with msi tv card
-Reply-To: linux-media@vger.kernel.org
+To: linux-dvb@linuxtv.org
+References: <495D862C.3020805@gmail.com> <495D8909.4030601@gmail.com>
+In-Reply-To: <495D8909.4030601@gmail.com>
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Subject: Re: [linux-dvb] [BUG]2.6.28 breaks dvb-usb devices FE i2c
+Reply-To: thomas.schorpp@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,117 +27,252 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Jan 21, 2009 at 10:30:05AM +0100, BOUWSMA Barry wrote:
-> On Wed, 21 Jan 2009, Daniel Dalton wrote:
+thomas schorpp schrieb:
+> thomas schorpp schrieb:
+>> hi,
+>>
+>> usb 2-2: Product: TvTUNER
+>> usb 2-2: Manufacturer: SKGZ
+>> ID 04ca:f001 Lite-On Technology Corp.
+>>
+>> FE has been (mostly, until the 3rd try) detected until 2.6.27.10:
+>> Dec 31 12:01:33 tom1 kernel: MT2060: successfully identified (IF1 = 1241)
+>>
+>> but no more with 2.6.28.
+>>
 > 
-> Here is the latest .config file I have on a random machine
-> which includes your device as a module (in case I find one
-> that someone has thrown out their window, knowing that is
-> more likely than that I'll buy a new machine with PCIe or
-> something)...
+>>
+>> this should be the breaking changeset included in 2.6.28 stable kernel 
+>> release, others are too old:
+>>
 > 
-> CONFIG_DVB_USB_CXUSB=m
-> CONFIG_DVB_USB_M920X=m
-> CONFIG_DVB_USB_GL861=m
+>> http://linuxtv.org/hg/v4l-dvb/rev/5bfadacec8a2 Signed-off-by: Mauro 
+>> Carvalho Chehab <mchehab@redhat.com>
 > 
-> If I simply delete the middle line, save this .config
-> file, and `make O=... oldconfig' I will be asked whether
-> I want to add support for the m920x.
+> no, takeback, too trivial 
+> http://linuxtv.org/hg/v4l-dvb/diff/5bfadacec8a2/linux/drivers/media/dvb/frontends/dibx000_common.c 
 > 
-
-Hey! That's very cool, thanks for the tip.
-
-> > > Now, back to using `mplayer':
-> > > 
-> > > It works from a list of channels, which you will need
-> > > to create using a different utility.  It then uses
-> > > simple keyboard input to cycle through the list of
-> > > channels (I want to think that `k' and something else
 > 
-> > Excellent, I'll look that up when I get to this point. :-)
-> 
-> If I may ask, and I do hope that you do not mind me
-
-No, it's not at all a problem.
-
-> asking, but as I recall, you wrote that you did have to
-> get help when using one program to try to tune...
-> 
-> How is your level of vision?  Are you able to make use
-> of a video image on your display (the television picture),
-> or do you only use an audio-description soundtrack, such
-
-I'm almost totally blind, although I do have a little bit of useful
-vision, not enough for making out picture easily on a computer
-monitor. But yeah pretty much totally. I use a braille terminal to
-access my linux box, so yeah, not even enough vision to read, but got to
-admit, it does come in handy when walking and for orientation.
-But, it just helps, can't rely on it of course. :-)
-
-> I ask this in case you might be better served by a radio
-> application, or even simple commandline scripts that tune
-> the audio from the six or so available channels, and do
-> not need to bother with a full media player, and so make
-> it much simpler -- my listening to the multicast audio
-
-Hmmm, yes, I guess if I just got the audio from the tv network that
-could work, although when having friends or family around and watching
-tv it might be good to have picture.
-
-> You will know when you try it...
-> spiff% mplayer dvb://
-> will give you an error.  If it cannot find `channels.conf'
-> then it has DVB support...  But if you have a `channels.conf'
-
-Yep, then my version  has dvb support.
-
-> > Um... Ok... Where should this file be located, and am I meant to
-> > download it from somewhere?
-> 
-> It may already be included in your distribution, perhaps
-> in /usr/share/somewhere...  But it may be fastest if you
-> download the latest version.
-> 
-> First of all, do you have a program called `scan' or `dvbscan'?
-> beer@ralph:~$ which scan
-
-I have both, sorry I should have said.
-
-> If you already have `scan' in your $PATH (see above),
-> then you can probably use the following URL...
-> http://linuxtv.org/hg/dvb-apps/file/e91138b9bdaa/util/scan/dvb-t/
-> 
-> The result is a long list (722 items in my local copy)
-> but the au-* files are at the start.  Pick the one(s)
-> closest to your location.
-> 
-> Either by invoking `scan --help' or `scan' alone, you
-> should see a usage message.  Basically, you need to tell
-> it to use the au-Whatever file which you downloaded.
+> 2.6.28 i2c broken or this driver needs updating for 2.6.28.
 > 
 
-Alright, so, I downloaded the file placed it in /tmp, gave it +rw
-permissions and ran:
-sudo scan /tmp/au-melbourne
-The scan help didn't make a lot of sense to me, but that seemed to do
-some stuff like recognise the file, but it found no channels. Are there
-any options I should have used? Is the default output format correct?
-Or should I start checking my cables and tv points?
+rebuild kernel with dvb-usb + i2c core debug, detects FE after reboot:
 
-Hey, one other thing, and sorry I know it's really OT, but you said you
-were a console guy. Have you found a command line web browser with
-javascript support? Like how do u get around the javascript thing?
-Unfortunately I have been using firefox for this reason...
+check for cold 10b8 bc6
+check for warm 10b8 bc7
+check for cold 5d8 8109
+check for warm 5d8 810a
+check for cold 4ca f000
+check for warm 4ca f001
+check for cold eb1a e360
+dvb-usb: found a 'LITE-ON USB2.0 DVB-T Tuner' in warm state.
+power control: 1
+>>> 07 00 01 
+i2c-adapter i2c-3: adapter [LITE-ON USB2.0 DVB-T Tuner] registered
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+all in all I will use 28672 bytes for streaming
+allocating buffer 0
+buffer 0: ffff88003ccec000 (dma: 1020182528)
+allocating buffer 1
+buffer 1: ffff88003ccf5000 (dma: 1020219392)
+allocating buffer 2
+buffer 2: ffff88003cd08000 (dma: 1020297216)
+allocating buffer 3
+buffer 3: ffff88003ccef000 (dma: 1020194816)
+allocating buffer 4
+buffer 4: ffff88003ccfb000 (dma: 1020243968)
+allocating buffer 5
+buffer 5: ffff88003ccf6000 (dma: 1020223488)
+allocating buffer 6
+buffer 6: ffff88003ccf7000 (dma: 1020227584)
+allocation successful
+DVB: registering new adapter (LITE-ON USB2.0 DVB-T Tuner)
+i2c-adapter i2c-3: master_xfer[0] W, addr=0x0c, len=2
+i2c-adapter i2c-3: master_xfer[1] R, addr=0x0c, len=2
+>>> 02 19 84 01 00 02 
+<<< 01 b3 
+i2c-adapter i2c-3: master_xfer[0] W, addr=0x0c, len=2
+i2c-adapter i2c-3: master_xfer[1] R, addr=0x0c, len=2
+>>> 02 19 84 02 00 02 
+<<< 30 02 
+DiB3000MC/P:-I-  found DiB3000MC/P: 3002
 
-Thanks very much for all your help, it's greatly appreciated.
+*I2C adapter driver [DiBX000 tuner I2C bus] forgot to specify physical device*
+i2c-adapter i2c-4: adapter [DiBX000 tuner I2C bus] registered
+i2c-adapter i2c-3: master_xfer[0] W, addr=0x0c, len=4
+>>> 03 18 03 01 00 80 
+i2c-adapter i2c-3: master_xfer[0] W, addr=0x0c, len=4
+>>> 03 18 04 0d 31 30 
+DVB: registering adapter 2 frontend 0 (DiBcom 3000MC/P)...
+>>> 02 a1 7e 00 01 
+<<< 00 
+>>> 02 a1 7f 00 01 
+<<< 15 
+i2c-adapter i2c-2: master_xfer[0] W, addr=0x10, len=2
+i2c-adapter i2c-2: master_xfer[0] W, addr=0x40, len=2
+i2c-adapter i2c-4: master_xfer[0] W, addr=0x60, len=1
+i2c-adapter i2c-4: master_xfer[1] R, addr=0x60, len=1
+i2c-adapter i2c-3: master_xfer[0] W, addr=0x0c, len=4
+i2c-adapter i2c-3: master_xfer[1] W, addr=0x60, len=1
+i2c-adapter i2c-3: master_xfer[2] R, addr=0x60, len=1
+i2c-adapter i2c-3: master_xfer[3] W, addr=0x0c, len=4
+>>> 03 18 03 01 60 00 
+>>> 02 c1 00 00 01 
+<<< 63 
+>>> 03 18 03 01 00 80 
+MT2060: successfully identified (IF1 = 1241)
 
-Cheers,
+but fails verify:
 
-Daniel
+Jan  2 05:09:39 tom1 kernel: dvb-usb: LITE-ON USB2.0 DVB-T Tuner successfully deinitialized and disconnected.
+Jan  2 05:09:58 tom1 kernel: check for cold 10b8 bc6
+Jan  2 05:09:58 tom1 kernel: check for warm 10b8 bc7
+Jan  2 05:09:58 tom1 kernel: check for cold 5d8 8109
+Jan  2 05:09:58 tom1 kernel: check for warm 5d8 810a
+Jan  2 05:09:58 tom1 kernel: check for cold 4ca f000
+Jan  2 05:09:58 tom1 kernel: check for warm 4ca f001
+Jan  2 05:09:58 tom1 kernel: check for cold eb1a e360
+Jan  2 05:09:58 tom1 kernel: dvb-usb: found a 'LITE-ON USB2.0 DVB-T Tuner' in warm state.
+Jan  2 05:09:58 tom1 kernel: power control: 1
+Jan  2 05:09:58 tom1 kernel: >>> 07 00 01 
+Jan  2 05:09:58 tom1 kernel: dvb-usb: bulk message failed: -22 (3/180432)
+Jan  2 05:09:58 tom1 kernel: i2c-adapter i2c-0: adapter [LITE-ON USB2.0 DVB-T Tuner] registered
+Jan  2 05:09:58 tom1 kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+Jan  2 05:09:58 tom1 kernel: all in all I will use 28672 bytes for streaming
+Jan  2 05:09:58 tom1 kernel: allocating buffer 0
+...
+Jan  2 05:09:58 tom1 kernel: allocation successful
+Jan  2 05:09:58 tom1 kernel: DVB: registering new adapter (LITE-ON USB2.0 DVB-T Tuner)
+Jan  2 05:09:58 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x0c, len=2
+Jan  2 05:09:58 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x0c, len=2
+Jan  2 05:09:58 tom1 kernel: >>> 02 19 84 01 00 02 
+Jan  2 05:09:58 tom1 kernel: dvb-usb: bulk message failed: -22 (6/-30720)
+Jan  2 05:09:58 tom1 kernel: DiB3000MC/P:i2c read error on 1025
+Jan  2 05:09:58 tom1 kernel: 
+Jan  2 05:09:58 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0x290c)
+Jan  2 05:09:58 tom1 kernel: 
+Jan  2 05:09:58 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=2
+Jan  2 05:09:58 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x08, len=2
+Jan  2 05:09:58 tom1 kernel: >>> 02 11 84 01 00 02 
+Jan  2 05:09:58 tom1 kernel: dvb-usb: bulk message failed: -22 (6/-30720)
+Jan  2 05:09:58 tom1 kernel: DiB3000MC/P:i2c read error on 1025
+Jan  2 05:09:58 tom1 kernel: 
+Jan  2 05:09:58 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0xc024)
+Jan  2 05:09:58 tom1 kernel: 
+Jan  2 05:09:58 tom1 kernel: dvb-usb: no frontend was attached by 'LITE-ON USB2.0 DVB-T Tuner'
+Jan  2 05:09:58 tom1 kernel: power control: 0
+Jan  2 05:09:58 tom1 kernel: dvb-usb: LITE-ON USB2.0 DVB-T Tuner successfully initialized and connected.
+Jan  2 05:09:58 tom1 kernel: usbcore: registered new interface driver dvb_usb_dibusb_mc
+
+trying cold state:
+
+Jan  2 05:26:13 tom1 kernel: usb 2-2: new high speed USB device using ehci_hcd and address 5
+Jan  2 05:26:13 tom1 kernel: usb 2-2: configuration #1 chosen from 1 choice
+Jan  2 05:26:13 tom1 kernel: usb 2-2: New USB device found, idVendor=04ca, idProduct=f000
+Jan  2 05:26:13 tom1 kernel: usb 2-2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+Jan  2 05:26:13 tom1 kernel: check for cold 10b8 bc6
+Jan  2 05:26:13 tom1 kernel: check for warm 10b8 bc7
+Jan  2 05:26:13 tom1 kernel: check for cold 5d8 8109
+Jan  2 05:26:13 tom1 kernel: check for warm 5d8 810a
+Jan  2 05:26:13 tom1 kernel: check for cold 4ca f000
+Jan  2 05:26:13 tom1 kernel: dvb-usb: found a 'LITE-ON USB2.0 DVB-T Tuner' in cold state, will try to load a firmware
+Jan  2 05:26:13 tom1 kernel: usb 2-2: firmware: requesting dvb-usb-dibusb-6.0.0.8.fw
+Jan  2 05:26:13 tom1 kernel: dvb-usb: downloading firmware from file 'dvb-usb-dibusb-6.0.0.8.fw'
+Jan  2 05:26:13 tom1 kernel: writing to address 0x1525 (buffer: 0x0a 9f)
+...
+Jan  2 05:26:13 tom1 kernel: writing to address 0x0c55 (buffer: 0x01 9e)
+Jan  2 05:26:13 tom1 kernel: usbcore: registered new interface driver dvb_usb_dibusb_mc
+Jan  2 05:26:13 tom1 kernel: usb 2-2: USB disconnect, address 5
+Jan  2 05:26:13 tom1 kernel: dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+Jan  2 05:26:15 tom1 kernel: usb 2-2: new high speed USB device using ehci_hcd and address 6
+Jan  2 05:26:15 tom1 kernel: usb 2-2: configuration #1 chosen from 1 choice
+Jan  2 05:26:15 tom1 kernel: check for cold 10b8 bc6
+Jan  2 05:26:15 tom1 kernel: check for warm 10b8 bc7
+Jan  2 05:26:15 tom1 kernel: check for cold 5d8 8109
+Jan  2 05:26:15 tom1 kernel: check for warm 5d8 810a
+Jan  2 05:26:15 tom1 kernel: check for cold 4ca f000
+Jan  2 05:26:15 tom1 kernel: check for warm 4ca f001
+Jan  2 05:26:15 tom1 kernel: check for cold eb1a e360
+Jan  2 05:26:15 tom1 kernel: dvb-usb: found a 'LITE-ON USB2.0 DVB-T Tuner' in warm state.
+Jan  2 05:26:15 tom1 kernel: power control: 1
+Jan  2 05:26:15 tom1 kernel: >>> 07 00 01 
+Jan  2 05:26:15 tom1 kernel: i2c-adapter i2c-0: adapter [LITE-ON USB2.0 DVB-T Tuner] registered
+Jan  2 05:26:15 tom1 kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+Jan  2 05:26:15 tom1 kernel: all in all I will use 28672 bytes for streaming
+Jan  2 05:26:15 tom1 kernel: allocating buffer 0
+...
+Jan  2 05:26:15 tom1 kernel: allocation successful
+Jan  2 05:26:15 tom1 kernel: DVB: registering new adapter (LITE-ON USB2.0 DVB-T Tuner)
+Jan  2 05:26:15 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x0c, len=2
+Jan  2 05:26:15 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x0c, len=2
+Jan  2 05:26:15 tom1 kernel: >>> 02 19 84 01 00 02 
+Jan  2 05:26:15 tom1 kernel: <<< 5a 00 
+Jan  2 05:26:15 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0x5a00)
+Jan  2 05:26:15 tom1 kernel: 
+Jan  2 05:26:15 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=2
+Jan  2 05:26:15 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x08, len=2
+Jan  2 05:26:15 tom1 kernel: >>> 02 11 84 01 00 02 
+Jan  2 05:26:15 tom1 kernel: <<< 5a 00 
+Jan  2 05:26:15 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0x5a00)
+Jan  2 05:26:15 tom1 kernel: 
+Jan  2 05:26:15 tom1 kernel: dvb-usb: no frontend was attached by 'LITE-ON USB2.0 DVB-T Tuner'
+Jan  2 05:26:15 tom1 kernel: power control: 0
+Jan  2 05:26:15 tom1 kernel: dvb-usb: LITE-ON USB2.0 DVB-T Tuner successfully initialized and connected.
+Jan  2 05:26:15 tom1 kernel: usb 2-2: New USB device found, idVendor=04ca, idProduct=f001
+Jan  2 05:26:15 tom1 kernel: usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+Jan  2 05:26:15 tom1 kernel: usb 2-2: Product: TvTUNER
+Jan  2 05:26:15 tom1 kernel: usb 2-2: Manufacturer: SKGZ
+
+trying warm state:
+
+Jan  2 05:31:29 tom1 kernel: DVB: registering new adapter (LITE-ON USB2.0 DVB-T Tuner)
+Jan  2 05:31:29 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x0c, len=2
+Jan  2 05:31:29 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x0c, len=2
+Jan  2 05:31:29 tom1 kernel: >>> 02 19 84 01 00 02 
+Jan  2 05:31:29 tom1 kernel: dvb-usb: bulk message failed: -22 (6/-30720)
+Jan  2 05:31:29 tom1 kernel: DiB3000MC/P:i2c read error on 1025
+Jan  2 05:31:29 tom1 kernel: 
+Jan  2 05:31:29 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0xc014)
+Jan  2 05:31:29 tom1 kernel: 
+Jan  2 05:31:29 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=2
+Jan  2 05:31:29 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x08, len=2
+Jan  2 05:31:29 tom1 kernel: >>> 02 11 84 01 00 02 
+Jan  2 05:31:29 tom1 kernel: dvb-usb: bulk message failed: -22 (6/-30720)
+Jan  2 05:31:29 tom1 kernel: DiB3000MC/P:i2c read error on 1025
+Jan  2 05:31:29 tom1 kernel: 
+Jan  2 05:31:29 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0xc014)
+Jan  2 05:31:29 tom1 kernel: 
+Jan  2 05:31:29 tom1 kernel: dvb-usb: no frontend was attached by 'LITE-ON USB2.0 DVB-T Tuner'
+Jan  2 05:31:29 tom1 kernel: power control: 0
+Jan  2 05:31:29 tom1 kernel: dvb-usb: LITE-ON USB2.0 DVB-T Tuner successfully initialized and connected.
+Jan  2 05:31:29 tom1 kernel: usbcore: registered new interface driver dvb_usb_dibusb_mc
+
+3rd:
+
+Jan  2 05:32:56 tom1 kernel: DVB: registering new adapter (LITE-ON USB2.0 DVB-T Tuner)
+Jan  2 05:32:56 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x0c, len=2
+Jan  2 05:32:56 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x0c, len=2
+Jan  2 05:32:56 tom1 kernel: >>> 02 19 84 01 00 02 
+Jan  2 05:32:56 tom1 kernel: dvb-usb: bulk message failed: -22 (6/-30720)
+Jan  2 05:32:56 tom1 kernel: DiB3000MC/P:i2c read error on 1025
+Jan  2 05:32:56 tom1 kernel: 
+Jan  2 05:32:56 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0xc054)
+Jan  2 05:32:56 tom1 kernel: 
+Jan  2 05:32:56 tom1 kernel: i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=2
+Jan  2 05:32:56 tom1 kernel: i2c-adapter i2c-0: master_xfer[1] R, addr=0x08, len=2
+Jan  2 05:32:56 tom1 kernel: >>> 02 11 84 01 00 02 
+Jan  2 05:32:56 tom1 kernel: dvb-usb: bulk message failed: -22 (6/-30720)
+Jan  2 05:32:56 tom1 kernel: DiB3000MC/P:i2c read error on 1025
+Jan  2 05:32:56 tom1 kernel: 
+Jan  2 05:32:56 tom1 kernel: DiB3000MC/P:-E-  DiB3000MC/P: wrong Vendor ID (read=0xc054)
+Jan  2 05:32:56 tom1 kernel: 
+Jan  2 05:32:56 tom1 kernel: dvb-usb: no frontend was attached by 'LITE-ON USB2.0 DVB-T Tuner'
+Jan  2 05:32:56 tom1 kernel: power control: 0
+Jan  2 05:32:56 tom1 kernel: dvb-usb: LITE-ON USB2.0 DVB-T Tuner successfully initialized and connected.
+Jan  2 05:32:56 tom1 kernel: usbcore: registered new interface driver dvb_usb_dibusb_mc
 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
