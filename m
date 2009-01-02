@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0NISCkq002051
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 13:28:12 -0500
-Received: from mail-ew0-f16.google.com (mail-ew0-f16.google.com
-	[209.85.219.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0NIRX4m021107
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 13:27:58 -0500
-Received: by mail-ew0-f16.google.com with SMTP id 9so408302ewy.3
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 10:27:58 -0800 (PST)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n027tmVh011988
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 02:55:48 -0500
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n027suwg011612
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 02:54:57 -0500
+Message-ID: <495DC87E.2030007@hhs.nl>
+Date: Fri, 02 Jan 2009 08:55:42 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Date: Fri, 23 Jan 2009 20:27:57 +0200
-Message-ID: <b7b14cbb0901231027vbd02d34k8e7fc45cdad55f05@mail.gmail.com>
-From: Clinton Lee Taylor <clintonlee.taylor@gmail.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: kilgota@banach.math.auburn.edu
+References: <200901010033.58093.linux@baker-net.org.uk>
+	<495CB6D1.8040808@hhs.nl>
+	<200901012119.27626.linux@baker-net.org.uk>
+	<Pine.LNX.4.64.0901011539120.19217@banach.math.auburn.edu>
+In-Reply-To: <Pine.LNX.4.64.0901011539120.19217@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: EasyCap Device ...
+Cc: video4linux-list <video4linux-list@redhat.com>,
+	sqcam-devel@lists.sourceforge.net
+Subject: Re: [sqcam-devel] [REVIEW] Driver for SQ-905 based cameras
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,30 +31,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings ...
+kilgota@banach.math.auburn.edu wrote:
+> 
+> 
+> On Thu, 1 Jan 2009, Adam Baker wrote:
+> 
+>> On Thursday 01 January 2009, Hans de Goede wrote:
+> 
+>>>
+>>> "\x0" will point to const memory, this is not allowed as a buffer 
+>>> passed to
+>>> usb_control_msg, instead you should use a r/w buffer suitable for DMA.
+>>> We've got gspca_dev->usb_buf for this.
+> 
+> Perhaps my ignorance is showing here. If one actually specifies a value 
+> to put into that slot, then why does it "point to const memory" and if 
+> so why is that a sin? Sorry if you think this is a dumb question, but I 
+> am a bit new to doing this kind of device support at the kernel level. 
+> In userspace stuff like libgphoto2 such things are obviously of much 
+> less significance.
+> 
 
- I have one of the following device called "EasyCAP USB 2.0 Video
-Adapter with Audio", some details could be found at
-http://www.alibaba.com/product-gs/213186597/EasyCAP_USB_2_0_Video_Adapter.html
+Well for one const memory is read only and usb_control_msg might try to write 
+to it. Another problem is that usb_control_msg() needs a dma-able buffer. In 
+kernelspace not all memory is equal. In this case the memory needs to match 
+certain alignment criteria and might need to be in a certain physical address 
+range (ISA for example can not do dma to physical addresses above 16 megabyte, 
+32 bit PCI devices cannot do dma above 4 Gigabyte, etc.).
 
- I'm seeing many of these device in the local shops of late and was
-hoping we could put some effort in and get it supported.
+Regards,
 
- Went through some of the wiki docs and they seem way too much work to
-get done, for what this device is worth, so, instead of play broken
-v4l2 [ phone ;-) ] with this device, I would be willing to purchase
-one of these and get it sent to a developer.  I believe with the
-device in hand, a developer could test and write code quicker than I
-could do the needed dumps ...
-
- Now, if a developer of note could stand up and put some time down, I
-will following up with supplying the device ...
-
-Thanks
-Mailed
-LeeT
-
-P.S. Many thanks to all the hard working guys getting this stuff all together!!
+Hans
 
 --
 video4linux-list mailing list
