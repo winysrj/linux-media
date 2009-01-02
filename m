@@ -1,20 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01J6wCG013751
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 14:06:58 -0500
-Received: from n69.bullet.mail.sp1.yahoo.com (n69.bullet.mail.sp1.yahoo.com
-	[98.136.44.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n01J6flQ002820
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 14:06:41 -0500
-Date: Thu, 1 Jan 2009 11:06:39 -0800 (PST)
-From: Alex <s_mrite@yahoo.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02FGhwf013314
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 10:16:43 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n02FG3Sx006068
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 10:16:04 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so6747023rvb.51
+	for <video4linux-list@redhat.com>; Fri, 02 Jan 2009 07:16:02 -0800 (PST)
+Message-ID: <f17812d70901020716n2e6bb9cas2958ea4df2a19af8@mail.gmail.com>
+Date: Fri, 2 Jan 2009 23:16:02 +0800
+From: "Eric Miao" <eric.y.miao@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-Message-ID: <135963.10009.qm@web45404.mail.sp1.yahoo.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Subject: The gspca from the repository is not compile
-Reply-To: s_mrite@yahoo.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: video4linux-list@redhat.com
+Subject: [PATCH] pxa-camera: fix redefinition warnings and missing DMA
+	definitions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,72 +29,141 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+1. now pxa_camera.c uses ioremap() for register access, pxa_camera.h is
+   totally useless. Remove it.
 
-My system is Fedora 9, the kernel is 2.6.27.9-73.fc9.i686.
-I have the package kernel-devel installed.
+2. <asm/dma.h> does no longer include <mach/dma.h>, include the latter
+   file explicitly
 
-I have obtained the sources fo the gspca using the command "hg clone http:/=
-/linuxtv.org/hg/~jfrancois/gspca/".
+Signed-off-by: Eric Miao <eric.miao@marvell.com>
+---
+ drivers/media/video/pxa_camera.c |    4 +-
+ drivers/media/video/pxa_camera.h |   95 --------------------------------------
+ 2 files changed, 1 insertions(+), 98 deletions(-)
+ delete mode 100644 drivers/media/video/pxa_camera.h
 
-I run "make menuconfig" without changes and without erros.
-When I run make I got the following error after several seconds of compilin=
-g:
----------------------------------------------------------------------------=
------------------------------------------
-=A0CC [M]=A0 /root/Documents/linuxTv/gspca/v4l/bttv-i2c.o
-=A0 CC [M]=A0 /root/Documents/linuxTv/gspca/v4l/bttv-gpio.o
-=A0 CC [M]=A0 /root/Documents/linuxTv/gspca/v4l/bttv-input.o
-In file included from /root/Documents/linuxTv/gspca/v4l/bttvp.h:36,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 from /root/Documents/linux=
-Tv/gspca/v4l/bttv-input.c:28:
-include/linux/pci.h:1126: error: expected declaration specifiers or '...' b=
-efore '(' token
-include/linux/pci.h:1126: error: expected declaration specifiers or '...' b=
-efore '(' token
-include/linux/pci.h:1126: error: static declaration of 'ioremap_nocache' fo=
-llows non-static declaration
-include/asm/io_32.h:111: error: previous declaration of 'ioremap_nocache' w=
-as here
-include/linux/pci.h: In function 'ioremap_nocache':
-include/linux/pci.h:1127: error: number of arguments doesn't match prototyp=
-e
-include/asm/io_32.h:111: error: prototype declaration
-include/linux/pci.h:1131: error: 'pdev' undeclared (first use in this funct=
-ion)
-include/linux/pci.h:1131: error: (Each undeclared identifier is reported on=
-ly once
-include/linux/pci.h:1131: error: for each function it appears in.)
-include/linux/pci.h:1131: error: 'bar' undeclared (first use in this functi=
-on)
-make[3]: *** [/root/Documents/linuxTv/gspca/v4l/bttv-input.o] Error 1
-make[2]: *** [_module_/root/Documents/linuxTv/gspca/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernels/2.6.27.9-73.fc9.i686'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/root/Documents/linuxTv/gspca/v4l'
-make: *** [all] Error 2
----------------------------------------------------------------------------=
------------------------------------------
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 9d33de2..a1d6008 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -34,12 +34,10 @@
 
-The output of the " hg log -l1" is:
----------------------------------------------------------------------------=
------------------------------------------
-changeset:=A0=A0 10167:2b2568c40385
-tag:=A0=A0=A0=A0=A0=A0=A0=A0 tip
-user:=A0=A0=A0=A0=A0=A0=A0 Jean-Francois Moine <moinejf@free.fr>
-date:=A0=A0=A0=A0=A0=A0=A0 Thu Jan 01 17:20:42 2009 +0100
-summary:=A0=A0=A0=A0 gspca - common: Simplify the debug macros.
----------------------------------------------------------------------------=
------------------------------------------
+ #include <linux/videodev2.h>
 
-So the sources is up-to-date at the moment of compiling.
+-#include <asm/dma.h>
++#include <mach/dma.h>
+ #include <mach/pxa-regs.h>
+ #include <mach/camera.h>
 
-Can somebody suggest the way to compile the sources?
+-#include "pxa_camera.h"
+-
+ #define PXA_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5)
+ #define PXA_CAM_DRV_NAME "pxa27x-camera"
 
-Best regards,
-Alex.
+diff --git a/drivers/media/video/pxa_camera.h b/drivers/media/video/pxa_camera.h
+deleted file mode 100644
+index 89cbfc9..0000000
+--- a/drivers/media/video/pxa_camera.h
++++ /dev/null
+@@ -1,95 +0,0 @@
+-/* Camera Interface */
+-#define CICR0		__REG(0x50000000)
+-#define CICR1		__REG(0x50000004)
+-#define CICR2		__REG(0x50000008)
+-#define CICR3		__REG(0x5000000C)
+-#define CICR4		__REG(0x50000010)
+-#define CISR		__REG(0x50000014)
+-#define CIFR		__REG(0x50000018)
+-#define CITOR		__REG(0x5000001C)
+-#define CIBR0		__REG(0x50000028)
+-#define CIBR1		__REG(0x50000030)
+-#define CIBR2		__REG(0x50000038)
+-
+-#define CICR0_DMAEN	(1 << 31)	/* DMA request enable */
+-#define CICR0_PAR_EN	(1 << 30)	/* Parity enable */
+-#define CICR0_SL_CAP_EN	(1 << 29)	/* Capture enable for slave mode */
+-#define CICR0_ENB	(1 << 28)	/* Camera interface enable */
+-#define CICR0_DIS	(1 << 27)	/* Camera interface disable */
+-#define CICR0_SIM	(0x7 << 24)	/* Sensor interface mode mask */
+-#define CICR0_TOM	(1 << 9)	/* Time-out mask */
+-#define CICR0_RDAVM	(1 << 8)	/* Receive-data-available mask */
+-#define CICR0_FEM	(1 << 7)	/* FIFO-empty mask */
+-#define CICR0_EOLM	(1 << 6)	/* End-of-line mask */
+-#define CICR0_PERRM	(1 << 5)	/* Parity-error mask */
+-#define CICR0_QDM	(1 << 4)	/* Quick-disable mask */
+-#define CICR0_CDM	(1 << 3)	/* Disable-done mask */
+-#define CICR0_SOFM	(1 << 2)	/* Start-of-frame mask */
+-#define CICR0_EOFM	(1 << 1)	/* End-of-frame mask */
+-#define CICR0_FOM	(1 << 0)	/* FIFO-overrun mask */
+-
+-#define CICR1_TBIT	(1 << 31)	/* Transparency bit */
+-#define CICR1_RGBT_CONV	(0x3 << 29)	/* RGBT conversion mask */
+-#define CICR1_PPL	(0x7ff << 15)	/* Pixels per line mask */
+-#define CICR1_RGB_CONV	(0x7 << 12)	/* RGB conversion mask */
+-#define CICR1_RGB_F	(1 << 11)	/* RGB format */
+-#define CICR1_YCBCR_F	(1 << 10)	/* YCbCr format */
+-#define CICR1_RGB_BPP	(0x7 << 7)	/* RGB bis per pixel mask */
+-#define CICR1_RAW_BPP	(0x3 << 5)	/* Raw bis per pixel mask */
+-#define CICR1_COLOR_SP	(0x3 << 3)	/* Color space mask */
+-#define CICR1_DW	(0x7 << 0)	/* Data width mask */
+-
+-#define CICR2_BLW	(0xff << 24)	/* Beginning-of-line pixel clock
+-					   wait count mask */
+-#define CICR2_ELW	(0xff << 16)	/* End-of-line pixel clock
+-					   wait count mask */
+-#define CICR2_HSW	(0x3f << 10)	/* Horizontal sync pulse width mask */
+-#define CICR2_BFPW	(0x3f << 3)	/* Beginning-of-frame pixel clock
+-					   wait count mask */
+-#define CICR2_FSW	(0x7 << 0)	/* Frame stabilization
+-					   wait count mask */
+-
+-#define CICR3_BFW	(0xff << 24)	/* Beginning-of-frame line clock
+-					   wait count mask */
+-#define CICR3_EFW	(0xff << 16)	/* End-of-frame line clock
+-					   wait count mask */
+-#define CICR3_VSW	(0x3f << 10)	/* Vertical sync pulse width mask */
+-#define CICR3_BFPW	(0x3f << 3)	/* Beginning-of-frame pixel clock
+-					   wait count mask */
+-#define CICR3_LPF	(0x7ff << 0)	/* Lines per frame mask */
+-
+-#define CICR4_MCLK_DLY	(0x3 << 24)	/* MCLK Data Capture Delay mask */
+-#define CICR4_PCLK_EN	(1 << 23)	/* Pixel clock enable */
+-#define CICR4_PCP	(1 << 22)	/* Pixel clock polarity */
+-#define CICR4_HSP	(1 << 21)	/* Horizontal sync polarity */
+-#define CICR4_VSP	(1 << 20)	/* Vertical sync polarity */
+-#define CICR4_MCLK_EN	(1 << 19)	/* MCLK enable */
+-#define CICR4_FR_RATE	(0x7 << 8)	/* Frame rate mask */
+-#define CICR4_DIV	(0xff << 0)	/* Clock divisor mask */
+-
+-#define CISR_FTO	(1 << 15)	/* FIFO time-out */
+-#define CISR_RDAV_2	(1 << 14)	/* Channel 2 receive data available */
+-#define CISR_RDAV_1	(1 << 13)	/* Channel 1 receive data available */
+-#define CISR_RDAV_0	(1 << 12)	/* Channel 0 receive data available */
+-#define CISR_FEMPTY_2	(1 << 11)	/* Channel 2 FIFO empty */
+-#define CISR_FEMPTY_1	(1 << 10)	/* Channel 1 FIFO empty */
+-#define CISR_FEMPTY_0	(1 << 9)	/* Channel 0 FIFO empty */
+-#define CISR_EOL	(1 << 8)	/* End of line */
+-#define CISR_PAR_ERR	(1 << 7)	/* Parity error */
+-#define CISR_CQD	(1 << 6)	/* Camera interface quick disable */
+-#define CISR_CDD	(1 << 5)	/* Camera interface disable done */
+-#define CISR_SOF	(1 << 4)	/* Start of frame */
+-#define CISR_EOF	(1 << 3)	/* End of frame */
+-#define CISR_IFO_2	(1 << 2)	/* FIFO overrun for Channel 2 */
+-#define CISR_IFO_1	(1 << 1)	/* FIFO overrun for Channel 1 */
+-#define CISR_IFO_0	(1 << 0)	/* FIFO overrun for Channel 0 */
+-
+-#define CIFR_FLVL2	(0x7f << 23)	/* FIFO 2 level mask */
+-#define CIFR_FLVL1	(0x7f << 16)	/* FIFO 1 level mask */
+-#define CIFR_FLVL0	(0xff << 8)	/* FIFO 0 level mask */
+-#define CIFR_THL_0	(0x3 << 4)	/* Threshold Level for Channel 0 FIFO */
+-#define CIFR_RESET_F	(1 << 3)	/* Reset input FIFOs */
+-#define CIFR_FEN2	(1 << 2)	/* FIFO enable for channel 2 */
+-#define CIFR_FEN1	(1 << 1)	/* FIFO enable for channel 1 */
+-#define CIFR_FEN0	(1 << 0)	/* FIFO enable for channel 0 */
+-
+-- 
+1.6.0.4
 
-=0A=0A=0A      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
