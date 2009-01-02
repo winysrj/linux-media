@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mu-out-0910.google.com ([209.85.134.186])
+Received: from mx1.wp.pl ([212.77.101.5])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1LJQMt-0001IP-BT
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 11:38:03 +0100
-Received: by mu-out-0910.google.com with SMTP id g7so2695739muf.1
-	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 02:37:59 -0800 (PST)
-Date: Sun, 4 Jan 2009 11:37:44 +0100
-To: linux-dvb@linuxtv.org
-Message-ID: <20090104103744.GB3551@gmail.com>
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
-	<1231057784.2615.9.camel@pc10.localdom.local>
+	(envelope-from <vega01@wp.pl>) id 1LIicx-0000SN-Iu
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 12:55:44 +0100
+Received: from ajk10.neoplus.adsl.tpnet.pl (HELO [192.168.0.154])
+	(vega01@[83.25.244.10]) (envelope-sender <vega01@wp.pl>)
+	by smtp.wp.pl (WP-SMTPD) with SMTP
+	for <linux-dvb@linuxtv.org>; 2 Jan 2009 12:55:38 +0100
+Message-ID: <495E00B9.8000202@wp.pl>
+Date: Fri, 02 Jan 2009 12:55:37 +0100
+From: Kuba Irzabek <vega01@wp.pl>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1231057784.2615.9.camel@pc10.localdom.local>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] AverTV Hybrid Volar HX (A827)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,36 +20,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Jan 04, 2009 at 09:29:44AM +0100, hermann pitton wrote:
-
 Hello,
 
-> We else need at least i2c_debug enabled on the cx88xx, yes, that is the
-> busmaster :)
+I noticed some posts from quite a long time ago from people interested 
+in running AverTV A827 under Linux. Is anyone still interested or 
+working on it? I'm currently mainly interested in getting the analog TV 
+part working.
 
-Great, I have to try to do it, but I should first learn of a way to do
-it, I'll report ASAP.
+Regards,
 
-> I don't deny that strange things happened, wrong tuners loaded without
-> trace so far.
-> =
-
-> Mike at least had a hotfix, not to allow analog only tuners to oops
-> around.
-
-Could you point me to an URL for this ?
-
-Thank you very much,
--- =
-
-Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
-               http://picasaweb.google.com/Gregoire.Favre
+Kuba Irzabek
 
 _______________________________________________
 linux-dvb mailing list
