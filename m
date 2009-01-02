@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <37219a840901130600i659f8f77x43f7e04c063dff48@mail.gmail.com>
-Date: Tue, 13 Jan 2009 09:00:14 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Uri Shkolnik" <urishk@yahoo.com>
-In-Reply-To: <123177.82279.qm@web110805.mail.gq1.yahoo.com>
+Received: from mx1.wp.pl ([212.77.101.5])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <vega01@wp.pl>) id 1LIm8Y-0002ZV-Fy
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 16:40:35 +0100
+Message-ID: <495E3569.3000703@wp.pl>
+Date: Fri, 02 Jan 2009 16:40:25 +0100
+From: Kuba Irzabek <vega01@wp.pl>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <123177.82279.qm@web110805.mail.gq1.yahoo.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Introduction
+To: CityK <cityk@rogers.com>
+References: <495E00B9.8000202@wp.pl>	<c4e36d110901020521l2628634al68d1b5a76884aec3@mail.gmail.com>
+	<495E1CF1.8070500@wp.pl> <495E2162.4020005@rogers.com>
+In-Reply-To: <495E2162.4020005@rogers.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] AverTV Hybrid Volar HX (A827)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,62 +26,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Jan 12, 2009 at 10:33 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
-> Mauro,
+CityK wrote:
+> Kuba Irzabek wrote:
+>   
+>> Hi,
+>> Thanks for your answer. It's good news somebody is working on it. 
+>> Unfortunately I'm not an experienced USB programmer. Anyway, I would be 
+>> grateful if you could send some more info, maybe on my private mail. 
+>> Maybe I could help then some way. What should be done to get the analog 
+>> working?
+>>   
+>>     
 >
-> My name is Uri Shkolnik, I work at Siano Mobile Silicon as a software architect.
->
-> I tried to get in touch with you lately, but I had probably used the wrong email address, so forgive me for contacting by replying to a post of yours to the one of the LinuxTV mailing lists...
->
-> Siano develops DTV chip-sets (multi-standards, multi-interfaces) which are used by Siano's many customers and partners.
-> Couple of years ago, our Linux support was minimal, but that situation has changed, and proximately a year ago, we started to get more an more demand for Linux kernel support, and we started to offer a minimal set of drivers.
->
-> At the beginning, we used the excellent services given to us by Michael Krufky, and actually everything we want to publish went through him.
->
-> Recently, the number of Siano-based Linux projects and products increased significantly.
->
-> With the fast growing number of customers and projects, the number of additional interfaces, DTV standards and changes fast growth we needed a different approach.
->
-> On mid-November, we took the second approach which is suggested at the README.patches file, and submitted the patches to the linux-dvb mailing list, till today, except some people who took those patches and apply them locally on their systems, nothing has been done with those patches, and the main mercurial tree has not been updated with them.
->
-> The current state is that a huge gap has been opened between the LinuxTV repository (and from it to the Linux kernel git) offering and what we have at Siano.
->
-> We would like to close this gap ASAP and maintain an on-going, easy synchronizing process.
->
-> It seems that the best method to archive this goal is to have maintainer permissions on media/dvb/siano directory.
+> - Devin is working on a driver for the 7136.
+> - I advise keeping all messages in public so that any relevant info is
+> available for all...reserve private messages for insulting each other
+> and such forth ; )
+>   
+Sure, I have nothing against it. :-) Maybe more people are interested or 
+will join and help. Just some stuff isn't suitable for mailing lists for 
+different reasons ...
 
-
-Thank you for your email, Uri.
-
-First off, I'd like to thank Uri and Siano Mobile Silicon for their
-ongoing involvement and contributions to the DVB subsystem of the
-Linux kernel.
-
-I've been very busy lately, and haven't had as much time to have the
-same presence on the mailing lists as I had in the past.  Nonetheless,
-I am still rather actively working within the v4l-dvb development
-tree.
-
-Uri has sent a patch series to me already a few weeks ago.  I haven't
-yet checked the series that he sent this morning, to see whether or
-not these are the same patches that I already have.
-
-I am already in the process of reviewing the patch series, and it
-might take two weeks or so before I will be able to post a merged tree
-with feedback.
-
-Please be patient, Uri -- We want to keep the code in sync with the
-Siano code as much as possible.  Please just understand that the
-review / testing / merge process takes some time.
-
-I will be in touch again shortly.
-
-Best Regards,
-
-Mike Krufky
+Kuba
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
