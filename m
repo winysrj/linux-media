@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0G4vfEJ014007
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 23:57:41 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0G4vStG003879
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 23:57:28 -0500
-Received: by yx-out-2324.google.com with SMTP id 31so554023yxl.81
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 20:57:28 -0800 (PST)
-Message-ID: <aec7e5c30901152057o54136434v4f8875ad1b683c44@mail.gmail.com>
-Date: Fri, 16 Jan 2009 13:57:27 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0901111924320.16531@axis700.grange>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02FYNCZ018554
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 10:34:23 -0500
+Received: from mx1.wp.pl (mx1.wp.pl [212.77.101.5])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n02FXNAZ013562
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 10:33:23 -0500
+Message-ID: <495E33BB.7070301@wp.pl>
+Date: Fri, 02 Jan 2009 16:33:15 +0100
+From: Kuba Irzabek <vega01@wp.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <495DE5A6.8000404@wp.pl>
+	<412bdbff0901020642n7ef93c7ajff2ffe5e784a2940@mail.gmail.com>
+In-Reply-To: <412bdbff0901020642n7ef93c7ajff2ffe5e784a2940@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20081210045432.3810.42700.sendpatchset@rx1.opensource.se>
-	<Pine.LNX.4.64.0901111924320.16531@axis700.grange>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] videobuf-dma-contig: fix USERPTR free handling
+Cc: video4linux-list@redhat.com
+Subject: Re: Pinnacle HDTV Ultimate USB and SAA7136
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,25 +28,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jan 12, 2009 at 3:26 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Wed, 10 Dec 2008, Magnus Damm wrote:
->
->> From: Magnus Damm <damm@igel.co.jp>
+Devin Heitmueller wrote:
+>> Hello Kuba,
 >>
->> This patch fixes a free-without-alloc bug for V4L2_MEMORY_USERPTR
->> video buffers.
+>> I have the full documentation for the saa7136 and have been actively
+>> working on the driver for the last couple of weeks.  I have the
+>> S-Video and CVBS working, and am now working on the audio support and
+>> the digital IF support required for the tuner.
 >>
->> Signed-off-by: Magnus Damm <damm@igel.co.jp>
->
-> Mauro, what about this patch? Is it correct? If so, it shall be applied I
-> presume, as in that case it is a bug-fix.
+>> I hope to release something in the next couple of weeks.
+>>
+>> Cheers,
+>>
+>> Devin
+>>
+>>     
 
-It's a bug fix and getting it included would be great!
+Great! Waiting for the first release then. :-)
 
-Thank you.
-
-/ magnus
+Regards,
+Kuba
 
 --
 video4linux-list mailing list
