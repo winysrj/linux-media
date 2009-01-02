@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <handygewinnspiel@gmx.de>) id 1LLbhO-0007qa-JE
-	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 12:08:15 +0100
-Message-ID: <49688176.5030603@gmx.de>
-Date: Sat, 10 Jan 2009 12:07:34 +0100
-From: wk <handygewinnspiel@gmx.de>
-MIME-Version: 1.0
-To: Hans Werner <HWerner4@gmx.de>,
-	Linux DVB Mailing List <linux-dvb@linuxtv.org>
-References: <20090110102705.129600@gmx.net> <20090110103700.107530@gmx.net>
-In-Reply-To: <20090110103700.107530@gmx.net>
-Subject: Re: [linux-dvb] compiling on 2.6.28 broken?
+Received: from vms046pub.verizon.net ([206.46.252.46])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <holists@verizon.net>) id 1LImWL-0004qO-41
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 17:05:10 +0100
+Received: from gallifrey.com ([68.161.69.133])
+	by vms046.mailsrvcs.net (Sun Java System Messaging Server 6.2-6.01
+	(built Apr
+	3 2006)) with ESMTPA id <0KCU00K6QPYJ6950@vms046.mailsrvcs.net> for
+	linux-dvb@linuxtv.org; Fri, 02 Jan 2009 10:03:56 -0600 (CST)
+Date: Fri, 02 Jan 2009 11:03:54 -0500
+From: Harry Orenstein <holists@verizon.net>
+In-reply-to: <alpine.LRH.1.10.0901012149190.21618@ns.shelfspace.com>
+To: "Mark R. Cervarich" <mark@shelfspace.com>, linux-dvb@linuxtv.org
+Message-id: <200901021103.54813.holists@verizon.net>
+MIME-version: 1.0
+Content-disposition: inline
+References: <OF81E50C39.3B5AAE41-ON85257506.0061435B-85257506.0062C276@elementk.com>
+	<200811192019.25245.holists@verizon.net>
+	<alpine.LRH.1.10.0901012149190.21618@ns.shelfspace.com>
+	(sfid-20090102_100832_300641_BC43807F)
+Subject: Re: [linux-dvb] Best card for capturing OTA HDTV
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,37 +33,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hans Werner schrieb:
->> Hi all,
->>
->> Compiling on 2.6.28 seems to be broken (v4l-dvb-985ecd81d993,
->> linux-2.6.28, gcc-3.4.1), is this known or already some patch around?
->>     
+On Friday 02 January 2009 12:52:23 am you wrote:
+> On Wed, 19 Nov 2008, Harry Orenstein wrote:
+> > I've said it before and I'll say it again: there are plenty of $22 (incl.
+> > shipping) HDTV Wonders on eBay.  Fully supported for analog and digital
+> > (OTA and clearQAM).  Works great for me.   ;-)
 >
+> I am intruiged.  Currently I have 2 PVR-150's which I've been using
+> for years.
 >
-> I can compile fine with 2.6.28, x86_64, gcc 4.2.4. Did you do 'make distclean' first?
+> Just got a new HDTV, but am too cheap too pay comcast their monthly
+> extortion charge.  I am VERY happy with the OTA HD that I get in my
+> area (San Francisco), but would like to be able to record shows
+> (actually, I don't even need to record in HD, not sure my old frontend
+> could hendle it).
 >
->   
-Well, i did not start with distclean, since i expect a freshly 
-downloaded package to be distclean.
-Nevertheless make distclean and/or make clean also doesnt work properly:
+> That being said, do you have any resources (URLs, blogs, etc) on
+> getting the HDTV Wonders to work with a new/existing MythTV box?
+>
+> thanks,
+> mark
 
--bash-3.00# make distclean
-make -C /usr/src/v4l-dvb-985ecd81d993/v4l distclean
-make[1]: Entering directory `/usr/src/v4l-dvb-985ecd81d993/v4l'
-find: .: Value too large for defined data type
-make[1]: *** [clean] Fehler 1
-make[1]: Leaving directory `/usr/src/v4l-dvb-985ecd81d993/v4l'
-make: *** [distclean] Fehler 2
+Like this?
 
-Note the very same error: 'value too large..' Looks like Makefile or 
-script failure.
+http://www.mythtv.org/wiki/index.php/ATI_HDTV_Wonder
 
-This is a 32bit machine running LinuxFromScratch btw. and not the first 
-time compiling the dvb driver.
+
+-- Harry O.
+
+
+P. S. Please at least cc: the list when replying to a post.  Other people may 
+benefit from the information (now the thread is broken)
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
