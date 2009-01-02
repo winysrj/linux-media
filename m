@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from uucp.cirr.com ([192.67.63.5] helo=killer.cirr.com ident=postfix)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lacsilva@gmail.com>) id 1LLJ67-0006wT-N2
-	for linux-dvb@linuxtv.org; Fri, 09 Jan 2009 16:16:32 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so3562578fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 09 Jan 2009 07:16:27 -0800 (PST)
-From: =?utf-8?q?Lu=C3=ADs_Silva?= <lacsilva@gmail.com>
+	(envelope-from <afc@shibaya.lonestar.org>) id 1LIbkK-0000DC-Bs
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 05:34:53 +0100
+Received: from afc by localhost.localdomain with local (Exim 4.63)
+	(envelope-from <afc@shibaya.lonestar.org>) id 1LIbju-0004cV-VZ
+	for linux-dvb@linuxtv.org; Thu, 01 Jan 2009 23:34:26 -0500
+Date: Thu, 1 Jan 2009 23:34:26 -0500
+From: "A. F. Cano" <afc@shibaya.lonestar.org>
 To: linux-dvb@linuxtv.org
-Date: Fri, 9 Jan 2009 16:15:21 +0100
+Message-ID: <20090102043426.GA17583@shibaya.lonestar.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200901091615.21641.lacsilva@gmail.com>
-Subject: Re: [linux-dvb] MC44S803 frontend (it works)
+Subject: [linux-dvb] How is the support of the OnAir Creator these days?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,18 +20,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkuCj4gRmluYWxseSBtYW5hZ2VkIHRvIHRyeSB5b3VyIHZlcnNpb24uIEl0IHdvcmtzLCB3aXRo
-IG5vIGFwcGFyZW50IGlzc3VlLgpUaGFuayB5b3UgYWxsIGZvciB0aGlzIGdvb2Qgd29yay4gQW55
-IGlkZWFzIGFzIHRvIHdoZW4gd2lsbCB0aGVzZSBmaWxlcyBoaXQgCnRoZSBtZXJjdXJpYWwgcmVw
-b3MgYXQgbGludXh0di5vcmc/Ci0tIApMdcOtcyBBLiBDLiBTaWx2YQpsYWNzaWx2YUBnbWFpbC5j
-b20KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4
-LWR2YiB1c2VycyBtYWlsaW5nIGxpc3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1
-c2UgaW5zdGVhZCBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYu
-b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LWR2Yg==
+Hi,
+
+I posted a quite detailed query 2 years ago (how time flies!).  At the
+time there were problems.  Mike Krufky (if I remember correctly) gave
+a detailed report of the status at the time.
+
+It's been a while and I was wondering what progress there has been
+in supporting the OnAir Creator usb hdtv tuner.  I'm fine-tuning and
+configuring debian lenny on a  new HD (kernel  2.6.26) and I'm wondering
+if I'm finally safe getting this unit, or will I still have an
+expensive paperweight?
+
+If it still doesn't work properly (I'm willing to do some testing
+and report back, but only if it useable to some degree), what other
+supported units are comparable these days?
+
+Thanks.
+
+A.
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
