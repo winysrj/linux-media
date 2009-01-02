@@ -1,20 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0MFiG2U025514
-	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 10:44:16 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n0MFhxRE027748
-	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 10:44:00 -0500
-Message-ID: <4978943F.5090201@gmx.net>
-Date: Thu, 22 Jan 2009 16:43:59 +0100
-From: TCP/IP <t-cp@gmx.net>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <S1752508AbZAVNYE/20090122132404Z+405@vger.kernel.org>
-In-Reply-To: <S1752508AbZAVNYE/20090122132404Z+405@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02MqW0B024182
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 17:52:32 -0500
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n02MmEkP002935
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 17:48:14 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: s_mrite@yahoo.com
+In-Reply-To: <1230838289.7045.34.camel@pc10.localdom.local>
+References: <135963.10009.qm@web45404.mail.sp1.yahoo.com>
+	<1230838289.7045.34.camel@pc10.localdom.local>
+Content-Type: text/plain
+Date: Fri, 02 Jan 2009 23:49:01 +0100
+Message-Id: <1230936541.3269.17.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: saa7134-alsa.ko and alsa-driver-1.0.19
+Cc: video4linux-list@redhat.com
+Subject: Re: The gspca from the repository is not compile
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,84 +29,87 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi everybody
 
-Has anyone of you got the saa7134-alsa module running with
-alsa-driver-1.0.19 ?
+Am Donnerstag, den 01.01.2009, 20:31 +0100 schrieb hermann pitton:
+> Am Donnerstag, den 01.01.2009, 11:06 -0800 schrieb Alex:
+> > Hello,
+> > 
+> > My system is Fedora 9, the kernel is 2.6.27.9-73.fc9.i686.
+> > I have the package kernel-devel installed.
+> > 
+> > I have obtained the sources fo the gspca using the command "hg clone http://linuxtv.org/hg/~jfrancois/gspca/".
+> > 
+> > I run "make menuconfig" without changes and without erros.
+> > When I run make I got the following error after several seconds of compiling:
+> > --------------------------------------------------------------------------------------------------------------------
+> >  CC [M]  /root/Documents/linuxTv/gspca/v4l/bttv-i2c.o
+> >   CC [M]  /root/Documents/linuxTv/gspca/v4l/bttv-gpio.o
+> >   CC [M]  /root/Documents/linuxTv/gspca/v4l/bttv-input.o
+> > In file included from /root/Documents/linuxTv/gspca/v4l/bttvp.h:36,
+> >                  from /root/Documents/linuxTv/gspca/v4l/bttv-input.c:28:
+> > include/linux/pci.h:1126: error: expected declaration specifiers or '...' before '(' token
+> > include/linux/pci.h:1126: error: expected declaration specifiers or '...' before '(' token
+> > include/linux/pci.h:1126: error: static declaration of 'ioremap_nocache' follows non-static declaration
+> > include/asm/io_32.h:111: error: previous declaration of 'ioremap_nocache' was here
+> > include/linux/pci.h: In function 'ioremap_nocache':
+> > include/linux/pci.h:1127: error: number of arguments doesn't match prototype
+> > include/asm/io_32.h:111: error: prototype declaration
+> > include/linux/pci.h:1131: error: 'pdev' undeclared (first use in this function)
+> > include/linux/pci.h:1131: error: (Each undeclared identifier is reported only once
+> > include/linux/pci.h:1131: error: for each function it appears in.)
+> > include/linux/pci.h:1131: error: 'bar' undeclared (first use in this function)
+> > make[3]: *** [/root/Documents/linuxTv/gspca/v4l/bttv-input.o] Error 1
+> > make[2]: *** [_module_/root/Documents/linuxTv/gspca/v4l] Error 2
+> > make[2]: Leaving directory `/usr/src/kernels/2.6.27.9-73.fc9.i686'
+> > make[1]: *** [default] Error 2
+> > make[1]: Leaving directory `/root/Documents/linuxTv/gspca/v4l'
+> > make: *** [all] Error 2
+> > --------------------------------------------------------------------------------------------------------------------
+> > 
+> > The output of the " hg log -l1" is:
+> > --------------------------------------------------------------------------------------------------------------------
+> > changeset:   10167:2b2568c40385
+> > tag:         tip
+> > user:        Jean-Francois Moine <moinejf@free.fr>
+> > date:        Thu Jan 01 17:20:42 2009 +0100
+> > summary:     gspca - common: Simplify the debug macros.
+> > --------------------------------------------------------------------------------------------------------------------
+> > 
+> > So the sources is up-to-date at the moment of compiling.
+> > 
+> > Can somebody suggest the way to compile the sources?
+> > 
+> > Best regards,
+> > Alex.
+> > 
+> 
+> Hi,
+> 
+> this is only the beginning of a series of recent compile troubles.
+> 
+> We had for a while snapshots of v4l-dvb to allow to come over such times
+> caused by kernel sync down ported from upstream and maybe should have
+> them again for such periods.
+> 
+> For now, either checkout a slightly older snapshot or disable
+> conflicting stuff with "make menuconfig" or fix it.
+> 
+> It starts with bttv-input, goes over cx23885, cx88xx, saa7134-alsa and
+> several dvb frontends, but gspca is not involved.
+> 
+
+Looking closer, this is Fedora 9 and 10 specific and caused by a 2.6.28
+down port to 2.6.27.
+
+Details are already at the linux-dvb ML and workarounds are suggested.
+
+http://linuxtv.org/pipermail/linux-dvb/2009-January/031198.html
+
+Hermann
 
 
-root@MythTV:~# modprobe -v saa7134-alsa
-insmod
-/lib/modules/2.6.27.8/kernel/drivers/media/video/saa7134/saa7134-alsa.ko
-FATAL: Error inserting saa7134_alsa
-(/lib/modules/2.6.27.8/kernel/drivers/media/video/saa7134/saa7134-alsa.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
 
 
-root@MythTV:~# dmesg |less
-[ 7543.401381] Linux video capture interface: v2.00
-[ 7543.412129] saa7130/34: v4l2 driver version 0.2.14 loaded
-[ 7543.412157] saa7133[0]: found at 0000:04:00.0, rev: 209, irq: 16,
-latency: 64, mmio: 0xfebff800
-[ 7543.412162] saa7133[0]: subsystem: 1043:4845, board: ASUSTeK P7131
-Analog [card=146,insmod option]
-[ 7543.412170] saa7133[0]: board init: gpio is 0
-[ 7543.412210] input: saa7134 IR (ASUSTeK P7131 Analo as
-/devices/pci0000:00/0000:00:1e.0/0000:04:00.0/input/input9
-[ 7543.558005] saa7133[0]: i2c eeprom 00: 43 10 45 48 54 20 1c 00 43 43
-a9 1c 55 d2 b2 92
-[ 7543.558022] saa7133[0]: i2c eeprom 10: 00 ff e2 0f ff 20 ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558038] saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff
-00 88 ff ff ff ff
-[ 7543.558054] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558071] saa7133[0]: i2c eeprom 40: ff 22 00 c2 96 ff 02 30 15 ff
-ff ff ff ff ff ff
-[ 7543.558086] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558102] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558118] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558136] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558152] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558168] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558184] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558195] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558206] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558216] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558227] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.578071] tuner 1-004b: chip found @ 0x96 (saa7133[0])
-[ 7543.613005] tda829x 1-004b: setting tuner address to 61
-[ 7543.649006] tda829x 1-004b: type set to tda8290+75a
-[ 7546.226225] saa7133[0]: registered device video0 [v4l2]
-[ 7546.226270] saa7133[0]: registered device vbi0
-[ 7546.226312] saa7133[0]: registered device radio0
-[ 7546.258185] saa7134_alsa: Unknown symbol snd_card_new
-
-
-i needed to upgrade the alsa driver in order to get the
-00:1b.0 Audio device: Intel Corporation ICH10 HD Audio Controller
-soundcard propperly running, so using the alsa out of the kernel source
-(using 2.6.27.8 right now) is not an option
-
-do you have any ideas?
-i have read somthing about editing the #ifdef-s in compat.h but i have
-to admit that i don-t understand what to do there.
-
-
-Thanks a lot in advance!
-
-Ben
 
 
 --
