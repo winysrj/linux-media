@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0599XYm007422
-	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 04:09:33 -0500
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0599Gx1021238
-	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 04:09:17 -0500
-Message-ID: <4961CE7A.4030206@hhs.nl>
-Date: Mon, 05 Jan 2009 10:10:18 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02K3ujX010292
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 15:03:56 -0500
+Received: from mho-01-bos.mailhop.org (mho-01-bos.mailhop.org [63.208.196.178])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n02K3flZ006142
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 15:03:42 -0500
+Received: from c-65-96-52-55.hsd1.vt.comcast.net ([65.96.52.55]
+	helo=homer.edgehp.net)
+	by mho-01-bos.mailhop.org with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.68) (envelope-from <DEPontius@edgehp.net>)
+	id 1LIqFA-0008di-ER
+	for video4linux-list@redhat.com; Fri, 02 Jan 2009 20:03:40 +0000
+Received: from [192.168.154.40] (anastasia.edgehp.net [192.168.154.40])
+	by homer.edgehp.net (Postfix) with ESMTP id 6258914CDD
+	for <video4linux-list@redhat.com>; Fri,  2 Jan 2009 15:03:39 -0500 (EST)
+Message-ID: <495E7328.6080600@edgehp.net>
+Date: Fri, 02 Jan 2009 15:03:52 -0500
+From: Dale Pontius <DEPontius@edgehp.net>
 MIME-Version: 1.0
-To: Adam Baker <linux@baker-net.org.uk>
-References: <19691783.686993.1231033681816.JavaMail.www@wwinf8403>
-	<49608C2B.5070304@hhs.nl>
-	<200901050022.49431.linux@baker-net.org.uk>
-In-Reply-To: <200901050022.49431.linux@baker-net.org.uk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: =?utf-8?q?Re=3A_RFC_=3A_addition_of_a_flag_to_rotate_decoded_ima?=
- =?utf-8?q?ges_by_180=C2=B0?=
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: cx18 short-term resource available
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,111 +33,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Adam Baker wrote:
-> On Sunday 04 January 2009, Hans de Goede wrote:
->> Olivier Lorin wrote:
->>> Hi all,
->>>
->>> I maintain the driver of a webcam (Genesys 05O3:05e3) embedded in a
->>> laptop screen which has the ability to pivot vertically up to 180°. The
->>> raw Bayer data from the webcam come with the indication that the image is
->>> right up or upside down depending on how much the webcam has been
->>> rotated. One of the sensor embedded in that webcam does not support the
->>> mirror and flip so that the rotation of the image must be done by
->>> software at decoding time. So what about a new V4L2_xxx set by the driver
->>> to tell the image has to be rotated by 180°? As it does not seem to be
->>> anticipated that the driver can change the image state on the fly, a way
->>> to do that may be a new V4L2_CID_UPSIDEDOWN which is set by the driver
->>> and read by libv4l on a regular basis.
->> As you know I've proposed adding an API for libv4l (and possibly others) to
->> query webcam properties:
->> http://marc.info/?l=linux-video&m=122708661625554&w=2
->>
->> In my proposal I propose a new CID range for this:
->>
->> #define V4L2_CTRL_CLASS_CAMERA_PROPERTY 0x009b0000
->>
->> #define V4L2_CID_CAMERA_PROPERTY_CLASS_BASE \
->> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 0x900)
->> #define V4L2_CID_CAMERA_PROPERTY_CLASS \
->> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 1)
->>
->> /* Booleans */
->> #define V4L2_CID_WANTS_SW_WHITEBALANCE 
->> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+1) #define
->> V4L2_CID_WANTS_SW_AUTO_EXPOSURE (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+2)
->> #define V4L2_CID_WANTS_SW_GAMMA_CORRECT
->> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+3) #define V4L2_CID_SENSOR_UPSIDE_DOWN
->>     (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+4)
->>
->> /* Fixed point, 16.16 stored in 32 bit integer */
->> #define V4L2_CID_DEF_GAMMA_CORR_FACTOR 
->> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+5)
->>
->>
->> This proposal has not seen much feedback, but no one so far has come out
->> yelling that they don't like it. So I think the best way forward is to just
->> submit a patch which actually implements this, since it is considered bad
->> practice to submit patches which add new API to videodev2.h without
->> actually using it I would start with adding this to videodev2.h:
->>
->> #define V4L2_CTRL_CLASS_CAMERA_PROPERTY 0x009b0000
->>
->> #define V4L2_CID_CAMERA_PROPERTY_CLASS_BASE \
->> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 0x900)
->> #define V4L2_CID_CAMERA_PROPERTY_CLASS \
->> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 1)
->>
->> /* Booleans */
->> #define V4L2_CID_SENSOR_UPSIDE_DOWN    
->> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+1)
->>
->>
->> And then implementing V4L2_CID_SENSOR_UPSIDE_DOWN in your driver. I also
->> welcome libv4l patches to query this and use it to determine weather or not
->> to rotate the image.
->>
-> 
-> This camera adds a new facet that hadn't previously been considered that the 
-> camera recommended adjustment would vary with time - I and I guess you had 
-> assumed the driver recommended value could be read once and then stored for 
-> as long as the camera was present.
+Every now and then I fix my sister-in-law an her husband's computer, and 
+every now and then they give me their cast-offs.  I also have 2 HVR-1600 
+cards and 2 SA4250C set-top boxes, only 1 of each in active use.  So for 
+a few months, I can bring back online a spare system, and can use some 
+spare time to assist.  I'll have to reinstall the machine, but it has a 
+valid XP-Home license, and can easily be made dual-boot.
 
-Ack.
+So I have:
+Dell Dimension 2300, HVR2300, SA4250C, and can temporarily dedicate all 
+of this hardware to assist developers.  I know cx18 work seems to be 
+proceeding quite well on its own, but I also know that the IR blaster 
+seems to need work.  If I can be of assistance, please let me know.  I 
+can join the LIRC list, if appropriate.
 
-> In the case of a camera like this what 
-> would be the best approach to handling this value change if the user had also 
-> adjusted the pseudo control in libv4l - should the value from the driver be 
-> xor'ed with the user value?
+Related, to Andy Walls,
+A few months back you were helping me, we couldn't find my tuner, and I 
+was essentially nowhere without that.  I took both HVR-1600 cards over 
+to a friend's house, and we plugged them into a WinXP machine, installed 
+drivers, and also got nowhere with either card.
 
-I'm not sure yet I want to export the rotate option to the end user (that will 
-lead to workarounds done by users rather then bugs getting reported so we can 
-add the model to the list and fix it for real). But yes if we export the rotate 
-functionality to the end-user it should be an xor of what the camera indicates 
-and what the user indicates.
+I brought them home, plugged the second (the one I hadn't tried, yet) 
+card into my machine, and it was fully functional.  Then I plugged in 
+the first, and it was fully functional, as well.  In the past week I 
+read more, and learned how to scan for ATSC stations, and so far have 
+only QVC, but that's enough to verify that that side of one of the cards 
+works.  (I'll have to replug to test the ATSC on the other card, and 
+I've been leaving my hardware alone during the cold - and staticy snap.)
 
-> I can also say now I've seen an sq905 camera working through libv4l that the 
-> default gamma looks OK but it would benefit from a whitebalance control. At 
-> the moment I'm relying on turning the camera itself upside down to implement 
-> rotate.
-> 
-> Another issue I've been pondering is how should multiple versions of libv4l be 
-> handled. Should the shared memory for controls have some sort of version 
-> field in the first word and the libv4l that initialises the memory sets that 
-> field and if the memory then gets accessed by a libv4l version with a 
-> different memory format it prints an error and disables all controls?
-> 
+Anyway, both cards work, I don't know if it was that they touched a 
+Windows machine and some secret bits got flipped by the Windows driver, 
+or if all I needed was a simple replug in the first place.
 
-My plan is to treat the shared memory as an array of s32 values, and give each 
-fake control a fixed place in the array (independent on if that fake control is 
-actually active for the cam in question). If new controls get added they are 
-added at the end of the array. This way old and new version can co-exist 
-without problems (there are some details to take care of, but nothing which can 
-not be handled).
+Question:
+Under MythTV, the HVR-1600 seems - fuzzy.  My main card, a PixelPro, 
+seems sharper, though there are more artifacts in the video, also.  The 
+HVR-1600 seems cleaner, just fuzzy.  However, when I look at the 
+HVR-1600 video at native resolution, it seems quite good and the 
+fuzziness appears to be gone.
 
-Regards,
+Do you know if this an artifact of how MythTV scales video to 
+fullscreen, or if there is something in the settings I should tweak?  I 
+have noticed that MythTV captures on the PixelPro at 480x480 by default, 
+and at that resolution HVR-1600 captures are less than half the file 
+size.  Changing the HVR-1600 captures to 720x480 improves things 
+somewhat, and the files are still smaller.
 
-Hans
+Thanks,
+Dale Pontius
 
 --
 video4linux-list mailing list
