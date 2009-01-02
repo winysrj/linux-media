@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.185])
+Received: from qw-out-2122.google.com ([74.125.92.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1LN9ar-0006u1-IJ
-	for linux-dvb@linuxtv.org; Wed, 14 Jan 2009 18:31:54 +0100
-Received: by rn-out-0910.google.com with SMTP id j43so523841rne.2
-	for <linux-dvb@linuxtv.org>; Wed, 14 Jan 2009 09:31:48 -0800 (PST)
-Message-ID: <19a3b7a80901140931x4863a29cse6362ed9ca1c7534@mail.gmail.com>
-Date: Wed, 14 Jan 2009 18:31:47 +0100
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: "Koos van den Hout" <koos@kzdoos.xs4all.nl>
-In-Reply-To: <20081230103438.GA12942@kzdoos.xs4all.nl>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1LIl9l-0001kN-QC
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 15:37:51 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so3116916qwb.17
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 06:37:41 -0800 (PST)
+Message-ID: <412bdbff0901020637l479a6cd0nb8a1e7764c9135e7@mail.gmail.com>
+Date: Fri, 2 Jan 2009 09:37:41 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: CityK <cityk@rogers.com>
+In-Reply-To: <495E21EB.4090602@rogers.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <20081224112111.GA15004@kzdoos.xs4all.nl>
-	<19a3b7a80812291613kc566f0cua89156b43f1ec7d7@mail.gmail.com>
-	<20081230103438.GA12942@kzdoos.xs4all.nl>
+References: <1230901740.14839.15.camel@localhost> <495E21EB.4090602@rogers.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Scan file dvb-t nl-Utrecht
+Subject: Re: [linux-dvb] em28xx frontend does not attach
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,53 +28,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/12/30 Koos van den Hout <koos@kzdoos.xs4all.nl>:
-> Quoting Christoph Pfister who wrote on Tue 2008-12-30 at 01:13:
+On Fri, Jan 2, 2009 at 9:17 AM, CityK <cityk@rogers.com> wrote:
+> Elio Voci wrote:
+>> I have generated the firmware from
+>> http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip,
+>> Driver85/hcw85bda.sys
+>>
+>> em28xx installed correctly, dvb frontend did not:
+>> zl10353_read_register returned -19
+>> Below the relevant dmesg section (em28xx modprobed with core_debug=1
+>> ------------------------------------------------------------------------
+>>> [ 3435.932331] tuner' 1-0061: chip found @ 0xc2 (em28xx #0)
+>>> [ 3435.948856] xc2028 1-0061: creating new instance
 >
->> 2008/12/24 Koos van den Hout <koos@kzdoos.xs4all.nl>:
->> > As attached, tested yesterday evening with scan from Ubuntu dvb-utils
->> > 1.1.1-3.
->> Those nl-* files were removed in favour of a nl-All file 11 months
->> ago. I've recreated the nl-All file as some channels have changed
->> since then [1], so all issues should be solved now.
+> Wrong firmware. You want XC3028, not the XC5000.
 >
-> I found the repository and nl-All in the mean time, which is indeed a
-> complete overview. It seems the files delivered with Ubuntu are somewhat
-> dated compared to the dvb-apps repository.
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
-> You *could* add the following entry:
->
-> T 850000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE # UHF 68
 
-Done.
+It doesn't matter - the Cinergy Hybrid is known to not work.  It's on
+my TODO list, but this is complicated by the fact that I have neither
+the hardware nor the DVB-T signal to debug the issue with.
 
-> Which is the local RTV-Stadskanaal dvb-t station (FTA), source
-> http://www.rtvvis.nl/rtvvis-freq.tv DVB-T Lokaal NL.htm
->
-> Another one I tested in the deep south of the Netherlands:
->
-> # Liege - Belgique
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> T 834000000 8MHz 3/4 NONE QAM16 8k 1/4 NONE
+Patches welcome, of course!
 
-I don't want to mix different countries in one file. The longer term
-solution for dvb-t should be auto scan, but that's a different topic
-...
+Cheers,
 
-> Frequency found from
-> http://nl.wikipedia.org/wiki/DVB-T-frequenties
->
-> encoding, error correction and guard rate found by experiment: this was the
-> setting that gave 0 errors / uncorrectable blocks and good image/sound.
->
->                                           Koos van den Hout
+Devin
 
-Thanks,
-
-Christoph
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
