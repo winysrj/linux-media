@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0L0nRGo019389
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 19:49:27 -0500
-Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0L0nAE8026087
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 19:49:10 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0L0n5oE018666
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 18:49:10 -0600
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0L0n5bk026068
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 18:49:05 -0600 (CST)
-From: "Curran, Dominic" <dcurran@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Tue, 20 Jan 2009 18:49:02 -0600
-Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B50128BC0919@dlee07.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89441DD73588@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02E95vb025072
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 09:09:05 -0500
+Received: from smtp118.rog.mail.re2.yahoo.com (smtp118.rog.mail.re2.yahoo.com
+	[68.142.225.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n02E80SM008200
+	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 09:08:00 -0500
+Message-ID: <495E1FBF.1090606@rogers.com>
+Date: Fri, 02 Jan 2009 09:07:59 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Appropriate interface ?
+To: Paul Thomas <pthomas8589@gmail.com>
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>	<412bdbff0812311323rd83eac8l35f29195b599d3e@mail.gmail.com>	<c785bba30812311330w26ce5817l10db52d5be98d175@mail.gmail.com>	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>	<c785bba30812311504g22d2a06dkd4b1a7dc9a5b2df1@mail.gmail.com>	<c785bba30901010845if28f369n7a9c501e34b2efa8@mail.gmail.com>
+	<c785bba30901011638q4b1f0b92y6898672f0cb8efb0@mail.gmail.com>
+In-Reply-To: <c785bba30901011638q4b1f0b92y6898672f0cb8efb0@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list <video4linux-list@redhat.com>
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,24 +29,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Paul Thomas wrote:
+> Any thoughts on the debug parameter? Do I set the debug level a different way?
+>
+> thanks,
+> Paul
+>
+> On Thu, Jan 1, 2009 at 9:45 AM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>   
+>> I get "em28xx: Unknown parameter `debug'" when I try "modprobe em28xx debug=1".
+>>
+>> thanks,
+>> Paul
 
-Hi
-I apologies for slightly off-topic question.
+Use /sbin/modinfo to see relevant parameters for a module.  You'll
+likely want core_debug
 
-I have a camera which consists of three separate i2c slave devices on the same i2c bus:
- - sensor              (V4L2 interface)
- - piezo len driver    (V4L2 interface)
- - EEPROM (512 bytes)         ?
-
-The EEPROM is written with factory settings (sensor & lens info).
-It is meant to be read-only.
-
-Can anyone suggest an appropriate interface to usermode for the EEPROM ?
-Should I implement sysfs interface ?
-Or is there something more appropriate.
-
-Thanks
-dom
+Also please stop top posting (rather, post below the text that you are
+quoting).  Thanks
 
 --
 video4linux-list mailing list
