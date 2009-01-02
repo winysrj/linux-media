@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web110804.mail.gq1.yahoo.com ([67.195.13.227])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1LOVTP-0008BA-SS
-	for linux-dvb@linuxtv.org; Sun, 18 Jan 2009 12:05:49 +0100
-Date: Sun, 18 Jan 2009 03:05:12 -0800 (PST)
-From: Uri Shkolnik <urishk@yahoo.com>
-To: =?iso-8859-1?Q?St=E5le_Helleberg_/_drc=2Eno?= <staale@drc.no>
-In-Reply-To: <20090116101702.149275vsbwc7y45q@91.189.121.183>
-MIME-Version: 1.0
-Message-ID: <161813.29307.qm@web110804.mail.gq1.yahoo.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Siano subsystem (DAB/DMB support) library for linux?
-Reply-To: linux-media@vger.kernel.org
+Received: from relay-pt2.poste.it ([62.241.5.253])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <nicola.sabbi@poste.it>) id 1LIhEH-00028y-DG
+	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 11:26:12 +0100
+Received: from [192.168.1.116] (79.42.61.188) by relay-pt2.poste.it (7.3.122)
+	(authenticated as nicola.sabbi@poste.it)
+	id 495D594800003339 for linux-dvb@linuxtv.org;
+	Fri, 2 Jan 2009 11:26:05 +0100
+From: Nico Sabbi <nicola.sabbi@poste.it>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <alpine.DEB.2.00.0901021055060.32128@ybpnyubfg.ybpnyqbznva>
+References: <ecc841d80901011033s58b2fecawd3dd2d42c1b09cd7@mail.gmail.com>
+	<alpine.DEB.2.00.0901021055060.32128@ybpnyubfg.ybpnyqbznva>
+Date: Fri, 02 Jan 2009 11:20:02 +0100
+Message-Id: <1230891602.3791.4.camel@linux-wcrt.site>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] dvbsream v0-5 and -n switch
+Reply-To: nicola.sabbi@poste.it
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,147 +24,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Il giorno ven, 02/01/2009 alle 11.00 +0100, BOUWSMA Barry ha scritto:
+> On Thu, 1 Jan 2009, Mike Martin wrote:
+> 
+> > I am using dvbstream for an application I am developing
+> > (www.sourceforge.net/epgrec) and when I try using the -n switch
+> > (according to help should set number of seconds to record) it has no
+> > effect
+> 
+> Do you have the source for your version (I presume you
+> mean v0.5) ?
+> 
+> This is the patch I have applied to v0.6, among lots of
+> others, which I think will fix it for you, assuming the
+> code is comparable between versions...
+> 
+> --- /mnt/usr/local/src/dvbtools/dvbstream/dvbstream.c-DIST	2005-01-06 11:25:27.000000000 +0100
+> +++ /mnt/usr/local/src/dvbtools/dvbstream/dvbstream.c	2005-12-05 14:55:50.000000000 +0100
+> @@ -846,7 +849,7 @@
+>    if(map_cnt > 0)
+>      fprintf(stderr, "\n");
+>    for (i=0;i<map_cnt;i++) {
+> -    if ((secs==-1) || (secs < pids_map[i].end_time)) { secs=pids_map[i].end_time; }
+> +    if ((secs==-1) || ((long)secs < pids_map[i].end_time)) { secs=pids_map[i].end_time; }
+>      if(pids_map[i].filename != NULL)
+>      	fprintf(stderr,"MAP %d, file %s: From %ld secs, To %ld secs, %d PIDs - ",i,pids_map[i].filename,pids_map[i].start_time,pids_map[i].end_time,pids_map[i].pid_cnt);
+>      else
+> 
+> 
+> There are a lot of other hacks in the version I'm running;
+> either I'll post them as-is against the 2005 source code,
+> or I'll try to create diffs where applicable against the
+> lastest source, or I won't bother -- depends how lazy I
+> am -- maybe I'll just post a description of hacks I've
+> added in case there's interest...
+> 
+> 
+> thanks
+> barry bouwsma
+> 
 
+can you post a patch against latest cvs, please?
 
-
---- On Fri, 1/16/09, St=E5le Helleberg / drc.no <staale@drc.no> wrote:
-
-> From: St=E5le Helleberg / drc.no <staale@drc.no>
-> Subject: Re: Siano subsystem (DAB/DMB support) library for linux?
-> To: urishk@yahoo.com
-> Date: Friday, January 16, 2009, 11:17 AM
-> Quoting "Uri Shkolnik" <urishk@yahoo.com>:
-> =
-
-> >
-> >
-> >
-> > --- On Thu, 1/15/09, St=E5le Helleberg / drc.no
-> <staale@drc.no> wrote:
-> >
-> >> From: St=E5le Helleberg / drc.no
-> <staale@drc.no>
-> >> Subject: Siano subsystem (DAB/DMB support) library
-> for linux?
-> >> To: urishk@yahoo.com
-> >> Cc: staale.helleberg@gmail.com
-> >> Date: Thursday, January 15, 2009, 1:16 AM
-> >> Dear Uri,
-> >>
-> >> Firstly, let me thank you and Siano for your
-> effort in
-> >> making your products available for Linux users. It
-> is much
-> >> appreciated, and much has changed since I
-> contacted Siano
-> >> early last year regarding a similar request.
-> >>
-> >> I contact you to ask if it's possible to get a
-> copy of
-> >> your library and headers for talking with the
-> subsystem in
-> >> C/C++. I've downloaded and applied the patches
-> - and the
-> >> module loads in dmb mode and looks promising.
-> >>
-> >> The reason for this request is that I'm
-> currently
-> >> studying the DAB standard for a another project. I
-> need to
-> >> log and analyze the complete datastream from the
-> air - to
-> >> study and understand the building blocks. I will
-> try to
-> >> create a parser, but I can't promise that I
-> will
-> >> succeed. If you have any samples regarding use of
-> the API
-> >> (tuning to frequency, opening/reading/closing etc)
-> and other
-> >> documentation, it will also be much appreciated.
-> >>
-> >> Thank you in advance,
-> >>
-> >> Best Regards
-> >>
-> >> Staale Helleberg
-> >> drc.no
-> >
-> >
-> > Dear Staale,
-> >
-> > Please find the requested files at our ftp site.
-> >
-> > Address: fx.siano-ms.com
-> > Username: sms_linux
-> > Password: sms_linux
-> >
-> >
-> > Best regard,
-> >
-> > Uri Shkolnik
-> >
-> >
-> >
-> >
-> =
-
-> =
-
-> Dear Uri,
-> =
-
-> Thank you again for the library and information. I made a
-> small  =
-
-> testprogram yesterday - and was able to communicate, tune
-> and receive  =
-
-> dab/dmb services with next to no problems :)  Very well
-> done!
-> =
-
-> As mentioned in my earlier request, for my project I need
-> access to  =
-
-> the unmodifed incomming bitstream (without
-> modification/filtering).  =
-
-> I'm sorry to say that I could not find any functions in
-> the headers  =
-
-> that could be used. Do you have any tips on how to achieve
-> this?
-> =
-
-> Thanks in advance
-> =
-
-> Best Regards,
-> =
-
-> Staale Helleberg
-> drc.no
-
-I re-checked with our DAB team, and the answer is that you can't get the ra=
-w multiplex.
-
-Sorry,
-
-Uri
-
-
-      =
 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
