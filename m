@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mout1.freenet.de ([195.4.92.91])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ruediger.dohmhardt@freenet.de>) id 1LL2lS-0004Vx-C4
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 22:50:07 +0100
-Received: from [195.4.92.19] (helo=9.mx.freenet.de)
-	by mout1.freenet.de with esmtpa (ID ruedigerDohmhardt@freenet.de) (port
-	25) (Exim 4.69 #76) id 1LL2lO-0000vw-Pj
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 22:50:02 +0100
-Received: from 91-64-66-95-dynip.superkabel.de ([91.64.66.95]:60003
-	helo=[192.168.2.112])
-	by 9.mx.freenet.de with esmtpa (ID ruedigerDohmhardt@freenet.de) (port
-	25) (Exim 4.69 #76) id 1LL2lO-0005q2-LU
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 22:50:02 +0100
-Message-ID: <496674FA.8070603@freenet.de>
-Date: Thu, 08 Jan 2009 22:49:46 +0100
-From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
+Message-ID: <412bdbff0901020657n76323c91t2e5456affc945c2e@mail.gmail.com>
+Date: Fri, 2 Jan 2009 09:57:55 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "roshan karki" <roshan@olenepal.org>
+In-Reply-To: <73e59df30901020653v5ec9b923mb5c6f4b186bb18de@mail.gmail.com>
 MIME-Version: 1.0
-To: "linux-dvb: linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] s2-liplianin compiles and works for Mantis 2033 (DVB-C)
- on SUSE 11.1 kernel 2.6.27.7-9-default
+Content-Disposition: inline
+References: <495A0E02.1030307@olenepal.org>
+	<412bdbff0812300702l7f6333d0qa094332fc20f163@mail.gmail.com>
+	<73e59df30901020653v5ec9b923mb5c6f4b186bb18de@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org, don@syst.com.br, pb@linuxtv.org
+Subject: Re: [linux-dvb] YUAN High-Tech STK7700PH problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,39 +24,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear list members,
+On Fri, Jan 2, 2009 at 9:53 AM, roshan karki <roshan@olenepal.org> wrote:
+> Here is the usbsnoop I had taken when I had Windows with me,
+> http://pastebin.com/m49cacaba
+>
 
-just some feedback:
-The s2-liplianin driver works here for the DVB-C Mantis-2033 chip
-(Twinhan AD-CP300 card).
-I compiled and installed it on a SUSE 11.1 system.
+I'll try to look at this over the weekend.
 
-HD-TV works, too.
+Devin
 
-By applying the 2 patches
-
-   
-vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff
-
-and
-
-    vdr-1.7.0-s2api-07102008-h264-clean.patch
-
-to "vdr-1.7.0", then installing
-
-    vdr-xineliboutput-1.0.0-1.tgz
-  
-the channel "Anixe" (1080i) works, too.
-
-
-Ciao Ruediger
-
-
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
