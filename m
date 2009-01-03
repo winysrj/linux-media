@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.189])
+Received: from smaug.weblizards.de ([88.198.25.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thewatchman@gmail.com>) id 1LIl4E-0000cX-2b
-	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 15:32:02 +0100
-Received: by rn-out-0910.google.com with SMTP id j43so3948298rne.2
-	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 06:31:57 -0800 (PST)
-Message-ID: <c715948d0901020631rf3b24b1md411d7cad2eb40cc@mail.gmail.com>
-Date: Fri, 2 Jan 2009 08:31:57 -0600
-From: Greg <thewatchman@gmail.com>
-To: "Andy Walls" <awalls@radix.net>
-In-Reply-To: <1230773531.3121.13.camel@palomino.walls.org>
+	(envelope-from <tkeil@datacrystal.de>) id 1LJB5I-0000ic-Id
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 19:18:54 +0100
+Received: from [192.168.1.109] (91-65-174-234-dynip.superkabel.de
+	[91.65.174.234])
+	by smaug.weblizards.de (Postfix) with ESMTPA id 09273DB9EB5
+	for <linux-dvb@linuxtv.org>; Sat,  3 Jan 2009 19:18:46 +0100 (CET)
+Message-ID: <495FAC07.1010705@datacrystal.de>
+Date: Sat, 03 Jan 2009 19:18:47 +0100
+From: Thomas Keil <tkeil@datacrystal.de>
 MIME-Version: 1.0
-References: <c715948d0812301528h5a4f2a57xa973099ffb33730@mail.gmail.com>
-	<1230773531.3121.13.camel@palomino.walls.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] pcHDTV-5500 and FC10 (resend, was too big)
+To: linux-dvb@linuxtv.org
+References: <495FA03F.7040208@datacrystal.de>
+In-Reply-To: <495FA03F.7040208@datacrystal.de>
+Subject: Re: [linux-dvb] Kernel oops loading cx88 drivers when two
+ WinTV-HVR4000 cards present
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,176 +23,140 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2042944399=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2042944399==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_134662_29181099.1230906717249"
+A little correction, the first oops is purely lirc-related.
 
-------=_Part_134662_29181099.1230906717249
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-It seems like something is broken with the code with regard to detecting the
-tuner type or maybe the tuner tyes are wrong in the code.
-
-I have tried specifying a tuner type in modeprob.d/options and this has
-given me limited success (options cx88xx tuner=64). I have been able to get
-the channel scan to work doing this, but so far no video capture. I am not
-sure what the correct tuner is or how I can now capture video to see if it
-is working. I have tried the watch tv option and catpure video on mythtv tv,
-but the live TV times out and the recorded video is just snow, so something
-is still not quite right with the setup.
-
-Is there a simple way to dump the digitial video from a specified channnel
-to a file and play it with mplayer or something?
-
-Hope someone can help fix this tunner issue. (see my previous post for more
-details).
-
-Greg
-
-
-
-
-On Wed, Dec 31, 2008 at 7:32 PM, Andy Walls <awalls@radix.net> wrote:
-
-> On Tue, 2008-12-30 at 17:28 -0600, Greg wrote:
-> > I have been trying to get my PCHD-5500 card to work  with FC10. So far
-> > I am able to get  the analog tuner portion of the card to work but not
-> > the digital. Devinheitmueller was pointing me in the direction to
-> > look. I am getting a crash in one of the modules, which looks like it
-> > is coming from the line:
-> >
-> > div = ((frequency + t_params->iffreq) * 62500 + offset +
-> > tun->stepsize/2) / tun->stepsize;
-> >
-> >
-> > The crash is apparently being cased by a zero stepsize. This crash
-> > occured when I was scanning for channels either from mythtvset or
-> > Kaffeine, or a command line program that came with the card. I also
-> > have  Hauppague 250 card in the system which seems to work.
-> >
-> > If I select the digital tuner from mythtv the application just hangs
-> > and I get a blank screen.
-> >
-> > I tried hacking the tuner-types.mod.c file and adding the following
-> > lines to it that I coppied from one of the other cards (though I
-> > suspect these values are not right for this card)
-> >
-> >     [TUNER_LG_NTSC_TAPE] = { /* LGINNOTEK NTSC */
-> >                 .name   = "LG NTSC (TAPE series)",
-> >                 .params = tuner_fm1236_mk3_params,
-> >                 .count  = ARRAY_SIZE(tuner_fm1236_mk3_params),
-> >                 //adding these lines copied from above so that we have
-> > no-zero values
-> >                 .min = 16 * 53.00,
-> >                 .max = 16 * 803.00,
-> >                 .stepsize = 62500,
-> >
+Relevant is just the latter part:
+> cx88_audio 0000:04:06.1: PCI INT A -> GSI 19 (level, low) -> IRQ 
+> 19                                                                                                                                     
+> cx88[0]: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) 
+> DVB-S/S2 [card=69,autodetected], frontend(s): 
+> 1                                                                                     
+> cx88[0]: TV tuner type -1, Radio tuner type 
+> -1                                                                                                                                                          
+> tveeprom 1-0050: Hauppauge model 69100, rev B2C3, serial# 
+> 3247308                                                                                                                                       
+> tveeprom 1-0050: MAC address is 
+> 00-0D-FE-31-8C-CC                                                                                                                                                       
+> tveeprom 1-0050: tuner model is Conexant CX24118A (idx 123, type 
+> 4)                                                                                                                                     
+> tveeprom 1-0050: TV standards ATSC/DVB Digital (eeprom 
+> 0x80)                                                                                                                                            
+> tveeprom 1-0050: audio processor is None (idx 
+> 0)                                                                                                                                                        
+> tveeprom 1-0050: decoder processor is CX882 (idx 
+> 25)                                                                                                                                                    
+> tveeprom 1-0050: has no radio, has IR receiver, has no IR 
+> transmitter                                                                                                                                   
+> cx88[0]: hauppauge eeprom: 
+> model=69100                                                                                                                                                                  
+> input: cx88 IR (Hauppauge WinTV-HVR400 as 
+> /class/input/input3                                                                                                                                           
+> cx88[0]/1: CX88x/0: ALSA support for cx2388x 
+> boards                                                                                                                                                     
+> cx88_audio 0000:04:07.1: PCI INT A -> GSI 20 (level, low) -> IRQ 
+> 20                                                                                                                                     
+> allocation failed: out of vmalloc space - use vmalloc=<size> to increase 
+> size.                                                                                                                          
+> cx88[1]: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) 
+> DVB-S/S2 [card=69,autodetected], frontend(s): 
+> 1                                                                                     
+> cx88[1]: TV tuner type -1, Radio tuner type 
+> -1                                                                                                                                                          
+> BUG: unable to handle kernel paging request at 
+> 00200034                                                                                                                                                 
 >
-> The TAPE-Hxxx series tuners are an LG rebrand of the equivalent Phillips
-> tuner.  The TAPE-H091F-MK3 and TAPE-Hxxx data sheets I have say this
-> about the analog ranges:
+> IP: [<fd917277>] 
+> :cx88xx:cx88_shutdown+0xb/0x94                                                                                                                                                         
 >
-> Low :   55.25 - 157.25 MHz
-> Mid :  163.25 - 439.25 MHz
-> High:  445.25 - 801.25 MHz
-> FM:     88.00 - 108.00 MHz
+> *pde = 
+> 00000000                                                                                                                                                                                         
 >
-> The step size is programmable: 31.25 kHz, 50.00 kHz, 62.50 kHz, ...
+> Oops: 0002 [#2] 
+> SMP                                                                                                                                                                                     
 >
-> With a control byte of 0x8e (as in the tuner_fm1236_mk3_params), you're
-> programming a step size of 62.50 kHz.
->
-> Of course this is an analog M/N system tuner with FM radio.  I suspect
-> this isn't the tuner you're looking for, for Digital TV.
->
-> Regards,
-> Andy
+> Modules linked in: tuner v4l2_common lirc_imon(+) lirc_dev cx88_alsa(+) 
+> cx88xx videodev v4l1_compat snd_hda_intel ir_common i2c_algo_bit 
+> videobuf_dvb dvb_core snd_pcm tveeprom videobuf_dma_sg videobuf_core 
+> snd_timer ehci_hcd snd btcx_risc soundcore snd_page_alloc i2c_viapro 
+> i2c_core uhci_hcd usbcore 8250_pnp 8250 
+> serial_core                                                                                                                                                    
 >
 >
-
-------=_Part_134662_29181099.1230906717249
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-It seems like something is broken with the code with regard to detecting the tuner type or maybe the tuner tyes are wrong in the code.<br><br>I have tried specifying a tuner type in modeprob.d/options and this has given me limited success (options cx88xx tuner=64). I have been able to get the channel scan to work doing this, but so far no video capture. I am not sure what the correct tuner is or how I can now capture video to see if it is working. I have tried the watch tv option and catpure video on mythtv tv, but the live TV times out and the recorded video is just snow, so something is still not quite right with the setup. <br>
-<br>Is there a simple way to dump the digitial video from a specified channnel to a file and play it with mplayer or something?<br><br>Hope someone can help fix this tunner issue. (see my previous post for more details).<br>
-<br>Greg<br><br><br><br><br><div class="gmail_quote">On Wed, Dec 31, 2008 at 7:32 PM, Andy Walls <span dir="ltr">&lt;<a href="mailto:awalls@radix.net">awalls@radix.net</a>&gt;</span> wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div><div></div><div class="Wj3C7c">On Tue, 2008-12-30 at 17:28 -0600, Greg wrote:<br>
-&gt; I have been trying to get my PCHD-5500 card to work &nbsp;with FC10. So far<br>
-&gt; I am able to get &nbsp;the analog tuner portion of the card to work but not<br>
-&gt; the digital. Devinheitmueller was pointing me in the direction to<br>
-&gt; look. I am getting a crash in one of the modules, which looks like it<br>
-&gt; is coming from the line:<br>
-&gt;<br>
-&gt; div = ((frequency + t_params-&gt;iffreq) * 62500 + offset +<br>
-&gt; tun-&gt;stepsize/2) / tun-&gt;stepsize;<br>
-&gt;<br>
-&gt;<br>
-&gt; The crash is apparently being cased by a zero stepsize. This crash<br>
-&gt; occured when I was scanning for channels either from mythtvset or<br>
-&gt; Kaffeine, or a command line program that came with the card. I also<br>
-&gt; have &nbsp;Hauppague 250 card in the system which seems to work.<br>
-&gt;<br>
-&gt; If I select the digital tuner from mythtv the application just hangs<br>
-&gt; and I get a blank screen.<br>
-&gt;<br>
-&gt; I tried hacking the tuner-types.mod.c file and adding the following<br>
-&gt; lines to it that I coppied from one of the other cards (though I<br>
-&gt; suspect these values are not right for this card)<br>
-&gt;<br>
-&gt; &nbsp; &nbsp; [TUNER_LG_NTSC_TAPE] = { /* LGINNOTEK NTSC */<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; .name &nbsp; = &quot;LG NTSC (TAPE series)&quot;,<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; .params = tuner_fm1236_mk3_params,<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; .count &nbsp;= ARRAY_SIZE(tuner_fm1236_mk3_params),<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; //adding these lines copied from above so that we have<br>
-&gt; no-zero values<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; .min = 16 * 53.00,<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; .max = 16 * 803.00,<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; .stepsize = 62500,<br>
-&gt;<br>
-<br>
-</div></div>The TAPE-Hxxx series tuners are an LG rebrand of the equivalent Phillips<br>
-tuner. &nbsp;The TAPE-H091F-MK3 and TAPE-Hxxx data sheets I have say this<br>
-about the analog ranges:<br>
-<br>
-Low : &nbsp; 55.25 - 157.25 MHz<br>
-Mid : &nbsp;163.25 - 439.25 MHz<br>
-High: &nbsp;445.25 - 801.25 MHz<br>
-FM: &nbsp; &nbsp; 88.00 - 108.00 MHz<br>
-<br>
-The step size is programmable: 31.25 kHz, 50.00 kHz, 62.50 kHz, ...<br>
-<br>
-With a control byte of 0x8e (as in the tuner_fm1236_mk3_params), you&#39;re<br>
-programming a step size of 62.50 kHz.<br>
-<br>
-Of course this is an analog M/N system tuner with FM radio. &nbsp;I suspect<br>
-this isn&#39;t the tuner you&#39;re looking for, for Digital TV.<br>
-<br>
-Regards,<br>
-<font color="#888888">Andy<br>
-<br>
-</font></blockquote></div><br>
-
-------=_Part_134662_29181099.1230906717249--
+> Pid: 959, comm: modprobe Tainted: G      D   (2.6.27-gentoo-r7 #1)
+> EIP: 0060:[<fd917277>] EFLAGS: 00010202 CPU: 0                   
+> EIP is at cx88_shutdown+0xb/0x94 [cx88xx]                        
+> EAX: f7ba6800 EBX: ffffffff ECX: 00200034 EDX: 00000000          
+> ESI: f7ba6800 EDI: f7ba6cb0 EBP: f7ba6800 ESP: f7b6bdf8          
+>  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068                    
+> Process modprobe (pid: 959, ti=f7b6a000 task=f7b81ef0 task.ti=f7b6a000)
+> Stack: fd917fb6 00000070 f7ba6810 fd916a4c fd920a1f f7ba6810 ffffffff 
+> ffffffff
+>        00000004 f7b6be64 c02bc88d 0000000d f78fec00 00b6be64 00000039 
+> f7ba6bb8
+>        0000000d 00000286 c02bc96b 0000000d 00000001 f7b6be64 00000286 
+> c01fb6bf
+> Call 
+> Trace:                                                                   
+>  [<fd917fb6>] cx88_reset+0x2d/0x186 
+> [cx88xx]                                  
+>  [<fd916a4c>] cx88_core_create+0x393/0xac3 
+> [cx88xx]                           
+>  [<c02bc88d>] 
+> raw_pci_read+0x4d/0x55                                          
+>  [<c02bc96b>] 
+> pci_read+0x1c/0x21                                              
+>  [<c01fb6bf>] 
+> pci_bus_read_config_byte+0x4e/0x58                              
+>  [<c02bb057>] 
+> pcibios_set_master+0x1c/0x8d                                    
+>  [<fd917406>] cx88_core_get+0x6e/0x9f 
+> [cx88xx]                                
+>  [<f98ae864>] cx88_audio_initdev+0x94/0x30f 
+> [cx88_alsa]                       
+>  [<c01f416f>] 
+> kobject_get+0xf/0x13                                            
+>  [<c0255009>] __driver_attach+0x0/0x55
+>  [<c01ff34e>] pci_device_probe+0x36/0x57
+>  [<c0254f92>] driver_probe_device+0xb5/0x12c
+>  [<c0255040>] __driver_attach+0x37/0x55
+>  [<c02548d9>] bus_for_each_dev+0x34/0x56
+>  [<c0254e2d>] driver_attach+0x11/0x13
+>  [<c0255009>] __driver_attach+0x0/0x55
+>  [<c0254c2f>] bus_add_driver+0x8a/0x1a7
+>  [<c01f4193>] kset_find_obj+0x20/0x4a
+>  [<f98ae1e7>] cx88_audio_init+0x0/0x27 [cx88_alsa]
+>  [<c025521d>] driver_register+0x6d/0xc1
+>  [<c011e942>] printk+0x14/0x18
+>  [<f98ae1e7>] cx88_audio_init+0x0/0x27 [cx88_alsa]
+>  [<c01ff50d>] __pci_register_driver+0x3c/0x67
+>  [<c010111f>] _stext+0x37/0xfb
+>  [<c0116088>] enqueue_task+0xa/0x14
+>  [<c0118e6f>] try_to_wake_up+0x11c/0x125
+>  [<c013a8b4>] sys_init_module+0x87/0x176
+>  [<c0102d91>] sysenter_do_call+0x12/0x25
+>  [<c0350000>] rt_mutex_slowlock+0x213/0x3e1
+>  =======================
+> Code: 41 0c 89 42 04 89 f0 8b 4c 24 1c 45 8d 34 08 3b 6c 24 20 0f 85 40 
+> ff ff ff 5b 89 f8 5e 5f 5d c3 8b 48 38 31 d2 81 c1 34 00 20 00 <89> 11 
+> 8b 48 38 81 c1 40 c0 31 00 89 11 8b 48 38 81 c1 40 c0 32
+> EIP: [<fd917277>] cx88_shutdown+0xb/0x94 [cx88xx] SS:ESP 0068:f7b6bdf8
+> ---[ end trace d1865b13e5b6eb16 ]---
+>
+>   
 
 
---===============2042944399==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thomas
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2042944399==--
