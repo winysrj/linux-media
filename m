@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.168])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LPXcu-0005gx-R7
-	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 08:35:55 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so307209ugc.16
-	for <linux-dvb@linuxtv.org>; Tue, 20 Jan 2009 23:35:49 -0800 (PST)
-Date: Wed, 21 Jan 2009 08:35:41 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Daniel Dalton <d.dalton@iinet.net.au>
-In-Reply-To: <20090121003915.GA6120@debian-hp.lan>
-Message-ID: <alpine.DEB.2.00.0901210711360.11623@ybpnyubfg.ybpnyqbznva>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
-	<20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi>
-	<20090121003915.GA6120@debian-hp.lan>
+	(envelope-from <redtux1@googlemail.com>) id 1LJ4xp-000496-Jp
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 12:46:47 +0100
+Received: by bwz11 with SMTP id 11so14478162bwz.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 03:46:12 -0800 (PST)
+Message-ID: <ecc841d80901030346g738bde61rd3b529274d5fb69b@mail.gmail.com>
+Date: Sat, 3 Jan 2009 11:46:11 +0000
+From: "Mike Martin" <redtux1@googlemail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <alpine.DEB.2.00.0901031058380.32128@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] getting started with msi tv card
-Reply-To: linux-media@vger.kernel.org
+Content-Disposition: inline
+References: <ecc841d80901022041w72031858pc9b7bf6b6cb199fb@mail.gmail.com>
+	<alpine.DEB.2.00.0901031058380.32128@ybpnyubfg.ybpnyqbznva>
+Subject: Re: [linux-dvb] Is it posible to view digital teletext
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,265 +28,87 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Daniel, I see that while I was asleep (sleep GOOOD), you
-received more feedback, so I shall try to respond appropriately
-to parts of all these mails...
+On 03/01/2009, BOUWSMA Barry <freebeer.bouwsma@gmail.com> wrote:
+> On Sat, 3 Jan 2009, Mike Martin wrote:
+>
+>> Does anyone know if it is possible to view dvb teletext through linux
+>
+> Yes, but first, in your subject, you ask about Digital
+> Teletext which, in the UK, at least over satellite (Freesat)
+> is MHEG, while Sky uses the proprietary OpenWozzit, and
+> here you ask about DVB Teletext, as used by most of the
+> rest of the world (when not MHP), and which is different...
+>
+>
 
-On Wed, 21 Jan 2009, Daniel Dalton wrote:
+Well it is DVB teletext ie:through DVB-T not satelite of any description
+>> if i am getting the right pid
+>
+> The PID for DVB Teletext will be given on the PMT, as will
+> the necessary info for the MHEG carousels.  Note that over
+> satellite, pretty much the only DVB teletext is subtitles
+> on page 888 for the large channels (BBC, ITV, C4, etc),
+> and only Five has regular teletext pages otherwise.
+>
 
-> Does this mean I have to build the kernel?
-> If so, how do I get to this part of the setup what's it under in make
-> menuconfig for example?
+AFAIK all the commercial channels provide a "teletext" service
 
-Not necessarily -- as it turned out, your distribution
-seems to include all that you needed pre-built for you.
+This is the output of dvbtune -i
 
-However, to answer your question -- as part of the long
-and tedious process of configuring a new kernel, eventually
-you will reach an item concerning video and related
-multimedia devices, or something similar.  (It has been
-years since I last went through a from-nothing kernel
-configuration, so I remember almost nothing about it.)
-Your device would be listed as one of the many that are
-available.
+<service id="12928" ca="0">
+<description tag="0x48" type="1" provider_name="five" service_name="FIVER" />
+<stream type="2" pid="6673">
+<stream_id id="7" />
+</stream>
+<stream type="4" pid="6674">
+<iso_639 language="eng" type="0" />
+<stream_id id="145" />
+</stream>
+<stream type="4" pid="6675">
+<iso_639 language="eng" type="3" />
+<stream_id id="155" />
+</stream>
+<stream type="6" pid="6678">
+<subtitling_descriptor tag="0x59">
+<subtitle_stream lang="eng" type="16" composition_page_id="0002"
+ancillary_page_id="0002" />
+</subtitling_descriptor>
+</stream>
+</service>
 
-Sorry that I am not being more precise -- you do not now
-need to do this, so I am skipping the details yet offering
-an overview which may be helpful to you in the future.
+May be being very thick, but there is nothing that stands out
 
+ouput from quickscan (from libdvb) gives
+      CHANNEL ID 0 NAME "Five" PNAME "five" SATID 3e8 TPID 3e8 SID
+3242 TYPE 0 VPID 1781 APID 1782 APID 1783 PCRPID 1781 SUBPID 1786
 
-> > One thing you can do, is to plug your device into the USB port
-> > (if you haven't done so already), and check the output of
-> > `lsusb' for your device vendor and product IDs, to see if
-> > these match those in the source code.
-> 
-> What source code? The stuff you pasted above?
+I'm guessing this would be the right PID
+TPID 3e8
 
-This is no longer important, but you asked, so maybe it
-can help you in the future...
-
-The source code I refer to is that for the linux kernel,
-and for your device, it would be found in
-<path-to-your-source>/drivers/media/dvb/dvb-usb in
-files m920x.*
-Here you need to replace <path-to-your-source> with
-whatever the standard is on your system -- it could be
-/usr/src/linux-2.6.26 or something completely different --
-I actually have no experience with the different
-distributions, because I keep my own copy of Linus'
-source tree and make snapshots from that.
-
-Note that at present, you do *not* need to do this, as
-your distribution has the binary bits you need.  But
-if your curiosity makes you want to learn more about
-how you can build a new kernel from source, I am not
-going to try to stop you -- on the contrary, I will
-encourage you to learn as much as you like!
-
-
-> > I'm unsure of your level as a beginner, expert, or master of
-
-> I'm not bad in a console, but I'm mostly a home user I just use it for
-> work music browsing the web etc, and know a bit more. I can compile and
-> patch stuff, and know a tiny bit of c, so thats basically my level.
-
-Thanks, I will try to tune my advice to your level,
-yet perhaps also keep in mind someone who googles up
-this reply, with a different level of experience...
-
-
-> > > Finally, I'm vission impared, so are there any programs for controling
-
-> > Similarly for this reason, someone else will have to offer
-> > help on convenient end-user applications.  (I can offer
-> > good commandline suggestions, but `gtk' and `qt' have on
-> > meaning to me)
-> 
-> Can you recommend any command line programs? I love using the cli, and
-> if possible I would avoid using gnome.
-> Can mplayer control the tv?
-
-Yes, `mplayer' can do this, but it requires a bit of work
-and perhaps some understanding.  Let me explain the latter...
-
-`mplayer' is a wonderful all-purpose swiss-army-knife type
-of media player, that achieves flexibility, but may not
-seem as polished to the beginner.  The `man' page alone is
-often enough to cause a beginner's eyes to glaze over and
-for them to start going ``wibble'' before they even get to
-the interesting options.
-
-Due to the flexibility of `mplayer', it needs to try to
-determine the one out of many many different video formats
-which it supports, which takes some time when handling a
-broadcast stream.  This results in very slow channel
-change times, compared with, say, a good hardware-based
-consumer product.
-
-There are ways to speed this up, because I know that in
-my experience with broadcast media, I am only going to be
-seeing (presently) an MPEG Transport Stream from my DVB
-device, and that will be carrying a payload that will be
-MPEG 2 video (or maybe H.264), and Layer II or AC3 audio.
-
-I have built a small-footprint version of `mplayer' by
-manually editing the configuration to only include the
-code for the video, audio, and container formats that
-I expect to use that version for (in my case, verifying
-the integrity of recorded broadcast streams, but not
-actually sending the output to any video display).
-
-The other thing which can be done, is to call `mplayer'
-with the commandline options which tell it what demux
-to use (mpeg ts) and which video and audio codecs to
-use, which skips most of the autodetection process.
-This probably will speed up changing channels, to the
-speed of dedicated utilities that handle a single
-format, and essentially instantly start to deliver the
-output when, in my example, I tune into a multicast
-audio stream.
-
-
-
-Now, back to using `mplayer':
-
-It works from a list of channels, which you will need
-to create using a different utility.  It then uses
-simple keyboard input to cycle through the list of
-channels (I want to think that `k' and something else
-are used, but I honestly no longer remember), which
-is not too bad when you have only a few channels
-available.
-
-(Unfortunately, in my experience, older versions of
-`mplayer' have had some problems with keyboard input
-in some cases, such as after suspending the program,
-and perhaps when tuning after coming across more than
-one radio-only service, if I remember.  But I have not
-built and tried a new `mplayer' for some months...)
-
-Read on, as you have already tried without success to
-get a list of channels...
-
-
-> > Totem, Me-TV, Kaffeine, mplayer, Xine.
-> 
-> Mplayer works with this card? Great!
-
-Also, I have not had experience with the first three
-applications which Antti listed, but I have used
-`xine' as well as `vlc', but I cannot remember how
-well they worked for me.
-
-Except for `vlc' trying to listen to the multicast
-audio stream, where some blasted graphical display
-was invoked and took more than 100% of my CPU and
-caused audio dropouts, and I saw no way to disable that
-eye-candy and drop CPU to a near-zero level even on
-my ten-year-old machines.
-
-
-> How would I begin configuring it for mplayer then?
-
-You need to create a `channels.conf' list of channels
-that you then place under your ~/.mplayer/ directory.
-Then if you want to start with a particular channel,
-you will invoke `mplayer' something like
-`mplayer dvb://"Channel foo" '
-or simply as `mplayer dvb:// ' and then change channels
-to reach the one of interest.
-
-I am going to assume that your distribution already has
-`mplayer' available, and that it has been built with
-DVB support.  But this may be wrong, and it may be that
-you need to download the `mplayer' source, configure it
-to enable DVB support, and then let it build.
-
-
-> On Wed, Jan 21, 2009 at 12:46:32AM +0200, Antti Palosaari wrote:
-> > Yes, should work out of the box. No need to install any driver, driver 
-> > is included in your Kernel.
-> 
-> /dev/dvb/adapter0/ is created. so does this mean the right modules have
-> been loaded?
-
-Yes, everything is fine, and you should not need to do
-anything building a new kernel or new modules.
-
-
-> > configure. Otherwise you will need initial tuning file and then scan to 
-> > get channels.conf. Try google for more info.
-> 
-> I've been googling, and have played with w_scan and me-tv.
-> Kaffeine unfortunately is qt and won't work with braille/speech, but
-> me-tv does. So I got sighted help to scan for channels in kaffeine, the
-> scan didn't find any channels.
-> Next, I ran the w_scan program, and that as well failed to find any
-> channels. Finally, I ran me-tv and that as well failed. (I selected my
-> location for me-tv).
-
-It may help if you use `scan' which is part of the `dvb-apps'
-suite of programs.  This makes use of an initial tuning file,
-and there should be one already available for your location.
-
-I vaguely remember reading that in Australia, use is made of
-either an offset to the frequency, or of a bandwidth that is
-different from the rest of the world, which has led to
-problems with certain firmware.  And in fact, looking at the
-initial scanfiles available for .au, both appear to be so:
-
-# Australia / Melbourne (Mt Dandenong transmitters)
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-# ABC
-T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Seven
-T 177500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Nine
-T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Ten
-T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# SBS
-T 536625000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-
-
-Make certain that you select the correct initial scan file
-for your location, available as part of the `dvb-apps'
-package -- here you probably will do best to obtain the
-latest source via `hg' because the scanfiles may not be
-up-to-date as included in a distribution, although the
-binary should be mostly unchanged.
-
-
-> So, how do I get w_scan or me-tv to find some channels? It's probably
-
-While I have the `w_scan' source mirrored, I actually
-have not taken any time to look at it :-)  Perhaps it
-is not able to find frequencies such as the above...
-
-
-> not worth talking about kaffeine as I won't be able to use this. I'm
-> plugging my usb receiver into a tv connection in my home which a
-> standard tv would plug into.
-
-If you continue to have problems, then later I will ask
-for information to help troubleshoot -- such as your
-location, and whether a normal digital TV can receive
-signals from the same connection.  But I am hoping that
-use of `scan' alone will give you results.
-
-
-> Thanks very much for your help,
-
-Happy to help.  If I have done anything in my replies
-that has not worked with your vision, then please do not
-hesitate to give me feedback, so that I can change my
-way of thinking.
-
-
-barry bouwsma
+> Check out `redbutton-download' and `redbutton-browser'
+> for an application that can display MHEG pages, as sent
+> out by at least the Beeb last time I looked, shortly
+> before the official launch of Freesat, which was written
+> for DVB-T, but also works for select Freesat DVB-S.
+>
+>
+>> Any help apreciated  (I am in the UK)
+>
+> Probably the above is what you need.  For regular DVB
+> teletext, like Five via Freesat, I use `dvbstream' on
+> the teletext PIDs from a particular transponder, piped
+> to a hacked version of `jpvtx' that writes the individual
+> pages.  For viewing, there's an X-aware `xvtx-p', or I've
+> a heavily hacked `vtx-to-utf8' from the `jpvtx' package
+> (originally not UTF8 but to 8859-15 with added support
+> for colours, non-ASCII characters, and limited graphics)
+>
+>
+> hope this is helpful
+> barry bouwsma
+>
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
