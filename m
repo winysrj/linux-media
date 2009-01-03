@@ -1,26 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1LLYbf-0000eO-Lo
-	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 08:50:09 +0100
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1LLYba-0005Me-Jr
-	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 07:50:02 +0000
-Received: from rain.gmane.org ([80.91.229.7])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sat, 10 Jan 2009 07:50:02 +0000
-Received: from thomas by rain.gmane.org with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sat, 10 Jan 2009 07:50:02 +0000
+	(envelope-from <redtux1@googlemail.com>) id 1LIuGn-0006Ly-UK
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 01:21:39 +0100
+Received: by bwz11 with SMTP id 11so14210608bwz.17
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 16:21:04 -0800 (PST)
+Message-ID: <ecc841d80901021621v277ed844wde26deb57f54ed23@mail.gmail.com>
+Date: Sat, 3 Jan 2009 00:21:02 +0000
+From: "Mike Martin" <redtux1@googlemail.com>
 To: linux-dvb@linuxtv.org
-From: =?ISO-8859-15?Q?Thomas_M=FCller?= <thomas@mathtm.de>
-Date: Sat, 10 Jan 2009 08:42:18 +0100
-Message-ID: <gk9jgq$6u5$1@ger.gmane.org>
-References: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-Mime-Version: 1.0
-In-Reply-To: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-Subject: Re: [linux-dvb] Mantis users
+In-Reply-To: <1230927589.3798.1.camel@linux-wcrt.site>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <ecc841d80901011033s58b2fecawd3dd2d42c1b09cd7@mail.gmail.com>
+	<1230846027.3818.1.camel@linux-wcrt.site>
+	<ecc841d80901011726m95a05f1l8b85b43630562d31@mail.gmail.com>
+	<1230887100.3791.2.camel@linux-wcrt.site>
+	<ecc841d80901020855u730d55a1p4255deacab7db7d4@mail.gmail.com>
+	<1230927589.3798.1.camel@linux-wcrt.site>
+Subject: Re: [linux-dvb] dvbsream v0-5 and -n switch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,46 +32,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi :)
-
-Manu Abraham schrieb:
-> Can you all please provide me the following information for the Mantis /
-> Hopper bridge
-> based cards that you have in the following manner ?
-> 
-> 1) Card Name (As advertised on the cardboard box):
-
-TerraTec Cinergy S2 PCI HD
-http://www.terratec.net/de/produkte/Cinergy_S2_PCI_HD_2335.html
-http://www.terratec.net/en/products/Cinergy_S2_PCI_HD_2336.html
-
-
-> 2) lspci -vvn:
-
-07:02.0 0480: 1822:4e35 (rev 01)
-	Subsystem: 153b:1179
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 32 (2000ns min, 63750ns max)
-	Interrupt: pin A routed to IRQ 18
-	Region 0: Memory at e3000000 (32-bit, prefetchable) [size=4K]
-	Kernel driver in use: Mantis
-	Kernel modules: mantis
+On 02/01/2009, Nico Sabbi <nicola.sabbi@poste.it> wrote:
+> Il giorno ven, 02/01/2009 alle 16.55 +0000, Mike Martin ha scritto:
+>> On 02/01/2009, Nico Sabbi <nicola.sabbi@poste.it> wrote:
+>
+>> >
+>> > fixed in cvs
+>> >
+>>
+>> I thought that I had got latest cvs. Could you confirm where cvs is
+>> hosted, I assumed from sourceforge and did a checkout last night
+>>
+>
+> the cvs is in the sourceforge repository; I committed the fix this
+> morning
 
 
-> 3) Chips on the card if you know them (only the basic chip description
-> is required,
-> not the complete batch no. etc)
-> 
-no idea, but if necessary I could remove the card from the case and have a look...
+thanks - try it later
 
+BTW - this message at the prompt
 
-Regards,
-Thomas
+Latest version available from http://www.linuxstb.org/
 
+may need to be changed - site doesnt seem to be much to do with dvbstream
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
