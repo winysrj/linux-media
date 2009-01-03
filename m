@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bay0-omc2-s16.bay0.hotmail.com ([65.54.246.152])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <peternmk@hotmail.com>) id 1LRnfv-00050w-P3
-	for linux-dvb@linuxtv.org; Tue, 27 Jan 2009 14:08:20 +0100
-Message-ID: <BAY103-W54FDBEFCD6B53093713ACBD1CB0@phx.gbl>
-From: Peter Nemeik <peternmk@hotmail.com>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 27 Jan 2009 13:07:40 +0000
+	(envelope-from <gregoire.favre@gmail.com>) id 1LJ24a-0005vT-Jd
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 09:41:33 +0100
+Received: by bwz11 with SMTP id 11so14395057bwz.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 00:40:59 -0800 (PST)
+Date: Sat, 3 Jan 2009 09:40:55 +0100
+To: linux-dvb@linuxtv.org
+Message-ID: <20090103084055.GA3553@gmail.com>
+References: <20090102230759.GA3017@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] (no subject)
-Reply-To: linux-media@vger.kernel.org
+Content-Disposition: inline
+In-Reply-To: <20090102230759.GA3017@gmail.com>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] BUG cx88 don't work on S2API/2.6.28 amd64 (disseqc
+	?)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,85 +22,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1313588274=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1313588274==
-Content-Type: multipart/alternative;
-	boundary="_86dc6392-dbbb-482b-b55d-0374de7c69d3_"
+On Sat, Jan 03, 2009 at 12:07:59AM +0100, Gregoire Favre wrote:
 
---_86dc6392-dbbb-482b-b55d-0374de7c69d3_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Could it be a similar problem as seen in :
+http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030707.html ?
 
+> just to be sure I don't have an hardware problem I came back to a 2.6.27
+> kernel on which I can compil multiproto : all my DVB cards works
+> perfectly there.
+> =
 
-Hallo=2C
+> Under 2.6.28 and today's v4l-dvb hg source the cx88 cards don't tune at
+> all (geniatech budget and Hauppauge HVR-4000).
+> =
 
-I am looking for Firmware Drivers for the LogiLink VG0002 USB2.0 DVB-T Stic=
-k.
+> I have three diseqcs for all cards I have, which are each connected to
+> three quad lnb (or quattro : those which are like four different lnb and
+> need diseqc signals to choose l/h h/v), for example I set up VDR like
+> this :
+> =
 
-There is a Tuner Chip Maxlinear MXL 5003S and
-a Chip from EC168 (EC168.com) XCMK27819X.
-I had the Information from the LogiLink Hotline.
+> S13.0E 11700 V  9750 t v W15 [E0 10 38 F0] W15 t
+> S13.0E 99999 V 10600 t v W15 [E0 10 38 F1] W15 T
+> S13.0E 11700 H  9750 t V W15 [E0 10 38 F2] W15 t
+> S13.0E 99999 H 10600 t V W15 [E0 10 38 F3] W15 T
+> S19.2E 11700 V  9750 t v W15 [E0 10 38 F4] W15 t
+> S19.2E 99999 V 10600 t v W15 [E0 10 38 F5] W15 T
+> S19.2E 11700 H  9750 t V W15 [E0 10 38 F6] W15 t
+> S19.2E 99999 H 10600 t V W15 [E0 10 38 F7] W15 T
+> S28.2E 11700 V  9750 t v W15 [E0 10 38 F8] W15 t
+> S28.2E 99999 V 10600 t v W15 [E0 10 38 F9] W15 T
+> S28.2E 11700 H  9750 t V W15 [E0 10 38 FA] W15 t
+> S28.2E 99999 H 10600 t V W15 [E0 10 38 FB] W15 T
+> =
 
-The Software by the Stick is only fpr Windows XP=2C 2000 and Vista.
+> I can't tune with the cx88 cards using S2API neither with VDR nor
+> szap(.*).
+> =
 
-The Stick is from www.pollin.de=20
-http://www.pollin.de/shop/detail.php?pg=3DNQ=3D=3D&a=3DNjM5ODI0OTk=3D
+> from lspci :
+> 04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+> 04:02.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and=
+ Audio Decoder (rev 05)
+> 04:02.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio=
+ Decoder [Audio Port] (rev 05)
+> 04:02.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio=
+ Decoder [MPEG Port] (rev 05)
+> 04:02.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio=
+ Decoder [IR Port] (rev 05)
+> 04:05.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and=
+ Audio Decoder (rev 03)
+> 04:05.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio=
+ Decoder [MPEG Port] (rev 03)
+> =
 
+> If they are any more info I could give to help solve this really annoying
+> bug, I would be happy to give them.
+-- =
 
-
-
-_________________________________________________________________
-http://redirect.gimas.net/?n=3DM0902xHMMobile
-Nie wieder eine Mail verpassen mit Hotmail f=FCrs Handy!=
-
---_86dc6392-dbbb-482b-b55d-0374de7c69d3_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style>
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 10pt=3B
-font-family:Verdana
-}
-</style>
-</head>
-<body class=3D'hmmessage'>
-Hallo=2C<br><br>I am looking for Firmware Drivers for the LogiLink VG0002 U=
-SB2.0 DVB-T Stick.<br><br>There is a Tuner Chip Maxlinear MXL 5003S and<br>=
-a Chip from EC168 (EC168.com) XCMK27819X.<br>I had the Information from the=
- LogiLink Hotline.<br><br>The Software by the Stick is only fpr Windows XP=
-=2C 2000 and Vista.<br><br>The Stick is from www.pollin.de <br>http://www.p=
-ollin.de/shop/detail.php?pg=3DNQ=3D=3D&amp=3Ba=3DNjM5ODI0OTk=3D<br><br><br>=
-<br><br /><hr />Brand neu: Top Videos auf MSN ClipClub! Schau Dir die beste=
-n Playlists an  <a href=3D'http://redirect.gimas.net/?n=3DM0902ClipClub' ta=
-rget=3D'_new'>>> Play now!</a></body>
-</html>=
-
---_86dc6392-dbbb-482b-b55d-0374de7c69d3_--
-
-
---===============1313588274==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1313588274==--
