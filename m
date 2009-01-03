@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp130.rog.mail.re2.yahoo.com ([206.190.53.35])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1LM7ji-00023l-MP
-	for linux-dvb@linuxtv.org; Sun, 11 Jan 2009 22:20:48 +0100
-Message-ID: <496A628B.1010805@rogers.com>
-Date: Sun, 11 Jan 2009 16:20:11 -0500
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Pierre-Jean BELIN <pjb.belin@gmail.com>
-References: <c54d87990901091235k1a1736dfka0bda9d720f2667@mail.gmail.com>
-In-Reply-To: <c54d87990901091235k1a1736dfka0bda9d720f2667@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Post:/dev directory not populated while trying to
- use a	Cinergy DT USB XS Diversity USB TV tuner
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1LIym2-0000kG-Dw
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 06:10:12 +0100
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1LIylu-0004sS-W4
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 05:10:03 +0000
+Received: from 116.209.11.123 ([116.209.11.123])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 05:10:02 +0000
+Received: from peter by 116.209.11.123 with local (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 05:10:02 +0000
+To: linux-dvb@linuxtv.org
+From: Peter Hoeg <peter@hoeg.com>
+Date: Sat, 3 Jan 2009 04:38:47 +0000 (UTC)
+Message-ID: <loom.20090103T043514-870@post.gmane.org>
+Mime-Version: 1.0
+Subject: [linux-dvb] HVR-1200, cx23885 driver and Message Signaled Interrupts
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,53 +32,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Pierre-Jean BELIN wrote:
-> Hello
->
-> I am trying to use a TerraTec Cinergy DT USB XS Diversity USB key to
-> broadcast video on my private network.
->
-> I have followed tutorials from www.linuxtv.org but impossible to start
-> the device.
->
-> The key works correctly on Vista, so I am sure that the device is not
-> out of order.
->
-> My OS is a Fedora Sulfur ; kernel version : 2.6.27.9-73.fc9; my box is a 64bits
->
-> 1) I describe hereunder all the steps I followed to (unsuccessfully)
-> start the key.
->
-> Everything is based on www.linuxtv.org tutos.
->
-> a) Installation of Mercurial and download of all the sources to
-> compile the modules.
-> b) As mentioned in the description of the key
-> (http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity#Firmware)
-> my device id is 0081 instead of 005a. Thus, I have modified (only
-> replace 005a by 0081) the file
-> linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h to take into account
-> this change.
->
-> Old line
-> ==================================================================
->  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY        0x005a
-> ==================================================================
-> New line
-> ==================================================================
->  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY        0x0081
-> ==================================================================
-Pierre,
+Hi,
 
-It requires a little bit more more changes to the source code. See
-Nicolas' patch, which he resubmitted (and hopefully gets picked up this
-time) a few hours after your message:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg00138.html
+I'm successfully using a HVR1200, however the board reports MSI capabilities and
+the driver doesn't seem to enable it. Is there any work happening on supporting
+MSI? Anyway I can help testing things out?
 
+$ lspci -v -s 4:0.0
+04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video
+and Audio Decoder (rev 02)
+	Subsystem: Hauppauge computer works Inc. Device 71d3
+	Flags: bus master, fast devsel, latency 0, IRQ 16
+	Memory at ef800000 (64-bit, non-prefetchable) [size=2M]
+	Capabilities: [40] Express Endpoint, MSI 00
+	Capabilities: [80] Power Management version 2
+	Capabilities: [90] Vital Product Data <?>
+	Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0 Enable-
+	Capabilities: [100] Advanced Error Reporting <?>
+	Capabilities: [200] Virtual Channel <?>
+	Kernel driver in use: cx23885
+	Kernel modules: cx23885
+
+Regards,
+Peter
 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
