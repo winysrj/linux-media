@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1LIWIo-0005a6-Ov
-	for linux-dvb@linuxtv.org; Thu, 01 Jan 2009 23:46:08 +0100
-Received: by bwz11 with SMTP id 11so13296617bwz.17
-	for <linux-dvb@linuxtv.org>; Thu, 01 Jan 2009 14:45:33 -0800 (PST)
-Date: Thu, 1 Jan 2009 23:45:28 +0100
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <hfvogt@gmx.net>) id 1LJ9M7-00079y-No
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 17:28:09 +0100
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
 To: linux-dvb@linuxtv.org
-Message-ID: <20090101224528.GC3592@gmail.com>
+Date: Sat, 3 Jan 2009 17:27:26 +0100
+References: <loom.20090103T043514-870@post.gmane.org>
+In-Reply-To: <loom.20090103T043514-870@post.gmane.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: [linux-dvb] What tools for S2API ?
+Message-Id: <200901031727.26569.hfvogt@gmx.net>
+Subject: Re: [linux-dvb] HVR-1200,
+	cx23885 driver and Message Signaled Interrupts
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,104 +20,92 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Am Samstag, 3. Januar 2009 05:38:47 schrieb Peter Hoeg:
+> Hi,
+>
+> I'm successfully using a HVR1200, however the board reports MSI
+> capabilities and the driver doesn't seem to enable it. Is there any work
+> happening on supporting MSI? Anyway I can help testing things out?
+>
+> $ lspci -v -s 4:0.0
+> 04:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
+> Video and Audio Decoder (rev 02)
+> 	Subsystem: Hauppauge computer works Inc. Device 71d3
+> 	Flags: bus master, fast devsel, latency 0, IRQ 16
+> 	Memory at ef800000 (64-bit, non-prefetchable) [size=2M]
+> 	Capabilities: [40] Express Endpoint, MSI 00
+> 	Capabilities: [80] Power Management version 2
+> 	Capabilities: [90] Vital Product Data <?>
+> 	Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0
+> Enable- Capabilities: [100] Advanced Error Reporting <?>
+> 	Capabilities: [200] Virtual Channel <?>
+> 	Kernel driver in use: cx23885
+> 	Kernel modules: cx23885
+>
+> Regards,
+> Peter
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-my Hauppauge budget-ci seems to works well with szap/kaffeine/VDR but my
-Geniatech DVB-S and my Hauppauge HVR-4000 seems to only works with
-kaffeine.
+Hi Peter, hi List,
 
->From kaffeine :
-Tuning to: ZDFtheaterkanal / autocount: 0
-DvbCam::probe(): /dev/dvb/adapter1/ca0: : No such file or directory
-Using DVB device 1:0 "Conexant CX24116/CX24118"
-tuning DVB-S to 11953000 h 27500000
-inv:2 fecH:3
-DiSEqC: switch pos 1, 18V, hiband (index 7)
-DiSEqC: e0 10 38 f7 00 00
-. LOCKED.
-NOUT: 1
-dvbEvents 1:0 started
-Tuning delay: 5929 ms
-pipe opened
-xine pipe opened /home/greg/.kaxtv.ts
+attached is a patch that enables MSI on the cx23885. I tested this patch for a 
+while now on a Dvico FusionHDTV Dual Express and have not found any side 
+effects. It works on versions 2.6.27.x and 2.6.28. 2.6.28-gitx not tried yet.
 
-But ./szap -c /usr/src/CVS/dvb-apps/util/szap/channels-conf/dvb-s/Astra-19.=
-2E -x -a1 -n19
-reading channels from file '/usr/src/CVS/dvb-apps/util/szap/channels-conf/d=
-vb-s/Astra-19.2E'
-zapping to 19 'ZDF Theaterkanal':
-sat 0, frequency =3D 11954 MHz H, symbolrate 27500000, vpid =3D 0x0456, api=
-d =3D 0x0460 sid =3D 0x6d70
-using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-status 01 | signal d240 | snr 0000 | ber 00000000 | unc 00000000 | =
+Regards,
+Hans-Frieder
 
-status 01 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-status 03 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
+--- linux-2.6.28.orig/drivers/media/video/cx23885/cx23885-core.c	2008-10-25 
+18:10:32.000000000 +0200
++++ linux-2.6.28/drivers/media/video/cx23885/cx23885-core.c	2009-01-03 
+17:08:55.665685231 +0100
+@@ -44,6 +44,10 @@ static unsigned int card[]  = {[0 ... (C
+ module_param_array(card,  int, NULL, 0444);
+ MODULE_PARM_DESC(card, "card type");
+ 
++static int enable_msi;
++module_param(enable_msi, int, 0444);
++MODULE_PARM_DESC(enable_msi, "Enable Message Signaled Interrupt (MSI)");
++
+ #define dprintk(level, fmt, arg...)\
+ 	do { if (debug >= level)\
+ 		printk(KERN_DEBUG "%s/0: " fmt, dev->name, ## arg);\
+@@ -1750,7 +1754,11 @@ static int __devinit cx23885_initdev(str
+ 		goto fail_irq;
+ 	}
+ 
+-	err = request_irq(pci_dev->irq, cx23885_irq,
++	if (enable_msi && (pci_enable_msi(pci_dev) >= 0))
++		err = request_irq(pci_dev->irq, cx23885_irq,
++			IRQF_DISABLED, dev->name, dev);
++	else
++		err = request_irq(pci_dev->irq, cx23885_irq,
+ 			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+ 	if (err < 0) {
+ 		printk(KERN_ERR "%s: can't get IRQ %d\n",
+@@ -1778,6 +1786,8 @@ static void __devexit cx23885_finidev(st
+ 
+ 	/* unregister stuff */
+ 	free_irq(pci_dev->irq, dev);
++	if (pci_dev->msi_enabled)
++		pci_disable_msi(pci_dev);
+ 	pci_set_drvdata(pci_dev, NULL);
+ 
+ 	mutex_lock(&devlist);
 
-status 01 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 01 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 01 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d140 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 01 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d1c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-
-And after edit :
-./szap -c /usr/src/CVS/dvb-apps/util/szap/channels-conf/dvb-s/Astra-19.2E -=
-x -a1 -n19
-reading channels from file '/usr/src/CVS/dvb-apps/util/szap/channels-conf/d=
-vb-s/Astra-19.2E'
-zapping to 19 'ZDF Theaterkanal':
-sat 0, frequency =3D 11953 MHz H, symbolrate 27500000, vpid =3D 0x0456, api=
-d =3D 0x0460 sid =3D 0x6d70
-using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-status 03 | signal d240 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 01 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 03 | signal d2c0 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-status 01 | signal d340 | snr 0000 | ber 00000000 | unc 00000000 | =
-
-
-Also, VDR fails with those two cards ???
-
-I am a bit lost here, does someone got an idea for me ?
-
-I just recompiled the v4l-dvb's hg source, no change (except that I didn't
-patch the source for DVB-S2 capability anymore).
-
-Thanks.
--- =
-
-Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
-               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
