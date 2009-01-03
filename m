@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n095eQNV022050
-	for <video4linux-list@redhat.com>; Fri, 9 Jan 2009 00:40:26 -0500
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.189])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n095e9bY015120
-	for <video4linux-list@redhat.com>; Fri, 9 Jan 2009 00:40:09 -0500
-Received: by ti-out-0910.google.com with SMTP id 24so8275814tim.7
-	for <video4linux-list@redhat.com>; Thu, 08 Jan 2009 21:40:08 -0800 (PST)
-From: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>
-To: Darren Salt <linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <501FED41FC%linux@youmustbejoking.demon.co.uk>
-References: <2ac79fa40901072131m10be588axb3de61ef81bb943f@mail.gmail.com>
-	<20090108093849.0e885ec5@pedra.chehab.org>
-	<501FED41FC%linux@youmustbejoking.demon.co.uk>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 09 Jan 2009 12:37:34 +0700
-Message-Id: <1231479454.6989.1.camel@AcerAspire4710>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] pwc: add support for webcam snapshot button
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n03LKI4p022537
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 16:20:18 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n03LK3TJ010085
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 16:20:04 -0500
+Date: Sat, 3 Jan 2009 22:20:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0901032216190.15363@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] Switch remaining clear_user_page users over to
+	clear_user_highpage
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,19 +26,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thanks. I'll see it.
-> I demand that Mauro Carvalho Chehab may or may not have written...
-> 
-> > On Thu, 8 Jan 2009 12:31:48 +0700
-> > "Nam Phạm Thành"  <phamthanhnam.ptn@gmail.com> wrote:
-> >> OK, resent. Hope it's OK now.
-> 
-> > Unfortunately, it is not 100% ok.
-> 
-> I have a somewhat old patch for this, some of which may be useful now:
-> http://lists-archives.org/video4linux/11287-pwc-provide-an-input-device-for-the-snapshot-button-types-720-730-and-740.html
-> 
-> [snip]
+Not all architectures provide clear_user_page(), but clear_user_highpage() 
+is available everywhere at least via the compatibility inline function.
+
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+Is this the "trivial patch" that's required for these two drivers?
+
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index bc6d5ab..da1790e 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -388,8 +388,7 @@ videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	page = alloc_page(GFP_USER | __GFP_DMA32);
+ 	if (!page)
+ 		return VM_FAULT_OOM;
+-	clear_user_page(page_address(page), (unsigned long)vmf->virtual_address,
+-			page);
++	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
+ 	vmf->page = page;
+ 	return 0;
+ }
+diff --git a/drivers/staging/go7007/go7007-v4l2.c b/drivers/staging/go7007/go7007-v4l2.c
+index 94e1141..77c9265 100644
+--- a/drivers/staging/go7007/go7007-v4l2.c
++++ b/drivers/staging/go7007/go7007-v4l2.c
+@@ -1371,8 +1371,7 @@ static int go7007_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 	page = alloc_page(GFP_USER | __GFP_DMA32);
+ 	if (!page)
+ 		return VM_FAULT_OOM;
+-	clear_user_page(page_address(page), (unsigned long)vmf->virtual_address,
+-			page);
++	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
+ 	vmf->page = page;
+ 	return 0;
+ }
 
 --
 video4linux-list mailing list
