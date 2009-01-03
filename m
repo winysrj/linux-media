@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1LKEyq-0006gB-OJ
-	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 17:40:37 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so2906867fga.25
-	for <linux-dvb@linuxtv.org>; Tue, 06 Jan 2009 08:40:33 -0800 (PST)
-Date: Tue, 6 Jan 2009 17:40:23 +0100
+	(envelope-from <gregoire.favre@gmail.com>) id 1LJCJn-0007Ia-Je
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 20:37:56 +0100
+Received: by bwz11 with SMTP id 11so14742666bwz.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 11:37:22 -0800 (PST)
+Date: Sat, 3 Jan 2009 20:37:18 +0100
 To: linux-dvb@linuxtv.org
-Message-ID: <20090106164023.GB3403@gmail.com>
-References: <20090105141053.GB32196@gmail.com>
-	<1231201429.3110.5.camel@palomino.walls.org>
+Message-ID: <20090103193718.GB3118@gmail.com>
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <1231201429.3110.5.camel@palomino.walls.org>
+In-Reply-To: <c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
 From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] cx25840-core.c don't compil today
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,9 +30,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Jan 05, 2009 at 07:23:49PM -0500, Andy Walls wrote:
+Well,
 
-Thank you again, I think it came to v4l-dvb in a way or another ;-)
+I would suggest not using S2API as it's seems to be broken for our card
+at this time, I did test steven s2 repo which is better that all other
+S2API repo I have tested but still worse than lipliandvb (multiproto
+hg).
+
+I wrote about the problem of the cx88 cards on this exact same ml ;-)
 -- =
 
 Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
