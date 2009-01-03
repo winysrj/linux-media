@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n046jVmR008644
-	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 01:45:31 -0500
-Received: from smtp106.rog.mail.re2.yahoo.com (smtp106.rog.mail.re2.yahoo.com
-	[68.142.225.204])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n046jFAX022375
-	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 01:45:15 -0500
-Message-ID: <49605AFA.3000208@rogers.com>
-Date: Sun, 04 Jan 2009 01:45:14 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n03FKARl002095
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 10:20:10 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n03FJt4I017295
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 10:19:56 -0500
+Date: Sat, 3 Jan 2009 16:20:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Andy Walls <awalls@radix.net>
+In-Reply-To: <1230993179.4302.11.camel@palomino.walls.org>
+Message-ID: <Pine.LNX.4.64.0901031611350.3955@axis700.grange>
+References: <f17812d70901020716n2e6bb9cas2958ea4df2a19af8@mail.gmail.com>
+	<Pine.LNX.4.64.0901021625420.4694@axis700.grange>
+	<20090103104338.6822c576@pedra.chehab.org>
+	<Pine.LNX.4.64.0901031415060.3955@axis700.grange>
+	<1230993179.4302.11.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
-	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
-In-Reply-To: <412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] pxa-camera: fix redefinition warnings and missing DMA
+ definitions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,34 +31,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Devin Heitmueller wrote:
-> On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
-> <rob.krakora@messagenetsystems.com> wrote:
->   
->> Mauro:
->>
->> The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
->> LGDT330X.  Hence the error initializing the LGDT330X in the current source
->> in em28xx-dvb.c.
->>
->> Best Regards,
->>     
->
-> Hello Robert,
->
-> Well, that's good to know.  I don't think anyone has done any work on
-> that device recently, so I don't know why the code has it as an
-> lgdt3303.
+On Sat, 3 Jan 2009, Andy Walls wrote:
 
-I believe Douglas submitted this patch
-(http://linuxtv.org/hg/v4l-dvb/rev/77f789d59de8) that got committed. 
+> On Sat, 2009-01-03 at 15:04 +0100, Guennadi Liakhovetski wrote:
+> 
+> > Can we pleeeeease somehow consider possibilities to move to a complete 
+> > kernel-tree development, or at least allow both. Whereas I personally see 
+> > no good way to have both. I really don't understand why you think, that 
+> > v4l users are not intelligent enough to compile complete kernel trees. 
+> > IMHO it is simpler, than compiling external drivers, but that's subjective 
+> > of course.
+> 
+> I'd just like to interject that my 53.333 kbps download speed on
+> dial-up, on a good day, makes an initial git clone (or whatever) of 150
+> MB a painful experience.
 
-I've been meaning to get back to this because the "A316" part of the
-name caught my attention -- I do not recall having seen such a reference
-made by KWorld, nor is it typical of their nomenclature style, rather,
-it is entirely consistent with that used by AVerMedia
+I think, I can understand you quite well, I only moved to DSL about 3 
+years ago, and the first DSL that I had was WLAN to some hot-spot with 
+varying quality and availability... But - you don't have to clone kernels 
+_often_. As you say, you only have to do this once. And I would make a 
+"shallow" clone - you don't need the whole kernel history since the 
+introduction of git. And yes, I think, it will make up those 150MB you're 
+referring above. And then, after the initial clone you just pull updates, 
+which is much less, as you certainly know. So, yes, the initial clone 
+would be painful for you, sorry... Is it at least a flat-rate?
 
+> Compiling whole kernels: no big deal on a modern machine.
 
+I'm sure also here not everyone will agree. I also only upgraded from my 
+Duron 900MHz less than a year ago.
+
+> Pulling down big repos over dial-up: like sucking a watermelon through a
+> straw.
+> 
+> 
+> Whatever the solution, please remeber those of us on the fringe of
+> civilization that Verizon has forsaken: no DSL, no FiOS, EV-DO has data
+> transfer caps and requires an amplifier and a high gain antenna.  (I'd
+> rather not have to use "linux development" as the justification for the
+> cost of cable service in the household budget.)
+
+Yes, there are pro and contra.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
