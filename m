@@ -1,18 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <496FE555.7090405@rogers.com>
-Date: Thu, 15 Jan 2009 20:39:33 -0500
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-In-Reply-To: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=US-ASCII
+From: Andy Walls <awalls@radix.net>
+To: Mark Jenks <mjenks1968@gmail.com>
+In-Reply-To: <e5df86c90901020803w75d5aab1g8b73b9da4c6b178@mail.gmail.com>
+References: <e5df86c90901020803w75d5aab1g8b73b9da4c6b178@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 03 Jan 2009 08:51:21 -0500
+Message-Id: <1230990681.3119.16.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>, Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: {PATCH] If using HVR-1250 and HVR-1800 in the same system it
+	causes kernel oops.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,57 +22,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
+On Fri, 2009-01-02 at 10:03 -0600, Mark Jenks wrote:
+> Analog support for HVR-1250 is not completed, but exists for the HVR-1800.
+> This causes a NULL error to show up in video_open and mpeg_open.
+> 
+> -Mark
 
-> is your board suppossed to have a tda9887 as well?
+A few things:
 
-Hi Hans,
+1.  Your subject line has a typo: {PATCH] instead of [PATCH].  This
+might cause people with automatic mail rules to miss the message.
 
-Yes, indeed, the device does contain the tda9887.
+2.  You forgot your Signed-off-by.  Read this:
+
+http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Developer.27s_Certificate_of_Origin_1.1
+
+and then add a line to the e-mail like "Signed-off-by: Mark Jenks
+<mjenks1968@gmail.com>"
 
 
->> Hans' changes are not enough to fix the ATSC115 issue.
->>     
->
-> Ah, OK.
->
->   
->> I believe that if you can confirm that the same problem exists, but the
->> previous workaround continues to work even after Hans' changes, then I
->> believe that confirms that Hans' changes Do the Right Thing (tm).
->>     
+3. You need to Cc: the driver maintainer.  I believe the patch will need
+his "Acked-by:", even if he himself doesn't put it in the repository.
 
-err, I'm afraid I might be reading to much into your statement Michael
---- if you meant to question whether, after building Hans' changes, a
-"modprobe tuner -r" and "modprobe tuner " worked, then the answer is no,
-such did not work. (no results in dmesg are observed either, much like
-what was discussed later; specifically:
+(one more below ...)
 
->  we are no longer able to remove the "tuner" module and modprobe it again --
-> the second modprobe will not allow for an attach, as there will be no
-> way for the module to be recognized 
->   
+> --- a/linux/drivers/media/video/cx23885/cx23885-417.c   2009-01-01
+> 14:27:15.000000000 -0600
+> +++ b/linux/drivers/media/video/cx23885/cx23885-417.c   2009-01-01
+> 14:27:39.000000000 -0600
+> @@ -1593,7 +1593,8 @@
+>         lock_kernel();
+>         list_for_each(list, &cx23885_devlist) {
+>                 h = list_entry(list, struct cx23885_dev, devlist);
+> -               if (h->v4l_device->minor == minor) {
+> +               if (h->v4l_device &&
+> +                   h->v4l_device->minor == minor) {
+>                         dev = h;
+>                         break;
+>                 }
+> --- a/linux/drivers/media/video/cx23885/cx23885-video.c Fri Dec 26 08:07:39
+> 2008 -0200
+> +++ b/linux/drivers/media/video/cx23885/cx23885-video.c Sun Dec 28 16:34:04
+> 2008 -0500
+> @@ -786,7 +786,8 @@ static int video_open(struct inode *inod
+>        lock_kernel();
+>        list_for_each(list, &cx23885_devlist) {
+>                h = list_entry(list, struct cx23885_dev, devlist);
+> -               if (h->video_dev->minor == minor) {
+> +               if (h->video_dev &&
+> +                   h->video_dev->minor == minor) {
 
-If you had meant taking Hans' source and applying your "hack" patch to
-them, building and then proceeding with the modprobe steps, the answer
-is that I haven't tried yet. Will test -- might not be tonight though,
-as I have some other things that need attending too.
+4.  Modifying my original suggestion, maybe the better change here is:
 
-> Anyway, if the previous workaround works after Hans' changes, then I
-> think his changes should be merged -- even though it doesnt fix ATSC115,
-> it is indeed a step into the right direction.
->
-> If the ATSC115 hack-fix patch doesn't apply anymore, please let me know
-> -- I'll respin it.
+		h = list_entry(list, struct cx23885_dev, devlist);
++		if (h->video_dev == NULL)
++			continue;
+		if (h->video_dev->minor == minor) {
 
-Given this statement, then perhaps it was a case of the latter. As
-mentioned, I will rebuild and test.
 
-Hans, given the discussion that is developed, I don't think the dmesg
-output is necessary at this point (if you really insist though I will
-provide :P ).
 
-P.S. I think Trent's idea sounds interesting/warrants some consideration.
+
+>                        dev  = h;
+>                        type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>                }
+> --
+
+
+But if you want to submit the patch as is, for my contribution:
+
+	Signed-off-by: Andy Walls <awalls@radix.net>
+
+
+Sorry to be pedantic, but the (fia-)SCO litigation in recent years is
+one reason the "Signed-off-by", "Acked-by", etc. is so critical.
+
+
+Regards,
+Andy
 
 --
 video4linux-list mailing list
