@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07GvEXZ014503
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 11:57:14 -0500
-Received: from www.seiner.com (flatoutfitness.com [66.178.130.209])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07Gv1Vo029594
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 11:57:01 -0500
-Message-ID: <38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
-In-Reply-To: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
-References: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
-Date: Wed, 7 Jan 2009 08:56:59 -0800 (PST)
-From: "Yan Seiner" <yan@seiner.com>
-To: marilynnpg@tx.rr.com
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Windows vs Linux  DVR System?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n03DGDU0006323
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 08:16:13 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n03DFwRo032687
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 08:15:58 -0500
+Date: Sat, 3 Jan 2009 11:15:48 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Eric Miao" <eric.y.miao@gmail.com>
+Message-ID: <20090103111548.53025894@pedra.chehab.org>
+In-Reply-To: <f17812d70901030504rf0fcdafmc0e3d51ddcb128e@mail.gmail.com>
+References: <f17812d70901020716n2e6bb9cas2958ea4df2a19af8@mail.gmail.com>
+	<Pine.LNX.4.64.0901021625420.4694@axis700.grange>
+	<20090103104338.6822c576@pedra.chehab.org>
+	<f17812d70901030504rf0fcdafmc0e3d51ddcb128e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] pxa-camera: fix redefinition warnings and missing DMA
+ definitions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,97 +31,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-On Wed, January 7, 2009 8:47 am, marilynnpg@tx.rr.com wrote:
-> I am looking into building my own DVR system on my PC running either
-> Windows Vista or XP and one of the applications listed below.  That said,
-> before I proceeded I wanted to check to see if there was a Linux
-> application which will allowed me to use multiple Logitec QuickCam Pro
-> cameras (approx 8 cameras).  In addition, I would be grateful if some
-> could point out the advantages of using a Linux based solution over one of
-> the Windows based solutions listed below.
-
-That many USB cameras will need some hefty CPU.  I've not had much luck
-with webcams.  You might want to consider IP cams; you can find them for
-not much more than webcams.  Or go with plain old wired cameras and a
-capture board.
-
-As for linux v. windows, I've tried to work with the windows based DVR
-systems, and pretty much without exception they're a PITA.   (OK, I like
-linux but still....)  Mostly the apps are clunky, complicated, very
-difficult to set up properly, and are always missing some key (to me)
-feature.
-
-With linux, you set up your cameras and make sure they work.  It doesn't
-matter if they're webcams, IPcams, or capture boards.
-
-Then install and configure motion, one thread per camera.
-
-If you want movies, you can either set up motion to do that or you can use
-ffmpeg and generate flash movies directly.
-
-And then use a browser.
-
-See my website - http://www.seiner.com - and look at the snakecam and
-lizardcam.  They're pretty dull as I don't have the cameras set up
-correctly ATM but it uses the above setup.  motion captures the motion,
-ffmpeg rotates each frame to portrait from landscape, generates the movie
-using the last 1440 frames, and some more scripts post it on the website,
-with updates every hour.
-
---Yan
-
->
-> 1) Capturix VideoSpy beta 6
-> ----------------------------------
-> http://www.pcmag.com/article2/0,2817,475790,00.asp
-> http://www.capturix.com/default.asp?product=cvs
->
->
-> 2) Gotcha! 3.6
-> ------------------
-> www.gotchanow.com
-> http://www.pcmag.com/article2/0,2817,475791,00.asp
->
->
-> 3) WebCam Watchdog 2.2
-> --------------------------------
-> http://www.pcmag.com/article2/0,2817,475793,00.asp
-> www.webcam123.com
->
->
-> 4) Watcher and RemoteView
-> -----------------------------------
-> www.digi-watcher.com
-> http://www.pcmag.com/article2/0,2817,475792,00.asp
->
->
-> 5) Cam Wizard
-> ------------------
-> http://www.ledset.com/camwiz/index.htm
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
-> !DSPAM:4964dca861061804284693!
->
->
+On Sat, 3 Jan 2009 21:04:02 +0800
+"Eric Miao" <eric.y.miao@gmail.com> wrote:
 
 
--- 
-  o__
-  ,>/'_          o__
-  (_)\(_)        ,>/'_        o__
-Yan Seiner      (_)\(_)       ,>/'_     o__
-       Personal Trainer      (_)\(_)    ,>/'_        o__
-             Professional Engineer     (_)\(_)       ,>/'_
-Who says engineers have to be pencil necked geeks?  (_)\(_)
+> > Git annotate points this patch as the responsible for adding this header:
+> >
+> > 013132ca        ( Eric Miao     2008-11-28 09:16:52 +0800       41)#include "pxa_camera.h"
+> >
+> > A today check for differences, pointed the enclosed changes.
+> >
+> 
+> Apparently, the enclosed changes are not made in a single commit, I
+> don't know much about 'hg' (I'm wondering why v4l is not using git,
+> but that's another story), so anything that I can help, please let me
+> know.
 
-You are an adult when you realize that everyone's an idiot sometimes. You
-are wise when you include yourself.
+The changes happened on more than one changeset. Basically, the -hg tree allows
+compilation against older kernels, since most of the basis of testers of
+v4l/dvb drivers are not enough skilled to compile an entire new kernel.
 
+Anyway, for the changes on arch/arm/, I just copy whatever changed there into
+our tree.
+
+The cause of the issue is that your patch were merged outside my -git tree, so,
+it caused some merging conflicts, because I was not aware of your patch when I
+solved pxa conflicts against linus tree.
+
+I've already updated -hg tree to reflect what we currently have on upstream tree.
+
+Could you or Guennadi submit me a patch fixing the duplicated registers issue?
+
+Thanks,
+Mauro
 
 --
 video4linux-list mailing list
