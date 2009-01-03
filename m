@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <d.dalton@iinet.net.au>) id 1LPOkY-0003iI-FB
-	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 23:07:13 +0100
-Date: Wed, 21 Jan 2009 09:07:01 +1100
-From: Daniel Dalton <d.dalton@iinet.net.au>
+	(envelope-from <roman.jarosz@gmail.com>) id 1LJDaE-0006OG-HM
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 21:58:59 +0100
+Received: by bwz11 with SMTP id 11so14784176bwz.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 12:58:25 -0800 (PST)
+Date: Sat, 03 Jan 2009 21:59:08 +0100
 To: linux-dvb@linuxtv.org
-Message-ID: <20090120220701.GB4150@debian-hp.lan>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
+From: "Roman Jarosz" <roman.jarosz@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <4975B5F1.7000306@iki.fi>
-Subject: Re: [linux-dvb] getting started with msi tv card
-Reply-To: linux-media@vger.kernel.org
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<op.um64vfdkrj95b0@localhost>
+	<c74595dc0901031248h3c3d002j2422331c82249d78@mail.gmail.com>
+Message-ID: <op.um68ku1qrj95b0@localhost>
+In-Reply-To: <c74595dc0901031248h3c3d002j2422331c82249d78@mail.gmail.com>
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
+Reply-To: kedgedev@centrum.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,42 +32,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Jan 20, 2009 at 01:30:57PM +0200, Antti Palosaari wrote:
-> Daniel Dalton wrote:
-> > Could someone please let me know what I have to do to get my msi 5580
-> > usb digital tv tuner working with linux?
-> > What drivers do I need? What software, what should I do to test it and
-> > is it possible to use the remote once it is up and running?
-> 
-> It should work with v4l-dvb / Kernel newer than about two years. 
+On Sat, 03 Jan 2009 21:48:45 +0100, Alex Betis <alex.betis@gmail.com> wrote:
 
-So... My 2.6.26-1 kernel out of aptitude (debian lenny), should work?
+> On Sat, Jan 3, 2009 at 9:39 PM, Roman Jarosz <roman.jarosz@gmail.com>  
+> wrote:
+>
+>> On Sat, 03 Jan 2009 19:58:45 +0100, Alex Betis <alex.betis@gmail.com>
+>> wrote:
+>>
+>> >> I use scan from dvb-apps, the command is
+>> >> "scan -o vdr /root/dvb/Astra-19.2E > /etc/vdr/channels.conf"
+>> >> where /root/dvb/Astra-19.2E is file with "S 11567500 V 22000000 5/6"
+>> >
+>> > I think that's the main issue. *BOUWSMA w*rote that its ok to rely on
+>> > astra's maintainers and connect to any transponder is enough to get a
+>> > list
+>> > of all others. I personaly don't trust those maintainers since I saw  
+>> too
+>> > many errors in NIT messages that specify the transponder, so I specify
+>> > all
+>> > the frequencies I want to scan. I don't have a dish to 19.2, but there
+>> > were
+>> > many errors with 5 other satellites I have.
+>> > You can get a list of those frequencies here:
+>> > http://www.lyngsat.com/astra19.html
+>>
+>> Could you tell me how? I've tried with S 12188000 H 27500000 3/4 and
+>> it doesn't find anything.
+>
+> Try also scan-s2 with:
+> S 12188000 H 27500000 3/4 AUTO QPSK
 
-> However, tuner performance is not very good. With weak signal it works 
-> better than strong. All remote keys are not working because driver does 
-> not upload IR-table to the chip.
+No luck :( http://kedge.wz.cz/dvb/scans2_2.txt
 
-ok
 
-> 
-> > Finally, I'm vission impared, so are there any programs for controling
-> > the tv either command line based or gtk? I can't use qt applications.
-> > If qt is my only option it's fine, I'll figure out a way for handling
-> > this once the card is working.
-> 
-> Totem, Me-TV, Kaffeine, mplayer, Xine.
+> Do you have a diseqc on the way?
 
-Mplayer works with this card? Great!
+No. I don't.
 
-How would I begin configuring it for mplayer then?
 
-Thanks very much for your help.
-
-Cheers,
-Daniel.
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
