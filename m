@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ayden.softclick-it.de ([217.160.202.102])
+Received: from qw-out-2122.google.com ([74.125.92.24])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tobi@to-st.de>) id 1LQSas-0002Ph-PI
-	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 21:25:36 +0100
-Received: from [192.168.3.100] (p57A38AA9.dip0.t-ipconnect.de [87.163.138.169])
-	(authenticated bits=0)
-	by ayden.softclick-it.de (8.12.3/8.14.0/3.1.1/UNIX) with ESMTP id
-	n0NKP0F7023252
-	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 21:25:01 +0100
-Message-ID: <497A27F7.8020201@to-st.de>
-Date: Fri, 23 Jan 2009 21:26:31 +0100
-From: =?ISO-8859-1?Q?Tobias_St=F6ber?= <tobi@to-st.de>
+	(envelope-from <alex.betis@gmail.com>) id 1LJAIC-000439-22
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 18:28:08 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so3327981qwb.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 09:28:03 -0800 (PST)
+Message-ID: <c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+Date: Sat, 3 Jan 2009 19:28:03 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: kedgedev@centrum.cz
+In-Reply-To: <op.um6wpcvirj95b0@localhost>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
-Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
-Reply-To: linux-media@vger.kernel.org
+References: <op.um6wpcvirj95b0@localhost>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,65 +21,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1694223431=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Well, just have to send this message again, this time to the right & 
-correct mailing list linux-dvb@linuxtv.org. (Who by the way had the 
-insane idea, to set a reply-to address to another mailing list 
-(linux-media@vger.kernel.org)? I've never seen such behavior in other 
-lists. It's a damn useless and confusing thing.)
+--===============1694223431==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_200339_15545857.1231003683034"
 
-Moin, moin (as people say in Northern Germany) :)
+------=_Part_200339_15545857.1231003683034
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-BOUWSMA Barry schrieb:
-> I've just learned that effective 24.Feb, there will be a change
-> made to the channel assignment in the area of Hamburg.
-> 
-> This is due to the fact that one existing multiplex is found
-> within the VHF band, which is in the process of being cleared
-> of DVB-T services, moving them to assigned UHF channels, in
-> order to free the VHF band for radio services (DAB/DAB+ and
-> family).
-> 
-> Several other areas, such as Bayern, currently make use of
-> VHF frequencies at several transmitter sites.  I am not yet
-> aware of what plans exist to change these frequencies...
+On Sat, Jan 3, 2009 at 6:42 PM, Roman Jarosz <roman.jarosz@gmail.com> wrote:
 
-As for certain area in Saxony-Anhalt, Saxony and Thuringia there ahve
-never been VHF channels in use. Tis applies normally only to area from
-the first stage of the German DVB-T project.
+> Hi,
+>
+> I have a problem with DVB-S channel searching, the scan command doesn't
+> find all channels in Linux on Astra 19.2E.
+> It works in Windows.
+>
+Please specify what driver you use, what scan application, what is the
+command line you gave to the scan application, what is the frequency file
+you've used for scan application, what is the result of the scan you have.
 
-Lower Saxony has recently (November 2008) cleared several channels, like
-in my area (Brunswick), where there had been an ARD Mux on Ch 8. Now  it
-  is on Ch 47.
+Than maybe I can help somehow.
 
-> The following diff will add the newly assigned frequency,
-> and remove the old one, with an effective date of 24.Feb.
-> 
-> The particular modulation parameters are not confirmed, so
-> I've had to guess based on existing values used elsewhere
-> in the NDR coverage area as well as what generally is used
-> throughout germany.
+------=_Part_200339_15545857.1231003683034
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Information for the whole NDR area will normally be found at
-http://www.dvb-t-nord.de.
+<div dir="ltr">On Sat, Jan 3, 2009 at 6:42 PM, Roman Jarosz <span dir="ltr">&lt;<a href="mailto:roman.jarosz@gmail.com">roman.jarosz@gmail.com</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi,<br>
+<br>
+I have a problem with DVB-S channel searching, the scan command doesn&#39;t find all channels in Linux on Astra 19.2E.<br>
+It works in Windows.<br>
+</blockquote><div>Please specify what driver you use, what scan application, what is the command line you gave to the scan application, what is the frequency file you&#39;ve used for scan application, what is the result of the scan you have.<br>
+<br>Than maybe I can help somehow.<br></div></div><br></div>
 
-There is a complete listing including parameters from "in area" and also
-"out of area" (but with reception in the area) transmitters at
+------=_Part_200339_15545857.1231003683034--
 
-http://www.ueberallfernsehen.de/data/senderliste_25_11_2008.pdf
 
-So have a look ;)
-
-Best regards, Tobias
-
+--===============1694223431==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1694223431==--
