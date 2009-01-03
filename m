@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f21.google.com ([209.85.217.21])
+Received: from mail-fx0-f27.google.com ([209.85.220.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1LQS4q-00083t-5e
-	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 20:52:28 +0100
-Received: by gxk14 with SMTP id 14so4969056gxk.17
-	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 11:51:53 -0800 (PST)
+	(envelope-from <roman.jarosz@gmail.com>) id 1LJCKl-0007dO-P3
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 20:38:57 +0100
+Received: by fxm8 with SMTP id 8so1289760fxm.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 11:38:22 -0800 (PST)
+Date: Sat, 03 Jan 2009 20:39:05 +0100
+To: linux-dvb@linuxtv.org
+From: "Roman Jarosz" <roman.jarosz@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090123224924.62a48791@bk.ru>
-References: <20090123205854.45e40dd0@bk.ru> <200901231959.49629.hftom@free.fr>
-	<20090123224924.62a48791@bk.ru>
-Date: Fri, 23 Jan 2009 21:51:53 +0200
-Message-ID: <c74595dc0901231151iafa6b15kd3c0949e0ed86668@mail.gmail.com>
-From: Alex Betis <alex.betis@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx24116 & roll-off factor = auto
-Reply-To: linux-media@vger.kernel.org
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+Message-ID: <op.um64vfdkrj95b0@localhost>
+In-Reply-To: <c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
+Reply-To: kedgedev@centrum.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,117 +24,101 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1991036394=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1991036394==
-Content-Type: multipart/alternative; boundary=001636e90a80772afa04612bb84c
+On Sat, 03 Jan 2009 19:58:45 +0100, Alex Betis <alex.betis@gmail.com> wrote:
 
---001636e90a80772afa04612bb84c
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-On Fri, Jan 23, 2009 at 9:49 PM, Goga777 <goga777@bk.ru> wrote:
-
-> > > does support cx24116  the roll-off factor = auto ?
-> >
-> > no
+>> I use scan from dvb-apps, the command is
+>> "scan -o vdr /root/dvb/Astra-19.2E > /etc/vdr/channels.conf"
+>> where /root/dvb/Astra-19.2E is file with "S 11567500 V 22000000 5/6"
 >
-> who should be care about of corrected roll-off factor which have to send to
-> cx24116 - the drivers or user software ? does
-> roll-off factor = 0,35 good for 99% dvb-s2 channels ?
+> I think that's the main issue. *BOUWSMA w*rote that its ok to rely on
+> astra's maintainers and connect to any transponder is enough to get a  
+> list
+> of all others. I personaly don't trust those maintainers since I saw too
+> many errors in NIT messages that specify the transponder, so I specify  
+> all
+> the frequencies I want to scan. I don't have a dish to 19.2, but there  
+> were
+> many errors with 5 other satellites I have.
+> You can get a list of those frequencies here:
+> http://www.lyngsat.com/astra19.html
 
-Driver interface allows specifying AUTO value for most of the parameters.
-User application has no idea what card is used and what driver is running.
-Since there are other drivers/chipsets that can handle AUTO setting, I don't
-see any reason why application should not use it.
-
-For example, DVB-S uses only rolloff = 0.35, so if the driver knows that the
-chip can't accept auto value, it should use 0.35 value by default in that
-case.
-
-Beside all that, there is a bigger problem that pops up with cx24116 chips
-using S2API.
-When specifying AUTO value for any of the parameters the driver fails the
-tuning, but the application knows nothing about it, so it thinks that
-current received stream is from the new channel, while its not true.
-
-
+Could you tell me how? I've tried with S 12188000 H 27500000 3/4 and
+it doesn't find anything.
 
 >
-> Goga
 >
+>>
+>> I use cx88-dvb driver but many modules are loaded with it see
+>> http://kedge.wz.cz/dvb/lsmod.txt
 >
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> I meant to ask what is the origin of the driver. I use Igor's driver  
+> from:
+> http://mercurial.intuxication.org/hg/s2-liplianin/
+
+I use driver from vanilla kernel 2.6.28 which have DVB api version 5.0.
+
+> If you have a S2API driver (or will use Igor's driver), you can use my
+> scan-s2 application with many changes in NIT parsing that might resolve  
+> your
+> issue.
+> http://mercurial.intuxication.org/hg/scan-s2/
 >
 
---001636e90a80772afa04612bb84c
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+See below.
 
-<div dir=3D"ltr"><div class=3D"gmail_quote">On Fri, Jan 23, 2009 at 9:49 PM=
-, Goga777 <span dir=3D"ltr">&lt;<a href=3D"mailto:goga777@bk.ru">goga777@bk=
-.ru</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D"bor=
-der-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-=
-left: 1ex;">
-&gt; &gt; does support cx24116 &nbsp;the roll-off factor =3D auto ?<br>
-&gt;<br>
-&gt; no<br>
-<br>
-who should be care about of corrected roll-off factor which have to send to=
- cx24116 - the drivers or user software ? does<br>
-roll-off factor =3D 0,35 good for 99% dvb-s2 channels ?</blockquote><div>Dr=
-iver interface allows specifying AUTO value for most of the parameters.<br>=
-User application has no idea what card is used and what driver is running.<=
-br>
-Since there are other drivers/chipsets that can handle AUTO setting, I don&=
-#39;t see any reason why application should not use it.<br><br>For example,=
- DVB-S uses only rolloff =3D 0.35, so if the driver knows that the chip can=
-&#39;t accept auto value, it should use 0.35 value by default in that case.=
-<br>
-<br>Beside all that, there is a bigger problem that pops up with cx24116 ch=
-ips using S2API.<br>When specifying AUTO value for any of the parameters th=
-e driver fails the tuning, but the application knows nothing about it, so i=
-t thinks that current received stream is from the new channel, while its no=
-t true.<br>
-<br><br></div><blockquote class=3D"gmail_quote" style=3D"border-left: 1px s=
-olid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br=
+>>
+>> Scan console output is in file http://kedge.wz.cz/dvb/channels.conf
+>> and the result in http://kedge.wz.cz/dvb/channels.conf
 >
-<br>
-Goga<br>
-<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb users mailing list<br>
-For V4L/DVB development, please use instead <a href=3D"mailto:linux-media@v=
-ger.kernel.org">linux-media@vger.kernel.org</a><br>
-<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
-t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
-br>
-</blockquote></div><br></div>
+> You've posted the same link for both outputs. Please post console output
+> when you run scan with "-v" parameter. Maybe even with "-vv".
+>
 
---001636e90a80772afa04612bb84c--
+The console output should be http://kedge.wz.cz/dvb/scanconsoleout.txt.
+
+I've tried to run scan and scan-s2 on "S 12188000 H 27500000 3/4"
+were the "RTL 2 Deutschland" channel should be and neither scan found anything.
+
+The console outputs are here:
+http://kedge.wz.cz/dvb/scan.txt
+http://kedge.wz.cz/dvb/scans2.txt
 
 
---===============1991036394==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+If you want me to run the whole scan for "S 11567500 V 22000000 5/6" with -vv
+let me know and I'll do it.
+
+>>
+>> When console shows
+>> __tune_to_transponder:1508: ERROR: Setting frontend parameters failed:  
+>> 22
+>> Invalid argument
+>>
+>> the dmesg prints
+>> DVB: adapter 0 frontend 0 frequency 8175750 out of range  
+>> (950000..2150000)
+>
+> It could be anything. Bad NIT message (most probably) or a memory  
+> smashing
+> in scan application.
+>
+>
+>>
+>>
+>> Roman
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1991036394==--
