@@ -1,23 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+f3b844923945981420e4+1962+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1LKHJP-0004Er-D5
-	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 20:09:59 +0100
-Date: Tue, 6 Jan 2009 17:09:26 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Gregoire Favre <gregoire.favre@gmail.com>
-Message-ID: <20090106170926.52575365@pedra.chehab.org>
-In-Reply-To: <20090106170002.GC3403@gmail.com>
-References: <20090104113738.GD3551@gmail.com>
-	<1231097304.3125.64.camel@palomino.walls.org>
-	<20090105130720.GB3621@gmail.com>
-	<1231202800.3110.13.camel@palomino.walls.org>
-	<20090106144917.736584e7@pedra.chehab.org>
-	<20090106170002.GC3403@gmail.com>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
+Received: from qw-out-2122.google.com ([74.125.92.26])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alex.betis@gmail.com>) id 1LJDd9-000781-1y
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 22:01:59 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so3351476qwb.17
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 13:01:54 -0800 (PST)
+Message-ID: <c74595dc0901031301k317f561dv1076b451ae8f36e2@mail.gmail.com>
+Date: Sat, 3 Jan 2009 23:01:54 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: kedgedev@centrum.cz
+In-Reply-To: <op.um68ku1qrj95b0@localhost>
+MIME-Version: 1.0
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<op.um64vfdkrj95b0@localhost>
+	<c74595dc0901031248h3c3d002j2422331c82249d78@mail.gmail.com>
+	<op.um68ku1qrj95b0@localhost>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,48 +27,141 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1033457413=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 6 Jan 2009 18:00:02 +0100
-Gregoire Favre <gregoire.favre@gmail.com> wrote:
+--===============1033457413==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_202313_13082039.1231016514679"
 
-> On Tue, Jan 06, 2009 at 02:49:17PM -0200, Mauro Carvalho Chehab wrote:
-> 
-> Hello,
-> 
-> > Could you please provide you your SOB?
-> 
-> I know that's not a question for me, but what stand SOB for ?
-> http://www.acronymfinder.com/SOB.html I guess it should be Signed-Off-By
-> right ?
-> 
-> > IMO, the proper fix would be to add some locking at cx88 init. I suspect that
-> > this breakage (and other similar ones) are tue to the absense of KBL on newer kernels.
-> 
-> Oh, and is there a way to fix those ?
-> 
-> > What kernel version are you using?
-> 
-> As seen in my headers : 2.6.28-gentoo, but I also tested S2API with
-> 2.6.27 (different revision).
-> 
-> > Better to add here:
-> > 	core->dvbdev = NULL;
-> 
+------=_Part_202313_13082039.1231016514679
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Gregoire and others,
-I've just commit a patch that should fix this and another reported issue when selecting parts of cx88 code as module and other parts as monolithic. 
+On Sat, Jan 3, 2009 at 10:59 PM, Roman Jarosz <roman.jarosz@gmail.com>wrote:
 
-Could you please test if the patch also fixed the OOPS and doesn't generate any regression?
+> On Sat, 03 Jan 2009 21:48:45 +0100, Alex Betis <alex.betis@gmail.com>
+> wrote:
+>
+> > On Sat, Jan 3, 2009 at 9:39 PM, Roman Jarosz <roman.jarosz@gmail.com>
+> > wrote:
+> >
+> >> On Sat, 03 Jan 2009 19:58:45 +0100, Alex Betis <alex.betis@gmail.com>
+> >> wrote:
+> >>
+> >> >> I use scan from dvb-apps, the command is
+> >> >> "scan -o vdr /root/dvb/Astra-19.2E > /etc/vdr/channels.conf"
+> >> >> where /root/dvb/Astra-19.2E is file with "S 11567500 V 22000000 5/6"
+> >> >
+> >> > I think that's the main issue. *BOUWSMA w*rote that its ok to rely on
+> >> > astra's maintainers and connect to any transponder is enough to get a
+> >> > list
+> >> > of all others. I personaly don't trust those maintainers since I saw
+> >> too
+> >> > many errors in NIT messages that specify the transponder, so I specify
+> >> > all
+> >> > the frequencies I want to scan. I don't have a dish to 19.2, but there
+> >> > were
+> >> > many errors with 5 other satellites I have.
+> >> > You can get a list of those frequencies here:
+> >> > http://www.lyngsat.com/astra19.html
+> >>
+> >> Could you tell me how? I've tried with S 12188000 H 27500000 3/4 and
+> >> it doesn't find anything.
+> >
+> > Try also scan-s2 with:
+> > S 12188000 H 27500000 3/4 AUTO QPSK
+>
+> No luck :( http://kedge.wz.cz/dvb/scans2_2.txt
 
-Cheers,
-Mauro
+Have no more ideas. Probably a driver problem.
+
+
+
+>
+>
+> > Do you have a diseqc on the way?
+>
+> No. I don't.
+
+
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+------=_Part_202313_13082039.1231016514679
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">On Sat, Jan 3, 2009 at 10:59 PM, Roman Jarosz <span dir="ltr">&lt;<a href="mailto:roman.jarosz@gmail.com">roman.jarosz@gmail.com</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div class="Ih2E3d">On Sat, 03 Jan 2009 21:48:45 +0100, Alex Betis &lt;<a href="mailto:alex.betis@gmail.com">alex.betis@gmail.com</a>&gt; wrote:<br>
+<br>
+&gt; On Sat, Jan 3, 2009 at 9:39 PM, Roman Jarosz &lt;<a href="mailto:roman.jarosz@gmail.com">roman.jarosz@gmail.com</a>&gt;<br>
+&gt; wrote:<br>
+&gt;<br>
+&gt;&gt; On Sat, 03 Jan 2009 19:58:45 +0100, Alex Betis &lt;<a href="mailto:alex.betis@gmail.com">alex.betis@gmail.com</a>&gt;<br>
+&gt;&gt; wrote:<br>
+&gt;&gt;<br>
+&gt;&gt; &gt;&gt; I use scan from dvb-apps, the command is<br>
+&gt;&gt; &gt;&gt; &quot;scan -o vdr /root/dvb/Astra-19.2E &gt; /etc/vdr/channels.conf&quot;<br>
+&gt;&gt; &gt;&gt; where /root/dvb/Astra-19.2E is file with &quot;S 11567500 V 22000000 5/6&quot;<br>
+&gt;&gt; &gt;<br>
+&gt;&gt; &gt; I think that&#39;s the main issue. *BOUWSMA w*rote that its ok to rely on<br>
+&gt;&gt; &gt; astra&#39;s maintainers and connect to any transponder is enough to get a<br>
+&gt;&gt; &gt; list<br>
+&gt;&gt; &gt; of all others. I personaly don&#39;t trust those maintainers since I saw<br>
+&gt;&gt; too<br>
+&gt;&gt; &gt; many errors in NIT messages that specify the transponder, so I specify<br>
+&gt;&gt; &gt; all<br>
+&gt;&gt; &gt; the frequencies I want to scan. I don&#39;t have a dish to 19.2, but there<br>
+&gt;&gt; &gt; were<br>
+&gt;&gt; &gt; many errors with 5 other satellites I have.<br>
+&gt;&gt; &gt; You can get a list of those frequencies here:<br>
+&gt;&gt; &gt; <a href="http://www.lyngsat.com/astra19.html" target="_blank">http://www.lyngsat.com/astra19.html</a><br>
+&gt;&gt;<br>
+&gt;&gt; Could you tell me how? I&#39;ve tried with S 12188000 H 27500000 3/4 and<br>
+&gt;&gt; it doesn&#39;t find anything.<br>
+&gt;<br>
+&gt; Try also scan-s2 with:<br>
+&gt; S 12188000 H 27500000 3/4 AUTO QPSK<br>
+<br>
+</div>No luck :( <a href="http://kedge.wz.cz/dvb/scans2_2.txt" target="_blank">http://kedge.wz.cz/dvb/scans2_2.txt</a></blockquote><div>Have no more ideas. Probably a driver problem. <br><br><br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<br>
+<div class="Ih2E3d"><br>
+<br>
+&gt; Do you have a diseqc on the way?<br>
+<br>
+</div>No. I don&#39;t.</blockquote><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br>
+<div><div></div><div class="Wj3C7c"><br>
+<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</div></div></blockquote></div><br></div>
+
+------=_Part_202313_13082039.1231016514679--
+
+
+--===============1033457413==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1033457413==--
