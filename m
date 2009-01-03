@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07Iit6i018911
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:44:55 -0500
-Received: from www.seiner.com (flatoutfitness.com [66.178.130.209])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n07IicEo000545
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:44:39 -0500
-Message-ID: <3f6ecb7d640b88b1aab1a2b6646277d5.squirrel@www.datavault.us>
-In-Reply-To: <4964F53B.3000301@pickworth.me.uk>
-References: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
-	<38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
-	<4964F53B.3000301@pickworth.me.uk>
-Date: Wed, 7 Jan 2009 10:44:36 -0800 (PST)
-From: "Yan Seiner" <yan@seiner.com>
-To: ian@pickworth.me.uk
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Windows vs Linux  DVR System?
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n03EVA61023088
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 09:31:10 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n03EUtFl030761
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 09:30:56 -0500
+From: Andy Walls <awalls@radix.net>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0901031415060.3955@axis700.grange>
+References: <f17812d70901020716n2e6bb9cas2958ea4df2a19af8@mail.gmail.com>
+	<Pine.LNX.4.64.0901021625420.4694@axis700.grange>
+	<20090103104338.6822c576@pedra.chehab.org>
+	<Pine.LNX.4.64.0901031415060.3955@axis700.grange>
+Content-Type: text/plain
+Date: Sat, 03 Jan 2009 09:32:59 -0500
+Message-Id: <1230993179.4302.11.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] pxa-camera: fix redefinition warnings and missing DMA
+	definitions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,38 +31,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Sat, 2009-01-03 at 15:04 +0100, Guennadi Liakhovetski wrote:
 
-On Wed, January 7, 2009 10:32 am, Ian Pickworth wrote:
-> Yan Seiner wrote:
->> See my website - http://www.seiner.com - and look at the snakecam and
->> lizardcam.
->
-> That lizard must be on speed! Either that or its feeding time?
+> Can we pleeeeease somehow consider possibilities to move to a complete 
+> kernel-tree development, or at least allow both. Whereas I personally see 
+> no good way to have both. I really don't understand why you think, that 
+> v4l users are not intelligent enough to compile complete kernel trees. 
+> IMHO it is simpler, than compiling external drivers, but that's subjective 
+> of course.
 
-Heh.  Ther's a female in another tank - the male does the head bobbing and
-the female does the arm waving.  Pretty cute mating ritual.  I'm waiting
-on my daugther to set up the female tank properly and then we'll add the
-girl-lizard cam.  Whee!
+I'd just like to interject that my 53.333 kbps download speed on
+dial-up, on a good day, makes an initial git clone (or whatever) of 150
+MB a painful experience.
 
-The camera shoots at about 7 fps and the video is shown at 30 fps; motion
-drops any frames that don't have motion so the time compression is pretty
-severe.  The whole video covers about 2-3 days so the lizard isn't *that*
-active.  (by comparison, the snake cam covers 2 months; snakes spend most
-of their time not moving.....)
+Compiling whole kernels: no big deal on a modern machine.
 
---Yan
+Pulling down big repos over dial-up: like sucking a watermelon through a
+straw.
 
--- 
-  o__
-  ,>/'_          o__
-  (_)\(_)        ,>/'_        o__
-Yan Seiner      (_)\(_)       ,>/'_     o__
-       Personal Trainer      (_)\(_)    ,>/'_        o__
-             Professional Engineer     (_)\(_)       ,>/'_
-Who says engineers have to be pencil necked geeks?  (_)\(_)
 
-You are an adult when you realize that everyone's an idiot sometimes. You
-are wise when you include yourself.
+Whatever the solution, please remeber those of us on the fringe of
+civilization that Verizon has forsaken: no DSL, no FiOS, EV-DO has data
+transfer caps and requires an amplifier and a high gain antenna.  (I'd
+rather not have to use "linux development" as the justification for the
+cost of cable service in the household budget.)
+
+Regards,
+Andy
+
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
 
 
 --
