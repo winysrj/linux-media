@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web111407.mail.gq1.yahoo.com ([67.195.15.168])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cncook001@yahoo.com>) id 1LPf00-0000ij-LY
-	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 16:28:13 +0100
-Date: Wed, 21 Jan 2009 07:27:36 -0800 (PST)
-From: Craig Cook <cncook001@yahoo.com>
-To: linux-dvb@linuxtv.org
+Received: from ug-out-1314.google.com ([66.249.92.174])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LJA5B-0002q2-Ng
+	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 18:14:42 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so1243603ugc.16
+	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 09:14:38 -0800 (PST)
+Date: Sat, 3 Jan 2009 18:14:15 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+cc: linux-dvb@linuxtv.org
+In-Reply-To: <495F99CD.8000202@braice.net>
+Message-ID: <alpine.DEB.2.00.0901031809200.32128@ybpnyubfg.ybpnyqbznva>
+References: <op.um6wpcvirj95b0@localhost> <495F99CD.8000202@braice.net>
 MIME-Version: 1.0
-Message-ID: <681581.38816.qm@web111407.mail.gq1.yahoo.com>
-Subject: Re: [linux-dvb] DVICO Dual Digital 4 DVB-T Revision2 : Strange
-	Remote Control Issue
-Reply-To: linux-media@vger.kernel.org, cncook001@yahoo.com
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,19 +26,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->Is there a way to test this and/or reset  the card to its original state?
+On Sat, 3 Jan 2009, Brice DUBOST wrote:
 
-I had an earlier model Dvico Dual Tuner with similar problems when I first tried to make it work (linux drivers were not part of the kernel at that stage).  It would work in windows, but had problems in linux.  To resolve the firmware issue I removed the power cord from my pc and left it overnight.  Leaving the power cord attached was not good enough.  That seemed to clear any firmware on the card.  Next time I used it linux told me it detected the card "cold" and loaded firmware.  I think windows did the same thing.  If it didn't, I removed and reinstalled the windows drivers.
+> > For instance the scan doesn't find RTL2, but if I add to channels.conf
+> > RTL2:12187:h:0:27500:166:128:12020
+> > then szap -r works correctly.
 
-Simply rebooting the pc did not work either.
+> Scan tunes on one frequency, and uses the informations given by the
+> provider to find the others
+> 
+> Sometimes (quite often in fact) the providers doesn't give full informations
 
-Craig
+In the case of Astra 19E2, the list of transponders is
+sufficiently well-managed that pretty much regardless of
+which transponder you start on, you'll get a list of most
+of them, from which you'll get a list of them all.
+
+Unlike, say, Hotbirds, where it's more or less a free-
+for all...
 
 
-      
+To the original poster, what unusual things does the
+output to the console of `scan -v' show, if you don't
+see anything unusual for `scan' without -v ?
+
+In particular, search for the particular frequencies
+of RTL or any other transponders/channels which you
+know are missing, or other obvious errors...
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
