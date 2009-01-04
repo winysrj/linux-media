@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0U0s5mi032240
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:54:05 -0500
-Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0U0rpKN014696
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:53:51 -0500
-From: Dominic Curran <dcurran@ti.com>
-To: "linux-omap" <linux-omap@vger.kernel.org>, video4linux-list@redhat.com
-Date: Thu, 29 Jan 2009 18:53:45 -0600
+Message-ID: <412bdbff0901040547g1c5510a1j5f1dec827941d7f0@mail.gmail.com>
+Date: Sun, 4 Jan 2009 08:47:26 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+In-Reply-To: <b24e53350901032231l6630addbx17af1fb089327bd4@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200901291853.45415.dcurran@ti.com>
-Cc: greg.hofer@hp.com
-Subject: [OMAPZOOM][PATCH 4/6] Add support for Sony imx046 to OMAP3430 SDP
-	board.
+References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
+	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
+	<b24e53350901032155n6b438cd2xaefe496f51c15447@mail.gmail.com>
+	<b24e53350901032231l6630addbx17af1fb089327bd4@mail.gmail.com>
+Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,256 +26,261 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH 4/6] Add support for Sony imx046 to OMAP3430 SDP board.
+On Sun, Jan 4, 2009 at 1:31 AM, Robert Krakora
+<rob.krakora@messagenetsystems.com> wrote:
+>
+>
+> On Sun, Jan 4, 2009 at 12:55 AM, Robert Krakora
+> <rob.krakora@messagenetsystems.com> wrote:
+>>
+>>
+>> On Sun, Jan 4, 2009 at 12:18 AM, Devin Heitmueller
+>> <devin.heitmueller@gmail.com> wrote:
+>>>
+>>> On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
+>>> <rob.krakora@messagenetsystems.com> wrote:
+>>> > Mauro:
+>>> >
+>>> > The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
+>>> > LGDT330X.  Hence the error initializing the LGDT330X in the current
+>>> > source
+>>> > in em28xx-dvb.c.
+>>> >
+>>> > Best Regards,
+>>>
+>>> Hello Robert,
+>>>
+>>> Well, that's good to know.  I don't think anyone has done any work on
+>>> that device recently, so I don't know why the code has it as an
+>>> lgdt3303.
+>>>
+>>> Do you know which tuner chip the device has?  The reason I ask is
+>>> because I'm working on another device that also has the s5h1409, and
+>>> it's got an xc3028L (the low power version of the xc3028).  If the
+>>> 330U also has the xc3028L, then we need to make sure to indicate that
+>>> in the device profile so it doesn't burn out the chip.
+>>>
+>>> We're probably also going to need to get a Windows trace, so we know
+>>> how to setup the s5h1409 configuration.
+>>>
+>>> Devin
+>>>
+>>> --
+>>> Devin J. Heitmueller
+>>> http://www.devinheitmueller.com
+>>> AIM: devinheitmueller
+>>>
+>>
+>> Devin:
+>>
+>> I believe that it has the 3028 and not the 3028L as the part gets a little
+>> toasty even on Windows,  I will get the magnifying glass out and look again
+>> though (I am over 40 and becoming near-sighted).  I can get the Windows
+>> trace using USBTrace on Windows XP or with my Elisys USB Analyzer.
+>>
+>> Best Regards,
+>>
+>> --
+>> Rob Krakora
+>> Software Engineer
+>> MessageNet Systems
+>> 101 East Carmel Dr. Suite 105
+>> Carmel, IN 46032
+>> (317)566-1677 Ext. 206
+>> (317)663-0808 Fax
+>
+> Devin:
+>
+> I took a stab at attaching the Samsung demod to the em28xx and got the
+> following error.  My guess is that the demod address is wrong.  How does one
+> go about dissecting vendor requests in a USB trace to obtain setup
+> information for this part?  I was going to put an I2C analyzer on the I2C
+> line while running Windows to capture I2C traffic.  I will get a Windows USB
+> trace tomorrow and e-mail it out.  Sure would be easier with the specs or a
+> little help from KWorld.  ;-)
+>
+> s5h1409_readreg: readreg error (ret == -19)
+> em28xx #0/2: dvb frontend not attached. Can't attach xc3028
+> Em28xx: Initialized (Em28xx dvb Extension) extension
+>
+>
+> [root@am2mm v4l-dvb]# hg diff
+> diff -r 211ae674f601 linux/drivers/media/video/em28xx/em28xx-audio.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Fri Jan 02 18:34:28
+> 2009 -0200
+> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Sun Jan 04 01:24:39
+> 2009 -0500
+> @@ -63,9 +63,11 @@
+>
+>         dprintk("Stopping isoc\n");
+>         for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+> -               usb_unlink_urb(dev->adev.urb[i]);
+> +               usb_kill_urb(dev->adev.urb[i]);
+>                 usb_free_urb(dev->adev.urb[i]);
+>                 dev->adev.urb[i] = NULL;
+> +               kfree(dev->adev.transfer_buffer[i]);
+> +               dev->adev.transfer_buffer[i] = NULL;
+>         }
+>
+>         return 0;
+> diff -r 211ae674f601 linux/drivers/media/video/em28xx/em28xx-cards.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c   Fri Jan 02 18:34:28
+> 2009 -0200
+> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c   Sun Jan 04 01:24:39
+> 2009 -0500
+> @@ -1242,31 +1242,31 @@
+>                         .gpio     = hauppauge_wintv_hvr_900_analog,
+>                 } },
+>         },
+> -       [EM2883_BOARD_KWORLD_HYBRID_A316] = {
+> -               .name         = "Kworld PlusTV HD Hybrid 330",
+> -               .tuner_type   = TUNER_XC2028,
+> -               .tuner_gpio   = default_tuner_gpio,
+> -               .decoder      = EM28XX_TVP5150,
+> -               .mts_firmware = 1,
+> -               .has_dvb      = 1,
+> -               .dvb_gpio     = default_digital,
+> -               .input        = { {
+> -                       .type     = EM28XX_VMUX_TELEVISION,
+> -                       .vmux     = TVP5150_COMPOSITE0,
+> -                       .amux     = EM28XX_AMUX_VIDEO,
+> -                       .gpio     = default_analog,
+> -               }, {
+> -                       .type     = EM28XX_VMUX_COMPOSITE1,
+> -                       .vmux     = TVP5150_COMPOSITE1,
+> -                       .amux     = EM28XX_AMUX_LINE_IN,
+> -                       .gpio     = hauppauge_wintv_hvr_900_analog,
+> -               }, {
+> -                       .type     = EM28XX_VMUX_SVIDEO,
+> -                       .vmux     = TVP5150_SVIDEO,
+> -                       .amux     = EM28XX_AMUX_LINE_IN,
+> -                       .gpio     = hauppauge_wintv_hvr_900_analog,
+> -               } },
+> -       },
+> +        [EM2883_BOARD_KWORLD_HYBRID_A316] = {
+> +                .name         = "Kworld PlusTV HD Hybrid 330",
+> +                .tuner_type   = TUNER_XC2028,
+> +                .tuner_gpio   = default_tuner_gpio,
+> +                .has_dvb      = 1,
+> +                .dvb_gpio     = default_digital,
+> +                .mts_firmware = 1,
+> +                .decoder      = EM28XX_TVP5150,
+> +                .input        = { {
+> +                        .type     = EM28XX_VMUX_TELEVISION,
+> +                        .vmux     = TVP5150_COMPOSITE0,
+> +                        .amux     = EM28XX_AMUX_VIDEO,
+> +                        .gpio     = default_analog,
+> +                }, {
+> +                        .type     = EM28XX_VMUX_COMPOSITE1,
+> +                        .vmux     = TVP5150_COMPOSITE1,
+> +                        .amux     = EM28XX_AMUX_LINE_IN,
+> +                        .gpio     = default_analog,
+> +                }, {
+> +                        .type     = EM28XX_VMUX_SVIDEO,
+> +                        .vmux     = TVP5150_SVIDEO,
+> +                        .amux     = EM28XX_AMUX_LINE_IN,
+> +                        .gpio     = default_analog,
+> +                } },
+> +        },
+>         [EM2820_BOARD_COMPRO_VIDEOMATE_FORYOU] = {
+>                 .name         = "Compro VideoMate ForYou/Stereo",
+>                 .tuner_type   = TUNER_LG_PAL_NEW_TAPC,
+> diff -r 211ae674f601 linux/drivers/media/video/em28xx/em28xx-dvb.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-dvb.c     Fri Jan 02 18:34:28
+> 2009 -0200
+> +++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c     Sun Jan 04 01:24:39
+> 2009 -0500
+> @@ -29,6 +29,7 @@
+>
+>  #include "lgdt330x.h"
+>  #include "zl10353.h"
+> +#include "s5h1409.h"
+>  #ifdef EM28XX_DRX397XD_SUPPORT
+>  #include "drx397xD.h"
+>  #endif
+> @@ -231,6 +232,17 @@
+>         .no_tuner = 1,
+>         .parallel_ts = 1,
+>         .if2 = 45600,
+> +};
+> +
+> +static struct s5h1409_config em28xx_s5h1409_with_xc3028 = {
+> +       .demod_address = 0x32 >> 1,
+> +       .output_mode   = S5H1409_SERIAL_OUTPUT,
+> +       .gpio          = S5H1409_GPIO_ON,
+> +       .qam_if        = 44000,
+> +       .inversion     = S5H1409_INVERSION_OFF,
+> +       .status_mode   = S5H1409_DEMODLOCKING,
+> +       .mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK
+> +
+>  };
+>
+>  #ifdef EM28XX_DRX397XD_SUPPORT
+> @@ -413,7 +425,6 @@
+>         case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
+>         case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
+>         case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
+> -       case EM2883_BOARD_KWORLD_HYBRID_A316:
+>         case EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600:
+>                 dvb->frontend = dvb_attach(lgdt330x_attach,
+>                                            &em2880_lgdt3303_dev,
+> @@ -447,6 +458,15 @@
+>                 }
+>                 break;
+>  #endif
+> +       case EM2883_BOARD_KWORLD_HYBRID_A316:
+> +               dvb->frontend = dvb_attach(s5h1409_attach,
+> +                                          &em28xx_s5h1409_with_xc3028,
+> +                                          &dev->i2c_adap);
+> +               if (attach_xc3028(0x61, dev) < 0) {
+> +                       result = -EINVAL;
+> +                       goto out_free;
+> +               }
+> +               break;
+>         default:
+>                 printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card"
+>                                 " isn't supported yet\n",
+> @@ -514,3 +534,4 @@
+>
+>  module_init(em28xx_dvb_register);
+>  module_exit(em28xx_dvb_unregister);
+> +
+> [root@am2mm v4l-dvb]#
+>
+> Best Regards,
+>
+> --
+> Rob Krakora
+> Software Engineer
+> MessageNet Systems
+> 101 East Carmel Dr. Suite 105
+> Carmel, IN 46032
+> (317)566-1677 Ext. 206
+> (317)663-0808 Fax
 
-Support for the Sony IMX046 sensor on the OMAP3430 SDP board.
+Hello Robert,
 
-Signed-off-by: Greg Hofer <greg.hofer@hp.com>
-Signed-off-by: Dominic Curran <dcurran@ti.com>
----
- arch/arm/mach-omap2/board-3430sdp.c |  197 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 197 insertions(+)
+For getting a USB trace, I typically use SniffUSB:
 
-Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
-===================================================================
---- omapzoom04.orig/arch/arm/mach-omap2/board-3430sdp.c
-+++ omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
-@@ -45,6 +45,9 @@
- #include "ti-compat.h"
- 
- #ifdef CONFIG_VIDEO_OMAP3
-+#ifndef CONFIG_TWL4030_CORE
-+#error "no power companion board defined!"
-+#endif
- #include <media/v4l2-int-device.h>
- #include <../drivers/media/video/omap34xxcam.h>
- #include <../drivers/media/video/isp/ispreg.h>
-@@ -52,9 +55,11 @@
- #define FPGA_SPR_GPIO1_3v3	(0x1 << 14)
- #define FPGA_GPIO6_DIR_CTRL	(0x1 << 6)
- static void __iomem *fpga_map_addr;
-+
- #if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
- #include <../drivers/media/video/mt9p012.h>
- #endif
-+
- #if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
- #include <../drivers/media/video/ov3640.h>
- #include <../drivers/media/video/isp/ispcsi2.h>
-@@ -71,6 +76,22 @@ static	struct omap34xxcam_hw_config *hwc
- #define OV3640_CSI2_PHY_TCLK_MISS	1
- #define OV3640_CSI2_PHY_TCLK_SETTLE	14
- #endif
-+
-+#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
-+#include <../drivers/media/video/imx046.h>
-+#include <../drivers/media/video/isp/ispcsi2.h>
-+#define IMX046_CSI2_CLOCK_POLARITY	0	/* +/- pin order */
-+#define IMX046_CSI2_DATA0_POLARITY	0	/* +/- pin order */
-+#define IMX046_CSI2_DATA1_POLARITY	0	/* +/- pin order */
-+#define IMX046_CSI2_CLOCK_LANE		1	 /* Clock lane position: 1 */
-+#define IMX046_CSI2_DATA0_LANE		2	 /* Data0 lane position: 2 */
-+#define IMX046_CSI2_DATA1_LANE		3	 /* Data1 lane position: 3 */
-+#define IMX046_CSI2_PHY_THS_TERM	2
-+#define IMX046_CSI2_PHY_THS_SETTLE	23
-+#define IMX046_CSI2_PHY_TCLK_TERM	0
-+#define IMX046_CSI2_PHY_TCLK_MISS	1
-+#define IMX046_CSI2_PHY_TCLK_SETTLE	14
-+#endif
- #endif
- 
- #ifdef CONFIG_VIDEO_DW9710
-@@ -926,6 +947,176 @@ static struct ov3640_platform_data sdp34
- 
- #endif
- 
-+
-+#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
-+
-+static struct omap34xxcam_sensor_config imx046_hwc = {
-+	.sensor_isp = 0,
-+	.xclk = OMAP34XXCAM_XCLK_B,
-+	.capture_mem = PAGE_ALIGN(3280 * 2464 * 2) * 2,
-+};
-+
-+static int imx046_sensor_set_prv_data(void *priv)
-+{
-+	struct omap34xxcam_hw_config *hwc = priv;
-+
-+	hwc->u.sensor.xclk = imx046_hwc.xclk;
-+	hwc->u.sensor.sensor_isp = imx046_hwc.sensor_isp;
-+	hwc->dev_index = 2;
-+	hwc->dev_minor = 5;
-+	hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
-+	hwc->interface_type = ISP_CSIA;
-+
-+	hwc->csi2.hw_csi2.lanes.clock.polarity = IMX046_CSI2_CLOCK_POLARITY;
-+	hwc->csi2.hw_csi2.lanes.clock.position = IMX046_CSI2_CLOCK_LANE;
-+	hwc->csi2.hw_csi2.lanes.data[0].polarity = IMX046_CSI2_DATA0_POLARITY;
-+	hwc->csi2.hw_csi2.lanes.data[0].position = IMX046_CSI2_DATA0_LANE;
-+	hwc->csi2.hw_csi2.lanes.data[1].polarity = IMX046_CSI2_DATA1_POLARITY;
-+	hwc->csi2.hw_csi2.lanes.data[1].position = IMX046_CSI2_DATA1_LANE;
-+	hwc->csi2.hw_csi2.phy.ths_term = IMX046_CSI2_PHY_THS_TERM;
-+	hwc->csi2.hw_csi2.phy.ths_settle = IMX046_CSI2_PHY_THS_SETTLE;
-+	hwc->csi2.hw_csi2.phy.tclk_term = IMX046_CSI2_PHY_TCLK_TERM;
-+	hwc->csi2.hw_csi2.phy.tclk_miss = IMX046_CSI2_PHY_TCLK_MISS;
-+	hwc->csi2.hw_csi2.phy.tclk_settle = IMX046_CSI2_PHY_TCLK_SETTLE;
-+	return 0;
-+}
-+
-+static struct isp_interface_config imx046_if_config = {
-+	.ccdc_par_ser = ISP_CSIA,
-+	.dataline_shift = 0x0,
-+	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
-+	.vdint0_timing = 0x0,
-+	.vdint1_timing = 0x0,
-+	.strobe = 0x0,
-+	.prestrobe = 0x0,
-+	.shutter = 0x0,
-+	.prev_sph = 2,
-+	.prev_slv = 0,
-+	.wenlog = ISPCCDC_CFG_WENLOG_OR,
-+	.dcsub = IMX046_BLACK_LEVEL_AVG,
-+	.u.csi.crc = 0x0,
-+	.u.csi.mode = 0x0,
-+	.u.csi.edge = 0x0,
-+	.u.csi.signalling = 0x0,
-+	.u.csi.strobe_clock_inv = 0x0,
-+	.u.csi.vs_edge = 0x0,
-+	.u.csi.channel = 0x0,
-+	.u.csi.vpclk = 0x2,
-+	.u.csi.data_start = 0x0,
-+	.u.csi.data_size = 0x0,
-+	.u.csi.format = V4L2_PIX_FMT_SGRBG10,
-+};
-+
-+
-+static int imx046_sensor_power_set(enum v4l2_power power)
-+{
-+	struct isp_csi2_lanes_cfg lanecfg;
-+	struct isp_csi2_phy_cfg phyconfig;
-+	static enum v4l2_power previous_power = V4L2_POWER_OFF;
-+	int err = 0;
-+
-+	switch (power) {
-+	case V4L2_POWER_ON:
-+		/* Power Up Sequence */
-+		printk(KERN_DEBUG "imx046_sensor_power_set(ON)\n");
-+		if (previous_power == V4L2_POWER_OFF)
-+			isp_csi2_reset();
-+
-+		lanecfg.clk.pol = IMX046_CSI2_CLOCK_POLARITY;
-+		lanecfg.clk.pos = IMX046_CSI2_CLOCK_LANE;
-+		lanecfg.data[0].pol = IMX046_CSI2_DATA0_POLARITY;
-+		lanecfg.data[0].pos = IMX046_CSI2_DATA0_LANE;
-+		lanecfg.data[1].pol = IMX046_CSI2_DATA1_POLARITY;
-+		lanecfg.data[1].pos = IMX046_CSI2_DATA1_LANE;
-+		lanecfg.data[2].pol = 0;
-+		lanecfg.data[2].pos = 0;
-+		lanecfg.data[3].pol = 0;
-+		lanecfg.data[3].pos = 0;
-+		isp_csi2_complexio_lanes_config(&lanecfg);
-+		isp_csi2_complexio_lanes_update(true);
-+
-+		isp_csi2_ctrl_config_ecc_enable(true);
-+
-+		phyconfig.ths_term = IMX046_CSI2_PHY_THS_TERM;
-+		phyconfig.ths_settle = IMX046_CSI2_PHY_THS_SETTLE;
-+		phyconfig.tclk_term = IMX046_CSI2_PHY_TCLK_TERM;
-+		phyconfig.tclk_miss = IMX046_CSI2_PHY_TCLK_MISS;
-+		phyconfig.tclk_settle = IMX046_CSI2_PHY_TCLK_SETTLE;
-+		isp_csi2_phy_config(&phyconfig);
-+		isp_csi2_phy_update(true);
-+
-+		isp_configure_interface(&imx046_if_config);
-+
-+		if (previous_power == V4L2_POWER_OFF) {
-+			/* Request and configure gpio pins */
-+			if (omap_request_gpio(IMX046_RESET_GPIO) != 0)
-+				return -EIO;
-+
-+			/* nRESET is active LOW. set HIGH to release reset */
-+			omap_set_gpio_dataout(IMX046_RESET_GPIO, 1);
-+
-+			/* set to output mode */
-+			omap_set_gpio_direction(IMX046_RESET_GPIO,
-+				GPIO_DIR_OUTPUT);
-+
-+			/* turn on analog power */
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
-+
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_DEV_GRP_P1, TWL4030_VAUX4_DEV_GRP);
-+			udelay(100);
-+
-+			/* have to put sensor to reset to guarantee detection */
-+			omap_set_gpio_dataout(IMX046_RESET_GPIO, 0);
-+			udelay(1500);
-+
-+			/* nRESET is active LOW. set HIGH to release reset */
-+			omap_set_gpio_dataout(IMX046_RESET_GPIO, 1);
-+			udelay(300);
-+		}
-+		break;
-+	case V4L2_POWER_OFF:
-+		printk(KERN_DEBUG "imx046_sensor_power_set(OFF)\n");
-+		/* Power Down Sequence */
-+		isp_csi2_complexio_power(ISP_CSI2_POWER_OFF);
-+
-+		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+				VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
-+		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-+		omap_free_gpio(IMX046_RESET_GPIO);
-+		break;
-+	case V4L2_POWER_STANDBY:
-+		printk(KERN_DEBUG "imx046_sensor_power_set(STANDBY)\n");
-+		/*TODO*/
-+		break;
-+	}
-+
-+	/* Save powerstate to know what was before calling POWER_ON. */
-+	previous_power = power;
-+	return err;
-+}
-+
-+static struct imx046_platform_data sdp3430_imx046_platform_data = {
-+	.power_set            = imx046_sensor_power_set,
-+	.priv_data_set        = imx046_sensor_set_prv_data,
-+	.default_regs         = NULL,
-+	.set_xclk             = isp_set_xclk,
-+	.cfg_interface_bridge = isp_configure_interface_bridge,
-+	.csi2_lane_count      = isp_csi2_complexio_lanes_count,
-+	.csi2_cfg_vp_out_ctrl = isp_csi2_ctrl_config_vp_out_ctrl,
-+	.csi2_ctrl_update     = isp_csi2_ctrl_update,
-+	.csi2_cfg_virtual_id  = isp_csi2_ctx_config_virtual_id,
-+	.csi2_ctx_update      = isp_csi2_ctx_update,
-+	.csi2_calc_phy_cfg0   = isp_csi2_calc_phy_cfg0,
-+};
-+#endif
-+
- static struct platform_device sdp3430_lcd_device = {
- 	.name		= "sdp2430_lcd",
- 	.id		= -1,
-@@ -1063,6 +1254,12 @@ static struct i2c_board_info __initdata 
- 		.platform_data = &sdp3430_ov3640_platform_data,
- 	},
- #endif
-+#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
-+	{
-+		I2C_BOARD_INFO("imx046", IMX046_I2C_ADDR),
-+		.platform_data = &sdp3430_imx046_platform_data,
-+	},
-+#endif
- };
- 
- static int __init omap3430_i2c_init(void)
+http://www.pcausa.com/Utilities/UsbSnoop/default.htm
+
+There could be several possibilities regarding the reason it doesn't
+answer i2c requests.  The two most likely are that either
+you have the wrong i2c address or you need the GPIOs to be setup
+correctly because the s5h1409 is being held in reset (more likely).
+Both of these can be determined from the USB trace.
+
+If you send me the USB trace, I will take a look, and since I am
+already working on a similar device I can compare the two traces.
+
+Regards,
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
