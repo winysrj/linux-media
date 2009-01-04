@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FFFJSk007161
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:15:19 -0500
-Received: from iamta51.mxsweep.com (mail151.ix.emailantidote.com
-	[89.167.219.151])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0FFEte0022815
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:14:59 -0500
-Message-ID: <496F4F1B.1050706@draigBrady.com>
-Date: Thu, 15 Jan 2009 14:58:35 +0000
-From: =?ISO-8859-1?Q?P=E1draig_Brady?= <P@draigBrady.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n041mJjR012937
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 20:48:19 -0500
+Received: from out3.laposte.net (out4.laposte.net [193.251.214.121])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n041m39o015989
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 20:48:03 -0500
+Received: from meplus.info (localhost [127.0.0.1])
+	by mwinf8307.laposte.net (SMTP Server) with ESMTP id DB22C7000086
+	for <video4linux-list@redhat.com>; Sun,  4 Jan 2009 02:48:01 +0100 (CET)
+Received: from wwinf8403 (lbao93aubmepnpf001-183-pip.meplus.info [10.98.50.10])
+	by mwinf8307.laposte.net (SMTP Server) with ESMTP id CB4B07000081
+	for <video4linux-list@redhat.com>; Sun,  4 Jan 2009 02:48:01 +0100 (CET)
+From: Olivier Lorin <o.lorin@laposte.net>
+To: video4linux-list@redhat.com
+Message-ID: <19691783.686993.1231033681816.JavaMail.www@wwinf8403>
 MIME-Version: 1.0
-To: Robert Krakora <rob.krakora@messagenetsystems.com>
-References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>	
-	<496F18C4.9020009@draigBrady.com>
-	<b24e53350901150632u2f031fcm3c6f34b6b0e81100@mail.gmail.com>
-In-Reply-To: <b24e53350901150632u2f031fcm3c6f34b6b0e81100@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer
- memory leak and race condition/corruption of capture pointer
+Date: Sun,  4 Jan 2009 02:48:01 +0100 (CET)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Subject: =?utf-8?q?RFC_=3A_addition_of_a_flag_to_rotate_decoded_images_by?=
+	=?utf-8?b?IDE4MMKw?=
+Reply-To: Olivier Lorin <o.lorin@laposte.net>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,70 +32,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Robert Krakora wrote:
-> On Thu, Jan 15, 2009 at 6:06 AM, Pádraig Brady <P@draigbrady.com> wrote:
->> Robert Krakora wrote:
->>> em28xx: Fix audio URB transfer buffer memory leak and race
->>> condition/corruption of capture pointer
->>>
->>>
->>> Signed-off-by: Robert V. Krakora <rob.krakora@messagenetsystems.com>
->>>
->>> diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
->>> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
->>> 10:06:12 2009 -0200
->>> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
->>> 12:47:00 2009 -0500
->>> @@ -62,11 +62,20 @@
->>>         int i;
->>>
->>>         dprintk("Stopping isoc\n");
->>> -       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
->>> -               usb_unlink_urb(dev->adev.urb[i]);
->>> -               usb_free_urb(dev->adev.urb[i]);
->>> -               dev->adev.urb[i] = NULL;
->>> -       }
->>> +        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
->>> +               usb_unlink_urb(dev->adev.urb[i]);
->>> +               usb_free_urb(dev->adev.urb[i]);
->>> +               dev->adev.urb[i] = NULL;
->>> +               if (dev->adev.urb[i]) {
->>> +                       usb_unlink_urb(dev->adev.urb[i]);
->>> +                       usb_free_urb(dev->adev.urb[i]);
->>> +                       dev->adev.urb[i] = NULL;
->>> +               }
->>> +                if (dev->adev.transfer_buffer) {
->>> +                       kfree(dev->adev.transfer_buffer[i]);
->>> +                       dev->adev.transfer_buffer[i] = NULL;
->>> +               }
->>> +        }
->>>
->>>         return 0;
->>>  }
->> That looks a bit incorrect. I fixed this last week in Markus'
->> repository, as I thought the leak was specific to that tree:
->> http://mcentral.de/hg/~mrec/em28xx-new/diff/1cfd9010a552/em28xx-audio.c
->>
-> 
-> I fail to see what looks incorrect about testing for NULL pointers
-> before freeing.
+Hi all,
 
-That's redundant/inefficient. kfree(NULL) is fine.
+I maintain the driver of a webcam (Genesys 05O3:05e3) embedded in a laptop =
+screen which has the ability to pivot vertically up to 180=C2=B0. The raw B=
+ayer data from the webcam come with the indication that the image is right =
+up or upside down depending on how much the webcam has been rotated. One of=
+ the sensor embedded in that webcam does not support the mirror and flip so=
+ that the rotation of the image must be done by software at decoding time.
+So what about a new V4L2_xxx set by the driver to tell the image has to be =
+rotated by 180=C2=B0?
+As it does not seem to be anticipated that the driver can change the image =
+state on the fly, a way to do that may be a new V4L2_CID_UPSIDEDOWN which i=
+s set by the driver and read by libv4l on a regular basis.
 
-> I did have a bug where I left the index number off of
-> the transfer buffer array which Devin kindly pointed out yesterday.
+Regards,
+Nol
 
-I was referring to that yes.
-
-I was also referring to the fact you have 2 calls to free the URBs.
-
-I suggest you just do what I did in my patch.
-I've tested it well. Without it I was leaking 48KiB
-every time VLC changed channel.
-
-cheers,
-Pádraig.
-
+ Cr=C3=A9ez votre adresse =C3=A9lectronique prenom.nom@laposte.net=20
+ 1 Go d'espace de stockage, anti-spam et anti-virus int=C3=A9gr=C3=A9s.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
