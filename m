@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from el-out-1112.google.com ([209.85.162.177])
+Received: from mail-gx0-f10.google.com ([209.85.217.10])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <2manybills@gmail.com>) id 1LRTk2-0002sf-4U
-	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 16:51:15 +0100
-Received: by el-out-1112.google.com with SMTP id s27so1233847ele.14
-	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 07:51:10 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
-	<157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>
-	<157f4a8c0901260741l4d263b8bk6e34cb5bb56d8c2@mail.gmail.com>
-	<c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>
-Date: Mon, 26 Jan 2009 15:51:09 +0000
-Message-ID: <157f4a8c0901260751l39214908ydfeed5ba12b4d48b@mail.gmail.com>
-From: Chris Silva <2manybills@gmail.com>
+	(envelope-from <eduardhc@gmail.com>) id 1LJYw6-0008Jo-61
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 20:47:00 +0100
+Received: by gxk3 with SMTP id 3so1024623gxk.17
+	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 11:46:23 -0800 (PST)
+Message-ID: <617be8890901041146y2460c8aax61207cc13131c769@mail.gmail.com>
+Date: Sun, 4 Jan 2009 20:46:23 +0100
+From: "Eduard Huguet" <eduardhc@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on
-	HDchannels
-Reply-To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,64 +18,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1039518980=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Jan 26, 2009 at 3:44 PM, Alex Betis <alex.betis@gmail.com> wrote:
-> On Mon, Jan 26, 2009 at 5:41 PM, Chris Silva <2manybills@gmail.com> wrote:
->>
->> On Mon, Jan 26, 2009 at 2:40 PM, Newsy Paper
->> <newspaperman_germany@yahoo.com> wrote:
->> > the transponders you don't get lock are problem transponders of s2-3200.
->> > The driver is still not able to lock on dvb-s2 30000 3/4 transponders :(
->> >
->> > Which software do you use to play HD content?
->> > you need either xine-lib 1.2 with external ffmpeg (recent developer's
->> > version).
->> > or xine-vdpau (if you have a NVIDIA graka that supports h264 hw
->> > acceleration).
->> >
->> > regards
->> >
->> > Newsy
->>
->> I can confirm this. I use S30W (Hispasat) and one of the providers,
->> Meo, broadcasts everything on DVB-S2 30000 3/4.
->> I can't get a lock on any of the transponders/channels. And to make
->> matters worse, not even scan-s2 can get a really usable channel list.
->> I had to build the list by hand, according to
->> http://pt.kingofsat.net/pack-meo.php page.
->>
->> And it still doesn't work.
->>
->> I use vdr-xine and xineliboutput with vdr 1.7.0 and up, plus
->> xine-vdpau to no avail.
->>
->> What's the point of having a DVB-S2 card if we can't tune to those
->> channels? What's missing in the S2-3200 drivers?
+--===============1039518980==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_201312_9916711.1231098383307"
+
+------=_Part_201312_9916711.1231098383307
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 >
-> What drivers do you use?
-> I saw that Igor did some changes in his repository to lock on high SR
-> channels.
->
+> ---------- Missatge reenviat ----------
+> From: "Alex Betis" <alex.betis@gmail.com>
+> To: kedgedev@centrum.cz
+> Date: Sat, 3 Jan 2009 22:48:45 +0200
+> Subject: Re: [linux-dvb] DVB-S Channel searching problem
 
-I've tried with both v4l-dvb and Igor repository. Haven't tried with
-latest changes Igor made.
 
-I'll try it tonight and comment on the state.
+Hi,
+    I've been more or less following this message thread. I just wanted to
+share that I've never been able to perform a succesfult channel scan for
+Astra 19.2 with my DVB-S card (which is an Avermedia DVB-S Pro, absolutely
+not related to yours, but anyway...).
 
-But for now, I'm somewhat disappointed. It's been over 6 months trying
-to make DVB-S2 transponders to work and no result to show.
+I suspect that it's some kind of driver problem that makes the card unable
+to lock onto any of the frecuencies listed in default dvb-utils supplied
+Astra-19.2 file. This file seems to contain a very small set of basic
+frecuencies (only 2 im I'm not wrong, at least in Gentoo...). I don't know
+if this should be enough, but anyway never worked for me.
 
-But wey... DVB-S works perfectly.
+However, I discovered a page that seems to maintain a more complete set of
+frecuency files. Here you have the link for them:
 
-Chris
+    http://joshyfun.peque.org/transponders/kaffeine.html
+
+Although they are referred as "Kaffeine" format they are perfectly
+compatible with dvb-utils 'scan' program. Give them a try, they worked
+perfect for me :D
+
+Best regards,
+  Eduard Huguet
+
+------=_Part_201312_9916711.1231098383307
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">---------- Missatge reenviat ----------<br>From:&nbsp;&quot;Alex Betis&quot; &lt;<a href="mailto:alex.betis@gmail.com">alex.betis@gmail.com</a>&gt;<br>
+To:&nbsp;<a href="mailto:kedgedev@centrum.cz">kedgedev@centrum.cz</a><br>Date:&nbsp;Sat, 3 Jan 2009 22:48:45 +0200<br>Subject:&nbsp;Re: [linux-dvb] DVB-S Channel searching problem</blockquote><div><br>Hi, <br>&nbsp; &nbsp; I&#39;ve been more or less following this message thread. I just wanted to share that I&#39;ve never been able to perform a succesfult channel scan for Astra 19.2 with my DVB-S card (which is an Avermedia DVB-S Pro, absolutely not related to yours, but anyway...).<br>
+<br>I suspect that it&#39;s some kind of driver problem that makes the card unable to lock onto any of the frecuencies listed in default dvb-utils supplied Astra-19.2 file. This file seems to contain a very small set of basic frecuencies (only 2 im I&#39;m not wrong, at least in Gentoo...). I don&#39;t know if this should be enough, but anyway never worked for me.<br>
+<br>However, I discovered a page that seems to maintain a more complete set of frecuency files. Here you have the link for them:<br><br>&nbsp;&nbsp;&nbsp; <a href="http://joshyfun.peque.org/transponders/kaffeine.html">http://joshyfun.peque.org/transponders/kaffeine.html</a><br>
+<br>Although they are referred as &quot;Kaffeine&quot; format they are perfectly compatible with dvb-utils &#39;scan&#39; program. Give them a try, they worked perfect for me :D<br><br>Best regards, <br>&nbsp; Eduard Huguet<br>
+<br><br><br><br><br><br><br><br></div></div><br>
+
+------=_Part_201312_9916711.1231098383307--
+
+
+--===============1039518980==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1039518980==--
