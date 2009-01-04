@@ -1,25 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0G0SGbe019466
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 19:28:16 -0500
-Received: from dd18532.kasserver.com (dd18532.kasserver.com [85.13.139.13])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0G0RNmm023614
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 19:27:23 -0500
-Date: Fri, 16 Jan 2009 01:27:21 +0100
-From: Carsten Meier <cm@trexity.de>
-To: "Markus Rechberger" <mrechberger@gmail.com>
-Message-ID: <20090116012721.415902aa@tuvok>
-In-Reply-To: <d9def9db0901151540y21f05a9ey5d937256f0fb80ae@mail.gmail.com>
-References: <20090115163348.5da9932a@tuvok>
-	<09CD2F1A09A6ED498A24D850EB10120817E30B7506@Colmatec004.COLMATEC.INT>
-	<20090115175121.25c4bdaa@tuvok> <496FB713.5020609@draigBrady.com>
-	<20090115235511.1ea5fdd5@tuvok>
-	<d9def9db0901151540y21f05a9ey5d937256f0fb80ae@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: How to identify USB-video-devices
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n04M4Yoq007305
+	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 17:04:34 -0500
+Received: from web32704.mail.mud.yahoo.com (web32704.mail.mud.yahoo.com
+	[68.142.207.248])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n04M4IRD001986
+	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 17:04:18 -0500
+Date: Sun, 4 Jan 2009 14:04:16 -0800 (PST)
+From: Franklin Meng <fmeng2002@yahoo.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <953661.22009.qm@web32704.mail.mud.yahoo.com>
+Subject: Kworld 315U help?
+Reply-To: fmeng2002@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,78 +25,76 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Fri, 16 Jan 2009 00:40:47 +0100
-schrieb "Markus Rechberger" <mrechberger@gmail.com>:
+I was wondering if someone can help me get the Kworld 315U supported under
+linux?  Information about the device is located here:
+http://linuxtv.org/wiki/index.php/KWorld_ATSC_315U
 
-> On Thu, Jan 15, 2009 at 11:55 PM, Carsten Meier <cm@trexity.de> wrote:
-> > Am Thu, 15 Jan 2009 22:22:11 +0000
-> > schrieb Pádraig Brady <P@draigBrady.com>:
-> >
-> >> Carsten Meier wrote:
-> >> > Storing device-file-names is also not an option because they are
-> >> > created dynamicly.
-> >>
-> >> You use udev rules to give persistent names.
-> >>
-> >> Here is my /etc/udev/rules.d/video.rules file,
-> >> which creates /dev/webcam and /dev/tvtuner as appropriate.
-> >>
-> >> KERNEL=="video*" SYSFS{name}=="USB2.0 Camera", NAME="video%n",
-> >> SYMLINK+="webcam" KERNEL=="video*" SYSFS{name}=="em28xx*",
-> >> NAME="video%n", SYMLINK+="tvtuner"
-> >>
-> >> To find distinguishing attributes to match on use:
-> >>
-> >> echo /sys/class/video4linux/video* | xargs -n1 udevinfo -a -p
-> >>
-> >> cheers,
-> >> Pádraig.
-> >
-> > This already came up on the pvrusb2-list and someone told me (I
-> > don't know much about udev) that it might cause problems on
-> > disconnection of a device with a file-descriptor open which then
-> > gets reconnected and there are two device-files for it. I also
-> > don't like it, because an average user (including me) usually can't
-> > or don't want to write udev rules. Finally v4l2 already contains a
-> > very simple and reliable mechanism for doing this (bus_info-field)
-> > which simply isn't used correctly by the USB-drivers.
-> >
-> 
-> check the device serial for this one. I don't know if the pvrusb2
-> devices have it set up properly
-> I know some manufacturers don't do!
-> Be flexible with the node, but not with the serial.
-> 
-> cat /sys/class/video4linux/video0/device/serial
-> 080702001788
-> 
-> you have the nodename in it, there are many ways to retrieve the
-> nodename.
+I have spent some time modifying the driver though I haven't gotten anything working yet.  If someone can give me some pointers or help it would be greatly appreciated.  I think I have all the chips of interest detected but I don't know what to do now.  
 
-If I do a "ls /sys/class/video4linux/video0/" it simply prints:
+Here's an output of my kernel logs showing the device.  Hopefully I'm on the right track. 
 
-dev  index  name  power  subsystem  uevent
+[  569.663960] Linux video capture interface: v2.00                             
+[  569.717312] em28xx: New device USB 2883 Device @ 480 Mbps (eb1a:a313, interface 0, class 0)                                                                  
+[  569.719319] em28xx #0: Identified as KWorld ATSC 315U HDTV TV Box (card=62)  
+[  569.719407] em28xx #0: chip ID is em2882/em2883                              
+[  569.846878] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 13 a3 d0 13 5a 03 6a 22 00 00                                                                        
+[  569.846911] em28xx #0: i2c eeprom 10: 00 00 04 57 4e 07 01 00 00 00 00 00 00 00 00 00                                                                        
+[  569.846942] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 01 00 00 00 00 00 5b 1c 00 00                                                                        
+[  569.846971] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00                                                                        
+[  569.847000] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847028] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847056] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 22 03 55 00 53 00                                                                        
+[  569.847086] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00 33 00 20 00 44 00                                                                        
+[  569.847116] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 00 00 00 00 00 00                                                                        
+[  569.847145] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847173] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847202] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847230] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847259] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847288] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847317] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00                                                                        
+[  569.847348] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x98330201       
+[  569.847353] em28xx #0: EEPROM info:                                          
+[  569.847357] em28xx #0:       AC97 audio (5 sample rates)                     
+[  569.847362] em28xx #0:       500mA max power                                 
+[  569.847367] em28xx #0:       Table at 0x04, strings=0x226a, 0x0000, 0x0000   
+[  569.847373] em28xx #0:                                                       
+[  569.847376]                                                                  
+[  569.847382] em28xx #0: The support for this board weren't valid yet.         
+[  569.847387] em28xx #0: Please send a report of having this working           
+[  569.847393] em28xx #0: not to V4L mailing list (and/or to other addresses)   
+[  569.847396]                                                                  
+[  569.882876] saa7115' 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)                                                                              
+[  569.955345] tuner' 0-0043: chip found @ 0x86 (em28xx #0)                     
+[  569.979876] tda9887 0-0043: creating new instance                            
+[  569.979894] tda9887 0-0043: tda988[5/6/7] found                              
+[  569.980772] tda9887 0-0043: destroying instance                              
+[  569.980993] tda9887 0-0043: creating new instance                            
+[  569.980999] tda9887 0-0043: tda988[5/6/7] found                              
+[  569.983857] tuner' 0-0061: chip found @ 0xc2 (em28xx #0)                     
+[  570.018607] tuner-simple 0-0061: creating new instance                       
+[  570.018622] tuner-simple 0-0061: type set to 60 (Thomson DTT 761X (ATSC/NTSC))                                                                               
+[  570.025349] em28xx #0: Config register raw data: 0xd0                        
+[  570.026360] em28xx #0: AC97 vendor ID = 0xffffffff                           
+[  570.026747] em28xx #0: AC97 features = 0x6a90                                
+[  570.026752] em28xx #0: Empia 202 AC97 audio processor detected               
+[  570.060722] em28xx #0: v4l2 driver version 0.1.1                             
+[  570.093645] em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0   
+[  570.093729] usbcore: registered new interface driver em28xx                  
+[  570.093737] em28xx driver loaded                                             
+[  570.126733] em28xx-audio.c: probing for em28x1 non standard usbaudio         
+[  570.126743] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger             
+[  570.128744] Em28xx: Initialized (Em28xx Audio Extension) extension           
+[  570.303684] DVB: registering new adapter (em28xx #0)                         
+[  570.305475] DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...                                                              
+[  570.307037] Successfully loaded em28xx-dvb                                   
+[  570.307051] Em28xx: Initialized (Em28xx dvb Extension) extension             
 
-and it will end up with many differnet cases to consider by any app. I
-stay at my opinion that current bus_info-impl is broken. This *is* a
-driver issue that needs fixing.
+Thanks,
+Franklin
 
-> 
-> > My app should simply scan for /dev/video*-files, read out
-> > capabilities from them, present the user menus to select devices
-> > and edit device settings, save settings to a file and apply them on
-> > demand. This would work fine if bus_info was filled right, without
-> > root-privileges, without special udev rules or other sysfs-magic.
-> >
-> > Regards,
-> > Carsten
-> >
-> > --
-> > video4linux-list mailing list
-> > Unsubscribe
-> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > https://www.redhat.com/mailman/listinfo/video4linux-list
-> >
+
+      
 
 --
 video4linux-list mailing list
