@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx34.mail.ru ([194.67.23.200])
+Received: from mx38.mail.ru ([194.67.23.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1LQRuJ-0006ak-Pg
-	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 20:41:36 +0100
-Received: from [95.53.182.209] (port=60339 helo=localhost.localdomain)
-	by mx34.mail.ru with asmtp id 1LQRtj-0001kC-00
-	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 22:40:59 +0300
-Date: Fri, 23 Jan 2009 22:49:24 +0300
+	(envelope-from <goga777@bk.ru>) id 1LJO2P-00018x-CG
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 09:08:46 +0100
+Received: from [92.101.131.52] (port=14599 helo=localhost.localdomain)
+	by mx38.mail.ru with asmtp id 1LJO1q-000HOa-00
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 11:08:10 +0300
+Date: Sun, 4 Jan 2009 11:14:29 +0300
 From: Goga777 <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-Message-ID: <20090123224924.62a48791@bk.ru>
-In-Reply-To: <200901231959.49629.hftom@free.fr>
-References: <20090123205854.45e40dd0@bk.ru> <200901231959.49629.hftom@free.fr>
+Message-ID: <20090104111429.1f828fc8@bk.ru>
+In-Reply-To: <20090103193718.GB3118@gmail.com>
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<20090103193718.GB3118@gmail.com>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] cx24116 & roll-off factor = auto
-Reply-To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,19 +31,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > does support cx24116  the roll-off factor = auto ?
-> 
-> no
+> I would suggest not using S2API as it's seems to be broken for our card
+> at this time, 
 
-who should be care about of corrected roll-off factor which have to send to cx24116 - the drivers or user software ? does
-roll-off factor = 0,35 good for 99% dvb-s2 channels ?
+why do you think so ? 
+
+>I did test steven s2 repo which is better that all other
+> S2API repo 
+
+have you tested http://mercurial.intuxication.org/hg/s2-liplianin ?
+
+>I have tested but still worse than lipliandvb (multiproto
+> hg).
+
+please try 
+
+http://mercurial.intuxication.org/hg/s2-liplianin (yesterday Igor synchronized it with current v4l-dvb)
++
+http://hg.kewl.org/dvb2010/ - new dvb scaner 
+
+for me everything is working without any problem with my hvr4000. Also patched vdr 170 works well with s2api
+
 
 Goga
 
- 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
