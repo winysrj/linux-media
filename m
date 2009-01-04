@@ -1,20 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from n7.bullet.re3.yahoo.com ([68.142.237.92])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <darav@gmx.de>) id 1LS8S6-0002HM-5J
-	for linux-dvb@linuxtv.org; Wed, 28 Jan 2009 12:19:27 +0100
-Message-Id: <DCCCDEF8-F664-4649-9567-BD209D1495BB@gmx.de>
-From: darav@gmx.de
-To: linux-dvb@linuxtv.org
-In-Reply-To: <6940F926-0668-4B88-BF78-32C69EE51919@gmx.de>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Date: Wed, 28 Jan 2009 12:18:47 +0100
-References: <496204D8.6090602@okg-computer.de><20090105130757.GW12059@titan.makhutov-it.de>	<49620916.7060704@dark-green.com>
-	<8CB3D7E10E304E0-1674-1438@WEBMAIL-MY25.sysops.aol.com>
-	<496B3494.4030500@okg-computer.de>
-	<6940F926-0668-4B88-BF78-32C69EE51919@gmx.de>
-Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
-Reply-To: linux-media@vger.kernel.org
+	(envelope-from <rvf16@yahoo.gr>) id 1LJYyR-0000Yk-8W
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 20:49:24 +0100
+Message-ID: <49611175.1020907@yahoo.gr>
+Date: Sun, 04 Jan 2009 21:43:49 +0200
+From: rvf16 <rvf16@yahoo.gr>
+MIME-Version: 1.0
+To: Linux-DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Terratec Cinergy Hybrid T USB XS FM
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,256 +16,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi again,
+Hello to all.
 
-has anybody an idea what's going wrong here?
-I'm still having this problem.
-Is there anything I can do to help here?
+Could anyone confirm if all signals of this usb tv tuner are supported 
+(DVB-T, analog tv PAL, FM radio) and what about teletext and remote 
+control support?
+I have searched throughout the web but didn't reach a satisfying result 
+except for the DVB-T signal.
 
-Thanks in advance,
-darav
-
-Jan 28 12:03:09 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:11 vdr dvb-usb: bulk message failed: -110 (9/0)
-Jan 28 12:03:11 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 3, was 0)
-Jan 28 12:03:11 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:13 vdr dvb-usb: bulk message failed: -110 (9/0)
-Jan 28 12:03:13 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 3, was 0)
-Jan 28 12:03:13 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:15 vdr dvb-usb: bulk message failed: -110 (8/0)
-Jan 28 12:03:15 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 4, was 0)
-Jan 28 12:03:15 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:17 vdr dvb-usb: bulk message failed: -110 (9/0)
-Jan 28 12:03:17 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 3, was 0)
-Jan 28 12:03:17 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:19 vdr dvb-usb: bulk message failed: -110 (8/0)
-Jan 28 12:03:19 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 4, was 0)
-Jan 28 12:03:19 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:21 vdr dvb-usb: bulk message failed: -110 (9/0)
-Jan 28 12:03:21 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 3, was 0)
-Jan 28 12:03:21 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:23 vdr dvb-usb: bulk message failed: -110 (8/0)
-Jan 28 12:03:23 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 4, was 0)
-Jan 28 12:03:23 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:25 vdr dvb-usb: bulk message failed: -110 (8/0)
-Jan 28 12:03:25 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 4, was 0)
-Jan 28 12:03:25 vdr ttusb2: i2c transfer failed.
-Jan 28 12:03:27 vdr dvb-usb: bulk message failed: -110 (9/0)
-Jan 28 12:03:27 vdr ttusb2: there might have been an error during  =
-
-control message transfer. (rlen =3D 3, was 0)
-Jan 28 12:03:27 vdr ttusb2: i2c transfer failed.
-
-
-
-Am 12.01.2009 um 19:10 schrieb darav@gmx.de:
-
-> Hi!
->
-> The same problem exists with my PCTV 400e.
-> It seems to be problem with the USB part.
-> When I enable USB-Debug- in the kernel, I get this:
->
-> ttusb2: i2c transfer failed.
-> dvb-usb: bulk message failed: -22 (9/70)
-> ttusb2: there might have been an error during control message  =
-
-> transfer. (rlen =3D 3, was 0)
-> ...
-> ttusb2: i2c transfer failed.
-> dvb-usb: bulk message failed: -22 (9/70)
-> ttusb2: there might have been an error during control message  =
-
-> transfer. (rlen =3D 3, was 0)
->
-> It's the same with 2.6.28 in-kernel-drivers and with the Igor  =
-
-> Liplianin's tree.
->
-> (A also had this problem some years ago on a PPC-Mac-Mini. The  =
-
-> workaround was to disable HIGHMEM. But it doesn't work now.
-> I'm now on x86 32bit).
->
-> I also want to help. But how?
->
-> Best Regards,
-> darav
->
-> Am 12.01.2009 um 13:16 schrieb Jens Krehbiel-Gr=E4ther:
->
->> Hi!
->>
->> So this problem concerns more people and should be a general bug??
->> My device is working well in windows, so it could not be the dish,  =
-
->> the
->> cable or the device itself.
->>
->> Can I do anything for debugging this problem? Let me know!
->>
->> Jens
->>
->>
->> dbox2alpha@netscape.net schrieb:
->>>
->>> i can confirm the very same problem symptoms with a technotrend  =
-
->>> dvb-s2
->>> 3600 usb device.
->>>
->>> -----Original Message-----
->>> From: gimli <gimli@dark-green.com>
->>> To: Artem Makhutov <artem@makhutov.org>
->>> Cc: linux-dvb@linuxtv.org
->>> Sent: Mon, 5 Jan 2009 2:20 pm
->>> Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
->>>
->>> Artem Makhutov schrieb:
->>>
->>>> Hi,
->>>
->>>>
->>>
->>>> On Mon, Jan 05, 2009 at 02:02:16PM +0100, Jens Krehbiel-Gr=E4ther  =
-
->>>> wrote:
->>>
->>>>> Hi!
->>>
->>>>>
->>>
->>>>> I use a Pinnacle USB-Receiver (PCTV Sat HDTV Pro). The module is
->>>
->>>>> dvb-usb-pctv452e.
->>>
->>>>>
->>>
->>>>> I use the repository from Igor Liplianin (actual hg release).  =
-
->>>>> The module
->>>
->>>>> compiles and loads fine. The scanning with scan-s2 and zapping  =
-
->>>>> with
->>>
->>>>> szap-s2 also wirk fine.
->>>
->>>>> But when I record TV from the USB-device with "cat
->>>
->>>>> /dev/dvb/adapter0/dvr0 > (filename)" I got the TV-Stream of the  =
-
->>>>> actual
->>>
->>>>> tv-station (zapped with "szap-s2 -r SAT.1" for example).
->>>
->>>>> This recorded video has artefacts, even missed frames.
->>>
->>>>>
->>>
->>>>> Anyone else having this problem? I remember that on multiproto  =
-
->>>>> there was
->>>
->>>>> a similar prob
->>> lem with the pctv452e until Dominik Kuhlen patched
->>>
->>>>> somthing since then the video was OK. Is it possible that the same
->>>
->>>>> "error" is in the S2API-driver?
->>>
->>>>
->>>
->>>> I have similar problems with my SkyStar HD (stb0899), but I
->>>
->>>> am still using the multiproto drivers.
->>>
->>>>
->>>
->>>> Regards, Artem
->>>
->>>>
->>>
->>>> _______________________________________________
->>>
->>>> linux-dvb mailing list
->>>
->>>> linux-dvb@linuxtv.org
->>>
->>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>>
->>>
->>> Hi have also a similar problem on the TerraTec Cinergy S2 PCI HD
->>>
->>> with the S2API drivers from the Liplianin tree.
->>>
->>>
->>>
->>> mfg
->>>
->>>
->>>
->>> Edgar (gimli) Hucek
->>>
->>>
->>>
->>> _______________________________________________
->>>
->>> linux-dvb mailing list
->>>
->>> linux-dvb@linuxtv.org
->>>
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>>
->>> ------------------------------------------------------------------------
->>> Get a *free MP3* every day with the Spinner.com Toolbar. Get it Now
->>> <http://toolbar.aol.com/spinner/download.html?ncid=3Demlweusdown0000002=
-0 =
-
->>> >.
->>>
->>> ------------------------------------------------------------------------
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Thank you.
+Regards.
 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
