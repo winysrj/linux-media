@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FFLAUE011574
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:21:10 -0500
-Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
-	[209.85.218.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0FFKNna026669
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:20:24 -0500
-Received: by bwz13 with SMTP id 13so3248949bwz.3
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 07:20:23 -0800 (PST)
-Message-ID: <d9def9db0901150720n53ca549dobaa0034b9a21072a@mail.gmail.com>
-Date: Thu, 15 Jan 2009 16:20:23 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Carsten Meier" <cm@trexity.de>
-In-Reply-To: <20090115154111.36cc25d1@tuvok>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0403WC6025369
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 19:03:32 -0500
+Received: from mailrelay011.isp.belgacom.be (mailrelay011.isp.belgacom.be
+	[195.238.6.178])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0402o4Z022546
+	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 19:02:51 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "Jens Bongartz" <bongartz@gmail.com>
+Date: Sun, 4 Jan 2009 01:02:37 +0100
+References: <4389ffee0812310817m64b4c2bar56d8b35be06fe0f2@mail.gmail.com>
+In-Reply-To: <4389ffee0812310817m64b4c2bar56d8b35be06fe0f2@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <20090115154111.36cc25d1@tuvok>
+Message-Id: <200901040102.37947.laurent.pinchart@skynet.be>
 Cc: video4linux-list@redhat.com
-Subject: Re: How to identify USB-video-devices
+Subject: Re: Testing Requested: Python Bindings for Video4linux2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,37 +30,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Jan 15, 2009 at 3:41 PM, Carsten Meier <cm@trexity.de> wrote:
-> Hello list,
->
-> we recently had a discussion on the pvrusb2-list on how to identify a
-> video-device connected via USB from an userspace app. (Or more precisely
-> on how to associate config-data with a particular device). This led to
-> a patch which returned the device's serial-no. in v4l2_capability's
-> bus_info field. This one has been rejected, but I really feel that this
-> is the right way to go. Here's the thread:
-> http://www.isely.net/pipermail/pvrusb2/2009-January/002091.html
->
-> I think the meaning of the bus_info-field should be modified slightly
-> for USB-devices to reflect its dynamic nature. At least a string that
-> won't change on dis-/reconnect and standby/wake-up-cycles should be
-> returned. If a device has a unique serial-no. it is a perfect candidate
-> for this, if not, some USB-port-info should be returned that won't
-> change if the device is connected to the same port through the same hub.
->
-> What do you think?
-> (BTW: I'm not a kernel-hacker, I'm writing this from the perspective of
-> an app-developer)
->
+HI Jens,
 
-write a few shellscripts and parse sysfs, or attach your application
-to sysfs that it will
-be notified if a device gets added. dbus is also a tip. no need to
-hook up drivers
-with some special things there.
+On Wednesday 31 December 2008, Jens Bongartz wrote:
+> Hi everybody,
+>
+> I saw this thread recently and I am interested in this topic too.
+> I am using a Logitech Quickcam 9000 Pro with the uvcvideo driver. The
+> camera works properly with the uvccapture application.
+> I did some experiment with the python-video4linux2 bindings using the
+> python interactive mode. To be honest I am not really familiar with
+> v4l2.
+>
+> Here are my results:
+> >>> import pyv4l2
+> >>> cam = pyv4l2.Device('dev/video0')
+> >>> cam.EnumInput(0)
+>
+> ['Camera 1', 'camera', 0L, 0L, [], []]
+>
+> >>> cam.EnumFormats(1)
+>
+> [('MJPG', 'MJPEG'), ('YUYV', 'YUV 4 :2 :2 (YUYV)')]
+>
+> >>> cam.GetResolutions()
+>
+> [(320L, 240L), (640L, 480L), (800L, 600L)]
+>
+> >>> cam.QueryCaps()
+> >>> cam.driver
+>
+> 'uvcvideo'
+>
+> >>> cam.businfo
+>
+> '0000:00:10.1'
+>
+> >>> cam.card
+>
+> 'UVC Camera (046d:0990)'
+>
+> >>> cam.GetFormat()
+> >>> cam.format.width
+>
+> 800L
+>
+> >>> cam.format.height
+>
+> 600L
+>
+> >>> cam.format.pixelformat
+>
+> 'MJPEG'
+>
+> >>> cam.SetFormat()
+>
+> The Read() method works without an error message and the buffer is created.
+>
+> >>> cam.Read()
+> >>> cam.buffer
+>
+> <ctypes.c_char_Array_62933 object at 0xb7e5053c>
+>
+> But the camera seems not to react to the Read() call. The camera's LED
+> does not flash like using the uvccapture application and the buffer is
+> filled just with '\x00'. Am I doing something wrong?
 
-regards,
-Markus
+The read method is not supported by the uvcvideo driver. You should use the 
+mmap video capture method.
+
+> As Laurent already mentioned the "d.SetStandard( d.standards['NTSC']
+> )" call creates an exception.
+> Any suggestions? I would be happy to this webcam work with python.
+
+Don't use the SetStandard function with UVC cameras :-). Or handle the 
+exception and recover gracefully.
+
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
