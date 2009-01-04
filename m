@@ -1,23 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0U3qCpB032195
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 22:52:12 -0500
-Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0U3pvUi009286
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 22:51:57 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Curran, Dominic" <dcurran@ti.com>, linux-omap
-	<linux-omap@vger.kernel.org>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Fri, 30 Jan 2009 09:21:48 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA790201@dbde02.ent.ti.com>
-In-Reply-To: <200901291853.49092.dcurran@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <b24e53350901041128p29b149b6u7c48874fe106138d@mail.gmail.com>
+Date: Sun, 4 Jan 2009 14:28:11 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: CityK <cityk@rogers.com>
+In-Reply-To: <49605AFA.3000208@rogers.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "greg.hofer@hp.com" <greg.hofer@hp.com>
-Subject: RE: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
+References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
+	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
+	<49605AFA.3000208@rogers.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,86 +25,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Sun, Jan 4, 2009 at 1:45 AM, CityK <cityk@rogers.com> wrote:
 
+> Devin Heitmueller wrote:
+> > On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
+> > <rob.krakora@messagenetsystems.com> wrote:
+> >
+> >> Mauro:
+> >>
+> >> The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
+> >> LGDT330X.  Hence the error initializing the LGDT330X in the current
+> source
+> >> in em28xx-dvb.c.
+> >>
+> >> Best Regards,
+> >>
+> >
+> > Hello Robert,
+> >
+> > Well, that's good to know.  I don't think anyone has done any work on
+> > that device recently, so I don't know why the code has it as an
+> > lgdt3303.
+>
+> I believe Douglas submitted this patch
+> (http://linuxtv.org/hg/v4l-dvb/rev/77f789d59de8) that got committed.
+>
+> I've been meaning to get back to this because the "A316" part of the
+> name caught my attention -- I do not recall having seen such a reference
+> made by KWorld, nor is it typical of their nomenclature style, rather,
+> it is entirely consistent with that used by AVerMedia
+>
+>
+>
+>
+Douglas:
 
-Thanks,
-Vaibhav Hiremath
+A316 is actually the product ID portion of the USB vendor/product IDs.  It
+should be 330 instead of A316.
 
-> -----Original Message-----
-> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
-> bounces@redhat.com] On Behalf Of Curran, Dominic
-> Sent: Friday, January 30, 2009 6:24 AM
-> To: linux-omap; video4linux-list@redhat.com
-> Cc: greg.hofer@hp.com
-> Subject: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
-> 
-> From: Dominic Curran <dcurran@ti.com>
-> Subject: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
-> 
-> Rename i2c structures to something sensible.
-> This patch is not specific for imx046 sensor.
-> Do this in preparation for i2c changes for imx046 sensor.
-> 
-> Signed-off-by: Greg Hofer <greg.hofer@hp.com>
-> Signed-off-by: Dominic Curran <dcurran@ti.com>
-> ---
->  arch/arm/mach-omap2/board-zoom2.c |   14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
-> 
-> Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
-> ===================================================================
-> --- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
-> +++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
-> @@ -472,7 +472,7 @@ static struct twl4030_platform_data ldp_
->  	.keypad		= &ldp_kp_twl4030_data,
->  };
-> 
-> -static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
-> +static struct i2c_board_info __initdata zoom2_i2c_bus1_info[] = {
-[Hiremath, Vaibhav] I think zoom2_i2c1_info should be sufficient, since i2c1,2,3 itself indicates bus.
+Best Regards,
 
->  	{
->  		I2C_BOARD_INFO("twl4030", 0x48),
->  		.flags = I2C_CLIENT_WAKE,
-> @@ -507,7 +507,7 @@ static struct synaptics_i2c_rmi_platform
->  	.power		= &synaptics_power,
->  };
-> 
-> -static struct i2c_board_info __initdata ldp3430_i2c_board_info[] =
-> {
-> +static struct i2c_board_info __initdata zoom2_i2c_bus2_info[] = {
->  	{
->  		I2C_BOARD_INFO(SYNAPTICS_I2C_RMI_NAME,
-> SYNAPTICS_I2C_ADDR),
->  		.platform_data = &ldp3430_synaptics_platform_data,
-> @@ -518,12 +518,12 @@ static struct i2c_board_info __initdata
-> 
->  static int __init omap_i2c_init(void)
->  {
-> -	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
-> -			ARRAY_SIZE(ldp_i2c_boardinfo));
-> +	omap_register_i2c_bus(1, 2600, zoom2_i2c_bus1_info,
-> +			ARRAY_SIZE(zoom2_i2c_bus1_info));
->  #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
-> -	ldp3430_i2c_board_info[0].irq =
-> OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
-> -	omap_register_i2c_bus(2, 100, ldp3430_i2c_board_info,
-> -			ARRAY_SIZE(ldp3430_i2c_board_info));
-> +	zoom2_i2c_bus2_info[0].irq =
-> OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
-> +	omap_register_i2c_bus(2, 100, zoom2_i2c_bus2_info,
-> +			ARRAY_SIZE(zoom2_i2c_bus2_info));
->  #endif
->  	omap_register_i2c_bus(3, 400, NULL, 0);
->  	return 0;
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-
-> request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-
-
+-- 
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
