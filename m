@@ -1,14 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from waladir.klfree.cz ([81.201.51.58] helo=culibrk.hrbkovi.eu)
+Received: from mu-out-0910.google.com ([209.85.134.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ludek@hrbkovi.eu>) id 1LMgft-00011A-F5
-	for linux-dvb@linuxtv.org; Tue, 13 Jan 2009 11:39:10 +0100
-Message-ID: <496C6F77.8070405@hrbkovi.eu>
-Date: Tue, 13 Jan 2009 11:39:51 +0100
-From: Ludek <ludek@hrbkovi.eu>
-MIME-Version: 1.0
+	(envelope-from <gregoire.favre@gmail.com>) id 1LJQMt-0001IP-BT
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 11:38:03 +0100
+Received: by mu-out-0910.google.com with SMTP id g7so2695739muf.1
+	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 02:37:59 -0800 (PST)
+Date: Sun, 4 Jan 2009 11:37:44 +0100
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TechniSat CableStar HD2 & CAM
+Message-ID: <20090104103744.GB3551@gmail.com>
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
+	<1231057784.2615.9.camel@pc10.localdom.local>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1231057784.2615.9.camel@pc10.localdom.local>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,71 +26,38 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Sun, Jan 04, 2009 at 09:29:44AM +0100, hermann pitton wrote:
 
-I've problem with TechniCrypt CAM inserted on my TechniSat CableStar HD2 
-  (DVB-C card) with current mantis driver. I'm able to watch FTA 
-channels only :-(  As I read this list I'm afraid that CAM modules with 
-this card is not supported yet. Does anyone get this card with CAM working?
+Hello,
 
-[ 4197.469043] Mantis 0000:05:00.0: PCI INT A -> GSI 20 (level, low) -> 
-IRQ 20
-[ 4197.469078] irq: 20, latency: 32
-[ 4197.469079]  memory: 0xec100000, mmio: 0xffffc20004950000
-[ 4197.469082] found a VP-2040 PCI DVB-C device on (05:00.0),
-[ 4197.469084]     Mantis Rev 1 [1ae4:0002], irq: 20, latency: 32
-[ 4197.469087]     memory: 0xec100000, mmio: 0xffffc20004950000
-[ 4197.471385]         mantis_i2c_write: Address=[0x50] <W>[ 08 ]
-[ 4197.471982]         mantis_i2c_read:  Address=[0x50] <R>[ 00 08 c9 d0 
-1f 2c ]
-[ 4197.474091]     MAC Address=[00:08:c9:d0:1f:2c]
-[ 4197.474119] mantis_alloc_buffers (0): DMA=0x541a0000 
-cpu=0xffff8800541a0000 size=65536
-[ 4197.474190] mantis_alloc_buffers (0): RISC=0x34c0a000 
-cpu=0xffff880034c0a000 size=1000
-[ 4197.474256] DVB: registering new adapter (Mantis dvb adapter)
-[ 4197.992116] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-[ 4197.992176]         mantis_i2c_write: Address=[0x50] <W>[ ff ]
-[ 4197.992528]         mantis_i2c_read:  Address=[0x50] <R>[ e4 ]
-[ 4197.992956]         mantis_i2c_write: Address=[0x0c] <W>[ 1a ]
-[ 4197.993308]         mantis_i2c_read:  Address=[0x0c] <R>[ 7d ]
-[ 4197.993727]         mantis_i2c_write: Address=[0x50] <W>[ ff ]
-[ 4197.994078]         mantis_i2c_read:  Address=[0x50] <R>[ e4 ]
-[ 4197.994465]         mantis_i2c_write: Address=[0x0c] <W>[ 00 33 ]
-[ 4197.995226]         mantis_i2c_write: Address=[0x0c] <W>[ 1a ]
-[ 4197.995577]         mantis_i2c_read:  Address=[0x0c] <R>[ 7d ]
-[ 4197.995928] TDA10023: i2c-addr = 0x0c, id = 0x7d
-[ 4197.995931] mantis_frontend_init (0): found Philips CU1216 DVB-C 
-frontend (TDA10023) @ 0x0c
-[ 4197.995993] mantis_frontend_init (0): Mantis DVB-C Philips CU1216 
-frontend attach success
-[ 4197.996117] DVB: registering adapter 0 frontend 0 (Philips TDA10023 
-DVB-C)...
-[ 4197.996234] mantis_ca_init (0): Registering EN50221 device
-[ 4197.996289] dvb_ca_en50221_init
-[ 4197.996374] mantis_ca_init (0): Registered EN50221 device
-[ 4197.996430] CAMCHANGE IRQ slot:0 change_type:1
-[ 4197.996431] dvb_ca_en50221_thread_wakeup
-[ 4197.996437] mantis_hif_init (0): Adapter(0) Initializing Mantis Host 
-Interface
-[ 4197.996674] dvb_ca_en50221_thread
-[ 4199.000019] CAMREADY IRQ slot:0
-[ 4199.000034] dvb_ca_en50221_thread_wakeup
-[ 4199.000350] TUPLE type:0x0 length:0
-[ 4199.000355] dvb_ca adapter 0: Invalid PC card inserted :(
+> We else need at least i2c_debug enabled on the cx88xx, yes, that is the
+> busmaster :)
 
-Regards,
+Great, I have to try to do it, but I should first learn of a way to do
+it, I'll report ASAP.
 
-Ludek
+> I don't deny that strange things happened, wrong tuners loaded without
+> trace so far.
+> =
+
+> Mike at least had a hotfix, not to allow analog only tuners to oops
+> around.
+
+Could you point me to an URL for this ?
+
+Thank you very much,
+-- =
+
+Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
