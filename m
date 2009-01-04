@@ -1,24 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0PF7D8M027283
-	for <video4linux-list@redhat.com>; Sun, 25 Jan 2009 10:07:13 -0500
-Received: from vipmx-out.facebook.com (outmail001.sctm.tfbnw.net
-	[204.15.20.236])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0PF6rM0003630
-	for <video4linux-list@redhat.com>; Sun, 25 Jan 2009 10:06:53 -0500
-Received: from localhost.localdomain ([10.18.255.176])
-	by vipmx-out.facebook.com [vipemail009.snc1.facebook.com]
-	(8.13.1/8.13.6) with ESMTP id n0PF6q6T017941
-	for <video4linux-list@redhat.com>; Sun, 25 Jan 2009 07:06:52 -0800
-Date: Sun, 25 Jan 2009 07:06:52 -0800
-To: Video4linux-list <video4linux-list@redhat.com>
-From: "John O'Keefe" <invite+k5_v51ud@facebookmail.com>
-Message-ID: <2bd08c568d015bb3e275c1bd9a76e99f@localhost.localdomain>
+Message-ID: <b24e53350901032155n6b438cd2xaefe496f51c15447@mail.gmail.com>
+Date: Sun, 4 Jan 2009 00:55:38 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Subject: Check out my Facebook profile
-Reply-To: John O'Keefe <nymusicman@gmail.com>
+References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
+	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,16 +24,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Video4linux-list,
+On Sun, Jan 4, 2009 at 12:18 AM, Devin Heitmueller <
+devin.heitmueller@gmail.com> wrote:
 
-I set up a Facebook profile where I can post my pictures, videos and events and I want to add you as a friend so you can see it. First, you need to join Facebook! Once you join, you can also create your own profile.
+> On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
+> <rob.krakora@messagenetsystems.com> wrote:
+> > Mauro:
+> >
+> > The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
+> > LGDT330X.  Hence the error initializing the LGDT330X in the current
+> source
+> > in em28xx-dvb.c.
+> >
+> > Best Regards,
+>
+> Hello Robert,
+>
+> Well, that's good to know.  I don't think anyone has done any work on
+> that device recently, so I don't know why the code has it as an
+> lgdt3303.
+>
+> Do you know which tuner chip the device has?  The reason I ask is
+> because I'm working on another device that also has the s5h1409, and
+> it's got an xc3028L (the low power version of the xc3028).  If the
+> 330U also has the xc3028L, then we need to make sure to indicate that
+> in the device profile so it doesn't burn out the chip.
+>
+> We're probably also going to need to get a Windows trace, so we know
+> how to setup the s5h1409 configuration.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
+>
+Devin:
 
-Thanks,
-John
+I believe that it has the 3028 and not the 3028L as the part gets a little
+toasty even on Windows,  I will get the magnifying glass out and look again
+though (I am over 40 and becoming near-sighted).  I can get the Windows
+trace using USBTrace on Windows XP or with my Elisys USB Analyzer.
 
-To sign up for Facebook, follow the link below:
-http://www.facebook.com/p.php?i=3D646081399&k=3D6Y1565V3UV2M511HWGXTRU&r
+Best Regards,
 
+-- 
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
