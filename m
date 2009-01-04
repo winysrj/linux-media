@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FHDhpt004066
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 12:13:44 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0FHAWMd032132
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 12:11:40 -0500
-Received: by mail-ew0-f21.google.com with SMTP id 14so1345242ewy.3
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 09:11:40 -0800 (PST)
-Message-ID: <b24e53350901150911l4e90e2d8s52e6d357968bb129@mail.gmail.com>
-Date: Thu, 15 Jan 2009 12:11:40 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <b24e53350901150637q5f02d2c5t6d4a9ed5d298934b@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n046jVmR008644
+	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 01:45:31 -0500
+Received: from smtp106.rog.mail.re2.yahoo.com (smtp106.rog.mail.re2.yahoo.com
+	[68.142.225.204])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n046jFAX022375
+	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 01:45:15 -0500
+Message-ID: <49605AFA.3000208@rogers.com>
+Date: Sun, 04 Jan 2009 01:45:14 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
+	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
+In-Reply-To: <412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <b24e53350901150637q5f02d2c5t6d4a9ed5d298934b@mail.gmail.com>
-Subject: [PATCH 1/4] em28xx: Fix audio URB transfer buffer memory leak and
-	race condition/corruption of capture pointer
+Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,74 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-em28xx: Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
+Devin Heitmueller wrote:
+> On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
+> <rob.krakora@messagenetsystems.com> wrote:
+>   
+>> Mauro:
+>>
+>> The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
+>> LGDT330X.  Hence the error initializing the LGDT330X in the current source
+>> in em28xx-dvb.c.
+>>
+>> Best Regards,
+>>     
+>
+> Hello Robert,
+>
+> Well, that's good to know.  I don't think anyone has done any work on
+> that device recently, so I don't know why the code has it as an
+> lgdt3303.
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
+I believe Douglas submitted this patch
+(http://linuxtv.org/hg/v4l-dvb/rev/77f789d59de8) that got committed. 
 
-Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
-
-Padraig found this leak previously so his fix is utilized in this
-patch instead of mine.  Many thanks to him for aiding this "newbie".
-
-Priority: normal
-
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
-
-diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
---- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
-10:06:12 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
-12:47:00 2009 -0500
-@@ -62,11 +62,20 @@
-      int i;
-
-      dprintk("Stopping isoc\n");
--       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
--               usb_unlink_urb(dev->adev.urb[i]);
--               usb_free_urb(dev->adev.urb[i]);
--               dev->adev.urb[i] = NULL;
--       }
-+        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
-+               usb_unlink_urb(dev->adev.urb[i]);
-+               usb_free_urb(dev->adev.urb[i]);
-+               dev->adev.urb[i] = NULL;
-+
-+               kfree(dev->adev.transfer_buffer[i]);
-+               dev->adev.transfer_buffer[i] = NULL;
-+        }
-
-      return 0;
- }
-@@ -458,11 +467,15 @@
-                                                  *substream)
- #endif
- {
-+       unsigned long flags;
-+
-      struct em28xx *dev;
--
-      snd_pcm_uframes_t hwptr_done;
-+
-      dev = snd_pcm_substream_chip(substream);
-+       spin_lock_irqsave(&dev->adev.slock, flags);
-      hwptr_done = dev->adev.hwptr_done_capture;
-+       spin_unlock_irqrestore(&dev->adev.slock, flags);
-
-      return hwptr_done;
- }
+I've been meaning to get back to this because the "A316" part of the
+name caught my attention -- I do not recall having seen such a reference
+made by KWorld, nor is it typical of their nomenclature style, rather,
+it is entirely consistent with that used by AVerMedia
 
 
-
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
 
 --
 video4linux-list mailing list
