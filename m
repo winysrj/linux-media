@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LMwGx-000680-6c
-	for linux-dvb@linuxtv.org; Wed, 14 Jan 2009 04:18:29 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Robin Perkins <robin.perkins@internode.on.net>
-In-Reply-To: <4FBB1DE4-17DA-4F3B-9FF6-9B076D4D7803@internode.on.net>
-References: <8CB43CAAC52A98D-680-A5D@MBLK-M28.sysops.aol.com>
-	<4FBB1DE4-17DA-4F3B-9FF6-9B076D4D7803@internode.on.net>
-Date: Wed, 14 Jan 2009 04:18:15 +0100
-Message-Id: <1231903095.7435.50.camel@pc10.localdom.local>
+	(envelope-from <awalls@radix.net>) id 1LJX0v-0002tL-PB
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 18:43:51 +0100
+From: Andy Walls <awalls@radix.net>
+To: Eric Bauer <ebauer71@centurytel.net>
+In-Reply-To: <4960D592.9070400@centurytel.net>
+References: <4960D592.9070400@centurytel.net>
+Date: Sun, 04 Jan 2009 12:46:02 -0500
+Message-Id: <1231091162.3125.6.camel@palomino.walls.org>
 Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compro T750
+Subject: Re: [linux-dvb] Problem Searching Channels
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,66 +25,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+On Sun, 2009-01-04 at 09:28 -0600, Eric Bauer wrote:
+> Hello,
+> 
+> I'm trying to set up my new Happaugue HVR-1600 card.  During the scan, 
+> II get several minutes of output on the screen complaining about tuning 
+> failures,
 
-Am Mittwoch, den 14.01.2009, 12:36 +1000 schrieb Robin Perkins:
-> On 14/01/2009, at 5:17 AM, td9678td@aim.com wrote:
+These are normal when no service is detected on those freqs.
+
+
+>  and then I get the following message:
 > 
-> > Hello,
-> >
-> > i writing a small application, that shuts down the pc, if there isn't
-> > any scheduled recording. For this i would like to use the wakeup
-> > feature of this card, because the acpi (nvram) wakeup doesn't seem to
-> > work on my pc. There was alredy an attempt to support this card:
-> > http://www.linuxtv.org/pipermail/linux-dvb/2007-April/017001.html
-> > Can someone help me, howto program the counter on this card (under
-> > Linux or Windows)?
-> >
-> > Regards
-> > Daniel
-> 
-> Hello Daniel,
-> 
-> I'm currently trying to write a driver for the Compro Videomate T220  
-> which I understand is in the same series as your T750 (and also  
-> includes the T100). I created a wiki page for my card at http://www.linuxtv.org/wiki/index.php/Compro_VideoMate_DVB-T220 
->   and was just wondering if you could please do the same for your card  
-> just so that I can get some idea about the similarities/differences  
-> between our cards. At this stage my priority is just getting the card  
-> to tune, however my card has the power feature as well and it would be  
-> nice to include it at some later stage.
-> 
+> start filter:1338: ERROR: ioctl DMX_SET_FILTER failed: 6 No such device 
+> or address
+
+Hmmm.  New one one me, I'll have to investigate.
+
+What specific tool, version and command line arguments are you using?
+
+
+> I have to kill the scan with a control-c at this point.  Can anyone give 
+> me some advice with this problem?
+
+Make sure you are using the latest cx18 driver from:
+
+http://linuxtv.og/hg/v4l-dvb
+
+versions older than v1.0.4 of the cx18 driver have problems dealing with
+the occasional PCI bus error.
+
+
+Instructions can be found here:
+
+http://www.ivtvdriver.org/index.php/Cx18
+
+
+Make sure you have a good clean signal coming in:
+
+http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
+
+
+Regards,
+Andy
+
 > Thanks,
 > 
-> Rob
-> 
-
-that is a long story and very unpleasant for Compro customers and all
-trying to help.
-
-You can't trust on PCI subsystem detection at all with those cards and
-we will kick them out soon of auto detection, because of that.
-
-Like many other manufacturers they enjoy some freedom to mislead their
-customers by abusing the PCI subsystem, being the same for very
-different cards, which leads to kicking out potential rivals by
-introducing to be exclusive/incompatible on m$, mostly going away from
-trusted conventions by for example changing tuner type enumeration in
-the eeprom. (install compro and uninstall all others ;)
-
-In fact they don't have any driver at all themselves, just that little
-clock chip.
-
-We would prefer if they would start to clean up their stuff according
-the eeprom conventions they are using ;)
-
-Cheers,
-Hermann
+> Eric
 
 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
