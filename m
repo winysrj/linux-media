@@ -1,22 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from mail-in-06.arcor-online.net ([151.189.21.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <d.dalton@iinet.net.au>) id 1LPYNq-00006g-0Q
-	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 09:24:23 +0100
-Date: Wed, 21 Jan 2009 19:24:12 +1100
-From: Daniel Dalton <d.dalton@iinet.net.au>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-Message-ID: <20090121082412.GA3615@debian-hp.lan>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
-	<20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi>
-	<20090121003915.GA6120@debian-hp.lan>
-	<alpine.DEB.2.00.0901210711360.11623@ybpnyubfg.ybpnyqbznva>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0901210711360.11623@ybpnyubfg.ybpnyqbznva>
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] getting started with msi tv card
-Reply-To: linux-media@vger.kernel.org
+	(envelope-from <hermann-pitton@arcor.de>) id 1LJVV3-00033d-6z
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 17:06:50 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gregoire Favre <gregoire.favre@gmail.com>
+In-Reply-To: <20090104103744.GB3551@gmail.com>
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
+	<1231057784.2615.9.camel@pc10.localdom.local>
+	<20090104103744.GB3551@gmail.com>
+Date: Sun, 04 Jan 2009 17:06:59 +0100
+Message-Id: <1231085219.2723.1.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,109 +31,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Barry,
+Hi,
 
-> you will reach an item concerning video and related
-> multimedia devices, or something similar.  (It has been
-> years since I last went through a from-nothing kernel
-> configuration, so I remember almost nothing about it.)
-> Your device would be listed as one of the many that are
-> available.
+Am Sonntag, den 04.01.2009, 11:37 +0100 schrieb Gregoire Favre: 
+> On Sun, Jan 04, 2009 at 09:29:44AM +0100, hermann pitton wrote:
 > 
-> Sorry that I am not being more precise -- you do not now
-> need to do this, so I am skipping the details yet offering
-> an overview which may be helpful to you in the future.
-
-Thanks for that, it's good to know, yep, I've built kernels, using make
-oldconfig many times for a speakup patch i use on my laptop, but that's
-nice to know.
-
-> can help you in the future...
+> Hello,
 > 
-> The source code I refer to is that for the linux kernel,
-> and for your device, it would be found in
-> <path-to-your-source>/drivers/media/dvb/dvb-usb in
-> files m920x.*
-
-Ah, that makes sense.
-
-> Now, back to using `mplayer':
+> > We else need at least i2c_debug enabled on the cx88xx, yes, that is the
+> > busmaster :)
 > 
-> It works from a list of channels, which you will need
-> to create using a different utility.  It then uses
-> simple keyboard input to cycle through the list of
-> channels (I want to think that `k' and something else
-> are used, but I honestly no longer remember), which
-> is not too bad when you have only a few channels
-> available.
-
-Excellent, I'll look that up when I get to this point. :-)
-
-> > How would I begin configuring it for mplayer then?
+> Great, I have to try to do it, but I should first learn of a way to do
+> it, I'll report ASAP.
 > 
-> You need to create a `channels.conf' list of channels
-> that you then place under your ~/.mplayer/ directory.
-> Then if you want to start with a particular channel,
-> you will invoke `mplayer' something like
-> `mplayer dvb://"Channel foo" '
-> or simply as `mplayer dvb:// ' and then change channels
-> to reach the one of interest.
-
-Ah, ok.
-
+> > I don't deny that strange things happened, wrong tuners loaded without
+> > trace so far.
+> > 
+> > Mike at least had a hotfix, not to allow analog only tuners to oops
+> > around.
 > 
-> I am going to assume that your distribution already has
-> `mplayer' available, and that it has been built with
+> Could you point me to an URL for this ?
 
-It does. 
+http://linuxtv.org/hg/v4l-dvb/rev/f9bdc9ff3da1
 
-> DVB support.  But this may be wrong, and it may be that
+it must not be related at all, since it is still not clear how the wrong
+tuner type sneaked in, could still be caused by user/system options.
 
-Not sure about this one.
+But there seem to be some potential module load order problems.
+In any case, I would not use "make load" at all trying to debug such!
 
-> It may help if you use `scan' which is part of the `dvb-apps'
-> suite of programs.  This makes use of an initial tuning file,
-> and there should be one already available for your location.
-
-Um... Ok... Where should this file be located, and am I meant to
-download it from somewhere?
-So does it use this file to create a suitable channels.conf file for
-mplayer?
-
-> Make certain that you select the correct initial scan file
-> for your location, available as part of the `dvb-apps'
-> package -- here you probably will do best to obtain the
-> latest source via `hg' because the scanfiles may not be
-> up-to-date as included in a distribution, although the
-> binary should be mostly unchanged.
-
-Sorry... what's hg?
-And once I grab the latest source what should I do to run this scan to
-create channels.conf? And where do I find the file for my location?
-
-> signals from the same connection.  But I am hoping that
-
-I should check this your right.
-
-> Happy to help.  If I have done anything in my replies
-> that has not worked with your vision, then please do not
-> hesitate to give me feedback, so that I can change my
-> way of thinking.
-
-Nup, you have done an awesome job.
-
-Thanks very much mate for all your help, and I'm very sorry about all
-the questions.
-
-Have a good one
+I just tried and had to reboot on a x86_32 including lost keyboard.
 
 Cheers,
+Hermann
 
-Daniel
+
+
+
+
 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
