@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.wp.pl ([212.77.101.5])
+Received: from mail-in-05.arcor-online.net ([151.189.21.45])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vega01@wp.pl>) id 1LIicx-0000SN-Iu
-	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 12:55:44 +0100
-Received: from ajk10.neoplus.adsl.tpnet.pl (HELO [192.168.0.154])
-	(vega01@[83.25.244.10]) (envelope-sender <vega01@wp.pl>)
-	by smtp.wp.pl (WP-SMTPD) with SMTP
-	for <linux-dvb@linuxtv.org>; 2 Jan 2009 12:55:38 +0100
-Message-ID: <495E00B9.8000202@wp.pl>
-Date: Fri, 02 Jan 2009 12:55:37 +0100
-From: Kuba Irzabek <vega01@wp.pl>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] AverTV Hybrid Volar HX (A827)
+	(envelope-from <hermann-pitton@arcor.de>) id 1LJOMi-0002ak-RG
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 09:29:46 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <20090104111429.1f828fc8@bk.ru>
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<20090103193718.GB3118@gmail.com>  <20090104111429.1f828fc8@bk.ru>
+Date: Sun, 04 Jan 2009 09:29:44 +0100
+Message-Id: <1231057784.2615.9.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,16 +29,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
 
-I noticed some posts from quite a long time ago from people interested 
-in running AverTV A827 under Linux. Is anyone still interested or 
-working on it? I'm currently mainly interested in getting the analog TV 
-part working.
+Am Sonntag, den 04.01.2009, 11:14 +0300 schrieb Goga777:
+> > I would suggest not using S2API as it's seems to be broken for our card
+> > at this time, 
+> 
+> why do you think so ? 
+> 
+> >I did test steven s2 repo which is better that all other
+> > S2API repo 
+> 
+> have you tested http://mercurial.intuxication.org/hg/s2-liplianin ?
+> 
+> >I have tested but still worse than lipliandvb (multiproto
+> > hg).
+> 
+> please try 
+> 
+> http://mercurial.intuxication.org/hg/s2-liplianin (yesterday Igor synchronized it with current v4l-dvb)
+> +
+> http://hg.kewl.org/dvb2010/ - new dvb scaner 
+> 
+> for me everything is working without any problem with my hvr4000. Also patched vdr 170 works well with s2api
+> 
+> 
+> Goga
+> 
 
-Regards,
+Hi,
 
-Kuba Irzabek
+thanks.
+
+We else need at least i2c_debug enabled on the cx88xx, yes, that is the
+busmaster :)
+
+I don't deny that strange things happened, wrong tuners loaded without
+trace so far.
+
+Mike at least had a hotfix, not to allow analog only tuners to oops
+around.
+
+Cheers,
+Hermann
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
