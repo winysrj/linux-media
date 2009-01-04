@@ -1,18 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Fri, 9 Jan 2009 02:18:05 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "DongSoo Kim" <dongsoo.kim@gmail.com>
-Message-ID: <20090109021805.517f8c83@pedra.chehab.org>
-In-Reply-To: <5e9665e10901081920q4d99fe3ercf163a285d1462c5@mail.gmail.com>
-References: <5e9665e10901081920q4d99fe3ercf163a285d1462c5@mail.gmail.com>
-Mime-Version: 1.0
+Message-ID: <4960EE73.1000406@rogers.com>
+Date: Sun, 04 Jan 2009 12:14:27 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>	<49605AFA.3000208@rogers.com>
+	<20090104135840.7de113de@gmail.com>
+In-Reply-To: <20090104135840.7de113de@gmail.com>
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: kyungmin.park@samsung.com,
-	=?UTF-8?B?7ZiV7KSAIOq5gA==?= <riverful.kim@samsung.com>,
-	video4linux-list@redhat.com, jongse.won@samsung.com,
-	linux-media@vger.kernel.org
-Subject: Re: Any rules in making ioctl or cids?
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Chehab <mchehab@redhat.com>, linux-media <linux-media@vger.kernel.org>
+Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,46 +23,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 9 Jan 2009 12:20:16 +0900
-"DongSoo Kim" <dongsoo.kim@gmail.com> wrote:
+Douglas Schilling Landgraf wrote:
+> Hello,
+>
+> On Sun, 04 Jan 2009 01:45:14 -0500
+> CityK <cityk@rogers.com> wrote:
+>
+>   
+>> Devin Heitmueller wrote:
+>>     
+>>> On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
+>>> <rob.krakora@messagenetsystems.com> wrote:
+>>>   
+>>>       
+>>>> Mauro:
+>>>>
+>>>> The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
+>>>> LGDT330X.  Hence the error initializing the LGDT330X in the
+>>>> current source in em28xx-dvb.c.
+>>>>
+>>>> Best Regards,
+>>>>     
+>>>>         
+>>> Hello Robert,
+>>>
+>>> Well, that's good to know.  I don't think anyone has done any work
+>>> on that device recently, so I don't know why the code has it as an
+>>> lgdt3303.
+>>>       
+>> I believe Douglas submitted this patch
+>> (http://linuxtv.org/hg/v4l-dvb/rev/77f789d59de8) that got committed. 
+>>     
+>
+> I don't remember sending this specific patch.
+>   
 
-> Hello everyone.
-> 
-> I'm facing with some questions about "Can I make it ioctl or CID?"
+Sorry, that was a memory association thing --- I had originally looked
+at the KWorld patch (Mauro, Dec 9) at the same time that I had with the
+ever so slightly older, and topically similar, HVR-850 patch (Douglas,
+Dec 8; see http://linuxtv.org/hg/v4l-dvb/rev/402de62fe6a6).
 
-For most cases, creating a control (CID) is better than using another ioctl.
-
-> Because if I make it in ioctl It should occupy one of the extra ioctl
-> number for v4l2, and I'm afraid it deserves that.
-> 
-> Actually I'm working on strobe flash device (like xenon flash, LED
-> flash and so on...) for digital camera.
-> 
-> And in my opinion it looks good in v4l2 than in misc device. (or..is
-> there some subsystems for strobe light? sorry I can't find it yet)
-
-As far as I understand, having this on V4L2 would be better.
-
-> As far as I worked on, strobe light seems to be more easy to control
-> over ioctl than CID. Since we need to check its status (like not
-> charged, turned off etc..).
-
-v4l2 controls can be used also to read. You may even group several different
-controls into one get or set request.
-
-> But here is the thing.
-> 
-> "Is that really worthy of occupying an ioctl number for v4l2?"
-> 
-> Can I use extra ioctl numbers as many as I like for v4l2 if It is reasonable?
-> 
-> Can I have a rule if there is a rule for that?
-
-There's no rule, but we generally try to avoid creating newer ioctls. It is not
-forbidden to create, but we need to take some care with.
-
-Cheers,
-Mauro
+Mauro -- can you shed any light in regards the "A316" part of the name
+descriptor ?
 
 --
 video4linux-list mailing list
