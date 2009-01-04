@@ -1,15 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from col0-omc3-s4.col0.hotmail.com ([65.55.34.142])
+Received: from mail-in-04.arcor-online.net ([151.189.21.44])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jcanas2000@hotmail.com>) id 1LQlbL-0002l5-WC
-	for linux-dvb@linuxtv.org; Sat, 24 Jan 2009 17:43:20 +0100
-Message-ID: <COL108-W41AFFE7632E1F6055B53F8D9CC0@phx.gbl>
-From: Jorge Canas <jcanas2000@hotmail.com>
-To: <linux-dvb@linuxtv.org>
-Date: Sat, 24 Jan 2009 11:42:44 -0500
-MIME-Version: 1.0
-Subject: [linux-dvb] Dallas Texas ATSC scan file
-Reply-To: linux-media@vger.kernel.org
+	(envelope-from <hermann-pitton@arcor.de>) id 1LJWZb-0008La-KY
+	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 18:15:40 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gregoire Favre <gregoire.favre@gmail.com>
+In-Reply-To: <20090104163744.GA3521@gmail.com>
+References: <op.um6wpcvirj95b0@localhost>
+	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
+	<1231057784.2615.9.camel@pc10.localdom.local>
+	<20090104103744.GB3551@gmail.com>
+	<1231085219.2723.1.camel@pc10.localdom.local>
+	<20090104163744.GA3521@gmail.com>
+Date: Sun, 04 Jan 2009 18:15:46 +0100
+Message-Id: <1231089346.2723.9.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,88 +27,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0210913968=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0210913968==
-Content-Type: multipart/alternative;
-	boundary="_b7f54844-629e-4d9d-bd2b-4a2515864272_"
+Hi,
 
---_b7f54844-629e-4d9d-bd2b-4a2515864272_
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Am Sonntag, den 04.01.2009, 17:37 +0100 schrieb Gregoire Favre:
+> On Sun, Jan 04, 2009 at 05:06:59PM +0100, hermann pitton wrote:
+> 
+> Hello,
+> 
+> > it must not be related at all, since it is still not clear how the wrong
+> > tuner type sneaked in, could still be caused by user/system options.
+> > 
+> > But there seem to be some potential module load order problems.
+> > In any case, I would not use "make load" at all trying to debug such!
+> > 
+> > I just tried and had to reboot on a x86_32 including lost keyboard.
+> 
+> Oh, then I am not the only one with this lost keyboard problem ;-)
+> I hope you got an sshd open on your computer and could reboot without
+> too much troubles ?
+> 
+> So, would it be right in order to debug this to compil an updated
+> v4l-dvb's hg with debug enabled, then "make install" from v4l dir, and
+> issue :
+> 
+> modprobe budget_ci
+> modprobe cx8800
+> modprobe cx88_alsa
+> modprobe cx88-dvb
+> 
+> ? (sorry for long question)
 
+I would even left the budget_ci out of the game as a start and the rest
+should auto load.
 
-# DALLAS TX ATSC center frequencies=2C use if in doubt
+For i2c traffic on the cx88xx it is i2c_debug=1.
+(modinfo cx88xx)
 
-A 189028615 8VSB
-A 473028615 8VSB
-A 497028615 8VSB
-A 503028615 8VSB
-A 533028615 8VSB
-A 569028615 8VSB
-A 581028615 8VSB
-A 599028615 8VSB
-A 605028615 8VSB
-A 629028615 8VSB
-A 635028615 8VSB
-A 641028615 8VSB
-A 659028615 8VSB
-A 665028615 8VSB
-A 677028615 8VSB
-A 695028615 8VSB
-
-
-_________________________________________________________________
-Windows Live=99 Hotmail=AE=85more than just e-mail.=20
-http://windowslive.com/howitworks?ocid=3DTXT_TAGLM_WL_t2_hm_justgotbetter_h=
-owitworks_012009=
-
---_b7f54844-629e-4d9d-bd2b-4a2515864272_
-Content-Type: text/html; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style>
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 10pt=3B
-font-family:Verdana
-}
-</style>
-</head>
-<body class=3D'hmmessage'>
-# DALLAS TX ATSC center frequencies=2C use if in doubt<br><br>A 189028615 8=
-VSB<br>A 473028615 8VSB<br>A 497028615 8VSB<br>A 503028615 8VSB<br>A 533028=
-615 8VSB<br>A 569028615 8VSB<br>A 581028615 8VSB<br>A 599028615 8VSB<br>A 6=
-05028615 8VSB<br>A 629028615 8VSB<br>A 635028615 8VSB<br>A 641028615 8VSB<b=
-r>A 659028615 8VSB<br>A 665028615 8VSB<br>A 677028615 8VSB<br>A 695028615 8=
-VSB<br><br><br /><hr />Windows Live=99 Hotmail=AE=85more than just e-mail. =
- <a href=3D'http://windowslive.com/howitworks?ocid=3DTXT_TAGLM_WL_t2_hm_jus=
-tgotbetter_howitworks_012009' target=3D'_new'>See how it works.</a></body>
-</html>=
-
---_b7f54844-629e-4d9d-bd2b-4a2515864272_--
+Good Luck,
+Hermann
 
 
---===============0210913968==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0210913968==--
