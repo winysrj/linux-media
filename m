@@ -1,20 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0G4EntT000762
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 23:14:49 -0500
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0G4EVu6008288
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 23:14:31 -0500
-Received: by yw-out-2324.google.com with SMTP id 5so553029ywb.81
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 20:14:31 -0800 (PST)
+Message-ID: <412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
+Date: Sun, 4 Jan 2009 00:18:56 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+In-Reply-To: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
 MIME-Version: 1.0
-Date: Thu, 15 Jan 2009 23:14:31 -0500
-Message-ID: <6d8315a80901152014q4e538791wbe8b78a733d0a767@mail.gmail.com>
-From: Robin <robinbsd@gmail.com>
-To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: NTSC support for HVR-1250
+Content-Disposition: inline
+References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
+Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,15 +23,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
+<rob.krakora@messagenetsystems.com> wrote:
+> Mauro:
+>
+> The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
+> LGDT330X.  Hence the error initializing the LGDT330X in the current source
+> in em28xx-dvb.c.
+>
+> Best Regards,
 
-I read here: http://www.mythtv.org/wiki/index.php/Hauppauge_HVR-1250
-that NTSC support was on its way for the cx23885 chipset.
-Does someone have any update?
+Hello Robert,
 
-Thanks,
+Well, that's good to know.  I don't think anyone has done any work on
+that device recently, so I don't know why the code has it as an
+lgdt3303.
 
-- R
+Do you know which tuner chip the device has?  The reason I ask is
+because I'm working on another device that also has the s5h1409, and
+it's got an xc3028L (the low power version of the xc3028).  If the
+330U also has the xc3028L, then we need to make sure to indicate that
+in the device profile so it doesn't burn out the chip.
+
+We're probably also going to need to get a Windows trace, so we know
+how to setup the s5h1409 configuration.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
