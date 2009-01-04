@@ -1,20 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: CityK <cityk@rogers.com>
-In-Reply-To: <496BF812.40102@rogers.com>
-References: <496A9485.7060808@gmail.com> <496AB41E.8020507@rogers.com>
-	<20090112031947.134c29c9@pedra.chehab.org>
-	<200901120840.20194.hverkuil@xs4all.nl>  <496BF812.40102@rogers.com>
-Content-Type: text/plain
-Date: Tue, 13 Jan 2009 04:17:44 +0100
-Message-Id: <1231816664.2680.21.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Message-ID: <49610159.5090909@rogers.com>
+Date: Sun, 04 Jan 2009 13:35:05 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>	<49605AFA.3000208@rogers.com>	<20090104135840.7de113de@gmail.com>	<4960EE73.1000406@rogers.com>
+	<20090104152512.0f168fc5@gmail.com>
+In-Reply-To: <20090104152512.0f168fc5@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>, Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Chehab <mchehab@redhat.com>, linux-media <linux-media@vger.kernel.org>
+Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,44 +23,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Douglas Schilling Landgraf wrote:
+> CityK <cityk@rogers.com> wrote:
+>> Mauro -- can you shed any light in regards the "A316" part of the name
+>> descriptor ?
+>>     
+>
+> Probably inherited from vendor/product ID, as follow:
+>
+> em28xx-cards.c:
+>
+> { USB_DEVICE(0xeb1a, 0xa316), .driver_info = EM2883_BOARD_KWORLD_HYBRID_A316 },
+>                         ^^^
 
-Am Montag, den 12.01.2009, 21:10 -0500 schrieb CityK:
-> Hans Verkuil wrote:
-> > Yes, I can. I'll do saa7134 since I have an empress card anyway. It 
-> > should be quite easy (the cx18 complication is not an issue here).
-> >
-> > Regards,
-> >
-> > 	Hans
-> 
-> Thanks Hans!
-> 
+Ahh, very good.
 
-yes, Hans is a very fine guy.
-
-But don't hope for too much for DVB/ATSC related stuff soon.
-
-We know about the problems caused by switching antenna inputs from a
-digital demod, it was a famous hack from Chris on cx88xx and Mike did
-good work to port it to saa713x, but unfortunately there was some
-ongoing loss on the other side of the planet then later.
-
-I doubt that Hans is already aware of it at this stage, but since these
-days bugs are fixed from guys without even having hardware, and this is
-good progress, likely they will add new devices the same way too soon.
-I seem to be far behind currently, all caused by the HDTV hype ;)
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
+Mauro, or whomever is going to end up spinning the patch incorporating
+the correction regarding the demod. information, I suggest that the
+descriptor "EM2883_BOARD_KWORLD_HYBRID_A316" be simultaneously changed
+to "EM2883_BOARD_KWORLD_ATSC_330U" to reflect the device's more common name.
 
 
 
