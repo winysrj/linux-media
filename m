@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
+Received: from imo-m22.mx.aol.com ([64.12.137.3] helo=imo-m22.mail.aol.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roman.jarosz@gmail.com>) id 1LJ9Zz-00009A-2m
-	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 17:42:28 +0100
-Received: by bwz11 with SMTP id 11so14641025bwz.17
-	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 08:41:53 -0800 (PST)
-Date: Sat, 03 Jan 2009 17:42:38 +0100
-To: linux-dvb@linuxtv.org
-From: "Roman Jarosz" <roman.jarosz@gmail.com>
+	(envelope-from <dbox2alpha@netscape.net>) id 1LJuar-0003mf-29
+	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 19:54:30 +0100
+References: <496204D8.6090602@okg-computer.de><20090105130757.GW12059@titan.makhutov-it.de>
+	<49620916.7060704@dark-green.com>
+To: gimli@dark-green.com
+Date: Mon, 05 Jan 2009 13:53:43 -0500
+In-Reply-To: <49620916.7060704@dark-green.com>
 MIME-Version: 1.0
-Message-ID: <op.um6wpcvirj95b0@localhost>
-Subject: [linux-dvb] DVB-S Channel searching problem
-Reply-To: kedgedev@centrum.cz
+From: dbox2alpha@netscape.net
+Message-Id: <8CB3D7E10E304E0-1674-1438@WEBMAIL-MY25.sysops.aol.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,85 +20,208 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0056847908=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-I have a problem with DVB-S channel searching, the scan command doesn't find all channels in Linux on Astra 19.2E.
-It works in Windows.
+--===============0056847908==
+Content-Type: multipart/alternative;
+ boundary="--------MB_8CB3D7E10EEF08E_1674_293F_WEBMAIL-MY25.sysops.aol.com"
 
-For instance the scan doesn't find RTL2, but if I add to channels.conf
-RTL2:12187:h:0:27500:166:128:12020
-then szap -r works correctly.
 
-I have TeVii S460 DVB-S/S2.
-Linux kernel 2.6.28.
+----------MB_8CB3D7E10EEF08E_1674_293F_WEBMAIL-MY25.sysops.aol.com
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
 
-Can anybody help me to find out why the scan doesn't work correctly.
-I've compiled kernel from source so I can apply patches or change its settings.
 
-Regards,
-Roman
+=20
 
-lspci:
 
-00:09.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
-        Subsystem: Unknown device d460:9022
-        Flags: bus master, medium devsel, latency 32, IRQ 10
-        Memory at e8000000 (32-bit, non-prefetchable) [size=16M]
-        Capabilities: [44] Vital Product Data
-        Capabilities: [4c] Power Management version 2
+ i can confirm the very same problem symptoms with a technotrend dvb-s2 3600=
+ usb device.
 
-00:09.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] (rev 05)
-        Subsystem: Unknown device d460:9022
-        Flags: bus master, medium devsel, latency 32, IRQ 10
-        Memory at e9000000 (32-bit, non-prefetchable) [size=16M]
-        Capabilities: [4c] Power Management version 2
 
-This is part of dmesg:
-cx8800 0000:00:09.0: PCI INT A -> Link[LNKB] -> GSI 10 (level, low) -> IRQ 10                                                               
-cx88[0]: quirk: PCIPCI_NATOMA -- set TBFX                                                                                                   
-cx88[0]: subsystem: d460:9022, board: TeVii S460 DVB-S/S2 [card=70,autodetected], frontend(s): 1                                            
-cx88[0]: TV tuner type -1, Radio tuner type -1                                                                                              
-cx88[0]/0: found at 0000:00:09.0, rev: 5, irq: 10, latency: 32, mmio: 0xe8000000                                                            
-cx88[0]/0: registered device video0 [v4l2]                                                                                                  
-cx88[0]/0: registered device vbi0                                                                                                           
-Linux agpgart interface v0.103                                                                                                              
-agpgart-intel 0000:00:00.0: Intel 440BX Chipset                                                                                             
-agpgart-intel 0000:00:00.0: AGP aperture is 32M @ 0xe4000000                                                                                
-EXT3 FS on sda1, internal journal                                                                                                           
-Adding 1020088k swap on /dev/sda5.  Priority:-1 extents:1 across:1020088k                                                                   
-kjournald starting.  Commit interval 5 seconds                                                                                              
-EXT3 FS on sda6, internal journal                                                                                                           
-EXT3-fs: mounted filesystem with ordered data mode.                                                                                         
-loop: module loaded                                                                                                                         
-eth2: link up, 100Mbps, full-duplex, lpa 0xC5E1                                                                                             
-warning: `proftpd' uses 32-bit capabilities (legacy support in use)                                                                         
-NFSD: Using /var/lib/nfs/v4recovery as the NFSv4 state recovery directory                                                                   
-NFSD: starting 90-second grace period                                                                                                       
-cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded                                                                                 
-cx88[0]/2: cx2388x 8802 Driver Manager                                                                                                      
-cx88-mpeg driver manager 0000:00:09.2: PCI INT A -> Link[LNKB] -> GSI 10 (level, low) -> IRQ 10                                             
-cx88[0]/2: found at 0000:00:09.2, rev: 5, irq: 10, latency: 32, mmio: 0xe9000000                                                            
-cx8802_probe() allocating 1 frontend(s)                                                                                                     
-cx88/2: cx2388x dvb driver version 0.0.6 loaded                                                                                             
-cx88/2: registering cx8802 driver, type: dvb access: shared                                                                                 
-cx88[0]/2: subsystem: d460:9022, board: TeVii S460 DVB-S/S2 [card=70]                                                                       
-cx88[0]/2: cx2388x based DVB/ATSC card                                                                                                      
-DVB: registering new adapter (cx88[0])                                                                                                      
-DVB: registering adapter 0 frontend 0 (Conexant CX24116/CX24118)...                                                                         
-cx24116_firmware_ondemand: Waiting for firmware upload (dvb-fe-cx24116.fw)...                                                               
-i2c-adapter i2c-0: firmware: requesting dvb-fe-cx24116.fw                                                                                   
-cx24116_firmware_ondemand: Waiting for firmware upload(2)...                                                                                
-cx24116_load_firmware: FW version 1.23.86.1                                                                                                 
-cx24116_firmware_ondemand: Firmware upload complete
+=20
 
+-----Original Message-----
+From: gimli <gimli@dark-green.com>
+To: Artem Makhutov <artem@makhutov.org>
+Cc: linux-dvb@linuxtv.org
+Sent: Mon, 5 Jan 2009 2:20 pm
+Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
+
+
+
+
+
+
+
+
+
+
+Artem Makhutov schrieb:
+> Hi,
+>=20
+> On Mon, Jan 05, 2009 at 02:02:16PM +0100, Jens Krehbiel-Gr=C3=A4ther wrote=
+:
+>> Hi!
+>>
+>> I use a Pinnacle USB-Receiver (PCTV Sat HDTV Pro). The module is=20
+>> dvb-usb-pctv452e.
+>>
+>> I use the repository from Igor Liplianin (actual hg release). The module=20
+>> compiles and loads fine. The scanning with scan-s2 and zapping with=20
+>> szap-s2 also wirk fine.
+>> But when I record TV from the USB-device with "cat=20
+>> /dev/dvb/adapter0/dvr0 > (filename)" I got the TV-Stream of the actual=20
+>> tv-station (zapped with "szap-s2 -r SAT.1" for example).
+>> This recorded video has artefacts, even missed frames.
+>>
+>> Anyone else having this problem? I remember that on multiproto there was=20
+>> a similar problem with the pctv452e until Dominik Kuhlen patched=20
+>> somthing since then the video was OK. Is it possible that the same=20
+>> "error" is in the S2API-driver?
+>=20
+> I have similar problems with my SkyStar HD (stb0899), but I
+> am still using the multiproto drivers.
+>=20
+> Regards, Artem
+>=20
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+Hi=3D2
+0have also a similar problem on the TerraTec Cinergy S2 PCI HD
+with the S2API drivers from the Liplianin tree.
+
+mfg
+
+Edgar (gimli) Hucek
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+
+=20
+
+
+----------MB_8CB3D7E10EEF08E_1674_293F_WEBMAIL-MY25.sysops.aol.com
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="utf-8"
+
+
+<div> <br>
+</div>
+
+<div> <font face=3D"Arial, Helvetica, sans-serif">i can confirm the very sam=
+e problem symptoms with a technotrend dvb-s2 3600 usb device.<br>
+</font></div>
+
+<div> <br>
+</div>
+-----Original Message-----<br>
+From: gimli &lt;gimli@dark-green.com&gt;<br>
+To: Artem Makhutov &lt;artem@makhutov.org&gt;<br>
+Cc: linux-dvb@linuxtv.org<br>
+Sent: Mon, 5 Jan 2009 2:20 pm<br>
+Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream<br>
+<br>
+
+
+
+
+
+
+<div id=3D"AOLMsgPart_0_cd65f49f-62ce-4f6a-ab1e-7d5cca9ff993" style=3D"margi=
+n: 0px; font-family: Tahoma,Verdana,Arial,Sans-Serif; font-size: 12px; color=
+: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
+
+<pre style=3D"font-size: 9pt;"><tt>Artem Makhutov schrieb:<br>
+&gt; Hi,<br>
+&gt; <br>
+&gt; On Mon, Jan 05, 2009 at 02:02:16PM +0100, Jens Krehbiel-Gr=C3=A4ther wr=
+ote:<br>
+&gt;&gt; Hi!<br>
+&gt;&gt;<br>
+&gt;&gt; I use a Pinnacle USB-Receiver (PCTV Sat HDTV Pro). The module is <b=
+r>
+&gt;&gt; dvb-usb-pctv452e.<br>
+&gt;&gt;<br>
+&gt;&gt; I use the repository from Igor Liplianin (actual hg release). The m=
+odule <br>
+&gt;&gt; compiles and loads fine. The scanning with scan-s2 and zapping with=
+ <br>
+&gt;&gt; szap-s2 also wirk fine.<br>
+&gt;&gt; But when I record TV from the USB-device with "cat <br>
+&gt;&gt; /dev/dvb/adapter0/dvr0 &gt; (filename)" I got the TV-Stream of the=20=
+actual <br>
+&gt;&gt; tv-station (zapped with "szap-s2 -r SAT.1" for example).<br>
+&gt;&gt; This recorded video has artefacts, even missed frames.<br>
+&gt;&gt;<br>
+&gt;&gt; Anyone else having this problem? I remember that on multiproto ther=
+e was <br>
+&gt;&gt; a similar prob
+lem with the pctv452e until Dominik Kuhlen patched <br>
+&gt;&gt; somthing since then the video was OK. Is it possible that the same=20=
+<br>
+&gt;&gt; "error" is in the S2API-driver?<br>
+&gt; <br>
+&gt; I have similar problems with my SkyStar HD (stb0899), but I<br>
+&gt; am still using the multiproto drivers.<br>
+&gt; <br>
+&gt; Regards, Artem<br>
+&gt; <br>
+&gt; _______________________________________________<br>
+&gt; linux-dvb mailing list<br>
+&gt; <a __removedlink__1232922682__href=3D"mailto:linux-dvb@linuxtv.org">lin=
+ux-dvb@linuxtv.org</a><br>
+&gt; <a __removedlink__1232922682__href=3D"http://www.linuxtv.org/cgi-bin/ma=
+ilman/listinfo/linux-dvb" target=3D"_blank">http://www.linuxtv.org/cgi-bin/m=
+ailman/listinfo/linux-dvb</a><br>
+<br>
+Hi have also a similar problem on the TerraTec Cinergy S2 PCI HD<br>
+with the S2API drivers from the Liplianin tree.<br>
+<br>
+mfg<br>
+<br>
+Edgar (gimli) Hucek<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a __removedlink__1232922682__href=3D"mailto:linux-dvb@linuxtv.org">linux-dv=
+b@linuxtv.org</a><br>
+<a __removedlink__1232922682__href=3D"http://www.linuxtv.org/cgi-bin/mailman=
+/listinfo/linux-dvb" target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailma=
+n/listinfo/linux-dvb</a><br>
+</tt></pre>
+</div>
+ <!-- end of AOLMsgPart_0_cd65f49f-62ce-4f6a-ab1e-7d5cca9ff993 -->
+
+<div id=3D'MAILCIAMB026-5c3d49625737200' class=3D'aol_ad_footer'><BR/><FONT=20=
+style=3D"color: black; font: normal 10pt ARIAL, SAN-SERIF;"><HR  style=3D"MA=
+RGIN-TOP: 10px"></HR>Get a <b>free MP3</b> every day with the Spinner.com To=
+olbar. <a href=3D"http://toolbar.aol.com/spinner/download.html?ncid=3Demlweu=
+sdown00000020">Get it Now</a>. </div>
+
+----------MB_8CB3D7E10EEF08E_1674_293F_WEBMAIL-MY25.sysops.aol.com--
+
+
+--===============0056847908==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0056847908==--
