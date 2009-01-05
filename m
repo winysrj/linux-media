@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0UD6O8a017423
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 08:06:24 -0500
-Received: from dd6904.kasserver.com (dd6904.kasserver.com [85.13.131.139])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0UD67le006272
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 08:06:08 -0500
-Received: from [10.0.1.47]
-	(HSI-KBW-078-042-032-195.hsi3.kabel-badenwuerttemberg.de
-	[78.42.32.195])
-	by dd6904.kasserver.com (Postfix) with ESMTP id 33A9C3009A5D8
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 14:06:10 +0100 (CET)
-Message-ID: <4982FB36.7080008@softronic-mannheim.de>
-Date: Fri, 30 Jan 2009 14:05:58 +0100
-From: =?ISO-8859-15?Q?Marius_R=E4sener?= <mr@softronic-mannheim.de>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n05ILibY020146
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 13:21:44 -0500
+Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n05IKkLY027392
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 13:20:57 -0500
+Received: by yx-out-2324.google.com with SMTP id 31so2176823yxl.81
+	for <video4linux-list@redhat.com>; Mon, 05 Jan 2009 10:20:46 -0800 (PST)
+Message-ID: <c785bba30901051020n27f61e4fje5717092169bbde2@mail.gmail.com>
+Date: Mon, 5 Jan 2009 11:20:45 -0700
+From: "Paul Thomas" <pthomas8589@gmail.com>
+To: "Jens Bongartz" <bongartz@gmail.com>
+In-Reply-To: <4389ffee0901041522n2fab030andc82e9fb9565524@mail.gmail.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Terratec Cinergy C PCI - Mantis Driver
+Content-Disposition: inline
+References: <4389ffee0812310817m64b4c2bar56d8b35be06fe0f2@mail.gmail.com>
+	<200901040102.37947.laurent.pinchart@skynet.be>
+	<4389ffee0901041522n2fab030andc82e9fb9565524@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Testing Requested: Python Bindings for Video4linux2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,62 +32,146 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi V4L-List,
+Jens,
 
-i hope i can find a solution with your help here.
-The situation:
-Hp ProLiant DL380 G2 Server should become a LinuxMCE Core (got that cheap).
-LinuxMCE is based on Kubuntu 7.10 (i386 in my case)
-I think the components of the System arent relevant, but correct my 
-please if not.
-Maybe that there are only PCI-X slots available, but all Cards I use are 
-3.3V compatible (with the 2 notch).
+I'd give it a try. Can you include a make file or tell me compile command?
 
-DVB-C Card is "Terratec Cingery C PCI HD".
+thanks,
+Paul
 
-I installed the card via this method:
-
-cd /usr/src
-sudo apt-get install mercurial
-sudo hg clone http://jusst.de/hg/mantis 
-cd mantis
-sudo make
-sudo make install
-sudo reboot
-
-
-this worked for me several times.
-(
-i got the expected dmesg output:
-[  101.667604] found a VP-2040 PCI DVB-C device on (0a:01.0),
-[  101.670427] DVB: registering new adapter (Mantis dvb adapter)
-[  102.189326] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-[  102.192819] mantis_frontend_init (0): found Philips CU1216 DVB-C 
-frontend (TDA10023) @ 0x0c
-[  102.192823] mantis_frontend_init (0): Mantis DVB-C Philips CU1216 
-frontend attach success
-[  102.192829] DVB: registering adapter 0 frontend 0 (Philips TDA10023 
-DVB-C)...
-)
-but after the last complete new-installation its not anymore.
-(
-now die dmesg output:
-~: dmesg | grep -i dvb
-~:
-)
-i'm not sure what to try next. the card itself installs in Vista x64 
-without any errors so its no hardware defect i guess.
-i also tried to install a older version of the mantis driver, but i'm 
-not sure if i downloaded them correctly.
-i'm also not sure if i can reinstall older or newer versions of the 
-driver without messing something up. does that work?
-i also tried several different pci-x slots caused that procedure 
-sometimes helped me in windows environment...
-
-any hints please for me before i jump from a bridge or something :)
-
-greetings from sunny mannheim, germany
-marius
+2009/1/4 Jens Bongartz <bongartz@gmail.com>:
+> Dear Laurent, dear Jackson,
+>
+> thanks for your reply to my request.
+> I don't want to impose on you but maybe you are interested in my
+> findings. To get a better impression of my intention I attached a
+> brief description of my just started "FB-Py-Vision" project.
+>
+> Form the source-code of uvccapture-0.5 I derived a shared library to
+> get access to the webcam from python using ctypes (file attached
+> "pycapture_03.c"). Please show mercy to me, I am not a C-expert. To
+> get continous grabbing I seperated init_videoIn(), uvcGrab() and
+> close() in different functions. I discovered that init_videoIn() /
+> free(videoIn) on every uvcGrab() is very time consuming and not
+> suitable for high framerates.
+> The functions I wrote are quite fixed and unflexible because right now
+> I am only interested in luminance/YUV with 640 by 480. The
+> corresponding python-program is also attached. ('python_capture.py')
+>
+> Now something interesting appears: Grabbing the luminance images works
+> without problems (high frame rate). When I switch to the contour-mode
+> the python image processing workload is higher and the uvcGrab() calls
+> are fewer. For a short period the framerate slows down but after a few
+> seconds recovers but now with a delay between captured and displayed
+> images of around 4 seconds. Very curious! When I switch back to
+> "normal mode" the framerate speeds up (!) a short time and then
+> recovers again without a delay.
+>
+> I suppose this effect is a result of the weak VIA-CPU I use (see my
+> project-description). In general I don't mind if the framerate drops
+> when the image processing load rises but the problem is that I want to
+> process an actual image and not an image which is a few seconds old.
+> (I hope you understand what I mean).
+>
+> Furthermore I assume that the uvcvideo streaming mode plays also a
+> role. I suppose that the 16 v4l2_buffer becomes unsynchronised. But
+> when I decrease the NB_BUFFER constant of "v4l2uvc.h" everything
+> compiles flawless but on excecution I get a Segmentation fault with a
+> fatal error. Only NB_BUFEER = 16 works. Is this correct?
+>
+> What do you think? Do you have any hints for me, why I get this delay?
+>
+> Many thanks in advance.
+> Jens
+>
+>
+> 2009/1/4 Laurent Pinchart <laurent.pinchart@skynet.be>:
+>> HI Jens,
+>>
+>> On Wednesday 31 December 2008, Jens Bongartz wrote:
+>>> Hi everybody,
+>>>
+>>> I saw this thread recently and I am interested in this topic too.
+>>> I am using a Logitech Quickcam 9000 Pro with the uvcvideo driver. The
+>>> camera works properly with the uvccapture application.
+>>> I did some experiment with the python-video4linux2 bindings using the
+>>> python interactive mode. To be honest I am not really familiar with
+>>> v4l2.
+>>>
+>>> Here are my results:
+>>> >>> import pyv4l2
+>>> >>> cam = pyv4l2.Device('dev/video0')
+>>> >>> cam.EnumInput(0)
+>>>
+>>> ['Camera 1', 'camera', 0L, 0L, [], []]
+>>>
+>>> >>> cam.EnumFormats(1)
+>>>
+>>> [('MJPG', 'MJPEG'), ('YUYV', 'YUV 4 :2 :2 (YUYV)')]
+>>>
+>>> >>> cam.GetResolutions()
+>>>
+>>> [(320L, 240L), (640L, 480L), (800L, 600L)]
+>>>
+>>> >>> cam.QueryCaps()
+>>> >>> cam.driver
+>>>
+>>> 'uvcvideo'
+>>>
+>>> >>> cam.businfo
+>>>
+>>> '0000:00:10.1'
+>>>
+>>> >>> cam.card
+>>>
+>>> 'UVC Camera (046d:0990)'
+>>>
+>>> >>> cam.GetFormat()
+>>> >>> cam.format.width
+>>>
+>>> 800L
+>>>
+>>> >>> cam.format.height
+>>>
+>>> 600L
+>>>
+>>> >>> cam.format.pixelformat
+>>>
+>>> 'MJPEG'
+>>>
+>>> >>> cam.SetFormat()
+>>>
+>>> The Read() method works without an error message and the buffer is created.
+>>>
+>>> >>> cam.Read()
+>>> >>> cam.buffer
+>>>
+>>> <ctypes.c_char_Array_62933 object at 0xb7e5053c>
+>>>
+>>> But the camera seems not to react to the Read() call. The camera's LED
+>>> does not flash like using the uvccapture application and the buffer is
+>>> filled just with '\x00'. Am I doing something wrong?
+>>
+>> The read method is not supported by the uvcvideo driver. You should use the
+>> mmap video capture method.
+>>
+>>> As Laurent already mentioned the "d.SetStandard( d.standards['NTSC']
+>>> )" call creates an exception.
+>>> Any suggestions? I would be happy to this webcam work with python.
+>>
+>> Don't use the SetStandard function with UVC cameras :-). Or handle the
+>> exception and recover gracefully.
+>>
+>> Best regards,
+>>
+>> Laurent Pinchart
+>>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
