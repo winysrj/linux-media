@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from smtpi2.ngi.it ([88.149.128.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1LL1H8-0006jO-3G
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 21:14:42 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so3406265fga.25
-	for <linux-dvb@linuxtv.org>; Thu, 08 Jan 2009 12:14:37 -0800 (PST)
-Message-ID: <1a297b360901081214q5d687fbcr3c718af6d2aaecf4@mail.gmail.com>
-Date: Fri, 9 Jan 2009 00:14:37 +0400
-From: "Manu Abraham" <abraham.manu@gmail.com>
-To: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <20090108171755.23040@gmx.net>
+	(envelope-from <mail@robertoragusa.it>) id 1LJsCW-0005cW-Sx
+	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 17:21:14 +0100
+Message-ID: <49623372.90403@robertoragusa.it>
+Date: Mon, 05 Jan 2009 17:21:06 +0100
+From: Roberto Ragusa <mail@robertoragusa.it>
 MIME-Version: 1.0
-References: <20090105152029.293080@gmx.net>
-	<20090108100149.2c6df55e@pedra.chehab.org>
-	<20090108171755.23040@gmx.net>
-Cc: linux-dvb@linuxtv.org, Mauro Carvalho Chehab <mchehab@redhat.com>,
+To: Jochen Friedrich <jochen@scram.de>, linux-dvb@linuxtv.org,
 	linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] [PATCH] [RESEND] stb6100: stb6100_init fix
+References: <4936FF66.3020109@robertoragusa.it> <494C0002.1060204@scram.de>
+In-Reply-To: <494C0002.1060204@scram.de>
+Cc: Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] MC44S803 frontend (it works)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,98 +20,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0550496671=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0550496671==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_2398_10074431.1231445677904"
+(to both linux-dvb and linux-media)
 
-------=_Part_2398_10074431.1231445677904
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Jochen Friedrich wrote:
+> Hi Roberto,
+> 
+>> Is there any plan to include this frontend in mainline kernels?
+>> I used to run this driver months ago and it was working well.
+> 
+> The reason is the huge memory footprint due to the included frequency table.
+> I worked a bit on the driver to get rid of this table. Could you try this version:
+> 
+> 1. Patch for AF9015:
+> 
+> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=commitdiff;h=e5d7398a4b2d3c520d949e53bbf7667a481e9690
+> 
+> 2. MC44S80x tuner driver:
+> 
+> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=blob;f=drivers/media/common/tuners/mc44s80x.c;h=b8dd335e64b03b8544b4c95e2d7f3dbd968078a0;hb=4bde668b4eca90f8bdcc5916dfc88c115a3dfd20
+> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=blob;f=drivers/media/common/tuners/mc44s80x.h;h=c6e76da6bf51163c90f0ead259c0e54d4f637671;hb=4bde668b4eca90f8bdcc5916dfc88c115a3dfd20
+> http://git.bocc.de/cgi-bin/gitweb.cgi?p=dbox2.git;a=blob;f=drivers/media/common/tuners/mc44s80x_reg.h;h=299c1be9a80a3777fb46f65d6070965de9754787;hb=4bde668b4eca90f8bdcc5916dfc88c115a3dfd20
 
-On Thu, Jan 8, 2009 at 9:17 PM, Hans Werner <HWerner4@gmx.de> wrote:
+Finally managed to try your version. It works, with no apparent issue.
 
->
->
-> Signed-off-by: Hans Werner <hwerner4@gmx.de>
->
-> diff -r b7e7abe3e3aa linux/drivers/media/dvb/frontends/stb6100.c
-> --- a/linux/drivers/media/dvb/frontends/stb6100.c
-> +++ b/linux/drivers/media/dvb/frontends/stb6100.c
-> @@ -434,11 +434,11 @@ static int stb6100_init(struct dvb_front
->        status->refclock        = 27000000;     /* Hz   */
->        status->iqsense         = 1;
->        status->bandwidth       = 36000;        /* kHz  */
-> -       state->bandwidth        = status->bandwidth * 1000;     /* MHz  */
-> +       state->bandwidth        = status->bandwidth * 1000;     /* Hz   */
->        state->reference        = status->refclock / 1000;      /* kHz  */
->
->        /* Set default bandwidth.       */
-> -       return stb6100_set_bandwidth(fe, status->bandwidth);
-> +       return stb6100_set_bandwidth(fe, state->bandwidth);
->  }
->
->  static int stb6100_get_state(struct dvb_frontend *fe,
->
+Scanning is OK, tuning is OK.
+I can't test signals below 600MHz at the moment, but I will try (possibly VHF too)
+in a couple of days, just to be sure about the frequency handling code.
+Also tried removing the USB stick while playing a stream; the devices
+were correctly removed when the user space apps closed them.
 
+In my (user) opinion this driver is ready to be merged.
 
-Patch looks more or less ok, but it won't have any effect in any manner at
-all as it is a
-NOP during init (purely cosmetic). Anyway will pull it in along with the
-other patches
-and after testing.
+I actually fixed some trivial compilation issues in the driver.
 
+--- a/linux/drivers/media/common/tuners/mc44s80x.c    2009-01-05 12:38:11.000000000 +0100
++++ b/linux/drivers/media/common/tuners/mc44s80x.c 2009-01-05 16:12:59.000000000 +0100
+@@ -470,12 +470,12 @@
 
-Manu
+        mc44s80x_set_power(state, 0); /* disable powerdown */
+        printk(KERN_WARNING "mc44s80x: MC44S80x get Device ID\n");
+-       err = i2c_transfer(state->i2c, &msg, 1);
++       err = i2c_transfer(state->i2c, msg1, 1);
+        if (err != 1) {
+                printk(KERN_WARNING "mc44s80x: Write error\n");
+                goto exit;
+        }
+-       err = i2c_transfer(state->i2c, &msg, 1);
++       err = i2c_transfer(state->i2c, msg2, 1);
+        if (err != 1) {
+                printk(KERN_WARNING "mc44s80x: Read error, Reg=[0x%02x]\n",
+                       TUNER_ADDR + 1);
+@@ -495,7 +495,7 @@
+        return 0;
+ unk:
+        printk(KERN_WARNING "mc44s80x: Chip with unknown Revision ID "
+-              "(0x%02x)\n", __func__, id);
++              "(0x%02x)\n", id);
+        goto out;
+ exit:
+        if (fe->ops.i2c_gate_ctrl)
+@@ -512,7 +512,7 @@
+        int err = 0;
 
-------=_Part_2398_10074431.1231445677904
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+        printk(KERN_WARNING "mc44s80x: Trying to attach to Bus @ 0x%p\n", i2c);
+-       state = kzalloc(sizeof(struct mc44s80x_state), GFP_KERNEL));
++       state = kzalloc(sizeof(struct mc44s80x_state), GFP_KERNEL);
+        if (state == NULL) {
+                err = -ENOMEM;
+                goto exit;
 
-<div dir="ltr"><br><br><div class="gmail_quote">On Thu, Jan 8, 2009 at 9:17 PM, Hans Werner <span dir="ltr">&lt;<a href="mailto:HWerner4@gmx.de">HWerner4@gmx.de</a>&gt;</span> wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<br>
-<br>
-Signed-off-by: Hans Werner &lt;<a href="mailto:hwerner4@gmx.de">hwerner4@gmx.de</a>&gt;<br>
-<br>
-diff -r b7e7abe3e3aa linux/drivers/media/dvb/frontends/stb6100.c<br>
---- a/linux/drivers/media/dvb/frontends/stb6100.c<br>
-+++ b/linux/drivers/media/dvb/frontends/stb6100.c<br>
-@@ -434,11 +434,11 @@ static int stb6100_init(struct dvb_front<br>
- &nbsp; &nbsp; &nbsp; &nbsp;status-&gt;refclock &nbsp; &nbsp; &nbsp; &nbsp;= 27000000; &nbsp; &nbsp; /* Hz &nbsp; */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;status-&gt;iqsense &nbsp; &nbsp; &nbsp; &nbsp; = 1;<br>
- &nbsp; &nbsp; &nbsp; &nbsp;status-&gt;bandwidth &nbsp; &nbsp; &nbsp; = 36000; &nbsp; &nbsp; &nbsp; &nbsp;/* kHz &nbsp;*/<br>
-- &nbsp; &nbsp; &nbsp; state-&gt;bandwidth &nbsp; &nbsp; &nbsp; &nbsp;= status-&gt;bandwidth * 1000; &nbsp; &nbsp; /* MHz &nbsp;*/<br>
-+ &nbsp; &nbsp; &nbsp; state-&gt;bandwidth &nbsp; &nbsp; &nbsp; &nbsp;= status-&gt;bandwidth * 1000; &nbsp; &nbsp; /* Hz &nbsp; */<br>
- &nbsp; &nbsp; &nbsp; &nbsp;state-&gt;reference &nbsp; &nbsp; &nbsp; &nbsp;= status-&gt;refclock / 1000; &nbsp; &nbsp; &nbsp;/* kHz &nbsp;*/<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;/* Set default bandwidth. &nbsp; &nbsp; &nbsp; */<br>
-- &nbsp; &nbsp; &nbsp; return stb6100_set_bandwidth(fe, status-&gt;bandwidth);<br>
-+ &nbsp; &nbsp; &nbsp; return stb6100_set_bandwidth(fe, state-&gt;bandwidth);<br>
-&nbsp;}<br>
-<br>
-&nbsp;static int stb6100_get_state(struct dvb_frontend *fe,<br>
-<font color="#888888"></font></blockquote></div><br><br>Patch looks more or less ok, but it won&#39;t have any effect in any manner at all as it is a <br>NOP during init (purely cosmetic). Anyway will pull it in along with the other patches <br>
-and after testing.<br><br><br>Manu<br><br></div>
+> Thanks,
+> Jochen
 
-------=_Part_2398_10074431.1231445677904--
+Thanks to you.
 
-
---===============0550496671==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+   Roberto Ragusa    mail at robertoragusa.it
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0550496671==--
