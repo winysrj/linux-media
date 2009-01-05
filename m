@@ -1,32 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0G24B4Y022086
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 21:04:11 -0500
-Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
-	[209.85.218.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0G23rhx030621
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 21:03:53 -0500
-Received: by bwz13 with SMTP id 13so4030005bwz.3
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 18:03:53 -0800 (PST)
-Message-ID: <d9def9db0901151803l7402174dr410f9368158e9579@mail.gmail.com>
-Date: Fri, 16 Jan 2009 03:03:52 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Carsten Meier" <cm@trexity.de>
-In-Reply-To: <20090116025554.566bdb92@tuvok>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n050NCLq019967
+	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 19:23:12 -0500
+Received: from mk-outboundfilter-1.mail.uk.tiscali.com
+	(mk-outboundfilter-1.mail.uk.tiscali.com [212.74.114.37])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n050MqkZ026449
+	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 19:22:53 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: video4linux-list@redhat.com
+Date: Mon, 5 Jan 2009 00:22:49 +0000
+References: <19691783.686993.1231033681816.JavaMail.www@wwinf8403>
+	<49608C2B.5070304@hhs.nl>
+In-Reply-To: <49608C2B.5070304@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Disposition: inline
-References: <20090115163348.5da9932a@tuvok>
-	<09CD2F1A09A6ED498A24D850EB10120817E30B7506@Colmatec004.COLMATEC.INT>
-	<20090115175121.25c4bdaa@tuvok> <496FB713.5020609@draigBrady.com>
-	<20090115235511.1ea5fdd5@tuvok>
-	<d9def9db0901151540y21f05a9ey5d937256f0fb80ae@mail.gmail.com>
-	<20090116012721.415902aa@tuvok>
-	<d9def9db0901151659s462aa0a9ke8ab769eaa741f36@mail.gmail.com>
-	<20090116025554.566bdb92@tuvok>
+Message-Id: <200901050022.49431.linux@baker-net.org.uk>
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: How to identify USB-video-devices
+Cc: 
+Subject: Re: RFC : addition of a flag to rotate decoded images by
+	=?utf-8?b?MTgwwrA=?=
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,116 +32,92 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Jan 16, 2009 at 2:55 AM, Carsten Meier <cm@trexity.de> wrote:
-> Am Fri, 16 Jan 2009 01:59:51 +0100
-> schrieb "Markus Rechberger" <mrechberger@gmail.com>:
+On Sunday 04 January 2009, Hans de Goede wrote:
+> Olivier Lorin wrote:
+> > Hi all,
+> >
+> > I maintain the driver of a webcam (Genesys 05O3:05e3) embedded in a
+> > laptop screen which has the ability to pivot vertically up to 180Â°. The
+> > raw Bayer data from the webcam come with the indication that the image is
+> > right up or upside down depending on how much the webcam has been
+> > rotated. One of the sensor embedded in that webcam does not support the
+> > mirror and flip so that the rotation of the image must be done by
+> > software at decoding time. So what about a new V4L2_xxx set by the driver
+> > to tell the image has to be rotated by 180Â°? As it does not seem to be
+> > anticipated that the driver can change the image state on the fly, a way
+> > to do that may be a new V4L2_CID_UPSIDEDOWN which is set by the driver
+> > and read by libv4l on a regular basis.
 >
->> On Fri, Jan 16, 2009 at 1:27 AM, Carsten Meier <cm@trexity.de> wrote:
->> > Am Fri, 16 Jan 2009 00:40:47 +0100
->> > schrieb "Markus Rechberger" <mrechberger@gmail.com>:
->> >
->> >> On Thu, Jan 15, 2009 at 11:55 PM, Carsten Meier <cm@trexity.de>
->> >> wrote:
->> >> > Am Thu, 15 Jan 2009 22:22:11 +0000
->> >> > schrieb Pádraig Brady <P@draigBrady.com>:
->> >> >
->> >> >> Carsten Meier wrote:
->> >> >> > Storing device-file-names is also not an option because they
->> >> >> > are created dynamicly.
->> >> >>
->> >> >> You use udev rules to give persistent names.
->> >> >>
->> >> >> Here is my /etc/udev/rules.d/video.rules file,
->> >> >> which creates /dev/webcam and /dev/tvtuner as appropriate.
->> >> >>
->> >> >> KERNEL=="video*" SYSFS{name}=="USB2.0 Camera", NAME="video%n",
->> >> >> SYMLINK+="webcam" KERNEL=="video*" SYSFS{name}=="em28xx*",
->> >> >> NAME="video%n", SYMLINK+="tvtuner"
->> >> >>
->> >> >> To find distinguishing attributes to match on use:
->> >> >>
->> >> >> echo /sys/class/video4linux/video* | xargs -n1 udevinfo -a -p
->> >> >>
->> >> >> cheers,
->> >> >> Pádraig.
->> >> >
->> >> > This already came up on the pvrusb2-list and someone told me (I
->> >> > don't know much about udev) that it might cause problems on
->> >> > disconnection of a device with a file-descriptor open which then
->> >> > gets reconnected and there are two device-files for it. I also
->> >> > don't like it, because an average user (including me) usually
->> >> > can't or don't want to write udev rules. Finally v4l2 already
->> >> > contains a very simple and reliable mechanism for doing this
->> >> > (bus_info-field) which simply isn't used correctly by the
->> >> > USB-drivers.
->> >> >
->> >>
->> >> check the device serial for this one. I don't know if the pvrusb2
->> >> devices have it set up properly
->> >> I know some manufacturers don't do!
->> >> Be flexible with the node, but not with the serial.
->> >>
->> >> cat /sys/class/video4linux/video0/device/serial
->> >> 080702001788
->> >>
->> >> you have the nodename in it, there are many ways to retrieve the
->> >> nodename.
->> >
->> > If I do a "ls /sys/class/video4linux/video0/" it simply prints:
->> >
->> > dev  index  name  power  subsystem  uevent
->> >
->> > and it will end up with many differnet cases to consider by any
->> > app. I stay at my opinion that current bus_info-impl is broken.
->> > This *is* a driver issue that needs fixing.
->> >
->>
->> could it be that video0 is no usb device - or something else?
->> The usb-core framework should give you the information about the
->> serial id not the driver.
->>
->> $ ls /sys/bus/usb/devices/*/id* /sys/bus/usb/devices/*/serial | while
->> read a; do cat $a; done
->> 0c15 <- product
->> 04fc <- vendor
->> 00000CFD49 <- usb serial id
->> 008e
->> 0ccd
->> 080702001788
->> 6377
->> 058f
->> 920321111113
->> 0000 <- nothing attached here
->> 0000
->> 0000:00:02.0
->> 0000
->> 0000
->> 0000:00:02.1
->>
->> $ lsusb
->> Bus 002 Device 008: ID 0ccd:008e TerraTec Electronic GmbH
->> Bus 002 Device 003: ID 058f:6377 Alcor Micro Corp.
->> Bus 002 Device 002: ID 04fc:0c15 Sunplus Technology Co., Ltd
->> Bus 002 Device 001: ID 0000:0000
->> Bus 001 Device 001: ID 0000:0000
->>
->> I use kernel 2.6.24.21 here; but the sysfs entries have been available
->> for quite some time already.
->>
->> Markus
+> As you know I've proposed adding an API for libv4l (and possibly others) to
+> query webcam properties:
+> http://marc.info/?l=linux-video&m=122708661625554&w=2
 >
-> Yes, it is a pvr-usb-device with an mpeg-encoder which resides
-> under /sys/class/pvrusb2/. And exactly this difference shows that it
-> should be solved by the driver's bus_info-string and not by programming
-> this logic into an app.
+> In my proposal I propose a new CID range for this:
 >
-> OK, I'm done for today. I'm arguing this for two full days now. :(
+> #define V4L2_CTRL_CLASS_CAMERA_PROPERTY 0x009b0000
+>
+> #define V4L2_CID_CAMERA_PROPERTY_CLASS_BASE \
+> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 0x900)
+> #define V4L2_CID_CAMERA_PROPERTY_CLASS \
+> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 1)
+>
+> /* Booleans */
+> #define V4L2_CID_WANTS_SW_WHITEBALANCE 
+> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+1) #define
+> V4L2_CID_WANTS_SW_AUTO_EXPOSURE (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+2)
+> #define V4L2_CID_WANTS_SW_GAMMA_CORRECT
+> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+3) #define V4L2_CID_SENSOR_UPSIDE_DOWN
+>     (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+4)
+>
+> /* Fixed point, 16.16 stored in 32 bit integer */
+> #define V4L2_CID_DEF_GAMMA_CORR_FACTOR 
+> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+5)
+>
+>
+> This proposal has not seen much feedback, but no one so far has come out
+> yelling that they don't like it. So I think the best way forward is to just
+> submit a patch which actually implements this, since it is considered bad
+> practice to submit patches which add new API to videodev2.h without
+> actually using it I would start with adding this to videodev2.h:
+>
+> #define V4L2_CTRL_CLASS_CAMERA_PROPERTY 0x009b0000
+>
+> #define V4L2_CID_CAMERA_PROPERTY_CLASS_BASE \
+> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 0x900)
+> #define V4L2_CID_CAMERA_PROPERTY_CLASS \
+> 	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 1)
+>
+> /* Booleans */
+> #define V4L2_CID_SENSOR_UPSIDE_DOWN    
+> (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+1)
+>
+>
+> And then implementing V4L2_CID_SENSOR_UPSIDE_DOWN in your driver. I also
+> welcome libv4l patches to query this and use it to determine weather or not
+> to rotate the image.
 >
 
-I understand, it should be fixed in the driver yes.
+This camera adds a new facet that hadn't previously been considered that the 
+camera recommended adjustment would vary with time - I and I guess you had 
+assumed the driver recommended value could be read once and then stored for 
+as long as the camera was present. In the case of a camera like this what 
+would be the best approach to handling this value change if the user had also 
+adjusted the pseudo control in libv4l - should the value from the driver be 
+xor'ed with the user value?
 
-good night,
-Markus
+I can also say now I've seen an sq905 camera working through libv4l that the 
+default gamma looks OK but it would benefit from a whitebalance control. At 
+the moment I'm relying on turning the camera itself upside down to implement 
+rotate.
+
+Another issue I've been pondering is how should multiple versions of libv4l be 
+handled. Should the shared memory for controls have some sort of version 
+field in the first word and the libv4l that initialises the memory sets that 
+field and if the memory then gets accessed by a libv4l version with a 
+different memory format it prints an error and disables all controls?
+
+Adam Baker
+
 
 --
 video4linux-list mailing list
