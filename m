@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n023EFsW018378
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 22:14:15 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n023DPxt005343
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 22:13:25 -0500
-Date: Fri, 2 Jan 2009 01:13:19 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: video4linux-list@redhat.com, linux-dvb@linuxtv.org, v4l-dvb list
-	<v4l-dvb-maintainer@linuxtv.org>
-Message-ID: <20090102011319.73866370@pedra.chehab.org>
-In-Reply-To: <20081028152152.GA22100@linuxtv.org>
-References: <490525EA.4020608@rogers.com> <20081028152152.GA22100@linuxtv.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Merging V4L, DVB and Maintainers Mailing lists at VGER - Was: Re:
- [linux-dvb] Announcement: wiki merger and some loose ends
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n05K04g8024184
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 15:00:04 -0500
+Received: from bay0-omc1-s5.bay0.hotmail.com (bay0-omc1-s5.bay0.hotmail.com
+	[65.54.246.77])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n05JxpvH022965
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 14:59:51 -0500
+Message-ID: <BAY122-W42C8A061031D93B5A8DEAFB0E10@phx.gbl>
+From: Timo Malk <tmalk@hotmail.com>
+To: <video4linux-list@redhat.com>
+Date: Mon, 5 Jan 2009 21:59:50 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Subject: Compile error /root/v4l-dvb/v4l/bttvp.h:36 /linux/pci.h, Fedora 10,
+ (Leadtec DTV Dongle Gold)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,59 +26,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 28 Oct 2008 16:21:52 +0100
-Johannes Stezenbach <js@linuxtv.org> wrote:
 
-> (about merging the linux-dvb and video4linux-list)
-> 
-> Maybe it would be a good idea to create a new
-> list on vger.kernel.org which assimilates
-> linux-dvb, video4linux-list and v4l-dvb-maintainer.
-> vger.kernel.org has outstanding spam filters so their
-> lists generally allow postings from non-subscribers.
-> 
-> How about just creating such a list as a replacement
-> for v4l-dvb-maintainer, and then see if linux-dvb
-> and video4linux-list users accept it and move
-> their discussions over?
 
-The idea of merging the mailing lists is running around for some time.
 
-It took some time for me to have time to address this issue, but it finally
-happened. We've just created it as:
-	linux-media@vger.kernel.org
 
-The idea is to replace the v4l-dvb-maintainer mailing list by
-linux-media@vger.kernel.org, being the main point for both V4L and DVB
-development.
 
-One of the advantages is that vger anti-spam filters are very efficient, and we
-can have the mailing list opened to bug reports from non-subscribers without
-the risk of receiving lots of trash.
 
-Also, almost all other kernel development mailing lists are there.
 
-We'll probably integrate the mailing list soon with the newly-created
-patchwork.kernel.org. Patchwork is a tool that allows the developers to do a
-better job of handling patches without the risk of having patches lost
-somewhere.
+Hello=2C
 
-I'll later put an announcement after having the tool integrated with
-linux-media@vger.kernel.org.
+Could someone help me out with this.
 
-For now, I kindly want to invite you all, and specially the developers to
-subscribe linux-media@vger.kernel.org.
+I am doing this on Fedora 10 with the help of following guide:
 
-To subscribe, just send an email to:
+http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV_Dongle_Gold
 
-majordomo@vger.kernel.org
+1) hg clone http://linuxtv.org/hg/v4l-dvb
+2) cd v4l-dvb/
+3) make
 
-With the body containing:
-subscribe linux-media
+And the compile output:
+....
+  CC [M]  /root/v4l-dvb/v4l/bttv-vbi.o
+  CC [M]  /root/v4l-dvb/v4l/bttv-i2c.o
+  CC [M]  /root/v4l-dvb/v4l/bttv-gpio.o
+  CC [M]  /root/v4l-dvb/v4l/bttv-input.o
+In file included from /root/v4l-dvb/v4l/bttvp.h:36=2C
+                 from /root/v4l-dvb/v4l/bttv-input.c:28:
+include/linux/pci.h:1126: error: expected declaration specifiers or '...' b=
+efore '(' token
+include/linux/pci.h:1126: error: expected declaration specifiers or '...' b=
+efore '(' token
+include/linux/pci.h:1126: error: static declaration of 'ioremap_nocache' fo=
+llows non-static declaration
+include/asm/io_64.h:176: error: previous declaration of 'ioremap_nocache' w=
+as here
+include/linux/pci.h: In function 'ioremap_nocache':
+include/linux/pci.h:1127: error: number of arguments doesn't match prototyp=
+e
+include/asm/io_64.h:176: error: prototype declaration
+include/linux/pci.h:1131: error: 'pdev' undeclared (first use in this funct=
+ion)
+include/linux/pci.h:1131: error: (Each undeclared identifier is reported on=
+ly once
+include/linux/pci.h:1131: error: for each function it appears in.)
+include/linux/pci.h:1131: error: 'bar' undeclared (first use in this functi=
+on)
+make[3]: *** [/root/v4l-dvb/v4l/bttv-input.o] Error 1
+make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/kernels/2.6.27.9-159.fc10.x86_64'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/root/v4l-dvb/v4l'
+make: *** [all] Error 2
 
-Cheers,
-Mauro
+It seems that part of the=20
+http://linuxtv.org/pipermail/linux-dvb/2009-January/031198.html
+is included in current fedora 10 since I can find the fix in make_config_co=
+mpat.pl.
 
+I could not find the second part in /usr/src/kernels/2.6.27.9-159.fc10.x86_=
+64/include/linux/netdevice.h=20
+
+It is pain to find out-of-the-box-supported hw for linux (in my case Fedora=
+ 10).
+
+Yours
+Timo
+
+
+
+
+_________________________________________________________________
+N=E4yt=E4 heille oikea tie! Lis=E4=E4 juhlakutsuihisi kartat ja ajo-ohjeet =
+.=20
+http://www.microsoft.com/windows/windowslive/events.aspx=
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
