@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1LLQ7j-0004MC-QN
-	for linux-dvb@linuxtv.org; Fri, 09 Jan 2009 23:46:41 +0100
-Date: Fri, 09 Jan 2009 23:46:06 +0100
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-Message-ID: <20090109224606.225290@gmx.net>
+Received: from ti-out-0910.google.com ([209.85.142.186])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <peter@hoeg.com>) id 1LJfli-0006H2-NB
+	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 04:04:43 +0100
+Received: by ti-out-0910.google.com with SMTP id w7so6025188tib.13
+	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 19:04:37 -0800 (PST)
+Message-ID: <496178BF.2050302@hoeg.com>
+Date: Mon, 05 Jan 2009 11:04:31 +0800
+From: Peter Hoeg <peter@hoeg.com>
 MIME-Version: 1.0
-References: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-To: "Manu Abraham" <abraham.manu@gmail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Mantis users
+To: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-dvb@linuxtv.org
+References: <loom.20090103T043514-870@post.gmane.org>
+	<200901031727.26569.hfvogt@gmx.net> <496056B4.4050603@hoeg.com>
+	<200901042333.47704.hfvogt@gmx.net>
+In-Reply-To: <200901042333.47704.hfvogt@gmx.net>
+Subject: Re: [linux-dvb] HVR-1200,
+	cx23885 driver and Message Signaled Interrupts
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,67 +23,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hi,
-> =
+Hi,
 
-> Can you all please provide me the following information for the Mantis /
-> Hopper bridge
-> based cards that you have in the following manner ?
-> =
+> cx23885 0000:03:00.0: setting latency timer to 64
+> the confirmation that MSI is activated:
+> cx23885 0000:03:00.0: irq 315 for MSI/MSI-X
+> 
+> It seems that for your card, the PCI code is stuck halfways?!
+> As you have other devices running with MSI, can you please check whether you 
+> see a line ... irq xyz for MSI/MSI-X for them?
 
-> 1) Card Name (As advertised on the cardboard box):
+I am not getting that message for any of the other devices. Here is the
+output of: dmesg | grep -i msi
 
-Azurewave AD-SP 400
+[    1.533883] pcieport-driver 0000:00:0b.0: found MSI capability
+[    1.534197] pcieport-driver 0000:00:0c.0: found MSI capability
+[    1.534501] pcieport-driver 0000:00:0d.0: found MSI capability
+[    2.905219] forcedeth 0000:00:0f.0: highdma pwrctl mgmt timirq lnktim
+msi desc-v3
 
-> 2) lspci -vvn:
+Maybe your message comes because you have some DEBUG_MSI_INTERRUPTS flag
+set or something (purely guessing here) as my other devices using MSI
+are working perfectly and this has to be looked for elsewhere.
 
-04:00.0 0480: 1822:4e35 (rev 01)
-        Subsystem: 1822:0031
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-=
- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort- =
-<TAbort- <MAbort- >SERR- <PERR-
-        Latency: 32 (2000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 21
-        Region 0: Memory at 99100000 (32-bit, prefetchable) [size=3D4K]
+Any other info I can provide that will shed some light on the situation?
 
-> 3) Chips on the card if you know them (only the basic chip description is
-> required,
-> not the complete batch no. etc)
-
-Mantis K62323.1A-2
-STB0899
-STB6100
-20-pin chip under heatsink (LNBP21?)
-Portek PTK8706 18-pin 8-bit microcontroller
-402B2GLI 8-pin
-Nikos N2576 5-pin Voltage Regulator
-
-Regards,
-Hans
-
-> =
-
-> =
-
-> Regards,
-> Manu
-
--- =
-
-Release early, release often.
-
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
-http://www.gmx.net/de/go/multimessenger
+/peter
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
