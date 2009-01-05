@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roman.jarosz@gmail.com>) id 1LJDaE-0006OG-HM
-	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 21:58:59 +0100
-Received: by bwz11 with SMTP id 11so14784176bwz.17
-	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 12:58:25 -0800 (PST)
-Date: Sat, 03 Jan 2009 21:59:08 +0100
-To: linux-dvb@linuxtv.org
-From: "Roman Jarosz" <roman.jarosz@gmail.com>
+	(envelope-from <artem@moelleritberatung.de>) id 1LJpBg-0007R9-Nl
+	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 14:08:09 +0100
+Date: Mon, 5 Jan 2009 14:07:57 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: Jens =?utf-8?Q?Krehbiel-Gr=C3=A4ther?= <linux-dvb@okg-computer.de>
+Message-ID: <20090105130757.GW12059@titan.makhutov-it.de>
+References: <496204D8.6090602@okg-computer.de>
 MIME-Version: 1.0
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<op.um64vfdkrj95b0@localhost>
-	<c74595dc0901031248h3c3d002j2422331c82249d78@mail.gmail.com>
-Message-ID: <op.um68ku1qrj95b0@localhost>
-In-Reply-To: <c74595dc0901031248h3c3d002j2422331c82249d78@mail.gmail.com>
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
-Reply-To: kedgedev@centrum.cz
+Content-Disposition: inline
+In-Reply-To: <496204D8.6090602@okg-computer.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,53 +20,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 03 Jan 2009 21:48:45 +0100, Alex Betis <alex.betis@gmail.com> wrote:
-
-> On Sat, Jan 3, 2009 at 9:39 PM, Roman Jarosz <roman.jarosz@gmail.com>  
-> wrote:
->
->> On Sat, 03 Jan 2009 19:58:45 +0100, Alex Betis <alex.betis@gmail.com>
->> wrote:
->>
->> >> I use scan from dvb-apps, the command is
->> >> "scan -o vdr /root/dvb/Astra-19.2E > /etc/vdr/channels.conf"
->> >> where /root/dvb/Astra-19.2E is file with "S 11567500 V 22000000 5/6"
->> >
->> > I think that's the main issue. *BOUWSMA w*rote that its ok to rely on
->> > astra's maintainers and connect to any transponder is enough to get a
->> > list
->> > of all others. I personaly don't trust those maintainers since I saw  
->> too
->> > many errors in NIT messages that specify the transponder, so I specify
->> > all
->> > the frequencies I want to scan. I don't have a dish to 19.2, but there
->> > were
->> > many errors with 5 other satellites I have.
->> > You can get a list of those frequencies here:
->> > http://www.lyngsat.com/astra19.html
->>
->> Could you tell me how? I've tried with S 12188000 H 27500000 3/4 and
->> it doesn't find anything.
->
-> Try also scan-s2 with:
-> S 12188000 H 27500000 3/4 AUTO QPSK
-
-No luck :( http://kedge.wz.cz/dvb/scans2_2.txt
-
-
-> Do you have a diseqc on the way?
-
-No. I don't.
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGksCgpPbiBNb24sIEphbiAwNSwgMjAwOSBhdCAwMjowMjoxNlBNICswMTAwLCBKZW5zIEtyZWhi
+aWVsLUdyw6R0aGVyIHdyb3RlOgo+IEhpIQo+IAo+IEkgdXNlIGEgUGlubmFjbGUgVVNCLVJlY2Vp
+dmVyIChQQ1RWIFNhdCBIRFRWIFBybykuIFRoZSBtb2R1bGUgaXMgCj4gZHZiLXVzYi1wY3R2NDUy
+ZS4KPiAKPiBJIHVzZSB0aGUgcmVwb3NpdG9yeSBmcm9tIElnb3IgTGlwbGlhbmluIChhY3R1YWwg
+aGcgcmVsZWFzZSkuIFRoZSBtb2R1bGUgCj4gY29tcGlsZXMgYW5kIGxvYWRzIGZpbmUuIFRoZSBz
+Y2FubmluZyB3aXRoIHNjYW4tczIgYW5kIHphcHBpbmcgd2l0aCAKPiBzemFwLXMyIGFsc28gd2ly
+ayBmaW5lLgo+IEJ1dCB3aGVuIEkgcmVjb3JkIFRWIGZyb20gdGhlIFVTQi1kZXZpY2Ugd2l0aCAi
+Y2F0IAo+IC9kZXYvZHZiL2FkYXB0ZXIwL2R2cjAgPiAoZmlsZW5hbWUpIiBJIGdvdCB0aGUgVFYt
+U3RyZWFtIG9mIHRoZSBhY3R1YWwgCj4gdHYtc3RhdGlvbiAoemFwcGVkIHdpdGggInN6YXAtczIg
+LXIgU0FULjEiIGZvciBleGFtcGxlKS4KPiBUaGlzIHJlY29yZGVkIHZpZGVvIGhhcyBhcnRlZmFj
+dHMsIGV2ZW4gbWlzc2VkIGZyYW1lcy4KPiAKPiBBbnlvbmUgZWxzZSBoYXZpbmcgdGhpcyBwcm9i
+bGVtPyBJIHJlbWVtYmVyIHRoYXQgb24gbXVsdGlwcm90byB0aGVyZSB3YXMgCj4gYSBzaW1pbGFy
+IHByb2JsZW0gd2l0aCB0aGUgcGN0djQ1MmUgdW50aWwgRG9taW5payBLdWhsZW4gcGF0Y2hlZCAK
+PiBzb210aGluZyBzaW5jZSB0aGVuIHRoZSB2aWRlbyB3YXMgT0suIElzIGl0IHBvc3NpYmxlIHRo
+YXQgdGhlIHNhbWUgCj4gImVycm9yIiBpcyBpbiB0aGUgUzJBUEktZHJpdmVyPwoKSSBoYXZlIHNp
+bWlsYXIgcHJvYmxlbXMgd2l0aCBteSBTa3lTdGFyIEhEIChzdGIwODk5KSwgYnV0IEkKYW0gc3Rp
+bGwgdXNpbmcgdGhlIG11bHRpcHJvdG8gZHJpdmVycy4KClJlZ2FyZHMsIEFydGVtCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGlu
+ZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1i
+aW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
