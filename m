@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FHI9Ki006869
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 12:18:22 -0500
-Received: from dd18532.kasserver.com (dd18532.kasserver.com [85.13.139.13])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0FGpN0Z022193
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 11:52:04 -0500
-Date: Thu, 15 Jan 2009 17:51:21 +0100
-From: Carsten Meier <cm@trexity.de>
-To: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-Message-ID: <20090115175121.25c4bdaa@tuvok>
-In-Reply-To: <09CD2F1A09A6ED498A24D850EB10120817E30B7506@Colmatec004.COLMATEC.INT>
-References: <20090115163348.5da9932a@tuvok>
-	<09CD2F1A09A6ED498A24D850EB10120817E30B7506@Colmatec004.COLMATEC.INT>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n057Lg0T005147
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 02:21:43 -0500
+Received: from smtp1.linux-foundation.org (smtp1.linux-foundation.org
+	[140.211.169.13])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n057LSBf008587
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 02:21:28 -0500
+Date: Sun, 4 Jan 2009 23:20:57 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Valdis.Kletnieks@vt.edu
+Message-Id: <20090104232057.c91b1452.akpm@linux-foundation.org>
+In-Reply-To: <33812.1230893486@turing-police.cc.vt.edu>
+References: <33812.1230893486@turing-police.cc.vt.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: How to identify USB-video-devices
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org
+Subject: Re: 2.6.28-mmotm1230 - include/media/v4l2-ioctl.h prototype mismatch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,125 +29,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Fri, 02 Jan 2009 05:51:26 -0500 Valdis.Kletnieks@vt.edu wrote:
+
+> I'm seeing the following warning message during a kernel build:
 > 
-> -----Original Message-----
-> From: video4linux-list-bounces@redhat.com
-> [mailto:video4linux-list-bounces@redhat.com] On Behalf Of Carsten
-> Meier Sent: 15 janvier 2009 10:34 To: Markus Rechberger
-> Cc: video4linux-list@redhat.com
-> Subject: Re: How to identify USB-video-devices
+>   CC [M]  drivers/media/video/gspca/gspca.o
+> drivers/media/video/gspca/gspca.c:1811: warning: initialization from incompatible pointer type
 > 
-> Am Thu, 15 Jan 2009 16:20:23 +0100
-> schrieb "Markus Rechberger" <mrechberger@gmail.com>:
->   
-> > On Thu, Jan 15, 2009 at 3:41 PM, Carsten Meier <cm@trexity.de>
-> > wrote:  
-> > > Hello list,
-> > >
-> > > we recently had a discussion on the pvrusb2-list on how to
-> > > identify a video-device connected via USB from an userspace app.
-> > > (Or more precisely on how to associate config-data with a
-> > > particular device). This led to a patch which returned the
-> > > device's serial-no. in v4l2_capability's bus_info field. This one
-> > > has been rejected, but I really feel that this is the right way
-> > > to go. Here's the thread:
-> > > http://www.isely.net/pipermail/pvrusb2/2009-January/002091.html
-> > >
-> > > I think the meaning of the bus_info-field should be modified
-> > > slightly for USB-devices to reflect its dynamic nature. At least a
-> > > string that won't change on dis-/reconnect and
-> > > standby/wake-up-cycles should be returned. If a device has a
-> > > unique serial-no. it is a perfect candidate for this, if not, some
-> > > USB-port-info should be returned that won't change if the device
-> > > is connected to the same port through the same hub.
-> > >
-> > > What do you think?
-> > > (BTW: I'm not a kernel-hacker, I'm writing this from the
-> > > perspective of an app-developer)
-> > >  
-> >
-> > write a few shellscripts and parse sysfs, or attach your application
-> > to sysfs that it will
-> > be notified if a device gets added. dbus is also a tip. no need to
-> > hook up drivers
-> > with some special things there.
-> >
-> > regards,
-> > Markus  
+> The root cause appears to be a missed prototype change in a conversion from
+> ioctl to unlocked_ioctl - in struct file_operations, the former is an int,
+> but the latter is a long.  So we clean it up.
 > 
-> But according to the docs, the bus_info-field is intended for the
-> purpose of identifying particular devices. Other solutions may be
-> possible, but they are much more complex and much more sensible to
-> other kernel-changes. By using bus_info, there is a simple and clean
-> solution that only depends on the V4L2-API and it also reflects the
-> primary intention of the field.
+> I have to admit not having checked deeply for second-order effects, but the
+> kernel builds without warnings and the result works for me.  The only other
+> use of __video_ioctl2 I can see is in drivers/media/video/ivtv/ivtv-ioctl.c,
+> and there it's used as a return value from a function already defined to return
+> a long, so we save an int->long cast...
 > 
-> Other USB-device-drivers aren't required to change to the new policy,
-> their current bus_info-string (if implemented like in pvrusb2) changes
-> on every reconnect and standby/wake-up-cycle and is of no use anyway
-> for any app.
+> Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 > 
-> I really think that current behaviour is broken.
-> 
-> Regards,
-> Carsten
->   
+> --- linux-2.6.28-mmotm1230/include/media/v4l2-ioctl.h.dist	2009-01-01 17:23:00.000000000 -0500
+> +++ linux-2.6.28-mmotm1230/include/media/v4l2-ioctl.h	2009-01-02 05:40:45.000000000 -0500
+> @@ -297,7 +297,7 @@ extern int video_usercopy(struct file *f
+>  /* Standard handlers for V4L ioctl's */
+>  
+>  /* This prototype is used on fops.unlocked_ioctl */
+> -extern int __video_ioctl2(struct file *file,
+> +extern long __video_ioctl2(struct file *file,
+>  			unsigned int cmd, unsigned long arg);
+>  
+>  /* This prototype is used on fops.ioctl
+> --- linux-2.6.28-mmotm1230/drivers/media/video/v4l2-ioctl.c.dist	2009-01-01 17:22:50.000000000 -0500
+> +++ linux-2.6.28-mmotm1230/drivers/media/video/v4l2-ioctl.c	2009-01-02 05:45:39.000000000 -0500
+> @@ -1852,7 +1852,7 @@ static int __video_do_ioctl(struct file 
+>  	return ret;
+>  }
+>  
+> -int __video_ioctl2(struct file *file,
+> +long __video_ioctl2(struct file *file,
+>  	       unsigned int cmd, unsigned long arg)
+>  {
+>  	char	sbuf[128];
 
-
-
-Am Thu, 15 Jan 2009 10:55:40 -0500
-schrieb Jonathan Lafontaine <jlafontaine@ctecworld.com>:
-
-> I think that generic devices (often cheapest price) do not identify
-> themselves exactly as well known trademarks.
-> 
-> So you can identify kind of chip they use (empia 2860) but, the
-> eeprom space usb chips identity have, remain the
-> responsibility/regardless to the company who build the entire video
-> usb board and not the empia or otherelse chip you ask information on.
-> 
-> You can identify the vendor (2 letters id)so, in this situation,
-> contact the vendor/company to get more precision about.
-> 
-> Try lsusb in terminal.
-> 
-> Hope this reply is usefull. Best regards, cheers  
-
-Hi,
-
-I think you misunderstood me or I misunderstood your message. :)
-
-I don't want to recognize a particual device type (or brand), but I
-want to distinguish two identical devices connected to a system.
-
-Here comes the full story (again):
-
-I'm currently writing a tool to store and apply configuration settings
-like channel-frequencies and control-values. These should all be kept
-in an XML-file which has a section for every v4l-device in the system.
-Those sections are associated with a particular device by storing the
-card- and bus_info-fields of the v4l2_capability-struct in the XML-file.
-
-This works pretty well for PCI-cards, because the bus_info field never
-changes (assuming you don't put the card in a different PCI-slot). This
-use-case is exactly the one the bus_info field was made for.
-
-But with USB things changed a bit. Now (at least for pvrusb2) a string
-like "usb 7-2 address 6" is reported in bus_info. This is not
-tragic, but after a disconnect-reconnect and even after a
-standby-wakeup-cycle it reports a different string by increasing the
-address no. Now I ask: Does anybody like to reconfigure an app just
-because the laptop was idle and went to stand-by-mode?
-
-Storing device-file-names is also not an option because they are
-created dynamicly.
-
-I can't say much about the sysfs-approach because I don't know much
-about it. But it seems more complex and why depend on an external
-mechanism if the V4L2-API already defines one?
-
-Regards,
-Carsten
+That code seems to have magically disappeared from linux-next.
 
 --
 video4linux-list mailing list
