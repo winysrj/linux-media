@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <redtux1@googlemail.com>) id 1LKjgW-0006gv-7b
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 02:27:47 +0100
-Received: by bwz11 with SMTP id 11so18972605bwz.17
-	for <linux-dvb@linuxtv.org>; Wed, 07 Jan 2009 17:27:10 -0800 (PST)
-Message-ID: <ecc841d80901071727g7330dfecw14f7ef1943d2221e@mail.gmail.com>
-Date: Thu, 8 Jan 2009 01:27:10 +0000
-From: "Mike Martin" <redtux1@googlemail.com>
-To: "Nicola Soranzo" <nsoranzo@tiscali.it>
-In-Reply-To: <200901072031.27852.nsoranzo@tiscali.it>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1LJr6z-0000xZ-G9
+	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 16:11:26 +0100
+Date: Mon, 05 Jan 2009 16:10:50 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <c74595dc0901042308j24fcbdebq3d6c51d2c68c8a73@mail.gmail.com>
+Message-ID: <20090105151050.293110@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <200901072031.27852.nsoranzo@tiscali.it>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] No audio with Hauppauge WinTV-HVR-900 (R2)
+References: <49346726.7010303@insite.cz>	
+	<c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>	
+	<c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>	
+	<49371511.1060703@insite.cz> <4938C8BB.5040406@verbraak.org>	
+	<c74595dc0812050100q52ab86bewebe8dbf17bddbb51@mail.gmail.com>	
+	<20081206170753.69410@gmx.net> <20081209153451.75130@gmx.net>	
+	<20081215143047.45940@gmx.net> <20090104192435.72460@gmx.net>
+	<c74595dc0901042308j24fcbdebq3d6c51d2c68c8a73@mail.gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH] stb6100: stb6100_init fix
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,52 +25,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 07/01/2009, Nicola Soranzo <nsoranzo@tiscali.it> wrote:
-> Hi everybody,
-> I have a Hauppauge WinTV-HVR-900 (R2) USB stick, model 65018, which has
-> Empiatech Em2880 chip, Xceive XC3028 tuner and Micronas drx397x DVB-T
-> demodulator.
-> On the same laptop I have an Intel High Definition Audio soundcard and a
-> Syntek
-> DC-1125 webcam.
->
-> Both analog and DVB-T work under Windows.
-> I'm using v4l-dvb from hg repo over Fedora 10 kernel 2.6.27.9 and I have
-> correctly installed xc3028-v27.fw firmware.
-> I know that DVB-T chip is not yet supported, so I tried with analog TV.
-> I can see analog video, but no audio with any program I used (tvtime, xawtv,
-> MythTV).
-> I'm attaching the part of /var/log/messages after the stick attach and the
-> output of the following commands:
-> aplay -l
-> arecord -l
-> cat /proc/asound/cards
-> cat /proc/asound/devices
-> cat /proc/asound/modules
-> cat /proc/asound/pcm
->
-> If any other information may be useful, just ask.
-> Thanks in advance for your help,
-> Nicola
->
+Two issues in stb6100_init : the call to stb6100_set_bandwidth needs an arg=
+ument in Hz
+not kHz, and a comment incorrectly says MHz instead of Hz.  I don't know if=
+ this caused
+real problems anywhere.
 
+This patch is for v4l-dvb, but it is also needs to be fixed in s2-liplianin.
 
-you need a different driver Markuses em2880_new from here
+diff -r b7e7abe3e3aa linux/drivers/media/dvb/frontends/stb6100.c
+--- a/linux/drivers/media/dvb/frontends/stb6100.c
++++ b/linux/drivers/media/dvb/frontends/stb6100.c
+@@ -434,11 +434,11 @@ static int stb6100_init(struct dvb_front
+        status->refclock        =3D 27000000;     /* Hz   */
+        status->iqsense         =3D 1;
+        status->bandwidth       =3D 36000;        /* kHz  */
+-       state->bandwidth        =3D status->bandwidth * 1000;     /* MHz  */
++       state->bandwidth        =3D status->bandwidth * 1000;     /* Hz   */
+        state->reference        =3D status->refclock / 1000;      /* kHz  */
 
-http://mcentral.de/hg/~mrec/em28xx-new
+        /* Set default bandwidth.       */
+-       return stb6100_set_bandwidth(fe, status->bandwidth);
++       return stb6100_set_bandwidth(fe, state->bandwidth);
+ }
 
-mailing list
+ static int stb6100_get_state(struct dvb_frontend *fe,
+-- =
 
-http://mcentral.de/mailman/listinfo/em28xx
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
