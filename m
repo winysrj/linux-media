@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx33.mail.ru ([194.67.23.194])
+Received: from mailout07.t-online.de ([194.25.134.83])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1LJUJV-0006Ca-EP
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 15:50:50 +0100
-Date: Sun, 4 Jan 2009 17:56:38 +0300
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090104175638.2a92018b@bk.ru>
-In-Reply-To: <op.um8hljd6rj95b0@localhost>
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
-	<Pine.LNX.4.64.0901041435090.1668@shogun.pilppa.org>
-	<op.um8hljd6rj95b0@localhost>
+	(envelope-from <yusuf.altin@t-online.de>) id 1LJlGY-0001yG-UP
+	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 09:56:56 +0100
+From: Yusuf Altin <yusuf.altin@t-online.de>
+To: Albert Comerma <albert.comerma@gmail.com>
+In-Reply-To: <ea4209750901040640k532f2dc0rf918fb4967a4a19d@mail.gmail.com>
+References: <1231015340.2963.7.camel@yusuf.laptop>
+	<ea4209750901040640k532f2dc0rf918fb4967a4a19d@mail.gmail.com>
+Date: Mon, 05 Jan 2009 09:56:34 +0100
+Message-Id: <1231145794.2968.15.camel@yusuf.laptop>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TerraTec Cinergy T Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,17 +26,171 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I've tried clean vdr 1.7.2 (without patches) and it doesn't work (works sometimes).
-> When I try to change channels in vdr 1.7.2 I see in log:
-> Jan  4 13:57:43 blackbox vdr: [3250] frontend 0 lost lock on channel 437, tp 110743               
-> Jan  4 13:57:45 blackbox vdr: [3250] frontend 0 timed out while tuning to channel 437, tp 110743
-> 
-> Btw I don't use hvr-4000 I have only one TeVii S460 DVB-S/S2 card.
-> 
-> But vdr 1.6 works
+Hi Albert,
+
+thanks for you helping.
+
+I downloaded and modified the sourcecode like this:
+
+dvb-usb-ids.h:
+	#define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
+	#define USB_PID_TERRATEC_CINERGY_HT_EXPRESS		0x0060
++	#define USB_PID_TERRATEC_CINERGY_T_EXPRESS		0x0062
+	#define USB_PID_TERRATEC_CINERGY_T_XXS			0x0078
+	#define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
+
+dib0700_devices.c:
+
+LL 1393
+	{ USB_DEVICE(USB_VID_ASUS,	USB_PID_ASUS_U3000H) },
+/* 40 */{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E) },
+	{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E_SE) },
++ { USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_EXPRESS) },
+	{ 0 }		/* Terminating entry */
 
 
-can you try vdr 170 ?
+LL 1438
+-		.num_device_descs = 8,
++		.num_device_descs = 9,
+		.devices = {
+			{   "DiBcom STK7700P reference design",
+				{ &dib0700_usb_id_table[0], &dib0700_usb_id_table[1] },
+				{ NULL },
+			},
+			{   "Hauppauge Nova-T Stick",
+				{ &dib0700_usb_id_table[4], &dib0700_usb_id_table[9], NULL },
+				{ NULL },
+			},
+			{   "AVerMedia AVerTV DVB-T Volar",
+				{ &dib0700_usb_id_table[5], &dib0700_usb_id_table[10] },
+				{ NULL },
+			},
+			{   "Compro Videomate U500",
+				{ &dib0700_usb_id_table[6], &dib0700_usb_id_table[19] },
+				{ NULL },
+			},
+			{   "Uniwill STK7700P based (Hama and others)",
+				{ &dib0700_usb_id_table[7], NULL },
+				{ NULL },
+			},
+			{   "Leadtek Winfast DTV Dongle (STK7700P based)",
+				{ &dib0700_usb_id_table[8], &dib0700_usb_id_table[34] },
+				{ NULL },
+			},
+			{   "AVerMedia AVerTV DVB-T Express",
+				{ &dib0700_usb_id_table[20] },
+				{ NULL },
+			},
+			{   "Gigabyte U7000",
+				{ &dib0700_usb_id_table[21], NULL },
+				{ NULL },
+-			}
++			},
++			{   "Terratec Cinergy T Express",
++				{ &dib0700_usb_id_table[42], NULL },
++				{ NULL },
++			}
+		},
+
+
+make and make install was no problem.
+
+
+Now dmesg says
+
+usb 1-6: new high speed USB device using ehci_hcd and address 9
+usb 1-6: configuration #1 chosen from 1 choice
+dvb-usb: found a 'Terratec Cinergy T Express' in cold state, will try to
+load a firmware
+firmware: requesting dvb-usb-dib0700-1.20.fw
+dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+dib0700: firmware started successfully.
+dvb-usb: found a 'Terratec Cinergy T Express' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software
+demuxer.
+DVB: registering new adapter (Terratec Cinergy T Express)
+DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+input: IR-receiver inside an USB DVB receiver
+as /devices/pci0000:00/0000:00:1d.7/usb1/1-6/input/input17
+dvb-usb: schedule remote query interval to 50 msecs.
+dvb-usb: Terratec Cinergy T Express successfully initialized and
+connected.
+usb 1-6: New USB device found, idVendor=0ccd, idProduct=0062
+usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-6: Product: STK7700D
+usb 1-6: Manufacturer: YUANRD
+usb 1-6: SerialNumber: 0000000001
+
+I mean it looks better
+
+Now I am able to select the card in Totem but the picture stays black
+(dvb-channels.conf is ok), same problem in vlc.
+
+What went wrong?
+
+Yusuf
+
+Am Sonntag, den 04.01.2009, 15:40 +0100 schrieb Albert Comerma:
+> Hi Yusuf, if you're sure about the type of the device you should try
+> to modify the v4l source code, probably just adding your new device it
+> should work.
+> 
+> To do so you will need; mercurial, gcc, make and linux-headers
+> matching your kernel. Once installed you can get the current source
+> code runing;  hg clone http://linuxtv.org/hg/v4l-dvb
+> You will also need the card's firmware, you can get it from
+> http://www.wi-bw.tfh-wildau.de/~pboettch/home/linux-dvb-firmware/dvb-usb-dib0700-1.10.fw and copy it to /lib/firmware/
+> Then go to v4l-dvb/linux/drivers/media/dvb/dvb-usb and modify the
+> files dib-usb-ids.h adding the new id with a descriptor, and
+> dib0700_devices.c
+> Once modified just run make and make install (as root, this can
+> potentialy screw other v4l drivers), and test it (if you have the
+> modules loaded you will need to reload them).
+> 
+> If you want to try it and don't know how to modify the files just tell
+> me and I can make your version, but only ask for it when you have
+> everything installed and ready.
+> 
+> Albert
+> 
+> 2009/1/3 Yusuf Altin <yusuf.altin@t-online.de>
+>         Hello,
+>         
+>         I own a TerraTec Cinergy T Express DVB-T Card and it doesn't
+>         work with
+>         Fedora 10.
+>         
+>         My kernel is 2.6.27.10-167.fc10.i686.
+>         
+>         lsusb:
+>         Bus 001 Device 008: ID 0ccd:0062 TerraTec Electronic GmbH
+>         
+>         dmesg:
+>         usb 1-6: new high speed USB device using ehci_hcd and address
+>         8
+>         usb 1-6: configuration #1 chosen from 1 choice
+>         usb 1-6: New USB device found, idVendor=0ccd, idProduct=0062
+>         usb 1-6: New USB device strings: Mfr=1, Product=2,
+>         SerialNumber=3
+>         usb 1-6: Product: STK7700D
+>         usb 1-6: Manufacturer: YUANRD
+>         usb 1-6: SerialNumber: 0000000001
+>         
+>         The card has afaik a dib7700PC chip.
+>         
+>         Is it possible to get the card working?
+>         
+>         Greeting
+>         
+>         Yusuf Altin
+>         
+>         
+>         _______________________________________________
+>         linux-dvb mailing list
+>         linux-dvb@linuxtv.org
+>         http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+
 
 _______________________________________________
 linux-dvb mailing list
