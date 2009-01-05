@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FEcbnL013049
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 09:38:37 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0FEbMf3028097
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 09:37:27 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so172522nfc.21
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 06:37:22 -0800 (PST)
-Message-ID: <b24e53350901150637q5f02d2c5t6d4a9ed5d298934b@mail.gmail.com>
-Date: Thu, 15 Jan 2009 09:37:22 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-To: video4linux-list@redhat.com,
-	"=?ISO-8859-1?Q?P=E1draig_Brady?=" <P@draigbrady.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n05KRtYa007657
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 15:27:55 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n05KRb5v008938
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 15:27:37 -0500
+Date: Mon, 5 Jan 2009 21:27:35 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Luotao Fu <l.fu@pengutronix.de>
+In-Reply-To: <1231175487-3293-1-git-send-email-l.fu@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.0901052125480.8605@axis700.grange>
+References: <1231175487-3293-1-git-send-email-l.fu@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Cc: 
-Subject: [PATCH 1/4] em28xx: Fix audio URB transfer buffer memory leak and
-	race condition/corruption of capture pointer
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] remove duplicated defines in pxa_camera.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,63 +26,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-em28xx: Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
+On Mon, 5 Jan 2009, Luotao Fu wrote:
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
+> Defines for CIR Registers have been moved to pxa_camera.h. So remove them from
+> pxa_camera.c to avoid compiler warnings.
+> 
+> Signed-off-by: Luotao Fu <l.fu@pengutronix.de>
+> ---
+>  drivers/media/video/pxa_camera.c |   13 -------------
+>  1 files changed, 0 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> index cb8c5e1..4eda750 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -44,19 +44,6 @@
+>  #define PXA_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5)
+>  #define PXA_CAM_DRV_NAME "pxa27x-camera"
+>  
+> -/* Camera Interface */
+> -#define CICR0		0x0000
+> -#define CICR1		0x0004
+> -#define CICR2		0x0008
+> -#define CICR3		0x000C
+> -#define CICR4		0x0010
+> -#define CISR		0x0014
+> -#define CIFR		0x0018
+> -#define CITOR		0x001C
+> -#define CIBR0		0x0028
+> -#define CIBR1		0x0030
+> -#define CIBR2		0x0038
+> -
+>  #define CICR0_DMAEN	(1 << 31)	/* DMA request enable */
+>  #define CICR0_PAR_EN	(1 << 30)	/* Parity enable */
+>  #define CICR0_SL_CAP_EN	(1 << 29)	/* Capture enable for slave mode */
+> -- 
+> 1.5.6.5
 
-Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
+NAK. Please, see an earlier patch from Eric Miao, a correct fix for this 
+is in the queue.
 
-Priority: normal
-
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
-
-diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
---- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
-10:06:12 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
-12:47:00 2009 -0500
-@@ -62,11 +62,20 @@
-       int i;
-
-       dprintk("Stopping isoc\n");
--       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
--               usb_unlink_urb(dev->adev.urb[i]);
--               usb_free_urb(dev->adev.urb[i]);
--               dev->adev.urb[i] = NULL;
--       }
-+        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
-+               if (dev->adev.urb[i]) {
-+                       usb_unlink_urb(dev->adev.urb[i]);
-+                       usb_free_urb(dev->adev.urb[i]);
-+                       dev->adev.urb[i] = NULL;
-+               }
-+                if (dev->adev.transfer_buffer[i]) {
-+                       kfree(dev->adev.transfer_buffer[i]);
-+                       dev->adev.transfer_buffer[i] = NULL;
-+               }
-+        }
-
-       return 0;
- }
-@@ -458,11 +467,15 @@
-                                                   *substream)
- #endif
- {
-+       unsigned long flags;
-+
-       struct em28xx *dev;
--
-       snd_pcm_uframes_t hwptr_done;
-+
-       dev = snd_pcm_substream_chip(substream);
-+       spin_lock_irqsave(&dev->adev.slock, flags);
-       hwptr_done = dev->adev.hwptr_done_capture;
-+       spin_unlock_irqrestore(&dev->adev.slock, flags);
-
-       return hwptr_done;
- }
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
