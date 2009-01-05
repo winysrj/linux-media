@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0U0rnJB032157
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:53:49 -0500
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0U0rWFC014623
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:53:32 -0500
-From: Dominic Curran <dcurran@ti.com>
-To: "linux-omap" <linux-omap@vger.kernel.org>, video4linux-list@redhat.com
-Date: Thu, 29 Jan 2009 18:53:26 -0600
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0601FXB013559
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 19:01:15 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0600TuG023169
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 19:00:30 -0500
+Date: Mon, 5 Jan 2009 21:59:57 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Message-ID: <20090105215957.479b7ba2@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.58.0901041217381.25853@shell2.speakeasy.net>
+References: <20090104104433.C996.WEIYI.HUANG@gmail.com>
+	<200901041157.59503.laurent.pinchart@skynet.be>
+	<Pine.LNX.4.58.0901041217381.25853@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901291853.26533.dcurran@ti.com>
-Cc: greg.hofer@hp.com
-Subject: [OMAPZOOM][PATCH 1/6] CSI2: Add function to change number of data
-	lanes used.
+Cc: v4l-dvb-maintainer@linuxtv.org, Huang Weiyi <weiyi.huang@gmail.com>,
+	video4linux-list@redhat.com
+Subject: Re: [v4l-dvb-maintainer] [VIDEO4LINUX] removed unused #include
+ <version.h>'s
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,112 +31,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH 1/6] CSI2: Add function to change number of data lanes 
-used.
+On Sun, 4 Jan 2009 12:25:43 -0800 (PST)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-Add new CSI2 function.
-New function is isp_csi2_complexio_lanes_count().
-Sets the number of CSI2 data lanes that should be used.
+> On Sun, 4 Jan 2009, Laurent Pinchart wrote:
+> > On Sunday 04 January 2009, Huang Weiyi wrote:
+> > > Removed unused #include <version.h>'s in files below,
+> > >   drivers/media/video/cs5345.c
+> > >   drivers/media/video/pwc/pwc-if.c
+> > >   drivers/media/video/saa717x.c
+> > >   drivers/media/video/upd64031a.c
+> > >   drivers/media/video/upd64083.c
+> > >   drivers/media/video/uvc/uvc_ctrl.c
+> > >   drivers/media/video/uvc/uvc_driver.c
+> > >   drivers/media/video/uvc/uvc_queue.c
+> > >   drivers/media/video/uvc/uvc_video.c
+> >
+> > You can remove it from drivers/media/video/uvc/uvc_status.c as well.
+> >
+> > Mauro, the #include <linux/version.h> are required for backward compatibility
+> > in the Mercurial tree, but are not needed (except in uvc_v4l2.c) in the
+> > mainline git kernel tree. Can that be handled by your Mercurial -> git export
+> > scripts ?
+> 
+> The version.h includes should not be needed for backward compatibility in
+> the Hg tree.  There was always a problem with version.h appearing to not be
+> necessary in the git code, so I modified the v4l-dvb build system to add
+> version.h with a gcc -include option.
 
-Signed-off-by: Dominic Curran <dcurran@ti.com>
-Signed-off-by: Greg Hofer <greg.hofer@hp.com>
----
- drivers/media/video/isp/ispcsi2.c |   33 +++++++++++++++++++++++++++++++--
- drivers/media/video/isp/ispcsi2.h |    5 +++++
- 2 files changed, 36 insertions(+), 2 deletions(-)
- mode change 100644 => 100755 drivers/media/video/isp/ispcsi2.c
- mode change 100644 => 100755 drivers/media/video/isp/ispcsi2.h
+Yes. You just need to add version.h at the file where the V4L2 API is
+implemented (due to VIDIOC_QUERYCTL).
 
-Index: omapzoom04/drivers/media/video/isp/ispcsi2.c
-===================================================================
---- omapzoom04.orig/drivers/media/video/isp/ispcsi2.c
-+++ omapzoom04/drivers/media/video/isp/ispcsi2.c
-@@ -112,6 +112,11 @@ int isp_csi2_complexio_lanes_config(stru
- 			currlanes_u->data[i] = true;
- 			update_complexio_cfg1 = true;
- 		}
-+		/* If the lane position is non zero then we can assume that
-+		 * the initial lane state is on.
-+		 */
-+		if (currlanes->data[i].pos)
-+			currlanes->data[i].state = ISP_CSI2_LANE_ON;
- 	}
- 
- 	if (currlanes->clk.pos != reqcfg->clk.pos) {
-@@ -158,9 +163,10 @@ int isp_csi2_complexio_lanes_update(bool
- 									1));
- 			reg |= (currlanes->data[i].pol <<
- 				ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i + 1));
--			reg |= (currlanes->data[i].pos <<
-+			if (currlanes->data[i].state == ISP_CSI2_LANE_ON)
-+				reg |= (currlanes->data[i].pos <<
- 				ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i +
--									1));
-+					 1));
- 			currlanes_u->data[i] = false;
- 		}
- 	}
-@@ -181,6 +187,29 @@ int isp_csi2_complexio_lanes_update(bool
- }
- 
- /**
-+ * isp_csi2_complexio_lanes_count - Turn data lanes on/off dynamically.
-+ * @ cnt: Number of data lanes to enable.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_lanes_count(int cnt)
-+{
-+	struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
-+	int i;
-+
-+	for (i = 0; i < 4; i++) {
-+		if (i < cnt)
-+			currlanes->data[i].state = ISP_CSI2_LANE_ON;
-+		else
-+			currlanes->data[i].state = ISP_CSI2_LANE_OFF;
-+	}
-+
-+	isp_csi2_complexio_lanes_update(true);
-+	return 0;
-+}
-+EXPORT_SYMBOL(isp_csi2_complexio_lanes_count);
-+
-+/**
-  * isp_csi2_complexio_lanes_get - Gets CSI2 ComplexIO lanes configuration.
-  *
-  * Gets settings from HW registers and fills in the internal driver memory
-Index: omapzoom04/drivers/media/video/isp/ispcsi2.h
-===================================================================
---- omapzoom04.orig/drivers/media/video/isp/ispcsi2.h
-+++ omapzoom04/drivers/media/video/isp/ispcsi2.h
-@@ -20,6 +20,9 @@
- #define OMAP_ISP_CSI2_API_H
- #include <linux/videodev2.h>
- 
-+#define ISP_CSI2_LANE_OFF 	0
-+#define ISP_CSI2_LANE_ON 	1
-+
- enum isp_csi2_irqevents {
- 	OCP_ERR_IRQ = 0x4000,
- 	SHORT_PACKET_IRQ = 0x2000,
-@@ -63,6 +66,7 @@ enum isp_csi2_frame_mode {
- struct csi2_lanecfg {
- 	u8 pos;
- 	u8 pol;
-+	u8 state; 	/*Current state - 1-Used  0-Unused */
- };
- 
- struct isp_csi2_lanes_cfg {
-@@ -175,6 +179,7 @@ struct isp_csi2_cfg_update {
- 
- int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg);
- int isp_csi2_complexio_lanes_update(bool force_update);
-+int isp_csi2_complexio_lanes_count(int cnt);
- int isp_csi2_complexio_lanes_get(void);
- int isp_csi2_complexio_power_autoswitch(bool enable);
- int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd);
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
