@@ -1,14 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout06.t-online.de ([194.25.134.19])
+Received: from yx-out-2324.google.com ([74.125.44.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <yusuf.altin@t-online.de>) id 1LKLRl-0006OF-Qt
-	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 00:34:54 +0100
-From: Yusuf Altin <yusuf.altin@t-online.de>
-To: linux-dvb@linuxtv.org
-Date: Wed, 07 Jan 2009 00:34:39 +0100
-Message-Id: <1231284879.3619.2.camel@yusuf.laptop>
-Mime-Version: 1.0
-Subject: [linux-dvb] [PATCH] add Terratec Cinergy T Express to dibcom driver
+	(envelope-from <albert.comerma@gmail.com>) id 1LJmms-0000hZ-Jo
+	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 11:34:24 +0100
+Received: by yx-out-2324.google.com with SMTP id 8so2588276yxg.41
+	for <linux-dvb@linuxtv.org>; Mon, 05 Jan 2009 02:34:18 -0800 (PST)
+Message-ID: <ea4209750901050234qa8f8afenfdf0faeecc1daf5c@mail.gmail.com>
+Date: Mon, 5 Jan 2009 11:34:18 +0100
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0901041338k5acb632ax78f609b81bcd8793@mail.gmail.com>
+MIME-Version: 1.0
+References: <49611175.1020907@yahoo.gr>
+	<ea4209750901041208p588ada83w83afaa490c5932ee@mail.gmail.com>
+	<d9def9db0901041338k5acb632ax78f609b81bcd8793@mail.gmail.com>
+Cc: Linux-DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Terratec Cinergy Hybrid T USB XS FM
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,120 +23,124 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0004568423=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-#This patch introduces support for dvb-t for the following dibcom based
-card:
-#	Terratec Cinergy T Express (USB-ID: 0ccd:0062)
-#		Signed-off-by: Yusuf Altin <yusuf.altin@t-online.de>
-#		Signed-off-by: Albert Comerma <albert.comerma@gmail.com>
+--===============0004568423==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_116848_25357787.1231151658347"
 
-diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
---- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Mon Jan 05
-02:42:38 2009 -0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Wed Jan 07
-00:28:13 2009 +0100
-@@ -1388,16 +1388,17 @@ struct usb_device_id dib0700_usb_id_tabl
- 	{ USB_DEVICE(USB_VID_LEADTEK,
-USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
- /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE,
-USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
- 	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
- 	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
- 	{ USB_DEVICE(USB_VID_YUAN,      USB_PID_YUAN_STK7700PH) },
- 	{ USB_DEVICE(USB_VID_ASUS,	USB_PID_ASUS_U3000H) },
- /* 40 */{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E) },
- 	{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E_SE) },
-+	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_EXPRESS) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
- 
- #define DIB0700_DEFAULT_DEVICE_PROPERTIES \
- 	.caps              = DVB_USB_IS_AN_I2C_ADAPTER, \
- 	.usb_ctrl          = DEVICE_SPECIFIC, \
- 	.firmware          = "dvb-usb-dib0700-1.20.fw", \
-@@ -1532,17 +1533,18 @@ struct dvb_usb_device_properties dib0700
- 			},
- 			{   "Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity",
- 				{ &dib0700_usb_id_table[13], NULL },
- 				{ NULL },
- 			},
- 			{   "DiBcom STK7700D reference design",
- 				{ &dib0700_usb_id_table[14], NULL },
- 				{ NULL },
--			}
-+			},
-+
- 		},
- 
- 		.rc_interval      = DEFAULT_RC_INTERVAL,
- 		.rc_key_map       = dib0700_rc_keys,
- 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
- 		.rc_query         = dib0700_rc_query
- 
- 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-@@ -1552,25 +1554,29 @@ struct dvb_usb_device_properties dib0700
- 			{
- 				.frontend_attach  = stk7700P2_frontend_attach,
- 				.tuner_attach     = stk7700d_tuner_attach,
- 
- 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
- 			},
- 		},
- 
--		.num_device_descs = 2,
-+		.num_device_descs = 3,
- 		.devices = {
- 			{   "ASUS My Cinema U3000 Mini DVBT Tuner",
- 				{ &dib0700_usb_id_table[23], NULL },
- 				{ NULL },
- 			},
- 			{   "Yuan EC372S",
- 				{ &dib0700_usb_id_table[31], NULL },
- 				{ NULL },
-+			},
-+			{   "Terratec Cinergy T Express",
-+				{ &dib0700_usb_id_table[42], NULL },
-+				{ NULL },
- 			}
- 		},
- 
- 		.rc_interval      = DEFAULT_RC_INTERVAL,
- 		.rc_key_map       = dib0700_rc_keys,
- 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
- 		.rc_query         = dib0700_rc_query
- 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Mon Jan 05 02:42:38
-2009 -0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Wed Jan 07 00:28:13
-2009 +0100
-@@ -159,16 +159,17 @@
- #define USB_PID_AVERMEDIA_HYBRID_ULTRA_USB_M039R_DVBT	0x2039
- #define USB_PID_AVERMEDIA_VOLAR_X			0xa815
- #define USB_PID_AVERMEDIA_VOLAR_X_2			0x8150
- #define USB_PID_AVERMEDIA_A309				0xa309
- #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
- #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
- #define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
- #define USB_PID_TERRATEC_CINERGY_HT_EXPRESS		0x0060
-+#define USB_PID_TERRATEC_CINERGY_T_EXPRESS		0x0062
- #define USB_PID_TERRATEC_CINERGY_T_XXS			0x0078
- #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
- #define USB_PID_PINNACLE_PCTV2000E			0x022c
- #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
- #define USB_PID_PINNACLE_PCTV_DUAL_DIVERSITY_DVB_T	0x0229
- #define USB_PID_PINNACLE_PCTV71E			0x022b
- #define USB_PID_PINNACLE_PCTV72E			0x0236
- #define USB_PID_PINNACLE_PCTV73E			0x0237
+------=_Part_116848_25357787.1231151658347
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+Sorry, I thought it was a Dibcom based device since there are so many
+similar names... :P
+
+Albert
+
+2009/1/4 Markus Rechberger <mrechberger@gmail.com>
+
+> 2009/1/4 Albert Comerma <albert.comerma@gmail.com>:
+> > I'm nearly sure that ONLY dvb-t works, not analog, not radio.
+> >
+>
+> everything's fully supported, you might have a further look at the
+> documentation on mcentral.de for it.
+>
+> regards,
+> Markus
+>
+> > Albert
+> >
+> > 2009/1/4 rvf16 <rvf16@yahoo.gr>
+> >>
+> >> Hello to all.
+> >>
+> >> Could anyone confirm if all signals of this usb tv tuner are supported
+> >> (DVB-T, analog tv PAL, FM radio) and what about teletext and remote
+> >> control support?
+> >> I have searched throughout the web but didn't reach a satisfying result
+> >> except for the DVB-T signal.
+> >>
+> >> Thank you.
+> >> Regards.
+> >>
+> >>
+> >> _______________________________________________
+> >> linux-dvb mailing list
+> >> linux-dvb@linuxtv.org
+> >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> >
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+>
+
+------=_Part_116848_25357787.1231151658347
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Sorry, I thought it was a Dibcom based device since there are so many similar names... :P<br><br>Albert<br><br><div class="gmail_quote">2009/1/4 Markus Rechberger <span dir="ltr">&lt;<a href="mailto:mrechberger@gmail.com">mrechberger@gmail.com</a>&gt;</span><br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">2009/1/4 Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt;:<br>
+
+<div class="Ih2E3d">&gt; I&#39;m nearly sure that ONLY dvb-t works, not analog, not radio.<br>
+&gt;<br>
+<br>
+</div>everything&#39;s fully supported, you might have a further look at the<br>
+documentation on <a href="http://mcentral.de" target="_blank">mcentral.de</a> for it.<br>
+<br>
+regards,<br>
+<font color="#888888">Markus<br>
+</font><div><div></div><div class="Wj3C7c"><br>
+&gt; Albert<br>
+&gt;<br>
+&gt; 2009/1/4 rvf16 &lt;<a href="mailto:rvf16@yahoo.gr">rvf16@yahoo.gr</a>&gt;<br>
+&gt;&gt;<br>
+&gt;&gt; Hello to all.<br>
+&gt;&gt;<br>
+&gt;&gt; Could anyone confirm if all signals of this usb tv tuner are supported<br>
+&gt;&gt; (DVB-T, analog tv PAL, FM radio) and what about teletext and remote<br>
+&gt;&gt; control support?<br>
+&gt;&gt; I have searched throughout the web but didn&#39;t reach a satisfying result<br>
+&gt;&gt; except for the DVB-T signal.<br>
+&gt;&gt;<br>
+&gt;&gt; Thank you.<br>
+&gt;&gt; Regards.<br>
+&gt;&gt;<br>
+&gt;&gt;<br>
+&gt;&gt; _______________________________________________<br>
+&gt;&gt; linux-dvb mailing list<br>
+&gt;&gt; <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+&gt;&gt; <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+&gt;<br>
+&gt;<br>
+&gt; _______________________________________________<br>
+&gt; linux-dvb mailing list<br>
+&gt; <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+&gt; <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+&gt;<br>
+</div></div></blockquote></div><br>
+
+------=_Part_116848_25357787.1231151658347--
+
+
+--===============0004568423==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0004568423==--
