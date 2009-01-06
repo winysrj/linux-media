@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out113.alice.it ([85.37.17.113])
+Received: from mail-ew0-f16.google.com ([209.85.219.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <wayneandholly@alice.it>) id 1LR19s-0001gu-Kx
-	for linux-dvb@linuxtv.org; Sun, 25 Jan 2009 10:20:02 +0100
-From: "Wayne and Holly" <wayneandholly@alice.it>
-To: <linux-dvb@linuxtv.org>
-Date: Sun, 25 Jan 2009 10:18:25 +0100
-Message-ID: <000601c97ecd$e09d9930$0202a8c0@speedy>
+	(envelope-from <oscarmax3@gmail.com>) id 1LKB3P-0004fr-25
+	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 13:29:05 +0100
+Received: by ewy9 with SMTP id 9so7813510ewy.17
+	for <linux-dvb@linuxtv.org>; Tue, 06 Jan 2009 04:28:29 -0800 (PST)
+Message-ID: <49634E8E.20601@gmail.com>
+Date: Tue, 06 Jan 2009 13:29:02 +0100
+From: Carl Oscar Ejwertz <oscarmax3@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] FW:  Leadtek WinFast PxDVR3200 H
-Reply-To: linux-media@vger.kernel.org
+To: Pauli Borodulin <pauli@borodulin.fi>
+References: <49634AFE.2080405@borodulin.fi>
+In-Reply-To: <49634AFE.2080405@borodulin.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] The status and future of Mantis driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,112 +27,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> -----Original Message-----
-> From: Robert Golding [mailto:robert.golding@gmail.com]
-> Sent: Sunday, 25 January 2009 8:42 a.m.
-> To: Wayne and Holly
-> Cc: linux-dvb@linuxtv.org
-> Subject: Re: [linux-dvb] Leadtek WinFast PxDVR3200 H
-> 
-> 
-> 2009/1/25 Wayne and Holly <wayneandholly@alice.it>:
-> > Hello list,
-> > I have a Leadtek WinFast PxDVR3200 H that I am attempting
-> to utilise
-> > with MythTV.  The Wiki site states that experimental support exists
-> > for the DVB side and that "Successful tuning of typical Australian 
-> > channels" has been achieved. I am able to create a channels.conf 
-> > (attached) using scan, and am then able to tune using mythtv-setup, 
-> > however none of these channels are viewable with the 
-> mythfrontend due
-> > to it being unable to gain a lock.
-> >
-> > Relevant bits and pieces:
-> >
-> > scan, using the latest it-Varese file scan is able to tune
-> to three of
-> > the five transponders as per the attached file "scan".  It
-> also scans
-> > on 800000000Hz but I have no idea why.
-> >
-> > The file leadtek.dmesg contains the relevant info from dmesg (and
-> > messages.log) regarding the initialisation of the card
-> itself.  There
-> > are no error messages at any time (that I am aware of)
-> despite all of
-> > my fiddling about.
-> >
-> > Of the three transponders that are in my channels.conf
-> file, the third
-> > one
-> > (618000000Hz) causes an error when tuning in mythtv-setup.
-> It states that
-> > channels are found but the tsid is incorrect.  As such,
-> only the first two
-> > successful transponders (706000000 and 602000000) are tuned by myth.
-> >
-> > When I attempt to view the tuned channels, myth is unable to gain a
-> > lock on any of them.  The reported signal strength is about 58% and 
-> > the S/N varies between 3 and 3.8dB.  I am able to tune 
-> DVB-T channels
-> > on my TV using the same aerial cable but am wondering if signal
-> > strength is an issue.
-> >
-> > I am running it on Kubuntu with a 2.6.24-19 kernel, I have a recent
-> > version of the v4l-dvb tree (approx Nov 08) and am using firmware 
-> > version 2.7.  I haven't updated the drivers or the firmware 
-> as I have
-> > no reason to believe there are changes that would effect
-> this.  That
-> > said, if someone thinks there has been changes I will get
-> straight on
-> > it.
-> >
-> > I am more than happy to provide more debugging info if required (if
-> > you are willing to tell me where else to look) and 
-> appreciate any help
-> > provided.
-> >
-> > Cheers
-> > Wayne
-> >
-> > _______________________________________________
-> > linux-dvb users mailing list
-> > For V4L/DVB development, please use instead
-> > linux-media@vger.kernel.org linux-dvb@linuxtv.org 
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
-> 
-> I have the same card, so this might help.
-> I was experiencing many frontend problems when I came across
-> a references in the list to a third party firmware files. It 
-> explained that you had to download and extract the firmware 
-> within to the firmware dir.
-> 
-> I cannot remember exactly what, where and which, however, if
-> you'd like, I can email the extracted fw.tar.bz2(1.5MB) and
-> ivtv.firmware.tar.bz2(123KB) files to you.  Then just extract 
-> the contents to your firmware dir (on Gentoo /lib/firmware).
-> 
-> Anyway, long story short, that fixed it for me.  Now I'm just
-> waiting to be able to use the FM radio.
-> 
-> -- 
-> Regards,	Robert
 
-Hi Robert,
-Are you talking about the firmware for the XC3038?  I have xc3028-v27.fw in
-place and it loads fine.  I don't recall anything about ivtv firmware, so
-perhaps it would be best if you send through both files, that way I can
-eyeball them and do some fiddling. In the meantime I will start searching
-the list again specifically regarding this.
 
-Cheers
-Wayne
+Den 2009-01-06 13:13, Pauli Borodulin skrev:
+> Heya!
+>
+> I found out that there is some new activity on Manu Abraham's Mantis
+> driver, so I thought I could throw in some thoughts about it.
+>
+> I have been using Manu's Mantis driver (http://www.jusst.de/hg/mantis)
+> for over two years now. I have a VP-2033 card (DVB-C) and at least for
+> the last year the driver has worked without any hickups in my daily
+> (VDR) use. For a long time I have thought that the driver should already
+> be merged to the v4l-dvb tree.
+>
+> Igor M. Liplianin has created a new tree
+> (http://mercurial.intuxication.org/hg/s2-liplianin) with the description
+> "DVB-S(S2) drivers for Linux". Mantis driver was merged into the tree in
+> October and since then some fixes has also been applied to the driver.
+> Some of these fixes already exist in Manu's tree, some don't. Both trees
+> are missing the remote control support for VP-2033 and VP-2040.
+>
+> Until merging of the driver into s2-liplianin, there was a single tree
+> for the Mantis driver development. Now that there are two trees, I fear
+> that the development could scatter if there's no clear idea how the
+> driver is going to get into v4l-dvb. Also, the driver is not only
+> DVB-S(S2), but it also contains support for VP-2033 (DVB-C), VP-2040
+> (DVB-C) and VP-3030 (DVB-T). DVB-S(S2) stuff will probably greatly(?)
+> delay getting the support for DVB-C/T Mantis cards into v4l-dvb.
+>
+> For my personal use I have created a patch against the latest v4l-dvb
+> based on Manu's Mantis tree including the remote control support for
+> VP-2033 and VP-2040. But what I would really like to see is Mantis
+> driver merged into v4l-dvb and later into mainstream.
+>
+> Igor, what are your thoughts about the Mantis driver? How about the
+> other Mantis users, like Marko Ristola, Roland Scheidegger, and Kristian
+> Slavov?
+>
+> Regards,
+> Pauli Borodulin
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>    
 
+Having a VP-3030 (DVB-T) I can tell you that this card isn't supported 
+by the manu tree - but hopefully it will be someday
+
+/Max
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
