@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FFYOeq023204
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:34:24 -0500
-Received: from dd18532.kasserver.com (dd18532.kasserver.com [85.13.139.13])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0FFXofa015471
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:33:50 -0500
-Date: Thu, 15 Jan 2009 16:33:48 +0100
-From: Carsten Meier <cm@trexity.de>
-To: "Markus Rechberger" <mrechberger@gmail.com>
-Message-ID: <20090115163348.5da9932a@tuvok>
-In-Reply-To: <d9def9db0901150720n53ca549dobaa0034b9a21072a@mail.gmail.com>
-References: <20090115154111.36cc25d1@tuvok>
-	<d9def9db0901150720n53ca549dobaa0034b9a21072a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n063Rb32004596
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 22:27:37 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.228])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n063RLPi017905
+	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 22:27:21 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so8169111rvb.51
+	for <video4linux-list@redhat.com>; Mon, 05 Jan 2009 19:27:20 -0800 (PST)
+Message-ID: <5e9665e10901051927w14dbe86ftfec035cbf9a60b19@mail.gmail.com>
+Date: Tue, 6 Jan 2009 12:27:19 +0900
+From: "DongSoo Kim" <dongsoo.kim@gmail.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: How to identify USB-video-devices
+Content-Disposition: inline
+Cc: =?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>
+Subject: Some questions about v4l2 exposure control on camera device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,60 +28,68 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Thu, 15 Jan 2009 16:20:23 +0100
-schrieb "Markus Rechberger" <mrechberger@gmail.com>:
+Hello V4L2 people.
 
-> On Thu, Jan 15, 2009 at 3:41 PM, Carsten Meier <cm@trexity.de> wrote:
-> > Hello list,
-> >
-> > we recently had a discussion on the pvrusb2-list on how to identify
-> > a video-device connected via USB from an userspace app. (Or more
-> > precisely on how to associate config-data with a particular
-> > device). This led to a patch which returned the device's serial-no.
-> > in v4l2_capability's bus_info field. This one has been rejected,
-> > but I really feel that this is the right way to go. Here's the
-> > thread:
-> > http://www.isely.net/pipermail/pvrusb2/2009-January/002091.html
-> >
-> > I think the meaning of the bus_info-field should be modified
-> > slightly for USB-devices to reflect its dynamic nature. At least a
-> > string that won't change on dis-/reconnect and
-> > standby/wake-up-cycles should be returned. If a device has a unique
-> > serial-no. it is a perfect candidate for this, if not, some
-> > USB-port-info should be returned that won't change if the device is
-> > connected to the same port through the same hub.
-> >
-> > What do you think?
-> > (BTW: I'm not a kernel-hacker, I'm writing this from the
-> > perspective of an app-developer)
-> >
-> 
-> write a few shellscripts and parse sysfs, or attach your application
-> to sysfs that it will
-> be notified if a device gets added. dbus is also a tip. no need to
-> hook up drivers
-> with some special things there.
-> 
-> regards,
-> Markus
+I'm working on camera device drivers over 5M pixel and made drivers based on
+V4L2 API.
 
-But according to the docs, the bus_info-field is intended for the
-purpose of identifying particular devices. Other solutions may be
-possible, but they are much more complex and much more sensible to
-other kernel-changes. By using bus_info, there is a simple and clean
-solution that only depends on the V4L2-API and it also reflects the
-primary intention of the field.
+Actually I'm still working on it.
 
-Other USB-device-drivers aren't required to change to the new policy,
-their current bus_info-string (if implemented like in pvrusb2) changes
-on every reconnect and standby/wake-up-cycle and is of no use anyway
-for any app.
+By the way, I have some questions in exposure control.
 
-I really think that current behaviour is broken.
+If my guess is right, V4L2_CID_EXPOSURE_* CIDs are what I'm looking for.
+
+Control factors that I intend to handle for exposure are like following.
+
+  1. Shutter speed
+  2. Iris (F-number)
+  3. ISO(sensor gain)
+
+And found out using V4L2_CID_EXPOSURE_AUTO I could change exposure mode.
+
+But here is the thing.
+
+What should I supposed to do if I need to control iris F-number when I set
+V4L2_EXPOSURE_MANUAL or V4L2_EXPOSURE_APARTURE_PRIORITY?
+
+I see that it is possible to control shutter speed using
+V4L2_CID_EXPOSURE_ABSOLUTE but what can I do for iris? cannot find out.
+
+And one more thing.
+
+If I set exposure mode to V4L2_EXPOSURE_MANUAL, it means that it is
+necessary to control in manual iris, shutter, and even ISO sometimes.
+
+According to videodev2.h I guess we have only V4L2_CID_EXPOSURE_ABSOLUTE to
+control shutter speed.
+
+Is there any cool way to set in manual way with shutter speed, iris, and
+even ISO at once?
+
+If there is no way, how about making a new API for that?
+
+At any rate, I need an API for exposure (a exposure like a real
+camera...shutter, iris things) so... I think I've gotta make something for
+that.
+
+If somebody is working on it, can we discuss together about this issue? If
+you don't mind.
 
 Regards,
-Carsten
+Nate
 
+-- 
+========================================================
+Dong Soo, Kim
+Engineer
+Mobile S/W Platform Lab. S/W centre
+Telecommunication R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+Anycall : 010-9530-0296
+Homepage : http://www.kdsoo.com
+========================================================
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
