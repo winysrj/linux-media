@@ -1,28 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1LPJfX-0003Hi-4C
-	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 17:41:39 +0100
-Received: from steven-toths-macbook-pro.local
-	(ool-45721e5a.dyn.optonline.net [69.114.30.90]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0KDS00LFE3ODQ7X0@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 20 Jan 2009 11:41:04 -0500 (EST)
-Date: Tue, 20 Jan 2009 11:41:01 -0500
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <000901c97b18$3e5d4020$217da8c0@tdrpc>
-Message-id: <4975FE9D.2040009@linuxtv.org>
-MIME-version: 1.0
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
-	<20090119204724.01826924@caramujo.chehab.org>
-	<003101c97ada$168d54b0$f4c6a5c1@tommy>
-	<200901200956.25104.ajurik@quick.cz>
-	<412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
-	<000901c97b18$3e5d4020$217da8c0@tdrpc>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-Reply-To: linux-media@vger.kernel.org
+	(envelope-from <awalls@radix.net>) id 1LK04O-0006GM-U7
+	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 01:45:23 +0100
+From: Andy Walls <awalls@radix.net>
+To: Gregoire Favre <gregoire.favre@gmail.com>
+In-Reply-To: <20090105130720.GB3621@gmail.com>
+References: <20090104113738.GD3551@gmail.com>
+	<1231097304.3125.64.camel@palomino.walls.org>
+	<20090105130720.GB3621@gmail.com>
+Date: Mon, 05 Jan 2009 19:46:40 -0500
+Message-Id: <1231202800.3110.13.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,29 +27,85 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->>
->> Do you want a separate users list and you're not a developer?  If so,
+On Mon, 2009-01-05 at 14:07 +0100, Gregoire Favre wrote:
+> On Sun, Jan 04, 2009 at 02:28:24PM -0500, Andy Walls wrote:
+> 
+> Hello,
+> 
+> thank for your complete answer :
+> http://www.linuxtv.org/pipermail/linux-dvb/2009-January/031264.html
+> 
+> And for the one about "Kernel oops loading cx88 drivers when two
+> WinTV-HVR4000 cards present" :
+> http://www.linuxtv.org/pipermail/linux-dvb/2009-January/031230.html
 
-The engineering time I can put into Linux varies, it always has, so I'm not
-completely up to speed on this issue. Forgive me.
+Sure.  I'm actually a sucker for looking at oops dumps.  They're like
+simple little puzzles waiting to be solved.  Unfortunately, once I know
+the "answer", I rarely follow through with the final solution.
 
-What I personally would like to see is a separation between user and dev lists.
 
-In addition, I don't have a problem with a combined v4l / dvb developer list,
-although I can see how other might. I'm easy on this.
 
-Personally, when I'm between 'furious bouts of Linux activity' like now, the only
-thing I should be spending my time reading is development related issues.
+> > I hope that helps someone.  I'm not and expert on the cx88 modules and
+> > their inter-relationships.
+> 
+> For a user point of view : what has to be done ?
 
-When I have time I'll help users, but when I have very little time I need to focus
-quickly on the important Linux v4l/dvb issues related to my trees / projects.
+I you run across the oops often, then the suspected race condition in
+the function I mentioned needs to be fixed.  That may be as simple as
+this lame patch:
 
-- Steve
+diff -r 76c0ec8ab927 linux/drivers/media/video/cx88/cx88-mpeg.c
+--- a/linux/drivers/media/video/cx88/cx88-mpeg.c        Sun Jan 04 19:51:17 2009 -0500
++++ b/linux/drivers/media/video/cx88/cx88-mpeg.c        Mon Jan 05 19:44:17 2009 -0500
+@@ -831,6 +831,9 @@ static int __devinit cx8802_probe(struct
+        if (err != 0)
+                goto fail_free;
+ 
++       /* Maintain a reference so cx88-video can query the 8802 device. */
++       core->dvbdev = dev;
++
+        INIT_LIST_HEAD(&dev->drvlist);
+        list_add_tail(&dev->devlist,&cx8802_devlist);
+ 
+@@ -851,20 +854,19 @@ static int __devinit cx8802_probe(struct
+                                        __func__);
+                                videobuf_dvb_dealloc_frontends(&dev->frontends);
+                                err = -ENOMEM;
++                               /* FIXME - need to pull dev off cx8802_devlist*/
+                                goto fail_free;
+                        }
+                }
+        }
+ #endif
+ 
+-       /* Maintain a reference so cx88-video can query the 8802 device. */
+-       core->dvbdev = dev;
+-
+        /* now autoload cx88-dvb or cx88-blackbird */
+        request_modules(dev);
+        return 0;
+ 
+  fail_free:
++       /* FIXME - shouldn't we pull dev off the cx8802_devlist - oops */
+        kfree(dev);
+  fail_core:
+        cx88_core_put(core,pci_dev);
 
+
+
+> Maybe all this are related of the tuning problem I got with my system ?
+
+Not if you don't run into the oops regularly.  You either hit this race
+condition when initializing the devices, or you don't and everything is
+"normal".
+
+Regards,
+Andy
+
+> Thanks.
 
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
