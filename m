@@ -1,23 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.24])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1LJDQc-0005OD-N0
-	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 21:49:03 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so3350573qwb.17
-	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 12:48:58 -0800 (PST)
-Message-ID: <c74595dc0901031248h3c3d002j2422331c82249d78@mail.gmail.com>
-Date: Sat, 3 Jan 2009 22:48:45 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: kedgedev@centrum.cz
-In-Reply-To: <op.um64vfdkrj95b0@localhost>
+Message-ID: <4963CA95.9080607@linuxtv.org>
+Date: Tue, 06 Jan 2009 16:18:13 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<op.um64vfdkrj95b0@localhost>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+To: Mark Lord <lkml@rtr.ca>
+References: <4963C93A.1060708@rtr.ca>
+In-Reply-To: <4963C93A.1060708@rtr.ca>
+Cc: linux-acpi@vger.kernel.org, v4l-dvb-maintainer@linuxtv.org,
+	linux-dvb@linuxtv.org, Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] [v4l-dvb-maintainer] 2.6.28: Oops at
+ acpi_ds_exec_end_op+0x1b: kills machine
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,250 +17,105 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1400967977=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1400967977==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_202118_17372172.1231015725810"
-
-------=_Part_202118_17372172.1231015725810
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-On Sat, Jan 3, 2009 at 9:39 PM, Roman Jarosz <roman.jarosz@gmail.com> wrote:
-
-> On Sat, 03 Jan 2009 19:58:45 +0100, Alex Betis <alex.betis@gmail.com>
-> wrote:
+Mark Lord wrote:
+> This happened on our Mythtv box at startup this morning:
+> The Oops happened once only, at system startup, on initial device probe.
+> Not reproduceable, so probably a rare race of some kind.
+> The xc5000 module was loaded with "init_fw=1" to force f/w load on modprobe.
 >
-> >> I use scan from dvb-apps, the command is
-> >> "scan -o vdr /root/dvb/Astra-19.2E > /etc/vdr/channels.conf"
-> >> where /root/dvb/Astra-19.2E is file with "S 11567500 V 22000000 5/6"
-> >
-> > I think that's the main issue. *BOUWSMA w*rote that its ok to rely on
-> > astra's maintainers and connect to any transponder is enough to get a
-> > list
-> > of all others. I personaly don't trust those maintainers since I saw too
-> > many errors in NIT messages that specify the transponder, so I specify
-> > all
-> > the frequencies I want to scan. I don't have a dish to 19.2, but there
-> > were
-> > many errors with 5 other satellites I have.
-> > You can get a list of those frequencies here:
-> > http://www.lyngsat.com/astra19.html
+> 2.6.28 kernel, SMP, x86_64, two CPUs (Core2duo 1.86GHz), 2GB RAM.
 >
-> Could you tell me how? I've tried with S 12188000 H 27500000 3/4 and
-> it doesn't find anything.
-
-Try also scan-s2 with:
-S 12188000 H 27500000 3/4 AUTO QPSK
-
-
+> Oops text typed in by hand from screen photos
+> ( original photos: http://rtr.ca/xc5000_lockup )
+> ...
+> xc5000: firmware read 12332 bytes.
+> xc5000: firmware upload
+> BUG kernel NULL pointer dereference at 000000000000000c
+> IP: [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
+> PGD 7c8cd067 PUD 7d411067 PMD 0
+> Oops: 0000 [#1] PREEMPT SMP
+> last sysfs file: /sys/class/firmware/i2c-2/loading
+> CPU 0
+> ...
+> Modules linked in: xc5000 au8522 tea5767 tda9887 tda8290 tea5761 fuse au0828(+)
+> dvd_core usbhid tuner_simple tuner_types snd_hda_intel msp3400 ... nvidia(P) ...
+> ...
+> Pid: 2383, comm: modprobe Tainted: P A 2.6.28 #9  
+> RIP: 0010:[<ffffffff8038fbcf>]  [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
+> RSP: 0018:ffff88007a095ad8  EFLAGS: 00010296
+> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
+> RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88007f8588f0
+> R10: ffff88007f8a4d40 R11: ffff8800000bf9e0 R12: 0000000000000000
+> R13: ffff88007e43bc10 R14: ffff88007a0ac000 R15: ffff88007e43bc10
+> FS:  00007f844d5666e0(0000) GS:ffffffff8060f540(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+> ...
+> Process modprobe (pid: 2383, threadinfo ffff88007a094000, task ffff88007fa043d0)
+> Stack:
+>  ffff88007a085380 0000000000000000 ffff88007a085380 ffffffffa09cfb28
+>  ffff88007e43bc10 ffffffffa09f263f ffff88007a095b18 ffff88007a085380
+>  ffffc200109e6000 ffff88007a085380 000000000000f9f9 00000000000094d7
+> Call Trace:
+> xc_load_fw_and_init_tuner+0x14b/0x29c [xc5000]
+> i2c_transfer+0x8a/0x94
+> xc5000_init+0x3d/0x6f [xc5000]
+> xc5000_attach+0x22c/0x256 [xc5000]
+> __symbol_get+0x2c/0xd3
+> au0828+dvb_register+0x2ec/x5cb [au0828]
+> au0828_usb_probe+0x10c/0x140 [au0828]
+> usb_match_id+0x32/0x58 [usbcore]
+> usb_probe_interface+0xfb/0x132 [usbcore]
+> driver_probe_device+0xb5/0x159
+> __driver_attach+0x59/0x80
+> __driver_attach+0x0/0x80
+> bus_for_each_dev+0x44/0x78
+> bus_add_driver+0xac/0x1f2
+> driver_register+0xa2/0x11f
+> usb_register_driver+0x7e/0xe0 [usbcore]
+> au0828_init+0x0/0xbb [au0828]
+> au0828_init+0xa1/0xbb [au0828]
+> _stext+0x56/0x14f
+> vma_link+0x90/0xa2
+> update_curr+0x49/0xf0
+> enqueue_task_fair+0x14c/0x161
+> check_preempt_wakeup+0xf4/0x124
+> try_to_wake_up+0x16a/0x17c
+> sys_init_module+0xa0/0x1a9
+> system_call_fastpath+0x16/0x1b
+> Code: 00 66 c7 40 0c c0 00 89 d8 48 83 c4 18 5b 5d c3 41 55 41 54 55 48 89
+>  48 83 ec 08 48 8b 87 08 03 00 00 4c 8b a7 00 03 00 00 <8a> 50 0c 8a 40 0?
+>  c8 83 f9 0a 75 25 41 0f b7 4c 24 0a 48
+> RIP  [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
+>  RSP <ffff88007a095ad8>
+> CR2: 000000000000000c
+> ---[ end trace c23df576c022eb7e ]---
 >
-> >
-> >
-> >>
-> >> I use cx88-dvb driver but many modules are loaded with it see
-> >> http://kedge.wz.cz/dvb/lsmod.txt
-> >
-> > I meant to ask what is the origin of the driver. I use Igor's driver
-> > from:
-> > http://mercurial.intuxication.org/hg/s2-liplianin/
+> Could someone perhaps explain how acpi_ds_exec_end_op even enters the
+> picture here?  I'm confused by that.
 >
-> I use driver from vanilla kernel 2.6.28 which have DVB api version 5.0.
->
-> > If you have a S2API driver (or will use Igor's driver), you can use my
-> > scan-s2 application with many changes in NIT parsing that might resolve
-> > your
-> > issue.
-> > http://mercurial.intuxication.org/hg/scan-s2/
-> >
->
-> See below.
->
-> >>
-> >> Scan console output is in file http://kedge.wz.cz/dvb/channels.conf
-> >> and the result in http://kedge.wz.cz/dvb/channels.conf
-> >
-> > You've posted the same link for both outputs. Please post console output
-> > when you run scan with "-v" parameter. Maybe even with "-vv".
-> >
->
-> The console output should be http://kedge.wz.cz/dvb/scanconsoleout.txt.
->
-> I've tried to run scan and scan-s2 on "S 12188000 H 27500000 3/4"
-> were the "RTL 2 Deutschland" channel should be and neither scan found
-> anything.
->
-> The console outputs are here:
-> http://kedge.wz.cz/dvb/scan.txt
-> http://kedge.wz.cz/dvb/scans2.txt
-
-I don't see any problem with scan output. I don't have the same card as
-yours, so only guessing...
-
-Do you have a diseqc on the way?
+> The driver was doing/completing an i2c firmware transfer at the time of
+> the oops.
 
 
->
->
->
-> If you want me to run the whole scan for "S 11567500 V 22000000 5/6" with
-> -vv
-> let me know and I'll do it.
+We removed the "init_fw" module option from the xc5000 module.  It is no 
+longer necessary, and prevents us from taking advantage of power saving 
+capabilities.
 
-No, no need.
+So, the OOPS itself is moot.  How did acpi_ds_exec_end_op enter the 
+picture???  That I have no idea.  Can you try to reproduce that will a 
+clean (not tainted) kernel?
 
->
->
-> >>
-> >> When console shows
-> >> __tune_to_transponder:1508: ERROR: Setting frontend parameters failed:
-> >> 22
-> >> Invalid argument
-> >>
-> >> the dmesg prints
-> >> DVB: adapter 0 frontend 0 frequency 8175750 out of range
-> >> (950000..2150000)
-> >
-> > It could be anything. Bad NIT message (most probably) or a memory
-> > smashing
-> > in scan application.
-> >
-> >
-> >>
-> >>
-> >> Roman
-> >>
-> >> _______________________________________________
-> >> linux-dvb mailing list
-> >> linux-dvb@linuxtv.org
-> >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >>
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Regards,
 
-------=_Part_202118_17372172.1231015725810
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">On Sat, Jan 3, 2009 at 9:39 PM, Roman Jarosz <span dir="ltr">&lt;<a href="mailto:roman.jarosz@gmail.com">roman.jarosz@gmail.com</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div class="Ih2E3d">On Sat, 03 Jan 2009 19:58:45 +0100, Alex Betis &lt;<a href="mailto:alex.betis@gmail.com">alex.betis@gmail.com</a>&gt; wrote:<br>
-<br>
-&gt;&gt; I use scan from dvb-apps, the command is<br>
-&gt;&gt; &quot;scan -o vdr /root/dvb/Astra-19.2E &gt; /etc/vdr/channels.conf&quot;<br>
-&gt;&gt; where /root/dvb/Astra-19.2E is file with &quot;S 11567500 V 22000000 5/6&quot;<br>
-&gt;<br>
-</div>&gt; I think that&#39;s the main issue. *BOUWSMA w*rote that its ok to rely on<br>
-<div class="Ih2E3d">&gt; astra&#39;s maintainers and connect to any transponder is enough to get a<br>
-&gt; list<br>
-&gt; of all others. I personaly don&#39;t trust those maintainers since I saw too<br>
-&gt; many errors in NIT messages that specify the transponder, so I specify<br>
-&gt; all<br>
-&gt; the frequencies I want to scan. I don&#39;t have a dish to 19.2, but there<br>
-&gt; were<br>
-&gt; many errors with 5 other satellites I have.<br>
-&gt; You can get a list of those frequencies here:<br>
-&gt; <a href="http://www.lyngsat.com/astra19.html" target="_blank">http://www.lyngsat.com/astra19.html</a><br>
-<br>
-</div>Could you tell me how? I&#39;ve tried with S 12188000 H 27500000 3/4 and<br>
-it doesn&#39;t find anything.</blockquote><div>Try also scan-s2 with:<br>S 12188000 H 27500000 3/4 AUTO QPSK <br><br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<br>
-<div class="Ih2E3d"><br>
-&gt;<br>
-&gt;<br>
-&gt;&gt;<br>
-&gt;&gt; I use cx88-dvb driver but many modules are loaded with it see<br>
-&gt;&gt; <a href="http://kedge.wz.cz/dvb/lsmod.txt" target="_blank">http://kedge.wz.cz/dvb/lsmod.txt</a><br>
-&gt;<br>
-&gt; I meant to ask what is the origin of the driver. I use Igor&#39;s driver<br>
-&gt; from:<br>
-&gt; <a href="http://mercurial.intuxication.org/hg/s2-liplianin/" target="_blank">http://mercurial.intuxication.org/hg/s2-liplianin/</a><br>
-<br>
-</div>I use driver from vanilla kernel 2.6.28 which have DVB api version 5.0.<br>
-<div class="Ih2E3d"><br>
-&gt; If you have a S2API driver (or will use Igor&#39;s driver), you can use my<br>
-&gt; scan-s2 application with many changes in NIT parsing that might resolve<br>
-&gt; your<br>
-&gt; issue.<br>
-&gt; <a href="http://mercurial.intuxication.org/hg/scan-s2/" target="_blank">http://mercurial.intuxication.org/hg/scan-s2/</a><br>
-&gt;<br>
-<br>
-</div>See below.<br>
-<div class="Ih2E3d"><br>
-&gt;&gt;<br>
-&gt;&gt; Scan console output is in file <a href="http://kedge.wz.cz/dvb/channels.conf" target="_blank">http://kedge.wz.cz/dvb/channels.conf</a><br>
-&gt;&gt; and the result in <a href="http://kedge.wz.cz/dvb/channels.conf" target="_blank">http://kedge.wz.cz/dvb/channels.conf</a><br>
-&gt;<br>
-&gt; You&#39;ve posted the same link for both outputs. Please post console output<br>
-&gt; when you run scan with &quot;-v&quot; parameter. Maybe even with &quot;-vv&quot;.<br>
-&gt;<br>
-<br>
-</div>The console output should be <a href="http://kedge.wz.cz/dvb/scanconsoleout.txt" target="_blank">http://kedge.wz.cz/dvb/scanconsoleout.txt</a>.<br>
-<br>
-I&#39;ve tried to run scan and scan-s2 on &quot;S 12188000 H 27500000 3/4&quot;<br>
-were the &quot;RTL 2 Deutschland&quot; channel should be and neither scan found anything.<br>
-<br>
-The console outputs are here:<br>
-<a href="http://kedge.wz.cz/dvb/scan.txt" target="_blank">http://kedge.wz.cz/dvb/scan.txt</a><br>
-<a href="http://kedge.wz.cz/dvb/scans2.txt" target="_blank">http://kedge.wz.cz/dvb/scans2.txt</a></blockquote><div>I don&#39;t see any problem with scan output. I don&#39;t have the same card as yours, so only guessing...<br>
-<br>Do you have a diseqc on the way?<br>&nbsp;<br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br>
-<br>
-<br>
-If you want me to run the whole scan for &quot;S 11567500 V 22000000 5/6&quot; with -vv<br>
-let me know and I&#39;ll do it.</blockquote><div>No, no need. <br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br>
-<div><div></div><div class="Wj3C7c"><br>
-&gt;&gt;<br>
-&gt;&gt; When console shows<br>
-&gt;&gt; __tune_to_transponder:1508: ERROR: Setting frontend parameters failed:<br>
-&gt;&gt; 22<br>
-&gt;&gt; Invalid argument<br>
-&gt;&gt;<br>
-&gt;&gt; the dmesg prints<br>
-&gt;&gt; DVB: adapter 0 frontend 0 frequency 8175750 out of range<br>
-&gt;&gt; (950000..2150000)<br>
-&gt;<br>
-&gt; It could be anything. Bad NIT message (most probably) or a memory<br>
-&gt; smashing<br>
-&gt; in scan application.<br>
-&gt;<br>
-&gt;<br>
-&gt;&gt;<br>
-&gt;&gt;<br>
-&gt;&gt; Roman<br>
-&gt;&gt;<br>
-&gt;&gt; _______________________________________________<br>
-&gt;&gt; linux-dvb mailing list<br>
-&gt;&gt; <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-&gt;&gt; <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-&gt;&gt;<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</div></div></blockquote></div><br></div>
-
-------=_Part_202118_17372172.1231015725810--
-
-
---===============1400967977==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Mike
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1400967977==--
