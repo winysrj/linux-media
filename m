@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from bombadil.infradead.org ([18.85.46.34])
 	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+6fe81ee853252f17f9b7+1964+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1LKv15-0000H1-G6
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 14:33:43 +0100
-Date: Thu, 8 Jan 2009 11:33:33 -0200 (BRST)
+	<SRS0+f3b844923945981420e4+1962+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1LKHJP-0004Er-D5
+	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 20:09:59 +0100
+Date: Tue, 6 Jan 2009 17:09:26 -0200
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-In-Reply-To: <4965EC59.60001@cadsoft.de>
-Message-ID: <alpine.LRH.2.00.0901081125500.12040@pedra.chehab.org>
-References: <20090107000932.68355506@pedra.chehab.org>
-	<4965EC59.60001@cadsoft.de>
-MIME-Version: 1.0
+To: Gregoire Favre <gregoire.favre@gmail.com>
+Message-ID: <20090106170926.52575365@pedra.chehab.org>
+In-Reply-To: <20090106170002.GC3403@gmail.com>
+References: <20090104113738.GD3551@gmail.com>
+	<1231097304.3125.64.camel@palomino.walls.org>
+	<20090105130720.GB3621@gmail.com>
+	<1231202800.3110.13.camel@palomino.walls.org>
+	<20090106144917.736584e7@pedra.chehab.org>
+	<20090106170002.GC3403@gmail.com>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] [ANNOUNCE] V4L,
- DVB and Maintainers Mailing Lists at vger.kernel.org
+Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,51 +31,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 8 Jan 2009, Klaus Schmidinger wrote:
+On Tue, 6 Jan 2009 18:00:02 +0100
+Gregoire Favre <gregoire.favre@gmail.com> wrote:
 
-> On 07.01.2009 03:09, Mauro Carvalho Chehab wrote:
->> V4L, DVB and V4L/DVB Maintainers Mailing Lists Were merged on Jan, 2 2009 at vger.kernel.org
->>
->> The idea of merging the mailing lists is running around for some time.
->>
->> It took some time for me to have time to address this issue, but it finally happened. We've just created it as:
->>
->>     * linux-media@vger.kernel.org
->> ...
->
-> I just subscribed to this list and already received a first posting.
-> Unfortunately this list doesn't mark postings' subjects with the
-> list name, as in
->
->  [linux-dvb] Merging V4L, DVB and Maintainers Mailing lists...
->
-> where I could immediately see whether this is a "normal" email
-> or a list posting.
->
-> Could this please be changed, so that there is a [listname] prefix?
+> On Tue, Jan 06, 2009 at 02:49:17PM -0200, Mauro Carvalho Chehab wrote:
+> 
+> Hello,
+> 
+> > Could you please provide you your SOB?
+> 
+> I know that's not a question for me, but what stand SOB for ?
+> http://www.acronymfinder.com/SOB.html I guess it should be Signed-Off-By
+> right ?
+> 
+> > IMO, the proper fix would be to add some locking at cx88 init. I suspect that
+> > this breakage (and other similar ones) are tue to the absense of KBL on newer kernels.
+> 
+> Oh, and is there a way to fix those ?
+> 
+> > What kernel version are you using?
+> 
+> As seen in my headers : 2.6.28-gentoo, but I also tested S2API with
+> 2.6.27 (different revision).
+> 
+> > Better to add here:
+> > 	core->dvbdev = NULL;
+> 
 
-Probably this could be changed, but this would have some other impacts, 
-like adding the list name on the submitted patches. Also, The list were 
-created using the same config as all the other Linux kernel development 
-lists. The previous experiences shows that having a different model on our 
-development means more work and more troubles that could otherwise be 
-avoided (for example, using -hg instea of -git ended to be a large source 
-of troubles for maintaining it).
+Gregoire and others,
+I've just commit a patch that should fix this and another reported issue when selecting parts of cx88 code as module and other parts as monolithic. 
 
-What I do here is to create a filtering rule to split mailing list patches 
-on a separate INBOX, based on this message header:
-
- 	X-Mailing-List: linux-media@vger.kernel.org
-
-If your emailer is powerful enough, maybe you can also prefix something at 
-the subject when this header is seen. For example, on claws-mail, you can 
-color the message based on a filtering rule.
+Could you please test if the patch also fixed the OOPS and doesn't generate any regression?
 
 Cheers,
-Mauro.
+Mauro
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
