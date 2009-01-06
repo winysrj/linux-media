@@ -1,22 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EJMpPg029597
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 14:22:51 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0EJLumv005964
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 14:21:56 -0500
-Received: by ewy14 with SMTP id 14so798375ewy.3
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 11:21:55 -0800 (PST)
-Message-ID: <b24e53350901141121v90e533ds13c62f4536a03dfe@mail.gmail.com>
-Date: Wed, 14 Jan 2009 14:21:55 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n06LhKor000873
+	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 16:43:20 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n06Lh7IK007088
+	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 16:43:08 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so769422eyf.39
+	for <video4linux-list@redhat.com>; Tue, 06 Jan 2009 13:43:07 -0800 (PST)
+Message-ID: <4389ffee0901061343p31aba5d2h74902408ea749dad@mail.gmail.com>
+Date: Tue, 6 Jan 2009 22:43:07 +0100
+From: "Jens Bongartz" <bongartz@gmail.com>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+In-Reply-To: <200901061737.31577.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: [PATCH 3/4] em28xx: Fix for KWorld 330U Board
+References: <4389ffee0812310817m64b4c2bar56d8b35be06fe0f2@mail.gmail.com>
+	<200901040102.37947.laurent.pinchart@skynet.be>
+	<4389ffee0901041522n2fab030andc82e9fb9565524@mail.gmail.com>
+	<200901061737.31577.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com
+Subject: Re: Testing Requested: Python Bindings for Video4linux2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,102 +33,82 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-em28xx: Fix for KWorld 330U Board
+Hi Laurent, hi Paul!
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
+Paul was right, I used the wrong compiler options.
+After compiling the modified v4l2uvc code (NB=1) with uvccapture's
+makefile and using the v4l2uvc.o for linking my shared library
+everything works fine without Segmentation Fault.
+And best of all: The delay is now gone!
 
-Fix for KWorld 330U Board
+Thank you all!
 
-Many thanks to Devin and Mauro!!!
+Regards,
+Jens
 
-Priority: normal
+P.S. I should learn more about gcc compiling!
 
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c   Wed Jan 14
-10:06:12 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c   Wed Jan 14
-12:47:00 2009 -0500
-@@ -114,6 +114,18 @@
-        {  -1,                  -1,     -1,             -1},
- };
- #endif
-+
-+static struct em28xx_reg_seq kworld_330u_analog[] = {
-+       {EM28XX_R08_GPIO,       0x6d,   ~EM_GPIO_4,     10},
-+          {EM2880_R04_GPO,        0x00,   0xff,           10},
-+       {       -1,             -1,     -1,             -1},
-+};
-+
-+static struct em28xx_reg_seq kworld_330u_digital[] = {
-+       {EM28XX_R08_GPIO,       0x6e,   ~EM_GPIO_4,     10},
-+       {EM2880_R04_GPO,        0x08,   0xff,           10},
-+       {       -1,             -1,     -1,             -1},
-+};
-
- /* Callback for the most boards */
- static struct em28xx_reg_seq default_tuner_gpio[] = {
-@@ -1242,29 +1254,33 @@
-                        .gpio     = hauppauge_wintv_hvr_900_analog,
-                } },
-        },
--       [EM2883_BOARD_KWORLD_HYBRID_A316] = {
-+       [EM2883_BOARD_KWORLD_HYBRID_330U] = {
-                .name         = "Kworld PlusTV HD Hybrid 330",
-                .tuner_type   = TUNER_XC2028,
-                .tuner_gpio   = default_tuner_gpio,
-                .decoder      = EM28XX_TVP5150,
-                .mts_firmware = 1,
-                .has_dvb      = 1,
--               .dvb_gpio     = default_digital,
-+               .dvb_gpio     = kworld_330u_digital,
-+               .xclk             = EM28XX_XCLK_FREQUENCY_12MHZ,
-+               .i2c_speed        = EM28XX_I2C_CLK_WAIT_ENABLE |
-EM28XX_I2C_EEPROM_ON_BOARD | EM28XX_I2C_EEPROM_KEY_VALID,
-                .input        = { {
-                        .type     = EM28XX_VMUX_TELEVISION,
-                        .vmux     = TVP5150_COMPOSITE0,
-                        .amux     = EM28XX_AMUX_VIDEO,
--                       .gpio     = default_analog,
-+                       .gpio     = kworld_330u_analog,
-+                       .aout     = EM28XX_AOUT_PCM_IN | EM28XX_AOUT_PCM_STEREO,
-                }, {
-                        .type     = EM28XX_VMUX_COMPOSITE1,
-                        .vmux     = TVP5150_COMPOSITE1,
-                        .amux     = EM28XX_AMUX_LINE_IN,
--                       .gpio     = hauppauge_wintv_hvr_900_analog,
-+                       .gpio     = kworld_330u_analog,
-+                       .aout     = EM28XX_AOUT_PCM_IN | EM28XX_AOUT_PCM_STEREO,
-                }, {
-                        .type     = EM28XX_VMUX_SVIDEO,
-                        .vmux     = TVP5150_SVIDEO,
-                        .amux     = EM28XX_AMUX_LINE_IN,
--                       .gpio     = hauppauge_wintv_hvr_900_analog,
-+                       .gpio     = kworld_330u_analog,
-                } },
-        },
-        [EM2820_BOARD_COMPRO_VIDEOMATE_FORYOU] = {
-@@ -1318,7 +1334,7 @@
-                        .driver_info = EM2880_BOARD_KWORLD_DVB_310U },
- #endif
-        { USB_DEVICE(0xeb1a, 0xa316),
--                       .driver_info = EM2883_BOARD_KWORLD_HYBRID_A316 },
-+                       .driver_info = EM2883_BOARD_KWORLD_HYBRID_330U },
-        { USB_DEVICE(0xeb1a, 0xe320),
-                        .driver_info = EM2880_BOARD_MSI_DIGIVOX_AD_II },
-        { USB_DEVICE(0xeb1a, 0xe323),
-@@ -1594,6 +1610,10 @@
-        case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
-                /* FIXME: Better to specify the needed IF */
-                ctl->demod = XC3028_FE_DEFAULT;
-+               break;
-+       case EM2883_BOARD_KWORLD_HYBRID_330U:
-+               ctl->demod = XC3028_FE_CHINA;
-+               ctl->fname = XC2028_DEFAULT_FIRMWARE;
-                break;
-        default:
-                ctl->demod = XC3028_FE_OREN538;
+2009/1/6 Laurent Pinchart <laurent.pinchart@skynet.be>:
+> Hi Jens,
+>
+> On Monday 05 January 2009, Jens Bongartz wrote:
+>> Dear Laurent, dear Jackson,
+>>
+>> thanks for your reply to my request.
+>> I don't want to impose on you but maybe you are interested in my
+>> findings. To get a better impression of my intention I attached a
+>> brief description of my just started "FB-Py-Vision" project.
+>>
+>> Form the source-code of uvccapture-0.5 I derived a shared library to
+>> get access to the webcam from python using ctypes (file attached
+>> "pycapture_03.c"). Please show mercy to me, I am not a C-expert. To
+>> get continous grabbing I seperated init_videoIn(), uvcGrab() and
+>> close() in different functions. I discovered that init_videoIn() /
+>> free(videoIn) on every uvcGrab() is very time consuming and not
+>> suitable for high framerates.
+>> The functions I wrote are quite fixed and unflexible because right now
+>> I am only interested in luminance/YUV with 640 by 480. The
+>> corresponding python-program is also attached. ('python_capture.py')
+>>
+>> Now something interesting appears: Grabbing the luminance images works
+>> without problems (high frame rate). When I switch to the contour-mode
+>> the python image processing workload is higher and the uvcGrab() calls
+>> are fewer. For a short period the framerate slows down but after a few
+>> seconds recovers but now with a delay between captured and displayed
+>> images of around 4 seconds. Very curious! When I switch back to
+>> "normal mode" the framerate speeds up (!) a short time and then
+>> recovers again without a delay.
+>>
+>> I suppose this effect is a result of the weak VIA-CPU I use (see my
+>> project-description). In general I don't mind if the framerate drops
+>> when the image processing load rises but the problem is that I want to
+>> process an actual image and not an image which is a few seconds old.
+>> (I hope you understand what I mean).
+>>
+>> Furthermore I assume that the uvcvideo streaming mode plays also a
+>> role. I suppose that the 16 v4l2_buffer becomes unsynchronised.
+>
+> The buffers can indeed contain old data. An easy way to flush them would be to
+> dequeue all buffers without processing the data and requeue them.
+>
+>> But when I decrease the NB_BUFFER constant of "v4l2uvc.h" everything
+>> compiles flawless but on excecution I get a Segmentation fault with a
+>> fatal error. Only NB_BUFEER = 16 works. Is this correct?
+>
+> The uvcvideo driver doesn't require to number of buffers to be exactly 16. To
+> debug your problem, when your application segfaults, check the kernel log
+> (with dmesg). If the log shows a kernel crash (called an 'oops') please
+> report it with the complete oops report. If it doesn't, you probably have a
+> bug in your application, either in the code you wrote or in the uvccapture
+> sources. gdb is your friend.
+>
+>> What do you think? Do you have any hints for me, why I get this delay?
+>
+> Best regards,
+>
+> Laurent Pinchart
+>
 
 --
 video4linux-list mailing list
