@@ -1,23 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0C4NECq008085
-	for <video4linux-list@redhat.com>; Sun, 11 Jan 2009 23:23:14 -0500
-Received: from web95203.mail.in2.yahoo.com (web95203.mail.in2.yahoo.com
-	[203.104.18.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0C4Msdm025287
-	for <video4linux-list@redhat.com>; Sun, 11 Jan 2009 23:22:54 -0500
-Date: Mon, 12 Jan 2009 09:52:52 +0530 (IST)
-From: niamathullah sharief <shariefbe@yahoo.co.in>
-To: michael_h_williamson@yahoo.com,
-	video4linux list <video4linux-list@redhat.com>
-In-Reply-To: <834598.65214.qm@web65507.mail.ac4.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n06BikTC023953
+	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 06:44:46 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n06BhZgK006828
+	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 06:43:35 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: v4l-dvb-maintainer@linuxtv.org
+Date: Tue, 6 Jan 2009 12:43:33 +0100
+References: <20090104104433.C996.WEIYI.HUANG@gmail.com>
+	<200901041157.59503.laurent.pinchart@skynet.be>
+	<Pine.LNX.4.58.0901041217381.25853@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0901041217381.25853@shell2.speakeasy.net>
 MIME-Version: 1.0
-Message-ID: <954614.56519.qm@web95203.mail.in2.yahoo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: 
-Subject: Re: About xawtv
-Reply-To: shariefbe@yahoo.co.in
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901061243.33860.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, Huang Weiyi <weiyi.huang@gmail.com>,
+	Trent Piepho <xyzzy@speakeasy.org>, mchehab@infradead.org
+Subject: Re: [v4l-dvb-maintainer] [VIDEO4LINUX] removed unused #include
+	<version.h>'s
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,50 +34,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thanks micheal....Yes i can use xawtv program...but its very confusing....i=
- already learned the "c" programming....now i have to understand what is =
-=C2=A0"v4l2 program does....Thats why i asked you...i saw all the programs =
-in xawtv...including "streamer.c and capture.c"...but there is no mmap() fu=
-nction there...Thats why i asked first....can you help me =C2=A0to capture =
-video in your application which you sent me...?Thanks for your valuable rep=
-ly.....
+On Sunday 04 January 2009, Trent Piepho wrote:
+> On Sun, 4 Jan 2009, Laurent Pinchart wrote:
+> > On Sunday 04 January 2009, Huang Weiyi wrote:
+> > > Removed unused #include <version.h>'s in files below,
+> > >   drivers/media/video/cs5345.c
+> > >   drivers/media/video/pwc/pwc-if.c
+> > >   drivers/media/video/saa717x.c
+> > >   drivers/media/video/upd64031a.c
+> > >   drivers/media/video/upd64083.c
+> > >   drivers/media/video/uvc/uvc_ctrl.c
+> > >   drivers/media/video/uvc/uvc_driver.c
+> > >   drivers/media/video/uvc/uvc_queue.c
+> > >   drivers/media/video/uvc/uvc_video.c
+> >
+> > You can remove it from drivers/media/video/uvc/uvc_status.c as well.
+> >
+> > Mauro, the #include <linux/version.h> are required for backward
+> > compatibility in the Mercurial tree, but are not needed (except in
+> > uvc_v4l2.c) in the mainline git kernel tree. Can that be handled by your
+> > Mercurial -> git export scripts ?
+>
+> The version.h includes should not be needed for backward compatibility in
+> the Hg tree.  There was always a problem with version.h appearing to not be
+> necessary in the git code, so I modified the v4l-dvb build system to add
+> version.h with a gcc -include option.
 
---- On Sun, 11/1/09, Michael Williamson <michael_h_williamson@yahoo.com> wr=
-ote:
-From: Michael Williamson <michael_h_williamson@yahoo.com>
-Subject: Re: About xawtv
-To: shariefbe@yahoo.co.in
-Date: Sunday, 11 January, 2009, 11:00 PM
+Thanks for the information.
 
+Huang, can you please resubmit a patch with #include <linux/version.h> removed 
+from drivers/media/video/uvc/uvc_status.c as well ?
 
+Best regards,
 
---- On Sun, 1/11/09, niamathullah sharief <shariefbe@yahoo.co.in> wrote:
+Laurent Pinchart
 
-> From: niamathullah sharief <shariefbe@yahoo.co.in>
-> Subject: Re: About xawtv
-> To: michael_h_williamson@yahoo.com, "video4linux list"
-<video4linux-list@redhat.com>
-> Date: Sunday, January 11, 2009, 12:45 AM
-> yes its working micheal...but video is not working just
-> still coming.....when i rotate the cam the video is not
-> moving just standing still....i think its a still not an
-> video..what to do for video?
-
-The program I sent you, "vgrab.c", is for single (still) pictures
-only.
-For video, the program needs modification. Can you install the SDL library
-on your computer? If not, I know another way.
-
-Also, why you do not simply use the xawtv program for video?
-Are you learning 'C' programming?
-
--Mike
-
-
-
-     =20
-=0A=0A=0A      Unlimited freedom, unlimited storage. Get it now, on http://=
-help.yahoo.com/l/in/yahoo/mail/yahoomail/tools/tools-08.html/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
