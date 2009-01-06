@@ -1,20 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.169])
+Received: from mail-fx0-f18.google.com ([209.85.220.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LPDOZ-0005lm-Gw
-	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 10:59:44 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so241817ugc.16
-	for <linux-dvb@linuxtv.org>; Tue, 20 Jan 2009 01:59:39 -0800 (PST)
-Date: Tue, 20 Jan 2009 10:59:27 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Daniel Dalton <d.dalton@iinet.net.au>
-In-Reply-To: <20090120091952.GB6792@debian-hp.lan>
-Message-ID: <alpine.DEB.2.00.0901201046430.11623@ybpnyubfg.ybpnyqbznva>
-References: <20090120091952.GB6792@debian-hp.lan>
+	(envelope-from <gregoire.favre@gmail.com>) id 1LKEyF-0006Hh-UH
+	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 17:40:01 +0100
+Received: by fxm11 with SMTP id 11so1259206fxm.17
+	for <linux-dvb@linuxtv.org>; Tue, 06 Jan 2009 08:39:26 -0800 (PST)
+Date: Tue, 6 Jan 2009 17:39:12 +0100
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20090106163912.GA3403@gmail.com>
+References: <20090104113738.GD3551@gmail.com>
+	<1231097304.3125.64.camel@palomino.walls.org>
+	<20090105130720.GB3621@gmail.com>
+	<1231202800.3110.13.camel@palomino.walls.org>
 MIME-Version: 1.0
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] getting started with msi tv card
-Reply-To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary="BXVAT5kNtrzKuDFl"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1231202800.3110.13.camel@palomino.walls.org>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,82 +27,79 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 20 Jan 2009, Daniel Dalton wrote:
 
-> Could someone please let me know what I have to do to get my msi 5580
-> usb digital tv tuner working with linux?
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-It looks like it may be supported by the following dvb-usb:
+On Mon, Jan 05, 2009 at 07:46:40PM -0500, Andy Walls wrote:
 
-config DVB_USB_M920X
-        tristate "Uli m920x DVB-T USB2.0 support"
-        depends on DVB_USB
-        select DVB_MT352 if !DVB_FE_CUSTOMISE
-        select MEDIA_TUNER_QT1010 if !DVB_FE_CUSTOMISE
-        select MEDIA_TUNER_TDA827X if !DVB_FE_CUSTOMISE
-        select DVB_TDA1004X if !DVB_FE_CUSTOMISE
-        help
-          Say Y here to support the MSI Mega Sky 580 USB2.0 DVB-T receiver.
-          Currently, only devices with a product id of
-          "DTV USB MINI" (in cold state) are supported.
-          Firmware required.
+> Sure.  I'm actually a sucker for looking at oops dumps.  They're like
+> simple little puzzles waiting to be solved.  Unfortunately, once I know
+> the "answer", I rarely follow through with the final solution.
 
-(Not sure if the next-to-last line is accurate; the code lists a 
-few devices)
+Thank you for the patch, I still can't tune with my HVR-4000 but at
+least I don't have an oops when loading the modules.
 
-One thing you can do, is to plug your device into the USB port
-(if you haven't done so already), and check the output of
-`lsusb' for your device vendor and product IDs, to see if
-these match those in the source code.
+In case anyone could be interested I attach the patch for v4l-dvb's hg.
+-- 
+Grégoire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
+               http://picasaweb.google.com/Gregoire.Favre
 
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="cx88-mpeg.c.diff"
 
-> What drivers do I need? What software, what should I do to test it and
-> is it possible to use the remote once it is up and running?
+diff -r ce8589c52a7f linux/drivers/media/video/cx88/cx88-mpeg.c
+--- a/linux/drivers/media/video/cx88/cx88-mpeg.c	Tue Jan 06 09:33:46 2009 -0200
++++ b/linux/drivers/media/video/cx88/cx88-mpeg.c	Tue Jan 06 17:27:03 2009 +0100
+@@ -830,6 +830,9 @@
+ 	err = cx8802_init_common(dev);
+ 	if (err != 0)
+ 		goto fail_free;
++	/* Maintain a reference so cx88-video can query the 8802 device. */ 
++	core->dvbdev = dev;
++
+ 
+ 	INIT_LIST_HEAD(&dev->drvlist);
+ 	list_add_tail(&dev->devlist,&cx8802_devlist);
+@@ -851,20 +854,19 @@
+ 					__func__);
+ 				videobuf_dvb_dealloc_frontends(&dev->frontends);
+ 				err = -ENOMEM;
++				/* FIXME - need to pull dev off cx8802_devlist*/
+ 				goto fail_free;
+ 			}
+ 		}
+ 	}
+ #endif
+ 
+-	/* Maintain a reference so cx88-video can query the 8802 device. */
+-	core->dvbdev = dev;
+-
+ 	/* now autoload cx88-dvb or cx88-blackbird */
+ 	request_modules(dev);
+ 	return 0;
+ 
+  fail_free:
++	/* FIXME - shouldn't we pull dev off the cx8802_devlist - oops */ 
+ 	kfree(dev);
+  fail_core:
+ 	cx88_core_put(core,pci_dev);
 
-I'm unsure of your level as a beginner, expert, or master of
-the known linux kernel (except for that weird DVB code), so
-I can't say much -- you'll need at least the module for m920x.
-
-The source code includes remote control keycodes; make of
-that what you will.
-
-I'm not so much an end-user (fnar fnar) and instead use my
-machines as headless servers, and as such I use basic tools
-that are far from user-friendly for everything.
-
-
-> Finally, I'm vission impared, so are there any programs for controling
-> the tv either command line based or gtk? I can't use qt applications.
-
-Similarly for this reason, someone else will have to offer
-help on convenient end-user applications.  (I can offer
-good commandline suggestions, but `gtk' and `qt' have on
-meaning to me)
-
-
-> Also, does this card allow for reccording?
-
-All supported cards deliver the digital payload to linux,
-which can then be recorded by writing it to a file, or
-passed to an application for direct processing (listening
-and/or viewing), so, yes.
-
-It's up to the application to make this convenient for
-the user..
-
-
-So, my suggestion is, plug it in, and see how far you get :-)
-
-barry bouwsma
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--BXVAT5kNtrzKuDFl--
