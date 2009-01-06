@@ -1,26 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.158])
+Received: from mailout06.t-online.de ([194.25.134.19])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1LRlJj-00065Q-6i
-	for linux-dvb@linuxtv.org; Tue, 27 Jan 2009 11:37:16 +0100
-Received: by fg-out-1718.google.com with SMTP id d23so72195fga.25
-	for <linux-dvb@linuxtv.org>; Tue, 27 Jan 2009 02:37:11 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <497EC855.7050301@to-st.de>
-References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
-	<497A27F7.8020201@to-st.de>
-	<alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>
-	<19a3b7a80901261228v393f5fcbv7559b573c0ca1539@mail.gmail.com>
-	<alpine.DEB.2.00.0901262214200.15738@ybpnyubfg.ybpnyqbznva>
-	<497EC855.7050301@to-st.de>
-Date: Tue, 27 Jan 2009 11:37:11 +0100
-Message-ID: <19a3b7a80901270237n761240bbn2627f782ddbffa29@mail.gmail.com>
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0cd2426c11e61c0461747093
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
-Reply-To: linux-media@vger.kernel.org
+	(envelope-from <yusuf.altin@t-online.de>) id 1LKLRl-0006OF-Qt
+	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 00:34:54 +0100
+From: Yusuf Altin <yusuf.altin@t-online.de>
+To: linux-dvb@linuxtv.org
+Date: Wed, 07 Jan 2009 00:34:39 +0100
+Message-Id: <1231284879.3619.2.camel@yusuf.laptop>
+Mime-Version: 1.0
+Subject: [linux-dvb] [PATCH] add Terratec Cinergy T Express to dibcom driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,206 +16,120 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---000e0cd2426c11e61c0461747093
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+#This patch introduces support for dvb-t for the following dibcom based
+card:
+#	Terratec Cinergy T Express (USB-ID: 0ccd:0062)
+#		Signed-off-by: Yusuf Altin <yusuf.altin@t-online.de>
+#		Signed-off-by: Albert Comerma <albert.comerma@gmail.com>
 
-2009/1/27 Tobias St=C3=B6ber <tobi@to-st.de>:
-> Hi Barry,
->
-> another info source regarding HH could be
->
-> http://www.dvb-t-nord.de/empfangsgebiete/media/hhhlparameter.pdf
->
-> It unfortunately does not contain recent or comming changes. But it
-> contains detailed info, also technical parameters.
+diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Mon Jan 05
+02:42:38 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Wed Jan 07
+00:28:13 2009 +0100
+@@ -1388,16 +1388,17 @@ struct usb_device_id dib0700_usb_id_tabl
+ 	{ USB_DEVICE(USB_VID_LEADTEK,
+USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
+ /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE,
+USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
+ 	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
+ 	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
+ 	{ USB_DEVICE(USB_VID_YUAN,      USB_PID_YUAN_STK7700PH) },
+ 	{ USB_DEVICE(USB_VID_ASUS,	USB_PID_ASUS_U3000H) },
+ /* 40 */{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E) },
+ 	{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E_SE) },
++	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_EXPRESS) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+ 
+ #define DIB0700_DEFAULT_DEVICE_PROPERTIES \
+ 	.caps              = DVB_USB_IS_AN_I2C_ADAPTER, \
+ 	.usb_ctrl          = DEVICE_SPECIFIC, \
+ 	.firmware          = "dvb-usb-dib0700-1.20.fw", \
+@@ -1532,17 +1533,18 @@ struct dvb_usb_device_properties dib0700
+ 			},
+ 			{   "Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity",
+ 				{ &dib0700_usb_id_table[13], NULL },
+ 				{ NULL },
+ 			},
+ 			{   "DiBcom STK7700D reference design",
+ 				{ &dib0700_usb_id_table[14], NULL },
+ 				{ NULL },
+-			}
++			},
++
+ 		},
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+ 
+ 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+@@ -1552,25 +1554,29 @@ struct dvb_usb_device_properties dib0700
+ 			{
+ 				.frontend_attach  = stk7700P2_frontend_attach,
+ 				.tuner_attach     = stk7700d_tuner_attach,
+ 
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+ 			},
+ 		},
+ 
+-		.num_device_descs = 2,
++		.num_device_descs = 3,
+ 		.devices = {
+ 			{   "ASUS My Cinema U3000 Mini DVBT Tuner",
+ 				{ &dib0700_usb_id_table[23], NULL },
+ 				{ NULL },
+ 			},
+ 			{   "Yuan EC372S",
+ 				{ &dib0700_usb_id_table[31], NULL },
+ 				{ NULL },
++			},
++			{   "Terratec Cinergy T Express",
++				{ &dib0700_usb_id_table[42], NULL },
++				{ NULL },
+ 			}
+ 		},
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+ 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Mon Jan 05 02:42:38
+2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Wed Jan 07 00:28:13
+2009 +0100
+@@ -159,16 +159,17 @@
+ #define USB_PID_AVERMEDIA_HYBRID_ULTRA_USB_M039R_DVBT	0x2039
+ #define USB_PID_AVERMEDIA_VOLAR_X			0xa815
+ #define USB_PID_AVERMEDIA_VOLAR_X_2			0x8150
+ #define USB_PID_AVERMEDIA_A309				0xa309
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+ #define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
+ #define USB_PID_TERRATEC_CINERGY_HT_EXPRESS		0x0060
++#define USB_PID_TERRATEC_CINERGY_T_EXPRESS		0x0062
+ #define USB_PID_TERRATEC_CINERGY_T_XXS			0x0078
+ #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
+ #define USB_PID_PINNACLE_PCTV2000E			0x022c
+ #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
+ #define USB_PID_PINNACLE_PCTV_DUAL_DIVERSITY_DVB_T	0x0229
+ #define USB_PID_PINNACLE_PCTV71E			0x022b
+ #define USB_PID_PINNACLE_PCTV72E			0x0236
+ #define USB_PID_PINNACLE_PCTV73E			0x0237
 
-I've updated my de-files:
-- fixed the url (inserted the wrong one by accident)
-- fixed vhf channels (they were using 8mhz because my trigger was wrong)
-- add the the "# CHxy: name of programs" information
-- 563 MHz --> 562 MHz (their pdf seems to use a wrong frequency for channel=
- 32)
-
-But I haven't looked at the new documents proposed in this thread yet.
-
-> Regards, Tobias
-
-Christoph
-
---000e0cd2426c11e61c0461747093
-Content-Type: application/zip; name="de-files.zip"
-Content-Disposition: attachment; filename="de-files.zip"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fqgfe2lq0
-
-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
---000e0cd2426c11e61c0461747093
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---000e0cd2426c11e61c0461747093--
