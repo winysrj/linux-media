@@ -1,18 +1,15 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Wed, 7 Jan 2009 07:58:32 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hvaibhav@ti.com
-Message-ID: <20090107075832.4889c816@pedra.chehab.org>
-In-Reply-To: <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
-	<1231308470-31159-1-git-send-email-hvaibhav@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card
- Support
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Wed, 7 Jan 2009 11:36:48 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECEDD5E0@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [RFC] OMAP3EVM Multi-Media Daughter Card Support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,42 +21,93 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed,  7 Jan 2009 11:37:50 +0530
-hvaibhav@ti.com wrote:
+Hi,
 
->  arch/arm/mach-omap2/Kconfig             |    4 +
->  arch/arm/mach-omap2/Makefile            |    1 +
->  arch/arm/mach-omap2/. |  417 +++++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/board-omap3evm-dc.h |   43 ++++
->  arch/arm/mach-omap2/mux.c               |    7 +
->  arch/arm/plat-omap/include/mach/mux.h   |    4 +
+This RFC provides high level design/changes for supporting Multi-Media/Mass-Market/Mistral/Customer Daughter card based on OMAP3 EVM.
 
+Background
+==========
+OMAP3 EVM doesn't support camera interface, TI and Mistral has developed 
+Daughter card on top of OMAP3 EVM which will add support for 
 
-> +#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-int-device.h>
-> +#include <media/tvp514x.h>
+    - TVP5146 decoder, providing BT656 capture support through S-Video/Component/Composite input.
+    - Camera/sensor interface (Micron)
+    - HSUSB Transceiver USB-83320
 
-This smells like a V4L driver, not an arch driver. 
-We shoud take some care here, to avoid having the drivers on wrong place.
-The proper place on kernel tree for V4L driver is under drivers/media/video,
-not under arch/arm. All other architecture-specific V4L drivers are there.
+Soon the block-diagram, schematics and other details will be available publicly.
 
-> +/* include V4L2 camera driver related header file */
-> +#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-> +#include <../drivers/media/video/omap34xxcam.h>
-> +#include <../drivers/media/video/isp/ispreg.h>
-> +#endif				/* #ifdef CONFIG_VIDEO_OMAP3 */
-> +#endif				/* #ifdef CONFIG_VIDEO_TVP514X*/
+Hardware Block Diagram
+======================
+Below is top level block diagram for the OMAP3 EVM Multi-Media Daughter Card -
 
-Please, don't use ../* at your includes. IMO, the better is to create a
-drivers/media/video/omap dir, and put omap2/omap3 files there, including board-omap3evm-dc.c.
-This will avoid those ugly includes.
+  
+ 
+ OMAP 3 Processor                      Multi-Media Daughter Card
+    Board
+ - - - - - - -               - - - - - - -- - - - - - - - - - - - - - 
+| OMAP3530    |             |            - - - - - - <------O S-Vid  |
+|             |             |           |           |                |
+|         I2C |------------------------>|           |      |O|       |
+|             |             |           |           |<-----|O|Compo  |
+|             |             |   /|      |  Video    |      |O|site   |
+|             |             |  | |      |  Decoder  |                |
+|             |             |  | |<-----|  TVP5146  |      |O|       |
+|      Camera |             |  | |       - - - - - - <-----|O|Compo  |
+|    interface|<---------------| |                         |O|nent   |
+|             |             |  | |       - - - - - -                 |
+|             |             |  | |<-----|           |                |
+|             |             |  | |      |  Micron   |                |
+|             |             |  | |      |  Image    |                |
+|             |             |   \|      |  Sensor   |                |
+|         I2C |------------------------>|           |                |
+|             |             |            - - - - - -                 |
+|             |             |                                        |
+|        HSUSB|             |            - - - - - -                 |
+|         HOST|<----------------------->|           |                |
+ - - - - - - -              |           |   HSUSB   |                |
+                            |           |Transceiver|                |
+                            |           |  USB83320 |                |
+                            |           |           |                |
+                            |            - - - - - -                 |
+                            |                                        |
+                            |                                        |
+                             - - - - - - -- - - - - - - - - - - - - -
+                                       
+High Level-Software Design
+=========================
 
-Btw, drivers/media/video/isp/ currently doesn't exist. Please submit the patch for it first.
+Following are the files which will add support for Daughter Card -
 
-Cheers,
-Mauro
+    - arch/arm/mach-omap2/board-omap3evm-dc.c
+        Source file which will handle initialization of the GPMC and similar stuff, registers to the I2C framework for I2C bus 3(TVP5146 interface).
+      
+    - arch/arm/mach-omap2/board-omap3evm-dc.h
+        Corresponding Header file.
+        
+        
+Current implementation/support available
+========================================
+
+The basic Daughter card support has been added to the latest git kernel; soon I will be posting the patches for review.
+
+Following things have been tested - 
+    - TVP5146: (On top of Sergio's ISP-Camera patch-sets)
+        - S-Video
+        - Composite
+        
+    - HSUSB:
+        Basic functionality is working.
+
+NOTE: Please note that all the above testing is done on top of ES2.0 silicon version.
+
+TODO - 
+    - Component support (Should be very easy)
+    - Rigorous testing of TVP5146 and HSUSB.
+    - Camera/sensor support
+
+Thanks,
+Vaibhav Hiremath
+
 
 --
 video4linux-list mailing list
