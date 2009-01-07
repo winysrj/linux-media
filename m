@@ -1,21 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EAQOGP010711
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 05:26:24 -0500
-Received: from cp-out12.libero.it (cp-out12.libero.it [212.52.84.112])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0EAQ7WS007070
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 05:26:07 -0500
-Received: from pc3-sid (151.53.244.21) by cp-out12.libero.it (8.5.016.1)
-	id 492C05DA06DC1E01 for video4linux-list@redhat.com;
-	Wed, 14 Jan 2009 11:26:07 +0100
-Date: Wed, 14 Jan 2009 11:31:55 +0100
-From: Salvatore De Paolis <depaolis.salvatore@libero.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07IWkmc011923
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:32:46 -0500
+Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n07IWTtU026488
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:32:30 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 845D51300DA2
+	for <video4linux-list@redhat.com>; Wed,  7 Jan 2009 18:32:28 +0000 (GMT)
+Received: from ian.pickworth.me.uk ([127.0.0.1])
+	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id p2I6RP2y2EOh for <video4linux-list@redhat.com>;
+	Wed,  7 Jan 2009 18:32:28 +0000 (GMT)
+Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 2CE7012FEE56
+	for <video4linux-list@redhat.com>; Wed,  7 Jan 2009 18:32:28 +0000 (GMT)
+Message-ID: <4964F53B.3000301@pickworth.me.uk>
+Date: Wed, 07 Jan 2009 18:32:27 +0000
+From: Ian Pickworth <ian@pickworth.me.uk>
+MIME-Version: 1.0
 To: video4linux-list@redhat.com
-Message-ID: <20090114113155.570da69f@pc3-sid>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+References: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
+	<38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
+In-Reply-To: <38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: gspca pac7311 with v4l2
+Subject: Re: Windows vs Linux  DVR System?
+Reply-To: ian@pickworth.me.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,58 +38,11 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all
-I updated the kernel to the newest stable, 2.6.28 and i noticed some changes in
-v4l.
-I have a Trust webcam which is driven by gspca, in detail pac7311.
-When i run xawtv the webcam led blink for a while and stops and i can see the
-screen in black.
-Here is some log, please if you need something more just ask me.
+Yan Seiner wrote:
+> See my website - http://www.seiner.com - and look at the snakecam and
+> lizardcam. 
 
-Sal
----
-
-$ dmesg | tail
-[drm] Initialized i915 1.6.0 20080730 on minor 0
-usb 1-2: new full speed USB device using uhci_hcd and address 2
-usb 1-2: configuration #1 chosen from 1 choice
-gspca: main v2.3.0 registered
-gspca: probing 093a:2608
-gspca: probe ok
-gspca: probing 093a:2608
-gspca: probing 093a:2608
-usbcore: registered new interface driver pac7311
-pac7311: registered
-
-$ xawtv -hwscan
-This is xawtv-3.95.dfsg.1, running on Linux/i686 (2.6.28)
-looking for available devices
-port 83-98
-    type : Xvideo, image scaler
-    name : Intel(R) Textured Video
-
-port 99-99
-    type : Xvideo, image scaler
-    name : Intel(R) Video Overlay
-
-/dev/video0: OK                         [ -device /dev/video0 ]
-    type : v4l2
-    name : USB Camera (093a:2608)
-    flags:  capture  
-
-$ xawtv
-This is xawtv-3.95.dfsg.1, running on Linux/i686 (2.6.28)
-xinerama 0: 1024x768+0+0
-/dev/video0 [v4l2]: no overlay support
-v4l-conf had some trouble, trying to continue anyway
-Warning: Cannot convert string "-*-ledfixed-medium-r-*--39-*-*-*-c-*-*-*" to
-type FontStruct no way to get: 384x288 32 bit TrueColor (LE: bgr-)
-
-$ v4l-conf 
-v4l-conf: using X11 display :0.0
-dga: version 2.0
-mode: 1024x768, depth=24, bpp=32, bpl=4096, base=0xc0800000
-/dev/video0 [v4l2]: no overlay support
+That lizard must be on speed! Either that or its feeding time?
 
 --
 video4linux-list mailing list
