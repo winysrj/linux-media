@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n018Ml6S013504
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 03:22:47 -0500
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.24])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n018MWqV025732
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 03:22:32 -0500
-Received: by ey-out-2122.google.com with SMTP id 4so561460eyf.39
-	for <video4linux-list@redhat.com>; Thu, 01 Jan 2009 00:22:31 -0800 (PST)
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain
-Date: Thu, 01 Jan 2009 11:22:30 +0300
-Message-Id: <1230798150.5124.29.camel@tux.localhost>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07NrfqW021663
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 18:53:41 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n07NrOqi025877
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 18:53:24 -0500
+Date: Wed, 7 Jan 2009 21:52:52 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20090107215252.6e843e29@pedra.chehab.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: [PATCH] gspca: return ret instead of -1 in sd_mod_init
+Cc: linux-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+	linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES for 2.6.29] V4L/DVB fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,304 +26,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-With this patch sd_mod_init will return ret variable in all gspca
-modules if error occurs.
+Linus,
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+
+For the following changes (mostly fixes):
+
+   - switch remaining clear_user_page users over to clear_user_highpage,
+     in order to compile some drivers on non x86_64 archs;
+   - pxa-camera: fix redefinition warnings and missing DMA definitions;
+   - tda8290: fix TDA8290 + TDA18271 initialization;
+   - two Kbuild fixes (for dm1105 and cx88);
+   - update MAINTAINERS entries on media drivers, due to the ML change 
+     to vger.kernel.org;
+   - some sparse warnings/error fixes;
+   - use negated usb_endpoint_xfer_control, etc.
+
+Cheers,
+Mauro.
 
 ---
-diff -r 713c9693b912 linux/drivers/media/video/gspca/conex.c
---- a/linux/drivers/media/video/gspca/conex.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/conex.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -1031,7 +1031,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/etoms.c
---- a/linux/drivers/media/video/gspca/etoms.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/etoms.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -936,7 +936,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/finepix.c
---- a/linux/drivers/media/video/gspca/finepix.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/finepix.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -457,7 +457,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/m5602/m5602_core.c
---- a/linux/drivers/media/video/gspca/m5602/m5602_core.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/m5602/m5602_core.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -376,7 +376,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/mars.c
---- a/linux/drivers/media/video/gspca/mars.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/mars.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -423,7 +423,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/ov519.c
---- a/linux/drivers/media/video/gspca/ov519.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/ov519.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -2204,7 +2204,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/ov534.c
---- a/linux/drivers/media/video/gspca/ov534.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/ov534.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -587,7 +587,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/pac207.c
---- a/linux/drivers/media/video/gspca/pac207.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/pac207.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -567,7 +567,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/pac7311.c
---- a/linux/drivers/media/video/gspca/pac7311.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/pac7311.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -1113,7 +1113,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/sonixb.c
---- a/linux/drivers/media/video/gspca/sonixb.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/sonixb.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -1304,7 +1304,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/sonixj.c
---- a/linux/drivers/media/video/gspca/sonixj.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/sonixj.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -1812,7 +1812,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	info("registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/spca500.c
---- a/linux/drivers/media/video/gspca/spca500.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/spca500.c	Thu Jan 01 11:20:00 2009 +0300
-@@ -1112,7 +1112,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/spca501.c
---- a/linux/drivers/media/video/gspca/spca501.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/spca501.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -2261,7 +2261,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/spca505.c
---- a/linux/drivers/media/video/gspca/spca505.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/spca505.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -934,7 +934,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/spca506.c
---- a/linux/drivers/media/video/gspca/spca506.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/spca506.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -774,7 +774,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/spca508.c
---- a/linux/drivers/media/video/gspca/spca508.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/spca508.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -1706,7 +1706,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/spca561.c
---- a/linux/drivers/media/video/gspca/spca561.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/spca561.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -1206,7 +1206,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/stk014.c
---- a/linux/drivers/media/video/gspca/stk014.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/stk014.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -563,7 +563,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	info("registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/stv06xx/stv06xx.c
---- a/linux/drivers/media/video/gspca/stv06xx/stv06xx.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/stv06xx/stv06xx.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -503,7 +503,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/sunplus.c
---- a/linux/drivers/media/video/gspca/sunplus.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/sunplus.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -1498,7 +1498,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/t613.c
---- a/linux/drivers/media/video/gspca/t613.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/t613.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -1178,7 +1178,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/tv8532.c
---- a/linux/drivers/media/video/gspca/tv8532.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/tv8532.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -581,7 +581,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/vc032x.c
---- a/linux/drivers/media/video/gspca/vc032x.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/vc032x.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -2488,7 +2488,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
-diff -r 713c9693b912 linux/drivers/media/video/gspca/zc3xx.c
---- a/linux/drivers/media/video/gspca/zc3xx.c	Thu Jan 01 11:07:09 2009 +0300
-+++ b/linux/drivers/media/video/gspca/zc3xx.c	Thu Jan 01 11:20:01 2009 +0300
-@@ -7611,7 +7611,7 @@
- 	int ret;
- 	ret = usb_register(&sd_driver);
- 	if (ret < 0)
--		return -1;
-+		return ret;
- 	PDEBUG(D_PROBE, "registered");
- 	return 0;
- }
 
+ MAINTAINERS                                     |   65 ++++++++++------
+ drivers/media/common/tuners/tda8290.c           |    6 +-
+ drivers/media/dvb/dm1105/Kconfig                |    1 +
+ drivers/media/dvb/dvb-core/dvb_frontend.c       |   26 ++++---
+ drivers/media/dvb/dvb-usb/anysee.c              |    2 +-
+ drivers/media/dvb/frontends/cx24116.c           |    2 +-
+ drivers/media/dvb/frontends/stb0899_algo.c      |    4 +-
+ drivers/media/dvb/frontends/stb0899_drv.c       |    6 +-
+ drivers/media/dvb/ttpci/budget-ci.c             |    2 +-
+ drivers/media/video/cx88/Kconfig                |    5 +
+ drivers/media/video/cx88/Makefile               |    3 +-
+ drivers/media/video/cx88/cx88-dvb.c             |   46 +++++++++++
+ drivers/media/video/cx88/cx88-i2c.c             |   24 +-----
+ drivers/media/video/cx88/cx88-mpeg.c            |   30 +------
+ drivers/media/video/cx88/cx88.h                 |    4 +-
+ drivers/media/video/em28xx/em28xx-cards.c       |    5 +-
+ drivers/media/video/em28xx/em28xx-core.c        |    2 +-
+ drivers/media/video/em28xx/em28xx-input.c       |    2 +-
+ drivers/media/video/gspca/m5602/m5602_s5k83a.c  |    2 +-
+ drivers/media/video/pxa_camera.c                |    4 +-
+ drivers/media/video/pxa_camera.h                |   95 -----------------------
+ drivers/media/video/usbvideo/ibmcam.c           |    2 +-
+ drivers/media/video/usbvideo/konicawc.c         |    2 +-
+ drivers/media/video/usbvideo/ultracam.c         |    2 +-
+ drivers/media/video/usbvision/usbvision-video.c |    3 +-
+ drivers/media/video/v4l2-device.c               |    4 +-
+ drivers/media/video/videobuf-dma-sg.c           |    3 +-
+ drivers/staging/go7007/go7007-v4l2.c            |    3 +-
+ 28 files changed, 148 insertions(+), 207 deletions(-)
+ delete mode 100644 drivers/media/video/pxa_camera.h
 
--- 
-Best regards, Klimov Alexey
+Eric Miao (1):
+      V4L/DVB (10176b): pxa-camera: fix redefinition warnings and missing DMA definitions
+
+Guennadi Liakhovetski (1):
+      V4L/DVB (10176a): Switch remaining clear_user_page users over to clear_user_highpage
+
+Julia Lawall (1):
+      V4L/DVB (10185): Use negated usb_endpoint_xfer_control, etc
+
+Mauro Carvalho Chehab (8):
+      V4L/DVB (10177): Fix sparse warnings on em28xx
+      V4L/DVB (10178): dvb_frontend: Fix some sparse warnings due to static symbols
+      V4L/DVB (10179): tda8290: Fix two sparse warnings
+      V4L/DVB (10180): drivers/media: Fix a number of sparse warnings
+      V4L/DVB (10181): v4l2-device: Fix some sparse warnings
+      V4L/DVB (10189): dm1105: Fix build with INPUT=m and DVB_DM1105=y
+      V4L/DVB (10190): cx88: Fix some Kbuild troubles
+      V4L/DVB (10191a): Update MAINTAINERS entries on media drivers
+
+Michael Krufky (1):
+      V4L/DVB (10182): tda8290: fix TDA8290 + TDA18271 initialization
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
