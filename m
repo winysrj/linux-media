@@ -1,28 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n06BikTC023953
-	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 06:44:46 -0500
-Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
-	[195.238.6.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n06BhZgK006828
-	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 06:43:35 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: v4l-dvb-maintainer@linuxtv.org
-Date: Tue, 6 Jan 2009 12:43:33 +0100
-References: <20090104104433.C996.WEIYI.HUANG@gmail.com>
-	<200901041157.59503.laurent.pinchart@skynet.be>
-	<Pine.LNX.4.58.0901041217381.25853@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0901041217381.25853@shell2.speakeasy.net>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07Iit6i018911
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:44:55 -0500
+Received: from www.seiner.com (flatoutfitness.com [66.178.130.209])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n07IicEo000545
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:44:39 -0500
+Message-ID: <3f6ecb7d640b88b1aab1a2b6646277d5.squirrel@www.datavault.us>
+In-Reply-To: <4964F53B.3000301@pickworth.me.uk>
+References: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
+	<38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
+	<4964F53B.3000301@pickworth.me.uk>
+Date: Wed, 7 Jan 2009 10:44:36 -0800 (PST)
+From: "Yan Seiner" <yan@seiner.com>
+To: ian@pickworth.me.uk
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901061243.33860.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Huang Weiyi <weiyi.huang@gmail.com>,
-	Trent Piepho <xyzzy@speakeasy.org>, mchehab@infradead.org
-Subject: Re: [v4l-dvb-maintainer] [VIDEO4LINUX] removed unused #include
-	<version.h>'s
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Windows vs Linux  DVR System?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,40 +29,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sunday 04 January 2009, Trent Piepho wrote:
-> On Sun, 4 Jan 2009, Laurent Pinchart wrote:
-> > On Sunday 04 January 2009, Huang Weiyi wrote:
-> > > Removed unused #include <version.h>'s in files below,
-> > >   drivers/media/video/cs5345.c
-> > >   drivers/media/video/pwc/pwc-if.c
-> > >   drivers/media/video/saa717x.c
-> > >   drivers/media/video/upd64031a.c
-> > >   drivers/media/video/upd64083.c
-> > >   drivers/media/video/uvc/uvc_ctrl.c
-> > >   drivers/media/video/uvc/uvc_driver.c
-> > >   drivers/media/video/uvc/uvc_queue.c
-> > >   drivers/media/video/uvc/uvc_video.c
-> >
-> > You can remove it from drivers/media/video/uvc/uvc_status.c as well.
-> >
-> > Mauro, the #include <linux/version.h> are required for backward
-> > compatibility in the Mercurial tree, but are not needed (except in
-> > uvc_v4l2.c) in the mainline git kernel tree. Can that be handled by your
-> > Mercurial -> git export scripts ?
+
+On Wed, January 7, 2009 10:32 am, Ian Pickworth wrote:
+> Yan Seiner wrote:
+>> See my website - http://www.seiner.com - and look at the snakecam and
+>> lizardcam.
 >
-> The version.h includes should not be needed for backward compatibility in
-> the Hg tree.  There was always a problem with version.h appearing to not be
-> necessary in the git code, so I modified the v4l-dvb build system to add
-> version.h with a gcc -include option.
+> That lizard must be on speed! Either that or its feeding time?
 
-Thanks for the information.
+Heh.  Ther's a female in another tank - the male does the head bobbing and
+the female does the arm waving.  Pretty cute mating ritual.  I'm waiting
+on my daugther to set up the female tank properly and then we'll add the
+girl-lizard cam.  Whee!
 
-Huang, can you please resubmit a patch with #include <linux/version.h> removed 
-from drivers/media/video/uvc/uvc_status.c as well ?
+The camera shoots at about 7 fps and the video is shown at 30 fps; motion
+drops any frames that don't have motion so the time compression is pretty
+severe.  The whole video covers about 2-3 days so the lizard isn't *that*
+active.  (by comparison, the snake cam covers 2 months; snakes spend most
+of their time not moving.....)
 
-Best regards,
+--Yan
 
-Laurent Pinchart
+-- 
+  o__
+  ,>/'_          o__
+  (_)\(_)        ,>/'_        o__
+Yan Seiner      (_)\(_)       ,>/'_     o__
+       Personal Trainer      (_)\(_)    ,>/'_        o__
+             Professional Engineer     (_)\(_)       ,>/'_
+Who says engineers have to be pencil necked geeks?  (_)\(_)
+
+You are an adult when you realize that everyone's an idiot sometimes. You
+are wise when you include yourself.
+
 
 --
 video4linux-list mailing list
