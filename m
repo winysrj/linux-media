@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0CLJMZK025957
-	for <video4linux-list@redhat.com>; Mon, 12 Jan 2009 16:19:22 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0CLJFHx025734
-	for <video4linux-list@redhat.com>; Mon, 12 Jan 2009 16:19:16 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so3993227fga.7
-	for <video4linux-list@redhat.com>; Mon, 12 Jan 2009 13:19:15 -0800 (PST)
-Message-ID: <a21d779b0901121319t15cb30d6g7d2db78ebff9ee34@mail.gmail.com>
-Date: Mon, 12 Jan 2009 23:19:14 +0200
-From: "=?ISO-8859-2?Q?Andr=E1s_L=F5rincz?=" <andras.lorincz@gmail.com>
-To: "matthieu castet" <castet.matthieu@free.fr>
-In-Reply-To: <496B90FD.7000005@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07KoFav025066
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 15:50:15 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07KnxLq029455
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 15:49:59 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so3635994qwe.39
+	for <video4linux-list@redhat.com>; Wed, 07 Jan 2009 12:49:58 -0800 (PST)
+Message-ID: <412bdbff0901071249r4e2b706ay720abdac6bdb7d31@mail.gmail.com>
+Date: Wed, 7 Jan 2009 15:49:58 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: marilynnpg@tx.rr.com
+In-Reply-To: <412bdbff0901071248p5c0ddee3qa034a0db7021998@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <a21d779b0901120550j35dfbdc2l402be4664d89e4da@mail.gmail.com>
-	<496B90FD.7000005@free.fr>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, DVB list <linux-dvb@linuxtv.org>
-Subject: Re: Hauppauge HVR 900H with ID 2040:6600
+References: <412bdbff0901071123u37284eb7k7b2f861e91555bf0@mail.gmail.com>
+	<20090107203537.3M8BX.5758.root@cdptpa-web12-z01>
+	<412bdbff0901071248p5c0ddee3qa034a0db7021998@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Windows vs Linux DVR System?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,35 +32,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jan 12, 2009 at 8:50 PM, matthieu castet
-<castet.matthieu@free.fr> wrote:
-> András Lõrincz wrote:
->>
->> Hello,
->>
->> I've just bought the device mentioned in the title with the hope that
->> it will work under linux but just found out that actually there are
->> different variations of it :(. As I saw it on linuxtv.org it is not
->> supported. Is there any hope that this device will ever work under
->> linux? Thanks.
->
-> There was some work done on http://linuxtv.org/hg/~mchehab/tm6010/ , but the
-> code is far from being complete.
->
-> I also tried to trace what the windows driver is doing (the zl10353 fe
-> attach fails for me), but I didn't manage to make work usbsnoop [1]...
->
->
-> Matthieu
->
->
-> [1] it works fine with mass storage, but not with the HVR...
->
+On Wed, Jan 7, 2009 at 3:48 PM, Devin Heitmueller
+ > For any device with a tuner, analog decoder, or ATSC/DVB demodulator,
+> you're already pretty much at 500ma.  In fact, using an inline meter,
+> I have seen devices exceed 500ma and it results in some fun debugging
+> for some environments depending on how the USB host handles exceeding
+> the maximum power threshold.
 
-Well, I can wait for the driver and I'm ready to help also by testing
-or getting information, even from windows... hope it will work some
-day because I tested it on windows and it works fine and I wouldn't
-give it away if there is some hope for it to work on linux as well :)
+Correction, I meant to say "For many devices", since there are
+certainly ones out there that don't hit 500ma during capture even
+though they have a tuner or demod.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
