@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01Kmi4k002239
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 15:48:44 -0500
-Received: from mk-outboundfilter-2.mail.uk.tiscali.com
-	(mk-outboundfilter-2.mail.uk.tiscali.com [212.74.114.38])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n01KmTGi005836
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 15:48:29 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: kilgota@banach.math.auburn.edu
-Date: Thu, 1 Jan 2009 20:48:26 +0000
-References: <200901010033.58093.linux@baker-net.org.uk>
-	<1230831498.1702.40.camel@localhost>
-	<Pine.LNX.4.64.0901011220230.18838@banach.math.auburn.edu>
-In-Reply-To: <Pine.LNX.4.64.0901011220230.18838@banach.math.auburn.edu>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0707lVO011862
+	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 19:07:47 -0500
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0707UUq025062
+	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 19:07:30 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: andrzej zaborowski <balrogg@gmail.com>
+In-Reply-To: <fb249edb0812301026u2675abah5e0bfb63a1668b7c@mail.gmail.com>
+References: <fb249edb0812301007k245d3506k6d9dbe717ccd5284@mail.gmail.com>
+	<412bdbff0812301015j17488464r7a77b325acb4e2ce@mail.gmail.com>
+	<fb249edb0812301026u2675abah5e0bfb63a1668b7c@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 07 Jan 2009 01:08:20 +0100
+Message-Id: <1231286900.2618.60.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901012048.26355.linux@baker-net.org.uk>
-Cc: video4linux-list <video4linux-list@redhat.com>,
-	sqcam-devel@lists.sourceforge.net
-Subject: Re: [REVIEW] Driver for SQ-905 based cameras
+Cc: video4linux-list@redhat.com
+Subject: Re: Adding Sabrent SC-PVS4 Capture Board to hardware list
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,91 +30,116 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thursday 01 January 2009, kilgota@banach.math.auburn.edu wrote:
-> On Thu, 1 Jan 2009, Jean-Francois Moine wrote:
+Hi,
 
-> > You did not look carefully at the finepix subdriver.
->
-> Actually, I think that both of us did. There are certain diferences which
-> are rather crucial and which led to the choice of doing things
-> differently. If there are problems with our approach, then I am certainly
-> open to suggestions, and I would think that Adam is, too. But perhaps it
-> is good to recognize those differences, first.
->
-
-Theodore and I did discuss for a while whether we needed to implement a 
-finepix like state machine but thought the workqueue based design was 
-simpler. It is certainly possible and I'd got a reasonable way through doing 
-it before thinking that just looping in the workqueue would be easier.
-
-> Its webcams work
->
-> > quite the same as yours,
->
-> No, they do not. That is the underlying problem.
->
-> i.e. they ask for a control message to start
->
-> > the bulk image transfer and an other control message to ack the
-> > reception of the image.
->
-> The problem is, this is not exactly the case. What really happens is the
-> following, which you could perhaps help us to reconcile with the finepix.c
-> way of doing things:
->
-> To start, it seems the sensor is turned on. Then, to get each frame the
-> sequence is the following:
->
-> 1. By means of a control command, request data, up to max size of 0x8000,
-> or whatever remains of te data for the given frame, whichever is less.
->
-> 2. read the requested data (exact size of which has previously been
-> specified).
->
-> Repeat steps 1 and 2 until the frame is completely downloaded. In
-> particular, in step (1) it is necessary to calculate and to request
-> precisely the amount of data which can be obtained, and in step (2) the
-> quantity of data which gets read is precisely that amount which has been
-> requested in step (1). The Finepix cameras AFAICT permit one just to go
-> ahead and request the max amount of data each time, and permit a short
-> read. The SQ905 cameras will not let you do that. They will not.
->
-> Then, finally, when the frame is completely downloaded one sends an ACK
-> command which presumably lets the camera to refresh its memory with a new
-> image.
->
-> > For that, the finepix implements a state machine
-> > running at interrupt level or in the system work queue. All USB
-> > exchanges are asynchronous, so that the system thread is not blocked.
-> > Instead, you do a loop in this thread: then, this one cannot be used for
-> > any other purpose!
+Am Dienstag, den 30.12.2008, 19:26 +0100 schrieb andrzej zaborowski:
+> 2008/12/30 Devin Heitmueller <devin.heitmueller@gmail.com>:
+> > On Tue, Dec 30, 2008 at 1:07 PM, andrzej zaborowski <balrogg@gmail.com> wrote:
+> <snip>
+> >> Here is all the information I know about the card. If anyone would
+> >> like to know more about it, or I have left something out that is
+> >> required to add this card to the officially supported hardware, please
+> >> let me know.
+> >>
+> >> --------------------------------------------------------
+> >> dmesg output:
+> >> --------------------------------------------------------
+> >>
+> >> saa7130/34: v4l2 driver version 0.2.14 loaded
+> >> saa7130[0]: found at 0000:02:0c.0, rev: 1, irq: 18, latency: 32, mmio:
+> >> 0xfa000000
+> >> saa7130[0]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+> >> [card=33,insmod option]
+> >> saa7130[0]: board init: gpio is 10000
+> >> saa7130[0]: Huh, no eeprom present (err=-5)?
+> >> saa7130[0]: registered device video0 [v4l2]
+> >> saa7130[0]: registered device vbi0
+> >> saa7130[1]: found at 0000:02:0d.0, rev: 1, irq: 19, latency: 32, mmio:
+> >> 0xfa001000
+> >> saa7130[1]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+> >> [card=33,insmod option]
+> >> saa7130[1]: board init: gpio is 10000
+> >> saa7130[1]: Huh, no eeprom present (err=-5)?
+> >> saa7130[1]: registered device video1 [v4l2]
+> >> saa7130[1]: registered device vbi1
+> >> saa7130[2]: found at 0000:02:0e.0, rev: 1, irq: 16, latency: 32, mmio:
+> >> 0xfa002000
+> >> saa7130[2]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+> >> [card=33,insmod option]
+> >> saa7130[2]: board init: gpio is 10000
+> >> saa7130[2]: Huh, no eeprom present (err=-5)?
+> >> saa7130[2]: registered device video2 [v4l2]
+> >> saa7130[2]: registered device vbi2
+> >> saa7130[3]: found at 0000:02:0f.0, rev: 1, irq: 20, latency: 32, mmio:
+> >> 0xfa003000
+> >> saa7130[3]: subsystem: 1131:0000, board: AVerMedia DVD EZMaker
+> >> [card=33,insmod option]
+> >> saa7130[3]: board init: gpio is 10000
+> >> saa7130[3]: Huh, no eeprom present (err=-5)?
+> >> saa7130[3]: registered device video3 [v4l2]
+> >> saa7130[3]: registered device vbi3
+> >> irq 16: nobody cared (try booting with the "irqpoll" option)
+> >>
+> >> --------------------------------------------------------
+> >> lspci output:
+> >> --------------------------------------------------------
+> >>
+> >> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+> >> Broadcast Decoder (rev 01)
+> >> 02:0d.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+> >> Broadcast Decoder (rev 01)
+> >> 02:0e.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+> >> Broadcast Decoder (rev 01)
+> >> 02:0f.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+> >> Broadcast Decoder (rev 01)
+> >>
+> >> --------------------------------------------------------
+> >> lspci -vv output ( first entry only ):
+> >> --------------------------------------------------------
+> >>
+> >> 02:0c.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+> >> Broadcast Decoder (rev 01)
+> >> Subsystem: Philips Semiconductors Device 0000
+> >> Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> >> Stepping- SERR- FastB2B- DisINTx-
+> >> Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+> >> <TAbort- <MAbort- >SERR- <PERR- INTx-
+> >> Latency: 32 (3750ns min, 9500ns max)
+> >> Interrupt: pin A routed to IRQ 18
+> >> Region 0: Memory at fa000000 (32-bit, non-prefetchable) [size=1K]
+> >> Capabilities: [40] Power Management version 1
+> >> Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> >> Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+> >> Kernel driver in use: saa7134
+> >> Kernel modules: saa7134
+> >>
+> >> --
+> >> video4linux-list mailing list
+> >> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> >> https://www.redhat.com/mailman/listinfo/video4linux-list
+> >>
 > >
-> > I see only one alternative to do the image transfer:
-> > - either implement a state machine as it is done in finepix,
->
-> That would be much more complicated here than it is in the finepix driver,
-> because of the need to keep at all times a running tally of the size
-> remaining. Also because of the fact that here each individual read must be
-> preceded by a command specifying the exact size of the coming read.
->
+> > Could you please also provide the output of "lspci -n" so we can see
+> > what the actual PCI ID is? (I don't see it in the lspci -v output for
+> > some reason)
+> 
+> --------------------------------------------------------
+> lspci -n output ( all 4 board/ic entries ):
+> --------------------------------------------------------
+> 
+> 02:0c.0 0480: 1131:7130 (rev 01)
+> 02:0d.0 0480: 1131:7130 (rev 01)
+> 02:0e.0 0480: 1131:7130 (rev 01)
+> 02:0f.0 0480: 1131:7130 (rev 01)
+> 
 
-It isn't actually that much more complicated to keep track of the length - I 
-had some code that had almost done it but the way data is requested does lead 
-to more states hence a more complex driver.
+just looked at some other Sabrent and came across this one.
 
-> > - or have a specific work queue to handle the USB exchanges.
->
-> Perhaps that is a better idea. Essentially, that is what was being
-> attempted and you say it has not been correctly carried out. Suggestions
-> as to how to rearrange things so as to do this are welcome.
->
+It just means it has no eeprom and the above is not usable for
+identification.
 
-I can't see what could be using this workqueue other than the USB exchanges - 
-it is private to the sub driver and there is a per device instance of it in 
-struct sd. What other than the call to schedule_delayed_work at the end of 
-sd_start could try to use it?
-
-Adam Baker
+Cheers,
+Hermann
 
 
 --
