@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f20.google.com ([209.85.218.20])
+Received: from mail-bw0-f18.google.com ([209.85.218.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1LO8EZ-00072n-98
-	for linux-dvb@linuxtv.org; Sat, 17 Jan 2009 11:16:56 +0100
-Received: by bwz13 with SMTP id 13so5559744bwz.17
-	for <linux-dvb@linuxtv.org>; Sat, 17 Jan 2009 02:16:21 -0800 (PST)
-Message-ID: <d9def9db0901170216g5be0ed16sa1eeb4c4f9acce76@mail.gmail.com>
-Date: Sat, 17 Jan 2009 11:16:21 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "BOUWSMA Barry" <freebeer.bouwsma@gmail.com>
-In-Reply-To: <alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
+	(envelope-from <christian.lammers@gmail.com>) id 1LKX4k-0004kx-EI
+	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 12:59:56 +0100
+Received: by bwz11 with SMTP id 11so18302344bwz.17
+	for <linux-dvb@linuxtv.org>; Wed, 07 Jan 2009 03:59:20 -0800 (PST)
+Message-ID: <4964989C.6000506@gmail.com>
+Date: Wed, 07 Jan 2009 12:57:16 +0100
+From: Christian Lammers <christian.lammers@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <496C9FDE.2040408@hemmail.se>
-	<d9def9db0901131101y59cd5c1ct2344052f86b42feb@mail.gmail.com>
-	<d9def9db0901151028k6ab8bd79q6627c7516020aabe@mail.gmail.com>
-	<alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Terratec XS HD support?
-Reply-To: linux-media@vger.kernel.org
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Compiling mantis driver on 2.6.28
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,81 +24,65 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Jan 17, 2009 at 10:57 AM, BOUWSMA Barry
-<freebeer.bouwsma@gmail.com> wrote:
-> Hi Markus, I follow your list as a non-subscriber, but I thought
-> it would be worthwhile to post this to linux-dvb as well, and
-> eventually to linux-media...
->
-> On Thu, 15 Jan 2009, Markus Rechberger wrote:
->
->> On Tue, Jan 13, 2009 at 8:01 PM, Markus Rechberger
->> <mrechberger@gmail.com> wrote:
->
->> >> Is there any news about Terratec HTC USB XS HD support?
->
->> > it's upcoming soon.
->
-> Thanks Markus, that's good news for me, and for several people
-> who have written me as well!
->
->
->> http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
->> you might track that site for upcoming information.
->
-> Interesting.  You say that your code will make use of a BSD
-> setup.  Can you or someone say something about this, or point
-> to past discussion which explains this?  Would this be the
-> userspace_tuner link on your wiki?
->
-> In particular, I'm wondering whether this is completely
-> compatible with the standard DVB utilities -- dvbscan,
-> dvbstream, and the like, or whether a particular higher-
-> level end-user application is required.
->
->
+Hi,
 
-The design goes hand in hand with some discussions that have been made
-with some BSD developers.
-The setup makes use of usbdevfs and pci configspace access from
-userland, some work still has to be done there, it (will give/gives)
-manufacturers the freedom to release opensource and binary drivers for
-userland.
-I'm a friend of open development and not of some kind of monopoly
-where a few people rule everything (linux).
+i'm new to this mailinglist, so 'Hello' to all :)
 
-There's quite some work going on in portability so that one driver can
-be written for Linux/BSD and OSX - still needing some Host dependent
-hooks for transferring the data but the same for configuring the
-chips.
-Someone might have noticed the empty frontend dummy driver in
-em28xx-new, by using userland commands the same device nodes can be
-used for DVB-C and DVB-T mpeg-ts streams. Currently linuxtv would
-require to set up different nodes for those nodes with earlier kernels
-- the userland approach is pretty much backward compatible while not
-having to update the core media framework, and it gives vendors the
-possibility to set up their drivers with vendor specific features too.
-libv4l(2)? is probably already a good approach to support v4l with
-multiple applications although most applications are still not capable
-of supporting all v4l(2) devices anyway.
+My first problem, cause of bleeding edge hardware, intels gem, hdmi,
+experimental xorg and so on, i've problems to compile the mantis driver
+from http://jusst.de/hg/mantis on 2.6.28.
 
-As for the em28xx project, Micronas who doesn't want to release their
-intellectual property triggered quite a few discussions with some
-people. I have code here with several 10.000th lines of code from
-them, and people earn their money by selling solutions based on that.
-Giving away that proprietary work would immediately kill the
-commercial value of their work and alot money would be lost for
-smaller companies. I'm somehow convenient that it might go Opensource
-in years when the commercial market is finished for their products. As
-written the goal is to give chip manufacturers/designers the
-possibility to provide support for their chips in an operating system
-and license independent way.
+I'm getting the following:
 
-best regards,
-Markus
+Kernel build directory is /lib/modules/2.6.28/build
+make -C /lib/modules/2.6.28/build
+SUBDIRS=/usr/src/mantis-303b1d29d735/v4l  modules
+make[2]: Entering directory `/usr/src/linux-2.6.28'
+  CC [M]  /usr/src/mantis-303b1d29d735/v4l/dvbdev.o
+/usr/src/mantis-303b1d29d735/v4l/dvbdev.c: In function
+'dvb_register_device':
+/usr/src/mantis-303b1d29d735/v4l/dvbdev.c:246: error: implicit
+declaration of function 'device_create_drvdata'
+/usr/src/mantis-303b1d29d735/v4l/dvbdev.c:248: warning: assignment makes
+pointer from integer without a cast
+make[3]: *** [/usr/src/mantis-303b1d29d735/v4l/dvbdev.o] Error 1
+make[2]: *** [_module_/usr/src/mantis-303b1d29d735/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.28'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/usr/src/mantis-303b1d29d735/v4l'
+make: *** [all] Error 2
+
+
+Someone else with these problems?
+
+If only compiling the mantis driver, when changing the .config file in
+the v4l subdir i'm getting the following:
+
+ CC [M]  /usr/src/mantis-303b1d29d735/v4l/mantis_vp1041.o
+  CC [M]  /usr/src/mantis-303b1d29d735/v4l/mantis_vp2033.o
+  CC [M]  /usr/src/mantis-303b1d29d735/v4l/mantis_vp2040.o
+  CC [M]  /usr/src/mantis-303b1d29d735/v4l/mantis_vp3030.o
+  LD [M]  /usr/src/mantis-303b1d29d735/v4l/mantis.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+WARNING: "mb86a16_attach" [/usr/src/mantis-303b1d29d735/v4l/mantis.ko]
+undefined!
+WARNING: modpost: Found 4 section mismatch(es).
+To see full details build your kernel with:
+'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+  CC      /usr/src/mantis-303b1d29d735/v4l/mantis.mod.o
+  LD [M]  /usr/src/mantis-303b1d29d735/v4l/mantis.ko
+make[1]: Leaving directory `/usr/src/linux-2.6.28'
+./scripts/rmmod.pl check
+found 1 modules
+
+Is there a patch or something else to get this driver working on 2.6.28
+
+Thanks in advance,
+
+Christian
 
 _______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
