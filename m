@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.186])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1LIt84-00082V-GH
-	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 00:08:34 +0100
-Received: by fk-out-0910.google.com with SMTP id f40so3995923fka.1
-	for <linux-dvb@linuxtv.org>; Fri, 02 Jan 2009 15:08:28 -0800 (PST)
-Date: Sat, 3 Jan 2009 00:07:59 +0100
-To: linux-dvb@linuxtv.org
-Message-ID: <20090102230759.GA3017@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1LKYv8-0006RA-NW
+	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 14:58:08 +0100
+Date: Wed, 07 Jan 2009 14:57:32 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <4963CA07.3040905@freenet.de>
+Message-ID: <20090107135732.151450@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: [linux-dvb] BUG cx88 don't work on S2API/2.6.28 amd64 (disseqc ?)
+References: <49634AFE.2080405@borodulin.fi> <20090106125032.258680@gmx.net>
+	<4963CA07.3040905@freenet.de>
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] The status and future of Mantis driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,59 +25,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+> Hans Werner schrieb:
+> >> Heya!
+> >>
+> >> I found out that there is some new activity on Manu Abraham's Mantis =
 
-just to be sure I don't have an hardware problem I came back to a 2.6.27
-kernel on which I can compil multiproto : all my DVB cards works
-perfectly there.
+> >> driver, so I thought I could throw in some thoughts about it.
+> >>
+> >> I have been using Manu's Mantis driver (http://www.jusst.de/hg/mantis) =
 
-Under 2.6.28 and today's v4l-dvb hg source the cx88 cards don't tune at
-all (geniatech budget and Hauppauge HVR-4000).
+> >> for over two years now. I have a VP-2033 card (DVB-C) and at least for =
 
-I have three diseqcs for all cards I have, which are each connected to
-three quad lnb (or quattro : those which are like four different lnb and
-need diseqc signals to choose l/h h/v), for example I set up VDR like
-this :
+> >> the last year the driver has worked without any hickups in my daily =
 
-S13.0E 11700 V  9750 t v W15 [E0 10 38 F0] W15 t
-S13.0E 99999 V 10600 t v W15 [E0 10 38 F1] W15 T
-S13.0E 11700 H  9750 t V W15 [E0 10 38 F2] W15 t
-S13.0E 99999 H 10600 t V W15 [E0 10 38 F3] W15 T
-S19.2E 11700 V  9750 t v W15 [E0 10 38 F4] W15 t
-S19.2E 99999 V 10600 t v W15 [E0 10 38 F5] W15 T
-S19.2E 11700 H  9750 t V W15 [E0 10 38 F6] W15 t
-S19.2E 99999 H 10600 t V W15 [E0 10 38 F7] W15 T
-S28.2E 11700 V  9750 t v W15 [E0 10 38 F8] W15 t
-S28.2E 99999 V 10600 t v W15 [E0 10 38 F9] W15 T
-S28.2E 11700 H  9750 t V W15 [E0 10 38 FA] W15 t
-S28.2E 99999 H 10600 t V W15 [E0 10 38 FB] W15 T
+> >> (VDR) use. For a long time I have thought that the driver should
+> already =
 
-I can't tune with the cx88 cards using S2API neither with VDR nor
-szap(.*).
+> >> be merged to the v4l-dvb tree.
+> >>     =
 
-from lspci :
-04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-04:02.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and A=
-udio Decoder (rev 05)
-04:02.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
-ecoder [Audio Port] (rev 05)
-04:02.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
-ecoder [MPEG Port] (rev 05)
-04:02.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
-ecoder [IR Port] (rev 05)
-04:05.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and A=
-udio Decoder (rev 03)
-04:05.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio D=
-ecoder [MPEG Port] (rev 03)
+> I'm fine with
+> =
 
-If they are any more info I could give to help solve this really annoying
-bug, I would be happy to give them.
+>     http://www.jusst.de/hg/mantis
+> =
 
-Thank you very much,
+> too.
+> =
+
+> Unfortunately, I'm sticked to kernels <=3D 2.6.26.x, because I can't comp=
+ile
+> it under 2.6.27 anymore.
+
+So you are, er, not fine then? ;)
+
+> Can you compile s2-liplianin for 2.6.27.x/28.x? =
+
+
+Yes and yes.
+
+> Do the modules work for
+> the VP-2033?
+
+Why don't you try it and report? The VP-2040 cable card is working :
+http://www.linuxtv.org/pipermail/linux-dvb/2009-January/031350.html
+
+> Ciao Ruediger D.
+
+Regards,
+Hans
 -- =
 
-Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
-               http://picasaweb.google.com/Gregoire.Favre
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
 linux-dvb mailing list
