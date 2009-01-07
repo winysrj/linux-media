@@ -1,22 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02A0Wcm012353
-	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 05:00:32 -0500
-Received: from mx1.wp.pl (mx1.wp.pl [212.77.101.5])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n02A0Jcm025289
-	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 05:00:20 -0500
-Received: from ajk10.neoplus.adsl.tpnet.pl (HELO [192.168.0.155])
-	(vega01@[83.25.244.10]) (envelope-sender <vega01@wp.pl>)
-	by smtp.wp.pl (WP-SMTPD) with SMTP
-	for <video4linux-list@redhat.com>; 2 Jan 2009 11:00:07 +0100
-Message-ID: <495DE5A6.8000404@wp.pl>
-Date: Fri, 02 Jan 2009 11:00:06 +0100
-From: Kuba Irzabek <vega01@wp.pl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07I7EBk025778
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:07:15 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07I6wfT028518
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:06:58 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so3589532qwe.39
+	for <video4linux-list@redhat.com>; Wed, 07 Jan 2009 10:06:58 -0800 (PST)
+Message-ID: <412bdbff0901071006r662b14b5ud42bd04adc7b7fbb@mail.gmail.com>
+Date: Wed, 7 Jan 2009 13:06:57 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Paul Thomas" <pthomas8589@gmail.com>
+In-Reply-To: <c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Pinnacle HDTV Ultimate USB and SAA7136
+Content-Disposition: inline
+References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
+	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>
+	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
+	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
+	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>
+	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>
+	<c785bba30901020850y51c7b9d2i47fd418828cd150c@mail.gmail.com>
+	<c785bba30901030922y17d67d0bm822304a650a0e812@mail.gmail.com>
+	<c785bba30901051633g7808197fl6d377420d799120c@mail.gmail.com>
+	<c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
+Cc: video4linux-list <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: em28xx issues
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,20 +40,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Wed, Jan 7, 2009 at 12:27 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+> I thought a kernel oops was a big deal? Anyway, if the em28 device
+> isn't well supported. What would be a well supported device that has
+> an component input and preferably has been tested on ARM.
+>
+> thanks,
+> Paul
 
-I found some posts from december last year about work on Pinnacle HDTV 
-Ultimate USB being in progress and about SAA7136 documentation. I'm 
-interested in getting analog tuner of AverTV Hybrid Volar HX (A827) to 
-work under Linux. It also uses SAA7136 part. There were some posts about 
-this AverTV card on linix-dvb, but I suppose nobody is currently working 
-on it (especially the analog part). I would appreciate any info on the 
-progress of work on the driver for SAA7136.
+Hello Paul,
 
-Thank you very much!
-Regards,
+I don't think anyone is saying that a kernel oops isn't a big deal.
+The reality though is that this is a project worked on by a very small
+number of *volunteers* and there is no assertion that your issue will
+be dealt with as quickly as you like.
 
-Kuba Irzabek
+This issue is compounded by the fact that as far as we know it only
+occurs on a single piece of hardware that nobody ever claimed was
+supported and no developer has in their possession to debug the issue
+with.  In cases like this the issue it may only take two or three
+hours to debug if someone like myself has the device in question, but
+I'm not going to spend my own money to go out and buy one.
+
+By all means, if you want to debug the issue, we would be happy to
+accept patches.  Or if you want to mail me the hardware so I could
+take a look and see if I can debug the issue, that is something else
+we can discuss.  But operating under the assumption that you are
+somehow entitled to have a developer donate his time to address your
+problem is perhaps not the best way to get help.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
