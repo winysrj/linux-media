@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Mon, 5 Jan 2009 00:43:32 -0200
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-Message-ID: <20090105004332.7d7c3a85@gmail.com>
-In-Reply-To: <b24e53350901041128p29b149b6u7c48874fe106138d@mail.gmail.com>
-References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
-	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
-	<49605AFA.3000208@rogers.com>
-	<b24e53350901041128p29b149b6u7c48874fe106138d@mail.gmail.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n081pvqw001192
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 20:51:57 -0500
+Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
+	[151.189.21.50])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n081pc4B032266
+	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 20:51:39 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: jordi@cdmon.com
+In-Reply-To: <49646351.6030709@cdmon.com>
+References: <49646351.6030709@cdmon.com>
+Content-Type: text/plain
+Date: Thu, 08 Jan 2009 01:28:44 +0100
+Message-Id: <1231374524.2613.3.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
-	linux-media <linux-media@vger.kernel.org>, CityK <cityk@rogers.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
+Cc: video4linux-list@redhat.com
+Subject: Re: support for remote in lifeview trio
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,54 +26,44 @@ List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <linux-media.vger.kernel.org>
+List-ID: <video4linux-list@redhat.com>
 
-On Sun, 4 Jan 2009 14:28:11 -0500
-"Robert Krakora" <rob.krakora@messagenetsystems.com> wrote:
+Hi Jordi,
 
-> On Sun, Jan 4, 2009 at 1:45 AM, CityK <cityk@rogers.com> wrote:
+Am Mittwoch, den 07.01.2009, 09:09 +0100 schrieb Jordi Moles Blanco:
+> hi,
 > 
-> > Devin Heitmueller wrote:
-> > > On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
-> > > <rob.krakora@messagenetsystems.com> wrote:
-> > >
-> > >> Mauro:
-> > >>
-> > >> The KWorld 330U employs the Samsung S5H1409X01 demodulator, not
-> > >> the LGDT330X.  Hence the error initializing the LGDT330X in the
-> > >> current
-> > source
-> > >> in em28xx-dvb.c.
-> > >>
-> > >> Best Regards,
-> > >>
-> > >
-> > > Hello Robert,
-> > >
-> > > Well, that's good to know.  I don't think anyone has done any
-> > > work on that device recently, so I don't know why the code has it
-> > > as an lgdt3303.
-> >
-> > I believe Douglas submitted this patch
-> > (http://linuxtv.org/hg/v4l-dvb/rev/77f789d59de8) that got committed.
-> >
-> > I've been meaning to get back to this because the "A316" part of the
-> > name caught my attention -- I do not recall having seen such a
-> > reference made by KWorld, nor is it typical of their nomenclature
-> > style, rather, it is entirely consistent with that used by AVerMedia
-> >
-> >
-> >
-> >
-> Douglas:
+> i've been googling and trying some things during days with no luck.
 > 
-> A316 is actually the product ID portion of the USB vendor/product
-> IDs.  It should be 330 instead of A316.
+> i want to get the remote which comes with this card working, and i only 
+> found old posts like this one:
+> 
+> http://www.spinics.net/lists/vfl/msg29862.html
+> 
+> which assures that the patch gets the remote to work on that card.
+> 
+> i downloaded the latest v4l source code and tried to patch it with the 
+> code proposed on that post, but var names have changed and i don't have 
+> a clue on how to apply it properly.
+> 
+> i haven't seen any more recent post, so i guess it may still be in a 
+> to-do list, or may be it was rejected for some reason to go into the 
+> main-line.
+> 
+> Could anyone tell me if this patch will ever be included? or... what v4l 
+> version could i download to be able to patch it as described?
+> 
 
-I agree with that. It should be replaced.
+the MSI TV@nywhere Plus with similar problems is included now.
+
+http://linuxtv.org/hg/v4l-dvb/rev/7d81fb776d1f
+
+Might be a hook for the Trio as well, but I don't remember the details
+offhand anymore.
 
 Cheers,
-Douglas
+Hermann
+
 
 --
 video4linux-list mailing list
