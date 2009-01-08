@@ -1,17 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1LKYv8-0006RA-NW
-	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 14:58:08 +0100
-Date: Wed, 07 Jan 2009 14:57:32 +0100
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <4963CA07.3040905@freenet.de>
-Message-ID: <20090107135732.151450@gmx.net>
-MIME-Version: 1.0
-References: <49634AFE.2080405@borodulin.fi> <20090106125032.258680@gmx.net>
-	<4963CA07.3040905@freenet.de>
-To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] The status and future of Mantis driver
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+6fe81ee853252f17f9b7+1964+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1LKjqT-00089M-GL
+	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 02:38:01 +0100
+Date: Wed, 7 Jan 2009 23:37:27 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20090107233727.431157f9@pedra.chehab.org>
+In-Reply-To: <1231288416.3117.29.camel@palomino.walls.org>
+References: <20090104113738.GD3551@gmail.com>
+	<1231097304.3125.64.camel@palomino.walls.org>
+	<20090105130720.GB3621@gmail.com>
+	<1231202800.3110.13.camel@palomino.walls.org>
+	<20090106144917.736584e7@pedra.chehab.org>
+	<20090106170002.GC3403@gmail.com>
+	<20090106170926.52575365@pedra.chehab.org>
+	<7C301ED0-CA57-406B-BA34-43A6EB21D96C@WhiteCitadel.com>
+	<35565.62.178.208.71.1231285755.squirrel@webmail.dark-green.com>
+	<1231288416.3117.29.camel@palomino.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org,
+	Paul <Paul@WhiteCitadel.com>
+Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,69 +30,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hans Werner schrieb:
-> >> Heya!
-> >>
-> >> I found out that there is some new activity on Manu Abraham's Mantis =
+On Tue, 06 Jan 2009 19:33:36 -0500
+Andy Walls <awalls@radix.net> wrote:
 
-> >> driver, so I thought I could throw in some thoughts about it.
-> >>
-> >> I have been using Manu's Mantis driver (http://www.jusst.de/hg/mantis) =
+> Thanks for the report.  That's actually exactly what I would expect. 
+> 
+> The race I think happens should only happen after the first device is
+> added to the cx8802_devlist and while the cx88-dvb module is probing
+> devices a second device is being added to the cx8802_devlist with a
+> pointer not properly set yet.
+> (Of course, I'm not sure why Mauro's recent change didn't work for
+> Gregoire.)
 
-> >> for over two years now. I have a VP-2033 card (DVB-C) and at least for =
-
-> >> the last year the driver has worked without any hickups in my daily =
-
-> >> (VDR) use. For a long time I have thought that the driver should
-> already =
-
-> >> be merged to the v4l-dvb tree.
-> >>     =
-
-> I'm fine with
-> =
-
->     http://www.jusst.de/hg/mantis
-> =
-
-> too.
-> =
-
-> Unfortunately, I'm sticked to kernels <=3D 2.6.26.x, because I can't comp=
-ile
-> it under 2.6.27 anymore.
-
-So you are, er, not fine then? ;)
-
-> Can you compile s2-liplianin for 2.6.27.x/28.x? =
+Probably because I moved also some code from cx88-mpeg into cx88-dvb. We should
+rewrite the locks on the drivers to work better after the KBL unlock patches
+that went on 2.6.27 and 2.6.28.
 
 
-Yes and yes.
-
-> Do the modules work for
-> the VP-2033?
-
-Why don't you try it and report? The VP-2040 cable card is working :
-http://www.linuxtv.org/pipermail/linux-dvb/2009-January/031350.html
-
-> Ciao Ruediger D.
-
-Regards,
-Hans
--- =
-
-Release early, release often.
-
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
-http://www.gmx.net/de/go/multimessenger
+Cheers,
+Mauro
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
