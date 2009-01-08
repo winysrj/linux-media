@@ -1,21 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from mail-in-12.arcor-online.net ([151.189.21.52])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1LJmms-0000hZ-Jo
-	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 11:34:24 +0100
-Received: by yx-out-2324.google.com with SMTP id 8so2588276yxg.41
-	for <linux-dvb@linuxtv.org>; Mon, 05 Jan 2009 02:34:18 -0800 (PST)
-Message-ID: <ea4209750901050234qa8f8afenfdf0faeecc1daf5c@mail.gmail.com>
-Date: Mon, 5 Jan 2009 11:34:18 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "Markus Rechberger" <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0901041338k5acb632ax78f609b81bcd8793@mail.gmail.com>
-MIME-Version: 1.0
-References: <49611175.1020907@yahoo.gr>
-	<ea4209750901041208p588ada83w83afaa490c5932ee@mail.gmail.com>
-	<d9def9db0901041338k5acb632ax78f609b81bcd8793@mail.gmail.com>
-Cc: Linux-DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Terratec Cinergy Hybrid T USB XS FM
+	(envelope-from <hermann-pitton@arcor.de>) id 1LKkW6-0003W1-Dx
+	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 03:21:03 +0100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gregoire Favre <gregoire.favre@gmail.com>
+In-Reply-To: <20090104182403.GB3521@gmail.com>
+References: <c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
+	<op.um60szqyrj95b0@localhost>
+	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
+	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
+	<1231057784.2615.9.camel@pc10.localdom.local>
+	<20090104103744.GB3551@gmail.com>
+	<1231085219.2723.1.camel@pc10.localdom.local>
+	<20090104163744.GA3521@gmail.com>
+	<1231089346.2723.9.camel@pc10.localdom.local>
+	<20090104182403.GB3521@gmail.com>
+Date: Thu, 08 Jan 2009 03:20:44 +0100
+Message-Id: <1231381244.2647.19.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S Channel searching problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,124 +28,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0004568423=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0004568423==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_116848_25357787.1231151658347"
+Hi,
 
-------=_Part_116848_25357787.1231151658347
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Am Sonntag, den 04.01.2009, 19:24 +0100 schrieb Gregoire Favre:
+> On Sun, Jan 04, 2009 at 06:15:46PM +0100, hermann pitton wrote:
+> 
+[...]
+> 
+> Isn't those numbers of channels quiete small ?
 
-Sorry, I thought it was a Dibcom based device since there are so many
-similar names... :P
+sorry, did not read it to the end and only noticed the oops is gone.
 
-Albert
+Yes, looks poor, but I don't have any such hardware and can't compare
+what a recent windows driver would deliver. Also at least on 13.0E the
+scan file needs lots of updates (lyngsat.com), 19.2 I did not test, but
+on 28.2 kaffeine finds much more, but I'm only in borderline reception
+conditions and not a reference.
 
-2009/1/4 Markus Rechberger <mrechberger@gmail.com>
+To my surprise, current tda826x silicon tuners for example have no
+difference, but previous latest can tuners can have 30% less on the same
+signal. I got it told the other way round.
 
-> 2009/1/4 Albert Comerma <albert.comerma@gmail.com>:
-> > I'm nearly sure that ONLY dvb-t works, not analog, not radio.
-> >
->
-> everything's fully supported, you might have a further look at the
-> documentation on mcentral.de for it.
->
-> regards,
-> Markus
->
-> > Albert
-> >
-> > 2009/1/4 rvf16 <rvf16@yahoo.gr>
-> >>
-> >> Hello to all.
-> >>
-> >> Could anyone confirm if all signals of this usb tv tuner are supported
-> >> (DVB-T, analog tv PAL, FM radio) and what about teletext and remote
-> >> control support?
-> >> I have searched throughout the web but didn't reach a satisfying result
-> >> except for the DVB-T signal.
-> >>
-> >> Thank you.
-> >> Regards.
-> >>
-> >>
-> >> _______________________________________________
-> >> linux-dvb mailing list
-> >> linux-dvb@linuxtv.org
-> >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
->
+> I think my debug info are wrong, I put :
+> options cx88_alsa index=-2
 
-------=_Part_116848_25357787.1231151658347
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The default -1 should auto enumerate and else you force the dsps/mixers
+considering that the sound card(s) are usually first.
 
-Sorry, I thought it was a Dibcom based device since there are so many similar names... :P<br><br>Albert<br><br><div class="gmail_quote">2009/1/4 Markus Rechberger <span dir="ltr">&lt;<a href="mailto:mrechberger@gmail.com">mrechberger@gmail.com</a>&gt;</span><br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">2009/1/4 Albert Comerma &lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt;:<br>
+> options cx88xx i2c_debug=1
+> in  /etc/modprobe.conf isn't that right ?
 
-<div class="Ih2E3d">&gt; I&#39;m nearly sure that ONLY dvb-t works, not analog, not radio.<br>
-&gt;<br>
-<br>
-</div>everything&#39;s fully supported, you might have a further look at the<br>
-documentation on <a href="http://mcentral.de" target="_blank">mcentral.de</a> for it.<br>
-<br>
-regards,<br>
-<font color="#888888">Markus<br>
-</font><div><div></div><div class="Wj3C7c"><br>
-&gt; Albert<br>
-&gt;<br>
-&gt; 2009/1/4 rvf16 &lt;<a href="mailto:rvf16@yahoo.gr">rvf16@yahoo.gr</a>&gt;<br>
-&gt;&gt;<br>
-&gt;&gt; Hello to all.<br>
-&gt;&gt;<br>
-&gt;&gt; Could anyone confirm if all signals of this usb tv tuner are supported<br>
-&gt;&gt; (DVB-T, analog tv PAL, FM radio) and what about teletext and remote<br>
-&gt;&gt; control support?<br>
-&gt;&gt; I have searched throughout the web but didn&#39;t reach a satisfying result<br>
-&gt;&gt; except for the DVB-T signal.<br>
-&gt;&gt;<br>
-&gt;&gt; Thank you.<br>
-&gt;&gt; Regards.<br>
-&gt;&gt;<br>
-&gt;&gt;<br>
-&gt;&gt; _______________________________________________<br>
-&gt;&gt; linux-dvb mailing list<br>
-&gt;&gt; <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-&gt;&gt; <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-&gt;<br>
-&gt;<br>
-&gt; _______________________________________________<br>
-&gt; linux-dvb mailing list<br>
-&gt; <a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-&gt; <a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-&gt;<br>
-</div></div></blockquote></div><br>
+Thought that should always work.
+("depmod -a" ?)
 
-------=_Part_116848_25357787.1231151658347--
+Cheers,
+Hermann
 
 
---===============0004568423==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+
+
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0004568423==--
