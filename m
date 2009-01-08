@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx40.mail.ru ([194.67.23.36])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ar-grig@mail.ru>) id 1LPMQh-0006D6-0u
-	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 20:38:33 +0100
-Received: from [93.94.222.250] (port=15808 helo=[192.168.7.7])
-	by mx40.mail.ru with asmtp id 1LPMQ7-0008CD-00
-	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 22:37:55 +0300
-From: ar <ar-grig@mail.ru>
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="=-rZ8qebqkTdZV04nWrwJm"
-Date: Tue, 20 Jan 2009 23:37:53 +0400
-Message-Id: <1232480273.23804.10.camel@hp>
-Mime-Version: 1.0
-Subject: [linux-dvb] QQ box dvb-s usb dongle not supported ?
-Reply-To: linux-media@vger.kernel.org
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1LKyWa-0001OR-RW
+	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 18:18:29 +0100
+Date: Thu, 08 Jan 2009 18:17:55 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <20090108100149.2c6df55e@pedra.chehab.org>
+Message-ID: <20090108171755.23040@gmx.net>
+MIME-Version: 1.0
+References: <20090105152029.293080@gmx.net>
+	<20090108100149.2c6df55e@pedra.chehab.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>, linux-media@vger.kernel.org,
+	abraham.manu@gmail.com, linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH] [RESEND] stb6100: stb6100_init fix
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,327 +20,96 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
---=-rZ8qebqkTdZV04nWrwJm
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> > Hi Mauro,
+> > please look at the patch below.
+> > =
 
-I am running ubuntu intrepid latest update on hp pavilion tx1000z with
-latest dvb kernel modules.
+> > Signed-off-by: Hans Werner <hwerner4@gmx.de>
+> > =
 
-I have bought the "QQ box" dvb-s usb dongle and it seems to be
-unsupported.
+> > Thanks,
+> > Hans
+> > =
 
-HOW CAN I GET IT WORKING UNDER LINUX ?
-------------------------------------------------------------------------
-Here is tech info:
+> > -------- Original-Nachricht --------
+> > Datum: Mon, 05 Jan 2009 16:10:50 +0100
+> > Von: "Hans Werner" <HWerner4@gmx.de>
+> > An: linux-dvb@linuxtv.org
+> > Betreff: [linux-dvb] [PATCH] stb6100: stb6100_init fix
+> > =
 
-system:	Linux hp 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC 2008
-x86_64 GNU/Linux
+> > Two issues in stb6100_init : the call to stb6100_set_bandwidth needs an
+> argument in Hz
+> > not kHz, and a comment incorrectly says MHz instead of Hz.  I don't know
+> if this caused
+> > real problems anywhere.
+> > =
 
-output of lsusb -v for the device:
+> > This patch is for v4l-dvb, but it is also needs to be fixed in
+> s2-liplianin.
+> > =
 
-Bus 002 Device 027: ID 3344:1120  
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x3344 
-  idProduct          0x1120 
-  bcdDevice            0.00
-  iManufacturer           0 
-  iProduct                0 
-  iSerial                 3 ???
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           76
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0xc0
-      Self Powered
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           7
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x87  EP 7 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x03fc  1x 1020 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x0a  EP 10 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x8a  EP 10 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+> > ...
+> > ...
+> =
 
-dmesg output:
+> Considering that the ioctl use "state" instead of "status", your patch
+> looks
+> sane:
+> =
 
-[102008.676081] usb 2-8: new high speed USB device using ehci_hcd and
-address 28
-[102008.808944] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint
-0x81 has invalid maxpacket 64
-[102008.808966] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint
-0x1 has invalid maxpacket 64
-[102008.808974] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint
-0x2 has invalid maxpacket 64
-[102008.808982] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint
-0x8A has invalid maxpacket 64
-[102008.814644] usb 2-8: configuration #1 chosen from 1 choice
+> case DVBFE_TUNER_BANDWIDTH:
+>                 stb6100_set_bandwidth(fe, state->bandwidth);
+> =
+
+> Could you please re-send this patch to me, mentioning the above,
+> explicitly C/C
+> Manu, linux-media and linux-dvb ML's? Please, mark the patch as a resend.
+> =
+
+> Cheers,
+> Mauro
+
+Resending the following patch as requested by Mauro.
+Signed-off-by: Hans Werner <hwerner4@gmx.de>
+
+diff -r b7e7abe3e3aa linux/drivers/media/dvb/frontends/stb6100.c
+--- a/linux/drivers/media/dvb/frontends/stb6100.c
++++ b/linux/drivers/media/dvb/frontends/stb6100.c
+@@ -434,11 +434,11 @@ static int stb6100_init(struct dvb_front
+        status->refclock        =3D 27000000;     /* Hz   */
+        status->iqsense         =3D 1;
+        status->bandwidth       =3D 36000;        /* kHz  */
+-       state->bandwidth        =3D status->bandwidth * 1000;     /* MHz  */
++       state->bandwidth        =3D status->bandwidth * 1000;     /* Hz   */
+        state->reference        =3D status->refclock / 1000;      /* kHz  */
+
+        /* Set default bandwidth.       */
+-       return stb6100_set_bandwidth(fe, status->bandwidth);
++       return stb6100_set_bandwidth(fe, state->bandwidth);
+ }
+
+ static int stb6100_get_state(struct dvb_frontend *fe,
 
 
---=-rZ8qebqkTdZV04nWrwJm
-Content-Disposition: attachment; filename="info"
-Content-Type: text/plain; name="info"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
-system:	Linux hp 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC 2008 x86_64 GNU/Linux
-
-output of lsusb -v for the device:
-Bus 002 Device 027: ID 3344:1120  
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x3344 
-  idProduct          0x1120 
-  bcdDevice            0.00
-  iManufacturer           0 
-  iProduct                0 
-  iSerial                 3 ???
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           76
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0xc0
-      Self Powered
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           7
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x87  EP 7 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x03fc  1x 1020 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x0a  EP 10 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x8a  EP 10 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
-dmesg output :
-[102008.676081] usb 2-8: new high speed USB device using ehci_hcd and address 28
-[102008.808944] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint 0x81 has invalid maxpacket 64
-[102008.808966] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint 0x1 has invalid maxpacket 64
-[102008.808974] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint 0x2 has invalid maxpacket 64
-[102008.808982] usb 2-8: config 1 interface 0 altsetting 1 bulk endpoint 0x8A has invalid maxpacket 64
-[102008.814644] usb 2-8: configuration #1 chosen from 1 choice
 
 
---=-rZ8qebqkTdZV04nWrwJm
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- =
+
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---=-rZ8qebqkTdZV04nWrwJm--
