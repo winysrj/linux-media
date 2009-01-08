@@ -1,21 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Mon, 12 Jan 2009 08:40:20 +0100
-References: <496A9485.7060808@gmail.com> <496AB41E.8020507@rogers.com>
-	<20090112031947.134c29c9@pedra.chehab.org>
-In-Reply-To: <20090112031947.134c29c9@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901120840.20194.hverkuil@xs4all.nl>
-Cc: V4L <video4linux-list@redhat.com>, Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, CityK <cityk@rogers.com>,
-	linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
+Date: Thu, 8 Jan 2009 09:38:49 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Nam =?UTF-8?B?UGjhuqFtIFRow6BuaA==?="  <phamthanhnam.ptn@gmail.com>
+Message-ID: <20090108093849.0e885ec5@pedra.chehab.org>
+In-Reply-To: <2ac79fa40901072131m10be588axb3de61ef81bb943f@mail.gmail.com>
+References: <2ac79fa40901072131m10be588axb3de61ef81bb943f@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list <video4linux-list@redhat.com>, Linux Media Mailing
+	List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pwc: add support for webcam snapshot button
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,141 +22,218 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 12 January 2009 06:19:47 Mauro Carvalho Chehab wrote:
-> On Sun, 11 Jan 2009 22:08:14 -0500
->
-> CityK <cityk@rogers.com> wrote:
-> > Josh Borke wrote:
-> > > After upgrading to Fedora 10 I am no longer able to tune analog
-> > > or dvb channels using my KWorld ATSC 115. When I try to view a
-> > > channel with tvtime all I can see is static and when I try to
-> > > scandvb I keep getting tuning failed even though I know that
-> > > there are channels being broadcast on the channels scanned. I
-> > > have tried to find tips on the wiki of how to resolve my static
-> > > problem but I could not find any. I'm not sure where to look for
-> > > clues as to why it isn't working.
-> > >
-> > > I have a 1-to-4 splitter with 2 outputs going to the inputs of
-> > > the KWorld ATSC and another going to a TV so I know there is
-> > > signal on the cable.
-> > >
-> > > Any help would be really appreciated.
-> >
-> > Hello everyone,
-> >
-> > In addition to being a general broadcast message, I have cc'ed  in
-> > a number of folks.
-> >
-> > This (broken analog TV on, at the very minimum, the KWorld 110 and
-> > 115 cards) is a known problem that has persisted for a long time. 
-> > Far too long now.   I last wrote about it here:
-> > http://marc.info/?l=linux-video&m=122809741331944&w=2.  No response
-> > was generated from that.  So I will try again and outline what I
-> > believe is the relevant history:
-> >
-> > - Mauro, you introduced a regression for these boards in changeset:
-> > 7753:67faa17a5bcb 
-> > (http://linuxtv.org/hg/v4l-dvb/rev/67faa17a5bcb). Since that
-> > commit, analog TV has been broken for these cards.
-> >
-> > - Michael commented about this here:
-> > http://marc.info/?l=linux-video&m=121243712021921&w=2
-> >
-> > - Mauro responded here:
-> > http://marc.info/?l=linux-video&m=121243995927725&w=2
-> >
-> > - Several users have brought this up since then (both here on the
-> > m/l's and on internet forums) .
-> >
-> > - Michael spun a stopgap solution for this (found here
-> >
-> > :http://linuxtv.org/~mkrufky/fix-broken-atsc110-analog.patch
-> >
-> > <http://linuxtv.org/%7Emkrufky/fix-broken-atsc110-analog.patch> ). 
-> > It still applies cleanly.  Unfortunately, it is not a bonafide
-> > solution because: (a) upon each reboot of the system, the user is
-> > required to first "modprobe tuner -r" and then "modprobe tuner"
-> > before the analog tuning will initialize and function properly. 
-> > (b) In addition, Michael's patch may affect/break other devices, so
-> > it can not be committed to the master repo.
-> >
-> > - Hans, I know you have done a lot of clean ups in regards to i2c,
-> > but do not know whether any of your work would have touched upon or
-> > have had any impact here.  Nonetheless, I'd appreciate your input
-> > on the matter too if you are able to comment.
-> >
-> > I am hoping that this can be resolved to everyone's satisfaction. 
-> > In my opinion, this should become a priority item, as this
-> > regression's life has spanned over 4 kernels.
-> >
-> > [For the sake of full disclosure, I am personally affected by the
-> > issue, but I note that I use Mike's patch each and everyday (thank
-> > you Mike!), and so, other then the minor inconvenience of having to
-> > do a modprobe dance with the tuner module, I am not impacted too
-> > much.  Other users, however, are left in the dark.  And, as I
-> > explained in my last message, those AVS users that I addressed this
-> > issue with seemed entirely hesitant about using the patch (maybe I
-> > scared them with a greivious warning ??).  Anyway, as evidenced by
-> > Josh  (OP for this message) and David (see his recent messages;
-> > e.g.
-> > http://marc.info/?l=linux-video&m=123066362106086&w=2), end users
-> > continue to encounter  this problem.  I am only surprised that we
-> > haven't heard more about this issue.  As I noted earlier on, I
-> > believe that its impact is greater then just upon the KWorld 11x
-> > cards.]
->
-> This issue doesn't have an easy fix. The big problem is that some
-> devices like Kworld ATSC 115 needs to send some i2c commands before
-> accessing the tuner. However, depending on the load order, the tuner
-> command can happen before the right time. This trouble is not
-> exclusive with saa7134. We have similar issues with cx88 (for
-> example, Kworld ATSC 120 suffers similar troubles).
->
-> As you noticed, applying Michael patch will likely break other
-> drivers.
->
-> The proper fix is a major saa7134 redesign, by using the newer i2c
-> methods.
->
-> The new i2c interfaces allow you to register the i2c bus first, then
-> register each driver when you want to, and not relying on a code that
-> automatically registers all i2c video drivers found at a random
-> order.
->
-> So, with the new i2c approach, we can warrant that we'll first open
-> the i2c gate before binding the tuner and/or the demodulator.
->
-> Any other approach with the current way will break some other cards
-> or cause troubles on some situations, like having the driver compiled
-> monolithically with the kernel or if you have two boards on the
-> machine.
->
-> The redesign of saa7134 requires lots of work. It requires to a full
-> understanding of Hans Verkuil approach used on ivtv. The ivtv driver
-> is different enough from the other drivers to allow an easy
-> conversion. Also, his approach changed recently with the introduction
-> of the v4l2 subdevices. Even the conversion of the cx18 driver (very
-> close to ivtv) to the newer approach doesn't seem to be that easy, as
-> noticed recently by Andy.
->
-> IMO, the better would be if Hans could dedicate some time to convert
-> one of the drivers that have the more usual approach (saa7134,
-> em28xx, cx88, bttv) to the new approach. Then the same patch could be
-> easily converted to the other drivers.
->
-> Hans,
->
-> Could you help us with this?
 
-Yes, I can. I'll do saa7134 since I have an empress card anyway. It 
-should be quite easy (the cx18 complication is not an issue here).
+On Thu, 8 Jan 2009 12:31:48 +0700
+"Nam Phạm Thành"  <phamthanhnam.ptn@gmail.com> wrote:
 
-Regards,
+> OK, resent. Hope it's OK now.
 
-	Hans
+Unfortunately, it is not 100% ok. See the comments bellow.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+You shouldn't add any comment before the patch (like the above). Otherwise, it
+will be committed by the scripts also, or I need to double check your comments
+and remove it manually (I always review the message, so this is not a big
+issue, but it is better if you learn the proper way for sending patches).
+
+> This patch adds support for Philips webcam snapshot button as an
+> event input device, for consistency with other webcam drivers.
+> Signed-off-by: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>
+> 
+> diff -uNr a/linux/drivers/media/video/pwc/pwc.h b/linux/drivers/media/video/pwc/pwc.h
+> --- a/linux/drivers/media/video/pwc/pwc.h	2009-01-03 20:03:43.000000000 +0700
+> +++ b/linux/drivers/media/video/pwc/pwc.h	2009-01-07 02:10:58.000000000 +0700
+> @@ -38,6 +38,7 @@
+>  #include <linux/videodev.h>
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-ioctl.h>
+> +#include <linux/input.h>
+
+If you added input code here, you need also to change the Kconfig file, since
+the driver will now depend on having input support. This is done by adding
+"depends on INPUT" at the Kconfig entry for pwc. Something like this:
+
+config USB_PWC
+        tristate "USB Philips Cameras"
+        depends on VIDEO_V4L1
++	depends on INPUT
+        default n
+        depends on VIDEO_KERNEL_VERSION
+
+>  
+>  #include "pwc-uncompress.h"
+>  #include <media/pwc-ioctl.h>
+> @@ -256,6 +257,7 @@
+>     int pan_angle;			/* in degrees * 100 */
+>     int tilt_angle;			/* absolute angle; 0,0 is home position */
+>     int snapshot_button_status;		/* set to 1 when the user push the button, reset to 0 when this value is read */
+> +   struct input_dev *button_dev;	/* webcam snapshot button input */
+>  
+>     /*** Misc. data ***/
+>     wait_queue_head_t frameq;		/* When waiting for a frame to finish... */
+> diff -uNr a/linux/drivers/media/video/pwc/pwc-if.c b/linux/drivers/media/video/pwc/pwc-if.c
+> --- a/linux/drivers/media/video/pwc/pwc-if.c	2009-01-03 20:03:43.000000000 +0700
+> +++ b/linux/drivers/media/video/pwc/pwc-if.c	2009-01-08 10:38:45.000000000 +0700
+> @@ -53,6 +53,7 @@
+>     - Xavier Roche: QuickCam Pro 4000 ID
+>     - Jens Knudsen: QuickCam Zoom ID
+>     - J. Debert: QuickCam for Notebooks ID
+> +   - Pham Thanh Nam: webcam snapshot button as an event input device
+>  */
+>  
+>  #include <linux/errno.h>
+> @@ -61,6 +62,11 @@
+>  #include <linux/module.h>
+>  #include <linux/poll.h>
+>  #include <linux/slab.h>
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 18)
+> +#include <linux/usb_input.h>
+> +#else
+> +#include <linux/usb/input.h>
+> +#endif
+>  #include <linux/vmalloc.h>
+>  #include <linux/version.h>
+>  #include <asm/io.h>
+> @@ -587,6 +593,22 @@
+>  				pdev->vframe_count);
+>  }
+>  
+> +static void pwc_snapshot_button(struct pwc_device *pdev, int down)
+> +{
+> +	if (down) {
+> +		PWC_TRACE("Snapshot button pressed.\n");
+> +		pdev->snapshot_button_status = 1;
+> +	}
+> +	else {
+
+Coding Style error. Always use:
+	} else {
+
+If you have checked your patch with checkpatch.pl, you would have gotten this
+error. If you haven't committed the patch on your tree, you can check such
+errors with:
+	make checkpatch
+
+> +		PWC_TRACE("Snapshot button released.\n");
+> +	}
+> +
+> +	if (pdev->button_dev) {
+> +		input_report_key(pdev->button_dev, BTN_0, down);
+> +		input_sync(pdev->button_dev);
+> +	}
+> +}
+> +
+>  static int pwc_rcv_short_packet(struct pwc_device *pdev, const struct pwc_frame_buf *fbuf)
+>  {
+>  	int awake = 0;
+> @@ -604,13 +626,7 @@
+>  			pdev->vframes_error++;
+>  		}
+>  		if ((ptr[0] ^ pdev->vmirror) & 0x01) {
+> -			if (ptr[0] & 0x01) {
+> -				pdev->snapshot_button_status = 1;
+> -				PWC_TRACE("Snapshot button pressed.\n");
+> -			}
+> -			else {
+> -				PWC_TRACE("Snapshot button released.\n");
+> -			}
+> +			pwc_snapshot_button(pdev, ptr[0] & 0x01);
+>  		}
+>  		if ((ptr[0] ^ pdev->vmirror) & 0x02) {
+>  			if (ptr[0] & 0x02)
+> @@ -634,12 +650,7 @@
+>  	else if (pdev->type == 740 || pdev->type == 720) {
+>  		unsigned char *ptr = (unsigned char *)fbuf->data;
+>  		if ((ptr[0] ^ pdev->vmirror) & 0x01) {
+> -			if (ptr[0] & 0x01) {
+> -				pdev->snapshot_button_status = 1;
+> -				PWC_TRACE("Snapshot button pressed.\n");
+> -			}
+> -			else
+> -				PWC_TRACE("Snapshot button released.\n");
+> +			pwc_snapshot_button(pdev, ptr[0] & 0x01);
+>  		}
+>  		pdev->vmirror = ptr[0] & 0x03;
+>  	}
+> @@ -1221,6 +1232,11 @@
+>  {
+>  	pwc_remove_sysfs_files(pdev->vdev);
+>  	video_unregister_device(pdev->vdev);
+> +	if (pdev->button_dev) {
+> +		input_unregister_device(pdev->button_dev);
+> +		input_free_device(pdev->button_dev);
+> +		pdev->button_dev = NULL;
+> +	}
+>  }
+>  
+>  /* Note that all cleanup is done in the reverse order as in _open */
+> @@ -1488,6 +1504,7 @@
+>  	int features = 0;
+>  	int video_nr = -1; /* default: use next available device */
+>  	char serial_number[30], *name;
+> +	char *phys = NULL;
+>  
+>  	vendor_id = le16_to_cpu(udev->descriptor.idVendor);
+>  	product_id = le16_to_cpu(udev->descriptor.idProduct);
+> @@ -1812,6 +1829,39 @@
+>  	pwc_set_leds(pdev, 0, 0);
+>  	pwc_camera_power(pdev, 0);
+>  
+> +	/* register webcam snapshot button input device */
+> +	pdev->button_dev = input_allocate_device();
+> +	if (!pdev->button_dev) {
+> +		PWC_ERROR("Err, insufficient memory for webcam snapshot button device.");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	pdev->button_dev->name = "PWC snapshot button";
+> +	phys = kmalloc(6 + strlen(pdev->udev->bus->bus_name) + strlen(pdev->udev->devpath),
+> +			GFP_KERNEL);
+
+Don't use magic numbers ("6") here... Instead, see the next comment
+
+> +	if (phys == NULL) {
+> +		input_free_device(pdev->button_dev);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	sprintf(phys, "usb-%s-%s", pdev->udev->bus->bus_name, pdev->udev->devpath);
+
+Instead of allocating with kmalloc and then use sprintf, use this construction:
+
+	phys = kasprintf(GFP_KERNEL,"usb-%s-%s", pdev->udev->bus->bus_name,
+						 pdev->udev->devpath);
+	if (!phys) {
+		input_free_device(pdev->button_dev);
+		return -ENOMEM;
+	}
+
+> +	pdev->button_dev->phys = phys;
+> +	usb_to_input_id(pdev->udev, &pdev->button_dev->id);
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 22)
+> +	pdev->button_dev->dev.parent = &pdev->udev->dev;
+> +#else
+> +	pdev->button_dev->cdev.dev = &pdev->udev->dev;
+> +#endif
+> +	pdev->button_dev->evbit[0] = BIT_MASK(EV_KEY);
+> +	pdev->button_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
+> +
+> +	rc = input_register_device(pdev->button_dev);
+> +	if (rc) {
+> +		input_free_device(pdev->button_dev);
+
+You forgot to free the input name with something like this:
+		kfree(pdev->button_dev->phys);
+
+> +		pdev->button_dev = NULL;
+> +		return rc;
+> +	}
+> +
+>  	return 0;
+>  
+>  err_unreg:
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
