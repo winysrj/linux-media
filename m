@@ -1,15 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Wed, 7 Jan 2009 11:36:48 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECEDD5E0@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [RFC] OMAP3EVM Multi-Media Daughter Card Support
+Date: Wed, 7 Jan 2009 22:48:37 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20090107224837.64418751@pedra.chehab.org>
+In-Reply-To: <alpine.LFD.2.00.0901071603130.3057@localhost.localdomain>
+References: <20090107215252.6e843e29@pedra.chehab.org>
+	<alpine.LFD.2.00.0901071603130.3057@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb-maintainer@linuxtv.org, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PATCHES for 2.6.29] V4L/DVB fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,93 +23,86 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 7 Jan 2009 16:05:20 -0800 (PST)
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-This RFC provides high level design/changes for supporting Multi-Media/Mass-Market/Mistral/Customer Daughter card based on OMAP3 EVM.
+> On Wed, 7 Jan 2009, Mauro Carvalho Chehab wrote:
+> > 
+> > Please pull from:
+> >         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+> > 
+> >  MAINTAINERS                                     |   65 ++++++++++------
+> > 
+> > Mauro Carvalho Chehab (8):
+> >       V4L/DVB (10191a): Update MAINTAINERS entries on media drivers
+> 
+> I'm not seeing this one. Forgot to push out?
 
-Background
-==========
-OMAP3 EVM doesn't support camera interface, TI and Mistral has developed 
-Daughter card on top of OMAP3 EVM which will add support for 
+I fact, I didn't notice, but my push got an error, due to a commit that I
+needed to amend locally.
 
-    - TVP5146 decoder, providing BT656 capture support through S-Video/Component/Composite input.
-    - Camera/sensor interface (Micron)
-    - HSUSB Transceiver USB-83320
+Anyway, it is fixed. I had to rebase for_linus branch.
 
-Soon the block-diagram, schematics and other details will be available publicly.
+So, please pull from:
+	ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
 
-Hardware Block Diagram
-======================
-Below is top level block diagram for the OMAP3 EVM Multi-Media Daughter Card -
+The git diff -M --stat --summary is the same as on my previous pull request:
 
-  
- 
- OMAP 3 Processor                      Multi-Media Daughter Card
-    Board
- - - - - - - -               - - - - - - -- - - - - - - - - - - - - - 
-| OMAP3530    |             |            - - - - - - <------O S-Vid  |
-|             |             |           |           |                |
-|         I2C |------------------------>|           |      |O|       |
-|             |             |           |           |<-----|O|Compo  |
-|             |             |   /|      |  Video    |      |O|site   |
-|             |             |  | |      |  Decoder  |                |
-|             |             |  | |<-----|  TVP5146  |      |O|       |
-|      Camera |             |  | |       - - - - - - <-----|O|Compo  |
-|    interface|<---------------| |                         |O|nent   |
-|             |             |  | |       - - - - - -                 |
-|             |             |  | |<-----|           |                |
-|             |             |  | |      |  Micron   |                |
-|             |             |  | |      |  Image    |                |
-|             |             |   \|      |  Sensor   |                |
-|         I2C |------------------------>|           |                |
-|             |             |            - - - - - -                 |
-|             |             |                                        |
-|        HSUSB|             |            - - - - - -                 |
-|         HOST|<----------------------->|           |                |
- - - - - - - -              |           |   HSUSB   |                |
-                            |           |Transceiver|                |
-                            |           |  USB83320 |                |
-                            |           |           |                |
-                            |            - - - - - -                 |
-                            |                                        |
-                            |                                        |
-                             - - - - - - -- - - - - - - - - - - - - -
-                                       
-High Level-Software Design
-=========================
+ MAINTAINERS                                     |   65 ++++++++++------
+ drivers/media/common/tuners/tda8290.c           |    6 +-
+ drivers/media/dvb/dm1105/Kconfig                |    1 +
+ drivers/media/dvb/dvb-core/dvb_frontend.c       |   26 ++++---
+ drivers/media/dvb/dvb-usb/anysee.c              |    2 +-
+ drivers/media/dvb/frontends/cx24116.c           |    2 +-
+ drivers/media/dvb/frontends/stb0899_algo.c      |    4 +-
+ drivers/media/dvb/frontends/stb0899_drv.c       |    6 +-
+ drivers/media/dvb/ttpci/budget-ci.c             |    2 +-
+ drivers/media/video/cx88/Kconfig                |    5 +
+ drivers/media/video/cx88/Makefile               |    3 +-
+ drivers/media/video/cx88/cx88-dvb.c             |   46 +++++++++++
+ drivers/media/video/cx88/cx88-i2c.c             |   24 +-----
+ drivers/media/video/cx88/cx88-mpeg.c            |   30 +------
+ drivers/media/video/cx88/cx88.h                 |    4 +-
+ drivers/media/video/em28xx/em28xx-cards.c       |    5 +-
+ drivers/media/video/em28xx/em28xx-core.c        |    2 +-
+ drivers/media/video/em28xx/em28xx-input.c       |    2 +-
+ drivers/media/video/gspca/m5602/m5602_s5k83a.c  |    2 +-
+ drivers/media/video/pxa_camera.c                |    4 +-
+ drivers/media/video/pxa_camera.h                |   95 -----------------------
+ drivers/media/video/usbvideo/ibmcam.c           |    2 +-
+ drivers/media/video/usbvideo/konicawc.c         |    2 +-
+ drivers/media/video/usbvideo/ultracam.c         |    2 +-
+ drivers/media/video/usbvision/usbvision-video.c |    3 +-
+ drivers/media/video/v4l2-device.c               |    4 +-
+ drivers/media/video/videobuf-dma-sg.c           |    3 +-
+ drivers/staging/go7007/go7007-v4l2.c            |    3 +-
+ 28 files changed, 148 insertions(+), 207 deletions(-)
+ delete mode 100644 drivers/media/video/pxa_camera.h
 
-Following are the files which will add support for Daughter Card -
+Eric Miao (1):
+      V4L/DVB (10176b): pxa-camera: fix redefinition warnings and missing DMA definitions
 
-    - arch/arm/mach-omap2/board-omap3evm-dc.c
-        Source file which will handle initialization of the GPMC and similar stuff, registers to the I2C framework for I2C bus 3(TVP5146 interface).
-      
-    - arch/arm/mach-omap2/board-omap3evm-dc.h
-        Corresponding Header file.
-        
-        
-Current implementation/support available
-========================================
+Guennadi Liakhovetski (1):
+      V4L/DVB (10176a): Switch remaining clear_user_page users over to clear_user_highpage
 
-The basic Daughter card support has been added to the latest git kernel; soon I will be posting the patches for review.
+Julia Lawall (1):
+      V4L/DVB (10185): Use negated usb_endpoint_xfer_control, etc
 
-Following things have been tested - 
-    - TVP5146: (On top of Sergio's ISP-Camera patch-sets)
-        - S-Video
-        - Composite
-        
-    - HSUSB:
-        Basic functionality is working.
+Mauro Carvalho Chehab (8):
+      V4L/DVB (10177): Fix sparse warnings on em28xx
+      V4L/DVB (10178): dvb_frontend: Fix some sparse warnings due to static symbols
+      V4L/DVB (10179): tda8290: Fix two sparse warnings
+      V4L/DVB (10180): drivers/media: Fix a number of sparse warnings
+      V4L/DVB (10181): v4l2-device: Fix some sparse warnings
+      V4L/DVB (10189): dm1105: Fix build with INPUT=m and DVB_DM1105=y
+      V4L/DVB (10190): cx88: Fix some Kbuild troubles
+      V4L/DVB (10191a): Update MAINTAINERS entries on media drivers
 
-NOTE: Please note that all the above testing is done on top of ES2.0 silicon version.
+Michael Krufky (1):
+      V4L/DVB (10182): tda8290: fix TDA8290 + TDA18271 initialization
 
-TODO - 
-    - Component support (Should be very easy)
-    - Rigorous testing of TVP5146 and HSUSB.
-    - Camera/sensor support
-
-Thanks,
-Vaibhav Hiremath
-
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
