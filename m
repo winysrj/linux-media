@@ -1,26 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from core6.multiplay.co.uk ([85.236.96.23] helo=multiplay.co.uk)
+Received: from mailout09.t-online.de ([194.25.134.84])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <prvs=1258f76cd4=sid@the-gales.com>)
-	id 1LKUyX-0004Ds-S3
-	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 10:45:22 +0100
-Received: from [192.168.1.10] ([85.236.104.54])
-	by mail1.multiplay.co.uk (mail1.multiplay.co.uk [85.236.96.23])
-	(Cipher TLSv1:RC4-MD5:128) (MDaemon PRO v9.6.6)
-	with ESMTP id md50006796123.msg
-	for <linux-dvb@linuxtv.org>; Wed, 07 Jan 2009 09:41:00 +0000
-Message-ID: <496478A8.5000909@the-gales.com>
-Date: Wed, 07 Jan 2009 09:40:56 +0000
-From: Sid Gale <sid@the-gales.com>
-MIME-Version: 1.0
-To: Albert Comerma <albert.comerma@gmail.com>
-References: <495FA006.8020609@the-gales.com>	
-	<ea4209750901040646p492a91a2x9cd070b98e1dca9c@mail.gmail.com>	
-	<4961D3E7.3070304@the-gales.com>
-	<ea4209750901050327nc21a830j75992a0f1de0fd75@mail.gmail.com>
-In-Reply-To: <ea4209750901050327nc21a830j75992a0f1de0fd75@mail.gmail.com>
+	(envelope-from <yusuf.altin@t-online.de>) id 1LKsDm-0001N7-P5
+	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 11:34:40 +0100
+From: Yusuf Altin <yusuf.altin@t-online.de>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+In-Reply-To: <alpine.LRH.1.10.0901071124460.21687@pub6.ifh.de>
+References: <1231284879.3619.2.camel@yusuf.laptop>
+	<alpine.LRH.1.10.0901071124460.21687@pub6.ifh.de>
+Content-Type: multipart/mixed; boundary="=-B3tqFAmbLnpOw2j9dKfI"
+Date: Thu, 08 Jan 2009 11:34:15 +0100
+Message-Id: <1231410855.2801.4.camel@yusuf.laptop>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Asus My Cinema U3000 Mini
+Subject: [linux-dvb] [PATCH] add Terratec Cinergy T Express to dibcom driver
+ - attachted
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,51 +22,136 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert Comerma wrote:
-> Just more questions... the v4l driver was already supplied on the kernel 
-> or you downloaded it and compile?
-> It should not take so much time to get a channel... In other drivers 
-> there was some GPIO problems, but I never got anything similar with this 
-> card (at least nobody told me)...
-> You can try to load the dvb-core module with a specified timeout in 
-> parameter: dvb_override_tune_delay:0: normal (default), >0 => delay in 
-> milliseconds to wait for lock after a tune attempt (int)
-> 
-> Since you're a beginner in linux you should; first connect your card,
-> then as root unload the modules used by your card (order is important);
->  sudo rmmod dvb_usb_dib0700 dib7000p dib7000m dib3000mc dib0070 dvb_usb 
-> dvb_core
-> If you want you can get a list on the used modules and dependences 
-> between them running; lsmod | grep dvb
-> Then you need to reload the modules in opposite order adding the parameter;
-> sudo modprobe dvb_core dvb_override_tune_delay=10000
-> You should see the new parameter on 
-> /sys/module/dvb_core/parameters/dvb_override_tune_delay
-> And now you have to finish loadding the other modules one by one; sudo 
-> modprobe dvb_usb... sudo modprobe dib0070...
-> 
 
-Hi Albert
+--=-B3tqFAmbLnpOw2j9dKfI
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Thanks for the response. I tried changing the tune delay as you 
-described, but it made no difference. The first filter timeout message 
-appeared after about 5 seconds, just like before, so it looks as though 
-it isn't a tuning timeout that's the problem.
+This patch introduces support for dvb-t for the following dibcom based
+card:
+	Terratec Cinergy T Express (USB-ID: 0ccd:0062)
 
-Thanks for the suggestions, though.
 
-Regards
 
-Sid
 
+
+--=-B3tqFAmbLnpOw2j9dKfI
+Content-Disposition: attachment; filename="cinergyt.patch"
+Content-Type: text/x-patch; name="cinergyt.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+#This patch introduces support for dvb-t for the following dibcom based card:
+#	Terratec Cinergy T Express (USB-ID: 0ccd:0062)
+#		Signed-off-by: Yusuf Altin <yusuf.altin@t-online.de>
+#		Signed-off-by: Albert Comerma <albert.comerma@gmail.com>
+
+diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Mon Jan 05 02:42:38 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Wed Jan 07 00:28:13 2009 +0100
+@@ -1388,16 +1388,17 @@ struct usb_device_id dib0700_usb_id_tabl
+ 	{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
+ /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
+ 	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
+ 	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
+ 	{ USB_DEVICE(USB_VID_YUAN,      USB_PID_YUAN_STK7700PH) },
+ 	{ USB_DEVICE(USB_VID_ASUS,	USB_PID_ASUS_U3000H) },
+ /* 40 */{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E) },
+ 	{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E_SE) },
++	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_EXPRESS) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+ 
+ #define DIB0700_DEFAULT_DEVICE_PROPERTIES \
+ 	.caps              = DVB_USB_IS_AN_I2C_ADAPTER, \
+ 	.usb_ctrl          = DEVICE_SPECIFIC, \
+ 	.firmware          = "dvb-usb-dib0700-1.20.fw", \
+@@ -1532,17 +1533,18 @@ struct dvb_usb_device_properties dib0700
+ 			},
+ 			{   "Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity",
+ 				{ &dib0700_usb_id_table[13], NULL },
+ 				{ NULL },
+ 			},
+ 			{   "DiBcom STK7700D reference design",
+ 				{ &dib0700_usb_id_table[14], NULL },
+ 				{ NULL },
+-			}
++			},
++
+ 		},
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+ 
+ 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+@@ -1552,25 +1554,29 @@ struct dvb_usb_device_properties dib0700
+ 			{
+ 				.frontend_attach  = stk7700P2_frontend_attach,
+ 				.tuner_attach     = stk7700d_tuner_attach,
+ 
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+ 			},
+ 		},
+ 
+-		.num_device_descs = 2,
++		.num_device_descs = 3,
+ 		.devices = {
+ 			{   "ASUS My Cinema U3000 Mini DVBT Tuner",
+ 				{ &dib0700_usb_id_table[23], NULL },
+ 				{ NULL },
+ 			},
+ 			{   "Yuan EC372S",
+ 				{ &dib0700_usb_id_table[31], NULL },
+ 				{ NULL },
++			},
++			{   "Terratec Cinergy T Express",
++				{ &dib0700_usb_id_table[42], NULL },
++				{ NULL },
+ 			}
+ 		},
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+ 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+diff -r b7e7abe3e3aa linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Mon Jan 05 02:42:38 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Wed Jan 07 00:28:13 2009 +0100
+@@ -159,16 +159,17 @@
+ #define USB_PID_AVERMEDIA_HYBRID_ULTRA_USB_M039R_DVBT	0x2039
+ #define USB_PID_AVERMEDIA_VOLAR_X			0xa815
+ #define USB_PID_AVERMEDIA_VOLAR_X_2			0x8150
+ #define USB_PID_AVERMEDIA_A309				0xa309
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+ #define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
+ #define USB_PID_TERRATEC_CINERGY_HT_EXPRESS		0x0060
++#define USB_PID_TERRATEC_CINERGY_T_EXPRESS		0x0062
+ #define USB_PID_TERRATEC_CINERGY_T_XXS			0x0078
+ #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
+ #define USB_PID_PINNACLE_PCTV2000E			0x022c
+ #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
+ #define USB_PID_PINNACLE_PCTV_DUAL_DIVERSITY_DVB_T	0x0229
+ #define USB_PID_PINNACLE_PCTV71E			0x022b
+ #define USB_PID_PINNACLE_PCTV72E			0x0236
+ #define USB_PID_PINNACLE_PCTV73E			0x0237
+
+--=-B3tqFAmbLnpOw2j9dKfI
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=-B3tqFAmbLnpOw2j9dKfI--
