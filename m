@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx19.lb01.inode.at ([62.99.145.21] helo=mx.inode.at)
+Received: from ik-out-1112.google.com ([66.249.90.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <philipp@kolmann.at>) id 1LM1dJ-0004ml-Gn
-	for linux-dvb@linuxtv.org; Sun, 11 Jan 2009 15:49:47 +0100
-Message-ID: <496A0704.1090003@kolmann.at>
-Date: Sun, 11 Jan 2009 15:49:40 +0100
-From: Philipp Kolmann <philipp@kolmann.at>
+	(envelope-from <tutuyu@usc.edu>) id 1LL0uB-0004Wv-5u
+	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 20:50:59 +0100
+Received: by ik-out-1112.google.com with SMTP id c28so2298611ika.1
+	for <linux-dvb@linuxtv.org>; Thu, 08 Jan 2009 11:50:54 -0800 (PST)
+Message-ID: <cae4ceb0901081150m24dbfe5dv386236c9144e952d@mail.gmail.com>
+Date: Thu, 8 Jan 2009 11:50:53 -0800
+From: "Tu-Tu Yu" <tutuyu@usc.edu>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-In-Reply-To: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Mantis users
+Content-Disposition: inline
+Subject: [linux-dvb] CX23885 is broken!?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,48 +25,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Manu Abraham wrote:
-> Hi,
->
-> Can you all please provide me the following information for the Mantis 
-> / Hopper bridge
-> based cards that you have in the following manner ?
->
-> 1) Card Name (As advertised on the cardboard box):
-Don't have the box anymore, but that's was was on the Ordering email:
+I updated the v4l-dvb this morning, and I tried to load cx23885 by
+"modprobe cx23885"
+It says
+"FATAL: Error inserting cx23885
+(/lib/modules/2.6.26-rs/kernel/drivers/media/video/cx23885/cx23885.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)"
 
-*TERRATEC Cinergy C PCI bulk*
+This is dmesg"==>
+cx23885: disagrees about version of symbol video_ioctl2
+cx23885: Unknown symbol video_ioctl2
+cx23885: disagrees about version of symbol videobuf_dvb_alloc_frontend
+cx23885: Unknown symbol videobuf_dvb_alloc_frontend
+cx23885: disagrees about version of symbol video_devdata
+cx23885: Unknown symbol video_devdata
+cx23885: disagrees about version of symbol videobuf_dvb_get_frontend
+cx23885: Unknown symbol videobuf_dvb_get_frontend
+cx23885: disagrees about version of symbol video_unregister_device
+cx23885: Unknown symbol video_unregister_device
+cx23885: disagrees about version of symbol video_device_alloc
+cx23885: Unknown symbol video_device_alloc
+cx23885: disagrees about version of symbol video_register_device
+cx23885: Unknown symbol video_register_device
+cx23885: disagrees about version of symbol v4l2_chip_match_host
+cx23885: Unknown symbol v4l2_chip_match_host
+cx23885: disagrees about version of symbol video_device_release
+cx23885: Unknown symbol video_device_release
 
->
-> 2) lspci -vvn:
-
-philipp@chief:~$ lspci -s 05:01.0
-05:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI 
-Bridge Controller [Ver 1.0] (rev 01)
-philipp@chief:~$ lspci -s 05:01.0 -vvn
-05:01.0 0480: 1822:4e35 (rev 01)
-        Subsystem: 153b:1178
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 64 (2000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 3
-        Region 0: Memory at dfeff000 (32-bit, prefetchable) [size=4K]
-        Kernel modules: mantis
-
-
-
->
-> 3) Chips on the card if you know them (only the basic chip description 
-> is required,
-> not the complete batch no. etc)
-
-If needed, I can pull it out of the box. But currently I am writing this 
-mail ;)
-
-thanks
-Philipp
+Can anyone help me....? thank you so much!!!!!
+Audrey~
 
 _______________________________________________
 linux-dvb users mailing list
