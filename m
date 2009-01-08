@@ -1,12 +1,14 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: hvaibhav@ti.com
-To: linux-omap@vger.kernel.org
-Date: Wed,  7 Jan 2009 11:37:50 +0530
-Message-Id: <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card Support
+Message-ID: <2ac79fa40901072131m10be588axb3de61ef81bb943f@mail.gmail.com>
+Date: Thu, 8 Jan 2009 12:31:48 +0700
+From: "=?UTF-8?Q?Nam_Ph=E1=BA=A1m_Th=C3=A0nh?=" <phamthanhnam.ptn@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_203312_33034101.1231392708241"
+Cc: video4linux-list <video4linux-list@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] pwc: add support for webcam snapshot button
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -18,589 +20,114 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+------=_Part_203312_33034101.1231392708241
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This is first version of OMAP3EVM Mulit-Media Daughter
-Card support.
+OK, resent. Hope it's OK now.
 
-Tested:
-    - TVP5146 (BT656) decoder interface on top of
-      Sergio's ISP-Camera patches.
-    - Loopback application, capturing image through TVP5146
-      and displaying it onto the TV/LCD on top of Hardik's
-      V4L2 driver.
-    - Basic functionality of HSUSB Transceiver USB-83320
-    -
+------=_Part_203312_33034101.1231392708241
+Content-Type: text/x-patch; name=pwc-snapshot-button.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+Content-Disposition: attachment; filename=pwc-snapshot-button.patch
 
-TODO:
-    - Camera sensor support
-    - Driver header file inclusion (dependency on ISP-Camera patches)
-    - Some more clean-up may required.
-
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: R Sivaraj <sivaraj@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/mach-omap2/Kconfig             |    4 +
- arch/arm/mach-omap2/Makefile            |    1 +
- arch/arm/mach-omap2/board-omap3evm-dc.c |  417 +++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3evm-dc.h |   43 ++++
- arch/arm/mach-omap2/mux.c               |    7 +
- arch/arm/plat-omap/include/mach/mux.h   |    4 +
- 6 files changed, 476 insertions(+), 0 deletions(-)
- mode change 100644 => 100755 arch/arm/mach-omap2/Kconfig
- mode change 100644 => 100755 arch/arm/mach-omap2/Makefile
- create mode 100755 arch/arm/mach-omap2/board-omap3evm-dc.c
- create mode 100755 arch/arm/mach-omap2/board-omap3evm-dc.h
- mode change 100644 => 100755 arch/arm/mach-omap2/mux.c
- mode change 100644 => 100755 arch/arm/plat-omap/include/mach/mux.h
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-old mode 100644
-new mode 100755
-index ca24a7a..094c97f
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -121,6 +121,10 @@ config MACH_OMAP3EVM
- 	bool "OMAP 3530 EVM board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-
-+config MACH_OMAP3EVM_DC
-+	bool "OMAP 3530 EVM daughter card board"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX && MACH_OMAP3EVM
-+
- config MACH_OMAP3_BEAGLE
- 	bool "OMAP3 BEAGLE board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-old mode 100644
-new mode 100755
-index 3897347..16fa35a
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -60,6 +60,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
- 					   usb-musb.o usb-ehci.o \
- 					   board-omap3evm-flash.o \
- 					   twl4030-generic-scripts.o
-+obj-$(CONFIG_MACH_OMAP3EVM_DC)		+= board-omap3evm-dc.o
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
- 					   usb-musb.o usb-ehci.o \
- 					   mmc-twl4030.o \
-diff --git a/arch/arm/mach-omap2/board-omap3evm-dc.c b/arch/arm/mach-omap2/board-omap3evm-dc.c
-new file mode 100755
-index 0000000..233c219
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3evm-dc.c
-@@ -0,0 +1,417 @@
-+/*
-+ * arch/arm/mach-omap2/board-omap3evm-dc.c
-+ *
-+ * Driver for OMAP3 EVM Daughter Card
-+ *
-+ * Copyright (C) 2008 Texas Instruments Inc
-+ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-+ *
-+ * Contributors:
-+ *     Anuj Aggarwal <anuj.aggarwal@ti.com>
-+ *     Sivaraj R <sivaraj@ti.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel_stat.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
-+#include <linux/spinlock.h>
-+#include <linux/clk.h>
-+#include <linux/device.h>
-+#include <linux/io.h>
-+#include <linux/gpio.h>
-+
-+#include <mach/io.h>
-+#include <mach/mux.h>
-+
-+#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
-+#include <linux/videodev2.h>
-+#include <media/v4l2-int-device.h>
-+#include <media/tvp514x.h>
-+/* include V4L2 camera driver related header file */
-+#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+#include <../drivers/media/video/omap34xxcam.h>
-+#include <../drivers/media/video/isp/ispreg.h>
-+#endif				/* #ifdef CONFIG_VIDEO_OMAP3 */
-+#endif				/* #ifdef CONFIG_VIDEO_TVP514X*/
-+
-+#include "board-omap3evm-dc.h"
-+
-+#define MODULE_NAME			"omap3evmdc"
-+
-+#ifdef DEBUG
-+#define dprintk(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
-+#else
-+#define dprintk(fmt, args...)
-+#endif				/* #ifdef DEBUG */
-+
-+/* Macro Definitions */
-+
-+/* System control module register offsets */
-+#define REG_CONTROL_PADCONF_I2C2_SDA	(0x480021C0u)
-+#define REG_CONTROL_PADCONF_I2C3_SDA	(0x480021C4u)
-+
-+#define PADCONF_I2C3_SCL_MASK		(0xFFFF0000u)
-+#define PADCONF_I2C3_SDA_MASK		(0x0000FFFFu)
-+
-+/* mux mode 0 (enable I2C3 SCL), pull-up enable, input enable */
-+#define PADCONF_I2C3_SCL_DEF		(0x01180000u)
-+/* mux mode 0 (enable I2C3 SDA), pull-up enable, input enable */
-+#define PADCONF_I2C3_SDA_DEF		(0x00000118u)
-+
-+/* GPIO pins */
-+#define GPIO134_SEL_Y                   (134)
-+#define GPIO54_SEL_EXP_CAM              (54)
-+#define GPIO136_SEL_CAM                 (136)
-+
-+/* board internal information (BEGIN) */
-+
-+/* I2C bus to which all I2C slave devices are attached */
-+#define BOARD_I2C_BUSNUM		(3)
-+
-+/* I2C address of chips present in board */
-+#define TVP5146_I2C_ADDR		(0x5D)
-+
-+/* Register offsets */
-+#define REG_BUS_CTRL1			(0x00000180u)
-+#define REG_BUS_CTRL2			(0x000001C0u)
-+
-+/* Bit defines for Bus Control 1 register */
-+#define TVP5146_EN_SHIFT		(0x0000u)
-+#define TVP5146_EN_MASK			(1u << TVP5146_EN_SHIFT)
-+
-+#define CAMERA_SENSOR_EN_SHIFT		(0x0008u)
-+#define CAMERA_SENSOR_EN_MASK		(1u << CAMERA_SENSOR_EN_SHIFT)
-+
-+/* default value for bus control registers */
-+#define BUS_CONTROL1_DEF		(0x0141u)	/* Disable all mux */
-+#define BUS_CONTROL2_DEF		(0x010Au)	/* Disable all mux */
-+
-+#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
-+#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+static struct omap34xxcam_hw_config decoder_hwc = {
-+	.dev_index = 0,
-+	.dev_minor = 0,
-+	.dev_type = OMAP34XXCAM_SLAVE_SENSOR,
-+	.u.sensor.xclk = OMAP34XXCAM_XCLK_NONE,
-+	.u.sensor.sensor_isp = 1,
-+};
-+
-+static struct isp_interface_config tvp5146_if_config = {
-+	.ccdc_par_ser = ISP_PARLL_YUV_BT,
-+	.dataline_shift = 0x1,
-+	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
-+	.vdint0_timing = 0x0,
-+	.vdint1_timing = 0x0,
-+	.strobe = 0x0,
-+	.prestrobe = 0x0,
-+	.shutter = 0x0,
-+	.u.par.par_bridge = 0x0,
-+	.u.par.par_clk_pol = 0x0,
-+};
-+#endif
-+
-+static struct v4l2_ifparm ifparm = {
-+	.if_type = V4L2_IF_TYPE_BT656,
-+	.u = {
-+	      .bt656 = {
-+			.frame_start_on_rising_vs = 1,
-+			.bt_sync_correct = 0,
-+			.swap = 0,
-+			.latch_clk_inv = 0,
-+			.nobt_hs_inv = 0,	/* active high */
-+			.nobt_vs_inv = 0,	/* active high */
-+			.mode = V4L2_IF_TYPE_BT656_MODE_BT_8BIT,
-+			.clock_min = TVP514X_XCLK_BT656,
-+			.clock_max = TVP514X_XCLK_BT656,
-+			},
-+	      },
-+};
-+
-+/**
-+ * @brief tvp5146_ifparm - Returns the TVP5146 decoder interface parameters
-+ *
-+ * @param p - pointer to v4l2_ifparm structure
-+ *
-+ * @return result of operation - 0 is success
-+ */
-+static int tvp5146_ifparm(struct v4l2_ifparm *p)
-+{
-+	if (p == NULL)
-+		return -EINVAL;
-+
-+	*p = ifparm;
-+	return 0;
-+}
-+
-+/**
-+ * @brief tvp5146_set_prv_data - Returns tvp5146 omap34xx driver private data
-+ *
-+ * @param priv - pointer to omap34xxcam_hw_config structure
-+ *
-+ * @return result of operation - 0 is success
-+ */
-+static int tvp5146_set_prv_data(void *priv)
-+{
-+#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+	struct omap34xxcam_hw_config *hwc = priv;
-+
-+	if (priv == NULL)
-+		return -EINVAL;
-+
-+	hwc->u.sensor.sensor_isp = decoder_hwc.u.sensor.sensor_isp;
-+	hwc->u.sensor.xclk = decoder_hwc.u.sensor.xclk;
-+	hwc->dev_index = decoder_hwc.dev_index;
-+	hwc->dev_minor = decoder_hwc.dev_minor;
-+	hwc->dev_type = decoder_hwc.dev_type;
-+	return 0;
-+#else
-+	return -EINVAL;
-+#endif
-+}
-+
-+/**
-+ * @brief omap3evmdc_set_mux - Sets mux to enable/disable signal routing to
-+ *                             different peripherals present in board
-+ * IMPORTANT - This function will take care of writing appropriate values for
-+ * active low signals as well
-+ *
-+ * @param mux_id - enum, mux id to enable/disable
-+ * @param value - enum, ENABLE_MUX for enabling and DISABLE_MUX for disabling
-+ *
-+ * @return result of operation - 0 is success
-+ */
-+static int omap3evmdc_set_mux(enum omap3evmdc_mux mux_id, enum config_mux value)
-+{
-+	int err = 0;
-+
-+	if (unlikely(mux_id >= NUM_MUX)) {
-+		dprintk("Invalid mux id\n");
-+		return -EPERM;
-+	}
-+
-+
-+	switch (mux_id) {
-+	case MUX_TVP5146:
-+		/* active low signal. set 0 to enable, 1 to disable */
-+		if (ENABLE_MUX == value) {
-+			/* pull down the GPIO GPIO134 = 0 */
-+			gpio_set_value(GPIO134_SEL_Y, 0);
-+			/* pull up the GPIO GPIO54 = 1 */
-+			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
-+			/* pull up the GPIO GPIO136 = 1 */
-+			gpio_set_value(GPIO136_SEL_CAM, 1);
-+		} else
-+			/* pull up the GPIO GPIO134 = 0 */
-+			gpio_set_value(GPIO134_SEL_Y, 1);
-+
-+		break;
-+
-+	case MUX_CAMERA_SENSOR:
-+		/* active low signal. set 0 to enable, 1 to disable */
-+		if (ENABLE_MUX == value) {
-+			/* pull up the GPIO GPIO134 = 0 */
-+			gpio_set_value(GPIO134_SEL_Y, 1);
-+			/* pull up the GPIO GPIO54 = 1 */
-+			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
-+			/* pull down the GPIO GPIO136 = 1 */
-+			gpio_set_value(GPIO136_SEL_CAM, 0);
-+		} else
-+			/* pull up the GPIO GPIO136 = 1 */
-+			gpio_set_value(GPIO136_SEL_CAM, 1);
-+
-+		break;
-+
-+	case MUX_EXP_CAMERA_SENSOR:
-+		/* active low signal. set 0 to enable, 1 to disable */
-+		if (ENABLE_MUX == value) {
-+			/* pull up the GPIO GPIO134 = 1 */
-+			gpio_set_value(GPIO134_SEL_Y, 1);
-+			/* pull down the GPIO GPIO54 = 1 */
-+			gpio_set_value(GPIO54_SEL_EXP_CAM, 0);
-+			/* pull up the GPIO GPIO136 = 1 */
-+			gpio_set_value(GPIO136_SEL_CAM, 1);
-+		} else
-+			/* pull up the GPIO GPIO54 = 1 */
-+			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
-+
-+		break;
-+
-+	case NUM_MUX:
-+	default:
-+		dprintk("Invalid mux id\n");
-+		err = -EPERM;
-+	}
-+
-+	return err;
-+}
-+/**
-+ * @brief tvp5146_power_set - Power-on or power-off TVP5146 device
-+ *
-+ * @param power - enum, Power on/off, resume/standby
-+ *
-+ * @return result of operation - 0 is success
-+ */
-+static int tvp5146_power_set(enum v4l2_power power)
-+{
-+	switch (power) {
-+	case V4L2_POWER_OFF:
-+#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+		if (isp_free_interface(ISP_PARLL_YUV_BT))
-+			return -ENODEV;
-+#endif
-+		/* Disable mux for TVP5146 decoder data path */
-+		if (omap3evmdc_set_mux(MUX_TVP5146, DISABLE_MUX))
-+			return -ENODEV;
-+		break;
-+
-+	case V4L2_POWER_STANDBY:
-+		break;
-+
-+	case V4L2_POWER_ON:
-+		/* Enable mux for TVP5146 decoder data path */
-+		if (omap3evmdc_set_mux(MUX_TVP5146, ENABLE_MUX))
-+			return -ENODEV;
-+
-+#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+		if (isp_request_interface(ISP_PARLL_YUV_BT))
-+			return -ENODEV;
-+
-+		isp_configure_interface(&tvp5146_if_config);
-+#endif
-+		break;
-+
-+	default:
-+		return -ENODEV;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static struct tvp514x_platform_data tvp5146_pdata = {
-+	.master = "omap34xxcam",
-+	.power_set = tvp5146_power_set,
-+	.priv_data_set = tvp5146_set_prv_data,
-+	.ifparm = tvp5146_ifparm,
-+
-+	/* Some interface dependent params */
-+	.clk_polarity = 0, /* data clocked out on falling edge */
-+	.hs_polarity = 1, /* 0 - Active low, 1- Active high */
-+	.vs_polarity = 1, /* 0 - Active low, 1- Active high */
-+};
-+
-+static struct i2c_board_info __initdata tvp5146_i2c_board_info = {
-+	I2C_BOARD_INFO("tvp5146m2", TVP5146_I2C_ADDR),
-+	.platform_data = &tvp5146_pdata,
-+};
-+
-+#endif				/* #ifdef CONFIG_VIDEO_TVP514X */
-+
-+/**
-+ * @brief omap3evmdc_mdc_config - GPIO configuration for
-+ *                          GPIO 134, 54 and 136
-+ *
-+ * @return result of operation - 0 is success
-+ */
-+static int omap3evmdc_mdc_config(void)
-+{
-+	/* Setting the MUX configuration */
-+	omap_cfg_reg(GPIO134_VDIN_SEL_Y);
-+	omap_cfg_reg(GPIO54_VDIN_SEL_EXP_CAM);
-+	omap_cfg_reg(GPIO136_VDIN_SEL_CAM);
-+
-+	if (gpio_request(GPIO134_SEL_Y, "GPIO134_SEL_Y") < 0) {
-+		dprintk("can't get GPIO 134\n");
-+		return -EINVAL;
-+	}
-+
-+	if (gpio_request(GPIO54_SEL_EXP_CAM, "GPIO54_SEL_EXP_CAM") < 0) {
-+		dprintk("can't get GPIO 54\n");
-+		return -EINVAL;
-+	}
-+
-+	if (gpio_request(GPIO136_SEL_CAM, "GPIO136_SEL_CAM") < 0) {
-+		dprintk("can't get GPIO 136\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Make GPIO as output */
-+	gpio_direction_output(GPIO134_SEL_Y, 0);
-+	/* Make GPIO as output */
-+	gpio_direction_output(GPIO54_SEL_EXP_CAM, 0);
-+	/* Make GPIO as output */
-+	gpio_direction_output(GPIO136_SEL_CAM, 0);
-+
-+	return 0;
-+}
-+
-+/**
-+ * @brief omap3evmdc_init - module init function. Should be called before any
-+ *                          client driver init call
-+ *
-+ * @return result of operation - 0 is success
-+ */
-+static int __init omap3evmdc_init(void)
-+{
-+	int err;
-+
-+	/*
-+	 * I2C3 SCL pin mux settings - mux mode 0, pull-up enable, input enable
-+	 * Uses the MSB 16-bit of this register, retain the LSB 16-bit.
-+	 * This pin is shared with gpio_184 (mux mode 4)
-+	 */
-+	omap_writel(((omap_readl(REG_CONTROL_PADCONF_I2C2_SDA) &
-+		      ~PADCONF_I2C3_SCL_MASK) | PADCONF_I2C3_SCL_DEF),
-+		    REG_CONTROL_PADCONF_I2C2_SDA);
-+
-+	/*
-+	 * I2C3 SDA pin mux settings - mux mode 0, pull-up enable, input enable
-+	 * Uses the LSB 16-bit of this register, retain the MSB 16-bit.
-+	 * This pin is shared with gpio_185 (mux mode 4)
-+	 */
-+	omap_writel(((omap_readl(REG_CONTROL_PADCONF_I2C3_SDA) &
-+		      ~PADCONF_I2C3_SDA_MASK) | PADCONF_I2C3_SDA_DEF),
-+		    REG_CONTROL_PADCONF_I2C3_SDA);
-+
-+	err = omap3evmdc_mdc_config();
-+	if (err) {
-+		dprintk("MDC configuration failed \n");
-+		return err;
-+	}
-+
-+	/*
-+	 * Register each of the I2C devices present in the board to the I2C
-+	 * framework.
-+	 * If more I2C devices are added, then each device information should
-+	 * be registered with I2C using i2c_register_board_info().
-+	 */
-+#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
-+	err = i2c_register_board_info(BOARD_I2C_BUSNUM,
-+					&tvp5146_i2c_board_info, 1);
-+	if (err) {
-+		dprintk("TVP5146 I2C Board Registration failed \n");
-+		return err;
-+	}
-+#endif
-+
-+	printk(KERN_INFO MODULE_NAME ": Driver registration complete \n");
-+
-+	return 0;
-+}
-+
-+arch_initcall(omap3evmdc_init);
-diff --git a/arch/arm/mach-omap2/board-omap3evm-dc.h b/arch/arm/mach-omap2/board-omap3evm-dc.h
-new file mode 100755
-index 0000000..5eaffc5
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap3evm-dc.h
-@@ -0,0 +1,43 @@
-+/*
-+ * arch/arm/mach-omap2/board-omap3evm-dc.h
-+ *
-+ * Copyright (C) 2008 Texas Instruments Inc
-+ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-+ *
-+ * Contributors:
-+ *    Anuj Aggarwal <anuj.aggarwal@ti.com>
-+ *    Sivaraj R <sivaraj@ti.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ */
-+
-+#ifndef __BOARD_OMAP3EVM_DC_H_
-+#define __BOARD_OMAP3EVM_DC_H_
-+
-+/* mux id to enable/disable signal routing to different peripherals */
-+enum omap3evmdc_mux {
-+	MUX_TVP5146 = 0,
-+	MUX_CAMERA_SENSOR,
-+	MUX_EXP_CAMERA_SENSOR,
-+	NUM_MUX
-+};
-+
-+/* enum to enable or disable mux */
-+enum config_mux {
-+	DISABLE_MUX,
-+	ENABLE_MUX
-+};
-+
-+#endif		/* __BOARD_OMAP3EVM_DC_H_ */
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-old mode 100644
-new mode 100755
-index dacb41f..5b878b6
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -459,6 +459,13 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-+
-+MUX_CFG_34XX("GPIO134_VDIN_SEL_Y", 0x160,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-+MUX_CFG_34XX("GPIO_54_VDIN_SEL_EXP_CAM", 0x0b4,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-+MUX_CFG_34XX("GPIO136_VDIN_SEL_CAM", 0x164,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- };
-
- #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-old mode 100644
-new mode 100755
-index f4362b8..2cd5cde
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -790,6 +790,10 @@ enum omap34xx_index {
- 	 */
- 	AH8_34XX_GPIO29,
- 	J25_34XX_GPIO170,
-+
-+	GPIO134_VDIN_SEL_Y,
-+	GPIO54_VDIN_SEL_EXP_CAM,
-+	GPIO136_VDIN_SEL_CAM,
- };
-
- struct omap_mux_cfg {
---
-1.5.6
+VGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQgZm9yIFBoaWxpcHMgd2ViY2FtIHNuYXBzaG90IGJ1dHRv
+biBhcyBhbgpldmVudCBpbnB1dCBkZXZpY2UsIGZvciBjb25zaXN0ZW5jeSB3aXRoIG90aGVyIHdl
+YmNhbSBkcml2ZXJzLgpTaWduZWQtb2ZmLWJ5OiBQaGFtIFRoYW5oIE5hbSA8cGhhbXRoYW5obmFt
+LnB0bkBnbWFpbC5jb20+CgpkaWZmIC11TnIgYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3
+Yy9wd2MuaCBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCi0tLSBhL2xpbnV4
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCTIwMDktMDEtMDMgMjA6MDM6NDMuMDAwMDAw
+MDAwICswNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCTIwMDkt
+MDEtMDcgMDI6MTA6NTguMDAwMDAwMDAwICswNzAwCkBAIC0zOCw2ICszOCw3IEBACiAjaW5jbHVk
+ZSA8bGludXgvdmlkZW9kZXYuaD4KICNpbmNsdWRlIDxtZWRpYS92NGwyLWNvbW1vbi5oPgogI2lu
+Y2x1ZGUgPG1lZGlhL3Y0bDItaW9jdGwuaD4KKyNpbmNsdWRlIDxsaW51eC9pbnB1dC5oPgogCiAj
+aW5jbHVkZSAicHdjLXVuY29tcHJlc3MuaCIKICNpbmNsdWRlIDxtZWRpYS9wd2MtaW9jdGwuaD4K
+QEAgLTI1Niw2ICsyNTcsNyBAQAogICAgaW50IHBhbl9hbmdsZTsJCQkvKiBpbiBkZWdyZWVzICog
+MTAwICovCiAgICBpbnQgdGlsdF9hbmdsZTsJCQkvKiBhYnNvbHV0ZSBhbmdsZTsgMCwwIGlzIGhv
+bWUgcG9zaXRpb24gKi8KICAgIGludCBzbmFwc2hvdF9idXR0b25fc3RhdHVzOwkJLyogc2V0IHRv
+IDEgd2hlbiB0aGUgdXNlciBwdXNoIHRoZSBidXR0b24sIHJlc2V0IHRvIDAgd2hlbiB0aGlzIHZh
+bHVlIGlzIHJlYWQgKi8KKyAgIHN0cnVjdCBpbnB1dF9kZXYgKmJ1dHRvbl9kZXY7CS8qIHdlYmNh
+bSBzbmFwc2hvdCBidXR0b24gaW5wdXQgKi8KIAogICAgLyoqKiBNaXNjLiBkYXRhICoqKi8KICAg
+IHdhaXRfcXVldWVfaGVhZF90IGZyYW1lcTsJCS8qIFdoZW4gd2FpdGluZyBmb3IgYSBmcmFtZSB0
+byBmaW5pc2guLi4gKi8KZGlmZiAtdU5yIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9wd2Mv
+cHdjLWlmLmMgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9wd2MtaWYuYwotLS0gYS9s
+aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9wd2MtaWYuYwkyMDA5LTAxLTAzIDIwOjAzOjQz
+LjAwMDAwMDAwMCArMDcwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9wd2Mt
+aWYuYwkyMDA5LTAxLTA4IDEwOjM4OjQ1LjAwMDAwMDAwMCArMDcwMApAQCAtNTMsNiArNTMsNyBA
+QAogICAgLSBYYXZpZXIgUm9jaGU6IFF1aWNrQ2FtIFBybyA0MDAwIElECiAgICAtIEplbnMgS251
+ZHNlbjogUXVpY2tDYW0gWm9vbSBJRAogICAgLSBKLiBEZWJlcnQ6IFF1aWNrQ2FtIGZvciBOb3Rl
+Ym9va3MgSUQKKyAgIC0gUGhhbSBUaGFuaCBOYW06IHdlYmNhbSBzbmFwc2hvdCBidXR0b24gYXMg
+YW4gZXZlbnQgaW5wdXQgZGV2aWNlCiAqLwogCiAjaW5jbHVkZSA8bGludXgvZXJybm8uaD4KQEAg
+LTYxLDYgKzYyLDExIEBACiAjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CiAjaW5jbHVkZSA8bGlu
+dXgvcG9sbC5oPgogI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4KKyNpZiBMSU5VWF9WRVJTSU9OX0NP
+REUgPCBLRVJORUxfVkVSU0lPTigyLCA2LCAxOCkKKyNpbmNsdWRlIDxsaW51eC91c2JfaW5wdXQu
+aD4KKyNlbHNlCisjaW5jbHVkZSA8bGludXgvdXNiL2lucHV0Lmg+CisjZW5kaWYKICNpbmNsdWRl
+IDxsaW51eC92bWFsbG9jLmg+CiAjaW5jbHVkZSA8bGludXgvdmVyc2lvbi5oPgogI2luY2x1ZGUg
+PGFzbS9pby5oPgpAQCAtNTg3LDYgKzU5MywyMiBAQAogCQkJCXBkZXYtPnZmcmFtZV9jb3VudCk7
+CiB9CiAKK3N0YXRpYyB2b2lkIHB3Y19zbmFwc2hvdF9idXR0b24oc3RydWN0IHB3Y19kZXZpY2Ug
+KnBkZXYsIGludCBkb3duKQoreworCWlmIChkb3duKSB7CisJCVBXQ19UUkFDRSgiU25hcHNob3Qg
+YnV0dG9uIHByZXNzZWQuXG4iKTsKKwkJcGRldi0+c25hcHNob3RfYnV0dG9uX3N0YXR1cyA9IDE7
+CisJfQorCWVsc2UgeworCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiByZWxlYXNlZC5cbiIp
+OworCX0KKworCWlmIChwZGV2LT5idXR0b25fZGV2KSB7CisJCWlucHV0X3JlcG9ydF9rZXkocGRl
+di0+YnV0dG9uX2RldiwgQlROXzAsIGRvd24pOworCQlpbnB1dF9zeW5jKHBkZXYtPmJ1dHRvbl9k
+ZXYpOworCX0KK30KKwogc3RhdGljIGludCBwd2NfcmN2X3Nob3J0X3BhY2tldChzdHJ1Y3QgcHdj
+X2RldmljZSAqcGRldiwgY29uc3Qgc3RydWN0IHB3Y19mcmFtZV9idWYgKmZidWYpCiB7CiAJaW50
+IGF3YWtlID0gMDsKQEAgLTYwNCwxMyArNjI2LDcgQEAKIAkJCXBkZXYtPnZmcmFtZXNfZXJyb3Ir
+KzsKIAkJfQogCQlpZiAoKHB0clswXSBeIHBkZXYtPnZtaXJyb3IpICYgMHgwMSkgewotCQkJaWYg
+KHB0clswXSAmIDB4MDEpIHsKLQkJCQlwZGV2LT5zbmFwc2hvdF9idXR0b25fc3RhdHVzID0gMTsK
+LQkJCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiBwcmVzc2VkLlxuIik7Ci0JCQl9Ci0JCQll
+bHNlIHsKLQkJCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiByZWxlYXNlZC5cbiIpOwotCQkJ
+fQorCQkJcHdjX3NuYXBzaG90X2J1dHRvbihwZGV2LCBwdHJbMF0gJiAweDAxKTsKIAkJfQogCQlp
+ZiAoKHB0clswXSBeIHBkZXYtPnZtaXJyb3IpICYgMHgwMikgewogCQkJaWYgKHB0clswXSAmIDB4
+MDIpCkBAIC02MzQsMTIgKzY1MCw3IEBACiAJZWxzZSBpZiAocGRldi0+dHlwZSA9PSA3NDAgfHwg
+cGRldi0+dHlwZSA9PSA3MjApIHsKIAkJdW5zaWduZWQgY2hhciAqcHRyID0gKHVuc2lnbmVkIGNo
+YXIgKilmYnVmLT5kYXRhOwogCQlpZiAoKHB0clswXSBeIHBkZXYtPnZtaXJyb3IpICYgMHgwMSkg
+ewotCQkJaWYgKHB0clswXSAmIDB4MDEpIHsKLQkJCQlwZGV2LT5zbmFwc2hvdF9idXR0b25fc3Rh
+dHVzID0gMTsKLQkJCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiBwcmVzc2VkLlxuIik7Ci0J
+CQl9Ci0JCQllbHNlCi0JCQkJUFdDX1RSQUNFKCJTbmFwc2hvdCBidXR0b24gcmVsZWFzZWQuXG4i
+KTsKKwkJCXB3Y19zbmFwc2hvdF9idXR0b24ocGRldiwgcHRyWzBdICYgMHgwMSk7CiAJCX0KIAkJ
+cGRldi0+dm1pcnJvciA9IHB0clswXSAmIDB4MDM7CiAJfQpAQCAtMTIyMSw2ICsxMjMyLDExIEBA
+CiB7CiAJcHdjX3JlbW92ZV9zeXNmc19maWxlcyhwZGV2LT52ZGV2KTsKIAl2aWRlb191bnJlZ2lz
+dGVyX2RldmljZShwZGV2LT52ZGV2KTsKKwlpZiAocGRldi0+YnV0dG9uX2RldikgeworCQlpbnB1
+dF91bnJlZ2lzdGVyX2RldmljZShwZGV2LT5idXR0b25fZGV2KTsKKwkJaW5wdXRfZnJlZV9kZXZp
+Y2UocGRldi0+YnV0dG9uX2Rldik7CisJCXBkZXYtPmJ1dHRvbl9kZXYgPSBOVUxMOworCX0KIH0K
+IAogLyogTm90ZSB0aGF0IGFsbCBjbGVhbnVwIGlzIGRvbmUgaW4gdGhlIHJldmVyc2Ugb3JkZXIg
+YXMgaW4gX29wZW4gKi8KQEAgLTE0ODgsNiArMTUwNCw3IEBACiAJaW50IGZlYXR1cmVzID0gMDsK
+IAlpbnQgdmlkZW9fbnIgPSAtMTsgLyogZGVmYXVsdDogdXNlIG5leHQgYXZhaWxhYmxlIGRldmlj
+ZSAqLwogCWNoYXIgc2VyaWFsX251bWJlclszMF0sICpuYW1lOworCWNoYXIgKnBoeXMgPSBOVUxM
+OwogCiAJdmVuZG9yX2lkID0gbGUxNl90b19jcHUodWRldi0+ZGVzY3JpcHRvci5pZFZlbmRvcik7
+CiAJcHJvZHVjdF9pZCA9IGxlMTZfdG9fY3B1KHVkZXYtPmRlc2NyaXB0b3IuaWRQcm9kdWN0KTsK
+QEAgLTE4MTIsNiArMTgyOSwzOSBAQAogCXB3Y19zZXRfbGVkcyhwZGV2LCAwLCAwKTsKIAlwd2Nf
+Y2FtZXJhX3Bvd2VyKHBkZXYsIDApOwogCisJLyogcmVnaXN0ZXIgd2ViY2FtIHNuYXBzaG90IGJ1
+dHRvbiBpbnB1dCBkZXZpY2UgKi8KKwlwZGV2LT5idXR0b25fZGV2ID0gaW5wdXRfYWxsb2NhdGVf
+ZGV2aWNlKCk7CisJaWYgKCFwZGV2LT5idXR0b25fZGV2KSB7CisJCVBXQ19FUlJPUigiRXJyLCBp
+bnN1ZmZpY2llbnQgbWVtb3J5IGZvciB3ZWJjYW0gc25hcHNob3QgYnV0dG9uIGRldmljZS4iKTsK
+KwkJcmV0dXJuIC1FTk9NRU07CisJfQorCisJcGRldi0+YnV0dG9uX2Rldi0+bmFtZSA9ICJQV0Mg
+c25hcHNob3QgYnV0dG9uIjsKKwlwaHlzID0ga21hbGxvYyg2ICsgc3RybGVuKHBkZXYtPnVkZXYt
+PmJ1cy0+YnVzX25hbWUpICsgc3RybGVuKHBkZXYtPnVkZXYtPmRldnBhdGgpLAorCQkJR0ZQX0tF
+Uk5FTCk7CisJaWYgKHBoeXMgPT0gTlVMTCkgeworCQlpbnB1dF9mcmVlX2RldmljZShwZGV2LT5i
+dXR0b25fZGV2KTsKKwkJcmV0dXJuIC1FTk9NRU07CisJfQorCisJc3ByaW50ZihwaHlzLCAidXNi
+LSVzLSVzIiwgcGRldi0+dWRldi0+YnVzLT5idXNfbmFtZSwgcGRldi0+dWRldi0+ZGV2cGF0aCk7
+CisJcGRldi0+YnV0dG9uX2Rldi0+cGh5cyA9IHBoeXM7CisJdXNiX3RvX2lucHV0X2lkKHBkZXYt
+PnVkZXYsICZwZGV2LT5idXR0b25fZGV2LT5pZCk7CisjaWYgTElOVVhfVkVSU0lPTl9DT0RFID49
+IEtFUk5FTF9WRVJTSU9OKDIsIDYsIDIyKQorCXBkZXYtPmJ1dHRvbl9kZXYtPmRldi5wYXJlbnQg
+PSAmcGRldi0+dWRldi0+ZGV2OworI2Vsc2UKKwlwZGV2LT5idXR0b25fZGV2LT5jZGV2LmRldiA9
+ICZwZGV2LT51ZGV2LT5kZXY7CisjZW5kaWYKKwlwZGV2LT5idXR0b25fZGV2LT5ldmJpdFswXSA9
+IEJJVF9NQVNLKEVWX0tFWSk7CisJcGRldi0+YnV0dG9uX2Rldi0+a2V5Yml0W0JJVF9XT1JEKEJU
+Tl8wKV0gPSBCSVRfTUFTSyhCVE5fMCk7CisKKwlyYyA9IGlucHV0X3JlZ2lzdGVyX2RldmljZShw
+ZGV2LT5idXR0b25fZGV2KTsKKwlpZiAocmMpIHsKKwkJaW5wdXRfZnJlZV9kZXZpY2UocGRldi0+
+YnV0dG9uX2Rldik7CisJCXBkZXYtPmJ1dHRvbl9kZXYgPSBOVUxMOworCQlyZXR1cm4gcmM7CisJ
+fQorCiAJcmV0dXJuIDA7CiAKIGVycl91bnJlZzoK
+------=_Part_203312_33034101.1231392708241
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_203312_33034101.1231392708241--
