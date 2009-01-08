@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <darav@gmx.de>) id 1LMRG0-0000sw-Ad
-	for linux-dvb@linuxtv.org; Mon, 12 Jan 2009 19:11:26 +0100
-Message-Id: <6940F926-0668-4B88-BF78-32C69EE51919@gmx.de>
-From: darav@gmx.de
-To: linux-dvb@linuxtv.org
-In-Reply-To: <496B3494.4030500@okg-computer.de>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Date: Mon, 12 Jan 2009 19:10:32 +0100
-References: <496204D8.6090602@okg-computer.de><20090105130757.GW12059@titan.makhutov-it.de>	<49620916.7060704@dark-green.com>
-	<8CB3D7E10E304E0-1674-1438@WEBMAIL-MY25.sysops.aol.com>
-	<496B3494.4030500@okg-computer.de>
-Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+6fe81ee853252f17f9b7+1964+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1LKv15-0000H1-G6
+	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 14:33:43 +0100
+Date: Thu, 8 Jan 2009 11:33:33 -0200 (BRST)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+In-Reply-To: <4965EC59.60001@cadsoft.de>
+Message-ID: <alpine.LRH.2.00.0901081125500.12040@pedra.chehab.org>
+References: <20090107000932.68355506@pedra.chehab.org>
+	<4965EC59.60001@cadsoft.de>
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] [ANNOUNCE] V4L,
+ DVB and Maintainers Mailing Lists at vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,189 +22,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+On Thu, 8 Jan 2009, Klaus Schmidinger wrote:
 
-The same problem exists with my PCTV 400e.
-It seems to be problem with the USB part.
-When I enable USB-Debug- in the kernel, I get this:
-
-ttusb2: i2c transfer failed.
-dvb-usb: bulk message failed: -22 (9/70)
-ttusb2: there might have been an error during control message  =
-
-transfer. (rlen =3D 3, was 0)
-...
-ttusb2: i2c transfer failed.
-dvb-usb: bulk message failed: -22 (9/70)
-ttusb2: there might have been an error during control message  =
-
-transfer. (rlen =3D 3, was 0)
-
-It's the same with 2.6.28 in-kernel-drivers and with the Igor  =
-
-Liplianin's tree.
-
-(A also had this problem some years ago on a PPC-Mac-Mini. The  =
-
-workaround was to disable HIGHMEM. But it doesn't work now.
-I'm now on x86 32bit).
-
-I also want to help. But how?
-
-Best Regards,
-darav
-
-Am 12.01.2009 um 13:16 schrieb Jens Krehbiel-Gr=E4ther:
-
-> Hi!
+> On 07.01.2009 03:09, Mauro Carvalho Chehab wrote:
+>> V4L, DVB and V4L/DVB Maintainers Mailing Lists Were merged on Jan, 2 2009 at vger.kernel.org
+>>
+>> The idea of merging the mailing lists is running around for some time.
+>>
+>> It took some time for me to have time to address this issue, but it finally happened. We've just created it as:
+>>
+>>     * linux-media@vger.kernel.org
+>> ...
 >
-> So this problem concerns more people and should be a general bug??
-> My device is working well in windows, so it could not be the dish, the
-> cable or the device itself.
+> I just subscribed to this list and already received a first posting.
+> Unfortunately this list doesn't mark postings' subjects with the
+> list name, as in
 >
-> Can I do anything for debugging this problem? Let me know!
+>  [linux-dvb] Merging V4L, DVB and Maintainers Mailing lists...
 >
-> Jens
+> where I could immediately see whether this is a "normal" email
+> or a list posting.
 >
->
-> dbox2alpha@netscape.net schrieb:
->>
->> i can confirm the very same problem symptoms with a technotrend dvb- =
+> Could this please be changed, so that there is a [listname] prefix?
 
->> s2
->> 3600 usb device.
->>
->> -----Original Message-----
->> From: gimli <gimli@dark-green.com>
->> To: Artem Makhutov <artem@makhutov.org>
->> Cc: linux-dvb@linuxtv.org
->> Sent: Mon, 5 Jan 2009 2:20 pm
->> Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
->>
->> Artem Makhutov schrieb:
->>
->>> Hi,
->>
->>>
->>
->>> On Mon, Jan 05, 2009 at 02:02:16PM +0100, Jens Krehbiel-Gr=E4ther  =
+Probably this could be changed, but this would have some other impacts, 
+like adding the list name on the submitted patches. Also, The list were 
+created using the same config as all the other Linux kernel development 
+lists. The previous experiences shows that having a different model on our 
+development means more work and more troubles that could otherwise be 
+avoided (for example, using -hg instea of -git ended to be a large source 
+of troubles for maintaining it).
 
->>> wrote:
->>
->>>> Hi!
->>
->>>>
->>
->>>> I use a Pinnacle USB-Receiver (PCTV Sat HDTV Pro). The module is
->>
->>>> dvb-usb-pctv452e.
->>
->>>>
->>
->>>> I use the repository from Igor Liplianin (actual hg release). The  =
+What I do here is to create a filtering rule to split mailing list patches 
+on a separate INBOX, based on this message header:
 
->>>> module
->>
->>>> compiles and loads fine. The scanning with scan-s2 and zapping with
->>
->>>> szap-s2 also wirk fine.
->>
->>>> But when I record TV from the USB-device with "cat
->>
->>>> /dev/dvb/adapter0/dvr0 > (filename)" I got the TV-Stream of the  =
+ 	X-Mailing-List: linux-media@vger.kernel.org
 
->>>> actual
->>
->>>> tv-station (zapped with "szap-s2 -r SAT.1" for example).
->>
->>>> This recorded video has artefacts, even missed frames.
->>
->>>>
->>
->>>> Anyone else having this problem? I remember that on multiproto  =
+If your emailer is powerful enough, maybe you can also prefix something at 
+the subject when this header is seen. For example, on claws-mail, you can 
+color the message based on a filtering rule.
 
->>>> there was
->>
->>>> a similar prob
->> lem with the pctv452e until Dominik Kuhlen patched
->>
->>>> somthing since then the video was OK. Is it possible that the same
->>
->>>> "error" is in the S2API-driver?
->>
->>>
->>
->>> I have similar problems with my SkyStar HD (stb0899), but I
->>
->>> am still using the multiproto drivers.
->>
->>>
->>
->>> Regards, Artem
->>
->>>
->>
->>> _______________________________________________
->>
->>> linux-dvb mailing list
->>
->>> linux-dvb@linuxtv.org
->>
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>
->>
->> Hi have also a similar problem on the TerraTec Cinergy S2 PCI HD
->>
->> with the S2API drivers from the Liplianin tree.
->>
->>
->>
->> mfg
->>
->>
->>
->> Edgar (gimli) Hucek
->>
->>
->>
->> _______________________________________________
->>
->> linux-dvb mailing list
->>
->> linux-dvb@linuxtv.org
->>
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>
->> ------------------------------------------------------------------------
->> Get a *free MP3* every day with the Spinner.com Toolbar. Get it Now
->> <http://toolbar.aol.com/spinner/download.html?ncid=3Demlweusdown00000020 =
-
->> >.
->>
->> ------------------------------------------------------------------------
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux- =
-
-> media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+Cheers,
+Mauro.
 
 _______________________________________________
 linux-dvb users mailing list
