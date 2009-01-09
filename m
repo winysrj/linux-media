@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@drajsajtl.cz>) id 1LLK5q-0003sD-Or
-	for linux-dvb@linuxtv.org; Fri, 09 Jan 2009 17:20:20 +0100
-Message-ID: <012b01c97276$68e03000$f4c6a5c1@tommy>
-From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
-To: "Manu Abraham" <abraham.manu@gmail.com>
-References: <mailman.1.1231412401.14666.linux-dvb@linuxtv.org><26D75E582F22456998AE6365440ACEC6@xplap>
-	<49673D65.9030404@gmail.com>
-	<58390.90.152.140.181.1231503119.squirrel@webmail.dark-green.com>
-Date: Fri, 9 Jan 2009 17:22:04 +0100
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1LLFGj-0000U0-N7
+	for linux-dvb@linuxtv.org; Fri, 09 Jan 2009 12:11:15 +0100
+Date: Fri, 09 Jan 2009 12:10:39 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <26D75E582F22456998AE6365440ACEC6@xplap>
+Message-ID: <20090109111039.309760@gmx.net>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
+References: <mailman.1.1231412401.14666.linux-dvb@linuxtv.org>
+	<26D75E582F22456998AE6365440ACEC6@xplap>
+To: =?iso-8859-1?Q?=22M=E5rten_Gustafsson=22?= <reklam@holisticode.se>,
+	linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] Compiling mantis driver on 2.6.28
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -20,44 +20,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> The official mantis repository is at http://jusst.de/hg/mantis. It
-> contains the latest mantis related changes.
->
-> Please do test and report.
->
-> Regards,
-> Manu
 
-Hi Manu,
-I have Technistat CableStar HD 2
-http://www.technisat.com/index7b97.html?nav=PC_products,en,76-211 which is
-VP-2040
 
-I have tested two mantis versions.
+> > > Hi,
+> > > =
 
-Sep 21 mantis-303b1d29d735
-- It reports unsupported CAM (Technisat TechniCrypt CX Conax module)
-dvb_ca adapter 1: Invalid PC card inserted :(
-but at least few FTA channels work perfectly.
+> > > i'm new to this mailinglist, so 'Hello' to all :)
+> > > =
 
-Recent mantis-147f405ecd77
-- Almost the same behaviour only after inserting the mantis module dmesg
-reports one new line more at the end:
-mantis_uart_read (0): RX Fifo FULL
-but the FTA channels still work.
+> > > My first problem, cause of bleeding edge hardware, intels gem, hdmi,
+> > > experimental xorg and so on, i've problems to compile the mantis driv=
+er
+> > > from http://jusst.de/hg/mantis on 2.6.28.
+> > > =
 
-I saw in the archive of the linux-dvb list that the mantis CI support is not
-finalized yet. Is there any plan/chance to get it working?
+> > > I'm getting the following:
+> > > =
 
-Regards,
-Tomas
+> > > .... ....
+> > > =
 
+> > > Is there a patch or something else to get this driver working on 2.6.=
+28
+> > =
+
+> > Use the s2-liplianin repository.  It contains an up-to-date mantis driv=
+er.
+> > =
+
+> > hg clone http://mercurial.intuxication.org/hg/s2-liplianin
+> > cd s2-liplianin
+> > make
+> > sudo make install
+> > sudo reboot
+> > =
+
+> > Hans
+
+> M=E5rten Gustafsson wrote:
+> =
+
+> I tried downloading and compiling from s2-liplianin repository.
+> Unfortunately the driver doesn't work at all with AzureWave AD-CP300,
+> frontend tda10021 is identified instead of tda10023.
+> =
+
+> On Sun, 19 Oct 2008 11:19:40 +0200 (MEST) Niklas Edmundsson posted a patch
+> that makes the mantis driver correctly identify the frontend tda10023. It
+> is
+> in linux-dvb Digest, Vol 45, Issue 24. I tried that patch on the just.de
+> repository and it kind of "improved" things, but since CI support was
+> lacking it was unusable for me.
+> =
+
+> I would really appreciate CI support since all my ComHem channels are
+> scrambled. =
+
+> =
+
+> M=E5rten
+
+
+Could you post the output of 'lspci -vvn' please?
+Hans
+-- =
+
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
 linux-dvb users mailing list
