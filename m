@@ -1,188 +1,838 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:34835 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751759AbZATC3K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2009 21:29:10 -0500
-Subject: Re: Regression since 2.6.25 kernel: Crash of userspace program
- leaves DVB device unusable
-From: Andy Walls <awalls@radix.net>
-To: Brendon Higgins <blhiggins@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200901191943.06631.blhiggins@gmail.com>
-References: <200901031200.56314.blhiggins@gmail.com>
-	 <200901191337.31272.blhiggins@gmail.com>
-	 <1232338898.3242.27.camel@palomino.walls.org>
-	 <200901191943.06631.blhiggins@gmail.com>
-Content-Type: text/plain
-Date: Mon, 19 Jan 2009 21:29:31 -0500
-Message-Id: <1232418571.22378.4.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:43379 "EHLO
+	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753995AbZAIUU5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 15:20:57 -0500
+Date: Fri, 9 Jan 2009 12:20:54 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: zr36067 no longer loads automatically (regression)
+In-Reply-To: <Pine.LNX.4.58.0901091112590.1626@shell2.speakeasy.net>
+Message-ID: <Pine.LNX.4.58.0901091215100.1626@shell2.speakeasy.net>
+References: <20090108143315.2b564dfe@hyperion.delvare>
+ <20090108175627.0ebd9f36@pedra.chehab.org> <Pine.LNX.4.58.0901081319340.1626@shell2.speakeasy.net>
+ <20090108193923.580fcd5b@pedra.chehab.org> <Pine.LNX.4.58.0901082156270.1626@shell2.speakeasy.net>
+ <20090109092018.59a6d9eb@pedra.chehab.org> <20090109124357.549acef6@hyperion.delvare>
+ <Pine.LNX.4.58.0901091112590.1626@shell2.speakeasy.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-01-19 at 19:43 +1000, Brendon Higgins wrote:
-> Andy Walls wrote (Monday 19 January 2009):
-> > On Mon, 2009-01-19 at 13:37 +1000, Brendon Higgins wrote:
-> > > > [snip]
-> >
-> > Well, you have the clues actually; they're in your log files.
-> 
-> Thanks Andy for prompting me to look at things again. I've discovered 
-> something interesting about the way runvdr, a script which tries to keep vdr 
-> alive (might be Debian custom, I'm not sure), interacts with the modules. When 
-> vdr crashes, runvdr attempts to remove and re-load the dvb modules before 
-> restarting vdr. Presumably this is a workaround for any modules left in a bad 
-> state.
-> 
-> Interestingly though, the script doesn't take the module dependency tree into 
-> account, only the first level branches, and so most of its rmmod commands fail 
-> since the modules are in use by other modules. In my case it attempts to 
-> remove videobuf_dvb, cx88_dvb, and dvb_core, in that order. Only rmmod 
-> cx88_dvb succeeds.
-> 
-> Now the really interesting part: soon after that, runvdr tries to modprobe all 
-> those modules back in again. Trying to modprobe videobuf_dvb and dvb_core does 
-> nothing since they weren't unloaded. But trying to modprobe cx88_dvb fails: 
-> "FATAL: Error inserting cx88_dvb 
-> (/lib/modules/2.6.28/kernel/drivers/media/video/cx88/cx88-dvb.ko): No such 
-> device"
-> 
-> Only after "rmmod cx8802" can cx88_dvb be loaded successfully.
-> 
-> Finally I've found a way to reproduce the bug on command! Hurrah!
-> 
-> Summary procedure, starting with a working dvb:
-> 1) rmmod cx88_dvb
-> 2) modprobe cx88_dvb
-> Error: No such device.
-> 3) rmmod cx8802
-> 4) modprobe cx88_dvb
-> Success (and cx8802 is pulled in automatically)
-> 
-> So it seems there might be some sort of module interdependency not being taken 
-> care of. 
+On Fri, 9 Jan 2009, Trent Piepho wrote:
+> Here is a new version against latest v4l-dvb sources.  Jean, are you trying
+> to apply against the kernel tree?  These patches are against the v4l-dvb Hg
+> repository which isn't quite the same as what's in the kernel.
+>
+> I have some more patches at http://linuxtv.org/hg/~tap/zoran
 
-Yes.  Mauro did some work to decouple these modules in very recent
-changes.  I did some follow-up changes to fix frontend allocations.  You
-may want to try the latest v4l-dvb repository.
+Forgot the patch
 
+# HG changeset patch
+# User Trent Piepho <xyzzy@speakeasy.org>
+# Date 1231532196 28800
+# Node ID fdc7c04dd10d8dee62724b2d27cb725360cfda0f
+# Parent  f9b51cde30807a1603a697aac7a490a77a0e3868
+zoran: Convert to be a pci driver
 
-> I'll try to report the runvdr tree problem to the relevant place 
-> later.
-> 
-> > At the time of the crash, what shows up in dmesg, /var/log/messages, and
-> > any log that VDR creates?
-> 
-> Here's what's in /var/log/syslog when I perform the above procedure (with my 
-> best-guess labels as to when I did what):
-> 
-> rmmod cx88_dvb:
-> Jan 19 19:24:27 phi kernel: [15162.725955] cx88/2: unregistering cx8802 
-> driver, type: dvb access: shared
-> Jan 19 19:24:27 phi kernel: [15162.725967] cx88[0]/2: subsystem: 18ac:db10, 
-> board: DViCO FusionHDTV DVB-T Plus [card=21]
-> Jan 19 19:24:27 phi kernel: [15162.725972] cx88[0]/2-dvb: cx8802_dvb_remove
-> 
-> modprobe cx88_dvb:
-> Jan 19 19:24:32 phi kernel: [15167.399736] cx88/2: cx2388x dvb driver version 
-> 0.0.6 loaded
-> Jan 19 19:24:32 phi kernel: [15167.399744] cx88/2: registering cx8802 driver, 
-> type: dvb access: shared
-> Jan 19 19:24:32 phi kernel: [15167.399752] cx88[0]/2: subsystem: 18ac:db10, 
-> board: DViCO FusionHDTV DVB-T Plus [card=21]
-> Jan 19 19:24:32 phi kernel: [15167.399757] cx88[0]/2-dvb: cx8802_dvb_probe
-> Jan 19 19:24:32 phi kernel: [15167.399761] cx88[0]/2-dvb:  ->being probed by 
-> Card=21 Name=cx88[0], PCI 01:06
-> Jan 19 19:24:32 phi kernel: [15167.399766] cx88[0]/2: cx2388x based DVB/ATSC 
-> card
-> Jan 19 19:24:32 phi kernel: [15167.399771] cx8802_dvb_probe() failed to get 
-> frontend(1)
+From: Trent Piepho <xyzzy@speakeasy.org>
 
-This happens in one of the functions that was recently modified.  Trying
-the latest v4l-dvb repo may give different results.  I don't have any
-cx8802 hardware, so I can't test your procedure.
+This is a really old and crufty driver that wasn't using the long
+established pci driver framework.
 
-> Jan 19 19:24:32 phi kernel: [15167.399775] cx88[0]/2: dvb_register failed (err 
-> = -22)
-> Jan 19 19:24:32 phi kernel: [15167.399779] cx88[0]/2: cx8802 probe failed, err 
-> = -22
+Priority: normal
 
+Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
 
+diff -r f9b51cde3080 -r fdc7c04dd10d linux/drivers/media/video/zoran/zoran_card.c
+--- a/linux/drivers/media/video/zoran/zoran_card.c	Fri Jan 09 12:16:35 2009 -0800
++++ b/linux/drivers/media/video/zoran/zoran_card.c	Fri Jan 09 12:16:36 2009 -0800
+@@ -154,16 +154,13 @@ MODULE_AUTHOR("Serguei Miridonov");
+ MODULE_AUTHOR("Serguei Miridonov");
+ MODULE_LICENSE("GPL");
 
+-#if (defined(CONFIG_VIDEO_ZORAN_MODULE) && defined(MODULE))
+ static struct pci_device_id zr36067_pci_tbl[] = {
+-	{PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36057,
+-	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{ PCI_DEVICE(PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36057), },
+ 	{0}
+ };
+ MODULE_DEVICE_TABLE(pci, zr36067_pci_tbl);
+-#endif
+-
+-int zoran_num;			/* number of Buzs in use */
++
++atomic_t zoran_num = ATOMIC_INIT(0);		/* number of Buzs in use */
+ struct zoran *zoran[BUZ_MAX];
 
+ /* videocodec bus functions ZR36060 */
+@@ -1147,7 +1144,7 @@ zr36057_init (struct zoran *zr)
+ 	strcpy(zr->video_dev->name, ZR_DEVNAME(zr));
+ 	err = video_register_device(zr->video_dev, VFL_TYPE_GRABBER, video_nr[zr->id]);
+ 	if (err < 0)
+-		goto exit_unregister;
++		goto exit_free;
 
-> rmmod cx8802:
-> Jan 19 19:25:06 phi kernel: [15200.890797] cx88-mpeg driver manager 
-> 0000:01:06.2: PCI INT A disabled
-> 
-> modprobe cx88_dvb:
-> Jan 19 19:25:07 phi kernel: [15201.996410] cx88/2: cx2388x MPEG-TS Driver 
-> Manager version 0.0.6 loaded
-> Jan 19 19:25:07 phi kernel: [15201.996464] cx88[0]/2: cx2388x 8802 Driver 
-> Manager
-> Jan 19 19:25:07 phi kernel: [15201.996489] cx88-mpeg driver manager 
-> 0000:01:06.2: PCI INT A -> Link[APC1] -> GSI 16 (level, low) -> IRQ 16
-> Jan 19 19:25:07 phi kernel: [15201.996502] cx88[0]/2: found at 0000:01:06.2, 
-> rev: 5, irq: 16, latency: 32, mmio: 0xfb000000
-> Jan 19 19:25:07 phi kernel: [15201.996516] cx8802_probe() allocating 1 
-> frontend(s)
-> Jan 19 19:25:07 phi kernel: [15202.001647] cx88/2: cx2388x dvb driver version 
-> 0.0.6 loaded
-> Jan 19 19:25:07 phi kernel: [15202.001655] cx88/2: registering cx8802 driver, 
-> type: dvb access: shared
-> Jan 19 19:25:07 phi kernel: [15202.001661] cx88[0]/2: subsystem: 18ac:db10, 
-> board: DViCO FusionHDTV DVB-T Plus [card=21]
-> Jan 19 19:25:07 phi kernel: [15202.001667] cx88[0]/2-dvb: cx8802_dvb_probe
-> Jan 19 19:25:07 phi kernel: [15202.001671] cx88[0]/2-dvb:  ->being probed by 
-> Card=21 Name=cx88[0], PCI 01:06
-> Jan 19 19:25:07 phi kernel: [15202.001676] cx88[0]/2: cx2388x based DVB/ATSC 
-> card
-> Jan 19 19:25:07 phi kernel: [15202.002518] DVB: registering new adapter 
-> (cx88[0])
-> Jan 19 19:25:07 phi kernel: [15202.002526] DVB: registering adapter 0 frontend 
-> 0 (Zarlink MT352 DVB-T)...
-> 
-> Note the "failed to get frontend(1)" in the first modprobe.
-> 
-> > Since modprobe after the crash failed with -ENODEV ["...cx88-dvb.ko): No
-> > such device], a quick grep through cx88-dvb.c in the source shows that
-> > that can only happen in a few places.  It should be easy to spot in the
-> > logs.  Adding an
-> >
-> > 	options cx88_dvb debug=1
-> >
-> > line to /etc/modprobe.conf would make things easier to see in the logs
-> > as well.
-> 
-> Thanks, I didn't know about that. The above syslog info ought to have been 
-> produced with that option in effect.
-> 
-> > Also what is the source of your cx88 driver: Debian Testing or the
-> > v4l-dvb repo?
-> 
-> It comes in the stock kernels that I built and tested (2.6.26 was the Debian 
-> pre-packaged kernel, the others were built from kernel.org source via make-
-> kpkg).
-> 
-> > > Or care?
-> >
-> > The issue is usually not one of caring, but one of having
-> > time, the specific hardware, and ability to reporduce the problem.
-> 
-> Of course. When your first two emails about a problem get no response, it 
-> starts looking like a plausible explanation, you know?
+ 	zoran_init_hardware(zr);
+ 	if (zr36067_debug > 2)
+@@ -1162,19 +1159,19 @@ zr36057_init (struct zoran *zr)
+ 	zr->initialized = 1;
+ 	return 0;
 
-Yes.
+-exit_unregister:
+-	zoran_unregister_i2c(zr);
+ exit_free:
+ 	kfree(zr->stat_com);
+ 	kfree(zr->video_dev);
+ 	return err;
+ }
 
-Now that you have repeatable steps someone with hardware should be able
-to fix the problem.  I don't have cx8802 hardware.
+-static void
+-zoran_release (struct zoran *zr)
+-{
++static void __devexit zoran_remove(struct pci_dev *pdev)
++{
++	struct zoran *zr = pci_get_drvdata(pdev);
++
+ 	if (!zr->initialized)
+ 		goto exit_free;
++
+ 	/* unregister videocodec bus */
+ 	if (zr->codec) {
+ 		struct videocodec_master *master = zr->codec->master_data;
+@@ -1203,6 +1200,7 @@ zoran_release (struct zoran *zr)
+ 	pci_disable_device(zr->pci_dev);
+ 	video_unregister_device(zr->video_dev);
+ exit_free:
++	pci_set_drvdata(pdev, NULL);
+ 	kfree(zr);
+ }
 
-Regards,
-Andy
+@@ -1265,323 +1263,330 @@ zoran_setup_videocodec (struct zoran *zr
+  *   Scan for a Buz card (actually for the PCI controller ZR36057),
+  *   request the irq and map the io memory
+  */
+-static int __devinit
+-find_zr36057 (void)
++static int __devinit zoran_probe(struct pci_dev *pdev,
++				 const struct pci_device_id *ent)
+ {
+ 	unsigned char latency, need_latency;
+ 	struct zoran *zr;
+-	struct pci_dev *dev = NULL;
+ 	int result;
+ 	struct videocodec_master *master_vfe = NULL;
+ 	struct videocodec_master *master_codec = NULL;
+ 	int card_num;
+ 	char *i2c_enc_name, *i2c_dec_name, *codec_name, *vfe_name;
+-
+-	zoran_num = 0;
+-	while (zoran_num < BUZ_MAX &&
+-	       (dev = pci_get_device(PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36057, dev)) != NULL) {
+-		card_num = card[zoran_num];
+-		zr = kzalloc(sizeof(struct zoran), GFP_KERNEL);
+-		if (!zr) {
++	unsigned int nr;
++
++
++	nr = atomic_inc_return(&zoran_num) - 1;
++	if (nr >= BUZ_MAX) {
++		dev_err(&pdev->dev, "driver limited to %d card(s) maximum\n", BUZ_MAX);
++		return -ENOENT;
++	}
++
++	card_num = card[nr];
++	zr = kzalloc(sizeof(struct zoran), GFP_KERNEL);
++	if (!zr) {
++		dprintk(1,
++			KERN_ERR
++			"%s: find_zr36057() - kzalloc failed\n",
++			ZORAN_NAME);
++		/* The entry in zoran[] gets leaked */
++		return -ENOMEM;
++	}
++	zr->pci_dev = pdev;
++	zr->id = nr;
++	snprintf(ZR_DEVNAME(zr), sizeof(ZR_DEVNAME(zr)), "MJPEG[%u]", zr->id);
++	spin_lock_init(&zr->spinlock);
++	mutex_init(&zr->resource_lock);
++	if (pci_enable_device(pdev))
++		goto zr_free_mem;
++	zr->zr36057_adr = pci_resource_start(zr->pci_dev, 0);
++	pci_read_config_byte(zr->pci_dev, PCI_CLASS_REVISION, &zr->revision);
++	if (zr->revision < 2) {
++		dprintk(1,
++			KERN_INFO
++			"%s: Zoran ZR36057 (rev %d) irq: %d, memory: 0x%08x.\n",
++			ZR_DEVNAME(zr), zr->revision, zr->pci_dev->irq,
++			zr->zr36057_adr);
++
++		if (card_num == -1) {
+ 			dprintk(1,
+ 				KERN_ERR
+-				"%s: find_zr36057() - kzalloc failed\n",
+-				ZORAN_NAME);
+-			continue;
++				"%s: find_zr36057() - no card specified, please use the card=X insmod option\n",
++				ZR_DEVNAME(zr));
++			goto zr_free_mem;
+ 		}
+-		zr->pci_dev = dev;
+-		//zr->zr36057_mem = NULL;
+-		zr->id = zoran_num;
+-		snprintf(ZR_DEVNAME(zr), sizeof(ZR_DEVNAME(zr)), "MJPEG[%u]", zr->id);
+-		spin_lock_init(&zr->spinlock);
+-		mutex_init(&zr->resource_lock);
+-		if (pci_enable_device(dev))
+-			goto zr_free_mem;
+-		zr->zr36057_adr = pci_resource_start(zr->pci_dev, 0);
+-		pci_read_config_byte(zr->pci_dev, PCI_CLASS_REVISION,
+-				     &zr->revision);
+-		if (zr->revision < 2) {
+-			dprintk(1,
+-				KERN_INFO
+-				"%s: Zoran ZR36057 (rev %d) irq: %d, memory: 0x%08x.\n",
+-				ZR_DEVNAME(zr), zr->revision, zr->pci_dev->irq,
+-				zr->zr36057_adr);
+-
+-			if (card_num == -1) {
++	} else {
++		int i;
++		unsigned short ss_vendor, ss_device;
++
++		ss_vendor = zr->pci_dev->subsystem_vendor;
++		ss_device = zr->pci_dev->subsystem_device;
++		dprintk(1,
++			KERN_INFO
++			"%s: Zoran ZR36067 (rev %d) irq: %d, memory: 0x%08x\n",
++			ZR_DEVNAME(zr), zr->revision, zr->pci_dev->irq,
++			zr->zr36057_adr);
++		dprintk(1,
++			KERN_INFO
++			"%s: subsystem vendor=0x%04x id=0x%04x\n",
++			ZR_DEVNAME(zr), ss_vendor, ss_device);
++		if (card_num == -1) {
++			dprintk(3,
++				KERN_DEBUG
++				"%s: find_zr36057() - trying to autodetect card type\n",
++				ZR_DEVNAME(zr));
++			for (i=0;i<NUM_CARDS;i++) {
++				if (ss_vendor == zoran_cards[i].vendor_id &&
++				    ss_device == zoran_cards[i].device_id) {
++					dprintk(3,
++						KERN_DEBUG
++						"%s: find_zr36057() - card %s detected\n",
++						ZR_DEVNAME(zr),
++						zoran_cards[i].name);
++					card_num = i;
++					break;
++				}
++			}
++			if (i == NUM_CARDS) {
+ 				dprintk(1,
+ 					KERN_ERR
+-					"%s: find_zr36057() - no card specified, please use the card=X insmod option\n",
++					"%s: find_zr36057() - unknown card\n",
+ 					ZR_DEVNAME(zr));
+ 				goto zr_free_mem;
+ 			}
+-		} else {
+-			int i;
+-			unsigned short ss_vendor, ss_device;
+-
+-			ss_vendor = zr->pci_dev->subsystem_vendor;
+-			ss_device = zr->pci_dev->subsystem_device;
+-			dprintk(1,
+-				KERN_INFO
+-				"%s: Zoran ZR36067 (rev %d) irq: %d, memory: 0x%08x\n",
+-				ZR_DEVNAME(zr), zr->revision, zr->pci_dev->irq,
+-				zr->zr36057_adr);
+-			dprintk(1,
+-				KERN_INFO
+-				"%s: subsystem vendor=0x%04x id=0x%04x\n",
+-				ZR_DEVNAME(zr), ss_vendor, ss_device);
+-			if (card_num == -1) {
+-				dprintk(3,
+-					KERN_DEBUG
+-					"%s: find_zr36057() - trying to autodetect card type\n",
+-					ZR_DEVNAME(zr));
+-				for (i=0;i<NUM_CARDS;i++) {
+-					if (ss_vendor == zoran_cards[i].vendor_id &&
+-					    ss_device == zoran_cards[i].device_id) {
+-						dprintk(3,
+-							KERN_DEBUG
+-							"%s: find_zr36057() - card %s detected\n",
+-							ZR_DEVNAME(zr),
+-							zoran_cards[i].name);
+-						card_num = i;
+-						break;
+-					}
+-				}
+-				if (i == NUM_CARDS) {
+-					dprintk(1,
+-						KERN_ERR
+-						"%s: find_zr36057() - unknown card\n",
+-						ZR_DEVNAME(zr));
+-					goto zr_free_mem;
+-				}
+-			}
+ 		}
+-
+-		if (card_num < 0 || card_num >= NUM_CARDS) {
+-			dprintk(2,
+-				KERN_ERR
+-				"%s: find_zr36057() - invalid cardnum %d\n",
+-				ZR_DEVNAME(zr), card_num);
+-			goto zr_free_mem;
+-		}
+-
+-		/* even though we make this a non pointer and thus
+-		 * theoretically allow for making changes to this struct
+-		 * on a per-individual card basis at runtime, this is
+-		 * strongly discouraged. This structure is intended to
+-		 * keep general card information, no settings or anything */
+-		zr->card = zoran_cards[card_num];
+-		snprintf(ZR_DEVNAME(zr), sizeof(ZR_DEVNAME(zr)),
+-			 "%s[%u]", zr->card.name, zr->id);
+-
+-		zr->zr36057_mem = ioremap_nocache(zr->zr36057_adr, 0x1000);
+-		if (!zr->zr36057_mem) {
++	}
++
++	if (card_num < 0 || card_num >= NUM_CARDS) {
++		dprintk(2,
++			KERN_ERR
++			"%s: find_zr36057() - invalid cardnum %d\n",
++			ZR_DEVNAME(zr), card_num);
++		goto zr_free_mem;
++	}
++
++	/* even though we make this a non pointer and thus
++	 * theoretically allow for making changes to this struct
++	 * on a per-individual card basis at runtime, this is
++	 * strongly discouraged. This structure is intended to
++	 * keep general card information, no settings or anything */
++	zr->card = zoran_cards[card_num];
++	snprintf(ZR_DEVNAME(zr), sizeof(ZR_DEVNAME(zr)),
++		 "%s[%u]", zr->card.name, zr->id);
++
++	zr->zr36057_mem = ioremap_nocache(zr->zr36057_adr, 0x1000);
++	if (!zr->zr36057_mem) {
++		dprintk(1,
++			KERN_ERR
++			"%s: find_zr36057() - ioremap failed\n",
++			ZR_DEVNAME(zr));
++		goto zr_free_mem;
++	}
++
++	result = request_irq(zr->pci_dev->irq, zoran_irq,
++			     IRQF_SHARED | IRQF_DISABLED, ZR_DEVNAME(zr), zr);
++	if (result < 0) {
++		if (result == -EINVAL) {
+ 			dprintk(1,
+ 				KERN_ERR
+-				"%s: find_zr36057() - ioremap failed\n",
++				"%s: find_zr36057() - bad irq number or handler\n",
+ 				ZR_DEVNAME(zr));
+-			goto zr_free_mem;
+-		}
+-
+-		result = request_irq(zr->pci_dev->irq,
+-				     zoran_irq,
+-				     IRQF_SHARED | IRQF_DISABLED,
+-				     ZR_DEVNAME(zr),
+-				     (void *) zr);
+-		if (result < 0) {
+-			if (result == -EINVAL) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: find_zr36057() - bad irq number or handler\n",
+-					ZR_DEVNAME(zr));
+-			} else if (result == -EBUSY) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: find_zr36057() - IRQ %d busy, change your PnP config in BIOS\n",
+-					ZR_DEVNAME(zr), zr->pci_dev->irq);
+-			} else {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: find_zr36057() - can't assign irq, error code %d\n",
+-					ZR_DEVNAME(zr), result);
+-			}
+-			goto zr_unmap;
+-		}
+-
+-		/* set PCI latency timer */
+-		pci_read_config_byte(zr->pci_dev, PCI_LATENCY_TIMER,
+-				     &latency);
+-		need_latency = zr->revision > 1 ? 32 : 48;
+-		if (latency != need_latency) {
+-			dprintk(2,
+-				KERN_INFO
+-				"%s: Changing PCI latency from %d to %d.\n",
+-				ZR_DEVNAME(zr), latency, need_latency);
+-			pci_write_config_byte(zr->pci_dev,
+-					      PCI_LATENCY_TIMER,
+-					      need_latency);
+-		}
+-
+-		zr36057_restart(zr);
+-		/* i2c */
+-		dprintk(2, KERN_INFO "%s: Initializing i2c bus...\n",
+-			ZR_DEVNAME(zr));
+-
+-		/* i2c decoder */
+-		if (decoder[zr->id] != -1) {
+-			i2c_dec_name = i2cid_to_modulename(decoder[zr->id]);
+-			zr->card.i2c_decoder = decoder[zr->id];
+-		} else if (zr->card.i2c_decoder != 0) {
+-			i2c_dec_name =
+-				i2cid_to_modulename(zr->card.i2c_decoder);
+-		} else {
+-			i2c_dec_name = NULL;
+-		}
+-
+-		if (i2c_dec_name) {
+-			if ((result = request_module(i2c_dec_name)) < 0) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: failed to load module %s: %d\n",
+-					ZR_DEVNAME(zr), i2c_dec_name, result);
+-			}
+-		}
+-
+-		/* i2c encoder */
+-		if (encoder[zr->id] != -1) {
+-			i2c_enc_name = i2cid_to_modulename(encoder[zr->id]);
+-			zr->card.i2c_encoder = encoder[zr->id];
+-		} else if (zr->card.i2c_encoder != 0) {
+-			i2c_enc_name =
+-				i2cid_to_modulename(zr->card.i2c_encoder);
+-		} else {
+-			i2c_enc_name = NULL;
+-		}
+-
+-		if (i2c_enc_name) {
+-			if ((result = request_module(i2c_enc_name)) < 0) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: failed to load module %s: %d\n",
+-					ZR_DEVNAME(zr), i2c_enc_name, result);
+-			}
+-		}
+-
+-		if (zoran_register_i2c(zr) < 0) {
++		} else if (result == -EBUSY) {
+ 			dprintk(1,
+ 				KERN_ERR
+-				"%s: find_zr36057() - can't initialize i2c bus\n",
++				"%s: find_zr36057() - IRQ %d busy, change your PnP config in BIOS\n",
++				ZR_DEVNAME(zr), zr->pci_dev->irq);
++		} else {
++			dprintk(1,
++				KERN_ERR
++				"%s: find_zr36057() - can't assign irq, error code %d\n",
++				ZR_DEVNAME(zr), result);
++		}
++		goto zr_unmap;
++	}
++
++	/* set PCI latency timer */
++	pci_read_config_byte(zr->pci_dev, PCI_LATENCY_TIMER,
++			     &latency);
++	need_latency = zr->revision > 1 ? 32 : 48;
++	if (latency != need_latency) {
++		dprintk(2,
++			KERN_INFO
++			"%s: Changing PCI latency from %d to %d\n",
++			ZR_DEVNAME(zr), latency, need_latency);
++		pci_write_config_byte(zr->pci_dev, PCI_LATENCY_TIMER,
++				      need_latency);
++	}
++
++	zr36057_restart(zr);
++	/* i2c */
++	dprintk(2, KERN_INFO "%s: Initializing i2c bus...\n",
++		ZR_DEVNAME(zr));
++
++	/* i2c decoder */
++	if (decoder[zr->id] != -1) {
++		i2c_dec_name = i2cid_to_modulename(decoder[zr->id]);
++		zr->card.i2c_decoder = decoder[zr->id];
++	} else if (zr->card.i2c_decoder != 0) {
++		i2c_dec_name = i2cid_to_modulename(zr->card.i2c_decoder);
++	} else {
++		i2c_dec_name = NULL;
++	}
++
++	if (i2c_dec_name) {
++		if ((result = request_module(i2c_dec_name)) < 0) {
++			dprintk(1,
++				KERN_ERR
++				"%s: failed to load module %s: %d\n",
++				ZR_DEVNAME(zr), i2c_dec_name, result);
++		}
++	}
++
++	/* i2c encoder */
++	if (encoder[zr->id] != -1) {
++		i2c_enc_name = i2cid_to_modulename(encoder[zr->id]);
++		zr->card.i2c_encoder = encoder[zr->id];
++	} else if (zr->card.i2c_encoder != 0) {
++		i2c_enc_name = i2cid_to_modulename(zr->card.i2c_encoder);
++	} else {
++		i2c_enc_name = NULL;
++	}
++
++	if (i2c_enc_name) {
++		if ((result = request_module(i2c_enc_name)) < 0) {
++			dprintk(1,
++				KERN_ERR
++				"%s: failed to load module %s: %d\n",
++				ZR_DEVNAME(zr), i2c_enc_name, result);
++		}
++	}
++
++	if (zoran_register_i2c(zr) < 0) {
++		dprintk(1,
++			KERN_ERR
++			"%s: find_zr36057() - can't initialize i2c bus\n",
++			ZR_DEVNAME(zr));
++		goto zr_free_irq;
++	}
++
++	dprintk(2,
++		KERN_INFO "%s: Initializing videocodec bus...\n",
++		ZR_DEVNAME(zr));
++
++	if (zr->card.video_codec != 0 &&
++	    (codec_name = codecid_to_modulename(zr->card.video_codec)) != NULL) {
++		if ((result = request_module(codec_name)) < 0) {
++			dprintk(1,
++				KERN_ERR
++				"%s: failed to load modules %s: %d\n",
++				ZR_DEVNAME(zr), codec_name, result);
++		}
++	}
++	if (zr->card.video_vfe != 0 &&
++	    (vfe_name = codecid_to_modulename(zr->card.video_vfe)) != NULL) {
++		if ((result = request_module(vfe_name)) < 0) {
++			dprintk(1,
++				KERN_ERR
++				"%s: failed to load modules %s: %d\n",
++				ZR_DEVNAME(zr), vfe_name, result);
++		}
++	}
++
++	/* reset JPEG codec */
++	jpeg_codec_sleep(zr, 1);
++	jpeg_codec_reset(zr);
++	/* video bus enabled */
++	/* display codec revision */
++	if (zr->card.video_codec != 0) {
++		master_codec = zoran_setup_videocodec(zr, zr->card.video_codec);
++		if (!master_codec)
++			goto zr_unreg_i2c;
++		zr->codec = videocodec_attach(master_codec);
++		if (!zr->codec) {
++			dprintk(1,
++				KERN_ERR
++				"%s: find_zr36057() - no codec found\n",
+ 				ZR_DEVNAME(zr));
+-			goto zr_free_irq;
++			goto zr_free_codec;
+ 		}
+-
+-		dprintk(2,
+-			KERN_INFO "%s: Initializing videocodec bus...\n",
++		if (zr->codec->type != zr->card.video_codec) {
++			dprintk(1,
++				KERN_ERR
++				"%s: find_zr36057() - wrong codec\n",
++				ZR_DEVNAME(zr));
++			goto zr_detach_codec;
++		}
++	}
++	if (zr->card.video_vfe != 0) {
++		master_vfe = zoran_setup_videocodec(zr, zr->card.video_vfe);
++		if (!master_vfe)
++			goto zr_detach_codec;
++		zr->vfe = videocodec_attach(master_vfe);
++		if (!zr->vfe) {
++			dprintk(1,
++				KERN_ERR
++				"%s: find_zr36057() - no VFE found\n",
++				ZR_DEVNAME(zr));
++			goto zr_free_vfe;
++		}
++		if (zr->vfe->type != zr->card.video_vfe) {
++			dprintk(1,
++				KERN_ERR
++				"%s: find_zr36057() = wrong VFE\n",
++				ZR_DEVNAME(zr));
++			goto zr_detach_vfe;
++		}
++	}
++	zoran[nr] = zr;
++
++	/* take care of Natoma chipset and a revision 1 zr36057 */
++	if ((pci_pci_problems & PCIPCI_NATOMA) && zr->revision <= 1) {
++		zr->jpg_buffers.need_contiguous = 1;
++		dprintk(1,
++			KERN_INFO
++			"%s: ZR36057/Natoma bug, max. buffer size is 128K\n",
+ 			ZR_DEVNAME(zr));
+-
+-		if (zr->card.video_codec != 0 &&
+-		    (codec_name =
+-		     codecid_to_modulename(zr->card.video_codec)) != NULL) {
+-			if ((result = request_module(codec_name)) < 0) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: failed to load modules %s: %d\n",
+-					ZR_DEVNAME(zr), codec_name, result);
+-			}
+-		}
+-		if (zr->card.video_vfe != 0 &&
+-		    (vfe_name =
+-		     codecid_to_modulename(zr->card.video_vfe)) != NULL) {
+-			if ((result = request_module(vfe_name)) < 0) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: failed to load modules %s: %d\n",
+-					ZR_DEVNAME(zr), vfe_name, result);
+-			}
+-		}
+-
+-		/* reset JPEG codec */
+-		jpeg_codec_sleep(zr, 1);
+-		jpeg_codec_reset(zr);
+-		/* video bus enabled */
+-		/* display codec revision */
+-		if (zr->card.video_codec != 0) {
+-			master_codec = zoran_setup_videocodec(zr,
+-							      zr->card.video_codec);
+-			if (!master_codec)
+-				goto zr_unreg_i2c;
+-			zr->codec = videocodec_attach(master_codec);
+-			if (!zr->codec) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: find_zr36057() - no codec found\n",
+-					ZR_DEVNAME(zr));
+-				goto zr_free_codec;
+-			}
+-			if (zr->codec->type != zr->card.video_codec) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: find_zr36057() - wrong codec\n",
+-					ZR_DEVNAME(zr));
+-				goto zr_detach_codec;
+-			}
+-		}
+-		if (zr->card.video_vfe != 0) {
+-			master_vfe = zoran_setup_videocodec(zr,
+-							    zr->card.video_vfe);
+-			if (!master_vfe)
+-				goto zr_detach_codec;
+-			zr->vfe = videocodec_attach(master_vfe);
+-			if (!zr->vfe) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: find_zr36057() - no VFE found\n",
+-					ZR_DEVNAME(zr));
+-				goto zr_free_vfe;
+-			}
+-			if (zr->vfe->type != zr->card.video_vfe) {
+-				dprintk(1,
+-					KERN_ERR
+-					"%s: find_zr36057() = wrong VFE\n",
+-					ZR_DEVNAME(zr));
+-				goto zr_detach_vfe;
+-			}
+-		}
+-		/* Success so keep the pci_dev referenced */
+-		pci_dev_get(zr->pci_dev);
+-		zoran[zoran_num++] = zr;
+-		continue;
+-
+-		// Init errors
+-	      zr_detach_vfe:
+-		videocodec_detach(zr->vfe);
+-	      zr_free_vfe:
+-		kfree(master_vfe);
+-	      zr_detach_codec:
+-		videocodec_detach(zr->codec);
+-	      zr_free_codec:
+-		kfree(master_codec);
+-	      zr_unreg_i2c:
+-		zoran_unregister_i2c(zr);
+-	      zr_free_irq:
+-		btwrite(0, ZR36057_SPGPPCR);
+-		free_irq(zr->pci_dev->irq, zr);
+-	      zr_unmap:
+-		iounmap(zr->zr36057_mem);
+-	      zr_free_mem:
+-		kfree(zr);
+-		continue;
+-	}
+-	if (dev)	/* Clean up ref count on early exit */
+-		pci_dev_put(dev);
+-
+-	if (zoran_num == 0) {
+-		dprintk(1, KERN_INFO "No known MJPEG cards found.\n");
+-	}
+-	return zoran_num;
+-}
+-
+-static int __init
+-init_dc10_cards (void)
++	}
++
++	if (zr36057_init(zr) < 0)
++		goto zr_detach_vfe;
++
++	zoran_proc_init(zr);
++
++	pci_set_drvdata(pdev, zr);
++
++	return 0;
++
++	// Init errors
++      zr_detach_vfe:
++	videocodec_detach(zr->vfe);
++      zr_free_vfe:
++	kfree(master_vfe);
++      zr_detach_codec:
++	videocodec_detach(zr->codec);
++      zr_free_codec:
++	kfree(master_codec);
++      zr_unreg_i2c:
++	zoran_unregister_i2c(zr);
++      zr_free_irq:
++	btwrite(0, ZR36057_SPGPPCR);
++	free_irq(zr->pci_dev->irq, zr);
++      zr_unmap:
++	iounmap(zr->zr36057_mem);
++      zr_free_mem:
++	kfree(zr);
++
++	return -ENODEV;
++}
++
++static struct pci_driver zoran_driver = {
++	.name = "zr36067",
++	.id_table = zr36067_pci_tbl,
++	.probe = zoran_probe,
++	.remove = zoran_remove,
++};
++
++static int __init zoran_init(void)
+ {
+ 	int i;
 
+@@ -1589,14 +1594,6 @@ init_dc10_cards (void)
+ 	printk(KERN_INFO "Zoran MJPEG board driver version %d.%d.%d\n",
+ 	       MAJOR_VERSION, MINOR_VERSION, RELEASE_VERSION);
 
-> Peace,
-> Brendon
-> 
+-	/* Look for cards */
+-	if (find_zr36057() < 0) {
+-		return -EIO;
+-	}
+-	if (zoran_num == 0)
+-		return -ENODEV;
+-	dprintk(1, KERN_INFO "%s: %d card(s) found\n", ZORAN_NAME,
+-		zoran_num);
+ 	/* check the parameters we have been given, adjust if necessary */
+ 	if (v4l_nbufs < 2)
+ 		v4l_nbufs = 2;
+@@ -1638,37 +1635,32 @@ init_dc10_cards (void)
+ 			ZORAN_NAME);
+ 	}
 
+-	/* take care of Natoma chipset and a revision 1 zr36057 */
+-	for (i = 0; i < zoran_num; i++) {
+-		struct zoran *zr = zoran[i];
+-
+-		if ((pci_pci_problems & PCIPCI_NATOMA) && zr->revision <= 1) {
+-			zr->jpg_buffers.need_contiguous = 1;
+-			dprintk(1,
+-				KERN_INFO
+-				"%s: ZR36057/Natoma bug, max. buffer size is 128K\n",
+-				ZR_DEVNAME(zr));
+-		}
+-
+-		if (zr36057_init(zr) < 0) {
+-			for (i = 0; i < zoran_num; i++)
+-				zoran_release(zoran[i]);
+-			return -EIO;
+-		}
+-		zoran_proc_init(zr);
++	i = pci_register_driver(&zoran_driver);
++	if (i) {
++		dprintk(1,
++			KERN_ERR
++			"%s: Unable to register ZR36057 driver\n",
++			ZORAN_NAME);
++		return i;
+ 	}
+
+ 	return 0;
+ }
+
+-static void __exit
+-unload_dc10_cards (void)
+-{
+-	int i;
+-
+-	for (i = 0; i < zoran_num; i++)
+-		zoran_release(zoran[i]);
+-}
+-
+-module_init(init_dc10_cards);
+-module_exit(unload_dc10_cards);
++static void __exit zoran_exit(void)
++{
++	pci_unregister_driver(&zoran_driver);
++}
++
++module_init(zoran_init);
++module_exit(zoran_exit);
++
++/*
++todo:
++	use pci ioremap functions
++
++	use id table to provide card type
++
++	get rid of zoran[] array
++*/
++
+diff -r f9b51cde3080 -r fdc7c04dd10d linux/drivers/media/video/zoran/zoran_card.h
+--- a/linux/drivers/media/video/zoran/zoran_card.h	Fri Jan 09 12:16:35 2009 -0800
++++ b/linux/drivers/media/video/zoran/zoran_card.h	Fri Jan 09 12:16:36 2009 -0800
+@@ -40,7 +40,7 @@ extern int zr36067_debug;
+
+ /* Anybody who uses more than four? */
+ #define BUZ_MAX 4
+-extern int zoran_num;
++extern atomic_t zoran_num;
+ extern struct zoran *zoran[BUZ_MAX];
+
+ extern struct video_device zoran_template;
+diff -r f9b51cde3080 -r fdc7c04dd10d linux/drivers/media/video/zoran/zoran_driver.c
+--- a/linux/drivers/media/video/zoran/zoran_driver.c	Fri Jan 09 12:16:35 2009 -0800
++++ b/linux/drivers/media/video/zoran/zoran_driver.c	Fri Jan 09 12:16:36 2009 -0800
+@@ -1271,7 +1271,7 @@ zoran_open(struct file  *file)
+
+ 	lock_kernel();
+ 	/* find the device */
+-	for (i = 0; i < zoran_num; i++) {
++	for (i = 0; i < atomic_read(&zoran_num); i++) {
+ 		if (zoran[i]->video_dev->minor == minor) {
+ 			zr = zoran[i];
+ 			break;
