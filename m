@@ -1,55 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35363 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964AbZA2G6e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 01:58:34 -0500
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Trent Piepho <xyzzy@speakeasy.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Thu, 29 Jan 2009 12:27:22 +0530
-Subject: RE: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F671@dbde02.ent.ti.com>
-In-Reply-To: <Pine.LNX.4.58.0901282207050.17300@shell2.speakeasy.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail0.scram.de ([78.47.204.202]:45912 "EHLO mail.scram.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751235AbZAIRvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Jan 2009 12:51:05 -0500
+Message-ID: <49678BD3.7070105@scram.de>
+Date: Fri, 09 Jan 2009 18:39:31 +0100
+From: Jochen Friedrich <jochen@scram.de>
 MIME-Version: 1.0
+To: Roberto Ragusa <mail@robertoragusa.it>
+CC: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] MC44S803 frontend (it works)
+References: <200901091615.21641.lacsilva@gmail.com> <4967783B.2060007@robertoragusa.it>
+In-Reply-To: <4967783B.2060007@robertoragusa.it>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Roberto,
 
+>> Thank you all for this good work. Any ideas as to when will these files hit 
+>> the mercurial repos at linuxtv.org?
+> 
+> That is not under my control.
+> I hope someone will route this driver into official trees.
 
-> -----Original Message-----
-> From: Trent Piepho [mailto:xyzzy@speakeasy.org]
-> Sent: Thursday, January 29, 2009 11:50 AM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com; Jadav, Brijesh
-> R; Nagalla, Hari; Hiremath, Vaibhav
-> Subject: Re: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
-> 
-> On Thu, 29 Jan 2009, Hardik Shah wrote:
-> > 1.  Control ID added for rotation.  Same as HFLIP.
-> > 2.  Control ID added for setting background color on
-> >     output device.
-> > 3.  New ioctl added for setting the color space conversion from
-> >     YUV to RGB.
-> > 4.  Updated the v4l2-common.c file according to comments.
-> 
-> Wasn't there supposed to be some documentation?
-> 
-> > +	case V4L2_CID_BG_COLOR:
-> > +		/* Max value is 2^24 as RGB888 is used for background color */
-> > +		return v4l2_ctrl_query_fill(qctrl, 0, 16777216, 1, 0);
-> 
-> Wouldn't it make more sense to set background in the same colorspace as the
-> selected format?
-[Shah, Hardik] Background color setting can be done only in the RGB space as hardware doesn't understand YUV or RGB565 for the background color setting.  And background color and pixel format are not related.  If we want to have the background setting format same as the color format then driver will have to do the color conversion and that is not optimal.
+As the tuner driver currently is only used with AF9015 frontends, I hope Antti will pick this one up.
+I can resubmit with a Signed-off-by if required.
 
-Regards,
-Hardik Shah
+> I can also add that additional tests on VHF frequencies
+> have been successful too.
 
+Cool.
+
+Thanks,
+Jochen
