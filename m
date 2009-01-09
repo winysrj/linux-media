@@ -1,57 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.sissa.it ([147.122.11.135]:54966 "EHLO smtp.sissa.it"
+Received: from cnc.isely.net ([64.81.146.143]:39308 "EHLO cnc.isely.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754766AbZAONL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2009 08:11:29 -0500
-Received: from ozzy.localnet (dhpc-2-04.sissa.it [147.122.2.184])
-	by smtp.sissa.it (Postfix) with ESMTP id 9966D1B4804C
-	for <linux-media@vger.kernel.org>; Thu, 15 Jan 2009 14:11:26 +0100 (CET)
-From: Nicola Soranzo <nsoranzo@tiscali.it>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Fix em28xx compilation warnings
-Date: Thu, 15 Jan 2009 14:11:34 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	id S1752220AbZAINUx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Jan 2009 08:20:53 -0500
+Date: Fri, 9 Jan 2009 07:20:50 -0600 (CST)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely <isely@pobox.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Trent Piepho <xyzzy@speakeasy.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mike Isely at pobox <isely@pobox.com>
+Subject: Re: USB: change interface to usb_lock_device_for_reset()
+In-Reply-To: <20090109092845.79e9db8c@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.64.0901090720050.3993@cnc.isely.net>
+References: <20090108235304.46ac523b@pedra.chehab.org>
+ <Pine.LNX.4.64.0901082224350.3993@cnc.isely.net> <Pine.LNX.4.64.0901082227020.3993@cnc.isely.net>
+ <20090109023842.4a6c638c@pedra.chehab.org> <Pine.LNX.4.64.0901082240390.3993@cnc.isely.net>
+ <20090109024758.6c4902f6@pedra.chehab.org> <Pine.LNX.4.64.0901082334100.3993@cnc.isely.net>
+ <Pine.LNX.4.58.0901082146470.1626@shell2.speakeasy.net>
+ <20090109092845.79e9db8c@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901151411.35128.nsoranzo@tiscali.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix em28xx compilation warnings.
+On Fri, 9 Jan 2009, Mauro Carvalho Chehab wrote:
 
-From: Nicola Soranzo <nsoranzo@tiscali.it>
+> On Thu, 8 Jan 2009 21:56:15 -0800 (PST)
+> Trent Piepho <xyzzy@speakeasy.org> wrote:
+> 
+> > On Thu, 8 Jan 2009, Mike Isely wrote:
+> > > > Yes... Anyway, this is the real patch. I've added a small comment about this
+> > > > change... I'll commit this tomorrow, if you don't have a better suggestion.
+> > >
+> > > Looks good.
+> > 
+> > Or maybe like this?
+> > 
+> > diff -r f01b3897d141 linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+> > --- a/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 00:27:32 2009 -0200
+> > +++ b/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 02:45:48 2009 -0200
+> > @@ -3747,7 +3747,12 @@
+> >  	int ret;
+> >  	pvr2_trace(PVR2_TRACE_INIT,"Performing a device reset...");
+> >  	ret = usb_lock_device_for_reset(hdw->usb_dev,NULL);
+> > - 	if (ret == 1) {
+> > +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29)
+> > +	/* Due to the API changes, the ret value for success changed */
+> > +	ret = ret != 1;
+> > +#endif
+> > +	if (ret == 0) {
+> >  		ret = usb_reset_device(hdw->usb_dev);
+> >  		usb_unlock_device(hdw->usb_dev);
+> >  	} else {
+> > 
+> 
+> Seems better! Could you please provide your SOB? I'll apply just the backport, then your patch.
 
-Inline ac97_return_record_select() function to fix compilation warnings like:
+Just for the record...
 
-  CC [M]  /home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx-audio.o
-/home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx.h:326: warning: 
-'ac97_return_record_select' defined but not used
-  CC [M]  /home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx-video.o
-/home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx.h:326: warning: 
-'ac97_return_record_select' defined but not used
-...
+Acked-By: Mike Isely <isely@pobox.com>
 
-introduced by changeset 10228.
+  -Mike
 
-Priority: normal
+-- 
 
-Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
-
-diff -ur v4l-dvb-11a5eb383205/linux/drivers/media/video/em28xx/em28xx.h v4l-
-dvb-new/linux/drivers/media/video/em28xx/em28xx.h
---- v4l-dvb-11a5eb383205/linux/drivers/media/video/em28xx/em28xx.h	2009-01-14 
-08:58:36.000000000 +0100
-+++ v4l-dvb-new/linux/drivers/media/video/em28xx/em28xx.h	2009-01-15 
-12:54:11.000000000 +0100
-@@ -322,7 +322,7 @@
- 	EM28XX_AOUT_PCM_PHONE	= 7 << 8,
- };
- 
--static int ac97_return_record_select(int a_out)
-+static inline int ac97_return_record_select(int a_out)
- {
- 	return (a_out & 0x700) >> 8;
- }
-
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
