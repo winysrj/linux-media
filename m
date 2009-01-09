@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
+Received: from mail-ew0-f16.google.com ([209.85.219.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <drappa@iinet.net.au>) id 1LP5Fc-0003Ae-7Z
-	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 02:17:57 +0100
-Message-ID: <D64BDF9C048E45918F77366C538FC2A9@mce>
-From: "drappa" <drappa@iinet.net.au>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 20 Jan 2009 11:17:42 +1000
+	(envelope-from <tutuyu@usc.edu>) id 1LLN2p-0002HM-DL
+	for linux-dvb@linuxtv.org; Fri, 09 Jan 2009 20:29:25 +0100
+Received: by ewy9 with SMTP id 9so9681748ewy.17
+	for <linux-dvb@linuxtv.org>; Fri, 09 Jan 2009 11:28:49 -0800 (PST)
+Message-ID: <cae4ceb0901091128w6f6e937dv45ac4024907c2a72@mail.gmail.com>
+Date: Fri, 9 Jan 2009 11:28:49 -0800
+From: "Tu-Tu Yu" <tutuyu@usc.edu>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: [linux-dvb] DVICO Dual Digital 4 DVB-T Revision2 : Strange Remote
-	Control Issue
-Reply-To: linux-media@vger.kernel.org
+Content-Disposition: inline
+Subject: [linux-dvb] Does anyone work on Dvico HDTV7 (both s5h1411 and
+	s5h1409) sucessfully!?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,29 +26,13 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All
-
-I have one of these cards running perfectly in a current Mythbuntu 8.10 
-system.
-Yesterday, I needed to run it under MS VISTA in a dual boot system for some 
-testing.
-The VISTA installation proved problematical but the main issue is that the 
-IR Remote will no longer function under VISTA.
-I tried rolling back to previous versions of the DVICO drivers but still 
-nothing.
-Booted back into Mythbuntu and the remote was fine.
-I'm at a loss to understand why. Is anything written to firmware when the 
-card is installed in a Linux system?
-
-Regards
-Drappa
-
-
-
-
-
- 
-
+hi~
+I am working on Dvico HDTV7 Tv tuner card. For s5h1409 version, it
+usually works fine in first few hours but after a while it will stop.
+For S5H1411 version, it usually works fine for only first hours and
+then it will stop....Can anyone give me some suggestion? I am looking
+for the solution for more than 1 month.....? Thank you so much!
+Audrey
 
 _______________________________________________
 linux-dvb users mailing list
