@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.251])
+Received: from nf-out-0910.google.com ([64.233.182.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1LJU9F-0004od-V3
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 15:40:14 +0100
-Received: by an-out-0708.google.com with SMTP id b38so1925073ana.41
-	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 06:40:06 -0800 (PST)
-Message-ID: <ea4209750901040640k532f2dc0rf918fb4967a4a19d@mail.gmail.com>
-Date: Sun, 4 Jan 2009 15:40:06 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "Yusuf Altin" <yusuf.altin@t-online.de>
-In-Reply-To: <1231015340.2963.7.camel@yusuf.laptop>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LLE4t-0003vT-9I
+	for linux-dvb@linuxtv.org; Fri, 09 Jan 2009 10:54:57 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so1393190nfb.11
+	for <linux-dvb@linuxtv.org>; Fri, 09 Jan 2009 01:54:51 -0800 (PST)
+Date: Fri, 9 Jan 2009 10:54:37 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Dmitry Podyachev <vdp@teletec.com.ua>
+In-Reply-To: <496617B4.5090508@teletec.com.ua>
+Message-ID: <alpine.DEB.2.00.0901090924250.26988@ybpnyubfg.ybpnyqbznva>
+References: <mailman.1.1230548402.10016.linux-dvb@linuxtv.org>
+	<495A0E46.6030903@teletec.com.ua>
+	<alpine.DEB.2.00.0812301329490.29535@ybpnyubfg.ybpnyqbznva>
+	<495A6A08.90909@teletec.com.ua>
+	<alpine.DEB.2.00.0812302005410.29535@ybpnyubfg.ybpnyqbznva>
+	<496617B4.5090508@teletec.com.ua>
 MIME-Version: 1.0
-References: <1231015340.2963.7.camel@yusuf.laptop>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy T Express
+Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] dvb-t config for Ukraine_Kiev (ua)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,134 +26,166 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1839551743=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1839551743==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_111810_17775525.1231080006172"
-
-------=_Part_111810_17775525.1231080006172
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi Yusuf, if you're sure about the type of the device you should try to
-modify the v4l source code, probably just adding your new device it should
-work.
-
-To do so you will need; mercurial, gcc, make and linux-headers matching your
-kernel. Once installed you can get the current source code runing;  hg clone
-http://linuxtv.org/hg/v4l-dvb
-You will also need the card's firmware, you can get it from
-http://www.wi-bw.tfh-wildau.de/~pboettch/home/linux-dvb-firmware/dvb-usb-dib0700-1.10.fwand
-copy it to /lib/firmware/
-Then go to v4l-dvb/linux/drivers/media/dvb/dvb-usb and modify the files
-dib-usb-ids.h adding the new id with a descriptor, and dib0700_devices.c
-Once modified just run make and make install (as root, this can potentialy
-screw other v4l drivers), and test it (if you have the modules loaded you
-will need to reload them).
-
-If you want to try it and don't know how to modify the files just tell me
-and I can make your version, but only ask for it when you have everything
-installed and ready.
-
-Albert
-
-2009/1/3 Yusuf Altin <yusuf.altin@t-online.de>
-
-> Hello,
->
-> I own a TerraTec Cinergy T Express DVB-T Card and it doesn't work with
-> Fedora 10.
->
-> My kernel is 2.6.27.10-167.fc10.i686.
->
-> lsusb:
-> Bus 001 Device 008: ID 0ccd:0062 TerraTec Electronic GmbH
->
-> dmesg:
-> usb 1-6: new high speed USB device using ehci_hcd and address 8
-> usb 1-6: configuration #1 chosen from 1 choice
-> usb 1-6: New USB device found, idVendor=0ccd, idProduct=0062
-> usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> usb 1-6: Product: STK7700D
-> usb 1-6: Manufacturer: YUANRD
-> usb 1-6: SerialNumber: 0000000001
->
-> The card has afaik a dib7700PC chip.
->
-> Is it possible to get the card working?
->
-> Greeting
->
-> Yusuf Altin
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-------=_Part_111810_17775525.1231080006172
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi Yusuf, if you&#39;re sure about the type of the device you should try to modify the v4l source code, probably just adding your new device it should work.<br><br>To do so you will need; mercurial, gcc, make and linux-headers matching your kernel. Once installed you can get the current source code runing;&nbsp; hg clone <a href="http://linuxtv.org/hg/v4l-dvb">http://linuxtv.org/hg/v4l-dvb</a><br>
-You will also need the card&#39;s firmware, you can get it from <a href="http://www.wi-bw.tfh-wildau.de/~pboettch/home/linux-dvb-firmware/dvb-usb-dib0700-1.10.fw">http://www.wi-bw.tfh-wildau.de/~pboettch/home/linux-dvb-firmware/dvb-usb-dib0700-1.10.fw</a> and copy it to /lib/firmware/<br>
-Then go to v4l-dvb/linux/drivers/media/dvb/dvb-usb and modify the files dib-usb-ids.h adding the new id with a descriptor, and dib0700_devices.c<br>Once modified just run make and make install (as root, this can potentialy screw other v4l drivers), and test it (if you have the modules loaded you will need to reload them).<br>
-<br>If you want to try it and don&#39;t know how to modify the files just tell me and I can make your version, but only ask for it when you have everything installed and ready.<br><br>Albert<br><br><div class="gmail_quote">
-2009/1/3 Yusuf Altin <span dir="ltr">&lt;<a href="mailto:yusuf.altin@t-online.de">yusuf.altin@t-online.de</a>&gt;</span><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hello,<br>
-<br>
-I own a TerraTec Cinergy T Express DVB-T Card and it doesn&#39;t work with<br>
-Fedora 10.<br>
-<br>
-My kernel is 2.6.27.10-167.fc10.i686.<br>
-<br>
-lsusb:<br>
-Bus 001 Device 008: ID 0ccd:0062 TerraTec Electronic GmbH<br>
-<br>
-dmesg:<br>
-usb 1-6: new high speed USB device using ehci_hcd and address 8<br>
-usb 1-6: configuration #1 chosen from 1 choice<br>
-usb 1-6: New USB device found, idVendor=0ccd, idProduct=0062<br>
-usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3<br>
-usb 1-6: Product: STK7700D<br>
-usb 1-6: Manufacturer: YUANRD<br>
-usb 1-6: SerialNumber: 0000000001<br>
-<br>
-The card has afaik a dib7700PC chip.<br>
-<br>
-Is it possible to get the card working?<br>
-<br>
-Greeting<br>
-<br>
-Yusuf Altin<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br>
-
-------=_Part_111810_17775525.1231080006172--
-
-
---===============1839551743==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1839551743==--
+SGVsbG8gRG1pdHJ5LCBJIGhvcGUgeW91IGFyZSBhYmxlIHRvIGtlZXAgd2FybSB0aGlzIHdpbnRl
+ciA6LSkKCkkgYW0gc2VuZGluZyBhIGNvcHkgb2YgbXkgcmVwbHkgdG8gc2V2ZXJhbCBvZiB5b3Vy
+IG1lc3NhZ2VzIHRvCnRoZSBtYWlsaW5nIGxpc3QsIGluIGNhc2Ugc29tZW9uZSBlbHNlIGlzIGFi
+bGUgdG8gaGVscCwgYW5kIGluCnRoZSB1bmxpa2VseSBldmVudCB0aGF0IHdoYXQgSSB3cml0ZSBt
+aWdodCBiZSB1c2VmdWwgdG8gc29tZW9uZQplbHNlLiAgSSBob3BlIHRoYXQgaXMgb2theSBmb3Ig
+eW91Li4uCgoKT24gVHVlLCAzMCBEZWMgMjAwOCwgRG1pdHJ5IFBvZHlhY2hldiB3cm90ZToKCj4g
+cC5zLjogIHdoYXQgaXMgdGhlIFNGTiA/CgpUbyBnaXZlIGEgYml0IG9mIGNvbnRleHQgdG8gdGhp
+cyBxdWVzdGlvbiwgSSBoYWQgcmVhZCB0aGF0IHNvbWUKb2YgdGhlIGZyZXF1ZW5jaWVzIGluIHVz
+ZSBpbiBLaWV2L0vQuMOv0LIgd2VyZSBwYXJ0IG9mIGEgU2luZ2xlLQpGcmVxdWVuY3kgTmV0d29y
+ayAoU0ZOKS4gIFRoYXQgaXMgd2hlcmUgdGhlIHNhbWUgZnJlcXVlbmN5IGlzCnVzZWQgYnkgc2V2
+ZXJhbCB0cmFuc21pdHRlcnMgcmVsYXRpdmVseSBjbG9zZSB0byBlYWNoIG90aGVyIHRvCmNvdmVy
+IGEgbGFyZ2VyIGFyZWEgdGhhbiBjYW4gYmUgcmVhY2hlZCBmcm9tIGEgc2luZ2xlIHNpdGUuCgpU
+aGlzIHdvcmtzIGJlY2F1c2Ugb25lIG9mIHRoZSBmZWF0dXJlcyBvZiBEVkItVCBpcyB0aGUgR3Vh
+cmQKSW50ZXJ2YWwsIHdoaWNoIGFsbG93cyB0aGUgcmVjZWl2ZXIgdG8gbWFrZSB1c2Ugb2YgcmVm
+bGVjdGlvbnMsCmVjaG9lcywgbXVsdGlwYXRoIGludGVyZmVyZW5jZSwgb3IgZm9yIGEgU0ZOLCBz
+aWduYWxzIHJlY2VpdmVkCmZyb20gYWRkaXRpb25hbCB0cmFuc21pdHRlcnMgd2hpY2ggYXBwZWFy
+IGFzIGEgbG9uZyBlY2hvLgoKSSBhbSBub3QgYW4gZXhwZXJ0IG9uIHRoaXMsIGJ1dCBhcyBJIHVu
+ZGVyc3RhbmQgaXQsIHRoZSBtYXhpbXVtCmRpc3RhbmNlIGJldHdlZW4gc2VwYXJhdGUgdHJhbnNt
+aXR0ZXJzIG9uIHRoZSBzYW1lIGZyZXF1ZW5jeQp3aGljaCBzZW5kIHRoZSBzYW1lIHByb2dyYW1t
+ZXMgaXMgZGV0ZXJtaW5lZCBieSB0aGUgZ3VhcmQKaW50ZXJ2YWwuICBJbiBjb3VudHJpZXMgd2hl
+cmUgdXNlIGlzIG1hZGUgb2YgYSBNdWx0aXBsZS1GcmVxdWVuY3kKTmV0d29yayAoTUZOKSBzdWNo
+IGFzIEZyYW5jZSBmb3IgdGhlIG1vc3QgcGFydCwgdGhlIHNtYWxsZXN0Cmd1YXJkIGludGVydmFs
+IGlzIHVzZWQsIGFsbG93aW5nIGZvciBhIGhpZ2hlciBhdmFpbGFibGUgYml0cmF0ZQpmcm9tIHRo
+ZSA4TUh6IGNoYW5uZWwgYmFuZHdpZHRoLCB3aXRoIHRoZSBkcmF3YmFjayB0aGF0IHRoZXJlCmFy
+ZSBtb3JlIGZyZXF1ZW5jaWVzIGluIHVzZSwgYW5kIGl0IGlzIGxpa2VseSB0aGF0IG9uZSBjYW4K
+cmVjZWl2ZSB0aGUgc2FtZSBwcm9ncmFtbWluZyB0d28gb3IgdGhyZWUgb3IgbW9yZSB0aW1lcyBp
+biBvbmUKbG9jYXRpb24gYmV0d2VlbiBkaWZmZXJlbnQgdHJhbnNtaXR0ZXJzLgoKSW4gY29udHJh
+c3QsIGluIEdlcm1hbnkgKHNlZSB0aGUgZGUtQlcgbGlzdCB3aGljaCBJIHBvc3RlZCB0bwp0aGlz
+IG1haWxpbmcgbGlzdCBzb21lIHdlZWtzIG9yIG1vbnRocyBhZ28pLCB0aGUgc2FtZSBmcmVxdWVu
+Y3kKaXMgaW4gdXNlIGF0IHNldmVyYWwgd2lkZWx5LXNwYWNlZCB0cmFuc21pdHRlcnMsIGJ1dCBu
+b3Qgc28gZmFyCmFwYXJ0IHRoYXQgb25lIGNhbm5vdCByZWNlaXZlIG1vcmUgdGhhbiBvbmUgYXQg
+c29tZSBsb2NhdGlvbnMuCkZvciB0aGlzLCBhIGd1YXJkIGludGVydmFsIGlzIGNob3NlbiB0aGF0
+IGlzIG11Y2ggbGFyZ2VyLCBzYXksCjEvNCBpbnN0ZWFkIG9mIDEvMzIsIGJ1dCB0aGlzIGFsc28g
+bWVhbnMgdGhhdCBsZXNzIG92ZXJhbGwKYml0cmF0ZSBpcyBhdmFpbGFibGUgb24gYSBwYXJ0aWN1
+bGFyIDhNSHogY2hhbm5lbC4KCkhpbnRlZCBhdCBpbiB0aGUgZGUtQlcgbGlzdCBpcyB0aGF0IGlu
+IFN3aXR6ZXJsYW5kIHVzZSBpcyBhbHNvCm1hZGUgb2Ygc2V2ZXJhbCBTRk5zLCBjb25zaXN0aW5n
+IHRoZXJlIG9mIHNvbWUgaGlnaGVyLXBvd2VyCnRyYW5zbWl0dGVycyBvbiBhIHBhcnRpY3VsYXIg
+ZnJlcXVlbmN5LCBzdXBwbGVtZW50ZWQgYnkgbWFueQpsb3dlci1wb3dlciB0cmFuc21pdHRlcnMg
+b24gdGhlIG9yZGVyIG9mIGtpbG93YXR0cywgZHVlIHRvCnRoZSB0ZXJyYWluIG1ha2luZyBpdCBk
+aWZmaWN1bHQgdG8gY292ZXIgdGhlIG1hbnkgdmFsbGV5cyB0aGF0CnRoZSBoaWdoLXBvd2VyIHRy
+YW5zbWl0dGVyIGZhaWxzIHRvIHJlYWNoLiAgVGhlIGxhcmdlIG51bWJlcgpvZiBmaWxsZXIgdHJh
+bnNtaXR0ZXJzIG1ha2VzIGl0IGltcHJhY3RpY2FsIHRvIGxpc3QgdGhlbSBhbGwKd2l0aCB0aGUg
+cmVkdW5kYW50IGluZm8gaW4gdGhlIHdheSB0aGF0IEkgZGlkIGluIGRlLUJXLCB0aG91Z2gKYSBs
+aXN0IGNhbiBiZSBkb3dubG9hZGVkIGluIGNhc2Ugc3BlY2lmaWMgaW5mb3JtYXRpb24gaXMgbmVl
+ZGVkCnRvIHByb3Blcmx5IHNpdGUgYSByZWNlaXZpbmcgYW50ZW5uYS4KCgpXaXRoIGFuYWxvZ3Vl
+IGJyb2FkY2FzdGluZywgdGhpcyBTRk4gdXNlIHdhcyBub3QgcG9zc2libGUsIGFzCm1vcmUgdGhh
+biBvbmUgdHJhbnNtaXR0ZXIgb24gdGhlIHNhbWUgZnJlcXVlbmN5IHJlc3VsdHMgaW4KdGhlIGZh
+bWlsaWFyIGludGVyZmVyZW5jZSB0aGF0IGNvdWxkIGJlIHNlZW4gd2hlcmUgbXVsdGlwbGUKbG93
+LXBvd2VyIGZpbGxlciB0cmFuc21pdHRlcnMgd2VyZSByZWNlaXZlZC4KCkZvciByZWFkZXJzIGlu
+IEFUU0MtbGFuZCwgdGhpcyBjYW4gYmUgYSBkaWZmaWN1bHQgY29uY2VwdCB0bwpncmFzcCwgYXMg
+Zm9yIHRoZSBtb3N0IHBhcnQsIGFsbCBzdGF0aW9ucyBhcmUgaW5kZXBlbmRlbnQgb2YKZWFjaCBv
+dGhlciBhbmQgdXNlIGEgc2luZ2xlIGhpZ2gtcG93ZXIgdHJhbnNtaXR0aW5nIHNpdGUsIHNvCmFz
+IEkgdW5kZXJzdGFuZCBmcm9tIHJlYWRpbmcgZ3JpcGVzIG9uIFNsYXNoZG90ICh3aGljaCBpcyB0
+aGUKY2xvc2VzdCBJIGNhcmUgdG8gY29tZSB0byB1bmRlcnN0YW5kaW5nIGRldGFpbHMgb2YgQVRT
+QyksIHRoZXJlCmlzIG5vIHByb3Zpc2lvbiBtYWRlIGZvciBoYW5kbGluZyBtdWx0aXBsZSB0cmFu
+c21pdHRlcnMsIGFuZCBhcwphIHJlc3VsdCwgbXVsdGlwYXRoIGludGVyZmVyZW5jZSBvciBvdGhl
+ciBlY2hvIHNvdXJjZXMsIGFuZApyZWNlcHRpb24gaXMgbm93aGVyZSBuZWFyIGFzIHJvYnVzdCBh
+cyB0aGUgY2FzZSBJJ3ZlIGV4cGVyaWVuY2VkCndoZXJlIGEgdmlydHVhbGx5IHVud2F0Y2hhYmxl
+IGFuYWxvZ3VlIGZyZXF1ZW5jeSBpcyB0dXJuZWQgaW50bwphIGNsZWFyIERWQi1UIHNpZ25hbCwg
+YW5kIGEgbGl0ZXJhbGx5IHVud2F0Y2hhYmxlIGZyZXF1ZW5jeSBpcwp0dXJuZWQgaW50byBtb3N0
+bHktY2xlYXIgRFZCLVQuICBUaGF0IGlzLCBmb3IgVVMtdHlwZXMsIHRoZXJlCmlzIG5vIGNvbmNl
+cHQgb2YgYSBuYXRpb25hbCBicm9hZGNhc3RlciAod2l0aCwgc2F5LCB2YWd1ZQp0dW5pbmcgaW5m
+bywgbGlrZSwgYDk3IHRvIDk5IEZNJyBhcyBvcHBvc2VkIHRvIGEgc3BlY2lmaWMKZnJlcXVlbmN5
+LCBgODguMyBvbiB5b3VyIEZNIGRpYWwnKS4gIEJ1dCBJIGRpZ3Jlc3MuLi4KCgpBbnl3YXksIGEg
+Z3VhcmQgaW50ZXJ2YWwgb2YgMS8zMiB3b3VsZCBiZSB1c2VkIGJ5IGEgc2luZ2xlCnRyYW5zbWl0
+dGVyLCBvciBwZXJoYXBzIHR3byBjbG9zZWJ5IHRyYW5zbWl0dGVycyBvbiB0aGUgc2FtZQpmcmVx
+dWVuY3ksIHdoZXJlYXMgZm9yIGEgU2luZ2xlLUZyZXF1ZW5jeSBOZXR3b3JrIChTRk4pLCBJCndv
+dWxkIGV4cGVjdCB0byBzZWUgYSBkaWZmZXJlbnQgdmFsdWUsIGRlcGVuZGluZyBvbiB0aGUgc2l6
+ZQpvZiB0aGUgY292ZXJhZ2UgYXJlYSwgbGlrZSAxLzggYXMgaW4gUGFyaXMsIG9yIDEvNCBhcyB1
+c2VkCmZvciB0aGUgbmF0aW9uYWwgYW5kIHJlZ2lvbmFsIGJyb2FkY2FzdGVycyBpbiBHZXJtYW55
+LiAgVGhpcwppcyB3aHkgSSB3YXMgc29tZXdoYXQgY29uZnVzZWQgYnkgdGhlIGNvbmZsaWN0IG9m
+IHNlZWluZyB0aGUKdXNlIG9mIFNGTiB0byByZWZlciB0byBLaWV2LCB3aGlsZSBzZWVpbmcgMS8z
+MiBnaXZlbiBhcyBhCmd1YXJkIGludGVydmFsLiAgQnV0IEkgYW0gY29tcGxldGVseSB1bmZhbWls
+aWFyIHdpdGggdGhlCkRWQi1UIG5ldHdvcmsgaW4gYW5kIG5lYXIgS2lldiBvciB0aHJvdWdob3V0
+IHRoZSBVa3JhaW5lLgoKClRoYXQgd2FzIG11Y2ggbW9yZSB0aGFuIEkgbmVlZGVkIHRvIHdyaXRl
+IGFib3V0IHRoYXQuLi4KCgpPbiBUaHUsIDggSmFuIDIwMDksIERtaXRyeSBQb2R5YWNoZXYgd3Jv
+dGU6Cgo+IERlYXIgQmFycnksCj4gSGFwcHkgTmV3IFllYXIgYW5kIE1lcnJ5IENocmlzdG1hcyEK
+PiBIb3BlIHlvdSBhcmUgb2suCgpUaGFuayB5b3UsIGFuZCB0aGUgc2FtZSB0byB5b3UhCgo+IENv
+dWxkIHlvdSBoZWxwIG1lIHdpdGggYWR2aWNlIGFib3V0IGR2Yi10Pwo+IEkgdHJ5IHRvIHBsYXkg
+c29tZXRoaW5nIGZyb20gaXQsIGJ1dCBub3RoaW5nOgo+IAo+IHNjYW4gLXEgLTUgLWEgMCAtdSAt
+eCAwIHVhID4vaG9tZS9pcHR2Ly5tcGxheWVyL2NoYW5uZWxzLmNvbmYKCj4gY2F0IC9ob21lL2lw
+dHYvLm1wbGF5ZXIvY2hhbm5lbHMuY29uZgo+IFVULTE6NjM0MDAwMDAwOklOVkVSU0lPTl9BVVRP
+OkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fNjQ6VFJBTlNNSVNTSU9OX01P
+REVfOEs6R1VBUkRfSU5URVJWQUxfQVVUTzpISUVSQVJDSFlfTk9ORTo0MTExOjQxMTI6MQo+IFJB
+REE6NjM0MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNf
+QVVUTzpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfQVVUTzpISUVS
+QVJDSFlfTk9ORTo0MTMxOjQxMzI6MwoKVGhpcyBzaG93cyB0aGF0IHlvdSB3ZXJlIGFibGUgdG8g
+YWJsZSB0byB0dW5lIHdpdGggc3VjY2VzcyB0bwo2MzRNSHogYW5kIGxpc3QgdGhlIGF2YWlsYWJs
+ZSBwcm9ncmFtbWVzLCBzbyBhdCBsZWFzdCBgc2NhbicKd2FzIGFibGUgdG8gbG9jayBvbnRvIHRo
+YXQgZnJlcXVlbmN5IHdpdGggdGhlIGdpdmVuIHBhcmFtZXRlcnMuCih0aGUgb3RoZXIgYXZhaWxh
+YmxlIGZyZXF1ZW5jaWVzIHdlcmUgbGlzdGVkIGluIHlvdXIgZm9sbG93aW5nCm1lc3NhZ2UpCgoK
+PiBtcGxheWVyIC12byBjYWNhIC1jYWNoZSAyMjIyIGR2YjovLyJSQURBIgo+IAo+IFBsYXlpbmcg
+ZHZiOi8vUkFEQS4KPiBkdmJfdHVuZSBGcmVxOiA2MzQwMDAwMDAKPiBOb3QgYWJsZSB0byBsb2Nr
+IHRvIHRoZSBzaWduYWwgb24gdGhlIGdpdmVuIGZyZXF1ZW5jeSwgdGltZW91dDogMzAKPiBkdmJf
+dHVuZSwgVFVOSU5HIEZBSUxFRAoKSG93ZXZlciwgZm9yIHNvbWUgcmVhc29uLCBgbXBsYXllcicg
+d2FzIG5vdCBhYmxlIHRvIGxvY2sgb250bwp0aGUgc2FtZSBmcmVxdWVuY3kuCgo+IHRoZSBkZXRh
+aWxlZCBpbmZvIGhlcmU6ClttdWNoIHNuaXBwZWRdCj4gQ09ORklHX1JFQUQgRklMRTogL2hvbWUv
+aXB0di8ubXBsYXllci9jaGFubmVscy5jb25mLCB0eXBlOiAyCj4gVEVSLCBOVU06IDAsIE5VTV9G
+SUVMRFM6IDExLCBOQU1FOiBVVC0xLCBGUkVROiA2MzQwMDAwMDAgUElEUzogIDQxMTEgIDQxMTIg
+IDAKPiBURVIsIE5VTTogMSwgTlVNX0ZJRUxEUzogMTEsIE5BTUU6IFJBREEsIEZSRVE6IDYzNDAw
+MDAwMCBQSURTOiAgNDEzMSAgNDEzMiAgMAo+IFRFUiwgTlVNOiAyLCBOVU1fRklFTERTOiAxMSwg
+TkFNRTogNSBLQU5BTCwgRlJFUTogNjUwMDAwMDAwIFBJRFM6ICA0MzExICA0MzEyCj4gMAoKPiBP
+UEVOX0RWQjogcHJvZz1SQURBLCBjYXJkPTEsIHR5cGU9MiwgdmlkPTAsIGFpZD0wCj4gZHZiX3N0
+cmVhbWluZ19zdGFydChQUk9HOiBSQURBLCBDQVJEOiAxLCBWSUQ6IDAsIEFJRDogMCwgVFlQRTog
+LCBGSUxFOiAobnVsbCkpCj4gUFJPR1JBTSBOVU1CRVIgMTogbmFtZT1SQURBLCBmcmVxPTYzNDAw
+MDAwMAoKPiBEVkJfU0VUX0NIQU5ORUw6IG5ldyBjaGFubmVsIG5hbWU9UkFEQSwgY2FyZDogMCwg
+Y2hhbm5lbCAxCj4gRElGRkVSRU5UIFRVTklORyBUSEFOIFRIRSBQUkVWSU9VUzogICAtPiAwfDYz
+NDAwMDAwMHwyfDB8OXwzfDF8Mwo+IGR2Yl90dW5lIEZyZXE6IDYzNDAwMDAwMAo+IFRVTkVfSVQs
+IGZkX2Zyb250ZW5kIDMsIGZkX3NlYyAwCj4gZnJlcSA2MzQwMDAwMDAsIHNyYXRlIDQsIHBvbCA/
+LCB0b25lIC0xMjIwNDc4NzI4LCBzcGVjSW52LCBkaXNlcWMgMzA3NDQ4ODU3NiwKCkluIHRoaXMg
+dmVyYm9zZSBvdXRwdXQgZnJvbSBgbXBsYXllcicsIHRoZSBmcmVxdWVuY3kgaXMgY29ycmVjdCwK
+d2hpbGUgdGhlIG90aGVyIHN0cmFuZ2UgdmFsdWVzIGFyZSBvbmx5IHJlbGV2YW50IGZvciBzYXRl
+bGxpdGUKRFZCLVMsIGFuZCBjYW4gcHJvYmFibHkgYmUgaWdub3JlZC4uLgoKCj4gZmVfbW9kdWxh
+dGlvbl90IG1vZHVsYXRpb24sZmVfY29kZV9yYXRlX3QgSFBfQ29kZVJhdGUsIGZlX3RyYW5zbWl0
+X21vZGVfdAo+IFRyYW5zbWlzc2lvbk1vZGUsZmVfZ3VhcmRfaW50ZXJ2YWxfdCBndWFyZEludGVy
+dmFsLCBmZV9iYW5kd2lkdGhfdCBiYW5kd2lkdGgKCkkgYW0gbm90IHN1cmUgaWYgdGhlIGxhY2sg
+b2YgYW55IHZhbHVlcyBoZXJlIG1lYW5zIGFueXRoaW5nLApiZWNhdXNlIEkndmUgbmV2ZXIgbmVl
+ZGVkIHRvIGRlYnVnIERWQi1UIHR1bmluZyB3aXRoIGBtcGxheWVyJywKYXMgaXQgaGFzIGBganVz
+dCB3b3JrZWQnJyBmb3IgbWUuLi4KCgo+IFVzaW5nIERWQiBjYXJkICJQaGlsaXBzIFREQTEwMDQ2
+SCBEVkItVCIKPiAqdHVuaW5nIERWQi1UIHRvIDYzNDAwMDAwMCBIeiwgYmFuZHdpZHRoOiAwCgpU
+aGUgYGJhbmR3aWR0aCcgdmFsdWUgc2VlbXMgd3JvbmcsIHdoaWxlIGl0IGlzIGNvcnJlY3QgaW4g
+dGhlCnR1bmluZyBmaWxlIGFib3ZlLCBidXQgdGhhdCBtYXkgbm90IG1lYW4gYW55dGhpbmcuLi4K
+Cgo+IEdldHRpbmcgZnJvbnRlbmQgc3RhdHVzCj4gTm90IGFibGUgdG8gbG9jayB0byB0aGUgc2ln
+bmFsIG9uIHRoZSBnaXZlbiBmcmVxdWVuY3ksIHRpbWVvdXQ6IDMwCgoKCj4gcC5zLiBIb3cgeW91
+IHBsYXkgb3Igc3RyZWFtIGZyb20gZHZiLXQgPwo+IEkgdHJ5IGR2YnN0cmVhbSwgYnV0IHRoZSBz
+YW1lOgo+IGR2YnN0cmVhbSAtYyAwIC1JIDIgLXFhbSA2NCAtZ2kgMzIgLWNyIDJfMyAtYncgOCAt
+ZiA2NTAwMDAwMDAgLW5ldAo+IDIyNC4xMi4xMi4xMjoxMjM0IDQzMTEgNDMxMgoKPiBUdW5pbmcg
+dG8gNjUwMDAwMDAwIEh6Cj4gVXNpbmcgRFZCIGNhcmQgIlBoaWxpcHMgVERBMTAwNDZIIERWQi1U
+IiwgZnJlcT02NTAwMDAwMDAKPiB0dW5pbmcgRFZCLVQgKGluIFVuaXRlZCBLaW5nZG9tKSB0byA2
+NTAwMDAwMDAgSHosIEJhbmR3aWR0aDogOAo+ICpHZXR0aW5nIGZyb250ZW5kIHN0YXR1cwo+IE5v
+dCBhYmxlIHRvIGxvY2sgdG8gdGhlIHNpZ25hbCBvbiB0aGUgZ2l2ZW4gZnJlcXVlbmN5CgpBZ2Fp
+biwgdGhlcmUgaXMgc29tZSBwcm9ibGVtIGJlaW5nIGFibGUgdG8gbG9jayBvbnRvIHRoaXMKZnJl
+cXVlbmN5LiAgV2hpY2ggc2VlbXMgc3RyYW5nZSwgYmVjYXVzZSBgc2NhbicgYXBwZWFyZWQgdG8K
+YmUgYWJsZSB0byBsaXN0IHRoZSBzZXJ2aWNlcy4KCkhvd2V2ZXIsIHRoaXMgbWlnaHQgYmUgZWFz
+aWVyIC0tIGF0IGxlYXN0IGluIG15IG91dGRhdGVkCmBkdmJzdHJlYW0nIHRoZSBkZWZhdWx0IEZG
+VCB0cmFuc21pc3Npb24gbW9kZSBpcyAyaywgd2hpbGUKaXQgc2hvdWxkIGJlIHNwZWNpZmllZCBh
+cyA4ayBmb3IgS2lldiwgc28geW91IHdpbGwgbmVlZCB0bwphZGQgYC10bSA4JyB0byB5b3VyIGFi
+b3ZlIGNvbW1hbmQgbGluZS4KClRyeSB0aGF0IGFuZCBzZWUgaWYgaXQgd29ya3MuLi4KCgpUaGUg
+b3RoZXIgcGFyYW1ldGVycyBzZWVtIHRvIGJlIGNvcnJlY3QsIGF0IGxlYXN0IGFzIHNlZW4KaW4g
+YSBxdWljayBnMDBnbGUgcmVzdWx0OgogICBwYdCxb9GCYWXRgiDQsiDQlE1CLdC00Lhh0L9h0Ldv
+0L1lINC9YSA1MSBUQksgNzE0IE3Ok9GGLAogICDQvG/RidC9b2PRgtGMINC0byAxIMS4QtGCOwog
+ICDQv2FwYdC8ZdGCcNGLIENPRkRNINC8b9C0edC70Y/RhtC40Lg6IDY0LVFBTSwgRkZUIDhLLCBD
+b2RlIFJhdGUgMi8zLAogICBHdWFyZCBJbnRlcnZhbHMgMS8zMiwgQmFuZHdpZHRoIDggTc6T0YYu
+CgpJZiB5b3UgZWRpdCB5b3VyIGNoYW5uZWxzLmNvbmYgZmlsZSB0byB1c2UgdGhlc2UgdmFsdWVz
+CmF0IDcxNE1IeiBmb3IgY2hhbm5lbHMKICAgNTEgfCA3MTQsMCB8IEvOk1RQSywgMSsxLCAyNCwg
+VG/QvdC4YywgS3nQu9GM0YJ5cGEsCiAgIEVudGVyLc+G0LjQu9GM0LwsINCjUC0xLCDQo1AtMi/O
+oHBv0LzQuNC90YwsCiAgINCjUC0zL0t50LvRjNGCeXBhCmluIHBsYWNlIG9mIGBBVVRPJyBhbmQg
+dHJ5IHRoYXQsIG1heWJlIHRoYXQgd2lsbCB3b3JrLgoKSSB0aGluayB0aGVyZSBhcmUgc29tZSB0
+dW5lcnMgdGhhdCByZXF1aXJlIHNwZWNpZmljIHZhbHVlcwphbmQgd2lsbCBub3Qgd29yayB3aXRo
+IGBBVVRPJywgYWx0aG91Z2ggdGhlcmUgYXJlIG1hbnkgdGhhdAp3aWxsIHdvcmsuLi4KCgpob3Bl
+IHRoaXMgaXMgaGVscGZ1bApiYXJyeSBib3V3c21hCnNvbWUgcmFuZG9tIDgtYml0IGNoYXJzIHRv
+IG1ha2Ugc3VyZSB0aGlzIGdldHMgdGFnZ2VkIGFzIHV0Zi04Li4uCuKAnuKApuKEos+Iw7bFvteQ
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1k
+dmIgdXNlcnMgbWFpbGluZyBsaXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNl
+IGluc3RlYWQgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9y
+ZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1k
+dmI=
