@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nicola.sabbi@poste.it>) id 1LIhNU-0003HC-1J
-	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 11:35:41 +0100
-Received: from [192.168.1.116] (79.42.61.188) by relay-pt1.poste.it (7.3.122)
-	(authenticated as nicola.sabbi@poste.it)
-	id 495D6758000028CA for linux-dvb@linuxtv.org;
-	Fri, 2 Jan 2009 11:35:36 +0100
-From: Nico Sabbi <nicola.sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1230891602.3791.4.camel@linux-wcrt.site>
-References: <ecc841d80901011033s58b2fecawd3dd2d42c1b09cd7@mail.gmail.com>
-	<alpine.DEB.2.00.0901021055060.32128@ybpnyubfg.ybpnyqbznva>
-	<1230891602.3791.4.camel@linux-wcrt.site>
-Date: Fri, 02 Jan 2009 11:29:33 +0100
-Message-Id: <1230892173.3791.12.camel@linux-wcrt.site>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] dvbsream v0-5 and -n switch
-Reply-To: nicola.sabbi@poste.it
+Message-ID: <cae4ceb0901091526m2dcad492i66d169f0614a7f3@mail.gmail.com>
+Date: Fri, 9 Jan 2009 15:26:34 -0800
+From: "Tu-Tu Yu" <tutuyu@usc.edu>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <37219a840901091200h4a2910b2qe1edcc6667efa2d3@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <cae4ceb0901091128w6f6e937dv45ac4024907c2a72@mail.gmail.com>
+	<37219a840901091200h4a2910b2qe1edcc6667efa2d3@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Does anyone work on Dvico HDTV7 (both s5h1411 and
+	s5h1409) sucessfully!?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,52 +24,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Il giorno ven, 02/01/2009 alle 11.20 +0100, Nico Sabbi ha scritto:
-> Il giorno ven, 02/01/2009 alle 11.00 +0100, BOUWSMA Barry ha scritto:
-> > 
-> > --- /mnt/usr/local/src/dvbtools/dvbstream/dvbstream.c-DIST	2005-01-06 11:25:27.000000000 +0100
-> > +++ /mnt/usr/local/src/dvbtools/dvbstream/dvbstream.c	2005-12-05 14:55:50.000000000 +0100
-> > @@ -846,7 +849,7 @@
-> >    if(map_cnt > 0)
-> >      fprintf(stderr, "\n");
-> >    for (i=0;i<map_cnt;i++) {
-> > -    if ((secs==-1) || (secs < pids_map[i].end_time)) { secs=pids_map[i].end_time; }
-> > +    if ((secs==-1) || ((long)secs < pids_map[i].end_time)) { secs=pids_map[i].end_time; }
-> >      if(pids_map[i].filename != NULL)
-> >      	fprintf(stderr,"MAP %d, file %s: From %ld secs, To %ld secs, %d PIDs - ",i,pids_map[i].filename,pids_map[i].start_time,pids_map[i].end_time,pids_map[i].pid_cnt);
-> >      else
-> > 
-> > 
-> > There are a lot of other hacks in the version I'm running;
-> > either I'll post them as-is against the 2005 source code,
-> > or I'll try to create diffs where applicable against the
-> > lastest source, or I won't bother -- depends how lazy I
-> > am -- maybe I'll just post a description of hacks I've
-> > added in case there's interest...
-> > 
-> > 
-> > thanks
-> > barry bouwsma
-> > 
-> 
-> can you post a patch against latest cvs, please?
-> 
+Michael Thank you so much!
 
-I forgot to add that the -ps bug is fixed in cvs.
+Actually, I also tried FusionHDTV5 Lite with the cable which i used
+for Fusion HDTV7, it works fine. So i think my cabling is okay.
 
-BTW, for years I asked to insert the correct "reply-to" header in this
-*fuckingly broken* mailing list (to send replies to the list rather than
-to the poster), but not a single time I received an answer by His
-Majesty the ML administrator.
-Can someone fix this issue, please? If not, can the admin at least
-explain *why* he/she wants to keep it broken?
-Please, no speculations: just facts.
+When HDTV7 TV tuner card stops, it shows
 
-Thanks,
-	Nico
+>READ DVR: Value too large for defined data type
+>Error reading from ATSC card: exiting
+>Read -1 bytes from ATSC DVR instead of 1316
 
+Sometimes before it stops, the snr value goes down from 28~30 to 12~18 (db).
+Any ideas?
+
+Best,
+
+Audrey
+
+
+
+On Fri, Jan 9, 2009 at 12:00 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Fri, Jan 9, 2009 at 2:28 PM, Tu-Tu Yu <tutuyu@usc.edu> wrote:
+>> hi~
+>> I am working on Dvico HDTV7 Tv tuner card. For s5h1409 version, it
+>> usually works fine in first few hours but after a while it will stop.
+>> For S5H1411 version, it usually works fine for only first hours and
+>> then it will stop....Can anyone give me some suggestion? I am looking
+>> for the solution for more than 1 month.....? Thank you so much!
+>
+> I have a server running 24/7 with one of each of these boards in it.
+> It has two FusionHDTV7 Dual Express boards, one using the 1409, the
+> other using the 1411.
+>
+> The server records EVERYTHING on television, on every channel, and it
+> has been running without any problems.
+>
+> You should check your cabling and power -- this is not a driver issue.
+>
+> Regards,
+>
+> Mike Krufky
+>
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
