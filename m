@@ -1,76 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25]:50722 "EHLO
-	bane.moelleritberatung.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056AbZAYOgp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 09:36:45 -0500
-Message-ID: <497C7669.5090408@makhutov.org>
-Date: Sun, 25 Jan 2009 15:25:45 +0100
-From: Artem Makhutov <artem@makhutov.org>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to use scan-s2?
-References: <497C3F0F.1040107@makhutov.org> <497C359C.5090308@okg-computer.de>
-In-Reply-To: <497C359C.5090308@okg-computer.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from zone0.gcu-squad.org ([212.85.147.21]:38177 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751623AbZAILoS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 06:44:18 -0500
+Date: Fri, 9 Jan 2009 12:43:57 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Trent Piepho <xyzzy@speakeasy.org>,
+	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: zr36067 no longer loads automatically (regression)
+Message-ID: <20090109124357.549acef6@hyperion.delvare>
+In-Reply-To: <20090109092018.59a6d9eb@pedra.chehab.org>
+References: <20090108143315.2b564dfe@hyperion.delvare>
+	<20090108175627.0ebd9f36@pedra.chehab.org>
+	<Pine.LNX.4.58.0901081319340.1626@shell2.speakeasy.net>
+	<20090108193923.580fcd5b@pedra.chehab.org>
+	<Pine.LNX.4.58.0901082156270.1626@shell2.speakeasy.net>
+	<20090109092018.59a6d9eb@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, 9 Jan 2009 09:20:18 -0200, Mauro Carvalho Chehab wrote:
+> 
+> On Thu, 8 Jan 2009 22:01:08 -0800 (PST)
+> Trent Piepho <xyzzy@speakeasy.org> wrote:
+> 
+> > On Thu, 8 Jan 2009, Mauro Carvalho Chehab wrote:
+> > > On Thu, 8 Jan 2009 13:20:19 -0800 (PST)
+> > > Trent Piepho <xyzzy@speakeasy.org> wrote:
+> > > > On Thu, 8 Jan 2009, Mauro Carvalho Chehab wrote:
+> > > > It doesn't seem like any other driver needs to protect the module device
+> > > > table with an ifdef.
+> > >
+> > > However, Zoran driver doesn't rely on pci_register_driver(). Instead, it uses a
+> > > while() loop to probe for Zoran devices:
+> > >
+> > > static int __devinit
+> > > find_zr36057 (void)
+> > > {
+> > > 	...
+> > >
+> > >         zoran_num = 0;
+> > >         while (zoran_num < BUZ_MAX &&
+> > >                (dev = pci_get_device(PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36057, dev)) != NULL) {
+> > > 	...
+> > > }
+> > 
+> > Yuck, why don't we fix this instead?
+> 
+> This will be much better.
+> 
+> > Here's an initial test.  I haven't yet found my dc10+ to test it with.
+> 
+> Unfortunately, I don't have any Zoran card here to test.
+> 
+> Jean, it is up to you to test Trent's patch.
 
-Jens Krehbiel-Gräther schrieb:
-> Artem Makhutov schrieb:
->   
->> Hello,
->>
->> I am wondering on how to use scan-s2.
->>
->> When running scan-s2 like this I am only getting 13 services:
->>
->> scan-s2 -a 2 -o zap /usr/share/dvb/dvb-s/Astra-19.2E > channels.conf
->>
->> when running
->>
->> scan-s2 -a 2 -n -o zap /usr/share/dvb/dvb-s/Astra-19.2E > channels.conf
->>
->> then I am getting 152 services.
->>
->> When running the old dvbscan application I am getting 1461 services:
->>
->> dvbscan -a 2 -o zap /usr/share/dvb/dvb-s/Astra-19.2E > channels.conf
->>
->>
->> Have I missed a parameter in scan-s2 or what else could be the problem?
->>
->> Thanks, Artem
->>     
->
->
-> Hi Artem!
->
-> I had the same "problem".When add no options I am only getting a few 
-> services.
-> When I add the "-n" option I get some more services but all services I 
-> only get, when I am adding "-n -5".
->
-> the "-5" means:
-> multiply all filter timeouts by factor 5 for non-DVB-compliant section 
-> repitition rates
->
-> The scan takes a long time then, but I get 1476 services (Astra 19.2).
-> My device is a Pinnacle PCTV 452e (USB).
-> Perhaps this switch is working with your device, too?
->   
-I just tried it out. It does not work :( I am getting 217 services now.
-So I am still missing ~1200 services.
+Will do as soon as I manage to apply it.
 
-I have run the scan using a TeVii S650. Now I have run then same using
-my SkyStar HD and I got 1467 services.
-
-So there is something not working using the TeVii S650...
-
-Any ideas?
-
-Regards, Artem
+-- 
+Jean Delvare
