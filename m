@@ -1,67 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:56804 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884AbZAZTaZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2009 14:30:25 -0500
-Received: by ewy14 with SMTP id 14so963256ewy.13
-        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2009 11:30:23 -0800 (PST)
-Date: Mon, 26 Jan 2009 15:30:15 -0400
-From: Manu <eallaud@gmail.com>
-Subject: Re : [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on
- HDchannels
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
-	<157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>
-	<157f4a8c0901260741l4d263b8bk6e34cb5bb56d8c2@mail.gmail.com>
-	<c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>
-	<157f4a8c0901260751l39214908ydfeed5ba12b4d48b@mail.gmail.com>
-	<157f4a8c0901260808i39b784f6m13db53db2f135a37@mail.gmail.com>
-	<c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>
-	<1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
-In-Reply-To: <1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
-Message-Id: <1232998215.24736.3@manu-laptop>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:49695 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753813AbZAITG6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 14:06:58 -0500
+Date: Fri, 9 Jan 2009 11:06:55 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Mike Isely <isely@pobox.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: USB: change interface to usb_lock_device_for_reset()
+In-Reply-To: <20090109092845.79e9db8c@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.58.0901091105360.1626@shell2.speakeasy.net>
+References: <20090108235304.46ac523b@pedra.chehab.org>
+ <Pine.LNX.4.64.0901082224350.3993@cnc.isely.net> <Pine.LNX.4.64.0901082227020.3993@cnc.isely.net>
+ <20090109023842.4a6c638c@pedra.chehab.org> <Pine.LNX.4.64.0901082240390.3993@cnc.isely.net>
+ <20090109024758.6c4902f6@pedra.chehab.org> <Pine.LNX.4.64.0901082334100.3993@cnc.isely.net>
+ <Pine.LNX.4.58.0901082146470.1626@shell2.speakeasy.net>
+ <20090109092845.79e9db8c@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 26.01.2009 13:50:24, Manu Abraham a écrit :
-> On Mon, Jan 26, 2009 at 8:19 PM, Alex Betis <alex.betis@gmail.com>
-> wrote:
-> 
+On Fri, 9 Jan 2009, Mauro Carvalho Chehab wrote:
+> On Thu, 8 Jan 2009 21:56:15 -0800 (PST)
+> Trent Piepho <xyzzy@speakeasy.org> wrote:
+> > On Thu, 8 Jan 2009, Mike Isely wrote:
+> > > > Yes... Anyway, this is the real patch. I've added a small comment about this
+> > > > change... I'll commit this tomorrow, if you don't have a better suggestion.
+> > >
+> > > Looks good.
 > >
-> > Latest changes I can see at
-> >> http://mercurial.intuxication.org/hg/s2-liplianin/ were made about
-> 7
-> >> to 10 days ago. Is this correct? If that's correct, then I'm using
-> >> latest Igor drivers. And behavior described above is what I'm
-> getting.
-> >>
-> >> I can't see anything related do high SR channels on Igor
-> repository.
+> > Or maybe like this?
 > >
-> > He did it few months ago. If you're on latest than you should have
-> it.
+> > diff -r f01b3897d141 linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+> > --- a/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 00:27:32 2009 -0200
+> > +++ b/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 02:45:48 2009 -0200
+> > @@ -3747,7 +3747,12 @@
+> >  	int ret;
+> >  	pvr2_trace(PVR2_TRACE_INIT,"Performing a device reset...");
+> >  	ret = usb_lock_device_for_reset(hdw->usb_dev,NULL);
+> > - 	if (ret == 1) {
+> > +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29)
+> > +	/* Due to the API changes, the ret value for success changed */
+> > +	ret = ret != 1;
+> > +#endif
+> > +	if (ret == 0) {
+> >  		ret = usb_reset_device(hdw->usb_dev);
+> >  		usb_unlock_device(hdw->usb_dev);
+> >  	} else {
 > >
-> >
-> 
-> 
-> It won't. All you will manage to do is burn your demodulator, if you
-> happen
-> to
-> be that lucky one, with that change. At least a few people have 
-> burned
-> demodulators by now, from what i do see.
+>
+> Seems better! Could you please provide your SOB? I'll apply just the backport, then your patch.
 
-Hmm OK, but is there by any chance a fix for those issues somewhere or 
-in the pipe at least? I am willing to test (as I already offered), I 
-can compile the drivers, spread printk or whatever else is needed to 
-get useful reports. Let me know if I can help sort this problem. BTW in 
-my case it is DVB-S2 30000 SR and FEC 5/6.
-Thx
-Bye
-Manu
-
+Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
