@@ -1,14 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <2ac79fa40901072131m10be588axb3de61ef81bb943f@mail.gmail.com>
-Date: Thu, 8 Jan 2009 12:31:48 +0700
-From: "=?UTF-8?Q?Nam_Ph=E1=BA=A1m_Th=C3=A0nh?=" <phamthanhnam.ptn@gmail.com>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Message-ID: <5e9665e10901081920q4d99fe3ercf163a285d1462c5@mail.gmail.com>
+Date: Fri, 9 Jan 2009 12:20:16 +0900
+From: "DongSoo Kim" <dongsoo.kim@gmail.com>
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_203312_33034101.1231392708241"
-Cc: video4linux-list <video4linux-list@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] pwc: add support for webcam snapshot button
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: =?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>,
+	video4linux-list@redhat.com, kyungmin.park@samsung.com,
+	jongse.won@samsung.com
+Subject: Any rules in making ioctl or cids?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -20,114 +22,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-------=_Part_203312_33034101.1231392708241
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hello everyone.
 
-OK, resent. Hope it's OK now.
+I'm facing with some questions about "Can I make it ioctl or CID?"
 
-------=_Part_203312_33034101.1231392708241
-Content-Type: text/x-patch; name=pwc-snapshot-button.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-Content-Disposition: attachment; filename=pwc-snapshot-button.patch
+Because if I make it in ioctl It should occupy one of the extra ioctl
+number for v4l2, and I'm afraid it deserves that.
 
-VGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQgZm9yIFBoaWxpcHMgd2ViY2FtIHNuYXBzaG90IGJ1dHRv
-biBhcyBhbgpldmVudCBpbnB1dCBkZXZpY2UsIGZvciBjb25zaXN0ZW5jeSB3aXRoIG90aGVyIHdl
-YmNhbSBkcml2ZXJzLgpTaWduZWQtb2ZmLWJ5OiBQaGFtIFRoYW5oIE5hbSA8cGhhbXRoYW5obmFt
-LnB0bkBnbWFpbC5jb20+CgpkaWZmIC11TnIgYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3
-Yy9wd2MuaCBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCi0tLSBhL2xpbnV4
-L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCTIwMDktMDEtMDMgMjA6MDM6NDMuMDAwMDAw
-MDAwICswNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCTIwMDkt
-MDEtMDcgMDI6MTA6NTguMDAwMDAwMDAwICswNzAwCkBAIC0zOCw2ICszOCw3IEBACiAjaW5jbHVk
-ZSA8bGludXgvdmlkZW9kZXYuaD4KICNpbmNsdWRlIDxtZWRpYS92NGwyLWNvbW1vbi5oPgogI2lu
-Y2x1ZGUgPG1lZGlhL3Y0bDItaW9jdGwuaD4KKyNpbmNsdWRlIDxsaW51eC9pbnB1dC5oPgogCiAj
-aW5jbHVkZSAicHdjLXVuY29tcHJlc3MuaCIKICNpbmNsdWRlIDxtZWRpYS9wd2MtaW9jdGwuaD4K
-QEAgLTI1Niw2ICsyNTcsNyBAQAogICAgaW50IHBhbl9hbmdsZTsJCQkvKiBpbiBkZWdyZWVzICog
-MTAwICovCiAgICBpbnQgdGlsdF9hbmdsZTsJCQkvKiBhYnNvbHV0ZSBhbmdsZTsgMCwwIGlzIGhv
-bWUgcG9zaXRpb24gKi8KICAgIGludCBzbmFwc2hvdF9idXR0b25fc3RhdHVzOwkJLyogc2V0IHRv
-IDEgd2hlbiB0aGUgdXNlciBwdXNoIHRoZSBidXR0b24sIHJlc2V0IHRvIDAgd2hlbiB0aGlzIHZh
-bHVlIGlzIHJlYWQgKi8KKyAgIHN0cnVjdCBpbnB1dF9kZXYgKmJ1dHRvbl9kZXY7CS8qIHdlYmNh
-bSBzbmFwc2hvdCBidXR0b24gaW5wdXQgKi8KIAogICAgLyoqKiBNaXNjLiBkYXRhICoqKi8KICAg
-IHdhaXRfcXVldWVfaGVhZF90IGZyYW1lcTsJCS8qIFdoZW4gd2FpdGluZyBmb3IgYSBmcmFtZSB0
-byBmaW5pc2guLi4gKi8KZGlmZiAtdU5yIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9wd2Mv
-cHdjLWlmLmMgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9wd2MtaWYuYwotLS0gYS9s
-aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9wd2MtaWYuYwkyMDA5LTAxLTAzIDIwOjAzOjQz
-LjAwMDAwMDAwMCArMDcwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9wd2Mt
-aWYuYwkyMDA5LTAxLTA4IDEwOjM4OjQ1LjAwMDAwMDAwMCArMDcwMApAQCAtNTMsNiArNTMsNyBA
-QAogICAgLSBYYXZpZXIgUm9jaGU6IFF1aWNrQ2FtIFBybyA0MDAwIElECiAgICAtIEplbnMgS251
-ZHNlbjogUXVpY2tDYW0gWm9vbSBJRAogICAgLSBKLiBEZWJlcnQ6IFF1aWNrQ2FtIGZvciBOb3Rl
-Ym9va3MgSUQKKyAgIC0gUGhhbSBUaGFuaCBOYW06IHdlYmNhbSBzbmFwc2hvdCBidXR0b24gYXMg
-YW4gZXZlbnQgaW5wdXQgZGV2aWNlCiAqLwogCiAjaW5jbHVkZSA8bGludXgvZXJybm8uaD4KQEAg
-LTYxLDYgKzYyLDExIEBACiAjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CiAjaW5jbHVkZSA8bGlu
-dXgvcG9sbC5oPgogI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4KKyNpZiBMSU5VWF9WRVJTSU9OX0NP
-REUgPCBLRVJORUxfVkVSU0lPTigyLCA2LCAxOCkKKyNpbmNsdWRlIDxsaW51eC91c2JfaW5wdXQu
-aD4KKyNlbHNlCisjaW5jbHVkZSA8bGludXgvdXNiL2lucHV0Lmg+CisjZW5kaWYKICNpbmNsdWRl
-IDxsaW51eC92bWFsbG9jLmg+CiAjaW5jbHVkZSA8bGludXgvdmVyc2lvbi5oPgogI2luY2x1ZGUg
-PGFzbS9pby5oPgpAQCAtNTg3LDYgKzU5MywyMiBAQAogCQkJCXBkZXYtPnZmcmFtZV9jb3VudCk7
-CiB9CiAKK3N0YXRpYyB2b2lkIHB3Y19zbmFwc2hvdF9idXR0b24oc3RydWN0IHB3Y19kZXZpY2Ug
-KnBkZXYsIGludCBkb3duKQoreworCWlmIChkb3duKSB7CisJCVBXQ19UUkFDRSgiU25hcHNob3Qg
-YnV0dG9uIHByZXNzZWQuXG4iKTsKKwkJcGRldi0+c25hcHNob3RfYnV0dG9uX3N0YXR1cyA9IDE7
-CisJfQorCWVsc2UgeworCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiByZWxlYXNlZC5cbiIp
-OworCX0KKworCWlmIChwZGV2LT5idXR0b25fZGV2KSB7CisJCWlucHV0X3JlcG9ydF9rZXkocGRl
-di0+YnV0dG9uX2RldiwgQlROXzAsIGRvd24pOworCQlpbnB1dF9zeW5jKHBkZXYtPmJ1dHRvbl9k
-ZXYpOworCX0KK30KKwogc3RhdGljIGludCBwd2NfcmN2X3Nob3J0X3BhY2tldChzdHJ1Y3QgcHdj
-X2RldmljZSAqcGRldiwgY29uc3Qgc3RydWN0IHB3Y19mcmFtZV9idWYgKmZidWYpCiB7CiAJaW50
-IGF3YWtlID0gMDsKQEAgLTYwNCwxMyArNjI2LDcgQEAKIAkJCXBkZXYtPnZmcmFtZXNfZXJyb3Ir
-KzsKIAkJfQogCQlpZiAoKHB0clswXSBeIHBkZXYtPnZtaXJyb3IpICYgMHgwMSkgewotCQkJaWYg
-KHB0clswXSAmIDB4MDEpIHsKLQkJCQlwZGV2LT5zbmFwc2hvdF9idXR0b25fc3RhdHVzID0gMTsK
-LQkJCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiBwcmVzc2VkLlxuIik7Ci0JCQl9Ci0JCQll
-bHNlIHsKLQkJCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiByZWxlYXNlZC5cbiIpOwotCQkJ
-fQorCQkJcHdjX3NuYXBzaG90X2J1dHRvbihwZGV2LCBwdHJbMF0gJiAweDAxKTsKIAkJfQogCQlp
-ZiAoKHB0clswXSBeIHBkZXYtPnZtaXJyb3IpICYgMHgwMikgewogCQkJaWYgKHB0clswXSAmIDB4
-MDIpCkBAIC02MzQsMTIgKzY1MCw3IEBACiAJZWxzZSBpZiAocGRldi0+dHlwZSA9PSA3NDAgfHwg
-cGRldi0+dHlwZSA9PSA3MjApIHsKIAkJdW5zaWduZWQgY2hhciAqcHRyID0gKHVuc2lnbmVkIGNo
-YXIgKilmYnVmLT5kYXRhOwogCQlpZiAoKHB0clswXSBeIHBkZXYtPnZtaXJyb3IpICYgMHgwMSkg
-ewotCQkJaWYgKHB0clswXSAmIDB4MDEpIHsKLQkJCQlwZGV2LT5zbmFwc2hvdF9idXR0b25fc3Rh
-dHVzID0gMTsKLQkJCQlQV0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiBwcmVzc2VkLlxuIik7Ci0J
-CQl9Ci0JCQllbHNlCi0JCQkJUFdDX1RSQUNFKCJTbmFwc2hvdCBidXR0b24gcmVsZWFzZWQuXG4i
-KTsKKwkJCXB3Y19zbmFwc2hvdF9idXR0b24ocGRldiwgcHRyWzBdICYgMHgwMSk7CiAJCX0KIAkJ
-cGRldi0+dm1pcnJvciA9IHB0clswXSAmIDB4MDM7CiAJfQpAQCAtMTIyMSw2ICsxMjMyLDExIEBA
-CiB7CiAJcHdjX3JlbW92ZV9zeXNmc19maWxlcyhwZGV2LT52ZGV2KTsKIAl2aWRlb191bnJlZ2lz
-dGVyX2RldmljZShwZGV2LT52ZGV2KTsKKwlpZiAocGRldi0+YnV0dG9uX2RldikgeworCQlpbnB1
-dF91bnJlZ2lzdGVyX2RldmljZShwZGV2LT5idXR0b25fZGV2KTsKKwkJaW5wdXRfZnJlZV9kZXZp
-Y2UocGRldi0+YnV0dG9uX2Rldik7CisJCXBkZXYtPmJ1dHRvbl9kZXYgPSBOVUxMOworCX0KIH0K
-IAogLyogTm90ZSB0aGF0IGFsbCBjbGVhbnVwIGlzIGRvbmUgaW4gdGhlIHJldmVyc2Ugb3JkZXIg
-YXMgaW4gX29wZW4gKi8KQEAgLTE0ODgsNiArMTUwNCw3IEBACiAJaW50IGZlYXR1cmVzID0gMDsK
-IAlpbnQgdmlkZW9fbnIgPSAtMTsgLyogZGVmYXVsdDogdXNlIG5leHQgYXZhaWxhYmxlIGRldmlj
-ZSAqLwogCWNoYXIgc2VyaWFsX251bWJlclszMF0sICpuYW1lOworCWNoYXIgKnBoeXMgPSBOVUxM
-OwogCiAJdmVuZG9yX2lkID0gbGUxNl90b19jcHUodWRldi0+ZGVzY3JpcHRvci5pZFZlbmRvcik7
-CiAJcHJvZHVjdF9pZCA9IGxlMTZfdG9fY3B1KHVkZXYtPmRlc2NyaXB0b3IuaWRQcm9kdWN0KTsK
-QEAgLTE4MTIsNiArMTgyOSwzOSBAQAogCXB3Y19zZXRfbGVkcyhwZGV2LCAwLCAwKTsKIAlwd2Nf
-Y2FtZXJhX3Bvd2VyKHBkZXYsIDApOwogCisJLyogcmVnaXN0ZXIgd2ViY2FtIHNuYXBzaG90IGJ1
-dHRvbiBpbnB1dCBkZXZpY2UgKi8KKwlwZGV2LT5idXR0b25fZGV2ID0gaW5wdXRfYWxsb2NhdGVf
-ZGV2aWNlKCk7CisJaWYgKCFwZGV2LT5idXR0b25fZGV2KSB7CisJCVBXQ19FUlJPUigiRXJyLCBp
-bnN1ZmZpY2llbnQgbWVtb3J5IGZvciB3ZWJjYW0gc25hcHNob3QgYnV0dG9uIGRldmljZS4iKTsK
-KwkJcmV0dXJuIC1FTk9NRU07CisJfQorCisJcGRldi0+YnV0dG9uX2Rldi0+bmFtZSA9ICJQV0Mg
-c25hcHNob3QgYnV0dG9uIjsKKwlwaHlzID0ga21hbGxvYyg2ICsgc3RybGVuKHBkZXYtPnVkZXYt
-PmJ1cy0+YnVzX25hbWUpICsgc3RybGVuKHBkZXYtPnVkZXYtPmRldnBhdGgpLAorCQkJR0ZQX0tF
-Uk5FTCk7CisJaWYgKHBoeXMgPT0gTlVMTCkgeworCQlpbnB1dF9mcmVlX2RldmljZShwZGV2LT5i
-dXR0b25fZGV2KTsKKwkJcmV0dXJuIC1FTk9NRU07CisJfQorCisJc3ByaW50ZihwaHlzLCAidXNi
-LSVzLSVzIiwgcGRldi0+dWRldi0+YnVzLT5idXNfbmFtZSwgcGRldi0+dWRldi0+ZGV2cGF0aCk7
-CisJcGRldi0+YnV0dG9uX2Rldi0+cGh5cyA9IHBoeXM7CisJdXNiX3RvX2lucHV0X2lkKHBkZXYt
-PnVkZXYsICZwZGV2LT5idXR0b25fZGV2LT5pZCk7CisjaWYgTElOVVhfVkVSU0lPTl9DT0RFID49
-IEtFUk5FTF9WRVJTSU9OKDIsIDYsIDIyKQorCXBkZXYtPmJ1dHRvbl9kZXYtPmRldi5wYXJlbnQg
-PSAmcGRldi0+dWRldi0+ZGV2OworI2Vsc2UKKwlwZGV2LT5idXR0b25fZGV2LT5jZGV2LmRldiA9
-ICZwZGV2LT51ZGV2LT5kZXY7CisjZW5kaWYKKwlwZGV2LT5idXR0b25fZGV2LT5ldmJpdFswXSA9
-IEJJVF9NQVNLKEVWX0tFWSk7CisJcGRldi0+YnV0dG9uX2Rldi0+a2V5Yml0W0JJVF9XT1JEKEJU
-Tl8wKV0gPSBCSVRfTUFTSyhCVE5fMCk7CisKKwlyYyA9IGlucHV0X3JlZ2lzdGVyX2RldmljZShw
-ZGV2LT5idXR0b25fZGV2KTsKKwlpZiAocmMpIHsKKwkJaW5wdXRfZnJlZV9kZXZpY2UocGRldi0+
-YnV0dG9uX2Rldik7CisJCXBkZXYtPmJ1dHRvbl9kZXYgPSBOVUxMOworCQlyZXR1cm4gcmM7CisJ
-fQorCiAJcmV0dXJuIDA7CiAKIGVycl91bnJlZzoK
-------=_Part_203312_33034101.1231392708241
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Actually I'm working on strobe flash device (like xenon flash, LED
+flash and so on...) for digital camera.
+
+And in my opinion it looks good in v4l2 than in misc device. (or..is
+there some subsystems for strobe light? sorry I can't find it yet)
+
+As far as I worked on, strobe light seems to be more easy to control
+over ioctl than CID. Since we need to check its status (like not
+charged, turned off etc..).
+
+But here is the thing.
+
+"Is that really worthy of occupying an ioctl number for v4l2?"
+
+Can I use extra ioctl numbers as many as I like for v4l2 if It is reasonable?
+
+Can I have a rule if there is a rule for that?
+
+
+-- 
+========================================================
+Dong Soo, Kim
+Engineer
+Mobile S/W Platform Lab. S/W centre
+Telecommunication R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+           dongsoo45.kim@samsung.com
+========================================================
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_203312_33034101.1231392708241--
