@@ -1,78 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd18532.kasserver.com ([85.13.139.13]:51505 "EHLO
-	dd18532.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbZA3MXl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2009 07:23:41 -0500
-Date: Fri, 30 Jan 2009 13:23:39 +0100
-From: Carsten Meier <cm@trexity.de>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org
-Subject: Re: Howto obtain sysfs-pathes for DVB devices?
-Message-ID: <20090130132339.3e96df3d@tuvok>
-In-Reply-To: <200901301251.05258.zzam@gentoo.org>
-References: <20090128164617.569d5952@tuvok>
-	<1233281227.2688.3.camel@pc10.localdom.local>
-	<20090130121952.787cdf24@tuvok>
-	<200901301251.05258.zzam@gentoo.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:52517 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbZAIL3T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 06:29:19 -0500
+Date: Fri, 9 Jan 2009 09:28:45 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Mike Isely <isely@pobox.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: USB: change interface to usb_lock_device_for_reset()
+Message-ID: <20090109092845.79e9db8c@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.58.0901082146470.1626@shell2.speakeasy.net>
+References: <20090108235304.46ac523b@pedra.chehab.org>
+	<Pine.LNX.4.64.0901082224350.3993@cnc.isely.net>
+	<Pine.LNX.4.64.0901082227020.3993@cnc.isely.net>
+	<20090109023842.4a6c638c@pedra.chehab.org>
+	<Pine.LNX.4.64.0901082240390.3993@cnc.isely.net>
+	<20090109024758.6c4902f6@pedra.chehab.org>
+	<Pine.LNX.4.64.0901082334100.3993@cnc.isely.net>
+	<Pine.LNX.4.58.0901082146470.1626@shell2.speakeasy.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Fri, 30 Jan 2009 12:51:03 +0100
-schrieb Matthias Schwarzott <zzam@gentoo.org>:
+On Thu, 8 Jan 2009 21:56:15 -0800 (PST)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-> On Freitag, 30. Januar 2009, Carsten Meier wrote:
-> > Am Fri, 30 Jan 2009 03:07:07 +0100
+> On Thu, 8 Jan 2009, Mike Isely wrote:
+> > > Yes... Anyway, this is the real patch. I've added a small comment about this
+> > > change... I'll commit this tomorrow, if you don't have a better suggestion.
 > >
-> > schrieb hermann pitton <hermann-pitton@arcor.de>:
-> > > Hi,
-> > >
-> > > Am Mittwoch, den 28.01.2009, 16:46 +0100 schrieb Carsten Meier:
-> > > > Hello again,
-> > > >
-> > > > now I've managed to obtain syfs-pathes for v4l2-devices. But
-> > > > what about dvb? I haven't found something like bus_info in the
-> > > > dvb-api-docs. (I'm new to it) Any hints for this?
-> > > >
-> > > > Thanks,
-> > > > Carsten
-> > >
-> > > I'm also still new on it ...
-> > >
-> > > Maybe anything useful here?
-> > >
-> > > cat /sys/class/dvb/dvb0.frontend0/uevent
-> > > MAJOR=212
-> > > MINOR=0
-> > > PHYSDEVPATH=/devices/pci0000:00/0000:00:08.0/0000:01:07.0
-> > > PHYSDEVBUS=pci
-> > > PHYSDEVDRIVER=saa7134
-> > >
-> > > Cheers,
-> > > Hermann
-> >
-> > Hi,
-> >
-> > IMHO there is no other way (not counting other daemons) than
-> > scanning the dvb-device-files, stat() them, and compare major and
-> > minor numbers with sysfs-contents. Anyway, I think I'll switch to
-> > HAL for that...
-> >
+> > Looks good.
 > 
-> One way of asking udev is this:
-> udevadm info -q path -n /dev/dvb/adapter0/frontend0
+> Or maybe like this?
 > 
-> Regards
-> Matthias
+> diff -r f01b3897d141 linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+> --- a/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 00:27:32 2009 -0200
+> +++ b/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 02:45:48 2009 -0200
+> @@ -3747,7 +3747,12 @@
+>  	int ret;
+>  	pvr2_trace(PVR2_TRACE_INIT,"Performing a device reset...");
+>  	ret = usb_lock_device_for_reset(hdw->usb_dev,NULL);
+> - 	if (ret == 1) {
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29)
+> +	/* Due to the API changes, the ret value for success changed */
+> +	ret = ret != 1;
+> +#endif
+> +	if (ret == 0) {
+>  		ret = usb_reset_device(hdw->usb_dev);
+>  		usb_unlock_device(hdw->usb_dev);
+>  	} else {
+> 
 
-Ok, then I think I'm gonna use it... :) It's much more simple than
-struggling through dbus-/hal-libs and the various unfinished c++
-bindings, although I normally don't like to start system-tools from c++.
-Or is there any c-api for it? I haven't found one.
+Seems better! Could you please provide your SOB? I'll apply just the backport, then your patch.
 
-Thanks,
-Carsten
+Cheers,
+Mauro
