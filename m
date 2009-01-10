@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail963c35.nsolutionszone.com ([209.235.152.153])
+Received: from mail.citynetwork.se ([62.95.110.81] helo=smtp05.citynetwork.se)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ebauer71@centurytel.net>) id 1LJUty-0000pE-Rz
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 16:28:31 +0100
-Received: from [192.168.2.25] (69-179-97-116.stat.centurytel.net
-	[69.179.97.116]) (authenticated bits=0)
-	by mail963c35.nsolutionszone.com (8.13.6.20060614/8.13.1) with ESMTP id
-	n04FSLqd001156
-	for <linux-dvb@linuxtv.org>; Sun, 4 Jan 2009 15:28:22 GMT
-Message-ID: <4960D592.9070400@centurytel.net>
-Date: Sun, 04 Jan 2009 09:28:18 -0600
-From: Eric Bauer <ebauer71@centurytel.net>
+	(envelope-from <reklam@holisticode.se>) id 1LLcWI-0005zm-Lt
+	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 13:00:51 +0100
+From: =?iso-8859-1?Q?M=E5rten_Gustafsson?= <reklam@holisticode.se>
+To: "'Manu Abraham'" <abraham.manu@gmail.com>
+References: <mailman.1.1231412401.14666.linux-dvb@linuxtv.org>
+	<26D75E582F22456998AE6365440ACEC6@xplap>
+	<49673D65.9030404@gmail.com>
+Date: Sat, 10 Jan 2009 13:00:13 +0100
+Message-ID: <CE5D9398D87E43CDA896BFFDF0CBEE1D@xplap>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem Searching Channels
+In-Reply-To: <49673D65.9030404@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Compiling mantis driver on 2.6.28
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,29 +21,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+ =
 
-I'm trying to set up my new Happaugue HVR-1600 card.  During the scan, 
-II get several minutes of output on the screen complaining about tuning 
-failures, and then I get the following message:
+> Fr=E5n: Manu Abraham [mailto:abraham.manu@gmail.com] =
 
-start filter:1338: ERROR: ioctl DMX_SET_FILTER failed: 6 No such device 
-or address
+> Skickat: den 9 januari 2009 13:05
+> Till: M=E5rten Gustafsson
+> Kopia: linux-dvb@linuxtv.org
+> =C4mne: Re: [linux-dvb] Compiling mantis driver on 2.6.28
+> =
 
-I have to kill the scan with a control-c at this point.  Can anyone give 
-me some advice with this problem?
+> M=E5rten Gustafsson wrote:
+> > I tried downloading and compiling from s2-liplianin repository.
+> > Unfortunately the driver doesn't work at all with AzureWave =
 
-Thanks,
+> AD-CP300, =
 
-Eric
+> > frontend tda10021 is identified instead of tda10023.
+> =
+
+> The official mantis repository is at =
+
+> http://jusst.de/hg/mantis. It contains the latest mantis =
+
+> related changes. =
+
+> =
+
+> Please do test and report.
+
+I downloaded latest from jusst.de and compiled. Oberve that I have an older
+kernel:
+$ uname -a
+Linux ubuntu-htpc 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC 2008
+x86_64 GNU/Linux more10@ubuntu-htpc:
+
+Correct frontend is reported. Scanning in Kaffeine quits after scanning a
+few channels. w_scan with standard switches scans a large number of
+channels, but i get tieout in filter scan resulting in the channels name not
+being reported. w_scan with -F switch works better, but about a quarter of
+the channels now have no name.
+
+Tuning to a radio channel in Kaffein results in 5 seconds of distortion,
+then the machine hangs, leaving my ext2 file system corrupt :-). =
+
+
+And of course Kaffeine reports that all my tv channels are scramled and
+quitting.
+
+> =
+
+> =
+
+> Regards,
+> Manu
+> =
+
+> =
+
+
+M=E5rten
+
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
