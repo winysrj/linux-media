@@ -1,84 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tut.by ([195.137.160.40]:37616 "EHLO speedy.tutby.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759846AbZA2Xme (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 18:42:34 -0500
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: Mika Laitio <lamikr@pilppa.org>, gimli <gimli@dark-green.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
-Date: Fri, 30 Jan 2009 00:09:37 +0200
-References: <497F7117.9000607@dark-green.com> <200901292242.55298.liplianin@tut.by> <Pine.LNX.4.64.0901292335140.17122@shogun.pilppa.org>
-In-Reply-To: <Pine.LNX.4.64.0901292335140.17122@shogun.pilppa.org>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_hkigJnN1UFyy0t7"
-Message-Id: <200901300009.37576.liplianin@tut.by>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:30441 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747AbZAJN5E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Jan 2009 08:57:04 -0500
+Date: Sat, 10 Jan 2009 14:56:32 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: zr36067 no longer loads automatically (regression)
+Message-ID: <20090110145632.695ca85c@hyperion.delvare>
+In-Reply-To: <20090109212831.332ebe47@hyperion.delvare>
+References: <20090108143315.2b564dfe@hyperion.delvare>
+	<20090108175627.0ebd9f36@pedra.chehab.org>
+	<Pine.LNX.4.58.0901081319340.1626@shell2.speakeasy.net>
+	<20090108193923.580fcd5b@pedra.chehab.org>
+	<Pine.LNX.4.58.0901082156270.1626@shell2.speakeasy.net>
+	<20090109092018.59a6d9eb@pedra.chehab.org>
+	<20090109124357.549acef6@hyperion.delvare>
+	<Pine.LNX.4.58.0901091112590.1626@shell2.speakeasy.net>
+	<20090109212831.332ebe47@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_hkigJnN1UFyy0t7
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Fri, 9 Jan 2009 21:28:31 +0100, Jean Delvare wrote:
+> On Fri, 9 Jan 2009 12:12:09 -0800 (PST), Trent Piepho wrote:
+> > I have some more patches at http://linuxtv.org/hg/~tap/zoran
+> 
+> I'll take a look, thanks.
 
-=F7 =D3=CF=CF=C2=DD=C5=CE=C9=C9 =CF=D4 29 January 2009 23:36:43 Mika Laitio=
- =CE=C1=D0=C9=D3=C1=CC(=C1):
-> >> Edgar (gimli) Hucek
-> >
-> > Does simple patch work ?
-> > I need your Acked-by :)
->
-> Hi, I have only saw one version of your patch in mailing list,
-> did you send the simpler version somewhere?
->
-> Mika
-Sorry, send it to Edgar only.
-But it is unintentionally.
+As discussed on IRC: all patches tested, they worked fine for me,
+thanks for your excellent work. Feel free to add:
 
-=2D-=20
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
---Boundary-00=_hkigJnN1UFyy0t7
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="hvr4000.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="hvr4000.patch"
+to all 5 patches.
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1233253267 -7200
-# Node ID 3542d1c1e03add577ce85175327701c552d14856
-# Parent  4086371cea7b7f8b461e1a77513274aa43583c8c
-Bug fix: Restore HVR-4000 tuning.
-
-From: Igor M. Liplianin <liplianin@me.by>
-
-Some cards uses cx24116 LNB_DC pin for LNB power control,
-some not uses, some uses it different way, like HVR-4000.
-
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-
-diff -r 4086371cea7b -r 3542d1c1e03a linux/drivers/media/dvb/frontends/cx24116.c
---- a/linux/drivers/media/dvb/frontends/cx24116.c	Sat Jan 17 17:23:31 2009 +0200
-+++ b/linux/drivers/media/dvb/frontends/cx24116.c	Thu Jan 29 20:21:07 2009 +0200
-@@ -1184,7 +1184,12 @@
- 	if (ret != 0)
- 		return ret;
- 
--	return cx24116_diseqc_init(fe);
-+	ret = cx24116_diseqc_init(fe);
-+	if (ret != 0)
-+		return ret;
-+
-+	/* HVR-4000 needs this */
-+	return cx24116_set_voltage(fe, SEC_VOLTAGE_13);
- }
- 
- /*
-
---Boundary-00=_hkigJnN1UFyy0t7--
+-- 
+Jean Delvare
