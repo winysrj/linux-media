@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f12.google.com ([209.85.217.12])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vanessaezekowitz@gmail.com>) id 1LL0hy-00030X-53
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 20:38:23 +0100
-Received: by gxk5 with SMTP id 5so559019gxk.17
-	for <linux-dvb@linuxtv.org>; Thu, 08 Jan 2009 11:37:46 -0800 (PST)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1LLdRz-0003cF-Sl
+	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 14:00:29 +0100
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
-Date: Thu, 8 Jan 2009 13:37:43 -0600
-References: <20090107000932.68355506@pedra.chehab.org>
-	<4965EC59.60001@cadsoft.de>
-In-Reply-To: <4965EC59.60001@cadsoft.de>
+Date: Sat, 10 Jan 2009 13:58:52 +0100
+References: <A0E08D75-B0D4-4DA5-8E52-4C7ABC8587ED@pobox.com>
+In-Reply-To: <A0E08D75-B0D4-4DA5-8E52-4C7ABC8587ED@pobox.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200901081337.43699.vanessaezekowitz@gmail.com>
-Subject: Re: [linux-dvb] [ANNOUNCE] V4L,
-	DVB and Maintainers Mailing Lists at vger.kernel.org
+Message-Id: <200901101358.52538@orion.escape-edv.de>
+Subject: Re: [linux-dvb] latest av7110 firmware?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,25 +25,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu January 8 2009 6:06:49 am Klaus Schmidinger wrote:
-
-> I just subscribed to this list and already received a first posting.
-> Unfortunately this list doesn't mark postings' subjects with the
-> list name, as in
+Torgeir Veimo wrote:
+> Is av7110 firmware rev F12623 the latest firmware? http://www.vdr-portal.de/board/thread.php?threadid=59746
 > 
->   [linux-dvb] Merging V4L, DVB and Maintainers Mailing lists...
-> 
-> where I could immediately see whether this is a "normal" email
-> or a list posting.
+> Am having some a/v sync problems with playback using the 261d firmware  
+> that the kernel docs points to.
 
-Check the "To" field.  In the case of your message, it shows "linux-dvb@linuxtv.org" on my end.  Set your mailer to match this address in any/all headers and you'll probably catch everything destined for this list.
+Yes, F12623 is the latest and greatest. ;-)
 
-I'm of the opinion that [linux-dvb] and similar really should be *stripped* from the subject line of mailing lists in general, since there are other ways to identify mailing lists (such as the "List-Id" header field, which is also valid for this list).  I've set Kmail to sort in a similar manner, with each list's messages going into their appropriate mail folders.
+CU
+Oliver
 
 -- 
-"There are some things in life worth obsessing over.  Most
-things aren't, and when you learn that, life improves."
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb users mailing list
