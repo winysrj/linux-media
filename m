@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-fx0-f13.google.com ([209.85.220.13])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <2manybills@gmail.com>) id 1LT0mw-0000xm-BV
-	for linux-dvb@linuxtv.org; Fri, 30 Jan 2009 22:20:36 +0100
-Received: by fxm6 with SMTP id 6so434394fxm.17
-	for <linux-dvb@linuxtv.org>; Fri, 30 Jan 2009 13:20:00 -0800 (PST)
-MIME-Version: 1.0
-Date: Fri, 30 Jan 2009 21:20:00 +0000
-Message-ID: <157f4a8c0901301320h37c23997n9dbf193a2ee57a39@mail.gmail.com>
-From: Chris Silva <2manybills@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] V4L-DVB fails to compile - I2C_DRIVERID_TVMIXER
-Reply-To: linux-media@vger.kernel.org
+Received: from a-sasl-quonix.sasl.smtp.pobox.com ([208.72.237.25]
+	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <torgeir@pobox.com>) id 1LLc1k-0002M9-Cx
+	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 12:29:16 +0100
+Received: from localhost.localdomain (unknown [127.0.0.1])
+	by b-sasl-quonix.sasl.smtp.pobox.com (Postfix) with ESMTP id 5ACFF1C2E6
+	for <linux-dvb@linuxtv.org>; Sat, 10 Jan 2009 06:29:09 -0500 (EST)
+Received: from [192.168.1.5] (unknown [118.208.91.151]) (using TLSv1 with
+	cipher AES128-SHA (128/128 bits)) (No client certificate requested) by
+	b-sasl-quonix.sasl.smtp.pobox.com (Postfix) with ESMTPSA id 3A8071C2E5
+	for <linux-dvb@linuxtv.org>; Sat, 10 Jan 2009 06:29:05 -0500 (EST)
+Message-Id: <A0E08D75-B0D4-4DA5-8E52-4C7ABC8587ED@pobox.com>
+From: Torgeir Veimo <torgeir@pobox.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Date: Sat, 10 Jan 2009 21:29:01 +1000
+Subject: [linux-dvb] latest av7110 firmware?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,77 +23,91 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0505285691=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Since yesterday, v4l-dvb fails to compile for me with:
 
-  CC [M]  /usr/local/src/v4l-dvb/v4l/tvmixer.o
-/usr/local/src/v4l-dvb/v4l/tvmixer.c:226: error:
-'I2C_DRIVERID_TVMIXER' undeclared here (not in a function)
-make[3]: *** [/usr/local/src/v4l-dvb/v4l/tvmixer.o] Error 1
-make[3]: *** Waiting for unfinished jobs....
-make[2]: *** [_module_/usr/local/src/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.27-11-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/local/src/v4l-dvb/v4l'
-make: *** [all] Error 2
+--===============0505285691==
+Content-Type: multipart/alternative; boundary=Apple-Mail-1--123328411
 
-Ubuntu 8.10:
-Linux version 2.6.27-11-generic - gcc version 4.3.2 (Ubuntu 4.3.2-1ubuntu11)
 
-BTW, some observed warnings, unrelated, I suppose:
+--Apple-Mail-1--123328411
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
 
-  CC [M]  /usr/local/src/v4l-dvb/v4l/pvrusb2-hdw.o
-/usr/local/src/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_hdw_setup_low':
-/usr/local/src/v4l-dvb/v4l/pvrusb2-hdw.c:1993: warning: format not a
-string literal and no format arguments
+Is av7110 firmware rev F12623 the latest firmware? http://www.vdr-portal.de/board/thread.php?threadid=59746
 
-[...]
+Am having some a/v sync problems with playback using the 261d firmware  
+that the kernel docs points to.
 
-  CC [M]  /usr/local/src/v4l-dvb/v4l/pvrusb2-std.o
-/usr/local/src/v4l-dvb/v4l/pvrusb2-std.c: In function 'pvr2_std_id_to_str':
-/usr/local/src/v4l-dvb/v4l/pvrusb2-std.c:220: warning: format not a
-string literal and no format arguments
+-- 
+Torgeir Veimo
+torgeir@pobox.com
 
-[...]
 
-  CC [M]  /usr/local/src/v4l-dvb/v4l/zoran_card.o
-/usr/local/src/v4l-dvb/v4l/zoran_card.c: In function 'zoran_probe':
-/usr/local/src/v4l-dvb/v4l/zoran_card.c:1422: warning: format not a
-string literal and no format arguments
-/usr/local/src/v4l-dvb/v4l/zoran_card.c:1442: warning: format not a
-string literal and no format arguments
-/usr/local/src/v4l-dvb/v4l/zoran_card.c:1466: warning: format not a
-string literal and no format arguments
-/usr/local/src/v4l-dvb/v4l/zoran_card.c:1478: warning: format not a
-string literal and no format arguments
 
-[...]
 
-  CC [M]  /usr/local/src/v4l-dvb/v4l/v4l1-compat.o
-/usr/local/src/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_i2c_new_subdev':
-/usr/local/src/v4l-dvb/v4l/v4l2-common.c:947: warning: format not a
-string literal and no format arguments
-/usr/local/src/v4l-dvb/v4l/v4l2-common.c: In function
-'v4l2_i2c_new_probed_subdev':
-/usr/local/src/v4l-dvb/v4l/v4l2-common.c:1008: warning: format not a
-string literal and no format arguments
 
-[...]
+--Apple-Mail-1--123328411
+Content-Type: text/html;
+	charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-  CC [M]  /usr/local/src/v4l-dvb/v4l/tvaudio.o
-/usr/local/src/v4l-dvb/v4l/tvaudio.c: In function 'tvaudio_probe':
-/usr/local/src/v4l-dvb/v4l/tvaudio.c:1928: warning: format not a
-string literal and no format arguments
+<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; ">Is av7110 firmware =
+rev&nbsp;<span class=3D"Apple-style-span" style=3D"font-family: Tahoma; =
+font-size: 13px; ">F12623 the latest firmware?&nbsp;<a =
+href=3D"http://www.vdr-portal.de/board/thread.php?threadid=3D59746">http:/=
+/www.vdr-portal.de/board/thread.php?threadid=3D59746</a></span><div><br></=
+div><div><span class=3D"Apple-style-span" style=3D"font-family: Tahoma; =
+font-size: 13px; ">Am having some a/v sync problems with playback using =
+the 261d firmware that the kernel docs points =
+to.&nbsp;</span></div><div><font class=3D"Apple-style-span" =
+face=3D"Tahoma" size=3D"3"><span class=3D"Apple-style-span" =
+style=3D"font-size: 13px;"><br></span></font><div =
+apple-content-edited=3D"true"> <span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+Helvetica; font-size: 12px; font-style: normal; font-variant: normal; =
+font-weight: normal; letter-spacing: normal; line-height: normal; =
+orphans: 2; text-align: auto; text-indent: 0px; text-transform: none; =
+white-space: normal; widows: 2; word-spacing: 0px; =
+-webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: =
+0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+Helvetica; font-size: 12px; font-style: normal; font-variant: normal; =
+font-weight: normal; letter-spacing: normal; line-height: normal; =
+orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; =
+widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; =
+-webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0px; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><div>--&nbsp;</div><div>Torgeir Veimo</div><div><a =
+href=3D"mailto:torgeir@pobox.com">torgeir@pobox.com</a></div><div><br></di=
+v></div></span><br class=3D"Apple-interchange-newline"></div></span><br =
+class=3D"Apple-interchange-newline"> </div><br></div></body></html>=
 
-Chris
+--Apple-Mail-1--123328411--
+
+
+--===============0505285691==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0505285691==--
