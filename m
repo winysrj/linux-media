@@ -1,18 +1,14 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200901031036.15661.hverkuil@xs4all.nl>
-References: <1230848408.11900.20.camel@palomino.walls.org>
-	<200901031036.15661.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 03 Jan 2009 09:16:52 -0500
-Message-Id: <1230992212.4049.10.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx18, cx2341x, ivtv: Add AC-3 audio encoding control
-	to cx18
+Message-ID: <2ac79fa40901092218y6af40570m5cbe5aeb598038b2@mail.gmail.com>
+Date: Sat, 10 Jan 2009 13:18:48 +0700
+From: "=?UTF-8?Q?Nam_Ph=E1=BA=A1m_Th=C3=A0nh?=" <phamthanhnam.ptn@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_231257_25414223.1231568328114"
+Cc: video4linux-list <video4linux-list@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] pwc: add support for webcam snapshot button (2)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,392 +20,132 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-01-03 at 10:36 +0100, Hans Verkuil wrote: 
-> Hi Andy,
-> 
-> I've done a quick review:
-> 
-> On Thursday 01 January 2009 23:20:08 Andy Walls wrote:
-> > The patch in line below adds a control to the cx18 driver to request
-> > AC-3 audio instead of MPEG Layer II.  It doesn't quite work yet due to
-> > cx18 firmware issues.
-> >
-> > However, I think I've got the basic control work done and need a review
-> > to make sure I didn't muck anything up with the cx2341x or ivtv modules.
-> >
-> > Of particular concern to me is
-> >
-> > a) changing the cx2341x "audio_properties" from a u16 to a u32, as this
-> > is what rippled down in source code to the to ivtv driver.
-> >
-> > b) accidentally adding a bogus options or controls to ivtv.
-> >
-> >
-> > The change can also be found at
-> >
-> > http://linuxtv.org/hg/~awalls/v4l-dvb
-> >
-> > Regards,
-> > Andy
-> >
-> >
-> > # HG changeset patch
-> > # User Andy Walls <awalls@radix.net>
-> > # Date 1230847351 18000
-> > # Node ID e9cf344a6749de5d3778fac3c7114476f7f0b647
-> > # Parent  41242777b3d8bb162c65c2d0b2c542417b72d946
-> > cx18, cx2341x, ivtv: Add AC-3 audio encoding control to cx18
-> >
-> > From: Andy Walls <awalls@radix.net>
-> >
-> > Initial addition of controls to set AC-3 audio encoding for the CX23418 -
-> > it does not work yet due to firmware or cx18 driver issues.  This change
-> > affects the common cx2341x and ivtv modules due to shared structures and
-> > common functions.
-> >
-> > Priority: normal
-> >
-> > Signed-off-by: Andy Walls <awalls@radix.net>
-> >
-> > diff -r 41242777b3d8 -r e9cf344a6749
-> > linux/drivers/media/video/cx18/cx18-driver.c ---
-> > a/linux/drivers/media/video/cx18/cx18-driver.c	Thu Jan 01 10:35:06 2009
-> > -0500 +++ b/linux/drivers/media/video/cx18/cx18-driver.c	Thu Jan 01
-> > 17:02:31 2009 -0500 @@ -592,7 +592,8 @@ static int __devinit
-> > cx18_init_struct1(s
-> >  		(cx->params.video_temporal_filter_mode << 1) |
-> >  		(cx->params.video_median_filter_type << 2);
-> >  	cx->params.port = CX2341X_PORT_MEMORY;
-> > -	cx->params.capabilities = CX2341X_CAP_HAS_TS;
-> > +	cx->params.capabilities = CX2341X_CAP_HAS_TS   | CX2341X_CAP_HAS_AC3 |
-> > +				  CX2341X_CAP_HAS_LPCM;
-> >  	init_waitqueue_head(&cx->cap_w);
-> >  	init_waitqueue_head(&cx->mb_apu_waitq);
-> >  	init_waitqueue_head(&cx->mb_cpu_waitq);
-> > diff -r 41242777b3d8 -r e9cf344a6749
-> > linux/drivers/media/video/cx18/cx18-driver.h ---
-> > a/linux/drivers/media/video/cx18/cx18-driver.h	Thu Jan 01 10:35:06 2009
-> > -0500 +++ b/linux/drivers/media/video/cx18/cx18-driver.h	Thu Jan 01
-> > 17:02:31 2009 -0500 @@ -413,7 +413,7 @@ struct cx18 {
-> >
-> >  	/* dualwatch */
-> >  	unsigned long dualwatch_jiffies;
-> > -	u16 dualwatch_stereo_mode;
-> > +	u32 dualwatch_stereo_mode;
-> >
-> >  	/* Digitizer type */
-> >  	int digitizer;		/* 0x00EF = saa7114 0x00FO = saa7115 0x0106 = mic */
-> > diff -r 41242777b3d8 -r e9cf344a6749
-> > linux/drivers/media/video/cx18/cx18-fileops.c ---
-> > a/linux/drivers/media/video/cx18/cx18-fileops.c	Thu Jan 01 10:35:06 2009
-> > -0500 +++ b/linux/drivers/media/video/cx18/cx18-fileops.c	Thu Jan 01
-> > 17:02:31 2009 -0500 @@ -128,10 +128,10 @@ static void
-> > cx18_dualwatch(struct cx18 *
-> >  static void cx18_dualwatch(struct cx18 *cx)
-> >  {
-> >  	struct v4l2_tuner vt;
-> > -	u16 new_bitmap;
-> > -	u16 new_stereo_mode;
-> > -	const u16 stereo_mask = 0x0300;
-> > -	const u16 dual = 0x0200;
-> > +	u32 new_bitmap;
-> > +	u32 new_stereo_mode;
-> > +	const u32 stereo_mask = 0x0300;
-> > +	const u32 dual = 0x0200;
-> >  	u32 h;
-> >
-> >  	new_stereo_mode = cx->params.audio_properties & stereo_mask;
-> > diff -r 41242777b3d8 -r e9cf344a6749 linux/drivers/media/video/cx2341x.c
-> > --- a/linux/drivers/media/video/cx2341x.c	Thu Jan 01 10:35:06 2009 -0500
-> > +++ b/linux/drivers/media/video/cx2341x.c	Thu Jan 01 17:02:31 2009 -0500
-> > @@ -1,5 +1,5 @@
-> >  /*
-> > - * cx2341x - generic code for cx23415/6 based devices
-> > + * cx2341x - generic code for cx23415/6/8 based devices
-> >   *
-> >   * Copyright (C) 2006 Hans Verkuil <hverkuil@xs4all.nl>
-> >   *
-> > @@ -31,7 +31,7 @@
-> >  #include <media/v4l2-common.h>
-> >  #include "compat.h"
-> >
-> > -MODULE_DESCRIPTION("cx23415/6 driver");
-> > +MODULE_DESCRIPTION("cx23415/6/8 driver");
-> >  MODULE_AUTHOR("Hans Verkuil");
-> >  MODULE_LICENSE("GPL");
-> >
-> > @@ -46,6 +46,7 @@ const u32 cx2341x_mpeg_ctrls[] = {
-> >  	V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ,
-> >  	V4L2_CID_MPEG_AUDIO_ENCODING,
-> >  	V4L2_CID_MPEG_AUDIO_L2_BITRATE,
-> > +	V4L2_CID_MPEG_AUDIO_AC3_BITRATE,
-> >  	V4L2_CID_MPEG_AUDIO_MODE,
-> >  	V4L2_CID_MPEG_AUDIO_MODE_EXTENSION,
-> >  	V4L2_CID_MPEG_AUDIO_EMPHASIS,
-> > @@ -95,6 +96,7 @@ static const struct cx2341x_mpeg_params
-> >  	.audio_sampling_freq = V4L2_MPEG_AUDIO_SAMPLING_FREQ_48000,
-> >  	.audio_encoding = V4L2_MPEG_AUDIO_ENCODING_LAYER_2,
-> >  	.audio_l2_bitrate = V4L2_MPEG_AUDIO_L2_BITRATE_224K,
-> > +	.audio_ac3_bitrate = V4L2_MPEG_AUDIO_AC3_BITRATE_224K,
-> >  	.audio_mode = V4L2_MPEG_AUDIO_MODE_STEREO,
-> >  	.audio_mode_extension = V4L2_MPEG_AUDIO_MODE_EXTENSION_BOUND_4,
-> >  	.audio_emphasis = V4L2_MPEG_AUDIO_EMPHASIS_NONE,
-> > @@ -149,6 +151,9 @@ static int cx2341x_get_ctrl(const struct
-> >  	case V4L2_CID_MPEG_AUDIO_L2_BITRATE:
-> >  		ctrl->value = params->audio_l2_bitrate;
-> >  		break;
-> > +	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE:
-> > +		ctrl->value = params->audio_ac3_bitrate;
-> > +		break;
-> >  	case V4L2_CID_MPEG_AUDIO_MODE:
-> >  		ctrl->value = params->audio_mode;
-> >  		break;
-> > @@ -257,12 +262,23 @@ static int cx2341x_set_ctrl(struct cx234
-> >  		params->audio_sampling_freq = ctrl->value;
-> >  		break;
-> >  	case V4L2_CID_MPEG_AUDIO_ENCODING:
-> > +		if (busy)
-> > +			return -EBUSY;
-> > +		if (params->capabilities & CX2341X_CAP_HAS_AC3 &&
-> > +		    ctrl->value != V4L2_MPEG_AUDIO_ENCODING_LAYER_2 &&
-> > +		    ctrl->value != V4L2_MPEG_AUDIO_ENCODING_AC3)
-> > +			return -EINVAL;
-> 
-> This can't be right: if CAP_HAS_AC3 is not set, then it will always 
-> return -EINVAL.
-
-Ack!  You're right.  I shouldn't have done this stuff on New Year's Day
-- I needed more sleep.
+------=_Part_231257_25414223.1231568328114
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-> >  		params->audio_encoding = ctrl->value;
-> >  		break;
-> >  	case V4L2_CID_MPEG_AUDIO_L2_BITRATE:
-> >  		if (busy)
-> >  			return -EBUSY;
-> >  		params->audio_l2_bitrate = ctrl->value;
-> > +		break;
-> > +	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE:
-> > +		if (busy)
-> > +			return -EBUSY;
-> > +		params->audio_ac3_bitrate = ctrl->value;
-> >  		break;
-> 
-> This should test for CAP_HAS_AC3 as well.
 
-I wondered about this, since I added V4L2_CID_MPEG_AUDIO_AC3_BITRATE in
-the cx2341x_mpeg_ctrls[] list of controls for CX2341x devices, I wasn't
-sure of the user experience for always getting -EINVAL for a listed
-control.  There is no harm in letting the user app set a control value
-that will never be used for CX23415/6 devices.
+------=_Part_231257_25414223.1231568328114
+Content-Type: text/x-patch; name=pwc-snapshot-button.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fprvx6tu0
+Content-Disposition: attachment; filename=pwc-snapshot-button.patch
 
-I didn't want to make an alternate cx2341x_mpeg_ctrls[] list.  I'll put
-in a check for the CAP_HAS_AC3 and make the control inactive or
-read-only, if the CAP isn't set.
+VGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQgZm9yIFBoaWxpcHMgd2ViY2FtIHNuYXBzaG90IGJ1dHRv
+biBhcyBhbgpldmVudCBpbnB1dCBkZXZpY2UsIGZvciBjb25zaXN0ZW5jeSB3aXRoIG90aGVyIHdl
+YmNhbSBkcml2ZXJzLgpTaWduZWQtb2ZmLWJ5OiBQaGFtIFRoYW5oIE5hbSA8cGhhbXRoYW5obmFt
+LnB0bkBnbWFpbC5jb20+CgpkaWZmIC11TnIgYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3
+Yy9LY29uZmlnIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9wd2MvS2NvbmZpZwotLS0gYS9s
+aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9LY29uZmlnCTIwMDktMDEtMDMgMjA6MDM6NDMu
+MDAwMDAwMDAwICswNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL0tjb25m
+aWcJMjAwOS0wMS0wOSAxNjowOTo0NS4wMDAwMDAwMDAgKzA3MDAKQEAgLTM1LDMgKzM1LDEzIEBA
+CiAJICBTYXkgWSBoZXJlIGluIG9yZGVyIHRvIGhhdmUgdGhlIHB3YyBkcml2ZXIgZ2VuZXJhdGUg
+dmVyYm9zZSBkZWJ1Z2dpbmcKIAkgIG1lc3NhZ2VzLgogCSAgQSBzcGVjaWFsIG1vZHVsZSBvcHRp
+b25zICd0cmFjZScgaXMgdXNlZCB0byBjb250cm9sIHRoZSB2ZXJib3NpdHkuCisKK2NvbmZpZyBV
+U0JfUFdDX0lOUFVUX0VWREVWCisJYm9vbCAiVVNCIFBoaWxpcHMgQ2FtZXJhcyBpbnB1dCBldmVu
+dHMgZGV2aWNlIHN1cHBvcnQiCisJZGVmYXVsdCB5CisJZGVwZW5kcyBvbiBVU0JfUFdDICYmIElO
+UFVUCisJLS0taGVscC0tLQorCSAgVGhpcyBvcHRpb24gbWFrZXMgVVNCIFBoaWxpcHMgY2FtZXJh
+cyByZWdpc3RlciB0aGUgc25hcHNob3QgYnV0dG9uIGFzCisJICBhbiBpbnB1dCBkZXZpY2UgdG8g
+cmVwb3J0IGJ1dHRvbiBldmVudHMuCisKKwkgIElmIHlvdSBhcmUgaW4gZG91YnQsIHNheSBZLgpk
+aWZmIC11TnIgYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3B3Yy9wd2MuaCBiL2xpbnV4L2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vcHdjL3B3Yy5oCTIwMDktMDEtMDMgMjA6MDM6NDMuMDAwMDAwMDAwICswNzAwCisrKyBiL2xp
+bnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy5oCTIwMDktMDEtMDkgMTc6MDY6MDQuMDAw
+MDAwMDAwICswNzAwCkBAIC0zOCw2ICszOCw5IEBACiAjaW5jbHVkZSA8bGludXgvdmlkZW9kZXYu
+aD4KICNpbmNsdWRlIDxtZWRpYS92NGwyLWNvbW1vbi5oPgogI2luY2x1ZGUgPG1lZGlhL3Y0bDIt
+aW9jdGwuaD4KKyNpZmRlZiBDT05GSUdfVVNCX1BXQ19JTlBVVF9FVkRFVgorI2luY2x1ZGUgPGxp
+bnV4L2lucHV0Lmg+CisjZW5kaWYKIAogI2luY2x1ZGUgInB3Yy11bmNvbXByZXNzLmgiCiAjaW5j
+bHVkZSA8bWVkaWEvcHdjLWlvY3RsLmg+CkBAIC0yNTYsNiArMjU5LDkgQEAKICAgIGludCBwYW5f
+YW5nbGU7CQkJLyogaW4gZGVncmVlcyAqIDEwMCAqLwogICAgaW50IHRpbHRfYW5nbGU7CQkJLyog
+YWJzb2x1dGUgYW5nbGU7IDAsMCBpcyBob21lIHBvc2l0aW9uICovCiAgICBpbnQgc25hcHNob3Rf
+YnV0dG9uX3N0YXR1czsJCS8qIHNldCB0byAxIHdoZW4gdGhlIHVzZXIgcHVzaCB0aGUgYnV0dG9u
+LCByZXNldCB0byAwIHdoZW4gdGhpcyB2YWx1ZSBpcyByZWFkICovCisjaWZkZWYgQ09ORklHX1VT
+Ql9QV0NfSU5QVVRfRVZERVYKKyAgIHN0cnVjdCBpbnB1dF9kZXYgKmJ1dHRvbl9kZXY7CS8qIHdl
+YmNhbSBzbmFwc2hvdCBidXR0b24gaW5wdXQgKi8KKyNlbmRpZgogCiAgICAvKioqIE1pc2MuIGRh
+dGEgKioqLwogICAgd2FpdF9xdWV1ZV9oZWFkX3QgZnJhbWVxOwkJLyogV2hlbiB3YWl0aW5nIGZv
+ciBhIGZyYW1lIHRvIGZpbmlzaC4uLiAqLwpkaWZmIC11TnIgYS9saW51eC9kcml2ZXJzL21lZGlh
+L3ZpZGVvL3B3Yy9wd2MtaWYuYyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy1p
+Zi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vcHdjL3B3Yy1pZi5jCTIwMDktMDEt
+MDMgMjA6MDM6NDMuMDAwMDAwMDAwICswNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vcHdjL3B3Yy1pZi5jCTIwMDktMDEtMTAgMTE6MjY6NDQuMDAwMDAwMDAwICswNzAwCkBAIC01
+Myw2ICs1Myw3IEBACiAgICAtIFhhdmllciBSb2NoZTogUXVpY2tDYW0gUHJvIDQwMDAgSUQKICAg
+IC0gSmVucyBLbnVkc2VuOiBRdWlja0NhbSBab29tIElECiAgICAtIEouIERlYmVydDogUXVpY2tD
+YW0gZm9yIE5vdGVib29rcyBJRAorICAgLSBQaGFtIFRoYW5oIE5hbTogd2ViY2FtIHNuYXBzaG90
+IGJ1dHRvbiBhcyBhbiBldmVudCBpbnB1dCBkZXZpY2UKICovCiAKICNpbmNsdWRlIDxsaW51eC9l
+cnJuby5oPgpAQCAtNjEsNiArNjIsMTMgQEAKICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KICNp
+bmNsdWRlIDxsaW51eC9wb2xsLmg+CiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgorI2lmZGVmIENP
+TkZJR19VU0JfUFdDX0lOUFVUX0VWREVWCisjaWYgTElOVVhfVkVSU0lPTl9DT0RFIDwgS0VSTkVM
+X1ZFUlNJT04oMiwgNiwgMTgpCisjaW5jbHVkZSA8bGludXgvdXNiX2lucHV0Lmg+CisjZWxzZQor
+I2luY2x1ZGUgPGxpbnV4L3VzYi9pbnB1dC5oPgorI2VuZGlmCisjZW5kaWYKICNpbmNsdWRlIDxs
+aW51eC92bWFsbG9jLmg+CiAjaW5jbHVkZSA8bGludXgvdmVyc2lvbi5oPgogI2luY2x1ZGUgPGFz
+bS9pby5oPgpAQCAtNTg3LDYgKzU5NSwyMyBAQAogCQkJCXBkZXYtPnZmcmFtZV9jb3VudCk7CiB9
+CiAKK3N0YXRpYyB2b2lkIHB3Y19zbmFwc2hvdF9idXR0b24oc3RydWN0IHB3Y19kZXZpY2UgKnBk
+ZXYsIGludCBkb3duKQoreworCWlmIChkb3duKSB7CisJCVBXQ19UUkFDRSgiU25hcHNob3QgYnV0
+dG9uIHByZXNzZWQuXG4iKTsKKwkJcGRldi0+c25hcHNob3RfYnV0dG9uX3N0YXR1cyA9IDE7CisJ
+fSBlbHNlIHsKKwkJUFdDX1RSQUNFKCJTbmFwc2hvdCBidXR0b24gcmVsZWFzZWQuXG4iKTsKKwl9
+CisKKyNpZmRlZiBDT05GSUdfVVNCX1BXQ19JTlBVVF9FVkRFVgorCWlmIChwZGV2LT5idXR0b25f
+ZGV2KSB7CisJCWlucHV0X3JlcG9ydF9rZXkocGRldi0+YnV0dG9uX2RldiwgQlROXzAsIGRvd24p
+OworCQlpbnB1dF9zeW5jKHBkZXYtPmJ1dHRvbl9kZXYpOworCX0KKyNlbmRpZgorfQorCiBzdGF0
+aWMgaW50IHB3Y19yY3Zfc2hvcnRfcGFja2V0KHN0cnVjdCBwd2NfZGV2aWNlICpwZGV2LCBjb25z
+dCBzdHJ1Y3QgcHdjX2ZyYW1lX2J1ZiAqZmJ1ZikKIHsKIAlpbnQgYXdha2UgPSAwOwpAQCAtNjA0
+LDEzICs2MjksNyBAQAogCQkJcGRldi0+dmZyYW1lc19lcnJvcisrOwogCQl9CiAJCWlmICgocHRy
+WzBdIF4gcGRldi0+dm1pcnJvcikgJiAweDAxKSB7Ci0JCQlpZiAocHRyWzBdICYgMHgwMSkgewot
+CQkJCXBkZXYtPnNuYXBzaG90X2J1dHRvbl9zdGF0dXMgPSAxOwotCQkJCVBXQ19UUkFDRSgiU25h
+cHNob3QgYnV0dG9uIHByZXNzZWQuXG4iKTsKLQkJCX0KLQkJCWVsc2UgewotCQkJCVBXQ19UUkFD
+RSgiU25hcHNob3QgYnV0dG9uIHJlbGVhc2VkLlxuIik7Ci0JCQl9CisJCQlwd2Nfc25hcHNob3Rf
+YnV0dG9uKHBkZXYsIHB0clswXSAmIDB4MDEpOwogCQl9CiAJCWlmICgocHRyWzBdIF4gcGRldi0+
+dm1pcnJvcikgJiAweDAyKSB7CiAJCQlpZiAocHRyWzBdICYgMHgwMikKQEAgLTYzNCwxMiArNjUz
+LDcgQEAKIAllbHNlIGlmIChwZGV2LT50eXBlID09IDc0MCB8fCBwZGV2LT50eXBlID09IDcyMCkg
+ewogCQl1bnNpZ25lZCBjaGFyICpwdHIgPSAodW5zaWduZWQgY2hhciAqKWZidWYtPmRhdGE7CiAJ
+CWlmICgocHRyWzBdIF4gcGRldi0+dm1pcnJvcikgJiAweDAxKSB7Ci0JCQlpZiAocHRyWzBdICYg
+MHgwMSkgewotCQkJCXBkZXYtPnNuYXBzaG90X2J1dHRvbl9zdGF0dXMgPSAxOwotCQkJCVBXQ19U
+UkFDRSgiU25hcHNob3QgYnV0dG9uIHByZXNzZWQuXG4iKTsKLQkJCX0KLQkJCWVsc2UKLQkJCQlQ
+V0NfVFJBQ0UoIlNuYXBzaG90IGJ1dHRvbiByZWxlYXNlZC5cbiIpOworCQkJcHdjX3NuYXBzaG90
+X2J1dHRvbihwZGV2LCBwdHJbMF0gJiAweDAxKTsKIAkJfQogCQlwZGV2LT52bWlycm9yID0gcHRy
+WzBdICYgMHgwMzsKIAl9CkBAIC0xMjIxLDYgKzEyMzUsMTUgQEAKIHsKIAlwd2NfcmVtb3ZlX3N5
+c2ZzX2ZpbGVzKHBkZXYtPnZkZXYpOwogCXZpZGVvX3VucmVnaXN0ZXJfZGV2aWNlKHBkZXYtPnZk
+ZXYpOworCisjaWZkZWYgQ09ORklHX1VTQl9QV0NfSU5QVVRfRVZERVYKKwlpZiAocGRldi0+YnV0
+dG9uX2RldikgeworCQlpbnB1dF91bnJlZ2lzdGVyX2RldmljZShwZGV2LT5idXR0b25fZGV2KTsK
+KwkJaW5wdXRfZnJlZV9kZXZpY2UocGRldi0+YnV0dG9uX2Rldik7CisJCWtmcmVlKHBkZXYtPmJ1
+dHRvbl9kZXYtPnBoeXMpOworCQlwZGV2LT5idXR0b25fZGV2ID0gTlVMTDsKKwl9CisjZW5kaWYK
+IH0KIAogLyogTm90ZSB0aGF0IGFsbCBjbGVhbnVwIGlzIGRvbmUgaW4gdGhlIHJldmVyc2Ugb3Jk
+ZXIgYXMgaW4gX29wZW4gKi8KQEAgLTE0ODgsNiArMTUxMSw5IEBACiAJaW50IGZlYXR1cmVzID0g
+MDsKIAlpbnQgdmlkZW9fbnIgPSAtMTsgLyogZGVmYXVsdDogdXNlIG5leHQgYXZhaWxhYmxlIGRl
+dmljZSAqLwogCWNoYXIgc2VyaWFsX251bWJlclszMF0sICpuYW1lOworI2lmZGVmIENPTkZJR19V
+U0JfUFdDX0lOUFVUX0VWREVWCisJY2hhciAqcGh5cyA9IE5VTEw7CisjZW5kaWYKIAogCXZlbmRv
+cl9pZCA9IGxlMTZfdG9fY3B1KHVkZXYtPmRlc2NyaXB0b3IuaWRWZW5kb3IpOwogCXByb2R1Y3Rf
+aWQgPSBsZTE2X3RvX2NwdSh1ZGV2LT5kZXNjcmlwdG9yLmlkUHJvZHVjdCk7CkBAIC0xODEyLDYg
+KzE4MzgsMzkgQEAKIAlwd2Nfc2V0X2xlZHMocGRldiwgMCwgMCk7CiAJcHdjX2NhbWVyYV9wb3dl
+cihwZGV2LCAwKTsKIAorI2lmZGVmIENPTkZJR19VU0JfUFdDX0lOUFVUX0VWREVWCisJLyogcmVn
+aXN0ZXIgd2ViY2FtIHNuYXBzaG90IGJ1dHRvbiBpbnB1dCBkZXZpY2UgKi8KKwlwZGV2LT5idXR0
+b25fZGV2ID0gaW5wdXRfYWxsb2NhdGVfZGV2aWNlKCk7CisJaWYgKCFwZGV2LT5idXR0b25fZGV2
+KSB7CisJCVBXQ19FUlJPUigiRXJyLCBpbnN1ZmZpY2llbnQgbWVtb3J5IGZvciB3ZWJjYW0gc25h
+cHNob3QgYnV0dG9uIGRldmljZS4iKTsKKwkJcmV0dXJuIC1FTk9NRU07CisJfQorCisJcGRldi0+
+YnV0dG9uX2Rldi0+bmFtZSA9ICJQV0Mgc25hcHNob3QgYnV0dG9uIjsKKwlwaHlzID0ga2FzcHJp
+bnRmKEdGUF9LRVJORUwsInVzYi0lcy0lcyIsIHBkZXYtPnVkZXYtPmJ1cy0+YnVzX25hbWUsIHBk
+ZXYtPnVkZXYtPmRldnBhdGgpOworCWlmICghcGh5cykgeworCQlpbnB1dF9mcmVlX2RldmljZShw
+ZGV2LT5idXR0b25fZGV2KTsKKwkJcmV0dXJuIC1FTk9NRU07CisJfQorCXBkZXYtPmJ1dHRvbl9k
+ZXYtPnBoeXMgPSBwaHlzOworCXVzYl90b19pbnB1dF9pZChwZGV2LT51ZGV2LCAmcGRldi0+YnV0
+dG9uX2Rldi0+aWQpOworI2lmIExJTlVYX1ZFUlNJT05fQ09ERSA+PSBLRVJORUxfVkVSU0lPTigy
+LCA2LCAyMikKKwlwZGV2LT5idXR0b25fZGV2LT5kZXYucGFyZW50ID0gJnBkZXYtPnVkZXYtPmRl
+djsKKyNlbHNlCisJcGRldi0+YnV0dG9uX2Rldi0+Y2Rldi5kZXYgPSAmcGRldi0+dWRldi0+ZGV2
+OworI2VuZGlmCisJcGRldi0+YnV0dG9uX2Rldi0+ZXZiaXRbMF0gPSBCSVRfTUFTSyhFVl9LRVkp
+OworCXBkZXYtPmJ1dHRvbl9kZXYtPmtleWJpdFtCSVRfV09SRChCVE5fMCldID0gQklUX01BU0so
+QlROXzApOworCisJcmMgPSBpbnB1dF9yZWdpc3Rlcl9kZXZpY2UocGRldi0+YnV0dG9uX2Rldik7
+CisJaWYgKHJjKSB7CisJCWlucHV0X2ZyZWVfZGV2aWNlKHBkZXYtPmJ1dHRvbl9kZXYpOworCQlr
+ZnJlZShwZGV2LT5idXR0b25fZGV2LT5waHlzKTsKKwkJcGRldi0+YnV0dG9uX2RldiA9IE5VTEw7
+CisJCXJldHVybiByYzsKKwl9CisjZW5kaWYKKwogCXJldHVybiAwOwogCiBlcnJfdW5yZWc6Cg==
 
-
-> >  	case V4L2_CID_MPEG_AUDIO_MODE:
-> >  		params->audio_mode = ctrl->value;
-> > @@ -483,6 +499,12 @@ int cx2341x_ctrl_query(const struct cx23
-> >
-> >  	switch (qctrl->id) {
-> >  	case V4L2_CID_MPEG_AUDIO_ENCODING:
-> > +		if (params->capabilities & CX2341X_CAP_HAS_AC3)
-> > +			return v4l2_ctrl_query_fill(qctrl,
-> > +					V4L2_MPEG_AUDIO_ENCODING_LAYER_2,
-> > +					V4L2_MPEG_AUDIO_ENCODING_AC3, 1,
-> > +					default_params.audio_encoding);
-> > +
-> >  		return v4l2_ctrl_query_fill(qctrl,
-> >  				V4L2_MPEG_AUDIO_ENCODING_LAYER_2,
-> >  				V4L2_MPEG_AUDIO_ENCODING_LAYER_2, 1,
-> > @@ -497,6 +519,12 @@ int cx2341x_ctrl_query(const struct cx23
-> >  	case V4L2_CID_MPEG_AUDIO_L1_BITRATE:
-> >  	case V4L2_CID_MPEG_AUDIO_L3_BITRATE:
-> >  		return -EINVAL;
-> > +
-> > +	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE:
-> > +		return v4l2_ctrl_query_fill(qctrl,
-> > +				V4L2_MPEG_AUDIO_AC3_BITRATE_48K,
-> > +				V4L2_MPEG_AUDIO_AC3_BITRATE_448K, 1,
-> > +				default_params.audio_ac3_bitrate);
-> 
-> Also needs a test.
-
-OK.  Can do.
-
-BTW, The old code fell through to the default case.  I note that the L1
-& L3 bitrate controls aren't valid, are trapped here, but aren't in the
-cx2341x_mpeg_ctrls[] list.  I was unsure if a control not in the
-cx2341x_mpeg_ctrls[] list would ever come through here.
-
-> >  	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION:
-> >  		err = v4l2_ctrl_query_fill_std(qctrl);
-> > @@ -672,6 +700,15 @@ const char **cx2341x_ctrl_get_menu(const
-> >  		NULL
-> >  	};
-> >
-> > +	static const char *mpeg_audio_encoding_l2_ac3[] = {
-> > +		"",
-> > +		"MPEG-1/2 Layer II",
-> > +		"",
-> > +		"",
-> > +		"AC-3",
-> > +		NULL
-> > +	};
-> > +
-> >  	static const char *cx2341x_video_spatial_filter_mode_menu[] = {
-> >  		"Manual",
-> >  		"Auto",
-> > @@ -712,6 +749,9 @@ const char **cx2341x_ctrl_get_menu(const
-> >  	case V4L2_CID_MPEG_STREAM_TYPE:
-> >  		return (p->capabilities & CX2341X_CAP_HAS_TS) ?
-> >  			mpeg_stream_type_with_ts : mpeg_stream_type_without_ts;
-> > +	case V4L2_CID_MPEG_AUDIO_ENCODING:
-> > +		return (p->capabilities & CX2341X_CAP_HAS_AC3) ?
-> > +			mpeg_audio_encoding_l2_ac3 : v4l2_ctrl_get_menu(id);
-> >  	case V4L2_CID_MPEG_AUDIO_L1_BITRATE:
-> >  	case V4L2_CID_MPEG_AUDIO_L3_BITRATE:
-> >  		return NULL;
-> > @@ -731,16 +771,36 @@ const char **cx2341x_ctrl_get_menu(const
-> >  }
-> >  EXPORT_SYMBOL(cx2341x_ctrl_get_menu);
-> >
-> > +/* definitions for audio properties bits 29-28 */
-> > +#define CX2341X_AUDIO_ENCDING_METHOD_MPEG	0
-> > +#define CX2341X_AUDIO_ENCDING_METHOD_AC3	1
-> > +#define CX2341X_AUDIO_ENCDING_METHOD_LPCM	2
-> 
-> ENCDING? You mean ENCODING.
-
-Yes, thanks.  Sleep deprivation and not wearing my glasses. 8-)
-
-
-> > +
-> >  static void cx2341x_calc_audio_properties(struct cx2341x_mpeg_params
-> > *params) {
-> > -	params->audio_properties = (params->audio_sampling_freq << 0) |
-> > -		((3 - params->audio_encoding) << 2) |
-> > -		((1 + params->audio_l2_bitrate) << 4) |
-> > +	params->audio_properties =
-> > +		(params->audio_sampling_freq << 0) |
-> >  		(params->audio_mode << 8) |
-> >  		(params->audio_mode_extension << 10) |
-> >  		(((params->audio_emphasis == V4L2_MPEG_AUDIO_EMPHASIS_CCITT_J17)
-> >  		  ? 3 : params->audio_emphasis) << 12) |
-> >  		(params->audio_crc << 14);
-> > +
-> > +	if ((params->capabilities & CX2341X_CAP_HAS_AC3) &&
-> > +	    params->audio_encoding == V4L2_MPEG_AUDIO_ENCODING_AC3) {
-> > +		params->audio_properties |=
-> > +#if 1
-> > +			/* Not sure if this MPEG Layer II setting is required */
-> > +			((3 - V4L2_MPEG_AUDIO_ENCODING_LAYER_2) << 2) |
-> > +#endif
-> > +			(params->audio_ac3_bitrate << 4) |
-> > +			(CX2341X_AUDIO_ENCDING_METHOD_AC3 << 28);
-> > +	} else {
-> > +		/* Assuming MPEG Layer II */
-> > +		params->audio_properties |=
-> > +			((3 - params->audio_encoding) << 2) |
-> > +			((1 + params->audio_l2_bitrate) << 4);
-> > +	}
-> >  }
-> >
-> >  int cx2341x_ext_ctrls(struct cx2341x_mpeg_params *params, int busy,
-> > @@ -1023,7 +1083,10 @@ void cx2341x_log_status(const struct cx2
-> >  		prefix,
-> >  		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ),
-> >  		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_ENCODING),
-> > -		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_L2_BITRATE),
-> > +		cx2341x_menu_item(p,
-> > +			   p->audio_encoding == V4L2_MPEG_AUDIO_ENCODING_AC3
-> > +					      ? V4L2_CID_MPEG_AUDIO_AC3_BITRATE
-> > +					      : V4L2_CID_MPEG_AUDIO_L2_BITRATE),
-> >  		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_MODE),
-> >  		p->audio_mute ? " (muted)" : "");
-> >  	if (p->audio_mode == V4L2_MPEG_AUDIO_MODE_JOINT_STEREO)
-> > diff -r 41242777b3d8 -r e9cf344a6749
-> > linux/drivers/media/video/ivtv/ivtv-driver.h ---
-> > a/linux/drivers/media/video/ivtv/ivtv-driver.h	Thu Jan 01 10:35:06 2009
-> > -0500 +++ b/linux/drivers/media/video/ivtv/ivtv-driver.h	Thu Jan 01
-> > 17:02:31 2009 -0500 @@ -697,7 +697,7 @@ struct ivtv {
-> >  	u64 vbi_data_inserted;          /* number of VBI bytes inserted into
-> > the MPEG stream */ u32 last_dec_timing[3];         /* cache last
-> > retrieved pts/scr/frame values */ unsigned long dualwatch_jiffies;/*
-> > jiffies value of the previous dualwatch check */ -	u16
-> > dualwatch_stereo_mode;      /* current detected dualwatch stereo mode */
-> > +	u32 dualwatch_stereo_mode;      /* current detected dualwatch stereo
-> > mode */
-> >
-> >
-> >  	/* VBI state info */
-> > diff -r 41242777b3d8 -r e9cf344a6749
-> > linux/drivers/media/video/ivtv/ivtv-fileops.c ---
-> > a/linux/drivers/media/video/ivtv/ivtv-fileops.c	Thu Jan 01 10:35:06 2009
-> > -0500 +++ b/linux/drivers/media/video/ivtv/ivtv-fileops.c	Thu Jan 01
-> > 17:02:31 2009 -0500 @@ -148,10 +148,10 @@ static void
-> > ivtv_dualwatch(struct ivtv *
-> >  static void ivtv_dualwatch(struct ivtv *itv)
-> >  {
-> >  	struct v4l2_tuner vt;
-> > -	u16 new_bitmap;
-> > -	u16 new_stereo_mode;
-> > -	const u16 stereo_mask = 0x0300;
-> > -	const u16 dual = 0x0200;
-> > +	u32 new_bitmap;
-> > +	u32 new_stereo_mode;
-> > +	const u32 stereo_mask = 0x0300;
-> > +	const u32 dual = 0x0200;
-> >
-> >  	new_stereo_mode = itv->params.audio_properties & stereo_mask;
-> >  	memset(&vt, 0, sizeof(vt));
-> > diff -r 41242777b3d8 -r e9cf344a6749 linux/include/media/cx2341x.h
-> > --- a/linux/include/media/cx2341x.h	Thu Jan 01 10:35:06 2009 -0500
-> > +++ b/linux/include/media/cx2341x.h	Thu Jan 01 17:02:31 2009 -0500
-> > @@ -1,5 +1,5 @@
-> >  /*
-> > -    cx23415/6 header containing common defines.
-> > +    cx23415/6/8 header containing common defines.
-> >
-> >      This program is free software; you can redistribute it and/or modify
-> >      it under the terms of the GNU General Public License as published by
-> > @@ -28,6 +28,8 @@ enum cx2341x_cap {
-> >  enum cx2341x_cap {
-> >  	CX2341X_CAP_HAS_SLICED_VBI = 1 << 0,
-> >  	CX2341X_CAP_HAS_TS 	   = 1 << 1,
-> > +	CX2341X_CAP_HAS_AC3 	   = 1 << 2,
-> > +	CX2341X_CAP_HAS_LPCM	   = 1 << 3,
-> >  };
-> >
-> >  struct cx2341x_mpeg_params {
-> > @@ -47,11 +49,12 @@ struct cx2341x_mpeg_params {
-> >  	enum v4l2_mpeg_audio_sampling_freq audio_sampling_freq;
-> >  	enum v4l2_mpeg_audio_encoding audio_encoding;
-> >  	enum v4l2_mpeg_audio_l2_bitrate audio_l2_bitrate;
-> > +	enum v4l2_mpeg_audio_ac3_bitrate audio_ac3_bitrate;
-> >  	enum v4l2_mpeg_audio_mode audio_mode;
-> >  	enum v4l2_mpeg_audio_mode_extension audio_mode_extension;
-> >  	enum v4l2_mpeg_audio_emphasis audio_emphasis;
-> >  	enum v4l2_mpeg_audio_crc audio_crc;
-> > -	u16 audio_properties;
-> > +	u32 audio_properties;
-> >  	u16 audio_mute;
-> >
-> >  	/* video */
-> 
-> Regards,
-> 
-> 	Hans
-
-Thanks for heading off that disaster of a patch.
-
-Regards,
-Andy
-
-
+------=_Part_231257_25414223.1231568328114
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_231257_25414223.1231568328114--
