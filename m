@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from mail.acc.umu.se ([130.239.18.156])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1LPEox-0001y7-8f
-	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 12:31:04 +0100
-Message-ID: <4975B5F1.7000306@iki.fi>
-Date: Tue, 20 Jan 2009 13:30:57 +0200
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <nikke@acc.umu.se>) id 1LLegV-000384-Fn
+	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 15:19:34 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by amavisd-new (Postfix) with ESMTP id CA41F8D6
+	for <linux-dvb@linuxtv.org>; Sat, 10 Jan 2009 15:19:26 +0100 (MET)
+Received: from localhost (localhost [127.0.0.1])
+	by mail.acc.umu.se (Postfix) with ESMTP id A9F768D4
+	for <linux-dvb@linuxtv.org>; Sat, 10 Jan 2009 15:19:22 +0100 (MET)
+Date: Sat, 10 Jan 2009 15:19:22 +0100 (MET)
+From: Niklas Edmundsson <nikke@acc.umu.se>
+To: linux-dvb@linuxtv.org
+Message-ID: <Pine.GSO.4.64.0901101505010.16242@hatchepsut.acc.umu.se>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-References: <20090120091952.GB6792@debian-hp.lan>
-In-Reply-To: <20090120091952.GB6792@debian-hp.lan>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] getting started with msi tv card
-Reply-To: linux-media@vger.kernel.org
+Subject: [linux-dvb] Latest mantis tree -> oops on load
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,31 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Daniel Dalton wrote:
-> Could someone please let me know what I have to do to get my msi 5580
-> usb digital tv tuner working with linux?
-> What drivers do I need? What software, what should I do to test it and
-> is it possible to use the remote once it is up and running?
 
-It should work with v4l-dvb / Kernel newer than about two years. 
-However, tuner performance is not very good. With weak signal it works 
-better than strong. All remote keys are not working because driver does 
-not upload IR-table to the chip.
+The latest mantis tree from http://jusst.de/hg/mantis makes mantis.ko 
+oops on load for me.
 
-> Finally, I'm vission impared, so are there any programs for controling
-> the tv either command line based or gtk? I can't use qt applications.
-> If qt is my only option it's fine, I'll figure out a way for handling
-> this once the card is working.
+I have an Azurewave/Twinhan AD-CP300 without 
+CA/CI/crypto/whatchamacallit (my cable provider gives me my basic 
+channels unencrypted).
 
-Totem, Me-TV, Kaffeine, mplayer, Xine.
+My guess is that the "serial interface implementation" is missing some 
+corner case checks ;)
 
-> Also, does this card allow for reccording?
+Executive summary of the console is:
 
-yes
+mantis_hif_init (0): Adapter(0) Initializing yada yada
+BUG: unable to handle kernel NULL pointer dereference at virtual address yada.
+<cut>
+EIP is at mantis_uart_read+yada
 
-Antti
+
+/Nikke
 -- 
-http://palosaari.fi/
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+  Niklas Edmundsson, Admin @ {acc,hpc2n}.umu.se      |     nikke@acc.umu.se
+---------------------------------------------------------------------------
+  POVERTY: Having too much month left at the end of the money.
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 _______________________________________________
 linux-dvb users mailing list
