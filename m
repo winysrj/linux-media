@@ -1,28 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+6fe81ee853252f17f9b7+1964+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1LKjqT-00089M-GL
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 02:38:01 +0100
-Date: Wed, 7 Jan 2009 23:37:27 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andy Walls <awalls@radix.net>
-Message-ID: <20090107233727.431157f9@pedra.chehab.org>
-In-Reply-To: <1231288416.3117.29.camel@palomino.walls.org>
-References: <20090104113738.GD3551@gmail.com>
-	<1231097304.3125.64.camel@palomino.walls.org>
-	<20090105130720.GB3621@gmail.com>
-	<1231202800.3110.13.camel@palomino.walls.org>
-	<20090106144917.736584e7@pedra.chehab.org>
-	<20090106170002.GC3403@gmail.com>
-	<20090106170926.52575365@pedra.chehab.org>
-	<7C301ED0-CA57-406B-BA34-43A6EB21D96C@WhiteCitadel.com>
-	<35565.62.178.208.71.1231285755.squirrel@webmail.dark-green.com>
-	<1231288416.3117.29.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org,
-	Paul <Paul@WhiteCitadel.com>
-Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <handygewinnspiel@gmx.de>) id 1LLiTD-0005kb-HA
+	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 19:22:04 +0100
+Message-ID: <4968E723.3090705@gmx.de>
+Date: Sat, 10 Jan 2009 19:21:23 +0100
+From: wk <handygewinnspiel@gmx.de>
+MIME-Version: 1.0
+To: Hans Werner <HWerner4@gmx.de>,
+	Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <20090110102705.129600@gmx.net> <20090110103700.107530@gmx.net>
+	<49688176.5030603@gmx.de>
+In-Reply-To: <49688176.5030603@gmx.de>
+Subject: Re: [linux-dvb] compiling on 2.6.28 broken?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,25 +26,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 06 Jan 2009 19:33:36 -0500
-Andy Walls <awalls@radix.net> wrote:
+wk schrieb:
+> Hans Werner schrieb:
+>   
+>>> Hi all,
+>>>
+>>> Compiling on 2.6.28 seems to be broken (v4l-dvb-985ecd81d993,
+>>> linux-2.6.28, gcc-3.4.1), is this known or already some patch around?
+>>>     
+>>>       
+>> I can compile fine with 2.6.28, x86_64, gcc 4.2.4. Did you do 'make distclean' first?
+>>
+>>   
+>>     
+> Well, i did not start with distclean, since i expect a freshly 
+> downloaded package to be distclean.
+> Nevertheless make distclean and/or make clean also doesnt work properly:
+>
+> -bash-3.00# make distclean
+> make -C /usr/src/v4l-dvb-985ecd81d993/v4l distclean
+> make[1]: Entering directory `/usr/src/v4l-dvb-985ecd81d993/v4l'
+> find: .: Value too large for defined data type
+> make[1]: *** [clean] Fehler 1
+> make[1]: Leaving directory `/usr/src/v4l-dvb-985ecd81d993/v4l'
+> make: *** [distclean] Fehler 2
+>
+> Note the very same error: 'value too large..' Looks like Makefile or 
+> script failure.
+>
+> This is a 32bit machine running LinuxFromScratch btw. and not the first 
+> time compiling the dvb driver.
+>
+>   
+Update: after some hours of tests:
 
-> Thanks for the report.  That's actually exactly what I would expect. 
-> 
-> The race I think happens should only happen after the first device is
-> added to the cx8802_devlist and while the cx88-dvb module is probing
-> devices a second device is being added to the cx8802_devlist with a
-> pointer not properly set yet.
-> (Of course, I'm not sure why Mauro's recent change didn't work for
-> Gregoire.)
+- with 2.6.28 some symbolic links from v4l directory to the *.{c,h} in 
+../drivers/media subdirs are not created.
+- 2.6.26.3 = OK
+- 2.6.27.9 = OK
+- 2.6.28 = failure
 
-Probably because I moved also some code from cx88-mpeg into cx88-dvb. We should
-rewrite the locks on the drivers to work better after the KBL unlock patches
-that went on 2.6.27 and 2.6.28.
+if i try to compile after a previous run with 2.6.26.3 or 2.6.27.9 
+compiling runs (but still the error message of find after creating 
+symbolic links),
+because the symbolic links are already created from previous run. I'm 
+wondering wether i'm the only one with that problem..
 
-
-Cheers,
-Mauro
+-Winfried
 
 _______________________________________________
 linux-dvb users mailing list
