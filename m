@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34])
+Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rudy@grumpydevil.homelinux.org>) id 1LLcc9-0006nR-9w
-	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 13:06:56 +0100
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-In-Reply-To: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-References: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-Date: Sat, 10 Jan 2009 13:06:37 +0100
-Message-Id: <1231589197.23623.618.camel@poledra.romunt.nl>
+	(envelope-from <piobair@mindspring.com>) id 1LLT5G-0004nt-DP
+	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 02:56:18 +0100
+Message-ID: <28014750.1231552542526.JavaMail.root@elwamui-darkeyed.atl.sa.earthlink.net>
+Date: Fri, 9 Jan 2009 20:55:42 -0500 (GMT-05:00)
+From: William Melgaard <piobair@mindspring.com>
+To: Tu-Tu Yu <tutuyu@usc.edu>, linux-dvb@linuxtv.org
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Mantis users
-Reply-To: Rudy@grumpydevil.homelinux.org
+Subject: Re: [linux-dvb] Does anyone work on Dvico HDTV7 (both s5h1411
+	and	s5h1409) sucessfully!?
+Reply-To: William Melgaard <piobair@mindspring.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,50 +24,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Op zaterdag 10-01-2009 om 01:00 uur [tijdzone +0400], schreef Manu
-Abraham:
-> Hi,
-> 
-> Can you all please provide me the following information for the
-> Mantis / Hopper bridge 
-> based cards that you have in the following manner ?
-> 
-> 1) Card Name (As advertised on the cardboard box):
+If nothing is being saved: the program is only processing a stream, then duration is inconsequential. The state (dump) at t=0 thus is identical to the state just before crash. It follows that you have a hardware (heat?) problem. Try moving the card to a different slot.
 
-I've lost the cardboard box long ago
-
-on the PCB is says VP-20330 Ver:1.4. This is a DVB-C card
-Label on the tuner tin has Twinhan
-
-> 
-> 2) lspci -vvn:
-
-05:09.0 0480: 1822:4e35 (rev 01)
-        Subsystem: 1822:0008
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR+ FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-        Latency: 64 (2000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 11
-        Region 0: Memory at f8fff000 (32-bit, prefetchable) [size=4K]
-
-> 
-> 3) Chips on the card if you know them (only the basic chip description
-> is required, 
-> not the complete batch no. etc)
-> 
-
-Mantis K61468. 1A-1
-
-> 
-> Regards,
-> Manu
-> 
-Cheers,
-
-Rudy
-> 
+Bill
+-----Original Message-----
+>From: Tu-Tu Yu <tutuyu@usc.edu>
+>Sent: Jan 9, 2009 2:28 PM
+>To: linux-dvb@linuxtv.org
+>Subject: [linux-dvb] Does anyone work on Dvico HDTV7 (both s5h1411 and	s5h1409) sucessfully!?
+>
+>hi~
+>I am working on Dvico HDTV7 Tv tuner card. For s5h1409 version, it
+>usually works fine in first few hours but after a while it will stop.
+>For S5H1411 version, it usually works fine for only first hours and
+>then it will stop....Can anyone give me some suggestion? I am looking
+>for the solution for more than 1 month.....? Thank you so much!
+>Audrey
+>
+>_______________________________________________
+>linux-dvb users mailing list
+>For V4L/DVB development, please use instead linux-media@vger.kernel.org
+>linux-dvb@linuxtv.org
+>http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
 _______________________________________________
