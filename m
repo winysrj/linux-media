@@ -1,121 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.169]:45889 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753547AbZA0ShA (ORCPT
+Received: from mail-bw0-f21.google.com ([209.85.218.21]:34757 "EHLO
+	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753064AbZAJMqF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 13:37:00 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so245776ugf.37
-        for <linux-media@vger.kernel.org>; Tue, 27 Jan 2009 10:36:58 -0800 (PST)
-Date: Tue, 27 Jan 2009 19:36:52 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Daniel Dalton <d.dalton@iinet.net.au>
-cc: linux-media@vger.kernel.org,
-	DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] getting started with msi tv card
-In-Reply-To: <20090127114045.GB10439@debian-hp.lan>
-Message-ID: <alpine.DEB.2.00.0901271809580.15738@ybpnyubfg.ybpnyqbznva>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi> <20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi> <20090121003915.GA6120@debian-hp.lan> <4977088F.5080505@iki.fi> <20090122092844.GB14123@debian-hp.lan>
- <alpine.DEB.2.00.0901222327370.13623@ybpnyubfg.ybpnyqbznva> <20090127114045.GB10439@debian-hp.lan>
+	Sat, 10 Jan 2009 07:46:05 -0500
+Received: by bwz14 with SMTP id 14so30151902bwz.13
+        for <linux-media@vger.kernel.org>; Sat, 10 Jan 2009 04:46:02 -0800 (PST)
+Message-ID: <730f85f90901100446x252afbd3ma60b66126d29d9a5@mail.gmail.com>
+Date: Sat, 10 Jan 2009 14:46:01 +0200
+From: "Kevin Palberg" <kpalberg@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Memory corruption with Terratec Cinergy 1200 DVB-C MK3
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 27 Jan 2009, Daniel Dalton wrote:
+I can consistently generate kernel oops (or panic) with the following steps:
 
-> > > I'm connecting it to a co-axle point in my home; I lost the original
-> > > antenna.
-> > > I'm reasonably sure that point should work fine.
+1) leave the computer turned off for several hours (6+ hours, overnight)
+2) turn on, login and start a tv viewing app (gxine)
+3) on gnome-terminal, su to root and run "memtest all"
 
-> > In place of the original antenna, you can try a short
-> > length of wire, say, 5cm long for the UHF frequency, to
-> > about half a metre for the other frequencies.  This will,
-> 
-> What kind of wire? Ear phone? and how do I hook this up to the receiver
-> since it has a co-axle input plug on it.
+The memtest command will get stuck trying to mlock memory (it doesn't
+get far enough to actually test it) and I get a kernel oops
+(usually in __rmqueue_smallest when it is manipulating a linked list.)
 
-The type of wire should not matter.  In fact, you may not
-even need to make contact between the metal of the coaxial
-connector and the wire conductor for a very strong signal --
-although ideally you would make this contact.
+If I reboot the machine I can no longer cause this oops. Running
+"memtest all" causes gxine to get OOM killed, mlock succeeds
+and memtest starts testing memory.
 
-The idea behind this is that Antti has suggested that your
-tuner may not work well with strong signals, so we are
-wanting to get a somewhat weaker signal.  It could be,
-though, that you will not get enough of a signal.  This
-all will depend on the distance you are from the transmitter
-site, the power it sends, and what sort of terrain exists
-between you and the sender.
+However, the oops is not related to how long the computer has been on.
+I can turn the computer on, use it for hours, reboot
+as much as I like, but right after the first time I use a dvb
+application I can cause the oops. Reboot the machine after that and I
+can no longer cause the oops, no matter how much I run dvb
+applications or any other applications.
 
-One thing has popped into my mind -- there are different
-standards for coaxial connectors used in different parts
-of the world for the same function, so I may have a totally
-different idea of what you have...
+I also got the same oops with simply:
+1) czap -c channels.conf OneOfMyChannels
+2) after czap has lock, let it run for about 5-10 seconds and abort with ctrl-c
+3) run "memtest all"
 
-Anyway, you are connected to your wall by a cable that
-connects to your device.  Perhaps that cable is connected
-to some sort of push-on or screw-on connector, or maybe
-it is firmly attached to the wall without a connector.
+I tested kernels 2.6.24.3 and 2.6.27.7 (x86 32-bit). I get no oopses
+with the Debian etchnhalf amd64 kernel 2.6.24.
 
-The part of the connector of interest will be the centre
-conductor.  Through europe, this exists on TV-type tuners
-as an outer ring, somewhat over 1cm diametre, and a smaller
-ring inside with a couple millimetre diametre.  I can actually
-take a length of bell wire or thin electrical wire, fold about
-1cm of it over on itself, and stick this into that centre
-conductor to make a simple antenna that receives strong
-signals.
+So, is this a kernel bug? Perhaps dvb-c hardware doesn't get properly
+initialized when it's cold, when its state is random or whatever.
+Or a hardware bug?
 
-If you have a screw-on type of F connector, that was common
-for cable TV in america when I was there, but in europe is
-found primarily on satellite equipment, then the part that
-connects to the wall will have a centre conductor which
-extends somewhat, if you are lucky.  This can be a bit
-tricky, but a clip lead, with small alligator clip can be
-of help, particularly if the F connector cannot be readily
-screwed off.
+Here's the lspci info of the card:
 
-Now, for the other type of F connector -- the female type,
-one can simply stick in the end of some bell wire, after
-removing a cm of insulation.
-
-The problem is that I personally can't imagine myself
-doing this without sight, because it's too easy to cause
-a short-circuit between the outer and inner conductors,
-which means your reception will drop to zero, and I rely
-on visual feedback to see this.  So if you have some
-technically-minded friend who can help you with this, it
-may be easiest.
-
-(There are no dangerous voltages to be found on these sort
-of antenna connectors.  In strong signal areas, I can get
-a good signal simply with my finger on the inner conductor,
-possibly moistened for better conductivity.  This is not to
-say that your equipment will be at earth potential, as all
-this depends on the presence of and quality of your earth
-ground, and in fact whether all your devices make use of it,
-as I'm often zapped lightly when connecting USB devices to
-an earthed computer, due to the lack of earthing on said
-devices.  At worst, your tuner may deliver 5v to power an
-active antenna, but nothing to throw you across the room.)
-
-Actually, 5cm wire for the UHF frequency in use might be a bit
-short, so you may be better with 20 to 100cm overall.
+05:06.0 Multimedia controller [0480]: Philips Semiconductors SAA7146
+[1131:7146] (rev 01)
+        Subsystem: TERRATEC Electronic GmbH Unknown device [153b:1176]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B-
+        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+>TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 64 (3750ns min, 9500ns max)
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at fbfffc00 (32-bit, non-prefetchable) [size=512]
 
 
-Another thing to keep in mind, though it won't be as important
-as it is with a rooftop-mounted antenna, is the polarisation
-of the radio signals from the transmitter; the scanfiles I
-see here don't give any hints to that for your area, and my
-internet connection presently is too poor for me to look
-online.
-
-
-Anyway, good luck; it could be that with this you are
-unable to receive any signal whatsoever, in which case all
-the time I spent writing this will have been for nought,
-and, unless some other brilliant idea reveals itself, you
-will be forced to go the path of obtaining a different
-tuner and hoping that one works out-of-the-box...
-
-barry bouwsma
+ - kpalberg
