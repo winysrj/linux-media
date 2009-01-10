@@ -1,72 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:46658 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756051AbZAQMgo (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.29]:37162 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853AbZAJQLc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 07:36:44 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so94580ugf.37
-        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2009 04:36:43 -0800 (PST)
-Date: Sat, 17 Jan 2009 13:36:36 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [linux-dvb] RFC - Flexcop Streaming watchdog (VDSB)
-In-Reply-To: <alpine.DEB.2.00.0901171116420.18169@ybpnyubfg.ybpnyqbznva>
-Message-ID: <alpine.DEB.2.00.0901171305400.18169@ybpnyubfg.ybpnyqbznva>
-References: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de> <4970D464.5070509@gmx.de> <alpine.DEB.2.00.0901170035190.18012@ybpnyubfg.ybpnyqbznva> <alpine.LRH.1.10.0901170923030.5725@pub4.ifh.de> <alpine.DEB.2.00.0901171116420.18169@ybpnyubfg.ybpnyqbznva>
+	Sat, 10 Jan 2009 11:11:32 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so3178093ywe.1
+        for <linux-media@vger.kernel.org>; Sat, 10 Jan 2009 08:11:31 -0800 (PST)
+Message-ID: <19a3b7a80901100811k7e67981fo897cbab7064f13e0@mail.gmail.com>
+Date: Sat, 10 Jan 2009 17:11:30 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: scan file for at-KarrerNet (dvb-c)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+	boundary="----=_Part_77530_18155391.1231603891051"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Following up to myself is a sign of a sick mind.
+------=_Part_77530_18155391.1231603891051
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Sat, 17 Jan 2009, BOUWSMA Barry wrote:
+>From a kaffeine user ...
 
-> > shell 1: $ tzap channel
-> > shell 2: $ dvbtraffic
-> > [lots of output that streaming is working]
-> > shell 1: $ <C-c>
-> > shell 1: $ tzap "channel2_which is on a different frequency"
-> > shell 2: no output of dvbtraffic any longer... (problem)
+Christoph
 
-> I'll see if I can reproduce this on my production machine once
-> it's idle, or if my hacks might be involved, and report back
-> about this...
+------=_Part_77530_18155391.1231603891051
+Content-Type: application/octet-stream; name=at-KarrerNet
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fpsh30c60
+Content-Disposition: attachment; filename=at-KarrerNet
 
-Here's what I see. It may not be meaningful.  This machine
-uses utilities from 2005 or so, sometimes hacked but still
-based on source from 2005.
-
-Anyway, with the SkyStar2:
-szap a-channel-which-locks
-dvbtraffic-card0 ==> output, whee
-^C szap; dvbtraffic continues for a few seconds (timeout)
-szap the-same-channel or a-different-frequency
-no dvbtraffic output yet
-^C szap; immediately dvbtraffic outputs again for a few secs
-
-With a DVB-T tuner:
-tzap a-channel-which-locks
-dvbtraffic-card1 ==> output, yay
-^C tzap; dvbtraffic continues a few seconds
-tzap again
-no dvbtraffic output yet
-^C tzap
-still no dvbtraffic output...
-
-But no errors are thrown up, nor does anything appear logged
-to the console.
-
-However, [ts]zap are system binaries from 2004; dvbtraffic
-is hacked, though I'm not sure how heavily, so I don't know
-if what I see is meaningful.
-
-Invoking `dvbtraffic' first, then `dvbstream' also produces
-some results for a fraction of a second, then no `dvbtraffic'
-output.
-
-
-So, at this point, I don't know what to say...
-
-barry bouwsma
+IyBLYWJlbCBTdC4gRmxvcmlhbiBiZWkgTGluei9BVCBLYXJyZXJOZXQKIyAyMDA5LTAxLTEwCiMg
+ZnJlcSBzciBmZWMgbW9kCkMgNDE4MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU02NApDIDQyNjAwMDAw
+MCA2OTAwMDAwIE5PTkUgUUFNNjQKQyA0MzQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTY0CkMgNDQy
+MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU02NApDIDQ1MDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNNjQK
+QyA0NTgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTY0CkMgNDY2MDAwMDAwIDY5MDAwMDAgTk9ORSBR
+QU02NApDIDQ3NDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNNjQKQyA0ODIwMDAwMDAgNjkwMDAwMCBO
+T05FIFFBTTY0CkMgNTIyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU02NApDIDUzMDAwMDAwMCA2OTAw
+MDAwIE5PTkUgUUFNNjQKQyA1MzgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTY0CkMgNTc4MDAwMDAw
+IDY5MDAwMDAgTk9ORSBRQU02NApDIDQwMjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNDEw
+MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYK
+------=_Part_77530_18155391.1231603891051--
