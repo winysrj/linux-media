@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
-	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lamikr@pilppa.org>) id 1LKDNt-00083H-3u
-	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 15:58:23 +0100
-Date: Tue, 6 Jan 2009 16:58:16 +0200 (EET)
-From: Mika Laitio <lamikr@pilppa.org>
-To: Goga777 <goga777@bk.ru>
-In-Reply-To: <20090105002404.3f385576@bk.ru>
-Message-ID: <Pine.LNX.4.64.0901061653470.7224@shogun.pilppa.org>
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
-	<Pine.LNX.4.64.0901041435090.1668@shogun.pilppa.org>
-	<op.um8hljd6rj95b0@localhost>
-	<20090104175638.2a92018b@bk.ru> <op.um82p6r7rj95b0@localhost>
-	<20090105002404.3f385576@bk.ru>
-MIME-Version: 1.0
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rudy@grumpydevil.homelinux.org>) id 1LLcc9-0006nR-9w
+	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 13:06:56 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
+References: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
+Date: Sat, 10 Jan 2009 13:06:37 +0100
+Message-Id: <1231589197.23623.618.camel@poledra.romunt.nl>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+Subject: Re: [linux-dvb] Mantis users
+Reply-To: Rudy@grumpydevil.homelinux.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,29 +26,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> of course you should install 2 patches for vdr 170
->
-> http://www.linuxtv.org/pipermail/vdr/attachments/20080413/1054bcfb/attachment-0001.bin
-> vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff.bz2
->
-> http://www.linuxtv.org/pipermail/vdr/attachments/20081007/edcd3fcc/attachment-0001.obj
-> vdr-1.7.0-s2api-07102008-h264-clean.patch.gz
+Op zaterdag 10-01-2009 om 01:00 uur [tijdzone +0400], schreef Manu
+Abraham:
+> Hi,
+> 
+> Can you all please provide me the following information for the
+> Mantis / Hopper bridge 
+> based cards that you have in the following manner ?
+> 
+> 1) Card Name (As advertised on the cardboard box):
 
-Ok tested now with S2API drivers from liplianis repository with
-vdr-1.7.0 and those 2 patches applied. Result is that the scanning fails 
-just in a similar way than what it happens with vdr-1.7.2 either with 
-dv4-v4l or with liplianis version of S2API drivers.
+I've lost the cardboard box long ago
 
-If I had first tuned for example to arte with vdr-1.6.0 or szap and then 
-closed vdr-1.6.0/szap, I can watch arte with vdr-1.7.0 or with vdr-1.7.2
+on the PCB is says VP-20330 Ver:1.4. This is a DVB-C card
+Label on the tuner tin has Twinhan
 
-But switching to some other dvb-t or dvb-s channels will fail.
+> 
+> 2) lspci -vvn:
 
-(hvr-1300 + hvr-4000)
+05:09.0 0480: 1822:4e35 (rev 01)
+        Subsystem: 1822:0008
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR+ FastB2B-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 64 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 11
+        Region 0: Memory at f8fff000 (32-bit, prefetchable) [size=4K]
 
-Mika
+> 
+> 3) Chips on the card if you know them (only the basic chip description
+> is required, 
+> not the complete batch no. etc)
+> 
+
+Mantis K61468. 1A-1
+
+> 
+> Regards,
+> Manu
+> 
+Cheers,
+
+Rudy
+> 
+
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
