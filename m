@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta03.westchester.pa.mail.comcast.net ([76.96.62.32]:37471
-	"EHLO QMTA03.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756060AbZAYQwO (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:1311 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578AbZAJJmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 11:52:14 -0500
-Date: Sun, 25 Jan 2009 11:52:07 -0500
-From: Jeff DeFouw <jeffd@i2k.com>
-To: linux-media@vger.kernel.org, killero_24@yahoo.com
-Subject: Re: [linux-dvb] HVR-1800 Support
-Message-ID: <20090125165207.GA30450@blorp.plorb.com>
-References: <463244.61379.qm@web45416.mail.sp1.yahoo.com> <20090124203726.GA9808@blorp.plorb.com> <37219a840901250726q7f385702uf33c07ac5b09647d@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <37219a840901250726q7f385702uf33c07ac5b09647d@mail.gmail.com>
+	Sat, 10 Jan 2009 04:42:54 -0500
+Date: Sat, 10 Jan 2009 10:42:26 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: zr36067 no longer loads automatically (regression)
+Message-ID: <20090110104226.7289e69a@hyperion.delvare>
+In-Reply-To: <Pine.LNX.4.58.0901091215100.1626@shell2.speakeasy.net>
+References: <20090108143315.2b564dfe@hyperion.delvare>
+	<20090108175627.0ebd9f36@pedra.chehab.org>
+	<Pine.LNX.4.58.0901081319340.1626@shell2.speakeasy.net>
+	<20090108193923.580fcd5b@pedra.chehab.org>
+	<Pine.LNX.4.58.0901082156270.1626@shell2.speakeasy.net>
+	<20090109092018.59a6d9eb@pedra.chehab.org>
+	<20090109124357.549acef6@hyperion.delvare>
+	<Pine.LNX.4.58.0901091112590.1626@shell2.speakeasy.net>
+	<Pine.LNX.4.58.0901091215100.1626@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 25, 2009 at 10:26:51AM -0500, Michael Krufky wrote:
-> On Sat, Jan 24, 2009 at 3:37 PM, Jeff DeFouw <jeffd@i2k.com> wrote:
-> > On Tue, Jan 20, 2009 at 10:08:51PM -0800, Killero SS wrote:
-> >> i'm using ubuntu 8.10 2.6.27-9-generic
-> >> and tried compiling latest modules with hg-clone but my analog capture got broken, firmware error...
-> >> so i got back to original kernel modules
-> >> however, some people claim they get audio with analog on /dev/video1
-> >> this has never be my case, im using svideo signal so wondering if that may be it.
-> >> i get analog video on video0 and video1, but some colors look pretty weird, red for example.
+Hi Trent,
+
+On Fri, 9 Jan 2009 12:20:54 -0800 (PST), Trent Piepho wrote:
+> On Fri, 9 Jan 2009, Trent Piepho wrote:
+> > Here is a new version against latest v4l-dvb sources.  Jean, are you trying
+> > to apply against the kernel tree?  These patches are against the v4l-dvb Hg
+> > repository which isn't quite the same as what's in the kernel.
 > >
-> > The driver in the kernel and hg does not set up the registers properly
-> > for the video or audio in S-Video mode.  I made some changes to get mine
-> > working.  I can probably make a patch for you if you can get your source
-> > build working.
+> > I have some more patches at http://linuxtv.org/hg/~tap/zoran
 > 
-> Why not sign it off and send it in to the list, to be merged into the
-> official sources?
+> Forgot the patch
+
+Patch tested successfully. Nice cleanup! I wanted to do it for quite
+some time but could never find the time.
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+With just one suggestion:
+
+> (...)
+> +static int __init zoran_init(void)
+>  {
+>  	int i;
 > 
-> Surely if there is a bug or missing feature that you've fixed, it
-> should be merged into the repository so that everybody else can
-> benefit from it.
+> (...)
+> +	i = pci_register_driver(&zoran_driver);
+> +	if (i) {
+> +		dprintk(1,
+> +			KERN_ERR
+> +			"%s: Unable to register ZR36057 driver\n",
+> +			ZORAN_NAME);
+> +		return i;
 
-Right now it's kind of a dirty hack just for my card.  I'm stepping on 
-code shared with other cx23885/cx25840 cards and potentially breaking 
-them without any way to check.  It needs a few more changes anyway, but 
-the breaking would still be a problem.  I can either hope for the best, 
-or add extra variables and conditions just for this card and make a 
-little mess.
+"i" could be renamed to "err" for clarity.
 
+>  	}
+> 
+>  	return 0;
+>  }
+
+Thanks,
 -- 
-Jeff DeFouw <jeffd@i2k.com>
+Jean Delvare
