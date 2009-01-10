@@ -1,35 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:11655 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbZALAxo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 19:53:44 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so3339058ywe.1
-        for <linux-media@vger.kernel.org>; Sun, 11 Jan 2009 16:53:43 -0800 (PST)
-Message-ID: <496A9485.7060808@gmail.com>
-Date: Sun, 11 Jan 2009 19:53:25 -0500
-From: Josh Borke <joshborke@gmail.com>
+Received: from mail0.scram.de ([78.47.204.202]:42854 "EHLO mail.scram.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753121AbZAJKRZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Jan 2009 05:17:25 -0500
+Message-ID: <496875BF.7060605@scram.de>
+Date: Sat, 10 Jan 2009 11:17:35 +0100
+From: Jochen Friedrich <jochen@scram.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: KWorld ATSC 115 all static
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Antti Palosaari <crope@iki.fi>
+CC: Roberto Ragusa <mail@robertoragusa.it>, linux-dvb@linuxtv.org,
+	linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] MC44S803 frontend (it works)
+References: <200901091615.21641.lacsilva@gmail.com>	<4967783B.2060007@robertoragusa.it> <49678BD3.7070105@scram.de> <496795F5.6080309@iki.fi>
+In-Reply-To: <496795F5.6080309@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After upgrading to Fedora 10 I am no longer able to tune analog or dvb 
-channels using my KWorld ATSC 115. When I try to view a channel with 
-tvtime all I can see is static and when I try to scandvb I keep getting 
-tuning failed even though I know that there are channels being broadcast 
-on the channels scanned. I have tried to find tips on the wiki of how to 
-resolve my static problem but I could not find any. I'm not sure where 
-to look for clues as to why it isn't working.
+Hi Antti,
 
-I have a 1-to-4 splitter with 2 outputs going to the inputs of the 
-KWorld ATSC and another going to a TV so I know there is signal on the 
-cable.
+> Could you explain for changes af9015_i2c_xfer() done? Is it for case I2C 
+> READ coming from MC44S803 but tuner does not implement read at all? Is 
+> it really needed?
 
-Any help would be really appreciated.
+Yes. Currently, MC44S803 uses a READ in mc44s80x_get_devid() to check the ID register.
+According to the spec from freescale, a READ needs to be a seperate I2c transaction,
+because the STOP bit is used to latch the address registers. That's the reason why a
+dedicated READ support is needed (most other tuners use a WRITE / READ combined I2c
+transaction instead).
+
+> Maybe I can move MC44S803 and needed AF9015 changes to my devel tree at 
+> linuxtv.org... But that does not change problem that tuner is not still 
+> in v4l-dvb-master nor coming for Kernel before Manu will pull it.
+
+Unfortunately, i didn't see any comments from Manu yet...
 
 Thanks,
--josh
+Jochen
