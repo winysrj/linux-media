@@ -1,27 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:50748 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752213AbZAaVQJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jan 2009 16:16:09 -0500
-Received: from hrndva-web09-z01 ([10.128.132.100])
-          by hrndva-smta02.mail.rr.com with ESMTP
-          id <20090131211606.MGFB9192.hrndva-smta02.mail.rr.com@hrndva-web09-z01>
-          for <linux-media@vger.kernel.org>;
-          Sat, 31 Jan 2009 21:16:06 +0000
-Message-ID: <20090131211606.85FN5.74290.root@hrndva-web09-z01>
-Date: Sat, 31 Jan 2009 16:16:06 -0500
-From: <christopherwanderson@columbus.rr.com>
-To: linux-media@vger.kernel.org
-Subject: 
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Received: from mail1.radix.net ([207.192.128.31]:56939 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754089AbZAKNpS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Jan 2009 08:45:18 -0500
+Subject: Early insights from conversion of cx18 to new v4l2_device framework
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
+In-Reply-To: <1231650228.10110.67.camel@palomino.walls.org>
+References: <1231650228.10110.67.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Sun, 11 Jan 2009 08:46:29 -0500
+Message-Id: <1231681589.3112.37.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Can I get as much disassembly of the PAC7302 drivers with your comments next to it? I am trying to improve my webcam and currently disassembling the driver, in Vista64 with IDA Pro. (I still have the 32 bit driver files as I upgraded from xp32)
-I am helping on the gAIM/Pidgin voice/video chat and this driver isn't where I  would like it to be. I need better color balance, even after changing alot of options I still turn out orange quite a bit.
-I have Assembly expierence, I own the Intel Instruction Manuals, so figuring out the actual given driver with a little bit of help based on the current progress should not be difficult
-Christopher W. Anderson 
+
  
+> > > I'm very interested in how easy it is for you to convert cx18 to 
+> > > v4l2_subdev. Please let me know anything that is unclear or that can be 
+> > > improved in the documentation or code!
+
+Hans,
+
+Converting cx18 to use a v4l2_device object was easy enough.  There's
+not a lot to do, because on it's own it doesn't do to much.  At this
+early stage, without the v4l2_subdev work done, it's simply one more
+piece of kernel rigamarole with which to deal, along with struct
+pci_dev, struct device, struct video_dev.
+
+As I begin the conversion process to v4l2_subdev, I realize it's not the
+straightforward hack for which I was hoping.  A clear first step in the
+porting process needs to be to answer design questions:
+
+1. What are the v4l2_subdev's for this family of capture devices?  (This
+is actually harder to answer than I thought.)
+
+2. Do I need to write any bridge specific v42l_subdev's?
+
+3. What functions do all the needed v4l2_subdev's perform?
+
+4. What functions will I need from all the functions a chip/v4l2_subdev
+provides?
+
+5. How will I manage the subdevs to get at just the particular subdev
+functions I need for any given task?
+
+6. Do I try to deal with the DTV subdevices on my hybrid cards now, or
+wait until later?
+
+These are all up front design questions that I would have done on a
+professional project with a full up front design.  What I found with
+trying to iteratively hack was that decisions come up at many junctures
+with porting this framework to cx18.  I suspect the framework will be
+great for maintenance activities once in place, but initial porting of
+existing drivers probably requires an above average level of discipline.
+
+I will elaborate on how I encountered the design questions above, later
+today (I've got to head to out soon).  I'll also propose what I think is
+some guidance to answer question 1 at least. (For highly integrated
+devices with loose internal couplings in places, like CX23418, it's not
+as simple as a "chip" or "something connected to I2C, GPIO or other bus
+lines".)
+
+Regards,
+Andy
+
