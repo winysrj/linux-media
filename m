@@ -1,101 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:51096 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753518AbZAUAjG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 19:39:06 -0500
-Subject: Re: haupauge remote keycode for av7110_loadkeys
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	matthieu castet <castet.matthieu@free.fr>,
-	linux-media@vger.kernel.org
-In-Reply-To: <412bdbff0901201520g685ea242x3eb732e800e8186e@mail.gmail.com>
-References: <4974E428.7020702@free.fr>
-	 <20090119185326.29da37da@caramujo.chehab.org> <4976295E.2070509@free.fr>
-	 <412bdbff0901201150w2a8a66b4r50670eccc3d8340a@mail.gmail.com>
-	 <20090120201830.2945fba5@caramujo.chehab.org>
-	 <412bdbff0901201436i363cd9d8r7d6cd4f37150e6c2@mail.gmail.com>
-	 <20090120210141.3e8962e4@caramujo.chehab.org>
-	 <412bdbff0901201520g685ea242x3eb732e800e8186e@mail.gmail.com>
+Received: from mail1.radix.net ([207.192.128.31]:39564 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750918AbZAKDDo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Jan 2009 22:03:44 -0500
+Subject: Re: saa7134: race between device initialization and first interrupt
+From: Andy Walls <awalls@radix.net>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Marcin Slusarz <marcin.slusarz@gmail.com>,
+	v4l-list <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <1231641126.2613.10.camel@pc10.localdom.local>
+References: <20090104215738.GA9285@joi>
+	 <20090108005039.6eeeb470@pedra.chehab.org>
+	 <1231555687.3122.59.camel@palomino.walls.org> <20090110120213.GA5737@joi>
+	 <1231591056.3111.7.camel@palomino.walls.org>
+	 <1231641126.2613.10.camel@pc10.localdom.local>
 Content-Type: text/plain
-Date: Wed, 21 Jan 2009 01:39:15 +0100
-Message-Id: <1232498355.6225.9.camel@pc10.localdom.local>
+Date: Sat, 10 Jan 2009 22:05:19 -0500
+Message-Id: <1231643119.10110.41.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sun, 2009-01-11 at 03:32 +0100, hermann pitton wrote:
+> Hi,
+> 
+> Am Samstag, den 10.01.2009, 07:37 -0500 schrieb Andy Walls:
+> > On Sat, 2009-01-10 at 13:02 +0100, Marcin Slusarz wrote:
+> > > On Fri, Jan 09, 2009 at 09:48:07PM -0500, Andy Walls wrote:
+> > > > On Thu, 2009-01-08 at 00:50 -0200, Mauro Carvalho Chehab wrote:
+> > > > > On Sun, 4 Jan 2009 22:57:42 +0100
+> > > > > Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
+> > > > > 
+> > > > > > Hi
+> > > > > > There's a race between saa7134 device initialization and first interrupt
+> > > > > > handler, which manifests as an oops [1].
+> > > > > > 
+> > > > > > saa7134_initdev -> request_irq -> saa7134_irq ->
+> > > > > > saa7134_irq_video_signalchange -> saa7134_tvaudio_setmute -> mute_input_7133
+> > > > > > 
+> > > > > > In mute_input_7133 dev->input == NULL and accessing dev->input->amux will oops,
+> > > > > > because dev->input would be initialized later:
+> > > > > > 
+> > > > > > saa7134_initdev -> saa7134_hwinit2 -> saa7134_video_init2 -> video_mux ->
+> > > > > > saa7134_tvaudio_setinput
+> > > > > > 
+> > > > > > I'm not sure how it should be fixed correctly, but one of attached patches
+> > > > > > should fix the symptom.
+> > > > > > 
+> > > > > > Marcin
+> >  
+> > > > Marcin,
+> > > > 
+> > > > What devices share the interrupt with the SAA7133?
+> > > > 
+> > > > $ cat /proc/interrupts
+> > > > 
+> > > > And could on of those those devices possibly generate an interrupt while
+> > > > the saa7134 driver is being modporbe'd?
+> > > 
+> > > I don't have this hardware so I can't tell. I've picked random oops from
+> > > kerneloops.org and tried to fix it.
+> > 
+> > Ah.  Good man.
+> > 
+> > 
+> > > > 
+> > > > Mauro & Marcin,
+> > > > 
+> > > > This looks like to me what is going on:
+> > > > 
+> > > > saa7134_hwinit1() does properly turn off IRQs for which it wants
+> > > > reports:
+> > > > 
+> > > > 	saa_writel(SAA7134_IRQ1, 0);
+> > > >         saa_writel(SAA7134_IRQ2, 0);
+> > > > 
+> > > > but not clearing the state of SAA7134_IRQ_REPORT, maybe something like
+> > > > this (I don't have a SAA7134 datasheet):
+> > > > 
+> > > > 	saa_writel(SAA7134_IRQ_REPORT, 0xffffffff);
+> > > > 
+> > > > So when saa7134_initdev() calls request_irq(..., saa7134_irq,
+> > > > IRQF_SHARED | IRQF_DISABLED, ...), it gets an IRQ that is shared with
+> > > > another device.
+> > > > 
+> > > > Before saa7134_hwinit2() is called by saa7134_initdev() to set
+> > > > "dev->input", some other device fires an interrupt and saa7134_irq() is
+> > > > called that then operates on the unknown state of the SAA7134_IRQ_REPORT
+> > > > register that was never cleared.
+> > > 
+> > > Sounds good. But I think this register should be set to 0, because in 
+> > > saa7134_irq, we do:
+> > > 
+> > > report = saa_readl(SAA7134_IRQ_REPORT);
+> > > (...)
+> > > if ((report & SAA7134_IRQ_REPORT_RDCAP) || (report & SAA7134_IRQ_REPORT_INTL))
+> > > 	saa7134_irq_video_signalchange(dev);
+> > > 
+> > > But I'm not v4l expert, so...
+> > 
+> > With most chip interrupt status registers, you write the flags you want
+> > to clear.
+> > 
+> > That way you can always do something like:
+> > 
+> > 	a = read(ISR_REG);
+> > 	write(ISR_REG,a);
+> > 
+> > to clear the Interrupt status register.
+> > 
+> > Note what saa7134_irq() does:
+> > 
+> >                 report = saa_readl(SAA7134_IRQ_REPORT);
+> > 		[...]
+> >                 saa_writel(SAA7134_IRQ_REPORT,report);
+> > 		[...]
+> >                 if ((report & SAA7134_IRQ_REPORT_RDCAP) ||
+> >                         (report & SAA7134_IRQ_REPORT_INTL))
+> >                                 saa7134_irq_video_signalchange(dev);
+> > 
+> > 
+> > So I'm thinking writing 0 to the register won't have the desired effect.
+> > 
+> > Again, thanks for taking the initiative.
+> > 
+> > Regards,
+> > Andy
+> > 
+> > > > Marcin has mapped out the oops from there.
+> > > > 
+> > > > So the solution, I'm guessing, is likely to clear the SAA7134_IRQ_REPORT
+> > > > register in saa7134_hwinit1().
+> > > > 
+> > > > If only I had a datasheet, hardware, spare time... ;)
+> > > > 
+> 
+> Hartmut has the register programming instructions under NDA and some
+> others obviously too.
+> 
+> Must have been very lucky all that time ...
 
-Am Dienstag, den 20.01.2009, 18:20 -0500 schrieb Devin Heitmueller:
-> On Tue, Jan 20, 2009 at 6:01 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> >> * It doesn't work with all drivers (like the dib0700)
-> >
-> > Unfortunately, dib0700 doesn't properly implement the input interface.
-> 
-> This is something I wanted to rework but had not gotten around to it yet.
-> 
-> >> * The interactions with lircd is inconsistent across drivers.
-> >
-> > I've stopped using LIRC a long time ago. It used to be hard to configure, and
-> > to produce huge dumps of errors, if the device got disconnected by removing the
-> > module or the usb stick. Not sure what changed on lirc since then.
-> 
-> You may not be using lircd, but I am quite confident that others do,
-> based on the traffic on the ML.  In fact, some use lircd to work
-> around their devices not working with dib0700, so any change to make
-> dib0700 more consistent with some of the other devices will likely
-> result in breakage for those users.
-> 
-> > I agree that the IR tables need some adjustments to make they more consistent.
-> > For example, IMO, it is a really bad idea to map any IR key into KEY_POWER,
-> > since, if you press it wanting to stop your video app, it will, instead, power
-> > down the machine. KEY_POWER2 is better, since it can be handled only at the
-> > video apps.
-> 
-> Does this approach handle things like keymaps that are not for RC5
-> based remote controls?  Also, how does this approach allow for telling
-> the IR receiver what format to capture in (NEC/RC5/RC6)?
-> 
-> Admittedly I don't know the answers to these questions myself, which
-> is why both the dib0700 and em28xx drivers only support RC5, even
-> though both chips support other formats (the dib0700 supports RC5/RC6
-> and the em28xx supports NEC/RC5/RC6).  If we had a consistent scheme
-> for specifying what format a keymap is in, I could make sure the chip
-> is in the correct mode (I have all the relevant information for both
-> chips).
-> 
-> The real question lies in where to draw the line between what should
-> be done in userland versus what should be done in the kernel?  At one
-> end of the spectrum, you could argue that the kernel should really be
-> representing the devices as RC5/RC6 receivers, and all the translation
-> to keycodes should be done in userland by something such as lircd, and
-> on the other end of the spectrum is that everything should be in
-> kernel and there should never be a need for lircd and there should
-> just be an API for loading any lirc keymap into the kernel.
-> 
-> The whole topic is a *huge* source of confusion for most people,
-> including the developers, given that the approach varies by device and
-> the variety of ways people workaround the condition of "my remote
-> doesn't work", some of which involve the use of lircd.
-> 
+If it makes the scenario seem more plausible, Marcin pointed out a
+website where this Oops has been reported 22 times:
 
-that is right.
-
-But some must at least hack a remote at all.
-
-I had hard times to realize that there are remotes without dedicated
-remote chips/controllers only triggering an IRQ, which just was only
-quite recently in a state for that driver to have a chance to implement
-it specifically.
-
-Without it lircd doesn't exist either in such cases.
-
-Cheers,
-Hermann
+http://kerneloops.org/guilty.php?guilty=mute_input_7133&version=2.6.27-release&start=1802240&end=1835007&class=oops
 
 
- 
+My suggested fix is this:
+
+http://linuxtv.org/hg/~awalls/cx88/rev/a28c39659c25
+
+which should do no harm, even if it doesn't fix the Oops.
+
+Regards,
+Andy
+
+
+> Cheers,
+> Hermann
 
