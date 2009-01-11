@@ -1,79 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:42836 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755699AbZA0S7G (ORCPT
+Received: from cinke.fazekas.hu ([195.199.244.225]:59986 "EHLO
+	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804AbZAKPWX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 13:59:06 -0500
-Date: Tue, 27 Jan 2009 10:59:04 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: "Shah, Hardik" <hardik.shah@ti.com>
-cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] New V4L2 ioctls for OMAP class of Devices
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ED08@dbde02.ent.ti.com>
-Message-ID: <Pine.LNX.4.58.0901271031160.17971@shell2.speakeasy.net>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ED08@dbde02.ent.ti.com>
+	Sun, 11 Jan 2009 10:22:23 -0500
+Date: Sun, 11 Jan 2009 16:22:15 +0100 (CET)
+From: Marton Balint <cus@fazekas.hu>
+To: Trent Piepho <xyzzy@speakeasy.org>
+cc: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH] cx88: fix unexpected video resize when setting tv norm
+In-Reply-To: <Pine.LNX.4.58.0901101325420.1626@shell2.speakeasy.net>
+Message-ID: <Pine.LNX.4.64.0901111543070.13850@cinke.fazekas.hu>
+References: <571b3176dc82a7206ade.1231614963@roadrunner.athome>
+ <Pine.LNX.4.58.0901101325420.1626@shell2.speakeasy.net>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 27 Jan 2009, Shah, Hardik wrote:
-> > 90 and 270 degrees would modify the image size. How would that be handled in
-> > relationship with VIDIOC_S/G_FMT ?
-> [Shah, Hardik] Hi Laurent,
-> After setting the rotation degree user has to once again call the S_FMT
-> with the height and width to allow S_FMT to take care of reversing the
-> height and width of the panel and depending on that your crop window and
-> display window will be set if the rotation is set to 90 or 270.  While the
-> get format will give you same height and width set earlier.  Is this
-> answer to your question?
+On Sat, 10 Jan 2009, Trent Piepho wrote:
+> On Sat, 10 Jan 2009, Marton Balint wrote:
+> > Cx88_set_tvnorm sets the size of the video to fixed 320x240. This is ugly at
+> > least, but also can cause problems, if it happens during an active video
+> > transfer. With this patch, cx88_set_scale will save the last requested video
+> > size, and cx88_set_tvnorm will scale the video to this size.
+> >
+> > diff -r 985ecd81d993 -r 571b3176dc82 linux/drivers/media/video/cx88/cx88.h
+> > @@ -352,6 +352,9 @@
+> >  	u32                        input;
+> >  	u32                        astat;
+> >  	u32			   use_nicam;
+> > +	unsigned int		   last_width;
+> > +	unsigned int		   last_height;
+> > +	enum v4l2_field		   last_field;
+> 
+> Instead of adding these extra fields to the core, maybe it would be better
+> to just add w/h/field as arguments to set_tvnorm?  I have a patch to do
+> this, but there are still problems.
 
-That seems like a bad idea.  Consider the case the hardware does scaling
-and rotation as separate steps.
+I think you're right, it's probably better that way.
 
-The hardware receives a Rec. 601 standard 720x480 image to it's
-scaling/rotation engine.
+> Changing norms during capture has more problems.  I'm not sure if v4l2 even
+> allows it.  Even if allowed, I don't think the cx88 driver should try to
+> support it.
 
-You have a selected a 640x480 image rotated 0 degrees.  This is ok.
+What the other drivers do?
 
-You change the rotation to 90.
+> So I think the best thing would be to have S_STD return -EBUSY if there is
+> an ongoing capture.  Maybe even have v4l2-dev take care of that if
+> possible.
 
-The hardware must re-program the scaler to produce a 480x640 image so that
-after rotation it will remain 640x480.
+It sounds reasonable. As a special case, changing the norm to the 
+current norm should be allowed, or not? Mplayer will print out error 
+messages, if it's not allowed.
 
-Then you must call S_FMT to request 480x640, which re-programs the scaler
-back to 640x480.
-
-There are two problems here.  First, it's inefficient to reprogram the
-scaler from 640x480 to 480x640 just to change it right back to 640x480
-again.
-
-But there is a much more serious problem.  Virtually all scaling hardware
-has various limitations of what it can do.  For instance, it is very common
-that the hardware can only shrink images, not enlarge them.  In the above
-example, changing the rotation from 0 to 90 will fail, since doing so would
-require scaling the 720x480 input to 480x640.  The hardware can't do that
-as it involves enlarging from 480 lines to 640.
-
-How would one change the rotation?  Use S_FMT to change to 480x640 first,
-then change rotation?  That won't work because 480x640 at 0 degrees isn't
-supported.
-
-The basic problem here is that the limitations on image size for a
-non-rotated image are different from the limitations of a rotated image.
-
-I think the specification should say that changing the rotation is allowed
-(not required, allowed) to change the image size.  Applications should call
-G_FMT after changing rotation to see if driver decided to alter the image
-size for efficiency or because of hardware limitations.  Any given image
-size may be valid in some rotations but not in other rotations.
-
-The *meaning* of width and height, i.e. how they relate to layout of data
-in memory, do not change when the image is rotated.
-
-Since changing the image size during capture is problematic, it should be
-expected that trying to change the rotation during capture might return
-EBUSY.
+Regards,
+  Marton.
