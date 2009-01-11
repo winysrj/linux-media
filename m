@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0DJef6u011982
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 14:40:42 -0500
-Received: from out1.laposte.net (out2.laposte.net [193.251.214.119])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0DJeRlu023344
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 14:40:28 -0500
-Received: from meplus.info (localhost [127.0.0.1])
-	by mwinf8216.laposte.net (SMTP Server) with ESMTP id 331A97000087
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 20:40:27 +0100 (CET)
-Received: from wwinf8216 (lbao93aubmepnpf001-182-pip.meplus.info [10.98.49.10])
-	by mwinf8216.laposte.net (SMTP Server) with ESMTP id 12E0A7000085
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 20:40:27 +0100 (CET)
-From: Olivier Lorin <o.lorin@laposte.net>
-To: video4linux-list@redhat.com
-Message-ID: <17868849.303177.1231875627056.JavaMail.www@wwinf8216>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0BMBECJ006682
+	for <video4linux-list@redhat.com>; Sun, 11 Jan 2009 17:11:14 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0BMAv5G022148
+	for <video4linux-list@redhat.com>; Sun, 11 Jan 2009 17:10:57 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so11294671rvb.51
+	for <video4linux-list@redhat.com>; Sun, 11 Jan 2009 14:10:57 -0800 (PST)
+Message-ID: <b101ebb80901111410i7d2202fewa482263ffc343655@mail.gmail.com>
+Date: Mon, 12 Jan 2009 17:40:57 +1930
+From: "Jose Diaz" <xt4mhz@gmail.com>
+To: "Trent Piepho" <xyzzy@speakeasy.org>
+In-Reply-To: <Pine.LNX.4.58.0901110356290.1626@shell2.speakeasy.net>
 MIME-Version: 1.0
-Date: Tue, 13 Jan 2009 20:40:27 +0100 (CET)
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Subject: Re:RFC: Where to store camera properties (upside down, needs sw
- whitebalance, etc). ?
-Reply-To: Olivier Lorin <o.lorin@laposte.net>
+References: <b101ebb80901081906i5343bf1dl21020c2e89fdfdf0@mail.gmail.com>
+	<Pine.LNX.4.58.0901110356290.1626@shell2.speakeasy.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: Help with Osprey 230 cards - no sound.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,102 +31,108 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!
+Hi Trent.
 
-> We came to the conclusion that having a table in the kernel only for the
-> purpose of userspace being able to query it, is not very efficient, and i=
-n
-> general is not a good idea.
->
-> So for the table of upside down webcam's we came to the following conclus=
-ion:
-> -if the driver can do the rotation itself (in hw) then the table should b=
-e in
-> the driver and it should invert the meaning of its hflip and vflip contro=
-ls,
-> (iow off is flip, on is do not flip) so that usserspace won't notice the =
-cam
-> being upside down in anyway
-> -if the driver can not do the rotation libv4l will do it, and the table o=
-f cams
-> which need this (such as certain uvc models) will be part of libv4l
->
-> So I started thinking about my proposal to add read-only controls (CID's)=
- to
-> drivers which libv4l can query to find out if it would be a good idea to =
-do
-> things like software white balance for a cam.
->
-> On second thought this is a bad idea for all the same reasons, having a t=
-able
-> in the kernel, just so that userspace can query it makes little sense. Be=
-tter
-> to just put the table in userspace.
->
-> So this mail mainly is a retraction of my earlier proposal (instead I wil=
-l
-> completely handle this in libv4l). But there are 2 special cases libv4l w=
-ill
-> still need some userspace <-> kernel API for:
->
-> 1) With some bridges it is common to not have a usbid per bridge / sensor
-> combi, but cams with the same usb-id can have different sensors (the driv=
-er
-> finds out which one by probing the i2c bus between the bridge and sensor)=
-.
-> Since things like whitebalance and autogain are often done in the sensor,
-> in these cases libv4l will need a way to find out the sensor (the bridge =
-it
-> can deduct from the usb-id). So we need a userspace API to query which
-> sensor a bridge is connected too.
->
-> I would like to suggest to use one of the 4 reserved __u32's in the
-> v4l2_capability struct for this. We could then make a very large enum wit=
-h
-> all known sensors and store that there, but instead I would suggest to ma=
-ke
-> this a driver specific field, so v4l2_capability would then look like thi=
-s:
+Right now I have no access where the PC with the Osprey 230 cards are but I
+did some tests with arecord.
 
-I hope that "driver specific field" does not mean that the same bit may hav=
-e
-different meanings depending on the webcam!
+The "arecord -l" command shows:
 
+root@zsrvvids:/proc/asound/card2/pcm1c/sub0# arecord -l
+**** List of CAPTURE Hardware Devices ****
+card 0: CMI8738 [C-Media CMI8738], device 0: CMI8738-MC6 [C-Media PCI
+DAC/ADC]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 0: CMI8738 [C-Media CMI8738], device 2: CMI8738-MC6 [C-Media PCI
+IEC958]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 1: default [USB  AUDIO  ], device 0: USB Audio [USB Audio]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 2: Bt878 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 2: Bt878 [Brooktree Bt878], device 1: Bt87x Analog [Bt87x Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 3: Bt878_1 [Brooktree Bt878], device 0: Bt87x Digital [Bt87x Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 3: Bt878_1 [Brooktree Bt878], device 1: Bt87x Analog [Bt87x Analog]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
 
-> 2) With some cams the upside down ness may actually be stored in an eepro=
-m, or
-> in some cases even determined by a switch (so the cam can be rotated
-> manually by the user and the the switch indicates the position)
+I did:
+
+arecord -D plughw:Bt878,1 -f S16_LE xxx.wav
+
+It created a file about 11MB before I "ctrl+c".
+
+During the creation of the file .wav file checked:
+
+root@zsrvvids:/proc/asound/card2/pcm1c/sub0# cat status
+state: RUNNING
+trigger_time: 1231710873.654398475
+tstamp      : 1231710903.575688298
+delay       : 0
+avail       : 0
+avail_max   : 2046
+-----
+hw_ptr      : 3823974
+appl_ptr    : 3823974
+
+root@zsrvvids:/proc/asound/card2/pcm1c/sub0# cat status
+state: RUNNING
+trigger_time: 1231710873.654398475
+tstamp      : 1231711014.243391671
+delay       : 0
+avail       : 0
+avail_max   : 2046
+-----
+hw_ptr      : 17970018
+appl_ptr    : 17970018
+
+The tstamp variable changed. Does it means that osprey 230 card is capturing
+and recording?
+
+I brought to my PC via scp the xxx.wav file (about 11Mb) and try to play it
+with "play" command. It was a silence as I espected because there is nothing
+connected right now to the RCA input of the Osprey card.
+
+Monday morning I will go to test in place the recordings.
+
+What do you think until now ?
+
+Thanks a lot!
+
+Jose.
+
+2009/1/12 Trent Piepho <xyzzy@speakeasy.org>
+
+> On Fri, 9 Jan 2009, Jose Diaz wrote:
+> > I need help using Osprey 230 cards. I did a huge research but not
+> success.
 >
-> In these cases we need a userspace API to find this out too. Since this i=
-s a
-> per frame thing for some cams (one frame could be upright, the next upsid=
-e
-> down). I would like to suggest to define some V4L2_BUF_FLAG_ 's for this
-> which can be used by drivers to indicate that the picture in the buffer i=
-s
-> vflipped or hflipped (with upside down being both together).
-
-In the case of the Genesys webcams using the gl860 bridge,
-the upside down state is not really relevant per frame as
-there is some instabilities when it is as upside down as right up
-so that it is not usefull to check every image state
-(by the way it's not a switch but a kind gravity sensor).
-The V4L2_BUF_FLAG is a good idea as it matches better the image state purpo=
-se
-than the V4L2_CID, however it is not to be confused with the upside down se=
-nsor
-as in these cases, it is not usefull to check regularly the orientation of =
-the image
-so that V4L2_BUF_FLAG seems not to be as suitable as some v4L2 capability.
-For the read-only properties, to avoid to use the V4L2_CID seems to be quit=
-e logical as
-they may appear in the allowed settings on a webcam viewer GUI although the=
-y
-are not to be changed by the user.
-
- Cr=C3=A9ez votre adresse =C3=A9lectronique prenom.nom@laposte.net=20
- 1 Go d'espace de stockage, anti-spam et anti-virus int=C3=A9gr=C3=A9s.
+> You might try the driver at http://linuxtv.org/hg/~tap/osprey<http://linuxtv.org/hg/%7Etap/osprey>
+>
+> I have not updated it for 15 months so it will probably not work with a
+> 2.6.28 kernel.  Probably better off with something from around 2.6.25.
+>
+> Some Osprey cards support multiple audio sampling rates via an extern ADC
+> and some cards also have a volume control chip.  I know these features are
+> supported for the 440, but I'm not sure what features the 230 has and what
+> is supported on that card.
+>
+> > The problem is that I cant mix the video and the audio from the Osprey
+> 230
+> > card because the audio is not recorded. I can stream the video but not
+> with
+>
+> Try recording the audio with arecord.  Don't worry about vlc until you have
+> that working.
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
