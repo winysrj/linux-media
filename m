@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from mx19.lb01.inode.at ([62.99.145.21] helo=mx.inode.at)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1LKYvQ-0006ag-1Y
-	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 14:58:26 +0100
-Received: from [213.184.224.34] (account liplianin@tut.by HELO
-	dynamic-vpdn-128-5-166.telecom.by)
-	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
-	with ESMTPA id 124580190 for linux-dvb@linuxtv.org;
-	Wed, 07 Jan 2009 15:58:11 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Wed, 7 Jan 2009 15:58:08 +0200
-References: <49634AFE.2080405@borodulin.fi>
-In-Reply-To: <49634AFE.2080405@borodulin.fi>
+	(envelope-from <philipp@kolmann.at>) id 1LM1dJ-0004ml-Gn
+	for linux-dvb@linuxtv.org; Sun, 11 Jan 2009 15:49:47 +0100
+Message-ID: <496A0704.1090003@kolmann.at>
+Date: Sun, 11 Jan 2009 15:49:40 +0100
+From: Philipp Kolmann <philipp@kolmann.at>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200901071558.08220.liplianin@tut.by>
-Subject: Re: [linux-dvb] The status and future of Mantis driver
+To: Manu Abraham <abraham.manu@gmail.com>
+References: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
+In-Reply-To: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Mantis users
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,55 +19,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgNiBKYW51YXJ5IDIwMDkgMTQ6MTM6NTAgUGF1bGkgQm9yb2R1bGluIM7B
-0MnTwcwowSk6Cj4gSGV5YSEKPgo+IEkgZm91bmQgb3V0IHRoYXQgdGhlcmUgaXMgc29tZSBuZXcg
-YWN0aXZpdHkgb24gTWFudSBBYnJhaGFtJ3MgTWFudGlzCj4gZHJpdmVyLCBzbyBJIHRob3VnaHQg
-SSBjb3VsZCB0aHJvdyBpbiBzb21lIHRob3VnaHRzIGFib3V0IGl0Lgo+Cj4gSSBoYXZlIGJlZW4g
-dXNpbmcgTWFudSdzIE1hbnRpcyBkcml2ZXIgKGh0dHA6Ly93d3cuanVzc3QuZGUvaGcvbWFudGlz
-KQo+IGZvciBvdmVyIHR3byB5ZWFycyBub3cuIEkgaGF2ZSBhIFZQLTIwMzMgY2FyZCAoRFZCLUMp
-IGFuZCBhdCBsZWFzdCBmb3IKPiB0aGUgbGFzdCB5ZWFyIHRoZSBkcml2ZXIgaGFzIHdvcmtlZCB3
-aXRob3V0IGFueSBoaWNrdXBzIGluIG15IGRhaWx5Cj4gKFZEUikgdXNlLiBGb3IgYSBsb25nIHRp
-bWUgSSBoYXZlIHRob3VnaHQgdGhhdCB0aGUgZHJpdmVyIHNob3VsZCBhbHJlYWR5Cj4gYmUgbWVy
-Z2VkIHRvIHRoZSB2NGwtZHZiIHRyZWUuCj4KPiBJZ29yIE0uIExpcGxpYW5pbiBoYXMgY3JlYXRl
-ZCBhIG5ldyB0cmVlCj4gKGh0dHA6Ly9tZXJjdXJpYWwuaW50dXhpY2F0aW9uLm9yZy9oZy9zMi1s
-aXBsaWFuaW4pIHdpdGggdGhlIGRlc2NyaXB0aW9uCj4gIkRWQi1TKFMyKSBkcml2ZXJzIGZvciBM
-aW51eCIuIE1hbnRpcyBkcml2ZXIgd2FzIG1lcmdlZCBpbnRvIHRoZSB0cmVlIGluCj4gT2N0b2Jl
-ciBhbmQgc2luY2UgdGhlbiBzb21lIGZpeGVzIGhhcyBhbHNvIGJlZW4gYXBwbGllZCB0byB0aGUg
-ZHJpdmVyLgo+IFNvbWUgb2YgdGhlc2UgZml4ZXMgYWxyZWFkeSBleGlzdCBpbiBNYW51J3MgdHJl
-ZSwgc29tZSBkb24ndC4gQm90aCB0cmVlcwo+IGFyZSBtaXNzaW5nIHRoZSByZW1vdGUgY29udHJv
-bCBzdXBwb3J0IGZvciBWUC0yMDMzIGFuZCBWUC0yMDQwLgo+Cj4gVW50aWwgbWVyZ2luZyBvZiB0
-aGUgZHJpdmVyIGludG8gczItbGlwbGlhbmluLCB0aGVyZSB3YXMgYSBzaW5nbGUgdHJlZQo+IGZv
-ciB0aGUgTWFudGlzIGRyaXZlciBkZXZlbG9wbWVudC4gTm93IHRoYXQgdGhlcmUgYXJlIHR3byB0
-cmVlcywgSSBmZWFyCj4gdGhhdCB0aGUgZGV2ZWxvcG1lbnQgY291bGQgc2NhdHRlciBpZiB0aGVy
-ZSdzIG5vIGNsZWFyIGlkZWEgaG93IHRoZQo+IGRyaXZlciBpcyBnb2luZyB0byBnZXQgaW50byB2
-NGwtZHZiLiBBbHNvLCB0aGUgZHJpdmVyIGlzIG5vdCBvbmx5Cj4gRFZCLVMoUzIpLCBidXQgaXQg
-YWxzbyBjb250YWlucyBzdXBwb3J0IGZvciBWUC0yMDMzIChEVkItQyksIFZQLTIwNDAKPiAoRFZC
-LUMpIGFuZCBWUC0zMDMwIChEVkItVCkuIERWQi1TKFMyKSBzdHVmZiB3aWxsIHByb2JhYmx5IGdy
-ZWF0bHkoPykKPiBkZWxheSBnZXR0aW5nIHRoZSBzdXBwb3J0IGZvciBEVkItQy9UIE1hbnRpcyBj
-YXJkcyBpbnRvIHY0bC1kdmIuCj4KPiBGb3IgbXkgcGVyc29uYWwgdXNlIEkgaGF2ZSBjcmVhdGVk
-IGEgcGF0Y2ggYWdhaW5zdCB0aGUgbGF0ZXN0IHY0bC1kdmIKPiBiYXNlZCBvbiBNYW51J3MgTWFu
-dGlzIHRyZWUgaW5jbHVkaW5nIHRoZSByZW1vdGUgY29udHJvbCBzdXBwb3J0IGZvcgo+IFZQLTIw
-MzMgYW5kIFZQLTIwNDAuIEJ1dCB3aGF0IEkgd291bGQgcmVhbGx5IGxpa2UgdG8gc2VlIGlzIE1h
-bnRpcwo+IGRyaXZlciBtZXJnZWQgaW50byB2NGwtZHZiIGFuZCBsYXRlciBpbnRvIG1haW5zdHJl
-YW0uCj4KPiBJZ29yLCB3aGF0IGFyZSB5b3VyIHRob3VnaHRzIGFib3V0IHRoZSBNYW50aXMgZHJp
-dmVyPyBIb3cgYWJvdXQgdGhlCj4gb3RoZXIgTWFudGlzIHVzZXJzLCBsaWtlIE1hcmtvIFJpc3Rv
-bGEsIFJvbGFuZCBTY2hlaWRlZ2dlciwgYW5kIEtyaXN0aWFuCj4gU2xhdm92PwpBbnlvbmUgYW5k
-IGV2ZXJ5b25lIGlzIHBlcm1pdHRlZCB0byB0YWtlIGFueXRoaW5nIGFuZCBldmVyeXRoaW5nIGZy
-b20gczItbGlwbGlhbmluLgpUaGUgdHJlZSB3YXMgbWFkZSBmb3IgdGVzdGluZyBwdXJwb3Nlcy4g
-SWYgaXQgd29ya3MsIHRoYW4gaXQgd29ya3M6KQpNZSBhbmQgTWFudSBBYnJhaGFtIGlzIG5vdCBh
-IGZyaWVuZHMsIHNvIGFzayBoaW0gdG8gbWFrZSBhIHB1bGwgcmVxdWVzdCBmb3IgbWFudGlzLgpB
-bmQgYWZ0ZXIgdGhhdCB3ZSh3ZSBsaWtlIGNvbW11bml0eSkgd2l0aCBjb21iaW5lZCBlZmZvcnRz
-IGJyaW5nIGl0IHRvIHY0bC1kdmIuCgo+Cj4gUmVnYXJkcywKPiBQYXVsaSBCb3JvZHVsaW4KPgo+
-IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbGludXgt
-ZHZiIG1haWxpbmcgbGlzdAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cubGlu
-dXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2YgoKCgotLSAKSWdvciBN
-LiBMaXBsaWFuaW4KTWljcm9zb2Z0IFdpbmRvd3MgRnJlZSBab25lIC0gTGludXggdXNlZCBmb3Ig
-YWxsIENvbXB1dGluZyBUYXNrcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcK
-aHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Manu Abraham wrote:
+> Hi,
+>
+> Can you all please provide me the following information for the Mantis 
+> / Hopper bridge
+> based cards that you have in the following manner ?
+>
+> 1) Card Name (As advertised on the cardboard box):
+Don't have the box anymore, but that's was was on the Ordering email:
+
+*TERRATEC Cinergy C PCI bulk*
+
+>
+> 2) lspci -vvn:
+
+philipp@chief:~$ lspci -s 05:01.0
+05:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI 
+Bridge Controller [Ver 1.0] (rev 01)
+philipp@chief:~$ lspci -s 05:01.0 -vvn
+05:01.0 0480: 1822:4e35 (rev 01)
+        Subsystem: 153b:1178
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 3
+        Region 0: Memory at dfeff000 (32-bit, prefetchable) [size=4K]
+        Kernel modules: mantis
+
+
+
+>
+> 3) Chips on the card if you know them (only the basic chip description 
+> is required,
+> not the complete batch no. etc)
+
+If needed, I can pull it out of the box. But currently I am writing this 
+mail ;)
+
+thanks
+Philipp
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
