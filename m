@@ -1,52 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f17.google.com ([209.85.219.17]:62556 "EHLO
-	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753472AbZAOC7k (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:56199 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750918AbZAKCcC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 21:59:40 -0500
-Received: by ewy10 with SMTP id 10so1041169ewy.13
-        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2009 18:59:38 -0800 (PST)
-From: Kyle Guinn <elyk03@gmail.com>
-To: moinejf@free.fr
-Subject: [PATCH 1/2] Add Mars-Semi MR97310A format
-Date: Wed, 14 Jan 2009 20:59:34 -0600
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+	Sat, 10 Jan 2009 21:32:02 -0500
+Subject: Re: saa7134: race between device initialization and first interrupt
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Cc: Marcin Slusarz <marcin.slusarz@gmail.com>,
+	v4l-list <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <1231591056.3111.7.camel@palomino.walls.org>
+References: <20090104215738.GA9285@joi>
+	 <20090108005039.6eeeb470@pedra.chehab.org>
+	 <1231555687.3122.59.camel@palomino.walls.org> <20090110120213.GA5737@joi>
+	 <1231591056.3111.7.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Sun, 11 Jan 2009 03:32:06 +0100
+Message-Id: <1231641126.2613.10.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901142059.34943.elyk03@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Kyle Guinn <elyk03@gmail.com>
-# Date 1231822560 21600
-# Node ID 1bf7a4403e5f1cd10f12a69a9d9239f1bf4a58b6
-# Parent  b09b5128742f75bb0ce4375b23feac6c5f560aec
-Add Mars-Semi MR97310A format
+Hi,
 
-From: Kyle Guinn <elyk03@gmail.com>
+Am Samstag, den 10.01.2009, 07:37 -0500 schrieb Andy Walls:
+> On Sat, 2009-01-10 at 13:02 +0100, Marcin Slusarz wrote:
+> > On Fri, Jan 09, 2009 at 09:48:07PM -0500, Andy Walls wrote:
+> > > On Thu, 2009-01-08 at 00:50 -0200, Mauro Carvalho Chehab wrote:
+> > > > On Sun, 4 Jan 2009 22:57:42 +0100
+> > > > Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
+> > > > 
+> > > > > Hi
+> > > > > There's a race between saa7134 device initialization and first interrupt
+> > > > > handler, which manifests as an oops [1].
+> > > > > 
+> > > > > saa7134_initdev -> request_irq -> saa7134_irq ->
+> > > > > saa7134_irq_video_signalchange -> saa7134_tvaudio_setmute -> mute_input_7133
+> > > > > 
+> > > > > In mute_input_7133 dev->input == NULL and accessing dev->input->amux will oops,
+> > > > > because dev->input would be initialized later:
+> > > > > 
+> > > > > saa7134_initdev -> saa7134_hwinit2 -> saa7134_video_init2 -> video_mux ->
+> > > > > saa7134_tvaudio_setinput
+> > > > > 
+> > > > > I'm not sure how it should be fixed correctly, but one of attached patches
+> > > > > should fix the symptom.
+> > > > > 
+> > > > > Marcin
+>  
+> > > Marcin,
+> > > 
+> > > What devices share the interrupt with the SAA7133?
+> > > 
+> > > $ cat /proc/interrupts
+> > > 
+> > > And could on of those those devices possibly generate an interrupt while
+> > > the saa7134 driver is being modporbe'd?
+> > 
+> > I don't have this hardware so I can't tell. I've picked random oops from
+> > kerneloops.org and tried to fix it.
+> 
+> Ah.  Good man.
+> 
+> 
+> > > 
+> > > Mauro & Marcin,
+> > > 
+> > > This looks like to me what is going on:
+> > > 
+> > > saa7134_hwinit1() does properly turn off IRQs for which it wants
+> > > reports:
+> > > 
+> > > 	saa_writel(SAA7134_IRQ1, 0);
+> > >         saa_writel(SAA7134_IRQ2, 0);
+> > > 
+> > > but not clearing the state of SAA7134_IRQ_REPORT, maybe something like
+> > > this (I don't have a SAA7134 datasheet):
+> > > 
+> > > 	saa_writel(SAA7134_IRQ_REPORT, 0xffffffff);
+> > > 
+> > > So when saa7134_initdev() calls request_irq(..., saa7134_irq,
+> > > IRQF_SHARED | IRQF_DISABLED, ...), it gets an IRQ that is shared with
+> > > another device.
+> > > 
+> > > Before saa7134_hwinit2() is called by saa7134_initdev() to set
+> > > "dev->input", some other device fires an interrupt and saa7134_irq() is
+> > > called that then operates on the unknown state of the SAA7134_IRQ_REPORT
+> > > register that was never cleared.
+> > 
+> > Sounds good. But I think this register should be set to 0, because in 
+> > saa7134_irq, we do:
+> > 
+> > report = saa_readl(SAA7134_IRQ_REPORT);
+> > (...)
+> > if ((report & SAA7134_IRQ_REPORT_RDCAP) || (report & SAA7134_IRQ_REPORT_INTL))
+> > 	saa7134_irq_video_signalchange(dev);
+> > 
+> > But I'm not v4l expert, so...
+> 
+> With most chip interrupt status registers, you write the flags you want
+> to clear.
+> 
+> That way you can always do something like:
+> 
+> 	a = read(ISR_REG);
+> 	write(ISR_REG,a);
+> 
+> to clear the Interrupt status register.
+> 
+> Note what saa7134_irq() does:
+> 
+>                 report = saa_readl(SAA7134_IRQ_REPORT);
+> 		[...]
+>                 saa_writel(SAA7134_IRQ_REPORT,report);
+> 		[...]
+>                 if ((report & SAA7134_IRQ_REPORT_RDCAP) ||
+>                         (report & SAA7134_IRQ_REPORT_INTL))
+>                                 saa7134_irq_video_signalchange(dev);
+> 
+> 
+> So I'm thinking writing 0 to the register won't have the desired effect.
+> 
+> Again, thanks for taking the initiative.
+> 
+> Regards,
+> Andy
+> 
+> > > Marcin has mapped out the oops from there.
+> > > 
+> > > So the solution, I'm guessing, is likely to clear the SAA7134_IRQ_REPORT
+> > > register in saa7134_hwinit1().
+> > > 
+> > > If only I had a datasheet, hardware, spare time... ;)
+> > > 
 
-Add a pixel format for the Mars-Semi MR97310A webcam controller.
+Hartmut has the register programming instructions under NDA and some
+others obviously too.
 
-The MR97310A is a dual-mode webcam controller that provides compressed BGGR
-Bayer frames.  The decompression algorithm for still images is the same as for
-video, and is currently implemented in libgphoto2.
+Must have been very lucky all that time ...
 
-Priority: normal
+Cheers,
+Hermann
 
-Signed-off-by: Kyle Guinn <elyk03@gmail.com>
 
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -344,6 +344,7 @@
- #define V4L2_PIX_FMT_SPCA508  v4l2_fourcc('S', '5', '0', '8') /* YUVY per line */
- #define V4L2_PIX_FMT_SPCA561  v4l2_fourcc('S', '5', '6', '1') /* compressed GBRG bayer */
- #define V4L2_PIX_FMT_PAC207   v4l2_fourcc('P', '2', '0', '7') /* compressed BGGR bayer */
-+#define V4L2_PIX_FMT_MR97310A v4l2_fourcc('M', '3', '1', '0') /* compressed BGGR bayer */
- #define V4L2_PIX_FMT_PJPG     v4l2_fourcc('P', 'J', 'P', 'G') /* Pixart 73xx JPEG */
- #define V4L2_PIX_FMT_YVYU    v4l2_fourcc('Y', 'V', 'Y', 'U') /* 16  YVU 4:2:2     */
- 
+
+
