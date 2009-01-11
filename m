@@ -1,51 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35847 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754158AbZAVJi6 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1100 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752282AbZAKTQK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 04:38:58 -0500
-Message-ID: <49783E77.7070303@nokia.com>
-Date: Thu, 22 Jan 2009 11:37:59 +0200
-From: Sakari Ailus <sakari.ailus@nokia.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>
-Subject: Re: [REVIEW PATCH 01/14] V4L: Int if: Dummy slave
-References: <A24693684029E5489D1D202277BE894416429F97@dlee02.ent.ti.com> <20090113183330.066d75e4@pedra.chehab.org>
-In-Reply-To: <20090113183330.066d75e4@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 11 Jan 2009 14:16:10 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0BJG8vl055525
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 11 Jan 2009 20:16:08 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 11 Jan 2009 20:16:08 +0100 (CET)
+Message-Id: <200901111916.n0BJG8vl055525@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> On Mon, 12 Jan 2009 20:03:08 -0600
-> "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com> wrote:
-> 
->> +static struct v4l2_int_slave dummy_slave = {
->> +	/* Dummy pointer to avoid underflow in find_ioctl. */
->> +	.ioctls = (void *)0x80000000,
-> 
-> Why are you using here a magic number?
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-Not really a reason. It could be or actually perhaps anything equal to
-or bigger than sizeof(struct v4l2_int_ioctl_desc) so that last doesn't
-underflow:
+Results of the daily build of v4l-dvb:
 
-         const struct v4l2_int_ioctl_desc *first = slave->ioctls;
-         const struct v4l2_int_ioctl_desc *last =
-                 first + slave->num_ioctls - 1;
+date:        Sun Jan 11 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10213:e485a740bd54
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-num_ioctls is zero. See find_ioctl in drivers/media/video/v4l2-int-device.c.
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: ERRORS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29-rc1-armv5-ixp: WARNINGS
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29-rc1-armv5-omap2: WARNINGS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29-rc1-i686: WARNINGS
+linux-2.6.16.61-m32r: OK
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc1-m32r: OK
+linux-2.6.16.61-mips: WARNINGS
+linux-2.6.26-mips: WARNINGS
+linux-2.6.27-mips: WARNINGS
+linux-2.6.28-mips: WARNINGS
+linux-2.6.29-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc1-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc1-x86_64: WARNINGS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc1): ERRORS
 
-I guess that should be changed to sizeof(struct v4l2_int_ioctl_desc).
+Detailed results are available here:
 
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
