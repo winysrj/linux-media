@@ -1,105 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.work.de ([212.12.32.20]:41787 "EHLO mail.work.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750994AbZA0XC2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 18:02:28 -0500
-Message-ID: <497F927E.8050009@gmail.com>
-Date: Wed, 28 Jan 2009 03:02:22 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on	HDchannels
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com>	<c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>	<157f4a8c0901260751l39214908ydfeed5ba12b4d48b@mail.gmail.com>	<157f4a8c0901260808i39b784f6m13db53db2f135a37@mail.gmail.com>	<c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>	<1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>	<c74595dc0901261107i66125bfdpe35cb7b89144ab11@mail.gmail.com>	<497F6B2E.6010305@gmail.com>	<c74595dc0901271240i2008cacdp565fe69f3269ea55@mail.gmail.com>	<497F7C40.6030300@gmail.com> <c74595dc0901271402g5a44fe05pecae642570e54e0f@mail.gmail.com>
-In-Reply-To: <c74595dc0901271402g5a44fe05pecae642570e54e0f@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bombadil.infradead.org ([18.85.46.34]:41392 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568AbZAKXUT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Jan 2009 18:20:19 -0500
+Date: Sun, 11 Jan 2009 21:19:34 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Stas Sergeev <stsp@aknet.ru>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [patch] add video_nr module param to gspca
+Message-ID: <20090111211934.0317f6c5@pedra.chehab.org>
+In-Reply-To: <4968EE9A.5040901@aknet.ru>
+References: <4968EE9A.5040901@aknet.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alex Betis wrote:
-> On Tue, Jan 27, 2009 at 11:27 PM, Manu Abraham <abraham.manu@gmail.com>wrote:
-> 
->> Alex Betis wrote:
->>> On Tue, Jan 27, 2009 at 10:14 PM, Manu Abraham <abraham.manu@gmail.com
->>> wrote:
->>>
->>>> Alex Betis wrote:
->>>>>> It won't. All you will manage to do is burn your demodulator, if you
->>>> happen
->>>>>> to
->>>>>> be that lucky one, with that change. At least a few people have burned
->>>>>> demodulators by now, from what i do see.
->>>>>>
->>>>> What are the symptoms of burned demodulator? How can someone know if
->> its
->>>>> still ok?
->>>> The first time i saw it was that the DVB-S2 demod was returning no
->>>> carrier. After some time it was stating timing error for DVB-S as
->>>> well. Finally it all ended up with demodulator I2C ACK failure, and
->>>> eventually a frozen machine after a week (my test boxes run throughout)
->>>>
->>>> Touching the demodulator, i happened to have almost a burned finger.
->>>> I wanted to know whether this was a single case. During the
->>>> development phase, i did mention it to Julian about this, since he
->>>> was the very first person to test for the stb0899 driver. He
->>>> jovially laughed about a burned demodulator and a finger, left his
->>>> machine on after i did some tests on it. Eventually he too had the
->>>> same results. Finally we changed cards.
->>> What frequency did you use to burn it?
->>
->> It was a long time back, don't remember. It has nothing to do with
->> the frequency of the transponder, but just the master clock. You can
->> run it to a maximum of 108Mhz overclocked, 99Mhz to be safe and
->> sufficient.
->>
->>
->>> I didn't see anyone here on the list that reported a hardware failure so
->>> far.
->> May god help you. I didn't know that you knew more than the
->> demodulator manufacturer !
-> 
-> Please speak for yourself, I never said I know more than a manufacturer.
-> I wrote a fact.
-> Intel also rate their chips and everybody overclocks them to crazy ratings.
-> 
-> 
->>
->>
->>> By the way, Igor returned the chip frequency for 27.5 channels to 99MHz
->> and
->>> raised it a bit for higher SR channels, so there is no danger for
->> majority
->>> of the users.
->> Ok, be happy with his change and keep quiet. 135Mhz is out of bounds
->> of the hardware specification. You are on your own. Raising the
->> master clock, doesn't bring you any advantage.
-> 
-> Did someone overclock you as well?
-> Chill out!
-> It would be better if you'll be more productive instead of quieting people
-> who try to help.
-> 
-> Again, I'm commenting facts. As I saw from the reports the overclock seems
-> to help with the problem.
-> 
-> 
->> From your statement (and the patch), it is clearly evident that you
->> don't understand head or tail what you are stating or patched the
->> code for:
-> 
-> So be so kind, and add comments to the code you write so everybody could
-> find its head and tail when trying to fix bugs.
-> It is clearly evident that you don't really want that someone else will
-> understand your code.
-> 
-> Again, facts are that the patch help and make the device more stable for
-> DVB-S channels.
-> 
-> 
-> 
-> Oh well, I hate that I had to get so low with my message, but that's that
-> happen when someone try to align with your expressions.
-> In case you didn't know, you're not alone in the universe, get used to it.
+Hi Stas,
 
-I should be the one who should be kicked for trying to help you.
+Please, always copy linux-media@vger.kernel.org for patches and other subjects
+related to drivers development. This will allow patchwork.kernel.org to
+properly track the sent patches.
+
+Cheers,
+Mauro.
+
+On Sat, 10 Jan 2009 21:53:14 +0300
+Stas Sergeev <stsp@aknet.ru> wrote:
+
+> Hi.
+> 
+> The attached patch adds the
+> module_param for video_nr to
+> the gspca driver.
+> The patch is completely untested
+> as I don't use any webcam myself.
+> Its just that a friend of mine
+> complained about an inability to
+> set the device number for gspca
+> and I hope this patch can solve
+> that problem.
+> 
+> Signed-off-by: Stas Sergeev <stsp@aknet.ru>
+
+
+
+
+Cheers,
+Mauro
