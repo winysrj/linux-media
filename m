@@ -1,61 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:39274 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751799AbZA0A7y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2009 19:59:54 -0500
-Subject: Re: [linux-dvb] How to use scan-s2?
-From: Andy Walls <awalls@radix.net>
-To: linux-media@vger.kernel.org
-Cc: Darron Broad <darron@kewl.org>, linux-dvb@linuxtv.org
-In-Reply-To: <c74595dc0901261231l4448f6cepfcb570557c54f60a@mail.gmail.com>
-References: <497C3F0F.1040107@makhutov.org>
-	 <497C359C.5090308@okg-computer.de>
-	 <c74595dc0901250525y3771df4fhb03939c9c9c02c1f@mail.gmail.com>
-	 <Pine.LNX.4.64.0901260109400.12123@shogun.pilppa.org>
-	 <c74595dc0901260135x32f7c2bm59506de420dab978@mail.gmail.com>
-	 <Pine.LNX.4.64.0901261729280.19881@shogun.pilppa.org>
-	 <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com>
-	 <16900.1232991151@kewl.org>
-	 <c74595dc0901261130k6bdb6882lfb18c650cbca4abf@mail.gmail.com>
-	 <18268.1233001231@kewl.org>
-	 <c74595dc0901261231l4448f6cepfcb570557c54f60a@mail.gmail.com>
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:53417 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760996AbZALWjY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2009 17:39:24 -0500
+Subject: Re: saa7134: race between device initialization and first interrupt
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	v4l-list <video4linux-list@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Marcin Slusarz <marcin.slusarz@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Trent Piepho <xyzzy@speakeasy.org>
+In-Reply-To: <1231723379.10277.46.camel@palomino.walls.org>
+References: <20090104215738.GA9285@joi>
+	 <20090108005039.6eeeb470@pedra.chehab.org>
+	 <1231555687.3122.59.camel@palomino.walls.org> <20090110120213.GA5737@joi>
+	 <1231591056.3111.7.camel@palomino.walls.org>
+	 <1231641126.2613.10.camel@pc10.localdom.local>
+	 <1231643119.10110.41.camel@palomino.walls.org>
+	 <1231718073.8278.32.camel@pc10.localdom.local>
+	 <1231722231.10277.38.camel@palomino.walls.org>
+	 <1231723379.10277.46.camel@palomino.walls.org>
 Content-Type: text/plain
-Date: Mon, 26 Jan 2009 19:59:38 -0500
-Message-Id: <1233017978.3061.2.camel@palomino.walls.org>
+Date: Mon, 12 Jan 2009 23:39:37 +0100
+Message-Id: <1231799977.18328.21.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-01-26 at 22:31 +0200, Alex Betis wrote:
+Hi,
+
+Am Sonntag, den 11.01.2009, 20:22 -0500 schrieb Andy Walls:
+> > 
+> > So "dev->input" is NULL when saa7134-tvaudio.c:mute_input_7133() is
+> > called and that is what causes the Oops.  It was called by the
+> > saa7134_irq() handler trying to take action, shortly after request_irq()
+> > was called.  Can you think of why this would happen?
+> > 
+> Hermann,
 > 
-> On Mon, Jan 26, 2009 at 10:20 PM, Darron Broad <darron@kewl.org>
-> wrote:
->         In message
->         <c74595dc0901261130k6bdb6882lfb18c650cbca4abf@mail.gmail.com>,
->         Alex
->         Betis wrote:
->         >
->         >On Mon, Jan 26, 2009 at 7:32 PM, Darron Broad
->         <darron@kewl.org> wrote:
->         >
->         >> In message
->         <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com>,
->         >> Alex Betis wrote:
->         >>
->         >> lo
->         >>
->         >> <snip>
->         >> >
->         >> >The bug is in S2API that doesn't return ANY error message
->         at all :)
+> I just looked at request_irq() on my Fedora 7
+> 
+> 
+> int request_irq(unsigned int irq, irq_handler_t handler,
+>                 unsigned long irqflags, const char *devname, void *dev_id)
+> {
+> [...]
+> #ifdef CONFIG_DEBUG_SHIRQ
+>         if (irqflags & IRQF_SHARED) {
+>                 /*
+>                  * It's a shared IRQ -- the driver ought to be prepared for it
+>                  * to happen immediately, so let's make sure....
+>                  * We do this before actually registering it, to make sure that
+>                  * a 'real' IRQ doesn't run in parallel with our fake
+>                  */
+>                 unsigned long flags;
+> 
+>                 local_irq_save(flags);
+>                 handler(irq, dev_id);
+>                 local_irq_restore(flags);
+>         }
+> #endif
+> [...]
+> 
+> Maybe the kernels with the reported oops were built with
+> CONFIG_DEBUG_SHIRQ set, which will call the saa7134_irq() handler
+> immediately.  CONFIG_DEBUG_SHIRQ is obviously intended to "smoke out"
+> device driver irq handlers that could experience an intermittent oops
+> with shared irqs.
+> 
+> Maybe you could enable this in you kernel and reproduce the Ooops?
 
-Aside from Darron's observation, doesn't the result field of any
-particular S2API property return with a non-0 value on failure?
+only on the 2.6.27.2 on the amd quad this was not enabled.
 
-(Sorry, I missed the original thread on the S2API return values.)
+The Fedora 8 and Fedora 10 kernels do have it enabled and it seems to
+make no difference and the old 2.6.22 i did not check yet.
 
-Regards,
-Andy
+I'll send configs and other info of all 4 machines I can test on off
+list. Maybe there are ideas for stress tests to hit the supposed race.
+
+Cheers,
+Hermann
+
+
+> Regards,
+> Andy
+> 
+> > I don't know.  If no one here can test it and confirm a fix, maybe we
+> > just forget about it until someone with hardware complains?
 
 
