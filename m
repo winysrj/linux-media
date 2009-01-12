@@ -1,165 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:39564 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918AbZAKDDo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jan 2009 22:03:44 -0500
-Subject: Re: saa7134: race between device initialization and first interrupt
-From: Andy Walls <awalls@radix.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	Marcin Slusarz <marcin.slusarz@gmail.com>,
-	v4l-list <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <1231641126.2613.10.camel@pc10.localdom.local>
-References: <20090104215738.GA9285@joi>
-	 <20090108005039.6eeeb470@pedra.chehab.org>
-	 <1231555687.3122.59.camel@palomino.walls.org> <20090110120213.GA5737@joi>
-	 <1231591056.3111.7.camel@palomino.walls.org>
-	 <1231641126.2613.10.camel@pc10.localdom.local>
-Content-Type: text/plain
-Date: Sat, 10 Jan 2009 22:05:19 -0500
-Message-Id: <1231643119.10110.41.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2315 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753129AbZALTNO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2009 14:13:14 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0CJDCJa011685
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 12 Jan 2009 20:13:13 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 12 Jan 2009 20:13:12 +0100 (CET)
+Message-Id: <200901121913.n0CJDCJa011685@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-01-11 at 03:32 +0100, hermann pitton wrote:
-> Hi,
-> 
-> Am Samstag, den 10.01.2009, 07:37 -0500 schrieb Andy Walls:
-> > On Sat, 2009-01-10 at 13:02 +0100, Marcin Slusarz wrote:
-> > > On Fri, Jan 09, 2009 at 09:48:07PM -0500, Andy Walls wrote:
-> > > > On Thu, 2009-01-08 at 00:50 -0200, Mauro Carvalho Chehab wrote:
-> > > > > On Sun, 4 Jan 2009 22:57:42 +0100
-> > > > > Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
-> > > > > 
-> > > > > > Hi
-> > > > > > There's a race between saa7134 device initialization and first interrupt
-> > > > > > handler, which manifests as an oops [1].
-> > > > > > 
-> > > > > > saa7134_initdev -> request_irq -> saa7134_irq ->
-> > > > > > saa7134_irq_video_signalchange -> saa7134_tvaudio_setmute -> mute_input_7133
-> > > > > > 
-> > > > > > In mute_input_7133 dev->input == NULL and accessing dev->input->amux will oops,
-> > > > > > because dev->input would be initialized later:
-> > > > > > 
-> > > > > > saa7134_initdev -> saa7134_hwinit2 -> saa7134_video_init2 -> video_mux ->
-> > > > > > saa7134_tvaudio_setinput
-> > > > > > 
-> > > > > > I'm not sure how it should be fixed correctly, but one of attached patches
-> > > > > > should fix the symptom.
-> > > > > > 
-> > > > > > Marcin
-> >  
-> > > > Marcin,
-> > > > 
-> > > > What devices share the interrupt with the SAA7133?
-> > > > 
-> > > > $ cat /proc/interrupts
-> > > > 
-> > > > And could on of those those devices possibly generate an interrupt while
-> > > > the saa7134 driver is being modporbe'd?
-> > > 
-> > > I don't have this hardware so I can't tell. I've picked random oops from
-> > > kerneloops.org and tried to fix it.
-> > 
-> > Ah.  Good man.
-> > 
-> > 
-> > > > 
-> > > > Mauro & Marcin,
-> > > > 
-> > > > This looks like to me what is going on:
-> > > > 
-> > > > saa7134_hwinit1() does properly turn off IRQs for which it wants
-> > > > reports:
-> > > > 
-> > > > 	saa_writel(SAA7134_IRQ1, 0);
-> > > >         saa_writel(SAA7134_IRQ2, 0);
-> > > > 
-> > > > but not clearing the state of SAA7134_IRQ_REPORT, maybe something like
-> > > > this (I don't have a SAA7134 datasheet):
-> > > > 
-> > > > 	saa_writel(SAA7134_IRQ_REPORT, 0xffffffff);
-> > > > 
-> > > > So when saa7134_initdev() calls request_irq(..., saa7134_irq,
-> > > > IRQF_SHARED | IRQF_DISABLED, ...), it gets an IRQ that is shared with
-> > > > another device.
-> > > > 
-> > > > Before saa7134_hwinit2() is called by saa7134_initdev() to set
-> > > > "dev->input", some other device fires an interrupt and saa7134_irq() is
-> > > > called that then operates on the unknown state of the SAA7134_IRQ_REPORT
-> > > > register that was never cleared.
-> > > 
-> > > Sounds good. But I think this register should be set to 0, because in 
-> > > saa7134_irq, we do:
-> > > 
-> > > report = saa_readl(SAA7134_IRQ_REPORT);
-> > > (...)
-> > > if ((report & SAA7134_IRQ_REPORT_RDCAP) || (report & SAA7134_IRQ_REPORT_INTL))
-> > > 	saa7134_irq_video_signalchange(dev);
-> > > 
-> > > But I'm not v4l expert, so...
-> > 
-> > With most chip interrupt status registers, you write the flags you want
-> > to clear.
-> > 
-> > That way you can always do something like:
-> > 
-> > 	a = read(ISR_REG);
-> > 	write(ISR_REG,a);
-> > 
-> > to clear the Interrupt status register.
-> > 
-> > Note what saa7134_irq() does:
-> > 
-> >                 report = saa_readl(SAA7134_IRQ_REPORT);
-> > 		[...]
-> >                 saa_writel(SAA7134_IRQ_REPORT,report);
-> > 		[...]
-> >                 if ((report & SAA7134_IRQ_REPORT_RDCAP) ||
-> >                         (report & SAA7134_IRQ_REPORT_INTL))
-> >                                 saa7134_irq_video_signalchange(dev);
-> > 
-> > 
-> > So I'm thinking writing 0 to the register won't have the desired effect.
-> > 
-> > Again, thanks for taking the initiative.
-> > 
-> > Regards,
-> > Andy
-> > 
-> > > > Marcin has mapped out the oops from there.
-> > > > 
-> > > > So the solution, I'm guessing, is likely to clear the SAA7134_IRQ_REPORT
-> > > > register in saa7134_hwinit1().
-> > > > 
-> > > > If only I had a datasheet, hardware, spare time... ;)
-> > > > 
-> 
-> Hartmut has the register programming instructions under NDA and some
-> others obviously too.
-> 
-> Must have been very lucky all that time ...
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-If it makes the scenario seem more plausible, Marcin pointed out a
-website where this Oops has been reported 22 times:
+Results of the daily build of v4l-dvb:
 
-http://kerneloops.org/guilty.php?guilty=mute_input_7133&version=2.6.27-release&start=1802240&end=1835007&class=oops
+date:        Mon Jan 12 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10220:036cad8c8b51
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc1-armv5-ixp: WARNINGS
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc1-armv5-omap2: OK
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc1-i686: WARNINGS
+linux-2.6.16.61-m32r: OK
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc1-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc1-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc1-x86_64: WARNINGS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc1): ERRORS
 
-My suggested fix is this:
+Detailed results are available here:
 
-http://linuxtv.org/hg/~awalls/cx88/rev/a28c39659c25
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-which should do no harm, even if it doesn't fix the Oops.
+Full logs are available here:
 
-Regards,
-Andy
-
-
-> Cheers,
-> Hermann
-
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
