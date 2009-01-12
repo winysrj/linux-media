@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0R7Rrif020063
-	for <video4linux-list@redhat.com>; Tue, 27 Jan 2009 02:27:53 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0R7RZWl003771
-	for <video4linux-list@redhat.com>; Tue, 27 Jan 2009 02:27:35 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so6830719rvb.51
-	for <video4linux-list@redhat.com>; Mon, 26 Jan 2009 23:27:34 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0C4NECq008085
+	for <video4linux-list@redhat.com>; Sun, 11 Jan 2009 23:23:14 -0500
+Received: from web95203.mail.in2.yahoo.com (web95203.mail.in2.yahoo.com
+	[203.104.18.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0C4Msdm025287
+	for <video4linux-list@redhat.com>; Sun, 11 Jan 2009 23:22:54 -0500
+Date: Mon, 12 Jan 2009 09:52:52 +0530 (IST)
+From: niamathullah sharief <shariefbe@yahoo.co.in>
+To: michael_h_williamson@yahoo.com,
+	video4linux list <video4linux-list@redhat.com>
+In-Reply-To: <834598.65214.qm@web65507.mail.ac4.yahoo.com>
 MIME-Version: 1.0
-In-Reply-To: <E003FCE0634F4C398AA9CC6EB8BC10E8@pcumans>
-References: <E003FCE0634F4C398AA9CC6EB8BC10E8@pcumans>
-Date: Tue, 27 Jan 2009 01:27:34 -0600
-Message-ID: <59dfca000901262327h65ee84cdnd2aed358cbd6b154@mail.gmail.com>
-From: Lucas <jaffa225man@gmail.com>
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: Re: ASUS My Cinema-P7131 PCI TV card produces distorded sound.
+Message-ID: <954614.56519.qm@web95203.mail.in2.yahoo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Cc: 
+Subject: Re: About xawtv
+Reply-To: shariefbe@yahoo.co.in
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,52 +29,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Try using your alsa device with the plughw plugin (such as
-"plughw:0,0" for the first soundcard).  The device you specify (as
-"0,0" or whatever) should be your soundcard not the My Cinema-P7131.
-I'm not sure what options mythtv gives you, but I would think that it
-has a place for you to specify your sound device, either through the
-GUI or by editing a file.  The alsa Plughw plugin should samplerate
-conversion automatically.
+Thanks micheal....Yes i can use xawtv program...but its very confusing....i=
+ already learned the "c" programming....now i have to understand what is =
+=C2=A0"v4l2 program does....Thats why i asked you...i saw all the programs =
+in xawtv...including "streamer.c and capture.c"...but there is no mmap() fu=
+nction there...Thats why i asked first....can you help me =C2=A0to capture =
+video in your application which you sent me...?Thanks for your valuable rep=
+ly.....
 
-
-I hope that helps,
-
-  Lucas
-
-
-On Mon, Jan 26, 2009 at 3:57 PM, Erik Umans <Erik.Umans@skynet.be> wrote:
-> Hi,
->
-> I have an ASUS My Cinema-P7131 PCI TV card in my Mythtv system.
->
-> I can get picture but only heavily distorded sound due to sample rate
-> mismatch.
-> The P7131 produces sound at 32KHz sample rate, the remaining of the system
-> 48KHz.
->
-> How can I fix this mismatch ?
-> Can this be solved with ALSA and if so, how?
->
-> Kind regards.
->
-> Erik Umans
-> Belgium
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+--- On Sun, 11/1/09, Michael Williamson <michael_h_williamson@yahoo.com> wr=
+ote:
+From: Michael Williamson <michael_h_williamson@yahoo.com>
+Subject: Re: About xawtv
+To: shariefbe@yahoo.co.in
+Date: Sunday, 11 January, 2009, 11:00 PM
 
 
 
--- 
-Protect your digital freedom and privacy, eliminate DRM, learn more at
-http://www.defectivebydesign.org/what_is_drm
-On a related note, also see BadVista.org: Stopping Vista adoption by
-promoting free software
+--- On Sun, 1/11/09, niamathullah sharief <shariefbe@yahoo.co.in> wrote:
 
+> From: niamathullah sharief <shariefbe@yahoo.co.in>
+> Subject: Re: About xawtv
+> To: michael_h_williamson@yahoo.com, "video4linux list"
+<video4linux-list@redhat.com>
+> Date: Sunday, January 11, 2009, 12:45 AM
+> yes its working micheal...but video is not working just
+> still coming.....when i rotate the cam the video is not
+> moving just standing still....i think its a still not an
+> video..what to do for video?
+
+The program I sent you, "vgrab.c", is for single (still) pictures
+only.
+For video, the program needs modification. Can you install the SDL library
+on your computer? If not, I know another way.
+
+Also, why you do not simply use the xawtv program for video?
+Are you learning 'C' programming?
+
+-Mike
+
+
+
+     =20
+=0A=0A=0A      Unlimited freedom, unlimited storage. Get it now, on http://=
+help.yahoo.com/l/in/yahoo/mail/yahoomail/tools/tools-08.html/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
