@@ -1,102 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4734 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876AbZAISzL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 13:55:11 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n09It8ns035666
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 9 Jan 2009 19:55:09 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 9 Jan 2009 19:55:08 +0100 (CET)
-Message-Id: <200901091855.n09It8ns035666@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from mail1.radix.net ([207.192.128.31]:48667 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424AbZALBC5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Jan 2009 20:02:57 -0500
+Subject: Re: saa7134: race between device initialization and first interrupt
+From: Andy Walls <awalls@radix.net>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Marcin Slusarz <marcin.slusarz@gmail.com>,
+	v4l-list <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <1231718073.8278.32.camel@pc10.localdom.local>
+References: <20090104215738.GA9285@joi>
+	 <20090108005039.6eeeb470@pedra.chehab.org>
+	 <1231555687.3122.59.camel@palomino.walls.org> <20090110120213.GA5737@joi>
+	 <1231591056.3111.7.camel@palomino.walls.org>
+	 <1231641126.2613.10.camel@pc10.localdom.local>
+	 <1231643119.10110.41.camel@palomino.walls.org>
+	 <1231718073.8278.32.camel@pc10.localdom.local>
+Content-Type: text/plain
+Date: Sun, 11 Jan 2009 20:03:51 -0500
+Message-Id: <1231722231.10277.38.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Mon, 2009-01-12 at 00:54 +0100, hermann pitton wrote:
+> Hi!
+> 
+> Am Samstag, den 10.01.2009, 22:05 -0500 schrieb Andy Walls:
+> > On Sun, 2009-01-11 at 03:32 +0100, hermann pitton wrote:
+> > > Hi,
+> > > 
+> > > Am Samstag, den 10.01.2009, 07:37 -0500 schrieb Andy Walls:
+> > > > On Sat, 2009-01-10 at 13:02 +0100, Marcin Slusarz wrote:
+> > > > > On Fri, Jan 09, 2009 at 09:48:07PM -0500, Andy Walls wrote:
+> > > > > > On Thu, 2009-01-08 at 00:50 -0200, Mauro Carvalho Chehab wrote:
+> > > > > > > On Sun, 4 Jan 2009 22:57:42 +0100
+> > > > > > > Marcin Slusarz <marcin.slusarz@gmail.com> wrote:
+> > > > > > > 
+> > > > > > > > Hi
+> > > > > > > > There's a race between saa7134 device initialization and first interrupt
+> > > > > > > > handler, which manifests as an oops [1].
+> > > > > > > > 
+> > > > > > > > saa7134_initdev -> request_irq -> saa7134_irq ->
+> > > > > > > > saa7134_irq_video_signalchange -> saa7134_tvaudio_setmute -> mute_input_7133
+> > > > > > > > 
+> > > > > > > > In mute_input_7133 dev->input == NULL and accessing dev->input->amux will oops,
+> > > > > > > > because dev->input would be initialized later:
+> > > > > > > > 
+> > > > > > > > saa7134_initdev -> saa7134_hwinit2 -> saa7134_video_init2 -> video_mux ->
+> > > > > > > > saa7134_tvaudio_setinput
+> > > > > > > > 
+> > > > > > > > I'm not sure how it should be fixed correctly, but one of attached patches
+> > > > > > > > should fix the symptom.
+> > > > > > > > 
+> > > > > > > > Marcin
+> > > >  
+> > > > > > Marcin,
+> > > > > > 
+> > > > > > What devices share the interrupt with the SAA7133?
+> > > > > > 
+> > > > > > $ cat /proc/interrupts
+> > > > > > 
+> > > > > > And could on of those those devices possibly generate an interrupt while
+> > > > > > the saa7134 driver is being modporbe'd?
+> > > > > 
+> > > > > I don't have this hardware so I can't tell. I've picked random oops from
+> > > > > kerneloops.org and tried to fix it.
+> > > > 
+> > > > Ah.  Good man.
+> > > > 
+> > > > 
+> > > > > > 
+> > > > > > Mauro & Marcin,
+> > > > > > 
+> > > > > > This looks like to me what is going on:
+> > > > > > 
+> > > > > > saa7134_hwinit1() does properly turn off IRQs for which it wants
+> > > > > > reports:
+> > > > > > 
+> > > > > > 	saa_writel(SAA7134_IRQ1, 0);
+> > > > > >         saa_writel(SAA7134_IRQ2, 0);
+> > > > > > 
+> > > > > > but not clearing the state of SAA7134_IRQ_REPORT, maybe something like
+> > > > > > this (I don't have a SAA7134 datasheet):
+> > > > > > 
+> > > > > > 	saa_writel(SAA7134_IRQ_REPORT, 0xffffffff);
+> > > > > > 
+> > > > > > So when saa7134_initdev() calls request_irq(..., saa7134_irq,
+> > > > > > IRQF_SHARED | IRQF_DISABLED, ...), it gets an IRQ that is shared with
+> > > > > > another device.
+> > > > > > 
+> > > > > > Before saa7134_hwinit2() is called by saa7134_initdev() to set
+> > > > > > "dev->input", some other device fires an interrupt and saa7134_irq() is
+> > > > > > called that then operates on the unknown state of the SAA7134_IRQ_REPORT
+> > > > > > register that was never cleared.
+> > > > > 
+> > > > > Sounds good. But I think this register should be set to 0, because in 
+> > > > > saa7134_irq, we do:
+> > > > > 
+> > > > > report = saa_readl(SAA7134_IRQ_REPORT);
+> > > > > (...)
+> > > > > if ((report & SAA7134_IRQ_REPORT_RDCAP) || (report & SAA7134_IRQ_REPORT_INTL))
+> > > > > 	saa7134_irq_video_signalchange(dev);
+> > > > > 
+> > > > > But I'm not v4l expert, so...
+> > > > 
+> > > > With most chip interrupt status registers, you write the flags you want
+> > > > to clear.
+> > > > 
+> > > > That way you can always do something like:
+> > > > 
+> > > > 	a = read(ISR_REG);
+> > > > 	write(ISR_REG,a);
+> > > > 
+> > > > to clear the Interrupt status register.
+> > > > 
+> > > > Note what saa7134_irq() does:
+> > > > 
+> > > >                 report = saa_readl(SAA7134_IRQ_REPORT);
+> > > > 		[...]
+> > > >                 saa_writel(SAA7134_IRQ_REPORT,report);
+> > > > 		[...]
+> > > >                 if ((report & SAA7134_IRQ_REPORT_RDCAP) ||
+> > > >                         (report & SAA7134_IRQ_REPORT_INTL))
+> > > >                                 saa7134_irq_video_signalchange(dev);
+> > > > 
+> > > > 
+> > > > So I'm thinking writing 0 to the register won't have the desired effect.
+> > > > 
+> > > > Again, thanks for taking the initiative.
+> > > > 
+> > > > Regards,
+> > > > Andy
+> > > > 
+> > > > > > Marcin has mapped out the oops from there.
+> > > > > > 
+> > > > > > So the solution, I'm guessing, is likely to clear the SAA7134_IRQ_REPORT
+> > > > > > register in saa7134_hwinit1().
+> > > > > > 
+> > > > > > If only I had a datasheet, hardware, spare time... ;)
+> > > > > > 
+> > > 
+> > > Hartmut has the register programming instructions under NDA and some
+> > > others obviously too.
+> > > 
+> > > Must have been very lucky all that time ...
+> > 
+> > If it makes the scenario seem more plausible, Marcin pointed out a
+> > website where this Oops has been reported 22 times:
+> > 
+> > http://kerneloops.org/guilty.php?guilty=mute_input_7133&version=2.6.27-release&start=1802240&end=1835007&class=oops
+> > 
+> > 
+> > My suggested fix is this:
+> > 
+> > http://linuxtv.org/hg/~awalls/cx88/rev/a28c39659c25
+> > 
+> > which should do no harm, even if it doesn't fix the Oops.
+> > 
+> 
+> Andy, I allowed shared interrupts on several machines with multiple
+> saa713x cards and current v4l-dvb, but I'm still not able to reproduce
+> the oops. So can't try the fix. Who has the oops and can try?
 
-Results of the daily build of v4l-dvb:
+I don't know.  Marcin simply pointed it out on the list.  He doesn't
+have the hardware.
 
-date:        Fri Jan  9 19:00:05 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10210:985ecd81d993
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> Hmm, the reports all come from Fedora 9 or 10 so far and they seem to
+> have PCI down ports from 2.6.28 on those kernels.
+> 
+> My cards also all come up with the tuner as the default input and should
+> not even check for a signal on other inputs during loading or even see a
+> change there, IIRC.
+> 
+> Disconnecting the video signal on other inputs triggers the mute on
+> saa7134 chips, but does nothing on saa7133/35/31e and that is the last
+> status I remember. (oh my ;)
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: ERRORS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.27-armv5-omap2: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.16.61-mips: WARNINGS
-linux-2.6.26-mips: WARNINGS
-linux-2.6.27-mips: WARNINGS
-linux-2.6.28-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
+The question is: what is the state of the SAA7134_IRQ_REPORT register
+when the saa7134 module is being (re-)loaded?.
 
-Detailed results are available here:
+What will the saa7134_irq() handler do after saa7134_initdev() calls
+request_irq(), if the saa7134 device shares an interrupt with a high
+interrupt frequency device (ethernet, disk, or graphics controller)?
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Full logs are available here:
+> Seems testing alone doesn't help on a first try and I'm not that great
+> in oops reading ...
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+All the oops reported at that site that I have read fail in
+saa7134-tvaudio.c:mute_input_7133().  Here's the code where the oops
+happens:
+
+static int mute_input_7133(struct saa7134_dev *dev)
+{
+        u32 reg = 0;
+        u32 xbarin, xbarout;  
+        int mask;
+        struct saa7134_input *in;
+
+        xbarin = 0x03;
+        switch (dev->input->amux) {
+        case TV:
+                reg = 0x02;
+                xbarin = 0;
+                break;
+        case LINE1:
+                reg = 0x00;
+                break; 
+        case LINE2:
+        case LINE2_LEFT:
+                reg = 0x09;
+                break;
+        }
+	[...]
+
+Here's the backtrace:
+
+EIP is at mute_input_7133+0xe/0xf0 [saa7134]
+          ^^^^^^^^^^^^^^^           ^^^^^^^
+
+EAX: 00000000 EBX: f39cc000 ECX: 000000a0 EDX: f39cc000
+     ^^^^^^^^
+	NULL
+
+ESI: f39cc000 EDI: 00000040 EBP: f39a3dd0 ESP: f39a3dc4
+DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process modprobe (pid: 1321, ti=f39a3000 task=f39619a0 task.ti=f39a3000)
+Stack: 000000ff f39cc000 00000040 f39a3dd8 f894884b f39a3df0 f894bfef f39a3e18 
+      f39cc000 ffffffff ffffffff f39a3e10 f89468ab f39cc0f4 00000000 00000000 
+      00000202 f3870960 f89467d9 f39a3e30 c04638bc 000000a0 00000012 01000020 
+Call Trace:
+[<f894884b>] ? saa7134_tvaudio_setmute+0x3d/0x3f [saa7134]
+[<f894bfef>] ? saa7134_irq_video_signalchange+0xb9/0x11b [saa7134]  <=== irq handler decided to take action
+[<f89468ab>] ? saa7134_irq+0xd2/0x25f [saa7134]
+[<f89467d9>] ? saa7134_irq+0x0/0x25f [saa7134]         <==== irq handler was called
+[<c04638bc>] ? request_irq+0xbb/0x10c                  <==== request_irq() when device is being initialized
+[<f894d89e>] ? saa7134_initdev+0x543/0x905 [saa7134]
+[...]
+
+(note addresses are offset: mute_input_7133 starts at 0x1d) 
+  1d:	55                   	push   %ebp
+  1e:	89 e5                	mov    %esp,%ebp   
+  20:	57                   	push   %edi  
+  21:	56                   	push   %esi
+  22:	53                   	push   %ebx
+  23:	89 c3                	mov    %eax,%ebx
+  25:	8b 80 cc 06 00 00    	mov    0x6cc(%eax),%eax  %eax holds "dev", move "dev->input" into %eax
+  2b:*	8b 40 08             	mov    0x8(%eax),%eax    %eax holds "dev->input", move "dev->input->amux" into %eax
+							 ^^^^ Ooops happens here because EAX is 00000000
+  2e:	83 f8 01             	cmp    $0x1,%eax	"case TV:"
+  31:	74 0c                	je     0x3f		jump to "TV" case code, if equal
+  33:	72 13                	jb     0x48		break out of switch if less than "TV"
+  35:	83 e8 03             	sub    $0x3,%eax
+  38:	83 f8 01             	cmp    $0x1,%eax
+  3b:	77 0b                	ja     0x48		break out of switch if greater than "LINE2_LEFT"
+  3d:	eb 0d                	jmp    0x4c
+  3f:	be                   	.byte 0xbe
+
+
+So "dev->input" is NULL when saa7134-tvaudio.c:mute_input_7133() is
+called and that is what causes the Oops.  It was called by the
+saa7134_irq() handler trying to take action, shortly after request_irq()
+was called.  Can you think of why this would happen?
+
+
+I don't know.  If no one here can test it and confirm a fix, maybe we
+just forget about it until someone with hardware complains?
+
+
+Regards,
+Andy
+
+> Thanks,
+> Hermann
+
+
