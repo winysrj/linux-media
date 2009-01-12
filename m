@@ -1,81 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55930 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755186AbZAMUTL convert rfc822-to-8bit (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.170]:16806 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825AbZALGU3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2009 15:19:11 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>
-Date: Tue, 13 Jan 2009 14:18:37 -0600
-Subject: Patch series in Tarball submitted (RE: [REVIEW PATCH 00/14] OMAP3
- camera + ISP + MT9P012 sensor driver v2)
-Message-ID: <A24693684029E5489D1D202277BE8944164DF781@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894416429F96@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 12 Jan 2009 01:20:29 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so11191462wfd.4
+        for <linux-media@vger.kernel.org>; Sun, 11 Jan 2009 22:20:28 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <200811291506.11758.tobias.lorenz@gmx.net>
+References: <5d5443650811282312w508c0804qf962f6cf5e859e2@mail.gmail.com>
+	 <200811291506.11758.tobias.lorenz@gmx.net>
+Date: Mon, 12 Jan 2009 11:50:28 +0530
+Message-ID: <5d5443650901112220x12827f8fre801c7e8d23d7479@mail.gmail.com>
+Subject: Re: FM transmitter support under v4l2?
+From: Trilok Soni <soni.trilok@gmail.com>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Tobias,
 
-Just in case you're having troubles getting the patches, heres a tarball with all of them:
+On Sat, Nov 29, 2008 at 7:36 PM, Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
+> Hi Trilok,
+>
+>> Anybody working on FM transmitter related drivers support under v4l2?
+>
+>> If no, what parts of v4l2 which could be tweaked in right order to
+>
+>> support such devices? I see that SI471x series seem to have FM
+>
+>> transmitters too.
+>
+> right, there are several Si47xx series:
+>
+> Si470x: receivers only
+>
+> Si471x: transmitter only
 
-https://omapzoom.org/gf/download/docmanfileversion/51/959/l-o_cam_patches_2009_01_12.tar.bz2
+FYI..now maemo kernel team seems to have written Si4713 FM transmitter
+driver interfaced over I2C. It is available in the kernel diff here.
 
-I appreciate your time,
-Sergio
+http://repository.maemo.org/pool/maemo5.0/free/k/kernel/kernel_2.6.27-20084805r03.diff.gz
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> Sent: Monday, January 12, 2009 8:03 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com; Sakari
-> Ailus; Tuukka.O Toivonen; Nagalla, Hari
-> Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
-> v2
-> 
-> Hi,
-> 
-> I'm sending the following patchset for review to the relevant lists
-> (linux-omap, v4l, linux-media).
-> 
-> Includes:
->  - Omap3 camera core + ISP drivers.
->  - MT9P012 sensor driver (adapted to 3430SDP)
->  - DW9710 lens driver (adapted to work with MT9P012 for SDP)
->  - Necessary v4l2-int-device changes to make above drivers work
->  - Redefine OMAP3 ISP platform device.
->  - Review comments fixed from: (Thanks a lot for their time and help)
->    - Hans Verkuil
->    - Tony Lindgreen
->    - Felipe Balbi
->    - Vaibhav Hiremath
->    - David Brownell
-> 
-> Some notes:
->  - Uses v4l2-int-device solution.
->  - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
->  - Applies cleanly on top of commit
-> 0ec95b96fd77036a13398c66901e11cd301190d0 by Jouni Hogander (OMAP3: PM:
-> Emu_pwrdm is switched off by hardware even when sdti is in use)
->  - ISP wrappers dropped from the patchset, as a rework is going on
-> currently.
-> 
-> 
-> I appreciate in advance your time.
-> 
-> Regards,
-> Sergio
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please download and unzip it and search for
 
+radio-si4713.c
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
