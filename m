@@ -1,23 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail11.syd.optusnet.com.au ([211.29.132.192])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lindsay.mathieson@gmail.com>) id 1LRQCv-0004nA-QY
-	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 13:04:51 +0100
-Received: from blackpaw.dyndns.org (c122-108-213-22.rochd4.qld.optusnet.com.au
-	[122.108.213.22]) (authenticated sender lindsay.mathieson)
-	by mail11.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	n0QC4evR000722
-	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 23:04:41 +1100
-Received: from lindsay-desktop.localnet (unverified [192.168.0.183])
-	by blackpaw.dyndns.org (SurgeMail 4.0a) with ESMTP id 316-1769969
-	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 22:04:40 +1000
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+f81c9f6d5612c94c69b1+1968+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1LMQt8-0007Vg-8Q
+	for linux-dvb@linuxtv.org; Mon, 12 Jan 2009 18:47:46 +0100
+Date: Mon, 12 Jan 2009 15:47:05 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 To: linux-dvb@linuxtv.org
-From: Lindsay Mathieson <lindsay.mathieson@gmail.com>
-Date: Mon, 26 Jan 2009 22:04:42 +1000
-MIME-Version: 1.0
-Message-Id: <200901262204.42649.lindsay.mathieson@gmail.com>
-Subject: [linux-dvb] Dual Tuner Devices and udev rules
-Reply-To: linux-media@vger.kernel.org
+Message-ID: <20090112154705.64d9d4ab@pedra.chehab.org>
+Mime-Version: 1.0
+Subject: [linux-dvb] Fw: Introduction
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,125 +17,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0956029047=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0956029047==
-Content-Type: multipart/signed;
-  boundary="nextPart2647435.9Ors2znfC4";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Forwarding the message, since my other account is not subscribed at the dvb users mailing list.
 
---nextPart2647435.9Ors2znfC4
-Content-Type: multipart/alternative;
-  boundary="Boundary-00=_abafJ+/iZ4As/qA"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
---Boundary-00=_abafJ+/iZ4As/qA
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-
-The problem I have with any dual tuner device is that there is no way to=20
-differentiate between tuner 0 and tuner 1 when writing a rule, which=20
-consequently makes it impossible to write udev rules for such devices.
-
-Would it be possible for the driver to add an attribute that differentiates=
-=20
-between the tuners on a device? e.g something like:
-  ATTRS(tuner)=3D=3D"0"
-  ATTRS(tuner)=3D=3D"1"
-
-=46ailing that, is there something clever about udev rules I'm missing?
-
-Thanks - Lindsay
-
-=2D-=20
-Lindsay Mathieson
-http://blackpaw.jalbum.net/home
+Forwarded message:
 
 
+On Mon, 12 Jan 2009 07:33:19 -0800 (PST)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
---Boundary-00=_abafJ+/iZ4As/qA
-Content-Type: text/html;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+> Mauro,
+>  
+> My name is Uri Shkolnik, I work at Siano Mobile Silicon as a software architect.
+>  
+> I tried to get in touch with you lately, but I had probably used the wrong email address, so forgive me for contacting by replying to a post of yours to the one of the LinuxTV mailing lists...  
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-=
-html40/strict.dtd"><html><head><meta name=3D"qrichtext" content=3D"1" /><st=
-yle type=3D"text/css">p, li { white-space: pre-wrap; }</style></head><body =
-style=3D" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-=
-style:normal;"><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:=
-0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">The problem I =
-have with any dual tuner device is that there is no way to </p><p style=3D"=
- margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-=
-block-indent:0; text-indent:0px;">differentiate between tuner 0 and tuner 1=
- when writing a rule, which </p><p style=3D" margin-top:0px; margin-bottom:=
-0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px=
-;">consequently makes it impossible to write udev rules for such devices.</=
-p><p style=3D"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; =
-margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><b=
-r></p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0px; marg=
-in-right:0px; -qt-block-indent:0; text-indent:0px;">Would it be possible fo=
-r the driver to add an attribute that differentiates </p><p style=3D" margi=
-n-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-=
-indent:0; text-indent:0px;">between the tuners on a device? e.g something l=
-ike:</p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0px; ma=
-rgin-right:0px; -qt-block-indent:0; text-indent:0px;">  ATTRS(tuner)=3D=3D"=
-0"</p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0px; marg=
-in-right:0px; -qt-block-indent:0; text-indent:0px;">  ATTRS(tuner)=3D=3D"1"=
-</p><p style=3D"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px=
-; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">=
-<br></p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0px; ma=
-rgin-right:0px; -qt-block-indent:0; text-indent:0px;">Failing that, is ther=
-e something clever about udev rules I'm missing?</p><p style=3D"-qt-paragra=
-ph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-r=
-ight:0px; -qt-block-indent:0; text-indent:0px;"><br></p><p style=3D" margin=
-=2Dtop:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block=
-=2Dindent:0; text-indent:0px;">Thanks - Lindsay</p><p style=3D"-qt-paragrap=
-h-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-ri=
-ght:0px; -qt-block-indent:0; text-indent:0px;"><br></p><p style=3D" margin-=
-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-in=
-dent:0; text-indent:0px;">-- </p><p style=3D" margin-top:0px; margin-bottom=
-:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0p=
-x;">Lindsay Mathieson</p><p style=3D" margin-top:0px; margin-bottom:0px; ma=
-rgin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">http=
-://blackpaw.jalbum.net/home</p><p style=3D"-qt-paragraph-type:empty; margin=
-=2Dtop:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block=
-=2Dindent:0; text-indent:0px;"><br></p><p style=3D"-qt-paragraph-type:empty=
-; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt=
-=2Dblock-indent:0; text-indent:0px;"><br></p></body></html>
---Boundary-00=_abafJ+/iZ4As/qA--
+No problem, but I suspect you're suffering some troubles on your anti-spam
+filters. I've already answered to you twice on your previous emails, from my
+infradead.org account.
 
---nextPart2647435.9Ors2znfC4
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+> Siano develops DTV chip-sets (multi-standards, multi-interfaces) which are used by Siano's many customers and partners.
+> Couple of years ago, our Linux support was minimal, but that situation has changed, and proximately a year ago, we started to get more an more demand for Linux kernel support, and we started to offer a minimal set of drivers.
+>  
+> At the beginning, we used the excellent services given to us by Michael Krufky, and actually everything we want to publish went through him.
+>  
+> Recently, the number of Siano-based Linux projects and products increased significantly. 
+>  
+> With the fast growing number of customers and projects, the number of additional interfaces, DTV standards and changes fast growth we needed a different approach.
+>  
+> On mid-November, we took the second approach which is suggested at the README.patches file, and submitted the patches to the linux-dvb mailing list, till today, except some people who took those patches and apply them locally on their systems, nothing has been done with those patches, and the main mercurial tree has not been updated with them.  
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+The current way we work is that we have some driver maintainers. The driver
+maintainer is responsible for picking the patch at the mailing lists and apply
+on their trees, after their review. They then ask me to pull from your trees.
 
-iEYEABECAAYFAkl9ptoACgkQNbLM9wS4sYfIggCeLq9g5z/03CjTkKL+N2tJYeG0
-/Z4An1YdsGjc/ROM7I1cz2lMrPnf3TeU
-=LTmY
------END PGP SIGNATURE-----
+This year, we've made one change: now, the patches should be sent to
+linux-media@vger.kernel.org. This mailing list is monitored by a robot that
+picks the patches and add they at a database. the database can be accessed
+publicly via http://patchwork.kernel.org. This way, people can check each
+patches. This will also help me to have more control of patches that were lost
+in the mailing lists.
 
---nextPart2647435.9Ors2znfC4--
+>From my view, as the subsystem maintainer, I prefer to get the patches directly
+from the manufacturer, of course provided that the manufacturer actively
+maintains the driver and understands the development model used on Kernel.
+
+> The current state is that a huge gap has been opened between the LinuxTV repository (and from it to the Linux kernel git) offering and what we have at Siano.
+>  
+> We would like to close this gap ASAP and maintain an on-going, easy synchronizing process.
+>  
+> It seems that the best method to archive this goal is to have maintainer permissions on media/dvb/siano directory.  
+
+There are two ways for us to work to archive the goal to minimize the gap:
+
+1) you may send the patches via linux-media@vger.kernel.org, c/c me on they;
+
+2) you may create a Mercurial tree for you. From time to time, you sync your
+tree with the development one, add your patches there and ask me to pull. It
+would be better if you could host the tree on some site from you. If you can't
+do it, we may create you an account at linuxtv.org.
+
+If the volume of updates by month is not big, (1) may work better. It also
+allows a better patch review from the community, so, it is currently the
+preferred way.
+
+Michael,
+Please let me know if you have any objections on having the Siano developers
+sending us their patches directly.
+
+-- 
+
+Cheers,
+Mauro
 
 
---===============0956029047==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0956029047==--
