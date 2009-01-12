@@ -1,112 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4100 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753339AbZASTNA (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.31]:11655 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424AbZALAxo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2009 14:13:00 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0JJCwcl018981
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 19 Jan 2009 20:12:59 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 19 Jan 2009 20:12:58 +0100 (CET)
-Message-Id: <200901191912.n0JJCwcl018981@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 11 Jan 2009 19:53:44 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so3339058ywe.1
+        for <linux-media@vger.kernel.org>; Sun, 11 Jan 2009 16:53:43 -0800 (PST)
+Message-ID: <496A9485.7060808@gmail.com>
+Date: Sun, 11 Jan 2009 19:53:25 -0500
+From: Josh Borke <joshborke@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Subject: KWorld ATSC 115 all static
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+After upgrading to Fedora 10 I am no longer able to tune analog or dvb 
+channels using my KWorld ATSC 115. When I try to view a channel with 
+tvtime all I can see is static and when I try to scandvb I keep getting 
+tuning failed even though I know that there are channels being broadcast 
+on the channels scanned. I have tried to find tips on the wiki of how to 
+resolve my static problem but I could not find any. I'm not sure where 
+to look for clues as to why it isn't working.
 
-Results of the daily build of v4l-dvb:
+I have a 1-to-4 splitter with 2 outputs going to the inputs of the 
+KWorld ATSC and another going to a TV so I know there is signal on the 
+cable.
 
-date:        Mon Jan 19 19:00:07 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10265:f4d7d0b84940
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Any help would be really appreciated.
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc2-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc2-armv5-ixp: WARNINGS
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc2-armv5-omap2: OK
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc2-i686: OK
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc2-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc2-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc2-powerpc64: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc2-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc2): ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Thanks,
+-josh
