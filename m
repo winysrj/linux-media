@@ -1,17 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <sinter.mann@gmx.de>) id 1LJ016-00067n-4A
-	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 07:29:50 +0100
-From: sinter <sinter.mann@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sat, 3 Jan 2009 07:30:01 +0100
-References: <ecc841d80901022041w72031858pc9b7bf6b6cb199fb@mail.gmail.com>
-In-Reply-To: <ecc841d80901022041w72031858pc9b7bf6b6cb199fb@mail.gmail.com>
+Message-ID: <496AE0C0.40407@sandeen.net>
+Date: Mon, 12 Jan 2009 00:18:40 -0600
+From: Eric Sandeen <sandeen@sandeen.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200901030730.01644.sinter.mann@gmx.de>
-Subject: Re: [linux-dvb] Is it possible to view digital teletext
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <e816454e0812180809h59d1b75q470f34b438b91ff7@mail.gmail.com>
+	<494A7DC7.60903@linuxtv.org>
+In-Reply-To: <494A7DC7.60903@linuxtv.org>
+Subject: Re: [linux-dvb] HVR 2250 Status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,44 +21,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Samstag 03 Januar 2009 05:41:37 schrieb Mike Martin:
-> Does anyone know if it is possible to view dvb teletext through linux
->
-> After extensive googling I cant seem to find anything. Not even sure
-> if i am getting the right pid
->
-> Any help apreciated  (I am in the UK)
->
-> Thanks
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Steven Toth wrote:
+> Andrew Barbaccia wrote:
+>> I was wondering how the development on the HVR2250 was coming along. A 
+>> mythtv wiki page shows:
+> 
+> No progress, the development is on ice for the time being.
+> 
+> - Steve
 
-Hello Mike,
 
-There do in fact exist two alternatives to view DVB teletext using Linux:
+Steve, can you elaborate at all?  Is this an "abandon all hope" sort of
+on-ice or a "you'll all have to wait a bit longer" on-ice?  :)
 
-a. mtt
-b. alevt-dvb
-
-mtt is part of the xawtv pre 4.0 tarball which you can find here:
-http://dl.bytesex.org/cvs-snapshots/
-
-If you're interested in a Debian package or an extracted tarball please ask 
-me.
-
-alevt-dvb is a patched version of the former alevt for analogue TV.
-It also lies here as tarball and Debian package.
-In case of interest just ask.
-
-Cheers
-
-sinter
+Thanks,
+-Eric
 
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
