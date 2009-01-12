@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
+Received: from killer.cirr.com ([192.67.63.5] ident=postfix)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <d.dalton@iinet.net.au>) id 1LPvrp-00054f-En
-	for linux-dvb@linuxtv.org; Thu, 22 Jan 2009 10:28:54 +0100
-Date: Thu, 22 Jan 2009 20:28:44 +1100
-From: Daniel Dalton <d.dalton@iinet.net.au>
+	(envelope-from <afc@shibaya.lonestar.org>) id 1LMDpu-0002C0-Fk
+	for linux-dvb@linuxtv.org; Mon, 12 Jan 2009 04:51:36 +0100
+Received: from afc by tashi.lonestar.org with local (Exim 4.69)
+	(envelope-from <afc@shibaya.lonestar.org>) id 1LMDoj-00045F-Fi
+	for linux-dvb@linuxtv.org; Sun, 11 Jan 2009 22:50:21 -0500
+Date: Sun, 11 Jan 2009 22:50:21 -0500
+From: "A. F. Cano" <afc@shibaya.lonestar.org>
 To: linux-dvb@linuxtv.org
-Message-ID: <20090122092844.GB14123@debian-hp.lan>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
-	<20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi>
-	<20090121003915.GA6120@debian-hp.lan> <4977088F.5080505@iki.fi>
+Message-ID: <20090112035021.GA13897@shibaya.lonestar.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <4977088F.5080505@iki.fi>
-Subject: Re: [linux-dvb] getting started with msi tv card
-Reply-To: linux-media@vger.kernel.org
+Subject: [linux-dvb] OnAir creator seems to be recognized,
+	but what device is what?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,21 +27,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > plugging my usb receiver into a tv connection in my home which a
-> > standard tv would plug into.
-> > 
-> > Any ideas?
-> 
-> I think the problem is poor QT1010 tuning performance. You cannot do 
-> much for that now. I recommended to get other stick.
+Hello again,
 
-What model/brand tv card would you recommend me to buy?
-(that is reasonably cheap, doesn't have to do anything fancy). An fm
-radio tuner would also be nice...
+I've been trying to make the OnAir creator work.  So far it hasn't been
+easy but I'm making some progress.  Pvrusb2 told me in the log file that
+a firmware file was missing, so I went looking for it by name.  After
+a convoluted procedure extracting windows-centric files and renaming the
+proper one to v4l-cx2341x-enc.fw I put it in /lib/modules and did away with
+the missing firware message.  Dvbusb2 seems to recognize the device ok.
+In fact it seems to create
 
-Have a good one,
+/dev/dvb/adapter0/demux0
+/dev/dvb/adapter0/dvr0
+/dev/dvb/adapter0/frontend0
+/dev/dvb/adapter0/net0
 
-Daniel
+And I also see /dev/video0
+
+But what do those devices represent?  Is /dev/video0 the analog tuner?
+is /dev/dvb/adapter0/dvr0 the digital tuner?  What are the others?
+I have been trying to configure mythtv but have no idea what to tell it
+about this device.  The mythtv docs say that if you  have a card with 2
+tuners, define it as a DVB.  But, mythtv-setup identifies it correcly
+(by name) as an analog card /dev/video0, if I set it up as a DVB it claims
+it is a DVICO or Air2PC or...  It does not seem to know about the /dev/dvb
+devices.  Do I need to configure the OnAir Creator as 1 or 2 devices?
+
+Can someone tell me a quick and easy way to test the device? maybe with
+mplayer?  I have an analog camera connected to the composite input, so
+even if I don't get any channels with the rabbit ears and loop antenna,
+that should work as a test.
+
+I have posted the higher level questions to the mythtv mailing list, but
+no answers yet.  Any hints would be welcome.
+
+A.
+
 
 _______________________________________________
 linux-dvb users mailing list
