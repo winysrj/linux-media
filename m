@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EJJBpn027158
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 14:19:11 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0EJIlWt010383
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 14:18:47 -0500
-Received: by ewy14 with SMTP id 14so796543ewy.3
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 11:18:46 -0800 (PST)
-Message-ID: <b24e53350901141118h5e969j36b796245e646461@mail.gmail.com>
-Date: Wed, 14 Jan 2009 14:18:46 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0DAMBAI000755
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 05:22:11 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0DALtwR001331
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 05:21:55 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
 To: video4linux-list@redhat.com
-In-Reply-To: <b24e53350901141117h79f900b8t3fc28c10b4a12bb9@mail.gmail.com>
+Date: Tue, 13 Jan 2009 11:21:48 +0100
+References: <96DA7A230D3B2F42BA3EF203A7A1B3B5011DA52650@dlee07.ent.ti.com>
+In-Reply-To: <96DA7A230D3B2F42BA3EF203A7A1B3B5011DA52650@dlee07.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <b24e53350901141020s5dbe45b5g42f1d5c3e7a81b40@mail.gmail.com>
-	<b24e53350901141117h79f900b8t3fc28c10b4a12bb9@mail.gmail.com>
-Subject: [PATCH 2/4] em28xx: Clock (XCLK) Cleanup
+Message-Id: <200901131121.49067.laurent.pinchart@skynet.be>
+Cc: "Curran, Dominic" <dcurran@ti.com>
+Subject: Re: Questions about V4L2_CID_FOCUS_RELATIVE ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,52 +30,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-em28xx: Clock (XCLK) Cleanup
+Hi Dominic,
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
+On Tuesday 13 January 2009, Curran, Dominic wrote:
+> hi
+> As I understand there are basically two types of lens driver.
+>
+> To get/set the lens position they use either:
+> V4L2_CID_FOCUS_ABSOLUTE
+> Or
+> V4L2_CID_FOCUS_RELATIVE
+>
+> Does anyone have an example of a lens driver that uses
+> V4L2_CID_FOCUS_RELATIVE ?
 
-Clock (XCLK) Cleanupt
+I'm not aware of any such device.
 
-Priority: normal
+> I am having difficulty understanding how this ioctl ID is used...
+>
+> - I assume that the VIDIO_G_CTRL ioctl does not make sense for an
+> id=V4L2_CID_FOCUS_RELATIVE. Correct ?
 
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+That's correct.
 
-diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-core.c
---- a/linux/drivers/media/video/em28xx/em28xx-core.c    Wed Jan 14
-10:06:12 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-core.c    Wed Jan 14
-12:47:00 2009 -0500
-@@ -424,7 +424,7 @@
+> - When using VIDIO_S_CTRL ioctl with id= V4L2_CID_FOCUS_RELATIVE.
+>   I assume that the 'value' field passed down in struct v4l2_control is
+> used to determine the direction the lens should move: i.e. +ve value = move
+> 'value' steps in infinity direction
+>      -ve value = move 'value' steps in macro direction
+>   Does this seem correct ?
 
-     xclk = dev->board.xclk & 0x7f;
-     if (!dev->mute)
--               xclk |= 0x80;
-+               xclk |= EM28XX_XCLK_AUDIO_UNMUTE;
+Quoting the V4L2 specification,
 
-     ret = em28xx_write_reg(dev, EM28XX_R0F_XCLK, xclk);
-     if (ret < 0)
-@@ -437,6 +437,10 @@
-     /* Sets volume */
-     if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
-             int vol;
-+
-+               em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
-+               em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
-+               em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
+"This control moves the focal point of the camera by the specified amount. The 
+unit is undefined. Positive values move the focus closer to the camera, 
+negative values towards infinity."
 
-             /* LSB: left channel - both channels with the same level */
-             vol = (0x1f - dev->volume) | ((0x1f - dev->volume) << 8);
+Best regards,
 
-
-
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+Laurent Pinchart
 
 --
 video4linux-list mailing list
