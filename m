@@ -1,70 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:2231 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076AbZA1CpO (ORCPT
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:61456 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290AbZAMXCO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 21:45:14 -0500
-Message-ID: <497FC6AD.5020609@linuxtv.org>
-Date: Tue, 27 Jan 2009 21:45:01 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
+	Tue, 13 Jan 2009 18:02:14 -0500
+Received: by qyk4 with SMTP id 4so349641qyk.13
+        for <linux-media@vger.kernel.org>; Tue, 13 Jan 2009 15:02:12 -0800 (PST)
+Message-ID: <412bdbff0901131502g12d62917ka4fbebf7b74c6579@mail.gmail.com>
+Date: Tue, 13 Jan 2009 18:02:12 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Bastian Beekes" <bastian.beekes@gmx.de>
+Subject: Re: MSI DigiVox A/D II
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <496D1C18.3010403@gmx.de>
 MIME-Version: 1.0
-To: Christoph Pfister <christophpfister@gmail.com>
-CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dallas Texas ATSC scan file
-References: <COL108-W41AFFE7632E1F6055B53F8D9CC0@phx.gbl> <19a3b7a80901270915k21729403w1f2f9be019ae9112@mail.gmail.com>
-In-Reply-To: <19a3b7a80901270915k21729403w1f2f9be019ae9112@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <S1755369AbZAMWYU/20090113222421Z+45@vger.kernel.org>
+	 <496D1C18.3010403@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is just a small subset of the available frequencies where we may 
-find ATSC services.
-
-Although this may be helpful for people scanning in Dallas, TX today, it 
-will cause problems when the services move to other frequencies.  This 
-will only scan a very limited range of frequencies, so naturally, it 
-will be much quicker, but you might miss some services.
-
-Users should use the file, "us-ATSC-center-frequencies-8VSB" , which 
-contains all of the frequencies below, along with the full frequency 
-table for ATSC, from channels 2 through 69.
-
-I wouldn't commit this file, for the same very reason that I deleted the 
-TWCNYC file.
-
-Regards,
-
-Mike
-
-Christoph Pfister wrote:
-> Mike,
+On Tue, Jan 13, 2009 at 5:56 PM, Bastian Beekes <bastian.beekes@gmx.de> wrote:
+> Hi everybody,
 >
-> Can I have your $0.02, please?
+> I got a MSI DigiVox A/D II and am running Ubuntu 8.04.
+> I got picture working with the drivers from http://linuxtv.org/hg/v4l-dvb
+>  , but I don't have sound.
 >
-> Thanks,
+> This device already worked with the em28xx-drivers from mcentral.de, but I
+> had to manually load snd-usb-audio and em28xx-audio. The problem is, I don't
+> have the em28xx-audio module.
+> I see a souce-file in /v4l-dvb/linux/drivers/media/video/em28xx for
+> em28xx-audio, so how do I build it?
 >
-> Christoph
+> btw, my usb-id is eb1a:e323, so it is recognized as Kworld VS-DVB-T 323UR ,
+> but it in fact is a MSI DigiVox A/D II...
 >
-> 2009/1/24 Jorge Canas <jcanas2000@hotmail.com>:
->   
->> # DALLAS TX ATSC center frequencies, use if in doubt
->>
->> A 189028615 8VSB
->> A 473028615 8VSB
->> A 497028615 8VSB
->> A 503028615 8VSB
->> A 533028615 8VSB
->> A 569028615 8VSB
->> A 581028615 8VSB
->> A 599028615 8VSB
->> A 605028615 8VSB
->> A 629028615 8VSB
->> A 635028615 8VSB
->> A 641028615 8VSB
->> A 659028615 8VSB
->> A 665028615 8VSB
->> A 677028615 8VSB
->> A 695028615 8VSB
->>     
+> thanks for your help,
+> Bastian
 
+Ubuntu screwed up their build process in 8.04 so that none of the
+v4l-dvb "-audio" modules would get built.  The issue was fixed in
+8.10.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
