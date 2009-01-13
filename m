@@ -1,50 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:37088 "EHLO smtp2-g21.free.fr"
+Received: from smtpi2.ngi.it ([88.149.128.21]:57254 "EHLO smtpi2.ngi.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751856AbZAMTm1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2009 14:42:27 -0500
-Date: Tue, 13 Jan 2009 20:33:20 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Roland Graf <roland.graf@alice.it>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Problem with driver for  0ac8:301b Z-Star Microelectronics
- Corp. ZC0301 WebCam
-Message-ID: <20090113203320.0b35816a@free.fr>
-In-Reply-To: <200901132058.22336.roland.graf@alice.it>
-References: <200901132058.22336.roland.graf@alice.it>
-Mime-Version: 1.0
+	id S1753322AbZAMUna (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jan 2009 15:43:30 -0500
+Message-ID: <496CFCE5.1020907@robertoragusa.it>
+Date: Tue, 13 Jan 2009 21:43:17 +0100
+From: Roberto Ragusa <mail@robertoragusa.it>
+MIME-Version: 1.0
+To: Detlef Rohde <rohde.d@t-online.de>
+CC: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] MC44S803 frontend (it works, please merge)
+References: <4936FF66.3020109@robertoragusa.it> <494C0002.1060204@scram.de>	<49623372.90403@robertoragusa.it> <4965327A.5000605@t-online.de> <496CD4C8.50004@t-online.de>
+In-Reply-To: <496CD4C8.50004@t-online.de>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 13 Jan 2009 20:58:22 +0100
-Roland Graf <roland.graf@alice.it> wrote:
+Detlef Rohde wrote:
+> Hi again,
+> I wonder if there is any progress including/merging the frontend-driver 
+> MC44S803 i.o. to get my Cinergy T USB XE running under Linux? Currently 
+> I can use it on a WXP-VM, but I guess it's not the best solution making 
+> this detour..
 
-> Dear Gentlemen,
+I'm even more impatient than you.
 
-Hello Roland,
+Why is it so difficult to merge a little and isolated piece of code which
+has been reported as both working and useful?
 
-> I'm using the v4l-dvb driver with Kernel Version 22.6.26. 
-> 
-> Connecting the camera 0ac8:301b Z-Star Microelectronics Corp. ZC0301
-> WebCam the driver for the camera is loaded correctly, but the
-> sensorchip is not recognized.
-	[snip]
-> Installing v4l-dvb and gspcav1 doesn't work because these packages
-> don't work together.
-> 
-> Is there some workaround for this Problem?
+I don't know how many trees this code has to be propagated through,
+but I'm afraid it will be a long time before I see support for this
+hardware in a stock Fedora kernel. Maybe the hardware could be
+considered obsolete by then.
 
-gspca v1 is not maintained anymore, and gspca v2 is included in
-v4l-dvb.
+Isn't one of the expected advantages of the free software +
+public mailing lists + user testing + git repositories
+model to have a fast pace of development?
 
-Normally, in v4l-dvb, the zc0301 driver should not handle your webcam.
-Did you think to remove its module from /lib/modules/...? Also, don't
-forget to generate (and install) gspca and the zc3xx subdriver.
-
-Regards.
-
+Waiting and hoping.
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+   Roberto Ragusa    mail at robertoragusa.it
