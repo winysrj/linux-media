@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.177]:55527 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756279AbZAUEoE (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:55930 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755186AbZAMUTL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 23:44:04 -0500
+	Tue, 13 Jan 2009 15:19:11 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>
+Date: Tue, 13 Jan 2009 14:18:37 -0600
+Subject: Patch series in Tarball submitted (RE: [REVIEW PATCH 00/14] OMAP3
+ camera + ISP + MT9P012 sensor driver v2)
+Message-ID: <A24693684029E5489D1D202277BE8944164DF781@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894416429F96@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <20090120235048.4f7200f9@caramujo.chehab.org>
-References: <1232502038.3123.61.camel@localhost.localdomain>
-	 <20090120235048.4f7200f9@caramujo.chehab.org>
-Date: Wed, 21 Jan 2009 10:14:03 +0530
-Message-ID: <3f9a31f40901202044n73a100faj96a6f3d3973bcc25@mail.gmail.com>
-Subject: Re: Confusion in usr/include/linux/videodev.h
-From: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Sam Ravnborg <sam@ravnborg.org>, Ingo Molnar <mingo@elte.hu>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 21, 2009 at 7:20 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> On Wed, 21 Jan 2009 07:10:38 +0530
-> Jaswinder Singh Rajput <jaswinder@kernel.org> wrote:
->
->> usr/include/linux/videodev.h is giving 2 warnings in 'make headers_check':
->>  usr/include/linux/videodev.h:19: leaks CONFIG_VIDEO to userspace where it is not valid
->>  usr/include/linux/videodev.h:314: leaks CONFIG_VIDEO to userspace where it is not valid
->>
->> Whole file is covered with #if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
->>
->> It means this file is only valid for kernel mode if CONFIG_VIDEO_V4L1_COMPAT is defined but in user mode it is always valid.
->>
->> Can we choose some better alternative Or can we use this file as:
->>
->> #ifdef CONFIG_VIDEO_V4L1_COMPAT
->> #include <linux/videodev.h>
->> #endif
->
-> This is somewhat like what we have on audio devices (where there are OSS and ALSA API's).
->
-> V4L1 is the old deprecated userspace API for video devices. It is still
-> required by some userspace applications. So, on userspace, it should be
-> included. Also, this allows that one userspace app to be compatible with both
-> V4L2 API (the current one) and the legacy V4L1 one.
->
-> It should be noticed that are still a few drivers using the legacy API yet to
-> be converted.
->
+Hi all,
 
-If you have no objections then I will make a patchset which do followings:
-1. Remove  #if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined
-(__KERNEL__) from include/linux/videodev.h
-2. cover all #include <linux/videodev.h> with #ifdef
-CONFIG_VIDEO_V4L1_COMPAT in kernel
+Just in case you're having troubles getting the patches, heres a tarball with all of them:
 
-By this way, we can satisfy both kernel space and userspace issue and
-also get rid of above warnings.
+https://omapzoom.org/gf/download/docmanfileversion/51/959/l-o_cam_patches_2009_01_12.tar.bz2
 
-If you have better suggestion then let me know.
+I appreciate your time,
+Sergio
 
-Thanks,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
+> Sent: Monday, January 12, 2009 8:03 PM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com; Sakari
+> Ailus; Tuukka.O Toivonen; Nagalla, Hari
+> Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
+> v2
+> 
+> Hi,
+> 
+> I'm sending the following patchset for review to the relevant lists
+> (linux-omap, v4l, linux-media).
+> 
+> Includes:
+>  - Omap3 camera core + ISP drivers.
+>  - MT9P012 sensor driver (adapted to 3430SDP)
+>  - DW9710 lens driver (adapted to work with MT9P012 for SDP)
+>  - Necessary v4l2-int-device changes to make above drivers work
+>  - Redefine OMAP3 ISP platform device.
+>  - Review comments fixed from: (Thanks a lot for their time and help)
+>    - Hans Verkuil
+>    - Tony Lindgreen
+>    - Felipe Balbi
+>    - Vaibhav Hiremath
+>    - David Brownell
+> 
+> Some notes:
+>  - Uses v4l2-int-device solution.
+>  - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
+>  - Applies cleanly on top of commit
+> 0ec95b96fd77036a13398c66901e11cd301190d0 by Jouni Hogander (OMAP3: PM:
+> Emu_pwrdm is switched off by hardware even when sdti is in use)
+>  - ISP wrappers dropped from the patchset, as a rework is going on
+> currently.
+> 
+> 
+> I appreciate in advance your time.
+> 
+> Regards,
+> Sergio
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---
-JSR
