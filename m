@@ -1,28 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n05KhBox017686
-	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 15:43:11 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n05Kgwkv018058
-	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 15:42:58 -0500
-Received: by ewy14 with SMTP id 14so8353758ewy.3
-	for <video4linux-list@redhat.com>; Mon, 05 Jan 2009 12:42:58 -0800 (PST)
-Message-ID: <4389ffee0901051242x7592b175n49a2af7fa2216211@mail.gmail.com>
-Date: Mon, 5 Jan 2009 21:42:57 +0100
-From: "Jens Bongartz" <bongartz@gmail.com>
-To: "Paul Thomas" <pthomas8589@gmail.com>
-In-Reply-To: <c785bba30901051020n27f61e4fje5717092169bbde2@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0DJef6u011982
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 14:40:42 -0500
+Received: from out1.laposte.net (out2.laposte.net [193.251.214.119])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0DJeRlu023344
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 14:40:28 -0500
+Received: from meplus.info (localhost [127.0.0.1])
+	by mwinf8216.laposte.net (SMTP Server) with ESMTP id 331A97000087
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 20:40:27 +0100 (CET)
+Received: from wwinf8216 (lbao93aubmepnpf001-182-pip.meplus.info [10.98.49.10])
+	by mwinf8216.laposte.net (SMTP Server) with ESMTP id 12E0A7000085
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 20:40:27 +0100 (CET)
+From: Olivier Lorin <o.lorin@laposte.net>
+To: video4linux-list@redhat.com
+Message-ID: <17868849.303177.1231875627056.JavaMail.www@wwinf8216>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <4389ffee0812310817m64b4c2bar56d8b35be06fe0f2@mail.gmail.com>
-	<200901040102.37947.laurent.pinchart@skynet.be>
-	<4389ffee0901041522n2fab030andc82e9fb9565524@mail.gmail.com>
-	<c785bba30901051020n27f61e4fje5717092169bbde2@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Testing Requested: Python Bindings for Video4linux2
+Date: Tue, 13 Jan 2009 20:40:27 +0100 (CET)
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Subject: Re:RFC: Where to store camera properties (upside down, needs sw
+ whitebalance, etc). ?
+Reply-To: Olivier Lorin <o.lorin@laposte.net>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,180 +32,102 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Paul,
+Hi!
 
-thanks for your help.
-I am quite new to gcc compiling. I just used the commands I found in
-the internet for compiling shared libraries.
-
-First I compile my shared library:
-
-gcc -fPIC -DPIC -c pyuvccapture_3.c
-
-then the modified v4l2uvc.c:
-
-gcc -fPIC -DPIC -c v4l2uvc.c
-
-to create pyuvccapture_3.o and v4l2uvc.o
-
-Then I link it togehter:
-
-gcc -shared -o libpyuvc_3.so.1.0 -Wl, -soname, libpyuvc_3.s.o.1
-pyuvccapture_3.o v4l2uvc.o
-
-Did I used wrong compiler options for v4l2.c? For NB_BUFEER = 16 it
-works this way.
-
-I appreciate your help.
-
-Thanks,
-Jens
-
-
-
-2009/1/5 Paul Thomas <pthomas8589@gmail.com>:
-> Jens,
+> We came to the conclusion that having a table in the kernel only for the
+> purpose of userspace being able to query it, is not very efficient, and i=
+n
+> general is not a good idea.
 >
-> I'd give it a try. Can you include a make file or tell me compile command?
+> So for the table of upside down webcam's we came to the following conclus=
+ion:
+> -if the driver can do the rotation itself (in hw) then the table should b=
+e in
+> the driver and it should invert the meaning of its hflip and vflip contro=
+ls,
+> (iow off is flip, on is do not flip) so that usserspace won't notice the =
+cam
+> being upside down in anyway
+> -if the driver can not do the rotation libv4l will do it, and the table o=
+f cams
+> which need this (such as certain uvc models) will be part of libv4l
 >
-> thanks,
-> Paul
+> So I started thinking about my proposal to add read-only controls (CID's)=
+ to
+> drivers which libv4l can query to find out if it would be a good idea to =
+do
+> things like software white balance for a cam.
 >
-> 2009/1/4 Jens Bongartz <bongartz@gmail.com>:
->> Dear Laurent, dear Jackson,
->>
->> thanks for your reply to my request.
->> I don't want to impose on you but maybe you are interested in my
->> findings. To get a better impression of my intention I attached a
->> brief description of my just started "FB-Py-Vision" project.
->>
->> Form the source-code of uvccapture-0.5 I derived a shared library to
->> get access to the webcam from python using ctypes (file attached
->> "pycapture_03.c"). Please show mercy to me, I am not a C-expert. To
->> get continous grabbing I seperated init_videoIn(), uvcGrab() and
->> close() in different functions. I discovered that init_videoIn() /
->> free(videoIn) on every uvcGrab() is very time consuming and not
->> suitable for high framerates.
->> The functions I wrote are quite fixed and unflexible because right now
->> I am only interested in luminance/YUV with 640 by 480. The
->> corresponding python-program is also attached. ('python_capture.py')
->>
->> Now something interesting appears: Grabbing the luminance images works
->> without problems (high frame rate). When I switch to the contour-mode
->> the python image processing workload is higher and the uvcGrab() calls
->> are fewer. For a short period the framerate slows down but after a few
->> seconds recovers but now with a delay between captured and displayed
->> images of around 4 seconds. Very curious! When I switch back to
->> "normal mode" the framerate speeds up (!) a short time and then
->> recovers again without a delay.
->>
->> I suppose this effect is a result of the weak VIA-CPU I use (see my
->> project-description). In general I don't mind if the framerate drops
->> when the image processing load rises but the problem is that I want to
->> process an actual image and not an image which is a few seconds old.
->> (I hope you understand what I mean).
->>
->> Furthermore I assume that the uvcvideo streaming mode plays also a
->> role. I suppose that the 16 v4l2_buffer becomes unsynchronised. But
->> when I decrease the NB_BUFFER constant of "v4l2uvc.h" everything
->> compiles flawless but on excecution I get a Segmentation fault with a
->> fatal error. Only NB_BUFEER = 16 works. Is this correct?
->>
->> What do you think? Do you have any hints for me, why I get this delay?
->>
->> Many thanks in advance.
->> Jens
->>
->>
->> 2009/1/4 Laurent Pinchart <laurent.pinchart@skynet.be>:
->>> HI Jens,
->>>
->>> On Wednesday 31 December 2008, Jens Bongartz wrote:
->>>> Hi everybody,
->>>>
->>>> I saw this thread recently and I am interested in this topic too.
->>>> I am using a Logitech Quickcam 9000 Pro with the uvcvideo driver. The
->>>> camera works properly with the uvccapture application.
->>>> I did some experiment with the python-video4linux2 bindings using the
->>>> python interactive mode. To be honest I am not really familiar with
->>>> v4l2.
->>>>
->>>> Here are my results:
->>>> >>> import pyv4l2
->>>> >>> cam = pyv4l2.Device('dev/video0')
->>>> >>> cam.EnumInput(0)
->>>>
->>>> ['Camera 1', 'camera', 0L, 0L, [], []]
->>>>
->>>> >>> cam.EnumFormats(1)
->>>>
->>>> [('MJPG', 'MJPEG'), ('YUYV', 'YUV 4 :2 :2 (YUYV)')]
->>>>
->>>> >>> cam.GetResolutions()
->>>>
->>>> [(320L, 240L), (640L, 480L), (800L, 600L)]
->>>>
->>>> >>> cam.QueryCaps()
->>>> >>> cam.driver
->>>>
->>>> 'uvcvideo'
->>>>
->>>> >>> cam.businfo
->>>>
->>>> '0000:00:10.1'
->>>>
->>>> >>> cam.card
->>>>
->>>> 'UVC Camera (046d:0990)'
->>>>
->>>> >>> cam.GetFormat()
->>>> >>> cam.format.width
->>>>
->>>> 800L
->>>>
->>>> >>> cam.format.height
->>>>
->>>> 600L
->>>>
->>>> >>> cam.format.pixelformat
->>>>
->>>> 'MJPEG'
->>>>
->>>> >>> cam.SetFormat()
->>>>
->>>> The Read() method works without an error message and the buffer is created.
->>>>
->>>> >>> cam.Read()
->>>> >>> cam.buffer
->>>>
->>>> <ctypes.c_char_Array_62933 object at 0xb7e5053c>
->>>>
->>>> But the camera seems not to react to the Read() call. The camera's LED
->>>> does not flash like using the uvccapture application and the buffer is
->>>> filled just with '\x00'. Am I doing something wrong?
->>>
->>> The read method is not supported by the uvcvideo driver. You should use the
->>> mmap video capture method.
->>>
->>>> As Laurent already mentioned the "d.SetStandard( d.standards['NTSC']
->>>> )" call creates an exception.
->>>> Any suggestions? I would be happy to this webcam work with python.
->>>
->>> Don't use the SetStandard function with UVC cameras :-). Or handle the
->>> exception and recover gracefully.
->>>
->>> Best regards,
->>>
->>> Laurent Pinchart
->>>
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
+> On second thought this is a bad idea for all the same reasons, having a t=
+able
+> in the kernel, just so that userspace can query it makes little sense. Be=
+tter
+> to just put the table in userspace.
 >
+> So this mail mainly is a retraction of my earlier proposal (instead I wil=
+l
+> completely handle this in libv4l). But there are 2 special cases libv4l w=
+ill
+> still need some userspace <-> kernel API for:
+>
+> 1) With some bridges it is common to not have a usbid per bridge / sensor
+> combi, but cams with the same usb-id can have different sensors (the driv=
+er
+> finds out which one by probing the i2c bus between the bridge and sensor)=
+.
+> Since things like whitebalance and autogain are often done in the sensor,
+> in these cases libv4l will need a way to find out the sensor (the bridge =
+it
+> can deduct from the usb-id). So we need a userspace API to query which
+> sensor a bridge is connected too.
+>
+> I would like to suggest to use one of the 4 reserved __u32's in the
+> v4l2_capability struct for this. We could then make a very large enum wit=
+h
+> all known sensors and store that there, but instead I would suggest to ma=
+ke
+> this a driver specific field, so v4l2_capability would then look like thi=
+s:
 
+I hope that "driver specific field" does not mean that the same bit may hav=
+e
+different meanings depending on the webcam!
+
+
+> 2) With some cams the upside down ness may actually be stored in an eepro=
+m, or
+> in some cases even determined by a switch (so the cam can be rotated
+> manually by the user and the the switch indicates the position)
+>
+> In these cases we need a userspace API to find this out too. Since this i=
+s a
+> per frame thing for some cams (one frame could be upright, the next upsid=
+e
+> down). I would like to suggest to define some V4L2_BUF_FLAG_ 's for this
+> which can be used by drivers to indicate that the picture in the buffer i=
+s
+> vflipped or hflipped (with upside down being both together).
+
+In the case of the Genesys webcams using the gl860 bridge,
+the upside down state is not really relevant per frame as
+there is some instabilities when it is as upside down as right up
+so that it is not usefull to check every image state
+(by the way it's not a switch but a kind gravity sensor).
+The V4L2_BUF_FLAG is a good idea as it matches better the image state purpo=
+se
+than the V4L2_CID, however it is not to be confused with the upside down se=
+nsor
+as in these cases, it is not usefull to check regularly the orientation of =
+the image
+so that V4L2_BUF_FLAG seems not to be as suitable as some v4L2 capability.
+For the read-only properties, to avoid to use the V4L2_CID seems to be quit=
+e logical as
+they may appear in the allowed settings on a webcam viewer GUI although the=
+y
+are not to be changed by the user.
+
+ Cr=C3=A9ez votre adresse =C3=A9lectronique prenom.nom@laposte.net=20
+ 1 Go d'espace de stockage, anti-spam et anti-virus int=C3=A9gr=C3=A9s.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
