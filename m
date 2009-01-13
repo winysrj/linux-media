@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+78812c0465fa576c722c+1958+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1LImbw-0005iC-B1
-	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 17:10:56 +0100
-Date: Fri, 2 Jan 2009 14:10:42 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Elio Voci <elio.voci@gmail.com>
-Message-ID: <20090102141042.19b98341@pedra.chehab.org>
-In-Reply-To: <1230901740.14839.15.camel@localhost>
-References: <1230901740.14839.15.camel@localhost>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] em28xx frontend does not attach
+Received: from moutng.kundenserver.de ([212.227.126.187])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <manuel.kampert@online.de>) id 1LMhEn-0003mD-VP
+	for linux-dvb@linuxtv.org; Tue, 13 Jan 2009 12:15:14 +0100
+Date: Tue, 13 Jan 2009 12:14:40 +0100 (CET)
+From: manuel.kampert@online.de
+To: linux-dvb@linuxtv.org
+Message-ID: <2099216668.935253.1231845280189.JavaMail.webmailer@webmail.1and1.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_935252_514028586.1231845280189"
+Subject: [linux-dvb] FreeX / NoZap CI Module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,50 +18,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 02 Jan 2009 14:09:00 +0100
-Elio Voci <elio.voci@gmail.com> wrote:
+------=_Part_935252_514028586.1231845280189
+Content-Type: multipart/alternative;
+	boundary="----=_Part_935250_2146952273.1231845280188"
 
-> Hello.
-> 
-> I have recently upgraded my Debian Lenny from kernel 2.6.25 to 2.6.26.
-> After this, I couldn't use my Cinergy Hybrid T USB XS (0ccd:0042).
-> Up to now I used the mcentral.de driver, now I would like to switch to
-> linuxtv driver.
-> 
-> Following the wiki "How to install DVB device drivers, and "How to build
-> drivers from Mercurial", I have cloned v4l-dvb. Make and install ran
-> smoothly.
-> I have generated the firmware from
-> http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip, Driver85/hcw85bda.sys
-> 
-> em28xx installed correctly, dvb frontend did not: zl10353_read_register
-> returned -19
-> Below the relevant dmesg section (em28xx modprobed with core_debug=1
-> 
-
-It is probably not that complicated for you to fix the Cinergy Hybrid entry at
-v4l-dvb.
-
-You'll need to use usbsnoop tool to capture what the original driver is doing
-[1]. 
-
-After that, you can parse the log and fix the initialization values for
-GPIO and GPO registers. You can also load em28xx with reg_dump=1 and parse the
-dmesg output with the em28xx parser, comparing to what the windows driver did.
-
-[1] http://www.linuxtv.org/wiki/index.php/Bus_snooping/sniffing#Snooping_Procedures:
+------=_Part_935250_2146952273.1231845280188
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
 
-Cheers,
-Mauro
+
+
+here is an dirty hack to get my FreeX / NoZap (aka. Joker CAM) module worki=
+ng on my S2-3200. It may also work with other=C2=A0 (newer) budget_ci desig=
+n based cards.=20
+
+
+The problem was the CAM never reports STATUSREG_FR and the driver will time=
+ out @ DVB_CA_SLOTSTATE_WAITFR.
+
+
+
+
+
+
+------=_Part_935250_2146952273.1231845280188
+Content-Type: multipart/related;
+	boundary="----=_Part_935251_1806615417.1231845280189"
+
+------=_Part_935251_1806615417.1231845280189
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns=3D"http://www.w3.org/1999/xhtml" xml:lang=3D"en" lang=3D"en"><t=
+itle></title><head><meta http-equiv=3D"Content-type" content=3D"text/html; =
+charset=3DUTF-8" /><style type=3D"text/css"> html, body {overflow-x: visibl=
+e; } html { width:100%; height:100%;margin:0px; padding:0px; overflow-y: au=
+to; overflow-x: auto; }body { font-size: 100.01%; font-family : Verdana, Ge=
+neva, Arial, Helvetica, sans-serif; background-color:transparent; overflow:=
+show; background-image:none; margin:0px; padding:5px; }p { margin:0px; padd=
+ing:0px; } body { font-size: 12px; font-family : Verdana, Geneva, Arial, He=
+lvetica, sans-serif; } p { margin: 0; padding: 0; } blockquote { padding-le=
+ft: 5px; margin-left: 5px; margin-bottom: 0px; margin-top: 0px; } blockquot=
+e.quote { border-left: 1px solid #CCC; padding-left: 5px; margin-left: 5px;=
+ } .misspelled { background: transparent url(//webmailng.1und1.de/static_re=
+source/mailclient/widgets/basic/parts/maileditor/spellchecking_underline.gi=
+f) repeat-x scroll center bottom; } .correct {} .unknown {} .ignored {}</st=
+yle></head><body id=3D"bodyElement" style=3D"">
+<p><span style=3D"">here is an dirty hack to get my FreeX / NoZap (aka. Jok=
+er CAM) module working on my S2-3200. It may also work with other&nbsp; (ne=
+wer) budget_ci design based cards. </span><span></span></p><p><span style=
+=3D""><br></span></p><p><span style=3D"">The problem was the CAM never repo=
+rts </span>STATUSREG_FR and the driver will time out @ DVB_CA_SLOTSTATE_WAI=
+TFR.<span></span></p><p><span></span><span></span><br></p><p><span style=3D=
+""><br></span></p></body></html>
+------=_Part_935251_1806615417.1231845280189--
+
+------=_Part_935250_2146952273.1231845280188--
+
+------=_Part_935252_514028586.1231845280189
+Content-Type: text/x-patch; charset=us-ascii; name=freeXNoZap.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=freeXNoZap.patch
+Content-Length: 1250
+
+diff -Naur a/linux/drivers/media/dvb/dvb-core/dvb_ca_en50221.c b/linux/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
+--- a/linux/drivers/media/dvb/dvb-core/dvb_ca_en50221.c	2009-01-12 11:50:12.000000000 +0100
++++ b/linux/drivers/media/dvb/dvb-core/dvb_ca_en50221.c	2009-01-13 11:55:08.000000000 +0100
+@@ -1084,7 +1084,7 @@
+ 				if (time_after(jiffies, ca->slot_info[slot].timeout)) {
+ 					printk("dvb_ca adapter %d: DVB CAM did not respond :(\n",
+ 					       ca->dvbdev->adapter->num);
+-					ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_INVALID;
++					ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+ 					dvb_ca_en50221_thread_update_delay(ca);
+ 					break;
+ 				}
+diff -Naur a/v4l/dvb_ca_en50221.c b/v4l/dvb_ca_en50221.c
+--- a/v4l/dvb_ca_en50221.c	2009-01-12 11:50:12.000000000 +0100
++++ b/v4l/dvb_ca_en50221.c	2009-01-13 11:55:08.000000000 +0100
+@@ -1084,7 +1084,7 @@
+ 				if (time_after(jiffies, ca->slot_info[slot].timeout)) {
+ 					printk("dvb_ca adapter %d: DVB CAM did not respond :(\n",
+ 					       ca->dvbdev->adapter->num);
+-					ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_INVALID;
++					ca->slot_info[slot].slot_state = DVB_CA_SLOTSTATE_LINKINIT;
+ 					dvb_ca_en50221_thread_update_delay(ca);
+ 					break;
+ 				}
+
+------=_Part_935252_514028586.1231845280189
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_935252_514028586.1231845280189--
