@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07HKBJS030606
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 12:20:11 -0500
-Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.177])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n07HJq2i017314
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 12:19:53 -0500
-Received: by wa-out-1112.google.com with SMTP id j4so4682923wah.19
-	for <video4linux-list@redhat.com>; Wed, 07 Jan 2009 09:19:52 -0800 (PST)
-Message-ID: <26aa882f0901070919t4820e888kc57c8cde9860a7d7@mail.gmail.com>
-Date: Wed, 7 Jan 2009 12:19:52 -0500
-From: "Jackson Yee" <jackson@gotpossum.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0D7ZJFB021072
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 02:35:19 -0500
+Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0D7YNvs000382
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 02:34:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Date: Tue, 13 Jan 2009 08:34:16 +0100
+References: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
-	<38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
-Subject: Re: Windows vs Linux DVR System?
+Message-Id: <200901130834.16645.hverkuil@xs4all.nl>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
+Subject: Re: [REVIEW PATCH 08/14] OMAP: CAM: Add ISP Core
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,66 +33,121 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I second Yan's suggestion for analog cameras and a capture board if
-you're looking for consistent, quality pictures. Eight USB webcams are
-possible if you have separate USB hub chips and a good motherboard,
-but you're really stretching the hardware thin once you get past four.
-IP cameras are great if you have lots of money to burn, but start
-struggling in numbers above eight even on gigabit ethernet due to
-bandwidth contention and are not anywhere close to analog systems in
-terms of price (The h264 cameras do a decent job, but you can setup an
-entire analog system for the price of one).
+On Monday 12 January 2009 21:16:28 Aguirre Rodriguez, Sergio Alberto 
+wrote:
+> Hi,
+>
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>
+> <snip>
+>
+> > > +               {
+> > > +                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
+> > > +                       .type = V4L2_CTRL_TYPE_INTEGER,
+> > > +                       .name = "Color Effects",
+> >
+> > What does this do? It definitely looks like this should be a menu,
+> > not an integer control. Forcing color to B&W is something that
+> > other hardware can do as well, so I think this is a very good
+> > candidate for a generic user control, rather than driver specific.
+>
+> This basically enables some common color effects on image processing:
+> - Default colors (i.e. original captured colors)
+> - Sepia colored images
+> - B&W colored images.
+>
+> I think its generic enough to propose for a new generic user CID.
 
-I've honestly hated most of the surveillance solutions that I've ran
-across with Windows, although I have been impressed with Media Center.
-The Linux ones are in their infancy as far as enterprise features are
-concerned, but what they do already, they do well, and you can always
-hack together a quick feature when you need it. Good luck trying to
-change any of the Windows solutions to fit your needs.
+Yes.
 
-I suggest getting some good quality analog cameras along with a Linux
-card from bluecherry.net, then installing either Zoneminder or motion
-on a good energy-efficient dual-core machine (the 45W Athlon X2s are
-my favorite at the moment). You'll be saving yourself a good bit of
-money, and you can upgrade in five years when IP cameras are priced
-lower.
+> Ok, so, should I keep the Private CID as a menu type ctrl by now?
 
-Regards,
-Jackson Yee
-The Possum Company
-540-818-4079
-me@gotpossum.com
+No, just propose a new control for this. Shouldn't be a problem. The 
+only suggestion that I have is that the user control has B&W as the 
+second entry rather than the third. There are more devices that can 
+choose between color and B&W, but this is the first device I know of 
+that can do sepia. Having B&W as the second entry makes it easier for 
+drivers to omit the sepia entry by just setting the max control value 
+(= menu index) to B&W.
 
-On Wed, Jan 7, 2009 at 11:56 AM, Yan Seiner <yan@seiner.com> wrote:
-> That many USB cameras will need some hefty CPU.  I've not had much luck
-> with webcams.  You might want to consider IP cams; you can find them for
-> not much more than webcams.  Or go with plain old wired cameras and a
-> capture board.
+Note that in two weeks time I'm going to merge the V4L2 specification 
+into our v4l-dvb repository. That should make it easy to add 
+documentation for this new control as well.
+
 >
-> As for linux v. windows, I've tried to work with the windows based DVR
-> systems, and pretty much without exception they're a PITA.   (OK, I like
-> linux but still....)  Mostly the apps are clunky, complicated, very
-> difficult to set up properly, and are always missing some key (to me)
-> feature.
+> > > +                       .minimum = PREV_DEFAULT_COLOR,
+> > > +                       .maximum = PREV_BW_COLOR,
+> > > +                       .step = 1,
+> > > +                       .default_value = PREV_DEFAULT_COLOR,
+> > > +               },
+> > > +               .current_value = PREV_DEFAULT_COLOR,
+> > > +       }
+> > > +};
+> > > +
 >
-> With linux, you set up your cameras and make sure they work.  It doesn't
-> matter if they're webcams, IPcams, or capture boards.
+> <snip>
 >
-> Then install and configure motion, one thread per camera.
+> > > +
+> > > +       if (((isp_obj.if_status == ISP_PARLL) && (if_t ==
+> > > ISP_CSIA)) || +                               ((isp_obj.if_status
+> > > == ISP_CSIA) && +                               (if_t ==
+> > > ISP_PARLL)) ||
+> > > +                               ((isp_obj.if_status == ISP_CSIA)
+> > > && +                               (if_t == ISP_CSIB)) ||
+> > > +                               ((isp_obj.if_status == ISP_CSIB)
+> > > && +                               (if_t == ISP_CSIA)) ||
+> > > +                               (isp_obj.if_status == 0)) {
+> >
+> > Hard to understand. Why not:
+> >
+> >        if ((isp_obj.if_status == ISP_PARLL && if_t == ISP_CSIA) ||
+> >            (isp_obj.if_status == ISP_CSIA && if_t == ISP_PARLL) ||
+> >            (isp_obj.if_status == ISP_CSIA && if_t == ISP_CSIB) ||
+> >            (isp_obj.if_status == ISP_CSIB && if_t == ISP_CSIA) ||
+> >            isp_obj.if_status == 0) {
 >
-> If you want movies, you can either set up motion to do that or you can use
-> ffmpeg and generate flash movies directly.
+> Done
 >
-> And then use a browser.
+> > > +               isp_obj.if_status |= if_t;
+> > > +               return 0;
+> > > +       } else {
+> > > +               DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination
+> > > Serial- \ +                       Parallel interface\n");
+> > > +               return -EINVAL;
+> > > +       }
+> > > +}
+> > > +EXPORT_SYMBOL(isp_request_interface);
 >
-> See my website - http://www.seiner.com - and look at the snakecam and
-> lizardcam.  They're pretty dull as I don't have the cameras set up
-> correctly ATM but it uses the above setup.  motion captures the motion,
-> ffmpeg rotates each frame to portrait from landscape, generates the movie
-> using the last 1440 frames, and some more scripts post it on the website,
-> with updates every hour.
+> <snip>
 >
-> --Yan
+> > > +       /* CONTROL_ */
+> > > +       omap_writel(
+> > > +               /* CSIb receiver data/clock or data/strobe mode
+> > > */ +               (config->u.csi.signalling << 10)
+> > > +               | BIT(12)       /* Enable differential
+> > > transceiver */ +               | BIT(13)       /* Disable reset
+> > > */
+> > > +#ifdef TERM_RESISTOR
+> >
+> > What is this define? It doesn't seem to be documented.
+>
+> This define is to enable/disable an OMAP34xx internal resistor for
+> CSIb (CCP2) camera port.
+>
+> A comment along its declaration should be enough?
+
+Yes. But shouldn't this be a module option, perhaps? Up to you, I'm just 
+wondering.
+
+> Thanks for your time.
+
+No problem,
+
+	Hans
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
 --
 video4linux-list mailing list
