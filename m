@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from fg-out-1718.google.com ([72.14.220.156])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1LJZH3-0002CW-1F
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 21:08:37 +0100
-Received: by yw-out-2324.google.com with SMTP id 3so2517073ywj.41
-	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 12:08:33 -0800 (PST)
-Message-ID: <ea4209750901041208p588ada83w83afaa490c5932ee@mail.gmail.com>
-Date: Sun, 4 Jan 2009 21:08:32 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: rvf16 <rvf16@yahoo.gr>
-In-Reply-To: <49611175.1020907@yahoo.gr>
+	(envelope-from <e9hack@googlemail.com>) id 1LMqIF-0004tc-4A
+	for linux-dvb@linuxtv.org; Tue, 13 Jan 2009 21:55:24 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so130054fga.25
+	for <linux-dvb@linuxtv.org>; Tue, 13 Jan 2009 12:55:19 -0800 (PST)
+Message-ID: <496CFFB3.40109@googlemail.com>
+Date: Tue, 13 Jan 2009 21:55:15 +0100
+From: e9hack <e9hack@googlemail.com>
 MIME-Version: 1.0
-References: <49611175.1020907@yahoo.gr>
-Cc: Linux-DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Terratec Cinergy Hybrid T USB XS FM
+To: linux-dvb@linuxtv.org
+References: <496BA8BE.4080309@googlemail.com>
+	<9ac6f40e0901121341h4e447bbxbf26c7ff7153dcc0@mail.gmail.com>
+In-Reply-To: <9ac6f40e0901121341h4e447bbxbf26c7ff7153dcc0@mail.gmail.com>
+Subject: Re: [linux-dvb] compile problems on 2.6.29-rc1
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,80 +21,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0881980431=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0881980431==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_112802_12268634.1231099712728"
+e9hack@googlemail.com schrieb:
+> 2009/1/12 e9hack <e9hack@googlemail.com>
+>> I've problems to compile the current hg tree with some modifications on
+>> linux 2.6.29-rc1.
+> 
+> 
+> It seems, any included file like #include <media/....> uses the file from
+> kernel source tree instead of the v4l-dvb tree.
 
-------=_Part_112802_12268634.1231099712728
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
-I'm nearly sure that ONLY dvb-t works, not analog, not radio.
+I could solve my compile problem with a little patch:
 
-Albert
+diff -r b09b5128742f v4l/Makefile
+--- a/v4l/Makefile      Mon Jan 12 22:50:52 2009 -0200
++++ b/v4l/Makefile      Tue Jan 13 21:45:36 2009 +0100
+@@ -161,6 +161,7 @@ ifeq ($(VERSION).$(PATCHLEVEL),2.6)
 
-2009/1/4 rvf16 <rvf16@yahoo.gr>
+  # Needed for kernel 2.6.24 or upper
+  KBUILD_CPPFLAGS := -I$(SUBDIRS)/../linux/include $(KBUILD_CPPFLAGS) -I$(SUBDIRS)/
++ LINUXINCLUDE := -I$(SUBDIRS)/../linux/include $(LINUXINCLUDE) -I$(SUBDIRS)/
 
-> Hello to all.
->
-> Could anyone confirm if all signals of this usb tv tuner are supported
-> (DVB-T, analog tv PAL, FM radio) and what about teletext and remote
-> control support?
-> I have searched throughout the web but didn't reach a satisfying result
-> except for the DVB-T signal.
->
-> Thank you.
-> Regards.
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+In 2.6.28.1 LINUXINCLUDE is part of KBUILD_CPPFLAGS of the kernel. In 2.6.29-rc1
+LINUXINCLUDE is part of the command line for gcc. LINUXINCLUDE is include before
+KBUILD_CPPFLAGS.
 
-------=_Part_112802_12268634.1231099712728
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-I&#39;m nearly sure that ONLY dvb-t works, not analog, not radio.<br><br>Albert<br><br><div class="gmail_quote">2009/1/4 rvf16 <span dir="ltr">&lt;<a href="mailto:rvf16@yahoo.gr">rvf16@yahoo.gr</a>&gt;</span><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hello to all.<br>
-<br>
-Could anyone confirm if all signals of this usb tv tuner are supported<br>
-(DVB-T, analog tv PAL, FM radio) and what about teletext and remote<br>
-control support?<br>
-I have searched throughout the web but didn&#39;t reach a satisfying result<br>
-except for the DVB-T signal.<br>
-<br>
-Thank you.<br>
-Regards.<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br>
-
-------=_Part_112802_12268634.1231099712728--
-
-
---===============0881980431==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards,
+Hartmut
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0881980431==--
