@@ -1,99 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:54992 "EHLO mail1.radix.net"
+Received: from comal.ext.ti.com ([198.47.26.152]:50582 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753341AbZASEVp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jan 2009 23:21:45 -0500
-Subject: Re: Regression since 2.6.25 kernel: Crash of userspace program
- leaves DVB device unusable
-From: Andy Walls <awalls@radix.net>
-To: Brendon Higgins <blhiggins@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200901191337.31272.blhiggins@gmail.com>
-References: <200901031200.56314.blhiggins@gmail.com>
-	 <200901191337.31272.blhiggins@gmail.com>
-Content-Type: text/plain
-Date: Sun, 18 Jan 2009 23:21:38 -0500
-Message-Id: <1232338898.3242.27.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1753602AbZAMCDj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jan 2009 21:03:39 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>
+Date: Mon, 12 Jan 2009 20:03:10 -0600
+Subject: [REVIEW PATCH 02/14] v4l2-int-device: add support for
+ VIDIOC_QUERYMENU
+Message-ID: <A24693684029E5489D1D202277BE894416429F98@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-01-19 at 13:37 +1000, Brendon Higgins wrote:
-> Hi,
-> 
-> I wrote to linux-dvb (2009-01-03 12:00 pm):
-> > I've been coming up against a problem that seems to be with the DVB drivers
-> > that occurs when a program using them, usually VDR in my case, terminates
-> > uncleanly (segfault, general protection fault). Linux 2.6.25 doesn't have
-> > this problem, but 2.6.26, 2.6.27, and 2.6.28 do, though 2.6.28 manifests
-> > slightly differently to the others. I'll focus on what 2.6.28 does. I have
-> > a DViCO FusionHDTV DVB-T Plus, running on an amd64 Debian Testing (mostly)
-> > dual-core machine.
-> >
-> > After VDR crashes it attemps to restart itself. This was fine on 2.6.25,
-> > but on later kernels the crash seems to leave the device in some unusable
-> > state, where no program can subsequently use it - the device files
-> > (/dev/dvb) no longer exist. (In 2.6.2[67], the files existed, but accessing
-> > /dev/dvb/adapter0/dvr0 resulted in "No such device".) I had figured out
-> > that in order to get the device working again it is necessary to "rmmod
-> > cx88_dvb cx8802; modprobe cx88_dvb". This worked in 2.6.2[67] without
-> > trouble, but in 2.6.28, it's as if the cx88_dvb module gets lost somehow.
-> > It doesn't appear in lsmod, however:
-> > phi:~# modprobe cx88_dvb
-> > FATAL: Error inserting cx88_dvb
-> > (/lib/modules/2.6.28/kernel/drivers/media/video/cx88/cx88-dvb.ko): No such
-> > device
-> > phi:~# rmmod cx88_dvb cx8802
-> > ERROR: Module cx88_dvb does not exist in /proc/modules
-> > phi:~# modprobe cx88_dvb
-> >
-> > Note that probing it works only *after* cx8802 was unloaded. As before, now
-> > the device is accessible.
-> >
-> > So it seems something is wrong in the cx8802 module. Something is not being
-> > cleaned up after a userspace program crashes while using it, leaving the
-> > DVB system in a broken state.
-> >
-> > I'd very much like this to not be the case, since on my system a VDR crash
-> > is somewhat inevitable, and the automatic restart *was* very handy, back in
-> > 2.6.25.
-> 
-> Deafening silence. Does nobody have a clue?
 
-Well, you have the clues actually; they're in your log files.
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ include/media/v4l2-int-device.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-At the time of the crash, what shows up in dmesg, /var/log/messages, and
-any log that VDR creates?  
-
-Since modprobe after the crash failed with -ENODEV ["...cx88-dvb.ko): No
-such device], a quick grep through cx88-dvb.c in the source shows that
-that can only happen in a few places.  It should be easy to spot in the
-logs.  Adding an
-
-	options cx88_dvb debug=1
-
-line to /etc/modprobe.conf would make things easier to see in the logs
-as well.
-
-Also what is the source of your cx88 driver: Debian Testing or the
-v4l-dvb repo?
-
-
-> Or care?
-
-The issue is usually not one of caring, but one of having
-time, the specific hardware, and ability to reporduce the problem.
-
-Regards,
-Andy
-
-
->  I just noticed I posted 
-> to the linux-dvb list which has been deprecated, so I'm quoting it here in 
-> its entirety in case relevent people missed it. Is there anything else I can 
-> do?
-> 
-> Peace,
-> Brendon
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index 85a1834..052ffe0 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -178,6 +178,7 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_s_fmt_cap_num,
+ 	vidioc_int_try_fmt_cap_num,
+ 	vidioc_int_queryctrl_num,
++	vidioc_int_querymenu_num,
+ 	vidioc_int_g_ctrl_num,
+ 	vidioc_int_s_ctrl_num,
+ 	vidioc_int_cropcap_num,
+@@ -279,6 +280,7 @@ V4L2_INT_WRAPPER_1(g_fmt_cap, struct v4l2_format, *);
+ V4L2_INT_WRAPPER_1(s_fmt_cap, struct v4l2_format, *);
+ V4L2_INT_WRAPPER_1(try_fmt_cap, struct v4l2_format, *);
+ V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
++V4L2_INT_WRAPPER_1(querymenu, struct v4l2_querymenu, *);
+ V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
+ V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
+ V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
+-- 
+1.5.6.5
 
