@@ -1,69 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweblb04fl.versatel.de ([89.246.255.245]:50610 "EHLO
-	mxweblb04fl.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753260AbZATSVZ (ORCPT
+Received: from smtp124.rog.mail.re2.yahoo.com ([206.190.53.29]:31773 "HELO
+	smtp124.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752103AbZANE1e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 13:21:25 -0500
-Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
-	by mxweblb04fl.versatel.de (8.13.1/8.13.1) with ESMTP id n0KILN1u013010
-	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 19:21:23 +0100
-Received: from cinnamon-sage.de (i577A1251.versanet.de [87.122.18.81])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id n0KILMGE025443
-	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 19:21:22 +0100
-Received: from 192.168.23.2:49413 by cinnamon-sage.de for <linux-media@vger.kernel.org> ; 20.01.2009 19:21:22
-Message-ID: <49761614.2060708@cinnamon-sage.de>
-Date: Tue, 20 Jan 2009 19:21:08 +0100
-From: Lars Hanisch <dvb@cinnamon-sage.de>
+	Tue, 13 Jan 2009 23:27:34 -0500
+Message-ID: <496D69A6.1050108@rogers.com>
+Date: Tue, 13 Jan 2009 23:27:18 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>	 <20090119204724.01826924@caramujo.chehab.org>	 <003101c97ada$168d54b0$f4c6a5c1@tommy>	 <200901200956.25104.ajurik@quick.cz> <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
-In-Reply-To: <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: "A. F. Cano" <afc@shibaya.lonestar.org>
+CC: linux-dvb@linuxtv.org, Linux-media <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] OnAir creator seems to be recognized,	but what device
+ is what?
+References: <20090112035021.GA13897@shibaya.lonestar.org>
+In-Reply-To: <20090112035021.GA13897@shibaya.lonestar.org>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> People "in favor" of the lists being merged
-> 118 Patrick Boettcher
-> 205 Hans Verkuil
-> 38 Mike Isely
-> 196 Devin Heitmueller
-> "hundreds" Mauro Carvalho Chehab
-> 
-> People "against" of the lists being merged
-> 2 Lars Hanisch
-> 17 user.vdr
-> 16 Klaus Schmidinger
-> 2 Bob Cunningham
-> 10 Tomas Drajsajtl
-> 17 Ales Jurik
+A. F. Cano wrote:
+> Dvbusb2 seems to recognize the device ok.
+> In fact it seems to create
+>
+> /dev/dvb/adapter0/demux0
+> /dev/dvb/adapter0/dvr0
+> /dev/dvb/adapter0/frontend0
+> /dev/dvb/adapter0/net0
+>
+> And I also see /dev/video0
+>
+> But what do those devices represent?  Is /dev/video0 the analog tuner?
+> is /dev/dvb/adapter0/dvr0 the digital tuner?  What are the others?
+>   
 
-  Just for the records: I'm "in favor" of the merge, not against... Or 
-have I missunderstood the post I replied to? Never mind. :)
+When a driver module loads, the device manager udev will create device
+nodes on /dev.
 
-> Yup, it's the developers who are posting on a regular basis who feel
-> the pain of the two different lists.  It's the people who are actively
-> replying to issues, dealing with problems, and trying to keep track of
-> it all who want the lists merged.  That said, I personally don't feel
-> any guilt in inconveniencing a few users who are not contributing if
-> it makes it easier for the people who contribute to the list on a
-> daily basis.
+For dvb devices you get the character devices under /dev/dvb/adapterN
+(where N = 0 to whatever). The character devices for each adapter N
+are enumerated in form of M=0 to whatever. For example:
+/dev/dvb/adapter0/frontend0 .... if the same device had a second
+frontend, that character device would be enumerated by
+/dev/dvb/adapter0/frontend1 ... if you had another dvb adapter in the
+system, then you would see /dev/dvb/adapter1/frontend0 and so forth.
 
-  I'm a "user-only" of my PVR150/350 since about 2 years and I read 
-these lists (ivtv-devel, ivtv-users, video4linux, and now linux-media) 
-because I want to stay in touch with the really good work you developers 
-are doing (also a "Thank you" from my wife, who loves our VDR). And I 
-want to know when some of the issues I encounter are solved, so I can 
-update my kernel. Sadly I haven't the time to invest my 
-development-knowledge into linux-driver-development (my daily work is 
-application-development, and yes, it's windows, shame on me ;-)).
-  So, if the lists get merged or not, I still will be reading them. I 
-just want to give a view from a passive reader. And from that point of 
-view a merge would be fine...
-  But I agree that the main developers should be the ones that have the 
-final stay on this.
+* The frontend device controls the tuner and demodulator.
+* The demux controls the filters for processing the transport stream (TS).
+* the dvr is a logical device that is associated with the demux
+character device ... it delivers up the TS for either:
+(1) immediate playback --- in which case it has to be decoded either:
+a) on the device itself [its rare for PC devices to have hardware
+decoding, but not so for STB] or
+b) downstream by the system [the usual route for PC devices -- i.e.
+software decoding via the host CPU, and possibly assisted by the GPU) ]
+or
+(2) saving to disk for later playback.
+* the net character device controls IP-over-DVB
 
-Lars.
+Similarly, with video capture (or, if you prefer, V4L) devices, you get
+the /dev/video device node and the videoN character devices.
+
+For more info, have a look at the DVB and V4L APIs.
+
+> I have been trying to configure mythtv but have no idea what to tell it
+> about this device.  The mythtv docs say that if you  have a card with 2
+> tuners, define it as a DVB.  But, mythtv-setup identifies it correcly
+> (by name) as an analog card /dev/video0, if I set it up as a DVB it claims
+> it is a DVICO or Air2PC or...  It does not seem to know about the /dev/dvb
+> devices.  Do I need to configure the OnAir Creator as 1 or 2 device 
+>
+> ... 
+>
+> I have posted the higher level questions to the mythtv mailing list, but
+>
+> no answers yet.  Any hints would be welcome.
+>   
+
+Sorry, no input on the myth specific questions, though surely someone
+else might be able to.
+
+> Can someone tell me a quick and easy way to test the device? maybe with
+> mplayer?  I have an analog camera connected to the composite input, so
+> even if I don't get any channels with the rabbit ears and loop antenna,
+> that should work as a test.
+See the wiki -- in particular, in the User Section, see the testing your
+DVB device article. Also see the MPlayer article.
+
+
