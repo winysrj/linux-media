@@ -1,73 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f17.google.com ([209.85.219.17]:32983 "EHLO
-	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935779AbZAPOX1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2009 09:23:27 -0500
-Received: by ewy10 with SMTP id 10so1919356ewy.13
-        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 06:23:25 -0800 (PST)
-Message-ID: <b24e53350901160623u3595502eq73b1421aeb08b82a@mail.gmail.com>
-Date: Fri, 16 Jan 2009 09:23:25 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/4] em28xx: Fix audio URB transfer buffer memory leak and race condition/corruption of capture pointer
-In-Reply-To: <b24e53350901151431y5f067f3dt75570768431282f0@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52085 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750993AbZANSP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jan 2009 13:15:57 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	v4l <video4linux-list@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 14 Jan 2009 12:11:31 -0600
+Subject: RE: Building v4l2spec docbook problems
+Message-ID: <A24693684029E5489D1D202277BE8944164DFFD3@dlee02.ent.ti.com>
+In-Reply-To: <200812071348.28510.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
-	 <b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
-	 <b24e53350901141044u69f5258cjb86a820802c4a89a@mail.gmail.com>
-	 <b24e53350901141055j4d2562d0gdae11a83272500f6@mail.gmail.com>
-	 <b24e53350901141202j59828561g3dbb7b9fe389b9ae@mail.gmail.com>
-	 <b24e53350901151431y5f067f3dt75570768431282f0@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em28xx: Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
-
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-
-Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
-
-Leak fix kindly contributed by Pádraig Brady.
-
-Priority: normal
-
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
-
-diff -r 7981bdd4e25a linux/drivers/media/video/em28xx/em28xx-audio.c
---- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Mon Jan 12
-00:18:04 2009 +0000
-+++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Thu Jan 15
-17:27:27 2009 -0500
-@@ -66,6 +66,9 @@
-               usb_unlink_urb(dev->adev.urb[i]);
-               usb_free_urb(dev->adev.urb[i]);
-               dev->adev.urb[i] = NULL;
-+
-+               kfree(dev->adev.transfer_buffer[i]);
-+               dev->adev.transfer_buffer[i] = NULL;
-       }
-
-       return 0;
-@@ -458,11 +461,15 @@
-                                                   *substream)
- #endif
- {
-+       unsigned long flags;
-+
-       struct em28xx *dev;
--
-       snd_pcm_uframes_t hwptr_done;
-+
-       dev = snd_pcm_substream_chip(substream);
-+       spin_lock_irqsave(&dev->adev.slock, flags);
-       hwptr_done = dev->adev.hwptr_done_capture;
-+       spin_unlock_irqrestore(&dev->adev.slock, flags);
-
-       return hwptr_done;
- }
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogdmlkZW80bGludXgtbGlz
+dC1ib3VuY2VzQHJlZGhhdC5jb20gW21haWx0bzp2aWRlbzRsaW51eC1saXN0LQ0KPiBib3VuY2Vz
+QHJlZGhhdC5jb21dIE9uIEJlaGFsZiBPZiBIYW5zIFZlcmt1aWwNCj4gU2VudDogU3VuZGF5LCBE
+ZWNlbWJlciAwNywgMjAwOCA2OjQ4IEFNDQo+IFRvOiB2NGwNCj4gU3ViamVjdDogQnVpbGRpbmcg
+djRsMnNwZWMgZG9jYm9vayBwcm9ibGVtcw0KPiANCj4gSGkgYWxsLA0KPiANCj4gSSdtIHRyeWlu
+ZyB0byBidWlsZCB0aGUgdjRsMnNwZWM6DQo+IGh0dHA6Ly92NGwyc3BlYy5ieXRlc2V4Lm9yZy92
+NGwyc3BlYy0wLjI0LnRhci5iejINCj4gDQo+IEJ1dCBJJ20gZ2V0dGluZyB0aGUgZm9sbG93aW5n
+IGVycm9yczoNCj4gDQo+IC4uLg0KPiBVc2luZyBjYXRhbG9nczogL2V0Yy9zZ21sL2NhdGFsb2cN
+Cj4gVXNpbmcgc3R5bGVzaGVldDogL2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0L2N1
+c3RvbS5kc2wjaHRtbA0KPiBXb3JraW5nIG9uOiAvaG9tZS9oYW5zL3dvcmsvc3JjL3Y0bDJzcGVj
+LTAuMjQvdjRsMi5zZ21sDQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0
+L3Y0bDIuc2dtbDozNTc6NTpXOiBjYW5ub3QNCj4gZ2VuZXJhdGUgc3lzdGVtIGlkZW50aWZpZXIg
+Zm9yIGdlbmVyYWwgZW50aXR5ICJzdWItY29tbW9uIg0KPiBqYWRlOi9ob21lL2hhbnMvd29yay9z
+cmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzU3OjU6RTogZ2VuZXJhbA0KPiBlbnRpdHkgInN1
+Yi1jb21tb24iIG5vdCBkZWZpbmVkIGFuZCBubyBkZWZhdWx0IGVudGl0eQ0KPiBqYWRlOi9ob21l
+L2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzU3OjE1OkU6IHJlZmVyZW5j
+ZSB0bw0KPiBlbnRpdHkgInN1Yi1jb21tb24iIGZvciB3aGljaCBubyBzeXN0ZW0gaWRlbnRpZmll
+ciBjb3VsZCBiZSBnZW5lcmF0ZWQNCj4gamFkZTovaG9tZS9oYW5zL3dvcmsvc3JjL3Y0bDJzcGVj
+LTAuMjQvdjRsMi5zZ21sOjM1Nzo0OiBlbnRpdHkgd2FzDQo+IGRlZmluZWQgaGVyZQ0KPiBqYWRl
+Oi9ob21lL2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzU4OjExOkU6IGVu
+ZCB0YWcNCj4gZm9yICJDSEFQVEVSIiB3aGljaCBpcyBub3QgZmluaXNoZWQNCj4gamFkZTovaG9t
+ZS9oYW5zL3dvcmsvc3JjL3Y0bDJzcGVjLTAuMjQvdjRsMi5zZ21sOjM2MTo1Olc6IGNhbm5vdA0K
+PiBnZW5lcmF0ZSBzeXN0ZW0gaWRlbnRpZmllciBmb3IgZ2VuZXJhbCBlbnRpdHkgInN1Yi1waXhm
+bXQiDQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0L3Y0bDIuc2dtbDoz
+NjE6NTpFOiBnZW5lcmFsDQo+IGVudGl0eSAic3ViLXBpeGZtdCIgbm90IGRlZmluZWQgYW5kIG5v
+IGRlZmF1bHQgZW50aXR5DQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0
+L3Y0bDIuc2dtbDozNjE6MTU6RTogcmVmZXJlbmNlIHRvDQo+IGVudGl0eSAic3ViLXBpeGZtdCIg
+Zm9yIHdoaWNoIG5vIHN5c3RlbSBpZGVudGlmaWVyIGNvdWxkIGJlIGdlbmVyYXRlZA0KPiBqYWRl
+Oi9ob21lL2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzYxOjQ6IGVudGl0
+eSB3YXMNCj4gZGVmaW5lZCBoZXJlDQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3Bl
+Yy0wLjI0L3Y0bDIuc2dtbDozNjI6MTE6RTogZW5kIHRhZw0KPiBmb3IgIkNIQVBURVIiIHdoaWNo
+IGlzIG5vdCBmaW5pc2hlZA0KPiBqYWRlOi9ob21lL2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4y
+NC92NGwyLnNnbWw6MzY1OjU6VzogY2Fubm90DQo+IGdlbmVyYXRlIHN5c3RlbSBpZGVudGlmaWVy
+IGZvciBnZW5lcmFsIGVudGl0eSAic3ViLWlvIg0KPiBqYWRlOi9ob21lL2hhbnMvd29yay9zcmMv
+djRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzY1OjU6RTogZ2VuZXJhbA0KPiBlbnRpdHkgInN1Yi1p
+byIgbm90IGRlZmluZWQgYW5kIG5vIGRlZmF1bHQgZW50aXR5DQo+IGphZGU6L2hvbWUvaGFucy93
+b3JrL3NyYy92NGwyc3BlYy0wLjI0L3Y0bDIuc2dtbDozNjU6MTE6RTogcmVmZXJlbmNlIHRvDQo+
+IGVudGl0eSAic3ViLWlvIiBmb3Igd2hpY2ggbm8gc3lzdGVtIGlkZW50aWZpZXIgY291bGQgYmUg
+Z2VuZXJhdGVkDQo+IA0KPiBBbmQgdGhpcyBjb250aW51ZXMgZm9yIGEgbG9uZyBsaXN0IG9mICdz
+dWItc29tZXRoaW5nJyBlbnRpdGllcy4NCj4gDQo+IE1lIG5vIHNwZWFrIHNnbWwsIHNvIEkgaG9w
+ZSBzb21lb25lIG1vcmUgZmFtaWxpYXIgd2l0aCB0aGlzIGNhbiBoZWxwIG1lLg0KDQpIaSBIYW5z
+LA0KDQpJJ20gaGF2aW5nIHRoZSBzYW1lIHByb2JsZW1zIHRoYW4geW91LiBBbnkgdXBkYXRlIG9u
+IHRoaXM/DQoNCkkgZG9uJ3Qgc3BlYWsgc2dtbCBlaXRoZXIgOiguDQoNClJlZ2FyZHMsDQpTZXJn
+aW8NCj4gDQo+IFRoYW5rcywNCj4gDQo+IAlIYW5zDQo+IA0KPiAtLQ0KPiBIYW5zIFZlcmt1aWwg
+LSB2aWRlbzRsaW51eCBkZXZlbG9wZXIgLSBzcG9uc29yZWQgYnkgVEFOREJFUkcNCj4gDQo+IC0t
+DQo+IHZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBsaXN0DQo+IFVuc3Vic2NyaWJlIG1haWx0bzp2
+aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJlDQo+
+IGh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0
+DQoNCg==
