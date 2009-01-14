@@ -1,28 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0PLOnqf027211
-	for <video4linux-list@redhat.com>; Sun, 25 Jan 2009 16:24:49 -0500
-Received: from smtp-out3.blueyonder.co.uk (smtp-out3.blueyonder.co.uk
-	[195.188.213.6])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0PLOX09010221
-	for <video4linux-list@redhat.com>; Sun, 25 Jan 2009 16:24:33 -0500
-Received: from [172.23.170.141] (helo=anti-virus02-08)
-	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1LRCT2-00020R-U9
-	for video4linux-list@redhat.com; Sun, 25 Jan 2009 21:24:32 +0000
-Received: from [82.46.193.134] (helo=[82.46.193.134])
-	by asmtp-out1.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1LRCT2-0000vq-Em
-	for video4linux-list@redhat.com; Sun, 25 Jan 2009 21:24:32 +0000
-Message-ID: <497CD894.7070101@blueyonder.co.uk>
-Date: Sun, 25 Jan 2009 21:24:36 +0000
-From: Ian Davidson <id012c3076@blueyonder.co.uk>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EK9K3m023742
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 15:09:20 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0EK8cbQ009021
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 15:08:45 -0500
+Received: by ewy14 with SMTP id 14so824294ewy.3
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 12:08:38 -0800 (PST)
+Message-ID: <b24e53350901141208o6a30b16n5d69dc58a28a0d2b@mail.gmail.com>
+Date: Wed, 14 Jan 2009 15:08:38 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <b24e53350901141202j59828561g3dbb7b9fe389b9ae@mail.gmail.com>
 MIME-Version: 1.0
-To: Video 4 Linux <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Capturing to AVI using streamer
-Reply-To: ian.davidson@bigfoot.com
+Content-Disposition: inline
+References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
+	<b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
+	<b24e53350901141044u69f5258cjb86a820802c4a89a@mail.gmail.com>
+	<b24e53350901141055j4d2562d0gdae11a83272500f6@mail.gmail.com>
+	<b24e53350901141202j59828561g3dbb7b9fe389b9ae@mail.gmail.com>
+Subject: [PATCH 1/4] em28xx: Fix audio URB transfer buffer memory leak and
+	race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,33 +35,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I used to capture video to AVI format using streamer on a single 
-processor system running Fedora Core 4.  I would set up streamer to run 
-for 40 minutes - but at a convenient time stop streamer using Ctrl-C 
-(according to the documentation) and the AVI file would be 'wrapped up' 
-nicely.  I could take the AVI file to a Windows machine and edit the 
-captured video.
+em28xx: Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-I am now using streamer as before but on a dual processor system running 
-Fedora 9.  I get an AVI file but some editing software is unable to find 
-the video stream.
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-Is this a problem caused by a) the change of hardware or b) the change 
-of software?
+Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-Ian
+Priority: normal
 
--- 
-Ian Davidson
-239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
--- 
-Facts used in this message may or may not reflect an underlying objective reality. 
-Facts are supplied for personal use only. 
-Recipients quoting supplied information do so at their own risk. 
-Facts supplied may vary in whole or part from widely accepted standards. 
-While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
-The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
 
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+15:01:20 2009 -0500
+@@ -62,11 +62,17 @@
+       int i;
+
+       dprintk("Stopping isoc\n");
+-       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+-               usb_unlink_urb(dev->adev.urb[i]);
+-               usb_free_urb(dev->adev.urb[i]);
+-               dev->adev.urb[i] = NULL;
+-       }
++        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
++               if (dev->adev.urb[i]) {
++                       usb_unlink_urb(dev->adev.urb[i]);
++                       usb_free_urb(dev->adev.urb[i]);
++                       dev->adev.urb[i] = NULL;
++               }
++                if (dev->adev.transfer_buffer[i]) {
++                       kfree(dev->adev.transfer_buffer[i]);
++                       dev->adev.transfer_buffer[i] = NULL;
++               }
++        }
+
+       return 0;
+ }
+@@ -458,11 +464,15 @@
+                                                   *substream)
+ #endif
+ {
++       unsigned long flags;
++
+       struct em28xx *dev;
+-
+       snd_pcm_uframes_t hwptr_done;
++
+       dev = snd_pcm_substream_chip(substream);
++       spin_lock_irqsave(&dev->adev.slock, flags);
+       hwptr_done = dev->adev.hwptr_done_capture;
++       spin_unlock_irqrestore(&dev->adev.slock, flags);
+
+       return hwptr_done;
+ }
 
 --
 video4linux-list mailing list
