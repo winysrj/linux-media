@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FNg9xe001976
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 18:42:09 -0500
-Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
-	[209.85.218.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0FNevKs002013
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 18:40:58 -0500
-Received: by bwz13 with SMTP id 13so3934895bwz.3
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 15:40:57 -0800 (PST)
-Message-ID: <d9def9db0901151540y21f05a9ey5d937256f0fb80ae@mail.gmail.com>
-Date: Fri, 16 Jan 2009 00:40:47 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Carsten Meier" <cm@trexity.de>
-In-Reply-To: <20090115235511.1ea5fdd5@tuvok>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0E0x6sI004537
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 19:59:06 -0500
+Received: from web95209.mail.in2.yahoo.com (web95209.mail.in2.yahoo.com
+	[203.104.18.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0E0wjvH028513
+	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 19:58:46 -0500
+Date: Wed, 14 Jan 2009 06:28:44 +0530 (IST)
+From: niamathullah sharief <shariefbe@yahoo.co.in>
+To: Michael Williamson <michael_h_williamson@yahoo.com>,
+	Kernel newbies <kernelnewbies@nl.linux.org>,
+	video4linux list <video4linux-list@redhat.com>
+In-Reply-To: <878642.52030.qm@web65512.mail.ac4.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <20090115163348.5da9932a@tuvok>
-	<09CD2F1A09A6ED498A24D850EB10120817E30B7506@Colmatec004.COLMATEC.INT>
-	<20090115175121.25c4bdaa@tuvok> <496FB713.5020609@draigBrady.com>
-	<20090115235511.1ea5fdd5@tuvok>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: How to identify USB-video-devices
+Message-ID: <42835.5687.qm@web95209.mail.in2.yahoo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Cc: 
+Subject: Re: About xawtv
+Reply-To: shariefbe@yahoo.co.in
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,65 +30,117 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Jan 15, 2009 at 11:55 PM, Carsten Meier <cm@trexity.de> wrote:
-> Am Thu, 15 Jan 2009 22:22:11 +0000
-> schrieb Pádraig Brady <P@draigBrady.com>:
->
->> Carsten Meier wrote:
->> > Storing device-file-names is also not an option because they are
->> > created dynamicly.
->>
->> You use udev rules to give persistent names.
->>
->> Here is my /etc/udev/rules.d/video.rules file,
->> which creates /dev/webcam and /dev/tvtuner as appropriate.
->>
->> KERNEL=="video*" SYSFS{name}=="USB2.0 Camera", NAME="video%n",
->> SYMLINK+="webcam" KERNEL=="video*" SYSFS{name}=="em28xx*",
->> NAME="video%n", SYMLINK+="tvtuner"
->>
->> To find distinguishing attributes to match on use:
->>
->> echo /sys/class/video4linux/video* | xargs -n1 udevinfo -a -p
->>
->> cheers,
->> Pádraig.
->
-> This already came up on the pvrusb2-list and someone told me (I don't
-> know much about udev) that it might cause problems on disconnection of
-> a device with a file-descriptor open which then gets reconnected
-> and there are two device-files for it. I also don't like it,
-> because an average user (including me) usually can't or don't want to
-> write udev rules. Finally v4l2 already contains a very simple and
-> reliable mechanism for doing this (bus_info-field) which simply isn't
-> used correctly by the USB-drivers.
->
+I think i =C2=A0want header file..see the below errors when i used to compi=
+le it...sharief@sharief-desktop:~/Desktop/video drivers$ gcc vgrabx.c -Wall=
+ -lX11 -o vgrabx
+vgrabx.c:29:22: error: X11/Xlib.h: No such file or directory
+vgrabx.c:30:23: error: X11/Xutil.h: No such file or directory
+vgrabx.c:34: error: expected =E2=80=98=3D=E2=80=99, =E2=80=98,=E2=80=99, =
+=E2=80=98;=E2=80=99, =E2=80=98asm=E2=80=99 or =E2=80=98__attribute__=E2=80=
+=99 before =E2=80=98*=E2=80=99 token
+vgrabx.c:36: error: expected =E2=80=98=3D=E2=80=99, =E2=80=98,=E2=80=99, =
+=E2=80=98;=E2=80=99, =E2=80=98asm=E2=80=99 or =E2=80=98__attribute__=E2=80=
+=99 before =E2=80=98X_color=E2=80=99
+vgrabx.c:38: error: expected =E2=80=98=3D=E2=80=99, =E2=80=98,=E2=80=99, =
+=E2=80=98;=E2=80=99, =E2=80=98asm=E2=80=99 or =E2=80=98__attribute__=E2=80=
+=99 before =E2=80=98X_window=E2=80=99
+vgrabx.c:39: error: expected =E2=80=98=3D=E2=80=99, =E2=80=98,=E2=80=99, =
+=E2=80=98;=E2=80=99, =E2=80=98asm=E2=80=99 or =E2=80=98__attribute__=E2=80=
+=99 before =E2=80=98X_image=E2=80=99
+vgrabx.c: In function =E2=80=98main=E2=80=99:
+vgrabx.c:70: error: =E2=80=98X_display=E2=80=99 undeclared (first use in th=
+is function)
+vgrabx.c:70: error: (Each undeclared identifier is reported only once
+vgrabx.c:70: error: for each function it appears in.)
+vgrabx.c:70: warning: implicit declaration of function =E2=80=98XOpenDispla=
+y=E2=80=99
+vgrabx.c:72: warning: implicit declaration of function =E2=80=98XDefaultScr=
+een=E2=80=99
+vgrabx.c:77: warning: implicit declaration of function =E2=80=98XAllocNamed=
+Color=E2=80=99
+vgrabx.c:77: warning: implicit declaration of function =E2=80=98DefaultColo=
+rmap=E2=80=99
+vgrabx.c:78: error: =E2=80=98X_color=E2=80=99 undeclared (first use in this=
+ function)
+vgrabx.c:78: error: =E2=80=98X_color2=E2=80=99 undeclared (first use in thi=
+s function)
+vgrabx.c:98: error: =E2=80=98X_image=E2=80=99 undeclared (first use in this=
+ function)
+vgrabx.c:101: error: =E2=80=98ZPixmap=E2=80=99 undeclared (first use in thi=
+s function)
+vgrabx.c:103: warning: implicit declaration of function =E2=80=98XImageByte=
+Order=E2=80=99
+vgrabx.c:104: warning: implicit declaration of function =E2=80=98XBitmapUni=
+t=E2=80=99
+vgrabx.c:105: warning: implicit declaration of function =E2=80=98XBitmapBit=
+Order=E2=80=99
+vgrabx.c:106: warning: implicit declaration of function =E2=80=98XBitmapPad=
+=E2=80=99
+vgrabx.c:107: warning: implicit declaration of function =E2=80=98XDefaultDe=
+pth=E2=80=99
+vgrabx.c:116: warning: implicit declaration of function =E2=80=98XInitImage=
+=E2=80=99
+vgrabx.c:118: error: =E2=80=98X_window=E2=80=99 undeclared (first use in th=
+is function)
+vgrabx.c:118: warning: implicit declaration of function =E2=80=98XCreateSim=
+pleWindow=E2=80=99
+vgrabx.c:118: warning: implicit declaration of function =E2=80=98XDefaultRo=
+otWindow=E2=80=99
+vgrabx.c:120: warning: implicit declaration of function =E2=80=98XMapWindow=
+=E2=80=99
+vgrabx.c:459: warning: implicit declaration of function =E2=80=98XPutImage=
+=E2=80=99
+vgrabx.c:459: warning: implicit declaration of function =E2=80=98XDefaultGC=
+=E2=80=99
+vgrabx.c:475: warning: implicit declaration of function =E2=80=98XDestroyWi=
+ndow=E2=80=99
+vgrabx.c:476: warning: implicit declaration of function =E2=80=98XFreeColor=
+s=E2=80=99
+vgrabx.c:481: warning: implicit declaration of function =E2=80=98XCloseDisp=
+lay=E2=80=99
+sharief@sharief-desktop:~/Desktop/video drivers$=C2=A0
 
-check the device serial for this one. I don't know if the pvrusb2
-devices have it set up properly
-I know some manufacturers don't do!
-Be flexible with the node, but not with the serial.
 
-cat /sys/class/video4linux/video0/device/serial
-080702001788
 
-you have the nodename in it, there are many ways to retrieve the nodename.
 
-> My app should simply scan for /dev/video*-files, read out capabilities
-> from them, present the user menus to select devices and edit device
-> settings, save settings to a file and apply them on demand. This would
-> work fine if bus_info was filled right, without root-privileges,
-> without special udev rules or other sysfs-magic.
->
-> Regards,
-> Carsten
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+--- On Tue, 13/1/09, Michael Williamson <michael_h_williamson@yahoo.com> wr=
+ote:
+From: Michael Williamson <michael_h_williamson@yahoo.com>
+Subject: Re: About xawtv
+To: shariefbe@yahoo.co.in
+Date: Tuesday, 13 January, 2009, 10:49 PM
 
+
+
+--- On Tue, 1/13/09, niamathullah sharief <shariefbe@yahoo.co.in> wrote:
+
+> From: niamathullah sharief <shariefbe@yahoo.co.in>
+> Subject: Re: About xawtv
+> To: michael_h_williamson@yahoo.com, "video4linux list"
+<video4linux-list@redhat.com>, "Kernel newbies"
+<kernelnewbies@nl.linux.org>
+> Date: Tuesday, January 13, 2009, 2:50 AM
+> ya ok micheal..i am ready to install SDL library...but is
+> the xawtv software is using this SDL library to display the
+> captured pictures..?i think no....then how it is
+> displaying..?I think this vgrab.c requires this SDL
+> library....do you have any other program to display the
+> captured pictures continuously as video without using this
+> =C2=A0SDL library...?sorry if i asked any wrong
+> question....Thanks a lot micheal....
+
+
+I have used the 'X11' library for picture display.=20
+The attached program is an example. Compile it with:
+
+   # gcc vgrabx.c -Wall -lX11 -o vgrabx
+
+-Mike
+
+
+
+      =0A=0A=0A      Add more friends to your messenger and enjoy! Go to ht=
+tp://messenger.yahoo.com/invite/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
