@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.168])
+Received: from smtp2e.orange.fr ([80.12.242.112])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LJK3Q-0004ic-Az
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 04:53:34 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so1261110ugc.16
-	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 19:53:28 -0800 (PST)
-Date: Sun, 4 Jan 2009 04:52:50 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: kedgedev@centrum.cz
-In-Reply-To: <op.um64vfdkrj95b0@localhost>
-Message-ID: <alpine.DEB.2.00.0901040419380.16894@ybpnyubfg.ybpnyqbznva>
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<op.um64vfdkrj95b0@localhost>
+	(envelope-from <catimimi@libertysurf.fr>) id 1LN22c-0007vE-Um
+	for linux-dvb@linuxtv.org; Wed, 14 Jan 2009 10:28:03 +0100
+Message-ID: <496DB023.3090402@libertysurf.fr>
+Date: Wed, 14 Jan 2009 10:28:03 +0100
+From: Catimimi <catimimi@libertysurf.fr>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+To: linux-dvb@linuxtv.org, Linux-media <linux-media@vger.kernel.org>
+References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
+In-Reply-To: <496D7204.6030501@rogers.com>
+Subject: Re: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,89 +18,132 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0526583308=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 3 Jan 2009, Roman Jarosz wrote:
+--===============0526583308==
+Content-Type: text/html; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-> > I think that's the main issue. *BOUWSMA w*rote that its ok to rely on
-> > astra's maintainers and connect to any transponder is enough to get a  
-> > list
-> > of all others. I personaly don't trust those maintainers since I saw too
-> > many errors in NIT messages that specify the transponder, so I specify  
-> > all
-> > the frequencies I want to scan. I don't have a dish to 19.2, but there  
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content=3D"text/html;charset=3DISO-8859-15"
+ http-equiv=3D"Content-Type">
+</head>
+<body bgcolor=3D"#ffffff" text=3D"#000000">
+CityK a =E9crit=A0:
+<blockquote cite=3D"mid:496D7204.6030501@rogers.com" type=3D"cite">
+  <blockquote type=3D"cite">
+    <pre wrap=3D"">in order to send you the result of :
 
-Another reason why one might want to list all the frequencies
-particularly for 19E2 is that presently quite a few transponders
-are still analogue, but within a year or so will become digital.
-Often a digital transponder is fired up but not added to the
-NIT tables until officially going into service.
+lspci -vvxxx
 
-The frequencies used at 19E2 are well known, as are the related
-parameters -- present analogue channels will use the same
-frequencies with steps 14750kHz, SR22000, and 5/6, as the
-existing ex-analogue channels -- unless they get put into
-DVB-S2 service.  There have been a small number of temporary
-variants, though:  12728 was SR 19890 for a short while...
+for the Pinnacle PCTV Dual Hybrid Pro PCI Express (3010i)
 
-I have seen one or two mistakes added to the NIT tables at
-this position; somehow a 11475+27500 alleged transponder was
-added, and I also have seen an Intermediate Frequency added
-in one or two cases, which is clearly human error.
+______________________
+
+04:00.0 Multimedia controller: Philips Semiconductors Device 7162
+        Subsystem: Pinnacle Systems Inc. Device 0100
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dfast &gt;TAbor=
+t-
+&lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-
+        Latency: 0, Cache Line Size: 16 bytes
+        Interrupt: pin A routed to IRQ 5
+        Region 0: Memory at dde00000 (64-bit, non-prefetchable) [size=3D1=
+M]
+        Capabilities: [40] Message Signalled Interrupts: Mask- 64bit+
+Queue=3D0/5 Enable-
+                Address: 0000000000000000  Data: 0000
+        Capabilities: [50] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
+&lt;256ns, L1 &lt;1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal-
+Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
+                        MaxPayload 128 bytes, MaxReadReq 128 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr-
+TransPend-
+                LnkCap: Port #1, Speed 2.5GT/s, Width x1, ASPM L0s L1,
+Latency L0 &lt;4us, L1 &lt;64us
+                        ClockPM- Suprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 128 bytes Disabled- Retrain-
+CommClk-
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk-
+DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [74] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=3D0mA
+PME(D0+,D1+,D2+,D3hot-,D3cold-)
+                Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
+        Capabilities: [80] Vendor Specific Information &lt;?&gt;
+00: 31 11 62 71 07 00 10 00 00 00 80 04 04 00 00 00
+10: 04 00 e0 dd 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 bd 11 00 01
+30: 00 00 00 00 40 00 00 00 00 00 00 00 05 01 00 00
+40: 05 50 8a 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 10 74 01 00 80 00 28 00 10 00 0a 00 11 6c 03 01
+60: 08 00 11 00 00 0a 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 01 80 02 3e 00 00 00 00 00 00 00 00
+80: 09 00 50 00 03 0c 00 00 02 02 00 00 00 00 00 00
+90: 00 04 00 00 00 00 00 08 00 00 10 00 00 00 00 00
+a0: 01 00 00 04 03 18 00 00 00 00 01 04 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 20 01 2a 00 00
+c0: 01 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
+I hope it'll help.
+    </pre>
+  </blockquote>
+  <pre wrap=3D""><!---->
+Could you put it in the wiki if its not already contained there.  Thanks.
+  </pre>
+</blockquote>
+It was done yesterday.<br>
+<blockquote cite=3D"mid:496D7204.6030501@rogers.com" type=3D"cite">
+  <pre wrap=3D"">
+  </pre>
+  <blockquote type=3D"cite">
+    <pre wrap=3D"">I tried the driver found here : <a class=3D"moz-txt-li=
+nk-freetext" href=3D"http://jusst.de/hg/saa716x">http://jusst.de/hg/saa71=
+6x</a>
+It compiles and install, but if I try : modprobe saa716x_hybrid.ko
+I get a fatal error : module not found.
+
+I can't find any message in dmesg.
+    </pre>
+  </blockquote>
+  <pre wrap=3D""><!---->
+try without the ".ko", i.e. instead, use:
+
+modprobe saa716x_hybrid
+  </pre>
+</blockquote>
+OK, shame on me, it works but nothing happens.<br>
+Michel.<br>
+<br>
+</body>
+</html>
 
 
 
-> Could you tell me how? I've tried with S 12188000 H 27500000 3/4 and
-> it doesn't find anything.
-> The console outputs are here:
-> http://kedge.wz.cz/dvb/scan.txt
-
-For some reason, your card is unable to lock onto that
-transponder, at least from `scan' -- seen by the tuning
-status values never going above 0x1 or 0x3, which is
-usually the case when no transponder is present, or the
-parameters given are incorrect.
-
-But then you said early that you could manually zap to
-this frequency and see RTL...
-
-In fact, as I look at the result of your scan, you are
-only able to tune in very few of the transponders which
-you should receive -- perhaps less than a third.
-
-Oh, your bogus IF is still present toward the end of the
-scan:
->>> tune to: 1574:h:S19.2E:22000:
-DVB-S IF freq is 8175750
-Obviously 1,574GHz is not a Ku-band transponder, but
-rather the IF of the local oscillator at 9,75GHz, for
-a frequency of 11,324GHz, or at 10,6GHz for 12,174GHz
-which is in the band where SR27500 is used -- though
-I vaguely recall there also being a frequency provided
-well above 12750...
-
-I see no regular pattern in transponders that fail to
-tune.  `scan -v' will show how many attempts it takes
-to tune those transponders with success; I believe the
-`-5' option does not lengthen the time permitted for
-a lock to be obtained, but it wouldn't hurt to try it,
-I think (it normally is used where the data sent does
-not cycle around in a short time as it should).
-
-In general, I expect my tuners to lock onto a good signal
-such as Astra in one, and no more than two tuning status
-lines.  But I've seen other scan results where lock is not
-obtained so quickly...
-
-
-barry bouwsma
-needs sleep badly
+--===============0526583308==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0526583308==--
