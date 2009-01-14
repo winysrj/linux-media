@@ -1,31 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n081puqp001182
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 20:51:56 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n081pPRE007672
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 20:51:25 -0500
-Date: Wed, 7 Jan 2009 23:50:58 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-Message-ID: <20090107235058.15bf6fa9@pedra.chehab.org>
-In-Reply-To: <412bdbff0901071024p7a16343cha01c09ea6ae2b5a2@mail.gmail.com>
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>
-	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
-	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
-	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>
-	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>
-	<c785bba30901020850y51c7b9d2i47fd418828cd150c@mail.gmail.com>
-	<c785bba30901030922y17d67d0bm822304a650a0e812@mail.gmail.com>
-	<c785bba30901051633g7808197fl6d377420d799120c@mail.gmail.com>
-	<c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
-	<412bdbff0901071024p7a16343cha01c09ea6ae2b5a2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EIjGdX007562
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:45:16 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0EIi8jE022264
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:44:08 -0500
+Received: by ewy14 with SMTP id 14so776833ewy.3
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 10:44:07 -0800 (PST)
+Message-ID: <b24e53350901141044u69f5258cjb86a820802c4a89a@mail.gmail.com>
+Date: Wed, 14 Jan 2009 13:44:07 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list <video4linux-list@redhat.com>
-Subject: Re: em28xx issues
+Content-Disposition: inline
+References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
+	<b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
+Subject: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer memory
+	leak and race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,33 +32,88 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 7 Jan 2009 13:24:10 -0500
-"Devin Heitmueller" <devin.heitmueller@gmail.com> wrote:
+em28xx: Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-> A quick look at the code does show something interesting:
-> 
-> There are a number of cases where we dereference the result of the
-> "INPUT" macro as follows without checking the number of inputs
-> defined:
-> 
-> route.input = INPUT(index)->vmux;
-> 
-> and here is the macro definition:
-> 
-> #define INPUT(nr) (&em28xx_boards[dev->model].input[nr])
-> 
-> It may be the case that a NULL pointer deference would occur if there
-> was only one input defined (as is the case for the PointNix camera).
-> 
-> As a test, you might want to copy the other two inputs for the
-> PointNix device profile from some other device, and see if you still
-> hits an oops during input selection.
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-I've reviewed the input stuff at em28xx driver, to avoid accessing input
-entries that aren't defined (so, filled with zeros).
+Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-Cheers,
-Mauro
+Priority: normal
+
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+12:47:00 2009 -0500
+@@ -62,11 +62,20 @@
+      int i;
+
+      dprintk("Stopping isoc\n");
+-       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+-               usb_unlink_urb(dev->adev.urb[i]);
+-               usb_free_urb(dev->adev.urb[i]);
+-               dev->adev.urb[i] = NULL;
+-       }
++        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
++               usb_unlink_urb(dev->adev.urb[i]);
++               usb_free_urb(dev->adev.urb[i]);
++               dev->adev.urb[i] = NULL;
++               if (dev->adev.urb[i]) {
++                       usb_unlink_urb(dev->adev.urb[i]);
++                       usb_free_urb(dev->adev.urb[i]);
++                       dev->adev.urb[i] = NULL;
++               }
++                if (dev->adev.transfer_buffer) {
++                       kfree(dev->adev.transfer_buffer[i]);
++                       dev->adev.transfer_buffer[i] = NULL;
++               }
++        }
+
+      return 0;
+ }
+@@ -458,11 +467,15 @@
+                                                  *substream)
+ #endif
+ {
++       unsigned long flags;
++
+      struct em28xx *dev;
+-
+      snd_pcm_uframes_t hwptr_done;
++
+      dev = snd_pcm_substream_chip(substream);
++       spin_lock_irqsave(&dev->adev.slock, flags);
+      hwptr_done = dev->adev.hwptr_done_capture;
++       spin_unlock_irqrestore(&dev->adev.slock, flags);
+
+      return hwptr_done;
+ }
+
+
+
+--
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
+
+
+
+-- 
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
