@@ -1,58 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:36206 "EHLO cnc.isely.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:30658 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755785AbZAPPEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2009 10:04:41 -0500
-Date: Fri, 16 Jan 2009 09:04:37 -0600 (CST)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely <isely@pobox.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-dvb@linuxtv.org,
-	Patrick Boettcher <patrick.boettcher@desy.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-In-Reply-To: <200901161555.00803.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0901160903080.21448@cnc.isely.net>
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
- <200901161555.00803.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1750927AbZANR4n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jan 2009 12:56:43 -0500
+Message-ID: <496E2758.70403@iki.fi>
+Date: Wed, 14 Jan 2009 19:56:40 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-dvb <linux-dvb@linuxtv.org>, linux-media@vger.kernel.org,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Initial tuning file update for fi-*
+Content-Type: multipart/mixed;
+ boundary="------------080708090001070406040207"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Jan 2009, Hans Verkuil wrote:
+This is a multi-part message in MIME format.
+--------------080708090001070406040207
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> On Friday 16 January 2009 15:48:45 Patrick Boettcher wrote:
-> > Hi Mauro,
-> >
-> > Since the creation of linux-media@vger.kernel.org I'm seeing lots of
-> > cross-postings between linux-dvb, linux-media and video4linux. This
-> > is a little bit annoying if you are subscribed to all of those lists.
-> >
-> > Worse is, that some people only send requests to linux-media. Like
-> > that linux-dvb-only subscribers can't help...
-> >
-> > Why not closing linux-dvb (and video4linux) and transferring the
-> > currently subscribed users to linux-media automatically?
-> 
-> I agree with Patrick. I suggest a daily automatic posting to linux-dvb 
-> and video4linux telling people that on February 1st these lists 
-> disappear and that they should use linux-media instead. Then they can 
-> be closed down at the end of the month. I definitely wouldn't wait any 
-> longer since it is rather messy right now. One month transition period 
-> seems reasonable to me.
-> 
+Updates for Finland.
 
-Amen to that.  I've been telling people to go over to linux-media, but 
-old habits are hard to break.  It's time to actually make a clean break 
-from the old lists.
-
-  -Mike
-
-
+Antti
 -- 
+http://palosaari.fi/
 
-Mike Isely
-isely @ pobox (dot) com
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+--------------080708090001070406040207
+Content-Type: text/plain;
+ name="fi-update_2009-01-14.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fi-update_2009-01-14.patch"
+
+diff -r b59999438d50 util/scan/dvb-t/fi-Parikkala
+--- a/util/scan/dvb-t/fi-Parikkala	Wed Jan 14 18:42:07 2009 +0100
++++ b/util/scan/dvb-t/fi-Parikkala	Wed Jan 14 19:53:14 2009 +0200
+@@ -2,3 +2,4 @@
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+ T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+ T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
++T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+diff -r b59999438d50 util/scan/dvb-t/fi-Rautjarvi_Simpele
+--- a/util/scan/dvb-t/fi-Rautjarvi_Simpele	Wed Jan 14 18:42:07 2009 +0100
++++ b/util/scan/dvb-t/fi-Rautjarvi_Simpele	Wed Jan 14 19:53:14 2009 +0200
+@@ -1,4 +1,4 @@
+ # automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+ T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+-T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
++T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+
+--------------080708090001070406040207--
