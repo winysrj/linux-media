@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FMVc0R032467
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 17:31:38 -0500
-Received: from mail-gx0-f19.google.com (mail-gx0-f19.google.com
-	[209.85.217.19])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0FMU5T9007944
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 17:31:15 -0500
-Received: by mail-gx0-f19.google.com with SMTP id 12so1208875gxk.3
-	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 14:31:04 -0800 (PST)
-Message-ID: <b24e53350901151431y5f067f3dt75570768431282f0@mail.gmail.com>
-Date: Thu, 15 Jan 2009 17:31:04 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-To: video4linux-list@redhat.com,
-	"=?ISO-8859-1?Q?P=E1draig_Brady?=" <P@draigbrady.com>
-In-Reply-To: <b24e53350901141202j59828561g3dbb7b9fe389b9ae@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
-	<b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
-	<b24e53350901141044u69f5258cjb86a820802c4a89a@mail.gmail.com>
-	<b24e53350901141055j4d2562d0gdae11a83272500f6@mail.gmail.com>
-	<b24e53350901141202j59828561g3dbb7b9fe389b9ae@mail.gmail.com>
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: [PATCH 1/4] em28xx: Fix audio URB transfer buffer memory leak and
-	race condition/corruption of capture pointer
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EAQOGP010711
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 05:26:24 -0500
+Received: from cp-out12.libero.it (cp-out12.libero.it [212.52.84.112])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0EAQ7WS007070
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 05:26:07 -0500
+Received: from pc3-sid (151.53.244.21) by cp-out12.libero.it (8.5.016.1)
+	id 492C05DA06DC1E01 for video4linux-list@redhat.com;
+	Wed, 14 Jan 2009 11:26:07 +0100
+Date: Wed, 14 Jan 2009 11:31:55 +0100
+From: Salvatore De Paolis <depaolis.salvatore@libero.it>
+To: video4linux-list@redhat.com
+Message-ID: <20090114113155.570da69f@pc3-sid>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Subject: gspca pac7311 with v4l2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,52 +27,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-em28xx: Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
+Hi all
+I updated the kernel to the newest stable, 2.6.28 and i noticed some changes in
+v4l.
+I have a Trust webcam which is driven by gspca, in detail pac7311.
+When i run xawtv the webcam led blink for a while and stops and i can see the
+screen in black.
+Here is some log, please if you need something more just ask me.
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
+Sal
+---
 
-Fix audio URB transfer buffer memory leak and race
-condition/corruption of capture pointer
+$ dmesg | tail
+[drm] Initialized i915 1.6.0 20080730 on minor 0
+usb 1-2: new full speed USB device using uhci_hcd and address 2
+usb 1-2: configuration #1 chosen from 1 choice
+gspca: main v2.3.0 registered
+gspca: probing 093a:2608
+gspca: probe ok
+gspca: probing 093a:2608
+gspca: probing 093a:2608
+usbcore: registered new interface driver pac7311
+pac7311: registered
 
-Leak fix kindly contributed by Pádraig Brady.
+$ xawtv -hwscan
+This is xawtv-3.95.dfsg.1, running on Linux/i686 (2.6.28)
+looking for available devices
+port 83-98
+    type : Xvideo, image scaler
+    name : Intel(R) Textured Video
 
-Priority: normal
+port 99-99
+    type : Xvideo, image scaler
+    name : Intel(R) Video Overlay
 
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+/dev/video0: OK                         [ -device /dev/video0 ]
+    type : v4l2
+    name : USB Camera (093a:2608)
+    flags:  capture  
 
-diff -r 7981bdd4e25a linux/drivers/media/video/em28xx/em28xx-audio.c
---- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Mon Jan 12
-00:18:04 2009 +0000
-+++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Thu Jan 15
-17:27:27 2009 -0500
-@@ -66,6 +66,9 @@
-                usb_unlink_urb(dev->adev.urb[i]);
-                usb_free_urb(dev->adev.urb[i]);
-                dev->adev.urb[i] = NULL;
-+
-+               kfree(dev->adev.transfer_buffer[i]);
-+               dev->adev.transfer_buffer[i] = NULL;
-        }
+$ xawtv
+This is xawtv-3.95.dfsg.1, running on Linux/i686 (2.6.28)
+xinerama 0: 1024x768+0+0
+/dev/video0 [v4l2]: no overlay support
+v4l-conf had some trouble, trying to continue anyway
+Warning: Cannot convert string "-*-ledfixed-medium-r-*--39-*-*-*-c-*-*-*" to
+type FontStruct no way to get: 384x288 32 bit TrueColor (LE: bgr-)
 
-        return 0;
-@@ -458,11 +461,15 @@
-                                                    *substream)
- #endif
- {
-+       unsigned long flags;
-+
-        struct em28xx *dev;
--
-        snd_pcm_uframes_t hwptr_done;
-+
-        dev = snd_pcm_substream_chip(substream);
-+       spin_lock_irqsave(&dev->adev.slock, flags);
-        hwptr_done = dev->adev.hwptr_done_capture;
-+       spin_unlock_irqrestore(&dev->adev.slock, flags);
-
-        return hwptr_done;
- }
+$ v4l-conf 
+v4l-conf: using X11 display :0.0
+dga: version 2.0
+mode: 1024x768, depth=24, bpp=32, bpl=4096, base=0xc0800000
+/dev/video0 [v4l2]: no overlay support
 
 --
 video4linux-list mailing list
