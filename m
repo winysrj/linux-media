@@ -1,34 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0NDBU3u008403
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:11:30 -0500
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0NDBCTe030975
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:11:12 -0500
-Received: from tervel.nabble.com ([192.168.236.150])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <bounces@n2.nabble.com>) id 1LQLoW-0002yt-JF
-	for video4linux-list@redhat.com; Fri, 23 Jan 2009 05:11:12 -0800
-Message-ID: <1232716272588-2203202.post@n2.nabble.com>
-Date: Fri, 23 Jan 2009 05:11:12 -0800 (PST)
-From: RobM <robmaurer@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EIIYK8024383
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:18:39 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0EI4x5H032202
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:05:17 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so72604eyf.39
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 10:04:58 -0800 (PST)
+Message-ID: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
+Date: Wed, 14 Jan 2009 13:04:58 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
 To: video4linux-list@redhat.com
-In-Reply-To: <412bdbff0811261402s2cf5d965xc5dc60325f5a95ec@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
-	<alpine.DEB.1.10.0811262251210.10867@bakacsin.ki.iif.hu>
-	<412bdbff0811261402s2cf5d965xc5dc60325f5a95ec@mail.gmail.com>
-Subject: Re: [video4linux] Attention em28xx users
+Content-Disposition: inline
+Subject: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer memory
+	leak and race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,50 +28,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+em28xx: Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-Hi Mr. Devin,
-I have the aforementioned ADS Instant TV USB (Model USBAV-704N). It's doing
-me little good at the moment as like Gabor I cannot make it work. If you are
-still interested in having it shipped to you for a bit of inspection/testing
-I am happy to loan it to you.
-Best regards,
-Rob (Massachusetts, USA)
+Developer's Certificate of Origin 1.1
 
+        By making a contribution to this project, I certify that:
 
-Devin Heitmueller wrote:
-> 
-> On Wed, Nov 26, 2008 at 4:59 PM, Kiss Gabor (Bitman)
-> <kissg@ssg.ki.iif.hu> wrote:
->>> please open the unit and send me some high-resolution photographs of
->>> the circuit board?
->>
->> At this moment I have no idea at all how to open the box without
->> serious damages.
->> Is this necessary? Could you check the July thread about the same
->> device?
-> 
-> I'll do some research and get back to you, as it might already be
-> well-known what devices are contained.
-> 
-> Thanks for all your help,
-> 
-> Devin
-> 
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-> 
+        (a) The contribution was created in whole or in part by me and I
+            have the right to submit it under the open source license
+            indicated in the file; or
 
--- 
-View this message in context: http://n2.nabble.com/Attention-em28xx-users-tp1507437p2203202.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
+        (b) The contribution is based upon previous work that, to the best
+            of my knowledge, is covered under an appropriate open source
+            license and I have the right under that license to submit that
+            work with modifications, whether created in whole or in part
+            by me, under the same open source license (unless I am
+            permitted to submit under a different license), as indicated
+            in the file; or
+
+        (c) The contribution was provided directly to me by some other
+            person who certified (a), (b) or (c) and I have not modified
+            it.
+
+        (d) I understand and agree that this project and the contribution
+            are public and that a record of the contribution (including all
+            personal information I submit with it, including my sign-off) is
+            maintained indefinitely and may be redistributed consistent with
+            this project or the open source license(s) involved.
+
+Signed-off-by: Robert V. Krakora <rob.krakora@messagenetsystems.com>
+
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+12:47:00 2009 -0500
+@@ -62,11 +62,20 @@
+        int i;
+
+        dprintk("Stopping isoc\n");
+-       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+-               usb_unlink_urb(dev->adev.urb[i]);
+-               usb_free_urb(dev->adev.urb[i]);
+-               dev->adev.urb[i] = NULL;
+-       }
++        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
++               usb_unlink_urb(dev->adev.urb[i]);
++               usb_free_urb(dev->adev.urb[i]);
++               dev->adev.urb[i] = NULL;
++               if (dev->adev.urb[i]) {
++                       usb_unlink_urb(dev->adev.urb[i]);
++                       usb_free_urb(dev->adev.urb[i]);
++                       dev->adev.urb[i] = NULL;
++               }
++                if (dev->adev.transfer_buffer) {
++                       kfree(dev->adev.transfer_buffer[i]);
++                       dev->adev.transfer_buffer[i] = NULL;
++               }
++        }
+
+        return 0;
+ }
+@@ -458,11 +467,15 @@
+                                                    *substream)
+ #endif
+ {
++       unsigned long flags;
++
+        struct em28xx *dev;
+-
+        snd_pcm_uframes_t hwptr_done;
++
+        dev = snd_pcm_substream_chip(substream);
++       spin_lock_irqsave(&dev->adev.slock, flags);
+        hwptr_done = dev->adev.hwptr_done_capture;
++       spin_unlock_irqrestore(&dev->adev.slock, flags);
+
+        return hwptr_done;
+ }
 
 --
 video4linux-list mailing list
