@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n01LJjI0009000
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 16:19:45 -0500
-Received: from mk-outboundfilter-6.mail.uk.tiscali.com
-	(mk-outboundfilter-6.mail.uk.tiscali.com [212.74.114.14])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n01LJU4A018070
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 16:19:30 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: sqcam-devel@lists.sourceforge.net
-Date: Thu, 1 Jan 2009 21:19:27 +0000
-References: <200901010033.58093.linux@baker-net.org.uk>
-	<495CB6D1.8040808@hhs.nl>
-In-Reply-To: <495CB6D1.8040808@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EJXGqG003818
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 14:33:16 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0EJX1gj011524
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 14:33:02 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so77807eyf.39
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 11:33:01 -0800 (PST)
+Message-ID: <b24e53350901141133i29738777y58de51188fa6364@mail.gmail.com>
+Date: Wed, 14 Jan 2009 14:33:01 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <b24e53350901141126s1861444aj928810f7bc428e5f@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200901012119.27626.linux@baker-net.org.uk>
-Cc: video4linux-list <video4linux-list@redhat.com>,
-	kilgota@banach.math.auburn.edu
-Subject: Re: [sqcam-devel] [REVIEW] Driver for SQ-905 based cameras
+References: <b24e53350901141121v90e533ds13c62f4536a03dfe@mail.gmail.com>
+	<b24e53350901141126s1861444aj928810f7bc428e5f@mail.gmail.com>
+Subject: [PATCH 3/4] em28xx: Fix for KWorld 330U Board
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,176 +30,191 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thursday 01 January 2009, Hans de Goede wrote:
-> Adam Baker wrote:
-> > Theodore Kilgore and I now have a driver for cameras based on the
-> > SQ 905 chipset that is capable of producing images. It is based on gspca
-> > and uses libv4l. Issues so far are
-> >
-> > 1) With the cameras used so far for testing the image is always upside
-> > down. It is known that there are cameras that have different sensor
-> > layouts but without a mechanism to communicate that layout to libv4l we
-> > can't do much more. (Yes I have read Hans de Geode's posts about this but
-> > wanted to have a real driver to use as a basis before discussing
-> > further).
->
-> So now that we have a real driver, any feedback on my proposal?
+em28xx: Fix for KWorld 330U Board
 
-I'll re-read it and comment more fully later but I'm currently wondering if 
-the driver could provide the required shared memory making it available to 
-libv4l via an mmap call to ensure the memory lifetime matches the driver 
-lifetime.
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-<snip>
->
-> > +/* These cameras only support 320x200. Actually not true but good for a
-> > start*/ +static struct v4l2_pix_format sq905_mode[1] = {
-> > +	{ 320, 240, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
-> > +		.bytesperline = 320,
-> > +		.sizeimage = 320 * 240,
-> > +		.colorspace = V4L2_COLORSPACE_SRGB,
-> > +		.priv = 0}
-> > +};
-> > +
->
-> The comment says 320x200, the code 320x240.
+Fix for KWorld 330U Board
 
-I'll fix the comment
+Many thanks to Devin and Mauro!!!
 
->
-> > +static int sq905_command(struct usb_device *dev, __u16 index)
-> > +{
-> > +	__u8 status;
-> > +	int ret;
-> > +	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-> > +			      USB_REQ_SYNCH_FRAME,                /* request */
-> > +			      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> > +			      SQ905_COMMAND, index, "\x0", 1, 500);
->
-> "\x0" will point to const memory, this is not allowed as a buffer passed to
-> usb_control_msg, instead you should use a r/w buffer suitable for DMA.
-> We've got gspca_dev->usb_buf for this.
->
+Priority: normal
 
-Good point - I'll fix it
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-> > +	if (ret != 1) {
-> > +		PDEBUG(D_ERR, "sq905_command: usb_control_msg failed (%d)",
-> > +			ret);
-> > +		return -EIO;
-> > +	}
-> > +
-> > +	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-> > +			      USB_REQ_SYNCH_FRAME,                /* request */
-> > +			      USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> > +			      SQ905_PING, 0, &status, 1, 500);
->
-> status is on the stack, this is not necessarily dma-able, use
-> gspca_dev->usb_buf instead. Shouldn't the resulting status be checked?
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-cards.c
+--- a/linux/drivers/media/video/em28xx/em28xx-cards.c   Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-cards.c   Wed Jan 14
+12:46:43 2009 -0500
+@@ -114,6 +114,18 @@
+        {  -1,                  -1,     -1,             -1},
+ };
+ #endif
++
++static struct em28xx_reg_seq kworld_330u_analog[] = {
++       {EM28XX_R08_GPIO,       0x6d,   ~EM_GPIO_4,     10},
++          {EM2880_R04_GPO,        0x00,   0xff,           10},
++       {       -1,             -1,     -1,             -1},
++};
++
++static struct em28xx_reg_seq kworld_330u_digital[] = {
++       {EM28XX_R08_GPIO,       0x6e,   ~EM_GPIO_4,     10},
++       {EM2880_R04_GPO,        0x08,   0xff,           10},
++       {       -1,             -1,     -1,             -1},
++};
 
-Good point re DMA. The meaning of status is unknown - maybe there should be a 
-comment to that effect.
+ /* Callback for the most boards */
+ static struct em28xx_reg_seq default_tuner_gpio[] = {
+@@ -1242,29 +1254,33 @@
+                        .gpio     = hauppauge_wintv_hvr_900_analog,
+                } },
+        },
+-       [EM2883_BOARD_KWORLD_HYBRID_A316] = {
++       [EM2883_BOARD_KWORLD_HYBRID_330U] = {
+                .name         = "Kworld PlusTV HD Hybrid 330",
+                .tuner_type   = TUNER_XC2028,
+                .tuner_gpio   = default_tuner_gpio,
+                .decoder      = EM28XX_TVP5150,
+                .mts_firmware = 1,
+                .has_dvb      = 1,
+-               .dvb_gpio     = default_digital,
++               .dvb_gpio     = kworld_330u_digital,
++               .xclk             = EM28XX_XCLK_FREQUENCY_12MHZ,
++               .i2c_speed        = EM28XX_I2C_CLK_WAIT_ENABLE |
+EM28XX_I2C_EEPROM_ON_BOARD | EM28XX_I2C_EEPROM_KEY_VALID,
+                .input        = { {
+                        .type     = EM28XX_VMUX_TELEVISION,
+                        .vmux     = TVP5150_COMPOSITE0,
+                        .amux     = EM28XX_AMUX_VIDEO,
+-                       .gpio     = default_analog,
++                       .gpio     = kworld_330u_analog,
++                       .aout     = EM28XX_AOUT_PCM_IN | EM28XX_AOUT_PCM_STEREO,
+                }, {
+                        .type     = EM28XX_VMUX_COMPOSITE1,
+                        .vmux     = TVP5150_COMPOSITE1,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+-                       .gpio     = hauppauge_wintv_hvr_900_analog,
++                       .gpio     = kworld_330u_analog,
++                       .aout     = EM28XX_AOUT_PCM_IN | EM28XX_AOUT_PCM_STEREO,
+                }, {
+                        .type     = EM28XX_VMUX_SVIDEO,
+                        .vmux     = TVP5150_SVIDEO,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+-                       .gpio     = hauppauge_wintv_hvr_900_analog,
++                       .gpio     = kworld_330u_analog,
+                } },
+        },
+        [EM2820_BOARD_COMPRO_VIDEOMATE_FORYOU] = {
+@@ -1318,7 +1334,7 @@
+                        .driver_info = EM2880_BOARD_KWORLD_DVB_310U },
+ #endif
+        { USB_DEVICE(0xeb1a, 0xa316),
+-                       .driver_info = EM2883_BOARD_KWORLD_HYBRID_A316 },
++                       .driver_info = EM2883_BOARD_KWORLD_HYBRID_330U },
+        { USB_DEVICE(0xeb1a, 0xe320),
+                        .driver_info = EM2880_BOARD_MSI_DIGIVOX_AD_II },
+        { USB_DEVICE(0xeb1a, 0xe323),
+@@ -1594,6 +1610,10 @@
+        case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
+                /* FIXME: Better to specify the needed IF */
+                ctl->demod = XC3028_FE_DEFAULT;
++               break;
++       case EM2883_BOARD_KWORLD_HYBRID_330U:
++               ctl->demod = XC3028_FE_CHINA;
++               ctl->fname = XC2028_DEFAULT_FIRMWARE;
+                break;
+        default:
+                ctl->demod = XC3028_FE_OREN538;
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-dvb.c
+--- a/linux/drivers/media/video/em28xx/em28xx-dvb.c     Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c     Wed Jan 14
+12:47:00 2009 -0500
+@@ -29,6 +29,7 @@
 
->
-> > +	if (ret != 1) {
-> > +		PDEBUG(D_ERR, "sq905_command: usb_control_msg failed 2 (%d)",
-> > +			ret);
-> > +		return -EIO;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int sq905_ack_frame(struct usb_device *dev)
-> > +{
-> > +	int ret;
-> > +	ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
-> > +			      USB_REQ_SYNCH_FRAME,                /* request */
-> > +			      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> > +			      SQ905_READ_DONE, 0, "\x0", 1, 500);
->
-> "\x0" will point to const memory, this is not allowed as a buffer passed to
-> usb_control_msg, instead you should use a r/w buffer suitable for DMA.
-> We've got gspca_dev->usb_buf for this.
+ #include "lgdt330x.h"
+ #include "zl10353.h"
++#include "s5h1409.h"
+ #ifdef EM28XX_DRX397XD_SUPPORT
+ #include "drx397xD.h"
+ #endif
+@@ -231,6 +232,15 @@
+       .no_tuner = 1,
+       .parallel_ts = 1,
+       .if2 = 45600,
++};
++
++static struct s5h1409_config em28xx_s5h1409_with_xc3028 = {
++       .demod_address = 0x32 >> 1,
++       .output_mode   = S5H1409_PARALLEL_OUTPUT,
++       .gpio          = S5H1409_GPIO_OFF,
++       .inversion     = S5H1409_INVERSION_OFF,
++       .status_mode   = S5H1409_DEMODLOCKING,
++       .mpeg_timing   = S5H1409_MPEGTIMING_CONTINOUS_NONINVERTING_CLOCK
+ };
 
-Ack
+ #ifdef EM28XX_DRX397XD_SUPPORT
+@@ -413,7 +423,6 @@
+       case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
+       case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
+       case EM2880_BOARD_PINNACLE_PCTV_HD_PRO:
+-       case EM2883_BOARD_KWORLD_HYBRID_A316:
+       case EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600:
+               dvb->frontend = dvb_attach(lgdt330x_attach,
+                                          &em2880_lgdt3303_dev,
+@@ -434,6 +443,15 @@
+                       goto out_free;
+               }
+               break;
++       case EM2883_BOARD_KWORLD_HYBRID_330U:
++               dvb->frontend = dvb_attach(s5h1409_attach,
++                                          &em28xx_s5h1409_with_xc3028,
++                                          &dev->i2c_adap);
++               if (attach_xc3028(0x61, dev) < 0) {
++                       result = -EINVAL;
++                       goto out_free;
++               }
++               break;
+       case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2:
+ #ifdef EM28XX_DRX397XD_SUPPORT
+               /* We don't have the config structure properly populated, so
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-video.c
+--- a/linux/drivers/media/video/em28xx/em28xx-video.c   Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-video.c   Wed Jan 14
+12:47:00 2009 -0500
+@@ -2023,6 +2023,7 @@
 
->
-> As the above function is called from a workqueue you will need to take the
-> gspca_dev->usb_lock while doing the usb_control_msg (and while using
-> gspca_dev->usb_buf) as this might race with for example v4l2 controls code
-> also using the controlpipe.
+ int em28xx_register_analog_devices(struct em28xx *dev)
+ {
++    u8 val;
+       int ret;
 
-It might if the camera had any controls. Maybe a comment to that effect is 
-appropriate.
+       printk(KERN_INFO "%s: v4l2 driver version %d.%d.%d\n",
+@@ -2051,7 +2052,8 @@
+       /* enable vbi capturing */
 
->
-> > +	if (ret != 1) {
-> > +		PDEBUG(D_ERR, "sq905_ack_frame: usb_ctrl_msg failed (%d)", ret);
-> > +		return -EIO;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int
-> > +sq905_read_data(struct gspca_dev *gspca_dev, __u8 *data, int size)
-> > +{
-> > +	int ret;
-> > +	int act_len;
-> > +
-> > +	if (!data) {
-> > +		PDEBUG(D_ERR, "sq905_read_data: data pointer was NULL\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	ret = usb_control_msg(gspca_dev->dev,
-> > +			      usb_sndctrlpipe(gspca_dev->dev, 0),
-> > +			      USB_REQ_SYNCH_FRAME,                /* request */
-> > +			      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> > +			      SQ905_BULK_READ, size, "\x0", 1, 500);
->
-> "\x0" will point to const memory, this is not allowed as a buffer passed to
-> usb_control_msg, instead you should use a r/w buffer suitable for DMA.
-> We've got gspca_dev->usb_buf for this.
+ /*     em28xx_write_reg(dev, EM28XX_R0E_AUDIOSRC, 0xc0); audio register */
+-/*     em28xx_write_reg(dev, EM28XX_R0F_XCLK, 0x80); clk register */
++       val = (u8)em28xx_read_reg(dev, EM28XX_R0F_XCLK);
++       em28xx_write_reg(dev, EM28XX_R0F_XCLK,
+(EM28XX_XCLK_AUDIO_UNMUTE | val));
+       em28xx_write_reg(dev, EM28XX_R11_VINCTRL, 0x51);
+ #endif
 
-Ack
-
->
-> As the above function is called from a workqueue you will need to take the
-> gspca_dev->usb_lock while doing the usb_control_msg (and while using
-> gspca_dev->usb_buf) as this might race with for example v4l2 controls code
-> also using the controlpipe.
-
-As above
-
->
-> > +	if (ret != 1) {
-> > +		PDEBUG(D_ERR, "sq905_read_data: usb_ctrl_msg failed (%d)", ret);
-> > +		return -EIO;
-> > +	}
-> > +	ret = usb_bulk_msg(gspca_dev->dev,
-> > +			   usb_rcvbulkpipe(gspca_dev->dev, 0x81),
-> > +			   data, size, &act_len, 500);
-> > +	/* successful, it returns 0, otherwise  negative */
-> > +	if ((ret != 0) || (act_len != size)) {
-> > +		PDEBUG(D_ERR, "sq905_read_data: bulk read fail (%d) len %d/%d",
-> > +			ret, act_len, size);
-> > +		return -EIO;
-> > +	}
-> > +	return 0;
-> > +}
-> > +
->
-> <snip>
->
-> Thats all,
-
-Thanks.
-
-Adam.
-
-
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx.h
+--- a/linux/drivers/media/video/em28xx/em28xx.h Wed Jan 14 10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx.h Wed Jan 14 12:47:00 2009 -0500
+@@ -95,7 +95,7 @@
+ #define EM2882_BOARD_KWORLD_VS_DVBT              54
+ #define EM2882_BOARD_TERRATEC_HYBRID_XS                  55
+ #define EM2882_BOARD_PINNACLE_HYBRID_PRO         56
+-#define EM2883_BOARD_KWORLD_HYBRID_A316                  57
++#define EM2883_BOARD_KWORLD_HYBRID_330U                  57
+ #define EM2820_BOARD_COMPRO_VIDEOMATE_FORYOU     58
+ #define EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850     60
+ #define EM2820_BOARD_PROLINK_PLAYTV_BOX4_USB2
 
 --
 video4linux-list mailing list
