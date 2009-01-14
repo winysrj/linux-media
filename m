@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0ULnCtd011370
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 16:49:12 -0500
-Received: from dd6904.kasserver.com (dd6904.kasserver.com [85.13.131.139])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0ULmpvi009480
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 16:48:52 -0500
-References: <1233346643.9007.11.camel@graph-desktop>
-Message-Id: <CB4E7FCE-8D45-49E4-8449-36E3E75EB843@softronic-mannheim.de>
-From: =?utf-8?Q?Marius_R=C3=A4sener?= <mr@softronic-mannheim.de>
-To: "graphdark@inbox.ru" <graphdark@inbox.ru>
-In-Reply-To: <1233346643.9007.11.camel@graph-desktop>
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0EItGsg013756
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:55:16 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0EIt2lN027144
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 13:55:02 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so75745eyf.39
+	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 10:55:01 -0800 (PST)
+Message-ID: <b24e53350901141055j4d2562d0gdae11a83272500f6@mail.gmail.com>
+Date: Wed, 14 Jan 2009 13:55:01 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <b24e53350901141044u69f5258cjb86a820802c4a89a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (iPhone Mail 5H11)
-Date: Fri, 30 Jan 2009 22:49:13 +0100
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: XPERT TV - PVR 883
+Content-Disposition: inline
+References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
+	<b24e53350901141031w66c4784cqc07eae9ae42202f0@mail.gmail.com>
+	<b24e53350901141044u69f5258cjb86a820802c4a89a@mail.gmail.com>
+Subject: [PATCH 1/4] em28xx: Fix audio URB transfer buffer memory leak and
+	race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,62 +32,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi graph.
-I'm not that linux expert but accorrding to your dmesg ouput i would  
-recommend to check the driver of your mainboard chipset.
+em28xx: Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-Maybe one site to look that up and which i've seen the last days is  
-ubuntuhcl.org
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-Hope that helps
+Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-sl
-Marius
+Priority: normal
 
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
 
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+12:47:00 2009 -0500
+@@ -62,11 +62,20 @@
+     int i;
 
-Am 30.01.2009 um 21:17 schrieb Graph <graphdark@inbox.ru>:
+     dprintk("Stopping isoc\n");
+-       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+-               usb_unlink_urb(dev->adev.urb[i]);
+-               usb_free_urb(dev->adev.urb[i]);
+-               dev->adev.urb[i] = NULL;
+-       }
++        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
++               usb_unlink_urb(dev->adev.urb[i]);
++               usb_free_urb(dev->adev.urb[i]);
++               dev->adev.urb[i] = NULL;
++               if (dev->adev.urb[i]) {
++                       usb_unlink_urb(dev->adev.urb[i]);
++                       usb_free_urb(dev->adev.urb[i]);
++                       dev->adev.urb[i] = NULL;
++               }
++                if (dev->adev.transfer_buffer) {
++                       kfree(dev->adev.transfer_buffer[i]);
++                       dev->adev.transfer_buffer[i] = NULL;
++               }
++        }
 
-> Hi, v4l.
->
-> I have some trouble in installing XPERT TV - PVR 883.
-> lspci take this:
-> 05:00.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video
-> and Audio Decoder (rev 05)
->    Flags: bus master, medium devsel, latency 64, IRQ 21
->    Memory at ef000000 (32-bit, non-prefetchable) [size=16M]
->    Capabilities: [44] Vital Product Data
->    Capabilities: [4c] Power Management version 2
->
-> dmesg take this:
-> [   32.296345] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-> [   32.296392] ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 21 (level,
-> low) -> IRQ 21
-> [   32.296433] cx88[0]: Your board has no valid PCI Subsystem ID and
-> thus can't
-> [   32.296434] cx88[0]: be autodetected.  Please pass card=<n> insmod
-> option to
-> [   32.296435] cx88[0]: workaround that.  Redirect complaints to the
-> vendor of
-> [   32.296435] cx88[0]: the TV card.  Best regards,
-> [   32.296436] cx88[0]:         -- tux
-> [   32.296438] cx88[0]: Here is a list of valid choices for the  
-> card=<n>
-> insmod option:
->
-> I try change number of card, but not have any result.
->
-> tnx for help. Sorry about my very bad english.
->
->
-> -- 
-> Graph <graphdark@inbox.ru>
-> MgM
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+     return 0;
+ }
+@@ -458,11 +467,15 @@
+                                                 *substream)
+ #endif
+ {
++       unsigned long flags;
++
+     struct em28xx *dev;
+-
+     snd_pcm_uframes_t hwptr_done;
++
+     dev = snd_pcm_substream_chip(substream);
++       spin_lock_irqsave(&dev->adev.slock, flags);
+     hwptr_done = dev->adev.hwptr_done_capture;
++       spin_unlock_irqrestore(&dev->adev.slock, flags);
+
+     return hwptr_done;
+ }
 
 --
 video4linux-list mailing list
