@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
+Received: from koos.idefix.net ([82.95.196.202] helo=kzdoos.xs4all.nl)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1LL11p-0005OC-Pa
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 20:58:54 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so3402875fga.25
-	for <linux-dvb@linuxtv.org>; Thu, 08 Jan 2009 11:58:50 -0800 (PST)
-Message-ID: <37219a840901081158ye4b0d64sb10212b05a54d015@mail.gmail.com>
-Date: Thu, 8 Jan 2009 14:58:50 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Tu-Tu Yu" <tutuyu@usc.edu>
-In-Reply-To: <cae4ceb0901081150m24dbfe5dv386236c9144e952d@mail.gmail.com>
+	(envelope-from <koos@kzdoos.xs4all.nl>) id 1LN9lP-0007vJ-OH
+	for linux-dvb@linuxtv.org; Wed, 14 Jan 2009 18:42:50 +0100
+Date: Wed, 14 Jan 2009 18:42:41 +0100
+From: Koos van den Hout <koos@kzdoos.xs4all.nl>
+To: Christoph Pfister <christophpfister@gmail.com>
+Message-ID: <20090114174241.GA1626@kzdoos.xs4all.nl>
+References: <20081224112111.GA15004@kzdoos.xs4all.nl>
+	<19a3b7a80812291613kc566f0cua89156b43f1ec7d7@mail.gmail.com>
+	<20081230103438.GA12942@kzdoos.xs4all.nl>
+	<19a3b7a80901140931x4863a29cse6362ed9ca1c7534@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <cae4ceb0901081150m24dbfe5dv386236c9144e952d@mail.gmail.com>
+In-Reply-To: <19a3b7a80901140931x4863a29cse6362ed9ca1c7534@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] CX23885 is broken!?
+Subject: Re: [linux-dvb] Scan file dvb-t nl-Utrecht
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,58 +22,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1566049029=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Jan 8, 2009 at 2:50 PM, Tu-Tu Yu <tutuyu@usc.edu> wrote:
-> I updated the v4l-dvb this morning, and I tried to load cx23885 by
-> "modprobe cx23885"
-> It says
-> "FATAL: Error inserting cx23885
-> (/lib/modules/2.6.26-rs/kernel/drivers/media/video/cx23885/cx23885.ko):
-> Unknown symbol in module, or unknown parameter (see dmesg)"
->
-> This is dmesg"==>
-> cx23885: disagrees about version of symbol video_ioctl2
-> cx23885: Unknown symbol video_ioctl2
-> cx23885: disagrees about version of symbol videobuf_dvb_alloc_frontend
-> cx23885: Unknown symbol videobuf_dvb_alloc_frontend
-> cx23885: disagrees about version of symbol video_devdata
-> cx23885: Unknown symbol video_devdata
-> cx23885: disagrees about version of symbol videobuf_dvb_get_frontend
-> cx23885: Unknown symbol videobuf_dvb_get_frontend
-> cx23885: disagrees about version of symbol video_unregister_device
-> cx23885: Unknown symbol video_unregister_device
-> cx23885: disagrees about version of symbol video_device_alloc
-> cx23885: Unknown symbol video_device_alloc
-> cx23885: disagrees about version of symbol video_register_device
-> cx23885: Unknown symbol video_register_device
-> cx23885: disagrees about version of symbol v4l2_chip_match_host
-> cx23885: Unknown symbol v4l2_chip_match_host
-> cx23885: disagrees about version of symbol video_device_release
-> cx23885: Unknown symbol video_device_release
->
-> Can anyone help me....? thank you so much!!!!!
-> Audrey~
 
-This is user error.
+--===============1566049029==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
+Content-Disposition: inline
 
-Rebuild your v4l-dvb after doing "make distclean" , then try again...
 
-make distclean
-make
-sudo make install
-REBOOT !!!
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That should do the trick.
+Quoting Christoph Pfister who wrote on Wed 2009-01-14 at 18:31:
 
--Mike
+> 2008/12/30 Koos van den Hout <koos@kzdoos.xs4all.nl>:
+> > Quoting Christoph Pfister who wrote on Tue 2008-12-30 at 01:13:
+> >
+> >> 2008/12/24 Koos van den Hout <koos@kzdoos.xs4all.nl>:
+> > Another one I tested in the deep south of the Netherlands:
+> >
+> > # Liege - Belgique
+> > # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> > T 834000000 8MHz 3/4 NONE QAM16 8k 1/4 NONE
+>=20
+> I don't want to mix different countries in one file.
+
+Sorry, I did not mean to mix those two subjects. It's a starting point for
+the Walloon (French Belgium) DVB-T listings. I found very little info on
+the correct modulation and other settings for Walloon DVB-T transmissions.
+
+> The longer term
+> solution for dvb-t should be auto scan, but that's a different topic
+> ...
+
+Yes. I think w_scan is a step in the good direction.
+
+                                                  Koos
+
+--=20
+The Virtual Bookcase, the site about books, book    | Koos van den Hout
+news and reviews http://www.virtualbookcase.com/    | http://idefix.net/~ko=
+os/
+PGP keyid DSS/1024 0xF0D7C263 or RSA/1024 0xCA845CB5|
+
+--YiEDa0DAkWCtVeE4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFJbiQRLGY7XfDXwmMRAs1jAKDm5s/GJwqQ7sIPCsCxTPy2dDD5ZQCdFbyU
+EppNUDirLRdYT1c93yxlaFc=
+=nebw
+-----END PGP SIGNATURE-----
+
+--YiEDa0DAkWCtVeE4--
+
+
+--===============1566049029==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1566049029==--
