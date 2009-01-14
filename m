@@ -1,41 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.cmail.sogou.com ([220.181.26.200]:59212 "EHLO
-	relay.cmail.sogou.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753106AbZAODhy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 22:37:54 -0500
-Date: Thu, 15 Jan 2009 11:15:35 +0800
-From: "support" <support@worlddvb.com>
-To: "Robin Perkins" <robin.perkins@internode.on.net>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <9C5FE73C-0276-4709-ABB0-446D4672C76A@internode.on.net>
-Subject: Re: Request for permission to use images from your website.
-Message-ID: <200901151115349069880@worlddvb.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
+Received: from mail.gmx.net ([213.165.64.20]:42701 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758708AbZANQSI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jan 2009 11:18:08 -0500
+Cc: o.endriss@gmx.de
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Wed, 14 Jan 2009 17:17:59 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+Message-ID: <20090114161759.39640@gmx.net>
+MIME-Version: 1.0
+Subject: [PATCH] lnbp21: documentation about the system register
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Um9iaW4gUGVya2lucyzE+rrDo6ENCg0KICB0aGFuayB1IGVkaXRlZCB0aGUgbGluayBmb3IgRFZC
-LVMyIDIwMDUgUENJZSBjYXJkLiB1ciB3b3JrIGlzIHZlcnkgbXVjaCBhcHByZWNpYXRlZCEgDQoN
-CkJlc3QgUmVnYXJkcw0KRFZCV29ybGQgVGVjaG5vbG9neSBUZWFtDQpEVkJXb3JsZCBUZWNobm9s
-b2d5IENvLC5MVEQNCmh0dHA6Ly93d3cud29ybGRkdmIuY29tDQoNCgkNCg0KPT09PT09PSAyMDA5
-LTAxLTE0IDIwOjI3OjQ2IMT61NrAtNDF1tDQtLXAo7o9PT09PT09DQoNCj5IZWxsbywNCj4NCj5J
-IGFtIGp1c3QgdXBkYXRpbmcgdGhlIHdpa2kgcGFnZSBmb3IgeW91ciBEVkItUzIgMjAwNSBQQ0ll
-IGNhcmQgb24gdGhlICANCj5MaW51eFRWIHdpa2kgKGh0dHA6Ly93d3cubGludXh0di5vcmcvd2lr
-aS9pbmRleC5waHA/dGl0bGU9RFZCV29ybGRfRFZCLVMyXzIwMDVfUENJLUV4cHJlc3NfQ2FyZCAN
-Cj4pIGFuZCBub3RpY2VkIHRoYXQgc29tZW9uZSBoYWQgdXBsb2FkZWQgdGhlIGltYWdlIG9mIHRo
-aXMgY2FyZCB0aGF0ICANCj5jYW1lIGZyb20geW91ciBzaXRlLiBJIGFtIHdyaXRpbmcgdG8geW91
-IGp1c3QgdG8gY29uZmlybSB0aGF0IHdlIGhhdmUgIA0KPnlvdXIgcGVybWlzc2lvbiB0byB1c2Ug
-dGhpcyBpbWFnZSAoYW5kIGlmIHNvIEkgd2lsbCBlZGl0IHRoZSBwYWdlICANCj5hZ2FpbiB0byBy
-ZWZsZWN0IHRoaXMpIG90aGVyd2lzZSB0aGUgaW1hZ2UgY2FuIGJlIHJlbW92ZWQuDQo+DQo+SWYg
-eW91IGFyZSBoYXBweSBmb3IgdGhpcyB0byBvY2N1ciBjb3VsZCB5b3UgcGxlYXNlIENDIGxpbnV4
-LW1lZGlhQHZnZXIua2VybmVsLm9yZyANCj4gIGp1c3Qgc28gdGhhdCB3ZSBoYXZlIGEgcmVjb3Jk
-IG9mIHRoaXMgcGVybWlzc2lvbiB0b28uDQo+DQo+VGhhbmtzIGZvciB5b3UgdGltZSwNCj4NCj5S
-b2INCj4NCg0KPSA9ID0gPSA9ID0gPSA9ID0gPSA9ID0gPSA9ID0gPSA9ID0gPSA9DQoJCQkNCg0K
-oaGhoaGhoaGhoaGhoaGhodbCDQrA8aOhDQogDQoJCQkJIA0KoaGhoaGhoaGhoaGhoaGhoXN1cHBv
-cnQNCqGhoaGhoaGhoaGhoaGhoaFzdXBwb3J0QHdvcmxkZHZiLmNvbQ0KoaGhoaGhoaGhoaGhoaGh
-oaGhoaEyMDA5LTAxLTE1DQoNCg==
 
+Here is a patch which adds some documentation about meanings of the
+the lnbp21 system register bits.
+
+Regards,
+Hans
+
+Signed-off-by: Hans Werner <hwerner4@gmx.de>
+
+diff -r 6896782d783d linux/drivers/media/dvb/frontends/lnbp21.h
+--- a/linux/drivers/media/dvb/frontends/lnbp21.h
++++ b/linux/drivers/media/dvb/frontends/lnbp21.h
+@@ -28,14 +28,14 @@
+ #define _LNBP21_H
+
+ /* system register bits */
+-#define LNBP21_OLF     0x01
+-#define LNBP21_OTF     0x02
+-#define LNBP21_EN      0x04
+-#define LNBP21_VSEL    0x08
+-#define LNBP21_LLC     0x10
+-#define LNBP21_TEN     0x20
+-#define LNBP21_ISEL    0x40
+-#define LNBP21_PCL     0x80
++#define LNBP21_OLF     0x01 /* [R-only] 0=OK; 1=over current limit flag*/
++#define LNBP21_OTF     0x02 /* [R-only] 0=OK; 1=over temperature flag (150degC typ) */
++#define LNBP21_EN      0x04 /* [RW] 0=disable LNB power, enable loopthrough; 1=enable LNB power, disable loopthrough*/
++#define LNBP21_VSEL    0x08 /* [RW] 0=low voltage (13/14V, vert pol); 1=high voltage (18/19V,horiz pol) */
++#define LNBP21_LLC     0x10 /* [RW] increase LNB voltage by 1V:  0=13/18V; 1=14/19V */
++#define LNBP21_TEN     0x20 /* [RW] 0=tone controlled by DSQIN pin; 1=tone enable, disable DSQIN */
++#define LNBP21_ISEL    0x40 /* [RW] current limit select 0:Iout=500-650mA,Isc=300mA ; 1:Iout=400-550mA,Isc=200mA*/
++#define LNBP21_PCL     0x80 /* [RW] short-circuit prot: 0=pulsed (dynamic) curr limiting; 1=static curr limiting*/
+
+ #include <linux/dvb/frontend.h>
+
+-- 
+Release early, release often.
+
+Sensationsangebot verlängert: GMX FreeDSL - Telefonanschluss + DSL 
+für nur 16,37 Euro/mtl.!* http://dsl.gmx.de/?ac=OM.AD.PD003K1308T4569a
