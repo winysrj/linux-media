@@ -1,83 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.188]:52248 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751310AbZAZQof (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4837 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757984AbZAOOBb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2009 11:44:35 -0500
-Received: by ti-out-0910.google.com with SMTP id b6so3346794tic.23
-        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2009 08:44:32 -0800 (PST)
+	Thu, 15 Jan 2009 09:01:31 -0500
+Message-ID: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+Date: Thu, 15 Jan 2009 15:01:28 +0100 (CET)
+Subject: Re: KWorld ATSC 115 all static
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+Cc: "CityK" <cityk@rogers.com>,
+	"hermann pitton" <hermann-pitton@arcor.de>,
+	"V4L" <video4linux-list@redhat.com>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Josh Borke" <joshborke@gmail.com>,
+	"David Lonie" <loniedavid@gmail.com>, linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <ea11fea30901150845o415c7b0dt21c325d0220e12@mail.gmail.com>
-References: <ea11fea30901150845o415c7b0dt21c325d0220e12@mail.gmail.com>
-Date: Mon, 26 Jan 2009 22:14:32 +0530
-Message-ID: <ea11fea30901260844g67f2b8c7g2eaf23cdcab61e29@mail.gmail.com>
-Subject: Re: [PATCH] : Fix compilation errors in drivers/media/video/cx88/cx88-i2c.c
-From: Manish Katiyar <mkatiyar@gmail.com>
-To: rjkm@thp.uni-koeln.de, mocm@thp.uni-koeln.de, yurij@naturesoft.net,
-	kraxel@bytesex.org, linux-media@vger.kernel.org
-Cc: mkatiyar@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[resending to  linux-media]
 
-Thanks -
-Manish
+> Hans Verkuil wrote:
+>> On Thursday 15 January 2009 06:01:28 CityK wrote:
+>>
+>>> Hans Verkuil wrote:
+>>>
+>>>> OK, I couldn't help myself and went ahead and tested it. It seems
+>>>> fine, so please test my tree:
+>>>>
+>>>> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-saa7134
+>>>>
+>>>> Let me know if it works.
+>>>>
+>>> Hi Hans,
+>>>
+>>> It didn't work.  No analog reception on either RF input.  (as Mauro
+>>> noted, DVB is unaffected; it still works).
+>>>
+>>> dmesg output looks right:
+>>>
+>>> tuner-simple 1-0061: creating new instance
+>>> tuner-simple 1-0061: type set to 68 (Philips TUV1236D ATSC/NTSC dual
+>>> in)
+>>>
+>>> I tried backing out of the modules and then reloading them, but no
+>>> change.  (including after fresh build or after rebooting)
+>>>
+>>
+>> Can you give the full dmesg output? Also, is your board suppossed to
+>> have a tda9887 as well?
+>>
+>
+> Hans' changes are not enough to fix the ATSC115 issue.
 
-On Thu, Jan 15, 2009 at 10:15 PM, Manish Katiyar <mkatiyar@gmail.com> wrote:
-> Below patch fixes the following build errors.
+Ah, OK.
+
+> I believe that if you can confirm that the same problem exists, but the
+> previous workaround continues to work even after Hans' changes, then I
+> believe that confirms that Hans' changes Do the Right Thing (tm).
 >
->  CC [M]  drivers/media/video/cx88/cx88-i2c.o
-> drivers/media/video/cx88/cx88-i2c.c: In function 'cx88_call_i2c_clients':
-> drivers/media/video/cx88/cx88-i2c.c:122: error: 'struct cx88_core' has
-> no member named 'gate_ctrl'
-> drivers/media/video/cx88/cx88-i2c.c:123: error: 'struct cx88_core' has
-> no member named 'gate_ctrl'
-> drivers/media/video/cx88/cx88-i2c.c:127: error: 'struct cx88_core' has
-> no member named 'gate_ctrl'
-> drivers/media/video/cx88/cx88-i2c.c:128: error: 'struct cx88_core' has
-> no member named 'gate_ctrl'
-> make[4]: *** [drivers/media/video/cx88/cx88-i2c.o] Error 1
-> make[3]: *** [drivers/media/video/cx88] Error 2
+> ATSC115 is broken not because the tuner type assignment has been removed
+> from attach_inform.
 >
+> This is actually a huge problem across all analog drivers now, since we
+> are no longer able to remove the "tuner" module and modprobe it again --
+> the second modprobe will not allow for an attach, as there will be no
+> way for the module to be recognized without having the glue code needed
+> inside attach_inform...
+
+Huh? Why would you want to rmmod and modprobe tuner? Anyway, drivers that
+use v4l2_subdev (like my converted saa7134) will increase the tuner module
+usecount, preventing it from being rmmod'ed.
+
+Regards,
+
+      Hans
+
+> ...unless somebody has a suggestion?
 >
+> Anyway, if the previous workaround works after Hans' changes, then I
+> think his changes should be merged -- even though it doesnt fix ATSC115,
+> it is indeed a step into the right direction.
 >
-> Signed-off-by: Manish Katiyar <mkatiyar@gmail.com>
-> ---
->  drivers/media/video/cx88/cx88-i2c.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
+> If the ATSC115 hack-fix patch doesn't apply anymore, please let me know
+> -- I'll respin it.
 >
-> diff --git a/drivers/media/video/cx88/cx88-i2c.c
-> b/drivers/media/video/cx88/cx88-i2c.c
-> index c0ff230..6d04b6a 100644
-> --- a/drivers/media/video/cx88/cx88-i2c.c
-> +++ b/drivers/media/video/cx88/cx88-i2c.c
-> @@ -119,13 +119,17 @@ void cx88_call_i2c_clients(struct cx88_core
-> *core, unsigned int cmd, void *arg)
->        if (0 != core->i2c_rc)
->                return;
+> Regards,
 >
-> +#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
->        if (core->gate_ctrl)
->                core->gate_ctrl(core, 1);
-> +#endif
+> Mike Krufky
 >
-> -       i2c_clients_command(&core->i2c_adap, cmd, arg);
->
-> +       i2c_clients_command(&core->i2c_adap, cmd, arg);
-> +#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
->        if (core->gate_ctrl)
->                core->gate_ctrl(core, 0);
-> +#endif
->  }
->
->  static const struct i2c_algo_bit_data cx8800_i2c_algo_template = {
-> --
-> 1.5.4.3
->
->
-> Thanks -
-> Manish
->
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
