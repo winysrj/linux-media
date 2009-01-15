@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0E8dCNU020616
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 03:39:12 -0500
-Received: from web95201.mail.in2.yahoo.com (web95201.mail.in2.yahoo.com
-	[203.104.18.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0E8crCS009155
-	for <video4linux-list@redhat.com>; Wed, 14 Jan 2009 03:38:53 -0500
-Date: Wed, 14 Jan 2009 14:08:52 +0530 (IST)
-From: niamathullah sharief <shariefbe@yahoo.co.in>
-To: michael_h_williamson@yahoo.com,
-	video4linux list <video4linux-list@redhat.com>,
-	Kernel newbies <kernelnewbies@nl.linux.org>
-In-Reply-To: <99952.17721.qm@web65508.mail.ac4.yahoo.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FBS1dX002565
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 06:28:01 -0500
+Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
+	[209.85.218.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0FBRide001020
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 06:27:45 -0500
+Received: by bwz13 with SMTP id 13so2936821bwz.3
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 03:27:44 -0800 (PST)
+Message-ID: <d9def9db0901150327r1c22cb32r36a0e9915d06891e@mail.gmail.com>
+Date: Thu, 15 Jan 2009 12:27:43 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "=?ISO-8859-1?Q?P=E1draig_Brady?=" <P@draigbrady.com>
+In-Reply-To: <496F18C4.9020009@draigBrady.com>
 MIME-Version: 1.0
-Message-ID: <362459.98382.qm@web95201.mail.in2.yahoo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: 
-Subject: Re: About xawtv
-Reply-To: shariefbe@yahoo.co.in
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
+	<496F18C4.9020009@draigBrady.com>
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer
+	memory leak and race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,59 +33,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Thu, Jan 15, 2009 at 12:06 PM, Pádraig Brady <P@draigbrady.com> wrote:
+> Robert Krakora wrote:
+>> em28xx: Fix audio URB transfer buffer memory leak and race
+>> condition/corruption of capture pointer
+>>
+>>
+>> Signed-off-by: Robert V. Krakora <rob.krakora@messagenetsystems.com>
+>>
+>> diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+>> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>> 10:06:12 2009 -0200
+>> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>> 12:47:00 2009 -0500
+>> @@ -62,11 +62,20 @@
+>>         int i;
+>>
+>>         dprintk("Stopping isoc\n");
+>> -       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>> -               usb_unlink_urb(dev->adev.urb[i]);
+>> -               usb_free_urb(dev->adev.urb[i]);
+>> -               dev->adev.urb[i] = NULL;
+>> -       }
+>> +        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>> +               usb_unlink_urb(dev->adev.urb[i]);
+>> +               usb_free_urb(dev->adev.urb[i]);
+>> +               dev->adev.urb[i] = NULL;
+>> +               if (dev->adev.urb[i]) {
+>> +                       usb_unlink_urb(dev->adev.urb[i]);
+>> +                       usb_free_urb(dev->adev.urb[i]);
+>> +                       dev->adev.urb[i] = NULL;
+>> +               }
+>> +                if (dev->adev.transfer_buffer) {
+>> +                       kfree(dev->adev.transfer_buffer[i]);
+>> +                       dev->adev.transfer_buffer[i] = NULL;
+>> +               }
+>> +        }
+>>
+>>         return 0;
+>>  }
+>
+> That looks a bit incorrect. I fixed this last week in Markus'
+> repository, as I thought the leak was specific to that tree:
+> http://mcentral.de/hg/~mrec/em28xx-new/diff/1cfd9010a552/em28xx-audio.c
+>
 
-Hi micheal,=C2=A0 =C2=A0 No micheal...i didnt find any header file in that =
-name....
-seeroot@sharief-desktop:/# find / -name 'Xlib.h'
-/home/sharief/Desktop/files/Xlib.h
-/home/sharief/Xlib.h
-root@sharief-desktop:/#=C2=A0
+The audio implementation was initially taken from my tree, so all the
+initial bugs
+of course are inherited too there of course.
 
-This two is one which you sent me..thats all....what to do micheal..what ab=
-out this vgrab5.c which you sent me at first...suggest me which one will be=
- better...and what to do...and how to do....dont forget to reply me micheal=
-....i am novice...no one here to help me...only you are guiding me....Thank=
-s micheal....
---- On Wed, 14/1/09, Michael Williamson <michael_h_williamson@yahoo.com> wr=
-ote:
-From: Michael Williamson <michael_h_williamson@yahoo.com>
-Subject: Re: About xawtv
-To: "niamathullah sharief" <shariefbe@yahoo.co.in>
-Date: Wednesday, 14 January, 2009, 11:59 AM
+regards,
+Markus
 
-
-
---- On Tue, 1/13/09, niamathullah sharief <shariefbe@yahoo.co.in> wrote:
-
-> From: niamathullah sharief <shariefbe@yahoo.co.in>
-> Subject: Re: About xawtv
-> To: "Michael Williamson" <michael_h_williamson@yahoo.com>,
-"video4linux list" <video4linux-list@redhat.com>, "Kernel
-newbies" <kernelnewbies@nl.linux.org>
-> Date: Tuesday, January 13, 2009, 11:50 PM
-> ya micheal......i done that..even though i am getting lost
-> of errors..i attached =C2=A0the errors as odt format....and i
-> attached your program too....which you told to edit...
-
-Hi sharief,
-
-Oops.=20
-I did not anticipate this problem when I sent you the header files.
-You should change the program back to the way it was.
-
-Can you try the following command?
-
-   # find / -name 'Xlib.h'
-
-It will search the file system for the file.
-
--Mike
-
-
-
-
-=0A=0A=0A      Add more friends to your messenger and enjoy! Go to http://m=
-essenger.yahoo.com/invite/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
