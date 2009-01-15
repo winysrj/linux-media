@@ -1,42 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx44.mail.ru ([195.239.211.10]:51499 "EHLO mx44.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750989AbZAXIQB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jan 2009 03:16:01 -0500
-Received: from f240.mail.ru (f240.mail.ru [194.186.55.245])
-	by mx44.mail.ru (mPOP.Fallback_MX) with ESMTP id F2D3938001639
-	for <linux-media@vger.kernel.org>; Sat, 24 Jan 2009 11:07:36 +0300 (MSK)
-From: Goga777 <goga777@bk.ru>
-To: Christophe Thommeret <hftom@free.fr>
-Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: =?koi8-r?Q?Re[2]=3A_[linux-dvb]_cx24116_&_roll-off_factor_=3D_auto?=
-Mime-Version: 1.0
-Date: Sat, 24 Jan 2009 11:07:04 +0300
-References: <200901232307.38396.hftom@free.fr>
-In-Reply-To: <200901232307.38396.hftom@free.fr>
-Reply-To: Goga777 <goga777@bk.ru>
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: 8bit
-Message-Id: <E1LQdXk-000Ok0-00.goga777-bk-ru@f240.mail.ru>
+Received: from mail-ew0-f17.google.com ([209.85.219.17]:62556 "EHLO
+	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472AbZAOC7k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jan 2009 21:59:40 -0500
+Received: by ewy10 with SMTP id 10so1041169ewy.13
+        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2009 18:59:38 -0800 (PST)
+From: Kyle Guinn <elyk03@gmail.com>
+To: moinejf@free.fr
+Subject: [PATCH 1/2] Add Mars-Semi MR97310A format
+Date: Wed, 14 Jan 2009 20:59:34 -0600
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901142059.34943.elyk03@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Le vendredi 23 janvier 2009 22:44:35 Goga777, vous avez écrit :
-> > > For example, DVB-S uses only rolloff = 0.35, so if the driver knows that
-> > > the chip can't accept auto value, it should use 0.35 value by default in
-> > > that case.
-> >
-> > good idea. Anybody against ?
-> 
-> That's already the case with cx24116, 0.35 is used for dvb-s
+# HG changeset patch
+# User Kyle Guinn <elyk03@gmail.com>
+# Date 1231822560 21600
+# Node ID 1bf7a4403e5f1cd10f12a69a9d9239f1bf4a58b6
+# Parent  b09b5128742f75bb0ce4375b23feac6c5f560aec
+Add Mars-Semi MR97310A format
 
+From: Kyle Guinn <elyk03@gmail.com>
 
-already has been done with cx24116 ? It's strange because I can see in cx24116 debug logs the messages like this
+Add a pixel format for the Mars-Semi MR97310A webcam controller.
 
-unsupported rolloff selected (3) 
+The MR97310A is a dual-mode webcam controller that provides compressed BGGR
+Bayer frames.  The decompression algorithm for still images is the same as for
+video, and is currently implemented in libgphoto2.
 
-for dvb-s
+Priority: normal
 
+Signed-off-by: Kyle Guinn <elyk03@gmail.com>
 
-Goga
-
+diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+--- a/linux/include/linux/videodev2.h
++++ b/linux/include/linux/videodev2.h
+@@ -344,6 +344,7 @@
+ #define V4L2_PIX_FMT_SPCA508  v4l2_fourcc('S', '5', '0', '8') /* YUVY per line */
+ #define V4L2_PIX_FMT_SPCA561  v4l2_fourcc('S', '5', '6', '1') /* compressed GBRG bayer */
+ #define V4L2_PIX_FMT_PAC207   v4l2_fourcc('P', '2', '0', '7') /* compressed BGGR bayer */
++#define V4L2_PIX_FMT_MR97310A v4l2_fourcc('M', '3', '1', '0') /* compressed BGGR bayer */
+ #define V4L2_PIX_FMT_PJPG     v4l2_fourcc('P', 'J', 'P', 'G') /* Pixart 73xx JPEG */
+ #define V4L2_PIX_FMT_YVYU    v4l2_fourcc('Y', 'V', 'Y', 'U') /* 16  YVU 4:2:2     */
+ 
