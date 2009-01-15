@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07GlJoR007355
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 11:47:19 -0500
-Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
-	[75.180.132.122])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07Gl0HZ024895
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 11:47:00 -0500
-Received: from cdptpa-web12-z01 ([10.127.132.103])
-	by cdptpa-smta02.mail.rr.com with ESMTP
-	id <20090107164700.FOK19940.cdptpa-smta02.mail.rr.com@cdptpa-web12-z01>
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 16:47:00 +0000
-Message-ID: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
-Date: Wed, 7 Jan 2009 11:47:00 -0500
-From: <marilynnpg@tx.rr.com>
-To: video4linux-list@redhat.com
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FEcbnL013049
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 09:38:37 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0FEbMf3028097
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 09:37:27 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so172522nfc.21
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 06:37:22 -0800 (PST)
+Message-ID: <b24e53350901150637q5f02d2c5t6d4a9ed5d298934b@mail.gmail.com>
+Date: Thu, 15 Jan 2009 09:37:22 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: video4linux-list@redhat.com,
+	"=?ISO-8859-1?Q?P=E1draig_Brady?=" <P@draigbrady.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Windows vs Linux  DVR System?
+Content-Disposition: inline
+Cc: 
+Subject: [PATCH 1/4] em28xx: Fix audio URB transfer buffer memory leak and
+	race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,35 +30,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I am looking into building my own DVR system on my PC running either Windows Vista or XP and one of the applications listed below.  That said, before I proceeded I wanted to check to see if there was a Linux application which will allowed me to use multiple Logitec QuickCam Pro cameras (approx 8 cameras).  In addition, I would be grateful if some could point out the advantages of using a Linux based solution over one of the Windows based solutions listed below. 
+em28xx: Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-1) Capturix VideoSpy beta 6 
----------------------------------- 
-http://www.pcmag.com/article2/0,2817,475790,00.asp 
-http://www.capturix.com/default.asp?product=cvs 
- 
- 
-2) Gotcha! 3.6 
------------------- 
-www.gotchanow.com 
-http://www.pcmag.com/article2/0,2817,475791,00.asp 
- 
- 
-3) WebCam Watchdog 2.2 
--------------------------------- 
-http://www.pcmag.com/article2/0,2817,475793,00.asp 
-www.webcam123.com 
- 
- 
-4) Watcher and RemoteView 
------------------------------------ 
-www.digi-watcher.com 
-http://www.pcmag.com/article2/0,2817,475792,00.asp 
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
+Fix audio URB transfer buffer memory leak and race
+condition/corruption of capture pointer
 
-5) Cam Wizard
-------------------
-http://www.ledset.com/camwiz/index.htm
+Priority: normal
+
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+12:47:00 2009 -0500
+@@ -62,11 +62,20 @@
+       int i;
+
+       dprintk("Stopping isoc\n");
+-       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+-               usb_unlink_urb(dev->adev.urb[i]);
+-               usb_free_urb(dev->adev.urb[i]);
+-               dev->adev.urb[i] = NULL;
+-       }
++        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
++               if (dev->adev.urb[i]) {
++                       usb_unlink_urb(dev->adev.urb[i]);
++                       usb_free_urb(dev->adev.urb[i]);
++                       dev->adev.urb[i] = NULL;
++               }
++                if (dev->adev.transfer_buffer[i]) {
++                       kfree(dev->adev.transfer_buffer[i]);
++                       dev->adev.transfer_buffer[i] = NULL;
++               }
++        }
+
+       return 0;
+ }
+@@ -458,11 +467,15 @@
+                                                   *substream)
+ #endif
+ {
++       unsigned long flags;
++
+       struct em28xx *dev;
+-
+       snd_pcm_uframes_t hwptr_done;
++
+       dev = snd_pcm_substream_chip(substream);
++       spin_lock_irqsave(&dev->adev.slock, flags);
+       hwptr_done = dev->adev.hwptr_done_capture;
++       spin_unlock_irqrestore(&dev->adev.slock, flags);
+
+       return hwptr_done;
+ }
 
 --
 video4linux-list mailing list
