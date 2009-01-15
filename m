@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07Ha35Z007260
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 12:36:03 -0500
-Received: from www.seiner.com (flatoutfitness.com [66.178.130.209])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07HYjRF014078
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 12:34:46 -0500
-Message-ID: <92538dce1e736997ab82c7a9b2787600.squirrel@www.datavault.us>
-In-Reply-To: <26aa882f0901070919t4820e888kc57c8cde9860a7d7@mail.gmail.com>
-References: <20090107164700.DW3G9.1910.root@cdptpa-web12-z01>
-	<38622b973a864018a37f32b60f618d9b.squirrel@www.datavault.us>
-	<26aa882f0901070919t4820e888kc57c8cde9860a7d7@mail.gmail.com>
-Date: Wed, 7 Jan 2009 09:34:44 -0800 (PST)
-From: "Yan Seiner" <yan@seiner.com>
-To: "Jackson Yee" <jackson@gotpossum.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FFFJSk007161
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:15:19 -0500
+Received: from iamta51.mxsweep.com (mail151.ix.emailantidote.com
+	[89.167.219.151])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0FFEte0022815
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:14:59 -0500
+Message-ID: <496F4F1B.1050706@draigBrady.com>
+Date: Thu, 15 Jan 2009 14:58:35 +0000
+From: =?ISO-8859-1?Q?P=E1draig_Brady?= <P@draigBrady.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
+To: Robert Krakora <rob.krakora@messagenetsystems.com>
+References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>	
+	<496F18C4.9020009@draigBrady.com>
+	<b24e53350901150632u2f031fcm3c6f34b6b0e81100@mail.gmail.com>
+In-Reply-To: <b24e53350901150632u2f031fcm3c6f34b6b0e81100@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Windows vs Linux DVR System?
+Subject: Re: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer
+ memory leak and race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,50 +31,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Robert Krakora wrote:
+> On Thu, Jan 15, 2009 at 6:06 AM, Pádraig Brady <P@draigbrady.com> wrote:
+>> Robert Krakora wrote:
+>>> em28xx: Fix audio URB transfer buffer memory leak and race
+>>> condition/corruption of capture pointer
+>>>
+>>>
+>>> Signed-off-by: Robert V. Krakora <rob.krakora@messagenetsystems.com>
+>>>
+>>> diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+>>> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>>> 10:06:12 2009 -0200
+>>> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>>> 12:47:00 2009 -0500
+>>> @@ -62,11 +62,20 @@
+>>>         int i;
+>>>
+>>>         dprintk("Stopping isoc\n");
+>>> -       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>>> -               usb_unlink_urb(dev->adev.urb[i]);
+>>> -               usb_free_urb(dev->adev.urb[i]);
+>>> -               dev->adev.urb[i] = NULL;
+>>> -       }
+>>> +        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>>> +               usb_unlink_urb(dev->adev.urb[i]);
+>>> +               usb_free_urb(dev->adev.urb[i]);
+>>> +               dev->adev.urb[i] = NULL;
+>>> +               if (dev->adev.urb[i]) {
+>>> +                       usb_unlink_urb(dev->adev.urb[i]);
+>>> +                       usb_free_urb(dev->adev.urb[i]);
+>>> +                       dev->adev.urb[i] = NULL;
+>>> +               }
+>>> +                if (dev->adev.transfer_buffer) {
+>>> +                       kfree(dev->adev.transfer_buffer[i]);
+>>> +                       dev->adev.transfer_buffer[i] = NULL;
+>>> +               }
+>>> +        }
+>>>
+>>>         return 0;
+>>>  }
+>> That looks a bit incorrect. I fixed this last week in Markus'
+>> repository, as I thought the leak was specific to that tree:
+>> http://mcentral.de/hg/~mrec/em28xx-new/diff/1cfd9010a552/em28xx-audio.c
+>>
+> 
+> I fail to see what looks incorrect about testing for NULL pointers
+> before freeing.
 
-On Wed, January 7, 2009 9:19 am, Jackson Yee wrote:
-> I second Yan's suggestion for analog cameras and a capture board if
-> you're looking for consistent, quality pictures. Eight USB webcams are
-> possible if you have separate USB hub chips and a good motherboard,
-> but you're really stretching the hardware thin once you get past four.
+That's redundant/inefficient. kfree(NULL) is fine.
 
-Webcams are built for indoor light levels; they wash out in daylight and
-have poor low-light performance.  They're limited to 14' cable runs.  They
-have poor frame rates at higher (640x480) resolutions - as low as 3 fps. 
-Their one advantage is that some of them can be easily modified for IR and
-are very sensitive so that even a few 20mw LEDs can provide good
-performance.
+> I did have a bug where I left the index number off of
+> the transfer buffer array which Devin kindly pointed out yesterday.
 
-> IP cameras are great if you have lots of money to burn, but start
-> struggling in numbers above eight even on gigabit ethernet due to
-> bandwidth contention and are not anywhere close to analog systems in
-> terms of price (The h264 cameras do a decent job, but you can setup an
-> entire analog system for the price of one).
+I was referring to that yes.
 
-All too true.  I've been cherry-picking my IPcams and I've been able to
-find them for $60-70 but they're few and far between and the choices are
-limited.  I get around the bandwith issue by having motion poll them but
-that limits me to around 5 fps.  With luck and a good camera I get 12 fps
-@ 640x480 but not often.
+I was also referring to the fact you have 2 calls to free the URBs.
 
-There's nothing like a good hardware capture board and analog cameras. 
-You get much better choices, interchangeable lenses, good light
-sensitivity, and so on.
+I suggest you just do what I did in my patch.
+I've tested it well. Without it I was leaking 48KiB
+every time VLC changed channel.
 
---Yan
-
--- 
-  o__
-  ,>/'_          o__
-  (_)\(_)        ,>/'_        o__
-Yan Seiner      (_)\(_)       ,>/'_     o__
-       Personal Trainer      (_)\(_)    ,>/'_        o__
-             Professional Engineer     (_)\(_)       ,>/'_
-Who says engineers have to be pencil necked geeks?  (_)\(_)
-
-You are an adult when you realize that everyone's an idiot sometimes. You
-are wise when you include yourself.
-
+cheers,
+Pádraig.
 
 --
 video4linux-list mailing list
