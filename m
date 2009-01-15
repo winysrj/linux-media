@@ -1,29 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:38707 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740AbZAQFv5 (ORCPT
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:42442 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753545AbZAODOn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 00:51:57 -0500
-Received: by bwz14 with SMTP id 14so5987764bwz.13
-        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 21:51:55 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.0901170002430.18012@ybpnyubfg.ybpnyqbznva>
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
-	 <alpine.DEB.2.00.0901170002430.18012@ybpnyubfg.ybpnyqbznva>
-Date: Fri, 16 Jan 2009 21:51:55 -0800
-Message-ID: <a3ef07920901162151r270cdb16w92c0d7d6b7e770a1@mail.gmail.com>
-Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-From: "user.vdr" <user.vdr@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: "DVB mailin' list thingy" <linux-dvb@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 14 Jan 2009 22:14:43 -0500
+Subject: Re: KWorld ATSC 115 all static
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: CityK <cityk@rogers.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+In-Reply-To: <20090115005446.379aae99@pedra.chehab.org>
+References: <496A9485.7060808@gmail.com> <496AB41E.8020507@rogers.com>
+	 <20090112031947.134c29c9@pedra.chehab.org>
+	 <200901120840.20194.hverkuil@xs4all.nl> <496BF812.40102@rogers.com>
+	 <1231816664.2680.21.camel@pc10.localdom.local>
+	 <496D6CF6.6030005@rogers.com>
+	 <1231986761.2896.21.camel@pc10.localdom.local>
+	 <20090115005446.379aae99@pedra.chehab.org>
+Content-Type: text/plain
+Date: Thu, 15 Jan 2009 04:15:04 +0100
+Message-Id: <1231989304.2896.24.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I think it's a lame idea to clump all media related stuff into one
-mailing list from separate ml's because 1) it's too general of a topic
-and 2) those ml's already had a lot of activity on their own.  The
-idea of sifting through tons of posts of no interest is quite a hassle
-to say the least.  This "solution" just doesn't seem very well thought
-out imo but it is what it is I guess.
+
+Am Donnerstag, den 15.01.2009, 00:54 -0200 schrieb Mauro Carvalho
+Chehab:
+> On Thu, 15 Jan 2009 03:32:41 +0100
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+> 
+> > > Consulting on irc, both Eric and myself can confirm that DVB is working
+> > > fine for the device (I can only test cable currently, but Eric
+> > > successfully checked both QAM and 8-VSB).  I'm using recent Hg and Eric
+> > > is using stock FC10 supplied drivers.  So, I'm not sure why Josh was
+> > > having problems.  
+> > 
+> > for me the same and I can't test on these.
+> > The Pinnacle 310i seems to have the LNA support broken, can't test.
+> 
+> Hermann,
+> 
+> The DVB part shouldn't be affected by the patch. It changes the way that tuners
+> are attached at the analog part. So, the tests should be on tea5767 radio and
+> on analog tuner reception.
+> 
+> Also, his patch just changes the way tuner is binding. Manual adjustments on
+> saa7134 cards structs (like adding TDA9887_PRESENT flag) will be needed to fix some
+> issues like what you've reported (driver not loading automatically tda9887
+> driver).
+
+It won't fix the antenna input selection controlled from the digital
+demod, as told before.
+
+Cheers,
+Hermann
+
+
