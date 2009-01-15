@@ -1,89 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35329 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:56626 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750775AbZAYSjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 13:39:55 -0500
-Subject: [cx18] cx18-0: Could not start the CPU
-From: Florian =?ISO-8859-1?Q?Sch=FCller?= <schuellerf@gmx.net>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sun, 25 Jan 2009 19:39:48 +0100
-Message-Id: <1232908788.6712.7.camel@flosmio>
-Mime-Version: 1.0
+	id S1755567AbZAORcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jan 2009 12:32:12 -0500
+Message-ID: <496F7324.4050608@gmx.de>
+Date: Thu, 15 Jan 2009 18:32:20 +0100
+From: Bastian Beekes <bastian.beekes@gmx.de>
+MIME-Version: 1.0
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: MSI DigiVox A/D II
+References: <S1755369AbZAMWYU/20090113222421Z+45@vger.kernel.org>	 <496D1C18.3010403@gmx.de>	 <412bdbff0901131502g12d62917ka4fbebf7b74c6579@mail.gmail.com>	 <496D1F1B.8080801@gmx.de> <412bdbff0901131516p44867478jdef953d0e8ccab66@mail.gmail.com>
+In-Reply-To: <412bdbff0901131516p44867478jdef953d0e8ccab66@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
-can anyone help me?
-my CX23418 does not seem to work...
+Hm,
 
-I'm running a 64bit Ubuntu 8.10 on a Toshiba Qosmio Laptop
+now I installed the Intrepid Kernel via
+echo 'deb http://archive.ubuntu.com/ubuntu/ intrepid main restricted' | 
+sudo tee /etc/apt/sources.list.d/intrepid-kernel.list && sudo apt-get 
+update && sudo apt-get -y install linux linux-generic 
+linux-headers-generic linux-image-generic 
+linux-restricted-modules-generic && sudo rm 
+/etc/apt/sources.list.d/intrepid-kernel.list && sudo apt-get update
 
-$ uname -a
-Linux flosmio 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC 2008
-x86_64 GNU/Linux
+When I rebooted my pc and plugged in my tv stick, dmesg showed me it was 
+detected as Kworld VS-DVB-T 323UR - the
+USB-ID is eb1a:e323.
+Well, this isn't my card, but it's the same USB-ID. When I started up 
+tvtime, video was scrambled, but the audio device is listed in arecord -l.
+So I tried modprobe em28xx card=50, which is my MSI DigiVox A/D II - the 
+video was alright, but when I ran arecord -D hw:1,0 -f dat | aplay -f 
+dat , I only got buffer underruns.
+So I pulled a fresh copy from hg, compiled & installed it, rebooted, 
+plugged - now the stick gets detected without the card=50 option, but 
+still only buffer underruns in arecord | aplay.
 
-$ lspci -v
-[...]
-06:09.0 Multimedia video controller: Conexant Systems, Inc. CX23418
-Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast Audio
-Decoder
-	Subsystem: Toshiba America Info Systems Device 0110
-	Flags: bus master, medium devsel, latency 64, IRQ 19
-	Memory at f4000000 (32-bit, non-prefetchable) [size=64M]
-	Capabilities: <access denied>
-	Kernel driver in use: cx18
-	Kernel modules: cx18
-[...]
+what now?
 
-Compilation of the newest cx18 (I hopfully did it right) gives:
-
-$ dmesg -c
-[ 5806.014965] Linux video capture interface: v2.00
-[ 5806.059165] cx18:  Start initialization, version 1.0.4
-[ 5806.059320] cx18-0: Initializing card #0
-[ 5806.059323] cx18-0: Autodetected Toshiba Qosmio DVB-T/Analog card
-[ 5806.064575] cx18-0: cx23418 revision 01010000 (B)
-[ 5806.234577] cx18-0: Experimenters and photos needed for device to
-work well.
-[ 5806.234579] 	To help, mail the ivtv-devel list (www.ivtvdriver.org).
-[ 5806.454154] Chip ID is not zero. It is not a TEA5767
-[ 5806.454285] tuner 4-0060: chip found @ 0xc0 (cx18 i2c driver #0-1)
-[ 5806.489651] xc2028 4-0060: creating new instance
-[ 5806.489675] xc2028 4-0060: type set to XCeive xc2028/xc3028 tuner
-[ 5806.489682] firmware: requesting v4l-cx23418-dig.fw
-[ 5806.782200] cx18-0: loaded v4l-cx23418-dig.fw firmware (16382 bytes)
-[ 5806.784097] cx18-0: Registered device video0 for encoder MPEG (64 x
-32 kB)
-[ 5806.789135] cx18-0: Registered device video32 for encoder YUV (16 x
-128 kB)
-[ 5806.791530] cx18-0: Registered device vbi0 for encoder VBI (60 x
-17328 bytes)
-[ 5806.793783] cx18-0: Registered device video24 for encoder PCM audio
-(256 x 4 kB)
-[ 5806.793808] cx18-0: Initialized card #0: Toshiba Qosmio DVB-T/Analog
-[ 5806.795499] cx18:  End initialization
-[ 5806.797103] firmware: requesting v4l-cx23418-cpu.fw
-[ 5807.184500] cx18-0: loaded v4l-cx23418-cpu.fw firmware (174716 bytes)
-[ 5807.256793] firmware: requesting v4l-cx23418-apu.fw
-[ 5807.583799] cx18-0: loaded v4l-cx23418-apu.fw firmware V00120000
-(141200 bytes)
-[ 5808.401187] cx18-0: Could not start the CPU
-[ 5808.401220] cx18-0: Retry loading firmware
-[ 5808.405122] firmware: requesting v4l-cx23418-cpu.fw
-[ 5808.794060] cx18-0: loaded v4l-cx23418-cpu.fw firmware (174716 bytes)
-[ 5808.866513] firmware: requesting v4l-cx23418-apu.fw
-[ 5809.174511] cx18-0: loaded v4l-cx23418-apu.fw firmware V00120000
-(141200 bytes)
-[ 5809.977264] cx18-0: Could not start the CPU
-[ 5809.977295] cx18-0: Failed to initialize on minor 0
-[ 5809.985454] cx18-0: Failed to initialize on minor 1
-[ 5809.993718] cx18-0: Failed to initialize on minor 2
-[ 5810.001484] cx18-0: Failed to initialize on minor 3
+greetings, Bastian
 
 
-
-Regards
-Flo
-
+Devin Heitmueller wrote:
+> On Tue, Jan 13, 2009 at 6:09 PM, Bastian Beekes <bastian.beekes@gmx.de> wrote:
+>> Hm, ok...
+>>
+>> thanks for your reply in *no time* :)
+>> So is the only option to upgrade to 8.10? I'd prefer to stick with the LTS
+>> release...
+>>
+>> Bastian
+> 
+> I suspect there is some hackary you could do if you install the kernel
+> source and recompile to include properly include CONFIG_SND, but
+> nobody ever went through the effort (as far as I know).  I believe
+> Markus did in his codebase, which is why he has been distributing
+> binaries for Ubuntu instead of having people build from source (but I
+> could be wrong there).
+> 
+> The core of the issue is Ubuntu provided an updated ALSA separate from
+> the rest of the kernel distro, but then screwed up the kernel headers
+> so that we think ALSA isn't present, so v4l-dvb doesn't compile any of
+> the alsa modules.
+> 
+> Devin
+> 
