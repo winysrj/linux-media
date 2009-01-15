@@ -1,39 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp21.orange.fr ([80.12.242.46]:22066 "EHLO smtp21.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756685AbZATREc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 12:04:32 -0500
-Received: from [192.168.0.1] (AVelizy-151-1-64-50.w82-124.abo.wanadoo.fr [82.124.254.50])
-	by mwinf2106.orange.fr (SMTP Server) with ESMTP id 363B21C00094
-	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 18:04:42 +0100 (CET)
-Message-ID: <4976042D.9050205@libertysurf.fr>
-Date: Tue, 20 Jan 2009 18:04:45 +0100
-From: Catimimi <catimimi@libertysurf.fr>
+Received: from fg-out-1718.google.com ([72.14.220.156]:45766 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754320AbZAOPoB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jan 2009 10:44:01 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so583209fgg.17
+        for <linux-media@vger.kernel.org>; Thu, 15 Jan 2009 07:43:59 -0800 (PST)
+Message-ID: <68676e00901150743q5576fefane2d2818dc6cd9cb0@mail.gmail.com>
+Date: Thu, 15 Jan 2009 16:43:59 +0100
+From: "Luca Tettamanti" <kronos.it@gmail.com>
+To: Catimimi <catimimi@libertysurf.fr>
+Subject: Re: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
+Cc: linux-dvb@linuxtv.org, Linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <496DB023.3090402@libertysurf.fr>
 MIME-Version: 1.0
-To: Linux-media <linux-media@vger.kernel.org>
-Subject: [linux-dvb] SAA716x
-References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
-In-Reply-To: <496D7204.6030501@rogers.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
+	 <496DB023.3090402@libertysurf.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Wed, Jan 14, 2009 at 10:28 AM, Catimimi <catimimi@libertysurf.fr> wrote:
+> try without the ".ko", i.e. instead, use:
+>
+> modprobe saa716x_hybrid
+>
+> OK, shame on me, it works but nothing happens.
 
-I'm trying to add my Pinnacle 3010i to the driver found here : 
-http://jusst.de/hg/saa716x
-I already got some preliminary results but in order to understand what 
-I'm doing it would be
-great to get the result of "lspci -vvxxx" for at least one of the 
-supported cards :
+Of course ;-) The PCI ID of the card is not listed. I happen to have
+the same card, you can add the ID to the list but note that the
+frontend is not there yet... so the module will load, will print some
+something... and that's it.
+I have a couple of patches queued and I plan to do some
+experimentation in the weekend though ;)
 
-- Twinhan/Azurewave VP-6090
-- Avermedia HC82
-- Avermedia H788
-
-I didn't find this test in the WIKI, so thanks in advance for posting 
-this information.
-Michel.
-
-
+Luca
