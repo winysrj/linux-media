@@ -1,17 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Wed, 7 Jan 2009 15:42:59 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECEDD6F4@dbde02.ent.ti.com>
-In-Reply-To: <20090107073959.140cfcfd@pedra.chehab.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <496F488B.3010302@linuxtv.org>
+Date: Thu, 15 Jan 2009 09:30:35 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [REVIEW PATCH 1/2] OMAP3 ISP-Camera: Added BT656 support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+In-Reply-To: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: V4L <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, CityK <cityk@rogers.com>,
+	linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,73 +25,95 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
+Hey Hans,
+
+Hans Verkuil wrote:
+>> Hans Verkuil wrote:
+>>     
+>>> On Thursday 15 January 2009 06:01:28 CityK wrote:
+>>>
+>>>       
+>>>> Hans Verkuil wrote:
+>>>>
+>>>>         
+>>>>> OK, I couldn't help myself and went ahead and tested it. It seems
+>>>>> fine, so please test my tree:
+>>>>>
+>>>>> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-saa7134
+>>>>>
+>>>>> Let me know if it works.
+>>>>>
+>>>>>           
+>>>> Hi Hans,
+>>>>
+>>>> It didn't work.  No analog reception on either RF input.  (as Mauro
+>>>> noted, DVB is unaffected; it still works).
+>>>>
+>>>> dmesg output looks right:
+>>>>
+>>>> tuner-simple 1-0061: creating new instance
+>>>> tuner-simple 1-0061: type set to 68 (Philips TUV1236D ATSC/NTSC dual
+>>>> in)
+>>>>
+>>>> I tried backing out of the modules and then reloading them, but no
+>>>> change.  (including after fresh build or after rebooting)
+>>>>
+>>>>         
+>>> Can you give the full dmesg output? Also, is your board suppossed to
+>>> have a tda9887 as well?
+>>>
+>>>       
+>> Hans' changes are not enough to fix the ATSC115 issue.
+>>     
+>
+> Ah, OK.
+>
+>   
+>> I believe that if you can confirm that the same problem exists, but the
+>> previous workaround continues to work even after Hans' changes, then I
+>> believe that confirms that Hans' changes Do the Right Thing (tm).
+>>
+>> ATSC115 is broken not because the tuner type assignment has been removed
+>> from attach_inform.
+>>
+>> This is actually a huge problem across all analog drivers now, since we
+>> are no longer able to remove the "tuner" module and modprobe it again --
+>> the second modprobe will not allow for an attach, as there will be no
+>> way for the module to be recognized without having the glue code needed
+>> inside attach_inform...
+>>     
+>
+> Huh? Why would you want to rmmod and modprobe tuner? Anyway, drivers that
+> use v4l2_subdev (like my converted saa7134) will increase the tuner module
+> usecount, preventing it from being rmmod'ed.
+
+There was a load order dependency in the saa7134 driver.  Some users 
+have to remove tuner and modprobe it again in order to make analog tv 
+work.  Yes, that's a bug.
+
+The bug got worse when Mauro made changes to attach_inform -- I believe 
+this was for the sake of some xceive tuners... I don't recall the 
+details now.
+
+Anyway, long story short... there are many different bugs all 
+manifesting themselves at once here.  Load order dependency -- I don't 
+think we ever understood why that issue exists.  The fix for the load 
+order dependency no longer works, as attach_inform no longer cares if a 
+new tuner appears on the bus.
+
+So, my ATSC115 hack-patch restored the attach_inform functionality for 
+the sake of ATSC110/115 users.  I am not pushing for its merge -- this 
+*will* break the boards that Mauro was working on when he changed 
+attach_inform.
+
+As I don't really understand what he was going for when he made those 
+changes, I don't know how to fix this problem without creating new bugs 
+on Mauro's cards.  I put out that patch in hopes that somebody else 
+would put the pieces together and make a better fix that would work for 
+everybody.  That hasn't happened yet :-(
 
 
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
-> Sent: Wednesday, January 07, 2009 3:10 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; video4linux-list@redhat.com; linux-
-> media@vger.kernel.org
-> Subject: Re: [REVIEW PATCH 1/2] OMAP3 ISP-Camera: Added BT656
-> support
-> 
-> On Wed,  7 Jan 2009 11:37:20 +0530
-> hvaibhav@ti.com wrote:
-> 
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > Support for BT656 through TVP5146 decoder, works on top of
-> > ISP-Camera patches posted by Sergio on 12th Dec 2008.
-> >
-> > The TVP514x driver patch has been accepted under V4L, will
-> > be part of O-L in the next merge window. As of now you can
-> > access the patches from -
-> >
-> >
-> http://markmail.org/search/?q=TVP514x#query:TVP514x%20from%3A%22Hire
-> math%2C%20Vaibhav%22%20extension%3Apatch+page:1+mid:b5pcj3sriwknm2cv
-> +state:results
-> >
-> > ToDO List:
-> >     - Add support for scaling and cropping
-> >
-> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> > Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> > Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> > Signed-off-by: R Sivaraj <sivaraj@ti.com>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  drivers/media/video/isp/isp.c     |  118 ++++++++++++++++++++---
-> >  drivers/media/video/isp/isp.h     |    7 +-
-> >  drivers/media/video/isp/ispccdc.c |  146 +++++++++++++++++++++++-
-> ---
-> >  drivers/media/video/isp/ispccdc.h |    9 ++
-> >  drivers/media/video/omap34xxcam.c |  197
-> +++++++++++++++++++++++++++++++++----
-> >  drivers/media/video/omap34xxcam.h |    5 +
-> >  6 files changed, 428 insertions(+), 54 deletions(-)
-> >  mode change 100644 => 100755 drivers/media/video/isp/isp.c
-> >  mode change 100644 => 100755 drivers/media/video/omap34xxcam.c
-> >
-> Your patch looks OK, but it touched
-> drivers/media/video/omap34xxcam.c, that
-> doesn't exist yet on my tree, so I can't apply it.
-> 
-> Could you please submit first the opam34 patch on linux-
-> media@vger.kernel.org,
-> in order to allow patchwork.kernel.org to track it also, and allow
-> me to merge
-> the files?
-> 
-[Hiremath, Vaibhav] Thanks Mauro for quick review. As I mentioned in the description this patch is build on top of ISP-Camera patches posted by Sergio on 12th Dec 2008. I am following up with Sergio on the same and will post the patches soon with review comment fixes.
-
-> Cheers,
-> Mauro
-
+-Mike
 
 --
 video4linux-list mailing list
