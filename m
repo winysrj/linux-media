@@ -1,94 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1101 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317AbZA2I16 (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:36109 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755615AbZAOP40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 03:27:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: Re: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
-Date: Thu, 29 Jan 2009 09:27:52 +0100
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F671@dbde02.ent.ti.com>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F671@dbde02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	Thu, 15 Jan 2009 10:56:26 -0500
+Date: Thu, 15 Jan 2009 13:55:58 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Alec Christie" <alec.christie@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: kernel soft lockup on boot loading cx2388x based DVB-S card
+ (TeVii S420)
+Message-ID: <20090115135558.73f61f1b@pedra.chehab.org>
+In-Reply-To: <9e70b14f0901150325g5c02da7dtba7c3cbbd5987fb2@mail.gmail.com>
+References: <496F1168.3030007@bat.id.au>
+	<9e70b14f0901150325g5c02da7dtba7c3cbbd5987fb2@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901290927.52413.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hardik,
+On Thu, 15 Jan 2009 11:25:38 +0000
+"Alec Christie" <alec.christie@gmail.com> wrote:
 
-Just a minor point: it's enough to post to linux-media, no need to post to 
-the video4linux list as well. I assume everyone involved in v4l-dvb has now 
-subscribed to linux-media.
-
-On Thursday 29 January 2009 07:57:22 Shah, Hardik wrote:
-> > -----Original Message-----
-> > From: Trent Piepho [mailto:xyzzy@speakeasy.org]
-> > Sent: Thursday, January 29, 2009 11:50 AM
-> > To: Shah, Hardik
-> > Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com; Jadav,
-> > Brijesh R; Nagalla, Hari; Hiremath, Vaibhav
-> > Subject: Re: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
+> I am getting the same with the Haupauge HVR-4000 after a recent Kernel
+> Upgrade in Ubuntu Hardy (8.04).
+> 
+> Any help greatly appreciated.
+> 
+> Alec Christie
+> 
+> 
+> 
+> 2009/1/15 Aaron Theodore <aaron@bat.id.au>
 > >
-> > On Thu, 29 Jan 2009, Hardik Shah wrote:
-> > > 1.  Control ID added for rotation.  Same as HFLIP.
-> > > 2.  Control ID added for setting background color on
-> > >     output device.
-> > > 3.  New ioctl added for setting the color space conversion from
-> > >     YUV to RGB.
-> > > 4.  Updated the v4l2-common.c file according to comments.
+> > Hi I'm running Debian with kernel: 2.6.24-etchnhalf.1-686
+> > I recently baught a TeVii S420 DVB-S card and have been tring to get it to work.
 > >
-> > Wasn't there supposed to be some documentation?
-> >
-> > > +	case V4L2_CID_BG_COLOR:
-> > > +		/* Max value is 2^24 as RGB888 is used for background color */
-> > > +		return v4l2_ctrl_query_fill(qctrl, 0, 16777216, 1, 0);
-> >
-> > Wouldn't it make more sense to set background in the same colorspace as
-> > the selected format?
->
-> [Shah, Hardik] Background color setting can be done only in the RGB space
-> as hardware doesn't understand YUV or RGB565 for the background color
-> setting.  And background color and pixel format are not related.  If we
-> want to have the background setting format same as the color format then
-> driver will have to do the color conversion and that is not optimal.
+> > Firstly i built the v4l from: http://linuxtv.org/hg/v4l-dvb (hg clone) as the card was not detected.
+> > On first reboot after new modules are installed i get a kernel soft lockup....
+> > cx88[0]/2: cx2388x based DVB/ATSC card
+> > BUG: soft lockup - CPU#0 stuck for 11s! [modprobe:1767]
 
-In the case of a chromakey the value is interpreted according to the pixel 
-format of the associated framebuffer. However, if I understand the omap 
-architecture correctly, this background color is pretty much independent 
-from either graphics or videoplane pixel formats. As such it makes sense to 
-fix it to a specific pixel format and let the driver transform it if it 
-needs to. It is similar in that respect to the V4L2_CID_MPEG_VIDEO_MUTE_YUV 
-control. The documentation needs to specify the format precisely, of 
-course.
+I just merged on http://linuxtv.org/hg/v4l-dvb a patch for fixing this bug. Please test.
 
-I also noticed this:
-
-@@ -548,6 +553,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, 
-s32 min, s32 max, s32 ste
-        case V4L2_CID_CONTRAST:
-        case V4L2_CID_SATURATION:
-        case V4L2_CID_HUE:
-+       case V4L2_CID_BG_COLOR:
-                qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
-                break;
-        }
-
-BG_COLOR is hardly a slider-like control! It's just a regular integer 
-control.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Cheers,
+Mauro
