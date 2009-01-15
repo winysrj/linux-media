@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0UGtKuH004287
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 11:55:20 -0500
-Received: from dd6904.kasserver.com (dd6904.kasserver.com [85.13.131.139])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0UGt1Wm018753
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 11:55:01 -0500
-References: <4982FB36.7080008@softronic-mannheim.de>
-	<498322D8.5040702@gmail.com>
-Message-Id: <9AE8E2FD-8332-4370-87F7-C10F28CD3908@softronic-mannheim.de>
-From: =?utf-8?Q?Marius_R=C3=A4sener?= <mr@softronic-mannheim.de>
-To: Manu Abraham <abraham.manu@gmail.com>
-In-Reply-To: <498322D8.5040702@gmail.com>
-Content-Type: text/plain;
-	charset=utf-8;
-	format=flowed;
-	delsp=yes
-Mime-Version: 1.0 (iPhone Mail 5H11)
-Date: Fri, 30 Jan 2009 17:55:20 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FMtS3p012860
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 17:55:28 -0500
+Received: from dd18532.kasserver.com (dd18532.kasserver.com [85.13.139.13])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0FMtD08007081
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 17:55:13 -0500
+Date: Thu, 15 Jan 2009 23:55:11 +0100
+From: Carsten Meier <cm@trexity.de>
+To: =?UTF-8?B?UMOhZHJhaWc=?= Brady <P@draigBrady.com>
+Message-ID: <20090115235511.1ea5fdd5@tuvok>
+In-Reply-To: <496FB713.5020609@draigBrady.com>
+References: <20090115163348.5da9932a@tuvok>
+	<09CD2F1A09A6ED498A24D850EB10120817E30B7506@Colmatec004.COLMATEC.INT>
+	<20090115175121.25c4bdaa@tuvok> <496FB713.5020609@draigBrady.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: Terratec Cinergy C PCI - Mantis Driver
+Cc: video4linux-list@redhat.com
+Subject: Re: How to identify USB-video-devices
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,80 +29,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi again. I responsed first wrongly only to manu.
+Am Thu, 15 Jan 2009 22:22:11 +0000
+schrieb Pádraig Brady <P@draigBrady.com>:
 
-I don't know how to change the order of the modules.
+> Carsten Meier wrote:
+> > Storing device-file-names is also not an option because they are
+> > created dynamicly.
+> 
+> You use udev rules to give persistent names.
+> 
+> Here is my /etc/udev/rules.d/video.rules file,
+> which creates /dev/webcam and /dev/tvtuner as appropriate.
+> 
+> KERNEL=="video*" SYSFS{name}=="USB2.0 Camera", NAME="video%n",
+> SYMLINK+="webcam" KERNEL=="video*" SYSFS{name}=="em28xx*",
+> NAME="video%n", SYMLINK+="tvtuner"
+> 
+> To find distinguishing attributes to match on use:
+> 
+> echo /sys/class/video4linux/video* | xargs -n1 udevinfo -a -p
+> 
+> cheers,
+> Pádraig.
 
-Or this easy to find in google wikis etc. ?
+This already came up on the pvrusb2-list and someone told me (I don't
+know much about udev) that it might cause problems on disconnection of
+a device with a file-descriptor open which then gets reconnected
+and there are two device-files for it. I also don't like it,
+because an average user (including me) usually can't or don't want to
+write udev rules. Finally v4l2 already contains a very simple and
+reliable mechanism for doing this (bus_info-field) which simply isn't
+used correctly by the USB-drivers.
 
-Thx in advance,
-Marius
+My app should simply scan for /dev/video*-files, read out capabilities
+from them, present the user menus to select devices and edit device
+settings, save settings to a file and apply them on demand. This would
+work fine if bus_info was filled right, without root-privileges,
+without special udev rules or other sysfs-magic.
 
-
-Am 30.01.2009 um 16:55 schrieb Manu Abraham <abraham.manu@gmail.com>:
-
-> Marius Räsener wrote:
->> Hi V4L-List,
->>
->> i hope i can find a solution with your help here.
->> The situation:
->> Hp ProLiant DL380 G2 Server should become a LinuxMCE Core (got that  
->> cheap).
->> LinuxMCE is based on Kubuntu 7.10 (i386 in my case)
->> I think the components of the System arent relevant, but correct my
->> please if not.
->> Maybe that there are only PCI-X slots available, but all Cards I  
->> use are
->> 3.3V compatible (with the 2 notch).
->>
->> DVB-C Card is "Terratec Cingery C PCI HD".
->>
->> I installed the card via this method:
->>
->> cd /usr/src
->> sudo apt-get install mercurial
->> sudo hg clone http://jusst.de/hg/mantis cd mantis
->> sudo make
->> sudo make install
->> sudo reboot
->>
->>
->> this worked for me several times.
->> (
->> i got the expected dmesg output:
->> [  101.667604] found a VP-2040 PCI DVB-C device on (0a:01.0),
->> [  101.670427] DVB: registering new adapter (Mantis dvb adapter)
->> [  102.189326] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
->> [  102.192819] mantis_frontend_init (0): found Philips CU1216 DVB-C
->> frontend (TDA10023) @ 0x0c
->> [  102.192823] mantis_frontend_init (0): Mantis DVB-C Philips CU1216
->> frontend attach success
->> [  102.192829] DVB: registering adapter 0 frontend 0 (Philips  
->> TDA10023
->> DVB-C)...
->> )
->> but after the last complete new-installation its not anymore.
->> (
->> now die dmesg output:
->> ~: dmesg | grep -i dvb
->> ~:
->> )
->> i'm not sure what to try next. the card itself installs in Vista x64
->> without any errors so its no hardware defect i guess.
->> i also tried to install a older version of the mantis driver, but i'm
->> not sure if i downloaded them correctly.
->> i'm also not sure if i can reinstall older or newer versions of the
->> driver without messing something up. does that work?
->> i also tried several different pci-x slots caused that procedure
->> sometimes helped me in windows environment...
->>
->> any hints please for me before i jump from a bridge or something :)
->
-> Please load the mantis_core.ko module before you load the mantis.ko
-> module.
->
-> Regards,
-> Manu
+Regards,
+Carsten
 
 --
 video4linux-list mailing list
