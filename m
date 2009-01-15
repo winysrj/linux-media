@@ -1,29 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51363 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752425AbZA3OFf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2009 09:05:35 -0500
-Message-ID: <49830903.8050107@gmx.de>
-Date: Fri, 30 Jan 2009 15:04:51 +0100
-From: Jan Kreuzer <kontrollator@gmx.de>
-MIME-Version: 1.0
+Received: from smtp.sissa.it ([147.122.11.135]:54966 "EHLO smtp.sissa.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754766AbZAONL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jan 2009 08:11:29 -0500
+Received: from ozzy.localnet (dhpc-2-04.sissa.it [147.122.2.184])
+	by smtp.sissa.it (Postfix) with ESMTP id 9966D1B4804C
+	for <linux-media@vger.kernel.org>; Thu, 15 Jan 2009 14:11:26 +0100 (CET)
+From: Nicola Soranzo <nsoranzo@tiscali.it>
 To: linux-media@vger.kernel.org
-Subject: Support for Technisat SkyStar USB 2 HD CI (take 2)
-References: <497F26DD.8050200@gmx.de>
-In-Reply-To: <497F26DD.8050200@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-15
+Subject: [PATCH] Fix em28xx compilation warnings
+Date: Thu, 15 Jan 2009 14:11:34 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901151411.35128.nsoranzo@tiscali.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Everybody,
+Fix em28xx compilation warnings.
 
-i realized that i did not give enough  Information in the last mail. I
-added a page on the v4l-wiki about the above device, its here:
-http://linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_2_HD_CI
-There you can find the usb-id. What should i do to get more information
-of the device (eg chipset/tuner used, ...)?.
+From: Nicola Soranzo <nsoranzo@tiscali.it>
 
-Thank you
+Inline ac97_return_record_select() function to fix compilation warnings like:
 
-Jan Kreuzer
+  CC [M]  /home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx-audio.o
+/home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx.h:326: warning: 
+'ac97_return_record_select' defined but not used
+  CC [M]  /home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx-video.o
+/home/nicola/v4l-dvb-11a5eb383205/v4l/em28xx.h:326: warning: 
+'ac97_return_record_select' defined but not used
+...
+
+introduced by changeset 10228.
+
+Priority: normal
+
+Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
+
+diff -ur v4l-dvb-11a5eb383205/linux/drivers/media/video/em28xx/em28xx.h v4l-
+dvb-new/linux/drivers/media/video/em28xx/em28xx.h
+--- v4l-dvb-11a5eb383205/linux/drivers/media/video/em28xx/em28xx.h	2009-01-14 
+08:58:36.000000000 +0100
++++ v4l-dvb-new/linux/drivers/media/video/em28xx/em28xx.h	2009-01-15 
+12:54:11.000000000 +0100
+@@ -322,7 +322,7 @@
+ 	EM28XX_AOUT_PCM_PHONE	= 7 << 8,
+ };
+ 
+-static int ac97_return_record_select(int a_out)
++static inline int ac97_return_record_select(int a_out)
+ {
+ 	return (a_out & 0x700) >> 8;
+ }
+
