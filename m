@@ -1,64 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:37750 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757438AbZANXlq (ORCPT
+Received: from relay.cmail.sogou.com ([220.181.26.200]:59212 "EHLO
+	relay.cmail.sogou.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753106AbZAODhy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 18:41:46 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so351966yxm.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Jan 2009 15:41:45 -0800 (PST)
-Message-ID: <157f4a8c0901141541l47389800wbe64299ac633b745@mail.gmail.com>
-Date: Wed, 14 Jan 2009 23:41:45 +0000
-From: "Chris Silva" <2manybills@gmail.com>
-To: vdr@linuxtv.org
-Subject: Can't compile VDR
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+	Wed, 14 Jan 2009 22:37:54 -0500
+Date: Thu, 15 Jan 2009 11:15:35 +0800
+From: "support" <support@worlddvb.com>
+To: "Robin Perkins" <robin.perkins@internode.on.net>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <9C5FE73C-0276-4709-ABB0-446D4672C76A@internode.on.net>
+Subject: Re: Request for permission to use images from your website.
+Message-ID: <200901151115349069880@worlddvb.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+Um9iaW4gUGVya2lucyzE+rrDo6ENCg0KICB0aGFuayB1IGVkaXRlZCB0aGUgbGluayBmb3IgRFZC
+LVMyIDIwMDUgUENJZSBjYXJkLiB1ciB3b3JrIGlzIHZlcnkgbXVjaCBhcHByZWNpYXRlZCEgDQoN
+CkJlc3QgUmVnYXJkcw0KRFZCV29ybGQgVGVjaG5vbG9neSBUZWFtDQpEVkJXb3JsZCBUZWNobm9s
+b2d5IENvLC5MVEQNCmh0dHA6Ly93d3cud29ybGRkdmIuY29tDQoNCgkNCg0KPT09PT09PSAyMDA5
+LTAxLTE0IDIwOjI3OjQ2IMT61NrAtNDF1tDQtLXAo7o9PT09PT09DQoNCj5IZWxsbywNCj4NCj5J
+IGFtIGp1c3QgdXBkYXRpbmcgdGhlIHdpa2kgcGFnZSBmb3IgeW91ciBEVkItUzIgMjAwNSBQQ0ll
+IGNhcmQgb24gdGhlICANCj5MaW51eFRWIHdpa2kgKGh0dHA6Ly93d3cubGludXh0di5vcmcvd2lr
+aS9pbmRleC5waHA/dGl0bGU9RFZCV29ybGRfRFZCLVMyXzIwMDVfUENJLUV4cHJlc3NfQ2FyZCAN
+Cj4pIGFuZCBub3RpY2VkIHRoYXQgc29tZW9uZSBoYWQgdXBsb2FkZWQgdGhlIGltYWdlIG9mIHRo
+aXMgY2FyZCB0aGF0ICANCj5jYW1lIGZyb20geW91ciBzaXRlLiBJIGFtIHdyaXRpbmcgdG8geW91
+IGp1c3QgdG8gY29uZmlybSB0aGF0IHdlIGhhdmUgIA0KPnlvdXIgcGVybWlzc2lvbiB0byB1c2Ug
+dGhpcyBpbWFnZSAoYW5kIGlmIHNvIEkgd2lsbCBlZGl0IHRoZSBwYWdlICANCj5hZ2FpbiB0byBy
+ZWZsZWN0IHRoaXMpIG90aGVyd2lzZSB0aGUgaW1hZ2UgY2FuIGJlIHJlbW92ZWQuDQo+DQo+SWYg
+eW91IGFyZSBoYXBweSBmb3IgdGhpcyB0byBvY2N1ciBjb3VsZCB5b3UgcGxlYXNlIENDIGxpbnV4
+LW1lZGlhQHZnZXIua2VybmVsLm9yZyANCj4gIGp1c3Qgc28gdGhhdCB3ZSBoYXZlIGEgcmVjb3Jk
+IG9mIHRoaXMgcGVybWlzc2lvbiB0b28uDQo+DQo+VGhhbmtzIGZvciB5b3UgdGltZSwNCj4NCj5S
+b2INCj4NCg0KPSA9ID0gPSA9ID0gPSA9ID0gPSA9ID0gPSA9ID0gPSA9ID0gPSA9DQoJCQkNCg0K
+oaGhoaGhoaGhoaGhoaGhodbCDQrA8aOhDQogDQoJCQkJIA0KoaGhoaGhoaGhoaGhoaGhoXN1cHBv
+cnQNCqGhoaGhoaGhoaGhoaGhoaFzdXBwb3J0QHdvcmxkZHZiLmNvbQ0KoaGhoaGhoaGhoaGhoaGh
+oaGhoaEyMDA5LTAxLTE1DQoNCg==
 
-I'm having problems compiling VDR 1.7.0 and 1.7.3.
-
-This is the error:
-
-/usr/local/src/s2-liplianin/linux/include/linux/videodev2.h:64:28:
-error: linux/compiler.h: No such file or directory
-In file included from
-/usr/local/src/s2-liplianin/linux/include/linux/videodev.h:16,
-                 from dvbdevice.c:13:
-/usr/local/src/s2-liplianin/linux/include/linux/videodev2.h:560:
-error: field '__user' has incomplete type
-/usr/local/src/s2-liplianin/linux/include/linux/videodev2.h:560:
-error: expected ';' before '*' token
-/usr/local/src/s2-liplianin/linux/include/linux/videodev2.h:567:
-error: expected ';' before '*' token
-/usr/local/src/s2-liplianin/linux/include/linux/videodev2.h:569:
-error: variable or field '__user' declared void
-/usr/local/src/s2-liplianin/linux/include/linux/videodev2.h:569:
-error: expected ';' before '*' token
-In file included from dvbdevice.c:13:
-/usr/local/src/s2-liplianin/linux/include/linux/videodev.h:148: error:
-expected ';' before '*' token
-In file included from dvbdevice.c:17:
-/usr/local/src/s2-liplianin/linux/include/linux/dvb/video.h:162:
-error: expected ';' before '*' token
-/usr/local/src/s2-liplianin/linux/include/linux/dvb/video.h:195:
-error: expected ';' before '*' token
-dvbdevice.c: In member function 'virtual void
-cDvbDevice::StillPicture(const uchar*, int)':
-dvbdevice.c:1299: error: too many initializers for 'video_still_picture'
-dvbdevice.c:1299: error: invalid conversion from 'char*' to 'int32_t'
-dvbdevice.c:1305: error: too many initializers for 'video_still_picture'
-dvbdevice.c:1305: error: invalid conversion from 'char*' to 'int32_t'
-make: *** [dvbdevice.o] Error 1
-
-Same error happens with s2-liplianin *and* v4l-dvb, with latest revisions.
-
-Tried googling for it, but no solution...
-
-Any thoughts?
-
-Thanks
