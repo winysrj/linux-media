@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0U8sYR6019158
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 03:54:34 -0500
-Received: from smtp-vbr7.xs4all.nl (smtp-vbr7.xs4all.nl [194.109.24.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0U8sHZq012556
-	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 03:54:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Fri, 30 Jan 2009 09:54:08 +0100
-References: <200901291853.38538.dcurran@ti.com>
-In-Reply-To: <200901291853.38538.dcurran@ti.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FEXljR010312
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 09:33:47 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0FEWKdq016203
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 09:32:20 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so119219eyf.39
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 06:32:20 -0800 (PST)
+Message-ID: <b24e53350901150632u2f031fcm3c6f34b6b0e81100@mail.gmail.com>
+Date: Thu, 15 Jan 2009 09:32:20 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: "=?ISO-8859-1?Q?P=E1draig_Brady?=" <P@draigbrady.com>
+In-Reply-To: <496F18C4.9020009@draigBrady.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Disposition: inline
-Message-Id: <200901300954.09317.hverkuil@xs4all.nl>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Dominic Curran <dcurran@ti.com>,
-	greg.hofer@hp.com
-Subject: Re: [OMAPZOOM][PATCH 3/6] IMX046: Add support for Sony imx046
-	sensor.
+References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
+	<496F18C4.9020009@draigBrady.com>
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer
+	memory leak and race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,114 +32,71 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Dominic!
-
-First a small thing: please post to the new linux-media list in the future 
-as this list is being phased out.
-
-On Friday 30 January 2009 01:53:38 Dominic Curran wrote:
-> From: Dominic Curran <dcurran@ti.com>
-> Subject: [OMAPZOOM][PATCH 3/6] IMX046: Add support for Sony imx046
-> sensor.
+On Thu, Jan 15, 2009 at 6:06 AM, Pádraig Brady <P@draigbrady.com> wrote:
+> Robert Krakora wrote:
+>> em28xx: Fix audio URB transfer buffer memory leak and race
+>> condition/corruption of capture pointer
+>>
+>>
+>> Signed-off-by: Robert V. Krakora <rob.krakora@messagenetsystems.com>
+>>
+>> diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+>> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>> 10:06:12 2009 -0200
+>> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>> 12:47:00 2009 -0500
+>> @@ -62,11 +62,20 @@
+>>         int i;
+>>
+>>         dprintk("Stopping isoc\n");
+>> -       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>> -               usb_unlink_urb(dev->adev.urb[i]);
+>> -               usb_free_urb(dev->adev.urb[i]);
+>> -               dev->adev.urb[i] = NULL;
+>> -       }
+>> +        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>> +               usb_unlink_urb(dev->adev.urb[i]);
+>> +               usb_free_urb(dev->adev.urb[i]);
+>> +               dev->adev.urb[i] = NULL;
+>> +               if (dev->adev.urb[i]) {
+>> +                       usb_unlink_urb(dev->adev.urb[i]);
+>> +                       usb_free_urb(dev->adev.urb[i]);
+>> +                       dev->adev.urb[i] = NULL;
+>> +               }
+>> +                if (dev->adev.transfer_buffer) {
+>> +                       kfree(dev->adev.transfer_buffer[i]);
+>> +                       dev->adev.transfer_buffer[i] = NULL;
+>> +               }
+>> +        }
+>>
+>>         return 0;
+>>  }
 >
-> This patch adds the driver files for the Sony IMX046 8MP camera sensor.
-> Driver sets up the sensor to send frame data via the MIPI CSI2 i/f.
-> Sensor is setup to output the following base sizes:
->  - 3280 x 2464 (8MP)
->  - 3280 x 616  (2MP)
->  - 820  x 616
-> Sensor's output image format is Bayer10 (GrR/BGb).
+> That looks a bit incorrect. I fixed this last week in Markus'
+> repository, as I thought the leak was specific to that tree:
+> http://mcentral.de/hg/~mrec/em28xx-new/diff/1cfd9010a552/em28xx-audio.c
 >
-> Driver has V4L2 controls for:
->  - Exposure
->  - Analog Gain
+> Pádraig.
 >
-> Signed-off-by: Greg Hofer <greg.hofer@hp.com>
-> Signed-off-by: Dominic Curran <dcurran@ti.com>
-> ---
->  drivers/media/video/Kconfig  |    8
->  drivers/media/video/Makefile |    1
->  drivers/media/video/imx046.c | 1635
-> +++++++++++++++++++++++++++++++++++++++++++ drivers/media/video/imx046.h
-> |  326 ++++++++
->  4 files changed, 1970 insertions(+)
->  create mode 100644 drivers/media/video/imx046.c
->  create mode 100644 drivers/media/video/imx046.h
 >
-> Index: omapzoom04/drivers/media/video/Kconfig
-> ===================================================================
-> --- omapzoom04.orig/drivers/media/video/Kconfig
-> +++ omapzoom04/drivers/media/video/Kconfig
-> @@ -334,6 +334,14 @@ config VIDEO_OV3640_CSI2
->  	  This enables the use of the CSI2 serial bus for the ov3640
->  	  camera.
->
-> +config VIDEO_IMX046
-> +	tristate "Sony IMX046 sensor driver (8MP)"
-> +	depends on I2C && VIDEO_V4L2
-> +	---help---
-> +	  This is a Video4Linux2 sensor-level driver for the Sony
-> +	  IMX046 camera.  It is currently working with the TI OMAP3
-> +          camera controller.
-> +
 
-Does this need an OMAP3 dependency? Or is it fully independent from omap?
+Padraig:
 
->  config VIDEO_SAA7110
->  	tristate "Philips SAA7110 video decoder"
->  	depends on VIDEO_V4L1 && I2C
-> Index: omapzoom04/drivers/media/video/Makefile
-> ===================================================================
-> --- omapzoom04.orig/drivers/media/video/Makefile
-> +++ omapzoom04/drivers/media/video/Makefile
-> @@ -115,6 +115,7 @@ obj-$(CONFIG_VIDEO_OV9640)	+= ov9640.o
->  obj-$(CONFIG_VIDEO_MT9P012)	+= mt9p012.o
->  obj-$(CONFIG_VIDEO_DW9710) += dw9710.o
->  obj-$(CONFIG_VIDEO_OV3640)     += ov3640.o
-> +obj-$(CONFIG_VIDEO_IMX046)     += imx046.o
->
->  obj-$(CONFIG_USB_DABUSB)        += dabusb.o
->  obj-$(CONFIG_USB_OV511)         += ov511.o
-> Index: omapzoom04/drivers/media/video/imx046.c
-> ===================================================================
-> --- /dev/null
-> +++ omapzoom04/drivers/media/video/imx046.c
-> @@ -0,0 +1,1635 @@
-> +/*
-> + * drivers/media/video/imx046.c
-> + *
-> + * Sony imx046 sensor driver
-> + *
-> + *
-> + * Copyright (C) 2008 Hewlett Packard
-> + *
-> + * Leverage mt9p012.c
-> + *
-> + * This file is licensed under the terms of the GNU General Public
-> License + * version 2. This program is licensed "as is" without any
-> warranty of any + * kind, whether express or implied.
-> + */
-> +
-> +#include <linux/i2c.h>
-> +#include <linux/delay.h>
-> +#include <media/v4l2-int-device.h>
+I fail to see what looks incorrect about testing for NULL pointers
+before freeing.  I did have a bug where I left the index number off of
+the transfer buffer array which Devin kindly pointed out yesterday.
+Also, I am working from main, not a branch.
 
-A general note on the usage of v4l2-int-device.h: this will be phased out 
-soon in favor of v4l2-subdev (see 
-Documentation/video4linux/v4l2-framework.txt, introduced in 2.6.29).
-
-You might want to discuss this with Vaibhav Hiremath regarding the timescale 
-of this conversion and whether it is better to wait until omap has been 
-converted before merging this driver. I'm willing to accept the driver 
-using the v4l2-int-device interface as long as I get the assurance that it 
-will be converted later.
-
-Regards,
-
-	Hans
+Best Regards,
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
