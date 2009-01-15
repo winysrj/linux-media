@@ -1,40 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp111.rog.mail.re2.yahoo.com ([206.190.37.1]:48269 "HELO
-	smtp111.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752543AbZAJScK (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37804 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933AbZAOCzf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jan 2009 13:32:10 -0500
-Message-ID: <4968E810.2050307@rogers.com>
-Date: Sat, 10 Jan 2009 13:25:20 -0500
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Malte Gell <malte.gell@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-t: searching for channels
-References: <200901101645.51230.malte.gell@gmx.de>
-In-Reply-To: <200901101645.51230.malte.gell@gmx.de>
-Content-Type: text/plain; charset=us-ascii
+	Wed, 14 Jan 2009 21:55:35 -0500
+Date: Thu, 15 Jan 2009 00:54:46 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: CityK <cityk@rogers.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090115005446.379aae99@pedra.chehab.org>
+In-Reply-To: <1231986761.2896.21.camel@pc10.localdom.local>
+References: <496A9485.7060808@gmail.com>
+	<496AB41E.8020507@rogers.com>
+	<20090112031947.134c29c9@pedra.chehab.org>
+	<200901120840.20194.hverkuil@xs4all.nl>
+	<496BF812.40102@rogers.com>
+	<1231816664.2680.21.camel@pc10.localdom.local>
+	<496D6CF6.6030005@rogers.com>
+	<1231986761.2896.21.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Malte Gell wrote:
-> Hello,
->
-> I just purchased a Hauppauge Nova DVB-T USB stick and the kernel module and 
-> firmware recognizes it well. I have first used Kaffeine to search for channels, 
-> but it has found none. 
->
-> To be sure I even bought a better, an active dvb-t antenna with a 20dB 
-> amplifier. And now I used dvbscan to scan for channels, I invoked it like this:
->
-> dvbscan -out channels /usr/share/dvb/dvb-t/de-Mannheim
->
-> Is this the better way? It takes now longer than 15 minutes, is this normal? 
-> Is dvbscan more reliable than kaffeine for searching for channels? If I still 
-> find no channels, what could be the cause? In my region dvb-t signals are said 
-> to be not too well.
->   
+On Thu, 15 Jan 2009 03:32:41 +0100
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-For answers to some of your questions, see:
-http://www.linuxtv.org/wiki/index.php/Scan
+> > Consulting on irc, both Eric and myself can confirm that DVB is working
+> > fine for the device (I can only test cable currently, but Eric
+> > successfully checked both QAM and 8-VSB).  I'm using recent Hg and Eric
+> > is using stock FC10 supplied drivers.  So, I'm not sure why Josh was
+> > having problems.  
+> 
+> for me the same and I can't test on these.
+> The Pinnacle 310i seems to have the LNA support broken, can't test.
+
+Hermann,
+
+The DVB part shouldn't be affected by the patch. It changes the way that tuners
+are attached at the analog part. So, the tests should be on tea5767 radio and
+on analog tuner reception.
+
+Also, his patch just changes the way tuner is binding. Manual adjustments on
+saa7134 cards structs (like adding TDA9887_PRESENT flag) will be needed to fix some
+issues like what you've reported (driver not loading automatically tda9887
+driver).
+
+Cheers,
+Mauro
