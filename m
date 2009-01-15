@@ -1,110 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:58882 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757779AbZAQOfo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 09:35:44 -0500
-Subject: Re: Compile warning for CX18 / v4l2-common Ubuntu 8.10
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <de8cad4d0901170434g62a3453by1e6970c0b6f60f66@mail.gmail.com>
-References: <de8cad4d0901170434g62a3453by1e6970c0b6f60f66@mail.gmail.com>
-Content-Type: text/plain
-Date: Sat, 17 Jan 2009 09:35:00 -0500
-Message-Id: <1232202900.2951.26.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from fg-out-1718.google.com ([72.14.220.155]:5027 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933960AbZAOUo3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jan 2009 15:44:29 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so657543fgg.17
+        for <linux-media@vger.kernel.org>; Thu, 15 Jan 2009 12:44:27 -0800 (PST)
+Message-ID: <68676e00901151244j637f2587o868a1796083d0b1a@mail.gmail.com>
+Date: Thu, 15 Jan 2009 21:44:27 +0100
+From: "Luca Tettamanti" <kronos.it@gmail.com>
+To: Catimimi <catimimi@libertysurf.fr>
+Subject: Re: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
+Cc: linux-dvb@linuxtv.org, Linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <496F5FDC.4000605@libertysurf.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
+	 <496DB023.3090402@libertysurf.fr>
+	 <68676e00901150743q5576fefane2d2818dc6cd9cb0@mail.gmail.com>
+	 <496F5FDC.4000605@libertysurf.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-01-17 at 07:34 -0500, Brandon Jenkins wrote:
-> A pull from v4l-dvb today:
-> 
-> Kernel build directory is /lib/modules/2.6.27-7-generic/build
-> make -C /lib/modules/2.6.27-7-generic/build
-> SUBDIRS=/root/drivers/v4l-dvb/v4l  modules
-> make[2]: Entering directory `/usr/src/linux-headers-2.6.27-7-generic'
-> ...
-> /opt/drivers/v4l-dvb/v4l/cx18-driver.c: In function 'cx18_request_module':
-> /opt/drivers/v4l-dvb/v4l/cx18-driver.c:735: warning: format not a
-> string literal and no format arguments
-> 
->   CC [M]  /root/drivers/v4l-dvb/v4l/v4l2-common.o
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_ctrl_query_fill':
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c:559: warning: format not a
-> string literal and no format arguments
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_ctrl_query_menu':
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c:724: warning: format not a
-> string literal and no format arguments
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
-> 'v4l2_ctrl_query_menu_valid_items':
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c:742: warning: format not a
-> string literal and no format arguments
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_i2c_new_subdev':
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c:947: warning: format not a
-> string literal and no format arguments
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
-> 'v4l2_i2c_new_probed_subdev':
-> /root/drivers/v4l-dvb/v4l/v4l2-common.c:1008: warning: format not a
-> string literal and no format arguments
-
-First, they are just warnings, so everything still builds right?
-
-Second, yes these calls appear to be mildly abusing the format argument
-of snprintf() and request_module().  These are declared as
-
-
-extern int snprintf(char * buf, size_t size, const char * fmt, ...)
-        __attribute__ ((format (printf, 3, 4)));
-
-extern int request_module(const char * name, ...) __attribute__ ((format
-(printf, 1, 2)));
-
-
-Note the attribute flag that tells the compiler it may want to do some
-extra checking of the arguments - they are like printf()'s arguments.
-The "problem" is that we're not calling them like printf() should be
-called.
-
-With a "char *" variable "foo", we do something like
-
-	printf(foo);
-
-instead of 
-
-	printf("%s", foo);
-
-which is what the warnings are griping about.  The __attribute__ is
-telling the compiler that the format argument should be string constant.
-
-For the cx18 module, one should be able to make it go away with:
-
-diff -r 262c623d8a28 linux/drivers/media/video/cx18/cx18-driver.c
---- a/linux/drivers/media/video/cx18/cx18-driver.c	Sat Jan 17 08:59:31 2009 -0500
-+++ b/linux/drivers/media/video/cx18/cx18-driver.c	Sat Jan 17 09:30:28 2009 -0500
-@@ -733,7 +733,7 @@
- {
- 	if ((hw & id) == 0)
- 		return hw;
--	if (request_module(name) != 0) {
-+	if (request_module("%s", name) != 0) {
- 		CX18_ERR("Failed to load module %s\n", name);
- 		return hw & ~id;
- 	}
-
-
-Signed-off-by: Andy Walls <awalls@radix.net>
-
-Please test as an SOB line doesn't mean that the patch compiles or
-works. ;)   I don't normally get those warnings so my setup may be a
-little different/lax.
-
-Regards,
-Andy
-
-
-> Thanks,
-> 
-> Brandon
-
-
+T24gVGh1LCBKYW4gMTUsIDIwMDkgYXQgNToxMCBQTSwgQ2F0aW1pbWkgPGNhdGltaW1pQGxpYmVy
+dHlzdXJmLmZyPiB3cm90ZToKPiBMdWNhIFRldHRhbWFudGkgYSDDqWNyaXQgOgo+ID4gT2YgY291
+cnNlIDstKSBUaGUgUENJIElEIG9mIHRoZSBjYXJkIGlzIG5vdCBsaXN0ZWQuIEkgaGFwcGVuIHRv
+IGhhdmUKPiA+IHRoZSBzYW1lIGNhcmQsIHlvdSBjYW4gYWRkIHRoZSBJRCB0byB0aGUgbGlzdCBi
+dXQgbm90ZSB0aGF0IHRoZQo+ID4gZnJvbnRlbmQgaXMgbm90IHRoZXJlIHlldC4uLiBzbyB0aGUg
+bW9kdWxlIHdpbGwgbG9hZCwgd2lsbCBwcmludCBzb21lCj4gPiBzb21ldGhpbmcuLi4gYW5kIHRo
+YXQncyBpdC4KPgo+IEkgZGlkIHRoYXQgdG9vIGJ1dCB3aXRob3V0IHN1Y2Nlc3MuIEkgYWxzbyBs
+b2FkZWQgdGhlIGZyb250ZW5kIG1vZHVsZXMuCgpTb3JyeSwgSSBtZWF0IHRoYXQgdGhlIGNvcnJl
+Y3QgZnJvbnRlbmQgKFREQTEwMDQ2QSkgaXMgbm90IGNvbXBpbGVkIGJ5IGRlZmF1bHQuCgo+ID4g
+SSBoYXZlIGEgY291cGxlIG9mIHBhdGNoZXMgcXVldWVkIGFuZCBJIHBsYW4gdG8gZG8gc29tZQo+
+ID4gZXhwZXJpbWVudGF0aW9uIGluIHRoZSB3ZWVrZW5kIHRob3VnaCA7KQo+Cj4gT0ssIElmIEkg
+Y2FuIGhlbHAsIHRlbGwgbWUuCgpPbmx5IG1pbm9yIGZpeGVzLCBJJ20gc3RpbGwgdHJ5aW5nIHRv
+IHVuZGVyc3RhbmQgdGhlIGNvZGUgOy0pIE1hbnUKQWJyYWhhbSBpcyBkb2luZyB0aGUgaGFyZCB3
+b3JrLi4uCgpMCg==
