@@ -1,34 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07I7EBk025778
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:07:15 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07I6wfT028518
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:06:58 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so3589532qwe.39
-	for <video4linux-list@redhat.com>; Wed, 07 Jan 2009 10:06:58 -0800 (PST)
-Message-ID: <412bdbff0901071006r662b14b5ud42bd04adc7b7fbb@mail.gmail.com>
-Date: Wed, 7 Jan 2009 13:06:57 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Paul Thomas" <pthomas8589@gmail.com>
-In-Reply-To: <c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0FFWY0R021688
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:32:34 -0500
+Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
+	[209.85.219.21])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0FFWHEO014923
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 10:32:17 -0500
+Received: by ewy14 with SMTP id 14so1279899ewy.3
+	for <video4linux-list@redhat.com>; Thu, 15 Jan 2009 07:32:16 -0800 (PST)
+Message-ID: <b24e53350901150732m2c0298a5wb90b75f0665e1ff7@mail.gmail.com>
+Date: Thu, 15 Jan 2009 10:32:16 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: "=?ISO-8859-1?Q?P=E1draig_Brady?=" <P@draigbrady.com>
+In-Reply-To: <496F4F1B.1050706@draigBrady.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>
-	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
-	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
-	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>
-	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>
-	<c785bba30901020850y51c7b9d2i47fd418828cd150c@mail.gmail.com>
-	<c785bba30901030922y17d67d0bm822304a650a0e812@mail.gmail.com>
-	<c785bba30901051633g7808197fl6d377420d799120c@mail.gmail.com>
-	<c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
-Cc: video4linux-list <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: em28xx issues
+References: <b24e53350901141004v6a2ed7d7nb6765fa1d112f7ef@mail.gmail.com>
+	<496F18C4.9020009@draigBrady.com>
+	<b24e53350901150632u2f031fcm3c6f34b6b0e81100@mail.gmail.com>
+	<496F4F1B.1050706@draigBrady.com>
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2.6.27.8 1/1] em28xx: Fix audio URB transfer buffer
+	memory leak and race condition/corruption of capture pointer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,41 +35,90 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jan 7, 2009 at 12:27 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
-> I thought a kernel oops was a big deal? Anyway, if the em28 device
-> isn't well supported. What would be a well supported device that has
-> an component input and preferably has been tested on ARM.
+On Thu, Jan 15, 2009 at 9:58 AM, Pádraig Brady <P@draigbrady.com> wrote:
+> Robert Krakora wrote:
+>> On Thu, Jan 15, 2009 at 6:06 AM, Pádraig Brady <P@draigbrady.com> wrote:
+>>> Robert Krakora wrote:
+>>>> em28xx: Fix audio URB transfer buffer memory leak and race
+>>>> condition/corruption of capture pointer
+>>>>
+>>>>
+>>>> Signed-off-by: Robert V. Krakora <rob.krakora@messagenetsystems.com>
+>>>>
+>>>> diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-audio.c
+>>>> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>>>> 10:06:12 2009 -0200
+>>>> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Jan 14
+>>>> 12:47:00 2009 -0500
+>>>> @@ -62,11 +62,20 @@
+>>>>         int i;
+>>>>
+>>>>         dprintk("Stopping isoc\n");
+>>>> -       for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>>>> -               usb_unlink_urb(dev->adev.urb[i]);
+>>>> -               usb_free_urb(dev->adev.urb[i]);
+>>>> -               dev->adev.urb[i] = NULL;
+>>>> -       }
+>>>> +        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+>>>> +               usb_unlink_urb(dev->adev.urb[i]);
+>>>> +               usb_free_urb(dev->adev.urb[i]);
+>>>> +               dev->adev.urb[i] = NULL;
+>>>> +               if (dev->adev.urb[i]) {
+>>>> +                       usb_unlink_urb(dev->adev.urb[i]);
+>>>> +                       usb_free_urb(dev->adev.urb[i]);
+>>>> +                       dev->adev.urb[i] = NULL;
+>>>> +               }
+>>>> +                if (dev->adev.transfer_buffer) {
+>>>> +                       kfree(dev->adev.transfer_buffer[i]);
+>>>> +                       dev->adev.transfer_buffer[i] = NULL;
+>>>> +               }
+>>>> +        }
+>>>>
+>>>>         return 0;
+>>>>  }
+>>> That looks a bit incorrect. I fixed this last week in Markus'
+>>> repository, as I thought the leak was specific to that tree:
+>>> http://mcentral.de/hg/~mrec/em28xx-new/diff/1cfd9010a552/em28xx-audio.c
+>>>
+>>
+>> I fail to see what looks incorrect about testing for NULL pointers
+>> before freeing.
 >
-> thanks,
-> Paul
+> That's redundant/inefficient. kfree(NULL) is fine.
+>
+>> I did have a bug where I left the index number off of
+>> the transfer buffer array which Devin kindly pointed out yesterday.
+>
+> I was referring to that yes.
+>
+> I was also referring to the fact you have 2 calls to free the URBs.
+>
+> I suggest you just do what I did in my patch.
+> I've tested it well. Without it I was leaking 48KiB
+> every time VLC changed channel.
+>
+> cheers,
+> Pádraig.
+>
+>
 
-Hello Paul,
+Padraig:
 
-I don't think anyone is saying that a kernel oops isn't a big deal.
-The reality though is that this is a project worked on by a very small
-number of *volunteers* and there is no assertion that your issue will
-be dealt with as quickly as you like.
+Cool.  I did not know that kfree(NULL) was O.K.  Your patch looks like
+the way to go then.  I noticed the same memory leak on channel
+changes.  I will edit my patch then to remove that section.  Is this
+the correct thing to do?  Thanks for all of your help.
 
-This issue is compounded by the fact that as far as we know it only
-occurs on a single piece of hardware that nobody ever claimed was
-supported and no developer has in their possession to debug the issue
-with.  In cases like this the issue it may only take two or three
-hours to debug if someone like myself has the device in question, but
-I'm not going to spend my own money to go out and buy one.
-
-By all means, if you want to debug the issue, we would be happy to
-accept patches.  Or if you want to mail me the hardware so I could
-take a look and see if I can debug the issue, that is something else
-we can discuss.  But operating under the assumption that you are
-somehow entitled to have a developer donate his time to address your
-problem is perhaps not the best way to get help.
-
-Devin
+Best Regards,
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
