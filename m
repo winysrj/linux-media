@@ -1,88 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp100.rog.mail.re2.yahoo.com ([206.190.36.78]:30615 "HELO
-	smtp100.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750747AbZAYWca (ORCPT
+Received: from ug-out-1314.google.com ([66.249.92.174]:52135 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754698AbZAPX34 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 17:32:30 -0500
-Message-ID: <497CE87A.3090605@rogers.com>
-Date: Sun, 25 Jan 2009 17:32:26 -0500
-From: CityK <cityk@rogers.com>
+	Fri, 16 Jan 2009 18:29:56 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so72169ugf.37
+        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 15:29:52 -0800 (PST)
+Date: Sat, 17 Jan 2009 00:29:40 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+In-Reply-To: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+Message-ID: <alpine.DEB.2.00.0901170002430.18012@ybpnyubfg.ybpnyqbznva>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
 MIME-Version: 1.0
-To: "A. F. Cano" <afc@shibaya.lonestar.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Tuning a pvrusb2 device.  Every attempt has failed.
-References: <20090123015815.GA22113@shibaya.lonestar.org> <497CB355.3030408@rogers.com> <20090125214637.GA11948@shibaya.lonestar.org>
-In-Reply-To: <20090125214637.GA11948@shibaya.lonestar.org>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A. F. Cano wrote:
-> Yes.  The RF input is hooked up to an 11ft Winegard roof antenna, mounted on
-> a stand behind me, properly oriented according to antennaweb.com for the
-> local stations, and with a UHF pre-amp for good measure.  It is inside, but
-> a foot below the reasonably high ceiling, so it doesn't interfere with moving
-> around.  With this setup I have succeeded in receiving barely visible
-> analog channels when the Creator is set up as a v4l device using /dev/video0.
-> Yes, the reception sucks, but I want to make sure that it is not something
-> more fundamental before I go to the trouble of mounting the antenna on the
-> roof.
->   
+On Fri, 16 Jan 2009, Patrick Boettcher wrote:
 
-Okay. One suggestion I have here is taking the pre-amp out of the chain
-right now, and just test with as basic a setup as possible.
+> Why not closing linux-dvb (and video4linux) and transferring the currently 
+> subscribed users to linux-media automatically?
 
-> I'm not sure how to change the cable vs. ota setting.  Doesn't the digital
-> tuner determine what it is plugged into?  
+Can I offer my opinions to differ?
 
-Sorry, what I was getting at was the case of user error where one might
-be trying to use 8VSB for the scanning on a digital cable connection, as
-opposed to using the correct modulation scheme (QAM256). So, for
-example, using scan in conjunction with
-"us-ATSC-center-frequencies-8VSB" as opposed to
-"us-Cable-Standard-center-frequencies-QAM256". Had that been the case,
-it could explain the results you observed with scan. However, as you
-confirmed above, that was not the case.
+First, I'm only subscribed to -dvb in order to post, yet still
+I haven't posted what I originally planned to post before
+unsubscribing until another device fails to work.  Luckily
+the video4linux list was impossible to access (even the
+archives needed subsciption, furrfu).
 
-In regards to the determination of what is plugged in -- no, the tuner
-is a dumb component. It only does what its told. In other words,
-whatever piece of software you are trying to drive it by has to state
-that it wants the device to use cable or OTA; as precisely illustrated
-by the example with the scan utility.
+Anyway, soon after the creation of -media, I saw that the
+crossposts from v4linux were of no interest to me (I'm only
+interested in delivery of already-digital payloads, and am
+not concerned with webcams, analogue radio or TV, remote
+controls, and so on) -- since then I've skipped something
+like 2/3 of the posts on -media, and today, I wouldn't want
+it to appear in my mailbox.  But that's just my interest.
 
-> As far as mythtv, it thinks the
-> attached device is a DVB/DTV receiver.  
+Also, I seem to recall that one intent of -media was to
+focus on developer interest, as the initial posts revealed,
+which also frees developers with better things to do than
+to explain how to, for example, get a list of channels, or
+stream a particular channel and be bothered by beginner or
+simple questions that could be answered by those without
+developer abilities.  Like me.
 
-I'd step back from testing with Myth right now -- it adds to much of
-extra layer of complexity and sources for further error. In terms of
-just testing to make sure that the device is working correctly, just
-stick with the basic apps for the time being (scan, azap, mplayer,
-femon....)
-
-> Kaffeine has been told to use the
-> us ATSC frequencies, with the results I pointed out earlier. 
->   
-I haven't taken the opportunity to ever use Kaffeine for scanning OTA
-just yet, however, I do note that it produces similar results for me, as
-to what you observed, when I scan on digital cable using QAM256. In my
-case, it repeatedly borks at 61%. I spoke with Mkrufky this morning
-about Kaffeine's ATSC scanning abilities and he described it as being
-less then favourable....this was actually a surprise to me, as I thought
-that OTA scanning was fine. I know Devin added this support so perhaps
-he could comment upon the capabilities. I also know that Devin does not
-have cable, so I am not surprised to see, in my case, scans of digital
-cable failing.
-
-Reviewing your prior message, I'd suspect that dvbtune just doesn't have
-support for ATSC. As you note, the other stuff is for analog.
-
-The fact that you have the device node created and the populated by the
-character devices, along with the femon result is encouraging.
-Similarly, that scan is detecting something on several frequencies (just
-not enough to capture any info for it) is also encouraging. I suspect
-that it comes down to a case of the antenna/cable configuration ... as
-noted before, take the amp out of the chain and retry ... also, if
-possible, can you obtain a signal under Windows?
+Anyway, it's no big deal to me.  I'm used to how the one
+FreeBSD -multimedia list covers everything including sound,
+yet typically gets fewer posts in a week than -dvb could
+see in a day, and I can't see myself investing in another
+DVB-type receiver soon until DVB-S2 support gets properly
+rounded out and 100% reliable for all `experimental'-tagged
+devices, so I'm quite content to browse the list just as I
+skim the kernel list, or peer in on a few dozen other BSD-
+type lists whenever I feel like it.
 
 
+yerz,
+barry bouwsma
+off to answer a newbie question next
