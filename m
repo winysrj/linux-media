@@ -1,88 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37408 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:47317 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246AbZA2JwF (ORCPT
+	with ESMTP id S1755045AbZAPDit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 04:52:05 -0500
-Date: Thu, 29 Jan 2009 07:51:27 -0200
+	Thu, 15 Jan 2009 22:38:49 -0500
+Date: Fri, 16 Jan 2009 01:38:13 -0200
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: morimoto.kuninori@renesas.com,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] ov772x: add support S_CROP operation.
-Message-ID: <20090129075127.6dd3340c@caramujo.chehab.org>
-In-Reply-To: <alpine.DEB.2.00.0901270851280.4618@axis700.grange>
-References: <uskna4qh8.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0901250245440.4969@axis700.grange>
-	<uzlheep1l.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0901260854010.4236@axis700.grange>
-	<uk58hcp3k.wl%morimoto.kuninori@renesas.com>
-	<alpine.DEB.2.00.0901270851280.4618@axis700.grange>
+To: CityK <cityk@rogers.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	V4L <video4linux-list@redhat.com>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090116013813.23d45af8@pedra.chehab.org>
+In-Reply-To: <496FFCE2.8010902@rogers.com>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+	<496FE555.7090405@rogers.com>
+	<496FFCE2.8010902@rogers.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 27 Jan 2009 08:53:23 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+On Thu, 15 Jan 2009 22:20:02 -0500
+CityK <cityk@rogers.com> wrote:
 
-Hi Guennadi,
-
-I'm understanding that you're reviewing this patch and other ones for
-soc_camera and will send me a PULL request after reviewing those stuff. I've
-updated patchwork to reflect this.
-
-Thanks,
-Mauro
-
-> On Tue, 27 Jan 2009, morimoto.kuninori@renesas.com wrote:
+> CityK wrote:
+> > If you had meant taking Hans' source and applying your "hack" patch to
+> > them, building and then proceeding with the modprobe steps, the answer
+> > is that I haven't tried yet. Will test -- might not be tonight though,
+> > as I have some other things that need attending too.
+> >   
 > 
-> > Dear Guennadi
-> > 
-> > > > what is the best way to us ???
-> > > > or do I miss understanding ???
-> > > 
-> > > Fix behaviour if no S_FMT is done.
-> > 
-> > I attached stupid 4 patches.
-> > I would like to hear your opinion.
-> > please check it.
-> > 
-> > I wonder is there any soc_camera that works without 
-> > calling S_FMT though set_bus_param is not called ?
+> Okay, I lied -- given that building is really a background process, I
+> found time ... i.e. I cleaned up in the kitchen while the system
+> compiled ... kneel before me world, as I am a master multi-tasker!
 > 
-> Don't know, never tested that way. Might well be they don't, in which case 
-> they need to be fixed.
+> >> Anyway, if the previous workaround works after Hans' changes, then I
+> >> think his changes should be merged -- even though it doesnt fix ATSC115,
+> >> it is indeed a step into the right direction.
+> >>
+> >> If the ATSC115 hack-fix patch doesn't apply anymore, please let me know
+> >> -- I'll respin it.
+> >>     
 > 
-> > If soc_camera works without calling S_FMT, 
-> > s_crop should call try_fmt_vid_cap
-> > and set_bus_param like s_fmt_vid_cap I think.
-> > 
-> > And I think "current_fmt" is better than 0 to set_fmt
-> > if user wants only geometry changes on s_crop.
-> > it mean keep format.
-> > 
-> > These patches works well on my local environment.
-> > ov772x and tw9910 work even if without -f option on capture_example.
-> > 
-> > If you can agree with this idea,
-> > I will send these as formal patch.
-> 
-> Thanks for the patches, please, give me a couple of days for review.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The "hack-fix" patch applies cleanly against Hans' sources. However, the
+> test results are negative -- the previous workaround ("modprobe tuner -r
+> and "modprobe tuner") fails to produce the desired result. In fact, as
+> similar to the results reported in the previous message, performing such
+> action produces no result in dmesg.
 
-
-
+Such workarounds won't work anymore. If his patch is correct, the behaviour
+should be deterministic. Could you please enable the debug messages and probe
+cx88 with i2c_scan=1? Please also post the previous dmesg.
 
 Cheers,
 Mauro
