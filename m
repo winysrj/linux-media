@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Tue, 6 Jan 2009 15:18:48 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Gregoire Favre <gregoire.favre@gmail.com>
-Message-ID: <20090106151848.3f9ec44c@pedra.chehab.org>
-In-Reply-To: <20090106170002.GC3403@gmail.com>
-References: <20090104113738.GD3551@gmail.com>
-	<1231097304.3125.64.camel@palomino.walls.org>
-	<20090105130720.GB3621@gmail.com>
-	<1231202800.3110.13.camel@palomino.walls.org>
-	<20090106144917.736584e7@pedra.chehab.org>
-	<20090106170002.GC3403@gmail.com>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HondaNSX@gmx.de>) id 1LNtc2-0006Tm-9l
+	for linux-dvb@linuxtv.org; Fri, 16 Jan 2009 19:40:11 +0100
+Received: from [192.168.25.4] (laptop.yaris.dyndns.org [192.168.25.4])
+	by yaris.yaris.dyndns.org (Postfix) with ESMTP id E0BA3A93B9
+	for <linux-dvb@linuxtv.org>; Fri, 16 Jan 2009 19:39:35 +0100 (CET)
+Message-ID: <4970D464.5070509@gmx.de>
+Date: Fri, 16 Jan 2009 19:39:32 +0100
+From: AlexW <HondaNSX@gmx.de>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de>
+Subject: Re: [linux-dvb] RFC - Flexcop Streaming watchdog (VDSB)
+Reply-To: linux-media@vger.kernel.org, HondaNSX@gmx.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,53 +28,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 6 Jan 2009 18:00:02 +0100
-Gregoire Favre <gregoire.favre@gmail.com> wrote:
+Patrick Boettcher wrote:
+> Hi lists,
+>
+> For years there has been the Video Data Stream Borken-error with VDR and
+> Technisat cards: The error occured randomly and unfrequently. A 
+> work-around for that problem was to restart VDR and let the driver 
+> reset the pid-filtering and streaming interface.
+>
+> In fact it turned out, that the problem is worse with setups not based 
+> on VDR and the "VDSB-error" could be really easily reproduced (I'm not 
+> sure if this applies to all generations on SkyStar2-card). I'm 
+> skipping the description of the problem here...
+>
+>
 
-> On Tue, Jan 06, 2009 at 02:49:17PM -0200, Mauro Carvalho Chehab wrote:
-> 
-> Hello,
-> 
-> > Could you please provide you your SOB?
-> 
-> I know that's not a question for me, but what stand SOB for ?
-> http://www.acronymfinder.com/SOB.html I guess it should be Signed-Off-By
-> right ?
+Which generation of cards have this problem? I did not see any VDSB with 
+my two Skystar 2.6D.
 
-Yes. Please read the README.patches file at the tree for more details.
 
-> > IMO, the proper fix would be to add some locking at cx88 init. I suspect that
-> > this breakage (and other similar ones) are tue to the absense of KBL on newer kernels.
-> 
-> Oh, and is there a way to fix those ?
 
-By adding mutex locks during device init. This should be done with care to
-avoid other troubles. 
+BR,
+Walter
 
-> > What kernel version are you using?
-> 
-> As seen in my headers : 2.6.28-gentoo, but I also tested S2API with
-> 2.6.27 (different revision).
 
-Ok. For sure 2.6.28 came without KBL. I'm not sure if 2.6.27 also doesn't lock
-during device init.
-
-> > Better to add here:
-> > 	core->dvbdev = NULL;
-> 
-> Are you sending a patch which will finally make HVR-4000 usable with
-> S2API ?
-> I would really like this since vdr now is based upon this API ;-)
-> 
-> Thank you very much,
-
-Sorry, but I don't have any HVR-4000 here for testing. I was thinking that this
-device were already working fine with S2.
-
-Cheers,
-Mauro
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
