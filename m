@@ -1,96 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.work.de ([212.12.32.20]:46210 "EHLO mail.work.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752223AbZA2Kqz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 05:46:55 -0500
-Message-ID: <49818912.7000109@gmail.com>
-Date: Thu, 29 Jan 2009 14:46:42 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Roel Kluin via Mercurial <roel.kluin@gmail.com>,
-	akpm@linux-foundation.org, mchehab@redhat.com
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] DVB: negative internal->sub_range
- won't get noticed
-References: <E1LST8y-0003o5-Qw@www.linuxtv.org>
-In-Reply-To: <E1LST8y-0003o5-Qw@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bombadil.infradead.org ([18.85.46.34]:51573 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754302AbZAPSCY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2009 13:02:24 -0500
+Date: Fri, 16 Jan 2009 16:01:57 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: linux-media@vger.kernel.org
+Cc: Lars Hanisch <dvb@cinnamon-sage.de>, DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+Message-ID: <20090116160157.0f720b11@caramujo.chehab.org>
+In-Reply-To: <20090116155912.7bae237a@caramujo.chehab.org>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+	<200901161555.00803.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.0901160903080.21448@cnc.isely.net>
+	<4970C036.2000809@cinnamon-sage.de>
+	<20090116155912.7bae237a@caramujo.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+On Fri, 16 Jan 2009 15:59:12 -0200
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-Please revert this patch as it is incorrect. A correct version is
-available at http://jusst.de/hg/v4l-dvb which is undergoing tests.
-http://jusst.de/hg/v4l-dvb/rev/368dc6078295
+> Instead of just removing the ML, maybe the better is to change the reply to to
+> linux-media and send an autoreply message to the sender.
 
-Why did you have to hastily apply this patch, especially when i
-mentioned this earlier ?
+Done. Any posts to linux-dvb will receive this message:
 
-Regards,
-Manu
+On Fri, 16 Jan 2009 18:59:48 +0100
+linux-dvb-bounces@linuxtv.org wrote:
+
+> This ML is deprecated. Please use linux-media@vger.kernel.org instead.
+> For more info about linux-media@vger.kernel.org, please read:
+> http://vger.kernel.org/vger-lists.html#linux-media
 
 
-Patch from Roel Kluin wrote:
-> The patch number 10393 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
-> 
-> Kernel patches in this development tree may be modified to be backward
-> compatible with older kernels. Compatibility modifications will be
-> removed before inclusion into the mainstream Kernel
-> 
-> If anyone has any objections, please let us know by sending a message to:
-> 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> 
-> ------
-> 
-> From: Roel Kluin  <roel.kluin@gmail.com>
-> DVB: negative internal->sub_range won't get noticed
-> 
-> 
-> internal->sub_range is unsigned, a negative won't get noticed.
-> 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> ---
-> 
->  linux/drivers/media/dvb/frontends/stb0899_algo.c |    9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff -r 6ca70bcb4972 -r d3bfc53d0b67 linux/drivers/media/dvb/frontends/stb0899_algo.c
-> --- a/linux/drivers/media/dvb/frontends/stb0899_algo.c	Wed Jan 14 16:17:59 2009 +0000
-> +++ b/linux/drivers/media/dvb/frontends/stb0899_algo.c	Sun Jan 18 23:31:26 2009 +0000
-> @@ -467,12 +467,13 @@ static void next_sub_range(struct stb089
->  
->  	if (internal->sub_dir > 0) {
->  		old_sub_range = internal->sub_range;
-> -		internal->sub_range = MIN((internal->srch_range / 2) -
-> +		if (internal->tuner_offst + internal->sub_range / 2 >=
-> +				internal->srch_range / 2)
-> +			internal->sub_range = 0;
-> +		else
-> +			internal->sub_range = MIN((internal->srch_range / 2) -
->  					  (internal->tuner_offst + internal->sub_range / 2),
->  					   internal->sub_range);
-> -
-> -		if (internal->sub_range < 0)
-> -			internal->sub_range = 0;
->  
->  		internal->tuner_offst += (old_sub_range + internal->sub_range) / 2;
->  	}
-> 
-> 
-> ---
-> 
-> Patch is available at: http://linuxtv.org/hg/v4l-dvb/rev/d3bfc53d0b678da495fd2b559e154c5e95584079
-> 
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
-> 
 
+
+Cheers,
+Mauro
+
+
+
+Cheers,
+Mauro
