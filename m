@@ -1,79 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40114 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948AbZAMC4L (ORCPT
+Received: from mail-ew0-f17.google.com ([209.85.219.17]:64939 "EHLO
+	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935790AbZAPO10 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 21:56:11 -0500
-Date: Tue, 13 Jan 2009 00:55:37 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Tobias Lorenz <tobias.lorenz@gmx.net>, linux-media@vger.kernel.org,
-	Eduardo Valentin <eduardo.valentin@indt.org.br>
-Subject: Re: FM transmitter support under v4l2?
-Message-ID: <20090113005537.3bb8125c@pedra.chehab.org>
-In-Reply-To: <5d5443650901120130m7c2a6e8aqf26bb9afd1684f1e@mail.gmail.com>
-References: <5d5443650811282312w508c0804qf962f6cf5e859e2@mail.gmail.com>
-	<200811291506.11758.tobias.lorenz@gmx.net>
-	<5d5443650901112220x12827f8fre801c7e8d23d7479@mail.gmail.com>
-	<20090112044733.23dbe55e@pedra.chehab.org>
-	<5d5443650901120130m7c2a6e8aqf26bb9afd1684f1e@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Fri, 16 Jan 2009 09:27:26 -0500
+Received: by ewy10 with SMTP id 10so1921154ewy.13
+        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 06:27:24 -0800 (PST)
+Message-ID: <b24e53350901160627g3f93814ep9ed8da5ac9f70dd6@mail.gmail.com>
+Date: Fri, 16 Jan 2009 09:27:23 -0500
+From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 4/4] em28xx: Fix for KWorld 330U AC97
+In-Reply-To: <b24e53350901141134h7457a69eq4d72713e686d5745@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <b24e53350901141134h7457a69eq4d72713e686d5745@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 12 Jan 2009 15:00:10 +0530
-Trilok Soni <soni.trilok@gmail.com> wrote:
+em28xx: Fix for KWorld 330U AC97
 
-> Hi Mauro,
-> 
-> >>
-> >> FYI..now maemo kernel team seems to have written Si4713 FM transmitter
-> >> driver interfaced over I2C. It is available in the kernel diff here.
-> >>
-> >> http://repository.maemo.org/pool/maemo5.0/free/k/kernel/kernel_2.6.27-20084805r03.diff.gz
-> >>
-> >> Please download and unzip it and search for
-> >>
-> >> radio-si4713.c
-> >
-> > Hi Trilok. Thanks for pointing us for the driver.
-> >
-> > The driver seems interesting, but I see a few issues with their approach:
-> >
-> > 1) it is creating a sysfs API for controlling some of the characteristics of
-> > the radio. Public API's should be discussed with enough care at
-> > linux-media@vger.kernel.org before their addition on a driver, and properly
-> > documented. Also, IMO, the better would be to use VIDIOC_[G|C]_CTRL calls for
-> > this, or to create another ioctl for handling FM transmission;
-> 
-> Yes, I came across it. It might be because Eduardo just want's to make
-> it functional and didn't had much time to communicate with community
-> while making next Nokia Internet Table work with this chip. I can see
-> that you have CCed him, and he might want to start the interaction now
-> to formalize the FM transmitter related controls/APIs.
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-Yes.
-> 
-> >
-> > 2) a V4L2 application has no means to determine that the device is a FM
-> > transmission device. We need to add some capability flags to inform this to userspace.
-> >
-> 
-> Right, a formal cap flag is good. I don't have access to such
-> in-development Nokia device, and Eduardo can help us here to send a
-> patch.
+Fix for KWorld 330U AC97
 
-I've contacted him. We'll likely comment about it on the next days. Maybe we
-can hold this discussion for a few days, since we need right now to focus on
-the 14 OMAP3 patches.
-> 
-> > While there, I noticed also a driver for radio-tea5761 and a patch for
-> > common/tuners/tea5761.c. This also deserves review at linux-media@vger.kernel.org.
-> >
-> 
-> I need to look at this in the diff. Thanks for the review.
+Many thanks to Devin and Mauro again!!!
 
-Thanks,
-Mauro
+Priority: normal
+
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+
+diff -r 6896782d783d linux/drivers/media/video/em28xx/em28xx-core.c
+--- a/linux/drivers/media/video/em28xx/em28xx-core.c    Wed Jan 14
+10:06:12 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-core.c    Wed Jan 14
+12:47:00 2009 -0500
+@@ -424,7 +424,7 @@
+
+       xclk = dev->board.xclk & 0x7f;
+       if (!dev->mute)
+-               xclk |= 0x80;
++               xclk |= EM28XX_XCLK_AUDIO_UNMUTE;
+
+       ret = em28xx_write_reg(dev, EM28XX_R0F_XCLK, xclk);
+       if (ret < 0)
+@@ -437,6 +437,10 @@
+       /* Sets volume */
+       if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+               int vol;
++
++               em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
++               em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
++               em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
+
+               /* LSB: left channel - both channels with the same level */
+               vol = (0x1f - dev->volume) | ((0x1f - dev->volume) << 8);
