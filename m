@@ -1,234 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34348 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751296AbZA1Qjp convert rfc822-to-8bit (ORCPT
+Received: from ado-01.adocentral.net.au ([203.88.117.121]:38870 "EHLO
+	ado-01.adocentral.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754188AbZAPHIR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2009 11:39:45 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Wed, 28 Jan 2009 22:09:12 +0530
-Subject: RE: [PATCH v2] v4l/tvp514x: make the module aware of rich people
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA78FEB2@dbde02.ent.ti.com>
-In-Reply-To: <4980862E.10001@linutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 16 Jan 2009 02:08:17 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by ado-01.adocentral.net.au (Postfix) with ESMTP id CF01A5890C
+	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 18:08:15 +1100 (EST)
+Received: from ado-01.adocentral.net.au ([127.0.0.1])
+	by localhost (ado-01.adocentral.net.au [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id JI2VO5Sg5Svs for <linux-media@vger.kernel.org>;
+	Fri, 16 Jan 2009 18:08:11 +1100 (EST)
+Received: from [192.168.1.20] (ppp167-251-1.static.internode.on.net [59.167.251.1])
+	by ado-01.adocentral.net.au (Postfix) with ESMTP id DC56A5890B
+	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 18:08:10 +1100 (EST)
+Message-ID: <497031CF.9060703@bat.id.au>
+Date: Fri, 16 Jan 2009 18:05:51 +1100
+From: Aaron Theodore <aaron@bat.id.au>
+Reply-To: aaron@bat.id.au
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: kernel soft lockup on boot loading cx2388x based DVB-S card (TeVii
+ S420)
+References: <17229660.2191232079572873.JavaMail.root@ado-01>
+In-Reply-To: <17229660.2191232079572873.JavaMail.root@ado-01>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Horay my TeVii DVB-S S420 is now working,
+only thing now is to work out why it wont load on boot before my DVB-T card
 
-
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: Sebastian Andrzej Siewior [mailto:bigeasy@linutronix.de]
-> Sent: Wednesday, January 28, 2009 9:52 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; Mauro Carvalho Chehab; video4linux-
-> list@redhat.com
-> Subject: Re: [PATCH v2] v4l/tvp514x: make the module aware of rich
-> people
-> 
-> Hiremath, Vaibhav wrote:
-> > [Hiremath, Vaibhav] I am really sorry; actually I was really busy
-> with our internal release process and still going.
-> > Definitely I will try to find some time tomorrow to test this
-> patch.
-> No problem.
-> 
-> >> v2: Make the content of the registers (brightness, \ldots) per
-> >> decoder
-> >>     and not global.
-> >> v1: Initial version
-> >>
-> > [Hiremath, Vaibhav] Just for knowledge, how are you validating
-> these changes? On which board are you testing/validating?
-> This is custom design. My HW vendor was using advXXXX chips in the
-> past
-> but was not very happy with them and switch over to this chip.
-> 
-> >>  drivers/media/video/tvp514x.c |  166 ++++++++++++++++++++++-----
-> ---
-> >> -----------
-> >>  1 files changed, 90 insertions(+), 76 deletions(-)
-> >>
-> >> diff --git a/drivers/media/video/tvp514x.c
-> >> b/drivers/media/video/tvp514x.c
-> >> index 8e23aa5..99cfc40 100644
-> >> --- a/drivers/media/video/tvp514x.c
-> >> +++ b/drivers/media/video/tvp514x.c
-> >> @@ -86,45 +86,8 @@ struct tvp514x_std_info {
-> >>  	struct v4l2_standard standard;
-> >>  };
-> >>
-> >> -/**
-> >> - * struct tvp514x_decoded - TVP5146/47 decoder object
-> >> - * @v4l2_int_device: Slave handle
-> >> - * @pdata: Board specific
-> >> - * @client: I2C client data
-> >> - * @id: Entry from I2C table
-> >> - * @ver: Chip version
-> >> - * @state: TVP5146/47 decoder state - detected or not-detected
-> >> - * @pix: Current pixel format
-> >> - * @num_fmts: Number of formats
-> >> - * @fmt_list: Format list
-> >> - * @current_std: Current standard
-> >> - * @num_stds: Number of standards
-> >> - * @std_list: Standards list
-> >> - * @route: input and output routing at chip level
-> >> - */
-> >> -struct tvp514x_decoder {
-> >> -	struct v4l2_int_device *v4l2_int_device;
-> >> -	const struct tvp514x_platform_data *pdata;
-> >> -	struct i2c_client *client;
-> >> -
-> >> -	struct i2c_device_id *id;
-> >> -
-> >> -	int ver;
-> >> -	enum tvp514x_state state;
-> >> -
-> >> -	struct v4l2_pix_format pix;
-> >> -	int num_fmts;
-> >> -	const struct v4l2_fmtdesc *fmt_list;
-> >> -
-> >> -	enum tvp514x_std current_std;
-> >> -	int num_stds;
-> >> -	struct tvp514x_std_info *std_list;
-> >> -
-> >> -	struct v4l2_routing route;
-> >> -};
-> >> -
-> >
-> > [Hiremath, Vaibhav] You may want to revisit this change, since
-> there is only one line addition to the struct "struct tvp514x_reg".
-> Patch will look clean if it only indicates the changes.
-> I'm adding also
-> | +	struct tvp514x_reg
-> | tvp514x_regs[ARRAY_SIZE(tvp514x_reg_list_default)];
-> 
-[Hiremath, Vaibhav] This is the only line I was also talking about.
-
-> which contains vp514x_reg_list_default which is defined below. I
-> prefered
-> not to do a forward declration of tvp514x_reg_list_default and
-> therefore I
-> moved tvp514x_decoder just after it.
-> Would you prefer it with a forward declarion?
-> 
-[Hiremath, Vaibhav] Since this is static and default declaration I would prefer it to be moved above struct tvp514x_decoder.
-
-> >>  /* TVP514x default register values */
-> >> -static struct tvp514x_reg tvp514x_reg_list[] = {
-> >> +static struct tvp514x_reg tvp514x_reg_list_default[] = {
-> >>  	{TOK_WRITE, REG_INPUT_SEL, 0x05},	/* Composite selected */
-> >>  	{TOK_WRITE, REG_AFE_GAIN_CTRL, 0x0F},
-> >>  	{TOK_WRITE, REG_VIDEO_STD, 0x00},	/* Auto mode */
-> >> @@ -186,6 +149,44 @@ static struct tvp514x_reg tvp514x_reg_list[]
-> =
-> >> {
-> >>  	{TOK_TERM, 0, 0},
-> >>  };
-> >>
-> >> +/**
-> >> + * struct tvp514x_decoded - TVP5146/47 decoder object
-> >
-> > [Hiremath, Vaibhav] Please correct the spelling mistake
-> > "tvp514x_decoder", I had missed this in my original patch.
-> okay.
-> 
-> >> + * @v4l2_int_device: Slave handle
-> >> + * @pdata: Board specific
-> >> + * @client: I2C client data
-> >> + * @id: Entry from I2C table
-> >> + * @ver: Chip version
-> >> + * @state: TVP5146/47 decoder state - detected or not-detected
-> >> + * @pix: Current pixel format
-> >> + * @num_fmts: Number of formats
-> >> + * @fmt_list: Format list
-> >> + * @current_std: Current standard
-> >> + * @num_stds: Number of standards
-> >> + * @std_list: Standards list
-> >> + * @route: input and output routing at chip level
-> > [Hiremath, Vaibhav] You may want to add the new parameter added to
-> this struct.
-> good point.
-> 
-> >> + */
-> >> +struct tvp514x_decoder {
-> >> +	struct v4l2_int_device v4l2_int_device;
-> >> +	const struct tvp514x_platform_data *pdata;
-> >> +	struct i2c_client *client;
-> >> +
-> >> +	struct i2c_device_id *id;
-> >> +
-> >> +	int ver;
-> >> +	enum tvp514x_state state;
-> >> +
-> >> +	struct v4l2_pix_format pix;
-> >> +	int num_fmts;
-> >> +	const struct v4l2_fmtdesc *fmt_list;
-> >> +
-> >> +	enum tvp514x_std current_std;
-> >> +	int num_stds;
-> >> +	struct tvp514x_std_info *std_list;
-> >> +
-> >> +	struct v4l2_routing route;
-> >> +	struct tvp514x_reg
-> >> tvp514x_regs[ARRAY_SIZE(tvp514x_reg_list_default)];
-> >> +};
-> >> +
-> >>  /* List of image formats supported by TVP5146/47 decoder
-> >>   * Currently we are using 8 bit mode only, but can be
-> >>   * extended to 10/20 bit mode.
-> 
-> >> @@ -1392,26 +1390,39 @@ static struct v4l2_int_device
-> >> tvp514x_int_device = {
-> >>  static int
-> >>  tvp514x_probe(struct i2c_client *client, const struct
-> i2c_device_id
-> >> *id)
-> >>  {
-> >> -	struct tvp514x_decoder *decoder = &tvp514x_dev;
-> >> +	struct tvp514x_decoder *decoder;
-> >>  	int err;
-> >>
-> >>  	/* Check if the adapter supports the needed features */
-> >>  	if (!i2c_check_functionality(client->adapter,
-> >> I2C_FUNC_SMBUS_BYTE_DATA))
-> >>  		return -EIO;
-> >>
-> >> -	decoder->pdata = client->dev.platform_data;
-> >> -	if (!decoder->pdata) {
-> >> +	decoder = kzalloc(sizeof(*decoder), GFP_KERNEL);
-> >> +	if (!decoder)
-> >> +		return -ENOMEM;
-> >> +
-> >> +	if (!client->dev.platform_data) {
-> >>  		v4l_err(client, "No platform data!!\n");
-> >> -		return -ENODEV;
-> >> +		err = -ENODEV;
-> >> +		goto out_free;
-> >>  	}
-> >> +
-> >> +	*decoder = tvp514x_dev;
-> >> +	decoder->v4l2_int_device.priv = decoder;
-> >> +	decoder->pdata = client->dev.platform_data;
-> >> +
-> >> +	BUILD_BUG_ON(sizeof(decoder->tvp514x_regs) !=
-> >> +			sizeof(tvp514x_reg_list_default));
-> > [Hiremath, Vaibhav] Do we really need to check this? I think you
-> are defining the decoder-
-> >tvp514x_regs[sizeof(tvp514x_reg_list_default)].
-> I can get rid of it if you want. It is just a sanity check.
-> 
-[Hiremath, Vaibhav] I think there is no need to add unnecessary check here, you can remove this.
-
-> >> +	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
-> >> +			sizeof(tvp514x_reg_list_default));
-> 
+On 16/01/2009 3:19 PM, Aaron Theodore wrote:
+> I tried:
+> make rmmod
+> make rminstall
+>
+> Although there were still some drivers left over from "tevii_linuxdriver_0815"
+>
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/dvb-usb/dvb-usb-s600.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/dvb-usb/dvb-usb-s650.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/zr36067.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/zr36060.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/zr36050.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/saa7134/saa7134-oss.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/zr36016.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/tuner-3036.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/videocodec.ko
+> /lib/modules/2.6.24-etchnhalf.1-686/kernel/drivers/media/video/dpc7146.ko
+>
+> so i just removed manually and rebooted.
+> Same issue occurred on reboot.
+>
+> So i thought to try manually unloading and reloading the module
+>
+>
+> barry:~# rmmod cx8802
+> barry:~# modprobe cx8802   
+>
+> kernel: cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+> kernel: cx88[0]/2: cx2388x 8802 Driver Manager
+> kernel: ACPI: PCI Interrupt 0000:05:08.2[A] -> Link [APC3] -> GSI 18 (level, low) -> IRQ 18
+> kernel: cx88[0]/2: found at 0000:05:08.2, rev: 5, irq: 18, latency: 32, mmio: 0xd9000000
+> kernel: cx88/2: cx2388x dvb driver version 0.0.6 loaded
+> kernel: cx88/2: registering cx8802 driver, type: dvb access: shared
+> kernel: cx88[0]/2: subsystem: d420:9022, board: TeVii S420 DVB-S [card=73]
+> kernel: cx88[0]/2: cx2388x based DVB/ATSC card
+> kernel: cx8802_alloc_frontends() allocating 1 frontend(s)
+> kernel: DVB: registering new adapter (cx88[0])
+> kernel: DVB: registering adapter 2 frontend 0 (ST STV0288 DVB-S)...
+>
+>
+> This time it makes the devices in /dev/dvb/
+> Now unfortunately i can't test to see if it can actually Tune until a few hours time when i get home (i think i forgot to plug my satellite cable back in!)
+>
+> Will report back later
+>
+>
+> Can i change the load order of kernel modules, it dosnt seem to like being loaded before my other dvb modules
+>
+>
+> Aaron
+>
+>
+> ----- "Mauro Carvalho Chehab" <mchehab@infradead.org> wrote:
+>
+>   
+>> On Fri, 16 Jan 2009 06:56:05 +1100
+>> Aaron Theodore <aaron@bat.id.au> wrote:
+>>
+>>     
+>>> Mauro,
+>>>
+>>> Thanks for the speedy patch!
+>>>       
+>> You should thanks to Andy. He is the author of this patch ;)
+>>
+>>     
+>>> My system can at least boot now, but has issues loading the
+>>>       
+>> frontend.
+>>     
+>>> DVB: Unable to find symbol stv0299_attach()
+>>> DVB: Unable to find symbol stv0288_attach()
+>>>       
+>> It seems that you didn't compile those two frontends.
+>>
+>> Cheers,
+>> Mauro
+>>     
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
