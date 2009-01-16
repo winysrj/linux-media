@@ -1,75 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59858 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752847AbZA0Mxw convert rfc822-to-8bit (ORCPT
+Received: from ado-01.adocentral.net.au ([203.88.117.121]:37206 "EHLO
+	ado-01.adocentral.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756111AbZAPLb7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 07:53:52 -0500
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Tue, 27 Jan 2009 18:23:23 +0530
-Subject: RE: [RFC] Adding new ioctl for transparency color keying
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EFD9@dbde02.ent.ti.com>
-In-Reply-To: <200901271051.24355.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 16 Jan 2009 06:31:59 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by ado-01.adocentral.net.au (Postfix) with ESMTP id 32E855890C
+	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 22:31:58 +1100 (EST)
+Received: from ado-01.adocentral.net.au ([127.0.0.1])
+	by localhost (ado-01.adocentral.net.au [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id sxXFUR3wuDVA for <linux-media@vger.kernel.org>;
+	Fri, 16 Jan 2009 22:31:57 +1100 (EST)
+Received: from [192.168.1.20] (ppp167-251-1.static.internode.on.net [59.167.251.1])
+	by ado-01.adocentral.net.au (Postfix) with ESMTP id 7F4215890B
+	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 22:31:57 +1100 (EST)
+Message-ID: <4970702D.2040907@bat.id.au>
+Date: Fri, 16 Jan 2009 22:31:57 +1100
+From: Aaron Theodore <aaron@bat.id.au>
+Reply-To: aaron@bat.id.au
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Twinhan DST stops working under latest v4l-dvb
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+It seems the latest v4l-dvb causes issues with my Twinhan 1020
 
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, January 27, 2009 3:21 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com
-> Subject: Re: [RFC] Adding new ioctl for transparency color keying
-> 
-> Hi Hardik,
-> 
-> On Thursday 22 January 2009 05:57:18 Shah, Hardik wrote:
-> > Hi,
-> > OMAP class of device supports transparency color keying.  Color keying
-> > can be source color keying or destination color keying.
-> 
-> Can it be both as well?
-> 
-> > OMAP3 has three pipelines one graphics plane and two video planes.  Any
-> > of these pipelines can go to either the TV or LCD.
-> >
-> > The destination transparency color key value defines the encoded pixels
-> > in the graphics layer to become transparent and display the underlying
-> > video pixels. While the source transparency key value defines the encoded
-> > pixels in the video layer to become transparent and display the
-> > underlying graphics pixels.  This color keying works only if the video
-> > and graphics planes are on the same output like TV or LCD and images of
-> > both the pipelines overlapped.
-> >
-> > I propose to have the one ioctl to set the encoded pixel value and type
-> > of color keying source and destination.  Also we should have the CID to
-> > enable/disable the color keying functionality.
-> >
-> > Please let us know your opinions/comments.
-> 
-> Destination color keying is already available through the S_FBUF and S_FMT
-> ioctls. Selecting source color keying can easily be added to S_FBUF, but
-> setting the actual chromakey is harder. The logical place would be the
-> v4l2_pix_format struct, but that is already full. I guess we should make a
-> new control to set the source chromakey. It's not ideal, but it prevents
-> duplicating existing functionality.
-> 
-[Shah, Hardik] Hi Hans,
-This has nothing to do with the frame buffer.  Transparency key is a hardware provided feature.  Driver has just to give the color code and whether it wants the source color keying or destination color keying.  Hardware will automatically make the color code transparent so that the below layer color will be seen. So I don't think so that S_FBUF is suitable for this kind of feature. And this will automatically take effect if the graphics pipeline is on the same output device as the video pipeline.  
+bttv: driver version 0.9.17 loaded
+bttv: using 8 buffers with 2080k (520 pages) each for capture
+bttv: Bt8xx card found (0).
+ACPI: PCI Interrupt 0000:05:08.0[A] -> Link [APC3] -> GSI 18 (level, 
+low) -> IRQ 18
+bttv0: Bt878 (rev 17) at 0000:05:08.0, irq: 18, latency: 32, mmio: 
+0xcb000000
+bttv0: using: Twinhan DST + clones [card=113,insmod option]
+bttv0: gpio: en=00000000, out=00000000 in=00fefffe [init]
+bttv0: tuner absent
+bttv0: add subdevice "dvb0"
+bt878: AUDIO driver version 0.0.0 loaded
+dvb_bt8xx: unable to determine DMA core of card 0,
+dvb_bt8xx: if you have the ALSA bt87x audio driver installed, try 
+removing it.
+dvb-bt8xx: probe of dvb0 failed with error -14
 
-Regards,
-Hardik Shah 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+i tried unloading all the sound modules made no difference (even though 
+i didnt have the bt87x module loaded)
 
+This card works on earlier kernel modules.
+
+Any ideas?
