@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.188]:42715 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760293AbZAUSJo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2009 13:09:44 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so582204nfc.21
-        for <linux-media@vger.kernel.org>; Wed, 21 Jan 2009 10:09:42 -0800 (PST)
-Subject: Re: [linux-dvb] SAA716x
-From: Martin Pauly <madmufflon@googlemail.com>
-To: linux-media@vger.kernel.org
-In-Reply-To: <8103ad500901210243i5d6669desf0f336ac4d359b40@mail.gmail.com>
-References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
-	 <4976E3F5.3060703@libertysurf.fr>
-	 <8103ad500901210243i5d6669desf0f336ac4d359b40@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 21 Jan 2009 19:09:37 +0100
-Message-Id: <1232561377.6908.2.camel@martin>
+Received: from cnc.isely.net ([64.81.146.143]:36206 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755785AbZAPPEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jan 2009 10:04:41 -0500
+Date: Fri, 16 Jan 2009 09:04:37 -0600 (CST)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely <isely@pobox.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-dvb@linuxtv.org,
+	Patrick Boettcher <patrick.boettcher@desy.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+In-Reply-To: <200901161555.00803.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0901160903080.21448@cnc.isely.net>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+ <200901161555.00803.hverkuil@xs4all.nl>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 21.01.2009, 12:43 +0200 schrieb Konstantin Dimitrov:
-> VP6090 output from lspci -vvv and lspci -vvvn is here:
-> 
-> http://www.interlink.com.au/rad/quattros/
-> 
-> On Wed, Jan 21, 2009 at 10:59 AM, Catimimi <catimimi@libertysurf.fr> wrote:
-> > Hi all,
-> >
-> > I'm trying to add my Pinnacle 3010i to the driver found here :
-> > http://jusst.de/hg/saa716x
-> > I already got some preliminary results but in order to understand what
-> > I'm doing it would be
-> > great to get the result of "lspci -vvxxx" for at least one of the
-> > supported cards :
-> >
-> > - Twinhan/Azurewave VP-6090
-> > - Avermedia HC82
-> > - Avermedia H788
-> >
-> > I didn't find this test in the WIKI, so thanks in advance for posting
-> > this information.
-> > Michel.
-> >
-> >
-> >
-> >
-> >
-> >
-> > _______________________________________________
-> > linux-dvb users mailing list
-> > For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
-> 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+On Fri, 16 Jan 2009, Hans Verkuil wrote:
 
-hi,
-unfortunately at last for me and some other guys the HC82 is not working
-with the 716x driver. but you can find my lspci output at:
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_NanoExpress_(HC82)
-martin
+> On Friday 16 January 2009 15:48:45 Patrick Boettcher wrote:
+> > Hi Mauro,
+> >
+> > Since the creation of linux-media@vger.kernel.org I'm seeing lots of
+> > cross-postings between linux-dvb, linux-media and video4linux. This
+> > is a little bit annoying if you are subscribed to all of those lists.
+> >
+> > Worse is, that some people only send requests to linux-media. Like
+> > that linux-dvb-only subscribers can't help...
+> >
+> > Why not closing linux-dvb (and video4linux) and transferring the
+> > currently subscribed users to linux-media automatically?
+> 
+> I agree with Patrick. I suggest a daily automatic posting to linux-dvb 
+> and video4linux telling people that on February 1st these lists 
+> disappear and that they should use linux-media instead. Then they can 
+> be closed down at the end of the month. I definitely wouldn't wait any 
+> longer since it is rather messy right now. One month transition period 
+> seems reasonable to me.
+> 
 
+Amen to that.  I've been telling people to go over to linux-media, but 
+old habits are hard to break.  It's time to actually make a clean break 
+from the old lists.
+
+  -Mike
+
+
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
