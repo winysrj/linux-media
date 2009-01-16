@@ -1,76 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:7357 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035AbZAWTbF (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:35302 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754618AbZAPR7k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2009 14:31:05 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so2273243qwe.37
-        for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 11:31:02 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1232732938.3907.30.camel@palomino.walls.org>
-References: <412bdbff0901212045t1287a403h57ba05cbd71d5224@mail.gmail.com>
-	 <1232732938.3907.30.camel@palomino.walls.org>
-Date: Fri, 23 Jan 2009 14:31:01 -0500
-Message-ID: <412bdbff0901231131g3ba5f5ceh96cbb428af4659ce@mail.gmail.com>
-Subject: Re: [RFC] Need testers for s5h1409 tuning fix
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 16 Jan 2009 12:59:40 -0500
+Date: Fri, 16 Jan 2009 15:59:12 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Lars Hanisch <dvb@cinnamon-sage.de>
+Cc: linux-media@vger.kernel.org, DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+Message-ID: <20090116155912.7bae237a@caramujo.chehab.org>
+In-Reply-To: <4970C036.2000809@cinnamon-sage.de>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+	<200901161555.00803.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.0901160903080.21448@cnc.isely.net>
+	<4970C036.2000809@cinnamon-sage.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 23, 2009 at 12:48 PM, Andy Walls <awalls@radix.net> wrote:
-> I will test soon, but I do have two comments by inspection.
->
-> 1. The function s5h1409_softreset() is now called 3 times by
-> s5h1409_set_frontend(): once at entry, once by
-> s5h1409_enable_modulation(), and once at exit.  Surely at least one of
-> these is not needed, no?
->
-> 2.  You've eliminated the 100 ms "settle delay" after the final
-> softreset.  Can something from userland turn around and call one of the
-> s5h1409_ops vectors and muck with registers before things "settle"?
-> Does it even matter?
->
-> I know a hardware reset requires a long-ish assertion time (in fact now
-> that I see it, I have to fix the cx18 driver hardware reset assertion
-> delay for this device - the current value isn't right).
->
-> Regards,
-> Andy
+On Fri, 16 Jan 2009 18:13:26 +0100
+Lars Hanisch <dvb@cinnamon-sage.de> wrote:
 
-Just to be clear, the term "softreset" is somewhat a misnomer.  It is
-*not* a software equivalent of a hardware reset.  It does not reset
-any of the configuration registers.  It only resets the internal
-status data that is used to determine lock status.
+> Mike Isely wrote:
+> > On Fri, 16 Jan 2009, Hans Verkuil wrote:
+> > 
+> >> On Friday 16 January 2009 15:48:45 Patrick Boettcher wrote:
+> >>> Hi Mauro,
+> >>>
+> >>> Since the creation of linux-media@vger.kernel.org I'm seeing lots of
+> >>> cross-postings between linux-dvb, linux-media and video4linux. This
+> >>> is a little bit annoying if you are subscribed to all of those lists.
+> >>>
+> >>> Worse is, that some people only send requests to linux-media. Like
+> >>> that linux-dvb-only subscribers can't help...
+> >>>
+> >>> Why not closing linux-dvb (and video4linux) and transferring the
+> >>> currently subscribed users to linux-media automatically?
+> >> I agree with Patrick. I suggest a daily automatic posting to linux-dvb 
+> >> and video4linux telling people that on February 1st these lists 
+> >> disappear and that they should use linux-media instead. Then they can 
+> >> be closed down at the end of the month. I definitely wouldn't wait any 
+> >> longer since it is rather messy right now. One month transition period 
+> >> seems reasonable to me.
+> >>
+> > 
+> > Amen to that.  I've been telling people to go over to linux-media, but 
+> > old habits are hard to break.  It's time to actually make a clean break 
+> > from the old lists.
+> 
+>   +1 from me
+> 
+>   Although I'm not an active developer (I'm just an interested user), 
+> reading the lists at the moment is hard...
 
-The 100ms settle delay should not be needed at all.  If there is a
-concern about something in userland mucking with the registers, that
-is something that would have to be addressed through locking.  As far
-as I know, there is no known issue associated with querying the status
-registers as soon as the status counters are reset.
+Instead of just removing the ML, maybe the better is to change the reply to to
+linux-media and send an autoreply message to the sender.
+> 
+> Lars.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-It is possible that the softreset() before the tune may not be
-necessary, but at this point my intent was to focus on the minimal
-change that achieves the desired effect, and the additional
-softreset() should not cause any performance or reliability impact.
-Also, the change I made is consistent with the change I made for the
-s5h1411 back in October (for which there have been no problems
-reported).
 
-Yes, traditionally a hardware reset needs to be asserted for a
-specific period of time (varies by device).  That does not apply here
-though since the chip itself is not being reset.
 
-There is additional room for optimization, but this fix alone provides
-a significant performance benefit and is low impact, so I wanted to
-get it merged independent of any other fixes.
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Cheers,
+Mauro
