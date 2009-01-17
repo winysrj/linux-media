@@ -1,67 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:39342 "EHLO
-	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797AbZAYWCl (ORCPT
+Received: from ug-out-1314.google.com ([66.249.92.168]:33379 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756264AbZAQJgZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 17:02:41 -0500
-Date: Sun, 25 Jan 2009 13:49:33 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: CityK <cityk@rogers.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-In-Reply-To: <497CAB2F.7080700@rogers.com>
-Message-ID: <Pine.LNX.4.58.0901251322320.17971@shell2.speakeasy.net>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
- <200901182241.10047.hverkuil@xs4all.nl> <4973BD03.4060702@rogers.com>
- <200901190853.19327.hverkuil@xs4all.nl> <497CAB2F.7080700@rogers.com>
+	Sat, 17 Jan 2009 04:36:25 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so88797ugf.37
+        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2009 01:36:23 -0800 (PST)
+Date: Sat, 17 Jan 2009 10:36:13 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: linux-media@vger.kernel.org
+cc: "user.vdr" <user.vdr@gmail.com>,
+	DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+In-Reply-To: <Pine.LNX.4.64.0901162354510.24698@cnc.isely.net>
+Message-ID: <alpine.DEB.2.00.0901170906210.18169@ybpnyubfg.ybpnyqbznva>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de> <alpine.DEB.2.00.0901170002430.18012@ybpnyubfg.ybpnyqbznva> <a3ef07920901162151r270cdb16w92c0d7d6b7e770a1@mail.gmail.com> <Pine.LNX.4.64.0901162354510.24698@cnc.isely.net>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 25 Jan 2009, CityK wrote:
-> Hans Verkuil wrote:
-> > card. Does someone know if there is something special about this? And how
-> > do you manage to make analog TV work if the tda9887 isn't found? That's
-> > rather peculiar.
+On Sat, 17 Jan 2009, Mike Isely wrote:
 
-The tda9887 is a simple device with just three registers.  If they are set
-to the right value when the driver loads, which wouldn't be unexpected,
-then it isn't necessary to actually do anything to the chip.  If you had a
-multistandard tuner (and had access to broadcasts in multiple standards!)
-then I expect switching standards wouldn't work without the tda9887 driver.
-Verifying both TV and radio tuning works is probably the most realistic way
-to check.
+> On Fri, 16 Jan 2009, user.vdr wrote:
+> > I think it's a lame idea to clump all media related stuff into one
+> > mailing list from separate ml's because 1) it's too general of a topic
+> > and 2) those ml's already had a lot of activity on their own.  The
+> > idea of sifting through tons of posts of no interest is quite a hassle
+> > to say the least.  This "solution" just doesn't seem very well thought
+> > out imo but it is what it is I guess.
 
-> > saa7133[1]: i2c xfer: < c2 30 90 >
-> > saa7134[3]: i2c xfer: < c2 >
-> > saa7134[3]: i2c xfer: < c2 0b dc 9c 60 >
-> > saa7134[3]: i2c xfer: < c2 0b dc 86 54 >
-> >
-> > Exactly here, when the buffers are sent the second time the tda9887
-> > becomes the first time visible on the bus. According to Hartmut the
-> > modification of buffer[3] from 0x60 to 0x54 is that hidden switch,
-> > IIRC.
-> >
->
-> I believe Mauro is correct in regards to the tda9887 in that, within the
-> Philips TUV1236D NIM, it is behind the Nxt2004's i2c gate.  After
-> re-reading what Michael mentioned previously:
+> That's still better than sifting through MULTIPLE COPIES of the same 
+> post from different lists, which frequently is the case right now.
 
-Address 0xc2 is the PLL, not the NXT2004.  Why would the PLL control an I2C
-gate on the nxt2004?  I think what I said before about a gpio line on the
-PLL being used to hold the analog demod in reset when not in use is more
-likely to be correct.
+Sounds like some opinions which won't easily change, as well
+as different experiences, that I'll try to explain...
 
-> > The i2c command to enable the tuner is sent to nxt200x. If there are any
-> > ATSC110 variant with a different demod (maybe a different version of nxt200x?),
-> > then the users may experience different behaviors.
+First, given the strong opinions people have had in the past
+about getting a direct reply as well as a list copy, I think
+it's worth a mention that it appears that both g00gle-mail
+and yah00! use the Message-ID as the key to a database with
+the result that duplicates are suppressed, in spite of the
+different header contents.  This was at first very unnerving
+when I didn't get two yah00! copies of mail where I was a
+direct recipient, which was quite different from what I had
+grown used to years ago, when I was running my own simple mail 
+server.
 
-That command sequence is sent to the PLL, not the nxt2004, so this is
-wrong.  There is another command sent to the nxt2004 (which is at address
-0x0a) from code in saa7134-cards.c to "enables tuner" as well.
+This went from unnerving to annoying when I realized that
+g00gle appeared to use the Message-ID as key to a database
+not just covering the Inbox, but my entire mail, such that
+my own gmail sent-mail copy existing meant that it wouldn't
+ever appear in my inbox.
+
+Now I could be misunderstanding how these large providers
+do things internally, but in effect, duplicates there are
+suppressed.  Maybe this is configurable, as part of their
+filtering, but I wouldn't know as my browser of choice was
+unable to access their configuration, and actually, was
+completely unable to access gmail last I tried.
+
+That should mean that while I include user.vdr with a cc:,
+that account should by default see this only once, whether
+or not it's subscribed to -media as well as -dvb.  Just as
+a demonstration.  Whereas Mike, you see this twice, as I
+stripped your personal addresses since this isn't important
+enough for you to see even once, let alone four times, and
+your provider apparently doesn't do the merging my M-ID.
+
+And yes, I am one of those who *does* wish to receive a
+duplicate copy of a message sent directly to me as well as
+to a list, if it's important enough not to get lost in the
+noise or overlooked.  Others disagree, and I respect that.
+Particularly when I go back to casual 'net access, and have
+to sift through hundreds of messages at a time, once a week,
+once a month, once every eight months...
+
+
+Up until recently, I *did* read all linux-dvb messages, and
+resisted the temptation to reply to people posting about
+analogue devices by saying v4linux is over there ==>
+due to the -dvb giving a clue in the list name.  While you
+won't be annoyed by duplicates, I'm going to be missing
+some posts I would have read on -dvb.  Not that that's a
+bad thing, I'm sure most will agree, particularly anyone
+I've misled by trying to ``help''.
+
+
+Understand that my objection is not to the move to vger,
+which is a good thing, but to the merger of the two lists
+of different topics and some non-overlapping end-users
+who may be overwhelmed by the doubling of message volume.
+
+
+Here's some flamebait, and I'll probably regret this, but
+hey, I only get one chance to live -- why not merge in the
+em28xx mailing list from mcentral.de as well?  That covers
+hybrid devices, both analogue and DVB-like, and would save
+me as a non-subscriber from having to crosspost, and would
+save subscribers there and to -dvb or -media from seeing
+those posts multiple times, and, um, no, I'm not serious,
+but separate lists of overlapping interests do exist, and
+crossposting/multiple copies do exist, and at least some
+services out there are able to minimise the inconvenience
+of duplicate copies...
+
+Now if you'll excuse me, I'm off to crosspost to mcentral.
+Haven't started a good flamewar since the last time I woke
+up...
+
+
+barry bouwsma
+won't someone please think of the newbies...
