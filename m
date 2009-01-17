@@ -1,23 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f25.google.com ([209.85.217.25])
+Received: from mail-bw0-f20.google.com ([209.85.218.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <henrik.list@gmail.com>) id 1LPY9u-0007OP-WE
-	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 09:10:01 +0100
-Received: by gxk6 with SMTP id 6so108295gxk.17
-	for <linux-dvb@linuxtv.org>; Wed, 21 Jan 2009 00:09:22 -0800 (PST)
+	(envelope-from <mrechberger@gmail.com>) id 1LO8EZ-00072n-98
+	for linux-dvb@linuxtv.org; Sat, 17 Jan 2009 11:16:56 +0100
+Received: by bwz13 with SMTP id 13so5559744bwz.17
+	for <linux-dvb@linuxtv.org>; Sat, 17 Jan 2009 02:16:21 -0800 (PST)
+Message-ID: <d9def9db0901170216g5be0ed16sa1eeb4c4f9acce76@mail.gmail.com>
+Date: Sat, 17 Jan 2009 11:16:21 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "BOUWSMA Barry" <freebeer.bouwsma@gmail.com>
+In-Reply-To: <alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
-In-Reply-To: <af2e95fa0901210008y758a7bfai4e326d1f74cc7441@mail.gmail.com>
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
-	<20090119204724.01826924@caramujo.chehab.org>
-	<003101c97ada$168d54b0$f4c6a5c1@tommy>
-	<200901200956.25104.ajurik@quick.cz>
-	<412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
-	<af2e95fa0901210008y758a7bfai4e326d1f74cc7441@mail.gmail.com>
-Date: Wed, 21 Jan 2009 09:09:22 +0100
-Message-ID: <af2e95fa0901210009o5a164687h2e80fc047126fba3@mail.gmail.com>
-From: Henrik Beckman <henrik.list@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Fwd:  Cross-posting linux-media, linux-dvb etc
+Content-Disposition: inline
+References: <496C9FDE.2040408@hemmail.se>
+	<d9def9db0901131101y59cd5c1ct2344052f86b42feb@mail.gmail.com>
+	<d9def9db0901151028k6ab8bd79q6627c7516020aabe@mail.gmail.com>
+	<alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
+Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>, em28xx@mcentral.de
+Subject: Re: [linux-dvb] Terratec XS HD support?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,71 +26,87 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0720242996=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0720242996==
-Content-Type: multipart/alternative; boundary=0015175708946c0e2f0460f9ac37
+On Sat, Jan 17, 2009 at 10:57 AM, BOUWSMA Barry
+<freebeer.bouwsma@gmail.com> wrote:
+> Hi Markus, I follow your list as a non-subscriber, but I thought
+> it would be worthwhile to post this to linux-dvb as well, and
+> eventually to linux-media...
+>
+> On Thu, 15 Jan 2009, Markus Rechberger wrote:
+>
+>> On Tue, Jan 13, 2009 at 8:01 PM, Markus Rechberger
+>> <mrechberger@gmail.com> wrote:
+>
+>> >> Is there any news about Terratec HTC USB XS HD support?
+>
+>> > it's upcoming soon.
+>
+> Thanks Markus, that's good news for me, and for several people
+> who have written me as well!
+>
+>
+>> http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
+>> you might track that site for upcoming information.
+>
+> Interesting.  You say that your code will make use of a BSD
+> setup.  Can you or someone say something about this, or point
+> to past discussion which explains this?  Would this be the
+> userspace_tuner link on your wiki?
+>
+> In particular, I'm wondering whether this is completely
+> compatible with the standard DVB utilities -- dvbscan,
+> dvbstream, and the like, or whether a particular higher-
+> level end-user application is required.
+>
+>
 
---0015175708946c0e2f0460f9ac37
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+The design goes hand in hand with some discussions that have been made
+with some BSD developers.
+The setup makes use of usbdevfs and pci configspace access from
+userland, some work still has to be done there, it (will give/gives)
+manufacturers the freedom to release opensource and binary drivers for
+userland.
+I'm a friend of open development and not of some kind of monopoly
+where a few people rule everything (linux).
 
-Do you want a separate users list and you're not a developer?
+There's quite some work going on in portability so that one driver can
+be written for Linux/BSD and OSX - still needing some Host dependent
+hooks for transferring the data but the same for configuring the
+chips.
+Someone might have noticed the empty frontend dummy driver in
+em28xx-new, by using userland commands the same device nodes can be
+used for DVB-C and DVB-T mpeg-ts streams. Currently linuxtv would
+require to set up different nodes for those nodes with earlier kernels
+- the userland approach is pretty much backward compatible while not
+having to update the core media framework, and it gives vendors the
+possibility to set up their drivers with vendor specific features too.
+libv4l(2)? is probably already a good approach to support v4l with
+multiple applications although most applications are still not capable
+of supporting all v4l(2) devices anyway.
 
+As for the em28xx project, Micronas who doesn't want to release their
+intellectual property triggered quite a few discussions with some
+people. I have code here with several 10.000th lines of code from
+them, and people earn their money by selling solutions based on that.
+Giving away that proprietary work would immediately kill the
+commercial value of their work and alot money would be lost for
+smaller companies. I'm somehow convenient that it might go Opensource
+in years when the commercial market is finished for their products. As
+written the goal is to give chip manufacturers/designers the
+possibility to provide support for their chips in an operating system
+and license independent way.
 
-No,
-There are to few "educated" users, also much of the problems are new
-hardware rev, new device, reception problem and not realy user solvable.
-Developers will have to surf the user list to catch problems or "super-user"
-will have to moderate and lift cases to the developer list.
-
-When the community is bigger and more stable a split list will make better
-sense, or when the list are flooded by stupid questions.
-
-On the other hand if a split list would give me better device compability
-and development rate I will happily browse multiple lists and help where I
-can.
-
-/Henrik
-
---0015175708946c0e2f0460f9ac37
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<br><div class=3D"gmail_quote"><br><div class=3D"gmail_quote"><div class=3D=
-"Ih2E3d"><blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid =
-rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Do you want a separate users list and you&#39;re not a developer?&nbsp; </b=
-lockquote></div><div><br>No,<br>There are to few &quot;educated&quot; users=
-, also much of the problems are new hardware rev, new device, reception pro=
-blem and not realy user solvable.<br>
-
-Developers will have to surf the user list to catch problems or &quot;super=
--user&quot; will have to moderate and lift cases to the developer list.<br>=
-<br>When the community is bigger and more stable a split list will make bet=
-ter sense, or when the list are flooded by stupid questions.<br>
-
-<br>On the other hand if a split list would give me better device compabili=
-ty and development rate I will happily browse multiple lists and help where=
- I can.<br><br>/Henrik<br><br></div></div><br>
-</div><br>
-
---0015175708946c0e2f0460f9ac37--
-
-
---===============0720242996==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+best regards,
+Markus
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0720242996==--
