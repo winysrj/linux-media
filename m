@@ -1,171 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47887 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751243AbZALSuO convert rfc822-to-8bit (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:42123 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758313AbZAQRmP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 13:50:14 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Tue, 13 Jan 2009 00:19:41 +0530
-Subject: RE: [PATCH] v4l/tvp514x: make the module aware of rich people
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECF709E2@dbde02.ent.ti.com>
-In-Reply-To: <20090112182440.GA24931@www.tglx.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 17 Jan 2009 12:42:15 -0500
+Subject: Re: KWorld ATSC 115 all static
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: CityK <cityk@rogers.com>, Michael Krufky <mkrufky@linuxtv.org>,
+	V4L <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+In-Reply-To: <200901171720.03890.hverkuil@xs4all.nl>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+	 <496FE555.7090405@rogers.com> <496FFCE2.8010902@rogers.com>
+	 <200901171720.03890.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 17 Jan 2009 18:42:24 +0100
+Message-Id: <1232214144.2702.77.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-Thanks,
-Vaibhav Hiremath
+Am Samstag, den 17.01.2009, 17:20 +0100 schrieb Hans Verkuil:
+> On Friday 16 January 2009 04:20:02 CityK wrote:
+> > CityK wrote:
+> > > If you had meant taking Hans' source and applying your "hack" patch
+> > > to them, building and then proceeding with the modprobe steps, the
+> > > answer is that I haven't tried yet. Will test -- might not be
+> > > tonight though, as I have some other things that need attending
+> > > too.
+> >
+> > Okay, I lied -- given that building is really a background process, I
+> > found time ... i.e. I cleaned up in the kitchen while the system
+> > compiled ... kneel before me world, as I am a master multi-tasker!
+> >
+> > >> Anyway, if the previous workaround works after Hans' changes, then
+> > >> I think his changes should be merged -- even though it doesnt fix
+> > >> ATSC115, it is indeed a step into the right direction.
+> > >>
+> > >> If the ATSC115 hack-fix patch doesn't apply anymore, please let me
+> > >> know -- I'll respin it.
+> >
+> > The "hack-fix" patch applies cleanly against Hans' sources. However,
+> > the test results are negative -- the previous workaround ("modprobe
+> > tuner -r and "modprobe tuner") fails to produce the desired result.
+> 
+> If you try to run 'modprobe -r tuner' when the saa7134 module build from 
+> my sources is loaded, then that should not work since saa7134 increases 
+> the use-count of the tuner module preventing it from being unloaded.
+> 
+> If you can do this, then that suggests that you are perhaps not using my 
+> modified driver at all.
+> 
+> BTW, I've asked Mauro to pull from my tree 
+> (www.linuxtv.org/hg/~hverkuil/v4l-dvb) which contains the converted 
+> saa7134 and saa6752hs drivers. It's definitely something that needs to 
+> be done regardless.
 
-> -----Original Message-----
-> From: Sebastian Andrzej Siewior [mailto:bigeasy@linutronix.de]
-> Sent: Monday, January 12, 2009 11:55 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; Mauro Carvalho Chehab; video4linux-
-> list@redhat.com
-> Subject: [PATCH] v4l/tvp514x: make the module aware of rich people
-> 
-> because they might design two of those chips on a single board.
-> You never know.
-> 
-[Hiremath, Vaibhav] Thanks, it was in my todo list. I will verify this patch tomorrow and let you know.
+Hans, Mauro has pulled them in already.
 
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-> ---
->  drivers/media/video/tvp514x.c |   52 +++++++++++++++++++++++-------
-> ----------
->  1 files changed, 30 insertions(+), 22 deletions(-)
+For my report for the old issue with the tda9987 not loaded for the
+md7134 card=12 with eeprom tuner detection and all the types with
+FMD1216ME MK3 hybrid subsumed there beside the older ones with analog
+only tuners (CTX917/918/925triple/946mpeg/921cardbus), the users must
+just unload the saa7134 and tuner modules and then load tda9887 and
+tuner before the saa7134 for now.
+
+> Regards,
 > 
-> diff --git a/drivers/media/video/tvp514x.c
-> b/drivers/media/video/tvp514x.c
-> index 8e23aa5..f9eb6dc 100644
-> --- a/drivers/media/video/tvp514x.c
-> +++ b/drivers/media/video/tvp514x.c
-> @@ -103,7 +103,7 @@ struct tvp514x_std_info {
->   * @route: input and output routing at chip level
->   */
->  struct tvp514x_decoder {
-> -	struct v4l2_int_device *v4l2_int_device;
-> +	struct v4l2_int_device v4l2_int_device;
->  	const struct tvp514x_platform_data *pdata;
->  	struct i2c_client *client;
+> 	Hans
 > 
-> @@ -1369,17 +1369,14 @@ static struct tvp514x_decoder tvp514x_dev =
-> {
->  	.current_std = STD_NTSC_MJ,
->  	.std_list = tvp514x_std_list,
->  	.num_stds = ARRAY_SIZE(tvp514x_std_list),
-> -
-> -};
-> -
-> -static struct v4l2_int_device tvp514x_int_device = {
-> -	.module = THIS_MODULE,
-> -	.name = TVP514X_MODULE_NAME,
-> -	.priv = &tvp514x_dev,
-> -	.type = v4l2_int_type_slave,
-> -	.u = {
-> -	      .slave = &tvp514x_slave,
-> -	      },
-> +	.v4l2_int_device = {
-> +		.module = THIS_MODULE,
-> +		.name = TVP514X_MODULE_NAME,
-> +		.type = v4l2_int_type_slave,
-> +		.u = {
-> +			.slave = &tvp514x_slave,
-> +		},
-> +	},
->  };
+> > In fact, as similar to the results reported in the previous message,
+> > performing such action produces no result in dmesg.
 > 
->  /**
-> @@ -1392,18 +1389,26 @@ static struct v4l2_int_device
-> tvp514x_int_device = {
->  static int
->  tvp514x_probe(struct i2c_client *client, const struct i2c_device_id
-> *id)
->  {
-> -	struct tvp514x_decoder *decoder = &tvp514x_dev;
-> +	struct tvp514x_decoder *decoder;
->  	int err;
-> 
->  	/* Check if the adapter supports the needed features */
->  	if (!i2c_check_functionality(client->adapter,
-> I2C_FUNC_SMBUS_BYTE_DATA))
->  		return -EIO;
-> 
-> -	decoder->pdata = client->dev.platform_data;
-> -	if (!decoder->pdata) {
-> +	decoder = kzalloc(sizeof(*decoder), GFP_KERNEL);
-> +	if (!decoder)
-> +		return -ENOMEM;
-> +
-> +	if (!client->dev.platform_data) {
->  		v4l_err(client, "No platform data!!\n");
-> -		return -ENODEV;
-> +		err = -ENODEV;
-> +		goto out_free;
->  	}
-> +
-> +	*decoder = tvp514x_dev;
-> +	decoder->v4l2_int_device.priv = decoder;
-> +	decoder->pdata = client->dev.platform_data;
->  	/*
->  	 * Fetch platform specific data, and configure the
->  	 * tvp514x_reg_list[] accordingly. Since this is one
-> @@ -1419,23 +1424,26 @@ tvp514x_probe(struct i2c_client *client,
-> const struct i2c_device_id *id)
->  	 */
->  	decoder->id = (struct i2c_device_id *)id;
->  	/* Attach to Master */
-> -	strcpy(tvp514x_int_device.u.slave->attach_to, decoder->pdata-
-> >master);
-> -	decoder->v4l2_int_device = &tvp514x_int_device;
-> +	strcpy(decoder->v4l2_int_device.u.slave->attach_to, decoder-
-> >pdata->master);
->  	decoder->client = client;
->  	i2c_set_clientdata(client, decoder);
-> 
->  	/* Register with V4L2 layer as slave device */
-> -	err = v4l2_int_device_register(decoder->v4l2_int_device);
-> +	err = v4l2_int_device_register(&decoder->v4l2_int_device);
->  	if (err) {
->  		i2c_set_clientdata(client, NULL);
->  		v4l_err(client,
->  			"Unable to register to v4l2. Err[%d]\n", err);
-> +		goto out_free;
-> 
->  	} else
->  		v4l_info(client, "Registered to v4l2 master %s!!\n",
->  				decoder->pdata->master);
-> -
->  	return 0;
-> +
-> +out_free:
-> +	kfree(decoder);
-> +	return err;
->  }
-> 
->  /**
-> @@ -1452,9 +1460,9 @@ static int __exit tvp514x_remove(struct
-> i2c_client *client)
->  	if (!client->adapter)
->  		return -ENODEV;	/* our client isn't attached */
-> 
-> -	v4l2_int_device_unregister(decoder->v4l2_int_device);
-> +	v4l2_int_device_unregister(&decoder->v4l2_int_device);
->  	i2c_set_clientdata(client, NULL);
-> -
-> +	kfree(decoder);
->  	return 0;
->  }
->  /*
-> --
-> 1.5.6.5
-> 
+
+Cheers,
+Hermann
+
 
