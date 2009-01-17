@@ -1,11 +1,14 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <496F488B.3010302@linuxtv.org>
-Date: Thu, 15 Jan 2009 09:30:35 -0500
+Message-ID: <49722701.4040704@linuxtv.org>
+Date: Sat, 17 Jan 2009 13:44:17 -0500
 From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-In-Reply-To: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>	
+	<496FE555.7090405@rogers.com> <496FFCE2.8010902@rogers.com>	
+	<200901171720.03890.hverkuil@xs4all.nl>
+	<1232214144.2702.77.camel@pc10.localdom.local>
+In-Reply-To: <1232214144.2702.77.camel@pc10.localdom.local>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: V4L <video4linux-list@redhat.com>,
@@ -25,93 +28,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Hans,
-
-Hans Verkuil wrote:
->> Hans Verkuil wrote:
->>     
->>> On Thursday 15 January 2009 06:01:28 CityK wrote:
->>>
->>>       
->>>> Hans Verkuil wrote:
->>>>
->>>>         
->>>>> OK, I couldn't help myself and went ahead and tested it. It seems
->>>>> fine, so please test my tree:
->>>>>
->>>>> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-saa7134
->>>>>
->>>>> Let me know if it works.
->>>>>
->>>>>           
->>>> Hi Hans,
->>>>
->>>> It didn't work.  No analog reception on either RF input.  (as Mauro
->>>> noted, DVB is unaffected; it still works).
->>>>
->>>> dmesg output looks right:
->>>>
->>>> tuner-simple 1-0061: creating new instance
->>>> tuner-simple 1-0061: type set to 68 (Philips TUV1236D ATSC/NTSC dual
->>>> in)
->>>>
->>>> I tried backing out of the modules and then reloading them, but no
->>>> change.  (including after fresh build or after rebooting)
->>>>
->>>>         
->>> Can you give the full dmesg output? Also, is your board suppossed to
->>> have a tda9887 as well?
->>>
->>>       
->> Hans' changes are not enough to fix the ATSC115 issue.
->>     
+hermann pitton wrote:
+> Hi,
 >
-> Ah, OK.
->
+> Am Samstag, den 17.01.2009, 17:20 +0100 schrieb Hans Verkuil:
 >   
->> I believe that if you can confirm that the same problem exists, but the
->> previous workaround continues to work even after Hans' changes, then I
->> believe that confirms that Hans' changes Do the Right Thing (tm).
+>> On Friday 16 January 2009 04:20:02 CityK wrote:
+>>     
+>>> CityK wrote:
+>>>       
+>>>> If you had meant taking Hans' source and applying your "hack" patch
+>>>> to them, building and then proceeding with the modprobe steps, the
+>>>> answer is that I haven't tried yet. Will test -- might not be
+>>>> tonight though, as I have some other things that need attending
+>>>> too.
+>>>>         
+>>> Okay, I lied -- given that building is really a background process, I
+>>> found time ... i.e. I cleaned up in the kitchen while the system
+>>> compiled ... kneel before me world, as I am a master multi-tasker!
+>>>
+>>>       
+>>>>> Anyway, if the previous workaround works after Hans' changes, then
+>>>>> I think his changes should be merged -- even though it doesnt fix
+>>>>> ATSC115, it is indeed a step into the right direction.
+>>>>>
+>>>>> If the ATSC115 hack-fix patch doesn't apply anymore, please let me
+>>>>> know -- I'll respin it.
+>>>>>           
+>>> The "hack-fix" patch applies cleanly against Hans' sources. However,
+>>> the test results are negative -- the previous workaround ("modprobe
+>>> tuner -r and "modprobe tuner") fails to produce the desired result.
+>>>       
+>> If you try to run 'modprobe -r tuner' when the saa7134 module build from 
+>> my sources is loaded, then that should not work since saa7134 increases 
+>> the use-count of the tuner module preventing it from being unloaded.
 >>
->> ATSC115 is broken not because the tuner type assignment has been removed
->> from attach_inform.
+>> If you can do this, then that suggests that you are perhaps not using my 
+>> modified driver at all.
 >>
->> This is actually a huge problem across all analog drivers now, since we
->> are no longer able to remove the "tuner" module and modprobe it again --
->> the second modprobe will not allow for an attach, as there will be no
->> way for the module to be recognized without having the glue code needed
->> inside attach_inform...
+>> BTW, I've asked Mauro to pull from my tree 
+>> (www.linuxtv.org/hg/~hverkuil/v4l-dvb) which contains the converted 
+>> saa7134 and saa6752hs drivers. It's definitely something that needs to 
+>> be done regardless.
 >>     
 >
-> Huh? Why would you want to rmmod and modprobe tuner? Anyway, drivers that
-> use v4l2_subdev (like my converted saa7134) will increase the tuner module
-> usecount, preventing it from being rmmod'ed.
+> Hans, Mauro has pulled them in already.
+>
+> For my report for the old issue with the tda9987 not loaded for the
+> md7134 card=12 with eeprom tuner detection and all the types with
+> FMD1216ME MK3 hybrid subsumed there beside the older ones with analog
+> only tuners (CTX917/918/925triple/946mpeg/921cardbus), the users must
+> just unload the saa7134 and tuner modules and then load tda9887 and
+> tuner before the saa7134 for now.
 
-There was a load order dependency in the saa7134 driver.  Some users 
-have to remove tuner and modprobe it again in order to make analog tv 
-work.  Yes, that's a bug.
-
-The bug got worse when Mauro made changes to attach_inform -- I believe 
-this was for the sake of some xceive tuners... I don't recall the 
-details now.
-
-Anyway, long story short... there are many different bugs all 
-manifesting themselves at once here.  Load order dependency -- I don't 
-think we ever understood why that issue exists.  The fix for the load 
-order dependency no longer works, as attach_inform no longer cares if a 
-new tuner appears on the bus.
-
-So, my ATSC115 hack-patch restored the attach_inform functionality for 
-the sake of ATSC110/115 users.  I am not pushing for its merge -- this 
-*will* break the boards that Mauro was working on when he changed 
-attach_inform.
-
-As I don't really understand what he was going for when he made those 
-changes, I don't know how to fix this problem without creating new bugs 
-on Mauro's cards.  I put out that patch in hopes that somebody else 
-would put the pieces together and make a better fix that would work for 
-everybody.  That hasn't happened yet :-(
-
+That's not possible -- tda9887 is now a sub-module of tuner-core.  
+tda9887, when modprobed alone, will not attach to any actual device 
+without also having tuner.ko loaded in memory.  tda9887 is a separate 
+module, but its interface is currently only accessed via tuner-core 
+(tuner.ko)
 
 -Mike
 
