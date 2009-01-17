@@ -1,64 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2877 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931AbZA2J3a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 04:29:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Compiler warnings in pxa_camera.c
-Date: Thu, 29 Jan 2009 10:29:27 +0100
-Cc: linux-media@vger.kernel.org
+Received: from mail.kapsi.fi ([217.30.184.167]:37201 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757053AbZAQRlh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Jan 2009 12:41:37 -0500
+Message-ID: <4972184D.3000709@iki.fi>
+Date: Sat, 17 Jan 2009 19:41:33 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Jochen Friedrich <jochen@scram.de>
+CC: Detlef Rohde <rohde.d@t-online.de>,
+	Roberto Ragusa <mail@robertoragusa.it>,
+	linux-media@vger.kernel.org
+Subject: Re: MC44S803 frontend (it works)
+References: <4936FF66.3020109@robertoragusa.it> <494C0002.1060204@scram.de> <49623372.90403@robertoragusa.it> <4965327A.5000605@t-online.de> <496CD4C8.50004@t-online.de> <496E2C6B.3050607@scram.de> <496E2FB5.4080406@scram.de> <4971367E.90504@iki.fi> <4971AE26.9070901@t-online.de> <4971B278.8010804@iki.fi> <4971B4F6.1020407@scram.de>
+In-Reply-To: <4971B4F6.1020407@scram.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901291029.27243.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Jochen,
 
-For some time now I see the following warnings in pxa_camera.c under
-kernels 2.6.27 and 2.6.28 in the daily build:
+Jochen Friedrich wrote:
+> This version works OK for me :-). The old version also worked, but was very insensitive (i only received one
+> transponder instead of 6, i guess this GPIO must switch on some RF-amplifyer or so).
 
-  CC [M]  /marune/build/v4l-dvb-master/v4l/soc_camera.o
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:54:1: warning: "CICR0" redefined
-In file included from /marune/build/v4l-dvb-master/v4l/pxa_camera.c:43:
-arch/arm/mach-pxa/include/mach/pxa-regs.h:615:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:55:1: warning: "CICR1" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:616:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:56:1: warning: "CICR2" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:617:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:57:1: warning: "CICR3" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:618:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:58:1: warning: "CICR4" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:619:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:59:1: warning: "CISR" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:620:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:60:1: warning: "CIFR" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:621:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:61:1: warning: "CITOR" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:622:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:62:1: warning: "CIBR0" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:623:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:63:1: warning: "CIBR1" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:624:1: warning: this is the location of the previous definition
-/marune/build/v4l-dvb-master/v4l/pxa_camera.c:64:1: warning: "CIBR2" redefined
-arch/arm/mach-pxa/include/mach/pxa-regs.h:625:1: warning: this is the location of the previous definition
+Yes, you are correct. I also ensured that from TerraTec provided driver.
 
-It compiles fine under 2.6.29.
+I moved af9015_i2c_xfer() things back as I now think those are enough 
+general. If driver now works, and you are also happy for af9015 changes 
+I did, af9015 changes are fine for me too.
+Could you look and make fast test all are ok?
 
-Can you either try to fix this for kernels 2.6.27/28, or can I assume that
-this driver will only compile correctly under 2.6.29?
+PS.
+If you want remote working then send AF15IRTBL.bin (or USB-sniff) to me. 
+ From file I can look correct IR-codes for your remote control and after 
+those are set it is rather easy to add key bindings for button events. 
+This same apply all AF9015 devices, I am happy to add remotes too.
 
-I don't know what the status is of this driver for these older kernels, so I
-don't dare touch this without input from you.
-
-Regards,
-
-       Hans
-
+regards
+Antti
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+http://palosaari.fi/
