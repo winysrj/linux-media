@@ -1,63 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:42442 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753545AbZAODOn (ORCPT
+Received: from mailout05.t-online.de ([194.25.134.82]:58745 "EHLO
+	mailout05.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758763AbZAQXKL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 22:14:43 -0500
-Subject: Re: KWorld ATSC 115 all static
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: CityK <cityk@rogers.com>, Hans Verkuil <hverkuil@xs4all.nl>,
-	V4L <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-In-Reply-To: <20090115005446.379aae99@pedra.chehab.org>
-References: <496A9485.7060808@gmail.com> <496AB41E.8020507@rogers.com>
-	 <20090112031947.134c29c9@pedra.chehab.org>
-	 <200901120840.20194.hverkuil@xs4all.nl> <496BF812.40102@rogers.com>
-	 <1231816664.2680.21.camel@pc10.localdom.local>
-	 <496D6CF6.6030005@rogers.com>
-	 <1231986761.2896.21.camel@pc10.localdom.local>
-	 <20090115005446.379aae99@pedra.chehab.org>
-Content-Type: text/plain
-Date: Thu, 15 Jan 2009 04:15:04 +0100
-Message-Id: <1231989304.2896.24.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	Sat, 17 Jan 2009 18:10:11 -0500
+Message-ID: <49726547.7020903@t-online.de>
+Date: Sun, 18 Jan 2009 00:09:59 +0100
+From: Detlef Rohde <rohde.d@t-online.de>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Jochen Friedrich <jochen@scram.de>, linux-media@vger.kernel.org,
+	Roberto Ragusa <mail@robertoragusa.it>
+Subject: Re: [PATCHv4] Add Freescale MC44S803 tuner driver
+References: <496F9A1C.7040602@scram.de> <49722758.8030801@iki.fi>
+In-Reply-To: <49722758.8030801@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Am Donnerstag, den 15.01.2009, 00:54 -0200 schrieb Mauro Carvalho
-Chehab:
-> On Thu, 15 Jan 2009 03:32:41 +0100
-> hermann pitton <hermann-pitton@arcor.de> wrote:
-> 
-> > > Consulting on irc, both Eric and myself can confirm that DVB is working
-> > > fine for the device (I can only test cable currently, but Eric
-> > > successfully checked both QAM and 8-VSB).  I'm using recent Hg and Eric
-> > > is using stock FC10 supplied drivers.  So, I'm not sure why Josh was
-> > > having problems.  
-> > 
-> > for me the same and I can't test on these.
-> > The Pinnacle 310i seems to have the LNA support broken, can't test.
-> 
-> Hermann,
-> 
-> The DVB part shouldn't be affected by the patch. It changes the way that tuners
-> are attached at the analog part. So, the tests should be on tea5767 radio and
-> on analog tuner reception.
-> 
-> Also, his patch just changes the way tuner is binding. Manual adjustments on
-> saa7134 cards structs (like adding TDA9887_PRESENT flag) will be needed to fix some
-> issues like what you've reported (driver not loading automatically tda9887
-> driver).
+Hi All,
+I have to apologize being a stupid newbie not able to put Antti's latest 
+source (mc44s803-71b0ef33303a) into my kernel (2.6.27-11-generic).
+Have performed successfully a "make", but running "install" failed 
+because of missed option settings for this operation. I am uncertain if 
+I must set a path directory. Is'nt there a symbolic link to the right 
+directory? "make" compiled lots of not needed stuff here, but my system 
+needs only a firmware file:
+(Copied from /var/log/messages)
+Jan 17 23:22:21 detlef-laptop kernel: [  155.512517] dvb-usb: found a 
+'TerraTec Cinergy T USB XE' in cold state, will try to load a firmware
+Jan 17 23:22:21 detlef-laptop kernel: [  155.512530] firmware: 
+requesting dvb-usb-af9015.fw
+Jan 17 23:22:21 detlef-laptop kernel: [  155.526289] dvb_usb_af9015: 
+probe of 4-3.3:1.0 failed with error -2
 
-It won't fix the antenna input selection controlled from the digital
-demod, as told before.
+Maybe Antti can post me one which I simply can paste into /lib/firmware? 
+Hopefully one of you can give an advice..
+regards,
+Detlef
 
-Cheers,
-Hermann
+Antti Palosaari schrieb: 2.6.27-11-generic
+> Hello Jochen,
+> I just reviewed this patch and here is my comments;
+>
+> Jochen Friedrich wrote:
+>> +    buf[0] = (val & 0xFF0000) >> 16;
+>
+> I am not sure where it comes I have seen comments sometimes that we 
+> should use lower case hex numbers.
+>
+>> +        return -EREMOTEIO;
+> [...]
+>> +    u8 ret, id;
+>
+> Error status (-EREMOTEIO) is stored to the u8, which leads ~254. This 
+> seems not to be problem currently because mc44s803_readreg() is used 
+> only in mc44s803_attach() that returns NULL in error case. Anyhow, I 
+> think it would be better to use int for clarity.
+>
+> regards,
+> Antti
 
 
