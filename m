@@ -1,122 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52154 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833AbZANOvj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 09:51:39 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>
-Date: Wed, 14 Jan 2009 20:20:38 +0530
-Subject: RE: Patch series in Tarball submitted (RE: [REVIEW PATCH 00/14]
- OMAP3 camera + ISP + MT9P012 sensor driver v2)
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECF70CEB@dbde02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944164DF781@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail1.radix.net ([207.192.128.31]:58882 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757779AbZAQOfo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Jan 2009 09:35:44 -0500
+Subject: Re: Compile warning for CX18 / v4l2-common Ubuntu 8.10
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <de8cad4d0901170434g62a3453by1e6970c0b6f60f66@mail.gmail.com>
+References: <de8cad4d0901170434g62a3453by1e6970c0b6f60f66@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 17 Jan 2009 09:35:00 -0500
+Message-Id: <1232202900.2951.26.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, 2009-01-17 at 07:34 -0500, Brandon Jenkins wrote:
+> A pull from v4l-dvb today:
+> 
+> Kernel build directory is /lib/modules/2.6.27-7-generic/build
+> make -C /lib/modules/2.6.27-7-generic/build
+> SUBDIRS=/root/drivers/v4l-dvb/v4l  modules
+> make[2]: Entering directory `/usr/src/linux-headers-2.6.27-7-generic'
+> ...
+> /opt/drivers/v4l-dvb/v4l/cx18-driver.c: In function 'cx18_request_module':
+> /opt/drivers/v4l-dvb/v4l/cx18-driver.c:735: warning: format not a
+> string literal and no format arguments
+> 
+>   CC [M]  /root/drivers/v4l-dvb/v4l/v4l2-common.o
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_ctrl_query_fill':
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c:559: warning: format not a
+> string literal and no format arguments
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_ctrl_query_menu':
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c:724: warning: format not a
+> string literal and no format arguments
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
+> 'v4l2_ctrl_query_menu_valid_items':
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c:742: warning: format not a
+> string literal and no format arguments
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_i2c_new_subdev':
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c:947: warning: format not a
+> string literal and no format arguments
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
+> 'v4l2_i2c_new_probed_subdev':
+> /root/drivers/v4l-dvb/v4l/v4l2-common.c:1008: warning: format not a
+> string literal and no format arguments
 
-Thanks,
-Vaibhav Hiremath
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
-> Alberto
-> Sent: Wednesday, January 14, 2009 1:49 AM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com; Sakari
-> Ailus; Tuukka.O Toivonen; Nagalla, Hari
-> Subject: Patch series in Tarball submitted (RE: [REVIEW PATCH 00/14]
-> OMAP3 camera + ISP + MT9P012 sensor driver v2)
-> 
-> Hi all,
-> 
-> Just in case you're having troubles getting the patches, heres a
-> tarball with all of them:
-> 
-> https://omapzoom.org/gf/download/docmanfileversion/51/959/l-
-> o_cam_patches_2009_01_12.tar.bz2
-> 
-[Hiremath, Vaibhav] I tried to build camera driver as module and got following error - 
+First, they are just warnings, so everything still builds right?
 
-ERROR: "ispmmu_get_mapeable_space" [drivers/media/video/omap34xxcam.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
+Second, yes these calls appear to be mildly abusing the format argument
+of snprintf() and request_module().  These are declared as
 
-You have missed to export this symbol, please correct in next version of patches.
 
-> I appreciate your time,
-> Sergio
+extern int snprintf(char * buf, size_t size, const char * fmt, ...)
+        __attribute__ ((format (printf, 3, 4)));
+
+extern int request_module(const char * name, ...) __attribute__ ((format
+(printf, 1, 2)));
+
+
+Note the attribute flag that tells the compiler it may want to do some
+extra checking of the arguments - they are like printf()'s arguments.
+The "problem" is that we're not calling them like printf() should be
+called.
+
+With a "char *" variable "foo", we do something like
+
+	printf(foo);
+
+instead of 
+
+	printf("%s", foo);
+
+which is what the warnings are griping about.  The __attribute__ is
+telling the compiler that the format argument should be string constant.
+
+For the cx18 module, one should be able to make it go away with:
+
+diff -r 262c623d8a28 linux/drivers/media/video/cx18/cx18-driver.c
+--- a/linux/drivers/media/video/cx18/cx18-driver.c	Sat Jan 17 08:59:31 2009 -0500
++++ b/linux/drivers/media/video/cx18/cx18-driver.c	Sat Jan 17 09:30:28 2009 -0500
+@@ -733,7 +733,7 @@
+ {
+ 	if ((hw & id) == 0)
+ 		return hw;
+-	if (request_module(name) != 0) {
++	if (request_module("%s", name) != 0) {
+ 		CX18_ERR("Failed to load module %s\n", name);
+ 		return hw & ~id;
+ 	}
+
+
+Signed-off-by: Andy Walls <awalls@radix.net>
+
+Please test as an SOB line doesn't mean that the patch compiles or
+works. ;)   I don't normally get those warnings so my setup may be a
+little different/lax.
+
+Regards,
+Andy
+
+
+> Thanks,
 > 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
-> Alberto
-> > Sent: Monday, January 12, 2009 8:03 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com;
-> Sakari
-> > Ailus; Tuukka.O Toivonen; Nagalla, Hari
-> > Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor
-> driver
-> > v2
-> >
-> > Hi,
-> >
-> > I'm sending the following patchset for review to the relevant
-> lists
-> > (linux-omap, v4l, linux-media).
-> >
-> > Includes:
-> >  - Omap3 camera core + ISP drivers.
-> >  - MT9P012 sensor driver (adapted to 3430SDP)
-> >  - DW9710 lens driver (adapted to work with MT9P012 for SDP)
-> >  - Necessary v4l2-int-device changes to make above drivers work
-> >  - Redefine OMAP3 ISP platform device.
-> >  - Review comments fixed from: (Thanks a lot for their time and
-> help)
-> >    - Hans Verkuil
-> >    - Tony Lindgreen
-> >    - Felipe Balbi
-> >    - Vaibhav Hiremath
-> >    - David Brownell
-> >
-> > Some notes:
-> >  - Uses v4l2-int-device solution.
-> >  - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
-> >  - Applies cleanly on top of commit
-> > 0ec95b96fd77036a13398c66901e11cd301190d0 by Jouni Hogander (OMAP3:
-> PM:
-> > Emu_pwrdm is switched off by hardware even when sdti is in use)
-> >  - ISP wrappers dropped from the patchset, as a rework is going on
-> > currently.
-> >
-> >
-> > I appreciate in advance your time.
-> >
-> > Regards,
-> > Sergio
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Brandon
+
 
