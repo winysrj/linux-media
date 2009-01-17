@@ -1,37 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail0.scram.de ([78.47.204.202]:45912 "EHLO mail.scram.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751235AbZAIRvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Jan 2009 12:51:05 -0500
-Message-ID: <49678BD3.7070105@scram.de>
-Date: Fri, 09 Jan 2009 18:39:31 +0100
-From: Jochen Friedrich <jochen@scram.de>
-MIME-Version: 1.0
-To: Roberto Ragusa <mail@robertoragusa.it>
-CC: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] MC44S803 frontend (it works)
-References: <200901091615.21641.lacsilva@gmail.com> <4967783B.2060007@robertoragusa.it>
-In-Reply-To: <4967783B.2060007@robertoragusa.it>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2782 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753060AbZAQTFr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Jan 2009 14:05:47 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0HJ5j3p094048
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 17 Jan 2009 20:05:45 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 17 Jan 2009 20:05:45 +0100 (CET)
+Message-Id: <200901171905.n0HJ5j3p094048@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Roberto,
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
->> Thank you all for this good work. Any ideas as to when will these files hit 
->> the mercurial repos at linuxtv.org?
-> 
-> That is not under my control.
-> I hope someone will route this driver into official trees.
+Results of the daily build of v4l-dvb:
 
-As the tuner driver currently is only used with AF9015 frontends, I hope Antti will pick this one up.
-I can resubmit with a Signed-off-by if required.
+date:        Sat Jan 17 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10241:7981bdd4e25a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> I can also add that additional tests on VHF frequencies
-> have been successful too.
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc2-armv5: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29-rc2-armv5-ixp: ERRORS
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29-rc2-armv5-omap2: ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29-rc2-i686: ERRORS
+linux-2.6.16.61-m32r: OK
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc2-m32r: ERRORS
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: WARNINGS
+linux-2.6.27-mips: WARNINGS
+linux-2.6.28-mips: WARNINGS
+linux-2.6.29-rc2-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc2-powerpc64: ERRORS
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc2-x86_64: ERRORS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc2): ERRORS
 
-Cool.
+Detailed results are available here:
 
-Thanks,
-Jochen
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
