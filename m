@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from uucp.cirr.com ([192.67.63.5] helo=killer.cirr.com ident=postfix)
+Received: from mout.perfora.net ([74.208.4.194])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <afc@shibaya.lonestar.org>) id 1LIbkK-0000DC-Bs
-	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 05:34:53 +0100
-Received: from afc by localhost.localdomain with local (Exim 4.63)
-	(envelope-from <afc@shibaya.lonestar.org>) id 1LIbju-0004cV-VZ
-	for linux-dvb@linuxtv.org; Thu, 01 Jan 2009 23:34:26 -0500
-Date: Thu, 1 Jan 2009 23:34:26 -0500
-From: "A. F. Cano" <afc@shibaya.lonestar.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090102043426.GA17583@shibaya.lonestar.org>
+	(envelope-from <tlenz@vorgon.com>) id 1LOeIY-00006x-10
+	for linux-dvb@linuxtv.org; Sun, 18 Jan 2009 21:31:11 +0100
+Message-ID: <000701c979ab$b0700670$0a00a8c0@vorg>
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+To: <linux-dvb@linuxtv.org>
+Date: Sun, 18 Jan 2009 13:31:02 -0700
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] How is the support of the OnAir Creator these days?
+Subject: [linux-dvb] supported dual tunner ATSC cards
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,28 +23,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Building a new VDR system for my dad that can use the newer nvida cards for HD and would like to know what the choices are for ATSC
+cards with at least 2 ATSC tunners and have linux drivers. I know about the HDHomerun, but that is an external device which he
+really doesn't have room for where it will be set up and it's not directly supported by vdr yet. There is an IPTV plugin that
+"should" work, but as far as I know, that is untested with the hdhome run.
 
-I posted a quite detailed query 2 years ago (how time flies!).  At the
-time there were problems.  Mike Krufky (if I remember correctly) gave
-a detailed report of the status at the time.
-
-It's been a while and I was wondering what progress there has been
-in supporting the OnAir Creator usb hdtv tuner.  I'm fine-tuning and
-configuring debian lenny on a  new HD (kernel  2.6.26) and I'm wondering
-if I'm finally safe getting this unit, or will I still have an
-expensive paperweight?
-
-If it still doesn't work properly (I'm willing to do some testing
-and report back, but only if it useable to some degree), what other
-supported units are comparable these days?
-
-Thanks.
-
-A.
+I am loking at both PCI and PCIe cards for this.
 
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
