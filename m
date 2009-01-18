@@ -1,158 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:22545 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165AbZAaPH6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jan 2009 10:07:58 -0500
-Subject: Re: [OMAPZOOM][PATCH v2 2/6] Increase isp workaround buffer size
- for 8MP sensor.
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Dominic Curran <dcurran@ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:57810 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756830AbZARNiU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Jan 2009 08:38:20 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Tony Broad <tony@byteworkshop.co.uk>
+Subject: Re: budget.c driver: Kernel oops: "BUG: unable to handle kernel paging request at ffffffff"
+Date: Sun, 18 Jan 2009 14:36:52 +0100
 Cc: linux-media@vger.kernel.org,
-	linux-omap <linux-omap@vger.kernel.org>, greg.hofer@hp.com
-In-Reply-To: <200901301745.54348.dcurran@ti.com>
-References: <200901301745.54348.dcurran@ti.com>
-Content-Type: text/plain
-Date: Sat, 31 Jan 2009 18:08:29 +0300
-Message-Id: <1233414510.19658.18.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <49730AAA.4030209@byteworkshop.co.uk>
+In-Reply-To: <49730AAA.4030209@byteworkshop.co.uk>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_1BzcJTDS8zUW9QG"
+Message-Id: <200901181436.53820@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Dominic
-May i ask few questions ?
+--Boundary-00=_1BzcJTDS8zUW9QG
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Well, looks like it's unrelated to your patch. Lines that don't looks
-okay to me appear in your patch.
-
-On Fri, 2009-01-30 at 17:45 -0600, Dominic Curran wrote:
-> From: Dominic Curran <dcurran@ti.com>
-> Subject: [OMAPZOOM][PATCH v2 2/6] Increase isp workaround buffer size for 8MP 
-> sensor.
+Tony Broad wrote:
+> I'm using a "Hauppauge WinTV-NOVA-T DVB card" of PCI id "13c2:1005" with
+> kernel 2.6.27.9.
 > 
-> A temporary buffer is created to hold the image while it is written by
-> Previewer module and then read by Resizer module. This is called LSC
-> Workaround. To take into account the Sony IMX046 8MP sensor that buffer
-> needs to be increased in size.
-> Changed the #defines to be upper case.
-> Patch also fixes the initialization of a couple of CCDC values.
+> I've recently experienced the following fairly consistent kernel oops on
+> startup in grundig_29504_401_tuner_set_params from budget.c. As you
+> might expect, following this failure, the card doesn't work.
 > 
-> Signed-off-by: Dominic Curran <dcurran@ti.com>
-> ---
->  drivers/media/video/isp/isp.c     |   10 +++++-----
->  drivers/media/video/isp/isp.h     |    7 +++++--
->  drivers/media/video/isp/ispccdc.c |    2 ++
->  drivers/media/video/isp/ispmmu.h  |    3 +++
->  4 files changed, 15 insertions(+), 7 deletions(-)
+> I'm not a kernel developer, nevertheless I seem to have managed to track
+> this down to a non-existent initialisation of
+> budget->dvb_frontend->tuner_priv.
 > 
-> Index: omapzoom04/drivers/media/video/isp/isp.c
-> ===================================================================
-> --- omapzoom04.orig/drivers/media/video/isp/isp.c
-> +++ omapzoom04/drivers/media/video/isp/isp.c
-> @@ -1172,20 +1172,20 @@ void omapisp_unset_callback()
->   **/
->  u32 isp_buf_allocation(void)
->  {
-> -	buff_addr = (void *) vmalloc(buffer_size);
-> +	buff_addr = (void *) vmalloc(ISP_BUFFER_MAX_SIZE);
->  
->  	if (!buff_addr) {
->  		printk(KERN_ERR "Cannot allocate memory ");
+> The attached patch fixes the problem for me (and I've managed to tune
+> the card successfully as a result), but I don't know of anyone else
+> using the driver so I can't test it on other people.
+> 
+> Please let me know if this works for you or if I've done something
+> terribly wrong ;-(
 
-Will user understand what module (or system of kernel) provide this
-printk message ? Should module name be here ?
+Hi,
 
->  		return -ENOMEM;
->  	}
->  
-> -	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
-> +	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, ISP_BUFFER_MAX_PAGES);
->  	if (!sglist_alloc) {
->  		printk(KERN_ERR "videobuf_vmalloc_to_sg error");
+you are right, and your patch is basically correct.
 
-Well, may be here too..
-By the way, why there is no "\n" in the end of messages in this
-function ?
+Anyway, the l64781 frontend driver is a better place to fix the bug:
+Initializing the frontend struct at allocation time will prevent this
+kind of problem for all card drivers now and forever...
 
->  		return -ENOMEM;
->  	}
-> -	num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
-> -	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
-> +	num_sc = dma_map_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
-> +	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, ISP_BUFFER_MAX_PAGES);
->  	if (!buff_addr_mapped) {
->  		printk(KERN_ERR "ispmmu_map_sg mapping failed ");
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de> 
 
-Probably the same thing here.
-May be someone can correct sitation if necessary..
+Btw, this fix should be applied to all kernels >= 2.6.26.
 
->  		return -ENOMEM;
-> @@ -1217,7 +1217,7 @@ void isp_buf_free(void)
->  {
->  	if (alloc_done == 1) {
->  		ispmmu_unmap(buff_addr_mapped);
-> -		dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
-> +		dma_unmap_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
->  		kfree(sglist_alloc);
->  		vfree(buff_addr);
->  		alloc_done = 0;
-> Index: omapzoom04/drivers/media/video/isp/isp.h
-> ===================================================================
-> --- omapzoom04.orig/drivers/media/video/isp/isp.h
-> +++ omapzoom04/drivers/media/video/isp/isp.h
-> @@ -26,6 +26,9 @@
->  #define OMAP_ISP_TOP_H
->  #include <media/videobuf-dma-sg.h>
->  #include <linux/videodev2.h>
-> +
-> +#include "ispmmu.h"
-> +
->  #define OMAP_ISP_CCDC		(1 << 0)
->  #define OMAP_ISP_PREVIEW	(1 << 1)
->  #define OMAP_ISP_RESIZER	(1 << 2)
-> @@ -69,8 +72,8 @@
->  #define NUM_ISP_CAPTURE_FORMATS 	(sizeof(isp_formats) /\
->  							sizeof(isp_formats[0]))
->  #define ISP_WORKAROUND 1
-> -#define buffer_size (1024 * 1024 * 10)
-> -#define no_of_pages (buffer_size / (4 * 1024))
-> +#define ISP_BUFFER_MAX_SIZE (1024 * 1024 * 16)
-> +#define ISP_BUFFER_MAX_PAGES (ISP_BUFFER_MAX_SIZE / ISPMMU_PAGE_SIZE)
->  
->  typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
->  typedef void (*isp_callback_t) (unsigned long status,
-> Index: omapzoom04/drivers/media/video/isp/ispccdc.c
-> ===================================================================
-> --- omapzoom04.orig/drivers/media/video/isp/ispccdc.c
-> +++ omapzoom04/drivers/media/video/isp/ispccdc.c
-> @@ -1265,6 +1265,8 @@ int ispccdc_config_size(u32 input_w, u32
->  	}
->  
->  	if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
-> +		ispccdc_obj.ccdcin_woffset = 0;
-> +		ispccdc_obj.ccdcin_hoffset = 0;
->  		omap_writel((ispccdc_obj.ccdcin_woffset <<
->  					ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
->  					(ispccdc_obj.ccdcin_w <<
-> Index: omapzoom04/drivers/media/video/isp/ispmmu.h
-> ===================================================================
-> --- omapzoom04.orig/drivers/media/video/isp/ispmmu.h
-> +++ omapzoom04/drivers/media/video/isp/ispmmu.h
-> @@ -59,6 +59,9 @@
->  /* Number of entries per L2 Page table */
->  #define ISPMMU_L2D_ENTRIES_NR		256
->  
-> +/* Size of MMU page in bytes */
-> +#define ISPMMU_PAGE_SIZE		4096
-> +
->  /*
->   * Statically allocate 16KB for L2 page tables. 16KB can be used for
->   * up to 16 L2 page tables which cover up to 16MB space. We use an array of 16
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+CU
+Oliver
+
 -- 
-Best regards, Klimov Alexey
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
+--Boundary-00=_1BzcJTDS8zUW9QG
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="l64781-initfix.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="l64781-initfix.diff"
+
+diff -r 1930f80b6970 linux/drivers/media/dvb/frontends/l64781.c
+--- a/linux/drivers/media/dvb/frontends/l64781.c	Sun Dec 14 15:38:29 2008 +0100
++++ b/linux/drivers/media/dvb/frontends/l64781.c	Sun Jan 18 14:04:39 2009 +0100
+@@ -501,7 +501,7 @@ struct dvb_frontend* l64781_attach(const
+ 			   { .addr = config->demod_address, .flags = I2C_M_RD, .buf = b1, .len = 1 } };
+ 
+ 	/* allocate memory for the internal state */
+-	state = kmalloc(sizeof(struct l64781_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct l64781_state), GFP_KERNEL);
+ 	if (state == NULL) goto error;
+ 
+ 	/* setup the state */
+
+--Boundary-00=_1BzcJTDS8zUW9QG--
