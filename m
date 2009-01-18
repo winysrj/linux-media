@@ -1,53 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49664 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754420AbZA2SfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 13:35:18 -0500
-Date: Thu, 29 Jan 2009 19:35:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: DongSoo Kim <dongsoo.kim@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>,
-	jongse.won@samsung.com, kyungmin.park@samsung.com
-Subject: Re: [V4L2] EV control API for digital camera
-In-Reply-To: <5e9665e10901281824ibccbf00lcbecba5b01fdcbea@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0901291934300.5474@axis700.grange>
-References: <5e9665e10901281824ibccbf00lcbecba5b01fdcbea@mail.gmail.com>
+Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231]:35626 "HELO
+	web110808.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751215AbZARShd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Jan 2009 13:37:33 -0500
+Date: Sun, 18 Jan 2009 10:37:32 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+Reply-To: urishk@yahoo.com
+Subject: Re: Siano's patches
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Mauro Carvalho <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org,
+	linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <49736FE6.9080309@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <986893.55175.qm@web110808.mail.gq1.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[removed redhat list from CC]
 
-On Thu, 29 Jan 2009, DongSoo Kim wrote:
 
-> Hello.
-> 
-> When we take pictures, sometimes we don't get satisfied with the
-> exposure of picture. Too dark or too bright.
-> 
-> For that reason, we need to bias EV which represents Exposure Value.
-> 
-> So..if I want to control digital camera module with V4L2 API, which
-> API should I take for EV control?
-> 
-> V4L2 document says that V4L2_CID_BRIGHTNESS is for picture brightness,
-> but it is for "Image properties" and that "image" means the image
-> frame of TV or PVR things.Am I right?
 
-There's also V4L2_CID_EXPOSURE
+--- On Sun, 1/18/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
+
+> From: Michael Krufky <mkrufky@linuxtv.org>
+> Subject: Re: Siano's patches
+> To: urishk@yahoo.com
+> Cc: "Mauro Carvalho" <mchehab@infradead.org>, linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org, "linux-dvb" <linux-dvb@linuxtv.org>
+> Date: Sunday, January 18, 2009, 8:07 PM
+> Uri Shkolnik wrote:
+> > Hi Mauro,
+> > 
+> > Hope you had a great weekend :-)
+> > 
+> > 
+> > I would like to know if you have already reached the
+> conclusion whether to use the Mercurial tree option or the
+> email option we discussed last week.   
+> > Regarding the patches that have been already submitted
+> to the linux-media@vger.kernel.org ML, any schedule for the
+> merge?   
+> Uri,
+> 
+> I've already responded to your last email -- You should
+> continue to submit patches to the mailing list.
+
+Mauro suggested two options, I asked for the first (the Mercurial tree) which is more convenient for me. As it used by multiple parties here and if there is no objection based on some unknown (to me) reason, I would like to use that option.
+
 
 > 
-> If I may, can I use V4L2_CID_BRIGHTNESS for EV control of digital cameras?
+> As for your pending patches, I explained in my email that
+> they are in my queue.  I am in the midst of reviewing the
+> changes.  As you're already aware, your changes break
+> the Hauppauge device's functionality.  After merging
+> your changes, I will have to go back and re-implement the
+> Hauppauge-specific changes in the driver, using the new
+> methods in your pending patches.
 > 
-> or..otherwise I should make a new API for that functionality.
-> 
-> I'm little bit confused, because I think the brightness of picture
-> could differ from exposure value of digital camera..help me ;(
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Some of the patches in the list are pending from early September, 2008.
+( I think it's time they will be popped out of the queue.... :-)
+
+Regarding restoring, modifying, enhancing, etc. - Please do it successively, submitting my patches and your after them, so (1) the congruity between the Mercurial DVB tree change-sets and Siano's change-set will be kept, and (2) I, and other reviewers, may review your patches/changes in their own change-sets.
+
+
+> Once I have reviewed & merged your changes and after I
+> can restore the proper functionality to the hauppauge
+> devices, then I will post a new mercurial tree for testing
+> against all siano-based devices.
+> 
+
+Please see above
+
+> Please be patient -- this takes time.
+> 
+> Regards,
+> 
+> Mike
+> --
+> To unsubscribe from this list: send the line
+> "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at 
+> http://vger.kernel.org/majordomo-info.html
+
+
+      
