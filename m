@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.pcl-ipout02.plus.net ([212.159.7.100])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mayo@clara.co.uk>) id 1LTHMd-0001Ts-1T
-	for linux-dvb@linuxtv.org; Sat, 31 Jan 2009 16:02:32 +0100
-Received: from [87.114.69.235] (helo=mayos.plus.com)
-	by pih-relay06.plus.net with esmtp (Exim) id 1LTHM4-0003pj-GA
-	for linux-dvb@linuxtv.org; Sat, 31 Jan 2009 15:01:56 +0000
-Message-ID: <498467E3.4010403@clara.co.uk>
-Date: Sat, 31 Jan 2009 15:01:55 +0000
-From: Chris Mayo <mayo@clara.co.uk>
+Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <urishk@yahoo.com>) id 1LOWpJ-0003Qz-I5
+	for linux-dvb@linuxtv.org; Sun, 18 Jan 2009 13:32:30 +0100
+Date: Sun, 18 Jan 2009 04:31:54 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <alpine.DEB.2.00.0901181205110.18169@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <49565ABD.7030209@clara.co.uk>
-In-Reply-To: <49565ABD.7030209@clara.co.uk>
-Subject: Re: [linux-dvb] general protection fault: 0000 [1] SMP with 2.6.27
- and	2.6.28
-Reply-To: linux-media@vger.kernel.org
+Message-ID: <358234.8431.qm@web110808.mail.gq1.yahoo.com>
+Subject: Re: [linux-dvb] Siano subsystem (DAB/DMB support) library for linux?
+Reply-To: linux-media@vger.kernel.org, urishk@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,194 +18,366 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I've been seeing general protection fault's with 2.6.27 and 2.6.28
-> (gentoo-sources, amd64) used with vdr. Unfortunately I can't reproduce
-> them on demand.
-> 
 
-Two more of these with 2.6.28 so I switched back to 2.6.25 and now four
-weeks with no more
 
-> 
-> 
-> vdr: [5577] switching device 2 to channel 2
-> DVB: frontend 1 frequency limits undefined - fix the driver
-> general protection fault: 0000 [1] SMP
-> CPU 0
-> Modules linked in: snd_pcm_oss snd_mixer_oss it87 hwmon_vid r8169
-> dvb_ttpci saa7146_vv videobuf_dma_sg videobuf_core sp8870 budget l64781
-> ves1x93 budget_ci lnbp21 budget_core saa7146 ttpci_eeprom tda1004x
-> ir_common tda10023 stv0299 k8temp snd_hda_intel snd_pcm snd_timer snd
-> snd_page_alloc forcedeth i2c_nforce2
-> Pid: 5721, comm: kdvb-fe-1 Not tainted 2.6.27-gentoo-r5 #1
-> RIP: 0010:[<ffffffffa00e8a79>]  [<ffffffffa00e8a79>]
-> grundig_29504_401_tuner_set_params+0x39/0x100 [budget]
-> RSP: 0018:ffff88003d3edda0  EFLAGS: 00010202
-> RAX: ffff88003d3eddb0 RBX: ffff88003e0de000 RCX: 00000000ffffffff
-> RDX: 2802000000000004 RSI: ffff88003efe5808 RDI: ffff88003efe4010
-> RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000000 R12: ffff88003efe5808
-> vdr: [5720] changing pids of channel 30 from 203+203:407=eng,408=und:0:0
-> to 203+203:407=eng,408=und:603=eng:0
-> R13: ffff88003efe4000 R14: 000000001d324372 R15: ffff88003efe59d8
-> FS:  0000000045a17950(0000) GS:ffffffff80710600(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-> CR2: 0000000000f86000 CR3: 0000000000201000 CR4: 00000000000006e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process kdvb-fe-1 (pid: 5721, threadinfo ffff88003d3ec000, task
-> ffff88003f2cd890)
-> Stack:  0000000400000000 ffff88003d3eddb0 ffff88003f2cd890 7fffffffffffffff
-> ffff88003efe4010 ffffffffa00e5660 ffff88003d3edec0 ffff88003efe59d8
-> ffff88003efe59b0 ffffffff8059815d 00000000ffffffff ffff88003efe5800
-> Call Trace:
-> [<ffffffffa00e5660>] apply_frontend_param+0x40/0x3e0 [l64781]
-> [<ffffffff8059815d>] schedule_timeout+0xad/0xf0
-> [<ffffffff8041c45d>] dvb_frontend_swzigzag_autotune+0xcd/0x220
-> [<ffffffff80598a2c>] __down_interruptible+0x9c/0xd0
-> [<ffffffff8041ceba>] dvb_frontend_swzigzag+0x19a/0x290
-> [<ffffffff802549b6>] down_interruptible+0x36/0x60
-> [<ffffffff8041d3b8>] dvb_frontend_thread+0x408/0x4c0
-> [<ffffffff80250570>] autoremove_wake_function+0x0/0x30
-> [<ffffffff8041cfb0>] dvb_frontend_thread+0x0/0x4c0
-> [<ffffffff802501b7>] kthread+0x47/0x80
-> [<ffffffff80232887>] schedule_tail+0x27/0x70
-> [<ffffffff8020ca49>] child_rip+0xa/0x11
-> [<ffffffff80250170>] kthread+0x0/0x80
-> [<ffffffff8020ca3f>] child_rip+0x0/0x11
-> 
-> 
-> Code: 97 d0 02 00 00 48 8b 58 38 48 8d 44 24 10 48 85 d2 48 c7 04 24 00
-> 00 00 00 66 c7 44 24 04 04 00 48 89 44 24 08 0f 84 af 00 00 00 <0f> b6
-> 02 66 89 04 24 8b 0e b8 05 3d 95 0c 44 8d 81 48 39 27 02
-> RIP  [<ffffffffa00e8a79>] grundig_29504_401_tuner_set_params+0x39/0x100
-> [budget]
-> RSP <ffff88003d3edda0>
-> ---[ end trace 33ec88b18fe8a71a ]---
-> 
-> 
-> 
-> 
-> 
-> vdr: [2391] setting watchdog timer to 60 seconds
-> DVB: frontend 0 frequency limits undefined - fix the driver
-> general protection fault: 0000 [1] SMP
-> CPU 0
-> Modules linked in: snd_pcm_oss snd_mixer_oss dvb_ttpci snd_hda_intel
-> saa7146_vv budget_ci snd_pcm budget lnbp21 videobuf_dma_sg l64781
-> videobuf_core snd_timer budget_core sp8870 saa7146 snd tda1004x
-> ttpci_eeprom forcedeth ir_common k8temp ves1x93 tda10023 stv0299
-> i2c_nforce2 r8169 snd_page_alloc
-> Pid: 2398, comm: kdvb-fe-0 Not tainted 2.6.27-gentoo-r7 #1
-> RIP: 0010:[<ffffffffa0076a79>]  [<ffffffffa0076a79>]
-> grundig_29504_401_tuner_set_params+0x39/0x100 [budget]
-> RSP: 0018:ffff88003c00bda0  EFLAGS: 00010286
-> RAX: ffff88003c00bdb0 RBX: ffff88003e6ba000 RCX: 00000000ffffffff
-> RDX: 8008080800000000 RSI: ffff88003e433008 RDI: ffff88003e74cc10
-> RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000000 R12: ffff88003e433008
-> vdr: [2410] CAM 1: no module present
-> vdr: [2410] CAM 2: no module present
-> R13: ffff88003e74cc00 R14: 000000002181fb8e R15: ffff88003e4331d8
-> FS:  00007f98d92a46f0(0000) GS:ffffffff80711600(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-> CR2: 00000000004c7a80 CR3: 000000003d493000 CR4: 00000000000006e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process kdvb-fe-0 (pid: 2398, threadinfo ffff88003c00a000, task
-> ffff88003f29f200)
-> Stack:  0000000400000000 ffff88003c00bdb0 ffff88003f29f200 7fffffffffffffff
-> ffff88003e74cc10 ffffffffa006c660 ffff88003c00bec0 ffff88003e4331d8
-> ffff88003e4331b0 ffffffff8059831d 00000000ffffffff ffff88003e433000
-> Call Trace:
-> [<ffffffffa006c660>] apply_frontend_param+0x40/0x3e0 [l64781]
-> [<ffffffff8059831d>] schedule_timeout+0xad/0xf0
-> [<ffffffff8041c57d>] dvb_frontend_swzigzag_autotune+0xcd/0x220
-> [<ffffffff80598bec>] __down_interruptible+0x9c/0xd0
-> [<ffffffff8041cfda>] dvb_frontend_swzigzag+0x19a/0x290
-> [<ffffffff802549c6>] down_interruptible+0x36/0x60
-> [<ffffffff8041d4d8>] dvb_frontend_thread+0x408/0x4c0
-> [<ffffffff80250580>] autoremove_wake_function+0x0/0x30
-> [<ffffffff8041d0d0>] dvb_frontend_thread+0x0/0x4c0
-> [<ffffffff802501c7>] kthread+0x47/0x80
-> [<ffffffff80232897>] schedule_tail+0x27/0x70
-> [<ffffffff8020ca49>] child_rip+0xa/0x11
-> [<ffffffff80250180>] kthread+0x0/0x80
-> [<ffffffff8020ca3f>] child_rip+0x0/0x11
-> 
-> 
-> Code: 97 d0 02 00 00 48 8b 58 38 48 8d 44 24 10 48 85 d2 48 c7 04 24 00
-> 00 00 00 66 c7 44 24 04 04 00 48 89 44 24 08 0f 84 af 00 00 00 <0f> b6
-> 02 66 89 04 24 8b 0e b8 05 3d 95 0c 44 8d 81 48 39 27 02
-> RIP  [<ffffffffa0076a79>] grundig_29504_401_tuner_set_params+0x39/0x100
-> [budget]
-> RSP <ffff88003c00bda0>
-> ---[ end trace 69aa4ae250698950 ]---
-> 
-> 
-> 
-> 
-> 
-> vdr: [2403] switching device 2 to channel 14
-> DVB: adapter 1 frontend 4294670335 frequency limits undefined - fix the
-> driver
-> general protection fault: 0000 [#1] SMP
-> last sysfs file: /sys/class/firmware/0000:01:06.0/loading
-> CPU 1
-> Modules linked in: snd_pcm_oss snd_mixer_oss dvb_ttpci snd_hda_intel
-> saa7146_vv budget videobuf_dma_sg l64781 budget_ci lnbp21 budget_core
-> videobuf_core saa7146 sp8870 snd_pcm ir_common ves1x93 ttpci_eeprom
-> tda1004x tda10023 stv0299 snd_timer dvb_core snd k8temp snd_page_alloc
-> tda827x forcedeth r8169 i2c_nforce2
-> Pid: 2421, comm: kdvb-ad-1-fe--2 Not tainted 2.6.28-gentoo #2
-> RIP: 0010:[<ffffffffa00ddbc9>]  [<ffffffffa00ddbc9>]
-> grundig_29504_401_tuner_set_params+0x39/0x100 [budget]
-> RSP: 0018:ffff88003c94fda0  EFLAGS: 00010282
-> RAX: ffff88003c94fdb0 RBX: ffff88003e2f9000 RCX: 0000000000000001
-> RDX: ffdfff7ff5bffff7 RSI: ffff88003ee0ac08 RDI: ffff88003ee0a810
-> RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000000 R12: ffff88003ee0ac08
-> R13: ffff88003ee0a800 R14: 000000002088c172 R15: ffff88003ee0add8
-> FS:  00000000434d1950(0000) GS:ffff88003f86a9c0(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
-> CR2: 00007fe3e2555000 CR3: 000000003c840000 CR4: 00000000000006e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process kdvb-ad-1-fe--2 (pid: 2421, threadinfo ffff88003c94e000, task
-> ffff88003f956890)
-> Stack:
-> 0000000400000000 ffff88003c94fdb0 ffff88003f956890 7fffffffffffffff
-> ffff88003ee0a810 ffffffffa0004660 ffff88003c94fec0 ffff88003ee0add8
-> ffff88003ee0adb0 ffffffff805bed1d 00000000ffffffff ffff88003ee0ac00
-> Call Trace:
-> [<ffffffffa0004660>] apply_frontend_param+0x40/0x3e0 [l64781]
-> [<ffffffff805bed1d>] schedule_timeout+0xad/0xf0
-> [<ffffffffa005623d>] dvb_frontend_swzigzag_autotune+0xcd/0x220 [dvb_core]
-> [<ffffffff805bf75c>] __down_interruptible+0x9c/0xd0
-> [<ffffffffa005748a>] dvb_frontend_swzigzag+0x19a/0x290 [dvb_core]
-> [<ffffffff802578c6>] down_interruptible+0x36/0x60
-> [<ffffffffa00579a0>] dvb_frontend_thread+0x420/0x4d0 [dvb_core]
-> [<ffffffff80253490>] autoremove_wake_function+0x0/0x30
-> [<ffffffffa0057580>] dvb_frontend_thread+0x0/0x4d0 [dvb_core]
-> [<ffffffff802530e7>] kthread+0x47/0x80
-> [<ffffffff802354f7>] schedule_tail+0x27/0x70
-> [<ffffffff8020c9a9>] child_rip+0xa/0x11
-> [<ffffffff802530a0>] kthread+0x0/0x80
-> [<ffffffff8020c99f>] child_rip+0x0/0x11
-> Code: 97 e0 02 00 00 48 8b 58 38 48 8d 44 24 10 48 85 d2 48 c7 04 24 00
-> 00 00 00 66 c7 44 24 04 04 00 48 89 44 24 08 0f 84 af 00 00 00 <0f> b6
-> 02 66 89 04 24 8b 0e b8 05 3d 95 0c 44 8d 81 48 39 27 02
-> RIP  [<ffffffffa00ddbc9>] grundig_29504_401_tuner_set_params+0x39/0x100
-> [budget]
-> RSP <ffff88003c94fda0>
-> ---[ end trace 03be0cf97d6717a0 ]---
-> 
+
+--- On Sun, 1/18/09, BOUWSMA Barry <freebeer.bouwsma@gmail.com> wrote:
+
+> From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+> Subject: Re: [linux-dvb] Siano subsystem (DAB/DMB support) library for li=
+nux?
+> To: "St=E5le Helleberg / drc.no" <staale@drc.no>
+> Cc: urishk@yahoo.com
+> Date: Sunday, January 18, 2009, 1:36 PM
+> A reply to myself.  A copy to you, in case you are
+> interested.
+> You will still be laughing at me.  Go ahead.  Laugh.
+> =
+
+> On Sat, 17 Jan 2009, BOUWSMA Barry wrote:
+> =
+
+> > > Please find my testprogram attached. It probably
+> has quite a lot of errors,
+> > =
+
+> > Many thanks.  I've tried to hack a few things,
+> with as little
+> > as I know, to make it easier to build with the
+> downloaded Siano
+> > library somewhere else.
+> =
+
+> I wrote yesterday that I had a few problems on the machine
+> where I installed this.  So I had the idea to copy the
+> Siano
+> library and your source to another machine which I've
+> been
+> upgrading, but where major 251 was free, in case that might
+> be one of the many possibilities why it might work.
+> =
+
+> For background, the initial installation was done on a
+> notebook
+> laptop type machine based on debian 4.0, and presently
+> running
+> kernel 2.6.27-rc4.  `gcc' there is a 4.4.0 CVS-type,
+> and that
+> might be the reason I needed to add <unistd.h> (if I
+> read a
+> linux-kernel post yesterday properly)...
+> =
+
+> =
+
+> The newer machine has been partly upgraded from an original
+> 2.6.8-flavour debian installation where some sort of fsck
+> problem or similar resulted in a good deal of the system
+> files disappearing, which I've upgraded to a 2-week old
+> debian-testing DVD snapshot, and am running a 2.6.28-rc8
+> kernel.  This seems to have helped with some things.  Also
+> it's not a notebook with pcmcia and major 251 is free,
+> the
+> biggest reason for me to try it...
+> =
+
+> =
+
+> > Here is how I modified compile.sh, to allow me to
+> specify with
+> > CPPFLAGS and LDFLAGS the path to my copy of the Siano
+> library:
+> =
+
+> I've also added ${CFLAGS} to allow me to specify
+> CFLAGS=3D-DDEBUG
+> in order to better follow the code...
+> =
+
+> =
+
+> > gcc -Wall -Werror  -o dab *.o -Llinux_x86_c_lib
+> -L../linux_x86_c_lib ${LDFLAGS} -lsmscontrol -lssp
+> =
+
+> The -lssp which I apparently had to add is no longer
+> needed.
+> And so far, it hasn't even been installed...
+> =
+
+> =
+
+> > +/* XXX HACK */
+> > +#include <unistd.h> // for usleep
+> =
+
+> This, however, is still needed...
+> =
+
+> =
+
+> > Another thing I needed to do was to modify the
+> Siano-supplied
+> > `create_char_dev.sh' to make use of the proper
+> major number,
+> =
+
+> I added a little bit more to this, as I also noted that
+> one could specify a non-zero minor number as well (which
+> probably wouldn't help me reclaim the use of major 251
+> on
+> the problematic notebook, but hey)
+> =
+
+> Here's the complete file to do this, again.  Note that
+> I'm
+> well aware that anyone with the least bit of skill should
+> be able to do far better than I can in far fewer lines,
+> but hey, it's the ideas that count, isn't it?  No? =
+
+> It isn't?
+> =
+
+> =
+
+> #!/bin/sh
+> =
+
+> # USAGE:  $0  major  minor  (arguments optional)
+> #  if major is 0 or not specified, will make a feeble
+> half-hearted
+> #  attempt to determine which major is in use by smsmdtv
+> #  default being 251.  minor is 0 unless specified
+> otherwise
+> =
+
+> # HACK:  major 251 is used on my test system.
+> #  allow user to specify major.
+> #  else try to get it from /proc/devices.
+> #  else fallback to the default (251)
+> =
+
+> # more HACK:  the module also allows one to specify a
+> particular
+> #  starting minor number.  Not sure how to detect that
+> automagically.
+> #  assume 0, but allow user to override this as second
+> argument
+> #  (in which case first is required, or perhaps 0 to
+> detect)
+> =
+
+> SMSMINOR=3D0
+> if [ "x$1" !=3D "x" ]
+> then
+> 	SMSCHAR=3D$1
+> 	if [ "x$2" !=3D "x" ]
+> 	then
+> 		SMSMINOR=3D$2
+> 	fi
+> 	if [ "x$SMSCHAR" =3D "x0" ]
+> 	then
+> 		SMSCHAR=3D""
+> 	fi
+> fi
+> =
+
+> if [ "x$SMSCHAR" =3D "x" ]
+> then
+> 	SMSCHAR=3D`grep smschar /proc/devices 2>/dev/null | cut
+> -f1 -d ' ' | head -1 `
+> fi
+> =
+
+> if [ "x$SMSCHAR" =3D "x" ]
+> then
+> 	SMSCHAR=3D"251"
+> fi
+> echo Using major $SMSCHAR, starting at minor $SMSMINOR...
+> =
+
+> cd /dev && mknod -m 766 /dev/mdtvctrl c $SMSCHAR
+> $(($SMSMINOR + 0))
+> cd /dev && mknod -m 766 /dev/mdtv1 c $SMSCHAR
+> $(($SMSMINOR + 1))
+> cd /dev && mknod -m 766 /dev/mdtv2 c $SMSCHAR
+> $(($SMSMINOR + 2))
+> cd /dev && mknod -m 766 /dev/mdtv3 c $SMSCHAR
+> $(($SMSMINOR + 3))
+> cd /dev && mknod -m 766 /dev/mdtv4 c $SMSCHAR
+> $(($SMSMINOR + 4))
+> cd /dev && mknod -m 766 /dev/mdtv5 c $SMSCHAR
+> $(($SMSMINOR + 5))
+> cd /dev && mknod -m 766 /dev/mdtv6 c $SMSCHAR
+> $(($SMSMINOR + 6))
+> cd /dev && mknod -m 766 /dev/mdtv7 c $SMSCHAR
+> $(($SMSMINOR + 7))
+> cd /dev && mknod -m 766 /dev/mdtv8 c $SMSCHAR
+> $(($SMSMINOR + 8))
+> cd /dev && mknod -m 766 /dev/mdtv9 c $SMSCHAR
+> $(($SMSMINOR + 9))
+> cd /dev && mknod -m 766 /dev/mdtv10 c $SMSCHAR
+> $(($SMSMINOR + 10))
+> cd /dev && mknod -m 766 /dev/mdtv11 c $SMSCHAR
+> $(($SMSMINOR + 11))
+> cd /dev && mknod -m 766 /dev/mdtv12 c $SMSCHAR
+> $(($SMSMINOR + 12))
+> cd /dev && mknod -m 766 /dev/mdtv13 c $SMSCHAR
+> $(($SMSMINOR + 13))
+> cd /dev && mknod -m 766 /dev/mdtv14 c $SMSCHAR
+> $(($SMSMINOR + 14))
+> cd /dev && mknod -m 766 /dev/mdtv15 c $SMSCHAR
+> $(($SMSMINOR + 15))
+> cd /dev && mknod -m 766 /dev/mdtv16 c $SMSCHAR
+> $(($SMSMINOR + 16))
+> =
+
+> =
+
+> =
+
+> > All my hacks should be considered either public domain
+> or
+> > at best, BSD licensed, with the ideas behind them
+> probably
+> > far more worthy than the code.
+> =
+
+> Given the value of the code, that's not difficult...
+> =
+
+> =
+
+> > I'm not quite that far yet, as I may have some
+> further
+> > hardware debugging to do -- plus I will learn far more
+> from
+> =
+
+> It was not hardware debugging needed, so it seems.  On the
+> new installation, I have finally had success!  Yay!  Oh
+> Joy!
+> Rapture!
+> =
+
+> But first, you need some good laughs, so here's what I
+> learned:
+> =
+
+> * Do not `scp -r' the v4l-dvb source which I patched
+> with the
+>   Siano hacks before falling asleep.  `scp' follows
+> symlinks,
+>   so when I woke up, the destination was still in the
+> process
+>   of trying to copy most of the origin machine's
+> filesystem.
+> =
+
+> * I don't know how this happened, but I had a zero-size
+> top-
+>   level makefile in the obj tree of my linux kernel on the
+>   destination machine, which had no effect on rebuilding
+> the
+>   kernel with the latest installed-from-DVD tools.  Normal
+>   build commands wouldn't fix that, and v4l-dvb
+> didn't like it.
+>   It's fixed, but I wasted an hour when I could have
+> been
+>   sleeping wondering how it happened.
+> =
+
+> * Oh joy, it looks like more ice-rain now, and the ice from
+>   the last ice-rain storm two weeks ago is still present
+> and
+>   causing problems.  And I hoped to finally go out
+> tomorrow...
+> =
+
+> =
+
+> Anyway, now I see this, and am happy:
+> =
+
+> SmSHostApiDeviceInit_Req with payload 0
+> Well, that was just yow
+> Tuning into a frequency
+> Kenneth, the frequency is  227360000
+> Esemble Info Result
+> Well, no problems there
+> Tuning...
+> Esemble Info Result
+> EID: 16385 with 12 services 'SRG SSR D01     '
+> Get Combined Components result
+> Found 12 services...
+> =
+
+> Service: 0 - DRS 1
+> Service: 1 - DRS 2
+> Service: 2 - DRS 3
+> Service: 3 - DRS MUSIKWELLE
+> Service: 4 - DRS Virus
+> Service: 5 - CH-POP
+> Service: 6 - CH-CLASSIC
+> Service: 7 - CH-JAZZ
+> Service: 8 - RSR-1ERE
+> Service: 9 - RETE UNO
+> Service: 10 -  RR-SRG
+> Service: 11 - DRS 4 NEWS
+> Please select service [0..12] and press enter:
+> =
+
+> =
+
+> I guess I'll force the module to major 249 and see if I
+> still
+> experience the same problems (timeout during device init)
+> as
+> on the other machine.  If so, I'll complain loudly to
+> Uri
+> that the Siano binary library seems to have major 251
+> hardcoded
+> somewhere within, rather than the device names linked by
+> the
+> script, or some similar problem.
+> =
+
+> If not, the problem will be elsewhere, I *won't*
+> complain to
+> Uri, until I figure out what it could be.
+> =
+
+> =
+
+> Again, many thanks for your simple program!  I'll see
+> what
+> else I can do with it...
+> =
+
+> =
+
+> barry bouwsma
+
+
+It's not hard-coded in the library. The library just open the node by name -
+    int fd =3D open( "/dev/mdtvctrl", O_RDWR );
+
+
+
+Uri
+
+
+
+
+
+      =
+
 
 _______________________________________________
 linux-dvb users mailing list
