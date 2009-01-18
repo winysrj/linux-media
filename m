@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.186])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <peter@hoeg.com>) id 1LJfli-0006H2-NB
-	for linux-dvb@linuxtv.org; Mon, 05 Jan 2009 04:04:43 +0100
-Received: by ti-out-0910.google.com with SMTP id w7so6025188tib.13
-	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 19:04:37 -0800 (PST)
-Message-ID: <496178BF.2050302@hoeg.com>
-Date: Mon, 05 Jan 2009 11:04:31 +0800
-From: Peter Hoeg <peter@hoeg.com>
+Received: from web110804.mail.gq1.yahoo.com ([67.195.13.227])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <urishk@yahoo.com>) id 1LOVTP-0008BA-SS
+	for linux-dvb@linuxtv.org; Sun, 18 Jan 2009 12:05:49 +0100
+Date: Sun, 18 Jan 2009 03:05:12 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+To: =?iso-8859-1?Q?St=E5le_Helleberg_/_drc=2Eno?= <staale@drc.no>
+In-Reply-To: <20090116101702.149275vsbwc7y45q@91.189.121.183>
 MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-dvb@linuxtv.org
-References: <loom.20090103T043514-870@post.gmane.org>
-	<200901031727.26569.hfvogt@gmx.net> <496056B4.4050603@hoeg.com>
-	<200901042333.47704.hfvogt@gmx.net>
-In-Reply-To: <200901042333.47704.hfvogt@gmx.net>
-Subject: Re: [linux-dvb] HVR-1200,
-	cx23885 driver and Message Signaled Interrupts
+Message-ID: <161813.29307.qm@web110804.mail.gq1.yahoo.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Siano subsystem (DAB/DMB support) library for linux?
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,40 +19,147 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-> cx23885 0000:03:00.0: setting latency timer to 64
-> the confirmation that MSI is activated:
-> cx23885 0000:03:00.0: irq 315 for MSI/MSI-X
-> 
-> It seems that for your card, the PCI code is stuck halfways?!
-> As you have other devices running with MSI, can you please check whether you 
-> see a line ... irq xyz for MSI/MSI-X for them?
 
-I am not getting that message for any of the other devices. Here is the
-output of: dmesg | grep -i msi
 
-[    1.533883] pcieport-driver 0000:00:0b.0: found MSI capability
-[    1.534197] pcieport-driver 0000:00:0c.0: found MSI capability
-[    1.534501] pcieport-driver 0000:00:0d.0: found MSI capability
-[    2.905219] forcedeth 0000:00:0f.0: highdma pwrctl mgmt timirq lnktim
-msi desc-v3
+--- On Fri, 1/16/09, St=E5le Helleberg / drc.no <staale@drc.no> wrote:
 
-Maybe your message comes because you have some DEBUG_MSI_INTERRUPTS flag
-set or something (purely guessing here) as my other devices using MSI
-are working perfectly and this has to be looked for elsewhere.
+> From: St=E5le Helleberg / drc.no <staale@drc.no>
+> Subject: Re: Siano subsystem (DAB/DMB support) library for linux?
+> To: urishk@yahoo.com
+> Date: Friday, January 16, 2009, 11:17 AM
+> Quoting "Uri Shkolnik" <urishk@yahoo.com>:
+> =
 
-Any other info I can provide that will shed some light on the situation?
+> >
+> >
+> >
+> > --- On Thu, 1/15/09, St=E5le Helleberg / drc.no
+> <staale@drc.no> wrote:
+> >
+> >> From: St=E5le Helleberg / drc.no
+> <staale@drc.no>
+> >> Subject: Siano subsystem (DAB/DMB support) library
+> for linux?
+> >> To: urishk@yahoo.com
+> >> Cc: staale.helleberg@gmail.com
+> >> Date: Thursday, January 15, 2009, 1:16 AM
+> >> Dear Uri,
+> >>
+> >> Firstly, let me thank you and Siano for your
+> effort in
+> >> making your products available for Linux users. It
+> is much
+> >> appreciated, and much has changed since I
+> contacted Siano
+> >> early last year regarding a similar request.
+> >>
+> >> I contact you to ask if it's possible to get a
+> copy of
+> >> your library and headers for talking with the
+> subsystem in
+> >> C/C++. I've downloaded and applied the patches
+> - and the
+> >> module loads in dmb mode and looks promising.
+> >>
+> >> The reason for this request is that I'm
+> currently
+> >> studying the DAB standard for a another project. I
+> need to
+> >> log and analyze the complete datastream from the
+> air - to
+> >> study and understand the building blocks. I will
+> try to
+> >> create a parser, but I can't promise that I
+> will
+> >> succeed. If you have any samples regarding use of
+> the API
+> >> (tuning to frequency, opening/reading/closing etc)
+> and other
+> >> documentation, it will also be much appreciated.
+> >>
+> >> Thank you in advance,
+> >>
+> >> Best Regards
+> >>
+> >> Staale Helleberg
+> >> drc.no
+> >
+> >
+> > Dear Staale,
+> >
+> > Please find the requested files at our ftp site.
+> >
+> > Address: fx.siano-ms.com
+> > Username: sms_linux
+> > Password: sms_linux
+> >
+> >
+> > Best regard,
+> >
+> > Uri Shkolnik
+> >
+> >
+> >
+> >
+> =
 
-/peter
+> =
+
+> Dear Uri,
+> =
+
+> Thank you again for the library and information. I made a
+> small  =
+
+> testprogram yesterday - and was able to communicate, tune
+> and receive  =
+
+> dab/dmb services with next to no problems :)  Very well
+> done!
+> =
+
+> As mentioned in my earlier request, for my project I need
+> access to  =
+
+> the unmodifed incomming bitstream (without
+> modification/filtering).  =
+
+> I'm sorry to say that I could not find any functions in
+> the headers  =
+
+> that could be used. Do you have any tips on how to achieve
+> this?
+> =
+
+> Thanks in advance
+> =
+
+> Best Regards,
+> =
+
+> Staale Helleberg
+> drc.no
+
+I re-checked with our DAB team, and the answer is that you can't get the ra=
+w multiplex.
+
+Sorry,
+
+Uri
+
+
+      =
+
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
