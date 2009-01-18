@@ -1,43 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37539 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754278AbZAQK1J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 05:27:09 -0500
-Message-ID: <4971B278.8010804@iki.fi>
-Date: Sat, 17 Jan 2009 12:27:04 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from fg-out-1718.google.com ([72.14.220.159]:11524 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934292AbZARSWQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Jan 2009 13:22:16 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so1160813fgg.17
+        for <linux-media@vger.kernel.org>; Sun, 18 Jan 2009 10:22:14 -0800 (PST)
+Date: Sun, 18 Jan 2009 19:22:30 +0100
+From: Luca Tettamanti <kronos.it@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Manu Abraham <manu@linuxtv.org>
+Subject: [PATCH] saa716x: fix uninitialized splinlocks
+Message-ID: <20090118182230.GA19441@dreamland.darkstar.lan>
 MIME-Version: 1.0
-To: Detlef Rohde <rohde.d@t-online.de>
-CC: Jochen Friedrich <jochen@scram.de>,
-	Roberto Ragusa <mail@robertoragusa.it>,
-	linux-media@vger.kernel.org
-Subject: Re: MC44S803 frontend (it works)
-References: <4936FF66.3020109@robertoragusa.it> <494C0002.1060204@scram.de> <49623372.90403@robertoragusa.it> <4965327A.5000605@t-online.de> <496CD4C8.50004@t-online.de> <496E2C6B.3050607@scram.de> <496E2FB5.4080406@scram.de> <4971367E.90504@iki.fi> <4971AE26.9070901@t-online.de>
-In-Reply-To: <4971AE26.9070901@t-online.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Detlef Rohde wrote:
-> Hi Antti,
-> thanks for your work. I unpacked mc44s803-b7ac1c462be3 and tried to run 
-> "make install" as root since I wanted to update my kernel modules. This 
-> did not work. On the other hand running only "make" finished with some 
-> warnings but no errors. My kernel is  2.6.27-11-generic from Ubuntu 
-> 8.10. The system is up to date. These tries I performed on a newly 
-> installed Linux where I never tried running my DVB-T stick (TerraTec 
-> Electronic GmbH Cinergy T XE DVB-T Receiver, MKII) under Linux before. 
-> Have installed VMware on this machine and can use the stick without 
-> problems in a WXP-Pro VM. Can you please give an advice what I should do 
-> next? I wo'nt destroy my running system.
-> Best regards,
-> Detlef
+Fix uninitialized spinlocks.
 
-Tahnks,
-I did some more changes, could you test again:
-http://linuxtv.org/hg/~anttip/mc44s803/
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+---
+ linux/drivers/media/dvb/dvb-core/dmxdev.c        |    1 +
+ linux/drivers/media/dvb/saa716x/saa716x_hybrid.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-Antti
+Index: b/linux/drivers/media/dvb/dvb-core/dmxdev.c
+===================================================================
+--- a/linux/drivers/media/dvb/dvb-core/dmxdev.c	2009-01-18 19:15:52.630015822 +0100
++++ b/linux/drivers/media/dvb/dvb-core/dmxdev.c	2009-01-18 19:16:17.182016807 +0100
+@@ -1087,6 +1087,7 @@
+ 	for (i = 0; i < dmxdev->filternum; i++) {
+ 		dmxdev->filter[i].dev = dmxdev;
+ 		dmxdev->filter[i].buffer.data = NULL;
++		spin_lock_init(&dmxdev->filter[i].buffer.lock);
+ 		dvb_dmxdev_filter_state_set(&dmxdev->filter[i],
+ 					    DMXDEV_STATE_FREE);
+ 	}
+Index: b/linux/drivers/media/dvb/saa716x/saa716x_hybrid.c
+===================================================================
+--- a/linux/drivers/media/dvb/saa716x/saa716x_hybrid.c	2009-01-18 19:15:52.590024681 +0100
++++ b/linux/drivers/media/dvb/saa716x/saa716x_hybrid.c	2009-01-18 19:16:17.182016807 +0100
+@@ -49,6 +49,7 @@
+ 		goto fail0;
+ 	}
+ 
++	spin_lock_init(&saa716x->gpio_lock);
+ 	saa716x->verbose	= verbose;
+ 	saa716x->int_type	= int_type;
+ 	saa716x->pdev		= pdev;
+
+Luca
 -- 
-http://palosaari.fi/
+Regole per la felicità:
+1. Sii soddisfatto di quello che hai.
+2. Assicurati di avere tutto.
