@@ -1,35 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp128.rog.mail.re2.yahoo.com ([206.190.53.33]:33680 "HELO
-	smtp128.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751602AbZAKSCr (ORCPT
+Received: from web110814.mail.gq1.yahoo.com ([67.195.13.237]:28691 "HELO
+	web110814.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755293AbZARJtD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 13:02:47 -0500
-Message-ID: <496A343F.7030703@rogers.com>
-Date: Sun, 11 Jan 2009 13:02:39 -0500
-From: CityK <cityk@rogers.com>
+	Sun, 18 Jan 2009 04:49:03 -0500
+Date: Sun, 18 Jan 2009 01:49:01 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+Reply-To: urishk@yahoo.com
+Subject: Siano's patches
+To: Mauro Carvalho <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org,
+	linux-dvb <linux-dvb@linuxtv.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <829464.15115.qm@web110810.mail.gq1.yahoo.com>
 MIME-Version: 1.0
-To: Malte Gell <malte.gell@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-t: searching for channels
-References: <200901101645.51230.malte.gell@gmx.de> <4968E810.2050307@rogers.com> <200901102040.06001.malte.gell@gmx.de>
-In-Reply-To: <200901102040.06001.malte.gell@gmx.de>
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Message-ID: <393674.19439.qm@web110814.mail.gq1.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Malte Gell wrote:
-> dvbscan is from dvb-1.1.0_CVS20080331
->   
+Hi Mauro,
 
-Err, that looks wrong. We haven't used CVS for quite some time (not sure
-about the date, but pretty sure it was well before Mar 2008, so I'm
-unclear about the copy you have).
+Hope you had a great weekend :-)
 
-In any regard, grab a fresh copy from here: http://www.linuxtv.org/repo/
-(you can obtain it via either a tarball or using Mercurial). Build
-instructions are also listed on that page (essentially make, make install).
 
-Will this resolve your "Unable to query frontend status" problem? I
-don't know, but this will be a good starting point. Failing that, lets
-see the relevant output from dmesg.
+I would like to know if you have already reached the conclusion whether to use the Mercurial tree option or the email option we discussed last week.   
+
+Regarding the patches that have been already submitted to the linux-media@vger.kernel.org ML, any schedule for the merge? 
+
+
+Thanks & Regard,
+
+Uri
+
+
+      
