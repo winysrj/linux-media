@@ -1,27 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n03JPBjH029180
-	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 14:25:11 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n03JOlUO006390
-	for <video4linux-list@redhat.com>; Sat, 3 Jan 2009 14:24:48 -0500
-Date: Sat, 3 Jan 2009 20:25:00 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <alpine.LRH.2.00.0901031550530.3513@caramujo.chehab.org>
-Message-ID: <Pine.LNX.4.64.0901032014440.15363@axis700.grange>
-References: <f17812d70901020716n2e6bb9cas2958ea4df2a19af8@mail.gmail.com>
-	<Pine.LNX.4.64.0901021625420.4694@axis700.grange>
-	<20090103104338.6822c576@pedra.chehab.org>
-	<Pine.LNX.4.64.0901031415060.3955@axis700.grange>
-	<alpine.LRH.2.00.0901031400260.3513@caramujo.chehab.org>
-	<Pine.LNX.4.64.0901031714150.3955@axis700.grange>
-	<alpine.LRH.2.00.0901031550530.3513@caramujo.chehab.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0IL07eV029988
+	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 16:00:07 -0500
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.177])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0IKxl2Z029130
+	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 15:59:47 -0500
+Received: by wa-out-1112.google.com with SMTP id n7so97969wag.19
+	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 12:59:47 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Russell King <linux@arm.linux.org.uk>, video4linux-list@redhat.com
-Subject: Re: [PATCH] pxa-camera: fix redefinition warnings and missing DMA
- definitions
+In-Reply-To: <1249fb080901180425s5caf1b4ds4fc508ef06c79f30@mail.gmail.com>
+References: <1249fb080901180425s5caf1b4ds4fc508ef06c79f30@mail.gmail.com>
+Date: Sun, 18 Jan 2009 15:59:46 -0500
+Message-ID: <26aa882f0901181259n56ff1765wa1c5afdfeaf1ed54@mail.gmail.com>
+From: Jackson Yee <jackson@gotpossum.com>
+To: Akhila Madhukumar <akhilapisces@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Project help
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,29 +29,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 3 Jan 2009, Mauro Carvalho Chehab wrote:
+On Sun, Jan 18, 2009 at 7:25 AM, Akhila Madhukumar
+<akhilapisces@gmail.com> wrote:
+> Hi.
+>   My group of 4 are doing a project on "Video Streaming in Linux"
+>   We are taking the input thru 150 capture card and then passing it on to
+> ffmpeg to get flv file format which will then be streamed and stored
+> simultaneously. Please give us some information on how should we proceed,
+> also about the v4l2 source code!
 
-> > And now, Mauro, what do we do with this specific case? Are you going to
-> > fix it in your hg-/git-trees or are you expecting anything from me / Eric?
-> 
-> Please send me a patch fixing the issue, and I'll send it forward. You can
-> write it against -hg or -git, since both trees are syncronized.
+Sounds like you're trying to work on ffserver:
 
-Ok, the patch from Eric should fix it, but I cannot test it:
+http://ffmpeg.org/ffserver-doc.html
 
-  CC [M]  drivers/media/video/videobuf-dma-sg.o
-drivers/media/video/videobuf-dma-sg.c: In function 'videobuf_vm_fault':
-drivers/media/video/videobuf-dma-sg.c:391: error: implicit declaration of 
-function 'clear_user_page'
+I assume that you're talking about the Hauppage PVR-150 card, which is
+an excellent card and shouldn't give you any problems.
 
-which means, the highmem patches that have been previously dropped from 
-next (IIRC) are there again and ARM has no clear_user_page again.
+Let us know how things go.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+--
+Regards,
+Jackson Yee
+The Possum Company
+540-818-4079
+me@gotpossum.com
 
 --
 video4linux-list mailing list
