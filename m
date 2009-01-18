@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:30620 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753852AbZAXDUH (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:8772 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933895AbZARSCM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2009 22:20:07 -0500
+	Sun, 18 Jan 2009 13:02:12 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so1158583fgg.17
+        for <linux-media@vger.kernel.org>; Sun, 18 Jan 2009 10:02:10 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <200901240503.35695.ionut.leonte@gmail.com>
-References: <3f9a31f40901222126t5baf80f8t12513dc9fd9b3f29@mail.gmail.com>
-	 <200901240503.35695.ionut.leonte@gmail.com>
-Date: Sat, 24 Jan 2009 08:50:05 +0530
-Message-ID: <3f9a31f40901231920s122eeddfw7c58d89431c97c43@mail.gmail.com>
-Subject: Re: How can I fix errors and warnings in nvidia module for Tesla
-	C1060
-From: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-To: Ionut Leonte <garglkml@gmail.com>
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>,
-	linux-nvidia@lists.surfsouth.com, adaplas@gmail.com,
-	npaci-rocks-discussion@sdsc.edu, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Sun, 18 Jan 2009 19:02:10 +0100
+Message-ID: <19a3b7a80901181002k7954fd45me9cce255c8418c07@mail.gmail.com>
+Subject: Fwd: scan file no-Oslo-Get
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000e0cd28956e3a4a70460c59a8f
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 24, 2009 at 8:33 AM, Ionut Leonte <garglkml@gmail.com> wrote:
-> According to the log you attached ("Kernel messages" section):
->
->   nvidia: module license 'NVIDIA' taints kernel.
->   NVRM: No NVIDIA graphics adapter found!
->
-> Are you sure you're using the correct driver ?
->
+--000e0cd28956e3a4a70460c59a8f
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Nvidia Tesla C1060 has no output, so I was using intel motherboard
-garphics, when I disable intel motherboard graphics adapter
-installation processes able to find nvidia graphics adapter and build
-the nvidia module.
+---------- Forwarded message ----------
+From: Dag Lem <dag@nimrod.no>
+Date: 2009/1/15
+Subject: dvb-apps: Scan file no-Oslo-Get
+To: Christoph Pfister <pfister@linuxtv.org>
 
-But now I got another problem I use various git kernels trees, so I
-need to build these modules for each kernel tree. And seems nvidia is
-not disclosing the source code for Nvidia Telsa Series module :-(
+
+Hi Cristoph,
+
+I have prepared a scan file for a cable provider in Norway, I hope
+you can add it to dvb-apps as util/dvb-c/no-Oslo-Get
 
 --
-JSR
+Best regards,
+
+Dag Lem
+
+--000e0cd28956e3a4a70460c59a8f
+Content-Type: application/octet-stream; name=no-Oslo-Get
+Content-Disposition: attachment; filename=no-Oslo-Get
+Content-Transfer-Encoding: base64
+X-Attachment-Id: 0.1
+
+IyBuby1Pc2xvLUdldCAoY2FibGUpCkMgMjQxMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyAy
+NzIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDI4MDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFN
+MjU2CkMgMjkwMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyAyOTgwMDAwMDAgNjkwMDAwMCBO
+T05FIFFBTTI1NgpDIDMwNjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgMzE0MDAwMDAwIDY5
+MDAwMDAgTk9ORSBRQU0yNTYKQyAzMjIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDMzMDAw
+MDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgMzM4MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYK
+QyAzNDYwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDM1NDAwMDAwMCA2OTAwMDAwIE5PTkUg
+UUFNMjU2CkMgMzYyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyAzNzAwMDAwMDAgNjkwMDAw
+MCBOT05FIFFBTTI1NgpDIDM3ODAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgMzg2MDAwMDAw
+IDY5MDAwMDAgTk9ORSBRQU0yNTYKQyAzOTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDQx
+MDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNDQyMDAwMDAwIDY5NTIwMDAgTk9ORSBRQU0y
+NTYKQyA0ODIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDQ5ODAwMDAwMCA2OTAwMDAwIE5P
+TkUgUUFNMjU2Cg==
+--000e0cd28956e3a4a70460c59a8f--
