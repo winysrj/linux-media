@@ -1,82 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:6896 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756834AbZATWSO (ORCPT
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:56250 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751450AbZASRQB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 17:18:14 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so1662856fgg.17
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 14:18:12 -0800 (PST)
-Subject: [PATCH] v4l/dvb: use usb_make_path in usb-radio drivers
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Tobias Lorenz <tobias.lorenz@gmx.net>
+	Mon, 19 Jan 2009 12:16:01 -0500
+Subject: Re: KWorld ATSC 115 all static
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, CityK <cityk@rogers.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+In-Reply-To: <20090119090819.3f4a1656@pedra.chehab.org>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+	 <200901182241.10047.hverkuil@xs4all.nl> <4973BD03.4060702@rogers.com>
+	 <200901190853.19327.hverkuil@xs4all.nl>
+	 <20090119090819.3f4a1656@pedra.chehab.org>
 Content-Type: text/plain
-Date: Wed, 21 Jan 2009 01:18:26 +0300
-Message-Id: <1232489906.30506.10.camel@tux.localhost>
+Date: Mon, 19 Jan 2009 18:16:21 +0100
+Message-Id: <1232385381.3238.23.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Place usb_make_path in dsbr100.c, radio-mr800.c, radio-si470x.c that
-used when reporting bus_info information in vidioc_querycap.
+Hi,
 
+Am Montag, den 19.01.2009, 09:08 -0200 schrieb Mauro Carvalho Chehab: 
+> On Mon, 19 Jan 2009 08:53:19 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+> > On Monday 19 January 2009 00:36:35 CityK wrote:
+> > > Hans Verkuil wrote:
+> > > > On Sunday 18 January 2009 22:20:30 CityK wrote:
+> > > >> The output of dmesg is interesting (two times tuner simple
+> > > >> initiating):
+> > > >
+> > > > Shouldn't there be a tda9887 as well? It's what the card config says,
+> > > > but I'm not sure whether that is correct.
+> > > >
+> > > >> Would you like to see the results of after enabling 12c_scan to see
+> > > >> what is going on, or is this the behaviour you expected?
+> > > >
+> > > > It seems to be OK, although I find it a bit peculiar that the tuner
+> > > > type is set twice. Or does that have to do with it being a hybrid
+> > > > tuner, perhaps?
+> > >
+> > > The Philips TUV1236D NIM does indeed use a tda9887  (I know, because I
+> > > was the one who discovered this some four years ago (pats self on
+> > > head)).  But the module is not loading.  I can make it load, just as
+> > > Hermann demonstrated to Mike in one of the recent messages for this
+> > > thread.
+> > 
+> > I have no idea why the tda9887 isn't loading. 
+> 
+> Probably, it has something to do with the i2c gate control.
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+in my case on the md7134 cards it happens only after cold boot.
+Analog of course doesn't work then.
 
---
-diff -r f4d7d0b84940 linux/drivers/media/radio/dsbr100.c
---- a/linux/drivers/media/radio/dsbr100.c	Sun Jan 18 10:55:38 2009 +0000
-+++ b/linux/drivers/media/radio/dsbr100.c	Wed Jan 21 01:07:34 2009 +0300
-@@ -393,9 +393,11 @@
- static int vidioc_querycap(struct file *file, void *priv,
- 					struct v4l2_capability *v)
- {
-+	struct dsbr100_device *radio = video_drvdata(file);
-+
- 	strlcpy(v->driver, "dsbr100", sizeof(v->driver));
- 	strlcpy(v->card, "D-Link R-100 USB FM Radio", sizeof(v->card));
--	sprintf(v->bus_info, "USB");
-+	usb_make_path(radio->usbdev, v->bus_info, sizeof(v->bus_info));
- 	v->version = RADIO_VERSION;
- 	v->capabilities = V4L2_CAP_TUNER;
- 	return 0;
-diff -r f4d7d0b84940 linux/drivers/media/radio/radio-mr800.c
---- a/linux/drivers/media/radio/radio-mr800.c	Sun Jan 18 10:55:38 2009 +0000
-+++ b/linux/drivers/media/radio/radio-mr800.c	Wed Jan 21 01:07:34 2009 +0300
-@@ -316,9 +316,11 @@
- static int vidioc_querycap(struct file *file, void *priv,
- 					struct v4l2_capability *v)
- {
-+	struct amradio_device *radio = video_drvdata(file);
-+
- 	strlcpy(v->driver, "radio-mr800", sizeof(v->driver));
- 	strlcpy(v->card, "AverMedia MR 800 USB FM Radio", sizeof(v->card));
--	sprintf(v->bus_info, "USB");
-+	usb_make_path(radio->usbdev, v->bus_info, sizeof(v->bus_info));
- 	v->version = RADIO_VERSION;
- 	v->capabilities = V4L2_CAP_TUNER;
- 	return 0;
-diff -r f4d7d0b84940 linux/drivers/media/radio/radio-si470x.c
---- a/linux/drivers/media/radio/radio-si470x.c	Sun Jan 18 10:55:38 2009 +0000
-+++ b/linux/drivers/media/radio/radio-si470x.c	Wed Jan 21 01:07:34 2009 +0300
-@@ -1202,9 +1202,11 @@
- static int si470x_vidioc_querycap(struct file *file, void *priv,
- 		struct v4l2_capability *capability)
- {
-+	struct si470x_device *radio = video_drvdata(file);
-+
- 	strlcpy(capability->driver, DRIVER_NAME, sizeof(capability->driver));
- 	strlcpy(capability->card, DRIVER_CARD, sizeof(capability->card));
--	sprintf(capability->bus_info, "USB");
-+	usb_make_path(radio->usbdev, capability->bus_info, sizeof(capability->bus_info));
- 	capability->version = DRIVER_KERNEL_VERSION;
- 	capability->capabilities = V4L2_CAP_HW_FREQ_SEEK |
- 		V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+To reload the saa7134 with "modprobe" then is also enough to get it
+loaded and analog functional, likely what Mike meant.
 
+On warm reboots it is present and functional. Some eeprom readout
+corruption mostly on the first card occurs and I must force card=12.
 
--- 
-Best regards, Klimov Alexey
+The tda9887 is by default not visible on the FMD1216ME MK3 hybrid.
+
+The init from Hartmut in tuner-core.c in set_tuner_type for analog.
+
+	case TUNER_PHILIPS_FMD1216ME_MK3:
+		buffer[0] = 0x0b;
+		buffer[1] = 0xdc;
+		buffer[2] = 0x9c;
+		buffer[3] = 0x60;
+		i2c_master_send(c, buffer, 4);
+		mdelay(1);
+		buffer[2] = 0x86;
+		buffer[3] = 0x54;
+		i2c_master_send(c, buffer, 4);
+		if (!dvb_attach(simple_tuner_attach, &t->fe,
+				t->i2c->adapter, t->i2c->addr, t->type))
+			goto attach_failed;
+		break;
+
+from dmesg.
+
+dmesg |grep "< c2"
+saa7133[1]: i2c xfer: < c2 30 90 >
+saa7134[3]: i2c xfer: < c2 >
+saa7134[3]: i2c xfer: < c2 0b dc 9c 60 >
+saa7134[3]: i2c xfer: < c2 0b dc 86 54 >
+
+Exactly here, when the buffers are sent the second time the tda9887
+becomes the first time visible on the bus. According to Hartmut the
+modification of buffer[3] from 0x60 to 0x54 is that hidden switch,
+IIRC. 
+
+saa7134[3]: i2c xfer: < c2 1b 6f 86 52 >
+saa7134[3]: i2c xfer: < c2 1b 6f 86 52 >
+saa7134[3]: i2c xfer: < c2 1b 6f 86 52 >
+saa7134[3]: i2c xfer: < c2 9c 60 85 54 >
+saa7134[0]: i2c xfer: < c2 9c 60 85 54 >
+saa7133[1]: i2c xfer: < c2 30 90 >
+saa7134[3]: i2c xfer: < c2 9c 60 85 54 >
+
+> > Note that Mauro merged my saa7134 changes, so these are now in the master 
+> > repository.
+> 
+> Yes. We need to fix it asap, to avoid regressions. It is time to review also
+> the other codes that are touching on i2c gates at _init2().
+
+My other cards with tda8275a, tda8290, tda10046 and/or tda826x and
+tda10086 still work and the FMD1216ME init broken is old. 
+
+There is an old issue, maybe not reported yet, that after suspend to RAM
+it seems the AGC control for DVB-T is lost, lots of artifacts. After
+using analog TV or reload the saa7134 it is fixed.
+Just to mention it.
+
+Cheers,
+Hermann
+
+> Cheers,
+> Mauro
+
 
