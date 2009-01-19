@@ -1,54 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212]:50850 "EHLO
-	ch-smtp01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758977AbZANQNw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 11:13:52 -0500
-Received: from c83-251-230-88.bredband.comhem.se ([83.251.230.88]:46996 helo=orresta.no-ip.com)
-	by ch-smtp01.sth.basefarm.net with esmtp (Exim 4.68)
-	(envelope-from <lists@orresta.no-ip.com>)
-	id 1LN824-0007vY-5a
-	for linux-media@vger.kernel.org; Wed, 14 Jan 2009 16:51:54 +0100
-Received: from [127.0.0.1] (unknown [172.16.10.10])
-	by orresta.no-ip.com (Postfix) with ESMTP id 6A8461541BF
-	for <linux-media@vger.kernel.org>; Wed, 14 Jan 2009 16:50:34 +0100 (CET)
-Message-ID: <496E09C7.2060605@orresta.no-ip.com>
-Date: Wed, 14 Jan 2009 16:50:31 +0100
-From: Jakob <lists@orresta.no-ip.com>
+Received: from mail0.scram.de ([78.47.204.202]:52144 "EHLO mail.scram.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755765AbZASOr6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2009 09:47:58 -0500
+Message-ID: <497492AE.5030509@scram.de>
+Date: Mon, 19 Jan 2009 15:48:14 +0100
+From: Jochen Friedrich <jochen@scram.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Any progress on Lifeview DVB-T Hybrid Ex?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCHv4] Add Freescale MC44S803 tuner driver
+References: <496F9A1C.7040602@scram.de> <49722758.8030801@iki.fi>
+In-Reply-To: <49722758.8030801@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Antti,
 
-I recently bought a better used mediacenter PC (XP-MCE) that included 2 
-tuners.
-Since I have a Mythbox since before I thought I'll give it a go. But so 
-far no luck.
+>> +	buf[0] = (val & 0xFF0000) >> 16;
+> 
+> I am not sure where it comes I have seen comments sometimes that we 
+> should use lower case hex numbers.
 
-I have been reading up on the matter because the cards seem to have 
-onboard mpeg4 analog encoding.
+OK, will fix.
 
-Here are som info on the cards.
-name: LifeView DVB-T Hybrid Ex (LR320)
-chips on front:
-Phillips  8275ac1
-Phillips  saa7131e/03/g
-Phillips  tda10046A
-Altera    epm3032a
-?         lv4052
-Wischip   wis go7007sb
-memory    em638325ts-6g
+>> +		return -EREMOTEIO;
+> [...]
+>> +	u8 ret, id;
+> 
+> Error status (-EREMOTEIO) is stored to the u8, which leads ~254. This 
+> seems not to be problem currently because mc44s803_readreg() is used 
+> only in mc44s803_attach() that returns NULL in error case. Anyhow, I 
+> think it would be better to use int for clarity.
 
-Back:
-?         lvc245a
-?         lvc125a
+This is definitely a BUG. I'll also fix this. Do you want me to post an
+update to the tuner or an incremental patch against your repository?
 
-Further info will be available in the Wiki, such as lspci and so forth.
-
-Best Regards
-Jakob Sundberg
+Thanks,
+Jochen
