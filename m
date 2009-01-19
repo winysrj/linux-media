@@ -1,103 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:36812 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146AbZAWI4j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2009 03:56:39 -0500
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-To: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-Subject: Re: How can I fix errors and warnings in nvidia module for Tesla C1060
-Date: Fri, 23 Jan 2009 09:55:53 +0100
-Cc: fero@drama.obuda.kando.hu, linux-nvidia@lists.surfsouth.com,
-	adaplas@gmail.com, npaci-rocks-discussion@sdsc.edu,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-References: <3f9a31f40901222126t5baf80f8t12513dc9fd9b3f29@mail.gmail.com>
-In-Reply-To: <3f9a31f40901222126t5baf80f8t12513dc9fd9b3f29@mail.gmail.com>
+Received: from mailrelay005.isp.belgacom.be ([195.238.6.171]:55216 "EHLO
+	mailrelay005.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752257AbZASPca (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2009 10:32:30 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: Re: Color FX User control proposal
+Date: Mon, 19 Jan 2009 16:32:26 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Curran, Dominic" <dcurran@ti.com>,
+	"Kulkarni, Pallavi" <p-kulkarni@ti.com>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	"mikko.hurskainen@nokia.com" <mikko.hurskainen@nokia.com>
+References: <A24693684029E5489D1D202277BE8944164DF963@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944164DF963@dlee02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200901230955.53828.rjw@sisk.pl>
+Message-Id: <200901191632.26404.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 23 January 2009, Jaswinder Singh Rajput wrote:
-> Hello,
-> 
-> I am trying to install driver of nvidia Tesla C1060 on x86 based
-> compute node of Rockcluster 5.1
-> 
-> But  I am following errors and warnings:
-> 
->    make -f /usr/src/kernels/2.6.18-92.1.13.el5-i686/scripts/Makefile.build obj=
->    /tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/nv
->      cc -Wp,-MD,/tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/nv/.nv.o.d
->     -nostdinc -isystem /usr/lib/gcc/i386-redhat-linux/4.1.2/include -D__KERNEL_
->    _ -Iinclude -Iinclude2 -I/usr/src/kernels/2.6.18-92.1.13.el5-i686/include -i
->    nclude include/linux/autoconf.h   -I/tmp/selfgz3379/NVIDIA-Linux-x86-177.72-
->    pkg1/usr/src/nv -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict
->    -aliasing -fno-common -Wstrict-prototypes -Wundef -Werror-implicit-function-
->    declaration -Os -pipe -msoft-float -fno-builtin-sprintf -fno-builtin-log2 -f
->    no-builtin-puts -mpreferred-stack-boundary=2 -march=i686 -mtune=generic -mtu
->    ne=generic -mregparm=3 -ffreestanding -I/usr/src/kernels/2.6.18-92.1.13.el5-
->    i686/include/asm-i386/mach-generic -Iinclude/asm-i386/mach-generic -I/usr/sr
->    c/kernels/2.6.18-92.1.13.el5-i686/include/asm-i386/mach-default -Iinclude/as
->    m-i386/mach-default -fomit-frame-pointer -g -fno-stack-protector -Wdeclarati
->    on-after-statement -Wno-pointer-sign  -I/tmp/self
->    gz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/nv -Wall -Wimplicit -Wreturn-typ
->    e -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wpointer-arith -Wno-mul
->    tichar -Werror -MD -Wsign-compare -Wno-cast-qual -Wno-error -D__KERNEL__ -DM
->    ODULE -DNVRM -DNV_VERSION_STRING=\"177.72\" -UDEBUG -U_DEBUG -DNDEBUG -DMODU
->    LE -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(nv)"  -D"KBUILD_MODNAM
->    E=KBUILD_STR(nvidia)" -c -o /tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr
->    /src/nv/.tmp_nv.o /tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/nv/nv
->    .c
->    In file included from include/linux/list.h:8,
->                     from include/linux/lockdep.h:13,
->                     from include/linux/spinlock_types.h:18,
->                     from include/linux/spinlock.h:78,
->                     from include/linux/capability.h:45,
->                     from include/linux/sched.h:44,
->                     from include/linux/module.h:9,
->                     from /tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/n
->    v/nv-linux.h:59,
->                     from /tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/n
->    v/nv.c:14:
->    include/linux/prefetch.h: In function 'prefetch_range':
->    include/linux/prefetch.h:62: warning: pointer of type 'void *' used in arith
->    metic
->    In file included from include/linux/dmapool.h:14,
->                     from include/linux/pci.h:616,
->                     from /tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/n
->    v/nv-linux.h:86,
->                     from /tmp/selfgz3379/NVIDIA-Linux-x86-177.72-pkg1/usr/src/n
->    v/nv.c:14:
->    include/asm/io.h: In function 'check_signature':
->    include/asm/io.h:245: warning: wrong type argument to increment
-> 
-> ...
-> 
-> -> Kernel module compilation complete.
-> ERROR: Unable to load the kernel module 'nvidia.ko'.  This happens most
->        frequently when this kernel module was built against the wrong or
->        improperly configured kernel sources, with a version of gcc that differs
->        from the one used to build the target kernel, or if a driver such as
->        rivafb/nvidiafb is present and prevents the NVIDIA kernel module from
->        obtaining ownership of the NVIDIA graphics device(s).
-> 
->        Please see the log entries 'Kernel module load error' and 'Kernel
->        messages' at the end of the file '/var/log/nvidia-installer.log' for
->        more information.
-> -> Kernel module load error: insmod: error inserting './usr/src/nv/nvidia.ko':
->    -1 No such device
-> 
-> I am attaching complete log file for your reference.
-> 
-> I cannot see any source code for these modules. How can I fix these
-> error and warnings.
+Hi,
 
-That's likely because the NVidia driver expects the arch asm headers to be in
-include/linux .
+On Tuesday 13 January 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+> Hi,
+>
+> Recently in TI and Nokia, we are working towards having for acceptance an
+> OMAP3 camera driver, which uses an on-chip Image Signal Processor that has
+> one feature of color effects. We were using a V4L2 private CID for that,
+> but have been suggested that this could be common enough to propose to the
+> V4L2 spec aswell for other devices to use.
+>
+> Below patch adds the control to include/linux/videodev2.h file, should this
+> be enough? (This patch is taking as a codebase the latest linux-omap
+> kernel, which I believe is v2.6.28 still)
+>
+> Thanks and Regards,
+> Sergio
+>
+> From 022b87f3e7f3c3be141ab271a110948ea9567a69 Mon Sep 17 00:00:00 2001
+> From: Sergio Aguirre <saaguirre@ti.com>
+> Date: Tue, 13 Jan 2009 16:25:31 -0600
+> Subject: [PATCH] V4L2: Add COLORFX user control
+>
+> This is a common feature on many cameras. the options are:
+> Default colors,
+> B & W,
+> Sepia
+>
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  include/linux/videodev2.h |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
+>
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 4669d7e..b02a10d 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -876,8 +876,15 @@ enum v4l2_power_line_frequency {
+>  #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
+>  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
+>  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+> +#define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
+> +enum v4l2_colorfx {
+> +	V4L2_COLORFX_DEFAULT	= 0,
 
-Thanks,
-Rafael
+If this option disables color effects, shouldn't it be called 
+V4L2_COLORFX_NONE instead ?
+
+> +	V4L2_COLORFX_BW		= 1,
+> +	V4L2_COLORFX_SEPIA	= 2,
+> +};
+> +
+>  /* last CID + 1 */
+> -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+31)
+> +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+32)
+>
+>  /*  MPEG-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+
+Best regards,
+
+Laurent Pinchart
