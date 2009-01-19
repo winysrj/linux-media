@@ -1,33 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from txslsmtp1.vzwmail.net ([66.174.85.155]:55547 "EHLO
-	txslsmtp1.vzwmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754624AbZATAck (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:42111 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830AbZASALk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2009 19:32:40 -0500
-Received: from [70.193.10.197] (smtp.vzwmail.net [66.174.85.25])
-	(authenticated bits=0)
-	by txslsmtp1.vzwmail.net (8.12.9/8.12.9) with ESMTP id n0K0DMJf016440
-	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 00:13:32 GMT
-Message-ID: <49751737.1020101@vzwmail.net>
-Date: Mon, 19 Jan 2009 17:13:43 -0700
-From: "T.P. Reitzel" <4066724035@vzwmail.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: gspca_spca505
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 18 Jan 2009 19:11:40 -0500
+Date: Sun, 18 Jan 2009 22:11:13 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [linux-media] Re: [linux-dvb] Cross-posting linux-media,
+ linux-dvb etc
+Message-ID: <20090118221113.539f292d@caramujo.chehab.org>
+In-Reply-To: <4972FC26.8080808@cadsoft.de>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+	<alpine.DEB.2.00.0901170002430.18012@ybpnyubfg.ybpnyqbznva>
+	<a3ef07920901162151r270cdb16w92c0d7d6b7e770a1@mail.gmail.com>
+	<4972FC26.8080808@cadsoft.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just pulled mercurial's v4l-dvb for Bluewhite64's 2.6.27.7 kernel.
-This spca505 driver for Intel's PC Camera Pro, 0733:0430 isn't even
-functioning. The MMAP feature of this driver just displays a screen of
-horizontal green lines. Furthermore, M. Xhaard stripped the external
-composite feature from this driver a few years ago and no one has yet
-added it back. If you visit the original website for this driver on
-sourceforge.net, you'll see the original driver for this video camera
-including composite support. As it is, the driver for this camera is
-totally inoperative.
+On Sun, 18 Jan 2009 10:53:42 +0100
+Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de> wrote:
 
-I thank you.
-------------------------------------------------------------------------
+> On 17.01.2009 06:51, user.vdr wrote:
+> > I think it's a lame idea to clump all media related stuff into one
+> > mailing list from separate ml's because 1) it's too general of a topic
+> > and 2) those ml's already had a lot of activity on their own.  The
+> > idea of sifting through tons of posts of no interest is quite a hassle
+> > to say the least.  This "solution" just doesn't seem very well thought
+> > out imo but it is what it is I guess.
+> 
+> I also don't like the high traffic on linux-media. linux-dvb was exactly
+> dedicated to DVB, and that's all that interests me. I'm not interested
+> in analog video or cameras or whatever stuff that's discussed on
+> linux-media.
+
+>From driver development POV, there's no sense of splitting analog and digital
+stuff.
+
+A large amount of drivers support both analog and digital API (bttv, cx88,
+saa7134, saa7146, pvrusb2, em28xx, cx18, cx23885...). With the previous
+situation, all discussions for those drivers would require cross-postings. This
+is bad, since developers needed to read the same message twice (or even three
+times, due to v4l-dvb-maintainers ML). So, their precious time that would
+otherwise be used in development were lost just to read the same message again
+and again.
+
+Also, if you look at the recent past posts on V4L ML, several of them are related to
+DVB stuff.There were several cross-postings there as well.
+
+I can't see a clear solution to reduce the traffic on linux-media. We could
+eventually think on having some per-driver ML's, but I'm afraid that this
+wouldn't work nice... For example, an issue on an saa7134 driver with xc3028
+should be posted at saa7134 or at xc3028 ML?
+
+
+Cheers,
+Mauro
