@@ -1,32 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mognix.dark-green.com ([88.116.226.179]:51196 "EHLO
-	mognix.dark-green.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbZA0Ujy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 15:39:54 -0500
-Message-ID: <497F7117.9000607@dark-green.com>
-Date: Tue, 27 Jan 2009 21:39:51 +0100
-From: gimli <gimli@dark-green.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:37706 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760325AbZASOwp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2009 09:52:45 -0500
+Message-ID: <497493BB.8040509@iki.fi>
+Date: Mon, 19 Jan 2009 16:52:43 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Broken Tuning on Wintv Nova HD S2
+To: Jochen Friedrich <jochen@scram.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCHv4] Add Freescale MC44S803 tuner driver
+References: <496F9A1C.7040602@scram.de> <49722758.8030801@iki.fi> <497492AE.5030509@scram.de>
+In-Reply-To: <497492AE.5030509@scram.de>
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Jochen Friedrich wrote:
+> This is definitely a BUG. I'll also fix this. Do you want me to post an
+> update to the tuner or an incremental patch against your repository?
 
-the following changesets breaks Tuning to Vertical Transponders :
+Post new patch. I hope Mauro will pick up your patch and add it to the 
+master when no more comments are given. Anyhow, I don't know what's 
+correct procedure.
 
-http://mercurial.intuxication.org/hg/s2-liplianin/rev/1ca67881d96a
-http://linuxtv.org/hg/v4l-dvb/rev/2cd7efb4cc19
-
-For example :
-
-DMAX;BetaDigital:12246:vC34M2O0S0:S19.2E:27500:511:512=deu:32:0:10101:1:1092:0
-
-
-cu
-
-Edgar ( gimli ) Hucek
+regards
+Antti
+-- 
+http://palosaari.fi/
