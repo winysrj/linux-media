@@ -1,46 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp111.rog.mail.re2.yahoo.com ([206.190.37.1]:40417 "HELO
-	smtp111.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754464AbZAOFBi (ORCPT
+Received: from mail-bw0-f21.google.com ([209.85.218.21]:48593 "EHLO
+	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752241AbZASVxL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2009 00:01:38 -0500
-Message-ID: <496EC328.7040004@rogers.com>
-Date: Thu, 15 Jan 2009 00:01:28 -0500
-From: CityK <cityk@rogers.com>
+	Mon, 19 Jan 2009 16:53:11 -0500
+Received: by bwz14 with SMTP id 14so9481441bwz.13
+        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2009 13:53:09 -0800 (PST)
+Message-ID: <412bdbff0901191353v1cccdd66x2e3ea7f2bc0ef24b@mail.gmail.com>
+Date: Mon, 19 Jan 2009 16:53:09 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Bob Cunningham" <FlyMyPG@gmail.com>
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4974F4B3.8030205@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: hermann pitton <hermann-pitton@arcor.de>,
-	V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-References: <496A9485.7060808@gmail.com> <496D6CF6.6030005@rogers.com> <200901140837.43282.hverkuil@xs4all.nl> <200901141924.41026.hverkuil@xs4all.nl>
-In-Reply-To: <200901141924.41026.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+	 <200901161555.00803.hverkuil@xs4all.nl>
+	 <Pine.LNX.4.64.0901160903080.21448@cnc.isely.net>
+	 <4970C036.2000809@cinnamon-sage.de>
+	 <20090116155912.7bae237a@caramujo.chehab.org>
+	 <4974F4B3.8030205@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> OK, I couldn't help myself and went ahead and tested it. It seems fine, 
-> so please test my tree: 
+On Mon, Jan 19, 2009 at 4:46 PM, Bob Cunningham <FlyMyPG@gmail.com> wrote:
+> Reasons I'd like to keep both lists going:
+> 1. My subscription requests to linux-media have yielded nothing.  Anything
+> broken with the approval process?
 >
-> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-saa7134
->
-> Let me know if it works. 
+> 2. I agree with another poster: I only care about broadcast and cable video,
+> both analog and digital.  I eventually hope to help get my "AnyTV AUTV002
+> USB ATSC/QAM Tuner Stick" supported by V4L, and then use it in a MythTV
+> system.  I'd prefer a list that focuses on such devices and systems, if
+> possible.  Which seems to match the mission of linux-dvb!
 
-Hi Hans,
+The hybrid devices such as the one you described are the precise
+reason we wanted to make a single list.  Your device has analog
+aspects that would be covered by V4L and ATSC/QAM aspects that were
+covered under linux-dvb.  So discussions about devices such as yours
+would take place on both mailing lists, which creates a huge headache
+for developers.
 
-It didn't work.  No analog reception on either RF input.  (as Mauro
-noted, DVB is unaffected; it still works).
+Devin
 
-dmesg output looks right:
-
-tuner-simple 1-0061: creating new instance
-tuner-simple 1-0061: type set to 68 (Philips TUV1236D ATSC/NTSC dual in)
-
-I tried backing out of the modules and then reloading them, but no
-change.  (including after fresh build or after rebooting)
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
