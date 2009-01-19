@@ -1,62 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:42979 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752880AbZA2JbZ (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:34922 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752434AbZASSVy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 04:31:25 -0500
-Date: Thu, 29 Jan 2009 07:30:56 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Michael Schimek <mschimek@gmx.at>
-Subject: Re: Merging the v4l2 spec?
-Message-ID: <20090129073056.675dd4b4@caramujo.chehab.org>
-In-Reply-To: <200901290951.04874.hverkuil@xs4all.nl>
-References: <200901290951.04874.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 19 Jan 2009 13:21:54 -0500
+Date: Mon, 19 Jan 2009 10:21:38 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Roel Kluin <roel.kluin@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: Re: [PATCH] Bttv: move check on unsigned
+In-Reply-To: <497250C7.6030502@gmail.com>
+Message-ID: <Pine.LNX.4.58.0901191020460.11165@shell2.speakeasy.net>
+References: <497250C7.6030502@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2009 09:51:04 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Sat, 17 Jan 2009, Roel Kluin wrote:
+> Please review, this patch was not tested.
+>
+> The static function set_tvnorm is called in
+> drivers/media/video/bt8xx/bttv-driver.c:
+>
+> 1355:   set_tvnorm(btv, norm);
+> 1868:   set_tvnorm(btv, i);
+> 3273:   set_tvnorm(btv,btv->tvnorm);
+>
+> in the first two with an unsigned, but bttv->tvnorm is signed.
 
-> Hi Mauro,
-> 
-> Is it possible to merge the v4l2 spec from my tree soon? With all the 
-> various new API additions that are being discussed it would help a lot if 
-> they can also make patches against the documentation at the same time.
+Probably better to just change bttv->tvnorm is unsigned if we can.
 
-I'd like to give a few more days to Michael Schimek to ack on this. Since we
-are in a period of the year where lots of people gets vacation, it is better to
-give Michael some more time on this.
-
-> BTW, I'm working on improving the qv4l2 tool to make it much more useful for 
-> testing. I'm integrating it with the v4lconvert lib and added capture 
-> support as well. It should become a proper testbench for drivers. All the 
-> other tools around are really crappy, so I decided to extend qv4l2 instead.
-
-Good news! IMO, you should also add the new tool to get sysfs patch integrated
-on it. I was planning to do it later, but, since you're already working with
-qv4l2, maybe you can add this feature on it as well. The drawback is that it
-requires libsysfs-devel in order to compile. Maybe this can be an optional feature.
-
-> I've also bought a bunch of old hardware from ebay. I should be able to test 
-> various old v4l1 drivers and convert them to v4l2. I basically want to be 
-> able to test pretty much the whole v4l2 API, preferably with qv4l2. 
-> Yesterday two webcams came in, so I can now test w9968cf and se401.
-
-Great! IMO, the better would be to make those cams as sub-drivers of gspca. 
-
-> Check out my qv4l2 tree for progress on this tool!
-
-I'll take a look soon.
-
-> Now all I need is lots more time :-(
-
-I know what you're meaning... I'm also needing more time here... I just wrote
-some tools to help me with patchwork stuff. Hopefully, this week, I'll have all
-pending patches (there that aren't being reviewed by somebody else) updated.
-
-Cheers,
-Mauro
+>
+> see vi drivers/media/video/bt8xx/bttvp.h +381
+> since norm is unsigned in set_tvnorm, a negative won't get noticed.
+> so remove the redundant check and move it to the caller.
+>
+> My question is: should we error return like this?
+>
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+> index c71f394..6f50f90 100644
+> --- a/drivers/media/video/bt8xx/bttv-driver.c
+> +++ b/drivers/media/video/bt8xx/bttv-driver.c
+> @@ -1290,7 +1290,7 @@ set_tvnorm(struct bttv *btv, unsigned int norm)
+>  	const struct bttv_tvnorm *tvnorm;
+>  	v4l2_std_id id;
+>
+> -	if (norm < 0 || norm >= BTTV_TVNORMS)
+> +	if (norm >= BTTV_TVNORMS)
+>  		return -EINVAL;
+>
+>  	tvnorm = &bttv_tvnorms[norm];
+> @@ -3266,6 +3266,10 @@ static int bttv_open(struct file *file)
+>  			    V4L2_FIELD_SEQ_TB,
+>  			    sizeof(struct bttv_buffer),
+>  			    fh);
+> +	if (btv->norm < 0) {
+> +                unlock_kernel();
+> +                return -EINVAL;
+> +        }
+>  	set_tvnorm(btv,btv->tvnorm);
+>  	set_input(btv, btv->input, btv->tvnorm);
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
