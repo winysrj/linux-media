@@ -1,26 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from bay0-omc2-s8.bay0.hotmail.com ([65.54.246.144])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1LRVbP-0005Be-TX
-	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 18:50:28 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so3678019fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 09:50:24 -0800 (PST)
+	(envelope-from <tpreitzel@hotmail.com>) id 1LP1iY-0003Q8-Tx
+	for linux-dvb@linuxtv.org; Mon, 19 Jan 2009 22:31:35 +0100
+Message-ID: <BAY143-W3DA5DF6025B451BFE7541B2D30@phx.gbl>
+From: TP Reitzel <tpreitzel@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 19 Jan 2009 21:30:58 +0000
 MIME-Version: 1.0
-In-Reply-To: <c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
-	<157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>
-	<157f4a8c0901260741l4d263b8bk6e34cb5bb56d8c2@mail.gmail.com>
-	<c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>
-	<157f4a8c0901260751l39214908ydfeed5ba12b4d48b@mail.gmail.com>
-	<157f4a8c0901260808i39b784f6m13db53db2f135a37@mail.gmail.com>
-	<c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>
-Date: Mon, 26 Jan 2009 21:50:24 +0400
-Message-ID: <1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
-From: Manu Abraham <abraham.manu@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on
-	HDchannels
+Subject: [linux-dvb] gspca_spca505 mmap
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,77 +17,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1956008174=="
+Content-Type: multipart/mixed; boundary="===============1881352088=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1956008174==
-Content-Type: multipart/alternative; boundary=000e0cd248fa8b5b400461665fb7
+--===============1881352088==
+Content-Type: multipart/alternative;
+	boundary="_611fcac9-813a-4738-848b-d2bd17bb2856_"
 
---000e0cd248fa8b5b400461665fb7
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-On Mon, Jan 26, 2009 at 8:19 PM, Alex Betis <alex.betis@gmail.com> wrote:
-
->
-> Latest changes I can see at
->> http://mercurial.intuxication.org/hg/s2-liplianin/ were made about 7
->> to 10 days ago. Is this correct? If that's correct, then I'm using
->> latest Igor drivers. And behavior described above is what I'm getting.
->>
->> I can't see anything related do high SR channels on Igor repository.
->
-> He did it few months ago. If you're on latest than you should have it.
->
->
-
-
-It won't. All you will manage to do is burn your demodulator, if you happen
-to
-be that lucky one, with that change. At least a few people have burned
-demodulators by now, from what i do see.
-
-
-Regards,
-Manu
-
---000e0cd248fa8b5b400461665fb7
-Content-Type: text/html; charset=UTF-8
+--_611fcac9-813a-4738-848b-d2bd17bb2856_
+Content-Type: text/plain; charset="Windows-1252"
 Content-Transfer-Encoding: quoted-printable
 
-<div dir=3D"ltr"><br><br><div class=3D"gmail_quote">On Mon, Jan 26, 2009 at=
- 8:19 PM, Alex Betis <span dir=3D"ltr">&lt;<a href=3D"mailto:alex.betis@gma=
-il.com">alex.betis@gmail.com</a>&gt;</span> wrote:<br><blockquote class=3D"=
-gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0p=
-t 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div dir=3D"ltr"><div class=3D"gmail_quote"><div><div><br></div><div class=
-=3D"Wj3C7c"><blockquote class=3D"gmail_quote" style=3D"border-left: 1px sol=
-id rgb(204, 204, 204); margin: 0px 0px 0px 0.8ex; padding-left: 1ex;">Lates=
-t changes I can see at<br>
-<a href=3D"http://mercurial.intuxication.org/hg/s2-liplianin/" target=3D"_b=
-lank">http://mercurial.intuxication.org/hg/s2-liplianin/</a> were made abou=
-t 7<br>
-to 10 days ago. Is this correct? If that&#39;s correct, then I&#39;m using<=
-br>latest Igor drivers. And behavior described above is what I&#39;m gettin=
-g.<br><br>I can&#39;t see anything related do high SR channels on Igor repo=
-sitory.</blockquote>
+
+I just pulled mercurial's v4l-dvb for Bluewhite64's 2.6.27.7 kernel. This s=
+pca505 driver for Intel's PC Camera Pro=2C 0733:0430 isn't even functioning=
+. The MMAP feature of this driver just displays a screen of horizontal gree=
+n lines. Furthermore=2C M. Xhaard stripped the external composite feature f=
+rom this driver a few years ago and no one has yet added it back. If you vi=
+sit the original website for this driver on sourceforge.net=2C you'll see t=
+he original driver for this video camera including composite support. As it=
+ is=2C the driver for this camera is totally inoperative.
+
+I thank you.
 
 
-</div></div><div>He did it few months ago. If you&#39;re on latest than you=
- should have it.</div><div class=3D"Ih2E3d">
-<div>&nbsp;</div></div></div></div></blockquote></div><br><br>It won&#39;t.=
- All you will manage to do is burn your demodulator, if you happen to <br>b=
-e that lucky one, with that change. At least a few people have burned <br>d=
-emodulators by now, from what i do see.<br>
-<br><br>Regards,<br>Manu<br><br></div>
 
---000e0cd248fa8b5b400461665fb7--
+_________________________________________________________________
+Windows Live=99 Hotmail=AE: Chat. Store. Share. Do more with mail.=20
+http://windowslive.com/explore?ocid=3DTXT_TAGLM_WL_t1_hm_justgotbetter_expl=
+ore_012009=
+
+--_611fcac9-813a-4738-848b-d2bd17bb2856_
+Content-Type: text/html; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Verdana
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+I just pulled mercurial's v4l-dvb for Bluewhite64's 2.6.27.7 kernel. This s=
+pca505 driver for Intel's PC Camera Pro=2C 0733:0430 isn't even functioning=
+. The MMAP feature of this driver just displays a screen of horizontal gree=
+n lines. Furthermore=2C M. Xhaard stripped the external composite feature f=
+rom this driver a few years ago and no one has yet added it back. If you vi=
+sit the original website for this driver on sourceforge.net=2C you'll see t=
+he original driver for this video camera including composite support. As it=
+ is=2C the driver for this camera is totally inoperative.<br><br>I thank yo=
+u.<br><br><br><br /><hr />Windows Live=99 Hotmail=AE: Chat. Store. Share. D=
+o more with mail.  <a href=3D'http://windowslive.com/explore?ocid=3DTXT_TAG=
+LM_WL_t1_hm_justgotbetter_explore_012009' target=3D'_new'>Check it out.</a>=
+</body>
+</html>=
+
+--_611fcac9-813a-4738-848b-d2bd17bb2856_--
 
 
---===============1956008174==
+--===============1881352088==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -110,4 +98,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1956008174==--
+--===============1881352088==--
