@@ -1,116 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55555 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33890 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751569AbZA2Gsu convert rfc822-to-8bit (ORCPT
+	id S1751439AbZASPsD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 01:48:50 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Mon, 19 Jan 2009 10:48:03 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 29 Jan 2009 12:17:26 +0530
-Subject: RE: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card
- Support
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA78FFBC@dbde02.ent.ti.com>
-In-Reply-To: <20090107083931.226e1898@pedra.chehab.org>
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Curran, Dominic" <dcurran@ti.com>,
+	"Kulkarni, Pallavi" <p-kulkarni@ti.com>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	"mikko.hurskainen@nokia.com" <mikko.hurskainen@nokia.com>
+Date: Mon, 19 Jan 2009 09:47:36 -0600
+Subject: RE: Color FX User control proposal
+Message-ID: <A24693684029E5489D1D202277BE8944165DCA49@dlee02.ent.ti.com>
+In-Reply-To: <200901191632.26404.laurent.pinchart@skynet.be>
 Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
-Thanks,
-Vaibhav Hiremath
-
 > -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
-> Sent: Wednesday, January 07, 2009 4:10 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; video4linux-list@redhat.com; linux-
-> media@vger.kernel.org
-> Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter
-> Card Support
+> From: Laurent Pinchart [mailto:laurent.pinchart@skynet.be]
+> Sent: Monday, January 19, 2009 9:32 AM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com; Nagalla,
+> Hari; Curran, Dominic; Kulkarni, Pallavi; Sakari Ailus; Tuukka.O Toivonen;
+> mikko.hurskainen@nokia.com
+> Subject: Re: Color FX User control proposal
 > 
-> On Wed, 7 Jan 2009 15:51:53 +0530
-> "Hiremath, Vaibhav" <hvaibhav@ti.com> wrote:
+> Hi,
 > 
-> 
-> > [Hiremath, Vaibhav] Mauro, the Daughter card not only supports
-> TVP1546/sensor but also supports USB EHCI. So this driver may not be
-> fit into V4L driver. Daughter card driver (board-omap3evm-dc.c) only
-> does basic initialization which happens during arch_init. The
-> underneath V4L drivers are omap34xxcam.c (drivers/media/video) and
-> TVP514x.c (drivers/media/video).
-> 
-> Understood. This makes things a little more complicated. I suggest
-> then to
-> split the V4L specific part into a separate file, in order to allow
-> a better
-> maintenance (something like board-omap3evm-dc-v4l.c), since I'd like
-> to review
-> the changes there.
+> On Tuesday 13 January 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+> > Hi,
 > >
-[Hiremath, Vaibhav] Mauro sorry for delayed response, again as I mentioned I was busy with our internal commitments. 
-
-I do agree with your point and will change accordingly. Now the config option will look like something - 
-
-Arch/arm/mach-omap2/Kconfig - 
-
-config MACH_OMAP3EVM_MMDC
-        bool "OMAP 3530 EVM Mass Market daughter card board"
-        depends on ARCH_OMAP3 && ARCH_OMAP34XX && MACH_OMAP3EVM
-
-arch/arm/mach-omap2/Makefile - 
-
-obj-$(CONFIG_MACH_OMAP3EVM_MMDC)        += board-omap3evm-dc-v4l.o
-
-In the future we may want to add board-omap3evm-dc-usb.c under the same option.
-
-> > > > +/* include V4L2 camera driver related header file */
-> > > > +#if defined(CONFIG_VIDEO_OMAP3) ||
-> > > defined(CONFIG_VIDEO_OMAP3_MODULE)
-> > > > +#include <../drivers/media/video/omap34xxcam.h>
-> > > > +#include <../drivers/media/video/isp/ispreg.h>
-> > > > +#endif				/* #ifdef CONFIG_VIDEO_OMAP3 */
-> > > > +#endif				/* #ifdef CONFIG_VIDEO_TVP514X*/
-> > >
-> > > Please, don't use ../* at your includes. IMO, the better is to
-> > > create a
-> > > drivers/media/video/omap dir, and put omap2/omap3 files there,
-> > > including board-omap3evm-dc.c.
-> > > This will avoid those ugly includes.
-> > >
-> > [Hiremath, Vaibhav] I do agree with this. I have mentioned this in
-> my TODO list.
-> 
-> A cleaner solution is to add something like this at the Makefile:
-> 
-> EXTRA_CFLAGS += -Idrivers/media/video
-> EXTRA_CFLAGS += -Idrivers/media/video/isp
-> 
-> Then, all you need to do is to use:
-> 
-> #include <omap34xxcam.h>
-> #include <ispreg.h>
-> 
+> > Recently in TI and Nokia, we are working towards having for acceptance
+> an
+> > OMAP3 camera driver, which uses an on-chip Image Signal Processor that
+> has
+> > one feature of color effects. We were using a V4L2 private CID for that,
+> > but have been suggested that this could be common enough to propose to
+> the
+> > V4L2 spec aswell for other devices to use.
 > >
-> > > Btw, drivers/media/video/isp/ currently doesn't exist. Please
-> submit
-> > > the patch for it first.
-> > >
-[Hiremath, Vaibhav] I do agree with this, but I have seen there are some other board specific files including the header files in this way, 
-arch/arm/mach-omap2/board-n800-camera.c
-arch/arm/mach-omap2/board-n800.c
+> > Below patch adds the control to include/linux/videodev2.h file, should
+> this
+> > be enough? (This patch is taking as a codebase the latest linux-omap
+> > kernel, which I believe is v2.6.28 still)
+> >
+> > Thanks and Regards,
+> > Sergio
+> >
+> > From 022b87f3e7f3c3be141ab271a110948ea9567a69 Mon Sep 17 00:00:00 2001
+> > From: Sergio Aguirre <saaguirre@ti.com>
+> > Date: Tue, 13 Jan 2009 16:25:31 -0600
+> > Subject: [PATCH] V4L2: Add COLORFX user control
+> >
+> > This is a common feature on many cameras. the options are:
+> > Default colors,
+> > B & W,
+> > Sepia
+> >
+> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > ---
+> >  include/linux/videodev2.h |    9 ++++++++-
+> >  1 files changed, 8 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 4669d7e..b02a10d 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -876,8 +876,15 @@ enum v4l2_power_line_frequency {
+> >  #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
+> >  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
+> >  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+> > +#define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
+> > +enum v4l2_colorfx {
+> > +	V4L2_COLORFX_DEFAULT	= 0,
+> 
+> If this option disables color effects, shouldn't it be called
+> V4L2_COLORFX_NONE instead ?
 
-> > [Hiremath, Vaibhav] Following up with Sergio on this, and soon
-> will be available.
+You're right. Makes more sense, I'll update the patch.
+
+Regards,
+Sergio
+
 > 
-> Ok, thanks.
+> > +	V4L2_COLORFX_BW		= 1,
+> > +	V4L2_COLORFX_SEPIA	= 2,
+> > +};
+> > +
+> >  /* last CID + 1 */
+> > -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+31)
+> > +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+32)
+> >
+> >  /*  MPEG-class control IDs defined by V4L2 */
+> >  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG |
+> 0x900)
 > 
-> Cheers,
-> Mauro
+> Best regards,
+> 
+> Laurent Pinchart
 
