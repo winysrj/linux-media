@@ -1,71 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.120]:37324 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753940AbZASVqe (ORCPT
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:39741 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137AbZASUq6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2009 16:46:34 -0500
-Message-ID: <4974F4B3.8030205@gmail.com>
-Date: Mon, 19 Jan 2009 13:46:27 -0800
-From: Bob Cunningham <FlyMyPG@gmail.com>
+	Mon, 19 Jan 2009 15:46:58 -0500
+Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id A03DB786D25
+	for <linux-media@vger.kernel.org>; Mon, 19 Jan 2009 21:39:45 +0100 (CET)
+Message-ID: <4974E4BE.2060107@free.fr>
+Date: Mon, 19 Jan 2009 21:38:22 +0100
+From: matthieu castet <castet.matthieu@free.fr>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>	<200901161555.00803.hverkuil@xs4all.nl>	<Pine.LNX.4.64.0901160903080.21448@cnc.isely.net>	<4970C036.2000809@cinnamon-sage.de> <20090116155912.7bae237a@caramujo.chehab.org>
-In-Reply-To: <20090116155912.7bae237a@caramujo.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support faulty USB IDs on DIBUSB_MC
+References: <484A72D3.7070500@free.fr>
+In-Reply-To: <484A72D3.7070500@free.fr>
+Content-Type: multipart/mixed;
+ boundary="------------080901020804070106090203"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> On Fri, 16 Jan 2009 18:13:26 +0100
-> Lars Hanisch <dvb@cinnamon-sage.de> wrote:
+This is a multi-part message in MIME format.
+--------------080901020804070106090203
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+matthieu castet wrote:
+> Hi,
 > 
->> Mike Isely wrote:
->>> On Fri, 16 Jan 2009, Hans Verkuil wrote:
->>>
->>>> On Friday 16 January 2009 15:48:45 Patrick Boettcher wrote:
->>>>> Hi Mauro,
->>>>>
->>>>> Since the creation of linux-media@vger.kernel.org I'm seeing lots of
->>>>> cross-postings between linux-dvb, linux-media and video4linux. This
->>>>> is a little bit annoying if you are subscribed to all of those lists.
->>>>>
->>>>> Worse is, that some people only send requests to linux-media. Like
->>>>> that linux-dvb-only subscribers can't help...
->>>>>
->>>>> Why not closing linux-dvb (and video4linux) and transferring the
->>>>> currently subscribed users to linux-media automatically?
->>>> I agree with Patrick. I suggest a daily automatic posting to linux-dvb 
->>>> and video4linux telling people that on February 1st these lists 
->>>> disappear and that they should use linux-media instead. Then they can 
->>>> be closed down at the end of the month. I definitely wouldn't wait any 
->>>> longer since it is rather messy right now. One month transition period 
->>>> seems reasonable to me.
->>>>
->>> Amen to that.  I've been telling people to go over to linux-media, but 
->>> old habits are hard to break.  It's time to actually make a clean break 
->>> from the old lists.
->>   +1 from me
->>
->>   Although I'm not an active developer (I'm just an interested user), 
->> reading the lists at the moment is hard...
+> I got a LITE-ON USB2.0 DVB-T Tuner that loose it's cold state vid/pid 
+> and got  FX2 dev kit one (0x04b4, 0x8613).
 > 
-> Instead of just removing the ML, maybe the better is to change the reply to to
-> linux-media and send an autoreply message to the sender.
->> Lars.
+> This patch introduce an option similar to the DVB_USB_DIBUSB_MB_FAULTY :
+> it add the FX2 dev kit ids to the DIBUSB_MC driver if 
+> DVB_USB_DIBUSB_MC_FAULTY is selected.
 > 
-> Cheers,
-> Mauro
+> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
+> 
 
-Reasons I'd like to keep both lists going:  
+Ping
 
-1. My subscription requests to linux-media have yielded nothing.  Anything broken with the approval process?
+--------------080901020804070106090203
+Content-Type: text/plain;
+ name="dib3000c_faulty_id"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="dib3000c_faulty_id"
 
-2. I agree with another poster: I only care about broadcast and cable video, both analog and digital.  I eventually hope to help get my "AnyTV AUTV002 USB ATSC/QAM Tuner Stick" supported by V4L, and then use it in a MythTV system.  I'd prefer a list that focuses on such devices and systems, if possible.  Which seems to match the mission of linux-dvb!
-
-The general issue of multi-posting seems typical of list forking/merging/moving, and should settle down as the intent of each of the lists in the group of lists becomes better established in practice.
-
-
--BobC
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvS2NvbmZpZyBiL2RyaXZl
+cnMvbWVkaWEvZHZiL2R2Yi11c2IvS2NvbmZpZwppbmRleCBmMDBhMGViLi5hNjU2YjliIDEw
+MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL0tjb25maWcKKysrIGIvZHJp
+dmVycy9tZWRpYS9kdmIvZHZiLXVzYi9LY29uZmlnCkBAIC02OCw2ICs2OCwxMiBAQCBjb25m
+aWcgRFZCX1VTQl9ESUJVU0JfTUMKIAkgIFNheSBZIGlmIHlvdSBvd24gc3VjaCBhIGRldmlj
+ZSBhbmQgd2FudCB0byB1c2UgaXQuIFlvdSBzaG91bGQgYnVpbGQgaXQgYXMKIAkgIGEgbW9k
+dWxlLgogCitjb25maWcgRFZCX1VTQl9ESUJVU0JfTUNfRkFVTFRZCisJYm9vbCAiU3VwcG9y
+dCBmYXVsdHkgVVNCIElEcyIKKwlkZXBlbmRzIG9uIERWQl9VU0JfRElCVVNCX01DCisJaGVs
+cAorCSAgU3VwcG9ydCBmb3IgZmF1bHR5IFVTQiBJRHMgZHVlIHRvIGFuIGludmFsaWQgRUVQ
+Uk9NIG9uIHNvbWUgTElURS1PTiBkZXZpY2VzLgorCiBjb25maWcgRFZCX1VTQl9ESUIwNzAw
+CiAJdHJpc3RhdGUgIkRpQmNvbSBEaUIwNzAwIFVTQiBEVkIgZGV2aWNlcyAoc2VlIGhlbHAg
+Zm9yIHN1cHBvcnRlZCBkZXZpY2VzKSIKIAlkZXBlbmRzIG9uIERWQl9VU0IKZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGlidXNiLW1jLmMgYi9kcml2ZXJzL21l
+ZGlhL2R2Yi9kdmItdXNiL2RpYnVzYi1tYy5jCmluZGV4IDA1OWNlYzkuLmFiNTc2NmEgMTAw
+NjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGlidXNiLW1jLmMKKysrIGIv
+ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWJ1c2ItbWMuYwpAQCAtNDIsNiArNDIsMTcg
+QEAgc3RhdGljIHN0cnVjdCB1c2JfZGV2aWNlX2lkIGRpYnVzYl9kaWIzMDAwbWNfdGFibGUg
+W10gPSB7CiAvKiAxMSAqLwl7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9VTFRJTUFfRUxFQ1RST05J
+QywJVVNCX1BJRF9BUlRFQ19UMTRfV0FSTSkgfSwKIC8qIDEyICovCXsgVVNCX0RFVklDRShV
+U0JfVklEX0xFQURURUssCQlVU0JfUElEX1dJTkZBU1RfRFRWX0RPTkdMRV9DT0xEKSB9LAog
+LyogMTMgKi8JeyBVU0JfREVWSUNFKFVTQl9WSURfTEVBRFRFSywJCVVTQl9QSURfV0lORkFT
+VF9EVFZfRE9OR0xFX1dBUk0pIH0sCisvKgorICogWFhYOiBTb21lIExJVEUtT04gZGV2aWNl
+cyBzZWVtIHRvIGxvb3NlIHRoZWlyIGlkIGFmdGVyIHNvbWUgdGltZS4gQmFkIEVFUFJPTSA/
+Pz8uCisgKiAgICAgIFdlIGRvbid0IGNhdGNoIHRoZXNlIGZhdWx0eSBJRHMgKG5hbWVseSAn
+Q3lwcmVzcyBGWDIgVVNCIGNvbnRyb2xsZXInKSB0aGF0CisgKiAgICAgIGhhdmUgYmVlbiBs
+ZWZ0IG9uIHRoZSBkZXZpY2UuIElmIHlvdSBkb24ndCBoYXZlIHN1Y2ggYSBkZXZpY2UgYnV0
+IGFuIExJVEUtT04KKyAqICAgICAgZGV2aWNlIHRoYXQncyBzdXBwb3NlZCB0byB3b3JrIHdp
+dGggdGhpcyBkcml2ZXIgYnV0IGlzIG5vdCBkZXRlY3RlZCBieSBpdCwKKyAqICAgICAgZnJl
+ZSB0byBlbmFibGUgQ09ORklHX0RWQl9VU0JfRElCVVNCX01DX0ZBVUxUWSB2aWEgeW91ciBr
+ZXJuZWwgY29uZmlnLgorICovCisKKyNpZmRlZiBDT05GSUdfRFZCX1VTQl9ESUJVU0JfTUNf
+RkFVTFRZCisvKiAxNCAqLwl7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9DWVBSRVNTLAkJVVNCX1BJ
+RF9VTFRJTUFfVFZCT1hfVVNCMl9GWF9DT0xEKSB9LAorI2VuZGlmCiAJCQl7IH0JCS8qIFRl
+cm1pbmF0aW5nIGVudHJ5ICovCiB9OwogTU9EVUxFX0RFVklDRV9UQUJMRSAodXNiLCBkaWJ1
+c2JfZGliMzAwMG1jX3RhYmxlKTsKQEAgLTg4LDcgKzk5LDExIEBAIHN0YXRpYyBzdHJ1Y3Qg
+ZHZiX3VzYl9kZXZpY2VfcHJvcGVydGllcyBkaWJ1c2JfbWNfcHJvcGVydGllcyA9IHsKIAog
+CS5nZW5lcmljX2J1bGtfY3RybF9lbmRwb2ludCA9IDB4MDEsCiAKKyNpZmRlZiBDT05GSUdf
+RFZCX1VTQl9ESUJVU0JfTUNfRkFVTFRZCisJLm51bV9kZXZpY2VfZGVzY3MgPSA4LAorI2Vs
+c2UKIAkubnVtX2RldmljZV9kZXNjcyA9IDcsCisjZW5kaWYKIAkuZGV2aWNlcyA9IHsKIAkJ
+eyAgICJEaUJjb20gVVNCMi4wIERWQi1UIHJlZmVyZW5jZSBkZXNpZ24gKE1PRDMwMDBQKSIs
+CiAJCQl7ICZkaWJ1c2JfZGliMzAwMG1jX3RhYmxlWzBdLCBOVUxMIH0sCkBAIC0xMTksNiAr
+MTM0LDEzIEBAIHN0YXRpYyBzdHJ1Y3QgZHZiX3VzYl9kZXZpY2VfcHJvcGVydGllcyBkaWJ1
+c2JfbWNfcHJvcGVydGllcyA9IHsKIAkJCXsgJmRpYnVzYl9kaWIzMDAwbWNfdGFibGVbMTJd
+LCBOVUxMIH0sCiAJCQl7ICZkaWJ1c2JfZGliMzAwMG1jX3RhYmxlWzEzXSwgTlVMTCB9LAog
+CQl9LAorI2lmZGVmIENPTkZJR19EVkJfVVNCX0RJQlVTQl9NQ19GQVVMVFkKKwkJeyAgICJM
+SVRFLU9OIFVTQjIuMCBEVkItVCBUdW5lciAoZmF1bHR5IFVTQiBJRHMpIiwKKwkJICAgIC8q
+IEFsc28gcmVicmFuZGVkIGFzIEludHVpeCBTODAwLCBUb3NoaWJhICovCisJCQl7ICZkaWJ1
+c2JfZGliMzAwMG1jX3RhYmxlWzE0XSwgTlVMTCB9LAorCQkJeyBOVUxMIH0sCisJCX0sCisj
+ZW5kaWYKIAkJeyBOVUxMIH0sCiAJfQogfTsK
+--------------080901020804070106090203--
