@@ -1,182 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3656 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850AbZAYJvI (ORCPT
+Received: from web110806.mail.gq1.yahoo.com ([67.195.13.229]:24505 "HELO
+	web110806.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758989AbZASNCK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 04:51:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: Re: [PATCH] New V4L2 ioctls for OMAP class of Devices
-Date: Sun, 25 Jan 2009 10:50:35 +0100
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EB83@dbde02.ent.ti.com> <200901251035.49963.hverkuil@xs4all.nl>
-In-Reply-To: <200901251035.49963.hverkuil@xs4all.nl>
+	Mon, 19 Jan 2009 08:02:10 -0500
+Date: Mon, 19 Jan 2009 05:02:09 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+Reply-To: urishk@yahoo.com
+Subject: Re: Siano's patches
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org,
+	linuxtv-commits@linuxtv.org, linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <20090119092923.7a9b808a@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901251050.35417.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <244108.33255.qm@web110806.mail.gq1.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 25 January 2009 10:35:49 Hans Verkuil wrote:
-> On Saturday 24 January 2009 18:03:51 Shah, Hardik wrote:
-> > > -----Original Message-----
-> > > From: Shah, Hardik
-> > > Sent: Wednesday, January 21, 2009 5:24 PM
-> > > To: video4linux-list@redhat.com; linux-media@vger.kernel.org
-> > > Cc: Shah, Hardik; Jadav, Brijesh R; Nagalla, Hari; Hadli, Manjunath;
-> > > R, Sivaraj; Hiremath, Vaibhav
-> > > Subject: [PATCH] New V4L2 ioctls for OMAP class of Devices
-> > >
-> > > 1.  Control ID added for rotation.  Same as HFLIP.
-> > > 2.  Control ID added for setting background color on
-> > >     output device.
-> > > 3.  New ioctl added for setting the color space conversion from
-> > >     YUV to RGB.
-> > >
-> > > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> > > Signed-off-by: Hari Nagalla <hnagalla@ti.com>
-> > > Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> > > Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> > > Signed-off-by: R Sivaraj <sivaraj@ti.com>
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > ---
-> > >  linux/drivers/media/video/v4l2-ioctl.c |   19 ++++++++++++++++++-
-> > >  linux/include/linux/videodev2.h        |   19 ++++++++++++++++++-
-> > >  linux/include/media/v4l2-ioctl.h       |    4 ++++
-> > >  3 files changed, 40 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/linux/drivers/media/video/v4l2-ioctl.c
-> > > b/linux/drivers/media/video/v4l2-ioctl.c
-> > > index 165bc90..7599da8 100644
-> > > --- a/linux/drivers/media/video/v4l2-ioctl.c
-> > > +++ b/linux/drivers/media/video/v4l2-ioctl.c
-> > > @@ -270,6 +270,8 @@ static const char *v4l2_ioctls[] = {
-> > >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
-> > >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
-> > >  #endif
-> > > +	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   =
-> > > "VIDIOC_S_COLOR_SPACE_CONV", +	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]  
-> > > = "VIDIOC_G_COLOR_SPACE_CONV", };
-> > >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-> > >
-> > > @@ -1838,7 +1840,22 @@ static long __video_do_ioctl(struct file
-> > > *file, }
-> > >  		break;
-> > >  	}
-> > > -
-> > > +	case VIDIOC_S_COLOR_SPACE_CONV:
-> > > +	{
-> > > +		struct v4l2_color_space_conversion *p = arg;
-> > > +		if (!ops->vidioc_s_color_space_conv)
-> > > +			break;
-> > > +		ret = ops->vidioc_s_color_space_conv(file, fh, p);
-> > > +		break;
-> > > +	}
-> > > +	case VIDIOC_G_COLOR_SPACE_CONV:
-> > > +	{
-> > > +		struct v4l2_color_space_conversion *p = arg;
-> > > +		if (!ops->vidioc_g_color_space_conv)
-> > > +			break;
-> > > +		ret = ops->vidioc_g_color_space_conv(file, fh, p);
-> > > +		break;
-> > > +	}
-> > >  	default:
-> > >  	{
-> > >  		if (!ops->vidioc_default)
-> > > diff --git a/linux/include/linux/videodev2.h
-> > > b/linux/include/linux/videodev2.h index b0c5010..9fbc3b0 100644
-> > > --- a/linux/include/linux/videodev2.h
-> > > +++ b/linux/include/linux/videodev2.h
-> > > @@ -879,8 +879,10 @@ enum v4l2_power_line_frequency {
-> > >  #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
-> > >  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
-> > >  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
-> > > +#define V4L2_CID_ROTATION			(V4L2_CID_BASE+31)
-> > > +#define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+32)
-> > >  /* last CID + 1 */
-> > > -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+31)
-> > > +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+33)
-> > >
-> > >  /*  MPEG-class control IDs defined by V4L2 */
-> > >  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
-> > > @@ -1192,6 +1194,17 @@ struct v4l2_hw_freq_seek {
-> > >  };
-> > >
-> > >  /*
-> > > + * Color conversion
-> > > + * User needs to pass pointer to color conversion matrix
-> > > + * defined by hardware
-> > > + */
-> > > +struct v4l2_color_space_conversion {
-> > > +	__s32 coefficients[3][3];
-> > > +	__s32 const_factor;
-> > > +	__s32 offsets[3];
-> > > +};
-> > > +
-> > > +/*
-> > >   *	A U D I O
-> > >   */
-> > >  struct v4l2_audio {
-> > > @@ -1493,9 +1506,13 @@ struct v4l2_chip_ident_old {
-> > >  #endif
-> > >
-> > >  #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct
-> > > v4l2_hw_freq_seek) +
-> > > +#define VIDIOC_S_COLOR_SPACE_CONV      _IOW('V', 83, struct
-> > > v4l2_color_space_conversion)
-> > > +#define VIDIOC_G_COLOR_SPACE_CONV      _IOR('V', 84, struct
-> > > v4l2_color_space_conversion)
-> > >  /* Reminder: when adding new ioctls please add support for them to
-> > >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> > >
-> > > +
-> > >  #ifdef __OLD_VIDIOC_
-> > >  /* for compatibility, will go away some day */
-> > >  #define VIDIOC_OVERLAY_OLD     	_IOWR('V', 14, int)
-> > > diff --git a/linux/include/media/v4l2-ioctl.h
-> > > b/linux/include/media/v4l2- ioctl.h
-> > > index b01c044..0c44ecf 100644
-> > > --- a/linux/include/media/v4l2-ioctl.h
-> > > +++ b/linux/include/media/v4l2-ioctl.h
-> > > @@ -241,6 +241,10 @@ struct v4l2_ioctl_ops {
-> > >  	/* For other private ioctls */
-> > >  	long (*vidioc_default)	       (struct file *file, void *fh,
-> > >  					int cmd, void *arg);
-> > > +	int (*vidioc_s_color_space_conv)     (struct file *file, void *fh,
-> > > +					struct v4l2_color_space_conversion *a);
-> > > +	int (*vidioc_g_color_space_conv)     (struct file *file, void *fh,
-> > > +					struct v4l2_color_space_conversion *a);
-> > >  };
-> > >
-> > >
-> > > --
-> > > 1.5.6
-> >
-> > [Shah, Hardik] Hi,
-> > Any comments on this patch.
-> > Hans/Mauro,
-> > If possible can you integrate this onto your development branch.
->
-> Hi Hardik,
->
-> I've one question regarding the rotation control: I assume that this is
-> limited to 0, 90, 180 and 270 degrees? I think it might be better to
-> implement this as an enum in that case.
 
-I also would like to see the documentation for these ioctls and controls. I 
-hope my www.linuxtv.org/hg/~hverkuil/v4l-dvb-spec tree will be merged soon 
-with the master, but in the meantime you can mail a diff against the 
-documentation in my tree. I will ensure that the documentation patches will 
-be applied correctly once the spec is merged in the main v4l-dvb 
-repository.
 
-Regards,
 
-	Hans
+--- On Mon, 1/19/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Subject: Re: Siano's patches
+> To: urishk@yahoo.com
+> Cc: "Michael Krufky" <mkrufky@linuxtv.org>, linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org, "linux-dvb" <linux-dvb@linuxtv.org>
+> Date: Monday, January 19, 2009, 1:29 PM
+> Hi Uri,
+> 
+> On Sun, 18 Jan 2009 10:37:32 -0800 (PST)
+> Uri Shkolnik <urishk@yahoo.com> wrote:
+> 
+> > > From: Michael Krufky <mkrufky@linuxtv.org>
+> > > Subject: Re: Siano's patches
+> > > To: urishk@yahoo.com
+> > > Cc: "Mauro Carvalho"
+> <mchehab@infradead.org>, linux-media@vger.kernel.org,
+> linuxtv-commits@linuxtv.org, "linux-dvb"
+> <linux-dvb@linuxtv.org>
+> > > Date: Sunday, January 18, 2009, 8:07 PM
+> > > Uri Shkolnik wrote:
+> > > > Hi Mauro,
+> > > > 
+> > > > Hope you had a great weekend :-)
+> 
+> Yes, I had ;)
+> 
+> > > > 
+> > > > 
+> > > > I would like to know if you have already
+> reached the
+> > > conclusion whether to use the Mercurial tree
+> option or the
+> > > email option we discussed last week.   
+> > > > Regarding the patches that have been already
+> submitted
+> > > to the linux-media@vger.kernel.org ML, any
+> schedule for the
+> > > merge?   
+> > > Uri,
+> > > 
+> > > I've already responded to your last email --
+> You should
+> > > continue to submit patches to the mailing list.
+> > 
+> > Mauro suggested two options, I asked for the first
+> (the Mercurial tree) which is more convenient for me. As it
+> used by multiple parties here and if there is no objection
+> based on some unknown (to me) reason, I would like to use
+> that option.
+> > 
+> > 
+> > > 
+> > > As for your pending patches, I explained in my
+> email that
+> > > they are in my queue.  I am in the midst of
+> reviewing the
+> > > changes.  As you're already aware, your
+> changes break
+> > > the Hauppauge device's functionality.  After
+> merging
+> > > your changes, I will have to go back and
+> re-implement the
+> > > Hauppauge-specific changes in the driver, using
+> the new
+> > > methods in your pending patches.
+> > > 
+> > 
+> > Some of the patches in the list are pending from early
+> September, 2008.
+> > ( I think it's time they will be popped out of the
+> queue.... :-)
+> > 
+> > Regarding restoring, modifying, enhancing, etc. -
+> Please do it successively, submitting my patches and your
+> after them, so (1) the congruity between the Mercurial DVB
+> tree change-sets and Siano's change-set will be kept,
+> and (2) I, and other reviewers, may review your
+> patches/changes in their own change-sets.
+> > 
+> > 
+> > > Once I have reviewed & merged your changes
+> and after I
+> > > can restore the proper functionality to the
+> hauppauge
+> > > devices, then I will post a new mercurial tree
+> for testing
+> > > against all siano-based devices.
+> > > 
+> > 
+> > Please see above
+> > 
+> > > Please be patient -- this takes time.
+> 
+> Since the current Siano implementation is needed by some
+> existing cards and
+> that, from what I understood from your request and Michael
+> comments, those
+> patches could cause some regressions with the supported
+> boards, we should wait
+> for Michael's reviews and tests, if this doesn't
+> take that long.
+> 
+> Uri, I'm assuming that you're familiar with kernel
+> development. If not, I
+> recommend you to read README.patches and the related docs
+> at kernel's
+> Documentation tree. If you have any doubts about that,
+> we're here to answer.
+> 
+> Those patches are late for kernel 2.6.29, since the merge
+> window for that
+> kernel were already closed. So, we will have some time
+> until the next open
+> window opens (we should have at least 5 weeks). This allows
+> us to do a better
+> review the changesets to be sure that:
+> 	they don't cause any regressions;
+> 	they don't violate the DVB API;
+> 	they don't create undocumented userspace API's;
+> 	they are using the best development practices on kernel
+> development;
+> 	individual patches don't break compilation (to avoid
+> breaking git bissect).
+> 
+> For a large changeset like Siano ones, such reviews take
+> time.
+> 
+> Ah, next time, please number your changesets with something
+> like [PATCH 01/xx].
+> This helps me to properly identify and honour the correct
+> patch order.
+> 
+> Cheers,
+> Mauro
+
+Hi Mauro,
+
+Thanks for your detailed response.
+Some comments and remarks -
+
+Please note that the vast majority of the added (new files) code is SDIO and SPI bus interfaces, (and also big endian support). I don't know anyone reading this ML (Mike is included), who has the tools to test this code, which has been tested thoroughly. However, comments about coding style and kernel-coding related remarks are most welcome (I already submitted a patch for review to fix some endianity issue Trent Piepho commented about).
+Please note that the SDIO patches has been written by none other than Pierre Ossman, who is the Linux kernel MMC maintainer (who wrote this code back in August 2008).
+
+Siano has some dozens of commercial Linux-based customers using the discussed sources. Those customers have their own QA engineers additionally to Siano internal QA team (which includes dedicated engineer for this task). Some of those companies products are already in the market (production level). 
+
+Second note, regarding regressions - the current code in the Mercurial tree includes code that Mike added without any review, which manipulate the chip-set's general purpose I/O. This code includes logical errors that causes boards with different layouts than Mike's to either deteriorate in performances (reception quality) or to stop functioning altogether. This issue got "blocker" status on my issues' list (the most severe type on my scale) and it prevents the various companies and individuals to use the Mercurial (and the kernel git) as a reliable source for Linux TV.
+
+I am fully aware that Mike need to add/modify some code in order to support current/additional HPG cards (boards). All those modification are (1) Related to single source file (sms-cards.c) and (2) Can and should be done *after* submitting Siano's patches. (3) Pass a review, like any other patch, *before* submitting them to the main Mercurial tree.
+
+Regarding "violate the DVB API" & "don't create undocumented userspace API's" - I guess you refers to the 'Siano Sub-system'. Well, .... this subject has been discussed a lot, and I don't mind at all to give it another round of discussions... 
+
+DVB v3 never supported CMMB, T-DMB, ISDB-T and some other MDTV standards. DVB v5/S2 yet to support them. 
+Those standards are used by ~2 Billion people. (yep, only little countries like Japan, China, S. Korea, Brazil, the entire Middle East and the Arab peninsula and "very few" others countries use these standards).... :-))))
+
+Siano added some kernel support (tiny sub system) and user-space library.
+The kernel code is of course GPLv2. 
+*Everything* is available to *all*, include detailed documentation. You can see on the ML some recent posts about it (people who use it to get DAB streams with very little effort).
+
+I strongly support any effort (and will help it myself) to have a single, unified, all-in-one API that will support all DTV standards. But we are not there, we are not even close :-(((
+
+Until that time, when such generic, all-inclusive API will be introduced, we still have to support those "negligible" ~2 Billion people with some kind of additional API, *only* for those unsupported DTV standards.
+
+Best regard,
+
+Uri
+
+
+      
