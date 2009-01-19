@@ -1,728 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail0.scram.de ([78.47.204.202]:46416 "EHLO mail.scram.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751811AbZASSda (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2009 13:33:30 -0500
-Message-ID: <4974C788.709@scram.de>
-Date: Mon, 19 Jan 2009 19:33:44 +0100
-From: Jochen Friedrich <jochen@scram.de>
+Received: from mail-gx0-f21.google.com ([209.85.217.21]:48726 "EHLO
+	mail-gx0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757824AbZASLpr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jan 2009 06:45:47 -0500
+Received: by gxk14 with SMTP id 14so2431359gxk.13
+        for <linux-media@vger.kernel.org>; Mon, 19 Jan 2009 03:45:46 -0800 (PST)
 MIME-Version: 1.0
+Date: Mon, 19 Jan 2009 12:45:46 +0100
+Message-ID: <beee72200901190345m5b038a7ds41dbd56f0fe0dc37@mail.gmail.com>
+Subject: kernel 2.6.28 oops with saa7124
+From: davor emard <davoremard@gmail.com>
 To: linux-media@vger.kernel.org
-CC: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCHv4] Add Freescale MC44S803 tuner driver
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=000e0cd4d2529e53450460d4767e
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jochen Friedrich <jochen@scram.de>
----
+--000e0cd4d2529e53450460d4767e
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Changes since v1:
-- rebase against official linux tree. v1 was based against a local tree and didn't apply cleanly.
+HI
 
-Changes since v2:
-- fix typo KERN_ERROR -> KERN_ERR
+I have compro videomate t750f and modprobe saa7134 creates
+this kernel oops on 2.6.28
 
-Changes since v3:
-- fix circuit adjust (reserved bits should be 1)
-- don't initialize priv in mc44s803_attach()
-- use a macro for printk to avoid duplicating the driver name over and over.
+On 2.6.26.8 it didn't crash but it didn't want to tune TV nor radio
+either I have PAL and probabley this xc3028 works only for australia?
 
-Changes since v4:
-- use lower case hex numbers
-- use correct variable type for returning errors (u8 -> int)
+Best regards, Davor
 
- drivers/media/common/tuners/Kconfig         |    8 +
- drivers/media/common/tuners/Makefile        |    1 +
- drivers/media/common/tuners/mc44s803.c      |  371 +++++++++++++++++++++++++++
- drivers/media/common/tuners/mc44s803.h      |   46 ++++
- drivers/media/common/tuners/mc44s803_priv.h |  208 +++++++++++++++
- 5 files changed, 634 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/common/tuners/mc44s803.c
- create mode 100644 drivers/media/common/tuners/mc44s803.h
- create mode 100644 drivers/media/common/tuners/mc44s803_priv.h
+--000e0cd4d2529e53450460d4767e
+Content-Type: text/x-log; charset=US-ASCII; name="kernelcrash.log"
+Content-Disposition: attachment; filename="kernelcrash.log"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
-diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-index 6f92bea..7969b69 100644
---- a/drivers/media/common/tuners/Kconfig
-+++ b/drivers/media/common/tuners/Kconfig
-@@ -29,6 +29,7 @@ config MEDIA_TUNER
- 	select MEDIA_TUNER_TEA5767 if !MEDIA_TUNER_CUSTOMIZE
- 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMIZE
- 	select MEDIA_TUNER_TDA9887 if !MEDIA_TUNER_CUSTOMIZE
-+	select MEDIA_TUNER_MC44S803 if !MEDIA_TUNER_CUSTOMIZE
- 
- menuconfig MEDIA_TUNER_CUSTOMIZE
- 	bool "Customize analog and hybrid tuner modules to build"
-@@ -164,4 +165,11 @@ config MEDIA_TUNER_MXL5007T
- 	help
- 	  A driver for the silicon tuner MxL5007T from MaxLinear.
- 
-+config MEDIA_TUNER_MC44S803
-+	tristate "Freescale MC44S803 Low Power CMOS Broadband tuners"
-+	depends on VIDEO_MEDIA && I2C
-+	default m if DVB_FE_CUSTOMISE
-+	help
-+	  Say Y here to support the Freescale MC44S803 based tuners
-+
- endif # MEDIA_TUNER_CUSTOMIZE
-diff --git a/drivers/media/common/tuners/Makefile b/drivers/media/common/tuners/Makefile
-index 4dfbe5b..4132b2b 100644
---- a/drivers/media/common/tuners/Makefile
-+++ b/drivers/media/common/tuners/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_MEDIA_TUNER_QT1010) += qt1010.o
- obj-$(CONFIG_MEDIA_TUNER_MT2131) += mt2131.o
- obj-$(CONFIG_MEDIA_TUNER_MXL5005S) += mxl5005s.o
- obj-$(CONFIG_MEDIA_TUNER_MXL5007T) += mxl5007t.o
-+obj-$(CONFIG_MEDIA_TUNER_MC44S803) += mc44s803.o
- 
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
- EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
-diff --git a/drivers/media/common/tuners/mc44s803.c b/drivers/media/common/tuners/mc44s803.c
-new file mode 100644
-index 0000000..20c4485
---- /dev/null
-+++ b/drivers/media/common/tuners/mc44s803.c
-@@ -0,0 +1,371 @@
-+/*
-+ *  Driver for Freescale MC44S803 Low Power CMOS Broadband Tuner
-+ *
-+ *  Copyright (c) 2009 Jochen Friedrich <jochen@scram.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/dvb/frontend.h>
-+#include <linux/i2c.h>
-+
-+#include "dvb_frontend.h"
-+
-+#include "mc44s803.h"
-+#include "mc44s803_priv.h"
-+
-+#define mc_printk(level, format, arg...)	\
-+	printk(level "mc44s803: " format , ## arg)
-+
-+/* Writes a single register */
-+static int mc44s803_writereg(struct mc44s803_priv *priv, u32 val)
-+{
-+	u8 buf[3];
-+	struct i2c_msg msg = {
-+		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = 3
-+	};
-+
-+	buf[0] = (val & 0xff0000) >> 16;
-+	buf[1] = (val & 0xff00) >> 8;
-+	buf[2] = (val & 0xff);
-+
-+	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
-+		mc_printk(KERN_WARNING, "I2C write failed\n");
-+		return -EREMOTEIO;
-+	}
-+	return 0;
-+}
-+
-+/* Reads a single register */
-+static int mc44s803_readreg(struct mc44s803_priv *priv, u8 reg, u32 *val)
-+{
-+	u32 wval;
-+	u8 buf[3];
-+	int ret;
-+	struct i2c_msg msg[] = {
-+		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD,
-+		  .buf = buf, .len = 3 },
-+	};
-+
-+	wval = MC44S803_REG_SM(MC44S803_REG_DATAREG, MC44S803_ADDR) |
-+	       MC44S803_REG_SM(reg, MC44S803_D);
-+
-+	ret = mc44s803_writereg(priv, wval);
-+	if (ret)
-+		return ret;
-+
-+	if (i2c_transfer(priv->i2c, msg, 1) != 1) {
-+		mc_printk(KERN_WARNING, "I2C read failed\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	*val = (buf[0] << 16) | (buf[1] << 8) | buf[2];
-+
-+	return 0;
-+}
-+
-+static int mc44s803_release(struct dvb_frontend *fe)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+
-+	fe->tuner_priv = NULL;
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static int mc44s803_init(struct dvb_frontend *fe)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+	u32 val;
-+	int err;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+/* Reset chip */
-+	val = MC44S803_REG_SM(MC44S803_REG_RESET, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_RS);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_RESET, MC44S803_ADDR);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Power Up and Start Osc */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_REFOSC, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(0xC0, MC44S803_REFOSC) |
-+	      MC44S803_REG_SM(1, MC44S803_OSCSEL);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_POWER, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(0x200, MC44S803_POWER);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	msleep(10);
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_REFOSC, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(0x40, MC44S803_REFOSC) |
-+	      MC44S803_REG_SM(1, MC44S803_OSCSEL);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	msleep(20);
-+
-+/* Setup Mixer */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_MIXER, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_TRI_STATE) |
-+	      MC44S803_REG_SM(0x7F, MC44S803_MIXER_RES);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Setup Cirquit Adjust */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_CIRCADJ, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_G1) |
-+	      MC44S803_REG_SM(1, MC44S803_G3) |
-+	      MC44S803_REG_SM(0x3, MC44S803_CIRCADJ_RES) |
-+	      MC44S803_REG_SM(1, MC44S803_G6) |
-+	      MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
-+	      MC44S803_REG_SM(0x3, MC44S803_LP) |
-+	      MC44S803_REG_SM(1, MC44S803_CLRF) |
-+	      MC44S803_REG_SM(1, MC44S803_CLIF);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_CIRCADJ, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_G1) |
-+	      MC44S803_REG_SM(1, MC44S803_G3) |
-+	      MC44S803_REG_SM(0x3, MC44S803_CIRCADJ_RES) |
-+	      MC44S803_REG_SM(1, MC44S803_G6) |
-+	      MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
-+	      MC44S803_REG_SM(0x3, MC44S803_LP);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Setup Digtune */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(3, MC44S803_XOD);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Setup AGC */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_LNAAGC, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_AT1) |
-+	      MC44S803_REG_SM(1, MC44S803_AT2) |
-+	      MC44S803_REG_SM(1, MC44S803_AGC_AN_DIG) |
-+	      MC44S803_REG_SM(1, MC44S803_AGC_READ_EN) |
-+	      MC44S803_REG_SM(1, MC44S803_LNA0);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	return 0;
-+
-+exit:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	mc_printk(KERN_WARNING, "I/O Error\n");
-+	return err;
-+}
-+
-+static int mc44s803_set_params(struct dvb_frontend *fe,
-+			       struct dvb_frontend_parameters *params)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+	u32 r1, r2, n1, n2, lo1, lo2, freq, val;
-+	int err;
-+
-+	priv->frequency = params->frequency;
-+
-+	r1 = MC44S803_OSC / 1000000;
-+	r2 = MC44S803_OSC /  100000;
-+
-+	n1 = (params->frequency + MC44S803_IF1 + 500000) / 1000000;
-+	freq = MC44S803_OSC / r1 * n1;
-+	lo1 = ((60 * n1) + (r1 / 2)) / r1;
-+	freq = freq - params->frequency;
-+
-+	n2 = (freq - MC44S803_IF2 + 50000) / 100000;
-+	lo2 = ((60 * n2) + (r2 / 2)) / r2;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_REFDIV, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(r1-1, MC44S803_R1) |
-+	      MC44S803_REG_SM(r2-1, MC44S803_R2) |
-+	      MC44S803_REG_SM(1, MC44S803_REFBUF_EN);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_LO1, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(n1-2, MC44S803_LO1);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_LO2, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(n2-2, MC44S803_LO2);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_DA) |
-+	      MC44S803_REG_SM(lo1, MC44S803_LO_REF) |
-+	      MC44S803_REG_SM(1, MC44S803_AT);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(2, MC44S803_DA) |
-+	      MC44S803_REG_SM(lo2, MC44S803_LO_REF) |
-+	      MC44S803_REG_SM(1, MC44S803_AT);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	return 0;
-+
-+exit:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	mc_printk(KERN_WARNING, "I/O Error\n");
-+	return err;
-+}
-+
-+static int mc44s803_get_frequency(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+	*frequency = priv->frequency;
-+	return 0;
-+}
-+
-+static const struct dvb_tuner_ops mc44s803_tuner_ops = {
-+	.info = {
-+		.name           = "Freescale MC44S803",
-+		.frequency_min  =   48000000,
-+		.frequency_max  = 1000000000,
-+		.frequency_step =     100000,
-+	},
-+
-+	.release       = mc44s803_release,
-+	.init          = mc44s803_init,
-+	.set_params    = mc44s803_set_params,
-+	.get_frequency = mc44s803_get_frequency
-+};
-+
-+/* This functions tries to identify a MC44S803 tuner by reading the ID
-+   register. This is hasty. */
-+struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
-+	 struct i2c_adapter *i2c, struct mc44s803_config *cfg)
-+{
-+	struct mc44s803_priv *priv;
-+	u32 reg;
-+	u8 id;
-+	int ret;
-+
-+	reg = 0;
-+
-+	priv = kzalloc(sizeof(struct mc44s803_priv), GFP_KERNEL);
-+	if (priv == NULL)
-+		return NULL;
-+
-+	priv->cfg = cfg;
-+	priv->i2c = i2c;
-+	priv->fe  = fe;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c_gate */
-+
-+	ret = mc44s803_readreg(priv, MC44S803_REG_ID, &reg);
-+	if (ret)
-+		goto error;
-+
-+	id = MC44S803_REG_MS(reg, MC44S803_ID);
-+
-+	if (id != 0x14) {
-+		mc_printk(KERN_ERR, "unsupported ID "
-+		       "(%x should be 0x14)\n", id);
-+		goto error;
-+	}
-+
-+	mc_printk(KERN_INFO, "successfully identified (ID = %x)\n", id);
-+	memcpy(&fe->ops.tuner_ops, &mc44s803_tuner_ops,
-+	       sizeof(struct dvb_tuner_ops));
-+
-+	fe->tuner_priv = priv;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
-+
-+	return fe;
-+
-+error:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
-+
-+	kfree(priv);
-+	return NULL;
-+}
-+EXPORT_SYMBOL(mc44s803_attach);
-+
-+MODULE_AUTHOR("Jochen Friedrich");
-+MODULE_DESCRIPTION("Freescale MC44S803 silicon tuner driver");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/common/tuners/mc44s803.h b/drivers/media/common/tuners/mc44s803.h
-new file mode 100644
-index 0000000..34f3892
---- /dev/null
-+++ b/drivers/media/common/tuners/mc44s803.h
-@@ -0,0 +1,46 @@
-+/*
-+ *  Driver for Freescale MC44S803 Low Power CMOS Broadband Tuner
-+ *
-+ *  Copyright (c) 2009 Jochen Friedrich <jochen@scram.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-+ */
-+
-+#ifndef MC44S803_H
-+#define MC44S803_H
-+
-+struct dvb_frontend;
-+struct i2c_adapter;
-+
-+struct mc44s803_config {
-+	u8 i2c_address;
-+	u8 dig_out;
-+};
-+
-+#if defined(CONFIG_MEDIA_TUNER_MC44S803) || \
-+    (defined(CONFIG_MEDIA_TUNER_MC44S803_MODULE) && defined(MODULE))
-+extern struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
-+	 struct i2c_adapter *i2c, struct mc44s803_config *cfg);
-+#else
-+static inline struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
-+	 struct i2c_adapter *i2c, struct mc44s803_config *cfg)
-+{
-+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif /* CONFIG_MEDIA_TUNER_MC44S803 */
-+
-+#endif
-diff --git a/drivers/media/common/tuners/mc44s803_priv.h b/drivers/media/common/tuners/mc44s803_priv.h
-new file mode 100644
-index 0000000..14a9278
---- /dev/null
-+++ b/drivers/media/common/tuners/mc44s803_priv.h
-@@ -0,0 +1,208 @@
-+/*
-+ *  Driver for Freescale MC44S803 Low Power CMOS Broadband Tuner
-+ *
-+ *  Copyright (c) 2009 Jochen Friedrich <jochen@scram.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-+ */
-+
-+#ifndef MC44S803_PRIV_H
-+#define MC44S803_PRIV_H
-+
-+/* This driver is based on the information available in the datasheet
-+   http://www.freescale.com/files/rf_if/doc/data_sheet/MC44S803.pdf
-+
-+   SPI or I2C Address : 0xc0-0xc6
-+
-+   Reg.No | Function
-+   -------------------------------------------
-+       00 | Power Down
-+       01 | Reference Oszillator
-+       02 | Reference Dividers
-+       03 | Mixer and Reference Buffer
-+       04 | Reset/Serial Out
-+       05 | LO 1
-+       06 | LO 2
-+       07 | Circuit Adjust
-+       08 | Test
-+       09 | Digital Tune
-+       0A | LNA AGC
-+       0B | Data Register Address
-+       0C | Regulator Test
-+       0D | VCO Test
-+       0E | LNA Gain/Input Power
-+       0F | ID Bits
-+
-+*/
-+
-+#define MC44S803_OSC 26000000	/* 26 MHz */
-+#define MC44S803_IF1 1086000000 /* 1086 MHz */
-+#define MC44S803_IF2 36125000	/* 36.125 MHz */
-+
-+#define MC44S803_REG_POWER	0
-+#define MC44S803_REG_REFOSC	1
-+#define MC44S803_REG_REFDIV	2
-+#define MC44S803_REG_MIXER	3
-+#define MC44S803_REG_RESET	4
-+#define MC44S803_REG_LO1	5
-+#define MC44S803_REG_LO2	6
-+#define MC44S803_REG_CIRCADJ	7
-+#define MC44S803_REG_TEST	8
-+#define MC44S803_REG_DIGTUNE	9
-+#define MC44S803_REG_LNAAGC	0x0A
-+#define MC44S803_REG_DATAREG	0x0B
-+#define MC44S803_REG_REGTEST	0x0C
-+#define MC44S803_REG_VCOTEST	0x0D
-+#define MC44S803_REG_LNAGAIN	0x0E
-+#define MC44S803_REG_ID		0x0F
-+
-+/* Register definitions */
-+#define MC44S803_ADDR		0x0F
-+#define MC44S803_ADDR_S		0
-+/* REG_POWER */
-+#define MC44S803_POWER		0xFFFFF0
-+#define MC44S803_POWER_S	4
-+/* REG_REFOSC */
-+#define MC44S803_REFOSC		0x1FF0
-+#define MC44S803_REFOSC_S	4
-+#define MC44S803_OSCSEL		0x2000
-+#define MC44S803_OSCSEL_S	13
-+/* REG_REFDIV */
-+#define MC44S803_R2		0x1FF0
-+#define MC44S803_R2_S		4
-+#define MC44S803_REFBUF_EN	0x2000
-+#define MC44S803_REFBUF_EN_S	13
-+#define MC44S803_R1		0x7C000
-+#define MC44S803_R1_S		14
-+/* REG_MIXER */
-+#define MC44S803_R3		0x70
-+#define MC44S803_R3_S		4
-+#define MC44S803_MUX3		0x80
-+#define MC44S803_MUX3_S		7
-+#define MC44S803_MUX4		0x100
-+#define MC44S803_MUX4_S		8
-+#define MC44S803_OSC_SCR	0x200
-+#define MC44S803_OSC_SCR_S	9
-+#define MC44S803_TRI_STATE	0x400
-+#define MC44S803_TRI_STATE_S	10
-+#define MC44S803_BUF_GAIN	0x800
-+#define MC44S803_BUF_GAIN_S	11
-+#define MC44S803_BUF_IO		0x1000
-+#define MC44S803_BUF_IO_S	12
-+#define MC44S803_MIXER_RES	0xFE000
-+#define MC44S803_MIXER_RES_S	13
-+/* REG_RESET */
-+#define MC44S803_RS		0x10
-+#define MC44S803_RS_S		4
-+#define MC44S803_SO		0x20
-+#define MC44S803_SO_S		5
-+/* REG_LO1 */
-+#define MC44S803_LO1		0xFFF0
-+#define MC44S803_LO1_S		4
-+/* REG_LO2 */
-+#define MC44S803_LO2		0x7FFF0
-+#define MC44S803_LO2_S		4
-+/* REG_CIRCADJ */
-+#define MC44S803_G1		0x20
-+#define MC44S803_G1_S		5
-+#define MC44S803_G3		0x80
-+#define MC44S803_G3_S		7
-+#define MC44S803_CIRCADJ_RES	0x300
-+#define MC44S803_CIRCADJ_RES_S	8
-+#define MC44S803_G6		0x400
-+#define MC44S803_G6_S		10
-+#define MC44S803_G7		0x800
-+#define MC44S803_G7_S		11
-+#define MC44S803_S1		0x1000
-+#define MC44S803_S1_S		12
-+#define MC44S803_LP		0x7E000
-+#define MC44S803_LP_S		13
-+#define MC44S803_CLRF		0x80000
-+#define MC44S803_CLRF_S		19
-+#define MC44S803_CLIF		0x100000
-+#define MC44S803_CLIF_S		20
-+/* REG_TEST */
-+/* REG_DIGTUNE */
-+#define MC44S803_DA		0xF0
-+#define MC44S803_DA_S		4
-+#define MC44S803_XOD		0x300
-+#define MC44S803_XOD_S		8
-+#define MC44S803_RST		0x10000
-+#define MC44S803_RST_S		16
-+#define MC44S803_LO_REF		0x1FFF00
-+#define MC44S803_LO_REF_S	8
-+#define MC44S803_AT		0x200000
-+#define MC44S803_AT_S		21
-+#define MC44S803_MT		0x400000
-+#define MC44S803_MT_S		22
-+/* REG_LNAAGC */
-+#define MC44S803_G		0x3F0
-+#define MC44S803_G_S		4
-+#define MC44S803_AT1		0x400
-+#define MC44S803_AT1_S		10
-+#define MC44S803_AT2		0x800
-+#define MC44S803_AT2_S		11
-+#define MC44S803_HL_GR_EN	0x8000
-+#define MC44S803_HL_GR_EN_S	15
-+#define MC44S803_AGC_AN_DIG	0x10000
-+#define MC44S803_AGC_AN_DIG_S	16
-+#define MC44S803_ATTEN_EN	0x20000
-+#define MC44S803_ATTEN_EN_S	17
-+#define MC44S803_AGC_READ_EN	0x40000
-+#define MC44S803_AGC_READ_EN_S	18
-+#define MC44S803_LNA0		0x80000
-+#define MC44S803_LNA0_S		19
-+#define MC44S803_AGC_SEL	0x100000
-+#define MC44S803_AGC_SEL_S	20
-+#define MC44S803_AT0		0x200000
-+#define MC44S803_AT0_S		21
-+#define MC44S803_B		0xC00000
-+#define MC44S803_B_S		22
-+/* REG_DATAREG */
-+#define MC44S803_D		0xF0
-+#define MC44S803_D_S		4
-+/* REG_REGTEST */
-+/* REG_VCOTEST */
-+/* REG_LNAGAIN */
-+#define MC44S803_IF_PWR		0x700
-+#define MC44S803_IF_PWR_S	8
-+#define MC44S803_RF_PWR		0x3800
-+#define MC44S803_RF_PWR_S	11
-+#define MC44S803_LNA_GAIN	0xFC000
-+#define MC44S803_LNA_GAIN_S	14
-+/* REG_ID */
-+#define MC44S803_ID		0x3E00
-+#define MC44S803_ID_S		9
-+
-+/* Some macros to read/write fields */
-+
-+/* First shift, then mask */
-+#define MC44S803_REG_SM(_val, _reg)					\
-+	(((_val) << _reg##_S) & (_reg))
-+
-+/* First mask, then shift */
-+#define MC44S803_REG_MS(_val, _reg)					\
-+	(((_val) & (_reg)) >> _reg##_S)
-+
-+struct mc44s803_priv {
-+	struct mc44s803_config *cfg;
-+	struct i2c_adapter *i2c;
-+	struct dvb_frontend *fe;
-+
-+	u32 frequency;
-+};
-+
-+#endif
--- 
-1.5.6.5
-
+SmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzMC8zNDogdjRsMiBkcml2ZXIgdmVy
+c2lvbiAwLjIuMTQgbG9hZGVkCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IHNhYTcxMzQg
+MDAwMDowNTowMC4wOiBQQ0kgSU5UIEEgLT4gR1NJIDE2IChsZXZlbCwgbG93KSAtPiBJUlEgMTYK
+SmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogZm91bmQgYXQgMDAwMDow
+NTowMC4wLCByZXY6IDIwOSwgaXJxOiAxNiwgbGF0ZW5jeTogNjQsIG1taW86IDB4ZmViZmY4MDAK
+SmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogc3Vic3lzdGVtOiAxODVi
+OmM5MDAsIGJvYXJkOiBDb21wcm8gVmlkZW9NYXRlIFQ3NTAgW2NhcmQ9MTM5LGF1dG9kZXRlY3Rl
+ZF0KSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogYm9hcmQgaW5pdDog
+Z3BpbyBpcyA4NGJmMDAKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTog
+T29wczogSVIgY29uZmlnIGVycm9yIFtjYXJkPTEzOV0KSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtl
+cm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSAwMDogNWIgMTggMDAgYzkgNTQgMjAgMWMgMDAg
+NDMgNDMgYTkgMWMgNTUgZDIgYjIgOTIKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2Fh
+NzEzM1swXTogaTJjIGVlcHJvbSAxMDogMDAgZmYgODYgMGYgZmYgMjAgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTog
+aTJjIGVlcHJvbSAyMDogMDEgNDAgMDEgMDIgMDIgMDEgMDMgMDEgMDggZmYgMDAgODcgZmYgZmYg
+ZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJv
+bSAzMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKSmFu
+IDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSA0MDogZmYg
+ZDcgMDAgYzQgODYgMWUgMDUgZmYgMDIgYzIgZmYgMDEgYzYgZmYgMDUgZmYKSmFuIDE4IDIzOjE3
+OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSA1MDogZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgY2IKSmFuIDE4IDIzOjE3OjQ4IGVtYXJk
+IGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSA2MDogMzUgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDog
+c2FhNzEzM1swXTogaTJjIGVlcHJvbSA3MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1sw
+XTogaTJjIGVlcHJvbSA4MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVl
+cHJvbSA5MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYK
+SmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSBhMDog
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKSmFuIDE4IDIz
+OjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSBiMDogZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVt
+YXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSBjMDogZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5l
+bDogc2FhNzEzM1swXTogaTJjIGVlcHJvbSBkMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEz
+M1swXTogaTJjIGVlcHJvbSBlMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogc2FhNzEzM1swXTogaTJj
+IGVlcHJvbSBmMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogdHVuZXInIDQtMDA2MTogY2hpcCBmb3Vu
+ZCBAIDB4YzIgKHNhYTcxMzNbMF0pCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IHR1bmVy
+JyA0LTAwNjI6IGNoaXAgZm91bmQgQCAweGM0IChzYWE3MTMzWzBdKQpKYW4gMTggMjM6MTc6NDgg
+ZW1hcmQga2VybmVsOiB0dW5lcicgNC0wMDYzOiBjaGlwIGZvdW5kIEAgMHhjNiAoc2FhNzEzM1sw
+XSkKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogdHVuZXInIDQtMDA2ODogY2hpcCBmb3Vu
+ZCBAIDB4ZDAgKHNhYTcxMzNbMF0pCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IHhjMjAy
+OCA0LTAwNjE6IGNyZWF0aW5nIG5ldyBpbnN0YW5jZQpKYW4gMTggMjM6MTc6NDggZW1hcmQga2Vy
+bmVsOiB4YzIwMjggNC0wMDYxOiB0eXBlIHNldCB0byBYQ2VpdmUgeGMyMDI4L3hjMzAyOCB0dW5l
+cgpKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiBCVUc6IHVuYWJsZSB0byBoYW5kbGUga2Vy
+bmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCAwMDAwMDAwMDAwMDAwMDAwCkphbiAxOCAy
+MzoxNzo0OCBlbWFyZCBrZXJuZWw6IElQOiBbPDAwMDAwMDAwMDAwMDAwMDA+XSAweDAKSmFuIDE4
+IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogUEdEIDcwYjhiMDY3IFBVRCA3MDg0ZjA2NyBQTUQgMCAK
+SmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogT29wczogMDAxMCBbIzFdIFBSRUVNUFQgU01Q
+IApKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiBsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2
+aWNlcy9wY2kwMDAwOjAwLzAwMDA6MDA6MWUuMC8wMDAwOjA1OjAzLjAvcmVzb3VyY2UKSmFuIDE4
+IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogQ1BVIDIgCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJu
+ZWw6IE1vZHVsZXMgbGlua2VkIGluOiB0dW5lciB0ZWE1NzY3IHRkYTgyOTAgdHVuZXJfeGMyMDI4
+IHhjNTAwMCB0ZGE5ODg3IHR1bmVyX3NpbXBsZSB0dW5lcl90eXBlcyBtdDIweHggdGVhNTc2MSBz
+YWE3MTM0KCspIGlyX2NvbW1vbiBjb21wYXRfaW9jdGwzMiB2NGwyX2NvbW1vbiB0dmVlcHJvbSBy
+ZmNvbW0gbDJjYXAgYmF0dGVyeSBwcGRldiBscCB4dF9oYXNobGltaXQgaXB0YWJsZV9yYXcgeHRf
+Y29tbWVudCB4dF9vd25lciB4dF9yZWNlbnQgeHRfaXByYW5nZSB4dF9wb2xpY3kgeHRfbXVsdGlw
+b3J0IGlwdF9VTE9HIGlwdF9UVEwgaXB0X3R0bCBpcHRfUkVKRUNUIGlwdF9SRURJUkVDVCBpcHRf
+TkVUTUFQIGlwdF9NQVNRVUVSQURFIGlwdF9MT0cgaXB0X2FoIGlwdF9hZGRydHlwZSB4dF90Y3Bt
+c3MgeHRfcGt0dHlwZSB4dF9ORlFVRVVFIHh0X01BUksgeHRfbWFyayB4dF9tYWMgeHRfbGltaXQg
+eHRfbGVuZ3RoIHh0X2hlbHBlciB4dF9jb25udHJhY2sgeHRfQ09OTk1BUksgeHRfY29ubm1hcmsg
+eHRfQ0xBU1NJRlkgeHRfdGNwdWRwIHh0X3N0YXRlIGlwdGFibGVfbmF0IG5mX25hdCBpcHRhYmxl
+X21hbmdsZSBuZm5ldGxpbmsgaXB0YWJsZV9maWx0ZXIgaXBfdGFibGVzIHhfdGFibGVzIGZ1c2Ug
+YWVzX3g4Nl82NCBhZXNfZ2VuZXJpYyBjb3JldGVtcCBod21vbl92aWQgaHdtb24gcGFycG9ydF9w
+YyBwYXJwb3J0IHR1biBrdm1faW50ZWwga3ZtIHNicDIgaGlkX2RlbGwgaGlkX3BsIGhpZF9jeXBy
+ZXNzIGhpZF9neXJhdGlvbiBoaWRfYnJpZ2h0IGhpZF9zb255IGhpZF9zYW1zdW5nIGhpZF9taWNy
+b3NvZnQgaGlkX21vbnRlcmV5IGhpZF9lemtleSBoaWRfYXBwbGUgaGlkX2E0dGVjaCBoaWRfbG9n
+aXRlY2ggaGNpX3VzYiBibHVldG9vdGggaGlkX2NoZXJyeSBoaWRfc3VucGx1cyBoaWRfcGV0YWx5
+bnggaGlkX2JlbGtpbiBoaWRfY2hpY29ueSB1c2JoaWQgaGlkIGR2Yl90dHBjaSBsbmJwMjEgbDY0
+NzgxIHNhYTcxNDZfdnYgc2FhNzE0NiB2aWRlb2J1CkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJu
+ZWw6IF9kbWFfc2cgdmlkZW9idWZfY29yZSBzbmRfaGRhX2ludGVsIHZpZGVvZGV2IGR2Yl91c2Jf
+YTgwMCBkdmJfdXNiX2RpYnVzYl9jb21tb24gZHZiX3BsbCB2NGwxX2NvbXBhdCBzZXJpb19yYXcg
+bXQyMDYwIHJ0Y19jbW9zIHJ0Y19jb3JlIHJ0Y19saWIgdmVzMTgyMCB0ZGE4MDgzIHNwODg3MCBz
+dHYwMjk3IHZlczF4OTMgdHRwY2lfZWVwcm9tIGRpYjMwMDBtYyBkaWJ4MDAwX2NvbW1vbiBzdHYw
+Mjk5IGR2Yl91c2IgcGNzcGtyIHNuZF9wY21fb3NzIHNuZF9taXhlcl9vc3MgZHZiX2NvcmUgaTJj
+X2k4MDEgc25kX3BjbSBpVENPX3dkdCBpVENPX3ZlbmRvcl9zdXBwb3J0IHNuZF9wYWdlX2FsbG9j
+IHNuZF9od2RlcCBzbmRfc2VxX29zcyBzbmRfc2VxX21pZGkgc25kX3Jhd21pZGkgc25kX3NlcV9t
+aWRpX2V2ZW50IHNuZF9zZXEgc25kX3RpbWVyIHNuZF9zZXFfZGV2aWNlIHNuZCBidXR0b24gb2hj
+aTEzOTQgaWVlZTEzOTQgc2tnZSBza3kyIGVoY2lfaGNkIHVoY2lfaGNkIHVzYmNvcmUgc2cgc3Jf
+bW9kIGNkcm9tIHRoZXJtYWwgcHJvY2Vzc29yIGZhbgpKYW4gMTggMjM6MTc6NDggZW1hcmQga2Vy
+bmVsOiBQaWQ6IDE4OTAwLCBjb21tOiBtb2Rwcm9iZSBOb3QgdGFpbnRlZCAyLjYuMjgtYW1kNjQt
+YXN1cy1wNXEzLWRlbHV4ZS13aWZpICMxCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IFJJ
+UDogMDAxMDpbPDAwMDAwMDAwMDAwMDAwMDA+XSAgWzwwMDAwMDAwMDAwMDAwMDAwPl0gMHgwCkph
+biAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IFJTUDogMDAxODpmZmZmODgwMDZlMjQ5YmQ4ICBF
+RkxBR1M6IDAwMDEwMjgyCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IFJBWDogMDAwMDAw
+MDAwMDAwMDAwMCBSQlg6IDAwMDAwMDAwMDAwMDAwMDAgUkNYOiBmZmZmODgwMDdkNWZiNDAwCkph
+biAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IFJEWDogMDAwMDAwMDAwMDAwMDAwMCBSU0k6IDAw
+MDAwMDAwMDAwMDAwNDAgUkRJOiAwMDAwMDAwMDAwMDAwMDAwCkphbiAxOCAyMzoxNzo0OCBlbWFy
+ZCBrZXJuZWw6IFJCUDogZmZmZjg4MDA3MDJlNzAwMCBSMDg6IGZmZmY4ODAwNzAyZTcxYTAgUjA5
+OiBmZmZmODgwMDAwMDAwMDBhCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IFIxMDogZmZm
+Zjg4MDA2ZjJmYmY1OCBSMTE6IGZmZmZmZmZmYTA0Yjg3MjMgUjEyOiBmZmZmZmZmZmEwNDk1ZjQw
+CkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IFIxMzogZmZmZjg4MDA3Zjc0ZDAwMCBSMTQ6
+IGZmZmY4ODAwNzAyZTcxYTAgUjE1OiAwMDAwMDAwMDAwMDAwMDAwCkphbiAxOCAyMzoxNzo0OCBl
+bWFyZCBrZXJuZWw6IEZTOiAgMDAwMDdmMDkzMTBmODZlMCgwMDAwKSBHUzpmZmZmODgwMDdmNDcz
+NDQwKDAwMDApIGtubEdTOjAwMDAwMDAwMDAwMDAwMDAKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtl
+cm5lbDogQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENSMDogMDAwMDAwMDA4MDA1MDAzYgpK
+YW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiBDUjI6IDAwMDAwMDAwMDAwMDAwMDAgQ1IzOiAw
+MDAwMDAwMDcyZWI4MDAwIENSNDogMDAwMDAwMDAwMDAwMjZlMApKYW4gMTggMjM6MTc6NDggZW1h
+cmQga2VybmVsOiBEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAwMDAwMDAwMDAwMDAwIERS
+MjogMDAwMDAwMDAwMDAwMDAwMApKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiBEUjM6IDAw
+MDAwMDAwMDAwMDAwMDAgRFI2OiAwMDAwMDAwMGZmZmYwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQw
+MApKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiBQcm9jZXNzIG1vZHByb2JlIChwaWQ6IDE4
+OTAwLCB0aHJlYWRpbmZvIGZmZmY4ODAwNmUyNDgwMDAsIHRhc2sgZmZmZjg4MDA3MGY1ZTExMCkK
+SmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogU3RhY2s6CkphbiAxOCAyMzoxNzo0OCBlbWFy
+ZCBrZXJuZWw6ICBmZmZmODgwMDcwMmU3MDAwIGZmZmZmZmZmYTA0OTVmNDAgZmZmZjg4MDA3MDJl
+NzFhMCBmZmZmZmZmZjgwNDhkYjQ2CkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6ICBmZmZm
+MDEwMDAwMDEwMDUwIGZmZmY4ODAwNzAyZTc4NTggZmZmZjg4MDA3MDJlNzg1OCBmZmZmZmZmZmEw
+NDcyYjY2CkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6ICAwMDAwMDAwMGZmZmQwMTE3IGZm
+ZmZmZmZmODAyM2VlZDIgMDBmZjg4MDA3MGY1ZTExMCAwMDAwMDAwMDAwMDAwMDAwCkphbiAxOCAy
+MzoxNzo0OCBlbWFyZCBrZXJuZWw6IENhbGwgVHJhY2U6CkphbiAxOCAyMzoxNzo0OCBlbWFyZCBr
+ZXJuZWw6ICBbPGZmZmZmZmZmODA0OGRiNDY+XSA/IGkyY19tYXN0ZXJfcmVjdisweDNhLzB4NDYK
+SmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogIFs8ZmZmZmZmZmZhMDQ3MmI2Nj5dID8gc2Fh
+NzEzNF9pMmNfcmVnaXN0ZXIrMHgxMzUvMHgxYjMgW3NhYTcxMzRdCkphbiAxOCAyMzoxNzo0OCBl
+bWFyZCBrZXJuZWw6ICBbPGZmZmZmZmZmODAyM2VlZDI+XSA/IHByb2Nlc3NfdGltZW91dCsweDAv
+MHg1CkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6ICBbPGZmZmZmZmZmYTA0NzlkYWQ+XSA/
+IHNhYTcxMzRfaW5pdGRldisweDVlMS8weDkyYSBbc2FhNzEzNF0KSmFuIDE4IDIzOjE3OjQ4IGVt
+YXJkIGtlcm5lbDogIFs8ZmZmZmZmZmY4MDJkM2VhNT5dID8gc3lzZnNfZG9fY3JlYXRlX2xpbmsr
+MHhkMC8weDExYgpKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiAgWzxmZmZmZmZmZjgwM2Vi
+OTU5Pl0gPyBwY2lfZGV2aWNlX3Byb2JlKzB4NGMvMHg3MwpKYW4gMTggMjM6MTc6NDggZW1hcmQg
+a2VybmVsOiAgWzxmZmZmZmZmZjgwNDNmMDlkPl0gPyBkcml2ZXJfcHJvYmVfZGV2aWNlKzB4YjUv
+MHgxNTkKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogIFs8ZmZmZmZmZmY4MDQzZjE5YT5d
+ID8gX19kcml2ZXJfYXR0YWNoKzB4NTkvMHg4MApKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVs
+OiAgWzxmZmZmZmZmZjgwNDNmMTQxPl0gPyBfX2RyaXZlcl9hdHRhY2grMHgwLzB4ODAKSmFuIDE4
+IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogIFs8ZmZmZmZmZmY4MDQzZTlhYj5dID8gYnVzX2Zvcl9l
+YWNoX2RldisweDQ0LzB4NzgKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogIFs8ZmZmZmZm
+ZmY4MDQzZTJlYj5dID8gYnVzX2FkZF9kcml2ZXIrMHhhYy8weDFmMgpKYW4gMTggMjM6MTc6NDgg
+ZW1hcmQga2VybmVsOiAgWzxmZmZmZmZmZjgwNDNmMzYwPl0gPyBkcml2ZXJfcmVnaXN0ZXIrMHhh
+Mi8weDExZgpKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiAgWzxmZmZmZmZmZmEwNDcxZTQ5
+Pl0gPyBzYWE3MTM0X2luaXQrMHgwLzB4NGUgW3NhYTcxMzRdCkphbiAxOCAyMzoxNzo0OCBlbWFy
+ZCBrZXJuZWw6ICBbPGZmZmZmZmZmODAzZWJiZTE+XSA/IF9fcGNpX3JlZ2lzdGVyX2RyaXZlcisw
+eDVkLzB4OTAKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogIFs8ZmZmZmZmZmZhMDQ3MWU0
+OT5dID8gc2FhNzEzNF9pbml0KzB4MC8weDRlIFtzYWE3MTM0XQpKYW4gMTggMjM6MTc6NDggZW1h
+cmQga2VybmVsOiAgWzxmZmZmZmZmZjgwMjA5MDU2Pl0gPyBfc3RleHQrMHg1Ni8weDE0ZgpKYW4g
+MTggMjM6MTc6NDggZW1hcmQga2VybmVsOiAgWzxmZmZmZmZmZjgwMjdkYTk5Pl0gPyB2bWFfbGlu
+aysweDkwLzB4YTIKSmFuIDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogIFs8ZmZmZmZmZmY4MDI1
+OGM2MT5dID8gc3lzX2luaXRfbW9kdWxlKzB4YTAvMHgxYTkKSmFuIDE4IDIzOjE3OjQ4IGVtYXJk
+IGtlcm5lbDogIFs8ZmZmZmZmZmY4MDIwYmU4Yj5dID8gc3lzdGVtX2NhbGxfZmFzdHBhdGgrMHgx
+Ni8weDFiCkphbiAxOCAyMzoxNzo0OCBlbWFyZCBrZXJuZWw6IENvZGU6ICBCYWQgUklQIHZhbHVl
+LgpKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiBSSVAgIFs8MDAwMDAwMDAwMDAwMDAwMD5d
+IDB4MApKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiAgUlNQIDxmZmZmODgwMDZlMjQ5YmQ4
+PgpKYW4gMTggMjM6MTc6NDggZW1hcmQga2VybmVsOiBDUjI6IDAwMDAwMDAwMDAwMDAwMDAKSmFu
+IDE4IDIzOjE3OjQ4IGVtYXJkIGtlcm5lbDogLS0tWyBlbmQgdHJhY2UgZTNkOTE5ZDJlNzhjYjYz
+ZiBdLS0tCg==
+--000e0cd4d2529e53450460d4767e--
