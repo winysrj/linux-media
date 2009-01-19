@@ -1,31 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0H0KrC0027809
-	for <video4linux-list@redhat.com>; Fri, 16 Jan 2009 19:20:53 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0H0Kdpg004003
-	for <video4linux-list@redhat.com>; Fri, 16 Jan 2009 19:20:39 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so1967137wfc.6
-	for <video4linux-list@redhat.com>; Fri, 16 Jan 2009 16:20:39 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0J25Hnb020610
+	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 21:05:17 -0500
+Received: from smtp124.rog.mail.re2.yahoo.com (smtp124.rog.mail.re2.yahoo.com
+	[206.190.53.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0J24dHF020835
+	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 21:04:58 -0500
+Message-ID: <4973DFB4.5040509@rogers.com>
+Date: Sun, 18 Jan 2009 21:04:36 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-In-Reply-To: <c785bba30901121717p2a822291u39524a21b61b7b42@mail.gmail.com>
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>
-	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>
-	<c785bba30901020850y51c7b9d2i47fd418828cd150c@mail.gmail.com>
-	<c785bba30901030922y17d67d0bm822304a650a0e812@mail.gmail.com>
-	<c785bba30901051633g7808197fl6d377420d799120c@mail.gmail.com>
-	<c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
-	<412bdbff0901071024p7a16343cha01c09ea6ae2b5a2@mail.gmail.com>
-	<20090107235058.15bf6fa9@pedra.chehab.org>
-	<c785bba30901121717p2a822291u39524a21b61b7b42@mail.gmail.com>
-Date: Fri, 16 Jan 2009 17:20:39 -0700
-Message-ID: <c785bba30901161620x28b6b22i53e6540fc362db5c@mail.gmail.com>
-From: Paul Thomas <pthomas8589@gmail.com>
-To: video4linux-list <video4linux-list@redhat.com>
+To: Jocke <maillist@jarkeborn.se>
+References: <4973174A.30406@jarkeborn.se>
+In-Reply-To: <4973174A.30406@jarkeborn.se>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Re: em28xx issues
+Cc: video4linux-list@redhat.com
+Subject: Re: Removed drivers...help
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,96 +28,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jan 12, 2009 at 6:17 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
-> On Wed, Jan 7, 2009 at 6:50 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
->> On Wed, 7 Jan 2009 13:24:10 -0500
->> "Devin Heitmueller" <devin.heitmueller@gmail.com> wrote:
->>
->>> A quick look at the code does show something interesting:
->>>
->>> There are a number of cases where we dereference the result of the
->>> "INPUT" macro as follows without checking the number of inputs
->>> defined:
->>>
->>> route.input = INPUT(index)->vmux;
->>>
->>> and here is the macro definition:
->>>
->>> #define INPUT(nr) (&em28xx_boards[dev->model].input[nr])
->>>
->>> It may be the case that a NULL pointer deference would occur if there
->>> was only one input defined (as is the case for the PointNix camera).
->>>
->>> As a test, you might want to copy the other two inputs for the
->>> PointNix device profile from some other device, and see if you still
->>> hits an oops during input selection.
->>
->> I've reviewed the input stuff at em28xx driver, to avoid accessing input
->> entries that aren't defined (so, filled with zeros).
->>
->> Cheers,
->> Mauro
->>
+Jocke wrote:
+> Hello,
 >
-> So, I'm finally able to get the source to compile again. I'm now using
-> a gcc 4.3.2 cross-compiler instead of a gcc 3.4.5. The three things
-> that make it work nicely are to use the "make release DIR=" command,
-> add "ARCH=arm CROSS_COMPILE=arm-unknown-gnu-" to the v4l-dvb make
-> command and finally run "make install" from the embedded side.
+> I have a fresh Ubuntu Server 8.10 and it had support for my DVB cards
+> but since I have used the latest v4l-dvb drivers before I did the same
+> this time.
 >
-> Anyway, I still get the oops with the latest tree. Also did some more
-> tests on my x86_64 box it looks like I have to run ucview before
-> fswebcam will work.
+> I am struggeling with my TV cards and tried with the latest v4l-dvb
+> source/firmware and from a v4l-dvb perspective it looked fine. However
+> I have problem with opensascng so I wanted to revert to the default
+> v4l-dvb drivers to see if that work.
 >
-> Is there any way this is being caused by improper ioctl calls from user-space?
+> So I executed "make rminstall" but that seems to remove all video
+> drivers :(
 >
-> The other thing that is odd is that there seems to be a need for some
-> physical memory. I have 512MB of swap space, but unless I have > 6MB
-> of physical memory I get a "Cannot allocate memory" error.
+> - How can I get back to the default Ubuntu drivers?
 >
-> thanks,
-> Paul
->
+> Best Regards 
 
-I think some of this could be seen from the backtrace I posted before,
-but I can clarify a little. I've been putting printks in the kernel to
-follow the error.
-
-The calling user space function from fswebcam is ioctl(s->fd,
-VIDIOC_QBUF, &s->buf)
-
-In v4l2-ioctl.c in the VIDIOC_QBUF case it gets to the
-"ops->vidioc_qbuf(file, fh, p)" call
-
-In em28xx-video.c in function vidioc_qbuf the return line "return
-(videobuf_qbuf(&fh->vb_vidq, b));" calls videobuf_qbuf
-
-In videobuf-core.c in function videobuf_qbuf it gets to "retval =
-q->ops->buf_prepare(q, buf, field);"
-
-in em28xx-video.c in function buffer_prepare it gets to "rc =
-em28xx_init_isoc(dev, EM28XX_NUM_PACKETS,
-				      EM28XX_NUM_BUFS, dev->max_pkt_size,
-				      em28xx_isoc_copy);"
-
-in em28xx-core.c in function em28xx_init_isoc it gets to "rc =
-usb_submit_urb(dev->isoc_ctl.urb[i], GFP_ATOMIC);"
-
-The last to functions I didn't trace because they were called to much,
-but the backtrace says they are usb_hcd_submit_urb and finally
-dma_cache_maint.
-
-I'll try and add some more debugging in to see if I can see anything
-else. Also I got a usbvision board that does the exact same thing, but
-I haven't followed the call chain on it. The virtual driver works fine
-with fswebcam.
-
-I've seen a lot of the OMAP patches running around, but has anyone
-else have good success using arm?
-
-thanks,
-Paul
+Reinstall your kernel from your distro's repos.
 
 --
 video4linux-list mailing list
