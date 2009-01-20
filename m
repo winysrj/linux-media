@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f18.google.com ([209.85.218.18])
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1LJagR-0001Zb-JG
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 22:38:56 +0100
-Received: by bwz11 with SMTP id 11so15500111bwz.17
-	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 13:38:21 -0800 (PST)
-Message-ID: <d9def9db0901041338k5acb632ax78f609b81bcd8793@mail.gmail.com>
-Date: Sun, 4 Jan 2009 22:38:21 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Albert Comerma" <albert.comerma@gmail.com>
-In-Reply-To: <ea4209750901041208p588ada83w83afaa490c5932ee@mail.gmail.com>
+	(envelope-from <d.dalton@iinet.net.au>) id 1LPOkY-0003iI-FB
+	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 23:07:13 +0100
+Date: Wed, 21 Jan 2009 09:07:01 +1100
+From: Daniel Dalton <d.dalton@iinet.net.au>
+To: linux-dvb@linuxtv.org
+Message-ID: <20090120220701.GB4150@debian-hp.lan>
+References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <49611175.1020907@yahoo.gr>
-	<ea4209750901041208p588ada83w83afaa490c5932ee@mail.gmail.com>
-Cc: Linux-DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Terratec Cinergy Hybrid T USB XS FM
+In-Reply-To: <4975B5F1.7000306@iki.fi>
+Subject: Re: [linux-dvb] getting started with msi tv card
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,45 +26,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2009/1/4 Albert Comerma <albert.comerma@gmail.com>:
-> I'm nearly sure that ONLY dvb-t works, not analog, not radio.
->
+On Tue, Jan 20, 2009 at 01:30:57PM +0200, Antti Palosaari wrote:
+> Daniel Dalton wrote:
+> > Could someone please let me know what I have to do to get my msi 5580
+> > usb digital tv tuner working with linux?
+> > What drivers do I need? What software, what should I do to test it and
+> > is it possible to use the remote once it is up and running?
+> 
+> It should work with v4l-dvb / Kernel newer than about two years. 
 
-everything's fully supported, you might have a further look at the
-documentation on mcentral.de for it.
+So... My 2.6.26-1 kernel out of aptitude (debian lenny), should work?
 
-regards,
-Markus
+> However, tuner performance is not very good. With weak signal it works 
+> better than strong. All remote keys are not working because driver does 
+> not upload IR-table to the chip.
 
-> Albert
->
-> 2009/1/4 rvf16 <rvf16@yahoo.gr>
->>
->> Hello to all.
->>
->> Could anyone confirm if all signals of this usb tv tuner are supported
->> (DVB-T, analog tv PAL, FM radio) and what about teletext and remote
->> control support?
->> I have searched throughout the web but didn't reach a satisfying result
->> except for the DVB-T signal.
->>
->> Thank you.
->> Regards.
->>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+ok
+
+> 
+> > Finally, I'm vission impared, so are there any programs for controling
+> > the tv either command line based or gtk? I can't use qt applications.
+> > If qt is my only option it's fine, I'll figure out a way for handling
+> > this once the card is working.
+> 
+> Totem, Me-TV, Kaffeine, mplayer, Xine.
+
+Mplayer works with this card? Great!
+
+How would I begin configuring it for mplayer then?
+
+Thanks very much for your help.
+
+Cheers,
+Daniel.
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
