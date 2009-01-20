@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34275 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755484AbZA2KKg (ORCPT
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:45055 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755153AbZATWOP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 05:10:36 -0500
-Date: Thu, 29 Jan 2009 08:10:02 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: morimoto.kuninori@renesas.com,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] ov772x: add support S_CROP operation.
-Message-ID: <20090129081002.793e2341@caramujo.chehab.org>
-In-Reply-To: <Pine.LNX.4.64.0901291057470.5474@axis700.grange>
-References: <uskna4qh8.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0901250245440.4969@axis700.grange>
-	<uzlheep1l.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0901260854010.4236@axis700.grange>
-	<uk58hcp3k.wl%morimoto.kuninori@renesas.com>
-	<alpine.DEB.2.00.0901270851280.4618@axis700.grange>
-	<20090129075127.6dd3340c@caramujo.chehab.org>
-	<Pine.LNX.4.64.0901291057470.5474@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Tue, 20 Jan 2009 17:14:15 -0500
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id D14FA11F9EA
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:38:07 +0100 (CET)
+Received: from smtp5-g21.free.fr (localhost [127.0.0.1])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 71AB3D48024
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:37:24 +0100 (CET)
+Received: from [192.168.1.151] (unknown [78.226.152.136])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 6C3E4D4809C
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:37:22 +0100 (CET)
+Message-ID: <49764412.8030305@free.fr>
+Date: Tue, 20 Jan 2009 22:37:22 +0100
+From: Thierry Merle <thierry.merle@free.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/5] usbvision: use usb_make_path to report bus info
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2009 11:00:41 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-
-> On Thu, 29 Jan 2009, Mauro Carvalho Chehab wrote:
-> 
-> > On Tue, 27 Jan 2009 08:53:23 +0100 (CET)
-> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > 
-> > Hi Guennadi,
-> > 
-> > I'm understanding that you're reviewing this patch and other ones for
-> > soc_camera and will send me a PULL request after reviewing those stuff.
-> 
-> Yes, I'm (going to be) reviewing them, as soon as I find some time. Then 
-> I'll send you two pull requests - fixes for 2.6.29 and 2.6.30 material. 
-> AFAIK, unfortunately, mercurial doesn't support branches, so, I probably 
-> will end up first sending you a pull request with fixes, and after some 
-> time I'll also add 2.6.30 further development to the same tree and send 
-> another pull request. No idea what I do, if after that more 2.6.29 fixes 
-> come...
-
-Yes, this is another drawback of hg. For fixes, please add: 
-	Priority: high
-
-At the body of the description. My scripts will understand this as fix patches.
-
+Hello,
+Here is the set of patches that makes usb driver use usb_make_path to report bus info (except for pvrusb2 since Mike said he would do the patch)
+I would like to have a Acked-by for these patches before doing a pull request, to be sure I did not do weird things.
+Thanks
 Cheers,
-Mauro
+Thierry
+
+usb_make_path reports canonical bus info. Use it when reporting bus info
+in VIDIOC_QUERYCAP.
+
+Signed-off-by: Thierry MERLE <thierry.merle@free.fr>
+---
+diff -r f4d7d0b84940 -r 306881b74bb9 linux/drivers/media/video/usbvision/usbvision-video.c
+--- a/linux/drivers/media/video/usbvision/usbvision-video.c	Sun Jan 18 10:55:38 2009 +0000
++++ b/linux/drivers/media/video/usbvision/usbvision-video.c	Tue Jan 20 21:40:44 2009 +0100
+@@ -524,8 +524,7 @@
+ 	strlcpy(vc->card,
+ 		usbvision_device_data[usbvision->DevModel].ModelString,
+ 		sizeof(vc->card));
+-	strlcpy(vc->bus_info, dev_name(&usbvision->dev->dev),
+-		sizeof(vc->bus_info));
++	usb_make_path(usbvision->dev, vc->bus_info, sizeof(vc->bus_info));
+ 	vc->version = USBVISION_DRIVER_VERSION;
+ 	vc->capabilities = V4L2_CAP_VIDEO_CAPTURE |
+ 		V4L2_CAP_AUDIO |
