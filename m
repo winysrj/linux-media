@@ -1,26 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LKkW6-0003W1-Dx
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 03:21:03 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Gregoire Favre <gregoire.favre@gmail.com>
-In-Reply-To: <20090104182403.GB3521@gmail.com>
-References: <c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
-	<1231057784.2615.9.camel@pc10.localdom.local>
-	<20090104103744.GB3551@gmail.com>
-	<1231085219.2723.1.camel@pc10.localdom.local>
-	<20090104163744.GA3521@gmail.com>
-	<1231089346.2723.9.camel@pc10.localdom.local>
-	<20090104182403.GB3521@gmail.com>
-Date: Thu, 08 Jan 2009 03:20:44 +0100
-Message-Id: <1231381244.2647.19.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <stoth@linuxtv.org>) id 1LPJfX-0003Hi-4C
+	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 17:41:39 +0100
+Received: from steven-toths-macbook-pro.local
+	(ool-45721e5a.dyn.optonline.net [69.114.30.90]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0KDS00LFE3ODQ7X0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 20 Jan 2009 11:41:04 -0500 (EST)
+Date: Tue, 20 Jan 2009 11:41:01 -0500
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <000901c97b18$3e5d4020$217da8c0@tdrpc>
+Message-id: <4975FE9D.2040009@linuxtv.org>
+MIME-version: 1.0
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+	<20090119204724.01826924@caramujo.chehab.org>
+	<003101c97ada$168d54b0$f4c6a5c1@tommy>
+	<200901200956.25104.ajurik@quick.cz>
+	<412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
+	<000901c97b18$3e5d4020$217da8c0@tdrpc>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,45 +36,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+>>
+>> Do you want a separate users list and you're not a developer?  If so,
 
-Am Sonntag, den 04.01.2009, 19:24 +0100 schrieb Gregoire Favre:
-> On Sun, Jan 04, 2009 at 06:15:46PM +0100, hermann pitton wrote:
-> 
-[...]
-> 
-> Isn't those numbers of channels quiete small ?
+The engineering time I can put into Linux varies, it always has, so I'm not
+completely up to speed on this issue. Forgive me.
 
-sorry, did not read it to the end and only noticed the oops is gone.
+What I personally would like to see is a separation between user and dev lists.
 
-Yes, looks poor, but I don't have any such hardware and can't compare
-what a recent windows driver would deliver. Also at least on 13.0E the
-scan file needs lots of updates (lyngsat.com), 19.2 I did not test, but
-on 28.2 kaffeine finds much more, but I'm only in borderline reception
-conditions and not a reference.
+In addition, I don't have a problem with a combined v4l / dvb developer list,
+although I can see how other might. I'm easy on this.
 
-To my surprise, current tda826x silicon tuners for example have no
-difference, but previous latest can tuners can have 30% less on the same
-signal. I got it told the other way round.
+Personally, when I'm between 'furious bouts of Linux activity' like now, the only
+thing I should be spending my time reading is development related issues.
 
-> I think my debug info are wrong, I put :
-> options cx88_alsa index=-2
+When I have time I'll help users, but when I have very little time I need to focus
+quickly on the important Linux v4l/dvb issues related to my trees / projects.
 
-The default -1 should auto enumerate and else you force the dsps/mixers
-considering that the sound card(s) are usually first.
-
-> options cx88xx i2c_debug=1
-> in  /etc/modprobe.conf isn't that right ?
-
-Thought that should always work.
-("depmod -a" ?)
-
-Cheers,
-Hermann
-
-
-
-
+- Steve
 
 
 
