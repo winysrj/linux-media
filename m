@@ -1,66 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f17.google.com ([209.85.219.17]:35163 "EHLO
-	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759152AbZAJA6f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 19:58:35 -0500
-Subject: Re: [patch 1/9] radio-si470x: add USB ID for dealextreme usb radio
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: akpm@linux-foundation.org
-Cc: greg@kroah.com, linux-usb@vger.kernel.org, lkml@rtr.ca,
-	mlord@pobox.com, tobias.lorenz@gmx.net,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <200901092029.n09KTBTb025445@imap1.linux-foundation.org>
-References: <200901092029.n09KTBTb025445@imap1.linux-foundation.org>
-Content-Type: text/plain
-Date: Sat, 10 Jan 2009 03:58:54 +0300
-Message-Id: <1231549134.4474.222.camel@tux.localhost>
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:39320 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756251AbZATWqg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 17:46:36 -0500
+Message-ID: <49765448.8060108@iki.fi>
+Date: Wed, 21 Jan 2009 00:46:32 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] getting started with msi tv card
+References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi> <20090120220701.GB4150@debian-hp.lan>
+In-Reply-To: <20090120220701.GB4150@debian-hp.lan>
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(added linux-media mailing list)
-
-On Fri, 2009-01-09 at 12:29 -0800, akpm@linux-foundation.org wrote:
-> From: Mark Lord <lkml@rtr.ca>
+Daniel Dalton wrote:
+> On Tue, Jan 20, 2009 at 01:30:57PM +0200, Antti Palosaari wrote:
+>> Daniel Dalton wrote:
+>>> Could someone please let me know what I have to do to get my msi 5580
+>>> usb digital tv tuner working with linux?
+>>> What drivers do I need? What software, what should I do to test it and
+>>> is it possible to use the remote once it is up and running?
+>> It should work with v4l-dvb / Kernel newer than about two years. 
 > 
-> Add USB ID for the Sil4701 radio from DealExtreme.
+> So... My 2.6.26-1 kernel out of aptitude (debian lenny), should work?
+
+Yes, should work out of the box. No need to install any driver, driver 
+is included in your Kernel.
+
+There is two versions of MSI Megasky 580. Both looks similar, but have 
+still different USB-bridge chip inside. Both are supported. The older 
+one uses m9206 chip and newer gl861 chip. Older needs also firmware. 
+Sometimes older is called as 5580 and newer 5581, number goes from 
+USB-product ID.
+
+>> However, tuner performance is not very good. With weak signal it works 
+>> better than strong. All remote keys are not working because driver does 
+>> not upload IR-table to the chip.
 > 
-> Signed-off-by: Mark Lord <mlord@pobox.com>
-> Cc: Tobias Lorenz <tobias.lorenz@gmx.net>
-> Cc: Greg KH <greg@kroah.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+> ok
+
+I have newer one, gl861 5581, and this is the version which have remote 
+problem. I think older Megasky have all remote buttons functional.
+
+>>> Finally, I'm vission impared, so are there any programs for controling
+>>> the tv either command line based or gtk? I can't use qt applications.
+>>> If qt is my only option it's fine, I'll figure out a way for handling
+>>> this once the card is working.
+>> Totem, Me-TV, Kaffeine, mplayer, Xine.
 > 
->  drivers/media/radio/radio-si470x.c |    2 ++
->  1 file changed, 2 insertions(+)
+> Mplayer works with this card? Great!
 > 
-> diff -puN drivers/media/radio/radio-si470x.c~radio-si470x-add-usb-id-for-dealextreme-usb-radio drivers/media/radio/radio-si470x.c
-> --- a/drivers/media/radio/radio-si470x.c~radio-si470x-add-usb-id-for-dealextreme-usb-radio
-> +++ a/drivers/media/radio/radio-si470x.c
-> @@ -136,6 +136,8 @@
->  static struct usb_device_id si470x_usb_driver_id_table[] = {
->  	/* Silicon Labs USB FM Radio Reference Design */
->  	{ USB_DEVICE_AND_INTERFACE_INFO(0x10c4, 0x818a, USB_CLASS_HID, 0, 0) },
-> +	/* DealExtreme USB Radio */
-> +	{ USB_DEVICE_AND_INTERFACE_INFO(0x10c5, 0x819a,	USB_CLASS_HID, 0, 0) },
->  	/* ADS/Tech FM Radio Receiver (formerly Instant FM Music) */
->  	{ USB_DEVICE_AND_INTERFACE_INFO(0x06e1, 0xa155, USB_CLASS_HID, 0, 0) },
->  	/* KWorld USB FM Radio SnapMusic Mobile 700 (FM700) */
-> _
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> How would I begin configuring it for mplayer then?
 
-This patch already in Linus tree (in 2.6.28-git) and in v4l-dvb tree.
-It is called "V4L/DVB (10157): Add USB ID for the Sil4701 radio from
-DealExtreme"
+I think mplayer is not very user friendly, try Kaffeine or Me-TV 
+instead. Kaffeine have own channel scanner so it is very easy to 
+configure. Otherwise you will need initial tuning file and then scan to 
+get channels.conf. Try google for more info.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=5e6de7d9a1a373414a41a7441100f90b71c6119f
-
-So, there is no need in this patch here.
-
--- 
-Best regards, Klimov Alexey
-
+regards
+Antti
