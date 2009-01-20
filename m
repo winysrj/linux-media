@@ -1,73 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38446 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757476AbZAMWhS convert rfc822-to-8bit (ORCPT
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:42467 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753166AbZATWBF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2009 17:37:18 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Curran, Dominic" <dcurran@ti.com>,
-	"Kulkarni, Pallavi" <p-kulkarni@ti.com>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"mikko.hurskainen@nokia.com" <mikko.hurskainen@nokia.com>
-Date: Tue, 13 Jan 2009 16:36:53 -0600
-Subject: Color FX User control proposal
-Message-ID: <A24693684029E5489D1D202277BE8944164DF963@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Tue, 20 Jan 2009 17:01:05 -0500
+Received: from smtp4-g21.free.fr (smtp4-g21.free.fr [212.27.42.4])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 00590CDC26F
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:42:00 +0100 (CET)
+Received: from smtp4-g21.free.fr (localhost [127.0.0.1])
+	by smtp4-g21.free.fr (Postfix) with ESMTP id 4D9DF4C80D9
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:40:40 +0100 (CET)
+Received: from [192.168.1.151] (unknown [78.226.152.136])
+	by smtp4-g21.free.fr (Postfix) with ESMTP id 4A61E4C80FF
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:40:38 +0100 (CET)
+Message-ID: <497644D6.7060102@free.fr>
+Date: Tue, 20 Jan 2009 22:40:38 +0100
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3/5] gspca: use usb_make_path to report bus info
+References: <49764412.8030305@free.fr>
+In-Reply-To: <49764412.8030305@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+usb_make_path reports canonical bus info. Use it when reporting bus info
+in VIDIOC_QUERYCAP.
 
-Recently in TI and Nokia, we are working towards having for acceptance an OMAP3 camera driver, which uses an on-chip Image Signal Processor that has one feature of color effects. We were using a V4L2 private CID for that, but have been suggested that this could be common enough to propose to the V4L2 spec aswell for other devices to use.
+Signed-off-by: Thierry MERLE <thierry.merle@free.fr>
 
-Below patch adds the control to include/linux/videodev2.h file, should this be enough? (This patch is taking as a codebase the latest linux-omap kernel, which I believe is v2.6.28 still)
-
-Thanks and Regards,
-Sergio
-
->From 022b87f3e7f3c3be141ab271a110948ea9567a69 Mon Sep 17 00:00:00 2001
-From: Sergio Aguirre <saaguirre@ti.com>
-Date: Tue, 13 Jan 2009 16:25:31 -0600
-Subject: [PATCH] V4L2: Add COLORFX user control
-
-This is a common feature on many cameras. the options are:
-Default colors,
-B & W,
-Sepia
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- include/linux/videodev2.h |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4669d7e..b02a10d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -876,8 +876,15 @@ enum v4l2_power_line_frequency {
- #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
- #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
- #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
-+#define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
-+enum v4l2_colorfx {
-+	V4L2_COLORFX_DEFAULT	= 0,
-+	V4L2_COLORFX_BW		= 1,
-+	V4L2_COLORFX_SEPIA	= 2,
-+};
-+
- /* last CID + 1 */
--#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+31)
-+#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+32)
- 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
--- 
-1.5.6.5
-
+diff -r 6ac9dc705aea -r 72ba48adaacd linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Tue Jan 20 22:01:33 2009 +0100
++++ b/linux/drivers/media/video/gspca/gspca.c	Tue Jan 20 22:06:58 2009 +0100
+@@ -977,8 +977,7 @@
+ 			le16_to_cpu(gspca_dev->dev->descriptor.idVendor),
+ 			le16_to_cpu(gspca_dev->dev->descriptor.idProduct));
+ 	}
+-	strncpy(cap->bus_info, gspca_dev->dev->bus->bus_name,
+-		sizeof cap->bus_info);
++	usb_make_path(gspca_dev->dev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->version = DRIVER_VERSION_NUMBER;
+ 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+ 			  | V4L2_CAP_STREAMING
