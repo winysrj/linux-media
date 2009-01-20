@@ -1,127 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2280 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbZAKRy4 (ORCPT
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:45874 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752718AbZATPY7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 12:54:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Early insights from conversion of cx18 to new v4l2_device framework
-Date: Sun, 11 Jan 2009 18:54:32 +0100
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
-References: <1231650228.10110.67.camel@palomino.walls.org> <1231681589.3112.37.camel@palomino.walls.org>
-In-Reply-To: <1231681589.3112.37.camel@palomino.walls.org>
+	Tue, 20 Jan 2009 10:24:59 -0500
+Received: by qyk4 with SMTP id 4so3455612qyk.13
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 07:24:52 -0800 (PST)
+Message-ID: <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
+Date: Tue, 20 Jan 2009 10:24:47 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: ajurik@quick.cz
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <200901200956.25104.ajurik@quick.cz>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200901111854.32735.hverkuil@xs4all.nl>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+	 <20090119204724.01826924@caramujo.chehab.org>
+	 <003101c97ada$168d54b0$f4c6a5c1@tommy>
+	 <200901200956.25104.ajurik@quick.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 11 January 2009 14:46:29 Andy Walls wrote:
-> > > > I'm very interested in how easy it is for you to convert cx18
-> > > > to v4l2_subdev. Please let me know anything that is unclear or
-> > > > that can be improved in the documentation or code!
->
-> Hans,
->
-> Converting cx18 to use a v4l2_device object was easy enough.  There's
-> not a lot to do, because on it's own it doesn't do to much.  At this
-> early stage, without the v4l2_subdev work done, it's simply one more
-> piece of kernel rigamarole with which to deal, along with struct
-> pci_dev, struct device, struct video_dev.
->
-> As I begin the conversion process to v4l2_subdev, I realize it's not
-> the straightforward hack for which I was hoping.  A clear first step
-> in the porting process needs to be to answer design questions:
->
-> 1. What are the v4l2_subdev's for this family of capture devices? 
-> (This is actually harder to answer than I thought.)
+I spent the morning giving some consideration to the comments people
+made regarding the merging of the mailing lists.  As with most
+attempts at an optimization, there are cases that get more efficient
+and cases that get less efficient.  If done properly, the important
+cases improve in efficiency while the cases that are less critical end
+up a little less efficient.
 
-tuner, cs5345 and cx18-av (the digitizer core). Probably gpio as well; 
-this was very useful with ivtv.
+Clearly, there are two classes of users on the mailing lists:  those
+who read it and those who read it *and* actively contribute to it.
+One of the key goals behind merging the lists was to make it more
+efficient for those who have to reply to emails to not have to deal
+with duplicated content, since in reality a large portion of the
+emails come from people who want their device to work, and don't even
+know the differences between acronyms like ATSC, QAM, DVB-T, DVB-C,
+analog, etc.
 
-> 2. Do I need to write any bridge specific v42l_subdev's?
+Looking at the people who have responded to this thread, and the
+number of threads they have actually contributed on in the last year,
+the disparity is obvious:
 
-For the av core and gpio, yes. Note that the reasons for doing this are 
-technical (it makes the code easier), rather than compulsory as is the 
-case for the external i2c devices.
+People "in favor" of the lists being merged
+118 Patrick Boettcher
+205 Hans Verkuil
+38 Mike Isely
+196 Devin Heitmueller
+"hundreds" Mauro Carvalho Chehab
 
-You can take a peek at ivtv-gpio.c to see how to make a bridge-specific 
-subdev. It's trivial.
+People "against" of the lists being merged
+2 Lars Hanisch
+17 user.vdr
+16 Klaus Schmidinger
+2 Bob Cunningham
+10 Tomas Drajsajtl
+17 Ales Jurik
 
-> 3. What functions do all the needed v4l2_subdev's perform?
+Yup, it's the developers who are posting on a regular basis who feel
+the pain of the two different lists.  It's the people who are actively
+replying to issues, dealing with problems, and trying to keep track of
+it all who want the lists merged.  That said, I personally don't feel
+any guilt in inconveniencing a few users who are not contributing if
+it makes it easier for the people who contribute to the list on a
+daily basis.
 
-It's just a layer on top of i2c devices, making it easier to load and 
-initialize them and to call them (and of course v4l2_subdev is no 
-longer i2c-specific). The functionality didn't change at all so subdevs 
-perform exactly the same functions that they did before.
+I would love to hear more from people who have contributed to more
+than 20 threads who think having the two lists are a good idea.  I
+doubt there will be many of them.
 
-> 4. What functions will I need from all the functions a
-> chip/v4l2_subdev provides?
+I was also giving some thought to the notion of a having separate
+lists for users versus developers.  While this works in some
+communities, I am not confident it would be appropriate for ours.
+Why?  Because the notion of a "users" list is only useful in cases
+where you have a large pool of users who are willing to answer
+questions for others.  Look at the back history of the v4l and
+linux-dvb lists, and that is nowhere to be found (aside from a few
+people like CityK).  The vast majority of questions are answered by a
+handful of developers, and it is no more convenient for those
+developers to have separate lists.  In fact, it's less convenient
+since it results in the developers being required to watch both lists.
+ Think of all the projects where the "-dev" list is high traffic, but
+almost all of the traffic on the "-users" list goes unanswered.
 
-Again, nothing changed here. The ioctl command maps to the corresponding 
-function, that's all.
+Do you want a separate users list and you're not a developer?  If so,
+volunteer to help out by answering other people's emails if you know
+the answer.  CityK is a shining example of this - every email he
+answers about one of the devices I did the driver for is an email I
+don't have to answer myself, which allows me to spend more time
+writing drivers.  If we see lots of users helping each other out by
+answering the questions of other users, only then will I see a
+"-users" list as a sustainable idea that is worth pursuing.
 
-> 5. How will I manage the subdevs to get at just the particular subdev
-> functions I need for any given task?
-
-There are roughly three approaches:
-
-1) Just call them all using v4l2_device_call_all(). Usually this works 
-best and I think this might be all you need for cx18. If a subdev 
-doesn't support the function then it is just skipped.
-
-2) You can assign some non-zero value to the grp_id of a subdev and pass 
-that value with v4l2_device_call_all() to call only subdevs with that 
-grp_id.
-
-3) You can store v4l2_subdev pointer somewhere and use that with 
-v4l2_subdev_call().
-
-Note that I recommend making some handy variants of 
-v4l2_device_call_all() that use the cx18 pointer as their first 
-argument. It makes life a bit easier.
-
-> 6. Do I try to deal with the DTV subdevices on my hybrid cards now,
-> or wait until later?
-
-No. For now v4l2 sub-devices only deal with V4L2 devices and not with 
-DVB devices. Nothing changes on the DVB side.
-
-> These are all up front design questions that I would have done on a
-> professional project with a full up front design.  What I found with
-> trying to iteratively hack was that decisions come up at many
-> junctures with porting this framework to cx18.  I suspect the
-> framework will be great for maintenance activities once in place, but
-> initial porting of existing drivers probably requires an above
-> average level of discipline.
->
-> I will elaborate on how I encountered the design questions above,
-> later today (I've got to head to out soon).  I'll also propose what I
-> think is some guidance to answer question 1 at least. (For highly
-> integrated devices with loose internal couplings in places, like
-> CX23418, it's not as simple as a "chip" or "something connected to
-> I2C, GPIO or other bus lines".)
-
-I'd forgotten about the av-core of the cx23418 that needs to be 
-converted to v4l2_subdev. Basically the same work that I did with the 
-cx25840 i2c driver. That makes it more work than I realized. Note that 
-this is unique to cx18, I don't think other bridge drivers need this.
-
-In general one could say that any a/v encoder/decoder/muxer/tuner device 
-is a candidate for v4l2_subdev, whether it is connected through GPIO, 
-I2C or part of an integrated device. This is true in particular if the 
-same command should be handled by more than one device. E.g. 
-VIDIOC_S_STD is typically a command that needs to be sent to multiple 
-subdevs (a/v digitizers, tuner), and so it makes sense to view the 
-digitizer part of the cx23418 as a subdev as well.
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
