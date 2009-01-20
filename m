@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0NIfe2N009122
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 13:41:40 -0500
-Received: from web95210.mail.in2.yahoo.com (web95210.mail.in2.yahoo.com
-	[203.104.18.186])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0NIfO9K029416
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 13:41:24 -0500
-Date: Sat, 24 Jan 2009 00:11:23 +0530 (IST)
-From: niamathullah sharief <shariefbe@yahoo.co.in>
-To: michael_h_williamson@yahoo.com,
-	video4linux list <video4linux-list@redhat.com>,
-	Kernel newbies <kernelnewbies@nl.linux.org>
-In-Reply-To: <787717.19693.qm@web65509.mail.ac4.yahoo.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0K4kNt2001135
+	for <video4linux-list@redhat.com>; Mon, 19 Jan 2009 23:46:23 -0500
+Received: from mail-bw0-f10.google.com (mail-bw0-f10.google.com
+	[209.85.218.10])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0K4k8Ui006179
+	for <video4linux-list@redhat.com>; Mon, 19 Jan 2009 23:46:09 -0500
+Received: by bwz3 with SMTP id 3so151268bwz.3
+	for <video4linux-list@redhat.com>; Mon, 19 Jan 2009 20:46:08 -0800 (PST)
+Message-ID: <aec7e5c30901192046j1a595day51da698181d034e5@mail.gmail.com>
+Date: Tue, 20 Jan 2009 13:46:08 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: "Matthieu CASTET" <matthieu.castet@parrot.com>
+In-Reply-To: <497487F2.7070400@parrot.com>
 MIME-Version: 1.0
-Message-ID: <372895.40141.qm@web95210.mail.in2.yahoo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: 
-Subject: Re: mmap()
-Reply-To: shariefbe@yahoo.co.in
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <497487F2.7070400@parrot.com>
+Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: soc-camera : sh_mobile_ceu_camera race on free_buffer ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,56 +31,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi Matthieu,
 
-micheal..you are telling that read() function will do the same as the mmap(=
-) does..but the read() will read the data from the memory i think....is thi=
-s ,,ap() is also doing the same one?if yes....how its actually the data (wh=
-en capturing the video) was stored in memory....?
---- On Fri, 23/1/09, Michael Williamson <michael_h_williamson@yahoo.com> wr=
-ote:
-From: Michael Williamson <michael_h_williamson@yahoo.com>
-Subject: Re: mmap()
-To: shariefbe@yahoo.co.in
-Date: Friday, 23 January, 2009, 10:28 PM
+On Mon, Jan 19, 2009 at 11:02 PM, Matthieu CASTET
+<matthieu.castet@parrot.com> wrote:
+> Hi,
+>
+> I am writing a soc camera driver, and I use sh_mobile_ceu_camera as an
+> example.
+>
+> But I don't understand how buffer are handled when the application is
+> doing a streamoff :
+>
+> streamoff will call videobuf_streamoff and then videobuf_queue_cancel.
+> videobuf_queue_cancel will call free_buffer.
+>
+> But we didn't do stop_capture, so as far I understand the controller is
+> still writing data in memory. What prevent us to free the buffer we are
+> writing.
 
+I have not looked into this in great detail, but isn't this handled by
+the videobuf state? The videobuf has state VIDEOBUF_ACTIVE while it is
+in use. I don't think such a buffer is freed.
 
+> Why doesn't we do a stop_capture before videobuf_streamoff ?
+>
+> I saw that pxa_camera use videobuf_waiton, before freeing the buffer.
+> That seem more safe, but that mean we need to wait that controller
+> finish to write all the pending buffer.
 
---- On Fri, 1/23/09, niamathullah sharief <shariefbe@yahoo.co.in> wrote:
+Hm, but vivi.c does not use videbuf_waiton(). I guess this depends on
+how the frames are queued in the driver.
 
-> From: niamathullah sharief <shariefbe@yahoo.co.in>
-> Subject: mmap()
-> To: "video4linux list" <video4linux-list@redhat.com>,
-"Kernel newbies" <kernelnewbies@nl.linux.org>, "micheal
-williams" <michael_h_williamson@yahoo.com>
-> Date: Friday, January 23, 2009, 7:14 AM
-> Hello,=C2=A0 =C2=A0Actually what is mmap()?why it used?shall we
-> write the program without that function?
+Cheers,
 
+/ magnus
 
-
-The mmap() function makes the memory containing
-the picture pixel data available to the program.
-
-The alternative is to use the read() function,
-to get the picture pixel data. I do not have
-a program that does it that way.=20
-
-It is possible to get picture pixel data from a=20
-camera from the shell prompt like this:
-
-   # head -c 304128 /dev/video0 > pict.raw
-
-That does the same things as open() and=20
-read() functions do using a 'C' program.
-
-
--Mike
-
-
-
-
-=0A=0A=0A      Add more friends to your messenger and enjoy! Go to http://m=
-essenger.yahoo.com/invite/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
