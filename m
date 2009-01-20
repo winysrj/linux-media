@@ -1,72 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45744 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753161AbZALGsF (ORCPT
+Received: from g1t0027.austin.hp.com ([15.216.28.34]:34690 "EHLO
+	g1t0027.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754975AbZATTYF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 01:48:05 -0500
-Date: Mon, 12 Jan 2009 04:47:33 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Tobias Lorenz <tobias.lorenz@gmx.net>, linux-media@vger.kernel.org,
-	Eduardo Valentin <eduardo.valentin@indt.org.br>
-Subject: Re: FM transmitter support under v4l2?
-Message-ID: <20090112044733.23dbe55e@pedra.chehab.org>
-In-Reply-To: <5d5443650901112220x12827f8fre801c7e8d23d7479@mail.gmail.com>
-References: <5d5443650811282312w508c0804qf962f6cf5e859e2@mail.gmail.com>
-	<200811291506.11758.tobias.lorenz@gmx.net>
-	<5d5443650901112220x12827f8fre801c7e8d23d7479@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 20 Jan 2009 14:24:05 -0500
+From: "Luhrs, Arne F.E." <arne.luehrs@hp.com>
+To: critter <critter1974@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 20 Jan 2009 19:23:46 +0000
+Subject: RE: Hauppauge WinTV-Nova-T 500 - problem wit internal IR receiver
+Message-ID: <1A5872E54ACA7C40BE798507A106BB203ADEC6B4E2@GVW1163EXB.americas.hpqcorp.net>
+References: <f6e4f67d0901200834o1933d4d0n6687cfb9b3d87032@mail.gmail.com>
+In-Reply-To: <f6e4f67d0901200834o1933d4d0n6687cfb9b3d87032@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 12 Jan 2009 11:50:28 +0530
-Trilok Soni <soni.trilok@gmail.com> wrote:
+In Ubuntu 8.10 you will also have to edit the HAL layer afterward if you want to use the IR control
+For general purposes (e.g. MythTV)
+You want to edit /usr/share/hal/fdi/preprobe/20thirdparty/lirc.fdi
+And add the following in there  
 
-> Hi Tobias,
-> 
-> On Sat, Nov 29, 2008 at 7:36 PM, Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
-> > Hi Trilok,
-> >
-> >> Anybody working on FM transmitter related drivers support under v4l2?
-> >
-> >> If no, what parts of v4l2 which could be tweaked in right order to
-> >
-> >> support such devices? I see that SI471x series seem to have FM
-> >
-> >> transmitters too.
-> >
-> > right, there are several Si47xx series:
-> >
-> > Si470x: receivers only
-> >
-> > Si471x: transmitter only
-> 
-> FYI..now maemo kernel team seems to have written Si4713 FM transmitter
-> driver interfaced over I2C. It is available in the kernel diff here.
-> 
-> http://repository.maemo.org/pool/maemo5.0/free/k/kernel/kernel_2.6.27-20084805r03.diff.gz
-> 
-> Please download and unzip it and search for
-> 
-> radio-si4713.c
+<match key="info.product" contains_ncase="IR-receiver">
+	<merge key="info.ignore" type="bool">true</merge>
+</match>
 
-Hi Trilok. Thanks for pointing us for the driver.
+This will route the IR events to lirc only and not to the keyboard controler.
 
-The driver seems interesting, but I see a few issues with their approach:
+Good luck
+Arne
 
-1) it is creating a sysfs API for controlling some of the characteristics of
-the radio. Public API's should be discussed with enough care at
-linux-media@vger.kernel.org before their addition on a driver, and properly
-documented. Also, IMO, the better would be to use VIDIOC_[G|C]_CTRL calls for
-this, or to create another ioctl for handling FM transmission;
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of critter
+Sent: 20 January 2009 17:35
+To: linux-media@vger.kernel.org
+Subject: Hauppauge WinTV-Nova-T 500 - problem wit internal IR receiver
 
-2) a V4L2 application has no means to determine that the device is a FM
-transmission device. We need to add some capability flags to inform this to userspace.
+Hello,
 
-While there, I noticed also a driver for radio-tea5761 and a patch for
-common/tuners/tea5761.c. This also deserves review at linux-media@vger.kernel.org.
+I don't have idea is this right way to get help with my problem, but
+atleast I am trying. :)
 
-Cheers,
-Mauro
+I have this new version of Nova-T 500 which have two aerial inputs.
+
+WinTV-NOVA-TD-500
+DVB-T
+84109 LF
+Rev D1F4
+
+PCI Interface: VIA VT6210L
+Demodulator Interface: DiBcom DIB7000
+
+Problem is that internal IR receiver is not recognised.
+
+Here is the log:
+
+[   11.155701] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in
+cold state, will try to load a firmware
+[   11.155705] firmware: requesting dvb-usb-dib0700-1.20.fw
+[   11.439514] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+[   12.144029] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in warm state.
+[   12.144299] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[   12.556520] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[   12.888314] dvb-usb: Hauppauge Nova-TD-500 (84xxx) successfully
+initialized and connected.
+[   12.888599] usbcore: registered new interface driver dvb_usb_dib0700
+
+Operating system is Mythbuntu 8.10.
+
+BR
+Pena
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
