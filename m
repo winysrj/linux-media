@@ -1,111 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:43769 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751038AbZA1AME (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 19:12:04 -0500
-Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: tobi@to-st.de
-Cc: BOUWSMA Barry <freebeer.bouwsma@gmail.com>,
-	linux-media@vger.kernel.org,
-	DVB mailin' list thingy <linux-dvb@linuxtv.org>
-In-Reply-To: <497F8EB1.2050004@to-st.de>
-References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
-	 <497A27F7.8020201@to-st.de>
-	 <alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>
-	 <19a3b7a80901261228v393f5fcbv7559b573c0ca1539@mail.gmail.com>
-	 <alpine.DEB.2.00.0901262214200.15738@ybpnyubfg.ybpnyqbznva>
-	 <497EC855.7050301@to-st.de>
-	 <19a3b7a80901270237n761240bbn2627f782ddbffa29@mail.gmail.com>
-	 <497EF972.6090207@to-st.de>
-	 <alpine.DEB.2.00.0901271748160.15738@ybpnyubfg.ybpnyqbznva>
-	 <497F8EB1.2050004@to-st.de>
-Content-Type: text/plain
-Date: Wed, 28 Jan 2009 01:12:30 +0100
-Message-Id: <1233101550.2687.53.camel@pc10.localdom.local>
+Received: from cnc.isely.net ([64.81.146.143]:54885 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756569AbZATRq5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 12:46:57 -0500
+Date: Tue, 20 Jan 2009 11:46:54 -0600 (CST)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely <isely@pobox.com>
+To: linux-media@vger.kernel.org
+cc: ajurik@quick.cz, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+In-Reply-To: <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0901201048140.27310@cnc.isely.net>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+ <20090119204724.01826924@caramujo.chehab.org> <003101c97ada$168d54b0$f4c6a5c1@tommy>
+ <200901200956.25104.ajurik@quick.cz> <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, 20 Jan 2009, Devin Heitmueller wrote:
 
-Am Dienstag, den 27.01.2009, 23:46 +0100 schrieb Tobias Stoeber:
-> Hi all,
+> I spent the morning giving some consideration to the comments people
+> made regarding the merging of the mailing lists.  As with most
+> attempts at an optimization, there are cases that get more efficient
+> and cases that get less efficient.  If done properly, the important
+> cases improve in efficiency while the cases that are less critical end
+> up a little less efficient.
 > 
-> I've just conducted a little test using the de-Sachsen-Anhalt scan file. 
->   As expected, only 3 lines actually worked (those muxes transmitted 
-> from Mt. Brocken).
+> Clearly, there are two classes of users on the mailing lists:  those
+> who read it and those who read it *and* actively contribute to it.
+> One of the key goals behind merging the lists was to make it more
+> efficient for those who have to reply to emails to not have to deal
+> with duplicated content, since in reality a large portion of the
+> emails come from people who want their device to work, and don't even
+> know the differences between acronyms like ATSC, QAM, DVB-T, DVB-C,
+> analog, etc.
 > 
-> The line for 498 Mhz (Ch24 Halle-Saale), which is
+> Looking at the people who have responded to this thread, and the
+> number of threads they have actually contributed on in the last year,
+> the disparity is obvious:
 > 
-> T 498000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE # CH24: Das Erste, arte, 
-> Phoenix, EinsFestival
-> 
-> does actually tune to the Ch 24 from Braunschweig, but fails to 
-> recognize the stations there, because of QAM64:
-> 
->  >>> tune to: 
-> 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> WARNING: filter timeout pid 0x0011
-> WARNING: filter timeout pid 0x0000
-> WARNING: filter timeout pid 0x0010
-> 
-> Using the correct setting of QAM16 gives:
-> 
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->  >>> tune to: 
-> 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> 0x0000 0x4015: pmt_pid 0x0150 RTL World -- RTL Television (running)
-> 0x0000 0x4016: pmt_pid 0x0160 RTL World -- RTL2 (running)
-> 0x0000 0x4017: pmt_pid 0x0170 RTL World -- Super RTL (running)
-> 0x0000 0x4022: pmt_pid 0x0220 RTL World -- VOX (running)
-> 
-> Both testes 10 times....
-> 
-> BOUWSMA Barry schrieb:
-> >>=> Does it matter, e.g. would instead of the unreceivable Ch24 from 
-> >>Halle-Stadt the Braunschweig Ch24 be found? (I did not test this).
-> > 
-> > This all depends on the device.  At least some of my tuners
-> > effectively will lock a signal as if I've specified `AUTO'
-> > in place of everything, even when what I specify is wrong.
-> 
-> So for my Yakumo DVB-T stick it does matter :(
-> 
-> > In reality, when I've been in a new location and done a scan
-> > without knowing transmitter site details, I've just used a
-> > general purpose scanfile I've created which goes from 474 in
-> > 8MHz steps up to 850 or so, like
-> > ### Kanal 68 UHF
-> > T 850000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-> 
-> So why then not provide a generic scan file listing all freq with AUTO 
-> parameters?
-> 
-> Regards, Tobias
+> People "in favor" of the lists being merged
+> 118 Patrick Boettcher
+> 205 Hans Verkuil
 
-yes, that is to what Christoph pointed his hopes too.
+> 38 Mike Isely
 
-But for what is on the markets, and no end in sight, some/many need it
-exactly, some manage to come through a mixture of exactly and auto,
-which also breaks such auto capable for more if something is wrong
-there.
+I've contributed to 38 different threads in the past year?  Wow, I 
+thought I had been staying mostly in the background...
 
-Currently I would give the so far last word on it to the maintainer of
-that mess, but I'm not against Barry and would even consider a "all
-known universe" scan file including neighboring countries, if this
-doesn't mean Christoph has it on his back too.
 
-The reverse effect will be, we have it already with federal state scan
-files now, that we likely will see more questions about why the hell I
-don't get this one and tuning failed ... 
+> 196 Devin Heitmueller
+> "hundreds" Mauro Carvalho Chehab
+> 
+> People "against" of the lists being merged
+> 2 Lars Hanisch
+> 17 user.vdr
+> 16 Klaus Schmidinger
+> 2 Bob Cunningham
+> 10 Tomas Drajsajtl
+> 17 Ales Jurik
+> 
+> Yup, it's the developers who are posting on a regular basis who feel
+> the pain of the two different lists.  It's the people who are actively
+> replying to issues, dealing with problems, and trying to keep track of
+> it all who want the lists merged.  That said, I personally don't feel
+> any guilt in inconveniencing a few users who are not contributing if
+> it makes it easier for the people who contribute to the list on a
+> daily basis.
+> 
+> I would love to hear more from people who have contributed to more
+> than 20 threads who think having the two lists are a good idea.  I
+> doubt there will be many of them.
 
-To share a center frequency over several federal states under such
-conditions seems to be plain wrong and I wonder if there was a rule.
+   [...]
 
-Cheers,
-Hermann
- 
+I don't have a strong preference about a -users and -dev split vs a 
+single list.  It might be worth at least trying - one can always go 
+back to a single list if the experiment fails.
 
+Some have posted that they don't want to be bothered about all the "V4L 
+noise" if they only care about DVB.  But look at this from a driver's 
+viewpoint.  Some drivers aren't just V4L or just DVB - the pvrusb2 
+driver, being that it handles a few hybrid devices, plays both sides of 
+the fence, and some issues that may arise are not clearly obvious 
+whether V4L or DVB is the correct topic.  So to which list does one 
+expect to post?  (OK, maybe in my case it's the pvrusb2 list, but the 
+question is still valid in the general sense and is only going to get 
+more commonplace over time.)
+
+  -Mike
+
+
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
