@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail07.syd.optusnet.com.au ([211.29.132.188])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lindsay.mathieson@gmail.com>) id 1LMJxZ-0002Ew-TP
-	for linux-dvb@linuxtv.org; Mon, 12 Jan 2009 11:23:56 +0100
-Received: from blackpaw.dyndns.org (c122-108-213-22.rochd4.qld.optusnet.com.au
-	[122.108.213.22]) (authenticated sender lindsay.mathieson)
-	by mail07.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	n0CANjR1018127
-	for <linux-dvb@linuxtv.org>; Mon, 12 Jan 2009 21:23:46 +1100
-Received: from lindsay-desktop.localnet (unverified [192.168.0.183])
-	by blackpaw.dyndns.org (SurgeMail 4.0a) with ESMTP id 1368-1769969
-	for <linux-dvb@linuxtv.org>; Mon, 12 Jan 2009 20:23:45 +1000
-From: Lindsay Mathieson <lindsay.mathieson@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Mon, 12 Jan 2009 20:23:39 +1000
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LPDOZ-0005lm-Gw
+	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 10:59:44 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so241817ugc.16
+	for <linux-dvb@linuxtv.org>; Tue, 20 Jan 2009 01:59:39 -0800 (PST)
+Date: Tue, 20 Jan 2009 10:59:27 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Daniel Dalton <d.dalton@iinet.net.au>
+In-Reply-To: <20090120091952.GB6792@debian-hp.lan>
+Message-ID: <alpine.DEB.2.00.0901201046430.11623@ybpnyubfg.ybpnyqbznva>
+References: <20090120091952.GB6792@debian-hp.lan>
 MIME-Version: 1.0
-Message-Id: <200901122023.43128.lindsay.mathieson@gmail.com>
-Subject: [linux-dvb] af9015
+Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] getting started with msi tv card
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,74 +22,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1309002276=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1309002276==
-Content-Type: multipart/signed;
-  boundary="nextPart1796439.MTj2kWYOxE";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+On Tue, 20 Jan 2009, Daniel Dalton wrote:
 
---nextPart1796439.MTj2kWYOxE
-Content-Type: multipart/alternative;
-  boundary="Boundary-00=_roxaJVKsLAuBKlV"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Could someone please let me know what I have to do to get my msi 5580
+> usb digital tv tuner working with linux?
 
---Boundary-00=_roxaJVKsLAuBKlV
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+It looks like it may be supported by the following dvb-usb:
 
-I see the trunk now supports the DigitalNow TinyTwin (af9015), but only for=
-=20
-one tuner. Is it possible to enable the second tuner or are there still iss=
-ues=20
-with that?
-=2D-=20
-Lindsay Mathieson
-http://blackpaw.jalbum.net/home
+config DVB_USB_M920X
+        tristate "Uli m920x DVB-T USB2.0 support"
+        depends on DVB_USB
+        select DVB_MT352 if !DVB_FE_CUSTOMISE
+        select MEDIA_TUNER_QT1010 if !DVB_FE_CUSTOMISE
+        select MEDIA_TUNER_TDA827X if !DVB_FE_CUSTOMISE
+        select DVB_TDA1004X if !DVB_FE_CUSTOMISE
+        help
+          Say Y here to support the MSI Mega Sky 580 USB2.0 DVB-T receiver.
+          Currently, only devices with a product id of
+          "DTV USB MINI" (in cold state) are supported.
+          Firmware required.
 
---Boundary-00=_roxaJVKsLAuBKlV
-Content-Type: text/html;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+(Not sure if the next-to-last line is accurate; the code lists a 
+few devices)
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-style:normal;">I see the trunk now supports the DigitalNow TinyTwin (af9015), but only for one tuner. Is it possible to enable the second tuner or are there still issues with that?<br>
--- <br>
-Lindsay Mathieson<br>
-http://blackpaw.jalbum.net/home</p></body></html>
---Boundary-00=_roxaJVKsLAuBKlV--
-
---nextPart1796439.MTj2kWYOxE
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAklrGisACgkQNbLM9wS4sYdNHQCfc2OFfooyyNzv1aoKj+yzHAgS
-PXIAnRq+7j4RXjZ0/LjYhDdCoytomggO
-=HGk4
------END PGP SIGNATURE-----
-
---nextPart1796439.MTj2kWYOxE--
+One thing you can do, is to plug your device into the USB port
+(if you haven't done so already), and check the output of
+`lsusb' for your device vendor and product IDs, to see if
+these match those in the source code.
 
 
---===============1309002276==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> What drivers do I need? What software, what should I do to test it and
+> is it possible to use the remote once it is up and running?
+
+I'm unsure of your level as a beginner, expert, or master of
+the known linux kernel (except for that weird DVB code), so
+I can't say much -- you'll need at least the module for m920x.
+
+The source code includes remote control keycodes; make of
+that what you will.
+
+I'm not so much an end-user (fnar fnar) and instead use my
+machines as headless servers, and as such I use basic tools
+that are far from user-friendly for everything.
+
+
+> Finally, I'm vission impared, so are there any programs for controling
+> the tv either command line based or gtk? I can't use qt applications.
+
+Similarly for this reason, someone else will have to offer
+help on convenient end-user applications.  (I can offer
+good commandline suggestions, but `gtk' and `qt' have on
+meaning to me)
+
+
+> Also, does this card allow for reccording?
+
+All supported cards deliver the digital payload to linux,
+which can then be recorded by writing it to a file, or
+passed to an application for direct processing (listening
+and/or viewing), so, yes.
+
+It's up to the application to make this convenient for
+the user..
+
+
+So, my suggestion is, plug it in, and see how far you get :-)
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1309002276==--
