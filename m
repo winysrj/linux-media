@@ -1,49 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32727 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:39184 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753420AbZAWRS6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2009 12:18:58 -0500
-Message-ID: <4979E939.2080102@iki.fi>
-Date: Fri, 23 Jan 2009 17:58:49 +0200
+	id S1753237AbZATShE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 13:37:04 -0500
+Message-ID: <497619CD.6010307@iki.fi>
+Date: Tue, 20 Jan 2009 20:37:01 +0200
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Lindsay Mathieson <lindsay.mathieson@gmail.com>
+To: Christoph Pfister <christophpfister@gmail.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: TinyTwin (af9015) Results and questions
-References: <497912d9.3df.52be.1092695642@blackpaw.dyndns.org>
-In-Reply-To: <497912d9.3df.52be.1092695642@blackpaw.dyndns.org>
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: Initial tuning file update for fi-*
+References: <496E2758.70403@iki.fi> <19a3b7a80901141147p6bfcd6c5y369f16d410f63fff@mail.gmail.com>
+In-Reply-To: <19a3b7a80901141147p6bfcd6c5y369f16d410f63fff@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------000607070006070800000508"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lindsay Mathieson wrote:
-> to enable the second tuner. I thought that would be on by
-> default now the 2nd tuner bugs have been worked out. 
+This is a multi-part message in MIME format.
+--------------000607070006070800000508
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Done.
+Christoph Pfister wrote:
+> 2009/1/14 Antti Palosaari <crope@iki.fi>:
+>> Updates for Finland.
 
-> - Is there a official place to download the firmware from?
-> Currently I'm getting it from:
->  
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
-
-That's "official". I think it is not wanted to linuxtv.org because there 
-is same as almost every firmware - it does not have any license. It is 
-just extracted out from Windows driver (actually from USB-sniff). I 
-think some distributions will package & deliver this kind of firmwares, 
-though.
-
-> - Is it possible to estimate when this will make its way
-> into the linux kernel? How will I know?
-
-Driver is in 2.6.28, with dual mode disabled & broken. I am not sure 
-whether those fixes are coming to 2.6.29 or 2.6.30, I doubt later Kernel.
-
-> I ask because I'd like to write up a howto for myth and/or
-> ubuntu users, and want to cover all bases.
+Lets update again due to my mistake. I was forgotten to run hg addremove 
+so new and removed files were not counted.
 
 regards
 Antti
 -- 
 http://palosaari.fi/
+
+--------------000607070006070800000508
+Content-Type: text/plain;
+ name="fi-update_2009-01-20.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="fi-update_2009-01-20.patch"
+
+ZGlmZiAtciBlOTExMzhiOWJkYWEgdXRpbC9zY2FuL2R2Yi10L2ZpLUluYXJpX0phbmlzcGFh
+Ci0tLSAvZGV2L251bGwJVGh1IEphbiAwMSAwMDowMDowMCAxOTcwICswMDAwCisrKyBiL3V0
+aWwvc2Nhbi9kdmItdC9maS1JbmFyaV9KYW5pc3BhYQlUdWUgSmFuIDIwIDIwOjMyOjMzIDIw
+MDkgKzAyMDAKQEAgLTAsMCArMSw0IEBACisjIGF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIGZy
+b20gaHR0cDovL3d3dy5kaWdpdHYuZmkvc2l2dS5hc3A/cGF0aD0xOzgyMjQ7OTUxOQorIyBU
+IGZyZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50
+ZXJ2YWwgaGllcmFyY2h5CitUIDQ5MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEv
+OCBOT05FCitUIDU0NjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FCmRp
+ZmYgLXIgZTkxMTM4YjliZGFhIHV0aWwvc2Nhbi9kdmItdC9maS1JbmFyaV9OYWF0YW1vCi0t
+LSAvZGV2L251bGwJVGh1IEphbiAwMSAwMDowMDowMCAxOTcwICswMDAwCisrKyBiL3V0aWwv
+c2Nhbi9kdmItdC9maS1JbmFyaV9OYWF0YW1vCVR1ZSBKYW4gMjAgMjA6MzI6MzMgMjAwOSAr
+MDIwMApAQCAtMCwwICsxLDQgQEAKKyMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgZnJvbSBo
+dHRwOi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7ODIyNDs5NTE5CisjIFQgZnJl
+cSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZh
+bCBoaWVyYXJjaHkKK1QgNTIyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5P
+TkUKK1QgNjAyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUKZGlmZiAt
+ciBlOTExMzhiOWJkYWEgdXRpbC9zY2FuL2R2Yi10L2ZpLUt1aG1vX1Rpa2thc2VubWFraQot
+LS0gL2Rldi9udWxsCVRodSBKYW4gMDEgMDA6MDA6MDAgMTk3MCArMDAwMAorKysgYi91dGls
+L3NjYW4vZHZiLXQvZmktS3VobW9fVGlra2FzZW5tYWtpCVR1ZSBKYW4gMjAgMjA6MzI6MzMg
+MjAwOSArMDIwMApAQCAtMCwwICsxLDQgQEAKKyMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQg
+ZnJvbSBodHRwOi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7ODIyNDs5NTE5Cisj
+IFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1p
+bnRlcnZhbCBoaWVyYXJjaHkKK1QgNTc4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsg
+MS84IE5PTkUKK1QgNjI2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUK
+ZGlmZiAtciBlOTExMzhiOWJkYWEgdXRpbC9zY2FuL2R2Yi10L2ZpLUt1dXNhbW9fSGFtcHB1
+bGFtcGkKLS0tIC9kZXYvbnVsbAlUaHUgSmFuIDAxIDAwOjAwOjAwIDE5NzAgKzAwMDAKKysr
+IGIvdXRpbC9zY2FuL2R2Yi10L2ZpLUt1dXNhbW9fSGFtcHB1bGFtcGkJVHVlIEphbiAyMCAy
+MDozMjozMyAyMDA5ICswMjAwCkBAIC0wLDAgKzEsNCBAQAorIyBhdXRvbWF0aWNhbGx5IGdl
+bmVyYXRlZCBmcm9tIGh0dHA6Ly93d3cuZGlnaXR2LmZpL3NpdnUuYXNwP3BhdGg9MTs4MjI0
+Ozk1MTkKKyMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2Rl
+IGd1YXJkLWludGVydmFsIGhpZXJhcmNoeQorVCA2NTgwMDAwMDAgOE1IeiAyLzMgTk9ORSBR
+QU02NCA4ayAxLzggTk9ORQorVCA2NzQwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAx
+LzggTk9ORQpkaWZmIC1yIGU5MTEzOGI5YmRhYSB1dGlsL3NjYW4vZHZiLXQvZmktTnVybWVz
+X0tvcnRldmFhcmEKLS0tIC9kZXYvbnVsbAlUaHUgSmFuIDAxIDAwOjAwOjAwIDE5NzAgKzAw
+MDAKKysrIGIvdXRpbC9zY2FuL2R2Yi10L2ZpLU51cm1lc19Lb3J0ZXZhYXJhCVR1ZSBKYW4g
+MjAgMjA6MzI6MzMgMjAwOSArMDIwMApAQCAtMCwwICsxLDQgQEAKKyMgYXV0b21hdGljYWxs
+eSBnZW5lcmF0ZWQgZnJvbSBodHRwOi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7
+ODIyNDs5NTE5CisjIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24t
+bW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKK1QgNTYyMDAwMDAwIDhNSHogMi8zIE5P
+TkUgUUFNNjQgOGsgMS84IE5PTkUKK1QgNTc4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQg
+OGsgMS84IE5PTkUKZGlmZiAtciBlOTExMzhiOWJkYWEgdXRpbC9zY2FuL2R2Yi10L2ZpLU51
+cm1lc19Qb3Jva3lsYQotLS0gYS91dGlsL3NjYW4vZHZiLXQvZmktTnVybWVzX1Bvcm9reWxh
+CVdlZCBKYW4gMTQgMjA6NDY6MDkgMjAwOSArMDEwMAorKysgL2Rldi9udWxsCVRodSBKYW4g
+MDEgMDA6MDA6MDAgMTk3MCArMDAwMApAQCAtMSw0ICswLDAgQEAKLSMgYXV0b21hdGljYWxs
+eSBnZW5lcmF0ZWQgZnJvbSBodHRwOi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7
+ODIyNDs5NTE5Ci0jIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24t
+bW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKLVQgNTYyMDAwMDAwIDhNSHogMi8zIE5P
+TkUgUUFNNjQgOGsgMS84IE5PTkUKLVQgNTc4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQg
+OGsgMS84IE5PTkUKZGlmZiAtciBlOTExMzhiOWJkYWEgdXRpbC9zY2FuL2R2Yi10L2ZpLVJh
+bnRhbGFraQotLS0gL2Rldi9udWxsCVRodSBKYW4gMDEgMDA6MDA6MDAgMTk3MCArMDAwMAor
+KysgYi91dGlsL3NjYW4vZHZiLXQvZmktUmFudGFsYWtpCVR1ZSBKYW4gMjAgMjA6MzI6MzMg
+MjAwOSArMDIwMApAQCAtMCwwICsxLDQgQEAKKyMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQg
+ZnJvbSBodHRwOi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7ODIyNDs5NTE5Cisj
+IFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1p
+bnRlcnZhbCBoaWVyYXJjaHkKK1QgNzE0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsg
+MS84IE5PTkUKK1QgNzcwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUK
+ZGlmZiAtciBlOTExMzhiOWJkYWEgdXRpbC9zY2FuL2R2Yi10L2ZpLVNpcG9vX0dhbHRoYWdl
+bgotLS0gYS91dGlsL3NjYW4vZHZiLXQvZmktU2lwb29fR2FsdGhhZ2VuCVdlZCBKYW4gMTQg
+MjA6NDY6MDkgMjAwOSArMDEwMAorKysgL2Rldi9udWxsCVRodSBKYW4gMDEgMDA6MDA6MDAg
+MTk3MCArMDAwMApAQCAtMSw1ICswLDAgQEAKLSMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQg
+ZnJvbSBodHRwOi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7ODIyNDs5NTE5Ci0j
+IFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1p
+bnRlcnZhbCBoaWVyYXJjaHkKLVQgNjk4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsg
+MS84IE5PTkUKLVQgNzU0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUK
+LVQgNzMwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUKZGlmZiAtciBl
+OTExMzhiOWJkYWEgdXRpbC9zY2FuL2R2Yi10L2ZpLVNpcG9vX05vcnJrdWxsYQotLS0gL2Rl
+di9udWxsCVRodSBKYW4gMDEgMDA6MDA6MDAgMTk3MCArMDAwMAorKysgYi91dGlsL3NjYW4v
+ZHZiLXQvZmktU2lwb29fTm9ycmt1bGxhCVR1ZSBKYW4gMjAgMjA6MzI6MzMgMjAwOSArMDIw
+MApAQCAtMCwwICsxLDUgQEAKKyMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgZnJvbSBodHRw
+Oi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7ODIyNDs5NTE5CisjIFQgZnJlcSBi
+dyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBo
+aWVyYXJjaHkKK1QgNjk4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUK
+K1QgNzU0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUKK1QgNzMwMDAw
+MDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUKZGlmZiAtciBlOTExMzhiOWJk
+YWEgdXRpbC9zY2FuL2R2Yi10L2ZpLVN1b211c3NhbG1pX015bGx5bGFodGkKLS0tIC9kZXYv
+bnVsbAlUaHUgSmFuIDAxIDAwOjAwOjAwIDE5NzAgKzAwMDAKKysrIGIvdXRpbC9zY2FuL2R2
+Yi10L2ZpLVN1b211c3NhbG1pX015bGx5bGFodGkJVHVlIEphbiAyMCAyMDozMjozMyAyMDA5
+ICswMjAwCkBAIC0wLDAgKzEsNCBAQAorIyBhdXRvbWF0aWNhbGx5IGdlbmVyYXRlZCBmcm9t
+IGh0dHA6Ly93d3cuZGlnaXR2LmZpL3NpdnUuYXNwP3BhdGg9MTs4MjI0Ozk1MTkKKyMgVCBm
+cmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVy
+dmFsIGhpZXJhcmNoeQorVCA1MzAwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzgg
+Tk9ORQorVCA1NDYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzggTk9ORQpkaWZm
+IC1yIGU5MTEzOGI5YmRhYSB1dGlsL3NjYW4vZHZiLXQvZmktVXRzam9raV9OdXZ2dXMKLS0t
+IC9kZXYvbnVsbAlUaHUgSmFuIDAxIDAwOjAwOjAwIDE5NzAgKzAwMDAKKysrIGIvdXRpbC9z
+Y2FuL2R2Yi10L2ZpLVV0c2pva2lfTnV2dnVzCVR1ZSBKYW4gMjAgMjA6MzI6MzMgMjAwOSAr
+MDIwMApAQCAtMCwwICsxLDQgQEAKKyMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgZnJvbSBo
+dHRwOi8vd3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7ODIyNDs5NTE5CisjIFQgZnJl
+cSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZh
+bCBoaWVyYXJjaHkKK1QgNTQ2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5P
+TkUKK1QgNTcwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUK
+--------------000607070006070800000508--
