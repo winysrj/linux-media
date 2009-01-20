@@ -1,68 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f11.google.com ([209.85.221.11]:42627 "EHLO
-	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332AbZA1Ogw (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.176]:53018 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756263AbZATQew (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2009 09:36:52 -0500
-Received: by qyk4 with SMTP id 4so7942429qyk.13
-        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2009 06:36:50 -0800 (PST)
+	Tue, 20 Jan 2009 11:34:52 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so1831030wah.21
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 08:34:51 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <49806755.9000902@ingegneria.unime.it>
-References: <49806755.9000902@ingegneria.unime.it>
-Date: Wed, 28 Jan 2009 09:36:50 -0500
-Message-ID: <412bdbff0901280636o731e5c34gc085cb3d5157743d@mail.gmail.com>
-Subject: Re: empire USB portable media station
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Giancarlo Iannizzotto <ianni@ingegneria.unime.it>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-2022-JP
+Date: Tue, 20 Jan 2009 18:34:50 +0200
+Message-ID: <f6e4f67d0901200834o1933d4d0n6687cfb9b3d87032@mail.gmail.com>
+Subject: Hauppauge WinTV-Nova-T 500 - problem wit internal IR receiver
+From: critter <critter1974@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 28, 2009 at 9:10 AM, Giancarlo Iannizzotto
-<ianni@ingegneria.unime.it> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
-> I recently bought the USB hybrid card named "empire USB portable media
-> station". My Ubuntu 8.10 linux box does not recognize it:
->
-> dmesg:
-> ...
-> [ 377.610947] usb 4-1: new high speed USB device using ehci_hcd and
-> address 4
-> [ 377.743974] usb 4-1: configuration #1 chosen from 1 choice
->
-> the lsusb command returns:
-> ...
-> Bus 004 Device 004: ID 1b80:e025
->
-> and the detailed information about the chips inside the card (as
-> described in http://forum.html.it/forum/showthread/t-1263514.html)
-> are:
-> Tuner: NXP TDA18271
-> Demod： NXP TDA10048
-> A/V Decoder: NXP SAA7136E
-> USB Bridge:Cypress 68013A
->
-> I really would like to keep and use this device. Please, could anyone
-> give me some hints?
->
-> Thank you in advance
-> ianni
+Hello,
 
-Hello Ianni,
+I don't have idea is this right way to get help with my problem, but
+atleast I am trying. :)
 
-I am working on a driver for the saa7136, but I have been slightly
-distracted in the last few days on a separate project.  Also, the chip
-is ridiculously complicated compared to other decoders, so even with
-the driver it will be quite difficult to make new devices work.  I am
-hoping to have something in a few weeks.
+I have this new version of Nova-T 500 which have two aerial inputs.
 
-Devin
+WinTV-NOVA-TD-500
+DVB-T
+84109 LF
+Rev D1F4
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+PCI Interface: VIA VT6210L
+Demodulator Interface: DiBcom DIB7000
+
+Problem is that internal IR receiver is not recognised.
+
+Here is the log:
+
+[   11.155701] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in
+cold state, will try to load a firmware
+[   11.155705] firmware: requesting dvb-usb-dib0700-1.20.fw
+[   11.439514] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+[   12.144029] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in warm state.
+[   12.144299] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[   12.556520] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[   12.888314] dvb-usb: Hauppauge Nova-TD-500 (84xxx) successfully
+initialized and connected.
+[   12.888599] usbcore: registered new interface driver dvb_usb_dib0700
+
+Operating system is Mythbuntu 8.10.
+
+BR
+Pena
