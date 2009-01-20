@@ -1,64 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:52135 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754698AbZAPX34 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2009 18:29:56 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so72169ugf.37
-        for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 15:29:52 -0800 (PST)
-Date: Sat, 17 Jan 2009 00:29:40 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Received: from helios.cedo.cz ([193.165.198.226]:54874 "EHLO postak.cedo.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754648AbZATJDc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 04:03:32 -0500
+Message-ID: <003101c97ada$168d54b0$f4c6a5c1@tommy>
+From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "DVB ML" <linux-dvb@linuxtv.org>, <linux-media@vger.kernel.org>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de><200901161555.00803.hverkuil@xs4all.nl><Pine.LNX.4.64.0901160903080.21448@cnc.isely.net><4970C036.2000809@cinnamon-sage.de><20090116155912.7bae237a@caramujo.chehab.org><4974F4B3.8030205@gmail.com> <20090119204724.01826924@caramujo.chehab.org>
 Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-In-Reply-To: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
-Message-ID: <alpine.DEB.2.00.0901170002430.18012@ybpnyubfg.ybpnyqbznva>
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+Date: Tue, 20 Jan 2009 09:35:45 +0100
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Jan 2009, Patrick Boettcher wrote:
+> linux-dvb were used for DVB only. No analog tuner, Composite or S-video
+entries
+> were meant to be discussed there. Another ML were used for those
+discussions.
 
-> Why not closing linux-dvb (and video4linux) and transferring the currently 
-> subscribed users to linux-media automatically?
+And that's the case, Mauro. I guesss that many members care only about DVB
+like me. What will be the next step - join some audio ML? It's also about
+media... :-(
 
-Can I offer my opinions to differ?
+Regards,
+Tomas
 
-First, I'm only subscribed to -dvb in order to post, yet still
-I haven't posted what I originally planned to post before
-unsubscribing until another device fails to work.  Luckily
-the video4linux list was impossible to access (even the
-archives needed subsciption, furrfu).
-
-Anyway, soon after the creation of -media, I saw that the
-crossposts from v4linux were of no interest to me (I'm only
-interested in delivery of already-digital payloads, and am
-not concerned with webcams, analogue radio or TV, remote
-controls, and so on) -- since then I've skipped something
-like 2/3 of the posts on -media, and today, I wouldn't want
-it to appear in my mailbox.  But that's just my interest.
-
-Also, I seem to recall that one intent of -media was to
-focus on developer interest, as the initial posts revealed,
-which also frees developers with better things to do than
-to explain how to, for example, get a list of channels, or
-stream a particular channel and be bothered by beginner or
-simple questions that could be answered by those without
-developer abilities.  Like me.
-
-Anyway, it's no big deal to me.  I'm used to how the one
-FreeBSD -multimedia list covers everything including sound,
-yet typically gets fewer posts in a week than -dvb could
-see in a day, and I can't see myself investing in another
-DVB-type receiver soon until DVB-S2 support gets properly
-rounded out and 100% reliable for all `experimental'-tagged
-devices, so I'm quite content to browse the list just as I
-skim the kernel list, or peer in on a few dozen other BSD-
-type lists whenever I feel like it.
-
-
-yerz,
-barry bouwsma
-off to answer a newbie question next
