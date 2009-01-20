@@ -1,69 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tut.by ([195.137.160.40]:50369 "EHLO speedy.tutby.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751358AbZA2TM3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 14:12:29 -0500
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: gimli <gimli@dark-green.com>, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
-Date: Thu, 29 Jan 2009 21:12:15 +0200
-References: <497F7117.9000607@dark-green.com> <200901291807.33531.liplianin@tut.by> <4981F064.7070407@dark-green.com>
-In-Reply-To: <4981F064.7070407@dark-green.com>
+Received: from g5t0006.atlanta.hp.com ([15.192.0.43]:38682 "EHLO
+	g5t0006.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751215AbZATTFu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 14:05:50 -0500
+Received: from G6W0640.americas.hpqcorp.net (g6w0640.atlanta.hp.com [16.230.34.76])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by g5t0006.atlanta.hp.com (Postfix) with ESMTPS id 285ECC08F
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 19:05:47 +0000 (UTC)
+From: "Luhrs, Arne F.E." <arne.luehrs@hp.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 20 Jan 2009 19:05:42 +0000
+Subject: [PATCH] Hauppauge WinTV-Nova-T 500 - problem wit internal IR
+ receiver
+Message-ID: <1A5872E54ACA7C40BE798507A106BB203ADEC6B4D8@GVW1163EXB.americas.hpqcorp.net>
+References: <f6e4f67d0901200834o1933d4d0n6687cfb9b3d87032@mail.gmail.com>
+In-Reply-To: <f6e4f67d0901200834o1933d4d0n6687cfb9b3d87032@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_P+fgJqCPW2qGxc+"
-Message-Id: <200901292112.15587.liplianin@tut.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_P+fgJqCPW2qGxc+
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+changeset:   10236:f49ac8245842
+tag:         tip
+user:        Arne Luehrs <arne.luehrs@googlemail.com>
+date:        Wed Jan 14 23:01:07 2009 +0100
+files:       linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+description:
+[PATCH] enable IR receiver in Nova TD usb stick (52009)
 
-9yDTz8/C3cXOyckgz9QgMjkgSmFudWFyeSAyMDA5IDIwOjA3OjMyIGdpbWxpIM7B0MnTwcwowSk6
-Cj4gSGksCj4KPiB5b3VyIHBhdGNoIHNlZW1zIHRvIHdvcmsuCklmIGl0IHdvcmtzLCB0aGVuIEkg
-cHJlcGFyZSBtb3JlIHNpbXBsZSBwYXRjaC4KCg==
+From: Arne Luehrs <arne.luehrs@googlemail.com>
 
---Boundary-00=_P+fgJqCPW2qGxc+
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="hvr4000.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="hvr4000.patch"
+Adds the IR data structur to the configuration datastructure of the
+Hauppauge WinTV Nova-TD USB stick (52009)
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1233253267 -7200
-# Node ID 3542d1c1e03add577ce85175327701c552d14856
-# Parent  4086371cea7b7f8b461e1a77513274aa43583c8c
-Bug fix: Restore HVR-4000 tuning.
+Provided remote control is the same as theone provided with the Nova-T500
+Card.
 
-From: Igor M. Liplianin <liplianin@me.by>
+Priority: normal
 
-Some cards uses cx24116 LNB_DC pin for LNB power control,
-some not uses, some uses it different way, like HVR-4000.
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+Signed-off-by: Arne Luehrs <arne.luehrs@googlemail.com>
+diff -r 6896782d783d -r f49ac8245842 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Wed Jan 14 10:06:12 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Wed Jan 14 23:01:07 2009 +0100
+@@ -1683,7 +1683,12 @@
+                                { &dib0700_usb_id_table[43], NULL },
 
-diff -r 4086371cea7b -r 3542d1c1e03a linux/drivers/media/dvb/frontends/cx24116.c
---- a/linux/drivers/media/dvb/frontends/cx24116.c	Sat Jan 17 17:23:31 2009 +0200
-+++ b/linux/drivers/media/dvb/frontends/cx24116.c	Thu Jan 29 20:21:07 2009 +0200
-@@ -1184,7 +1184,12 @@
- 	if (ret != 0)
- 		return ret;
- 
--	return cx24116_diseqc_init(fe);
-+	ret = cx24116_diseqc_init(fe);
-+	if (ret != 0)
-+		return ret;
+                                { NULL },
+                        }
+-               }
++               },
 +
-+	/* HVR-4000 needs this */
-+	return cx24116_set_voltage(fe, SEC_VOLTAGE_13);
- }
++               .rc_interval      = DEFAULT_RC_INTERVAL,
++               .rc_key_map       = dib0700_rc_keys,
++               .rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
++               .rc_query         = dib0700_rc_query
+        }, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
  
- /*
+                .num_adapters = 1, 
 
---Boundary-00=_P+fgJqCPW2qGxc+--
