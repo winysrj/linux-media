@@ -1,53 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:53118 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885AbZAYVRN (ORCPT
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:48816 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753263AbZATWgE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 16:17:13 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-Subject: Re: RFC - Flexcop Streaming watchdog (VDSB)
-Date: Sun, 25 Jan 2009 22:17:08 +0100
-Cc: linux-dvb@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de>
+	Tue, 20 Jan 2009 17:36:04 -0500
+Received: by qyk4 with SMTP id 4so3682936qyk.13
+        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 14:36:02 -0800 (PST)
+Message-ID: <412bdbff0901201436i363cd9d8r7d6cd4f37150e6c2@mail.gmail.com>
+Date: Tue, 20 Jan 2009 17:36:02 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Subject: Re: haupauge remote keycode for av7110_loadkeys
+Cc: "matthieu castet" <castet.matthieu@free.fr>,
+	linux-media@vger.kernel.org
+In-Reply-To: <20090120201830.2945fba5@caramujo.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200901252217.08848.zzam@gentoo.org>
+References: <4974E428.7020702@free.fr>
+	 <20090119185326.29da37da@caramujo.chehab.org>
+	 <4976295E.2070509@free.fr>
+	 <412bdbff0901201150w2a8a66b4r50670eccc3d8340a@mail.gmail.com>
+	 <20090120201830.2945fba5@caramujo.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Freitag, 16. Januar 2009, Patrick Boettcher wrote:
-
-I am looking forward to test your patch.
-
-> There a struct-work-watchdog looking at the number of irq-received while
-> having PIDs active in the PID-filter. If no IRQs are received, the
-> pid-filter-system is reset.
+On Tue, Jan 20, 2009 at 5:18 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+>> Your assessment of the current situation is correct. Yes, it's a
+>> pretty annoying situation.  It does have the upside that we
+>> automatically provide the right keycodes for whatever remote comes by
+>> default with a particular product, but obviously it is a mess if you
+>> want to use some different remote and if your remote wasn't supported,
+>> adding support requires a kernel recompile.
 >
-Very good idea.
-
+> No. Replacing the keycodes is as easy as adding something like this on your
+> rc.local, or adding an equivalent udev rule:
 >
-> Before asking to pull the patch I'd like to discuss an issue: my
-> work-around is iterating over the pid-filter-list in the dvb_demux. I'm
-> doing this in the struct-work-callback. In dvb_demux.c I see that this
-> list is protected with a spinlock. When I now try to take the spinlock in
-> the work-function I'll get a nice message saying, that I cannot do take a
-> spinlock in a work-function.
+> ./v4l2-apps/util/keycode /dev/input/event3 ./v4l2-apps/util/keycodes/avertv_303
 >
+> This will replace the keys of the input device (assumed above that the event
+> device is event3) by the keys at avertv_303 file.
+>
+> The in-kernel tables are just the default ones for that device.
 
-> What can I do? What is the proper way to protect access to this list? Is
-> it needed at all?
+I guess the thing I disagree with is the notion that what you have
+described is "easy".
 
-I thought this is a perfectly legetimate usage of spinlocks. What is the exact 
-wording of the message. Is it a message of lockdep, or another kind of 
-message?
+* It requires keymaps being maintained both in-kernel and out-of-kernel
+* It doesn't work with all drivers (like the dib0700)
+* It doesn't let you select a different in-kernel keymap unless you
+translate it to a file that can be passed to the keycode utility
+* The interactions with lircd is inconsistent across drivers.
 
-Does it get better using spin_lock_irqsave instead of spin_lock_irq ?
+I'm all in favor of some way for making sure the correct default
+keymap is selected for a given device, but the current approach is
+pretty haphazard.
 
-Regards
-Matthias
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
