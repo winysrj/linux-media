@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54604 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752056AbZA3Hos (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2009 02:44:48 -0500
-Date: Fri, 30 Jan 2009 08:44:50 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] ov772x: add support S_CROP operation.
-In-Reply-To: <u3af1o8zz.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0901300829070.4617@axis700.grange>
-References: <uskna4qh8.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.0901250245440.4969@axis700.grange> <uzlheep1l.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.0901260854010.4236@axis700.grange> <uk58hcp3k.wl%morimoto.kuninori@renesas.com>
- <alpine.DEB.2.00.0901270851280.4618@axis700.grange> <u3af1o8zz.wl%morimoto.kuninori@renesas.com>
+Received: from mailrelay005.isp.belgacom.be ([195.238.6.171]:37288 "EHLO
+	mailrelay005.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754326AbZATWWS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 17:22:18 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Thierry Merle <thierry.merle@free.fr>
+Subject: Re: [PATCH 4/5] uvcvideo: use usb_make_path to report bus info
+Date: Tue, 20 Jan 2009 23:22:13 +0100
+Cc: linux-media@vger.kernel.org
+References: <49764412.8030305@free.fr> <4976450C.2040601@free.fr>
+In-Reply-To: <4976450C.2040601@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901202322.13802.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Morimoto-san,
+Hi Thierry,
 
-On Fri, 30 Jan 2009, morimoto.kuninori@renesas.com wrote:
+On Tuesday 20 January 2009, Thierry Merle wrote:
+> usb_make_path reports canonical bus info. Use it when reporting bus info
+> in VIDIOC_QUERYCAP.
+>
+> Signed-off-by: Thierry MERLE <thierry.merle@free.fr>
+>
+> diff -r 72ba48adaacd -r 43bb285afc52
+> linux/drivers/media/video/uvc/uvc_v4l2.c ---
+> a/linux/drivers/media/video/uvc/uvc_v4l2.c	Tue Jan 20 22:06:58 2009 +0100
+> +++ b/linux/drivers/media/video/uvc/uvc_v4l2.c	Tue Jan 20 22:13:45 2009
+> +0100 @@ -494,8 +494,7 @@
+>  		memset(cap, 0, sizeof *cap);
+>  		strncpy(cap->driver, "uvcvideo", sizeof cap->driver);
+>  		strncpy(cap->card, vdev->name, 32);
+> -		strncpy(cap->bus_info, video->dev->udev->bus->bus_name,
+> -			sizeof cap->bus_info);
+> +		usb_make_path(video->dev->udev, cap->bus_info, sizeof(cap->bus_info));
 
-> > > I attached stupid 4 patches.
-> (snip)
-> > Thanks for the patches, please, give me a couple of days for review.
-> (snip)
-> >> Yes, I'm (going to be) reviewing them, as soon as I find some time.
-> 
-> If you have not reviewed now, please use attached one.
-> It use more clever way I think.
+This overflows the 80 columns limit, could you please split the statement ?
 
-I'll have to think about it more, but the first impression is - this 
-wouldn't work.
++		usb_make_path(video->dev->udev, cap->bus_info,
++			      sizeof(cap->bus_info));
 
-At the moment we use the same soc-camera API call set_fmt for both S_FMT 
-and S_CROP calls. But it you look in various instance drivers - host and 
-camera - you will see, that almost all of them have a test "if (pixfmt)," 
-i.e., they have to differentiate between the two cases. And not only 
-because with pixfmt == 0 they cannot configure the stack completely, but 
-because the meaning of these two calls even just with respect to geometry 
-is different: S_FMT specifies scaling, whereas S_CROP preserves the 
-current scaling and only specifies a window using the current scaled 
-coordinates. So, you have to be able to differentiate. The original 
-mt9m001 and mt9v022 drivers didn't support scaling, so, for they just used 
-cropping for both, but the recently added mt9t031 does support scaling, 
-so, it is indeed important. Not sure about mt9m111, and yours ov772x and 
-tw9910.
+>  		cap->version = DRIVER_VERSION_NUMBER;
+>  		if (video->streaming->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>  			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
 
-Further, calling set_bus_param() from (or soc_camera_s_fmt_vid_cap()) from 
-S_CROP is not enough too. This lets the capture.c example run, but, I 
-think, we should be able to run with no configuration at all - even 
-without a S_CROP. So, some default configuration has to be set up on 
-open() or on STREAMON if none is set yet (current_fmt == NULL).
+Apart from that,
 
-So, you can either wit until I find time to address this, or try to do 
-something along these lines yourself. But I'm not sure if I manage to 
-propose anything meaningful before FOSDEM (next weekend), so, this might 
-take up to two weeks. But, I think, we have a bit of time before the 
-2.6.30 merge window:-)
+Acked-by: Laurent Pinchart <laurent.pinchart@skynet.be>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+and thanks for the patch.
