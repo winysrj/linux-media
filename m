@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from alsikeapila.uta.fi ([153.1.1.44])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pauli@borodulin.fi>) id 1LKAos-0003O9-Bs
-	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 13:14:03 +0100
-Received: from valkoapila.uta.fi (valkoapila.uta.fi [153.1.1.42])
-	by alsikeapila.uta.fi (8.13.8/8.13.8) with ESMTP id n06CDvlS015911
-	for <linux-dvb@linuxtv.org>; Tue, 6 Jan 2009 14:13:57 +0200 (EET)
-Received: from apila.uta.fi (localhost.localdomain [127.0.0.1])
-	by valkoapila.uta.fi (8.13.8/8.13.8) with ESMTP id n06CDvhq018862
-	for <linux-dvb@linuxtv.org>; Tue, 6 Jan 2009 14:13:57 +0200
-Received: from [10.0.0.250] (une.tontut.fi [193.166.93.36])
-	(authenticated bits=0)
-	by apila.uta.fi (8.14.1/8.14.1) with ESMTP id n06CDuUd008301
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-dvb@linuxtv.org>; Tue, 6 Jan 2009 14:13:56 +0200 (EET)
-Message-ID: <49634AFE.2080405@borodulin.fi>
-Date: Tue, 06 Jan 2009 14:13:50 +0200
-From: Pauli Borodulin <pauli@borodulin.fi>
+	(envelope-from <crope@iki.fi>) id 1LPEox-0001y7-8f
+	for linux-dvb@linuxtv.org; Tue, 20 Jan 2009 12:31:04 +0100
+Message-ID: <4975B5F1.7000306@iki.fi>
+Date: Tue, 20 Jan 2009 13:30:57 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] The status and future of Mantis driver
+To: linux-media@vger.kernel.org
+References: <20090120091952.GB6792@debian-hp.lan>
+In-Reply-To: <20090120091952.GB6792@debian-hp.lan>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] getting started with msi tv card
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,45 +26,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Heya!
+Daniel Dalton wrote:
+> Could someone please let me know what I have to do to get my msi 5580
+> usb digital tv tuner working with linux?
+> What drivers do I need? What software, what should I do to test it and
+> is it possible to use the remote once it is up and running?
 
-I found out that there is some new activity on Manu Abraham's Mantis 
-driver, so I thought I could throw in some thoughts about it.
+It should work with v4l-dvb / Kernel newer than about two years. 
+However, tuner performance is not very good. With weak signal it works 
+better than strong. All remote keys are not working because driver does 
+not upload IR-table to the chip.
 
-I have been using Manu's Mantis driver (http://www.jusst.de/hg/mantis) 
-for over two years now. I have a VP-2033 card (DVB-C) and at least for 
-the last year the driver has worked without any hickups in my daily 
-(VDR) use. For a long time I have thought that the driver should already 
-be merged to the v4l-dvb tree.
+> Finally, I'm vission impared, so are there any programs for controling
+> the tv either command line based or gtk? I can't use qt applications.
+> If qt is my only option it's fine, I'll figure out a way for handling
+> this once the card is working.
 
-Igor M. Liplianin has created a new tree 
-(http://mercurial.intuxication.org/hg/s2-liplianin) with the description 
-"DVB-S(S2) drivers for Linux". Mantis driver was merged into the tree in 
-October and since then some fixes has also been applied to the driver. 
-Some of these fixes already exist in Manu's tree, some don't. Both trees 
-are missing the remote control support for VP-2033 and VP-2040.
+Totem, Me-TV, Kaffeine, mplayer, Xine.
 
-Until merging of the driver into s2-liplianin, there was a single tree 
-for the Mantis driver development. Now that there are two trees, I fear 
-that the development could scatter if there's no clear idea how the 
-driver is going to get into v4l-dvb. Also, the driver is not only 
-DVB-S(S2), but it also contains support for VP-2033 (DVB-C), VP-2040 
-(DVB-C) and VP-3030 (DVB-T). DVB-S(S2) stuff will probably greatly(?) 
-delay getting the support for DVB-C/T Mantis cards into v4l-dvb.
+> Also, does this card allow for reccording?
 
-For my personal use I have created a patch against the latest v4l-dvb 
-based on Manu's Mantis tree including the remote control support for 
-VP-2033 and VP-2040. But what I would really like to see is Mantis 
-driver merged into v4l-dvb and later into mainstream.
+yes
 
-Igor, what are your thoughts about the Mantis driver? How about the 
-other Mantis users, like Marko Ristola, Roland Scheidegger, and Kristian 
-Slavov?
-
-Regards,
-Pauli Borodulin
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
