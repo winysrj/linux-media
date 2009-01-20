@@ -1,45 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [84.77.67.98] ([84.77.67.98]:2925 "EHLO ventoso.org"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750930AbZAaK2y convert rfc822-to-8bit (ORCPT
+Received: from smtpfb2-g21.free.fr ([212.27.42.10]:42082 "EHLO
+	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402AbZATWAn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jan 2009 05:28:54 -0500
-Received: from noname (localhost.localdomain [127.0.0.1])
-	by ventoso.org (Postfix) with ESMTP id 03C5CC141D4
-	for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 11:28:50 +0100 (CET)
-Date: Sat, 31 Jan 2009 11:29:24 +0100
-From: Luca Olivetti <luca@ventoso.org>
+	Tue, 20 Jan 2009 17:00:43 -0500
+Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
+	by smtpfb2-g21.free.fr (Postfix) with ESMTP id 4055CCDC299
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:42:41 +0100 (CET)
+Received: from smtp3-g21.free.fr (localhost [127.0.0.1])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id 1E64E8180DC
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:41:34 +0100 (CET)
+Received: from [192.168.1.151] (unknown [78.226.152.136])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id 19B13818076
+	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 22:41:32 +0100 (CET)
+Message-ID: <4976450C.2040601@free.fr>
+Date: Tue, 20 Jan 2009 22:41:32 +0100
+From: Thierry Merle <thierry.merle@free.fr>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: Re: DUTV005 USB DVB-T dongle
-Message-ID: <20090131112924.70b62cfb@noname>
-In-Reply-To: <20090131013214.GA11279@jenkins>
-References: <6d562c690901301619g2918a76eq46350e116e2ccf67@mail.gmail.com>
-	<20090131013214.GA11279@jenkins>
-Mime-Version: 1.0
+Subject: [PATCH 4/5] uvcvideo: use usb_make_path to report bus info
+References: <49764412.8030305@free.fr>
+In-Reply-To: <49764412.8030305@free.fr>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-El Fri, 30 Jan 2009 17:32:14 -0800
-Brandon Philips <brandon@ifup.org> escribió:
+usb_make_path reports canonical bus info. Use it when reporting bus info
+in VIDIOC_QUERYCAP.
 
-> > Moosy's got a lot of info, USB dumps and datasheets at
-> > http://sites.google.com/site/moosyresearch/dutv005
-> > 
-> > I'm ready to lend the device to a developer willing to create a
-> > Linux driver for it because it's basically useless for me now.
-> > 
-> > (please ignore the previous e-mails sent from a wrong e-mail
-> > address)
-> 
-> CC'ing the linux-media list which includes the DVB developers. Perhaps
-> someone from that list has some idea about the device or would be
-> interested in helping out.
+Signed-off-by: Thierry MERLE <thierry.merle@free.fr>
 
-Antti Palosaari, a few days ago, said he's trying to write a driver for
-this device.
-
-Bye
--- 
-Luca
+diff -r 72ba48adaacd -r 43bb285afc52 linux/drivers/media/video/uvc/uvc_v4l2.c
+--- a/linux/drivers/media/video/uvc/uvc_v4l2.c	Tue Jan 20 22:06:58 2009 +0100
++++ b/linux/drivers/media/video/uvc/uvc_v4l2.c	Tue Jan 20 22:13:45 2009 +0100
+@@ -494,8 +494,7 @@
+ 		memset(cap, 0, sizeof *cap);
+ 		strncpy(cap->driver, "uvcvideo", sizeof cap->driver);
+ 		strncpy(cap->card, vdev->name, 32);
+-		strncpy(cap->bus_info, video->dev->udev->bus->bus_name,
+-			sizeof cap->bus_info);
++		usb_make_path(video->dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 		cap->version = DRIVER_VERSION_NUMBER;
+ 		if (video->streaming->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
