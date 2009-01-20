@@ -1,31 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpi1.ngi.it ([88.149.128.20]:57193 "EHLO smtpi1.ngi.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755423AbZAQONu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 09:13:50 -0500
-Message-ID: <4971E796.1000509@robertoragusa.it>
-Date: Sat, 17 Jan 2009 15:13:42 +0100
-From: Roberto Ragusa <mail@robertoragusa.it>
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108]:16212
+	"EHLO outbound.icp-qv1-irony-out1.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754364AbZATWWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 17:22:19 -0500
+Message-ID: <11139700E10D4426B6C6CBD6662290F8@mce>
+From: "drappa" <drappa@iinet.net.au>
+To: <linux-media@vger.kernel.org>
+Cc: <linux-dvb@linuxtv.org>
+Subject: Re: DVICO Dual Digital 4 DVB-T Revision2 : Strange Remote Control Issue
+Date: Wed, 21 Jan 2009 07:47:24 +1000
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Detlef Rohde <rohde.d@t-online.de>,
-	Jochen Friedrich <jochen@scram.de>, linux-media@vger.kernel.org
-Subject: Re: MC44S803 frontend (it works)
-References: <4936FF66.3020109@robertoragusa.it> <494C0002.1060204@scram.de> <49623372.90403@robertoragusa.it> <4965327A.5000605@t-online.de> <496CD4C8.50004@t-online.de> <496E2C6B.3050607@scram.de> <496E2FB5.4080406@scram.de> <4971367E.90504@iki.fi> <4971AE26.9070901@t-online.de> <4971B278.8010804@iki.fi>
-In-Reply-To: <4971B278.8010804@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=response
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti Palosaari wrote:
+> Hi All
+>
+> I have one of these cards running perfectly in a current Mythbuntu 8.10 
+> system.
+> Yesterday, I needed to run it under MS VISTA in a dual boot system for 
+> some testing.
+> The VISTA installation proved problematical but the main issue is that the 
+> IR Remote will no longer function under VISTA.
+> I tried rolling back to previous versions of the DVICO drivers but still 
+> nothing.
+> Booted back into Mythbuntu and the remote was fine.
+> I'm at a loss to understand why. Is anything written to firmware when the 
+> card is installed in a Linux system?
+>
+> Regards
+> Drappa
 
-> Tahnks,
-> I did some more changes, could you test again:
-> http://linuxtv.org/hg/~anttip/mc44s803/
+In Antti Palosaari's reply to the post "Re: [linux-dvb] getting started with 
+msi tv cards" He says, "All remote keys are not working because driver does
+not upload IR-table to the chip"
+>From this I am unsure if the same applies to the operation of the DVICO card 
+and if tables are uploaded into volatile memory on each load or if they are 
+written to firmware. However it does seem to provide a clue towards 
+answering my question while raising an area of general concern.
 
-Tested here.
-Works perfectly.
+My questions are:-
+Does the current v4l-dvd driver supporting the DVICO Dual Express Rev. 2 
+card upload remote control tables to the firmware?
+If so, is it possible that this has the unwanted effect of preventing the 
+DVICO remote control software from loading when the card is re-installed 
+into a windows machine?
+Is there a way to test this and/or reset  the card to its original state?
 
--- 
-   Roberto Ragusa    mail at robertoragusa.it
