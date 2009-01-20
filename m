@@ -1,110 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:46744 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754633AbZAUCod (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 21:44:33 -0500
-Subject: Re: [linux-dvb] Terratec XS HD support?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	DVB mailin' list thingy <linux-dvb@linuxtv.org>,
-	em28xx@mcentral.de
-In-Reply-To: <d9def9db0901201839l6c1b0de0g82dcd0601b11e7d5@mail.gmail.com>
-References: <496C9FDE.2040408@hemmail.se>
-	 <d9def9db0901131101y59cd5c1ct2344052f86b42feb@mail.gmail.com>
-	 <d9def9db0901151028k6ab8bd79q6627c7516020aabe@mail.gmail.com>
-	 <alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
-	 <d9def9db0901170216g5be0ed16sa1eeb4c4f9acce76@mail.gmail.com>
-	 <1232503628.2685.5.camel@pc10.localdom.local>
-	 <d9def9db0901201826j7bef2232s6ad12b7ff081ece3@mail.gmail.com>
-	 <1232505328.2685.9.camel@pc10.localdom.local>
-	 <d9def9db0901201839l6c1b0de0g82dcd0601b11e7d5@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 21 Jan 2009 03:45:07 +0100
-Message-Id: <1232505907.2685.13.camel@pc10.localdom.local>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:37443 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751501AbZATIZw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 03:25:52 -0500
+Date: Tue, 20 Jan 2009 09:22:29 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: "T.P. Reitzel" <4066724035@vzwmail.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: gspca_spca505
+Message-ID: <20090120092229.57d6fbfc@free.fr>
+In-Reply-To: <49751737.1020101@vzwmail.net>
+References: <49751737.1020101@vzwmail.net>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 19 Jan 2009 17:13:43 -0700
+"T.P. Reitzel" <4066724035@vzwmail.net> wrote:
 
-Am Mittwoch, den 21.01.2009, 03:39 +0100 schrieb Markus Rechberger:
-> On Wed, Jan 21, 2009 at 3:35 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> >
-> > Am Mittwoch, den 21.01.2009, 03:26 +0100 schrieb Markus Rechberger:
-> >> On Wed, Jan 21, 2009 at 3:07 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> >> >
-> >> > Am Samstag, den 17.01.2009, 11:16 +0100 schrieb Markus Rechberger:
-> >> >> On Sat, Jan 17, 2009 at 10:57 AM, BOUWSMA Barry
-> >> >> <freebeer.bouwsma@gmail.com> wrote:
-> >> >> > Hi Markus, I follow your list as a non-subscriber, but I thought
-> >> >> > it would be worthwhile to post this to linux-dvb as well, and
-> >> >> > eventually to linux-media...
-> >> >> >
-> >> >> > On Thu, 15 Jan 2009, Markus Rechberger wrote:
-> >> >> >
-> >> >> >> On Tue, Jan 13, 2009 at 8:01 PM, Markus Rechberger
-> >> >> >> <mrechberger@gmail.com> wrote:
-> >> >> >
-> >> >> >> >> Is there any news about Terratec HTC USB XS HD support?
-> >> >> >
-> >> >> >> > it's upcoming soon.
-> >> >> >
-> >> >> > Thanks Markus, that's good news for me, and for several people
-> >> >> > who have written me as well!
-> >> >> >
-> >> >> >
-> >> >> >> http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
-> >> >> >> you might track that site for upcoming information.
-> >> >> >
-> >> >> > Interesting.  You say that your code will make use of a BSD
-> >> >> > setup.  Can you or someone say something about this, or point
-> >> >> > to past discussion which explains this?  Would this be the
-> >> >> > userspace_tuner link on your wiki?
-> >> >> >
-> >> >> > In particular, I'm wondering whether this is completely
-> >> >> > compatible with the standard DVB utilities -- dvbscan,
-> >> >> > dvbstream, and the like, or whether a particular higher-
-> >> >> > level end-user application is required.
-> >> >> >
-> >> >> >
-> >> >>
-> >> >> The design goes hand in hand with some discussions that have been made
-> >> >> with some BSD developers.
-> >> >> The setup makes use of usbdevfs and pci configspace access from
-> >> >> userland, some work still has to be done there, it (will give/gives)
-> >> >> manufacturers the freedom to release opensource and binary drivers for
-> >> >> userland.
-> >> >> I'm a friend of open development and not of some kind of monopoly
-> >> >> where a few people rule everything (linux).
-> >> >
-> >> > I do remember when BSD shared some tuner code with GNU/LINUX ;)
-> >> >
-> >>
-> >> there is nothing wrong with that.
-> >>
-> >> As a reference:
-> >> * http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
-> >> * http://corona.homeunix.net/cx88wiki
-> >>
-> >> regards,
-> >> Markus
-> >
-> > Without following your links for now,
-> > for the code exchange during the last six years with what you claim,
-> >
-> 
-> you must mistake me with someone, I did not claim anything for 6 years.
-> 
-> regards,
-> Markus
-> --
+> I just pulled mercurial's v4l-dvb for Bluewhite64's 2.6.27.7 kernel.
+> This spca505 driver for Intel's PC Camera Pro, 0733:0430 isn't even
+> functioning. The MMAP feature of this driver just displays a screen of
+> horizontal green lines. Furthermore, M. Xhaard stripped the external
+> composite feature from this driver a few years ago and no one has yet
+> added it back. If you visit the original website for this driver on
+> sourceforge.net, you'll see the original driver for this video camera
+> including composite support. As it is, the driver for this camera is
+> totally inoperative.
 
-Only that we have and do abuse a monopoly.
+What do you mean by "composite support"?
 
-Thanks for that.
+Otherwise, none of the webcams of the spca505 subdriver have been
+tested since the conversion from v1 to v2. I'd be glad to have more
+information about what happens with this subdriver. May you read the
+gspca_README.txt from my page (see below) and send me the results?
 
-hermann
+Thank you.
 
-
+-- 
+Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
