@@ -1,121 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:41888 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754303AbZAOLZk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2009 06:25:40 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so429936yxm.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Jan 2009 03:25:39 -0800 (PST)
-Message-ID: <9e70b14f0901150325g5c02da7dtba7c3cbbd5987fb2@mail.gmail.com>
-Date: Thu, 15 Jan 2009 11:25:38 +0000
-From: "Alec Christie" <alec.christie@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Re: kernel soft lockup on boot loading cx2388x based DVB-S card (TeVii S420)
-In-Reply-To: <496F1168.3030007@bat.id.au>
+Received: from helios.cedo.cz ([193.165.198.226]:54882 "EHLO postak.cedo.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755702AbZATQAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 11:00:44 -0500
+Message-ID: <000901c97b18$3e5d4020$217da8c0@tdrpc>
+From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+To: <devin.heitmueller@gmail.com>
+Cc: <linux-dvb@linuxtv.org>, <linux-media@vger.kernel.org>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de><20090119204724.01826924@caramujo.chehab.org><003101c97ada$168d54b0$f4c6a5c1@tommy><200901200956.25104.ajurik@quick.cz> <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
+Date: Tue, 20 Jan 2009 17:00:41 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <496F1168.3030007@bat.id.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am getting the same with the Haupauge HVR-4000 after a recent Kernel
-Upgrade in Ubuntu Hardy (8.04).
+Hi Devin,
+your numbers say something but not everything if you don't compare the date
+of the user's subscription. I am new to the forum for about 2 months and
+when I was able to help or offer something I did it. Especially for some
+questions about some chipsets I could have interesting answers when
+neccessary. But I will not spent more time to delete several e-mails about
+analog, webcams etc. where I have no knowledge or interest.
 
-Any help greatly appreciated.
+It's possible that it will be better in average, who knows, but not in all
+cases. The remaining time when linux-dvb is alive I am there. I wish you
+easier work with linux-media. But without me.
 
-Alec Christie
-
-
-
-2009/1/15 Aaron Theodore <aaron@bat.id.au>
->
-> Hi I'm running Debian with kernel: 2.6.24-etchnhalf.1-686
-> I recently baught a TeVii S420 DVB-S card and have been tring to get it to work.
->
-> Firstly i built the v4l from: http://linuxtv.org/hg/v4l-dvb (hg clone) as the card was not detected.
-> On first reboot after new modules are installed i get a kernel soft lockup....
->
-> -------------------------------------------------
-> Linux video capture interface: v2.00
-> cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-> ACPI: PCI Interrupt Link [APC3] enabled at IRQ 18
-> ACPI: PCI Interrupt 0000:05:08.0[A] -> Link [APC3] -> GSI 18 (level, low) -> IRQ 21
-> cx88[0]: subsystem: d420:9022, board: TeVii S420 DVB-S [card=73,autodetected], frontend(s): 1
-> cx88[0]: TV tuner type -1, Radio tuner type -1
-> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-> tuner' 2-0068: chip found @ 0xd0 (cx88[0])
-> cx88[0]/0: found at 0000:05:08.0, rev: 5, irq: 21, latency: 32, mmio: 0xd8000000
-> cx88[0]/0: registered device video0 [v4l2]
-> cx88[0]/0: registered device vbi0
-> tuner' 2-0068: tuner type not set
-> cx88[0]/2: cx2388x 8802 Driver Manager
-> ACPI: PCI Interrupt 0000:05:08.2[A] -> Link [APC3] -> GSI 18 (level, low) -> IRQ 21
-> cx88[0]/2: found at 0000:05:08.2, rev: 5, irq: 21, latency: 32, mmio: 0xd9000000
-> ACPI: PCI Interrupt Link [APCJ] enabled at IRQ 22
-> ACPI: PCI Interrupt 0000:00:04.0[A] -> Link [APCJ] -> GSI 22 (level, low) -> IRQ 17
-> cx88/2: cx2388x dvb driver version 0.0.6 loaded
-> cx88/2: registering cx8802 driver, type: dvb access: shared
-> cx88[0]/2: subsystem: d420:9022, board: TeVii S420 DVB-S [card=73]
-> cx88[0]/2: cx2388x based DVB/ATSC card
-> BUG: soft lockup - CPU#0 stuck for 11s! [modprobe:1767]
->
-> Pid: 1767, comm: modprobe Not tainted (2.6.24-etchnhalf.1-686 #1)
-> EIP: 0060:[<c02be0a5>] EFLAGS: 00000286 CPU: 0
-> EIP is at _spin_lock+0x7/0xf
-> EAX: [removed]
-> ESI: [removed]
-> DS: [removed]
-> CR0: [removed]
-> DR0: [removed]
-> DR6: [removed]
-> [<c02bd4ba>] __mutex_lock_slowpath+0x17/0x7f
-> [<c01099da>] sched_clock+0x8/0x18
-> [<c02bd39a>] mutex_lock+0xa/0xb
-> [<f89d60f7>] videobuf_dvb_get_frontend+0x11/0x37 [videobuf_dvb]
-> [<f8a4e3b2>] cx8802_dvb_probe+0xef/0x1a15 [cx88_dvb]
-> [<c0121da0>] check_preempt_wakeup+0x1e/0x7a
-> [<f89de540>] cx8802_register_driver+0x128/0x1e3 [ex8802]
-> [<c01437ab>] sys_int_module+0x15e3/0x16fb
-> [<c0164172>] vma_prio_tree_insert+0x17/0x2a
-> [<c012c887>] msleep+0x0/0x12
-> [<c0103e66>] sysenter_past_esp+0x6b/0xa1
-> ==============================
->
-> Only way i can boot my system is to remove the PCI card.
->
-> So then i tried using the drivers from TeVii ( http://www.tevii.com/Tevii_linuxdriver_0815.rar )
-> These actually work but are based on what seems to be a v4l-dvb checkout from 2008-08-14.
->
-> I can't use these old drivers because they conflict with other v4l-dvb modules i want to load for other tuner cards.
->
-> Is there someway i can get the TeVii S420 working on the latest v4l-dvb modules?
->
-> Also using the old drivers, just the following happens on boot
->
-> -----------
-> cx88[0]/2: subsystem: d420:9022, board: TeVii S420 DVB-S [card=73]
-> cx88[0]/2: cx2388x based DVB/ATSC card
-> intel8x0_measure_ac97_clock: measured 54726 usecs
-> intel8x0: clocking to 46908
-> stv0288 id 11
-> DVB: registering new adapter (cx88[0])
-> DVB: registering frontend 0 (ST STV0288 DVB-S)...
-> -----------
-> Could this perhaps be an issue with the intel8x0 module?
->
->
->
-> -------------------------------------------------
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Have a nice day,
+Tomas
 
 
+----- Original Message ----- 
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: <ajurik@quick.cz>
+Cc: <linux-dvb@linuxtv.org>; <linux-media@vger.kernel.org>
+Sent: Tuesday, January 20, 2009 4:24 PM
+Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
 
---
-Regards,
 
-Alec Christie
+> I spent the morning giving some consideration to the comments people
+> made regarding the merging of the mailing lists.  As with most
+> attempts at an optimization, there are cases that get more efficient
+> and cases that get less efficient.  If done properly, the important
+> cases improve in efficiency while the cases that are less critical end
+> up a little less efficient.
+>
+> Clearly, there are two classes of users on the mailing lists:  those
+> who read it and those who read it *and* actively contribute to it.
+> One of the key goals behind merging the lists was to make it more
+> efficient for those who have to reply to emails to not have to deal
+> with duplicated content, since in reality a large portion of the
+> emails come from people who want their device to work, and don't even
+> know the differences between acronyms like ATSC, QAM, DVB-T, DVB-C,
+> analog, etc.
+>
+> Looking at the people who have responded to this thread, and the
+> number of threads they have actually contributed on in the last year,
+> the disparity is obvious:
+>
+> People "in favor" of the lists being merged
+> 118 Patrick Boettcher
+> 205 Hans Verkuil
+> 38 Mike Isely
+> 196 Devin Heitmueller
+> "hundreds" Mauro Carvalho Chehab
+>
+> People "against" of the lists being merged
+> 2 Lars Hanisch
+> 17 user.vdr
+> 16 Klaus Schmidinger
+> 2 Bob Cunningham
+> 10 Tomas Drajsajtl
+> 17 Ales Jurik
+>
+> Yup, it's the developers who are posting on a regular basis who feel
+> the pain of the two different lists.  It's the people who are actively
+> replying to issues, dealing with problems, and trying to keep track of
+> it all who want the lists merged.  That said, I personally don't feel
+> any guilt in inconveniencing a few users who are not contributing if
+> it makes it easier for the people who contribute to the list on a
+> daily basis.
+>
+> I would love to hear more from people who have contributed to more
+> than 20 threads who think having the two lists are a good idea.  I
+> doubt there will be many of them.
+>
+> I was also giving some thought to the notion of a having separate
+> lists for users versus developers.  While this works in some
+> communities, I am not confident it would be appropriate for ours.
+> Why?  Because the notion of a "users" list is only useful in cases
+> where you have a large pool of users who are willing to answer
+> questions for others.  Look at the back history of the v4l and
+> linux-dvb lists, and that is nowhere to be found (aside from a few
+> people like CityK).  The vast majority of questions are answered by a
+> handful of developers, and it is no more convenient for those
+> developers to have separate lists.  In fact, it's less convenient
+> since it results in the developers being required to watch both lists.
+>  Think of all the projects where the "-dev" list is high traffic, but
+> almost all of the traffic on the "-users" list goes unanswered.
+>
+> Do you want a separate users list and you're not a developer?  If so,
+> volunteer to help out by answering other people's emails if you know
+> the answer.  CityK is a shining example of this - every email he
+> answers about one of the devices I did the driver for is an email I
+> don't have to answer myself, which allows me to spend more time
+> writing drivers.  If we see lots of users helping each other out by
+> answering the questions of other users, only then will I see a
+> "-users" list as a sustainable idea that is worth pursuing.
+>
+> Devin
+>
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
