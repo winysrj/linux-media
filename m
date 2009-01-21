@@ -1,29 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37734 "EHLO mail.kapsi.fi"
+Received: from hera.kernel.org ([140.211.167.34]:33666 "EHLO hera.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752952AbZAIS5B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Jan 2009 13:57:01 -0500
-Message-ID: <496796B0.8030100@iki.fi>
-Date: Fri, 09 Jan 2009 20:25:52 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Jochen Friedrich <jochen@scram.de>,
-	Roberto Ragusa <mail@robertoragusa.it>, linux-dvb@linuxtv.org,
-	linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] MC44S803 frontend (it works)
-References: <200901091615.21641.lacsilva@gmail.com> <4967783B.2060007@robertoragusa.it> <49678BD3.7070105@scram.de>
-In-Reply-To: <49678BD3.7070105@scram.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	id S1752566AbZAUBlQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jan 2009 20:41:16 -0500
+Subject: Confusion in usr/include/linux/videodev.h
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com, Sam Ravnborg <sam@ravnborg.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Date: Wed, 21 Jan 2009 07:10:38 +0530
+Message-Id: <1232502038.3123.61.camel@localhost.localdomain>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu,
-looks like your MC44S803 driver is in very good shape with Jochen's 
-changes. When you are planning to push it to the v4l-dvb or Kernel?
+usr/include/linux/videodev.h is giving 2 warnings in 'make headers_check':
+ usr/include/linux/videodev.h:19: leaks CONFIG_VIDEO to userspace where it is not valid
+ usr/include/linux/videodev.h:314: leaks CONFIG_VIDEO to userspace where it is not valid
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Whole file is covered with #if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
+
+It means this file is only valid for kernel mode if CONFIG_VIDEO_V4L1_COMPAT is defined but in user mode it is always valid.
+		
+Can we choose some better alternative Or can we use this file as:
+
+#ifdef CONFIG_VIDEO_V4L1_COMPAT
+#include <linux/videodev.h>
+#endif
+
+
+Thanks
+--
+JSR
+
+
