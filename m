@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from imo-d22.mx.aol.com ([205.188.144.208])
+Received: from smtp21.orange.fr ([80.12.242.48])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dbox2alpha@netscape.net>) id 1LIh0D-000164-0Y
-	for linux-dvb@linuxtv.org; Fri, 02 Jan 2009 11:11:41 +0100
-Received: from dbox2alpha@netscape.net
-	by imo-d22.mx.aol.com  (mail_out_v39.1.) id m.cd6.42bd9e80 (37118)
-	for <linux-dvb@linuxtv.org>; Fri, 2 Jan 2009 05:10:58 -0500 (EST)
-References: <8CB31D4DD3B74C2-C48-6AA@WEBMAIL-MC16.sysops.aol.com>
-	<20081222213122.3a72f99c@bk.ru>
-	<8CB328AAAF118F7-11CC-2@mblk-d34.sysops.aol.com>
-To: linux-dvb@linuxtv.org
-Date: Fri, 02 Jan 2009 05:10:50 -0500
-In-Reply-To: <8CB328AAAF118F7-11CC-2@mblk-d34.sysops.aol.com>
+	(envelope-from <catimimi@libertysurf.fr>) id 1LPYwJ-0003Gg-J8
+	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 10:00:00 +0100
+Received: from [192.168.0.1] (AVelizy-151-1-36-168.w82-120.abo.wanadoo.fr
+	[82.120.18.168])
+	by mwinf2118.orange.fr (SMTP Server) with ESMTP id DE0721C00088
+	for <linux-dvb@linuxtv.org>; Wed, 21 Jan 2009 09:59:25 +0100 (CET)
+Message-ID: <4976E3F5.3060703@libertysurf.fr>
+Date: Wed, 21 Jan 2009 09:59:33 +0100
+From: Catimimi <catimimi@libertysurf.fr>
 MIME-Version: 1.0
-From: dbox2alpha@netscape.net
-Message-Id: <8CB3AD985ED8574-DB4-1A65@WEBMAIL-DF10.sysops.aol.com>
-Subject: [linux-dvb] Fwd: TT-3600 on kernel 2.6.27 doesn't work... any help?
+To: linux-dvb@linuxtv.org
+References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
+In-Reply-To: <496D7204.6030501@rogers.com>
+Subject: [linux-dvb]  SAA716x
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,393 +23,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1904121622=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi all,
 
---===============1904121622==
-Content-Type: multipart/alternative;
- boundary="--------MB_8CB3AD985F70EE0_DB4_36DF_WEBMAIL-DF10.sysops.aol.com"
+I'm trying to add my Pinnacle 3010i to the driver found here :
+http://jusst.de/hg/saa716x
+I already got some preliminary results but in order to understand what
+I'm doing it would be
+great to get the result of "lspci -vvxxx" for at least one of the
+supported cards :
 
+- Twinhan/Azurewave VP-6090
+- Avermedia HC82
+- Avermedia H788
 
-----------MB_8CB3AD985F70EE0_DB4_36DF_WEBMAIL-DF10.sysops.aol.com
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="utf-8"
+I didn't find this test in the WIKI, so thanks in advance for posting
+this information.
+Michel.
 
 
- I was able to fix the problem by compiling szap-s2 as 64 bit app. The probl=
-em showed up with the 32 bit app.
-So it looks like there is a severe bug in the ioctls between 32 bit app and=20=
-64 bit driver/kernel.
 
 
------Original Message-----
-From: dbox2alpha@netscape.net
-To: goga777@bk.ru
-Cc: linux-dvb@linuxtv.org
-Sent: Mon, 22 Dec 2008 9:26 pm
-Subject: Re: [linux-dvb] TT-3600 on kernel 2.6.27 doesn't work... any help?
 
-
-
-
-
-
-
-
-
-
-
- hi,=20
-
-i'm probably using vdr...=20
-
-it looks like szap-s2 is trying to access a wrong device driver that doesn't=
- support the new dvb-s2 api ioctls...
-
-
-
-
-
- but how do i find out?
-
-
-
-
-
-=20
-
-
-
------Original Message-----
-
-From: Goga777 <goga777@bk.ru>
-
-To: dbox2alpha@netscape.net
-
-Sent: Mon, 22 Dec 2008 7:31 pm
-
-Subject: Re: [linux-dvb] TT-3600 on kernel 2.6.27 doesn't work... any help?
-
-
-
-
-
-
-
-
-
-
-
-
-
-=D0=9F=D1=80=D0=B8=D0=B2=D0=B5=D1=82=D1=81=D1=82=D0=B2=D1=83=D1=8E, dbox2alp=
-ha@netscape.net
-
-
-
-sorry I don't know answers
-
-
-
-but I'm wondering - which software will you use for dvb watching on PS3  - v=
-dr ,=20
-
-kaffeine, mythtv ?
-
-
-
-what do you think about PS3 as =D1=80=D0=B5=D0=B7=D1=81 platform with dvb-s2=
- support ? is it good=20
-
-thing ?
-
-
-
-> hi,=20
-
-> I'm trying to get the TT-3600 USB DVB-S2 to work on a PlayStation 3 but so=
- far=20
-
-I have not been successful.
-
->=20
-
-> I'm using the latest DVB-S2 API and driver: s2-liplianin-aed3dd42ac28
-
-> which compiles and installs fine.
-
-> Driver also seems to initialize fine.
-
-> Bu
-t when I use szap-s2 FE_SET_PROPERTY DTV_CLEAR fa
-ils.
-
-> problem with the following ioctl:=20
-
-> ioctl32(szap-s2:32528): Unknown cmd fd(3) cmd(80086f52){t:'o';sz:8}=20
-
-arg(ff835360) on /dev/dvb/adapter0/frontend0
-
->=20
-
-> [root@ps3 szap-s2-a75cabee2e95]# ./szap-s2 -c channels.conf -rn 2
-
-> reading channels from file 'channels.conf'
-
-> zapping to 2 'SAT.1;ProSiebenSat.1':
-
-> delivery DVB-S, modulation QPSK
-
-> sat 0, frequency 12544 MHz H, symbolrate 22000000, coderate 5/6, rolloff 0=
-.35
-
-> vpid 0x00ff, apid 0x0100, sid 0x0020
-
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-
-> FE_SET_PROPERTY DTV_CLEAR failed: Invalid argument
-
-> [root@ps3 szap-s2-a75cabee2e95]#
-
->=20
-
-> Any help? Thanks.
-
-
-
-
-
---=20
-
-=D0=A3=D0=B4=D0=B0=D1=87=D0=B8,
-
-=D0=98=D0=B3=D0=BE=D1=80=D1=8C
-
-
-
-
-
-=20
-
-
-
-
-
-Listen to 350+ music, sports, & news radio stations =E2=80=93 including song=
-s for the holidays =E2=80=93 FREE while you browse. Start Listening Now!=20
-
-
-
-=20
-
-
-----------MB_8CB3AD985F70EE0_DB4_36DF_WEBMAIL-DF10.sysops.aol.com
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="utf-8"
-
-
-<div> <font face=3D"Arial, Helvetica, sans-serif">I was able to fix the prob=
-lem by compiling szap-s2 as 64 bit app. The problem showed up with the 32 bi=
-t app.<br>
-So it looks like there is a severe bug in the ioctls between 32 bit app and=20=
-64 bit driver/kernel.<br>
-<br>
-</font></div>
------Original Message-----<br>
-From: dbox2alpha@netscape.net<br>
-To: goga777@bk.ru<br>
-Cc: linux-dvb@linuxtv.org<br>
-Sent: Mon, 22 Dec 2008 9:26 pm<br>
-Subject: Re: [linux-dvb] TT-3600 on kernel 2.6.27 doesn't work... any help?<=
-br>
-<br>
-
-
-
-
-
-
-<div id=3D"AOLMsgPart_2_6e2733e2-a60b-42ee-97ed-e8070ab1dd87">
-
-
-
-<div> <font face=3D"Arial, Helvetica, sans-serif">hi, <br>
-
-i'm probably using vdr... <br>
-
-it looks like szap-s2 is trying to access a wrong device driver that doesn't=
- support the new dvb-s2 api ioctls...<br>
-
-</font></div>
-
-
-
-<div> <font face=3D"Arial, Helvetica, sans-serif">but how do i find out?<br>
-
-</font></div>
-
-
-
-<div> <br>
-
-</div>
-
------Original Message-----<br>
-
-From: Goga777 &lt;<a href=3D"mailto:goga777@bk.ru">goga777@bk.ru</a>&gt;<br>
-
-To: <a href=3D"mailto:dbox2alpha@netscape.net">dbox2alpha@netscape.net</a><b=
-r>
-
-Sent: Mon, 22 Dec 2008 7:31 pm<br>
-
-Subject: Re: [linux-dvb] TT-3600 on kernel 2.6.27 doesn't work... any help?<=
-br>
-
-<br>
-
-
-
-
-
-
-
-
-<div id=3D"AOLMsgPart_0_fdb1c5fc-5a4b-48db-8bdf-814d65f899af" style=3D"margi=
-n: 0px; font-family: Tahoma,Verdana,Arial,Sans-Serif; font-size: 12px; color=
-: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
-
-<pre style=3D"font-size: 9pt;"><tt>=D0=9F=D1=80=D0=B8=D0=B2=D0=B5=D1=82=D1=
-=81=D1=82=D0=B2=D1=83=D1=8E, <a>dbox2alpha@netscape.net</a><br>
-<br>
-<br>
-<br>
-sorry20I don't know answers<br>
-<br>
-<br>
-<br>
-but I'm wondering - which software will you use for dvb watching on PS3  - v=
-dr , <br>
-<br>
-kaffeine, mythtv ?<br>
-<br>
-<br>
-<br>
-what do you think about PS3 as =D1=80=D0=B5=D0=B7=D1=81 platform with dvb-s2=
- support ? is it good <br>
-<br>
-thing ?<br>
-<br>
-<br>
-<br>
-&gt; hi, <br>
-<br>
-&gt; I'm trying to get the TT-3600 USB DVB-S2 to work on a PlayStation 3 but=
- so far <br>
-<br>
-I have not been successful.<br>
-<br>
-&gt; <br>
-<br>
-&gt; I'm using the latest DVB-S2 API and driver: s2-liplianin-aed3dd42ac28<b=
-r>
-<br>
-&gt; which compiles and installs fine.<br>
-<br>
-&gt; Driver also seems to initialize fine.<br>
-<br>
-&gt; But when I use szap-s2 FE_SET_PROPERTY DTV_CLEAR fa<br>
-ils.<br>
-<br>
-&gt; problem with the following ioctl: <br>
-<br>
-&gt; ioctl32(szap-s2:32528): Unknown cmd fd(3) cmd(80086f52){t:'o';sz:8} <br=
->
-<br>
-arg(ff835360) on /dev/dvb/adapter0/frontend0<br>
-<br>
-&gt; <br>
-<br>
-&gt; [root@ps3 szap-s2-a75cabee2e95]# ./szap-s2 -c channels.conf -rn 2<br>
-<br>
-&gt; reading channels from file 'channels.conf'<br>
-<br>
-&gt; zapping to 2 'SAT.1;ProSiebenSat.1':<br>
-<br>
-&gt; delivery DVB-S, modulation QPSK<br>
-<br>
-&gt; sat 0, frequency 12544 MHz H, symbolrate 22000000, coderate 5/6, rollof=
-f 0.35<br>
-<br>
-&gt; vpid 0x00ff, apid 0x0100, sid 0x0020<br>
-<br>
-&gt; using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'<br>
-<br>
-&gt; FE_SET_PROPERTY DTV_CLEAR failed: Invalid argument<br>
-<br>
-&gt; [root@ps3 szap-s2-a75cabee2e95]#<br>
-<br>
-&gt; <br>
-<br>
-&gt; Any help? Thanks.<br>
-<br>
-<br>
-<br>
-<br>
-<br>
--- <br>
-<br>
-3=D0=B4=D0=B0=D1=87=D0=B8,<br>
-<br>
-=D0=98=D0=B3=D0=BE=D1=80=D1=8C<br>
-<br>
-</tt></pre>
-</div>
-
-=20
-
-
-<div id=3D"MAILCIAMB013-5c39494ff7eaf8" class=3D"aol_ad_footer"><br>
-<font style=3D"color: black; font-family: ARIAL,SAN-SERIF; font-style: norma=
-l; font-variant: normal; font-weight: normal; font-size: 10pt; line-height:=20=
-normal; font-size-adjust: none; font-stretch: normal; -x-system-font: none;"=
-></font><hr style=3D"margin-top: 10px;"><font style=3D"color: black; font-fa=
-mily: ARIAL,SAN-SERIF; font-style: normal; font-variant: normal; font-weight=
-: normal; font-size: 10pt; line-height: normal; font-size-adjust: none; font=
--stretch: normal; -x-system-font: none;">Listen to 350+ music, sports, &amp;=
- news radio stations =E2=80=93 including songs for the holidays =E2=80=93 FR=
-EE while you browse. <a target=3D"_blank" href=3D"http://toolbar.aol.com/aol=
-radio/download.html?ncid=3Demlweusdown00000013">Start Listening Now</a>! </f=
-ont></div>
-
-
-</div>
-<font style=3D"color: black; font-family: ARIAL,SAN-SERIF; font-style: norma=
-l; font-variant: normal; font-weight: normal; font-size: 10pt; line-height:=20=
-normal; font-size-adjust: none; font-stretch: normal; -x-system-font: none;"=
-> <!-- end of AOLMsgPart_2_6e2733e2-a60b-42ee-97ed-e8070ab1dd87 -->
-
-</font><div id=3D'MAILCIAMA014-5c3a495de82a27e' class=3D'aol_ad_footer'><BR/=
-><FONT style=3D"color: black; font: normal 10pt ARIAL, SAN-SERIF;"><HR  styl=
-e=3D"MARGIN-TOP: 10px"></HR>Get a <b>free MP3</b> every day with the Spinner=
-.com Toolbar. <a href=3D"http://toolbar.aol.com/spinner/download.html?ncid=
-=3Demlweusdown00000020">Get it Now</a>. </div>
-
-----------MB_8CB3AD985F70EE0_DB4_36DF_WEBMAIL-DF10.sysops.aol.com--
-
-
---===============1904121622==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1904121622==--
