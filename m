@@ -1,15 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <cae4ceb0901081430n72e7844dk1d4f7d558bfdcf22@mail.gmail.com>
-Date: Thu, 8 Jan 2009 14:30:45 -0800
-From: "Tu-Tu Yu" <tutuyu@usc.edu>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840901081158ye4b0d64sb10212b05a54d015@mail.gmail.com>
+Received: from mail-gx0-f25.google.com ([209.85.217.25])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <henrik.list@gmail.com>) id 1LPY9u-0007OP-WE
+	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 09:10:01 +0100
+Received: by gxk6 with SMTP id 6so108295gxk.17
+	for <linux-dvb@linuxtv.org>; Wed, 21 Jan 2009 00:09:22 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <cae4ceb0901081150m24dbfe5dv386236c9144e952d@mail.gmail.com>
-	<37219a840901081158ye4b0d64sb10212b05a54d015@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] CX23885 is broken!?
+In-Reply-To: <af2e95fa0901210008y758a7bfai4e326d1f74cc7441@mail.gmail.com>
+References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
+	<20090119204724.01826924@caramujo.chehab.org>
+	<003101c97ada$168d54b0$f4c6a5c1@tommy>
+	<200901200956.25104.ajurik@quick.cz>
+	<412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
+	<af2e95fa0901210008y758a7bfai4e326d1f74cc7441@mail.gmail.com>
+Date: Wed, 21 Jan 2009 09:09:22 +0100
+Message-ID: <af2e95fa0901210009o5a164687h2e80fc047126fba3@mail.gmail.com>
+From: Henrik Beckman <henrik.list@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Fwd:  Cross-posting linux-media, linux-dvb etc
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,63 +26,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0720242996=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thank you~ it works again~~
-cheers!
+--===============0720242996==
+Content-Type: multipart/alternative; boundary=0015175708946c0e2f0460f9ac37
 
-On Thu, Jan 8, 2009 at 11:58 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Thu, Jan 8, 2009 at 2:50 PM, Tu-Tu Yu <tutuyu@usc.edu> wrote:
->> I updated the v4l-dvb this morning, and I tried to load cx23885 by
->> "modprobe cx23885"
->> It says
->> "FATAL: Error inserting cx23885
->> (/lib/modules/2.6.26-rs/kernel/drivers/media/video/cx23885/cx23885.ko):
->> Unknown symbol in module, or unknown parameter (see dmesg)"
->>
->> This is dmesg"==>
->> cx23885: disagrees about version of symbol video_ioctl2
->> cx23885: Unknown symbol video_ioctl2
->> cx23885: disagrees about version of symbol videobuf_dvb_alloc_frontend
->> cx23885: Unknown symbol videobuf_dvb_alloc_frontend
->> cx23885: disagrees about version of symbol video_devdata
->> cx23885: Unknown symbol video_devdata
->> cx23885: disagrees about version of symbol videobuf_dvb_get_frontend
->> cx23885: Unknown symbol videobuf_dvb_get_frontend
->> cx23885: disagrees about version of symbol video_unregister_device
->> cx23885: Unknown symbol video_unregister_device
->> cx23885: disagrees about version of symbol video_device_alloc
->> cx23885: Unknown symbol video_device_alloc
->> cx23885: disagrees about version of symbol video_register_device
->> cx23885: Unknown symbol video_register_device
->> cx23885: disagrees about version of symbol v4l2_chip_match_host
->> cx23885: Unknown symbol v4l2_chip_match_host
->> cx23885: disagrees about version of symbol video_device_release
->> cx23885: Unknown symbol video_device_release
->>
->> Can anyone help me....? thank you so much!!!!!
->> Audrey~
->
-> This is user error.
->
-> Rebuild your v4l-dvb after doing "make distclean" , then try again...
->
-> make distclean
-> make
-> sudo make install
-> REBOOT !!!
->
-> That should do the trick.
->
-> -Mike
->
+--0015175708946c0e2f0460f9ac37
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Do you want a separate users list and you're not a developer?
+
+
+No,
+There are to few "educated" users, also much of the problems are new
+hardware rev, new device, reception problem and not realy user solvable.
+Developers will have to surf the user list to catch problems or "super-user"
+will have to moderate and lift cases to the developer list.
+
+When the community is bigger and more stable a split list will make better
+sense, or when the list are flooded by stupid questions.
+
+On the other hand if a split list would give me better device compability
+and development rate I will happily browse multiple lists and help where I
+can.
+
+/Henrik
+
+--0015175708946c0e2f0460f9ac37
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<br><div class=3D"gmail_quote"><br><div class=3D"gmail_quote"><div class=3D=
+"Ih2E3d"><blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid =
+rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Do you want a separate users list and you&#39;re not a developer?&nbsp; </b=
+lockquote></div><div><br>No,<br>There are to few &quot;educated&quot; users=
+, also much of the problems are new hardware rev, new device, reception pro=
+blem and not realy user solvable.<br>
+
+Developers will have to surf the user list to catch problems or &quot;super=
+-user&quot; will have to moderate and lift cases to the developer list.<br>=
+<br>When the community is bigger and more stable a split list will make bet=
+ter sense, or when the list are flooded by stupid questions.<br>
+
+<br>On the other hand if a split list would give me better device compabili=
+ty and development rate I will happily browse multiple lists and help where=
+ I can.<br><br>/Henrik<br><br></div></div><br>
+</div><br>
+
+--0015175708946c0e2f0460f9ac37--
+
+
+--===============0720242996==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0720242996==--
