@@ -1,46 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60023 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413AbZASUxw (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:59794 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931AbZAUJvO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2009 15:53:52 -0500
-Date: Mon, 19 Jan 2009 18:53:26 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: matthieu castet <castet.matthieu@free.fr>
-Cc: linux-media@vger.kernel.org
-Subject: Re: haupauge remote keycode for av7110_loadkeys
-Message-ID: <20090119185326.29da37da@caramujo.chehab.org>
-In-Reply-To: <4974E428.7020702@free.fr>
-References: <4974E428.7020702@free.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 21 Jan 2009 04:51:14 -0500
+Date: Wed, 21 Jan 2009 01:51:10 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Arnd Bergmann <arnd@arndb.de>
+cc: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaswinder Singh Rajput <jaswinder@kernel.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	Sam Ravnborg <sam@ravnborg.org>, Ingo Molnar <mingo@elte.hu>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: Confusion in usr/include/linux/videodev.h
+In-Reply-To: <200901211009.14856.arnd@arndb.de>
+Message-ID: <Pine.LNX.4.58.0901210129350.13170@shell2.speakeasy.net>
+References: <1232502038.3123.61.camel@localhost.localdomain>
+ <Pine.LNX.4.58.0901210048500.13170@shell2.speakeasy.net>
+ <3f9a31f40901210059g51d46f56t85364d886b757a6e@mail.gmail.com>
+ <200901211009.14856.arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Jan 2009 21:35:52 +0100
-matthieu castet <castet.matthieu@free.fr> wrote:
+On Wed, 21 Jan 2009, Arnd Bergmann wrote:
+> On Wednesday 21 January 2009, Jaswinder Singh Rajput wrote:
+> > > diff -r 29c5787efcda linux/include/linux/videodev.h
+> > > --- a/linux/include/linux/videodev.h    Thu Jan 15 09:07:03 2009 -0800
+> > > +++ b/linux/include/linux/videodev.h    Wed Jan 21 00:51:45 2009 -0800
+> > > @@ -15,7 +15,8 @@
+> > >  #include <linux/ioctl.h>
+> > >  #include <linux/videodev2.h>
+> > >
+> > > -#if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
+> > > +#if (defined(__KERNEL__) && defined(CONFIG_VIDEO_V4L1_COMPAT)) \
+> > > +    || !defined (__KERNEL__)
+> > >
+> > >  #define VID_TYPE_CAPTURE       1       /* Can capture */
+> > >  #define VID_TYPE_TUNER         2       /* Can tune */
+> > >
+> > > Now CONFIG_VIDEO_V4L1_COMPAT will only be used in the kernel.
+> > >
+> >
+> > No, this will still give warnings.
+>
+> You could #define another conditional, like this:
+>
+> #ifndef __KERNEL__
+> # define __V4L1_COMPAT_API /* Always provide definitions to user space */
+> #else /* __KERNEL__ */
+> # ifdef CONFIG_VIDEO_V4L1_COMPAT
+> #  define __V4L1_COMPAT_API
+> # endif /* CONFIG_VIDEO_V4L1_COMPAT /*
+> #endif /* __KERNEL__ */
 
-> Hi,
-> 
-> I attached keycodes for 
-> http://www.hauppauge.eu/boutique_us/images_produits/1111111.jpg remote.
-> 
-> Can it be added to dvb-apps/util/av7110_loadkeys/ repo.
-> 
-> Matthieu
-> 
-> PS : this is more or less a duplicate of keycode in 
-> ir_codes_hauppauge_new (ir-kbd-i2c.c) and it could be useful to merge 
-> them. But I like better the av7110_loadkeys approch, because with 
-> ir-kbd-i2c you can't use other remote without modifying the source code.
+I see what the real problem is now, the unifdef program isn't smart enough
+to realize that it knows the result of !defined(__KERNEL__) || defined(FOO)
+and so it keeps those ifdefs in when it should be able to remove them.
 
-Matthieu,
+This works too:
 
-You can replace the ir-kbd-i2c keys using the standard input ioctls for it.
-Take a look at v4l2-apps/util/keycode app. It allows you to read and replace
-any IR keycodes on the driver that properly implements the event support
-(including ir-kbd-i2c).
-
-Cheers,
-Mauro
+#ifndef __KERNEL__
+# define __V4L1_COMPAT_API /* Always provide definitions to user space */
+#elif defined(CONFIG_VIDEO_V4L1_COMPAT) /* __KERNEL__ */
+# define __V4L1_COMPAT_API
+#endif /* CONFIG_VIDEO_V4L1_COMPAT */
