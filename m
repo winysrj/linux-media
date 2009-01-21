@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from tangens-u.sinus.cz
-	([89.250.251.168] helo=tangens.sinus.cz ident=root)
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrol@tangens.sinus.cz>) id 1LLwkl-0005wR-M7
-	for linux-dvb@linuxtv.org; Sun, 11 Jan 2009 10:37:09 +0100
-Received: from tangens.sinus.cz (patrol@localhost [127.0.0.1])
-	by tangens.sinus.cz (8.14.1/8.14.1) with ESMTP id n0B9b3HG021917
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Sun, 11 Jan 2009 10:37:03 +0100
-Received: (from patrol@localhost)
-	by tangens.sinus.cz (8.14.1/8.14.1/Submit) id n0B9b34O021916
-	for linux-dvb@linuxtv.org; Sun, 11 Jan 2009 10:37:03 +0100
-Date: Sun, 11 Jan 2009 10:37:03 +0100
-From: Pavel Troller <patrol@sinus.cz>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090111093703.GA20152@tangens.sinus.cz>
+	(envelope-from <d.dalton@iinet.net.au>) id 1LPbCT-0007r3-6k
+	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 12:24:51 +0100
+Date: Wed, 21 Jan 2009 22:24:36 +1100
+From: Daniel Dalton <d.dalton@iinet.net.au>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Message-ID: <20090121112436.GA3612@debian-hp.lan>
+References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
+	<20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi>
+	<20090121003915.GA6120@debian-hp.lan>
+	<alpine.DEB.2.00.0901210711360.11623@ybpnyubfg.ybpnyqbznva>
+	<20090121082412.GA3615@debian-hp.lan>
+	<alpine.DEB.2.00.0901210940220.11623@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] S2API: Problem with 64/32bit compatibility
-Reply-To: Pavel Troller <patrol@sinus.cz>
+In-Reply-To: <alpine.DEB.2.00.0901210940220.11623@ybpnyubfg.ybpnyqbznva>
+Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] getting started with msi tv card
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,38 +32,114 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
-  I would like to report a problem with S2API. It looks that it doesn't
-maintain 64/32bit compatibility.
-  It began with my attempt to run the SVN version of kaffeine on linux-2.6.28.
-  My system is a 64bit GNU/Linux, but, for historical reasons, I'm still using
-32bit KDE 3.5.10, so kaffeine has been compiled as a 32bit binary.
-  I've found that I cannot play DVB on this combination. It's because the
-FE_SET_PROPERTY ioctl is not properly handled in the kernel.
-  After a lot of analysis of both kaffeine and kernel source code, I've found
-that the core of the problem is in /usr/src/linux/include/linux/dvb/frontend.h,
-where the ioctl is declared. There, a struct dtv_properties is declared:
+On Wed, Jan 21, 2009 at 10:30:05AM +0100, BOUWSMA Barry wrote:
+> On Wed, 21 Jan 2009, Daniel Dalton wrote:
+> 
+> Here is the latest .config file I have on a random machine
+> which includes your device as a module (in case I find one
+> that someone has thrown out their window, knowing that is
+> more likely than that I'll buy a new machine with PCIe or
+> something)...
+> 
+> CONFIG_DVB_USB_CXUSB=m
+> CONFIG_DVB_USB_M920X=m
+> CONFIG_DVB_USB_GL861=m
+> 
+> If I simply delete the middle line, save this .config
+> file, and `make O=... oldconfig' I will be asked whether
+> I want to add support for the m920x.
+> 
 
-struct dtv_properties {
-        __u32 num;
-        struct dtv_property *props;
-};
+Hey! That's very cool, thanks for the tip.
 
-  This struct is then used as a data entry in the FE_SET_PROPERTY ioctl.
-  The problem is, that the pointer has different sizes on 32 and 64bit
-architectures, so the whole struct differs in size too. And because the size
-is passed as a part of the ioctl command code, the FE_SET_PROPERTY (and
-FE_GET_PROPERTY too) command codes differ for 32/64 bit compilation of the
-same include file! For example, for FE_SET_PROPERTY, its 0x40106f52 on 64bit,
-but 0x40086f52 on 32bit. So, the kernel (having the 64bit code inside) cannot
-recognize the 32bit code of the cmd and fails to handle it correctly.
-  The second part is that these ioctls are not yet added to the 
-/usr/src/linux/fs/compat_ioctl.c file, maybe just because of the problem above.
+> > > Now, back to using `mplayer':
+> > > 
+> > > It works from a list of channels, which you will need
+> > > to create using a different utility.  It then uses
+> > > simple keyboard input to cycle through the list of
+> > > channels (I want to think that `k' and something else
+> 
+> > Excellent, I'll look that up when I get to this point. :-)
+> 
+> If I may ask, and I do hope that you do not mind me
 
-  Are there plans to fix this problem ? I think that 64/32bit compatibility
-should be fully maintained, I think that my case is not so rare yet.
+No, it's not at all a problem.
 
-  With regards, Pavel Troller   
+> asking, but as I recall, you wrote that you did have to
+> get help when using one program to try to tune...
+> 
+> How is your level of vision?  Are you able to make use
+> of a video image on your display (the television picture),
+> or do you only use an audio-description soundtrack, such
+
+I'm almost totally blind, although I do have a little bit of useful
+vision, not enough for making out picture easily on a computer
+monitor. But yeah pretty much totally. I use a braille terminal to
+access my linux box, so yeah, not even enough vision to read, but got to
+admit, it does come in handy when walking and for orientation.
+But, it just helps, can't rely on it of course. :-)
+
+> I ask this in case you might be better served by a radio
+> application, or even simple commandline scripts that tune
+> the audio from the six or so available channels, and do
+> not need to bother with a full media player, and so make
+> it much simpler -- my listening to the multicast audio
+
+Hmmm, yes, I guess if I just got the audio from the tv network that
+could work, although when having friends or family around and watching
+tv it might be good to have picture.
+
+> You will know when you try it...
+> spiff% mplayer dvb://
+> will give you an error.  If it cannot find `channels.conf'
+> then it has DVB support...  But if you have a `channels.conf'
+
+Yep, then my version  has dvb support.
+
+> > Um... Ok... Where should this file be located, and am I meant to
+> > download it from somewhere?
+> 
+> It may already be included in your distribution, perhaps
+> in /usr/share/somewhere...  But it may be fastest if you
+> download the latest version.
+> 
+> First of all, do you have a program called `scan' or `dvbscan'?
+> beer@ralph:~$ which scan
+
+I have both, sorry I should have said.
+
+> If you already have `scan' in your $PATH (see above),
+> then you can probably use the following URL...
+> http://linuxtv.org/hg/dvb-apps/file/e91138b9bdaa/util/scan/dvb-t/
+> 
+> The result is a long list (722 items in my local copy)
+> but the au-* files are at the start.  Pick the one(s)
+> closest to your location.
+> 
+> Either by invoking `scan --help' or `scan' alone, you
+> should see a usage message.  Basically, you need to tell
+> it to use the au-Whatever file which you downloaded.
+> 
+
+Alright, so, I downloaded the file placed it in /tmp, gave it +rw
+permissions and ran:
+sudo scan /tmp/au-melbourne
+The scan help didn't make a lot of sense to me, but that seemed to do
+some stuff like recognise the file, but it found no channels. Are there
+any options I should have used? Is the default output format correct?
+Or should I start checking my cables and tv points?
+
+Hey, one other thing, and sorry I know it's really OT, but you said you
+were a console guy. Have you found a command line web browser with
+javascript support? Like how do u get around the javascript thing?
+Unfortunately I have been using firefox for this reason...
+
+Thanks very much for all your help, it's greatly appreciated.
+
+Cheers,
+
+Daniel
+
 
 _______________________________________________
 linux-dvb users mailing list
