@@ -1,56 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4488 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753479AbZAVHOu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 02:14:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Need help building spec to review...
-Date: Thu, 22 Jan 2009 08:14:45 +0100
-Cc: linux-media@vger.kernel.org
-References: <1232589404.19974.4.camel@palomino.walls.org>
-In-Reply-To: <1232589404.19974.4.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901220814.45151.hverkuil@xs4all.nl>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:35815 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752587AbZAUTFF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2009 14:05:05 -0500
+Received: from smtp4-g21.free.fr (localhost [127.0.0.1])
+	by smtp4-g21.free.fr (Postfix) with ESMTP id D390E4C82A3
+	for <linux-media@vger.kernel.org>; Wed, 21 Jan 2009 20:04:59 +0100 (CET)
+Received: from localhost (lns-bzn-57-82-249-43-204.adsl.proxad.net [82.249.43.204])
+	by smtp4-g21.free.fr (Postfix) with ESMTP id CD9EC4C80C5
+	for <linux-media@vger.kernel.org>; Wed, 21 Jan 2009 20:04:56 +0100 (CET)
+Date: Wed, 21 Jan 2009 19:47:22 +0100
+From: Jean-Francois Moine <moinejf@free.fr> (by way of Jean-Francois
+	Moine <moinejf@free.fr>)
+To: "T.P. Reitzel" <4066724035@vzwmail.net>
+Message-ID: <20090121194722.1bf866b4@free.fr>
+In-Reply-To: <49767CAB.8030004@vzwmail.net>
+References: <49767CAB.8030004@vzwmail.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: Re: gspca_spca505
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 22 January 2009 02:56:44 Andy Walls wrote:
-> I'm not quite sure how to make the V4L2 spec to review the latest
-> changes
->
-> $ cd v4l-dvb-spec/v4l2-spec
-> $ make
-> [...]
-> echo "</index>" >>indices.sgml
-> echo "<programlisting>" > videodev2.h.sgml
-> expand --tabs=8 < ../linux/include/linux/videodev2.h | \
-> 	  sed -e "s/&/\\&amp;/g" -e "s/</\\&lt;/g" -e "s/>/\\&gt;/g" -e
-> "s/\(enum *\)v4l2_mpeg_cx2341x_video_\([a-z]*_spatial_filter_type
-> \)/\1<link linkend=\"\2\">v4l2_mpeg_cx2341x_video_\2<\/link>/g" -e
-> "s/\(\(enum\|struct\) *\)\(v4l2_[a-zA-Z0-9_]*\)/\1<link linkend=\"\3
-> \">\3<\/link>/g" -e "s/\(V4L2_PIX_FMT_[A-Z0-9_]\+\) /<link linkend=\"\1
-> \">\1<\/link> /g" -e ":a;s/\(linkend=\".*\)_\(.*\">\)/\1-\2/;ta" | \
-> 	  sed 's/i\.e\./&ie;/' >> videodev2.h.sgml
-> echo "</programlisting>" >> videodev2.h.sgml
-> make: *** No rule to make target `vidioc-cropcap.sgml', needed by
-> `html-single-build.stamp'.  Stop.
-> $
->
->
-> Please advise...
+On Tue, 20 Jan 2009 18:38:51 -0700
+"T.P. Reitzel" <4066724035@vzwmail.net> wrote:
 
-Try again. This file was missing from the repo so I've added it. I've 
-absolutely no idea why that file wasn't in the repo, that was really weird.
+> Original linux driver for Intel PC Camera Pro (see link for more
+> detail):
+> 
+> http://sourceforge.net/projects/spca50x
 
-Regards,
+The gspca v2 comes from this driver, so, it should work the same, but
+some bug(s) may have been inserted.
 
-	Hans
+> Intel's webpage for Intel Pro PC Camera (internal capture card):
+> 
+> http://downloadcenter.intel.com/filter_results.aspx?strTypes=all&ProductID=459&OSFullName=Windows*+98+SE&lang=eng&strOSs=18&submit=Go!
+
+They give the M$-windows driver, but no Linux driver, and there is no
+documentation on how to program the chip.
+
+> P.S. I'm using libv4l version 0.5.7
+
+I got your files, but the kernel.txt does not contain any spca
+information. May you set the gspca debug flag to 0x3f, run 'svv -rg'
+and send me the result of:
+
+	grep spca /var/log/kern.log
+
+Thank you.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
