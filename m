@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ado-01.adocentral.net.au ([203.88.117.121]:37206 "EHLO
-	ado-01.adocentral.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756111AbZAPLb7 (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:55270 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761331AbZAUBvR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2009 06:31:59 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by ado-01.adocentral.net.au (Postfix) with ESMTP id 32E855890C
-	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 22:31:58 +1100 (EST)
-Received: from ado-01.adocentral.net.au ([127.0.0.1])
-	by localhost (ado-01.adocentral.net.au [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id sxXFUR3wuDVA for <linux-media@vger.kernel.org>;
-	Fri, 16 Jan 2009 22:31:57 +1100 (EST)
-Received: from [192.168.1.20] (ppp167-251-1.static.internode.on.net [59.167.251.1])
-	by ado-01.adocentral.net.au (Postfix) with ESMTP id 7F4215890B
-	for <linux-media@vger.kernel.org>; Fri, 16 Jan 2009 22:31:57 +1100 (EST)
-Message-ID: <4970702D.2040907@bat.id.au>
-Date: Fri, 16 Jan 2009 22:31:57 +1100
-From: Aaron Theodore <aaron@bat.id.au>
-Reply-To: aaron@bat.id.au
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Twinhan DST stops working under latest v4l-dvb
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Tue, 20 Jan 2009 20:51:17 -0500
+Date: Tue, 20 Jan 2009 23:50:48 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	Sam Ravnborg <sam@ravnborg.org>, Ingo Molnar <mingo@elte.hu>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: Confusion in usr/include/linux/videodev.h
+Message-ID: <20090120235048.4f7200f9@caramujo.chehab.org>
+In-Reply-To: <1232502038.3123.61.camel@localhost.localdomain>
+References: <1232502038.3123.61.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It seems the latest v4l-dvb causes issues with my Twinhan 1020
+On Wed, 21 Jan 2009 07:10:38 +0530
+Jaswinder Singh Rajput <jaswinder@kernel.org> wrote:
 
+> usr/include/linux/videodev.h is giving 2 warnings in 'make headers_check':
+>  usr/include/linux/videodev.h:19: leaks CONFIG_VIDEO to userspace where it is not valid
+>  usr/include/linux/videodev.h:314: leaks CONFIG_VIDEO to userspace where it is not valid
+> 
+> Whole file is covered with #if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
+> 
+> It means this file is only valid for kernel mode if CONFIG_VIDEO_V4L1_COMPAT is defined but in user mode it is always valid.
+> 		
+> Can we choose some better alternative Or can we use this file as:
+> 
+> #ifdef CONFIG_VIDEO_V4L1_COMPAT
+> #include <linux/videodev.h>
+> #endif
 
-bttv: driver version 0.9.17 loaded
-bttv: using 8 buffers with 2080k (520 pages) each for capture
-bttv: Bt8xx card found (0).
-ACPI: PCI Interrupt 0000:05:08.0[A] -> Link [APC3] -> GSI 18 (level, 
-low) -> IRQ 18
-bttv0: Bt878 (rev 17) at 0000:05:08.0, irq: 18, latency: 32, mmio: 
-0xcb000000
-bttv0: using: Twinhan DST + clones [card=113,insmod option]
-bttv0: gpio: en=00000000, out=00000000 in=00fefffe [init]
-bttv0: tuner absent
-bttv0: add subdevice "dvb0"
-bt878: AUDIO driver version 0.0.0 loaded
-dvb_bt8xx: unable to determine DMA core of card 0,
-dvb_bt8xx: if you have the ALSA bt87x audio driver installed, try 
-removing it.
-dvb-bt8xx: probe of dvb0 failed with error -14
+This is somewhat like what we have on audio devices (where there are OSS and ALSA API's).
 
-i tried unloading all the sound modules made no difference (even though 
-i didnt have the bt87x module loaded)
+V4L1 is the old deprecated userspace API for video devices. It is still
+required by some userspace applications. So, on userspace, it should be
+included. Also, this allows that one userspace app to be compatible with both
+V4L2 API (the current one) and the legacy V4L1 one.
 
-This card works on earlier kernel modules.
+It should be noticed that are still a few drivers using the legacy API yet to
+be converted.
 
-Any ideas?
+Cheers,
+Mauro
