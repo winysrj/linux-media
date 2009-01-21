@@ -1,33 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.ammma.de ([213.83.39.131] helo=ammma.de)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jan@horde.org>) id 1LTEGa-00030e-0M
-	for linux-dvb@linuxtv.org; Sat, 31 Jan 2009 12:44:04 +0100
-Received: from ammma.net (hydra.ammma.mil [192.168.110.1])
-	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id n0VBjRI25455
-	for <linux-dvb@linuxtv.org>; Sat, 31 Jan 2009 12:45:27 +0100
-Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
-	by ammma.net (8.12.11.20060308/8.12.11/AMMMa AG) with ESMTP id
-	n0VBhx86014156
-	for <linux-dvb@linuxtv.org>; Sat, 31 Jan 2009 12:43:59 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id E29793E8414
-	for <linux-dvb@linuxtv.org>; Sat, 31 Jan 2009 12:43:58 +0100 (CET)
-Received: from neo.wg.de ([127.0.0.1])
-	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id rHI5-zYgirNs for <linux-dvb@linuxtv.org>;
-	Sat, 31 Jan 2009 12:43:51 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id 41437431DAC
-	for <linux-dvb@linuxtv.org>; Sat, 31 Jan 2009 12:43:51 +0100 (CET)
-Message-ID: <20090131124351.169513hbsz3js5fk@neo.wg.de>
-Date: Sat, 31 Jan 2009 12:43:51 +0100
-From: Jan Schneider <jan@horde.org>
+Received: from n5a.bullet.mud.yahoo.com ([209.191.126.232])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <killero_24@yahoo.com>) id 1LPWHH-0000mY-AD
+	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 07:09:30 +0100
+Date: Tue, 20 Jan 2009 22:08:51 -0800 (PST)
+From: Killero SS <killero_24@yahoo.com>
 To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Technotrend C-2300 and CAM
-Reply-To: linux-media@vger.kernel.org
+Message-ID: <463244.61379.qm@web45416.mail.sp1.yahoo.com>
+Subject: [linux-dvb] HVR-1800 Support
+Reply-To: linux-media@vger.kernel.org, killero_24@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -41,23 +23,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+i'm using ubuntu 8.10 2.6.27-9-generic
+and tried compiling latest modules with hg-clone but my analog capture got broken, firmware error...
+so i got back to original kernel modules
+however, some people claim they get audio with analog on /dev/video1
+this has never be my case, im using svideo signal so wondering if that may be it.
+i get analog video on video0 and video1, but some colors look pretty weird, red for example.
 
-for some reason, my CAM (Alphacrypt Classic) doesn't seem to be  
-detected by my Technotrend C-2300/CI combination. There is nothing in  
-the kernel log/syslog when inserting or removing the card. I updated  
-the card to the latest firmware (3.18) to no avail.
-I don't even know where to start debugging. No windows here, so I  
-can't really tell whether this is a hardware problem.
-Any hints on where to start looking would help. The combination seems  
-to work fine for almost everybody, beside one single thread on this  
-list in 2007 that didn't come to a conclusion either.
+another thing this card has fm radio, anyone knows how to set it up? i've been unable to find any info regarding this
 
-Jan.
 
--- 
-Do you need professional PHP or Horde consulting?
-http://horde.org/consulting/
+      
 
 
 _______________________________________________
