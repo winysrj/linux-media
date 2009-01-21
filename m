@@ -1,112 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1100 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282AbZAKTQK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 14:16:10 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0BJG8vl055525
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 11 Jan 2009 20:16:08 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 11 Jan 2009 20:16:08 +0100 (CET)
-Message-Id: <200901111916.n0BJG8vl055525@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from smtp6-g21.free.fr ([212.27.42.6]:46389 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752056AbZAURZm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2009 12:25:42 -0500
+Date: Wed, 21 Jan 2009 18:20:33 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Adam Baker <linux@baker-net.org.uk>, kilgota@banach.math.auburn.edu
+Cc: linux-media@vger.kernel.org,
+	Driver Development <sqcam-devel@lists.sourceforge.net>,
+	Gerard Klaver <gerard@gkall.hobby.nl>
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+Message-ID: <20090121182033.278f213d@free.fr>
+In-Reply-To: <200901192322.33362.linux@baker-net.org.uk>
+References: <200901192322.33362.linux@baker-net.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Mon, 19 Jan 2009 23:22:33 +0000
+Adam Baker <linux@baker-net.org.uk> wrote:
 
-Results of the daily build of v4l-dvb:
+> Add initial support for cameras based on the SQ Technologies SQ-905
+> chipset (USB ID 2770:9120) to V4L2 using the gspca infrastructure.
+	[snip]
+> ---
+> Following all the comments when I posted this for review Theodore and
+> I have produced 2 new versions. The most critical comment last time
+> was that we were using the system work queue inappropriately so this
+> version creates its own work queue. The alternative version that I
+> will post shortly avoids a work queue altogether by using
+> asynchronous USB commands but in order to do so has increased the
+> code size.
+> 
+> I'll leave it to the assembled list expertise to say which option is
+> preferable.
+	[snip]
 
-date:        Sun Jan 11 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10213:e485a740bd54
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Hello Adam and Theodore,
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: ERRORS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29-rc1-armv5-ixp: WARNINGS
-linux-2.6.27-armv5-omap2: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29-rc1-armv5-omap2: WARNINGS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29-rc1-i686: WARNINGS
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc1-m32r: OK
-linux-2.6.16.61-mips: WARNINGS
-linux-2.6.26-mips: WARNINGS
-linux-2.6.27-mips: WARNINGS
-linux-2.6.28-mips: WARNINGS
-linux-2.6.29-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc1-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc1-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc1): ERRORS
+I looked at your two versions, and I think the first one (work queue)
+is the simplest. So, I am ready to put your driver in my repository for
+inclusion in a next linux kernel.
 
-Detailed results are available here:
+I have just a few remarks and a request.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+- There are still small CodingStyle errors.
 
-Full logs are available here:
+- Why do you need the function name in the debug messages?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+- In sd_init, you should better convert the 4 bytes to u32 and do a
+  switch.
+
+- On disconnection, the function sd_stopN is not called, so the
+  workqueue may be still running.
+
+- At streamon time (sd_start), you allocate the buffer and send a
+  command. This may be done in the workqueue function. This function may
+  also do the buffer free and send the stop command on exit.
+
+Re-thinking the streaming part gives:
+. streamon (sd_start)
+	. init_completion()
+	. start the workqueue
+	  (dev->streaming is not useful)
+. workqueue function
+	. allocate the transfer buffer (pointer in the stack)
+	. send 'start capture'
+	. read loop - don't forget:
+		- to test gspca_dev->streaming: it may be streamoff,
+			close or disconnect
+		- to protect to usb_control_msg by the
+			gspca_dev->usb_lock mutex: this will permit
+			to handle future webcam controls.
+	. on streamoff or USB error
+		. free the transfer buffer
+		. complete()
+. streamoff
+	. sd_stopN: non useful
+	. sd_stop0:
+		. wait_for_completion
+		. dev->work_thread = NULL
+
+Now, the request: some guys asked for support of their webcams based on
+sq930x chips. A SANE backend driver exists, written by Gerard Klaver
+(http://gkall.hobby.nl/sq930x.html).
+May you have a look and say if handling these chips may be done in your
+driver?
+
+Regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
