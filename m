@@ -1,105 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.work.de ([212.12.32.20]:44357 "EHLO mail.work.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601AbZA0VN0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 16:13:26 -0500
-Message-ID: <497F78E9.9090608@gmail.com>
-Date: Wed, 28 Jan 2009 01:13:13 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from wa-out-1112.google.com ([209.85.146.182]:14003 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752834AbZAUI7j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2009 03:59:39 -0500
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org, Manu <eallaud@gmail.com>
-Subject: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts
- on HDchannels
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com>	<157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>	<157f4a8c0901260741l4d263b8bk6e34cb5bb56d8c2@mail.gmail.com>	<c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>	<157f4a8c0901260751l39214908ydfeed5ba12b4d48b@mail.gmail.com>	<157f4a8c0901260808i39b784f6m13db53db2f135a37@mail.gmail.com>	<c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>	<1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>	<1232998154.24736.2@manu-laptop> <497F66E5.9060901@gmail.com> <c74595dc0901271237j7495ddeaif44288ad47416ddd@mail.gmail.com>
-In-Reply-To: <c74595dc0901271237j7495ddeaif44288ad47416ddd@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------060304080709090501070900"
+In-Reply-To: <Pine.LNX.4.58.0901210048500.13170@shell2.speakeasy.net>
+References: <1232502038.3123.61.camel@localhost.localdomain>
+	 <20090120235048.4f7200f9@caramujo.chehab.org>
+	 <3f9a31f40901202044n73a100faj96a6f3d3973bcc25@mail.gmail.com>
+	 <Pine.LNX.4.58.0901210048500.13170@shell2.speakeasy.net>
+Date: Wed, 21 Jan 2009 14:29:38 +0530
+Message-ID: <3f9a31f40901210059g51d46f56t85364d886b757a6e@mail.gmail.com>
+Subject: Re: Confusion in usr/include/linux/videodev.h
+From: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaswinder Singh Rajput <jaswinder@kernel.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	Sam Ravnborg <sam@ravnborg.org>, Ingo Molnar <mingo@elte.hu>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060304080709090501070900
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Alex Betis wrote:
-> On Tue, Jan 27, 2009 at 9:56 PM, Manu Abraham <abraham.manu@gmail.com>wrote:
-> 
->>> Hmm OK, but is there by any chance a fix for those issues somewhere or
->>> in the pipe at least? I am willing to test (as I already offered), I
->>> can compile the drivers, spread printk or whatever else is needed to
->>> get useful reports. Let me know if I can help sort this problem. BTW in
->>> my case it is DVB-S2 30000 SR and FEC 5/6.
->> It was quite not appreciable on my part to provide a fix or reply in
->> time nor spend much time on it earlier, but that said i was quite
->> stuck up with some other things.
+On Wed, Jan 21, 2009 at 2:24 PM, Trent Piepho <xyzzy@speakeasy.org> wrote:
+> On Wed, 21 Jan 2009, Jaswinder Singh Rajput wrote:
+>> On Wed, Jan 21, 2009 at 7:20 AM, Mauro Carvalho Chehab
+>> <mchehab@infradead.org> wrote:
+>> > On Wed, 21 Jan 2009 07:10:38 +0530
+>> > Jaswinder Singh Rajput <jaswinder@kernel.org> wrote:
+>> >
+>> >> usr/include/linux/videodev.h is giving 2 warnings in 'make headers_check':
+>> >>  usr/include/linux/videodev.h:19: leaks CONFIG_VIDEO to userspace where it is not valid
+>> >>  usr/include/linux/videodev.h:314: leaks CONFIG_VIDEO to userspace where it is not valid
+>> >>
+>> >> Whole file is covered with #if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
+>> >>
+>> >> It means this file is only valid for kernel mode if CONFIG_VIDEO_V4L1_COMPAT is defined but in user mode it is always valid.
+>> >
+>> > V4L1 is the old deprecated userspace API for video devices. It is still
+>> > required by some userspace applications. So, on userspace, it should be
+>> > included. Also, this allows that one userspace app to be compatible with both
+>> > V4L2 API (the current one) and the legacy V4L1 one.
+>> >
+>> > It should be noticed that are still a few drivers using the legacy API yet to
+>> > be converted.
+>> >
 >>
->> Can you please pull a copy of the multiproto tree
->> http://jusst.de/hg/multiproto or the v4l-dvb tree from
->> http://jusst.de/hg/v4l-dvb
+>> If you have no objections then I will make a patchset which do followings:
+>> 1. Remove  #if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined
+>> (__KERNEL__) from include/linux/videodev.h
+>> 2. cover all #include <linux/videodev.h> with #ifdef
+>> CONFIG_VIDEO_V4L1_COMPAT in kernel
 >>
->> and apply the following patch and comment what your result is ?
->> Before applying please do check whether you still have the issues.
-> 
-> Manu,
-> I've tried to increase those timers long ago when played around with my card
-> (Twinhan 1041) and scan utility.
-> I must say that I've concentrated mostly on DVB-S channels that wasn't
-> always locking.
-> I didn't notice much improvements. The thing that did help was increasing
-> the resolution of scan zigzags.
+>> By this way, we can satisfy both kernel space and userspace issue and
+>> also get rid of above warnings.
+>>
+>> If you have better suggestion then let me know.
+>
+> That sounds like it will add a mess of #if's.  How about this?
+>
+> diff -r 29c5787efcda linux/include/linux/videodev.h
+> --- a/linux/include/linux/videodev.h    Thu Jan 15 09:07:03 2009 -0800
+> +++ b/linux/include/linux/videodev.h    Wed Jan 21 00:51:45 2009 -0800
+> @@ -15,7 +15,8 @@
+>  #include <linux/ioctl.h>
+>  #include <linux/videodev2.h>
+>
+> -#if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
+> +#if (defined(__KERNEL__) && defined(CONFIG_VIDEO_V4L1_COMPAT)) \
+> +    || !defined (__KERNEL__)
+>
+>  #define VID_TYPE_CAPTURE       1       /* Can capture */
+>  #define VID_TYPE_TUNER         2       /* Can tune */
+>
+> Now CONFIG_VIDEO_V4L1_COMPAT will only be used in the kernel.
+>
 
-With regards to the zig-zag, one bug is fixed in the v4l-dvb tree.
-Most likely you haven't tried that change.
+No, this will still give warnings.
 
-> I've sent a patch on that ML and people were happy with the results.
+Please run 'make headers_check'
 
-I did look at your patch, but that was completely against the tuning
-algorithm.
-
-[..]
-
-> I believe DVB-S2 lock suffer from the same problem, but in that case the
-> zigzag is done in the chip and not in the driver.
-
-Along with the patch i sent, does the attached patch help you in
-anyway (This works out for DVB-S2 only)?
-
-
-
---------------060304080709090501070900
-Content-Type: text/x-patch;
- name="fix_iterations.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix_iterations.patch"
-
-diff -r a4731ed28cac linux/drivers/media/dvb/frontends/stb0899_drv.c
---- a/linux/drivers/media/dvb/frontends/stb0899_drv.c   Tue Jan 27 23:29:44 2009 +0400
-+++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c   Wed Jan 28 01:08:25 2009 +0400
-@@ -1461,19 +1461,16 @@
-        struct stb0899_config *config = state->config;
-
-        s32 iter_scale;
--       u32 reg;
-
-        iter_scale = 17 * (internal->master_clk / 1000);
-        iter_scale += 410000;
--       iter_scale /= (internal->srate / 1000000);
--       iter_scale /= 1000;
-+       iter_scale /= (internal->srate / 1000);
-
-        if (iter_scale > config->ldpc_max_iter)
-                iter_scale = config->ldpc_max_iter;
-
--       reg = STB0899_READ_S2REG(STB0899_S2DEMOD, MAX_ITER);
--       STB0899_SETFIELD_VAL(MAX_ITERATIONS, reg, iter_scale);
--       stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, reg);
-+       stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_MAX_ITER, STB0899_OFF0_MAX_ITER, iter_scale);
-+       stb0899_write_s2reg(state, STB0899_S2DEMOD, STB0899_BASE_ITER_SCALE, STB0899_OFF0_ITER_SCALE, iter_scale);
- }
-
- static enum dvbfe_search stb0899_search(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
-
---------------060304080709090501070900--
+--
+JSR
