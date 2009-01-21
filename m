@@ -1,117 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50371 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751290AbZAKSQF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 13:16:05 -0500
-Date: Sun, 11 Jan 2009 19:15:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <damm@igel.co.jp>
-Subject: [PATCH 1/2] soc-camera: add data signal polarity flags to drivers
-Message-ID: <Pine.LNX.4.64.0901111846220.16531@axis700.grange>
+Received: from njbrsmtp1.vzwmail.net ([66.174.76.155]:47216 "EHLO
+	njbrsmtp1.vzwmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739AbZAUWHI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jan 2009 17:07:08 -0500
+Received: from [75.216.227.37] (smtp.vzwmail.net [66.174.76.25])
+	(authenticated bits=0)
+	by njbrsmtp1.vzwmail.net (8.12.9/8.12.9) with ESMTP id n0LM6sFm023550
+	for <linux-media@vger.kernel.org>; Wed, 21 Jan 2009 22:07:05 GMT
+Message-ID: <49779CA2.8050608@vzwmail.net>
+Date: Wed, 21 Jan 2009 15:07:30 -0700
+From: "T.P. Reitzel" <4066724035@vzwmail.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: gspca_spca505
+Content-Type: multipart/mixed;
+ boundary="------------010007090106020406080806"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All soc-camera camera and host drivers must specify supported data signal 
-polarity, after all drivers are fixed, we'll add a suitable test to 
-soc_camera_bus_param_compatible().
+This is a multi-part message in MIME format.
+--------------010007090106020406080806
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-diff --git a/arch/sh/boards/board-ap325rxa.c b/arch/sh/boards/board-ap325rxa.c
-index 1c67cba..9aff415 100644
---- a/arch/sh/boards/board-ap325rxa.c
-+++ b/arch/sh/boards/board-ap325rxa.c
-@@ -286,7 +286,8 @@ static struct platform_device camera_device = {
- 
- static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
- 	.flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_HSYNC_ACTIVE_HIGH |
--	SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_MASTER | SOCAM_DATAWIDTH_8,
-+	SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_DATA_ACTIVE_HIGH | SOCAM_MASTER |
-+	SOCAM_DATAWIDTH_8,
- };
- 
- static struct resource ceu_resources[] = {
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index cc14081..5f493e1 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -418,8 +418,9 @@ static struct platform_device migor_camera_device = {
- #endif /* CONFIG_I2C */
- 
- static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
--	.flags = SOCAM_MASTER | SOCAM_DATAWIDTH_8 | SOCAM_PCLK_SAMPLE_RISING \
--	| SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH,
-+	.flags = SOCAM_MASTER | SOCAM_DATAWIDTH_8 | SOCAM_PCLK_SAMPLE_RISING
-+	| SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH
-+	| SOCAM_DATA_ACTIVE_HIGH,
- };
- 
- static struct resource migor_ceu_resources[] = {
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index c1bf75e..2d1034d 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -276,7 +276,7 @@ static unsigned long mt9m001_query_bus_param(struct soc_camera_device *icd)
- 	/* MT9M001 has all capture_format parameters fixed */
- 	unsigned long flags = SOCAM_DATAWIDTH_10 | SOCAM_PCLK_SAMPLE_RISING |
- 		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
--		SOCAM_MASTER;
-+		SOCAM_DATA_ACTIVE_HIGH | SOCAM_MASTER;
- 
- 	if (bus_switch_possible(mt9m001))
- 		flags |= SOCAM_DATAWIDTH_8;
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index 5b8e209..6c363af 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -420,7 +420,7 @@ static unsigned long mt9m111_query_bus_param(struct soc_camera_device *icd)
- 	struct soc_camera_link *icl = mt9m111->client->dev.platform_data;
- 	unsigned long flags = SOCAM_MASTER | SOCAM_PCLK_SAMPLE_RISING |
- 		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
--		SOCAM_DATAWIDTH_8;
-+		SOCAM_DATA_ACTIVE_HIGH | SOCAM_DATAWIDTH_8;
- 
- 	return soc_camera_apply_sensor_flags(icl, flags);
- }
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index b04c8cb..6eb4b3a 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -336,7 +336,7 @@ static unsigned long mt9v022_query_bus_param(struct soc_camera_device *icd)
- 	return SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
- 		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_LOW |
- 		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_LOW |
--		SOCAM_MASTER | SOCAM_SLAVE |
-+		SOCAM_DATA_ACTIVE_HIGH | SOCAM_MASTER | SOCAM_SLAVE |
- 		width_flag;
- }
- 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 3c9e0ba..4d8ac6f 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -718,7 +718,7 @@ static unsigned long ov772x_query_bus_param(struct soc_camera_device *icd)
- 	struct soc_camera_link *icl = priv->client->dev.platform_data;
- 	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
- 		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
--		priv->info->buswidth;
-+		SOCAM_DATA_ACTIVE_HIGH | priv->info->buswidth;
- 
- 	return soc_camera_apply_sensor_flags(icl, flags);
- }
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index 07c334f..7b71b9c 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -879,6 +879,7 @@ static int test_platform_param(struct pxa_camera_dev *pcdev,
- 		SOCAM_HSYNC_ACTIVE_LOW |
- 		SOCAM_VSYNC_ACTIVE_HIGH |
- 		SOCAM_VSYNC_ACTIVE_LOW |
-+		SOCAM_DATA_ACTIVE_HIGH |
- 		SOCAM_PCLK_SAMPLE_RISING |
- 		SOCAM_PCLK_SAMPLE_FALLING;
- 
+OK, I've raised the level of debug to 15 as you requested. Personally, I 
+hope the code for the internal capture card is still intact and bugs 
+simply prevent its use. Time will tell. ;) Evidently Intel isn't much 
+use as a source for documentation of equipment manufactured for them. I 
+wonder who wrote the Windows driver for the chipset used in this camera, 
+the chipset manufacturer? Somebody has the documentation and should be 
+willing to release it after this number of years has elapsed. You 
+developers know the process...so I HTH. I apologize for overlooking the 
+debug level on the first go.
+
+--------------010007090106020406080806
+Content-Type: application/octet-stream;
+ name="image.dat"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="image.dat"
+
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+--------------010007090106020406080806
+Content-Type: text/plain;
+ name="kernel.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="kernel.txt"
+
+agpgart-amd64 0000:00:00.0: AGP 3.0 bridge
+agpgart-amd64 0000:00:00.0: putting AGP V3 device into 8x mode
+pci 0000:01:00.0: putting AGP V3 device into 8x mode
+[drm] Setting GART location based on new memory map
+[drm] Loading R300 Microcode
+[drm] Num pipes: 1
+[drm] writeback test succeeded in 1 usecs
+usb 1-1: USB disconnect, address 4
+usb 3-1: new full speed USB device using uhci_hcd and address 3
+usb 3-1: configuration #1 chosen from 1 choice
+gspca: probing 0733:0430
+gspca: probe ok
+usb 3-1: New USB device found, idVendor=0733, idProduct=0430
+usb 3-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 3-1: USB disconnect, address 3
+gspca: device released
+gspca: disconnect complete
+usb 3-1: new full speed USB device using uhci_hcd and address 4
+usb 3-1: configuration #1 chosen from 1 choice
+gspca: probing 0733:0430
+spca505: Initializing SPCA505
+spca505: After vector read returns : 0x101 should be 0x0101
+gspca: probe ok
+usb 3-1: New USB device found, idVendor=0733, idProduct=0430
+usb 3-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+gspca: hald-probe-vide open
+gspca: open done
+gspca: try fmt cap S505 10000x10000
+gspca: hald-probe-vide close
+gspca: close done
+
+--------------010007090106020406080806--
