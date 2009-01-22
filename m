@@ -1,56 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:49695 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753813AbZAITG6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 14:06:58 -0500
-Date: Fri, 9 Jan 2009 11:06:55 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Mike Isely <isely@pobox.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: USB: change interface to usb_lock_device_for_reset()
-In-Reply-To: <20090109092845.79e9db8c@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.58.0901091105360.1626@shell2.speakeasy.net>
-References: <20090108235304.46ac523b@pedra.chehab.org>
- <Pine.LNX.4.64.0901082224350.3993@cnc.isely.net> <Pine.LNX.4.64.0901082227020.3993@cnc.isely.net>
- <20090109023842.4a6c638c@pedra.chehab.org> <Pine.LNX.4.64.0901082240390.3993@cnc.isely.net>
- <20090109024758.6c4902f6@pedra.chehab.org> <Pine.LNX.4.64.0901082334100.3993@cnc.isely.net>
- <Pine.LNX.4.58.0901082146470.1626@shell2.speakeasy.net>
- <20090109092845.79e9db8c@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:50881 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758061AbZAVThg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 14:37:36 -0500
+Date: Thu, 22 Jan 2009 17:37:00 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Vladimir Davydov <vladimir.davydov@promwad.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Request for new pixel format (JPEG2000)
+Message-ID: <20090122173700.208f290c@caramujo.chehab.org>
+In-Reply-To: <200901221203.48823.vladimir.davydov@promwad.com>
+References: <200901212146.39153.vladimir.davydov@promwad.com>
+	<1232600942.3764.130.camel@tux.localhost>
+	<200901220819.54460.hverkuil@xs4all.nl>
+	<200901221203.48823.vladimir.davydov@promwad.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 9 Jan 2009, Mauro Carvalho Chehab wrote:
-> On Thu, 8 Jan 2009 21:56:15 -0800 (PST)
-> Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > On Thu, 8 Jan 2009, Mike Isely wrote:
-> > > > Yes... Anyway, this is the real patch. I've added a small comment about this
-> > > > change... I'll commit this tomorrow, if you don't have a better suggestion.
-> > >
-> > > Looks good.
-> >
-> > Or maybe like this?
-> >
-> > diff -r f01b3897d141 linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-> > --- a/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 00:27:32 2009 -0200
-> > +++ b/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Jan 09 02:45:48 2009 -0200
-> > @@ -3747,7 +3747,12 @@
-> >  	int ret;
-> >  	pvr2_trace(PVR2_TRACE_INIT,"Performing a device reset...");
-> >  	ret = usb_lock_device_for_reset(hdw->usb_dev,NULL);
-> > - 	if (ret == 1) {
-> > +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 29)
-> > +	/* Due to the API changes, the ret value for success changed */
-> > +	ret = ret != 1;
-> > +#endif
-> > +	if (ret == 0) {
-> >  		ret = usb_reset_device(hdw->usb_dev);
-> >  		usb_unlock_device(hdw->usb_dev);
-> >  	} else {
-> >
->
-> Seems better! Could you please provide your SOB? I'll apply just the backport, then your patch.
+On Thu, 22 Jan 2009 12:03:48 +0200
+Vladimir Davydov <vladimir.davydov@promwad.com> wrote:
 
-Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
+> On Thursday 22 January 2009 09:19:54 Hans Verkuil wrote:
+> > On Thursday 22 January 2009 06:09:02 Alexey Klimov wrote:
+> > > (added linux-media mail-list)
+> > >
+> > > Hello, Vladimir
+> > >
+> > > On Wed, 2009-01-21 at 21:46 +0200, Vladimir Davydov wrote:
+> > > > Hi,
+> > > > Is it possible to add new pixel format to videodev2.h file?
+> > > >
+> > > > #define V4L2_PIX_FMT_MJ2C   v4l2_fourcc('M','J','2','C') /* Morgan JPEG
+> > > > 2000*/
+> > > >
+> > > > I have developed a V4L2 driver for the board with hardware JPEG2000
+> > > > codec (ADV202 chip). This driver uses that pixel format.
+> > > > I think JPEG 2000 is very perspective codec and it will be good if V4L2
+> > > > will support it.
+> > > >
+> > > > Short description of the device is here:
+> > > > http://www.promwad.com/markets/linux-video-jpeg2000-blackfin.html
+> >
+> > Vladimir,
+> >
+> > It shouldn't be a problem adding this, but we prefer to only add such
+> > things when the driver code is also added at the same time. Are you going
+> > to submit the driver code as well to the list?
+> >
+> > Thanks,
+> >
+> > 	Hans
+> 
+> Hans, 
+> I can sibmit the driver code. But this driver is only for the blackfin 
+> processor and will not work on other platforms. Does it make sense to include 
+> the driver to the kernel source? 
+> Maybe it will be better to include this driver to the blackfin.uclinux kernel 
+> tree. How do you think?
+
+Please submit the driver to linux-media. The proper place for those drivers are
+under drivers/media. We have also other drivers there that are architecture
+specific (like omap drivers, OLPC, etc).
+
+Cheers,
+Mauro.
