@@ -1,96 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:46389 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752056AbZAURZm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2009 12:25:42 -0500
-Date: Wed, 21 Jan 2009 18:20:33 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Adam Baker <linux@baker-net.org.uk>, kilgota@banach.math.auburn.edu
-Cc: linux-media@vger.kernel.org,
-	Driver Development <sqcam-devel@lists.sourceforge.net>,
-	Gerard Klaver <gerard@gkall.hobby.nl>
-Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
-Message-ID: <20090121182033.278f213d@free.fr>
-In-Reply-To: <200901192322.33362.linux@baker-net.org.uk>
-References: <200901192322.33362.linux@baker-net.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from h-66-166-198-124.nycmny83.covad.net ([66.166.198.124]:55085
+	"EHLO tupari.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752814AbZAVVuq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 16:50:46 -0500
+Date: Thu, 22 Jan 2009 16:49:57 -0500 (EST)
+From: Joseph Shraibman <linuxtv.org@jks.tupari.net>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+In-Reply-To: <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com>
+Message-ID: <alpine.LFD.2.00.0901221648170.8336@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu>  <alpine.LFD.2.00.0901221434040.7609@tupari.net>  <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>  <alpine.LFD.2.00.0901221542190.7960@tupari.net>  <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com>
+  <alpine.LFD.2.00.0901221635550.8219@tupari.net> <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Jan 2009 23:22:33 +0000
-Adam Baker <linux@baker-net.org.uk> wrote:
 
-> Add initial support for cameras based on the SQ Technologies SQ-905
-> chipset (USB ID 2770:9120) to V4L2 using the gspca infrastructure.
-	[snip]
-> ---
-> Following all the comments when I posted this for review Theodore and
-> I have produced 2 new versions. The most critical comment last time
-> was that we were using the system work queue inappropriately so this
-> version creates its own work queue. The alternative version that I
-> will post shortly avoids a work queue altogether by using
-> asynchronous USB commands but in order to do so has increased the
-> code size.
-> 
-> I'll leave it to the assembled list expertise to say which option is
-> preferable.
-	[snip]
 
-Hello Adam and Theodore,
+On Thu, 22 Jan 2009, Devin Heitmueller wrote:
 
-I looked at your two versions, and I think the first one (work queue)
-is the simplest. So, I am ready to put your driver in my repository for
-inclusion in a next linux kernel.
+> On Thu, Jan 22, 2009 at 4:37 PM, Joseph Shraibman
+> <linuxtv.org@jks.tupari.net> wrote:
+>>> On some demods, the strength and SNR indicators are only valid if you
+>>> have a lock.
+>>
+>> But why don't I get a lock?  I was getting signals with my pcHDTV3000 so I
+>> know it isn't an antenna problem.
+>
+> I just looked back at your dmesg output, and I am somewhat confused.
+> Do you have multiple cards installed in the host at the same time?
+> Isn't the Oren OR51132 the other card?  I would assume that you would
+> need to be looking at the output of the s5h1411 frontend with femon if
+> you're trying to capture on the Fusion HDTV 7 Dual Express.  Or
+> perhaps I am just missing something here.
 
-I have just a few remarks and a request.
+Yes, I do, but * was pretty sure devices zero and one was the dual 
+express.  This is what happens when I pass -a 1 or -a 2 into femon
 
-- There are still small CodingStyle errors.
-
-- Why do you need the function name in the debug messages?
-
-- In sd_init, you should better convert the 4 bytes to u32 and do a
-  switch.
-
-- On disconnection, the function sd_stopN is not called, so the
-  workqueue may be still running.
-
-- At streamon time (sd_start), you allocate the buffer and send a
-  command. This may be done in the workqueue function. This function may
-  also do the buffer free and send the stop command on exit.
-
-Re-thinking the streaming part gives:
-. streamon (sd_start)
-	. init_completion()
-	. start the workqueue
-	  (dev->streaming is not useful)
-. workqueue function
-	. allocate the transfer buffer (pointer in the stack)
-	. send 'start capture'
-	. read loop - don't forget:
-		- to test gspca_dev->streaming: it may be streamoff,
-			close or disconnect
-		- to protect to usb_control_msg by the
-			gspca_dev->usb_lock mutex: this will permit
-			to handle future webcam controls.
-	. on streamoff or USB error
-		. free the transfer buffer
-		. complete()
-. streamoff
-	. sd_stopN: non useful
-	. sd_stop0:
-		. wait_for_completion
-		. dev->work_thread = NULL
-
-Now, the request: some guys asked for support of their webcams based on
-sq930x chips. A SANE backend driver exists, written by Gerard Klaver
-(http://gkall.hobby.nl/sq930x.html).
-May you have a look and say if handling these chips may be done in your
-driver?
-
-Regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+FE: Samsung S5H1411 QAM/8VSB Frontend (ATSC)
+Problem retrieving frontend information: Invalid argument
+status S     | signal 8f14 | snr 0804 | ber 00000000 | unc 00000000 |
+Problem retrieving frontend information: Invalid argument
+status S     | signal 8f14 | snr 0804 | ber 00000000 | unc 00000000 |
+Problem retrieving frontend information: Invalid argument
+status S     | signal 8f14 | snr 0804 | ber 00000000 | unc 00000000 |
+Problem retrieving frontend information: Invalid argument
+status S     | signal 8f14 | snr 0804 | ber 00000000 | unc 00000000 |
+Problem retrieving frontend information: Invalid argument
+status S     | signal 8f14 | snr 0804 | ber 00000000 | unc 00000000 |
+Problem retrieving frontend information: Invalid argument
+status S     | signal 8f14 | snr 0804 | ber 00000000 | unc 00000000 |
+Problem retrieving frontend information: Invalid argument
+status S     | signal 8f14 | snr 0804 | ber 00000000 | unc 00000000 |
