@@ -1,22 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0700Eja007934
-	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 19:00:14 -0500
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n06Nxt22022714
-	for <video4linux-list@redhat.com>; Tue, 6 Jan 2009 18:59:56 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: brian_empson@yahoo.com
-In-Reply-To: <121406.44238.qm@web55903.mail.re3.yahoo.com>
-References: <121406.44238.qm@web55903.mail.re3.yahoo.com>
-Content-Type: text/plain
-Date: Wed, 07 Jan 2009 01:00:41 +0100
-Message-Id: <1231286441.2618.56.camel@pc10.localdom.local>
-Mime-Version: 1.0
+MIME-Version: 1.0
+Date: Thu, 22 Jan 2009 10:02:01 -0500
+Message-ID: <b24e53350901220702k42a9b3b7uefdc50fdcdbcd28d@mail.gmail.com>
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
+To: video4linux-list@redhat.com,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Sabrent TVFM Tuner
+Cc: 
+Subject: [PATCH 1/1] em28xx: Fix for fail to submit URB with IRQs and
+	Pre-emption Disabled
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,49 +23,128 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Brian,
+em28xx: Fix for fail to submit URB with IRQs and Pre-emption Disabled
 
-Am Montag, den 05.01.2009, 10:30 -0800 schrieb Brian Empson:
-> I tried updating the dvb v4l drivers and reinstalling the cards to no avail.  None of the tuner options work, the only thing that appears is snow with a few purple flashes every one in awhile.  I did notice that when I go to supply the driver= option to mplayer it does not take v4l2, only v4l.  Is this part of the problem?
-> 
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-sorry, we need more details.
+Trace:  (Provided by Douglas)
 
-There have been some bugs previously introduced, not to allow the user
-to set the TV standard and/or the tuner type anymore.
+BUG: sleeping function called from invalid context at drivers/usb/core/urb.c:558
 
-Such a driver in global operation is almost dead for debugging then
-without further details.
+in_atomic():0, irqs_disabled():1
 
-Which kernel/driver are you using and can you please post also dmesg
-output for the tuners you tried? (saa7134 audio_debug and tuner debug
-are also options not yet tried)
+Pid: 4918, comm: sox Not tainted 2.6.27.5 #1
 
-Under such circumstances it is very unpleasant for all of us to shot
-into the dark and I don't want to send you around in circles on such a
-card we can not identify for sure.
+ [<c04246d8>] __might_sleep+0xc6/0xcb
 
-Beside of letting us know the exact driver version you are using,
-looking it up in details is no fun per distro and not at all, the best
-you can do is to provide a listing of all chips on the board, report the
-TV standard in your country, exclude that some picture ghosthing
-enhancer made it on the board, related to the previous, and have at
-least some idea about the tuner on it.
+ [<c058c8b0>] usb_kill_urb+0x1a/0xd8
 
-Please read the v4l wiki for adding new cards.
-Some previous Sabrent (or whatever) saa7130 stuff is visible on the
-bttv-gallery.de
+ [<c0488e68>] ? __kmalloc+0x9b/0xfc
 
-Your previous tests should have give you at least some results for TV
-else, if not either limited by recent driver bugs or that it is not one
-of all the known tin/can tuners on it, very unlikely.
+ [<c0488e85>] ? __kmalloc+0xb8/0xfc
 
-The working Composite input on vmux = 1 on your card indicates at least
-that it should be likely similar to some of them we have seen already.
+ [<c058cd5a>] ? usb_alloc_urb+0xf/0x31
 
-Cheers,
-Hermann
+ [<f8dd638c>] em28xx_isoc_audio_deinit+0x2f/0x6c [em28xx_alsa]
 
+ [<f8dd6573>] em28xx_cmd+0x1aa/0x1c5 [em28xx_alsa]
+
+ [<f8dd65e1>] snd_em28xx_capture_trigger+0x53/0x68 [em28xx_alsa]
+
+ [<f8aa8674>] snd_pcm_do_start+0x1c/0x23 [snd_pcm]
+
+ [<f8aa85d7>] snd_pcm_action_single+0x25/0x4b [snd_pcm]
+
+ [<f8aa9833>] snd_pcm_action+0x6a/0x76 [snd_pcm]
+
+ [<f8aa98f5>] snd_pcm_start+0x14/0x16 [snd_pcm]
+
+ [<f8aae10e>] snd_pcm_lib_read1+0x66/0x273 [snd_pcm]
+
+ [<f8aac5a3>] ? snd_pcm_kernel_ioctl+0x46/0x5f [snd_pcm]
+
+ [<f8aae4a7>] snd_pcm_lib_read+0xbf/0xcd [snd_pcm]
+
+ [<f8aad774>] ? snd_pcm_lib_read_transfer+0x0/0xaf [snd_pcm]
+
+ [<f89feeb6>] snd_pcm_oss_read3+0x99/0xdc [snd_pcm_oss]
+
+ [<f89fef9c>] snd_pcm_oss_read2+0xa3/0xbf [snd_pcm_oss]
+
+ [<c064169d>] ? _cond_resched+0x8/0x32
+
+ [<f89ff0be>] snd_pcm_oss_read+0x106/0x150 [snd_pcm_oss]
+
+ [<f89fefb8>] ? snd_pcm_oss_read+0x0/0x150 [snd_pcm_oss]
+
+ [<c048c6e2>] vfs_read+0x81/0xdc
+
+ [<c048c7d6>] sys_read+0x3b/0x60
+
+ [<c04039bf>] sysenter_do_call+0x12/0x34
+
+ =======================
+
+The culprit in the trace is snd_pcm_action() which invokes a spin lock
+which disables pre-emption which disables an IRQ which causes the
+__might_sleep() function to fail the irqs_disabled() test.  Since
+pre-emption is enabled then it is safe to de-allocate the memory if
+you first unlink each URB.  In this instance you are safe since
+pre-emption is disabled.  If pre-emption and irqs are not disabled then
+call usb_kill_urb(), else call usb_unlink_urb().
+
+Thanks to Douglas for tracking down this bug originally!!!
+
+Priority: normal
+
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+
+diff -r f4d7d0b84940 linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Sun Jan 18
+10:55:38 2009 +0000
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Thu Jan 22
+09:50:03 2009 -0500
+@@ -63,12 +63,17 @@
+
+        dprintk("Stopping isoc\n");
+        for (i = 0; i < EM28XX_AUDIO_BUFS; i++) {
+-               usb_kill_urb(dev->adev.urb[i]);
++               if (!irqs_disabled()) {
++                       usb_kill_urb(dev->adev.urb[i]);
++               }
++               else {
++                       usb_unlink_urb(dev->adev.urb[i]);
++               }
+                usb_free_urb(dev->adev.urb[i]);
+                dev->adev.urb[i] = NULL;
+
+-              kfree(dev->adev.transfer_buffer[i]);
+-              dev->adev.transfer_buffer[i] = NULL;
++               kfree(dev->adev.transfer_buffer[i]);
++               dev->adev.transfer_buffer[i] = NULL;
+        }
+
+        return 0;
+diff -r f4d7d0b84940 linux/drivers/media/video/em28xx/em28xx-core.c
+--- a/linux/drivers/media/video/em28xx/em28xx-core.c    Sun Jan 18
+10:55:38 2009 +0000
++++ b/linux/drivers/media/video/em28xx/em28xx-core.c    Thu Jan 22
+09:50:03 2009 -0500
+@@ -869,8 +869,12 @@
+        for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
+                urb = dev->isoc_ctl.urb[i];
+                if (urb) {
+-                       usb_kill_urb(urb);
+-                       usb_unlink_urb(urb);
++                       if (!irqs_disabled()) {
++                               usb_kill_urb(urb);
++                       }
++                       else {
++                               usb_unlink_urb(urb);
++                       }
+                        if (dev->isoc_ctl.transfer_buffer[i]) {
+                                usb_buffer_free(dev->udev,
+                                        urb->transfer_buffer_length,
 
 --
 video4linux-list mailing list
