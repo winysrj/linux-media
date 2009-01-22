@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.171])
+Received: from smtp.seznam.cz ([77.75.72.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <robert.golding@gmail.com>) id 1LQzdZ-0006Re-8w
-	for linux-dvb@linuxtv.org; Sun, 25 Jan 2009 08:42:35 +0100
-Received: by wf-out-1314.google.com with SMTP id 27so6255203wfd.17
-	for <linux-dvb@linuxtv.org>; Sat, 24 Jan 2009 23:42:27 -0800 (PST)
+	(envelope-from <oldium.pro@seznam.cz>) id 1LQ4R6-0008G2-Fg
+	for linux-dvb@linuxtv.org; Thu, 22 Jan 2009 19:37:54 +0100
+From: Oldrich Jedlicka <oldium.pro@seznam.cz>
+To: linux-dvb@linuxtv.org
+Date: Thu, 22 Jan 2009 19:37:14 +0100
 MIME-Version: 1.0
-In-Reply-To: <000201c97e3d$9bad71f0$0202a8c0@speedy>
-References: <20090123015815.GA22113@shibaya.lonestar.org>
-	<000201c97e3d$9bad71f0$0202a8c0@speedy>
-Date: Sun, 25 Jan 2009 18:12:27 +1030
-Message-ID: <ae5231870901242342s29d4000ar87636127e1e28803@mail.gmail.com>
-From: Robert Golding <robert.golding@gmail.com>
-To: Wayne and Holly <wayneandholly@alice.it>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Leadtek WinFast PxDVR3200 H
+Content-Disposition: inline
+Message-Id: <200901221937.14552.oldium.pro@seznam.cz>
+Subject: [linux-dvb] [PATCH] Added support for AVerMedia Cardbus Hybrid
+	remote control
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,82 +25,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2009/1/25 Wayne and Holly <wayneandholly@alice.it>:
-> Hello list,
-> I have a Leadtek WinFast PxDVR3200 H that I am attempting to utilise with
-> MythTV.  The Wiki site states that experimental support exists for the DVB
-> side and that "Successful tuning of typical Australian channels" has been
-> achieved.
-> I am able to create a channels.conf (attached) using scan, and am then able
-> to tune using mythtv-setup, however none of these channels are viewable with
-> the mythfrontend due to it being unable to gain a lock.
->
-> Relevant bits and pieces:
->
-> scan, using the latest it-Varese file scan is able to tune to three of the
-> five transponders as per the attached file "scan".  It also scans on
-> 800000000Hz but I have no idea why.
->
-> The file leadtek.dmesg contains the relevant info from dmesg (and
-> messages.log) regarding the initialisation of the card itself.  There are no
-> error messages at any time (that I am aware of) despite all of my fiddling
-> about.
->
-> Of the three transponders that are in my channels.conf file, the third one
-> (618000000Hz) causes an error when tuning in mythtv-setup.  It states that
-> channels are found but the tsid is incorrect.  As such, only the first two
-> successful transponders (706000000 and 602000000) are tuned by myth.
->
-> When I attempt to view the tuned channels, myth is unable to gain a lock on
-> any of them.  The reported signal strength is about 58% and the S/N varies
-> between 3 and 3.8dB.  I am able to tune DVB-T channels on my TV using the
-> same aerial cable but am wondering if signal strength is an issue.
->
-> I am running it on Kubuntu with a 2.6.24-19 kernel, I have a recent version
-> of the v4l-dvb tree (approx Nov 08) and am using firmware version 2.7.  I
-> haven't updated the drivers or the firmware as I have no reason to believe
-> there are changes that would effect this.  That said, if someone thinks
-> there has been changes I will get straight on it.
->
-> I am more than happy to provide more debugging info if required (if you are
-> willing to tell me where else to look) and appreciate any help provided.
->
-> Cheers
-> Wayne
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Hi all,
 
-I have the same card, so this might help.
-I was experiencing many frontend problems when I came across a
-references in the list to a third party firmware files.
-It explained that you had to download and extract the firmware within
-to the firmware dir.
+I've found a way to get the remote control for AVerMedia Cardbus Hybrid (and 
+possibly other Cardbus cards like Cardbus Plus) work, so here is the patch 
+for it. Currently only the Hybrid (E506R) uses it. Comments are welcome.
 
-I cannot remember exactly what, where and which, however, if you'd
-like, I can email the extracted fw.tar.bz2(1.5MB) and
-ivtv.firmware.tar.bz2(123KB) files to you.  Then just extract the
-contents to your firmware dir (on Gentoo /lib/firmware).
+Patch created against v4l-dvb, tested with vanilla 2.6.28.1. Works for me.
 
-Anyway, long story short, that fixed it for me.  Now I'm just waiting
-to be able to use the FM radio.
+Enjoy (and please apply :-))
 
--- 
-Regards,	Robert
-
-..... Some people can tell what time it is by looking at the sun, but
-I have never been able to make out the numbers.
----
-Errata: Spelling mistakes are not intentional, however, I don't use
-spell checkers because it's too easy to allow the spell checker to
-make the decisions and use words that are out of context for that
-being written, i.e. their/there, your/you're, threw/through and even
-accept/except, not to mention foreign (I'm Australian) English
-spelling, i.e. colour/color, socks/sox, etc,.
+Regards,
+Oldrich.
 
 _______________________________________________
 linux-dvb users mailing list
