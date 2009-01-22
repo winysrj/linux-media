@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0A2simD019456
-	for <video4linux-list@redhat.com>; Fri, 9 Jan 2009 21:54:44 -0500
-Received: from web95212.mail.in2.yahoo.com (web95212.mail.in2.yahoo.com
-	[203.104.18.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0A2sNWC007559
-	for <video4linux-list@redhat.com>; Fri, 9 Jan 2009 21:54:24 -0500
-Date: Sat, 10 Jan 2009 08:24:22 +0530 (IST)
-From: niamathullah sharief <shariefbe@yahoo.co.in>
-To: michael_h_williamson@yahoo.com,
-	video4linux list <video4linux-list@redhat.com>
-In-Reply-To: <997415.76985.qm@web65510.mail.ac4.yahoo.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0MMd8af027650
+	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 17:39:08 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n0MMcp1m030269
+	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 17:38:52 -0500
+Date: Thu, 22 Jan 2009 23:38:54 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uab9ugyqg.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0901222333120.7935@axis700.grange>
+References: <uab9ugyqg.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Message-ID: <727883.70706.qm@web95212.mail.in2.yahoo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Cc: 
-Subject: Re: About xawtv
-Reply-To: shariefbe@yahoo.co.in
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L-Linux <video4linux-list@redhat.com>
+Subject: Re: [PATCH] resistor setting sequence fix on ov772x
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,52 +26,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi Morimoto-san,
 
-No i am using "creative" webcam...dont know the exact model...bit it is con=
-nected only with usb port....
---- On Sat, 10/1/09, Michael Williamson <michael_h_williamson@yahoo.com> wr=
-ote:
-From: Michael Williamson <michael_h_williamson@yahoo.com>
-Subject: Re: About xawtv
-To: shariefbe@yahoo.co.in
-Date: Saturday, 10 January, 2009, 12:51 AM
+On Tue, 13 Jan 2009, Kuninori Morimoto wrote:
 
+> soc_camera framework require that resistor setting is done on set_fmt,
+> and start_capture and stop_capture control only camera on/off.
+> This patch modify ov772x to this style.
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
+I'm applying this patch, but I changed the subject and the description a 
+bit:
 
---- On Fri, 1/9/09, niamathullah sharief <shariefbe@yahoo.co.in> wrote:
+====================
 
-> From: niamathullah sharief <shariefbe@yahoo.co.in>
-> Subject: Re: About xawtv
-> To: michael_h_williamson@yahoo.com, "video4linux list"
-<video4linux-list@redhat.com>
-> Date: Friday, January 9, 2009, 11:04 AM
-> Hi michael i am getting this error when i run that command
-> which you gave to me..
->=20
-> sharief@sharief-desktop:~/Desktop/video drivers$ gcc
-> vgrab5.c -Wall -o vgrab5
-> sharief@sharief-desktop:~/Desktop/video drivers$ ./vgrab5
-> /dev/video0 > t.pgm
-> ioctl (VIDIOC_S_FMT) failed, 22
-> VIDIOC_S_FMT: Invalid argument
->=20
-> =C2=A0 what is the error?what to do?
+Subject: [PATCH] ov772x: move configuration from start_capture() to set_fmt()
 
+soc_camera framework requires, that camera configuration is performed in
+set_fmt, and start_capture and stop_capture only turn the camera on/off.
+This patch modifies ov772x to comply to this requirement.
 
-What kind of camera are you using? Does it connect to a USB=20
-port, or to a coaxial style connector? If it is a coaxial (RCA) video
-connector, then try changing the width and height to this:
+====================
 
-   vf.fmt.pix.width =3D 640;
-   vf.fmt.pix.height =3D 480;
+Agree? I just have no idea whether it's resistors or capacitors or 
+anything else that gest set by those i2c commands:-)
 
--Mike
+One more comment to your ov772x driver: at present S_CROP is not supported 
+and it would just fail if anyone attempts to crop the image. Could you 
+please fix? You have to process the pixfmt == 0 case in set_fmt for this.
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
-
-
-=0A=0A=0A      Add more friends to your messenger and enjoy! Go to http://m=
-essenger.yahoo.com/invite/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
