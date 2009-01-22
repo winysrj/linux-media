@@ -1,54 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:30658 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750927AbZANR4n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 12:56:43 -0500
-Message-ID: <496E2758.70403@iki.fi>
-Date: Wed, 14 Jan 2009 19:56:40 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from h-66-166-198-124.nycmny83.covad.net ([66.166.198.124]:50348
+	"EHLO tupari.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752039AbZAVViL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 16:38:11 -0500
+Date: Thu, 22 Jan 2009 16:37:23 -0500 (EST)
+From: Joseph Shraibman <linuxtv.org@jks.tupari.net>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+In-Reply-To: <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com>
+Message-ID: <alpine.LFD.2.00.0901221635550.8219@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu>  <alpine.LFD.2.00.0901221434040.7609@tupari.net>  <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>  <alpine.LFD.2.00.0901221542190.7960@tupari.net>
+ <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>, linux-media@vger.kernel.org,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Initial tuning file update for fi-*
-Content-Type: multipart/mixed;
- boundary="------------080708090001070406040207"
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080708090001070406040207
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Updates for Finland.
 
-Antti
--- 
-http://palosaari.fi/
+On Thu, 22 Jan 2009, Devin Heitmueller wrote:
 
---------------080708090001070406040207
-Content-Type: text/plain;
- name="fi-update_2009-01-14.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fi-update_2009-01-14.patch"
+> On Thu, Jan 22, 2009 at 3:45 PM, Joseph Shraibman
+> <linuxtv.org@jks.tupari.net> wrote:
+>>
+>>
+>> On Thu, 22 Jan 2009, Devin Heitmueller wrote:
+>>
+>>> Are you sure you have zero signal strength, or just really low signal
+>>> strength?  I am pretty sure on the s5h1411, the signal strength field
+>>> is populated with the the SNR, which could be construed as very low
+>>> signal strength if you were expecting a percentage scaled from 0 to
+>>> 65535.
+>>>
+>>> Have you run femon to confirm that the strength field really is zero?
+>>>
+>>
+>> FE: Oren OR51132 VSB/QAM Frontend (ATSC)
+>> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+>> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+>> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+>> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+>> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+>> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+>
+> On some demods, the strength and SNR indicators are only valid if you
+> have a lock.
 
-diff -r b59999438d50 util/scan/dvb-t/fi-Parikkala
---- a/util/scan/dvb-t/fi-Parikkala	Wed Jan 14 18:42:07 2009 +0100
-+++ b/util/scan/dvb-t/fi-Parikkala	Wed Jan 14 19:53:14 2009 +0200
-@@ -2,3 +2,4 @@
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r b59999438d50 util/scan/dvb-t/fi-Rautjarvi_Simpele
---- a/util/scan/dvb-t/fi-Rautjarvi_Simpele	Wed Jan 14 18:42:07 2009 +0100
-+++ b/util/scan/dvb-t/fi-Rautjarvi_Simpele	Wed Jan 14 19:53:14 2009 +0200
-@@ -1,4 +1,4 @@
- # automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-
---------------080708090001070406040207--
+But why don't I get a lock?  I was getting signals with my pcHDTV3000 so I 
+know it isn't an antenna problem.
