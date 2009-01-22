@@ -1,58 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd18532.kasserver.com ([85.13.139.13]:56775 "EHLO
-	dd18532.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255AbZA3LTz (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.24]:57266 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546AbZAVV2Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2009 06:19:55 -0500
-Date: Fri, 30 Jan 2009 12:19:52 +0100
-From: Carsten Meier <cm@trexity.de>
-To: hermann pitton <hermann-pitton@arcor.de>
+	Thu, 22 Jan 2009 16:28:25 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so2026770qwe.37
+        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 13:28:24 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <alpine.LFD.2.00.0901221542190.7960@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu>
+	 <alpine.LFD.2.00.0901221434040.7609@tupari.net>
+	 <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>
+	 <alpine.LFD.2.00.0901221542190.7960@tupari.net>
+Date: Thu, 22 Jan 2009 16:28:24 -0500
+Message-ID: <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com>
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Joseph Shraibman <linuxtv.org@jks.tupari.net>
 Cc: linux-media@vger.kernel.org
-Subject: Re: Howto obtain sysfs-pathes for DVB devices?
-Message-ID: <20090130121952.787cdf24@tuvok>
-In-Reply-To: <1233281227.2688.3.camel@pc10.localdom.local>
-References: <20090128164617.569d5952@tuvok>
-	<1233281227.2688.3.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Fri, 30 Jan 2009 03:07:07 +0100
-schrieb hermann pitton <hermann-pitton@arcor.de>:
+On Thu, Jan 22, 2009 at 3:45 PM, Joseph Shraibman
+<linuxtv.org@jks.tupari.net> wrote:
+>
+>
+> On Thu, 22 Jan 2009, Devin Heitmueller wrote:
+>
+>> Are you sure you have zero signal strength, or just really low signal
+>> strength?  I am pretty sure on the s5h1411, the signal strength field
+>> is populated with the the SNR, which could be construed as very low
+>> signal strength if you were expecting a percentage scaled from 0 to
+>> 65535.
+>>
+>> Have you run femon to confirm that the strength field really is zero?
+>>
+>
+> FE: Oren OR51132 VSB/QAM Frontend (ATSC)
+> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+> status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
 
-> Hi,
-> 
-> Am Mittwoch, den 28.01.2009, 16:46 +0100 schrieb Carsten Meier:
-> > Hello again,
-> > 
-> > now I've managed to obtain syfs-pathes for v4l2-devices. But what
-> > about dvb? I haven't found something like bus_info in the
-> > dvb-api-docs. (I'm new to it) Any hints for this?
-> > 
-> > Thanks,
-> > Carsten
-> 
-> I'm also still new on it ...
-> 
-> Maybe anything useful here?
-> 
-> cat /sys/class/dvb/dvb0.frontend0/uevent
-> MAJOR=212
-> MINOR=0
-> PHYSDEVPATH=/devices/pci0000:00/0000:00:08.0/0000:01:07.0
-> PHYSDEVBUS=pci
-> PHYSDEVDRIVER=saa7134
-> 
-> Cheers,
-> Hermann
-> 
-Hi,
+On some demods, the strength and SNR indicators are only valid if you
+have a lock.
 
-IMHO there is no other way (not counting other daemons) than scanning
-the dvb-device-files, stat() them, and compare major and minor numbers
-with sysfs-contents. Anyway, I think I'll switch to HAL for that...
+Devin
 
-Cheers,
-Carsten
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
