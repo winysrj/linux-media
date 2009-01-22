@@ -1,44 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:37443 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751501AbZATIZw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 03:25:52 -0500
-Date: Tue, 20 Jan 2009 09:22:29 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: "T.P. Reitzel" <4066724035@vzwmail.net>
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:62821 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527AbZAVU72 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 15:59:28 -0500
+Received: by qyk4 with SMTP id 4so4838226qyk.13
+        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 12:59:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <39c74bb90901221255y6a278b1bkff01875551a426c3@mail.gmail.com>
+References: <39c74bb90901221255y6a278b1bkff01875551a426c3@mail.gmail.com>
+Date: Thu, 22 Jan 2009 15:59:26 -0500
+Message-ID: <412bdbff0901221259q3c21d678v6e9e0e0a5e863b98@mail.gmail.com>
+Subject: Re: Hauppauge TD-500
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Glen Ford <glen.a.ford@gmail.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: gspca_spca505
-Message-ID: <20090120092229.57d6fbfc@free.fr>
-In-Reply-To: <49751737.1020101@vzwmail.net>
-References: <49751737.1020101@vzwmail.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Jan 2009 17:13:43 -0700
-"T.P. Reitzel" <4066724035@vzwmail.net> wrote:
+On Thu, Jan 22, 2009 at 3:55 PM, Glen Ford <glen.a.ford@gmail.com> wrote:
+> Hi,
+>
+>
+> I am assuming this is the right list to post to.
+>
+> I recently setup MythBuntu on my system with Hauppauge TD-500 - the
+> system worked except for the IR Remote Control - I tried using the
+> latest v4l-dvb from the Hg repo to no avail.
+>
+> I had to make the following changes to dib0700_devices.c in order for
+> the remote to be recognised and appear as an event device (other
+> changes needed for MythBuntu itself can be found on my ubuntuforum
+> post here: http://ubuntuforums.org/showthread.php?p=6509202#post6509202)
+>
+> root@pvr:~/dvb/v4l-dvb# hg diff
+> diff -r f4d7d0b84940 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+> --- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Sun Jan 18
+> 10:55:38 2009 +0000
+> +++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Wed Jan 21
+> 19:41:36 2009 +0000
+> @@ -1683,7 +1683,13 @@
+>                                { &dib0700_usb_id_table[43], NULL },
+>                                { NULL },
+>                        }
+> -               }
+> +               },
+> +
+> +               .rc_interval      = DEFAULT_RC_INTERVAL,
+> +               .rc_key_map       = dib0700_rc_keys,
+> +               .rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+> +               .rc_query         = dib0700_rc_query
+> +
+>        }, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+>
+>                .num_adapters = 1
+>
+> Regards,
+>
+>
+> Glen
 
-> I just pulled mercurial's v4l-dvb for Bluewhite64's 2.6.27.7 kernel.
-> This spca505 driver for Intel's PC Camera Pro, 0733:0430 isn't even
-> functioning. The MMAP feature of this driver just displays a screen of
-> horizontal green lines. Furthermore, M. Xhaard stripped the external
-> composite feature from this driver a few years ago and no one has yet
-> added it back. If you visit the original website for this driver on
-> sourceforge.net, you'll see the original driver for this video camera
-> including composite support. As it is, the driver for this camera is
-> totally inoperative.
+Hello Glen,
 
-What do you mean by "composite support"?
+This exact patch has already been merged into my tree (contributed by
+Arne Luehrs), and a PULL request was sent to Mauro on Tuesday for it
+to go into the mainline v4l-dvb.
 
-Otherwise, none of the webcams of the spca505 subdriver have been
-tested since the conversion from v1 to v2. I'd be glad to have more
-information about what happens with this subdriver. May you read the
-gspca_README.txt from my page (see below) and send me the results?
+http://linuxtv.org/hg/~dheitmueller/dib0700-pbfixes/rev/cf6003290b09
 
-Thank you.
+Devin
 
 -- 
-Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
