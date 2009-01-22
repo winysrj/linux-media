@@ -1,190 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:4564 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897AbZAWKZ2 (ORCPT
+Received: from mail-ew0-f20.google.com ([209.85.219.20]:54070 "EHLO
+	mail-ew0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314AbZAVTuu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2009 05:25:28 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so613105ugf.37
-        for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 02:25:25 -0800 (PST)
-Date: Fri, 23 Jan 2009 11:25:16 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Daniel Dalton <d.dalton@iinet.net.au>
-cc: linux-media@vger.kernel.org,
-	DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] getting started with msi tv card
-In-Reply-To: <alpine.DEB.2.00.0901222327370.13623@ybpnyubfg.ybpnyqbznva>
-Message-ID: <alpine.DEB.2.00.0901230956260.13623@ybpnyubfg.ybpnyqbznva>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi> <20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi> <20090121003915.GA6120@debian-hp.lan> <4977088F.5080505@iki.fi> <20090122092844.GB14123@debian-hp.lan>
- <alpine.DEB.2.00.0901222327370.13623@ybpnyubfg.ybpnyqbznva>
+	Thu, 22 Jan 2009 14:50:50 -0500
+Received: by ewy13 with SMTP id 13so2968186ewy.13
+        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 11:50:49 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <alpine.LFD.2.00.0901221434040.7609@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu>
+	 <alpine.LFD.2.00.0901221434040.7609@tupari.net>
+Date: Thu, 22 Jan 2009 11:50:48 -0800
+Message-ID: <cae4ceb0901221150o5210c743q59a2d820629f5cd7@mail.gmail.com>
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+From: Tu-Tu Yu <tutuyu@usc.edu>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-G'day Daniel, I just came up with a couple more ideas that
-could be worth mentioning, that you can keep in mind for the
-future...
+Hi ~
+Did you try to do
+>rmmod cx23885
+>modprobe s5h1411
+>modprobe xc5000
+>modprobe cx23885
+everytime you reboot the computer.?!
+Audrey
 
-On Fri, 23 Jan 2009, BOUWSMA Barry wrote:
-
-> The other output format is `pids', and here's that from
-> back in 2006, before the use of the second audio channel
-> on the german broadcasters became widespread (last year):
-> 
-> ZDF                      (0x6d66) 01: PCR == V   V 0x006e A 0x0078  \
-> (deu) 0x0079 (2ch) TT 0x0082 AC3 0x007d
-> 
-> Here PID 0x79 is tagged as `2ch' (it's NAR for the Beeb),
-> and covers both audiodescription and occasional original-
-> language (mostly english language) broadcasts without
-> overdubbing.  This was before DVB subtitles were introduced.
-> 
-> Oh, here's an old BBC `pids' output, also including subtitles:
-> 
-> BBC 1 London             (0x189d) 01: PCR == V   V 0x1388 A 0x1389  \
-> (eng) 0x138a (NAR) TT 0x138b SUB 0x138c
-
-Now, I want to mention in detail the TT (teletext) and SUB
-(subtitle) services, at least, how they are implemented in
-this part of europe -- other parts of the world will likely
-be different, but my purpose is to throw around ideas in the
-hope that something will stick to the ceiling and be interesting
-and possibly useful.
-
-I mentioned that I find the nearly 100% penetration of subtitles
-to be quite useful to me personally, although it and in-field
-signing are intended for people whose hearing is not so good
-as mine, but whose vision is intact.
-
-The subtitles are sent in both a selected teletext page, as
-well as a separate DVB-subtitle stream.  Unfortunately, the
-support that `mplayer' has for DVB subtitles last I knew, is,
-well, bad to none, and basically requires completely rewriting
-that bit.  `xine' worked better some months ago, but at that
-time had some timing problems.
-
-Anyway, as I understand it, DVB subtitles are sent as bitmaps,
-which unfortunately makes it difficult for you to use them.
-This also explains the difference in appearance between the
-BBC subtitles and those of ITV.  However, I haven't seen
-mangled fonts due to transmission errors, while I have seen
-incorrect yet properly-formed characters at times.  So my
-understanding of DVB subtitles is far from complete or correct.
-
-
-Standard teletext, as was introduced with analogue transmissions
-as part of the vertical blanking interval, has been carried
-over to DVB broadcasts.  In the case of the BBC, this is mostly
-limited to subtitles on page 888, while the german services I've
-mentioned offer full text services, occasionally including
-subtitles, but on a limited set of programmes.  Only the ZDF
-has both teletext and DVB subtitles at present, of the german
-public broadcasters.  These DVB subtitle fonts again differ in
-appearance from any of the british public broadcasters.
-
-In the UK, the move has been away from conventional teletext
-with the introduction of digital services, replacing it with
-an MHEG-based service.  In germany, there has been a push to
-supplement regular teletext with an MHP-based service, but for
-lack of interest and readily-available hardware, this has
-pretty much died out or stagnated.
-
-I seem to recall that in Australia, use is made of an MHEG
-service.  I don't know if a regular teletext service is
-available -- you will see this in the results, when you have
-a tuner capable of scanning.
-
-
-Now, ideally, a teletext service, being text-based, can be
-trivially converted to braille or spoken.  I'm not sure about
-the MHEG services, as they seem to place more importance on
-the on-screen appearance, yet they do use a TrueType font.
-
-Anyway, while conventional teletext is not simple ASCII-like,
-it is based on a hamming of a limited character set which can
-be converted back to a standard 128- or 256-character set
-font, and of course the normal characters can be displayed as
-braille.
-
-Now, here is an example of some of the useful information
-to be found on a full teletext service, to show that, if it
-were available to you, you might find it interesting.  This
-is a page giving inter-bank exchange rates from the Euro to
-your own currency, and is meant as an example (it's in german,
-but should be trivial to understand)
-
-                    /GIP  IG*** PHOENIX Mi 21.01.09 18:01:45
-                         PHOENIX.text                   2/2
-                         Devisenkurse
-                     Letzte Datenabfrage        Diff.  Kurs-
-                     21.01.09, 18:00 Uhr        Vortag zeit
-
-                     USA....... (USD)   1,2857  -0,20% 17:59
-                     GB........ (GBP)   0,9369  +0,94% 17:59
-                     Schweiz... (CHF)   1,4767  -0,13% 17:59
-                     Japan..... (JPY) 112,9800  -2,35% 17:59
-
-                     Kanada.... (CAD)   1,6365  +0,37% 17:59
-                     Südafrika. (ZAR)  13,0970  -1,05% 17:50
-                     Hongkong.. (HKD)   9,9990  +0,07% 17:49
-                     Singapur.. (SGD)   1,9401  -0,13% 17:50
-                     Australien (AUD)   1,9804  -0,23% 17:59
-                     Neuseeland (NZD)   2,4637  -0,78% 17:49
-                     Indien.... (INR)  63,3633  +0,36% 17:49
-                     China..... (CNY)   8,8013  +0,03% 17:15
-                     Mexiko.... (MXN)  17,9189  -0,85% 17:49
-                     Argentin.. (ARS)   4,4618  +0,33% 17:16
-                     Brasilien. (BRL)   3,0380  -0,73% 17:54
-
-                                             Sortenkurse ->
-
-(reproduced without permission, sorry)
-
-Unfortunately, relatively few programmes are sent with any
-subtitles, and I'm having to dig deeply in my snapshots of
-teletext pages to find an example I can show, instead of
-                    //   X G*** PHOENIX Mi 21.01.09 18:01:38
-                                        KEINE UNTERTITEL
-(no subtitles)
-
-
-More unfortunately, I've just verified that my utility is not
-recognizing and writing to disk the subtitles that are currently
-being broadcast on page 150 by one particular broadcaster, so it's 
-back to the coding for me...  Meaning, I can't paste an example here.
-
-However, my point is that if this type of service is broadcast
-in your area, you may find it interesting and useful, as you
-would be able to make use of the text content within.
-
-
-Just an idea which I had...
-
-
-
-By the way, I don't know how foreign non-english-language films
-would be handled by your broadcasters.  In general, the text-
-based subtitles are not sent when there are on-screen subtitles,
-for example, when the BBC screens a film in its native language
-and subtitles.  That means that, for example, the film ``Lola
-Rennt'' was sent out with the primary audio channel containing
-the original german, and no teletext subtitles, with the
-translation into english appearing as part of the video
-signal, meaning that you can't make use of it, nor could you
-make use of the audio (if you understand german, then substitute
-french, portuguese, japanese, or some other language which has
-been broadcast as original-with-subtitles).  Other broadcasters
-tend to dub everything of serious commercial value into the
-native language with the same limited number of voice talent,
-so the issue of original audio versus subtitles doesn't come up.
-The cultural channel `arte' is somewhat an exception, where via
-the different satellite positions you might find dubbed german,
-dubbed french, and original english, subtitles in french or
-german, or original language broadcasts in the `trash' series
-of cinematic gems with on-screen subtitles in either french or
-german, keeping out those audience members unable to understand
-the original and unable to see the on-screen subtitles...
-
-
-barry bouwsma
+On Thu, Jan 22, 2009 at 11:42 AM, Joseph Shraibman
+<linuxtv.org@jks.tupari.net> wrote:
+> I too am having 0 signal strength with a Fusion HDTV 7 Dual Express.  scan
+> (from dvb-apps) does find channels, but my application won't work because
+> it is seeing no signal.  I tried rebuilding the drivers from repository
+> tip but it doesn't help.  The kernel I'm using is 2.6.27.9-73.fc9.i686.
+> lspci -v shows:
+>
+> 02:00.0 Multimedia video controller: Conexant Unknown device 8852 (rev 04)
+>         Subsystem: DViCO Corporation Unknown device d618
+>         Flags: bus master, fast devsel, latency 0, IRQ 17
+>         Memory at fbc00000 (64-bit, non-prefetchable) [size=2M]
+>         Capabilities: [40] Express Endpoint, MSI 00
+>         Capabilities: [80] Power Management version 2
+>         Capabilities: [90] Vital Product Data <?>
+>         Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+
+> Queue=0/0 Enable-
+>         Capabilities: [100] Advanced Error Reporting <?>
+>         Capabilities: [200] Virtual Channel <?>
+>         Kernel driver in use: cx23885
+>         Kernel modules: cx23885
+>
+> after "make load" in the v4l-dvb directory  dmesg shows:
+>
+> cx23885_dvb_register() allocating 1 frontend(s)
+> cx23885[0]: cx23885 based dvb card
+> xc5000 1-0064: creating new instance
+> xc5000: Successfully identified at address 0x64
+> xc5000: Firmware has not been loaded previously
+> DVB: registering new adapter (cx23885[0])
+> DVB: registering adapter 1 frontend 0 (Samsung S5H1411 QAM/8VSB
+> Frontend)...
+> cx23885_dvb_register() allocating 1 frontend(s)
+> cx23885[0]: cx23885 based dvb card
+> xc5000 2-0064: creating new instance
+> xc5000: Successfully identified at address 0x64
+> xc5000: Firmware has not been loaded previously
+> DVB: registering new adapter (cx23885[0])
+> DVB: registering adapter 2 frontend 0 (Samsung S5H1411 QAM/8VSB
+> Frontend)...
+> cx23885_dev_checkrevision() New hardware revision found 0x0
+> cx23885_dev_checkrevision() Hardware revision unknown 0x0
+> cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 17, latency: 0, mmio:
+> 0xfbc00000
+> cx23885 0000:02:00.0: setting latency timer to 64
+> ivtvfb:  no cards found
+> or51132: Waiting for firmware upload(dvb-fe-or51132-vsb.fw)...
+> firmware: requesting dvb-fe-or51132-vsb.fw
+> or51132: Version: 10001134-19430000 (113-4-194-3)
+> or51132: Firmware upload complete.
+>
+>
+> On Thu, 16 Oct 2008, Jonathan Johnson wrote:
+>
+>> Hello linux-dvb members,
+>>
+>> I know another person posted a message similar to mine, but offered no diagnostic info, so I am.
+>>
+>> DViCO device d618 using driver cx23885
+>> Conexant Device 8852 (rev 02)
+>> Base OS: SuSE 11.0
+>> kernel manually upgraded to 2.6.27
+>> checked dmesg, and all firmware(s) load.
+>>
+>> I have a FusionHDTV Dual 7 tuner, and it gets no signal at all, and some times no channels appear
+>> when I scan from with in mythtv, and sometimes some of the channels appear.
+>>
+>> 1. First I tried hooking a ATI 650 to Vista and got 100% strength all the time, so it wasn't the antenna.
+>> 2. I then hooked up the FusionHDTV card to Vista and it also reported 100% signal strength.
+>> Therefore the card is not broken.
+>> 3. I have 2 ATI HDTV Wonder that have always worked perfectly, so signal strength is good.
+>>
+>>
+>> When trying to record w/ MythTV I get
+>> ---------
+>> This occurs a couple times.
+>> DVBSM(/dev/dvb/adapter1/frontend0), Warning can not measuer S/N
+>> The following occurs many times:
+>> DVBChan(3:/dev/dvb/adapter1/frontend0) Error:  Tune(): Setting Frontend using tuning parameters failed.
+>> "eno: Invalid argument (22)"
+>> -----------
+>>
+>> Spent 1/2 hour looking thru google results.
+>> I decided despite how horrible luck I have with compiling certain things, I would give it a go anyway.
+>> The kernel always compiles for me at least.  I went to linuxtv.org and followed the instructions.
+>> I did the make and make install and got the invalid symbols mentioned on the website, and it said
+>> reboot.  So I did, and I recompiled again, for the heck of it, and still have invalid symbols. Read the
+>> INSTALL text file, and tried a bunch of options.    I tried make kernel-(something), and recompile the
+>> kernel(completely), and reboot,and still no go.  I tried re-compiling v4l-dvb and still nothing.
+>> I eventually tried "make all" and the compile failed with errors.  Could not get it to compile, and now
+>> v4l-dvb was un-usable.
+>>
+>> I then installed and did a full compile of kernel 2.6.27.1 (released last night), and at least everything
+>> now works.
+>>
+>> I would like to try the development version to see if that fixes things, but I am not skilled enough to
+>> resolved the unresolved symbol problem.  insmod and modprobe failed with the same error.
+>>
+>>
+>> Later,
+>> Jonathan
+>>
+>>
+>> -------------------------------------------
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
