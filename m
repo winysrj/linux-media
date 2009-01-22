@@ -1,106 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38623 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753277AbZAKAxG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jan 2009 19:53:06 -0500
-Date: Sun, 11 Jan 2009 01:53:05 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <damm@igel.co.jp>
-Subject: [PATCH] soc-camera: fix S_CROP breakage on PXA and SuperH
-Message-ID: <Pine.LNX.4.64.0901110148360.22041@axis700.grange>
+Received: from fg-out-1718.google.com ([72.14.220.156]:37415 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752571AbZAVXCA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 18:02:00 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so2318879fgg.17
+        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 15:01:57 -0800 (PST)
+Message-ID: <4978FAE1.3070103@googlemail.com>
+Date: Fri, 23 Jan 2009 00:01:53 +0100
+From: e9hack <e9hack@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] device file ordering w/multiple cards
+References: <alpine.LFD.2.00.0901221641300.8219@tupari.net>
+In-Reply-To: <alpine.LFD.2.00.0901221641300.8219@tupari.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Recent format-negotiation patches caused S_CROP breakage in pxa_camera.c 
-and sh_mobile_ceu_camera.c drivers, fix it.
+Joseph Shraibman schrieb:
+> I have two dvb cards in my system.  Is there any way to change the order 
+> of the device files?
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Usually, the device files (/dev/dvb/adapter?/..) are create by a udev-rule. If you modify
+the rule, you can assign every dvb card to a specific number. In my case, I'm using Suse,
+which comes withe following udev rule in /etc/udev/rules.d/50-udev-default.rules:
+# DVB video
+SUBSYSTEM=="dvb", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s
+$${K%%%%.*} $${K#*.}'", NAME="%c"
 
-Tested on PXA, Magnus, please test on sh, Robert, any objections?
+I've two DVB cards, one FF and one budget. The FF should be always the adapter #0. I've
+disabled the default DVB rule and add my one rule, which assigns the numbers depend on the
+ pci vendor/device numbers:
+# DVB video
+#SUBSYSTEM=="dvb", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s
+$${K%%%%.*} $${K#*.}'", NAME="%c"
+SUBSYSTEM=="dvb", SYSFS{subsystem_device}=="0x1156", SYSFS{subsystem_vendor}=="0x153b",
+PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s 1 $${K#*.}'", NAME="%c
+SUBSYSTEM=="dvb", SYSFS{subsystem_device}=="0x000a", SYSFS{subsystem_vendor}=="0x13c2",
+PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s 0 $${K#*.}'", NAME="%c
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index a1d6008..07c334f 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -1155,23 +1155,23 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
- 	struct pxa_camera_dev *pcdev = ici->priv;
--	const struct soc_camera_data_format *host_fmt, *cam_fmt = NULL;
--	const struct soc_camera_format_xlate *xlate;
-+	const struct soc_camera_data_format *cam_fmt = NULL;
-+	const struct soc_camera_format_xlate *xlate = NULL;
- 	struct soc_camera_sense sense = {
- 		.master_clock = pcdev->mclk,
- 		.pixel_clock_max = pcdev->ciclk / 4,
- 	};
--	int ret, buswidth;
-+	int ret;
- 
--	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
--	if (!xlate) {
--		dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
--		return -EINVAL;
--	}
-+	if (pixfmt) {
-+		xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
-+		if (!xlate) {
-+			dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
-+			return -EINVAL;
-+		}
- 
--	buswidth = xlate->buswidth;
--	host_fmt = xlate->host_fmt;
--	cam_fmt = xlate->cam_fmt;
-+		cam_fmt = xlate->cam_fmt;
-+	}
- 
- 	/* If PCLK is used to latch data from the sensor, check sense */
- 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
-@@ -1201,8 +1201,8 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 	}
- 
- 	if (pixfmt && !ret) {
--		icd->buswidth = buswidth;
--		icd->current_fmt = host_fmt;
-+		icd->buswidth = xlate->buswidth;
-+		icd->current_fmt = xlate->host_fmt;
- 	}
- 
- 	return ret;
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 9a2586b..ddcb81d 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -603,21 +603,18 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
- 	const struct soc_camera_format_xlate *xlate;
- 	int ret;
- 
-+	if (!pixfmt)
-+		return icd->ops->set_fmt(icd, pixfmt, rect);
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (!xlate) {
- 		dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
- 		return -EINVAL;
- 	}
- 
--	switch (pixfmt) {
--	case 0:				/* Only geometry change */
--		ret = icd->ops->set_fmt(icd, pixfmt, rect);
--		break;
--	default:
--		ret = icd->ops->set_fmt(icd, xlate->cam_fmt->fourcc, rect);
--	}
-+	ret = icd->ops->set_fmt(icd, xlate->cam_fmt->fourcc, rect);
- 
--	if (pixfmt && !ret) {
-+	if (!ret) {
- 		icd->buswidth = xlate->buswidth;
- 		icd->current_fmt = xlate->host_fmt;
- 		pcdev->camera_fmt = xlate->cam_fmt;
+If you use two identical cards, you can use the pci slot number:
+# DVB video
+#SUBSYSTEM=="dvb", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter%%i/%%s
+$${K%%%%.*} $${K#*.}'", NAME="%c"
+SUBSYSTEM=="dvb", SUBSYSTEMS=="pci", KERNELS=="0000:04:07.0", PROGRAM="/bin/sh -c 'K=%k;
+K=$${K#dvb}; printf dvb/adapter%%i/%%s 1 $${K#*.}'", NAME="%c"
+SUBSYSTEM=="dvb", SUBSYSTEMS=="pci", KERNELS=="0000:04:06.0", PROGRAM="/bin/sh -c 'K=%k;
+K=$${K#dvb}; printf dvb/adapter%%i/%%s 0 $${K#*.}'", NAME="%c"
+
+Regards,
+Hartmut
