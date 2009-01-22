@@ -1,73 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36774 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757977AbZA3XqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2009 18:46:21 -0500
-From: Dominic Curran <dcurran@ti.com>
-To: "linux-omap" <linux-omap@vger.kernel.org>,
+Received: from fg-out-1718.google.com ([72.14.220.153]:37347 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105AbZAVFIq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 00:08:46 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so2023795fgg.17
+        for <linux-media@vger.kernel.org>; Wed, 21 Jan 2009 21:08:44 -0800 (PST)
+Subject: Re: Request for new pixel format (JPEG2000)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Vladimir Davydov <vladimir.davydov@promwad.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
 	linux-media@vger.kernel.org
-Subject: [OMAPZOOM][PATCH v2 5/6] ZOOM2: Rename the zoom2 i2c struct.
-Date: Fri, 30 Jan 2009 17:46:15 -0600
-Cc: greg.hofer@hp.com
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+In-Reply-To: <200901212146.39153.vladimir.davydov@promwad.com>
+References: <200901212146.39153.vladimir.davydov@promwad.com>
+Content-Type: text/plain
+Date: Thu, 22 Jan 2009 08:09:02 +0300
+Message-Id: <1232600942.3764.130.camel@tux.localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901301746.15625.dcurran@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 5/6] ZOOM2: Rename the zoom2 i2c struct.
+(added linux-media mail-list)
 
-Rename i2c structures to something sensible.
-This patch is not specific for imx046 sensor.
-Do this in preparation for i2c changes for imx046 sensor.
+Hello, Vladimir
 
-Signed-off-by: Greg Hofer <greg.hofer@hp.com>
-Signed-off-by: Dominic Curran <dcurran@ti.com>
----
- arch/arm/mach-omap2/board-zoom2.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+On Wed, 2009-01-21 at 21:46 +0200, Vladimir Davydov wrote:
+> Hi,
+> Is it possible to add new pixel format to videodev2.h file?
+> 
+> #define V4L2_PIX_FMT_MJ2C   v4l2_fourcc('M','J','2','C') /* Morgan JPEG 2000*/
+> 
+> I have developed a V4L2 driver for the board with hardware JPEG2000 codec 
+> (ADV202 chip). This driver uses that pixel format.
+> I think JPEG 2000 is very perspective codec and it will be good if V4L2 will 
+> support it.
+> 
+> Short description of the device is here:
+> http://www.promwad.com/markets/linux-video-jpeg2000-blackfin.html
+> 
+> Thanks,
+> Vladimir.
 
-Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
-===================================================================
---- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
-+++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
-@@ -472,7 +472,7 @@ static struct twl4030_platform_data ldp_
- 	.keypad		= &ldp_kp_twl4030_data,
- };
- 
--static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
-+static struct i2c_board_info __initdata zoom2_i2c_bus1_info[] = {
- 	{
- 		I2C_BOARD_INFO("twl4030", 0x48),
- 		.flags = I2C_CLIENT_WAKE,
-@@ -507,7 +507,7 @@ static struct synaptics_i2c_rmi_platform
- 	.power		= &synaptics_power,
- };
- 
--static struct i2c_board_info __initdata ldp3430_i2c_board_info[] = {
-+static struct i2c_board_info __initdata zoom2_i2c_bus2_info[] = {
- 	{
- 		I2C_BOARD_INFO(SYNAPTICS_I2C_RMI_NAME,  SYNAPTICS_I2C_ADDR),
- 		.platform_data = &ldp3430_synaptics_platform_data,
-@@ -518,12 +518,12 @@ static struct i2c_board_info __initdata 
- 
- static int __init omap_i2c_init(void)
- {
--	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
--			ARRAY_SIZE(ldp_i2c_boardinfo));
-+	omap_register_i2c_bus(1, 2600, zoom2_i2c_bus1_info,
-+			ARRAY_SIZE(zoom2_i2c_bus1_info));
- #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
--	ldp3430_i2c_board_info[0].irq = OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
--	omap_register_i2c_bus(2, 100, ldp3430_i2c_board_info,
--			ARRAY_SIZE(ldp3430_i2c_board_info));
-+	zoom2_i2c_bus2_info[0].irq = OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
-+	omap_register_i2c_bus(2, 100, zoom2_i2c_bus2_info,
-+			ARRAY_SIZE(zoom2_i2c_bus2_info));
- #endif
- 	omap_register_i2c_bus(3, 400, NULL, 0);
- 	return 0;
+Please, send patches and other e-mails related to drivers development to
+linux-media@vger.kernel.org
+Such tool like patchwork.kernel.org will cares about patches, so they
+don't lost. 
+
+I think you already check this page
+http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+if not, please check.
+
+-- 
+Best regards, Klimov Alexey
+
