@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:8199 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577AbZA0Wh0 (ORCPT
+Received: from ug-out-1314.google.com ([66.249.92.168]:36666 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237AbZAVOO3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 17:37:26 -0500
+	Thu, 22 Jan 2009 09:14:29 -0500
+Message-ID: <49787F42.8080908@gmail.com>
+Date: Thu, 22 Jan 2009 15:14:26 +0100
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090127102421.06bfd4c1@caramujo.chehab.org>
-References: <55fdf7050901261409h67f581f1ib6951ecb60eb8e8@mail.gmail.com>
-	 <20090127102421.06bfd4c1@caramujo.chehab.org>
-Date: Tue, 27 Jan 2009 14:37:23 -0800
-Message-ID: <55fdf7050901271437o7afafa42j1db0fd18ca1ce915@mail.gmail.com>
-Subject: Re: cx88 audio input change
-From: LINUX NEWBIE <lnxnewbie@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	lkml <linux-kernel@vger.kernel.org>
+Subject: [PATCH] V4L/DVB: fix v4l2_device_call_all/v4l2_device_call_until_err
+ macro
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In Linux cx88 driver, is it possible to stream audio only without
-video Risc engine running?  If so, what tools/players and commands can
-I use to stream audio only from cx88 card?
+When these macros aren't called with 'grp_id' this will result in a
+build failure.
 
-I appreciate for all your help.
-Hiep
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index 9bf4ccc..ad86caa 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -94,16 +94,16 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+ /* Call the specified callback for all subdevs matching grp_id (if 0, then
+    match them all). Ignore any errors. Note that you cannot add or delete
+    a subdev while walking the subdevs list. */
+-#define v4l2_device_call_all(dev, grp_id, o, f, args...) 		\
++#define v4l2_device_call_all(dev, _grp_id, o, f, args...) 		\
+ 	__v4l2_device_call_subdevs(dev, 				\
+-			!(grp_id) || sd->grp_id == (grp_id), o, f , ##args)
++			!(_grp_id) || sd->grp_id == (_grp_id), o, f , ##args)
+ 
+ /* Call the specified callback for all subdevs matching grp_id (if 0, then
+    match them all). If the callback returns an error other than 0 or
+    -ENOIOCTLCMD, then return with that error code. Note that you cannot
+    add or delete a subdev while walking the subdevs list. */
+-#define v4l2_device_call_until_err(dev, grp_id, o, f, args...) 		\
++#define v4l2_device_call_until_err(dev, _grp_id, o, f, args...) 		\
+ 	__v4l2_device_call_subdevs_until_err(dev,			\
+-		       !(grp_id) || sd->grp_id == (grp_id), o, f , ##args)
++		       !(_grp_id) || sd->grp_id == (_grp_id), o, f , ##args)
+ 
+ #endif
 
-On Tue, Jan 27, 2009 at 4:24 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->
-> On Mon, 26 Jan 2009 14:09:31 -0800
-> LINUX NEWBIE <lnxnewbie@gmail.com> wrote:
->
->> Hi Mauro,
->>
->>     You've been working on cx88 for a long time.  Can I ask you
->> something?  I have a cx88 based card and I tried to get audio coming
->> from "Line In" of my card.  However, it seems like the audio always
->> comes from TV input.   I looked into the code and it seems like
->> VIDIOC_S_AUDIO is not working in cx88.  Can you help please?
->
-> The better is to ask such questions on linux-media@vger.kernel.org. Anyway, the
-> issue is likely due to a wrong entry at cx88-cards for your board. In order to
-> fix, someone with your board (probably you)should get the proper GPIO pins for
-> your device. Please read the following wiki articles:
->
-> http://linuxtv.org/wiki/index.php/Development:_How_to_add_support_for_a_device
-> http://linuxtv.org/wiki/index.php/GPIO_pins
->
-> Cheers,
-> Mauro
->
