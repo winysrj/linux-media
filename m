@@ -1,51 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:55270 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761331AbZAUBvR (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2182 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752413AbZAVOtf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 20:51:17 -0500
-Date: Tue, 20 Jan 2009 23:50:48 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Sam Ravnborg <sam@ravnborg.org>, Ingo Molnar <mingo@elte.hu>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: Confusion in usr/include/linux/videodev.h
-Message-ID: <20090120235048.4f7200f9@caramujo.chehab.org>
-In-Reply-To: <1232502038.3123.61.camel@localhost.localdomain>
-References: <1232502038.3123.61.camel@localhost.localdomain>
-Mime-Version: 1.0
+	Thu, 22 Jan 2009 09:49:35 -0500
+Message-ID: <52420.62.70.2.252.1232635748.squirrel@webmail.xs4all.nl>
+Date: Thu, 22 Jan 2009 15:49:08 +0100 (CET)
+Subject: Re: [PATCH] V4L/DVB: fix
+     v4l2_device_call_all/v4l2_device_call_until_err macro
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Roel Kluin" <roel.kluin@gmail.com>
+Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	"lkml" <linux-kernel@vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 21 Jan 2009 07:10:38 +0530
-Jaswinder Singh Rajput <jaswinder@kernel.org> wrote:
 
-> usr/include/linux/videodev.h is giving 2 warnings in 'make headers_check':
->  usr/include/linux/videodev.h:19: leaks CONFIG_VIDEO to userspace where it is not valid
->  usr/include/linux/videodev.h:314: leaks CONFIG_VIDEO to userspace where it is not valid
-> 
-> Whole file is covered with #if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
-> 
-> It means this file is only valid for kernel mode if CONFIG_VIDEO_V4L1_COMPAT is defined but in user mode it is always valid.
-> 		
-> Can we choose some better alternative Or can we use this file as:
-> 
-> #ifdef CONFIG_VIDEO_V4L1_COMPAT
-> #include <linux/videodev.h>
-> #endif
+> When these macros aren't called with 'grp_id' this will result in a
+> build failure.
 
-This is somewhat like what we have on audio devices (where there are OSS and ALSA API's).
+Hi Roel,
 
-V4L1 is the old deprecated userspace API for video devices. It is still
-required by some userspace applications. So, on userspace, it should be
-included. Also, this allows that one userspace app to be compatible with both
-V4L2 API (the current one) and the legacy V4L1 one.
+Thanks, however it is fixed already in the v4l-dvb repo so it should
+appear upstream as soon as Mauro prepares the next pull request.
 
-It should be noticed that are still a few drivers using the legacy API yet to
-be converted.
+Regards,
 
-Cheers,
-Mauro
+       Hans
+
+>
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+> index 9bf4ccc..ad86caa 100644
+> --- a/include/media/v4l2-device.h
+> +++ b/include/media/v4l2-device.h
+> @@ -94,16 +94,16 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
+> *sd);
+>  /* Call the specified callback for all subdevs matching grp_id (if 0,
+> then
+>     match them all). Ignore any errors. Note that you cannot add or delete
+>     a subdev while walking the subdevs list. */
+> -#define v4l2_device_call_all(dev, grp_id, o, f, args...) 		\
+> +#define v4l2_device_call_all(dev, _grp_id, o, f, args...) 		\
+>  	__v4l2_device_call_subdevs(dev, 				\
+> -			!(grp_id) || sd->grp_id == (grp_id), o, f , ##args)
+> +			!(_grp_id) || sd->grp_id == (_grp_id), o, f , ##args)
+>
+>  /* Call the specified callback for all subdevs matching grp_id (if 0,
+> then
+>     match them all). If the callback returns an error other than 0 or
+>     -ENOIOCTLCMD, then return with that error code. Note that you cannot
+>     add or delete a subdev while walking the subdevs list. */
+> -#define v4l2_device_call_until_err(dev, grp_id, o, f, args...) 		\
+> +#define v4l2_device_call_until_err(dev, _grp_id, o, f, args...) 		\
+>  	__v4l2_device_call_subdevs_until_err(dev,			\
+> -		       !(grp_id) || sd->grp_id == (grp_id), o, f , ##args)
+> +		       !(_grp_id) || sd->grp_id == (_grp_id), o, f , ##args)
+>
+>  #endif
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
