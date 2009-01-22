@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n04KQ0U1007471
-	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 15:26:00 -0500
-Received: from mail1.sea5.speakeasy.net (mail1.sea5.speakeasy.net
-	[69.17.117.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n04KPjsg028387
-	for <video4linux-list@redhat.com>; Sun, 4 Jan 2009 15:25:45 -0500
-Date: Sun, 4 Jan 2009 12:25:43 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-In-Reply-To: <200901041157.59503.laurent.pinchart@skynet.be>
-Message-ID: <Pine.LNX.4.58.0901041217381.25853@shell2.speakeasy.net>
-References: <20090104104433.C996.WEIYI.HUANG@gmail.com>
-	<200901041157.59503.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: v4l-dvb-maintainer@linuxtv.org, Huang Weiyi <weiyi.huang@gmail.com>,
-	video4linux-list@redhat.com, mchehab@infradead.org
-Subject: Re: [v4l-dvb-maintainer] [VIDEO4LINUX] removed unused #include
- <version.h>'s
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0MBaa81031487
+	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 06:36:36 -0500
+Received: from smtp2-g21.free.fr (smtp2-g21.free.fr [212.27.42.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0MBaIKO024859
+	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 06:36:19 -0500
+Date: Thu, 22 Jan 2009 12:30:09 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Brian Marete <bgmarete@gmail.com>
+Message-ID: <20090122123009.5f981cf0@free.fr>
+In-Reply-To: <6dd519ae0901211253t539c56dcm9656d0cae2b5f25c@mail.gmail.com>
+References: <6dd519ae0901181629m4a79732ala0daa870cefa74cc@mail.gmail.com>
+	<20090119092610.65a2a90a@free.fr>
+	<6dd519ae0901201251wb924d39k468627b7c778e3bf@mail.gmail.com>
+	<20090121192634.5fc27ccf@free.fr>
+	<6dd519ae0901211253t539c56dcm9656d0cae2b5f25c@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Video4linux-list <video4linux-list@redhat.com>
+Subject: Re: Problem streaming from gspca_t613 Webcam
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,30 +31,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 4 Jan 2009, Laurent Pinchart wrote:
-> On Sunday 04 January 2009, Huang Weiyi wrote:
-> > Removed unused #include <version.h>'s in files below,
-> >   drivers/media/video/cs5345.c
-> >   drivers/media/video/pwc/pwc-if.c
-> >   drivers/media/video/saa717x.c
-> >   drivers/media/video/upd64031a.c
-> >   drivers/media/video/upd64083.c
-> >   drivers/media/video/uvc/uvc_ctrl.c
-> >   drivers/media/video/uvc/uvc_driver.c
-> >   drivers/media/video/uvc/uvc_queue.c
-> >   drivers/media/video/uvc/uvc_video.c
->
-> You can remove it from drivers/media/video/uvc/uvc_status.c as well.
->
-> Mauro, the #include <linux/version.h> are required for backward compatibility
-> in the Mercurial tree, but are not needed (except in uvc_v4l2.c) in the
-> mainline git kernel tree. Can that be handled by your Mercurial -> git export
-> scripts ?
+On Wed, 21 Jan 2009 23:53:46 +0300
+Brian Marete <bgmarete@gmail.com> wrote:
 
-The version.h includes should not be needed for backward compatibility in
-the Hg tree.  There was always a problem with version.h appearing to not be
-necessary in the git code, so I modified the v4l-dvb build system to add
-version.h with a gcc -include option.
+> Hello,
+
+Hello Brian,
+
+> I have also taken the liberty to attach the USB traces that I sent
+> yesterday but which were too big. This time, I have cut the output of
+	[snip]
+
+I already got these traces.
+
+I added your unknown sensor to the t613 subdriver. May you try the new
+version in my mercurial repository?
+
+Regards.
+
+-- 
+Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
 --
 video4linux-list mailing list
