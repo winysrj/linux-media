@@ -1,271 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36768 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756703AbZA3XqO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2009 18:46:14 -0500
-From: Dominic Curran <dcurran@ti.com>
-To: linux-media@vger.kernel.org,
-	"linux-omap" <linux-omap@vger.kernel.org>
-Subject: [OMAPZOOM][PATCH v2 4/6] Add support for Sony imx046 to OMAP3430 SDP board.
-Date: Fri, 30 Jan 2009 17:46:07 -0600
-Cc: greg.hofer@hp.com
+Received: from qw-out-2122.google.com ([74.125.92.27]:61286 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144AbZAVVni (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 16:43:38 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so2030125qwe.37
+        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 13:43:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+In-Reply-To: <alpine.LFD.2.00.0901221635550.8219@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu>
+	 <alpine.LFD.2.00.0901221434040.7609@tupari.net>
+	 <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>
+	 <alpine.LFD.2.00.0901221542190.7960@tupari.net>
+	 <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com>
+	 <alpine.LFD.2.00.0901221635550.8219@tupari.net>
+Date: Thu, 22 Jan 2009 16:43:37 -0500
+Message-ID: <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com>
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Joseph Shraibman <linuxtv.org@jks.tupari.net>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901301746.07539.dcurran@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 4/6] Add support for Sony imx046 to OMAP3430 SDP 
-board.
+On Thu, Jan 22, 2009 at 4:37 PM, Joseph Shraibman
+<linuxtv.org@jks.tupari.net> wrote:
+>> On some demods, the strength and SNR indicators are only valid if you
+>> have a lock.
+>
+> But why don't I get a lock?  I was getting signals with my pcHDTV3000 so I
+> know it isn't an antenna problem.
 
-Support for the Sony IMX046 sensor on the OMAP3430 SDP board.
+I just looked back at your dmesg output, and I am somewhat confused.
+Do you have multiple cards installed in the host at the same time?
+Isn't the Oren OR51132 the other card?  I would assume that you would
+need to be looking at the output of the s5h1411 frontend with femon if
+you're trying to capture on the Fusion HDTV 7 Dual Express.  Or
+perhaps I am just missing something here.
 
-Signed-off-by: Greg Hofer <greg.hofer@hp.com>
-Signed-off-by: Dominic Curran <dcurran@ti.com>
----
- arch/arm/mach-omap2/board-3430sdp.c |  197 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 197 insertions(+)
+Devin
 
-Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
-===================================================================
---- omapzoom04.orig/arch/arm/mach-omap2/board-3430sdp.c
-+++ omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
-@@ -45,6 +45,9 @@
- #include "ti-compat.h"
- 
- #ifdef CONFIG_VIDEO_OMAP3
-+#ifndef CONFIG_TWL4030_CORE
-+#error "no power companion board defined!"
-+#endif
- #include <media/v4l2-int-device.h>
- #include <../drivers/media/video/omap34xxcam.h>
- #include <../drivers/media/video/isp/ispreg.h>
-@@ -52,9 +55,11 @@
- #define FPGA_SPR_GPIO1_3v3	(0x1 << 14)
- #define FPGA_GPIO6_DIR_CTRL	(0x1 << 6)
- static void __iomem *fpga_map_addr;
-+
- #if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
- #include <../drivers/media/video/mt9p012.h>
- #endif
-+
- #if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
- #include <../drivers/media/video/ov3640.h>
- #include <../drivers/media/video/isp/ispcsi2.h>
-@@ -71,6 +76,22 @@ static	struct omap34xxcam_hw_config *hwc
- #define OV3640_CSI2_PHY_TCLK_MISS	1
- #define OV3640_CSI2_PHY_TCLK_SETTLE	14
- #endif
-+
-+#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
-+#include <../drivers/media/video/imx046.h>
-+#include <../drivers/media/video/isp/ispcsi2.h>
-+#define IMX046_CSI2_CLOCK_POLARITY	0	/* +/- pin order */
-+#define IMX046_CSI2_DATA0_POLARITY	0	/* +/- pin order */
-+#define IMX046_CSI2_DATA1_POLARITY	0	/* +/- pin order */
-+#define IMX046_CSI2_CLOCK_LANE		1	 /* Clock lane position: 1 */
-+#define IMX046_CSI2_DATA0_LANE		2	 /* Data0 lane position: 2 */
-+#define IMX046_CSI2_DATA1_LANE		3	 /* Data1 lane position: 3 */
-+#define IMX046_CSI2_PHY_THS_TERM	2
-+#define IMX046_CSI2_PHY_THS_SETTLE	23
-+#define IMX046_CSI2_PHY_TCLK_TERM	0
-+#define IMX046_CSI2_PHY_TCLK_MISS	1
-+#define IMX046_CSI2_PHY_TCLK_SETTLE	14
-+#endif
- #endif
- 
- #ifdef CONFIG_VIDEO_DW9710
-@@ -926,6 +947,176 @@ static struct ov3640_platform_data sdp34
- 
- #endif
- 
-+
-+#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
-+
-+static struct omap34xxcam_sensor_config imx046_hwc = {
-+	.sensor_isp  = 0,
-+	.xclk        = OMAP34XXCAM_XCLK_B,
-+	.capture_mem = PAGE_ALIGN(3280 * 2464 * 2) * 2,
-+};
-+
-+static int imx046_sensor_set_prv_data(void *priv)
-+{
-+	struct omap34xxcam_hw_config *hwc = priv;
-+
-+	hwc->u.sensor.xclk 	= imx046_hwc.xclk;
-+	hwc->u.sensor.sensor_isp = imx046_hwc.sensor_isp;
-+	hwc->dev_index 		= 2;
-+	hwc->dev_minor 		= 5;
-+	hwc->dev_type		= OMAP34XXCAM_SLAVE_SENSOR;
-+	hwc->interface_type 	= ISP_CSIA;
-+
-+	hwc->csi2.hw_csi2.lanes.clock.polarity   = IMX046_CSI2_CLOCK_POLARITY;
-+	hwc->csi2.hw_csi2.lanes.clock.position   = IMX046_CSI2_CLOCK_LANE;
-+	hwc->csi2.hw_csi2.lanes.data[0].polarity = IMX046_CSI2_DATA0_POLARITY;
-+	hwc->csi2.hw_csi2.lanes.data[0].position = IMX046_CSI2_DATA0_LANE;
-+	hwc->csi2.hw_csi2.lanes.data[1].polarity = IMX046_CSI2_DATA1_POLARITY;
-+	hwc->csi2.hw_csi2.lanes.data[1].position = IMX046_CSI2_DATA1_LANE;
-+	hwc->csi2.hw_csi2.phy.ths_term    = IMX046_CSI2_PHY_THS_TERM;
-+	hwc->csi2.hw_csi2.phy.ths_settle  = IMX046_CSI2_PHY_THS_SETTLE;
-+	hwc->csi2.hw_csi2.phy.tclk_term   = IMX046_CSI2_PHY_TCLK_TERM;
-+	hwc->csi2.hw_csi2.phy.tclk_miss   = IMX046_CSI2_PHY_TCLK_MISS;
-+	hwc->csi2.hw_csi2.phy.tclk_settle = IMX046_CSI2_PHY_TCLK_SETTLE;
-+	return 0;
-+}
-+
-+static struct isp_interface_config imx046_if_config = {
-+	.ccdc_par_ser 		= ISP_CSIA,
-+	.dataline_shift 	= 0x0,
-+	.hsvs_syncdetect 	= ISPCTRL_SYNC_DETECT_VSRISE,
-+	.vdint0_timing 		= 0x0,
-+	.vdint1_timing 		= 0x0,
-+	.strobe 		= 0x0,
-+	.prestrobe 		= 0x0,
-+	.shutter 		= 0x0,
-+	.prev_sph 		= 2,
-+	.prev_slv 		= 0,
-+	.wenlog 		= ISPCCDC_CFG_WENLOG_OR,
-+	.dcsub 			= IMX046_BLACK_LEVEL_AVG,
-+	.u.csi.crc 		= 0x0,
-+	.u.csi.mode 		= 0x0,
-+	.u.csi.edge 		= 0x0,
-+	.u.csi.signalling 	= 0x0,
-+	.u.csi.strobe_clock_inv = 0x0,
-+	.u.csi.vs_edge 		= 0x0,
-+	.u.csi.channel 		= 0x0,
-+	.u.csi.vpclk 		= 0x2,
-+	.u.csi.data_start 	= 0x0,
-+	.u.csi.data_size 	= 0x0,
-+	.u.csi.format 		= V4L2_PIX_FMT_SGRBG10,
-+};
-+
-+
-+static int imx046_sensor_power_set(enum v4l2_power power)
-+{
-+	struct isp_csi2_lanes_cfg lanecfg;
-+	struct isp_csi2_phy_cfg phyconfig;
-+	static enum v4l2_power previous_power = V4L2_POWER_OFF;
-+	int err = 0;
-+
-+	switch (power) {
-+	case V4L2_POWER_ON:
-+		/* Power Up Sequence */
-+		printk(KERN_DEBUG "imx046_sensor_power_set(ON)\n");
-+		if (previous_power == V4L2_POWER_OFF)
-+			isp_csi2_reset();
-+
-+		lanecfg.clk.pol = IMX046_CSI2_CLOCK_POLARITY;
-+		lanecfg.clk.pos = IMX046_CSI2_CLOCK_LANE;
-+		lanecfg.data[0].pol = IMX046_CSI2_DATA0_POLARITY;
-+		lanecfg.data[0].pos = IMX046_CSI2_DATA0_LANE;
-+		lanecfg.data[1].pol = IMX046_CSI2_DATA1_POLARITY;
-+		lanecfg.data[1].pos = IMX046_CSI2_DATA1_LANE;
-+		lanecfg.data[2].pol = 0;
-+		lanecfg.data[2].pos = 0;
-+		lanecfg.data[3].pol = 0;
-+		lanecfg.data[3].pos = 0;
-+		isp_csi2_complexio_lanes_config(&lanecfg);
-+		isp_csi2_complexio_lanes_update(true);
-+
-+		isp_csi2_ctrl_config_ecc_enable(true);
-+
-+		phyconfig.ths_term = IMX046_CSI2_PHY_THS_TERM;
-+		phyconfig.ths_settle = IMX046_CSI2_PHY_THS_SETTLE;
-+		phyconfig.tclk_term = IMX046_CSI2_PHY_TCLK_TERM;
-+		phyconfig.tclk_miss = IMX046_CSI2_PHY_TCLK_MISS;
-+		phyconfig.tclk_settle = IMX046_CSI2_PHY_TCLK_SETTLE;
-+		isp_csi2_phy_config(&phyconfig);
-+		isp_csi2_phy_update(true);
-+
-+		isp_configure_interface(&imx046_if_config);
-+
-+		if (previous_power == V4L2_POWER_OFF) {
-+			/* Request and configure gpio pins */
-+			if (omap_request_gpio(IMX046_RESET_GPIO) != 0)
-+				return -EIO;
-+
-+			/* nRESET is active LOW. set HIGH to release reset */
-+			omap_set_gpio_dataout(IMX046_RESET_GPIO, 1);
-+
-+			/* set to output mode */
-+			omap_set_gpio_direction(IMX046_RESET_GPIO,
-+				GPIO_DIR_OUTPUT);
-+
-+			/* turn on analog power */
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
-+
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
-+			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+					VAUX_DEV_GRP_P1, TWL4030_VAUX4_DEV_GRP);
-+			udelay(100);
-+
-+			/* have to put sensor to reset to guarantee detection */
-+			omap_set_gpio_dataout(IMX046_RESET_GPIO, 0);
-+			udelay(1500);
-+
-+			/* nRESET is active LOW. set HIGH to release reset */
-+			omap_set_gpio_dataout(IMX046_RESET_GPIO, 1);
-+			udelay(300);
-+		}
-+		break;
-+	case V4L2_POWER_OFF:
-+		printk(KERN_DEBUG "imx046_sensor_power_set(OFF)\n");
-+		/* Power Down Sequence */
-+		isp_csi2_complexio_power(ISP_CSI2_POWER_OFF);
-+
-+		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+				VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
-+		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-+		omap_free_gpio(IMX046_RESET_GPIO);
-+		break;
-+	case V4L2_POWER_STANDBY:
-+		printk(KERN_DEBUG "imx046_sensor_power_set(STANDBY)\n");
-+		/*TODO*/
-+		break;
-+	}
-+
-+	/* Save powerstate to know what was before calling POWER_ON. */
-+	previous_power = power;
-+	return err;
-+}
-+
-+static struct imx046_platform_data sdp3430_imx046_platform_data = {
-+	.power_set            = imx046_sensor_power_set,
-+	.priv_data_set        = imx046_sensor_set_prv_data,
-+	.default_regs         = NULL,
-+	.set_xclk             = isp_set_xclk,
-+	.cfg_interface_bridge = isp_configure_interface_bridge,
-+	.csi2_lane_count      = isp_csi2_complexio_lanes_count,
-+	.csi2_cfg_vp_out_ctrl = isp_csi2_ctrl_config_vp_out_ctrl,
-+	.csi2_ctrl_update     = isp_csi2_ctrl_update,
-+	.csi2_cfg_virtual_id  = isp_csi2_ctx_config_virtual_id,
-+	.csi2_ctx_update      = isp_csi2_ctx_update,
-+	.csi2_calc_phy_cfg0   = isp_csi2_calc_phy_cfg0,
-+};
-+#endif
-+
- static struct platform_device sdp3430_lcd_device = {
- 	.name		= "sdp2430_lcd",
- 	.id		= -1,
-@@ -1063,6 +1254,12 @@ static struct i2c_board_info __initdata 
- 		.platform_data = &sdp3430_ov3640_platform_data,
- 	},
- #endif
-+#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
-+	{
-+		I2C_BOARD_INFO("imx046", IMX046_I2C_ADDR),
-+		.platform_data = &sdp3430_imx046_platform_data,
-+	},
-+#endif
- };
- 
- static int __init omap3430_i2c_init(void)
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
