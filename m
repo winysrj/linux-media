@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0SLmbEd022586
-	for <video4linux-list@redhat.com>; Wed, 28 Jan 2009 16:48:37 -0500
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0SLmHwb027564
-	for <video4linux-list@redhat.com>; Wed, 28 Jan 2009 16:48:17 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Yves Le Feuvre <yves.lefeuvre@inserm.fr>
-In-Reply-To: <497D71BB.4050306@inserm.fr>
-References: <497979FF.5090600@inserm.fr>
-	<1232755686.5451.7.camel@pc10.localdom.local>
-	<497D71BB.4050306@inserm.fr>
-Content-Type: text/plain
-Date: Wed, 28 Jan 2009 22:48:47 +0100
-Message-Id: <1233179327.4396.42.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0MFiG2U025514
+	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 10:44:16 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n0MFhxRE027748
+	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 10:44:00 -0500
+Message-ID: <4978943F.5090201@gmx.net>
+Date: Thu, 22 Jan 2009 16:43:59 +0100
+From: TCP/IP <t-cp@gmx.net>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <S1752508AbZAVNYE/20090122132404Z+405@vger.kernel.org>
+In-Reply-To: <S1752508AbZAVNYE/20090122132404Z+405@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: asus Europa2 OEM regression ?
+Subject: saa7134-alsa.ko and alsa-driver-1.0.19
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,90 +26,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi everybody
 
-Am Montag, den 26.01.2009, 09:18 +0100 schrieb Yves Le Feuvre:
-> Hello,
-> 
-> [...]
->  > Please try as root "modprobe -vr saa7134-dvb saa7134-alsa"
->  > and "modprobe -v saa7134".
->  >
->  > Is the tda9887 detected now and the card usable again?
-> 
-> This doesn't change anything. I still have the parity error and the card 
-> is unsusable.
-> If I remember well (I'll check when I'm back home this evening),
-> lsmod  reports that tda9887 is loaded, but used by cx88 or cx88_dvb, and 
-> not by any of the saa7134 modules.
+Has anyone of you got the saa7134-alsa module running with
+alsa-driver-1.0.19 ?
 
-it belongs to saa7134[0] and the FMD1216ME MK3 hybrid tuner there.
-I don't have your card, but the tda9887 is the analog demodulator and it
-has two ports which can be used for switching.
 
-You need it in any case for analog TV from the tuner.
-Try "modinfo tda9887". With tda9887 debug=2 it becomes quite verbose.
-It was on the older kernels integrated in the tuner module and becomes
-there verbose with tuner debug=2.
+root@MythTV:~# modprobe -v saa7134-alsa
+insmod
+/lib/modules/2.6.27.8/kernel/drivers/media/video/saa7134/saa7134-alsa.ko
+FATAL: Error inserting saa7134_alsa
+(/lib/modules/2.6.27.8/kernel/drivers/media/video/saa7134/saa7134-alsa.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
 
-If it is not present in dmesg after a cold boot, prior to 2.6.27
-reloading the tuner module does activate it, since then reloading the
-saa7134 driver like above should make it visible and functional.
 
-For your card Hartmut added some special initialization code to make the
-tuner visible behind the extra i2c bridge of the tda10046, but it is
-detected and only the tda9887 fails for now like on other cards with
-that tuner. 
+root@MythTV:~# dmesg |less
+[ 7543.401381] Linux video capture interface: v2.00
+[ 7543.412129] saa7130/34: v4l2 driver version 0.2.14 loaded
+[ 7543.412157] saa7133[0]: found at 0000:04:00.0, rev: 209, irq: 16,
+latency: 64, mmio: 0xfebff800
+[ 7543.412162] saa7133[0]: subsystem: 1043:4845, board: ASUSTeK P7131
+Analog [card=146,insmod option]
+[ 7543.412170] saa7133[0]: board init: gpio is 0
+[ 7543.412210] input: saa7134 IR (ASUSTeK P7131 Analo as
+/devices/pci0000:00/0000:00:1e.0/0000:04:00.0/input/input9
+[ 7543.558005] saa7133[0]: i2c eeprom 00: 43 10 45 48 54 20 1c 00 43 43
+a9 1c 55 d2 b2 92
+[ 7543.558022] saa7133[0]: i2c eeprom 10: 00 ff e2 0f ff 20 ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558038] saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff
+00 88 ff ff ff ff
+[ 7543.558054] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558071] saa7133[0]: i2c eeprom 40: ff 22 00 c2 96 ff 02 30 15 ff
+ff ff ff ff ff ff
+[ 7543.558086] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558102] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558118] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558136] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558152] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558168] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558184] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558195] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558206] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558216] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.558227] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 7543.578071] tuner 1-004b: chip found @ 0x96 (saa7133[0])
+[ 7543.613005] tda829x 1-004b: setting tuner address to 61
+[ 7543.649006] tda829x 1-004b: type set to tda8290+75a
+[ 7546.226225] saa7133[0]: registered device video0 [v4l2]
+[ 7546.226270] saa7133[0]: registered device vbi0
+[ 7546.226312] saa7133[0]: registered device radio0
+[ 7546.258185] saa7134_alsa: Unknown symbol snd_card_new
 
->  > If your hardware is unchanged compared to Fedora 7 and you have some
->  > time for it, you might try to prove if you get the parity errors also on
->  > a vanilla 2.6.27 with the same kernel config.
-> 
-> on fedora 10, with gcc-4.3.2-7
-> with vanilla kernel 2.6.25
-> both cards are working: Nova-T DVB-T [card=18], and  Asus Europa2 OEM 
-> [card=100]
-> 
-> with vanilla kernel 2.6.28.1
-> Asus Europa2 OEM does not work anymore (parity error)
-> 
-> (however, there may be some differences in kernel configs, as 
-> config-2.6.25 comes from an
-> updated fedora 7 kernel config (make oldconfig), and 2.6.28.1 comes rom 
-> installed fedora 10 kernel.
 
-That is why I'm late on it, but I now have a vanilla 2.6.28.2 on Fedora
-10 with the Fedora config of a recent 2.6.27 x86_64.
-No issues for me, but I don't have your card.
+i needed to upgrade the alsa driver in order to get the
+00:1b.0 Audio device: Intel Corporation ICH10 HD Audio Controller
+soundcard propperly running, so using the alsa out of the kernel source
+(using 2.6.27.8 right now) is not an option
 
-> I'll try 2.6.26 and 2.6.27 tonight, with same config as 2.6.25, unless 
-> you estimate there are better other things to test before
-> I also tested v4l-dvb git tree with vanilla-2.6.28.1, but the card 
-> doesn't work either.
-> 
+do you have any ideas?
+i have read somthing about editing the #ifdef-s in compat.h but i have
+to admit that i don-t understand what to do there.
 
-According to your latest posting only 2.6.25 works for you and 2.6.26,
-2.6.27 and 2.6.28 "fail" including latest git or v4l-dvb from the
-mercurial repo at linuxtv.org.
 
-Hmm, does that mean that in all cases the parity errors are that heavy,
-that you can't access the device for any tuning of DVB-T, because you
-are flooded by errors or are there also tuning issues?
+Thanks a lot in advance!
 
-Dmesg looked ok for DVB-T tuning including firmware upload.
-
-Anything changed on "cat /proc/interrupts" ?
-Maybe sharing the interrupt with the display driver now?
-
-I don't know what should be going on.
-Please try to activate the tda9887.
-
-Most strange is that you can use Composite without problems.
-Needs to look closer and/or more debug enabled. No clue yet.
-
-Cheers,
-Hermann
-
+Ben
 
 
 --
