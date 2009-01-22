@@ -1,35 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:58926 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755249AbZAWEYF (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45581 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755683AbZAVE5r convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 23:24:05 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so2400394fgg.17
-        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 20:24:03 -0800 (PST)
+	Wed, 21 Jan 2009 23:57:47 -0500
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Thu, 22 Jan 2009 10:27:18 +0530
+Subject: [RFC] Adding new ioctl for transparency color keying
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F51103D1@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <ur62u4qh5.wl%morimoto.kuninori@renesas.com>
-References: <ur62u4qh5.wl%morimoto.kuninori@renesas.com>
-Date: Fri, 23 Jan 2009 13:24:03 +0900
-Message-ID: <aec7e5c30901222024k3600b6b6t718998b945461a40@mail.gmail.com>
-Subject: Re: [PATCH] sh_mobile_ceu_camera: NV12/21/16/61 are added only once.
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 23, 2009 at 9:28 AM, Kuninori Morimoto
-<morimoto.kuninori@renesas.com> wrote:
-> NV12/21/16/61 had been added every time
-> UYVY/VYUY/YUYV/YVYU appears on get_formats.
-> This patch modify this problem.
+Hi,
+OMAP class of device supports transparency color keying.  Color keying can be source color keying or destination color keying.
 
-That's one way to do it. Every similar driver has to do the same thing. Yuck.
+OMAP3 has three pipelines one graphics plane and two video planes.  Any of these pipelines can go to either the TV or LCD.  
 
-Or we could have a better translation framework that does OR for us,
-using for instance bitmaps.
+The destination transparency color key value defines the encoded pixels in the graphics layer to become transparent and display the underlying video pixels. While the source transparency key value defines the encoded pixels in the video layer to become transparent and display the underlying graphics pixels.  This color keying works only if the video and graphics planes are on the same output like TV or LCD and images of both the pipelines overlapped.
 
-/ magnus
+I propose to have the one ioctl to set the encoded pixel value and type of color keying source and destination.  Also we should have the CID to enable/disable the color keying functionality.
+
+Please let us know your opinions/comments.
+
+
+
+Thanks and Regards,
+Hardik Shah
+ 
+
