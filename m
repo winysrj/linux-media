@@ -1,41 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:42702 "EHLO
-	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753305AbZA0Qoa (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.157]:15987 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753018AbZAVD75 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 11:44:30 -0500
-Date: Tue, 27 Jan 2009 08:44:26 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: "Shah, Hardik" <hardik.shah@ti.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] New V4L2 ioctls for OMAP class of Devices
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ECD5@dbde02.ent.ti.com>
-Message-ID: <Pine.LNX.4.58.0901270834540.17971@shell2.speakeasy.net>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ECD5@dbde02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 21 Jan 2009 22:59:57 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so2009583fgg.17
+        for <linux-media@vger.kernel.org>; Wed, 21 Jan 2009 19:59:55 -0800 (PST)
+Subject: Re: usb_make_path()
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Thierry Merle <thierry.merle@free.fr>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <49778924.7030100@free.fr>
+References: <20090121114308.048c0a19@gmail.com>  <49778924.7030100@free.fr>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 22 Jan 2009 07:00:08 +0300
+Message-Id: <1232596808.3764.121.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 27 Jan 2009, Shah, Hardik wrote:
-> The rotation values are 0, 90, 180 and 270 degree but to disable rotation
-> the value passed should be -1 and this is one more value.  I know 0
-> degree rotation corresponds to rotation disabled but DSS hardware
-> requires 0 degree rotation to be enabled for mirroring.  The difference
-> between the 0 degree rotation and no rotation(-1) is that 0 degree
-> rotation will use the rotation engine in OMAP and then do the mirroring
-> while -1 degree rotation will not use rotation engine.  There is more
-> bandwidth utilization while using the rotation engine.  So people may
-> want to completely disable rotation and people may want 0 degree rotation
-> for mirroring support.  That's why I prefer not to use enum.  Is that ok
-> for
+(added linux-media mail-list)
 
-That sounds like a hardware quirk that the driver should take care of.
-Just have the driver turn on the rotation engine if mirroring is used.
+Hello to all
 
-It seems very hard for an application to make decent use of rotation
-support if only certain values are supported by the hardware yet anything
-in degrees can be specified?  How is the application supposed to know what
-values will be acceptable?
+On Wed, 2009-01-21 at 21:44 +0100, Thierry Merle wrote:
+> Hi Douglas,
+> Douglas Schilling Landgraf a écrit :
+> > Hello friends,
+> > 
+> >      Since you sent patches to linux-media for usb_make_path changes, I
+> > would like to make a question for you. Should we check for
+> > return of usb_make_path as a good programming practice?
+> > 
+> > static inline int usb_make_path(struct usb_device *dev, char *buf,
+> > size_t size)
+> > 
+> > I didn't see this check in your patches.
+> > 
+> I saw that the return code was checked in some other v4l sources, but I preferred to ignore the return value like done in many other drivers (see http://lxr.falinux.com/ident?i=usb_make_path)
+> I know it is bad but for failing this function fails if the buffer is to small to copy the complete usb path.
+> Nevertheless it uses snprintf that truncates safely the string if needed.
+> What to do if this function fails? I did not see anything better, so ignoring the return code seemed to be the best.
+
+usb_make_path returns -1 if sizeof buffer is smaler than path (no device
+or hardware troubles). Bus_info is 32 byte and usb path looks like:
+"usb-%s-%s", dev->bus->bus_name, dev->devpath (from usb.h). I failed
+trying to find size of bus_name, but maximum size of dev->devpath is 16
+chars.
+
+So, i'm confused about two things:
+- as this information goes to userspace, will userpace feel bad that
+trucated string will be delivered? And do v4l-subsystem care enough to
+provide complete usb-path?
+- will it happened one day that usb_make_path returns -1 and we care?
+
+I don't have ideas about first thing.
+In case we care to provide full usb-path - may be check for returned
+value should be placed, print message and ask user, for example:
+"usb_make_path error! Please send message to linux-media maillist".
+In case of many reports size of bus_info[32] can be increased.
+
+By other side, if this all is really important? It's right that ignoring
+returned value is safe.
+
+
+-- 
+Best regards, Klimov Alexey
+
