@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from imo-d20.mx.aol.com ([205.188.139.136])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dbox2alpha@netscape.net>) id 1LM4Ol-0006GQ-C2
-	for linux-dvb@linuxtv.org; Sun, 11 Jan 2009 18:46:56 +0100
-Received: from dbox2alpha@netscape.net
-	by imo-d20.mx.aol.com  (mail_out_v39.1.) id m.cd3.4b1cccb8 (37568)
-	for <linux-dvb@linuxtv.org>; Sun, 11 Jan 2009 12:46:16 -0500 (EST)
-References: <20090111093703.GA20152@tangens.sinus.cz>
+Received: from h-66-166-198-124.nycmny83.covad.net ([66.166.198.124]
+	helo=tupari.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <linuxtv.org@jks.tupari.net>) id 1LQ5S6-0003nP-6M
+	for linux-dvb@linuxtv.org; Thu, 22 Jan 2009 20:43:00 +0100
+Received: from tupari.net (tupari.net [192.168.1.2])
+	by tupari.net (8.14.2/8.14.1) with ESMTP id n0MJgKnh007668
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Thu, 22 Jan 2009 14:42:20 -0500
+Date: Thu, 22 Jan 2009 14:42:19 -0500 (EST)
+From: Joseph Shraibman <linuxtv.org@jks.tupari.net>
 To: linux-dvb@linuxtv.org
-Date: Sun, 11 Jan 2009 12:46:14 -0500
-In-Reply-To: <20090111093703.GA20152@tangens.sinus.cz>
+In-Reply-To: <48F78D8A020000560001A654@GWISE1.matc.edu>
+Message-ID: <alpine.LFD.2.00.0901221434040.7609@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu>
 MIME-Version: 1.0
-From: dbox2alpha@netscape.net
-Message-Id: <8CB422BA1BF8E12-1208-865@WEBMAIL-DG13.sim.aol.com>
-Subject: Re: [linux-dvb] S2API: Problem with 64/32bit compatibility
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,175 +23,123 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1033039267=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+I too am having 0 signal strength with a Fusion HDTV 7 Dual Express.  scan 
+(from dvb-apps) does find channels, but my application won't work because 
+it is seeing no signal.  I tried rebuilding the drivers from repository 
+tip but it doesn't help.  The kernel I'm using is 2.6.27.9-73.fc9.i686. 
+lspci -v shows:
 
---===============1033039267==
-Content-Type: multipart/alternative;
- boundary="--------MB_8CB422BA1C452C8_1208_115B_WEBMAIL-DG13.sim.aol.com"
+02:00.0 Multimedia video controller: Conexant Unknown device 8852 (rev 04)
+         Subsystem: DViCO Corporation Unknown device d618
+         Flags: bus master, fast devsel, latency 0, IRQ 17
+         Memory at fbc00000 (64-bit, non-prefetchable) [size=2M]
+         Capabilities: [40] Express Endpoint, MSI 00
+         Capabilities: [80] Power Management version 2
+         Capabilities: [90] Vital Product Data <?>
+         Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ 
+Queue=0/0 Enable-
+         Capabilities: [100] Advanced Error Reporting <?>
+         Capabilities: [200] Virtual Channel <?>
+         Kernel driver in use: cx23885
+         Kernel modules: cx23885
 
+after "make load" in the v4l-dvb directory  dmesg shows:
 
-----------MB_8CB422BA1C452C8_1208_115B_WEBMAIL-DG13.sim.aol.com
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"
-
-
- hi, 
-i ran into the same problem... and would like to have it fixed as well :-)
-
-
- Thanks.
-
-
- 
-
------Original Message-----
-From: Pavel Troller <patrol@sinus.cz>
-To: linux-dvb@linuxtv.org
-Sent: Sun, 11 Jan 2009 10:37 am
-Subject: [linux-dvb] S2API: Problem with 64/32bit compatibility
-
-
-
-
-
-
-
-
-
-
-Hi!
-  I would like to report a problem with S2API. It looks that it doesn't
-maintain 64/32bit compatibility.
-  It began with my attempt to run the SVN version of kaffeine on linux-2.6.28.
-  My system is a 64bit GNU/Linux, but, for historical reasons, I'm still using
-32bit KDE 3.5.10, so kaffeine has been compiled as a 32bit binary.
-  I've found that I cannot play DVB on this combination. It's because the
-FE_SET_PROPERTY ioctl is not properly handled in the kernel.
-  After a lot of analysis of both kaffeine and kernel source code, I've found
-that the core of the problem is in /usr/src/linux/include/linux/dvb/frontend.h,
-where the ioctl is declared. There, a struct dtv_properties is declared:
-
-struct dtv_properties {
-        __u32 num;
-        struct dtv_property *props;
-};
-
-  This struct is then used as a data entry in the FE_SET_PROPERTY ioctl.
-  The problem is, that the pointer has different sizes on 32 and 64bit
-architectures, so the whole struct differs in size too. And because the size
-is passed as a part of the ioctl command code, the FE_SET_PROPERTY (and
-FE_GET_PROPERTY too) command codes differ for 32/64 bit compilation of the
-same include file! For example, for FE_SET_PROPERTY, its 0x40106f52 on 64bit,
-but 0x40086f52 on 32bit. So, the kernel (having the 64bit code inside) cannot
-recognize the 32bit code of the cmd and fails to handle it correctly.
-  The second part is that these ioctls are not yet added to the 
-/usr/src/linux/fs/compat_ioctl.c file, maybe just because of the problem above.
-
-  Are there plans to fix this problem ? I think that 64/32bit compatibility
-should be fully maintained, I think that my case is not so rare yet.
-
-  With regards, Pavel Troller   
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+xc5000 1-0064: creating new instance
+xc5000: Successfully identified at address 0x64
+xc5000: Firmware has not been loaded previously
+DVB: registering new adapter (cx23885[0])
+DVB: registering adapter 1 frontend 0 (Samsung S5H1411 QAM/8VSB 
+Frontend)...
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+xc5000 2-0064: creating new instance
+xc5000: Successfully identified at address 0x64
+xc5000: Firmware has not been loaded previously
+DVB: registering new adapter (cx23885[0])
+DVB: registering adapter 2 frontend 0 (Samsung S5H1411 QAM/8VSB 
+Frontend)...
+cx23885_dev_checkrevision() New hardware revision found 0x0
+cx23885_dev_checkrevision() Hardware revision unknown 0x0
+cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 17, latency: 0, mmio: 
+0xfbc00000
+cx23885 0000:02:00.0: setting latency timer to 64
+ivtvfb:  no cards found
+or51132: Waiting for firmware upload(dvb-fe-or51132-vsb.fw)...
+firmware: requesting dvb-fe-or51132-vsb.fw
+or51132: Version: 10001134-19430000 (113-4-194-3)
+or51132: Firmware upload complete.
 
 
+On Thu, 16 Oct 2008, Jonathan Johnson wrote:
 
- 
-
-
-----------MB_8CB422BA1C452C8_1208_115B_WEBMAIL-DG13.sim.aol.com
-Content-Transfer-Encoding: 7bit
-Content-Type: text/html; charset="us-ascii"
-
-
-<div> <font face="Arial, Helvetica, sans-serif">hi, <br>
-i ran into the same problem... and would like to have it fixed as well :-)<br>
-</font></div>
-
-<div> <font face="Arial, Helvetica, sans-serif">Thanks.</font><br>
-</div>
-
-<div> <br>
-</div>
------Original Message-----<br>
-From: Pavel Troller &lt;patrol@sinus.cz&gt;<br>
-To: linux-dvb@linuxtv.org<br>
-Sent: Sun, 11 Jan 2009 10:37 am<br>
-Subject: [linux-dvb] S2API: Problem with 64/32bit compatibility<br>
-<br>
-
-
-
-
-
-
-<div id="AOLMsgPart_0_9ae4b164-f467-4f96-b749-0a5d3c56021f" style="margin: 0px; font-family: Tahoma,Verdana,Arial,Sans-Serif; font-size: 12px; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);">
-
-<pre style="font-size: 9pt;"><tt>Hi!<br>
-  I would like to report a problem with S2API. It looks that it doesn't<br>
-maintain 64/32bit compatibility.<br>
-  It began with my attempt to run the SVN version of kaffeine on linux-2.6.28.<br>
-  My system is a 64bit GNU/Linux, but, for historical reasons, I'm still using<br>
-32bit KDE 3.5.10, so kaffeine has been compiled as a 32bit binary.<br>
-  I've found that I cannot play DVB on this combination. It's because the<br>
-FE_SET_PROPERTY ioctl is not properly handled in the kernel.<br>
-  After a lot of analysis of both kaffeine and kernel source code, I've found<br>
-that the core of the problem is in /usr/src/linux/include/linux/dvb/frontend.h,<br>
-where the ioctl is declared. There, a struct dtv_properties is declared:<br>
-<br>
-struct dtv_properties {<br>
-        __u32 num;<br>
-        struct dtv_property *props;<br>
-};<br>
-<br>
-  This struct is then used as a data entry in the FE_SET_PROPERTY ioctl.<br>
-  The problem is, that the pointer has different sizes on 32 and 64bit<br>
-architectures, so the whole struct differs in size too. And because the size<br>
-is passed as a part of the ioctl command code, the FE_SET_PROPERTY (and<br>
-FE_GET_PROPERTY too) command codes differ for 32/64 bit compilation of the<br>
-same include file! For example, for FE_SET_PROPERTY, its 0x40106f52 on 64bit,<br>
-but 0x40086f52 on 32bit. So, the kernel (having the 64bit code inside) cannot<br>
-recognize the 32bit code of the cmd and fails to handle it correctly.<br>
-  The second part is that these ioctls are not yet added to the <br>
-/usr/src/linux/fs/compat_ioctl.c file, maybe just because of the problem above.<br>
-<br>
-  Are there plans to fix this problem ? I think that 64/32bit compatibility<br>
-should be fully maintained, I think that my case is not so rare yet.<br>
-<br>
-  With regards, Pavel Troller   <br>
-<br>
-_______________________________________________<br>
-linux-dvb users mailing list<br>
-For V4L/DVB development, please use instead <a __removedlink__1901802240__href="mailto:linux-media@vger.kernel.org">linux-media@vger.kernel.org</a><br>
-<a __removedlink__1901802240__href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a __removedlink__1901802240__href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</tt></pre>
-</div>
- <!-- end of AOLMsgPart_0_9ae4b164-f467-4f96-b749-0a5d3c56021f -->
-
-<div id='MAILCIAMB045-5bc7496a30665c' class='aol_ad_footer'><BR/><FONT style="color: black; font: normal 10pt ARIAL, SAN-SERIF;"><HR style="MARGIN-TOP: 10px"></HR><b>A Good Credit Score is 700 or Above. <a href="http://pr.atwola.com/promoclk/100000075x1216817552x1201106465/aol?redir=http://www.freecreditreport.com/pm/default.aspx?sc=668072%26hmpgID=82%26bcd=DecemailfooterNO82"> See yours in just 2 easy steps!</a></b> </div>
-
-----------MB_8CB422BA1C452C8_1208_115B_WEBMAIL-DG13.sim.aol.com--
-
-
---===============1033039267==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Hello linux-dvb members,
+>
+> I know another person posted a message similar to mine, but offered no diagnostic info, so I am.
+>
+> DViCO device d618 using driver cx23885
+> Conexant Device 8852 (rev 02)
+> Base OS: SuSE 11.0
+> kernel manually upgraded to 2.6.27
+> checked dmesg, and all firmware(s) load.
+>
+> I have a FusionHDTV Dual 7 tuner, and it gets no signal at all, and some times no channels appear
+> when I scan from with in mythtv, and sometimes some of the channels appear.
+>
+> 1. First I tried hooking a ATI 650 to Vista and got 100% strength all the time, so it wasn't the antenna.
+> 2. I then hooked up the FusionHDTV card to Vista and it also reported 100% signal strength.
+> Therefore the card is not broken.
+> 3. I have 2 ATI HDTV Wonder that have always worked perfectly, so signal strength is good.
+>
+>
+> When trying to record w/ MythTV I get
+> ---------
+> This occurs a couple times.
+> DVBSM(/dev/dvb/adapter1/frontend0), Warning can not measuer S/N
+> The following occurs many times:
+> DVBChan(3:/dev/dvb/adapter1/frontend0) Error:  Tune(): Setting Frontend using tuning parameters failed.
+> "eno: Invalid argument (22)"
+> -----------
+>
+> Spent 1/2 hour looking thru google results.
+> I decided despite how horrible luck I have with compiling certain things, I would give it a go anyway.
+> The kernel always compiles for me at least.  I went to linuxtv.org and followed the instructions.
+> I did the make and make install and got the invalid symbols mentioned on the website, and it said
+> reboot.  So I did, and I recompiled again, for the heck of it, and still have invalid symbols. Read the
+> INSTALL text file, and tried a bunch of options.    I tried make kernel-(something), and recompile the
+> kernel(completely), and reboot,and still no go.  I tried re-compiling v4l-dvb and still nothing.
+> I eventually tried "make all" and the compile failed with errors.  Could not get it to compile, and now
+> v4l-dvb was un-usable.
+>
+> I then installed and did a full compile of kernel 2.6.27.1 (released last night), and at least everything
+> now works.
+>
+> I would like to try the development version to see if that fixes things, but I am not skilled enough to
+> resolved the unresolved symbol problem.  insmod and modprobe failed with the same error.
+>
+>
+> Later,
+> Jonathan
+>
+>
+> -------------------------------------------
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1033039267==--
