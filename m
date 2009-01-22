@@ -1,35 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:30836 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752929AbZARUYs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jan 2009 15:24:48 -0500
-Message-ID: <4973900C.6090406@iki.fi>
-Date: Sun, 18 Jan 2009 22:24:44 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
+Received: from h-66-166-198-124.nycmny83.covad.net ([66.166.198.124]:49744
+	"EHLO tupari.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751582AbZAVVZ0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 16:25:26 -0500
+Received: from tupari.net (tupari.net [192.168.1.2])
+	by tupari.net (8.14.2/8.14.1) with ESMTP id n0MKja5o007993
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 15:45:37 -0500
+Date: Thu, 22 Jan 2009 15:45:36 -0500 (EST)
+From: Joseph Shraibman <linuxtv.org@jks.tupari.net>
 To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] AF9015_REMOTE_MSI_DIGIVOX_MINI_II_V3 works,	but keys
- get stuck
-References: <49738339.9030203@podzimek.org>
-In-Reply-To: <49738339.9030203@podzimek.org>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+In-Reply-To: <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>
+Message-ID: <alpine.LFD.2.00.0901221542190.7960@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu> <alpine.LFD.2.00.0901221434040.7609@tupari.net> <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrej Podzimek wrote:
-> After reloading the module, the remote control (almost) worked. Unfortunately, keys got stuck somehow, just as if I were holding a key on the keyboard. Another key press changed the event being repeated, but there seemed to be *no* key release events at all.
-> 
-> Pressing the channel up/down keys seemed to stop that key event flood, but both of my keyboards (one on the laptop and an external one) stopped working. Again, this may have been due to the absence of a key release event. (This time the key events were not that obvious, since channel up/down does not produce an alphanumeric key code.)
-> 
-> I use kernel 2.6.27.10, revision af9015-57423d241699 and (presumably) MSI Digivox Mini II V3.
-> 
-> Either I misunderstood / misconfigured something, or this could be a bug. I'm not familiar with this source code and don't have time to explore it in detail. However, feel free to ask for debugging output and other data you may need.
 
-This seems to be hw bug. For more information:
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030292.html
+On Thu, 22 Jan 2009, Devin Heitmueller wrote:
 
-regards
-Antti
+> Are you sure you have zero signal strength, or just really low signal
+> strength?  I am pretty sure on the s5h1411, the signal strength field
+> is populated with the the SNR, which could be construed as very low
+> signal strength if you were expecting a percentage scaled from 0 to
+> 65535.
+>
+> Have you run femon to confirm that the strength field really is zero?
+>
+
+FE: Oren OR51132 VSB/QAM Frontend (ATSC)
+status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+status       | signal 3506 | snr 073f | ber 00000000 | unc 00000000 |
+
+I find it more than a little suspicious that femon reports the same thing 
+over and over.
