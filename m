@@ -1,49 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51573 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754302AbZAPSCY (ORCPT
+Received: from promwad.com ([83.149.69.23]:37753 "EHLO promwad.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755978AbZAVKaU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jan 2009 13:02:24 -0500
-Date: Fri, 16 Jan 2009 16:01:57 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: linux-media@vger.kernel.org
-Cc: Lars Hanisch <dvb@cinnamon-sage.de>, DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-Message-ID: <20090116160157.0f720b11@caramujo.chehab.org>
-In-Reply-To: <20090116155912.7bae237a@caramujo.chehab.org>
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
-	<200901161555.00803.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.0901160903080.21448@cnc.isely.net>
-	<4970C036.2000809@cinnamon-sage.de>
-	<20090116155912.7bae237a@caramujo.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 22 Jan 2009 05:30:20 -0500
+From: Vladimir Davydov <vladimir.davydov@promwad.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Request for new pixel format (JPEG2000)
+Date: Thu, 22 Jan 2009 12:03:48 +0200
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	linux-media@vger.kernel.org
+References: <200901212146.39153.vladimir.davydov@promwad.com> <1232600942.3764.130.camel@tux.localhost> <200901220819.54460.hverkuil@xs4all.nl>
+In-Reply-To: <200901220819.54460.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200901221203.48823.vladimir.davydov@promwad.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Jan 2009 15:59:12 -0200
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+On Thursday 22 January 2009 09:19:54 Hans Verkuil wrote:
+> On Thursday 22 January 2009 06:09:02 Alexey Klimov wrote:
+> > (added linux-media mail-list)
+> >
+> > Hello, Vladimir
+> >
+> > On Wed, 2009-01-21 at 21:46 +0200, Vladimir Davydov wrote:
+> > > Hi,
+> > > Is it possible to add new pixel format to videodev2.h file?
+> > >
+> > > #define V4L2_PIX_FMT_MJ2C   v4l2_fourcc('M','J','2','C') /* Morgan JPEG
+> > > 2000*/
+> > >
+> > > I have developed a V4L2 driver for the board with hardware JPEG2000
+> > > codec (ADV202 chip). This driver uses that pixel format.
+> > > I think JPEG 2000 is very perspective codec and it will be good if V4L2
+> > > will support it.
+> > >
+> > > Short description of the device is here:
+> > > http://www.promwad.com/markets/linux-video-jpeg2000-blackfin.html
+>
+> Vladimir,
+>
+> It shouldn't be a problem adding this, but we prefer to only add such
+> things when the driver code is also added at the same time. Are you going
+> to submit the driver code as well to the list?
+>
+> Thanks,
+>
+> 	Hans
 
-> Instead of just removing the ML, maybe the better is to change the reply to to
-> linux-media and send an autoreply message to the sender.
-
-Done. Any posts to linux-dvb will receive this message:
-
-On Fri, 16 Jan 2009 18:59:48 +0100
-linux-dvb-bounces@linuxtv.org wrote:
-
-> This ML is deprecated. Please use linux-media@vger.kernel.org instead.
-> For more info about linux-media@vger.kernel.org, please read:
-> http://vger.kernel.org/vger-lists.html#linux-media
+Hans, 
+I can sibmit the driver code. But this driver is only for the blackfin 
+processor and will not work on other platforms. Does it make sense to include 
+the driver to the kernel source? 
+Maybe it will be better to include this driver to the blackfin.uclinux kernel 
+tree. How do you think?
 
 
+With best regards,
+Vladimir
+
+>
+> > > Thanks,
+> > > Vladimir.
+> >
+> > Please, send patches and other e-mails related to drivers development to
+> > linux-media@vger.kernel.org
+> > Such tool like patchwork.kernel.org will cares about patches, so they
+> > don't lost.
+> >
+> > I think you already check this page
+> > http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+> > if not, please check.
 
 
-Cheers,
-Mauro
 
-
-
-Cheers,
-Mauro
+-- 
+Vladimir Davydov
+Senior Developer
+Promwad Innovation Company
+Web: www.promwad.com
+22, Olshevskogo St.,
+220073, Minsk,
+BELARUS
+Phone/Fax: +375 (17) 312–1246
+E-mail: vladimir.davydov@promwad.com
+Skype: v_davydov
