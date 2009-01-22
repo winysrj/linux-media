@@ -1,45 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:30441 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747AbZAJN5E (ORCPT
+Received: from h-66-166-198-124.nycmny83.covad.net ([66.166.198.124]:56516
+	"EHLO tupari.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753254AbZAVWIh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jan 2009 08:57:04 -0500
-Date: Sat, 10 Jan 2009 14:56:32 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: zr36067 no longer loads automatically (regression)
-Message-ID: <20090110145632.695ca85c@hyperion.delvare>
-In-Reply-To: <20090109212831.332ebe47@hyperion.delvare>
-References: <20090108143315.2b564dfe@hyperion.delvare>
-	<20090108175627.0ebd9f36@pedra.chehab.org>
-	<Pine.LNX.4.58.0901081319340.1626@shell2.speakeasy.net>
-	<20090108193923.580fcd5b@pedra.chehab.org>
-	<Pine.LNX.4.58.0901082156270.1626@shell2.speakeasy.net>
-	<20090109092018.59a6d9eb@pedra.chehab.org>
-	<20090109124357.549acef6@hyperion.delvare>
-	<Pine.LNX.4.58.0901091112590.1626@shell2.speakeasy.net>
-	<20090109212831.332ebe47@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 22 Jan 2009 17:08:37 -0500
+Date: Thu, 22 Jan 2009 17:07:59 -0500 (EST)
+From: Joseph Shraibman <linuxtv.org@jks.tupari.net>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
+In-Reply-To: <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com>
+Message-ID: <alpine.LFD.2.00.0901221706250.8336@tupari.net>
+References: <48F78D8A020000560001A654@GWISE1.matc.edu>  <alpine.LFD.2.00.0901221434040.7609@tupari.net>  <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>  <alpine.LFD.2.00.0901221542190.7960@tupari.net>  <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com>
+  <alpine.LFD.2.00.0901221635550.8219@tupari.net> <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 9 Jan 2009 21:28:31 +0100, Jean Delvare wrote:
-> On Fri, 9 Jan 2009 12:12:09 -0800 (PST), Trent Piepho wrote:
-> > I have some more patches at http://linuxtv.org/hg/~tap/zoran
-> 
-> I'll take a look, thanks.
+Ignore my previous email.  The card wasn't tuned to anything.  I tuned to 
+a known good station and get this:
 
-As discussed on IRC: all patches tested, they worked fine for me,
-thanks for your excellent work. Feel free to add:
+FE: Samsung S5H1411 QAM/8VSB Frontend (ATSC)
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
+status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
+FE_HAS_LOCK
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
 
-to all 5 patches.
+On Thu, 22 Jan 2009, Devin Heitmueller wrote:
 
--- 
-Jean Delvare
+> On Thu, Jan 22, 2009 at 4:37 PM, Joseph Shraibman
+> <linuxtv.org@jks.tupari.net> wrote:
+>>> On some demods, the strength and SNR indicators are only valid if you
+>>> have a lock.
+>>
+>> But why don't I get a lock?  I was getting signals with my pcHDTV3000 so I
+>> know it isn't an antenna problem.
+>
+> I just looked back at your dmesg output, and I am somewhat confused.
+> Do you have multiple cards installed in the host at the same time?
+> Isn't the Oren OR51132 the other card?  I would assume that you would
+> need to be looking at the output of the s5h1411 frontend with femon if
+> you're trying to capture on the Fusion HDTV 7 Dual Express.  Or
+> perhaps I am just missing something here.
+>
+> Devin
+>
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
