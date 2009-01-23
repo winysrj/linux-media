@@ -1,103 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:2171 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347AbZAJSz1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jan 2009 13:55:27 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0AItP9t019191
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 10 Jan 2009 19:55:26 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 10 Jan 2009 19:55:25 +0100 (CET)
-Message-Id: <200901101855.n0AItP9t019191@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from mail1.radix.net ([207.192.128.31]:40919 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754851AbZAWRtB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2009 12:49:01 -0500
+Subject: Re: [RFC] Need testers for s5h1409 tuning fix
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <412bdbff0901212045t1287a403h57ba05cbd71d5224@mail.gmail.com>
+References: <412bdbff0901212045t1287a403h57ba05cbd71d5224@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 23 Jan 2009 12:48:58 -0500
+Message-Id: <1232732938.3907.30.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Wed, 2009-01-21 at 23:45 -0500, Devin Heitmueller wrote:
+> The attached patch significantly improves tuning lock times for all
+> three s5h1409 based devices I have tested with so far.  However,
+> because of the large number of devices affected, I would like to
+> solicit people with products that use the s5h1409 to test the patch
+> and report back any problems before it gets committed.
+> 
+> To test the patch, check out the latest v4l-dvb and apply the patch:
+> 
+> hg clone http://linuxtv.org/hg/v4l-dvb
+> cd v4l-dvb
+> patch -p1 < s5h1409_tuning_speedup.patch
+> make
+> make install
+> make unload
+> reboot
+> 
+> Based on the data collected thus far, this patch should address some
+> long-standing issues with long times to reach tuning lock and
+> intermittent lock failures.
+> 
+> Comments welcome.
 
-Results of the daily build of v4l-dvb:
+I will test soon, but I do have two comments by inspection.
 
-date:        Sat Jan 10 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10210:985ecd81d993
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+1. The function s5h1409_softreset() is now called 3 times by
+s5h1409_set_frontend(): once at entry, once by
+s5h1409_enable_modulation(), and once at exit.  Surely at least one of
+these is not needed, no?
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: ERRORS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.27-armv5-omap2: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.16.61-mips: WARNINGS
-linux-2.6.26-mips: WARNINGS
-linux-2.6.27-mips: WARNINGS
-linux-2.6.28-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
+2.  You've eliminated the 100 ms "settle delay" after the final
+softreset.  Can something from userland turn around and call one of the
+s5h1409_ops vectors and muck with registers before things "settle"?
+Does it even matter?
 
-Detailed results are available here:
+I know a hardware reset requires a long-ish assertion time (in fact now
+that I see it, I have to fix the cx18 driver hardware reset assertion
+delay for this device - the current value isn't right).
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Regards,
+Andy
 
-Full logs are available here:
+> Thanks,
+> 
+> Devin
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
