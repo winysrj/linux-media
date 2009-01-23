@@ -1,43 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:41572 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751262AbZA1RHd (ORCPT
+Received: from ug-out-1314.google.com ([66.249.92.175]:59851 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752580AbZAWWnO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2009 12:07:33 -0500
-Received: by fg-out-1718.google.com with SMTP id 13so626063fge.17
-        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2009 09:07:30 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1233159564.8255.0@manu-laptop>
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
-	 <1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
-	 <c74595dc0901261107i66125bfdpe35cb7b89144ab11@mail.gmail.com>
-	 <497F6B2E.6010305@gmail.com>
-	 <c74595dc0901271240i2008cacdp565fe69f3269ea55@mail.gmail.com>
-	 <497F7C40.6030300@gmail.com>
-	 <c74595dc0901271402g5a44fe05pecae642570e54e0f@mail.gmail.com>
-	 <497F927E.8050009@gmail.com>
-	 <b1dab3a10901280303s62a5afd8oe906ce93f05614dd@mail.gmail.com>
-	 <1233159564.8255.0@manu-laptop>
-Date: Wed, 28 Jan 2009 18:07:30 +0100
-Message-ID: <3c031ccc0901280907i46d8c7b2i5e92581b265ba7c9@mail.gmail.com>
-Subject: Re : [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on
-	HDchannels
-From: crow <crow@linux.org.ba>
+	Fri, 23 Jan 2009 17:43:14 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so35274ugf.37
+        for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 14:43:13 -0800 (PST)
+Date: Fri, 23 Jan 2009 23:43:00 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
+In-Reply-To: <497A27F7.8020201@to-st.de>
+Message-ID: <alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>
+References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva> <497A27F7.8020201@to-st.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I have also TT-3200 and would like to have driver which are not able
-to burn anything, but to WORK as they should. I am currently using
-liplianindvb repository, because it seems only one working with my
-card. To bad that they have code which "can burn demodulator" in some
-case, as i don't wanna that. Well till now i have had luck then seems
-so, but....
-I can use multiproto driver to but they should work OK with tt-3200 (i
-can test them to if needed) have only Astra 19.2E and Hotbird 13.0.
+Mojn, as people say in the north and to the north of northern 
+germany  ;-)
 
-There should be also respect to ppl who build driver and stuff we are
-using, and Thank to them.
+On Fri, 23 Jan 2009, Tobias Stöber wrote:
+
+> Well, just have to send this message again, this time to the right & 
+> correct mailing list linux-dvb@linuxtv.org. (Who by the way had the 
+> insane idea, to set a reply-to address to another mailing list 
+
+It also means that the original sender may not ever see a
+reply, unless one overrides this and uses the From: header,
+which I'm now doing in most replies, because except for a handful 
+of developers, I really have no idea if the original poster
+of a message to -dvb is even subscribed to any other list.
+Most of the time, I'll guess they aren't.  Meaning the
+reply stays on -dvb assuming I reply to all.
+
+As a result, pretty much everybody is crossposting between
+-dvb and -media rather than the so-called ``wanted'' effect
+of abandoning -dvb and keeping all posts in one location,
+that is, -media.
+
+Naturally, posts that are delivered directly to me do not
+contain this header, so my replies don't make it to that
+other list.  Frankly, I ain't bothered anymore.
+
+
+> As for certain area in Saxony-Anhalt, Saxony and Thuringia there ahve
+
+Argh!  Don't do this ;-)  You're making me run for my
+englisch-to-german dictionary which contains none of
+these.  But anyway...
+
+
+> in my area (Brunswick), where there had been an ARD Mux on Ch 8. Now  it
+
+Okay, this isn't in my dictionary either, and while I
+could guess the others, I have no clue.  Sounds Canadian
+to me, which says more about my background, than of
+non-native place names which I avoid (Milano it is; I
+grew up not far from Milan and I am not good-looking
+and sexy and sophisticated like the italians)
+
+But that is neither here nor there...
+
+
+> Information for the whole NDR area will normally be found at
+> http://www.dvb-t-nord.de.
+
+So far, only old info from last year is what I've found there.
+Likewise, the site for Bayern did not give me any info about
+plans to migrate the number of VHF frequencies into the UHF
+band, while it did have a few interesting bits of information
+not provided by the technically excellent, up-to-date, and 
+informative BayernText teletext pages.
+
+
+> There is a complete listing including parameters from "in area" and also
+> "out of area" (but with reception in the area) transmitters at
+> http://www.ueberallfernsehen.de/data/senderliste_25_11_2008.pdf
+
+Interesting, thanks.  This gives me the overview by region
+that I lack apart from Baden-Württemberg, Bayern, and the
+like, as to the modulation in use -- mdr and to some extent
+WDR do not follow the same pattern as seen in B-W....
+
+I believe there is a mistake, though, in the data for HH.
+The guard interval of 1/8 for all frequencies, both VHF and
+UHF, from one Turm (font too small) does not match the 1/4
+used as a general rule throughout germany, and used by all
+the (UHF) frequencies in the Single-Frequency-Network
+formed by the other Standort.
+
+(The modulation parameters provided in the initial scan
+file for Lübeck seem to be wrong too -- the one which
+caught my eye when quickly viewing all de-scanfiles)
+
+
+Even though my original plans to create a comprehensive
+list of frequencies, transmitter sites, and technical
+details for each Bundesland have been put on ice, as I
+don't expect to be doing any travel to these areas in
+the near future, it will be interesting for me to come
+up with an overview of available quality in each region,
+as well as to puzzle over what WDR is doing.
+
+
+I wonder if, in addition to moving from the remaining
+VHF frequencies, there will be plans in the future to
+convert to a unified horizontal or vertical polarisation
+nationally or by region.  Though this does not affect
+tuning data, it is apparently an issue around Nürnberg...
+
+
+barry bouwsma
