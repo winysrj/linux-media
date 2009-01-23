@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from mailsender.it.unideb.hu ([193.6.138.90])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1LK04O-0006GM-U7
-	for linux-dvb@linuxtv.org; Tue, 06 Jan 2009 01:45:23 +0100
-From: Andy Walls <awalls@radix.net>
-To: Gregoire Favre <gregoire.favre@gmail.com>
-In-Reply-To: <20090105130720.GB3621@gmail.com>
-References: <20090104113738.GD3551@gmail.com>
-	<1231097304.3125.64.camel@palomino.walls.org>
-	<20090105130720.GB3621@gmail.com>
-Date: Mon, 05 Jan 2009 19:46:40 -0500
-Message-Id: <1231202800.3110.13.camel@palomino.walls.org>
+	(envelope-from <lnovak@dragon.unideb.hu>) id 1LQLb4-00077R-Fi
+	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 13:57:20 +0100
+Received: from mailfilter.it.unideb.hu (mailfilter.it.unideb.hu [193.6.138.89])
+	by mailsender.it.unideb.hu (Postfix) with SMTP id DDC0A14BB80
+	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 13:56:40 +0100 (CET)
+Received: from [193.6.134.187] (novak.chem.klte.hu [193.6.134.187])
+	by mailgw.it.unideb.hu (Postfix) with ESMTP id 482602CEAA2
+	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 13:56:40 +0100 (CET)
+From: Levente =?ISO-8859-1?Q?Nov=E1k?= <lnovak@dragon.unideb.hu>
+To: linux-dvb@linuxtv.org
+Date: Fri, 23 Jan 2009 13:56:40 +0100
+Message-Id: <1232715400.13587.12.camel@novak.chem.klte.hu>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] s2-lipliandvb oops (cx88) -> cx88 maintainer ?
+Subject: [linux-dvb] Which firmware for cx23885 and xc3028?
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,85 +29,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 2009-01-05 at 14:07 +0100, Gregoire Favre wrote:
-> On Sun, Jan 04, 2009 at 02:28:24PM -0500, Andy Walls wrote:
-> 
-> Hello,
-> 
-> thank for your complete answer :
-> http://www.linuxtv.org/pipermail/linux-dvb/2009-January/031264.html
-> 
-> And for the one about "Kernel oops loading cx88 drivers when two
-> WinTV-HVR4000 cards present" :
-> http://www.linuxtv.org/pipermail/linux-dvb/2009-January/031230.html
+I am trying to make an AverMedia AverTV Hybrid Express (A577) work under
+Linux. It seems all major chips (cx23885, xc3028 and af9013) are already
+supported, so it should be doable in principle.
 
-Sure.  I'm actually a sucker for looking at oops dumps.  They're like
-simple little puzzles waiting to be solved.  Unfortunately, once I know
-the "answer", I rarely follow through with the final solution.
+I am stuck a little bit since AFAIK both cx23885 and xc3028 need an
+uploadable firmware. Where should I download/extract such firmware from?
+I tried Steven Toth's repo (the Hauppauge HVR-1400 seems to be built
+around these chips as well) but even after copying the files
+under /lib/firmware it didn't really work. I tried to specify different
+cardtypes for the cx23885 module. For cardtype=2 I got a /dev/video0 and
+a /dev/video1 (the latter is of course unusable, I don't have a MPEG
+encoder chip on my card) but tuning was unsuccesful. All the other types
+I tried either didn't work at all or only resulted in dvb devices
+detected. For the moment, I am fine without DVB, and are interested
+mainly in analog devices.
 
+Maybe I should locate the windows driver of my card and extract the
+firmware files from it? If so, how do I proceed?
 
+Thanks in advance!
 
-> > I hope that helps someone.  I'm not and expert on the cx88 modules and
-> > their inter-relationships.
-> 
-> For a user point of view : what has to be done ?
+Levente
 
-I you run across the oops often, then the suspected race condition in
-the function I mentioned needs to be fixed.  That may be as simple as
-this lame patch:
-
-diff -r 76c0ec8ab927 linux/drivers/media/video/cx88/cx88-mpeg.c
---- a/linux/drivers/media/video/cx88/cx88-mpeg.c        Sun Jan 04 19:51:17 2009 -0500
-+++ b/linux/drivers/media/video/cx88/cx88-mpeg.c        Mon Jan 05 19:44:17 2009 -0500
-@@ -831,6 +831,9 @@ static int __devinit cx8802_probe(struct
-        if (err != 0)
-                goto fail_free;
- 
-+       /* Maintain a reference so cx88-video can query the 8802 device. */
-+       core->dvbdev = dev;
-+
-        INIT_LIST_HEAD(&dev->drvlist);
-        list_add_tail(&dev->devlist,&cx8802_devlist);
- 
-@@ -851,20 +854,19 @@ static int __devinit cx8802_probe(struct
-                                        __func__);
-                                videobuf_dvb_dealloc_frontends(&dev->frontends);
-                                err = -ENOMEM;
-+                               /* FIXME - need to pull dev off cx8802_devlist*/
-                                goto fail_free;
-                        }
-                }
-        }
- #endif
- 
--       /* Maintain a reference so cx88-video can query the 8802 device. */
--       core->dvbdev = dev;
--
-        /* now autoload cx88-dvb or cx88-blackbird */
-        request_modules(dev);
-        return 0;
- 
-  fail_free:
-+       /* FIXME - shouldn't we pull dev off the cx8802_devlist - oops */
-        kfree(dev);
-  fail_core:
-        cx88_core_put(core,pci_dev);
-
-
-
-> Maybe all this are related of the tuning problem I got with my system ?
-
-Not if you don't run into the oops regularly.  You either hit this race
-condition when initializing the devices, or you don't and everything is
-"normal".
-
-Regards,
-Andy
-
-> Thanks.
 
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
