@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailsender.it.unideb.hu ([193.6.138.90])
+Received: from lists.iskon.hr ([213.191.128.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lnovak@dragon.unideb.hu>) id 1LQLb4-00077R-Fi
-	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 13:57:20 +0100
-Received: from mailfilter.it.unideb.hu (mailfilter.it.unideb.hu [193.6.138.89])
-	by mailsender.it.unideb.hu (Postfix) with SMTP id DDC0A14BB80
-	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 13:56:40 +0100 (CET)
-Received: from [193.6.134.187] (novak.chem.klte.hu [193.6.134.187])
-	by mailgw.it.unideb.hu (Postfix) with ESMTP id 482602CEAA2
-	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 13:56:40 +0100 (CET)
-From: Levente =?ISO-8859-1?Q?Nov=E1k?= <lnovak@dragon.unideb.hu>
+	(envelope-from <m.rovis@inet.hr>) id 1LQRbH-0005G1-U9
+	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 20:21:57 +0100
+Received: from [192.168.1.7] (12-208.dsl.iskon.hr [89.164.12.208])
+	by lists.iskon.hr (Postfix) with ESMTP id 6004698EAB
+	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 20:21:52 +0100 (CET)
+Message-ID: <497A18D0.70009@inet.hr>
+Date: Fri, 23 Jan 2009 20:21:52 +0100
+From: Miroslav Rovis <m.rovis@inet.hr>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Date: Fri, 23 Jan 2009 13:56:40 +0100
-Message-Id: <1232715400.13587.12.camel@novak.chem.klte.hu>
-Mime-Version: 1.0
-Subject: [linux-dvb] Which firmware for cx23885 and xc3028?
+References: <mailman.1.1232708401.9307.linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.1.1232708401.9307.linux-dvb@linuxtv.org>
+Subject: [linux-dvb] [PATCH] cx88-dvb: Fix order of frontend allocations
+ (Re: current v4l-dvb - cannot access /dev/dvb/: No such file or directory
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,29 +29,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I am trying to make an AverMedia AverTV Hybrid Express (A577) work under
-Linux. It seems all major chips (cx23885, xc3028 and af9013) are already
-supported, so it should be doable in principle.
-
-I am stuck a little bit since AFAIK both cx23885 and xc3028 need an
-uploadable firmware. Where should I download/extract such firmware from?
-I tried Steven Toth's repo (the Hauppauge HVR-1400 seems to be built
-around these chips as well) but even after copying the files
-under /lib/firmware it didn't really work. I tried to specify different
-cardtypes for the cx23885 module. For cardtype=2 I got a /dev/video0 and
-a /dev/video1 (the latter is of course unusable, I don't have a MPEG
-encoder chip on my card) but tuning was unsuccesful. All the other types
-I tried either didn't work at all or only resulted in dvb devices
-detected. For the moment, I am fine without DVB, and are interested
-mainly in analog devices.
-
-Maybe I should locate the windows driver of my card and extract the
-firmware files from it? If so, how do I proceed?
-
-Thanks in advance!
-
-Levente
-
+I pasted the subject line from:
+http://www.linuxtv.org/pipermail/linux-dvb/2009-January/thread.html#31463
+the last message of the thread on the problem that I still have (there
+is the patch in there in some post on the thread that should fix my
+problem).
+Tha card is a Hauppauge HVR-3000 that works fine on M$ Windoze Vista.
+Arch is 64bit Athlon based...
+With the kernel ("uname -r" output):
+2.6.28-gentoo-r1
+In fact, cx88-dvb sometimes loads and then I have the populated
+/dev/dvb... (very choppy but I got anything I tried after dvbscan and
+szap etc.)
+And sometimes it doesn't load at all and there is no /dev/dvb directory
+at all.
+The error when issuing "modprobe cx88-dvb" is:
+FATAL: Error inserting cx88_dvb
+(/lib/modules/2.6.28-gentoo-r1/v4l-dvb/video/cx88/cx88-dvb.ko): Unknown
+symbol in module, or unknown parameter (see dmesg)
+dmesg on its part only has:
+cx88_dvb: Unknown parameter `frontend'
+The kernel (2.6.28-gentoo-r1) does have the aforementioned Andy's patch
+applied...
+Firmare is as suggested here:
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000#Firmware_v1.23.86.1
+I am at a loss where to turn, what to try...
+Cheers!
+Miro Rovis
+www.exDeo.com
+www.CroatiaFidelis.hr
 
 
 _______________________________________________
