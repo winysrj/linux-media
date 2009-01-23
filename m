@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f12.google.com ([209.85.219.12]:41209 "EHLO
-	mail-ew0-f12.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761674AbZAROzS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jan 2009 09:55:18 -0500
-Received: by ewy5 with SMTP id 5so562270ewy.13
-        for <linux-media@vger.kernel.org>; Sun, 18 Jan 2009 06:55:15 -0800 (PST)
-Message-ID: <497342D3.7050903@gmail.com>
-Date: Sun, 18 Jan 2009 15:55:15 +0100
-From: Roel Kluin <roel.kluin@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:32727 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753420AbZAWRS6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2009 12:18:58 -0500
+Message-ID: <4979E939.2080102@iki.fi>
+Date: Fri, 23 Jan 2009 17:58:49 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: mchehab@redhat.com
-CC: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATCH] V4L/DVB: make card signed
-Content-Type: text/plain; charset=ISO-8859-1
+To: Lindsay Mathieson <lindsay.mathieson@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: TinyTwin (af9015) Results and questions
+References: <497912d9.3df.52be.1092695642@blackpaw.dyndns.org>
+In-Reply-To: <497912d9.3df.52be.1092695642@blackpaw.dyndns.org>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is this correct?
---------------->8----------8<----------------
-make card signed
+Lindsay Mathieson wrote:
+> to enable the second tuner. I thought that would be on by
+> default now the 2nd tuner bugs have been worked out. 
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index ef9bf00..7c7a96c 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -47,7 +47,7 @@ static unsigned int disable_ir;
- module_param(disable_ir, int, 0444);
- MODULE_PARM_DESC(disable_ir, "disable infrared remote support");
- 
--static unsigned int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
-+static int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
- module_param_array(card,  int, NULL, 0444);
- MODULE_PARM_DESC(card,     "card type");
- 
+Done.
+
+> - Is there a official place to download the firmware from?
+> Currently I'm getting it from:
+>  
+> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
+
+That's "official". I think it is not wanted to linuxtv.org because there 
+is same as almost every firmware - it does not have any license. It is 
+just extracted out from Windows driver (actually from USB-sniff). I 
+think some distributions will package & deliver this kind of firmwares, 
+though.
+
+> - Is it possible to estimate when this will make its way
+> into the linux kernel? How will I know?
+
+Driver is in 2.6.28, with dual mode disabled & broken. I am not sure 
+whether those fixes are coming to 2.6.29 or 2.6.30, I doubt later Kernel.
+
+> I ask because I'd like to write up a howto for myth and/or
+> ubuntu users, and want to cover all bases.
+
+regards
+Antti
+-- 
+http://palosaari.fi/
