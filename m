@@ -1,23 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02E95vb025072
-	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 09:09:05 -0500
-Received: from smtp118.rog.mail.re2.yahoo.com (smtp118.rog.mail.re2.yahoo.com
-	[68.142.225.234])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n02E80SM008200
-	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 09:08:00 -0500
-Message-ID: <495E1FBF.1090606@rogers.com>
-Date: Fri, 02 Jan 2009 09:07:59 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0NDsh3G028024
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:54:43 -0500
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0NDsPZK023254
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:54:25 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so917660qwe.39
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 05:54:24 -0800 (PST)
 MIME-Version: 1.0
-To: Paul Thomas <pthomas8589@gmail.com>
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>	<412bdbff0812311323rd83eac8l35f29195b599d3e@mail.gmail.com>	<c785bba30812311330w26ce5817l10db52d5be98d175@mail.gmail.com>	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>	<c785bba30812311504g22d2a06dkd4b1a7dc9a5b2df1@mail.gmail.com>	<c785bba30901010845if28f369n7a9c501e34b2efa8@mail.gmail.com>
-	<c785bba30901011638q4b1f0b92y6898672f0cb8efb0@mail.gmail.com>
-In-Reply-To: <c785bba30901011638q4b1f0b92y6898672f0cb8efb0@mail.gmail.com>
+In-Reply-To: <1232716272588-2203202.post@n2.nabble.com>
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
+	<alpine.DEB.1.10.0811262251210.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261402s2cf5d965xc5dc60325f5a95ec@mail.gmail.com>
+	<1232716272588-2203202.post@n2.nabble.com>
+Date: Fri, 23 Jan 2009 08:54:24 -0500
+Message-ID: <412bdbff0901230554s2348b9b9m936441d405a62609@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: RobM <robmaurer@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list <video4linux-list@redhat.com>
-Subject: Re: em28xx issues
+Cc: video4linux-list@redhat.com
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,24 +38,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Paul Thomas wrote:
-> Any thoughts on the debug parameter? Do I set the debug level a different way?
+On Fri, Jan 23, 2009 at 8:11 AM, RobM <robmaurer@gmail.com> wrote:
 >
-> thanks,
-> Paul
->
-> On Thu, Jan 1, 2009 at 9:45 AM, Paul Thomas <pthomas8589@gmail.com> wrote:
->   
->> I get "em28xx: Unknown parameter `debug'" when I try "modprobe em28xx debug=1".
->>
->> thanks,
->> Paul
+> Hi Mr. Devin,
+> I have the aforementioned ADS Instant TV USB (Model USBAV-704N). It's doing
+> me little good at the moment as like Gabor I cannot make it work. If you are
+> still interested in having it shipped to you for a bit of inspection/testing
+> I am happy to loan it to you.
+> Best regards,
+> Rob (Massachusetts, USA)
 
-Use /sbin/modinfo to see relevant parameters for a module.  You'll
-likely want core_debug
+Hello Rob,
 
-Also please stop top posting (rather, post below the text that you are
-quoting).  Thanks
+I actually have a repository that has this device mostly working for
+Gabor - there is still a detection bug that causes it to sometimes not
+get initialized properly:
+
+http://linuxtv.org/hg/~dheitmueller/v4l-dvb-newdevices/
+
+It's important to recognize though that Gabor's device has a PAL
+tuner, whereas your device most likely has an NTSC tuner.  If you open
+the device and take hires photos, we can confirm which tuner the
+device actually has.
+
+It would be ideal if you could send me the device.  Unfortunately
+though, right now I already have several devices in my queue already
+that are taking up all of my time, so I am not currently accepting
+more hardware.  Yup, who thought I would reach the point where I would
+be turning away hardware!
+
+If you ping me in a few weeks, perhaps I will have some cycles at that point.
+
+Thank you,
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
