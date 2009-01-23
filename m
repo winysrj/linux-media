@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <ea4209750901020735r1659e24apba5cd7182af22817@mail.gmail.com>
-Date: Fri, 2 Jan 2009 16:35:38 +0100
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0901020715m15a685f6nb951030ae961e074@mail.gmail.com>
+Received: from mail04.syd.optusnet.com.au ([211.29.132.185])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lindsay.mathieson@blackpaw.dyndns.org>)
+	id 1LQ9y7-0008LF-8N
+	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 01:32:21 +0100
+Received: from blackpaw.dyndns.org (c122-108-213-22.rochd4.qld.optusnet.com.au
+	[122.108.213.22]) (authenticated sender lindsay.mathieson)
+	by mail04.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
+	n0N0W6f0013866
+	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 11:32:09 +1100
+Received: from blackpaw.dyndns.org (unverified [127.0.0.1])
+	by blackpaw.dyndns.org (SurgeMail 4.0a) with ESMTP id 715-1769969
+	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 10:32:06 +1000
+From: "Lindsay Mathieson" <lindsay.mathieson@gmail.com>
+To: linux-dvb@linuxtv.org
+Date: Fri, 23 Jan 2009 10:32:05 +1000
+Message-id: <49791005.3e3.51bd.2018512498@blackpaw.dyndns.org>
 MIME-Version: 1.0
-References: <495A0E02.1030307@olenepal.org>
-	<412bdbff0812300702l7f6333d0qa094332fc20f163@mail.gmail.com>
-	<73e59df30901020653v5ec9b923mb5c6f4b186bb18de@mail.gmail.com>
-	<ea4209750901020701q11e34b42p3440c33e366fcb35@mail.gmail.com>
-	<412bdbff0901020715m15a685f6nb951030ae961e074@mail.gmail.com>
-Cc: pb@linuxtv.org, linux-dvb@linuxtv.org, don@syst.com.br,
-	roshan karki <roshan@olenepal.org>
-Subject: Re: [linux-dvb] YUAN High-Tech STK7700PH problem
+Subject: [linux-dvb] TinyTwin (af9015) Results and questions
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,116 +26,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1243778404=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1243778404==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_103870_12779365.1230910538745"
+I've pulled the latest v4l-dvb trunk and installed it, can
+confirm that both tuners of the DigitalNow TinyTwin work
+beautifully. I do have a few questions though.
 
-------=_Part_103870_12779365.1230910538745
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- I still have to specify:
+  options dvb-usb-af9015 dual_mode=1
 
-I would like to understand what's happening, but I don't know anything about
-usbsnoop logs and next week I leave for a 2 months trip, so it would be
-difficult to look at it. I'm also thinking that is should be related to some
-GPIO (that's often the problem with dibcom based devices, find the correct
-place of everything), and could explain why it seemed to work once (if
-correctly set on windows and then just reboot without stopping the device.
-Good luck!
+to enable the second tuner. I thought that would be on by
+default now the 2nd tuner bugs have been worked out. 
 
-Albert
+- Is there a official place to download the firmware from?
+Currently I'm getting it from:
+ 
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
 
-2009/1/2 Devin Heitmueller <devin.heitmueller@gmail.com>
+- Is it possible to estimate when this will make its way
+into the linux kernel? How will I know?
 
-> On Fri, Jan 2, 2009 at 10:01 AM, Albert Comerma
-> <albert.comerma@gmail.com> wrote:
-> > Hi all, sorry for the delay, I didn't noticed the first mail. I added
-> this
-> > patch, but I don't own any of this cards; the status was quite strange.
-> One
-> > of the testers said that it was working perfectly while the other (there
-> was
-> > not much people with that model) said it didn't work. So, I'm not sure if
-> > there is more than one hardware version with the same ID or something
-> > similar...
-> >
-> > Albert
->
-> Hello Albert,
->
-> As the person who submitted the original patch, thank you for taking
-> the time to respond.  From a debugging standpoint, it's good to know
-> that the support never worked, as opposed to some breakage being
-> introduced.
->
-> I'll look at Roshan's usb snoop trace over the weekend (unless you
-> want to).  I suspect the GPIOs are probably just not correctly for his
-> device and the demod is probably still being held in reset when the
-> first i2c command is sent.
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+I ask because I'd like to write up a howto for myth and/or
+ubuntu users, and want to cover all bases.
 
-------=_Part_103870_12779365.1230910538745
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks - Lindsay
 
-I would like to understand what&#39;s happening, but I don&#39;t know anything about usbsnoop logs and next week I leave for a 2 months trip, so it would be difficult to look at it. I&#39;m also thinking that is should be related to some GPIO (that&#39;s often the problem with dibcom based devices, find the correct place of everything), and could explain why it seemed to work once (if correctly set on windows and then just reboot without stopping the device. Good luck!<br>
-<br>Albert<br><br><div class="gmail_quote">2009/1/2 Devin Heitmueller <span dir="ltr">&lt;<a href="mailto:devin.heitmueller@gmail.com">devin.heitmueller@gmail.com</a>&gt;</span><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div class="Ih2E3d">On Fri, Jan 2, 2009 at 10:01 AM, Albert Comerma<br>
-&lt;<a href="mailto:albert.comerma@gmail.com">albert.comerma@gmail.com</a>&gt; wrote:<br>
-&gt; Hi all, sorry for the delay, I didn&#39;t noticed the first mail. I added this<br>
-&gt; patch, but I don&#39;t own any of this cards; the status was quite strange. One<br>
-&gt; of the testers said that it was working perfectly while the other (there was<br>
-&gt; not much people with that model) said it didn&#39;t work. So, I&#39;m not sure if<br>
-&gt; there is more than one hardware version with the same ID or something<br>
-&gt; similar...<br>
-&gt;<br>
-&gt; Albert<br>
-<br>
-</div>Hello Albert,<br>
-<br>
-As the person who submitted the original patch, thank you for taking<br>
-the time to respond. &nbsp;From a debugging standpoint, it&#39;s good to know<br>
-that the support never worked, as opposed to some breakage being<br>
-introduced.<br>
-<br>
-I&#39;ll look at Roshan&#39;s usb snoop trace over the weekend (unless you<br>
-want to). &nbsp;I suspect the GPIOs are probably just not correctly for his<br>
-device and the demod is probably still being held in reset when the<br>
-first i2c command is sent.<br>
-<br>
-Devin<br>
-<font color="#888888"><br>
---<br>
-</font><div><div></div><div class="Wj3C7c">Devin J. Heitmueller<br>
-<a href="http://www.devinheitmueller.com" target="_blank">http://www.devinheitmueller.com</a><br>
-AIM: devinheitmueller<br>
-</div></div></blockquote></div><br>
-
-------=_Part_103870_12779365.1230910538745--
-
-
---===============1243778404==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Lindsay Mathieson
+http://members.optusnet.com.au/~blackpaw1/album
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1243778404==--
