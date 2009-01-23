@@ -1,97 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2075 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754617AbZANHhy (ORCPT
+Received: from dd18532.kasserver.com ([85.13.139.13]:33782 "EHLO
+	dd18532.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756164AbZAWOEu convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 02:37:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: CityK <cityk@rogers.com>
-Subject: Re: KWorld ATSC 115 all static
-Date: Wed, 14 Jan 2009 08:37:43 +0100
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-References: <496A9485.7060808@gmail.com> <1231816664.2680.21.camel@pc10.localdom.local> <496D6CF6.6030005@rogers.com>
-In-Reply-To: <496D6CF6.6030005@rogers.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901140837.43282.hverkuil@xs4all.nl>
+	Fri, 23 Jan 2009 09:04:50 -0500
+Date: Fri, 23 Jan 2009 15:04:47 +0100
+From: Carsten Meier <cm@trexity.de>
+To: Thierry Merle <thierry.merle@free.fr>
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	linux-media@vger.kernel.org
+Subject: How to obtain sysfs-path from bus_info
+Message-ID: <20090123150447.4a7d7ead@tuvok>
+In-Reply-To: <4978E128.3050701@free.fr>
+References: <20090115184133.724d1d70@tuvok>
+	<200901220020.00520.laurent.pinchart@skynet.be>
+	<20090122012111.00634e0b@tuvok>
+	<200901221657.37189.laurent.pinchart@skynet.be>
+	<4978E128.3050701@free.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 14 January 2009 05:41:26 CityK wrote:
-> hermann pitton wrote:
-> > Hi,
-> >
-> > Am Montag, den 12.01.2009, 21:10 -0500 schrieb CityK:
-> >> Hans Verkuil wrote:
-> >>> Yes, I can. I'll do saa7134 since I have an empress card anyway.
-> >>> It should be quite easy (the cx18 complication is not an issue
-> >>> here).
-> >>>
-> >>> Regards,
-> >>>
-> >>> 	Hans
+Am Thu, 22 Jan 2009 22:12:08 +0100
+schrieb Thierry Merle <thierry.merle@free.fr>:
+
+> Laurent Pinchart a écrit :
+> > On Thursday 22 January 2009, Carsten Meier wrote:
+> >> Am Thu, 22 Jan 2009 00:20:00 +0100
 > >>
-> >> Thanks Hans!
-> >
-> > yes, Hans is a very fine guy.
->
-> He is indeed.
+> >> schrieb Laurent Pinchart <laurent.pinchart@skynet.be>:
+> >>> Hi Carsten,
+> >>>
+> >>> On Wednesday 21 January 2009, Carsten Meier wrote:
+> >>>> now I want to translate bus_info into a sysfs-path to obtain
+> >>>> device-info like serial numbers. Given a device reports
+> >>>> "usb-0000:00:1d.2-2" as bus_info, then the device-info is located
+> >>>> under "/sys/bus/usb/devices/2-2", which is a symlink to the
+> >>>> appropriate /sys/devices/ directory, right?
+> >>> I'm afraid not. In the above bus_info value, 0000:00:1d.2 is the
+> >>> PCI bus path of your USB controller, and the last digit after the
+> >>> dash is the USB device path.
+> >>>
+> >>>> All I have to do is to compare the first 4 chars of bus_info
+> >>>> against "usb-", get the chars after "." and append it to
+> >>>> "/sys/bus/usb/devices/" to obatin a sysfs-path, right?
+> >>>>
+> >>>> Is there a more elegant solution or already a function for this?
+> >>>> Can the "." appear more than once before the last one?
+> >>> Probably not before, but definitely after.
+> >>>
+> >>> Root hubs get a USB device path set to '0'. Every other device is
+> >>> numbered according to the hub port number it is connected to. If
+> >>> you have an external hub connected on port 2 of your root hub,
+> >>> and have a webcam connected to port 3 of the external hub,
+> >>> usb_make_path() will return "usb-0000:00:1d.2-2.3".
+> >>>
+> >>> Cheers,
+> >>>
+> >>> Laurent Pinchart
+> >> Hi,
+> >>
+> >> On my machine, my pvrusb2 (connected directly to my mini-pc) shows
+> >> up under "/sys/bus/usb/devices/7-2/" which is a symbolic link to
+> >> "../../../devices/pci0000:00/0000:00:1d.7/usb7/7-2"
+> > 
+> > You're just lucky that USB bus 7 (usb7/7) is connected to the 7th
+> > function of your USB host controller (1d.7).
+> > 
+> > Here's an example of what I get on my computer:
+> > 
+> > /sys/bus/usb/devices/4-2
+> > -> ../../../devices/pci0000:00/0000:00:1d.2/usb4/4-2
+> > 
+> >> I can't test for the new bus_info-string, because it's not fixed
+> >> yet in the driver. But if I got it correctly it should be
+> >> "usb-0000:00:1d.7-7.2" ?
+> > 
+> > I think you will get usb-0000:00:1d.7-2
+> > 
+> >> Then I've to simply take the string after the last dash, replace
+> >> "." by "-" and append it to "/sys/bus/usb/devices/" for a
+> >> sysfs-path?
+> > 
+> > Unfortunately the mapping is not that direct. The part before the
+> > last dash identifies the USB host controller. The part after the
+> > last dash identifies the device path related to the controller,
+> > expressed as a combination of port numbers.
+> > 
+> > The sysfs device path /sys/bus/usb/devices/7-2/ includes a USB bus
+> > number (in this case 7) that is not present in usb_make_path()'s
+> > output.
+> > 
+> > To find the sysfs path of your USB peripheral, you will have to
+> > find out which bus number the bus name (0000:00:1d.7) corresponds
+> > to. You might be able to find that by checking each usb[0-9]+ links
+> > in /sys/bus/usb/devices and comparing the link's target with the
+> > bus name.
+> > 
+> To ease this processing, using libsysfs can be a good idea...
+> On my system, the documentation of libsysfs is here:
+> /usr/doc/sysfsutils-2.1.0/libsysfs.txt
+> Knowing the bus-id, it won't be hard to look at it in data structures.
+> Just my 2 cents.
 
-Absolutely! :-)
+Hi,
 
-FYI: I have a patch, but I won't have time to test it until Friday. You 
-should get something from me then. The main change was actually to the 
-saa6752hs.c i2c module (it wasn't yet converted to v4l2_subdev), and I 
-need to test that first with my empress card.
+I already looked at it, but it doesn't help very much if you don't know
+how sysfs is organized in detail. The sysfs-reference at
+http://www.kernel.org/pub/linux/kernel/people/mochel/doc/papers/ols-2005/
+also doesn't help very much as it only gives a brief overview.
 
 Regards,
-
-	Hans
-
-> > But don't hope for too much for DVB/ATSC related stuff soon.
-> >
-> > We know about the problems caused by switching antenna inputs from
-> > a digital demod, it was a famous hack from Chris on cx88xx and Mike
-> > did good work to port it to saa713x, but unfortunately there was
-> > some ongoing loss on the other side of the planet then later.
-> >
-> > I doubt that Hans is already aware of it at this stage,
->
-> Consulting on irc, both Eric and myself can confirm that DVB is
-> working fine for the device (I can only test cable currently, but
-> Eric successfully checked both QAM and 8-VSB).  I'm using recent Hg
-> and Eric is using stock FC10 supplied drivers.  So, I'm not sure why
-> Josh was having problems.
->
-> > these days bugs are fixed from guys without even having hardware,
->
-> Four letter word.  Starts with A and ends with Y  :p
->
-> > and this is good progress,
->
-> Yes, it was awfully nice of Andy to diagnose and provide a solution.
-> Props to him.
->
-> >  likely they will add new devices the same way too soon.
->
-> This point, however, is not a very good route to go down --- it opens
-> up a huge can of worms (<-- silly English expression which
-> essentially means that such action creates problems).
->
-> > I seem to be far behind currently, all caused by the HDTV hype ;)
->
-> You mean you haven't upgraded to the latest 92 inch hyper plasma OXD
-> display yet!    Crappy broadcast content has never looked so good!
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Carsten
