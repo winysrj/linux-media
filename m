@@ -1,66 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:38177 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623AbZAILoS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jan 2009 06:44:18 -0500
-Date: Fri, 9 Jan 2009 12:43:57 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: zr36067 no longer loads automatically (regression)
-Message-ID: <20090109124357.549acef6@hyperion.delvare>
-In-Reply-To: <20090109092018.59a6d9eb@pedra.chehab.org>
-References: <20090108143315.2b564dfe@hyperion.delvare>
-	<20090108175627.0ebd9f36@pedra.chehab.org>
-	<Pine.LNX.4.58.0901081319340.1626@shell2.speakeasy.net>
-	<20090108193923.580fcd5b@pedra.chehab.org>
-	<Pine.LNX.4.58.0901082156270.1626@shell2.speakeasy.net>
-	<20090109092018.59a6d9eb@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from fallbackmx06.syd.optusnet.com.au ([211.29.132.8]:52547 "EHLO
+	fallbackmx06.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754990AbZAWAqY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jan 2009 19:46:24 -0500
+Received: from mail05.syd.optusnet.com.au (mail05.syd.optusnet.com.au [211.29.132.186])
+	by fallbackmx06.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id n0N0kLMb008078
+	for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 11:46:21 +1100
+Received: from blackpaw.dyndns.org (c122-108-213-22.rochd4.qld.optusnet.com.au [122.108.213.22])
+	(authenticated sender lindsay.mathieson)
+	by mail05.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id n0N0iADF017447
+	for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 11:44:13 +1100
+Received: from blackpaw.dyndns.org (unverified [127.0.0.1])
+	by blackpaw.dyndns.org (SurgeMail 4.0a) with ESMTP id 723-1769969
+	for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 10:44:10 +1000
+From: "Lindsay Mathieson" <lindsay.mathieson@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: TinyTwin (af9015) Results and questions
+Date: Fri, 23 Jan 2009 10:44:09 +1000
+Message-id: <497912d9.3df.52be.1092695642@blackpaw.dyndns.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 9 Jan 2009 09:20:18 -0200, Mauro Carvalho Chehab wrote:
-> 
-> On Thu, 8 Jan 2009 22:01:08 -0800 (PST)
-> Trent Piepho <xyzzy@speakeasy.org> wrote:
-> 
-> > On Thu, 8 Jan 2009, Mauro Carvalho Chehab wrote:
-> > > On Thu, 8 Jan 2009 13:20:19 -0800 (PST)
-> > > Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > > > On Thu, 8 Jan 2009, Mauro Carvalho Chehab wrote:
-> > > > It doesn't seem like any other driver needs to protect the module device
-> > > > table with an ifdef.
-> > >
-> > > However, Zoran driver doesn't rely on pci_register_driver(). Instead, it uses a
-> > > while() loop to probe for Zoran devices:
-> > >
-> > > static int __devinit
-> > > find_zr36057 (void)
-> > > {
-> > > 	...
-> > >
-> > >         zoran_num = 0;
-> > >         while (zoran_num < BUZ_MAX &&
-> > >                (dev = pci_get_device(PCI_VENDOR_ID_ZORAN, PCI_DEVICE_ID_ZORAN_36057, dev)) != NULL) {
-> > > 	...
-> > > }
-> > 
-> > Yuck, why don't we fix this instead?
-> 
-> This will be much better.
-> 
-> > Here's an initial test.  I haven't yet found my dc10+ to test it with.
-> 
-> Unfortunately, I don't have any Zoran card here to test.
-> 
-> Jean, it is up to you to test Trent's patch.
+I've pulled the latest v4l-dvb trunk and installed it, can
+confirm that both tuners of the DigitalNow TinyTwin work
+beautifully. I do have a few questions though.
 
-Will do as soon as I manage to apply it.
+- I still have to specify:
+  options dvb-usb-af9015 dual_mode=1
 
--- 
-Jean Delvare
+to enable the second tuner. I thought that would be on by
+default now the 2nd tuner bugs have been worked out. 
+
+- Is there a official place to download the firmware from?
+Currently I'm getting it from:
+ 
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
+
+- Is it possible to estimate when this will make its way
+into the linux kernel? How will I know?
+
+I ask because I'd like to write up a howto for myth and/or
+ubuntu users, and want to cover all bases.
+
+Thanks - Lindsay
+
+Lindsay Mathieson
+http://members.optusnet.com.au/~blackpaw1/album
+
+Lindsay Mathieson
+http://members.optusnet.com.au/~blackpaw1/album
