@@ -1,84 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4602 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755743AbZA0TZE (ORCPT
+Received: from wienczny.de ([83.246.72.188]:50186 "EHLO wienczny.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751331AbZAWOkl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 14:25:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH] New V4L2 ioctls for OMAP class of Devices
-Date: Tue, 27 Jan 2009 20:24:41 +0100
-Cc: "Shah, Hardik" <hardik.shah@ti.com>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EFE5@dbde02.ent.ti.com> <200901271916.53224.hverkuil@xs4all.nl> <Pine.LNX.4.58.0901271024050.17971@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0901271024050.17971@shell2.speakeasy.net>
+	Fri, 23 Jan 2009 09:40:41 -0500
+Received: from fugo.wienczny.de (ip-78-94-92-8.unitymediagroup.de [78.94.92.8])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by wienczny.de (Postfix) with ESMTPSA id D5E8B15EF3
+	for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 15:33:28 +0100 (CET)
+From: Stephan Wienczny <Stephan@wienczny.de>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Which firmware for cx23885 and xc3028?
+Date: Fri, 23 Jan 2009 15:33:26 +0100
+References: <1232715400.13587.12.camel@novak.chem.klte.hu>
+In-Reply-To: <1232715400.13587.12.camel@novak.chem.klte.hu>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Content-Disposition: inline
-Message-Id: <200901272024.41572.hverkuil@xs4all.nl>
+Message-Id: <200901231533.28021.Stephan@wienczny.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 27 January 2009 19:30:18 Trent Piepho wrote:
-> On Tue, 27 Jan 2009, Hans Verkuil wrote:
-> > On Tuesday 27 January 2009 19:08:43 Trent Piepho wrote:
-> > > On Tue, 27 Jan 2009, Hans Verkuil wrote:
-> > > > > [Shah, Hardik] Hi Hans,
-> > > > > I got your above point.  Now regarding the enum I am not sure
-> > > > > about how to implement it.  Are you suggesting me to remove the
-> > > > > control ID for rotation and implement in some other way.  Please
-> > > > > let me know if I am missing something. Currently in driver I have
-> > > > > implemented the rotation in below way {
-> > > > >                 .id            = V4L2_CID_ROTATION,
-> > > > >                 .name          = "Rotation",
-> > > > >                 .minimum       = 0,
-> > > > >                 .maximum       = 270,
-> > > > >                 .step          = 90,
-> > > > >                 .default_value = -1,
-> > > > >                 .flags         = 0,
-> > > > >                 .type          = V4L2_CTRL_TYPE_INTEGER,
-> > > > > You want me to change V4L2_CTRL_TYPE_INTEGER to some enum or
-> > > > > something.
-> > > >
-> > > > Change it to V4L2_CTRL_TYPE_MENU. See:
-> > > > http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-sing
-> > > >le/v 4l2.html#VIDIOC-QUERYCTRL
-> > >
-> > > Thinking about it more, I think an integer control like this might
-> > > make more sense.  default_value should be changed to 0 of course. 
-> > > Extracting the real meaning from the control setting is more obvious
-> > > for the integer control than a menu.  And what if some hardware
-> > > allows for rotations other than 90 degrees?
-> >
-> > If the hardware can do rotations other than 90 degrees then we get into
-> > the area of video effects. In principle such a driver can implement
-> > this rotation control as an integer rather than a menu (apps are
-> > supposed to query the type of a control dynamically, after all). But
-> > for a case like this where there are only four values I think a
-> > menu-type control is much more user-friendly.
+Try to extract the firmware using this Script:
+
+<linux-source>/Documentation/video4linux/extract_xc3028.pl
+
+A howto is included the header of the script.
+
+Best regards
+Stephan Wienczny
+
+Am Freitag 23 Januar 2009 13:56:40 schrieb Levente Novák:
+> I am trying to make an AverMedia AverTV Hybrid Express (A577) work under
+> Linux. It seems all major chips (cx23885, xc3028 and af9013) are already
+> supported, so it should be doable in principle.
 >
-> How so?  An application can easily tell from the range and step of the
-> integer control that there are only four values.  And it can easily tell
-> what the values mean.  For instance if the app wants to show icons for
-> the rotations or have a command line parameter "rotation in degrees",
-> it's easy to figure out what value the control should be set to.  For a
-> menu, what is the app supposed to do?  Call atoi() on the menu entry
-> names and hope that they parse corretly?  Seems like a kludge to do that.
+> I am stuck a little bit since AFAIK both cx23885 and xc3028 need an
+> uploadable firmware. Where should I download/extract such firmware from?
+> I tried Steven Toth's repo (the Hauppauge HVR-1400 seems to be built
+> around these chips as well) but even after copying the files
+> under /lib/firmware it didn't really work. I tried to specify different
+> cardtypes for the cx23885 module. For cardtype=2 I got a /dev/video0 and
+> a /dev/video1 (the latter is of course unusable, I don't have a MPEG
+> encoder chip on my card) but tuning was unsuccesful. All the other types
+> I tried either didn't work at all or only resulted in dvb devices
+> detected. For the moment, I am fine without DVB, and are interested
+> mainly in analog devices.
+>
+> Maybe I should locate the windows driver of my card and extract the
+> firmware files from it? If so, how do I proceed?
+>
+> Thanks in advance!
+>
+> Levente
+>
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-In the case of menus each possible menu item always corresponds with an enum 
-defined in videodev2.h. So it is no problem doing what you want with a 
-menu.
-
-That said, it is a good point that you can use an integer with an 
-appropriate step size. I'd forgotten about that. Hmm, I really have no 
-preference. Let's keep it as an integer after all.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
