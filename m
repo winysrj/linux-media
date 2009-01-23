@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0NDY1X3018148
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:34:01 -0500
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0NDXhr6014671
-	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:33:43 -0500
-From: Andy Walls <awalls@radix.net>
-To: Alissa Harrison <alissa.m.harrison@gmail.com>
-In-Reply-To: <c57f98ff0901211908y72160a7fx745b747d271ba80c@mail.gmail.com>
-References: <c57f98ff0901211908y72160a7fx745b747d271ba80c@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 23 Jan 2009 08:34:26 -0500
-Message-Id: <1232717666.3271.1.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0NISCkq002051
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 13:28:12 -0500
+Received: from mail-ew0-f16.google.com (mail-ew0-f16.google.com
+	[209.85.219.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0NIRX4m021107
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 13:27:58 -0500
+Received: by mail-ew0-f16.google.com with SMTP id 9so408302ewy.3
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 10:27:58 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 23 Jan 2009 20:27:57 +0200
+Message-ID: <b7b14cbb0901231027vbd02d34k8e7fc45cdad55f05@mail.gmail.com>
+From: Clinton Lee Taylor <clintonlee.taylor@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: bttv driver not initializing card
+Subject: EasyCap Device ...
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,56 +27,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 2009-01-22 at 11:08 +0800, Alissa Harrison wrote:
-> I cannot get the bttv driver to initialize my TV tuner card with mythbuntu
-> (Hardy Heron). The TV tuner is Leadtek WinFast 2000 XP and should be
-> supported by the bttv driver according to
-> http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/video4linux/CARDLIST.bttv
-> 
-> The card is listed in the output of lspci:
-> 
-> 02:0d.0 Multimedia video controller: Brooktree Corporation Unknown device
-> 034e (rev 11)
-> Subsystem: LeadTek Research Inc. Unknown device 6609
-> Flags: bus master, medium devsel, latency 64, IRQ 5
-> Memory at faf00000 (32-bit, prefetchable) [size=4K]
-> Capabilities: <access denied>
-> 
-> 02:0d.1 Multimedia controller: Brooktree Corporation Unknown device 0858
-> (rev 11)
-> Subsystem: LeadTek Research Inc. Unknown device 6609
-> Flags: bus master, medium devsel, latency 64, IRQ 5
-> Memory at faf01000 (32-bit, prefetchable) [size=4K]
-> Capabilities: <access denied>
-> 
-> But when I attempt to modprobe bttv, it does not detect any card. No device
-> is assigned. The relevant output from dmesg is only two lines:
-> 
-> [ 757.695711] bttv: driver version 0.9.17 loaded
-> [ 757.695721] bttv: using 8 buffers with 2080k (520 pages) each for capture
-> 
-> I believe I should get output like
-> http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_2000#Making_it_Work
-> 
-> I have already tried plugging the card into other PCI slots. However, it is
-> not even detected by lspci in other slots. I am wondering if there is
-> something wrong with the motherboard here? The board is an ASUS P4P800. Can
-> anyone explain why the driver fails to initialize the card, or why lspci
-> fails to detect the card in other PCI slots?
+Greetings ...
 
-Remove your PCI cards, blow the dust out of the slots, reseat the cards,
-test again.
+ I have one of the following device called "EasyCAP USB 2.0 Video
+Adapter with Audio", some details could be found at
+http://www.alibaba.com/product-gs/213186597/EasyCAP_USB_2_0_Video_Adapter.html
 
-Regards,
-Andy
+ I'm seeing many of these device in the local shops of late and was
+hoping we could put some effort in and get it supported.
 
-> Thanks,
-> Alissa
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
+ Went through some of the wiki docs and they seem way too much work to
+get done, for what this device is worth, so, instead of play broken
+v4l2 [ phone ;-) ] with this device, I would be willing to purchase
+one of these and get it sent to a developer.  I believe with the
+device in hand, a developer could test and write code quicker than I
+could do the needed dumps ...
+
+ Now, if a developer of note could stand up and put some time down, I
+will following up with supplying the device ...
+
+Thanks
+Mailed
+LeeT
+
+P.S. Many thanks to all the hard working guys getting this stuff all together!!
 
 --
 video4linux-list mailing list
