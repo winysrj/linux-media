@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx38.mail.ru ([194.67.23.16])
+Received: from mail-gx0-f21.google.com ([209.85.217.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1LJaMT-0007sX-4h
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 22:18:20 +0100
-Date: Mon, 5 Jan 2009 00:24:04 +0300
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090105002404.3f385576@bk.ru>
-In-Reply-To: <op.um82p6r7rj95b0@localhost>
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
-	<Pine.LNX.4.64.0901041435090.1668@shogun.pilppa.org>
-	<op.um8hljd6rj95b0@localhost> <20090104175638.2a92018b@bk.ru>
-	<op.um82p6r7rj95b0@localhost>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+	(envelope-from <alex.betis@gmail.com>) id 1LQS4q-00083t-5e
+	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 20:52:28 +0100
+Received: by gxk14 with SMTP id 14so4969056gxk.17
+	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 11:51:53 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20090123224924.62a48791@bk.ru>
+References: <20090123205854.45e40dd0@bk.ru> <200901231959.49629.hftom@free.fr>
+	<20090123224924.62a48791@bk.ru>
+Date: Fri, 23 Jan 2009 21:51:53 +0200
+Message-ID: <c74595dc0901231151iafa6b15kd3c0949e0ed86668@mail.gmail.com>
+From: Alex Betis <alex.betis@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx24116 & roll-off factor = auto
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,29 +23,117 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1991036394=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-PiA+PiBJJ3ZlIHRyaWVkIGNsZWFuIHZkciAxLjcuMiAod2l0aG91dCBwYXRjaGVzKSBhbmQgaXQg
-ZG9lc24ndCB3b3JrICh3b3JrcyAgCj4gPj4gc29tZXRpbWVzKS4KPiA+PiBXaGVuIEkgdHJ5IHRv
-IGNoYW5nZSBjaGFubmVscyBpbiB2ZHIgMS43LjIgSSBzZWUgaW4gbG9nOgo+ID4+IEphbiAgNCAx
-Mzo1Nzo0MyBibGFja2JveCB2ZHI6IFszMjUwXSBmcm9udGVuZCAwIGxvc3QgbG9jayBvbiBjaGFu
-bmVsICAKPiA+PiA0MzcsIHRwIDExMDc0Mwo+ID4+IEphbiAgNCAxMzo1Nzo0NSBibGFja2JveCB2
-ZHI6IFszMjUwXSBmcm9udGVuZCAwIHRpbWVkIG91dCB3aGlsZSB0dW5pbmcgIAo+ID4+IHRvIGNo
-YW5uZWwgNDM3LCB0cCAxMTA3NDMKPiA+Pgo+ID4+IEJ0dyBJIGRvbid0IHVzZSBodnItNDAwMCBJ
-IGhhdmUgb25seSBvbmUgVGVWaWkgUzQ2MCBEVkItUy9TMiBjYXJkLgo+ID4+Cj4gPj4gQnV0IHZk
-ciAxLjYgd29ya3MKPiA+Cj4gPgo+ID4gY2FuIHlvdSB0cnkgdmRyIDE3MCA/Cj4gPgo+IAo+IERv
-ZXNuJ3QgY29tcGlsZQo+IGR2YmRldmljZS5oOjM0OiBlcnJvcjog4oCYZHZiZmVfZGVsc3lz4oCZ
-IGRvZXMgbm90IG5hbWUgYSB0eXBlCgoKb2YgY291cnNlIHlvdSBzaG91bGQgaW5zdGFsbCAyIHBh
-dGNoZXMgZm9yIHZkciAxNzAKCmh0dHA6Ly93d3cubGludXh0di5vcmcvcGlwZXJtYWlsL3Zkci9h
-dHRhY2htZW50cy8yMDA4MDQxMy8xMDU0YmNmYi9hdHRhY2htZW50LTAwMDEuYmluCnZkci0xLjcu
-MC1oMjY0LXN5bmNlYXJseS1mcmFtZXNwZXJzZWMtYXVkaW9pbmRleGVyLWZpZWxkZGV0ZWN0aW9u
-LXNwZWVkdXAuZGlmZi5iejIKCmh0dHA6Ly93d3cubGludXh0di5vcmcvcGlwZXJtYWlsL3Zkci9h
-dHRhY2htZW50cy8yMDA4MTAwNy9lZGNkM2ZjYy9hdHRhY2htZW50LTAwMDEub2JqCnZkci0xLjcu
-MC1zMmFwaS0wNzEwMjAwOC1oMjY0LWNsZWFuLnBhdGNoLmd6CgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51
-eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4v
-bGlzdGluZm8vbGludXgtZHZi
+--===============1991036394==
+Content-Type: multipart/alternative; boundary=001636e90a80772afa04612bb84c
+
+--001636e90a80772afa04612bb84c
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+On Fri, Jan 23, 2009 at 9:49 PM, Goga777 <goga777@bk.ru> wrote:
+
+> > > does support cx24116  the roll-off factor = auto ?
+> >
+> > no
+>
+> who should be care about of corrected roll-off factor which have to send to
+> cx24116 - the drivers or user software ? does
+> roll-off factor = 0,35 good for 99% dvb-s2 channels ?
+
+Driver interface allows specifying AUTO value for most of the parameters.
+User application has no idea what card is used and what driver is running.
+Since there are other drivers/chipsets that can handle AUTO setting, I don't
+see any reason why application should not use it.
+
+For example, DVB-S uses only rolloff = 0.35, so if the driver knows that the
+chip can't accept auto value, it should use 0.35 value by default in that
+case.
+
+Beside all that, there is a bigger problem that pops up with cx24116 chips
+using S2API.
+When specifying AUTO value for any of the parameters the driver fails the
+tuning, but the application knows nothing about it, so it thinks that
+current received stream is from the new channel, while its not true.
+
+
+
+>
+> Goga
+>
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+--001636e90a80772afa04612bb84c
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div class=3D"gmail_quote">On Fri, Jan 23, 2009 at 9:49 PM=
+, Goga777 <span dir=3D"ltr">&lt;<a href=3D"mailto:goga777@bk.ru">goga777@bk=
+.ru</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D"bor=
+der-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-=
+left: 1ex;">
+&gt; &gt; does support cx24116 &nbsp;the roll-off factor =3D auto ?<br>
+&gt;<br>
+&gt; no<br>
+<br>
+who should be care about of corrected roll-off factor which have to send to=
+ cx24116 - the drivers or user software ? does<br>
+roll-off factor =3D 0,35 good for 99% dvb-s2 channels ?</blockquote><div>Dr=
+iver interface allows specifying AUTO value for most of the parameters.<br>=
+User application has no idea what card is used and what driver is running.<=
+br>
+Since there are other drivers/chipsets that can handle AUTO setting, I don&=
+#39;t see any reason why application should not use it.<br><br>For example,=
+ DVB-S uses only rolloff =3D 0.35, so if the driver knows that the chip can=
+&#39;t accept auto value, it should use 0.35 value by default in that case.=
+<br>
+<br>Beside all that, there is a bigger problem that pops up with cx24116 ch=
+ips using S2API.<br>When specifying AUTO value for any of the parameters th=
+e driver fails the tuning, but the application knows nothing about it, so i=
+t thinks that current received stream is from the new channel, while its no=
+t true.<br>
+<br><br></div><blockquote class=3D"gmail_quote" style=3D"border-left: 1px s=
+olid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br=
+>
+<br>
+Goga<br>
+<br>
+<br>
+<br>
+_______________________________________________<br>
+linux-dvb users mailing list<br>
+For V4L/DVB development, please use instead <a href=3D"mailto:linux-media@v=
+ger.kernel.org">linux-media@vger.kernel.org</a><br>
+<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
+t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
+br>
+</blockquote></div><br></div>
+
+--001636e90a80772afa04612bb84c--
+
+
+--===============1991036394==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1991036394==--
