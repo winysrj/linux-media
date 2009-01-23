@@ -1,28 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from correo.cdmon.com ([212.36.74.112])
+Received: from yw-out-2324.google.com ([74.125.46.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jordi@cdmon.com>) id 1LKTTv-0007yF-TD
-	for linux-dvb@linuxtv.org; Wed, 07 Jan 2009 09:09:40 +0100
-Received: from localhost (localhost.cdmon.com [127.0.0.1])
-	by correo.cdmon.com (Postfix) with ESMTP id 8C669130E60
-	for <linux-dvb@linuxtv.org>; Wed,  7 Jan 2009 09:09:04 +0100 (CET)
-Received: from correo.cdmon.com ([127.0.0.1])
-	by localhost (correo.cdmon.com [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id 9oucQEZJOIN6 for <linux-dvb@linuxtv.org>;
-	Wed,  7 Jan 2009 09:09:01 +0100 (CET)
-Received: from [192.168.0.174] (62.Red-217-126-43.staticIP.rima-tde.net
-	[217.126.43.62])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by correo.cdmon.com (Postfix) with ESMTP id 059A3130DBF
-	for <linux-dvb@linuxtv.org>; Wed,  7 Jan 2009 09:09:00 +0100 (CET)
-Message-ID: <49646315.20709@cdmon.com>
-Date: Wed, 07 Jan 2009 09:08:53 +0100
-From: Jordi Moles Blanco <jordi@cdmon.com>
+	(envelope-from <admin@monolithmc.com>) id 1LQMQN-0001X2-Kz
+	for linux-dvb@linuxtv.org; Fri, 23 Jan 2009 14:50:20 +0100
+Received: by yw-out-2324.google.com with SMTP id 3so2111626ywj.41
+	for <linux-dvb@linuxtv.org>; Fri, 23 Jan 2009 05:50:14 -0800 (PST)
 MIME-Version: 1.0
+Date: Fri, 23 Jan 2009 08:50:14 -0500
+Message-ID: <e816454e0901230550t5a4afbd5yed9828f18c521f7b@mail.gmail.com>
+From: Andrew Barbaccia <andrew@monolithmc.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] support for remote in lifeview pci trio
-Reply-To: jordi@cdmon.com
+Subject: [linux-dvb]  AverTV Duo Hybrid PCI-E II
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,37 +19,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1315749168=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
+--===============1315749168==
+Content-Type: multipart/alternative; boundary=0016e644df4c239b85046126ab67
 
-i've been googling and trying some things during days with no luck.
+--0016e644df4c239b85046126ab67
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-i want to get the remote which comes with this card working, and i only 
-found old posts like this one:
+Hello,
+I've found this card and was wondering if someone could give me an idea
+where driver development sits for the chipset:
 
-http://www.spinics.net/lists/vfl/msg29862.html
+http://www.avermedia.com/avertv/product/ProductDetail.aspx?Id=450
 
-which assures that the patch gets the remote to work on that card.
+It has a nice feature set and I could try to help the developers with the
+drivers if it is unsupported.
 
-i downloaded the latest v4l source code and tried to patch it with the 
-code proposed on that post, but var names have changed and i don't have 
-a clue on how to apply it properly.
+Cheers!
+Andrew
 
-i haven't seen any more recent post, so i guess it may still be in a 
-to-do list, or may be it was rejected for some reason to go into the 
-main-line.
+--0016e644df4c239b85046126ab67
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Could anyone tell me if this patch will ever be included? or... what v4l 
-version could i download to be able to patch it as described?
+Hello,<div><br></div><div>I&#39;ve found this card and was wondering if som=
+eone could give me an idea where driver development sits for the chipset:</=
+div><div><br></div><div><a href=3D"http://www.avermedia.com/avertv/product/=
+ProductDetail.aspx?Id=3D450">http://www.avermedia.com/avertv/product/Produc=
+tDetail.aspx?Id=3D450</a><br>
+</div><div><br></div><div>It has a nice feature set and I could try to help=
+ the developers with the drivers if it is unsupported.</div><div><br></div>=
+<div>Cheers!</div><div>Andrew</div>
 
-Thanks.
+--0016e644df4c239b85046126ab67--
+
+
+--===============1315749168==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1315749168==--
