@@ -1,69 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:59794 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752931AbZAUJvO (ORCPT
+Received: from smtp-out112.alice.it ([85.37.17.112]:3085 "EHLO
+	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625AbZAWRCI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2009 04:51:14 -0500
-Date: Wed, 21 Jan 2009 01:51:10 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Arnd Bergmann <arnd@arndb.de>
-cc: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaswinder Singh Rajput <jaswinder@kernel.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Sam Ravnborg <sam@ravnborg.org>, Ingo Molnar <mingo@elte.hu>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: Confusion in usr/include/linux/videodev.h
-In-Reply-To: <200901211009.14856.arnd@arndb.de>
-Message-ID: <Pine.LNX.4.58.0901210129350.13170@shell2.speakeasy.net>
-References: <1232502038.3123.61.camel@localhost.localdomain>
- <Pine.LNX.4.58.0901210048500.13170@shell2.speakeasy.net>
- <3f9a31f40901210059g51d46f56t85364d886b757a6e@mail.gmail.com>
- <200901211009.14856.arnd@arndb.de>
+	Fri, 23 Jan 2009 12:02:08 -0500
+From: "Wayne and Holly" <wayneandholly@alice.it>
+To: <linux-media@vger.kernel.org>, <linux-dvb@linuxtv.org>
+Subject: RE: [linux-dvb] Which firmware for cx23885 and xc3028?
+Date: Fri, 23 Jan 2009 18:01:08 +0100
+Message-ID: <000001c97d7c$3005c130$0202a8c0@speedy>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1232715400.13587.12.camel@novak.chem.klte.hu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 21 Jan 2009, Arnd Bergmann wrote:
-> On Wednesday 21 January 2009, Jaswinder Singh Rajput wrote:
-> > > diff -r 29c5787efcda linux/include/linux/videodev.h
-> > > --- a/linux/include/linux/videodev.h    Thu Jan 15 09:07:03 2009 -0800
-> > > +++ b/linux/include/linux/videodev.h    Wed Jan 21 00:51:45 2009 -0800
-> > > @@ -15,7 +15,8 @@
-> > >  #include <linux/ioctl.h>
-> > >  #include <linux/videodev2.h>
-> > >
-> > > -#if defined(CONFIG_VIDEO_V4L1_COMPAT) || !defined (__KERNEL__)
-> > > +#if (defined(__KERNEL__) && defined(CONFIG_VIDEO_V4L1_COMPAT)) \
-> > > +    || !defined (__KERNEL__)
-> > >
-> > >  #define VID_TYPE_CAPTURE       1       /* Can capture */
-> > >  #define VID_TYPE_TUNER         2       /* Can tune */
-> > >
-> > > Now CONFIG_VIDEO_V4L1_COMPAT will only be used in the kernel.
-> > >
-> >
-> > No, this will still give warnings.
->
-> You could #define another conditional, like this:
->
-> #ifndef __KERNEL__
-> # define __V4L1_COMPAT_API /* Always provide definitions to user space */
-> #else /* __KERNEL__ */
-> # ifdef CONFIG_VIDEO_V4L1_COMPAT
-> #  define __V4L1_COMPAT_API
-> # endif /* CONFIG_VIDEO_V4L1_COMPAT /*
-> #endif /* __KERNEL__ */
 
-I see what the real problem is now, the unifdef program isn't smart enough
-to realize that it knows the result of !defined(__KERNEL__) || defined(FOO)
-and so it keeps those ifdefs in when it should be able to remove them.
 
-This works too:
+> -----Original Message-----
+> From: linux-dvb-bounces@linuxtv.org 
+> [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Levente Novák
+> Sent: Friday, 23 January 2009 1:57 p.m.
+> To: linux-dvb@linuxtv.org
+> Subject: [linux-dvb] Which firmware for cx23885 and xc3028?
+> 
+> 
+> I am trying to make an AverMedia AverTV Hybrid Express (A577) 
+> work under Linux. It seems all major chips (cx23885, xc3028 
+> and af9013) are already supported, so it should be doable in 
+> principle.
+> 
+> I am stuck a little bit since AFAIK both cx23885 and xc3028 
+> need an uploadable firmware. Where should I download/extract 
+> such firmware from? I tried Steven Toth's repo (the Hauppauge 
+> HVR-1400 seems to be built around these chips as well) but 
+> even after copying the files under /lib/firmware it didn't 
+> really work. I tried to specify different cardtypes for the 
+> cx23885 module. For cardtype=2 I got a /dev/video0 and a 
+> /dev/video1 (the latter is of course unusable, I don't have a 
+> MPEG encoder chip on my card) but tuning was unsuccesful. All 
+> the other types I tried either didn't work at all or only 
+> resulted in dvb devices detected. For the moment, I am fine 
+> without DVB, and are interested mainly in analog devices.
+> 
+> Maybe I should locate the windows driver of my card and 
+> extract the firmware files from it? If so, how do I proceed?
+> 
+> Thanks in advance!
+> 
+> Levente
+> 
+> 
 
-#ifndef __KERNEL__
-# define __V4L1_COMPAT_API /* Always provide definitions to user space */
-#elif defined(CONFIG_VIDEO_V4L1_COMPAT) /* __KERNEL__ */
-# define __V4L1_COMPAT_API
-#endif /* CONFIG_VIDEO_V4L1_COMPAT */
+
+Have you followed these instructions?:
+http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#How_to_Obtain_the
+_Firmware
+
+Cheers
+Wayne
+
