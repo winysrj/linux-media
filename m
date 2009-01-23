@@ -1,112 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3421 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933AbZAMTNM (ORCPT
+Received: from ayden.softclick-it.de ([217.160.202.102]:52927 "EHLO
+	ayden.softclick-it.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751402AbZAWUMB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2009 14:13:12 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	Fri, 23 Jan 2009 15:12:01 -0500
+Received: from [192.168.3.100] (p57A38AA9.dip0.t-ipconnect.de [87.163.138.169])
 	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0DJD8UQ079354
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 13 Jan 2009 20:13:09 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 13 Jan 2009 20:13:08 +0100 (CET)
-Message-Id: <200901131913.n0DJD8UQ079354@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	by ayden.softclick-it.de (8.12.3/8.14.0/3.1.1/UNIX) with ESMTP id n0NJxfF7021431
+	for <linux-media@vger.kernel.org>; Fri, 23 Jan 2009 20:59:42 +0100
+Message-ID: <497A2209.2050801@to-st.de>
+Date: Fri, 23 Jan 2009 21:01:13 +0100
+From: =?ISO-8859-1?Q?Tobias_St=F6ber?= <tobi@to-st.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
+References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+Moin, moin (as people say in Northern Germany) :)
 
-Results of the daily build of v4l-dvb:
+BOUWSMA Barry schrieb:
+> I've just learned that effective 24.Feb, there will be a change
+> made to the channel assignment in the area of Hamburg.
+> 
+> This is due to the fact that one existing multiplex is found
+> within the VHF band, which is in the process of being cleared
+> of DVB-T services, moving them to assigned UHF channels, in
+> order to free the VHF band for radio services (DAB/DAB+ and
+> family).
+> 
+> Several other areas, such as Bayern, currently make use of
+> VHF frequencies at several transmitter sites.  I am not yet
+> aware of what plans exist to change these frequencies...
 
-date:        Tue Jan 13 19:00:05 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10228:b09b5128742f
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+As for certain area in Saxony-Anhalt, Saxony and Thuringia there ahve 
+never been VHF channels in use. Tis applies normally only to area from 
+the first stage of the German DVB-T project.
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29-rc1-armv5-ixp: WARNINGS
-linux-2.6.27-armv5-omap2: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29-rc1-armv5-omap2: WARNINGS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29-rc1-i686: WARNINGS
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc1-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: WARNINGS
-linux-2.6.27-mips: WARNINGS
-linux-2.6.28-mips: WARNINGS
-linux-2.6.29-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc1-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc1-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc1): ERRORS
+Lower Saxony has recently (November 2008) cleared several channels, like 
+in my area (Brunswick), where there had been an ARD Mux on Ch 8. Now  it 
+  is on Ch 47.
 
-Detailed results are available here:
+> The following diff will add the newly assigned frequency,
+> and remove the old one, with an effective date of 24.Feb.
+> 
+> The particular modulation parameters are not confirmed, so
+> I've had to guess based on existing values used elsewhere
+> in the NDR coverage area as well as what generally is used
+> throughout germany.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Information for the whole NDR area will normally be found at 
+http://www.dvb-t-nord.de.
 
-Full logs are available here:
+There is a complete listing including parameters from "in area" and also 
+"out of area" (but with reception in the area) transmitters at
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+http://www.ueberallfernsehen.de/data/senderliste_25_11_2008.pdf
+
+So have a look ;)
+
+Best regards, Tobias
