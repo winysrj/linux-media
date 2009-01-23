@@ -1,21 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n02FxbDq026560
-	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 10:59:37 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n02FxMKZ025741
-	for <video4linux-list@redhat.com>; Fri, 2 Jan 2009 10:59:22 -0500
-Date: Fri, 2 Jan 2009 16:59:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Eric Miao <eric.y.miao@gmail.com>
-In-Reply-To: <f17812d70901020716n2e6bb9cas2958ea4df2a19af8@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0901021625420.4694@axis700.grange>
-References: <f17812d70901020716n2e6bb9cas2958ea4df2a19af8@mail.gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0NDBU3u008403
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:11:30 -0500
+Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0NDBCTe030975
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 08:11:12 -0500
+Received: from tervel.nabble.com ([192.168.236.150])
+	by kuber.nabble.com with esmtp (Exim 4.63)
+	(envelope-from <bounces@n2.nabble.com>) id 1LQLoW-0002yt-JF
+	for video4linux-list@redhat.com; Fri, 23 Jan 2009 05:11:12 -0800
+Message-ID: <1232716272588-2203202.post@n2.nabble.com>
+Date: Fri, 23 Jan 2009 05:11:12 -0800 (PST)
+From: RobM <robmaurer@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <412bdbff0811261402s2cf5d965xc5dc60325f5a95ec@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] pxa-camera: fix redefinition warnings and missing DMA
- definitions
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
+	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
+	<alpine.DEB.1.10.0811262158020.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261343m32021a70ia5a1e3541233c2bd@mail.gmail.com>
+	<alpine.DEB.1.10.0811262251210.10867@bakacsin.ki.iif.hu>
+	<412bdbff0811261402s2cf5d965xc5dc60325f5a95ec@mail.gmail.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,173 +40,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2 Jan 2009, Eric Miao wrote:
 
-> 1. now pxa_camera.c uses ioremap() for register access, pxa_camera.h is
->    totally useless. Remove it.
-> 
-> 2. <asm/dma.h> does no longer include <mach/dma.h>, include the latter
->    file explicitly
-> 
-> Signed-off-by: Eric Miao <eric.miao@marvell.com>
+Hi Mr. Devin,
+I have the aforementioned ADS Instant TV USB (Model USBAV-704N). It's doing
+me little good at the moment as like Gabor I cannot make it work. If you are
+still interested in having it shipped to you for a bit of inspection/testing
+I am happy to loan it to you.
+Best regards,
+Rob (Massachusetts, USA)
 
-Mauro, it looks like the drivers/media/video/pxa_camera.h part of 
-http://linuxtv.org/hg/~gliakhovetski/v4l-dvb/rev/30773c067724 has been 
-dropped on its way to 
-http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-2.6.git;a=commitdiff;h=5ca11fa3e0025864df930d6d97470b87c35919ed
 
-Your hg tree also includes the header hunks, so, it disappeared between 
-your hg tree and the git tree. Looks like you also lost this hunk
-
- #include <asm/arch/camera.h>
- #endif
- 
--#include "pxa_camera.h"
--
- #define PXA_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5)
- #define PXA_CAM_DRV_NAME "pxa27x-camera"
-
-so that now registers are defined twice - by including the header and 
-directly in .c. What shall we do now? I presume, we cannot roll back 
-git-tree(s) any more, so, we have to somehow synchronise our hg-trees 
-now. (how much easier this would be in a perfect world without partial 
-hg-trees...)
-
-Thanks
-Guennadi
-
-> ---
->  drivers/media/video/pxa_camera.c |    4 +-
->  drivers/media/video/pxa_camera.h |   95 --------------------------------------
->  2 files changed, 1 insertions(+), 98 deletions(-)
->  delete mode 100644 drivers/media/video/pxa_camera.h
+Devin Heitmueller wrote:
 > 
-> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-> index 9d33de2..a1d6008 100644
-> --- a/drivers/media/video/pxa_camera.c
-> +++ b/drivers/media/video/pxa_camera.c
-> @@ -34,12 +34,10 @@
+> On Wed, Nov 26, 2008 at 4:59 PM, Kiss Gabor (Bitman)
+> <kissg@ssg.ki.iif.hu> wrote:
+>>> please open the unit and send me some high-resolution photographs of
+>>> the circuit board?
+>>
+>> At this moment I have no idea at all how to open the box without
+>> serious damages.
+>> Is this necessary? Could you check the July thread about the same
+>> device?
 > 
->  #include <linux/videodev2.h>
+> I'll do some research and get back to you, as it might already be
+> well-known what devices are contained.
 > 
-> -#include <asm/dma.h>
-> +#include <mach/dma.h>
->  #include <mach/pxa-regs.h>
->  #include <mach/camera.h>
+> Thanks for all your help,
 > 
-> -#include "pxa_camera.h"
-> -
->  #define PXA_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5)
->  #define PXA_CAM_DRV_NAME "pxa27x-camera"
+> Devin
 > 
-> diff --git a/drivers/media/video/pxa_camera.h b/drivers/media/video/pxa_camera.h
-> deleted file mode 100644
-> index 89cbfc9..0000000
-> --- a/drivers/media/video/pxa_camera.h
-> +++ /dev/null
-> @@ -1,95 +0,0 @@
-> -/* Camera Interface */
-> -#define CICR0		__REG(0x50000000)
-> -#define CICR1		__REG(0x50000004)
-> -#define CICR2		__REG(0x50000008)
-> -#define CICR3		__REG(0x5000000C)
-> -#define CICR4		__REG(0x50000010)
-> -#define CISR		__REG(0x50000014)
-> -#define CIFR		__REG(0x50000018)
-> -#define CITOR		__REG(0x5000001C)
-> -#define CIBR0		__REG(0x50000028)
-> -#define CIBR1		__REG(0x50000030)
-> -#define CIBR2		__REG(0x50000038)
-> -
-> -#define CICR0_DMAEN	(1 << 31)	/* DMA request enable */
-> -#define CICR0_PAR_EN	(1 << 30)	/* Parity enable */
-> -#define CICR0_SL_CAP_EN	(1 << 29)	/* Capture enable for slave mode */
-> -#define CICR0_ENB	(1 << 28)	/* Camera interface enable */
-> -#define CICR0_DIS	(1 << 27)	/* Camera interface disable */
-> -#define CICR0_SIM	(0x7 << 24)	/* Sensor interface mode mask */
-> -#define CICR0_TOM	(1 << 9)	/* Time-out mask */
-> -#define CICR0_RDAVM	(1 << 8)	/* Receive-data-available mask */
-> -#define CICR0_FEM	(1 << 7)	/* FIFO-empty mask */
-> -#define CICR0_EOLM	(1 << 6)	/* End-of-line mask */
-> -#define CICR0_PERRM	(1 << 5)	/* Parity-error mask */
-> -#define CICR0_QDM	(1 << 4)	/* Quick-disable mask */
-> -#define CICR0_CDM	(1 << 3)	/* Disable-done mask */
-> -#define CICR0_SOFM	(1 << 2)	/* Start-of-frame mask */
-> -#define CICR0_EOFM	(1 << 1)	/* End-of-frame mask */
-> -#define CICR0_FOM	(1 << 0)	/* FIFO-overrun mask */
-> -
-> -#define CICR1_TBIT	(1 << 31)	/* Transparency bit */
-> -#define CICR1_RGBT_CONV	(0x3 << 29)	/* RGBT conversion mask */
-> -#define CICR1_PPL	(0x7ff << 15)	/* Pixels per line mask */
-> -#define CICR1_RGB_CONV	(0x7 << 12)	/* RGB conversion mask */
-> -#define CICR1_RGB_F	(1 << 11)	/* RGB format */
-> -#define CICR1_YCBCR_F	(1 << 10)	/* YCbCr format */
-> -#define CICR1_RGB_BPP	(0x7 << 7)	/* RGB bis per pixel mask */
-> -#define CICR1_RAW_BPP	(0x3 << 5)	/* Raw bis per pixel mask */
-> -#define CICR1_COLOR_SP	(0x3 << 3)	/* Color space mask */
-> -#define CICR1_DW	(0x7 << 0)	/* Data width mask */
-> -
-> -#define CICR2_BLW	(0xff << 24)	/* Beginning-of-line pixel clock
-> -					   wait count mask */
-> -#define CICR2_ELW	(0xff << 16)	/* End-of-line pixel clock
-> -					   wait count mask */
-> -#define CICR2_HSW	(0x3f << 10)	/* Horizontal sync pulse width mask */
-> -#define CICR2_BFPW	(0x3f << 3)	/* Beginning-of-frame pixel clock
-> -					   wait count mask */
-> -#define CICR2_FSW	(0x7 << 0)	/* Frame stabilization
-> -					   wait count mask */
-> -
-> -#define CICR3_BFW	(0xff << 24)	/* Beginning-of-frame line clock
-> -					   wait count mask */
-> -#define CICR3_EFW	(0xff << 16)	/* End-of-frame line clock
-> -					   wait count mask */
-> -#define CICR3_VSW	(0x3f << 10)	/* Vertical sync pulse width mask */
-> -#define CICR3_BFPW	(0x3f << 3)	/* Beginning-of-frame pixel clock
-> -					   wait count mask */
-> -#define CICR3_LPF	(0x7ff << 0)	/* Lines per frame mask */
-> -
-> -#define CICR4_MCLK_DLY	(0x3 << 24)	/* MCLK Data Capture Delay mask */
-> -#define CICR4_PCLK_EN	(1 << 23)	/* Pixel clock enable */
-> -#define CICR4_PCP	(1 << 22)	/* Pixel clock polarity */
-> -#define CICR4_HSP	(1 << 21)	/* Horizontal sync polarity */
-> -#define CICR4_VSP	(1 << 20)	/* Vertical sync polarity */
-> -#define CICR4_MCLK_EN	(1 << 19)	/* MCLK enable */
-> -#define CICR4_FR_RATE	(0x7 << 8)	/* Frame rate mask */
-> -#define CICR4_DIV	(0xff << 0)	/* Clock divisor mask */
-> -
-> -#define CISR_FTO	(1 << 15)	/* FIFO time-out */
-> -#define CISR_RDAV_2	(1 << 14)	/* Channel 2 receive data available */
-> -#define CISR_RDAV_1	(1 << 13)	/* Channel 1 receive data available */
-> -#define CISR_RDAV_0	(1 << 12)	/* Channel 0 receive data available */
-> -#define CISR_FEMPTY_2	(1 << 11)	/* Channel 2 FIFO empty */
-> -#define CISR_FEMPTY_1	(1 << 10)	/* Channel 1 FIFO empty */
-> -#define CISR_FEMPTY_0	(1 << 9)	/* Channel 0 FIFO empty */
-> -#define CISR_EOL	(1 << 8)	/* End of line */
-> -#define CISR_PAR_ERR	(1 << 7)	/* Parity error */
-> -#define CISR_CQD	(1 << 6)	/* Camera interface quick disable */
-> -#define CISR_CDD	(1 << 5)	/* Camera interface disable done */
-> -#define CISR_SOF	(1 << 4)	/* Start of frame */
-> -#define CISR_EOF	(1 << 3)	/* End of frame */
-> -#define CISR_IFO_2	(1 << 2)	/* FIFO overrun for Channel 2 */
-> -#define CISR_IFO_1	(1 << 1)	/* FIFO overrun for Channel 1 */
-> -#define CISR_IFO_0	(1 << 0)	/* FIFO overrun for Channel 0 */
-> -
-> -#define CIFR_FLVL2	(0x7f << 23)	/* FIFO 2 level mask */
-> -#define CIFR_FLVL1	(0x7f << 16)	/* FIFO 1 level mask */
-> -#define CIFR_FLVL0	(0xff << 8)	/* FIFO 0 level mask */
-> -#define CIFR_THL_0	(0x3 << 4)	/* Threshold Level for Channel 0 FIFO */
-> -#define CIFR_RESET_F	(1 << 3)	/* Reset input FIFOs */
-> -#define CIFR_FEN2	(1 << 2)	/* FIFO enable for channel 2 */
-> -#define CIFR_FEN1	(1 << 1)	/* FIFO enable for channel 1 */
-> -#define CIFR_FEN0	(1 << 0)	/* FIFO enable for channel 0 */
-> -
 > -- 
-> 1.6.0.4
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+-- 
+View this message in context: http://n2.nabble.com/Attention-em28xx-users-tp1507437p2203202.html
+Sent from the video4linux-list mailing list archive at Nabble.com.
 
 --
 video4linux-list mailing list
