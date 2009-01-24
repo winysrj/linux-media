@@ -1,18 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.174])
+Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LJA5B-0002q2-Ng
-	for linux-dvb@linuxtv.org; Sat, 03 Jan 2009 18:14:42 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so1243603ugc.16
-	for <linux-dvb@linuxtv.org>; Sat, 03 Jan 2009 09:14:38 -0800 (PST)
-Date: Sat, 3 Jan 2009 18:14:15 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-cc: linux-dvb@linuxtv.org
-In-Reply-To: <495F99CD.8000202@braice.net>
-Message-ID: <alpine.DEB.2.00.0901031809200.32128@ybpnyubfg.ybpnyqbznva>
-References: <op.um6wpcvirj95b0@localhost> <495F99CD.8000202@braice.net>
+	(envelope-from <halim.sahin@t-online.de>) id 1LQgeH-0000nH-Rj
+	for linux-dvb@linuxtv.org; Sat, 24 Jan 2009 12:26:04 +0100
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id E0CC233A869
+	for <linux-dvb@linuxtv.org>; Sat, 24 Jan 2009 12:25:23 +0100 (CET)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id lEghEVwDzqB8 for <linux-dvb@linuxtv.org>;
+	Sat, 24 Jan 2009 12:25:23 +0100 (CET)
+Received: from halim.local (p54AE62B9.dip.t-dialin.net [84.174.98.185])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id A394D33A826
+	for <linux-dvb@linuxtv.org>; Sat, 24 Jan 2009 12:25:23 +0100 (CET)
+Date: Sat, 24 Jan 2009 12:25:27 +0100
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20090124112527.GA5727@halim.local>
+References: <20090118150155.GA4871@halim.local>
+	<8fa153640901182324o566aceb8l73069650506d56cb@mail.gmail.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
+Content-Disposition: inline
+In-Reply-To: <8fa153640901182324o566aceb8l73069650506d56cb@mail.gmail.com>
+Subject: [linux-dvb] Status: Re: dvb-usb: could not submit URB no. 0 -
+	get	them all back
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,35 +40,76 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 3 Jan 2009, Brice DUBOST wrote:
+Hi,
+Whats the status of this problem?
+Could you solve this?????
+BR.
+halim
 
-> > For instance the scan doesn't find RTL2, but if I add to channels.conf
-> > RTL2:12187:h:0:27500:166:128:12020
-> > then szap -r works correctly.
-
-> Scan tunes on one frequency, and uses the informations given by the
-> provider to find the others
+On Mo, Jan 19, 2009 at 09:24:41 +0200, Tero Siironen wrote:
+> 2009/1/18 Halim Sahin <halim.sahin@t-online.de>:
+> > Hello all,
+> > I can't use my dvb-usb-vp7045 based dvb-t stick with latest v4l-dvb drivers.
+> > I have tested latest hg and the standard dvb drivers.
+> > My kernel is 2.6.28.
+> > dmesg |grep -i dvb-usb shows:
+> > dvb-usb: found a 'Twinhan USB2.0 DVB-T receiver (TwinhanDTV Alpha/MagicBox II)'
+> > dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> > dvb-usb: MAC address: 08:ff:ff:ff:ff:ff
+> > dvb-usb: Twinhan USB2.0 DVB-T receiver (TwinhanDTV Alpha/MagicBox II) successfu
+> > dvb-usb: Twinhan USB2.0 DVB-T receiver (TwinhanDTV Alpha/MagicBox II) successfu
+> > dvb-usb: found a 'Twinhan USB2.0 DVB-T receiver (TwinhanDTV Alpha/MagicBox II)'
+> > dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> > dvb-usb: MAC address: 08:ff:ff:ff:ff:ff
+> > dvb-usb: Twinhan USB2.0 DVB-T receiver (TwinhanDTV Alpha/MagicBox II) successfu
+> > dvb-usb: could not submit URB no. 0 - get them all back
+> >
+> > Can someone confirm or can tell me howto solve this???
 > 
-> Sometimes (quite often in fact) the providers doesn't give full informations
+> 
+> Hi,
+> 
+> I don't have the answer for solving this, but I do have the same
+> problem with my Artec T14BR DVB-T USB stick and 2.6.28 kernel. When
+> I'm using 2.6.28-rc6 kernel the device works fine.
+> 
+> Here is my dmesg :
+> 
+> usb 1-5: new high speed USB device using ehci_hcd and address 8
+> usb 1-5: configuration #1 chosen from 1 choice
+> usb 1-5: New USB device found, idVendor=05d8, idProduct=810f
+> usb 1-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> usb 1-5: Product: ART7070
+> usb 1-5: Manufacturer: Ultima
+> usb 1-5: SerialNumber: 001
+> dib0700: loaded with support for 8 different device-types
+> dvb-usb: found a 'Artec T14BR DVB-T' in cold state, will try to load a firmware
+> usb 1-5: firmware: requesting dvb-usb-dib0700-1.20.fw
+> dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+> dib0700: firmware started successfully.
+> dvb-usb: found a 'Artec T14BR DVB-T' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> DVB: registering new adapter (Artec T14BR DVB-T)
+> DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+> DiB0070: successfully identified
+> dvb-usb: Artec T14BR DVB-T successfully initialized and connected.
+> usbcore: registered new interface driver dvb_usb_dib0700
+> usbcore: registered new interface driver dvb_usb_dibusb_mc
+> dvb-usb: could not submit URB no. 0 - get them all back
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-In the case of Astra 19E2, the list of transponders is
-sufficiently well-managed that pretty much regardless of
-which transponder you start on, you'll get a list of most
-of them, from which you'll get a list of them all.
-
-Unlike, say, Hotbirds, where it's more or less a free-
-for all...
-
-
-To the original poster, what unusual things does the
-output to the console of `scan -v' show, if you don't
-see anything unusual for `scan' without -v ?
-
-In particular, search for the particular frequencies
-of RTL or any other transponders/channels which you
-know are missing, or other obvious errors...
+-- 
+Halim Sahin
+E-Mail:				
+halim.sahin (at) t-online.de
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
