@@ -1,18 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <b24e53350901032155n6b438cd2xaefe496f51c15447@mail.gmail.com>
-Date: Sun, 4 Jan 2009 00:55:38 -0500
-From: "Robert Krakora" <rob.krakora@messagenetsystems.com>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0O2Fs03015841
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 21:15:54 -0500
+Received: from web95209.mail.in2.yahoo.com (web95209.mail.in2.yahoo.com
+	[203.104.18.185])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n0O2FWOS009785
+	for <video4linux-list@redhat.com>; Fri, 23 Jan 2009 21:15:33 -0500
+Date: Sat, 24 Jan 2009 07:45:32 +0530 (IST)
+From: niamathullah sharief <shariefbe@yahoo.co.in>
+To: michael_h_williamson@yahoo.com,
+	Kernel newbies <kernelnewbies@nl.linux.org>,
+	video4linux list <video4linux-list@redhat.com>
+In-Reply-To: <596339.38105.qm@web65507.mail.ac4.yahoo.com>
 MIME-Version: 1.0
-References: <b24e53350901032021t2fdc4e54saec05f223d430f35@mail.gmail.com>
-	<412bdbff0901032118y9dda1c2uaeb451c0874a65cd@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Cc: Jerry Geis <geisj@messagenetsystems.com>, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: KWorld 330U Employs Samsung S5H1409X01 Demodulator
+Message-ID: <114265.29755.qm@web95209.mail.in2.yahoo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Cc: 
+Subject: Re: mmap()
+Reply-To: shariefbe@yahoo.co.in
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,60 +30,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Jan 4, 2009 at 12:18 AM, Devin Heitmueller <
-devin.heitmueller@gmail.com> wrote:
 
-> On Sat, Jan 3, 2009 at 11:21 PM, Robert Krakora
-> <rob.krakora@messagenetsystems.com> wrote:
-> > Mauro:
-> >
-> > The KWorld 330U employs the Samsung S5H1409X01 demodulator, not the
-> > LGDT330X.  Hence the error initializing the LGDT330X in the current
-> source
-> > in em28xx-dvb.c.
-> >
-> > Best Regards,
->
-> Hello Robert,
->
-> Well, that's good to know.  I don't think anyone has done any work on
-> that device recently, so I don't know why the code has it as an
-> lgdt3303.
->
-> Do you know which tuner chip the device has?  The reason I ask is
-> because I'm working on another device that also has the s5h1409, and
-> it's got an xc3028L (the low power version of the xc3028).  If the
-> 330U also has the xc3028L, then we need to make sure to indicate that
-> in the device profile so it doesn't burn out the chip.
->
-> We're probably also going to need to get a Windows trace, so we know
-> how to setup the s5h1409 configuration.
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
->
-Devin:
+micheal..you are telling that read() function will do the
+=C2=A0same as the mmap() does...so this both function are reading the data =
+from the memory location...am i right?...if yes how the data exist there?af=
+ter catching the video whether the data stored in default free location are=
+ any othere mapping function is there to store theat captured data?
 
-I believe that it has the 3028 and not the 3028L as the part gets a little
-toasty even on Windows,  I will get the magnifying glass out and look again
-though (I am over 40 and becoming near-sighted).  I can get the Windows
-trace using USBTrace on Windows XP or with my Elisys USB Analyzer.
+--- On Sat, 24/1/09, Michael Williamson <michael_h_williamson@yahoo.com> wr=
+ote:
+From: Michael Williamson <michael_h_williamson@yahoo.com>
+Subject: Re: mmap()
+To: shariefbe@yahoo.co.in
+Date: Saturday, 24 January, 2009, 12:53 AM
 
-Best Regards,
 
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+
+--- On Fri, 1/23/09, niamathullah sharief <shariefbe@yahoo.co.in> wrote:
+
+> From: niamathullah sharief <shariefbe@yahoo.co.in>
+> Subject: Re: mmap()
+> To: michael_h_williamson@yahoo.com, "video4linux list"
+<video4linux-list@redhat.com>, "Kernel newbies"
+<kernelnewbies@nl.linux.org>
+> Date: Friday, January 23, 2009, 12:41 PM
+> micheal..you are telling that read() function will do the
+> same as the mmap() does..but the read() will read the data
+> from the memory i think....is this ,,ap() is also doing the
+> same one?if yes....how its actually the data (when capturing
+> the video) was stored in memory....?
+
+
+
+I do not understand your question.
+
+-Mike
+
+
+
+     =20
+=0A=0A=0A      Add more friends to your messenger and enjoy! Go to http://m=
+essenger.yahoo.com/invite/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
