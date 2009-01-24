@@ -1,73 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4423 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753468AbZAQQUM (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.157]:11883 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017AbZAXI4d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 11:20:12 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: CityK <cityk@rogers.com>
-Subject: Re: KWorld ATSC 115 all static
-Date: Sat, 17 Jan 2009 17:20:03 +0100
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl> <496FE555.7090405@rogers.com> <496FFCE2.8010902@rogers.com>
-In-Reply-To: <496FFCE2.8010902@rogers.com>
+	Sat, 24 Jan 2009 03:56:33 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so2822742fgg.17
+        for <linux-media@vger.kernel.org>; Sat, 24 Jan 2009 00:56:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Date: Sat, 24 Jan 2009 09:56:31 +0100
+Message-ID: <6fd6e6490901240056u59e275b2nc82e755123ffc87b@mail.gmail.com>
+Subject: Volar X remote control problem
+From: Felipe Morales <felipe.morales.moreno@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901171720.03890.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 16 January 2009 04:20:02 CityK wrote:
-> CityK wrote:
-> > If you had meant taking Hans' source and applying your "hack" patch
-> > to them, building and then proceeding with the modprobe steps, the
-> > answer is that I haven't tried yet. Will test -- might not be
-> > tonight though, as I have some other things that need attending
-> > too.
->
-> Okay, I lied -- given that building is really a background process, I
-> found time ... i.e. I cleaned up in the kitchen while the system
-> compiled ... kneel before me world, as I am a master multi-tasker!
->
-> >> Anyway, if the previous workaround works after Hans' changes, then
-> >> I think his changes should be merged -- even though it doesnt fix
-> >> ATSC115, it is indeed a step into the right direction.
-> >>
-> >> If the ATSC115 hack-fix patch doesn't apply anymore, please let me
-> >> know -- I'll respin it.
->
-> The "hack-fix" patch applies cleanly against Hans' sources. However,
-> the test results are negative -- the previous workaround ("modprobe
-> tuner -r and "modprobe tuner") fails to produce the desired result.
+Hello all,
 
-If you try to run 'modprobe -r tuner' when the saa7134 module build from 
-my sources is loaded, then that should not work since saa7134 increases 
-the use-count of the tuner module preventing it from being unloaded.
+I've successfully managed to use the remote RM-KS using the patch
+below in a Acer Aspire 5020 laptop. I can evtest the input device and
+get the correct keycodes. The lsusb of that machine is:
 
-If you can do this, then that suggests that you are perhaps not using my 
-modified driver at all.
+00:00.0 Host bridge: ATI Technologies Inc RS480 Host Bridge (rev 01)
+00:02.0 PCI bridge: ATI Technologies Inc RS480 PCI-X Root Port
+00:06.0 PCI bridge: ATI Technologies Inc RS480 PCI Bridge
+00:07.0 PCI bridge: ATI Technologies Inc RS480 PCI Bridge
+00:13.0 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
+00:13.1 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller
+00:13.2 USB Controller: ATI Technologies Inc IXP SB400 USB2 Host Controller
+00:14.0 SMBus: ATI Technologies Inc IXP SB400 SMBus Controller (rev 11)
+00:14.1 IDE interface: ATI Technologies Inc IXP SB400 IDE Controller
+00:14.3 ISA bridge: ATI Technologies Inc IXP SB400 PCI-ISA Bridge
+00:14.4 PCI bridge: ATI Technologies Inc IXP SB400 PCI-PCI Bridge
+00:14.5 Multimedia audio controller: ATI Technologies Inc IXP SB400
+AC'97 Audio Controller (rev 02)
+00:14.6 Modem: ATI Technologies Inc SB400 AC'97 Modem Controller (rev 02)
+00:18.0 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] HyperTransport Technology Configuration
+00:18.1 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] Address Map
+00:18.2 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] DRAM Controller
+00:18.3 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] Miscellaneous Control
+01:00.0 VGA compatible controller: ATI Technologies Inc M24 1P [Radeon
+Mobility X600]
+06:05.0 Network controller: Broadcom Corporation BCM4318 [AirForce One
+54g] 802.11g Wireless LAN Controller (rev 02)
+06:06.0 CardBus bridge: Texas Instruments PCIxx21/x515 Cardbus Controller
+06:06.2 FireWire (IEEE 1394): Texas Instruments OHCI Compliant IEEE
+1394 Host Controller
+06:06.3 Mass storage controller: Texas Instruments PCIxx21 Integrated
+FlashMedia Controller
+06:06.4 SD Host controller: Texas Instruments
+PCI6411/6421/6611/6621/7411/7421/7611/7621 Secure Digital Controller
+06:07.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8169
+Gigabit Ethernet (rev 10)
 
-BTW, I've asked Mauro to pull from my tree 
-(www.linuxtv.org/hg/~hverkuil/v4l-dvb) which contains the converted 
-saa7134 and saa6752hs drivers. It's definitely something that needs to 
-be done regardless.
+But I've tried to used it in both on a HP Pavillion dv1000 and an
+eeepc, and, although everything loads fine, I can only get the first
+remote command, and then it overflows with a value like ^[ or ^K or
+something different depending on the button pressed, and then the
+system becomes useless until I disconnect the Volar X from USB.
 
-Regards,
+$ evtest /dev/input/by-path/pci-3-3-event-ir
+Input driver version is 1.0.0
+Input device ID: bus 0x3 vendor 0x7ca product 0xa815 version 0x200
+Input device name: "IR-receiver inside an USB DVB receiver"
+Supported events:
+ Event type 0 (Sync)
+ Event type 1 (Key)
+   Event code 2 (1)
+   Event code 3 (2)
+   Event code 4 (3)
+   Event code 5 (4)
+   Event code 6 (5)
+   Event code 7 (6)
+   Event code 8 (7)
+   Event code 9 (8)
+   Event code 10 (9)
+   Event code 11 (0)
+   Event code 105 (Left)
+   Event code 106 (Right)
+   Event code 113 (Mute)
+   Event code 114 (VolumeDown)
+   Event code 115 (VolumeUp)
+   Event code 116 (Power)
+   Event code 128 (Stop)
+   Event code 139 (Menu)
+   Event code 148 (Prog1)
+   Event code 149 (Prog2)
+   Event code 158 (Back)
+   Event code 159 (Forward)
+   Event code 164 (PlayPause)
+   Event code 167 (Record)
+   Event code 202 (Prog3)
+   Event code 207 (Play)
+   Event code 365 (EPG)
+   Event code 372 (Zoom)
+   Event code 388 (Text)
+   Event code 392 (Audio)
+   Event code 402 (ChannelUp)
+   Event code 403 (ChannelDown)
+   Event code 404 (First)
+   Event code 405 (Last)
+Testing ... (interrupt to exit)
+Event: time 1232785830.707890, type 1 (Key), code 3 (2), value 1
+Event: time 1232785830.707903, type 1 (Key), code 3 (2), value 0
+Event: time 1232785830.707906, -------------- Report Sync ------------
+^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K^K...... and so on
 
-	Hans
+The lsusb of the pavillion is:
+00:00.0 Host bridge: Intel Corporation 82852/82855 GM/GME/PM/GMV
+Processor to I/O Controller (rev 02)
+00:00.1 System peripheral: Intel Corporation 82852/82855 GM/GME/PM/GMV
+Processor to I/O Controller (rev 02)
+00:00.3 System peripheral: Intel Corporation 82852/82855 GM/GME/PM/GMV
+Processor to I/O Controller (rev 02)
+00:02.0 VGA compatible controller: Intel Corporation 82852/855GM
+Integrated Graphics Device (rev 02)
+00:02.1 Display controller: Intel Corporation 82852/855GM Integrated
+Graphics Device (rev 02)
+00:1d.0 USB Controller: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 (rev 03)
+00:1d.1 USB Controller: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 (rev 03)
+00:1d.2 USB Controller: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3 (rev 03)
+00:1d.7 USB Controller: Intel Corporation 82801DB/DBM (ICH4/ICH4-M)
+USB2 EHCI Controller (rev 03)
+00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 83)
+00:1f.0 ISA bridge: Intel Corporation 82801DBM (ICH4-M) LPC Interface
+Bridge (rev 03)
+00:1f.1 IDE interface: Intel Corporation 82801DBM (ICH4-M) IDE
+Controller (rev 03)
+00:1f.3 SMBus: Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
+SMBus Controller (rev 03)
+00:1f.5 Multimedia audio controller: Intel Corporation 82801DB/DBL/DBM
+(ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 03)
+00:1f.6 Modem: Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
+AC'97 Modem Controller (rev 03)
+02:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+RTL-8139/8139C/8139C+ (rev 10)
+02:06.0 Network controller: Intel Corporation PRO/Wireless 2200BG
+[Calexico2] Network Connection (rev 05)
+02:09.0 CardBus bridge: Texas Instruments PCIxx21/x515 Cardbus Controller
+02:09.2 FireWire (IEEE 1394): Texas Instruments OHCI Compliant IEEE
+1394 Host Controller
+02:09.3 Mass storage controller: Texas Instruments PCIxx21 Integrated
+FlashMedia Controller
+02:09.4 SD Host controller: Texas Instruments
+PCI6411/6421/6611/6621/7411/7421/7611/7621 Secure Digital Controller
 
-> In fact, as similar to the results reported in the previous message,
-> performing such action produces no result in dmesg.
+The same behavior repeats in the eeepc 1000H. I'm using Debian testing
+on the three machines, with the same 2.6.26 kernel. The drivers I've
+tried are the ones from
+http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.gz, with the Volar X
+RM-KS patch applied.
 
+Does anybody have any clue why this happens?
 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Thanks a lot
