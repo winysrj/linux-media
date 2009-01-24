@@ -1,18 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56])
+Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1LLR7Y-0006UX-0r
-	for linux-dvb@linuxtv.org; Sat, 10 Jan 2009 00:50:35 +0100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans Werner <HWerner4@gmx.de>
-In-Reply-To: <20090109224606.225290@gmx.net>
-References: <1a297b360901091300w6078f926p5efaadeb912e8c03@mail.gmail.com>
-	<20090109224606.225290@gmx.net>
-Date: Sat, 10 Jan 2009 00:49:09 +0100
-Message-Id: <1231544949.2621.3.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] Mantis users
+	(envelope-from <halim.sahin@t-online.de>) id 1LQha6-0005FI-Ir
+	for linux-dvb@linuxtv.org; Sat, 24 Jan 2009 13:25:47 +0100
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id 10CAB33A869
+	for <linux-dvb@linuxtv.org>; Sat, 24 Jan 2009 13:25:09 +0100 (CET)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id wyQ3pDA0Dook for <linux-dvb@linuxtv.org>;
+	Sat, 24 Jan 2009 13:25:08 +0100 (CET)
+Received: from halim.local (p54AE62B9.dip.t-dialin.net [84.174.98.185])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id D849833A826
+	for <linux-dvb@linuxtv.org>; Sat, 24 Jan 2009 13:25:08 +0100 (CET)
+Date: Sat, 24 Jan 2009 13:25:12 +0100
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20090124122512.GA10672@halim.local>
+References: <20090118150155.GA4871@halim.local>
+	<8fa153640901182324o566aceb8l73069650506d56cb@mail.gmail.com>
+	<20090124112527.GA5727@halim.local>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20090124112527.GA5727@halim.local>
+Subject: [linux-dvb] More Info: Status: Re: dvb-usb: could not submit URB
+	no. 0 - get	them all back
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,55 +41,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hi.
+I made more tests and the following is very interesting:
+reloading module ehci-hcd before loading dvb-usb-vp7045 works.
+I can tune to dvb-t channels and the mentioned Errormessage doesn't occour.
 
-Am Freitag, den 09.01.2009, 23:46 +0100 schrieb Hans Werner:
-> > Hi,
-> > 
-> > Can you all please provide me the following information for the Mantis /
-> > Hopper bridge
-> > based cards that you have in the following manner ?
-> > 
-> > 1) Card Name (As advertised on the cardboard box):
-> 
-> Azurewave AD-SP 400
-> 
-> > 2) lspci -vvn:
-> 
-> 04:00.0 0480: 1822:4e35 (rev 01)
->         Subsystem: 1822:0031
->         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
->         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->         Latency: 32 (2000ns min, 63750ns max)
->         Interrupt: pin A routed to IRQ 21
->         Region 0: Memory at 99100000 (32-bit, prefetchable) [size=4K]
-> 
-> > 3) Chips on the card if you know them (only the basic chip description is
-> > required,
-> > not the complete batch no. etc)
-> 
-> Mantis K62323.1A-2
-> STB0899
-> STB6100
-> 20-pin chip under heatsink (LNBP21?)
-
-that one seems to always come with an eight pin
-ST(micro) EZb.16 something, which is not an eeprom ;)
-
-just my two cents
-
-> Portek PTK8706 18-pin 8-bit microcontroller
-> 402B2GLI 8-pin
-> Nikos N2576 5-pin Voltage Regulator
-> 
-> Regards,
-> Hans
-> 
-> > 
-> > 
-> > Regards,
-> > Manu
-> 
+Maybe this helps you to find out whats going wrong there?
+BR.
+halim
 
 
 _______________________________________________
