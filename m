@@ -1,91 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from promwad.com ([83.149.69.23]:37753 "EHLO promwad.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755978AbZAVKaU convert rfc822-to-8bit (ORCPT
+Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96]:47877 "EHLO
+	QMTA09.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755424AbZAXUhb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 05:30:20 -0500
-From: Vladimir Davydov <vladimir.davydov@promwad.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Request for new pixel format (JPEG2000)
-Date: Thu, 22 Jan 2009 12:03:48 +0200
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	linux-media@vger.kernel.org
-References: <200901212146.39153.vladimir.davydov@promwad.com> <1232600942.3764.130.camel@tux.localhost> <200901220819.54460.hverkuil@xs4all.nl>
-In-Reply-To: <200901220819.54460.hverkuil@xs4all.nl>
+	Sat, 24 Jan 2009 15:37:31 -0500
+Date: Sat, 24 Jan 2009 15:37:26 -0500
+From: Jeff DeFouw <jeffd@i2k.com>
+To: linux-media@vger.kernel.org, killero_24@yahoo.com
+Subject: Re: [linux-dvb] HVR-1800 Support
+Message-ID: <20090124203726.GA9808@blorp.plorb.com>
+References: <463244.61379.qm@web45416.mail.sp1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200901221203.48823.vladimir.davydov@promwad.com>
+In-Reply-To: <463244.61379.qm@web45416.mail.sp1.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 22 January 2009 09:19:54 Hans Verkuil wrote:
-> On Thursday 22 January 2009 06:09:02 Alexey Klimov wrote:
-> > (added linux-media mail-list)
-> >
-> > Hello, Vladimir
-> >
-> > On Wed, 2009-01-21 at 21:46 +0200, Vladimir Davydov wrote:
-> > > Hi,
-> > > Is it possible to add new pixel format to videodev2.h file?
-> > >
-> > > #define V4L2_PIX_FMT_MJ2C   v4l2_fourcc('M','J','2','C') /* Morgan JPEG
-> > > 2000*/
-> > >
-> > > I have developed a V4L2 driver for the board with hardware JPEG2000
-> > > codec (ADV202 chip). This driver uses that pixel format.
-> > > I think JPEG 2000 is very perspective codec and it will be good if V4L2
-> > > will support it.
-> > >
-> > > Short description of the device is here:
-> > > http://www.promwad.com/markets/linux-video-jpeg2000-blackfin.html
->
-> Vladimir,
->
-> It shouldn't be a problem adding this, but we prefer to only add such
-> things when the driver code is also added at the same time. Are you going
-> to submit the driver code as well to the list?
->
-> Thanks,
->
-> 	Hans
+On Tue, Jan 20, 2009 at 10:08:51PM -0800, Killero SS wrote:
+> i'm using ubuntu 8.10 2.6.27-9-generic
+> and tried compiling latest modules with hg-clone but my analog capture got broken, firmware error...
+> so i got back to original kernel modules
+> however, some people claim they get audio with analog on /dev/video1
+> this has never be my case, im using svideo signal so wondering if that may be it.
+> i get analog video on video0 and video1, but some colors look pretty weird, red for example.
 
-Hans, 
-I can sibmit the driver code. But this driver is only for the blackfin 
-processor and will not work on other platforms. Does it make sense to include 
-the driver to the kernel source? 
-Maybe it will be better to include this driver to the blackfin.uclinux kernel 
-tree. How do you think?
+The driver in the kernel and hg does not set up the registers properly 
+for the video or audio in S-Video mode.  I made some changes to get mine 
+working.  I can probably make a patch for you if you can get your source 
+build working.
 
+You might be able to get everything working using the cx25840ctl utility 
+from the ivtv-utils package.  With cx25840ctl you'll need to make sure 
+the i2c-dev module is loaded, and figure out which i2c device is the 
+cx25840 interface.  "cx25840ctl -l 3" will show the registers from i2c 
+device 3.  "-s 3" sets the registers on i2c device 3.  You'll probably 
+need to set the registers after you have the device open to get the 
+audio working, otherwise the driver will reset some of them.  I haven't 
+tested this since I put the settings in my driver.  (I still need to use 
+part of this script to fix the brightness, contrast, saturation, and hue 
+though.)
 
-With best regards,
-Vladimir
+#!/bin/sh
+modprobe i2c-dev
+cx25840ctl -s 3 <<EOT
+VGA_SEL_CH2=0
+VGA_SEL_CH3=0
+DROOP_COMP_CH3=1
+DROOP_COMP_CH2=1
+BRIGHT=0
+CNTRST=128
+USAT=128
+VSAT=128
+HUE=0
+SOFT_RESET=1
+START_MICROCNTL=0
+PATH1_SEL_CTL=3
+PATH1_AVC_STEREO=0
+SOFT1_MUTE_EN=0
+SRC1_MUTE_EN=0
+SA_MUTE_EN=0
+PAR_MUTE_EN=0
+AC97_MUTE_EN=0
+SOFT_RESET=0
+EOT
+# end
 
->
-> > > Thanks,
-> > > Vladimir.
-> >
-> > Please, send patches and other e-mails related to drivers development to
-> > linux-media@vger.kernel.org
-> > Such tool like patchwork.kernel.org will cares about patches, so they
-> > don't lost.
-> >
-> > I think you already check this page
-> > http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
-> > if not, please check.
+> another thing this card has fm radio, anyone knows how to set it up? i've been unable to find any info regarding this
 
-
+I didn't notice any code for radio support while I was debugging the 
+driver.
 
 -- 
-Vladimir Davydov
-Senior Developer
-Promwad Innovation Company
-Web: www.promwad.com
-22, Olshevskogo St.,
-220073, Minsk,
-BELARUS
-Phone/Fax: +375 (17) 312–1246
-E-mail: vladimir.davydov@promwad.com
-Skype: v_davydov
+Jeff DeFouw <jeffd@i2k.com>
