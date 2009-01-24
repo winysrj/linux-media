@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47317 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755045AbZAPDit (ORCPT
+Received: from fk-out-0910.google.com ([209.85.128.184]:4835 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbZAXWw3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2009 22:38:49 -0500
-Date: Fri, 16 Jan 2009 01:38:13 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: CityK <cityk@rogers.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	V4L <video4linux-list@redhat.com>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-Message-ID: <20090116013813.23d45af8@pedra.chehab.org>
-In-Reply-To: <496FFCE2.8010902@rogers.com>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-	<496FE555.7090405@rogers.com>
-	<496FFCE2.8010902@rogers.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sat, 24 Jan 2009 17:52:29 -0500
+Received: by fk-out-0910.google.com with SMTP id f33so1891980fkf.5
+        for <linux-media@vger.kernel.org>; Sat, 24 Jan 2009 14:52:27 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <497B2AD1.6090503@iki.fi>
+References: <6fd6e6490901240056u59e275b2nc82e755123ffc87b@mail.gmail.com>
+	 <497B2AD1.6090503@iki.fi>
+Date: Sat, 24 Jan 2009 23:52:26 +0100
+Message-ID: <6fd6e6490901241452l5c2473d7l4cfc8054e46bb79b@mail.gmail.com>
+Subject: Re: Volar X remote control problem
+From: Felipe Morales <felipe.morales.moreno@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 15 Jan 2009 22:20:02 -0500
-CityK <cityk@rogers.com> wrote:
+Antti Palosaari wrote:
+>
+> Looks like it is buggy HID.
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030292.html
+>
+> Antti
+> --
+> http://palosaari.fi/
+>
 
-> CityK wrote:
-> > If you had meant taking Hans' source and applying your "hack" patch to
-> > them, building and then proceeding with the modprobe steps, the answer
-> > is that I haven't tried yet. Will test -- might not be tonight though,
-> > as I have some other things that need attending too.
-> >   
-> 
-> Okay, I lied -- given that building is really a background process, I
-> found time ... i.e. I cleaned up in the kitchen while the system
-> compiled ... kneel before me world, as I am a master multi-tasker!
-> 
-> >> Anyway, if the previous workaround works after Hans' changes, then I
-> >> think his changes should be merged -- even though it doesnt fix ATSC115,
-> >> it is indeed a step into the right direction.
-> >>
-> >> If the ATSC115 hack-fix patch doesn't apply anymore, please let me know
-> >> -- I'll respin it.
-> >>     
-> 
-> The "hack-fix" patch applies cleanly against Hans' sources. However, the
-> test results are negative -- the previous workaround ("modprobe tuner -r
-> and "modprobe tuner") fails to produce the desired result. In fact, as
-> similar to the results reported in the previous message, performing such
-> action produces no result in dmesg.
+Thanks a lot! It worked perfectly! Sorry not to have looked thoroughly
+the mailing list...
 
-Such workarounds won't work anymore. If his patch is correct, the behaviour
-should be deterministic. Could you please enable the debug messages and probe
-cx88 with i2c_scan=1? Please also post the previous dmesg.
+By the way, for the Volar X the code to put in the /etc/modprobe.d/usbhid is:
 
-Cheers,
-Mauro
+options usbhid quirks=0x07ca:0xa815:0x04
+
+to match the vendor and product id
