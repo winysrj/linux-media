@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0KDSGtX005786
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 08:28:16 -0500
-Received: from mail-fx0-f29.google.com (mail-fx0-f29.google.com
-	[209.85.220.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0KDS1J3030963
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 08:28:02 -0500
-Received: by fxm10 with SMTP id 10so796380fxm.3
-	for <video4linux-list@redhat.com>; Tue, 20 Jan 2009 05:28:01 -0800 (PST)
-Message-ID: <2e6cfdb70901200528w5feb473bi7bae7ecbbb70a035@mail.gmail.com>
-Date: Tue, 20 Jan 2009 18:28:01 +0500
-From: "me myself" <burgerbisquit@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0OD9X4s019938
+	for <video4linux-list@redhat.com>; Sat, 24 Jan 2009 08:09:33 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0OD8MDs027020
+	for <video4linux-list@redhat.com>; Sat, 24 Jan 2009 08:08:22 -0500
+From: Andy Walls <awalls@radix.net>
+To: Alissa Harrison <alissa.m.harrison@gmail.com>
+In-Reply-To: <c57f98ff0901240134q28480e22x465141e47e5b7e85@mail.gmail.com>
+References: <c57f98ff0901211908y72160a7fx745b747d271ba80c@mail.gmail.com>
+	<1232717666.3271.1.camel@palomino.walls.org>
+	<c57f98ff0901240134q28480e22x465141e47e5b7e85@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 24 Jan 2009 08:08:19 -0500
+Message-Id: <1232802499.3060.10.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Fedora 10, TeVii S420, cx88[0]/2: cx8802 probe failed, err = -22
+Cc: video4linux-list@redhat.com
+Subject: Re: bttv driver not initializing card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,57 +29,99 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi.
+On Sat, 2009-01-24 at 17:34 +0800, Alissa Harrison wrote:
+> Thanks, it is working now.  Actually I already had cleaned the
+> computer thoroughly before testing the first time.  But after getting
+> your advice.  I dusted once more, and used some rubbing alcohol on the
+> connections.  And it just worked. *shrug*  Dust is evil.
 
-I have some troubles with the latest v4l-dvb cx88 driver and I really
-don`t know where should I post this bug.
 
-Sorry.
+PCI is based on reflected wave signaling instead of incident wave
+signaling.  Bus signals propagate down the bus, reflect off the
+unterminated end, and propagate back; doubling the initial voltages to
+make the proper signal voltage levels.
 
-I have Fedora 10, TeVii S420 dvb card and 2.6.27.5-117.fc10.i686 kernel.
+Bad connections on any part of the bus can lead to trouble with devices
+that are particular about the PCI bus signal levels.  This list has had
+past reports of the old BrookTree designs having bits come back wrong
+(e.g. wrong PCI ID values with some bits stuck to 0 or 1).  Cleaning the
+dust out of the PCI slots almost always makes things better for the
+BrookTree devices.
 
-I have read this post http://patchwork.kernel.org/patch/1821/ and yes,
-this patch fixes kernel oops, but I still can`t get my card working.
+Regards,
+Andy
 
-But even with the latest revision of v4l-dvb i  can`t get my card working.
+> On Fri, Jan 23, 2009 at 9:34 PM, Andy Walls <awalls@radix.net> wrote:
+>         
+>         On Thu, 2009-01-22 at 11:08 +0800, Alissa Harrison wrote:
+>         > I cannot get the bttv driver to initialize my TV tuner card
+>         with mythbuntu
+>         > (Hardy Heron). The TV tuner is Leadtek WinFast 2000 XP and
+>         should be
+>         > supported by the bttv driver according to
+>         >
+>         http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/video4linux/CARDLIST.bttv
+>         >
+>         > The card is listed in the output of lspci:
+>         >
+>         > 02:0d.0 Multimedia video controller: Brooktree Corporation
+>         Unknown device
+>         > 034e (rev 11)
+>         > Subsystem: LeadTek Research Inc. Unknown device 6609
+>         > Flags: bus master, medium devsel, latency 64, IRQ 5
+>         > Memory at faf00000 (32-bit, prefetchable) [size=4K]
+>         > Capabilities: <access denied>
+>         >
+>         > 02:0d.1 Multimedia controller: Brooktree Corporation Unknown
+>         device 0858
+>         > (rev 11)
+>         > Subsystem: LeadTek Research Inc. Unknown device 6609
+>         > Flags: bus master, medium devsel, latency 64, IRQ 5
+>         > Memory at faf01000 (32-bit, prefetchable) [size=4K]
+>         > Capabilities: <access denied>
+>         >
+>         > But when I attempt to modprobe bttv, it does not detect any
+>         card. No device
+>         > is assigned. The relevant output from dmesg is only two
+>         lines:
+>         >
+>         > [ 757.695711] bttv: driver version 0.9.17 loaded
+>         > [ 757.695721] bttv: using 8 buffers with 2080k (520 pages)
+>         each for capture
+>         >
+>         > I believe I should get output like
+>         >
+>         http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_2000#Making_it_Work
+>         >
+>         > I have already tried plugging the card into other PCI slots.
+>         However, it is
+>         > not even detected by lspci in other slots. I am wondering if
+>         there is
+>         > something wrong with the motherboard here? The board is an
+>         ASUS P4P800. Can
+>         > anyone explain why the driver fails to initialize the card,
+>         or why lspci
+>         > fails to detect the card in other PCI slots?
+>         
+>         
+>         Remove your PCI cards, blow the dust out of the slots, reseat
+>         the cards,
+>         test again.
+>         
+>         Regards,
+>         Andy
+>         
+>         > Thanks,
+>         > Alissa
+>         > --
+>         > video4linux-list mailing list
+>         > Unsubscribe
+>         mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>         > https://www.redhat.com/mailman/listinfo/video4linux-list
+>         >
+>         
+> 
 
-Is it a bug or what?
-
-dmesg:
-Linux video capture interface: v2.00
-cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-cx88[0]: subsystem: d420:9022, board: TeVii S420 DVB-S
-[card=73,autodetected], frontend(s): 1
-cx88[0]: TV tuner type -1, Radio tuner type -1
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-tuner' 3-0062: chip found @ 0xc4 (cx88[0])
-tuner' 3-0068: chip found @ 0xd0 (cx88[0])
-cx88[0]/2: cx2388x 8802 Driver Manager
-cx88-mpeg driver manager 0000:01:01.2: PCI INT A -> GSI 17 (level, low) ->
-IRQ 17
-cx88[0]/2: found at 0000:01:01.2, rev: 5, irq: 17, latency: 64, mmio:
-0xde000000
-HDA Intel 0000:00:1b.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-HDA Intel 0000:00:1b.0: setting latency timer to 64
-cx8800 0000:01:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-cx88[0]/0: found at 0000:01:01.0, rev: 5, irq: 17, latency: 64, mmio:
-0xdd000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-tuner' 3-0062: tuner type not set
-cx88/2: cx2388x dvb driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: dvb access: shared
-cx88[0]/2: subsystem: d420:9022, board: TeVii S420 DVB-S [card=73]
-cx88[0]/2: cx2388x based DVB/ATSC card
-cx8802_alloc_frontends() allocating 1 frontend(s)
-device-mapper: multipath: version 1.0.5 loaded
-cx88[0]/2: dvb_register failed (err = -22)
-cx88[0]/2: cx8802 probe failed, err = -22
-
-boot.log:
-modprobe: FATAL: Error inserting cx88_dvb
-(/lib/modules/2.6.27.5-117.fc10.i686/kernel/drivers/media/video/cx88/cx88-dvb.ko):
-No such device.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
