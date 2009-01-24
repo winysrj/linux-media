@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from phobos02.frii.com ([216.17.128.162]:55003 "EHLO mail.frii.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753502AbZAVW4x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 17:56:53 -0500
-Received: from io.frii.com (io.frii.com [216.17.222.1])
-	by mail.frii.com (FRII) with ESMTP id 7C65B699AB
-	for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 15:37:50 -0700 (MST)
-Date: Thu, 22 Jan 2009 15:37:50 -0700
-From: Mark Zimmerman <markzimm@frii.com>
+Received: from uucp.cirr.com ([192.67.63.5]:63749 "EHLO killer.cirr.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753811AbZAXDIP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jan 2009 22:08:15 -0500
+Received: from afc by tashi.lonestar.org with local (Exim 4.69)
+	(envelope-from <afc@shibaya.lonestar.org>)
+	id 1LQYrc-0000Fc-6x
+	for linux-media@vger.kernel.org; Fri, 23 Jan 2009 22:07:16 -0500
+Date: Fri, 23 Jan 2009 22:07:16 -0500
+From: "A. F. Cano" <afc@shibaya.lonestar.org>
 To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
-Message-ID: <20090122223750.GA69246@io.frii.com>
-References: <48F78D8A020000560001A654@GWISE1.matc.edu> <alpine.LFD.2.00.0901221434040.7609@tupari.net> <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com> <alpine.LFD.2.00.0901221542190.7960@tupari.net> <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com> <alpine.LFD.2.00.0901221635550.8219@tupari.net> <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com> <alpine.LFD.2.00.0901221706250.8336@tupari.net> <cae4ceb0901221413y55072ee7r570f9f7000dc7ddd@mail.gmail.com>
+Subject: Re: [RFC] Need testers for s5h1409 tuning fix
+Message-ID: <20090124030715.GA26123@shibaya.lonestar.org>
+References: <412bdbff0901212045t1287a403h57ba05cbd71d5224@mail.gmail.com> <1232733940.3907.37.camel@palomino.walls.org> <412bdbff0901231136l6967b5bbj8a3cfd4832ab102e@mail.gmail.com> <1232760678.3907.77.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <cae4ceb0901221413y55072ee7r570f9f7000dc7ddd@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1232760678.3907.77.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 22, 2009 at 02:13:02PM -0800, Tu-Tu Yu wrote:
-> Then that means you're getting good signal== 012c (Hex) equal to
-> 300(Dec) then that means your snr value is 300/10 = 30 dB
-> 
+On Fri, Jan 23, 2009 at 08:31:18PM -0500, Andy Walls wrote:
+> ...
+> Since I was to lazy to get Kaffeine to work properly, I wrote my own
+> test app.  It is inline below so you can see how I measured the time.
 
-I just got one of these cards and I was noticing the snr values
-(generally 300 or 295) as compared to those from my HD5500 (which
-reports large numbers that have to be shifted and scaled). The card
-works great but I was wondering: Does every driver report SNR in its
-own unique way? Is there a standard way to interpret the numbers other
-than reading the driver code? Just curious, not flaming...
+As I pointed out in another message recently I've been having problems
+tuning my own pvrusb2 device (the OnAir Creator).  I did encounter
+problems in kaffeine, so I tried to compile your test app.  A quick
+perusal shows that it uses the /dvb/apapter0/* devices so it should
+work here, but I can't compile it.  I'm missing some *.h file:
 
-Also, perhaps OT, the remote is detected:
+tuner.c: In function ‘main’:
+tuner.c:51: error: array type has incomplete element type
+tuner.c:52: error: storage size of ‘tasks’ isn’t known
+tuner.c:68: error: ‘DTV_DELIVERY_SYSTEM’ undeclared (first use in this function)
+tuner.c:68: error: (Each undeclared identifier is reported only once
+tuner.c:68: error: for each function it appears in.)
+tuner.c:69: error: ‘SYS_ATSC’ undeclared (first use in this function)
+tuner.c:71: error: ‘DTV_MODULATION’ undeclared (first use in this function)
+tuner.c:76: error: ‘FE_SET_PROPERTY’ undeclared (first use in this function)
+tuner.c:96: error: ‘DTV_FREQUENCY’ undeclared (first use in this function)
+tuner.c:97: error: ‘DTV_TUNE’ undeclared (first use in this function)
 
-input: i2c IR (FusionHDTV) as /devices/virtual/input/input6
-ir-kbd-i2c: i2c IR (FusionHDTV) detected at i2c-3/3-006b/ir0 [cx23885[0]]
+I'm running Debian Lenny.  I did install the libdvb-dev package but that
+wasn't it.  There are libdvbpsi[345]-dev packages, but before I go
+installing useless packages I thought I'd ask.
 
-I noticed the other thread about keytables and was wondering if there
-is any testing I could do that might be useful.
-
--- Mark
+A.
 
