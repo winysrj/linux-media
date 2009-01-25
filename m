@@ -1,90 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp124.rog.mail.re2.yahoo.com ([206.190.53.29]:31773 "HELO
-	smtp124.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752103AbZANE1e (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3854 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751813AbZAYJgL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2009 23:27:34 -0500
-Message-ID: <496D69A6.1050108@rogers.com>
-Date: Tue, 13 Jan 2009 23:27:18 -0500
-From: CityK <cityk@rogers.com>
+	Sun, 25 Jan 2009 04:36:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: Re: [PATCH] New V4L2 ioctls for OMAP class of Devices
+Date: Sun, 25 Jan 2009 10:35:49 +0100
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EB83@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EB83@dbde02.ent.ti.com>
 MIME-Version: 1.0
-To: "A. F. Cano" <afc@shibaya.lonestar.org>
-CC: linux-dvb@linuxtv.org, Linux-media <linux-media@vger.kernel.org>
-Subject: Re: [linux-dvb] OnAir creator seems to be recognized,	but what device
- is what?
-References: <20090112035021.GA13897@shibaya.lonestar.org>
-In-Reply-To: <20090112035021.GA13897@shibaya.lonestar.org>
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901251035.49963.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A. F. Cano wrote:
-> Dvbusb2 seems to recognize the device ok.
-> In fact it seems to create
+On Saturday 24 January 2009 18:03:51 Shah, Hardik wrote:
+> > -----Original Message-----
+> > From: Shah, Hardik
+> > Sent: Wednesday, January 21, 2009 5:24 PM
+> > To: video4linux-list@redhat.com; linux-media@vger.kernel.org
+> > Cc: Shah, Hardik; Jadav, Brijesh R; Nagalla, Hari; Hadli, Manjunath; R,
+> > Sivaraj; Hiremath, Vaibhav
+> > Subject: [PATCH] New V4L2 ioctls for OMAP class of Devices
+> >
+> > 1.  Control ID added for rotation.  Same as HFLIP.
+> > 2.  Control ID added for setting background color on
+> >     output device.
+> > 3.  New ioctl added for setting the color space conversion from
+> >     YUV to RGB.
+> >
+> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> > Signed-off-by: Hari Nagalla <hnagalla@ti.com>
+> > Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> > Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> > Signed-off-by: R Sivaraj <sivaraj@ti.com>
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  linux/drivers/media/video/v4l2-ioctl.c |   19 ++++++++++++++++++-
+> >  linux/include/linux/videodev2.h        |   19 ++++++++++++++++++-
+> >  linux/include/media/v4l2-ioctl.h       |    4 ++++
+> >  3 files changed, 40 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/linux/drivers/media/video/v4l2-ioctl.c
+> > b/linux/drivers/media/video/v4l2-ioctl.c
+> > index 165bc90..7599da8 100644
+> > --- a/linux/drivers/media/video/v4l2-ioctl.c
+> > +++ b/linux/drivers/media/video/v4l2-ioctl.c
+> > @@ -270,6 +270,8 @@ static const char *v4l2_ioctls[] = {
+> >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+> >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+> >  #endif
+> > +	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   = "VIDIOC_S_COLOR_SPACE_CONV",
+> > +	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]   = "VIDIOC_G_COLOR_SPACE_CONV",
+> >  };
+> >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+> >
+> > @@ -1838,7 +1840,22 @@ static long __video_do_ioctl(struct file *file,
+> >  		}
+> >  		break;
+> >  	}
+> > -
+> > +	case VIDIOC_S_COLOR_SPACE_CONV:
+> > +	{
+> > +		struct v4l2_color_space_conversion *p = arg;
+> > +		if (!ops->vidioc_s_color_space_conv)
+> > +			break;
+> > +		ret = ops->vidioc_s_color_space_conv(file, fh, p);
+> > +		break;
+> > +	}
+> > +	case VIDIOC_G_COLOR_SPACE_CONV:
+> > +	{
+> > +		struct v4l2_color_space_conversion *p = arg;
+> > +		if (!ops->vidioc_g_color_space_conv)
+> > +			break;
+> > +		ret = ops->vidioc_g_color_space_conv(file, fh, p);
+> > +		break;
+> > +	}
+> >  	default:
+> >  	{
+> >  		if (!ops->vidioc_default)
+> > diff --git a/linux/include/linux/videodev2.h
+> > b/linux/include/linux/videodev2.h index b0c5010..9fbc3b0 100644
+> > --- a/linux/include/linux/videodev2.h
+> > +++ b/linux/include/linux/videodev2.h
+> > @@ -879,8 +879,10 @@ enum v4l2_power_line_frequency {
+> >  #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
+> >  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
+> >  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+> > +#define V4L2_CID_ROTATION			(V4L2_CID_BASE+31)
+> > +#define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+32)
+> >  /* last CID + 1 */
+> > -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+31)
+> > +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+33)
+> >
+> >  /*  MPEG-class control IDs defined by V4L2 */
+> >  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+> > @@ -1192,6 +1194,17 @@ struct v4l2_hw_freq_seek {
+> >  };
+> >
+> >  /*
+> > + * Color conversion
+> > + * User needs to pass pointer to color conversion matrix
+> > + * defined by hardware
+> > + */
+> > +struct v4l2_color_space_conversion {
+> > +	__s32 coefficients[3][3];
+> > +	__s32 const_factor;
+> > +	__s32 offsets[3];
+> > +};
+> > +
+> > +/*
+> >   *	A U D I O
+> >   */
+> >  struct v4l2_audio {
+> > @@ -1493,9 +1506,13 @@ struct v4l2_chip_ident_old {
+> >  #endif
+> >
+> >  #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
+> > +
+> > +#define VIDIOC_S_COLOR_SPACE_CONV      _IOW('V', 83, struct
+> > v4l2_color_space_conversion)
+> > +#define VIDIOC_G_COLOR_SPACE_CONV      _IOR('V', 84, struct
+> > v4l2_color_space_conversion)
+> >  /* Reminder: when adding new ioctls please add support for them to
+> >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+> >
+> > +
+> >  #ifdef __OLD_VIDIOC_
+> >  /* for compatibility, will go away some day */
+> >  #define VIDIOC_OVERLAY_OLD     	_IOWR('V', 14, int)
+> > diff --git a/linux/include/media/v4l2-ioctl.h
+> > b/linux/include/media/v4l2- ioctl.h
+> > index b01c044..0c44ecf 100644
+> > --- a/linux/include/media/v4l2-ioctl.h
+> > +++ b/linux/include/media/v4l2-ioctl.h
+> > @@ -241,6 +241,10 @@ struct v4l2_ioctl_ops {
+> >  	/* For other private ioctls */
+> >  	long (*vidioc_default)	       (struct file *file, void *fh,
+> >  					int cmd, void *arg);
+> > +	int (*vidioc_s_color_space_conv)     (struct file *file, void *fh,
+> > +					struct v4l2_color_space_conversion *a);
+> > +	int (*vidioc_g_color_space_conv)     (struct file *file, void *fh,
+> > +					struct v4l2_color_space_conversion *a);
+> >  };
+> >
+> >
+> > --
+> > 1.5.6
 >
-> /dev/dvb/adapter0/demux0
-> /dev/dvb/adapter0/dvr0
-> /dev/dvb/adapter0/frontend0
-> /dev/dvb/adapter0/net0
->
-> And I also see /dev/video0
->
-> But what do those devices represent?  Is /dev/video0 the analog tuner?
-> is /dev/dvb/adapter0/dvr0 the digital tuner?  What are the others?
->   
+> [Shah, Hardik] Hi,
+> Any comments on this patch.
+> Hans/Mauro,
+> If possible can you integrate this onto your development branch.
 
-When a driver module loads, the device manager udev will create device
-nodes on /dev.
+Hi Hardik,
 
-For dvb devices you get the character devices under /dev/dvb/adapterN
-(where N = 0 to whatever). The character devices for each adapter N
-are enumerated in form of M=0 to whatever. For example:
-/dev/dvb/adapter0/frontend0 .... if the same device had a second
-frontend, that character device would be enumerated by
-/dev/dvb/adapter0/frontend1 ... if you had another dvb adapter in the
-system, then you would see /dev/dvb/adapter1/frontend0 and so forth.
+I've one question regarding the rotation control: I assume that this is 
+limited to 0, 90, 180 and 270 degrees? I think it might be better to 
+implement this as an enum in that case.
 
-* The frontend device controls the tuner and demodulator.
-* The demux controls the filters for processing the transport stream (TS).
-* the dvr is a logical device that is associated with the demux
-character device ... it delivers up the TS for either:
-(1) immediate playback --- in which case it has to be decoded either:
-a) on the device itself [its rare for PC devices to have hardware
-decoding, but not so for STB] or
-b) downstream by the system [the usual route for PC devices -- i.e.
-software decoding via the host CPU, and possibly assisted by the GPU) ]
-or
-(2) saving to disk for later playback.
-* the net character device controls IP-over-DVB
+Regards,
 
-Similarly, with video capture (or, if you prefer, V4L) devices, you get
-the /dev/video device node and the videoN character devices.
+	Hans
 
-For more info, have a look at the DVB and V4L APIs.
-
-> I have been trying to configure mythtv but have no idea what to tell it
-> about this device.  The mythtv docs say that if you  have a card with 2
-> tuners, define it as a DVB.  But, mythtv-setup identifies it correcly
-> (by name) as an analog card /dev/video0, if I set it up as a DVB it claims
-> it is a DVICO or Air2PC or...  It does not seem to know about the /dev/dvb
-> devices.  Do I need to configure the OnAir Creator as 1 or 2 device 
->
-> ... 
->
-> I have posted the higher level questions to the mythtv mailing list, but
->
-> no answers yet.  Any hints would be welcome.
->   
-
-Sorry, no input on the myth specific questions, though surely someone
-else might be able to.
-
-> Can someone tell me a quick and easy way to test the device? maybe with
-> mplayer?  I have an analog camera connected to the composite input, so
-> even if I don't get any channels with the rabbit ears and loop antenna,
-> that should work as a test.
-See the wiki -- in particular, in the User Section, see the testing your
-DVB device article. Also see the MPlayer article.
-
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
