@@ -1,97 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49034 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754680AbZAVNv1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 08:51:27 -0500
-Message-ID: <497879DD.5020303@gmx.net>
-Date: Thu, 22 Jan 2009 14:51:25 +0100
-From: TCP/IP <t-cp@gmx.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: saa7134-alsa.ko and alsa-driver-1.0.19
-References: <S1752508AbZAVNYE/20090122132404Z+405@vger.kernel.org>
-In-Reply-To: <S1752508AbZAVNYE/20090122132404Z+405@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:57379 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828AbZAYWZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jan 2009 17:25:40 -0500
+Received: by qyk4 with SMTP id 4so6193194qyk.13
+        for <linux-media@vger.kernel.org>; Sun, 25 Jan 2009 14:25:38 -0800 (PST)
+Date: Sun, 25 Jan 2009 20:25:33 -0200
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [patch review] em28xx: correct mailing list
+Message-ID: <20090125202533.5c839e53@gmail.com>
+In-Reply-To: <1232854594.21610.7.camel@tux.localhost>
+References: <1232854594.21610.7.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody
+Hi Alexey,
 
-Has anyone of you got the saa7134-alsa module running with
-alsa-driver-1.0.19 ?
+  Applied, thanks.
 
+Cheers,
+Douglas
 
-root@MythTV:~# modprobe -v saa7134-alsa
-insmod
-/lib/modules/2.6.27.8/kernel/drivers/media/video/saa7134/saa7134-alsa.ko
-FATAL: Error inserting saa7134_alsa
-(/lib/modules/2.6.27.8/kernel/drivers/media/video/saa7134/saa7134-alsa.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
+On Sun, 25 Jan 2009 06:36:33 +0300
+Alexey Klimov <klimov.linux@gmail.com> wrote:
 
-
-root@MythTV:~# dmesg |less
-[ 7543.401381] Linux video capture interface: v2.00
-[ 7543.412129] saa7130/34: v4l2 driver version 0.2.14 loaded
-[ 7543.412157] saa7133[0]: found at 0000:04:00.0, rev: 209, irq: 16,
-latency: 64, mmio: 0xfebff800
-[ 7543.412162] saa7133[0]: subsystem: 1043:4845, board: ASUSTeK P7131
-Analog [card=146,insmod option]
-[ 7543.412170] saa7133[0]: board init: gpio is 0
-[ 7543.412210] input: saa7134 IR (ASUSTeK P7131 Analo as
-/devices/pci0000:00/0000:00:1e.0/0000:04:00.0/input/input9
-[ 7543.558005] saa7133[0]: i2c eeprom 00: 43 10 45 48 54 20 1c 00 43 43
-a9 1c 55 d2 b2 92
-[ 7543.558022] saa7133[0]: i2c eeprom 10: 00 ff e2 0f ff 20 ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558038] saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff
-00 88 ff ff ff ff
-[ 7543.558054] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558071] saa7133[0]: i2c eeprom 40: ff 22 00 c2 96 ff 02 30 15 ff
-ff ff ff ff ff ff
-[ 7543.558086] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558102] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558118] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558136] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558152] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558168] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558184] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558195] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558206] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558216] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.558227] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff
-[ 7543.578071] tuner 1-004b: chip found @ 0x96 (saa7133[0])
-[ 7543.613005] tda829x 1-004b: setting tuner address to 61
-[ 7543.649006] tda829x 1-004b: type set to tda8290+75a
-[ 7546.226225] saa7133[0]: registered device video0 [v4l2]
-[ 7546.226270] saa7133[0]: registered device vbi0
-[ 7546.226312] saa7133[0]: registered device radio0
-[ 7546.258185] saa7134_alsa: Unknown symbol snd_card_new
-
-
-i needed to upgrade the alsa driver in order to get the
-00:1b.0 Audio device: Intel Corporation ICH10 HD Audio Controller
-soundcard propperly running, so using the alsa out of the kernel source
-(using 2.6.27.8 right now) is not an option
-
-do you have any ideas?
-i have read somthing about editing the #ifdef-s in compat.h but i have
-to admit that i don-t understand what to do there.
-
-
-Thanks a lot in advance!
-
-Ben
-
+> Hello all
+> I'm not sure is this patch really suitable.
+> But looks that main development mail-list moved to linux-media..
+> 
+> ---
+> Correct mailing list in 3 places in em28xx-cards.c
+> Move to linux-media on vger.kernel.org.
+> 
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+> --
+> diff -r 6a6eb9efc6cd linux/drivers/media/video/em28xx/em28xx-cards.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Fri Jan
+> 23 22:35:12 2009 -0200 +++
+> b/linux/drivers/media/video/em28xx/em28xx-cards.c	Sun Jan 25
+> 06:28:10 2009 +0300 @@ -1679,7 +1679,7 @@ em28xx_errdev("If the board
+> were missdetected, " "please email this log to:\n");
+>  			em28xx_errdev("\tV4L Mailing List "
+> -				      "
+> <video4linux-list@redhat.com>\n");
+> +				      "
+> <linux-media@vger.kernel.org>\n"); em28xx_errdev("Board detected as
+> %s\n", em28xx_boards[dev->model].name);
+>  
+> @@ -1711,7 +1711,7 @@
+>  			em28xx_errdev("If the board were
+> missdetected, " "please email this log to:\n");
+>  			em28xx_errdev("\tV4L Mailing List "
+> -				      "
+> <video4linux-list@redhat.com>\n");
+> +				      "
+> <linux-media@vger.kernel.org>\n"); em28xx_errdev("Board detected as
+> %s\n", em28xx_boards[dev->model].name);
+>  
+> @@ -1724,7 +1724,7 @@
+>  	em28xx_errdev("You may try to use card=<n> insmod option to "
+>  		      "workaround that.\n");
+>  	em28xx_errdev("Please send an email with this log to:\n");
+> -	em28xx_errdev("\tV4L Mailing List
+> <video4linux-list@redhat.com>\n");
+> +	em28xx_errdev("\tV4L Mailing List
+> <linux-media@vger.kernel.org>\n"); em28xx_errdev("Board eeprom hash
+> is 0x%08lx\n", dev->hash); em28xx_errdev("Board i2c devicelist hash
+> is 0x%08lx\n", dev->i2c_hash); 
+> 
+> 
