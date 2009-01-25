@@ -1,101 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:54885 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756569AbZATRq5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 12:46:57 -0500
-Date: Tue, 20 Jan 2009 11:46:54 -0600 (CST)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely <isely@pobox.com>
-To: linux-media@vger.kernel.org
-cc: ajurik@quick.cz, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Cross-posting linux-media, linux-dvb etc
-In-Reply-To: <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0901201048140.27310@cnc.isely.net>
-References: <alpine.LRH.1.10.0901161545540.28478@pub2.ifh.de>
- <20090119204724.01826924@caramujo.chehab.org> <003101c97ada$168d54b0$f4c6a5c1@tommy>
- <200901200956.25104.ajurik@quick.cz> <412bdbff0901200724v1c981f45te3558256571597a6@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:48831 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750785AbZAYQl6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jan 2009 11:41:58 -0500
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Sun, 25 Jan 2009 17:41:56 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+Message-ID: <20090125164156.205250@gmx.net>
+MIME-Version: 1.0
+Subject: [PATCH] scan-s2: tone setting when moving rotor
+To: alex.betis@gmail.com, linux-media@vger.kernel.org,
+	linux-dvb@linuxtv.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Jan 2009, Devin Heitmueller wrote:
+Hi Alex,
 
-> I spent the morning giving some consideration to the comments people
-> made regarding the merging of the mailing lists.  As with most
-> attempts at an optimization, there are cases that get more efficient
-> and cases that get less efficient.  If done properly, the important
-> cases improve in efficiency while the cases that are less critical end
-> up a little less efficient.
-> 
-> Clearly, there are two classes of users on the mailing lists:  those
-> who read it and those who read it *and* actively contribute to it.
-> One of the key goals behind merging the lists was to make it more
-> efficient for those who have to reply to emails to not have to deal
-> with duplicated content, since in reality a large portion of the
-> emails come from people who want their device to work, and don't even
-> know the differences between acronyms like ATSC, QAM, DVB-T, DVB-C,
-> analog, etc.
-> 
-> Looking at the people who have responded to this thread, and the
-> number of threads they have actually contributed on in the last year,
-> the disparity is obvious:
-> 
-> People "in favor" of the lists being merged
-> 118 Patrick Boettcher
-> 205 Hans Verkuil
+here's a patch for scan-s2.
 
-> 38 Mike Isely
+I found with one card (VP-1041) that I needed to be careful to 
+turn off the tone before making the DiSEqC 1.2 rotor command.
+Kaffeine does this too so guess it is generally necessary. Also
+we can rotate faster by selecting the higher LNB voltage (18v).
 
-I've contributed to 38 different threads in the past year?  Wow, I 
-thought I had been staying mostly in the background...
+Regards,
+Hans
+
+Signed-off-by: Hans Werner <hwerner4@gmx.de>
 
 
-> 196 Devin Heitmueller
-> "hundreds" Mauro Carvalho Chehab
-> 
-> People "against" of the lists being merged
-> 2 Lars Hanisch
-> 17 user.vdr
-> 16 Klaus Schmidinger
-> 2 Bob Cunningham
-> 10 Tomas Drajsajtl
-> 17 Ales Jurik
-> 
-> Yup, it's the developers who are posting on a regular basis who feel
-> the pain of the two different lists.  It's the people who are actively
-> replying to issues, dealing with problems, and trying to keep track of
-> it all who want the lists merged.  That said, I personally don't feel
-> any guilt in inconveniencing a few users who are not contributing if
-> it makes it easier for the people who contribute to the list on a
-> daily basis.
-> 
-> I would love to hear more from people who have contributed to more
-> than 20 threads who think having the two lists are a good idea.  I
-> doubt there will be many of them.
-
-   [...]
-
-I don't have a strong preference about a -users and -dev split vs a 
-single list.  It might be worth at least trying - one can always go 
-back to a single list if the experiment fails.
-
-Some have posted that they don't want to be bothered about all the "V4L 
-noise" if they only care about DVB.  But look at this from a driver's 
-viewpoint.  Some drivers aren't just V4L or just DVB - the pvrusb2 
-driver, being that it handles a few hybrid devices, plays both sides of 
-the fence, and some issues that may arise are not clearly obvious 
-whether V4L or DVB is the correct topic.  So to which list does one 
-expect to post?  (OK, maybe in my case it's the pvrusb2 list, but the 
-question is still valid in the general sense and is only going to get 
-more commonplace over time.)
-
-  -Mike
-
+diff -r 06fb47f19e1c diseqc.c
+--- a/diseqc.c
++++ b/diseqc.c
+@@ -77,7 +77,15 @@ int rotor_command( int frontend_fd, int 
+ 	return err;
+ }
+ 
+-int rotate_rotor (int frontend_fd, int from_rotor_pos, int to_rotor_pos, int voltage_18){
++static inline void msleep(uint32_t msec)
++{
++	struct timespec req = { msec / 1000, 1000000 * (msec % 1000) };
++
++	while (nanosleep(&req, &req))
++		;
++}
++
++int rotate_rotor (int frontend_fd, int from_rotor_pos, int to_rotor_pos, int voltage_18, int hiband){
+ 	/* Rotate a DiSEqC 1.2 rotor from position from_rotor_pos to position to_rotor_pos */
+ 	/* Uses Goto nn (command 9) */
+ 	float rotor_wait_time; //seconds
+@@ -97,8 +105,17 @@ int rotate_rotor (int frontend_fd, int f
+ 				a2 = rotor_angle(from_rotor_pos);
+ 				degreesmoved = abs(a1-a2);
+ 				if (degreesmoved>180) degreesmoved=360-degreesmoved;
+-				rotor_wait_time = degreesmoved / (voltage_18 ? speed_18V : speed_13V);
++				rotor_wait_time = degreesmoved / speed_18V;
+ 			}
++
++			//switch tone off
++			if (err = ioctl(frontend_fd, FE_SET_TONE, SEC_TONE_OFF))
++				return err;
++			msleep(15);
++			// high voltage for high speed rotation
++			if (err = ioctl(frontend_fd, FE_SET_VOLTAGE, SEC_VOLTAGE_18))
++				return err;
++			msleep(15);
+ 			err = rotor_command(frontend_fd, 9, to_rotor_pos, 0, 0);
+ 			if (err) {
+ 				info("Rotor move error!\n");
+@@ -111,20 +128,22 @@ int rotate_rotor (int frontend_fd, int f
+ 				}
+ 				info("completed.\n");
+ 			}
++
+ 		} else {
+ 			info("Rotor already at position %i\n", from_rotor_pos);
+ 		}
++
++		// correct tone and voltage
++		if (err = ioctl(frontend_fd, FE_SET_TONE, hiband ? SEC_TONE_ON : SEC_TONE_OFF))
++                        return err;
++		msleep(15);
++		if (err = ioctl(frontend_fd, FE_SET_VOLTAGE, voltage_18))
++			return err;
++		msleep(15);
+ 	}
+ 	return err;
+ }
+ 
+-static inline void msleep(uint32_t msec)
+-{
+-	struct timespec req = { msec / 1000, 1000000 * (msec % 1000) };
+-
+-	while (nanosleep(&req, &req))
+-		;
+-}
+ 
+ int diseqc_send_msg (int fd, fe_sec_voltage_t v, struct diseqc_cmd **cmd,
+ 					 fe_sec_tone_mode_t t, fe_sec_mini_cmd_t b)
+diff -r 06fb47f19e1c diseqc.h
+--- a/diseqc.h
++++ b/diseqc.h
+@@ -17,7 +17,7 @@ extern int diseqc_send_msg (int fd, fe_s
+ *   set up the switch to position/voltage/tone
+ */
+ extern int setup_switch (int frontend_fd, int switch_pos, int voltage_18, int freq, int uncommitted_switch_pos);
+-extern int rotate_rotor (int frontend_fd, int from_rotor_pos, int to_rotor_pos, int voltage_18);
++extern int rotate_rotor (int frontend_fd, int from_rotor_pos, int to_rotor_pos, int voltage_18, int hiband);
+ 
+ #endif
+ 
+diff -r 06fb47f19e1c scan.c
+--- a/scan.c
++++ b/scan.c
+@@ -1076,7 +1076,7 @@ static void parse_nit (struct section_bu
+ 				// New DVB-S transponder
+ 				t = alloc_transponder(tn.frequency);
+ 
+-				// For sattelites add both DVB-S and DVB-S2 transopnders since we don't know what should be used
++				// For satellites add both DVB-S and DVB-S2 transponders since we don't know what should be used
+ 				if(current_tp->delivery_system == SYS_DVBS || current_tp->delivery_system == SYS_DVBS2) {
+ 					tn.delivery_system = SYS_DVBS;
+ 					copy_transponder(t, &tn);
+@@ -1705,6 +1705,7 @@ static int __tune_to_transponder (int fr
+ 	uint32_t if_freq = 0;
+ 	uint32_t bandwidth_hz = 0;
+ 	current_tp = t;
++	int hiband = 0;
+ 
+ 	struct dtv_property p_clear[] = {
+ 		{ .cmd = DTV_CLEAR },
+@@ -1735,7 +1736,7 @@ static int __tune_to_transponder (int fr
+ 		if (lnb_type.high_val) {
+ 			if (lnb_type.switch_val) {
+ 				/* Voltage-controlled switch */
+-				int hiband = 0;
++				hiband = 0;
+ 
+ 				if (t->frequency >= lnb_type.switch_val)
+ 					hiband = 1;
+@@ -1770,9 +1771,10 @@ static int __tune_to_transponder (int fr
+ 			if (t->orbital_pos!=0) rotor_pos = rotor_nn(t->orbital_pos, t->we_flag);
+ 			int err;
+ 			err = rotate_rotor(	frontend_fd,
+-				curr_rotor_pos, 
+-				rotor_pos,
+-				t->polarisation == POLARISATION_VERTICAL ? 0 : 1);
++						curr_rotor_pos, 
++						rotor_pos,
++						t->polarisation == POLARISATION_VERTICAL ? 0 : 1,
++						hiband);
+ 			if (err)
+ 				error("Error in rotate_rotor err=%i\n",err); 
+ 			else
+@@ -1798,14 +1800,14 @@ static int __tune_to_transponder (int fr
+ 		}
+ 		break;
+ 
+-	case SYS_DVBC_ANNEX_B:
+-	case SYS_DVBC_ANNEX_AC:
+-		if_freq = t->frequency;
+-
+-		if (verbosity >= 2){
+-			dprintf(1,"DVB-C frequency is %d\n", if_freq);
+-		}
+-		break;
++	case SYS_DVBC_ANNEX_B:
++	case SYS_DVBC_ANNEX_AC:
++		if_freq = t->frequency;
++
++		if (verbosity >= 2){
++			dprintf(1,"DVB-C frequency is %d\n", if_freq);
++		}
++		break;
+ 	}
+ 
+ 	struct dvb_frontend_event ev;
+@@ -1825,7 +1827,7 @@ static int __tune_to_transponder (int fr
+ 		.num = 10,
+ 		.props = p_tune
+ 	};
+-
++	
+ 	/* discard stale QPSK events */
+ 	while (1) {
+ 		if (ioctl(frontend_fd, FE_GET_EVENT, &ev) == -1)
+@@ -2723,8 +2725,8 @@ static const char *usage = "\n"
+ "	-5	multiply all filter timeouts by factor 5\n"
+ "		for non-DVB-compliant section repitition rates\n"
+ "	-O pos	Orbital position override 'S4W', 'S19.2E' - good for VDR output\n"
+-"	-k cnt	Skip count, will skip every first specified\n"
+-"		messages for every message type (default 0)\n"
++"	-k cnt	Skip count: skip the first cnt \n"
++"		messages of each message type (default 0)\n"
+ "	-I cnt	Scan iterations count (default 10).\n"
+ "		Larger number will make scan longer on every channel\n"
+ "	-o fmt	output format: 'vdr' (default) or 'zap'\n"
 
 -- 
+Release early, release often.
 
-Mike Isely
-isely @ pobox (dot) com
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+NUR NOCH BIS 31.01.! GMX FreeDSL - Telefonanschluss + DSL 
+für nur 16,37 EURO/mtl.!* http://dsl.gmx.de/?ac=OM.AD.PD003K11308T4569a
