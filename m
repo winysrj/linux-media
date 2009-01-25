@@ -1,24 +1,13 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0DLL37H018010
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 16:21:03 -0500
-Received: from mail-bw0-f20.google.com (mail-bw0-f20.google.com
-	[209.85.218.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0DLKnmF008494
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 16:20:49 -0500
-Received: by bwz13 with SMTP id 13so689929bwz.3
-	for <video4linux-list@redhat.com>; Tue, 13 Jan 2009 13:20:48 -0800 (PST)
-Message-ID: <63386a3d0901131320idcc7f7fxbf2ca43c6f105d0d@mail.gmail.com>
-Date: Tue, 13 Jan 2009 22:20:48 +0100
-From: "Linus Walleij" <linus.ml.walleij@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <A24693684029E5489D1D202277BE894416429FA0@dlee02.ent.ti.com>
 MIME-Version: 1.0
+Date: Sun, 25 Jan 2009 18:48:34 +0300
+Message-ID: <4c57f5990901250748j7fffc4fv3150821156ce47a2@mail.gmail.com>
+From: Lierdakil <root@livid.pp.ru>
+To: hdegoede@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <A24693684029E5489D1D202277BE894416429FA0@dlee02.ent.ti.com>
-Subject: Re: [REVIEW PATCH 10/14] OMAP: CAM: Add ISP gain tables
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: GSPCA PAC207 patch to support genius ilook 111 webcam
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,25 +19,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2009/1/13 Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com>:
+It figures, that GSPCA PAC207 driver does not "know", that it can
+support genius i-look 111 webcam.
+The following patch simply adds usb ID of Genius iLook 111 to usb_de
+list of GSPCA PAC207 subdriver.
+=================
 
-> +++ b/drivers/media/video/isp/bluegamma_table.h
-(...)
-> +0,
-> +0,
-> +1,
-> +2,
-> +3,
-> +3,
-
-That's a lot of magic numbers, what do I need to know to understand them?
-
-Can you add some comment with some references, some statement like
-"obtained by calibating with a sensor in a certain controlled environment"
-or a mathematic formula used or whatever makes it a little bit more clear?
-
-Yours,
-Linus Walleij
+Index: linux-2.6.28.2/Documentation/video4linux/gspca.txt
+===================================================================
+--- linux-2.6.28.2.orig/Documentation/video4linux/gspca.txt
++++ linux-2.6.28.2/Documentation/video4linux/gspca.txt
+@@ -206,6 +206,7 @@ pac207		093a:2468	PAC207
+ pac207		093a:2470	Genius GF112
+ pac207		093a:2471	Genius VideoCam ge111
+ pac207		093a:2472	Genius VideoCam ge110
++pac207		093a:2474	Genius iLook 111
+ pac207		093a:2476	Genius e-Messenger 112
+ pac7311		093a:2600	PAC7311 Typhoon
+ pac7311		093a:2601	Philips SPC 610 NC
+Index: linux-2.6.28.2/drivers/media/video/gspca/pac207.c
+===================================================================
+--- linux-2.6.28.2.orig/drivers/media/video/gspca/pac207.c
++++ linux-2.6.28.2/drivers/media/video/gspca/pac207.c
+@@ -535,6 +535,7 @@ static const __devinitdata struct usb_de
+ 	{USB_DEVICE(0x093a, 0x2470)},
+ 	{USB_DEVICE(0x093a, 0x2471)},
+ 	{USB_DEVICE(0x093a, 0x2472)},
++	{USB_DEVICE(0x093a, 0x2474)},
+ 	{USB_DEVICE(0x093a, 0x2476)},
+ 	{USB_DEVICE(0x2001, 0xf115)},
+ 	{}
 
 --
 video4linux-list mailing list
