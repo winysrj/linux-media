@@ -1,112 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2309 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828AbZAYTLs (ORCPT
+Received: from qmta03.westchester.pa.mail.comcast.net ([76.96.62.32]:37471
+	"EHLO QMTA03.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756060AbZAYQwO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 14:11:48 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0PJBkUM072863
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 25 Jan 2009 20:11:46 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 25 Jan 2009 20:11:46 +0100 (CET)
-Message-Id: <200901251911.n0PJBkUM072863@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+	Sun, 25 Jan 2009 11:52:14 -0500
+Date: Sun, 25 Jan 2009 11:52:07 -0500
+From: Jeff DeFouw <jeffd@i2k.com>
+To: linux-media@vger.kernel.org, killero_24@yahoo.com
+Subject: Re: [linux-dvb] HVR-1800 Support
+Message-ID: <20090125165207.GA30450@blorp.plorb.com>
+References: <463244.61379.qm@web45416.mail.sp1.yahoo.com> <20090124203726.GA9808@blorp.plorb.com> <37219a840901250726q7f385702uf33c07ac5b09647d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37219a840901250726q7f385702uf33c07ac5b09647d@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Sun, Jan 25, 2009 at 10:26:51AM -0500, Michael Krufky wrote:
+> On Sat, Jan 24, 2009 at 3:37 PM, Jeff DeFouw <jeffd@i2k.com> wrote:
+> > On Tue, Jan 20, 2009 at 10:08:51PM -0800, Killero SS wrote:
+> >> i'm using ubuntu 8.10 2.6.27-9-generic
+> >> and tried compiling latest modules with hg-clone but my analog capture got broken, firmware error...
+> >> so i got back to original kernel modules
+> >> however, some people claim they get audio with analog on /dev/video1
+> >> this has never be my case, im using svideo signal so wondering if that may be it.
+> >> i get analog video on video0 and video1, but some colors look pretty weird, red for example.
+> >
+> > The driver in the kernel and hg does not set up the registers properly
+> > for the video or audio in S-Video mode.  I made some changes to get mine
+> > working.  I can probably make a patch for you if you can get your source
+> > build working.
+> 
+> Why not sign it off and send it in to the list, to be merged into the
+> official sources?
+> 
+> Surely if there is a bug or missing feature that you've fixed, it
+> should be merged into the repository so that everybody else can
+> benefit from it.
 
-Results of the daily build of v4l-dvb:
+Right now it's kind of a dirty hack just for my card.  I'm stepping on 
+code shared with other cx23885/cx25840 cards and potentially breaking 
+them without any way to check.  It needs a few more changes anyway, but 
+the breaking would still be a problem.  I can either hope for the best, 
+or add extra variables and conditions just for this card and make a 
+little mess.
 
-date:        Sun Jan 25 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10305:6a6eb9efc6cd
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc2-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc2-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc2-armv5-omap2: OK
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc2-i686: OK
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc2-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc2-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc2-powerpc64: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc2-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc2): ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+-- 
+Jeff DeFouw <jeffd@i2k.com>
