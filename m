@@ -1,15 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <4963CA95.9080607@linuxtv.org>
-Date: Tue, 06 Jan 2009 16:18:13 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from smtp-out113.alice.it ([85.37.17.113])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <wayneandholly@alice.it>) id 1LR19s-0001gu-Kx
+	for linux-dvb@linuxtv.org; Sun, 25 Jan 2009 10:20:02 +0100
+From: "Wayne and Holly" <wayneandholly@alice.it>
+To: <linux-dvb@linuxtv.org>
+Date: Sun, 25 Jan 2009 10:18:25 +0100
+Message-ID: <000601c97ecd$e09d9930$0202a8c0@speedy>
 MIME-Version: 1.0
-To: Mark Lord <lkml@rtr.ca>
-References: <4963C93A.1060708@rtr.ca>
-In-Reply-To: <4963C93A.1060708@rtr.ca>
-Cc: linux-acpi@vger.kernel.org, v4l-dvb-maintainer@linuxtv.org,
-	linux-dvb@linuxtv.org, Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] 2.6.28: Oops at
- acpi_ds_exec_end_op+0x1b: kills machine
+Subject: [linux-dvb] FW:  Leadtek WinFast PxDVR3200 H
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,99 +23,112 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mark Lord wrote:
-> This happened on our Mythtv box at startup this morning:
-> The Oops happened once only, at system startup, on initial device probe.
-> Not reproduceable, so probably a rare race of some kind.
-> The xc5000 module was loaded with "init_fw=1" to force f/w load on modprobe.
->
-> 2.6.28 kernel, SMP, x86_64, two CPUs (Core2duo 1.86GHz), 2GB RAM.
->
-> Oops text typed in by hand from screen photos
-> ( original photos: http://rtr.ca/xc5000_lockup )
-> ...
-> xc5000: firmware read 12332 bytes.
-> xc5000: firmware upload
-> BUG kernel NULL pointer dereference at 000000000000000c
-> IP: [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
-> PGD 7c8cd067 PUD 7d411067 PMD 0
-> Oops: 0000 [#1] PREEMPT SMP
-> last sysfs file: /sys/class/firmware/i2c-2/loading
-> CPU 0
-> ...
-> Modules linked in: xc5000 au8522 tea5767 tda9887 tda8290 tea5761 fuse au0828(+)
-> dvd_core usbhid tuner_simple tuner_types snd_hda_intel msp3400 ... nvidia(P) ...
-> ...
-> Pid: 2383, comm: modprobe Tainted: P A 2.6.28 #9  
-> RIP: 0010:[<ffffffff8038fbcf>]  [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
-> RSP: 0018:ffff88007a095ad8  EFLAGS: 00010296
-> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-> RDX: 0000000000000000 RSI: 0000000000000000 RDI: ffff88007f8588f0
-> R10: ffff88007f8a4d40 R11: ffff8800000bf9e0 R12: 0000000000000000
-> R13: ffff88007e43bc10 R14: ffff88007a0ac000 R15: ffff88007e43bc10
-> FS:  00007f844d5666e0(0000) GS:ffffffff8060f540(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> ...
-> Process modprobe (pid: 2383, threadinfo ffff88007a094000, task ffff88007fa043d0)
-> Stack:
->  ffff88007a085380 0000000000000000 ffff88007a085380 ffffffffa09cfb28
->  ffff88007e43bc10 ffffffffa09f263f ffff88007a095b18 ffff88007a085380
->  ffffc200109e6000 ffff88007a085380 000000000000f9f9 00000000000094d7
-> Call Trace:
-> xc_load_fw_and_init_tuner+0x14b/0x29c [xc5000]
-> i2c_transfer+0x8a/0x94
-> xc5000_init+0x3d/0x6f [xc5000]
-> xc5000_attach+0x22c/0x256 [xc5000]
-> __symbol_get+0x2c/0xd3
-> au0828+dvb_register+0x2ec/x5cb [au0828]
-> au0828_usb_probe+0x10c/0x140 [au0828]
-> usb_match_id+0x32/0x58 [usbcore]
-> usb_probe_interface+0xfb/0x132 [usbcore]
-> driver_probe_device+0xb5/0x159
-> __driver_attach+0x59/0x80
-> __driver_attach+0x0/0x80
-> bus_for_each_dev+0x44/0x78
-> bus_add_driver+0xac/0x1f2
-> driver_register+0xa2/0x11f
-> usb_register_driver+0x7e/0xe0 [usbcore]
-> au0828_init+0x0/0xbb [au0828]
-> au0828_init+0xa1/0xbb [au0828]
-> _stext+0x56/0x14f
-> vma_link+0x90/0xa2
-> update_curr+0x49/0xf0
-> enqueue_task_fair+0x14c/0x161
-> check_preempt_wakeup+0xf4/0x124
-> try_to_wake_up+0x16a/0x17c
-> sys_init_module+0xa0/0x1a9
-> system_call_fastpath+0x16/0x1b
-> Code: 00 66 c7 40 0c c0 00 89 d8 48 83 c4 18 5b 5d c3 41 55 41 54 55 48 89
->  48 83 ec 08 48 8b 87 08 03 00 00 4c 8b a7 00 03 00 00 <8a> 50 0c 8a 40 0?
->  c8 83 f9 0a 75 25 41 0f b7 4c 24 0a 48
-> RIP  [<ffffffff8038fbcf>] acpi_ds_exec_end_op+0x1b/0x3c4
->  RSP <ffff88007a095ad8>
-> CR2: 000000000000000c
-> ---[ end trace c23df576c022eb7e ]---
->
-> Could someone perhaps explain how acpi_ds_exec_end_op even enters the
-> picture here?  I'm confused by that.
->
-> The driver was doing/completing an i2c firmware transfer at the time of
-> the oops.
+> -----Original Message-----
+> From: Robert Golding [mailto:robert.golding@gmail.com]
+> Sent: Sunday, 25 January 2009 8:42 a.m.
+> To: Wayne and Holly
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Leadtek WinFast PxDVR3200 H
+> 
+> 
+> 2009/1/25 Wayne and Holly <wayneandholly@alice.it>:
+> > Hello list,
+> > I have a Leadtek WinFast PxDVR3200 H that I am attempting
+> to utilise
+> > with MythTV.  The Wiki site states that experimental support exists
+> > for the DVB side and that "Successful tuning of typical Australian 
+> > channels" has been achieved. I am able to create a channels.conf 
+> > (attached) using scan, and am then able to tune using mythtv-setup, 
+> > however none of these channels are viewable with the 
+> mythfrontend due
+> > to it being unable to gain a lock.
+> >
+> > Relevant bits and pieces:
+> >
+> > scan, using the latest it-Varese file scan is able to tune
+> to three of
+> > the five transponders as per the attached file "scan".  It
+> also scans
+> > on 800000000Hz but I have no idea why.
+> >
+> > The file leadtek.dmesg contains the relevant info from dmesg (and
+> > messages.log) regarding the initialisation of the card
+> itself.  There
+> > are no error messages at any time (that I am aware of)
+> despite all of
+> > my fiddling about.
+> >
+> > Of the three transponders that are in my channels.conf
+> file, the third
+> > one
+> > (618000000Hz) causes an error when tuning in mythtv-setup.
+> It states that
+> > channels are found but the tsid is incorrect.  As such,
+> only the first two
+> > successful transponders (706000000 and 602000000) are tuned by myth.
+> >
+> > When I attempt to view the tuned channels, myth is unable to gain a
+> > lock on any of them.  The reported signal strength is about 58% and 
+> > the S/N varies between 3 and 3.8dB.  I am able to tune 
+> DVB-T channels
+> > on my TV using the same aerial cable but am wondering if signal
+> > strength is an issue.
+> >
+> > I am running it on Kubuntu with a 2.6.24-19 kernel, I have a recent
+> > version of the v4l-dvb tree (approx Nov 08) and am using firmware 
+> > version 2.7.  I haven't updated the drivers or the firmware 
+> as I have
+> > no reason to believe there are changes that would effect
+> this.  That
+> > said, if someone thinks there has been changes I will get
+> straight on
+> > it.
+> >
+> > I am more than happy to provide more debugging info if required (if
+> > you are willing to tell me where else to look) and 
+> appreciate any help
+> > provided.
+> >
+> > Cheers
+> > Wayne
+> >
+> > _______________________________________________
+> > linux-dvb users mailing list
+> > For V4L/DVB development, please use instead
+> > linux-media@vger.kernel.org linux-dvb@linuxtv.org 
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> 
+> I have the same card, so this might help.
+> I was experiencing many frontend problems when I came across
+> a references in the list to a third party firmware files. It 
+> explained that you had to download and extract the firmware 
+> within to the firmware dir.
+> 
+> I cannot remember exactly what, where and which, however, if
+> you'd like, I can email the extracted fw.tar.bz2(1.5MB) and
+> ivtv.firmware.tar.bz2(123KB) files to you.  Then just extract 
+> the contents to your firmware dir (on Gentoo /lib/firmware).
+> 
+> Anyway, long story short, that fixed it for me.  Now I'm just
+> waiting to be able to use the FM radio.
+> 
+> -- 
+> Regards,	Robert
 
+Hi Robert,
+Are you talking about the firmware for the XC3038?  I have xc3028-v27.fw in
+place and it loads fine.  I don't recall anything about ivtv firmware, so
+perhaps it would be best if you send through both files, that way I can
+eyeball them and do some fiddling. In the meantime I will start searching
+the list again specifically regarding this.
 
-We removed the "init_fw" module option from the xc5000 module.  It is no 
-longer necessary, and prevents us from taking advantage of power saving 
-capabilities.
+Cheers
+Wayne
 
-So, the OOPS itself is moot.  How did acpi_ds_exec_end_op enter the 
-picture???  That I have no idea.  Can you try to reproduce that will a 
-clean (not tainted) kernel?
-
-Regards,
-
-Mike
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
