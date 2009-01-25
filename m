@@ -1,97 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:50967 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752273AbZAUCe7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 21:34:59 -0500
-Subject: Re: [linux-dvb] Terratec XS HD support?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	DVB mailin' list thingy <linux-dvb@linuxtv.org>,
-	em28xx@mcentral.de
-In-Reply-To: <d9def9db0901201826j7bef2232s6ad12b7ff081ece3@mail.gmail.com>
-References: <496C9FDE.2040408@hemmail.se>
-	 <d9def9db0901131101y59cd5c1ct2344052f86b42feb@mail.gmail.com>
-	 <d9def9db0901151028k6ab8bd79q6627c7516020aabe@mail.gmail.com>
-	 <alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
-	 <d9def9db0901170216g5be0ed16sa1eeb4c4f9acce76@mail.gmail.com>
-	 <1232503628.2685.5.camel@pc10.localdom.local>
-	 <d9def9db0901201826j7bef2232s6ad12b7ff081ece3@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:35329 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750775AbZAYSjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jan 2009 13:39:55 -0500
+Subject: [cx18] cx18-0: Could not start the CPU
+From: Florian =?ISO-8859-1?Q?Sch=FCller?= <schuellerf@gmx.net>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain
-Date: Wed, 21 Jan 2009 03:35:28 +0100
-Message-Id: <1232505328.2685.9.camel@pc10.localdom.local>
+Date: Sun, 25 Jan 2009 19:39:48 +0100
+Message-Id: <1232908788.6712.7.camel@flosmio>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
+can anyone help me?
+my CX23418 does not seem to work...
 
-Am Mittwoch, den 21.01.2009, 03:26 +0100 schrieb Markus Rechberger:
-> On Wed, Jan 21, 2009 at 3:07 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> >
-> > Am Samstag, den 17.01.2009, 11:16 +0100 schrieb Markus Rechberger:
-> >> On Sat, Jan 17, 2009 at 10:57 AM, BOUWSMA Barry
-> >> <freebeer.bouwsma@gmail.com> wrote:
-> >> > Hi Markus, I follow your list as a non-subscriber, but I thought
-> >> > it would be worthwhile to post this to linux-dvb as well, and
-> >> > eventually to linux-media...
-> >> >
-> >> > On Thu, 15 Jan 2009, Markus Rechberger wrote:
-> >> >
-> >> >> On Tue, Jan 13, 2009 at 8:01 PM, Markus Rechberger
-> >> >> <mrechberger@gmail.com> wrote:
-> >> >
-> >> >> >> Is there any news about Terratec HTC USB XS HD support?
-> >> >
-> >> >> > it's upcoming soon.
-> >> >
-> >> > Thanks Markus, that's good news for me, and for several people
-> >> > who have written me as well!
-> >> >
-> >> >
-> >> >> http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
-> >> >> you might track that site for upcoming information.
-> >> >
-> >> > Interesting.  You say that your code will make use of a BSD
-> >> > setup.  Can you or someone say something about this, or point
-> >> > to past discussion which explains this?  Would this be the
-> >> > userspace_tuner link on your wiki?
-> >> >
-> >> > In particular, I'm wondering whether this is completely
-> >> > compatible with the standard DVB utilities -- dvbscan,
-> >> > dvbstream, and the like, or whether a particular higher-
-> >> > level end-user application is required.
-> >> >
-> >> >
-> >>
-> >> The design goes hand in hand with some discussions that have been made
-> >> with some BSD developers.
-> >> The setup makes use of usbdevfs and pci configspace access from
-> >> userland, some work still has to be done there, it (will give/gives)
-> >> manufacturers the freedom to release opensource and binary drivers for
-> >> userland.
-> >> I'm a friend of open development and not of some kind of monopoly
-> >> where a few people rule everything (linux).
-> >
-> > I do remember when BSD shared some tuner code with GNU/LINUX ;)
-> >
-> 
-> there is nothing wrong with that.
-> 
-> As a reference:
-> * http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
-> * http://corona.homeunix.net/cx88wiki
-> 
-> regards,
-> Markus
+I'm running a 64bit Ubuntu 8.10 on a Toshiba Qosmio Laptop
 
-Without following your links for now,
-for the code exchange during the last six years with what you claim,
+$ uname -a
+Linux flosmio 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC 2008
+x86_64 GNU/Linux
 
-there must be something very, very wrong.
+$ lspci -v
+[...]
+06:09.0 Multimedia video controller: Conexant Systems, Inc. CX23418
+Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast Audio
+Decoder
+	Subsystem: Toshiba America Info Systems Device 0110
+	Flags: bus master, medium devsel, latency 64, IRQ 19
+	Memory at f4000000 (32-bit, non-prefetchable) [size=64M]
+	Capabilities: <access denied>
+	Kernel driver in use: cx18
+	Kernel modules: cx18
+[...]
 
-cheers,
-hermann
+Compilation of the newest cx18 (I hopfully did it right) gives:
 
+$ dmesg -c
+[ 5806.014965] Linux video capture interface: v2.00
+[ 5806.059165] cx18:  Start initialization, version 1.0.4
+[ 5806.059320] cx18-0: Initializing card #0
+[ 5806.059323] cx18-0: Autodetected Toshiba Qosmio DVB-T/Analog card
+[ 5806.064575] cx18-0: cx23418 revision 01010000 (B)
+[ 5806.234577] cx18-0: Experimenters and photos needed for device to
+work well.
+[ 5806.234579] 	To help, mail the ivtv-devel list (www.ivtvdriver.org).
+[ 5806.454154] Chip ID is not zero. It is not a TEA5767
+[ 5806.454285] tuner 4-0060: chip found @ 0xc0 (cx18 i2c driver #0-1)
+[ 5806.489651] xc2028 4-0060: creating new instance
+[ 5806.489675] xc2028 4-0060: type set to XCeive xc2028/xc3028 tuner
+[ 5806.489682] firmware: requesting v4l-cx23418-dig.fw
+[ 5806.782200] cx18-0: loaded v4l-cx23418-dig.fw firmware (16382 bytes)
+[ 5806.784097] cx18-0: Registered device video0 for encoder MPEG (64 x
+32 kB)
+[ 5806.789135] cx18-0: Registered device video32 for encoder YUV (16 x
+128 kB)
+[ 5806.791530] cx18-0: Registered device vbi0 for encoder VBI (60 x
+17328 bytes)
+[ 5806.793783] cx18-0: Registered device video24 for encoder PCM audio
+(256 x 4 kB)
+[ 5806.793808] cx18-0: Initialized card #0: Toshiba Qosmio DVB-T/Analog
+[ 5806.795499] cx18:  End initialization
+[ 5806.797103] firmware: requesting v4l-cx23418-cpu.fw
+[ 5807.184500] cx18-0: loaded v4l-cx23418-cpu.fw firmware (174716 bytes)
+[ 5807.256793] firmware: requesting v4l-cx23418-apu.fw
+[ 5807.583799] cx18-0: loaded v4l-cx23418-apu.fw firmware V00120000
+(141200 bytes)
+[ 5808.401187] cx18-0: Could not start the CPU
+[ 5808.401220] cx18-0: Retry loading firmware
+[ 5808.405122] firmware: requesting v4l-cx23418-cpu.fw
+[ 5808.794060] cx18-0: loaded v4l-cx23418-cpu.fw firmware (174716 bytes)
+[ 5808.866513] firmware: requesting v4l-cx23418-apu.fw
+[ 5809.174511] cx18-0: loaded v4l-cx23418-apu.fw firmware V00120000
+(141200 bytes)
+[ 5809.977264] cx18-0: Could not start the CPU
+[ 5809.977295] cx18-0: Failed to initialize on minor 0
+[ 5809.985454] cx18-0: Failed to initialize on minor 1
+[ 5809.993718] cx18-0: Failed to initialize on minor 2
+[ 5810.001484] cx18-0: Failed to initialize on minor 3
+
+
+
+Regards
+Flo
 
