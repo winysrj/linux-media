@@ -1,39 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from joan.kewl.org ([212.161.35.248]:44966 "EHLO joan.kewl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751565AbZAZSFr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2009 13:05:47 -0500
-From: Darron Broad <darron@kewl.org>
-To: linux-media@vger.kernel.org, Alex Betis <alex.betis@gmail.com>
-cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to use scan-s2? 
-In-reply-to: <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com> 
-References: <497C3F0F.1040107@makhutov.org> <497C359C.5090308@okg-computer.de> <c74595dc0901250525y3771df4fhb03939c9c9c02c1f@mail.gmail.com> <Pine.LNX.4.64.0901260109400.12123@shogun.pilppa.org> <c74595dc0901260135x32f7c2bm59506de420dab978@mail.gmail.com> <Pine.LNX.4.64.0901261729280.19881@shogun.pilppa.org> <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com>
-Date: Mon, 26 Jan 2009 17:32:31 +0000
-Message-ID: <16900.1232991151@kewl.org>
+Received: from fg-out-1718.google.com ([72.14.220.157]:9672 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085AbZAYP0x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jan 2009 10:26:53 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so3185690fgg.17
+        for <linux-media@vger.kernel.org>; Sun, 25 Jan 2009 07:26:51 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20090124203726.GA9808@blorp.plorb.com>
+References: <463244.61379.qm@web45416.mail.sp1.yahoo.com>
+	 <20090124203726.GA9808@blorp.plorb.com>
+Date: Sun, 25 Jan 2009 10:26:51 -0500
+Message-ID: <37219a840901250726q7f385702uf33c07ac5b09647d@mail.gmail.com>
+Subject: Re: [linux-dvb] HVR-1800 Support
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org, killero_24@yahoo.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In message <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com>, Alex Betis wrote:
-
-lo
-
-<snip>
+On Sat, Jan 24, 2009 at 3:37 PM, Jeff DeFouw <jeffd@i2k.com> wrote:
+> On Tue, Jan 20, 2009 at 10:08:51PM -0800, Killero SS wrote:
+>> i'm using ubuntu 8.10 2.6.27-9-generic
+>> and tried compiling latest modules with hg-clone but my analog capture got broken, firmware error...
+>> so i got back to original kernel modules
+>> however, some people claim they get audio with analog on /dev/video1
+>> this has never be my case, im using svideo signal so wondering if that may be it.
+>> i get analog video on video0 and video1, but some colors look pretty weird, red for example.
 >
->The bug is in S2API that doesn't return ANY error message at all :)
->So the tuner is left locked on previous channel.
->
->There are many things that can be done in driver to improve the situation,
->but I'll leave it to someone who has card with cx24116 chips.
+> The driver in the kernel and hg does not set up the registers properly
+> for the video or audio in S-Video mode.  I made some changes to get mine
+> working.  I can probably make a patch for you if you can get your source
+> build working.
 
-When tuning the event status should change to 0 and if
-it stays that way the tuning operation failed.
+Why not sign it off and send it in to the list, to be merged into the
+official sources?
 
-If you read the frontend status directly then you will
-retrieve the state of the previous tuning operation
-that suceeded. 
+Surely if there is a bug or missing feature that you've fixed, it
+should be merged into the repository so that everybody else can
+benefit from it.
 
-If this the above is not true then it needs investigation.
-
-cya
-
+-Mike
