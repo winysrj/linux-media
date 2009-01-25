@@ -1,44 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.231]:45625 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095AbZAaBcc (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3942 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751810AbZAYJaI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jan 2009 20:32:32 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so706431rvb.1
-        for <linux-media@vger.kernel.org>; Fri, 30 Jan 2009 17:32:31 -0800 (PST)
-Date: Fri, 30 Jan 2009 17:32:14 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Jan Grmela <grmela+linuxdriver@gmail.com>
-Cc: prjmgr@linuxdriverproject.org, linux-media@vger.kernel.org
-Subject: Re: DUTV005 USB DVB-T dongle
-Message-ID: <20090131013214.GA11279@jenkins>
-References: <6d562c690901301619g2918a76eq46350e116e2ccf67@mail.gmail.com>
+	Sun, 25 Jan 2009 04:30:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: Re: [RFC] Adding new ioctl for transparency color keying
+Date: Sun, 25 Jan 2009 10:29:49 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EB82@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EB82@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <6d562c690901301619g2918a76eq46350e116e2ccf67@mail.gmail.com>
+Message-Id: <200901251029.50095.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01:19 Sat 31 Jan 2009, Jan Grmela wrote:
-> I've bought some cheap DVB-T USB dongle at eBay last month but after
-> some unsuccessful tries to get it working, I've figured out that
-> there's no Linux driver for the device available since the chipset is
-> quite new. There are a lot of other people complaining that they need
-> to use Windows to watch TV.
-> 
-> Moosy's got a lot of info, USB dumps and datasheets at
-> http://sites.google.com/site/moosyresearch/dutv005
-> 
-> I'm ready to lend the device to a developer willing to create a Linux
-> driver for it because it's basically useless for me now.
-> 
-> (please ignore the previous e-mails sent from a wrong e-mail address)
+On Saturday 24 January 2009 17:59:27 Shah, Hardik wrote:
+> > -----Original Message-----
+> > From: Shah, Hardik
+> > Sent: Thursday, January 22, 2009 10:27 AM
+> > To: 'linux-media@vger.kernel.org'; video4linux-list@redhat.com
+> > Subject: [RFC] Adding new ioctl for transparency color keying
+> >
+> > Hi,
+> > OMAP class of device supports transparency color keying.  Color keying
+> > can be source color keying or destination color keying.
+> >
+> > OMAP3 has three pipelines one graphics plane and two video planes.  Any
+> > of these pipelines can go to either the TV or LCD.
+> >
+> > The destination transparency color key value defines the encoded pixels
+> > in the graphics layer to become transparent and display the underlying
+> > video pixels. While the source transparency key value defines the
+> > encoded pixels in the video layer to become transparent and display the
+> > underlying graphics pixels. This color keying works only if the video
+> > and graphics planes are on the same output like TV or LCD and images of
+> > both the pipelines overlapped.
+> >
+> > I propose to have the one ioctl to set the encoded pixel value and type
+> > of color keying source and destination.  Also we should have the CID to
+> > enable/disable the color keying functionality.
+> >
+> > Please let us know your opinions/comments.
+>
+> [Shah, Hardik] Hi Any comments on above IOCTLs,
+> Hans/Mauro,
+> Shall I send patch to add these new ioctls.
 
-CC'ing the linux-media list which includes the DVB developers. Perhaps
-someone from that list has some idea about the device or would be
-interested in helping out.
+Hi Hardik,
 
-Cheers,
+Sorry, I haven't yet had the opportunity to review the new ioctls. You can 
+expect that next week.
 
-	Brandon
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
