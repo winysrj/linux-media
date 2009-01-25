@@ -1,54 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50582 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753602AbZAMCDj convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f10.google.com ([209.85.219.10]:36694 "EHLO
+	mail-ew0-f10.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750785AbZAYDZg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 21:03:39 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>
-Date: Mon, 12 Jan 2009 20:03:10 -0600
-Subject: [REVIEW PATCH 02/14] v4l2-int-device: add support for
- VIDIOC_QUERYMENU
-Message-ID: <A24693684029E5489D1D202277BE894416429F98@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sat, 24 Jan 2009 22:25:36 -0500
+Received: by ewy3 with SMTP id 3so322470ewy.13
+        for <linux-media@vger.kernel.org>; Sat, 24 Jan 2009 19:25:34 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.58.0901241545440.17971@shell2.speakeasy.net>
+References: <20090110160854.1d016948@hyperion.delvare>
+	 <Pine.LNX.4.58.0901110346190.1626@shell2.speakeasy.net>
+	 <Pine.LNX.4.58.0901241545440.17971@shell2.speakeasy.net>
+Date: Sat, 24 Jan 2009 22:19:34 -0500
+Message-ID: <34539a480901241919x2f81d09me8f666727e099cfc@mail.gmail.com>
+Subject: Re: [PATCH] zoran: Update MAINTAINERS entry
+From: "Ronald S. Bultje" <rbultje@ronald.bitfreak.net>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Trent,
 
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- include/media/v4l2-int-device.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+On Sat, Jan 24, 2009 at 6:52 PM, Trent Piepho <xyzzy@speakeasy.org> wrote:
+> Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
+> ---
+> I think it's better to keep what info there is here instead of deleting the
+> entry entirely.  Sure you can find it elsewhere, but isn't the whole point
+> of MAINTAINERS to gather scattered info into one place and keep it up to
+> date?  Ronald, would you mind acking this version too?
+[..]
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 85a1834..052ffe0 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -178,6 +178,7 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_s_fmt_cap_num,
- 	vidioc_int_try_fmt_cap_num,
- 	vidioc_int_queryctrl_num,
-+	vidioc_int_querymenu_num,
- 	vidioc_int_g_ctrl_num,
- 	vidioc_int_s_ctrl_num,
- 	vidioc_int_cropcap_num,
-@@ -279,6 +280,7 @@ V4L2_INT_WRAPPER_1(g_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(s_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(try_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
-+V4L2_INT_WRAPPER_1(querymenu, struct v4l2_querymenu, *);
- V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
--- 
-1.5.6.5
+No problem, ack again.
 
+Thanks for the fish,
+Ronald
