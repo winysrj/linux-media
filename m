@@ -1,65 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45200 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbZA2Ne6 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2309 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828AbZAYTLs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 08:34:58 -0500
-Date: Thu, 29 Jan 2009 11:34:29 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-Cc: matthieu castet <castet.matthieu@free.fr>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support faulty USB IDs on DIBUSB_MC
-Message-ID: <20090129113429.3137ac44@caramujo.chehab.org>
-In-Reply-To: <alpine.LRH.1.10.0901291329590.15700@pub6.ifh.de>
-References: <484A72D3.7070500@free.fr>
-	<4974E4BE.2060107@free.fr>
-	<20090129074735.76e07d47@caramujo.chehab.org>
-	<alpine.LRH.1.10.0901291117110.15700@pub6.ifh.de>
-	<20090129100520.3331f41f@caramujo.chehab.org>
-	<alpine.LRH.1.10.0901291329590.15700@pub6.ifh.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sun, 25 Jan 2009 14:11:48 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0PJBkUM072863
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 25 Jan 2009 20:11:46 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 25 Jan 2009 20:11:46 +0100 (CET)
+Message-Id: <200901251911.n0PJBkUM072863@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2009 14:08:01 +0100 (CET)
-Patrick Boettcher <patrick.boettcher@desy.de> wrote:
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-> On Thu, 29 Jan 2009, Mauro Carvalho Chehab wrote:
-> >> We could do that, still I'm not sure if ARRAY_SIZE will work in that
-> >> situation?! Are you
-> >> sure, Mauro?
-> >
-> > Well, at least here, it is compiling fine. I can't really test it, since I
-> > don't have any dib0700 devices here.
-> 
-> Hmm, your patch is shifting the counting problem to another place. Instead 
-> of counting manually the devices-array-elements, one now needs to count 
-> the number of device_properties ;) .
+Results of the daily build of v4l-dvb:
 
-> With such a patch we would risk to break some device support and as I 
-> never saw a patch which broke the current num_device_descs-manual-count I 
-> don't see the need to change.
+date:        Sun Jan 25 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10305:6a6eb9efc6cd
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Nothing is perfect ;)
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc2-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc2-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc2-armv5-omap2: OK
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc2-i686: OK
+linux-2.6.16.61-m32r: OK
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc2-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc2-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc2-powerpc64: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc2-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc2): ERRORS
 
-I suspect that you have more additions at the number of the devices than on the
-number of device properties. So, the risk of doing bad things seems lower.
-Also, a simple board addition won't need to touch at the number of devices.
+Detailed results are available here:
 
-IMO, it is really bad to have to explicitly say the number of devices at those
-arrays. Maybe we may use some macro logic here to avoid such risks, or use a
-NULL terminated list instead.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> 
-> --
->    Mail: patrick.boettcher@desy.de
->    WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+Full logs are available here:
 
-
-
-
-Cheers,
-Mauro
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
