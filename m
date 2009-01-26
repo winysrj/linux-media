@@ -1,69 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52085 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750993AbZANSP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 13:15:57 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	v4l <video4linux-list@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 14 Jan 2009 12:11:31 -0600
-Subject: RE: Building v4l2spec docbook problems
-Message-ID: <A24693684029E5489D1D202277BE8944164DFFD3@dlee02.ent.ti.com>
-In-Reply-To: <200812071348.28510.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3927 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbZAZTMj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2009 14:12:39 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0QJCbV4080479
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 26 Jan 2009 20:12:38 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 26 Jan 2009 20:12:37 +0100 (CET)
+Message-Id: <200901261912.n0QJCbV4080479@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogdmlkZW80bGludXgtbGlz
-dC1ib3VuY2VzQHJlZGhhdC5jb20gW21haWx0bzp2aWRlbzRsaW51eC1saXN0LQ0KPiBib3VuY2Vz
-QHJlZGhhdC5jb21dIE9uIEJlaGFsZiBPZiBIYW5zIFZlcmt1aWwNCj4gU2VudDogU3VuZGF5LCBE
-ZWNlbWJlciAwNywgMjAwOCA2OjQ4IEFNDQo+IFRvOiB2NGwNCj4gU3ViamVjdDogQnVpbGRpbmcg
-djRsMnNwZWMgZG9jYm9vayBwcm9ibGVtcw0KPiANCj4gSGkgYWxsLA0KPiANCj4gSSdtIHRyeWlu
-ZyB0byBidWlsZCB0aGUgdjRsMnNwZWM6DQo+IGh0dHA6Ly92NGwyc3BlYy5ieXRlc2V4Lm9yZy92
-NGwyc3BlYy0wLjI0LnRhci5iejINCj4gDQo+IEJ1dCBJJ20gZ2V0dGluZyB0aGUgZm9sbG93aW5n
-IGVycm9yczoNCj4gDQo+IC4uLg0KPiBVc2luZyBjYXRhbG9nczogL2V0Yy9zZ21sL2NhdGFsb2cN
-Cj4gVXNpbmcgc3R5bGVzaGVldDogL2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0L2N1
-c3RvbS5kc2wjaHRtbA0KPiBXb3JraW5nIG9uOiAvaG9tZS9oYW5zL3dvcmsvc3JjL3Y0bDJzcGVj
-LTAuMjQvdjRsMi5zZ21sDQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0
-L3Y0bDIuc2dtbDozNTc6NTpXOiBjYW5ub3QNCj4gZ2VuZXJhdGUgc3lzdGVtIGlkZW50aWZpZXIg
-Zm9yIGdlbmVyYWwgZW50aXR5ICJzdWItY29tbW9uIg0KPiBqYWRlOi9ob21lL2hhbnMvd29yay9z
-cmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzU3OjU6RTogZ2VuZXJhbA0KPiBlbnRpdHkgInN1
-Yi1jb21tb24iIG5vdCBkZWZpbmVkIGFuZCBubyBkZWZhdWx0IGVudGl0eQ0KPiBqYWRlOi9ob21l
-L2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzU3OjE1OkU6IHJlZmVyZW5j
-ZSB0bw0KPiBlbnRpdHkgInN1Yi1jb21tb24iIGZvciB3aGljaCBubyBzeXN0ZW0gaWRlbnRpZmll
-ciBjb3VsZCBiZSBnZW5lcmF0ZWQNCj4gamFkZTovaG9tZS9oYW5zL3dvcmsvc3JjL3Y0bDJzcGVj
-LTAuMjQvdjRsMi5zZ21sOjM1Nzo0OiBlbnRpdHkgd2FzDQo+IGRlZmluZWQgaGVyZQ0KPiBqYWRl
-Oi9ob21lL2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzU4OjExOkU6IGVu
-ZCB0YWcNCj4gZm9yICJDSEFQVEVSIiB3aGljaCBpcyBub3QgZmluaXNoZWQNCj4gamFkZTovaG9t
-ZS9oYW5zL3dvcmsvc3JjL3Y0bDJzcGVjLTAuMjQvdjRsMi5zZ21sOjM2MTo1Olc6IGNhbm5vdA0K
-PiBnZW5lcmF0ZSBzeXN0ZW0gaWRlbnRpZmllciBmb3IgZ2VuZXJhbCBlbnRpdHkgInN1Yi1waXhm
-bXQiDQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0L3Y0bDIuc2dtbDoz
-NjE6NTpFOiBnZW5lcmFsDQo+IGVudGl0eSAic3ViLXBpeGZtdCIgbm90IGRlZmluZWQgYW5kIG5v
-IGRlZmF1bHQgZW50aXR5DQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3BlYy0wLjI0
-L3Y0bDIuc2dtbDozNjE6MTU6RTogcmVmZXJlbmNlIHRvDQo+IGVudGl0eSAic3ViLXBpeGZtdCIg
-Zm9yIHdoaWNoIG5vIHN5c3RlbSBpZGVudGlmaWVyIGNvdWxkIGJlIGdlbmVyYXRlZA0KPiBqYWRl
-Oi9ob21lL2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzYxOjQ6IGVudGl0
-eSB3YXMNCj4gZGVmaW5lZCBoZXJlDQo+IGphZGU6L2hvbWUvaGFucy93b3JrL3NyYy92NGwyc3Bl
-Yy0wLjI0L3Y0bDIuc2dtbDozNjI6MTE6RTogZW5kIHRhZw0KPiBmb3IgIkNIQVBURVIiIHdoaWNo
-IGlzIG5vdCBmaW5pc2hlZA0KPiBqYWRlOi9ob21lL2hhbnMvd29yay9zcmMvdjRsMnNwZWMtMC4y
-NC92NGwyLnNnbWw6MzY1OjU6VzogY2Fubm90DQo+IGdlbmVyYXRlIHN5c3RlbSBpZGVudGlmaWVy
-IGZvciBnZW5lcmFsIGVudGl0eSAic3ViLWlvIg0KPiBqYWRlOi9ob21lL2hhbnMvd29yay9zcmMv
-djRsMnNwZWMtMC4yNC92NGwyLnNnbWw6MzY1OjU6RTogZ2VuZXJhbA0KPiBlbnRpdHkgInN1Yi1p
-byIgbm90IGRlZmluZWQgYW5kIG5vIGRlZmF1bHQgZW50aXR5DQo+IGphZGU6L2hvbWUvaGFucy93
-b3JrL3NyYy92NGwyc3BlYy0wLjI0L3Y0bDIuc2dtbDozNjU6MTE6RTogcmVmZXJlbmNlIHRvDQo+
-IGVudGl0eSAic3ViLWlvIiBmb3Igd2hpY2ggbm8gc3lzdGVtIGlkZW50aWZpZXIgY291bGQgYmUg
-Z2VuZXJhdGVkDQo+IA0KPiBBbmQgdGhpcyBjb250aW51ZXMgZm9yIGEgbG9uZyBsaXN0IG9mICdz
-dWItc29tZXRoaW5nJyBlbnRpdGllcy4NCj4gDQo+IE1lIG5vIHNwZWFrIHNnbWwsIHNvIEkgaG9w
-ZSBzb21lb25lIG1vcmUgZmFtaWxpYXIgd2l0aCB0aGlzIGNhbiBoZWxwIG1lLg0KDQpIaSBIYW5z
-LA0KDQpJJ20gaGF2aW5nIHRoZSBzYW1lIHByb2JsZW1zIHRoYW4geW91LiBBbnkgdXBkYXRlIG9u
-IHRoaXM/DQoNCkkgZG9uJ3Qgc3BlYWsgc2dtbCBlaXRoZXIgOiguDQoNClJlZ2FyZHMsDQpTZXJn
-aW8NCj4gDQo+IFRoYW5rcywNCj4gDQo+IAlIYW5zDQo+IA0KPiAtLQ0KPiBIYW5zIFZlcmt1aWwg
-LSB2aWRlbzRsaW51eCBkZXZlbG9wZXIgLSBzcG9uc29yZWQgYnkgVEFOREJFUkcNCj4gDQo+IC0t
-DQo+IHZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBsaXN0DQo+IFVuc3Vic2NyaWJlIG1haWx0bzp2
-aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJlDQo+
-IGh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0
-DQoNCg==
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
+
+Results of the daily build of v4l-dvb:
+
+date:        Mon Jan 26 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10305:6a6eb9efc6cd
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc2-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc2-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc2-armv5-omap2: WARNINGS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc2-i686: OK
+linux-2.6.16.61-m32r: OK
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc2-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc2-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc2-powerpc64: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc2-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc2): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
