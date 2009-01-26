@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from proxy1.bredband.net ([195.54.101.71])
+Received: from ey-out-2122.google.com ([74.125.78.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <henke@kurelid.se>) id 1LQ82H-0001XH-FW
-	for linux-dvb@linuxtv.org; Thu, 22 Jan 2009 23:28:31 +0100
-Received: from ironport2.bredband.com (195.54.101.122) by proxy1.bredband.net
-	(7.3.127) id 494BF21C00A630E5 for linux-dvb@linuxtv.org;
-	Thu, 22 Jan 2009 23:28:24 +0100
-Received: from evermeet.kurelid.se (localhost.localdomain [127.0.0.1])
-	by evermeet.kurelid.se (8.14.2/8.13.8) with ESMTP id n0MMSNKZ025288
-	for <linux-dvb@linuxtv.org>; Thu, 22 Jan 2009 23:28:23 +0100
-Message-ID: <3ea852b9acf2cfadc88827c48a099eb4.squirrel@mail.kurelid.se>
-Date: Thu, 22 Jan 2009 23:28:22 +0100 (CET)
-From: "Henrik Kurelid" <henke@kurelid.se>
-To: linux-dvb@linuxtv.org
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LRX0w-0004QH-2E
+	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 20:21:39 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so758778eya.17
+	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 11:20:50 -0800 (PST)
+Date: Mon, 26 Jan 2009 20:20:41 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Marco Bertorello <marco@bertorello.ns0.it>
+In-Reply-To: <5dd5976b0901260805k40ea2dbbl5e076fea27bc6765@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0901262007500.15738@ybpnyubfg.ybpnyqbznva>
+References: <5dd5976b0901260805k40ea2dbbl5e076fea27bc6765@mail.gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] High Level CI and MMI
+Cc: DVB mailin' list thang <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] IXIX UsbTV2
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,39 +28,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+On Mon, 26 Jan 2009, Marco Bertorello wrote:
 
-I am currently implementing CA support for the FireDTV/FloppyDTV cards. This driver follows the high level API as described in
-Documentation/dvb/ci.txt. Most parts are now implemented and working fairly well. There are however a number of issues that I am currently wrestling
-with. Mostly regarding usage that I feel could do with some clarification in the documentation.
+> have somebody used succesfully this device [1] on GNU/Linux?
+> I've tried out on a ubuntu intrepid and seems that it was recognized
+> by kernel, in dmesg see em28xx, but kaffeine told me that there isn't
+> any DVB interface.
 
-The issues are regarding CA_SEND/GET_MSG and e.g. MMI.
-When retrieving an APDU from the driver, the CA_GET_MSG ioctl is used. This seems to be used somewhat differently by different applications (e.g.
-mythtv, dst_test, kaffeine). Some applications set the tag of the message in order to (I guess) tell the driver what message it wants to receive.
-Since this is not done by all applications, I guess the driver can not rely on this. Hence the SEND and GET messages need to be used a
-request-response fashion. E.g.
-CA_SEND_MSG(CA_INFO_ENQ)
-CA_GET_MSG(CA_INFO)
-CA_SEND_MSG(APP_INFO_ENQ)
-CA_GET_MSG(APP_INFO)
+`em28xx' devices are a strange situation.  There exists the
+in-kernel drivers, and there exists an out-of-kernel set of
+drivers which may have better support for this device.
 
-This is all well for CA_INFO, APP_INFO and others. However, when it comes to MMI this is not possible for all cases. In the menu case, we still have
-a request-response procedure, e.g.
-CA_SEND_MSG(ENTER_MENU)
-CA_GET_MSG(MENU_MORE)
-CA_GET_MSG(MENU_LAST)
-CA_SEND_MSG(MENU_ANSW)
-CA_GET_MSG(MMI_CLOSE)
+Perhaps you may have better luck with the drivers which can
+be found at mcentral.de .  The author of these drivers can
+be found lurking on this list, but there is also a dedicated
+mailing list for this driver, and posting to this list
+requires you to be a subscriber (though non-subscriber posts
+can make it to the list).
 
-Other MMI situations (many related to where TEST_MORE/LAST is used), may be initiated from the driver instead of the application. In those cases I
-don't see how the application should know that the driver has APU(s) ready for retrieval.
 
-How is this meant to be supported? Or is it not? Am I missing something in my reasoning or perhaps this is documented somewhere else?
+In any case, check out what is available at mcentral.de .
+It is not as convenient as what may be provided, and in an
+ideal world, your OS will provide working drivers for your
+device, but this is some time off...
 
-If someone could help me with some input I would gladly appreciate it
 
-Regards,
-Henrik Kurelid
+grazie,
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
