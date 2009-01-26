@@ -1,36 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lit.cz ([213.250.192.15]:48595 "EHLO mail.bezdrat.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751185AbZAWPDq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2009 10:03:46 -0500
-Message-ID: <4979D9D6.8000401@bezdrat.net>
-Date: Fri, 23 Jan 2009 15:53:10 +0100
-From: Martin Edlman <edlman@bezdrat.net>
+Received: from yx-out-2324.google.com ([74.125.44.29]:43060 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751497AbZAZPjt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2009 10:39:49 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so2576906yxm.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Jan 2009 07:39:48 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <640929.18092.qm@web23204.mail.ird.yahoo.com>
+References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
+Date: Mon, 26 Jan 2009 15:39:48 +0000
+Message-ID: <157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>
+Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on
+	HDchannels
+From: Chris Silva <2manybills@gmail.com>
 To: linux-media@vger.kernel.org
-CC: cityk@rogers.com
-Subject: Re: Analog TV on Leadtek PxDVR 3200 H
-References: <497276BF.3040900@an.y-co.de> <4973E0DB.70903@rogers.com> <49742A3E.1090101@an.y-co.de>
-In-Reply-To: <49742A3E.1090101@an.y-co.de>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Martin Edlman napsal(a):
->>> I have a problem with module cx23885, it doesn't create the /dev/video0 device.
->>>   
->> The module doesn't support analogue yet.
-> 
-> Hmmm, that's not a good new. Is there a plan to add analogue support? When?
+On Mon, Jan 26, 2009 at 2:40 PM, Newsy Paper
+<newspaperman_germany@yahoo.com> wrote:
+> the transponders you don't get lock are problem transponders of s2-3200.
+> The driver is still not able to lock on dvb-s2 30000 3/4 transponders :(
+>
+> Which software do you use to play HD content?
+> you need either xine-lib 1.2 with external ffmpeg (recent developer's version).
+> or xine-vdpau (if you have a NVIDIA graka that supports h264 hw acceleration).
+>
+> regards
+>
+> Newsy
 
-Is there a possibility someone will take care of analogue support on
-WinFast PxDVR 3200 H? If yes, I can test it, send debug outputs, be a beta
-tester, just say.
-I can even help with development, I have a litle bit experience with kernel
-module programming. So if someone gives me a clue I can do little
-modifications myself (changing some values to see which one is the right
-one, ... maybe more).
+I can confirm this. I use S30W (Hispasat) and one of the providers,
+Meo, broadcasts everything on DVB-S2 30000 3/4.
+I can't get a lock on any of the transponders/channels. And to make
+matters worse, not even scan-s2 can get a really usable channel list.
+I had to build the list by hand, according to
+http://pt.kingofsat.net/pack-meo.php page.
 
-Regards,
-Martin
+And it still doesn't work.
+
+I use vdr-xine and xineliboutput with vdr 1.7.0 and up, plus
+xine-vdpau to no avail.
+
+What's the point of having a DVB-S2 card if we can't tune to those
+channels? What's missing in the S2-3200 drivers?
+
+Chris
