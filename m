@@ -1,63 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:21908 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019AbZAYK5p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 05:57:45 -0500
-Date: Sun, 25 Jan 2009 11:57:21 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	linux-media@vger.kernel.org,
-	Ronald Bultje <rbultje@ronald.bitfreak.net>
-Subject: Re: [PATCH] zoran: Update MAINTAINERS entry
-Message-ID: <20090125115721.4ce38190@hyperion.delvare>
-In-Reply-To: <Pine.LNX.4.58.0901241545440.17971@shell2.speakeasy.net>
-References: <20090110160854.1d016948@hyperion.delvare>
-	<Pine.LNX.4.58.0901110346190.1626@shell2.speakeasy.net>
-	<Pine.LNX.4.58.0901241545440.17971@shell2.speakeasy.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-out1.iol.cz ([194.228.2.86]:41399 "EHLO smtp-out1.iol.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752009AbZAZU2l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jan 2009 15:28:41 -0500
+From: Ales Jurik <ajurik@quick.cz>
+Reply-To: ajurik@quick.cz
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on HDchannels
+Date: Mon, 26 Jan 2009 21:28:36 +0100
+References: <640929.18092.qm@web23204.mail.ird.yahoo.com> <1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com> <157f4a8c0901261212i16af9570x60e6886039778ffe@mail.gmail.com>
+In-Reply-To: <157f4a8c0901261212i16af9570x60e6886039778ffe@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901262128.36242.ajurik@quick.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 24 Jan 2009 15:52:41 -0800 (PST), Trent Piepho wrote:
-> Ronald Bultje hasn't been maintaining the zoran driver for some time.
-> Re-direct people to the mailing lists and web pages.
-> 
-> Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
-> ---
-> I think it's better to keep what info there is here instead of deleting the
-> entry entirely.  Sure you can find it elsewhere, but isn't the whole point
-> of MAINTAINERS to gather scattered info into one place and keep it up to
-> date?  Ronald, would you mind acking this version too?
-> 
->  MAINTAINERS |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 3fe4dc2..755a785 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -4908,11 +4908,11 @@ L:	zd1211-devs@lists.sourceforge.net (subscribers-only)
->  S:	Maintained
-> 
->  ZR36067 VIDEO FOR LINUX DRIVER
-> -P:	Ronald Bultje
-> -M:	rbultje@ronald.bitfreak.net
->  L:	mjpeg-users@lists.sourceforge.net
-> +L:	linux-media@vger.kernel.org
->  W:	http://mjpeg.sourceforge.net/driver-zoran/
-> -S:	Maintained
-> +T:	Mercurial http://linuxtv.org/hg/v4l-dvb
-> +S:	Odd Fixes
-> 
->  ZS DECSTATION Z85C30 SERIAL DRIVER
->  P:	Maciej W. Rozycki
+On Monday 26 of January 2009, Chris Silva wrote:
+> On Mon, Jan 26, 2009 at 5:50 PM, Manu Abraham <abraham.manu@gmail.com> 
+wrote:
+> > On Mon, Jan 26, 2009 at 8:19 PM, Alex Betis <alex.betis@gmail.com> wrote:
+> >>> Latest changes I can see at
+> >>> http://mercurial.intuxication.org/hg/s2-liplianin/ were made about 7
+> >>> to 10 days ago. Is this correct? If that's correct, then I'm using
+> >>> latest Igor drivers. And behavior described above is what I'm getting.
+> >>>
+> >>> I can't see anything related do high SR channels on Igor repository.
+> >>
+> >> He did it few months ago. If you're on latest than you should have it.
+> >
+> > It won't. All you will manage to do is burn your demodulator, if you
+> > happen to
+> > be that lucky one, with that change. At least a few people have burned
+> > demodulators by now, from what i do see.
+> >
+> >
+> > Regards,
+> > Manu
+>
+> Manu, would you be so kind to explain why it will burn the demodulator?
+> It happens only with 30000 transponders? And only with this card?
+> Does this mean I can't use my card to see channels on 30000 transponders?
+>
+> Chris
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Regarding the documentation the demodulator is designed to run at max. freq. 
+99MHz. Some series of demods burn when the freq is set above this value. But 
+this value is enough for most of transponders with SR up to 30000.
 
--- 
-Jean Delvare
+Some Russian transponders have SR 43500 - so the demod is set a little bit 
+above 3x of this value. This could be dangerous.
+
+This patch (or change) doesn't solve the problem with SR of 30000 and FEC 3/4 
+or 5/6.
+
+BR,
+
+Ales
+
