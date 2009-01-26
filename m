@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mail-qy0-f16.google.com ([209.85.221.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roman.jarosz@gmail.com>) id 1LJSkm-0005hy-Q9
-	for linux-dvb@linuxtv.org; Sun, 04 Jan 2009 14:10:54 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so2528701fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 04 Jan 2009 05:10:49 -0800 (PST)
-Date: Sun, 04 Jan 2009 14:11:33 +0100
-To: linux-dvb@linuxtv.org
-From: "Roman Jarosz" <roman.jarosz@gmail.com>
+	(envelope-from <alex.betis@gmail.com>) id 1LRTms-0003Tk-Dn
+	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 16:54:11 +0100
+Received: by qyk9 with SMTP id 9so6523779qyk.17
+	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 07:53:36 -0800 (PST)
 MIME-Version: 1.0
-References: <op.um6wpcvirj95b0@localhost>
-	<c74595dc0901030928r7a3e3353h5c2a44ffd8ffd82f@mail.gmail.com>
-	<op.um60szqyrj95b0@localhost>
-	<c74595dc0901031058u3ad48036y2e09ec1475174995@mail.gmail.com>
-	<20090103193718.GB3118@gmail.com> <20090104111429.1f828fc8@bk.ru>
-	<Pine.LNX.4.64.0901041435090.1668@shogun.pilppa.org>
-Message-ID: <op.um8hljd6rj95b0@localhost>
-In-Reply-To: <Pine.LNX.4.64.0901041435090.1668@shogun.pilppa.org>
-Subject: Re: [linux-dvb] DVB-S Channel searching problem
-Reply-To: kedgedev@centrum.cz
+In-Reply-To: <Pine.LNX.4.64.0901261729280.19881@shogun.pilppa.org>
+References: <497C3F0F.1040107@makhutov.org> <497C359C.5090308@okg-computer.de>
+	<c74595dc0901250525y3771df4fhb03939c9c9c02c1f@mail.gmail.com>
+	<Pine.LNX.4.64.0901260109400.12123@shogun.pilppa.org>
+	<c74595dc0901260135x32f7c2bm59506de420dab978@mail.gmail.com>
+	<Pine.LNX.4.64.0901261729280.19881@shogun.pilppa.org>
+Date: Mon, 26 Jan 2009 17:53:36 +0200
+Message-ID: <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com>
+From: Alex Betis <alex.betis@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to use scan-s2?
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,48 +26,174 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1859951671=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 04 Jan 2009 13:42:06 +0100, Mika Laitio <lamikr@pilppa.org> wrote:
+--===============1859951671==
+Content-Type: multipart/alternative; boundary=0015175cdfe2d946d3046164bd31
 
->> http://mercurial.intuxication.org/hg/s2-liplianin (yesterday Igor  
->> synchronized it with current v4l-dvb)
->> +
->> http://hg.kewl.org/dvb2010/ - new dvb scaner
->>
->> for me everything is working without any problem with my hvr4000. Also  
->> patched vdr 170 works well with s2api
+--0015175cdfe2d946d3046164bd31
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+On Mon, Jan 26, 2009 at 5:43 PM, Mika Laitio <lamikr@pilppa.org> wrote:
+
+> > As an owner of cx24116 device you should know that it doesn't allow any
+> AUTO
+> > settings, so you have to create an INI file with all parameters
+> explicitly
+> > specifed (FEC, modulation, rolloff).
+> >
+> > I believe this is the main problem.
+> >
+> > Also, please take the latest scan-s2, I've done some changes especily for
+> > cx24116 cards.
 >
-> Can you test whether channel switching works for you with
-> following
-> - vdr-1.7.2
-> -  
-> vdr-1.7.2-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff
-> - vdr172_v4ldvb_2g_modulation_support.patch (attached)
-> - streamdev plugin
+> Thanks for the hint, I will try to investigate this more.
+> I didn't know this because the old scan from dvb-apps have seemed to
+> find channels even with this simpler Satellite scan data that comes
+> withing dvb-apps for Astra.
+
+To make a long story short, scan utility set specific FEC and rolloff
+parameters based on delivery type (DVB-S or S2) since the old interface (the
+one before S2API) didn't support specifying delivery type. Since S2API do
+support it, there is no need to play with other parameters, so AUTO
+parameters are used by default. You can always override those in INI file
+ofcause.
+
 >
-> I can only watch those channels that I have previously tuned with szap or
-> szap2 or vdr.1.6.0? If it works for you, what other cards than hvr-4000
-> you have simultaneously connected and does the hvr-4000 be
-> /dev/dvb/adapter0 or 1? (for me it's adapter1)
+>
+> Could you or somebody else give me an example from the satellite conf file
+> where all those fields are filled in? I am little confused from those
+> parameters.
+
+I don't have a dish to 19.2E, so can't help with that.
+
+
+>
+>
+> How about the channel data generated by the scan-s2 or scan with "-o vdr"
+> option. Should I also make some changes to those manually?
+
+you can use scan-s2 output as is for VDR. It has more information than scan
+utility produce.
+
+>
+>
+> I think there must however be a bug either in scan-s2 or hvr-4000 S2API
+> driver, if it's will start scanning even if the given input data is
+> invalid. I mean that I think the driver and S2API should "hide away" the
+> differences between different S/S2 chipsets in a way that same data given
+> by the user space application should be acceptable for any card/s2-driver.
+>
+> Is the bug in the scan-s2 not handling the error message from the driver
+> about using "AUTO" values, or is the bug in the driver not "correctly"
+> returning the error when all data needed is not set?
+
+The bug is in S2API that doesn't return ANY error message at all :)
+So the tuner is left locked on previous channel.
+
+There are many things that can be done in driver to improve the situation,
+but I'll leave it to someone who has card with cx24116 chips.
+
+
+>
+>
+> Mika
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
 
-I've tried clean vdr 1.7.2 (without patches) and it doesn't work (works sometimes).
-When I try to change channels in vdr 1.7.2 I see in log:
-Jan  4 13:57:43 blackbox vdr: [3250] frontend 0 lost lock on channel 437, tp 110743               
-Jan  4 13:57:45 blackbox vdr: [3250] frontend 0 timed out while tuning to channel 437, tp 110743
+--0015175cdfe2d946d3046164bd31
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Btw I don't use hvr-4000 I have only one TeVii S460 DVB-S/S2 card.
+<div dir=3D"ltr"><div class=3D"gmail_quote">On Mon, Jan 26, 2009 at 5:43 PM=
+, Mika Laitio <span dir=3D"ltr">&lt;<a href=3D"mailto:lamikr@pilppa.org">la=
+mikr@pilppa.org</a>&gt;</span> wrote:<br>
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">&gt; As an owner of cx24116 devi=
+ce you should know that it doesn&#39;t allow any AUTO<br>&gt; settings, so =
+you have to create an INI file with all parameters explicitly<br>
+&gt; specifed (FEC, modulation, rolloff).<br>&gt;<br>&gt; I believe this is=
+ the main problem.<br>&gt;<br>&gt; Also, please take the latest scan-s2, I&=
+#39;ve done some changes especily for<br>&gt; cx24116 cards.<br><br>Thanks =
+for the hint, I will try to investigate this more.<br>
+I didn&#39;t know this because the old scan from dvb-apps have seemed to<br=
+>find channels even with this simpler Satellite scan data that comes<br>wit=
+hing dvb-apps for Astra.</blockquote>
+<div>To make a long story short, scan utility set specific FEC and rolloff =
+parameters based on delivery type (DVB-S or S2) since the old interface (th=
+e one before S2API) didn&#39;t support specifying delivery type. Since S2AP=
+I do support it, there is no need to play with other parameters, so AUTO pa=
+rameters are used by default. You can always override those in INI file ofc=
+ause.</div>
 
-But vdr 1.6 works
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid"><span id=3D""></span><br><br>Cou=
+ld you or somebody else give me an example from the satellite conf file<br>=
+where all those fields are filled in? I am little confused from those<br>
+parameters.</blockquote>
+<div>I don&#39;t have a dish to 19.2E, so can&#39;t help with that.</div>
+<div>&nbsp;</div>
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid"><span id=3D""></span><br><br>How=
+ about the channel data generated by the scan-s2 or scan with &quot;-o vdr&=
+quot;<br>
+option. Should I also make some changes to those manually?</blockquote>
+<div>you can use scan-s2 output as is for VDR. It has more information than=
+ scan utility produce.</div>
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid"><span id=3D""></span><br><br>I t=
+hink there must however be a bug either in scan-s2 or hvr-4000 S2API<br>dri=
+ver, if it&#39;s will start scanning even if the given input data is<br>
+invalid. I mean that I think the driver and S2API should &quot;hide away&qu=
+ot; the<br>differences between different S/S2 chipsets in a way that same d=
+ata given<br>by the user space application should be acceptable for any car=
+d/s2-driver.<br>
+<br>Is the bug in the scan-s2 not handling the error message from the drive=
+r<br>about using &quot;AUTO&quot; values, or is the bug in the driver not &=
+quot;correctly&quot;<br>returning the error when all data needed is not set=
+?</blockquote>
 
-Roman
+<div>The bug is in S2API that doesn&#39;t return ANY error message at all :=
+)</div>
+<div>So the tuner is left locked on previous channel.</div>
+<div>&nbsp;</div>
+<div>There are many things that can be done in driver to improve the situat=
+ion, but I&#39;ll leave it to someone who has card with cx24116 chips.</div=
+>
+<div>&nbsp;</div>
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid"><span id=3D""></span><br><br>Mik=
+a<br><br>_______________________________________________<br>linux-dvb users=
+ mailing list<br>
+For V4L/DVB development, please use instead <a href=3D"mailto:linux-media@v=
+ger.kernel.org">linux-media@vger.kernel.org</a><br><a href=3D"mailto:linux-=
+dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br><a href=3D"http://www.linuxtv=
+.org/cgi-bin/mailman/listinfo/linux-dvb" target=3D"_blank">http://www.linux=
+tv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</blockquote></div><br></div>
+
+--0015175cdfe2d946d3046164bd31--
+
+
+--===============1859951671==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
-linux-dvb mailing list
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1859951671==--
