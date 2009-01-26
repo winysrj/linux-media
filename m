@@ -1,26 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx03.syneticon.net ([78.111.66.105])
+Received: from mail-gx0-f21.google.com ([209.85.217.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mangoo@wpkg.org>) id 1LKsK8-0002Iz-7q
-	for linux-dvb@linuxtv.org; Thu, 08 Jan 2009 11:41:12 +0100
-Received: from localhost (filter1.syneticon.net [192.168.113.83])
-	by mx03.syneticon.net (Postfix) with ESMTP id 99A7F3618C
-	for <linux-dvb@linuxtv.org>; Thu,  8 Jan 2009 11:41:07 +0100 (CET)
-Received: from mx03.syneticon.net ([192.168.113.84])
-	by localhost (mx03.syneticon.net [192.168.113.83]) (amavisd-new,
-	port 10025) with ESMTP id sYdG9SNmVIhs for <linux-dvb@linuxtv.org>;
-	Thu,  8 Jan 2009 11:40:58 +0100 (CET)
-Received: from [192.168.10.145] (koln-4db407be.pool.einsundeins.de
-	[77.180.7.190]) by mx03.syneticon.net (Postfix) with ESMTP
-	for <linux-dvb@linuxtv.org>; Thu,  8 Jan 2009 11:40:58 +0100 (CET)
-Message-ID: <4965D821.4090304@wpkg.org>
-Date: Thu, 08 Jan 2009 11:40:33 +0100
-From: Tomasz Chmielewski <mangoo@wpkg.org>
+	(envelope-from <2manybills@gmail.com>) id 1LRTar-0000up-Hu
+	for linux-dvb@linuxtv.org; Mon, 26 Jan 2009 16:41:46 +0100
+Received: by gxk14 with SMTP id 14so5802126gxk.17
+	for <linux-dvb@linuxtv.org>; Mon, 26 Jan 2009 07:41:10 -0800 (PST)
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <4963A330.3090903@wpkg.org> <4963B4AF.3040301@gmail.com>
-In-Reply-To: <4963B4AF.3040301@gmail.com>
-Subject: Re: [linux-dvb] random "no frontend was attached"
+In-Reply-To: <157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>
+References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
+	<157f4a8c0901260739p424a74f6rcca2d84df04737b9@mail.gmail.com>
+Date: Mon, 26 Jan 2009 15:41:09 +0000
+Message-ID: <157f4a8c0901260741l4d263b8bk6e34cb5bb56d8c2@mail.gmail.com>
+From: Chris Silva <2manybills@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on
+	HDchannels
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,35 +29,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-thomas schorpp schrieb:
+On Mon, Jan 26, 2009 at 2:40 PM, Newsy Paper
+<newspaperman_germany@yahoo.com> wrote:
+> the transponders you don't get lock are problem transponders of s2-3200.
+> The driver is still not able to lock on dvb-s2 30000 3/4 transponders :(
+>
+> Which software do you use to play HD content?
+> you need either xine-lib 1.2 with external ffmpeg (recent developer's version).
+> or xine-vdpau (if you have a NVIDIA graka that supports h264 hw acceleration).
+>
+> regards
+>
+> Newsy
 
->> Randomly, upon machine bootup, it is not detected properly ("no frontend was attached"):
->>
->> usb 1-6: new high speed USB device using ehci_hcd and address 4                                                              
->> usb 1-6: configuration #1 chosen from 1 choice                                                                               
->> dvb-usb: found a 'LITE-ON USB2.0 DVB-T Tuner' in warm state.                                                                 
->> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.                                              
->> DVB: registering new adapter (LITE-ON USB2.0 DVB-T Tuner)                                                                    
->> dvb-usb: no frontend was attached by 'LITE-ON USB2.0 DVB-T Tuner'                                                            
->> input: IR-receiver inside an USB DVB receiver as /class/input/input6                                                         
->> dvb-usb: schedule remote query interval to 150 msecs.                                                                        
->> dvb-usb: LITE-ON USB2.0 DVB-T Tuner successfully initialized and connected.
->>
->>
->> As a result, using DVB is impossible until I plug the device out 
->> and plug it in again.
-> 
-> Does not work here.
+I can confirm this. I use S30W (Hispasat) and one of the providers,
+Meo, broadcasts everything on DVB-S2 30000 3/4.
+I can't get a lock on any of the transponders/channels. And to make
+matters worse, not even scan-s2 can get a really usable channel list.
+I had to build the list by hand, according to
+http://pt.kingofsat.net/pack-meo.php page.
 
-It does not work always for me as well. Sometimes, I have to replug the 
-device 2-3-4 times until it's eventually properly detected.
-Most of the time, it's not detected initially.
+And it still doesn't work.
 
-Did it work for you properly with earlier kernels?
+I use vdr-xine and xineliboutput with vdr 1.7.0 and up, plus
+xine-vdpau to no avail.
 
--- 
-Tomasz Chmielewski
-http://wpkg.org
+What's the point of having a DVB-S2 card if we can't tune to those
+channels? What's missing in the S2-3200 drivers?
+
+Chris
 
 _______________________________________________
 linux-dvb users mailing list
