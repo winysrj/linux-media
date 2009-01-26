@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0JE35Ok012935
-	for <video4linux-list@redhat.com>; Mon, 19 Jan 2009 09:03:05 -0500
-Received: from co203.xi-lite.net (co203.xi-lite.net [149.6.83.203])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0JE2YU4019730
-	for <video4linux-list@redhat.com>; Mon, 19 Jan 2009 09:02:34 -0500
-Message-ID: <497487F2.7070400@parrot.com>
-Date: Mon, 19 Jan 2009 15:02:26 +0100
-From: Matthieu CASTET <matthieu.castet@parrot.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0QLvdOZ006268
+	for <video4linux-list@redhat.com>; Mon, 26 Jan 2009 16:57:39 -0500
+Received: from mailrelay008.isp.belgacom.be (mailrelay008.isp.belgacom.be
+	[195.238.6.174])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0QLv6H4013212
+	for <video4linux-list@redhat.com>; Mon, 26 Jan 2009 16:57:06 -0500
+From: "Erik Umans" <Erik.Umans@skynet.be>
+To: <video4linux-list@redhat.com>
+Date: Mon, 26 Jan 2009 22:57:01 +0100
+Message-ID: <E003FCE0634F4C398AA9CC6EB8BC10E8@pcumans>
 MIME-Version: 1.0
-To: Magnus Damm <magnus.damm@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: soc-camera : sh_mobile_ceu_camera race on free_buffer ?
+Cc: 
+Subject: ASUS My Cinema-P7131 PCI TV card produces distorded sound.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,28 +29,20 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi,
 
-I am writing a soc camera driver, and I use sh_mobile_ceu_camera as an
-example.
+I have an ASUS My Cinema-P7131 PCI TV card in my Mythtv system.
 
-But I don't understand how buffer are handled when the application is
-doing a streamoff :
+I can get picture but only heavily distorded sound due to sample rate
+mismatch.
+The P7131 produces sound at 32KHz sample rate, the remaining of the system
+48KHz.
 
-streamoff will call videobuf_streamoff and then videobuf_queue_cancel.
-videobuf_queue_cancel will call free_buffer.
+How can I fix this mismatch ?
+Can this be solved with ALSA and if so, how?
 
-But we didn't do stop_capture, so as far I understand the controller is
-still writing data in memory. What prevent us to free the buffer we are
-writing.
+Kind regards.
 
-
-Why doesn't we do a stop_capture before videobuf_streamoff ?
-
-I saw that pxa_camera use videobuf_waiton, before freeing the buffer.
-That seem more safe, but that mean we need to wait that controller
-finish to write all the pending buffer.
-
-
-Matthieu
+Erik Umans
+Belgium
 
 --
 video4linux-list mailing list
