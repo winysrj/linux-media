@@ -1,64 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.work.de ([212.12.32.20]:38834 "EHLO mail.work.de"
+Received: from joan.kewl.org ([212.161.35.248]:45111 "EHLO joan.kewl.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755728AbZA0UFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 15:05:37 -0500
-Message-ID: <497F6909.40109@gmail.com>
-Date: Wed, 28 Jan 2009 00:05:29 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: ajurik@quick.cz
-CC: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on HDchannels
-References: <640929.18092.qm@web23204.mail.ird.yahoo.com> <1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com> <157f4a8c0901261212i16af9570x60e6886039778ffe@mail.gmail.com> <200901262128.36242.ajurik@quick.cz>
-In-Reply-To: <200901262128.36242.ajurik@quick.cz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753061AbZA0OL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 09:11:29 -0500
+From: Darron Broad <darron@kewl.org>
+To: Andy Walls <awalls@radix.net>
+cc: linux-media@vger.kernel.org, Darron Broad <darron@kewl.org>,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to use scan-s2? 
+In-reply-to: <1233017978.3061.2.camel@palomino.walls.org> 
+References: <497C3F0F.1040107@makhutov.org> <497C359C.5090308@okg-computer.de> <c74595dc0901250525y3771df4fhb03939c9c9c02c1f@mail.gmail.com> <Pine.LNX.4.64.0901260109400.12123@shogun.pilppa.org> <c74595dc0901260135x32f7c2bm59506de420dab978@mail.gmail.com> <Pine.LNX.4.64.0901261729280.19881@shogun.pilppa.org> <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com> <16900.1232991151@kewl.org> <c74595dc0901261130k6bdb6882lfb18c650cbca4abf@mail.gmail.com> <18268.1233001231@kewl.org> <c74595dc0901261231l4448f6cepfcb570557c54f60a@mail.gmail.com> <1233017978.3061.2.camel@palomino.walls.org>
+Date: Tue, 27 Jan 2009 14:11:27 +0000
+Message-ID: <7377.1233065487@kewl.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ales Jurik wrote:
-> On Monday 26 of January 2009, Chris Silva wrote:
->> On Mon, Jan 26, 2009 at 5:50 PM, Manu Abraham <abraham.manu@gmail.com> 
-> wrote:
->>> On Mon, Jan 26, 2009 at 8:19 PM, Alex Betis <alex.betis@gmail.com> wrote:
->>>>> Latest changes I can see at
->>>>> http://mercurial.intuxication.org/hg/s2-liplianin/ were made about 7
->>>>> to 10 days ago. Is this correct? If that's correct, then I'm using
->>>>> latest Igor drivers. And behavior described above is what I'm getting.
->>>>>
->>>>> I can't see anything related do high SR channels on Igor repository.
->>>> He did it few months ago. If you're on latest than you should have it.
->>> It won't. All you will manage to do is burn your demodulator, if you
->>> happen to
->>> be that lucky one, with that change. At least a few people have burned
->>> demodulators by now, from what i do see.
->>>
->>>
->>> Regards,
->>> Manu
->> Manu, would you be so kind to explain why it will burn the demodulator?
->> It happens only with 30000 transponders? And only with this card?
->> Does this mean I can't use my card to see channels on 30000 transponders?
->>
->> Chris
-> 
-> Regarding the documentation the demodulator is designed to run at max. freq. 
-> 99MHz. Some series of demods burn when the freq is set above this value. But 
-> this value is enough for most of transponders with SR up to 30000.
-> 
-> Some Russian transponders have SR 43500 - so the demod is set a little bit 
-> above 3x of this value. This could be dangerous.
-> 
-> This patch (or change) doesn't solve the problem with SR of 30000 and FEC 3/4 
-> or 5/6.
-> 
-> BR,
-> 
-> Ales
+In message <1233017978.3061.2.camel@palomino.walls.org>, Andy Walls wrote:
+
+LO
+
+>On Mon, 2009-01-26 at 22:31 +0200, Alex Betis wrote:
+>> 
+>> On Mon, Jan 26, 2009 at 10:20 PM, Darron Broad <darron@kewl.org>
+>> wrote:
+>>         In message
+>>         <c74595dc0901261130k6bdb6882lfb18c650cbca4abf@mail.gmail.com>,
+>>         Alex
+>>         Betis wrote:
+>>         >
+>>         >On Mon, Jan 26, 2009 at 7:32 PM, Darron Broad
+>>         <darron@kewl.org> wrote:
+>>         >
+>>         >> In message
+>>         <c74595dc0901260753x8b9185fu33f2a96ffbe13016@mail.gmail.com>,
+>>         >> Alex Betis wrote:
+>>         >>
+>>         >> lo
+>>         >>
+>>         >> <snip>
+>>         >> >
+>>         >> >The bug is in S2API that doesn't return ANY error message
+>>         at all :)
+>
+>Aside from Darron's observation, doesn't the result field of any
+>particular S2API property return with a non-0 value on failure?
+>
+>(Sorry, I missed the original thread on the S2API return values.)
+
+The actual tuning occurs within a thread and not when issuing
+the tuning IOCTL. The only means to determine whether tuning
+worked or not is inspection of the frontend events generated
+within that thread. So, if the params are wrong, the IOCTL
+can fail, but that's not the problem Alex is experiencing
+where the params are correctly formed yet not supported in
+the driver.
+
+I did look at a means to expose supported params a while ago
+but it's ugly so I haven't gone forward with it.
+
+Bye
 
 
-True, very much.
+--
 
-Regards,
-Manu
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
+
