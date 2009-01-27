@@ -1,51 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59951 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751651AbZA2Lw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 06:52:28 -0500
-Date: Thu, 29 Jan 2009 12:52:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Compiler warnings in pxa_camera.c
-In-Reply-To: <200901291241.28756.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0901291247210.5474@axis700.grange>
-References: <200901291029.27243.hverkuil@xs4all.nl>
- <Pine.LNX.4.64.0901291110100.5474@axis700.grange> <200901291241.28756.hverkuil@xs4all.nl>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4602 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755743AbZA0TZE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 14:25:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH] New V4L2 ioctls for OMAP class of Devices
+Date: Tue, 27 Jan 2009 20:24:41 +0100
+Cc: "Shah, Hardik" <hardik.shah@ti.com>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EFE5@dbde02.ent.ti.com> <200901271916.53224.hverkuil@xs4all.nl> <Pine.LNX.4.58.0901271024050.17971@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0901271024050.17971@shell2.speakeasy.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901272024.41572.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2009, Hans Verkuil wrote:
-
-> On Thursday 29 January 2009 11:19:39 Guennadi Liakhovetski wrote:
+On Tuesday 27 January 2009 19:30:18 Trent Piepho wrote:
+> On Tue, 27 Jan 2009, Hans Verkuil wrote:
+> > On Tuesday 27 January 2009 19:08:43 Trent Piepho wrote:
+> > > On Tue, 27 Jan 2009, Hans Verkuil wrote:
+> > > > > [Shah, Hardik] Hi Hans,
+> > > > > I got your above point.  Now regarding the enum I am not sure
+> > > > > about how to implement it.  Are you suggesting me to remove the
+> > > > > control ID for rotation and implement in some other way.  Please
+> > > > > let me know if I am missing something. Currently in driver I have
+> > > > > implemented the rotation in below way {
+> > > > >                 .id            = V4L2_CID_ROTATION,
+> > > > >                 .name          = "Rotation",
+> > > > >                 .minimum       = 0,
+> > > > >                 .maximum       = 270,
+> > > > >                 .step          = 90,
+> > > > >                 .default_value = -1,
+> > > > >                 .flags         = 0,
+> > > > >                 .type          = V4L2_CTRL_TYPE_INTEGER,
+> > > > > You want me to change V4L2_CTRL_TYPE_INTEGER to some enum or
+> > > > > something.
+> > > >
+> > > > Change it to V4L2_CTRL_TYPE_MENU. See:
+> > > > http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-sing
+> > > >le/v 4l2.html#VIDIOC-QUERYCTRL
+> > >
+> > > Thinking about it more, I think an integer control like this might
+> > > make more sense.  default_value should be changed to 0 of course. 
+> > > Extracting the real meaning from the control setting is more obvious
+> > > for the integer control than a menu.  And what if some hardware
+> > > allows for rotations other than 90 degrees?
 > >
-> > soc-camera drivers so far only include embedded platforms, and there you
-> > most usually have to work with complete kernel sources, and, to be
-> > honest, this backwards compatibility patching only adds work for me -
-> > when trying to merge patches created with git against a complete kernel
-> > git tree, because often so created patches don't apply cleanly (or at
-> > all) because of the compatibility delta. And then this delta has to be
-> > cleaned up by Mauro again before pushing upstream. Yes, Mauro does use
-> > scripts for this, still, separating original patches from the
-> > compatibility code can be non-trivial, I think, and, I guess, those
-> > scripts do not manage it in 100% of cases - as we have seen with a recent
-> > breakage exactly with these PXA register definitions.
-> >
-> > So, I would be perfectly happy if we find a way to only allow compilation
-> > of soc-camera drivers against the "current" kernel, and remove all the
-> > compatibility code from them.
-> 
-> No problem, I've modified it so that the daily build only compiles this 
-> driver from 2.6.29 and up.
+> > If the hardware can do rotations other than 90 degrees then we get into
+> > the area of video effects. In principle such a driver can implement
+> > this rotation control as an integer rather than a menu (apps are
+> > supposed to query the type of a control dynamically, after all). But
+> > for a case like this where there are only four values I think a
+> > menu-type control is much more user-friendly.
+>
+> How so?  An application can easily tell from the range and step of the
+> integer control that there are only four values.  And it can easily tell
+> what the values mean.  For instance if the app wants to show icons for
+> the rotations or have a command line parameter "rotation in degrees",
+> it's easy to figure out what value the control should be set to.  For a
+> menu, what is the app supposed to do?  Call atoi() on the menu entry
+> names and hope that they parse corretly?  Seems like a kludge to do that.
 
-Great, thanks. Can we also set this for other soc-camera drivers and 
-remove all backwards compatibility patches from them? I.e. keep them 
-exactly like upstream?
+In the case of menus each possible menu item always corresponds with an enum 
+defined in videodev2.h. So it is no problem doing what you want with a 
+menu.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+That said, it is a good point that you can use an integer with an 
+appropriate step size. I'd forgotten about that. Hmm, I really have no 
+preference. Let's keep it as an integer after all.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
