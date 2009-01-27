@@ -1,20 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0MMd8af027650
-	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 17:39:08 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n0MMcp1m030269
-	for <video4linux-list@redhat.com>; Thu, 22 Jan 2009 17:38:52 -0500
-Date: Thu, 22 Jan 2009 23:38:54 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-In-Reply-To: <uab9ugyqg.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0901222333120.7935@axis700.grange>
-References: <uab9ugyqg.wl%morimoto.kuninori@renesas.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L-Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH] resistor setting sequence fix on ov772x
+Date: Mon, 26 Jan 2009 22:40:39 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Roel Kluin <roel.kluin@gmail.com>
+Message-Id: <20090126224039.e43186e1.akpm@linux-foundation.org>
+In-Reply-To: <4973BCD3.6080803@gmail.com>
+References: <4973BCD3.6080803@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, mchehab@redhat.com,
+	lkml <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] DVB: negative internal->sub_range won't get noticed
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,41 +22,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Morimoto-san,
+On Mon, 19 Jan 2009 00:35:47 +0100 Roel Kluin <roel.kluin@gmail.com> wrote:
 
-On Tue, 13 Jan 2009, Kuninori Morimoto wrote:
-
-> soc_camera framework require that resistor setting is done on set_fmt,
-> and start_capture and stop_capture control only camera on/off.
-> This patch modify ov772x to this style.
+> internal->sub_range is unsigned, a negative won't get noticed.
 > 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> diff --git a/drivers/media/dvb/frontends/stb0899_algo.c b/drivers/media/dvb/frontends/stb0899_algo.c
+> index 83dc7e1..2ea32da 100644
+> --- a/drivers/media/dvb/frontends/stb0899_algo.c
+> +++ b/drivers/media/dvb/frontends/stb0899_algo.c
+> @@ -464,13 +464,14 @@ static void next_sub_range(struct stb0899_state *state)
+>  
+>  	if (internal->sub_dir > 0) {
+>  		old_sub_range = internal->sub_range;
+> -		internal->sub_range = MIN((internal->srch_range / 2) -
+> +		if (internal->tuner_offst + internal->sub_range / 2 >=
+> +				internal->srch_range / 2)
+> +			internal->sub_range = 0;
+> +		else
+> +			internal->sub_range = MIN((internal->srch_range / 2) -
+>  					  (internal->tuner_offst + internal->sub_range / 2),
+>  					   internal->sub_range);
+>  
+> -		if (internal->sub_range < 0)
+> -			internal->sub_range = 0;
+> -
+>  		internal->tuner_offst += (old_sub_range + internal->sub_range) / 2;
+>  	}
 
-I'm applying this patch, but I changed the subject and the description a 
-bit:
+I hope someone understands that function :(
 
-====================
+Do we actually need that test at all?  Perhaps it has never triggered? 
+Perhaps values in the 0x80000000 - 0xffffffff are actually OK?
 
-Subject: [PATCH] ov772x: move configuration from start_capture() to set_fmt()
-
-soc_camera framework requires, that camera configuration is performed in
-set_fmt, and start_capture and stop_capture only turn the camera on/off.
-This patch modifies ov772x to comply to this requirement.
-
-====================
-
-Agree? I just have no idea whether it's resistors or capacitors or 
-anything else that gest set by those i2c commands:-)
-
-One more comment to your ov772x driver: at present S_CROP is not supported 
-and it would just fail if anyone attempts to crop the image. Could you 
-please fix? You have to process the pixfmt == 0 case in set_fmt for this.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+This driver has managed to get itself a secret private version of the
+min(), max() and abs() macros.  They're buggy - they reference their
+argument multiple times.  The driver should be converted to use the
+kernel.h versions.
 
 --
 video4linux-list mailing list
