@@ -1,83 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web90402.mail.mud.yahoo.com ([216.252.100.154]:41584 "HELO
-	web90402.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752572AbZAJBDl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Jan 2009 20:03:41 -0500
-Date: Fri, 9 Jan 2009 16:57:00 -0800 (PST)
-From: Nicolas Fournier <nicolasfournier@yahoo.com>
-Subject: [PATCH] Terratec Cinergy DT XS Diversity new USB ID (0ccd:0081)
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
+Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:42702 "EHLO
+	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753305AbZA0Qoa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 11:44:30 -0500
+Date: Tue, 27 Jan 2009 08:44:26 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] New V4L2 ioctls for OMAP class of Devices
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ECD5@dbde02.ent.ti.com>
+Message-ID: <Pine.LNX.4.58.0901270834540.17971@shell2.speakeasy.net>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ECD5@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Message-ID: <896541.44891.qm@web90402.mail.mud.yahoo.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patch adds support for a new version of the 
-Terratec Cinergy DT USB XS Diversity Dual DVB-T TV tuner stick.  
-The USB ID of the new stick is 0ccd:0081.
-The hardware of the stick has changed, when compared to the first version of 
-this stick, but it still uses quite standard components, so that only minor
-changes are needed to the sources.  
+On Tue, 27 Jan 2009, Shah, Hardik wrote:
+> The rotation values are 0, 90, 180 and 270 degree but to disable rotation
+> the value passed should be -1 and this is one more value.  I know 0
+> degree rotation corresponds to rotation disabled but DSS hardware
+> requires 0 degree rotation to be enabled for mirroring.  The difference
+> between the 0 degree rotation and no rotation(-1) is that 0 degree
+> rotation will use the rotation engine in OMAP and then do the mirroring
+> while -1 degree rotation will not use rotation engine.  There is more
+> bandwidth utilization while using the rotation engine.  So people may
+> want to completely disable rotation and people may want 0 degree rotation
+> for mirroring support.  That's why I prefer not to use enum.  Is that ok
+> for
 
-The patch has been successfully tested with hotplugging the device and then 
-2 x tzap and 2 x mplayer, to watch two different TV programs simultaneously.
+That sounds like a hardware quirk that the driver should take care of.
+Just have the driver turn on the rotation engine if mirroring is used.
 
-The stick works with both, the old and new firmwares:
-- dvb-usb-dib0700-1.10.fw and 
-- dvb-usb-dib0700-1.20.fw
-
-Priority: normal
-
-Signed-off-by: Nicolas Fournier <nicolasfournier -at- yahoo -dot- com>
-
-
-diff -r 985ecd81d993 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
---- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Fri Jan 09 10:07:07 2009 -0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Sat Jan 10 01:50:34 2009 +0100
-@@ -1394,6 +1394,8 @@ struct usb_device_id dib0700_usb_id_tabl
- /* 40 */{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E) },
-        { USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E_SE) },
-        { USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_CINERGY_T_EXPRESS) },
-+       { USB_DEVICE(USB_VID_TERRATEC,
-+                       USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2) },
-        { 0 }           /* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -1659,7 +1661,7 @@ struct dvb_usb_device_properties dib0700
-                        }
-                },
- 
--               .num_device_descs = 4,
-+               .num_device_descs = 5,
-                .devices = {
-                        {   "DiBcom STK7070PD reference design",
-                                { &dib0700_usb_id_table[17], NULL },
-@@ -1675,6 +1677,10 @@ struct dvb_usb_device_properties dib0700
-                        },
-                        {   "Hauppauge Nova-TD-500 (84xxx)",
-                                { &dib0700_usb_id_table[36], NULL },
-+                               { NULL },
-+                       },
-+                       {   "Terratec Cinergy DT USB XS Diversity",
-+                               { &dib0700_usb_id_table[43], NULL },
-                                { NULL },
-                        }
-                }
-diff -r 985ecd81d993 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h     Fri Jan 09 10:07:07 2009 -0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h     Sat Jan 10 01:38:32 2009 +0100
-@@ -162,6 +162,7 @@
- #define USB_PID_AVERMEDIA_A309                         0xa309
- #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
- #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY       0x005a
-+#define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2     0x0081
- #define USB_PID_TERRATEC_CINERGY_HT_USB_XE             0x0058
- #define USB_PID_TERRATEC_CINERGY_HT_EXPRESS            0x0060
- #define USB_PID_TERRATEC_CINERGY_T_EXPRESS             0x0062
-
-
-      
+It seems very hard for an application to make decent use of rotation
+support if only certain values are supported by the hardware yet anything
+in degrees can be specified?  How is the application supposed to know what
+values will be acceptable?
