@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kelvin.aketzu.net ([81.22.244.161]:53592 "EHLO
-	kelvin.aketzu.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751464AbZAZS6i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2009 13:58:38 -0500
-Date: Mon, 26 Jan 2009 20:50:44 +0200
-From: Anssi Kolehmainen <anssi@aketzu.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Any project to offer for summer code Finland
-Message-ID: <20090126185044.GZ11079@aketzu.net>
-References: <497DF48F.9@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20]:58391 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752156AbZA0HxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 02:53:19 -0500
+Date: Tue, 27 Jan 2009 08:53:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] ov772x: add support S_CROP operation.
+In-Reply-To: <uk58hcp3k.wl%morimoto.kuninori@renesas.com>
+Message-ID: <alpine.DEB.2.00.0901270851280.4618@axis700.grange>
+References: <uskna4qh8.wl%morimoto.kuninori@renesas.com> <Pine.LNX.4.64.0901250245440.4969@axis700.grange> <uzlheep1l.wl%morimoto.kuninori@renesas.com> <Pine.LNX.4.64.0901260854010.4236@axis700.grange> <uk58hcp3k.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <497DF48F.9@iki.fi>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 26, 2009 at 07:36:15PM +0200, Antti Palosaari wrote:
-> Hello
-> Is there any good project idea for summer code?
->
-> coss.fi offers Finnish students paid summer job for open source  
-> projects. Project duration is three months of work.
+On Tue, 27 Jan 2009, morimoto.kuninori@renesas.com wrote:
 
-Personally I would like to have a working PCI DVB-C card with CI here in
-Finland so I could watch encrypted channels. My current Terratec Cinergy
-(mantis, VP-2040 clone) gives me CAM menu but locks computer shortly
-thereafter. There aren't many different cards available and information
-about whether they actually work is even more rare.
+> Dear Guennadi
+> 
+> > > what is the best way to us ???
+> > > or do I miss understanding ???
+> > 
+> > Fix behaviour if no S_FMT is done.
+> 
+> I attached stupid 4 patches.
+> I would like to hear your opinion.
+> please check it.
+> 
+> I wonder is there any soc_camera that works without 
+> calling S_FMT though set_bus_param is not called ?
 
-I wonder would it be possible to have some sort of compatibility testing
-project (with help of some companies to get the hardware). Just test
-different cards/USB-sticks and see how well they work, are drivers
-available on current kernel, any hacks needed etc.
+Don't know, never tested that way. Might well be they don't, in which case 
+they need to be fixed.
 
--- 
-Anssi Kolehmainen
-anssi.kolehmainen@iki.fi
-040-5085390
+> If soc_camera works without calling S_FMT, 
+> s_crop should call try_fmt_vid_cap
+> and set_bus_param like s_fmt_vid_cap I think.
+> 
+> And I think "current_fmt" is better than 0 to set_fmt
+> if user wants only geometry changes on s_crop.
+> it mean keep format.
+> 
+> These patches works well on my local environment.
+> ov772x and tw9910 work even if without -f option on capture_example.
+> 
+> If you can agree with this idea,
+> I will send these as formal patch.
+
+Thanks for the patches, please, give me a couple of days for review.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
