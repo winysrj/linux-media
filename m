@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:43866 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751586AbZA2H1k (ORCPT
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:50324 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757996AbZA0RP0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 02:27:40 -0500
-From: David Brownell <david-b@pacbell.net>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card Support
-Date: Wed, 28 Jan 2009 23:20:56 -0800
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Hadli, Manjunath" <mrh@ti.com>, "R, Sivaraj" <sivaraj@ti.com>
-References: <19F8576C6E063C45BE387C64729E739403FA78FFC5@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA78FFC5@dbde02.ent.ti.com>
+	Tue, 27 Jan 2009 12:15:26 -0500
+Received: by ewy14 with SMTP id 14so2025298ewy.13
+        for <linux-media@vger.kernel.org>; Tue, 27 Jan 2009 09:15:24 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
-Message-Id: <200901282320.56988.david-b@pacbell.net>
+In-Reply-To: <COL108-W41AFFE7632E1F6055B53F8D9CC0@phx.gbl>
+References: <COL108-W41AFFE7632E1F6055B53F8D9CC0@phx.gbl>
+Date: Tue, 27 Jan 2009 18:15:24 +0100
+Message-ID: <19a3b7a80901270915k21729403w1f2f9be019ae9112@mail.gmail.com>
+Subject: Re: [linux-dvb] Dallas Texas ATSC scan file
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org, mkrufky@linuxtv.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mike,
 
-> > > +config MACH_OMAP3EVM_DC
-> > > +       bool "OMAP 3530 EVM daughter card board"
-> > > +       depends on ARCH_OMAP3 && ARCH_OMAP34XX && MACH_OMAP3EVM
-> > 
-> > There can be other daughtercards, so the Kconfig text should
-> > say which specific card is being configured.  And it should
-> > probably use the "zero or one of these choices" syntax, so
-> > it's easier to include other options..
-> > 
-> [Hiremath, Vaibhav] I do agree with this point, but as of now I
-> believe there is only one Daughter card which is available with
-> us. And I would prefer to have menu option for the future when
-> any new daughter card available and gets added to tree.   
+Can I have your $0.02, please?
+
+Thanks,
+
+Christoph
+
+2009/1/24 Jorge Canas <jcanas2000@hotmail.com>:
+> # DALLAS TX ATSC center frequencies, use if in doubt
 >
-> Any other opinions would be helpful?
-
-Nothing particular.
+> A 189028615 8VSB
+> A 473028615 8VSB
+> A 497028615 8VSB
+> A 503028615 8VSB
+> A 533028615 8VSB
+> A 569028615 8VSB
+> A 581028615 8VSB
+> A 599028615 8VSB
+> A 605028615 8VSB
+> A 629028615 8VSB
+> A 635028615 8VSB
+> A 641028615 8VSB
+> A 659028615 8VSB
+> A 665028615 8VSB
+> A 677028615 8VSB
+> A 695028615 8VSB
