@@ -1,70 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail7.sea5.speakeasy.net ([69.17.117.9]:56682 "EHLO
-	mail7.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879AbZALTNO (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:42494 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753301AbZA0OLi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 14:13:14 -0500
-Date: Mon, 12 Jan 2009 11:13:12 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Andy Walls <awalls@radix.net>
-cc: hermann pitton <hermann-pitton@arcor.de>,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	v4l-list <video4linux-list@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Marcin Slusarz <marcin.slusarz@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: saa7134: race between device initialization and first interrupt
-In-Reply-To: <1231722231.10277.38.camel@palomino.walls.org>
-Message-ID: <Pine.LNX.4.58.0901121042070.23876@shell2.speakeasy.net>
-References: <20090104215738.GA9285@joi> <20090108005039.6eeeb470@pedra.chehab.org>
- <1231555687.3122.59.camel@palomino.walls.org> <20090110120213.GA5737@joi>
- <1231591056.3111.7.camel@palomino.walls.org> <1231641126.2613.10.camel@pc10.localdom.local>
- <1231643119.10110.41.camel@palomino.walls.org> <1231718073.8278.32.camel@pc10.localdom.local>
- <1231722231.10277.38.camel@palomino.walls.org>
+	Tue, 27 Jan 2009 09:11:38 -0500
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Tue, 27 Jan 2009 19:39:34 +0530
+Subject: RE: [RFC] Adding new ioctl for transparency color keying
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F01B@dbde02.ent.ti.com>
+In-Reply-To: <200901271408.29605.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 11 Jan 2009, Andy Walls wrote:
-> On Mon, 2009-01-12 at 00:54 +0100, hermann pitton wrote:
-> > Am Samstag, den 10.01.2009, 22:05 -0500 schrieb Andy Walls:
-> > > On Sun, 2009-01-11 at 03:32 +0100, hermann pitton wrote:
-> > > > Am Samstag, den 10.01.2009, 07:37 -0500 schrieb Andy Walls:
-> > > > > On Sat, 2009-01-10 at 13:02 +0100, Marcin Slusarz wrote:
-> > > > > > On Fri, Jan 09, 2009 at 09:48:07PM -0500, Andy Walls wrote:
-> > > > > > > but not clearing the state of SAA7134_IRQ_REPORT, maybe something like
-> > > > > > > this (I don't have a SAA7134 datasheet):
-> > > > > > >
-> > > > > > > 	saa_writel(SAA7134_IRQ_REPORT, 0xffffffff);
-> > > > > > >
-> > > > > > > So when saa7134_initdev() calls request_irq(..., saa7134_irq,
-> > > > > > > IRQF_SHARED | IRQF_DISABLED, ...), it gets an IRQ that is shared with
-> > > > > > > another device.
 
-Keep in mind that PCI writes are posted, so 'writel(...);request_irq(...);'
-might result in the irq being requested (which only involves the CPU and
-kernel) before the device receives and processes the write (which involves
-the CPU, pci bridge(s), and the saa7134 device).
 
-IMHO, a better solution is to just not request the irq until the driver is
-read to handle interrupts.  That seems a lot safer than depending on the
-irq handler not doing anything bad if it's called while the driver is still
-initializing.
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Tuesday, January 27, 2009 6:38 PM
+> To: Shah, Hardik
+> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com
+> Subject: Re: [RFC] Adding new ioctl for transparency color keying
+> 
+> On Tuesday 27 January 2009 13:53:23 Shah, Hardik wrote:
+> > > -----Original Message-----
+> > > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > > Sent: Tuesday, January 27, 2009 3:21 PM
+> > > To: Shah, Hardik
+> > > Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com
+> > > Subject: Re: [RFC] Adding new ioctl for transparency color keying
+> > >
+> > > Hi Hardik,
+> > >
+> > > On Thursday 22 January 2009 05:57:18 Shah, Hardik wrote:
+> > > > Hi,
+> > > > OMAP class of device supports transparency color keying.  Color
+> > > > keying can be source color keying or destination color keying.
+> > >
+> > > Can it be both as well?
+> > >
+> > > > OMAP3 has three pipelines one graphics plane and two video planes.
+> > > > Any of these pipelines can go to either the TV or LCD.
+> > > >
+> > > > The destination transparency color key value defines the encoded
+> > > > pixels in the graphics layer to become transparent and display the
+> > > > underlying video pixels. While the source transparency key value
+> > > > defines the encoded pixels in the video layer to become transparent
+> > > > and display the underlying graphics pixels.  This color keying works
+> > > > only if the video and graphics planes are on the same output like TV
+> > > > or LCD and images of both the pipelines overlapped.
+> > > >
+> > > > I propose to have the one ioctl to set the encoded pixel value and
+> > > > type of color keying source and destination.  Also we should have the
+> > > > CID to enable/disable the color keying functionality.
+> > > >
+> > > > Please let us know your opinions/comments.
+> > >
+> > > Destination color keying is already available through the S_FBUF and
+> > > S_FMT ioctls. Selecting source color keying can easily be added to
+> > > S_FBUF, but setting the actual chromakey is harder. The logical place
+> > > would be the v4l2_pix_format struct, but that is already full. I guess
+> > > we should make a new control to set the source chromakey. It's not
+> > > ideal, but it prevents duplicating existing functionality.
+> >
+> > [Shah, Hardik] Hi Hans,
+> > This has nothing to do with the frame buffer.  Transparency key is a
+> > hardware provided feature.  Driver has just to give the color code and
+> > whether it wants the source color keying or destination color keying.
+> > Hardware will automatically make the color code transparent so that the
+> > below layer color will be seen. So I don't think so that S_FBUF is
+> > suitable for this kind of feature. And this will automatically take
+> > effect if the graphics pipeline is on the same output device as the video
+> > pipeline.
+> 
+> Why has this nothing to do with the framebuffer? Isn't there a /dev/fbX
+> device for the graphics framebuffer? If there is, then it is exactly as I
+> described: a video output overlay (aka OSD). Do not confuse this with a
+> video overlay which is used to accelerate displaying captured video.
+> 
+> See also:
+> 
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-
+> single/v4l2.html#OSD
+[Shah, Hardik] Hi Hans,
+Here the graphics node is created for the graphics pipeline. And graphics pipeline will be controlled by the graphics node /dev/fbx.  Application will set the desired pixel format for the /dev/fbx node and /dev/v4l/videox node.  After that application can select that same output device for both the nodes.  And then user may want to make transparent either the color from the video pipeline of the graphics pipeline.  In any case application will not require frame buffer parameters like base address of the buffer as the blending/transparency processing will not be done in driver.  It will be done by hardware by setting the appropriate register bits.  So do you think that S_FBUF is required?   Please let me know if I am missing something.    If you want I can forward you the link referring to the Technical reference manual explaining the color keying in hardware.
 
-> > Andy, I allowed shared interrupts on several machines with multiple
-> > saa713x cards and current v4l-dvb, but I'm still not able to reproduce
-> > the oops. So can't try the fix. Who has the oops and can try?
+Regards,
+Hardik Shah 
+> 
+> Regards,
+> 
+>       Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-What you need to have is the saa713x sharing an interrupt with a different
-device which generates a lot of interrupts while the saa713x driver is
-being loaded.  Even then it's a race and isn't going to happen every time.
-
-> So "dev->input" is NULL when saa7134-tvaudio.c:mute_input_7133() is
-> called and that is what causes the Oops.  It was called by the
-> saa7134_irq() handler trying to take action, shortly after request_irq()
-> was called.  Can you think of why this would happen?
-
-I have no doubt that the original idea that SAA7134_IRQ_REPORT isn't clear
-when the driver loads is correct.  Why shouldn't the bits be set?  And if
-they are, we should see an Oops that looks exactly like this one.
