@@ -1,69 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54067 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750986AbZAKXQ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 18:16:29 -0500
-Date: Sun, 11 Jan 2009 21:15:56 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Cc: hvaibhav@ti.com, video4linux-list@redhat.com,
-	linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card
- Support
-Message-ID: <20090111211556.25d9d3c4@pedra.chehab.org>
-In-Reply-To: <1231551681.4474.238.camel@tux.localhost>
-References: <hvaibhav@ti.com>
-	<1231308470-31159-1-git-send-email-hvaibhav@ti.com>
-	<1231551681.4474.238.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp.sissa.it ([147.122.11.135]:60279 "EHLO smtp.sissa.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753934AbZA0RDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 12:03:45 -0500
+Received: from ozzy.localnet (dhpc-2-12.sissa.it [147.122.2.192])
+	by smtp.sissa.it (Postfix) with ESMTP id DF9E41B48074
+	for <linux-media@vger.kernel.org>; Tue, 27 Jan 2009 18:03:42 +0100 (CET)
+From: Nicola Soranzo <nsoranzo@tiscali.it>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] make clean should delete 2 more files
+Date: Tue, 27 Jan 2009 18:03:50 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901271803.50996.nsoranzo@tiscali.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 10 Jan 2009 04:41:21 +0300
-Alexey Klimov <klimov.linux@gmail.com> wrote:
+The files v4l/Module.markers and v4l/modules.order , created by make, are not 
+removed by make clean.
 
-> On Wed, 2009-01-07 at 11:37 +0530, hvaibhav@ti.com wrote:
->  [...]  
-> 
-> You have a lot of dprintk messages. May be it's better to move "\n" to
-> dprintk definition? And use dprintk without \n.
-> Probably, makes your life easier :)
+Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
 
-Please, don't. On almost all places where *print* is used, \n is required.
-Moving the end of line character into dprintk will just be something non-standard.
-
-> > +		return -EPERM;
-> > +	}
-> > +
-> > +
-> > +	switch (mux_id) {
-> > +	case MUX_TVP5146:
-> > +		/* active low signal. set 0 to enable, 1 to disable */
-> > +		if (ENABLE_MUX == value) {
-> > +			/* pull down the GPIO GPIO134 = 0 */
-> > +			gpio_set_value(GPIO134_SEL_Y, 0);
-> > +			/* pull up the GPIO GPIO54 = 1 */
-> > +			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
-> > +			/* pull up the GPIO GPIO136 = 1 */
-> > +			gpio_set_value(GPIO136_SEL_CAM, 1);
-> > +		} else
-> > +			/* pull up the GPIO GPIO134 = 0 */
-> > +			gpio_set_value(GPIO134_SEL_Y, 1);  
-> 
-> Well, please chech the Documentation/CodingStyle file.
-> Comments there say that you should use bracers with else expression
-> (statement?) also. Care to reformat the patch that it will look like:
-
-Agreed, but, in this specific case, just remove above the comments, or replace
-to something more useful. 
-Currently, they are just repeating what the code is saying. The comments should
-document why you need to change the gpio. Something like:
-
-		/* Enable device foo */
-		gpio_set_value(GPIO136_bar, 1);
-
-Cheers,
-Mauro
+---
+diff -ur v4l-dvb-6a6eb9efc6cd/v4l/Makefile v4l-dvb-new/v4l/Makefile
+--- v4l-dvb-6a6eb9efc6cd/v4l/Makefile	2009-01-24 01:35:12.000000000 +0100
++++ v4l-dvb-new/v4l/Makefile	2009-01-19 19:22:27.000000000 +0100
+@@ -278,7 +278,7 @@
+ 	@find . -name '*.c' -type l -exec rm '{}' \;
+ 	@find . -name '*.h' -type l -exec rm '{}' \;
+ 	-rm -f *~ *.o *.ko .*.o.cmd .*.ko.cmd *.mod.c av7110_firm.h fdump \
+-		config-compat.h Module.symvers
++		config-compat.h Module.symvers Module.markers modules.order
+ 	make -C firmware clean
+ 
+ distclean:: clean
