@@ -1,55 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.176]:53018 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756263AbZATQew (ORCPT
+Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:58076 "EHLO
+	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756815AbZA0SBf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 11:34:52 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so1831030wah.21
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 08:34:51 -0800 (PST)
+	Tue, 27 Jan 2009 13:01:35 -0500
+Date: Tue, 27 Jan 2009 10:01:33 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+cc: linux-media@vger.kernel.org, mkrufky@linuxtv.org,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Dallas Texas ATSC scan file
+In-Reply-To: <412bdbff0901270918w71c5e8c3k4600a527602a59fa@mail.gmail.com>
+Message-ID: <Pine.LNX.4.58.0901270957550.17971@shell2.speakeasy.net>
+References: <COL108-W41AFFE7632E1F6055B53F8D9CC0@phx.gbl>
+ <19a3b7a80901270915k21729403w1f2f9be019ae9112@mail.gmail.com>
+ <412bdbff0901270918w71c5e8c3k4600a527602a59fa@mail.gmail.com>
 MIME-Version: 1.0
-Date: Tue, 20 Jan 2009 18:34:50 +0200
-Message-ID: <f6e4f67d0901200834o1933d4d0n6687cfb9b3d87032@mail.gmail.com>
-Subject: Hauppauge WinTV-Nova-T 500 - problem wit internal IR receiver
-From: critter <critter1974@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, 27 Jan 2009, Devin Heitmueller wrote:
+> These should not be committed.  For ATSC, there is a well known list
+> of frequencies, and they should not vary by region.  Committing this
+> will only result in confusion, since scanning the entire spectrum only
+> takes a few minutes and the list of known transponders could change
+> over time.
 
-I don't have idea is this right way to get help with my problem, but
-atleast I am trying. :)
-
-I have this new version of Nova-T 500 which have two aerial inputs.
-
-WinTV-NOVA-TD-500
-DVB-T
-84109 LF
-Rev D1F4
-
-PCI Interface: VIA VT6210L
-Demodulator Interface: DiBcom DIB7000
-
-Problem is that internal IR receiver is not recognised.
-
-Here is the log:
-
-[   11.155701] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in
-cold state, will try to load a firmware
-[   11.155705] firmware: requesting dvb-usb-dib0700-1.20.fw
-[   11.439514] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-[   12.144029] dvb-usb: found a 'Hauppauge Nova-TD-500 (84xxx)' in warm state.
-[   12.144299] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   12.556520] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   12.888314] dvb-usb: Hauppauge Nova-TD-500 (84xxx) successfully
-initialized and connected.
-[   12.888599] usbcore: registered new interface driver dvb_usb_dib0700
-
-Operating system is Mythbuntu 8.10.
-
-BR
-Pena
+Most stations are now transmitting digital signals on temporary UHF
+assignments and many of those will return to their analog VHF channels
+after the digital switch over.  It was supposed to be next month, but now
+it looks like it's been delayed yet again to June.
