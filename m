@@ -1,143 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.tglx.de ([62.245.132.106]:47029 "EHLO www.tglx.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387AbZALSZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 13:25:27 -0500
-Date: Mon, 12 Jan 2009 19:24:40 +0100
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	video4linux-list@redhat.com
-Subject: [PATCH] v4l/tvp514x: make the module aware of rich people
-Message-ID: <20090112182440.GA24931@www.tglx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3116 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755785AbZA0TMe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 14:12:34 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0RJCWBG010224
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 27 Jan 2009 20:12:32 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 27 Jan 2009 20:12:32 +0100 (CET)
+Message-Id: <200901271912.n0RJCWBG010224@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-because they might design two of those chips on a single board.
-You never know.
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
----
- drivers/media/video/tvp514x.c |   52 +++++++++++++++++++++++-----------------
- 1 files changed, 30 insertions(+), 22 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
-index 8e23aa5..f9eb6dc 100644
---- a/drivers/media/video/tvp514x.c
-+++ b/drivers/media/video/tvp514x.c
-@@ -103,7 +103,7 @@ struct tvp514x_std_info {
-  * @route: input and output routing at chip level
-  */
- struct tvp514x_decoder {
--	struct v4l2_int_device *v4l2_int_device;
-+	struct v4l2_int_device v4l2_int_device;
- 	const struct tvp514x_platform_data *pdata;
- 	struct i2c_client *client;
- 
-@@ -1369,17 +1369,14 @@ static struct tvp514x_decoder tvp514x_dev = {
- 	.current_std = STD_NTSC_MJ,
- 	.std_list = tvp514x_std_list,
- 	.num_stds = ARRAY_SIZE(tvp514x_std_list),
--
--};
--
--static struct v4l2_int_device tvp514x_int_device = {
--	.module = THIS_MODULE,
--	.name = TVP514X_MODULE_NAME,
--	.priv = &tvp514x_dev,
--	.type = v4l2_int_type_slave,
--	.u = {
--	      .slave = &tvp514x_slave,
--	      },
-+	.v4l2_int_device = {
-+		.module = THIS_MODULE,
-+		.name = TVP514X_MODULE_NAME,
-+		.type = v4l2_int_type_slave,
-+		.u = {
-+			.slave = &tvp514x_slave,
-+		},
-+	},
- };
- 
- /**
-@@ -1392,18 +1389,26 @@ static struct v4l2_int_device tvp514x_int_device = {
- static int
- tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
--	struct tvp514x_decoder *decoder = &tvp514x_dev;
-+	struct tvp514x_decoder *decoder;
- 	int err;
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -EIO;
- 
--	decoder->pdata = client->dev.platform_data;
--	if (!decoder->pdata) {
-+	decoder = kzalloc(sizeof(*decoder), GFP_KERNEL);
-+	if (!decoder)
-+		return -ENOMEM;
-+
-+	if (!client->dev.platform_data) {
- 		v4l_err(client, "No platform data!!\n");
--		return -ENODEV;
-+		err = -ENODEV;
-+		goto out_free;
- 	}
-+
-+	*decoder = tvp514x_dev;
-+	decoder->v4l2_int_device.priv = decoder;
-+	decoder->pdata = client->dev.platform_data;
- 	/*
- 	 * Fetch platform specific data, and configure the
- 	 * tvp514x_reg_list[] accordingly. Since this is one
-@@ -1419,23 +1424,26 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	 */
- 	decoder->id = (struct i2c_device_id *)id;
- 	/* Attach to Master */
--	strcpy(tvp514x_int_device.u.slave->attach_to, decoder->pdata->master);
--	decoder->v4l2_int_device = &tvp514x_int_device;
-+	strcpy(decoder->v4l2_int_device.u.slave->attach_to, decoder->pdata->master);
- 	decoder->client = client;
- 	i2c_set_clientdata(client, decoder);
- 
- 	/* Register with V4L2 layer as slave device */
--	err = v4l2_int_device_register(decoder->v4l2_int_device);
-+	err = v4l2_int_device_register(&decoder->v4l2_int_device);
- 	if (err) {
- 		i2c_set_clientdata(client, NULL);
- 		v4l_err(client,
- 			"Unable to register to v4l2. Err[%d]\n", err);
-+		goto out_free;
- 
- 	} else
- 		v4l_info(client, "Registered to v4l2 master %s!!\n",
- 				decoder->pdata->master);
--
- 	return 0;
-+
-+out_free:
-+	kfree(decoder);
-+	return err;
- }
- 
- /**
-@@ -1452,9 +1460,9 @@ static int __exit tvp514x_remove(struct i2c_client *client)
- 	if (!client->adapter)
- 		return -ENODEV;	/* our client isn't attached */
- 
--	v4l2_int_device_unregister(decoder->v4l2_int_device);
-+	v4l2_int_device_unregister(&decoder->v4l2_int_device);
- 	i2c_set_clientdata(client, NULL);
--
-+	kfree(decoder);
- 	return 0;
- }
- /*
--- 
-1.5.6.5
+date:        Tue Jan 27 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10305:6a6eb9efc6cd
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc2-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc2-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc2-armv5-omap2: OK
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc2-i686: OK
+linux-2.6.16.61-m32r: OK
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc2-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc2-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc2-powerpc64: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc2-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc2): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
