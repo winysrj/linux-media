@@ -1,713 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail0.scram.de ([78.47.204.202]:53054 "EHLO mail.scram.de"
+Received: from comal.ext.ti.com ([198.47.26.152]:43644 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753156AbZANS2n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 13:28:43 -0500
-Message-ID: <496E2EEB.6060906@scram.de>
-Date: Wed, 14 Jan 2009 19:28:59 +0100
-From: Jochen Friedrich <jochen@scram.de>
+	id S1751213AbZA0FJI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 00:09:08 -0500
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 27 Jan 2009 10:38:35 +0530
+Subject: RE: [PATCH] New V4L2 ioctls for OMAP class of Devices
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ED08@dbde02.ent.ti.com>
+In-Reply-To: <200901251044.21013.laurent.pinchart@skynet.be>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv3] Add Freescale MC44S803 tuner driver
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jochen Friedrich <jochen@scram.de>
----
 
-Changes since v1:
-- rebase against official linux tree. v1 was based against a local tree and didn't apply cleanly.
 
-Changes since v2:
-- fix typo KERN_ERROR -> KERN_ERR
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@skynet.be]
+> Sent: Sunday, January 25, 2009 3:14 PM
+> To: video4linux-list@redhat.com
+> Cc: Hans Verkuil; Shah, Hardik; linux-media@vger.kernel.org
+> Subject: Re: [PATCH] New V4L2 ioctls for OMAP class of Devices
+> 
+> On Sunday 25 January 2009, Hans Verkuil wrote:
+> > On Saturday 24 January 2009 18:03:51 Shah, Hardik wrote:
+> > > > -----Original Message-----
+> > > > From: Shah, Hardik
+> > > > Sent: Wednesday, January 21, 2009 5:24 PM
+> > > > To: video4linux-list@redhat.com; linux-media@vger.kernel.org
+> > > > Cc: Shah, Hardik; Jadav, Brijesh R; Nagalla, Hari; Hadli, Manjunath; R,
+> > > > Sivaraj; Hiremath, Vaibhav
+> > > > Subject: [PATCH] New V4L2 ioctls for OMAP class of Devices
+> > > >
+> > > > 1.  Control ID added for rotation.  Same as HFLIP.
+> > > > 2.  Control ID added for setting background color on
+> > > >     output device.
+> > > > 3.  New ioctl added for setting the color space conversion from
+> > > >     YUV to RGB.
+> > > >
+> > > > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> > > > Signed-off-by: Hari Nagalla <hnagalla@ti.com>
+> > > > Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> > > > Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> > > > Signed-off-by: R Sivaraj <sivaraj@ti.com>
+> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > ---
+> > > >  linux/drivers/media/video/v4l2-ioctl.c |   19 ++++++++++++++++++-
+> > > >  linux/include/linux/videodev2.h        |   19 ++++++++++++++++++-
+> > > >  linux/include/media/v4l2-ioctl.h       |    4 ++++
+> > > >  3 files changed, 40 insertions(+), 2 deletions(-)
+> > > >
+> > > > diff --git a/linux/drivers/media/video/v4l2-ioctl.c
+> > > > b/linux/drivers/media/video/v4l2-ioctl.c
+> > > > index 165bc90..7599da8 100644
+> > > > --- a/linux/drivers/media/video/v4l2-ioctl.c
+> > > > +++ b/linux/drivers/media/video/v4l2-ioctl.c
+> > > > @@ -270,6 +270,8 @@ static const char *v4l2_ioctls[] = {
+> > > >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+> > > >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+> > > >  #endif
+> > > > +	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   =
+> "VIDIOC_S_COLOR_SPACE_CONV",
+> > > > +	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]   =
+> "VIDIOC_G_COLOR_SPACE_CONV",
+> > > >  };
+> > > >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+> > > >
+> > > > @@ -1838,7 +1840,22 @@ static long __video_do_ioctl(struct file *file,
+> > > >  		}
+> > > >  		break;
+> > > >  	}
+> > > > -
+> > > > +	case VIDIOC_S_COLOR_SPACE_CONV:
+> > > > +	{
+> > > > +		struct v4l2_color_space_conversion *p = arg;
+> > > > +		if (!ops->vidioc_s_color_space_conv)
+> > > > +			break;
+> > > > +		ret = ops->vidioc_s_color_space_conv(file, fh, p);
+> > > > +		break;
+> > > > +	}
+> > > > +	case VIDIOC_G_COLOR_SPACE_CONV:
+> > > > +	{
+> > > > +		struct v4l2_color_space_conversion *p = arg;
+> > > > +		if (!ops->vidioc_g_color_space_conv)
+> > > > +			break;
+> > > > +		ret = ops->vidioc_g_color_space_conv(file, fh, p);
+> > > > +		break;
+> > > > +	}
+> > > >  	default:
+> > > >  	{
+> > > >  		if (!ops->vidioc_default)
+> > > > diff --git a/linux/include/linux/videodev2.h
+> > > > b/linux/include/linux/videodev2.h index b0c5010..9fbc3b0 100644
+> > > > --- a/linux/include/linux/videodev2.h
+> > > > +++ b/linux/include/linux/videodev2.h
+> > > > @@ -879,8 +879,10 @@ enum v4l2_power_line_frequency {
+> > > >  #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
+> > > >  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
+> > > >  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+> > > > +#define V4L2_CID_ROTATION			(V4L2_CID_BASE+31)
+> > > > +#define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+32)
+> > > >  /* last CID + 1 */
+> > > > -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+31)
+> > > > +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+33)
+> > > >
+> > > >  /*  MPEG-class control IDs defined by V4L2 */
+> > > >  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+> > > > @@ -1192,6 +1194,17 @@ struct v4l2_hw_freq_seek {
+> > > >  };
+> > > >
+> > > >  /*
+> > > > + * Color conversion
+> > > > + * User needs to pass pointer to color conversion matrix
+> > > > + * defined by hardware
+> > > > + */
+> > > > +struct v4l2_color_space_conversion {
+> > > > +	__s32 coefficients[3][3];
+> > > > +	__s32 const_factor;
+> > > > +	__s32 offsets[3];
+> > > > +};
+> > > > +
+> > > > +/*
+> > > >   *	A U D I O
+> > > >   */
+> > > >  struct v4l2_audio {
+> > > > @@ -1493,9 +1506,13 @@ struct v4l2_chip_ident_old {
+> > > >  #endif
+> > > >
+> > > >  #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct
+> v4l2_hw_freq_seek)
+> > > > +
+> > > > +#define VIDIOC_S_COLOR_SPACE_CONV      _IOW('V', 83, struct
+> > > > v4l2_color_space_conversion)
+> > > > +#define VIDIOC_G_COLOR_SPACE_CONV      _IOR('V', 84, struct
+> > > > v4l2_color_space_conversion)
+> > > >  /* Reminder: when adding new ioctls please add support for them to
+> > > >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+> > > >
+> > > > +
+> > > >  #ifdef __OLD_VIDIOC_
+> > > >  /* for compatibility, will go away some day */
+> > > >  #define VIDIOC_OVERLAY_OLD     	_IOWR('V', 14, int)
+> > > > diff --git a/linux/include/media/v4l2-ioctl.h
+> > > > b/linux/include/media/v4l2- ioctl.h
+> > > > index b01c044..0c44ecf 100644
+> > > > --- a/linux/include/media/v4l2-ioctl.h
+> > > > +++ b/linux/include/media/v4l2-ioctl.h
+> > > > @@ -241,6 +241,10 @@ struct v4l2_ioctl_ops {
+> > > >  	/* For other private ioctls */
+> > > >  	long (*vidioc_default)	       (struct file *file, void *fh,
+> > > >  					int cmd, void *arg);
+> > > > +	int (*vidioc_s_color_space_conv)     (struct file *file, void *fh,
+> > > > +					struct v4l2_color_space_conversion *a);
+> > > > +	int (*vidioc_g_color_space_conv)     (struct file *file, void *fh,
+> > > > +					struct v4l2_color_space_conversion *a);
+> > > >  };
+> > > >
+> > > >
+> > > > --
+> > > > 1.5.6
+> > >
+> > > [Shah, Hardik] Hi,
+> > > Any comments on this patch.
+> > > Hans/Mauro,
+> > > If possible can you integrate this onto your development branch.
+> >
+> > Hi Hardik,
+> >
+> > I've one question regarding the rotation control: I assume that this is
+> > limited to 0, 90, 180 and 270 degrees? I think it might be better to
+> > implement this as an enum in that case.
+> 
+> 90 and 270 degrees would modify the image size. How would that be handled in
+> relationship with VIDIOC_S/G_FMT ?
+[Shah, Hardik] Hi Laurent,
+After setting the rotation degree user has to once again call the S_FMT with the height and width to allow S_FMT to take care of reversing the height and width of the panel and depending on that your crop window and display window will be set if the rotaion is set to 90 or 270. While the get format will give you same height and width set earlier.  Is this answer to your question?
 
- drivers/media/common/tuners/Kconfig         |    8 +
- drivers/media/common/tuners/Makefile        |    1 +
- drivers/media/common/tuners/mc44s803.c      |  366 +++++++++++++++++++++++++++
- drivers/media/common/tuners/mc44s803.h      |   46 ++++
- drivers/media/common/tuners/mc44s803_priv.h |  208 +++++++++++++++
- 5 files changed, 629 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/common/tuners/mc44s803.c
- create mode 100644 drivers/media/common/tuners/mc44s803.h
- create mode 100644 drivers/media/common/tuners/mc44s803_priv.h
-
-diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-index 6f92bea..7969b69 100644
---- a/drivers/media/common/tuners/Kconfig
-+++ b/drivers/media/common/tuners/Kconfig
-@@ -29,6 +29,7 @@ config MEDIA_TUNER
- 	select MEDIA_TUNER_TEA5767 if !MEDIA_TUNER_CUSTOMIZE
- 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMIZE
- 	select MEDIA_TUNER_TDA9887 if !MEDIA_TUNER_CUSTOMIZE
-+	select MEDIA_TUNER_MC44S803 if !MEDIA_TUNER_CUSTOMIZE
- 
- menuconfig MEDIA_TUNER_CUSTOMIZE
- 	bool "Customize analog and hybrid tuner modules to build"
-@@ -164,4 +165,11 @@ config MEDIA_TUNER_MXL5007T
- 	help
- 	  A driver for the silicon tuner MxL5007T from MaxLinear.
- 
-+config MEDIA_TUNER_MC44S803
-+	tristate "Freescale MC44S803 Low Power CMOS Broadband tuners"
-+	depends on VIDEO_MEDIA && I2C
-+	default m if DVB_FE_CUSTOMISE
-+	help
-+	  Say Y here to support the Freescale MC44S803 based tuners
-+
- endif # MEDIA_TUNER_CUSTOMIZE
-diff --git a/drivers/media/common/tuners/Makefile b/drivers/media/common/tuners/Makefile
-index 4dfbe5b..4132b2b 100644
---- a/drivers/media/common/tuners/Makefile
-+++ b/drivers/media/common/tuners/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_MEDIA_TUNER_QT1010) += qt1010.o
- obj-$(CONFIG_MEDIA_TUNER_MT2131) += mt2131.o
- obj-$(CONFIG_MEDIA_TUNER_MXL5005S) += mxl5005s.o
- obj-$(CONFIG_MEDIA_TUNER_MXL5007T) += mxl5007t.o
-+obj-$(CONFIG_MEDIA_TUNER_MC44S803) += mc44s803.o
- 
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
- EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
-diff --git a/drivers/media/common/tuners/mc44s803.c b/drivers/media/common/tuners/mc44s803.c
-new file mode 100644
-index 0000000..cd54376
---- /dev/null
-+++ b/drivers/media/common/tuners/mc44s803.c
-@@ -0,0 +1,366 @@
-+/*
-+ *  Driver for Freescale MC44S803 Low Power CMOS Broadband Tuner
-+ *
-+ *  Copyright (c) 2009 Jochen Friedrich <jochen@scram.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/dvb/frontend.h>
-+#include <linux/i2c.h>
-+
-+#include "dvb_frontend.h"
-+
-+#include "mc44s803.h"
-+#include "mc44s803_priv.h"
-+
-+/* Writes a single register */
-+static int mc44s803_writereg(struct mc44s803_priv *priv, u32 val)
-+{
-+	u8 buf[3];
-+	struct i2c_msg msg = {
-+		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = 3
-+	};
-+
-+	buf[0] = (val & 0xFF0000) >> 16;
-+	buf[1] = (val & 0xFF00) >> 8;
-+	buf[2] = (val & 0xFF);
-+
-+	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
-+		printk(KERN_WARNING "mc44s803 I2C write failed\n");
-+		return -EREMOTEIO;
-+	}
-+	return 0;
-+}
-+
-+/* Reads a single register */
-+static int mc44s803_readreg(struct mc44s803_priv *priv, u8 reg, u32 *val)
-+{
-+	u32 wval;
-+	u8 buf[3];
-+	u8 ret;
-+	struct i2c_msg msg[] = {
-+		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD,
-+		  .buf = buf, .len = 3 },
-+	};
-+
-+	wval = MC44S803_REG_SM(MC44S803_REG_DATAREG, MC44S803_ADDR) |
-+	       MC44S803_REG_SM(reg, MC44S803_D);
-+
-+	ret = mc44s803_writereg(priv, wval);
-+	if (ret)
-+		return ret;
-+
-+	if (i2c_transfer(priv->i2c, msg, 1) != 1) {
-+		printk(KERN_WARNING "mc44s803 I2C read failed\n");
-+		return -EREMOTEIO;
-+	}
-+
-+	*val = (buf[0] << 16) | (buf[1] << 8) | buf[2];
-+
-+	return 0;
-+}
-+
-+static int mc44s803_release(struct dvb_frontend *fe)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+
-+	fe->tuner_priv = NULL;
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static int mc44s803_init(struct dvb_frontend *fe)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+	u32 val;
-+	int err;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+/* Reset chip */
-+	val = MC44S803_REG_SM(MC44S803_REG_RESET, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_RS);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_RESET, MC44S803_ADDR);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Power Up and Start Osc */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_REFOSC, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(0xC0, MC44S803_REFOSC) |
-+	      MC44S803_REG_SM(1, MC44S803_OSCSEL);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_POWER, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(0x200, MC44S803_POWER);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	msleep(10);
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_REFOSC, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(0x40, MC44S803_REFOSC) |
-+	      MC44S803_REG_SM(1, MC44S803_OSCSEL);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	msleep(20);
-+
-+/* Setup Mixer */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_MIXER, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_TRI_STATE) |
-+	      MC44S803_REG_SM(0x7F, MC44S803_MIXER_RES);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Setup Cirquit Adjust */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_CIRCADJ, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_G1) |
-+	      MC44S803_REG_SM(1, MC44S803_G3) |
-+	      MC44S803_REG_SM(0x3, MC44S803_CIRCADJ_RES) |
-+	      MC44S803_REG_SM(1, MC44S803_G6) |
-+	      MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
-+	      MC44S803_REG_SM(0x3, MC44S803_LP) |
-+	      MC44S803_REG_SM(1, MC44S803_CLRF) |
-+	      MC44S803_REG_SM(1, MC44S803_CLIF);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_CIRCADJ, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_G1) |
-+	      MC44S803_REG_SM(1, MC44S803_G3) |
-+	      MC44S803_REG_SM(1, MC44S803_G6) |
-+	      MC44S803_REG_SM(priv->cfg->dig_out, MC44S803_S1) |
-+	      MC44S803_REG_SM(0x3, MC44S803_LP);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Setup Digtune */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(3, MC44S803_XOD);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+/* Setup AGC */
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_LNAAGC, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_AT1) |
-+	      MC44S803_REG_SM(1, MC44S803_AT2) |
-+	      MC44S803_REG_SM(1, MC44S803_AGC_AN_DIG) |
-+	      MC44S803_REG_SM(1, MC44S803_AGC_READ_EN) |
-+	      MC44S803_REG_SM(1, MC44S803_LNA0);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	return 0;
-+
-+exit:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	printk(KERN_WARNING "mc44s803: I/O Error\n");
-+	return err;
-+}
-+
-+static int mc44s803_set_params(struct dvb_frontend *fe,
-+			       struct dvb_frontend_parameters *params)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+	u32 r1, r2, n1, n2, lo1, lo2, freq, val;
-+	int err;
-+
-+	priv->frequency = params->frequency;
-+
-+	r1 = MC44S803_OSC / 1000000;
-+	r2 = MC44S803_OSC /  100000;
-+
-+	n1 = (params->frequency + MC44S803_IF1 + 500000) / 1000000;
-+	freq = MC44S803_OSC / r1 * n1;
-+	lo1 = ((60 * n1) + (r1 / 2)) / r1;
-+	freq = freq - params->frequency;
-+
-+	n2 = (freq - MC44S803_IF2 + 50000) / 100000;
-+	lo2 = ((60 * n2) + (r2 / 2)) / r2;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_REFDIV, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(r1-1, MC44S803_R1) |
-+	      MC44S803_REG_SM(r2-1, MC44S803_R2) |
-+	      MC44S803_REG_SM(1, MC44S803_REFBUF_EN);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_LO1, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(n1-2, MC44S803_LO1);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_LO2, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(n2-2, MC44S803_LO2);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(1, MC44S803_DA) |
-+	      MC44S803_REG_SM(lo1, MC44S803_LO_REF) |
-+	      MC44S803_REG_SM(1, MC44S803_AT);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	val = MC44S803_REG_SM(MC44S803_REG_DIGTUNE, MC44S803_ADDR) |
-+	      MC44S803_REG_SM(2, MC44S803_DA) |
-+	      MC44S803_REG_SM(lo2, MC44S803_LO_REF) |
-+	      MC44S803_REG_SM(1, MC44S803_AT);
-+
-+	err = mc44s803_writereg(priv, val);
-+	if (err)
-+		goto exit;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	return 0;
-+
-+exit:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	printk(KERN_WARNING "mc44s803: I/O Error\n");
-+	return err;
-+}
-+
-+static int mc44s803_get_frequency(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	struct mc44s803_priv *priv = fe->tuner_priv;
-+	*frequency = priv->frequency;
-+	return 0;
-+}
-+
-+static const struct dvb_tuner_ops mc44s803_tuner_ops = {
-+	.info = {
-+		.name           = "Freescale MC44S803",
-+		.frequency_min  =   48000000,
-+		.frequency_max  = 1000000000,
-+		.frequency_step =     100000,
-+	},
-+
-+	.release       = mc44s803_release,
-+	.init          = mc44s803_init,
-+	.set_params    = mc44s803_set_params,
-+	.get_frequency = mc44s803_get_frequency
-+};
-+
-+/* This functions tries to identify a MC44S803 tuner by reading the ID
-+   register. This is hasty. */
-+struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
-+	 struct i2c_adapter *i2c, struct mc44s803_config *cfg)
-+{
-+	struct mc44s803_priv *priv = NULL;
-+	u32 reg;
-+	u8 ret, id;
-+
-+	reg = 0;
-+
-+	priv = kzalloc(sizeof(struct mc44s803_priv), GFP_KERNEL);
-+	if (priv == NULL)
-+		return NULL;
-+
-+	priv->cfg = cfg;
-+	priv->i2c = i2c;
-+	priv->fe  = fe;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1); /* open i2c_gate */
-+
-+	ret = mc44s803_readreg(priv, MC44S803_REG_ID, &reg);
-+	if (ret)
-+		goto error;
-+
-+	id = MC44S803_REG_MS(reg, MC44S803_ID);
-+
-+	if (id != 0x14) {
-+		printk(KERN_ERR "MC44S803: unsupported ID "
-+		       "(%x should be 0x14)\n", id);
-+		goto error;
-+	}
-+
-+	printk(KERN_INFO "MC44S803: successfully identified (ID = %x)\n", id);
-+	memcpy(&fe->ops.tuner_ops, &mc44s803_tuner_ops,
-+	       sizeof(struct dvb_tuner_ops));
-+
-+	fe->tuner_priv = priv;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
-+
-+	return fe;
-+
-+error:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0); /* close i2c_gate */
-+
-+	kfree(priv);
-+	return NULL;
-+}
-+EXPORT_SYMBOL(mc44s803_attach);
-+
-+MODULE_AUTHOR("Jochen Friedrich");
-+MODULE_DESCRIPTION("Freescale MC44S803 silicon tuner driver");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/common/tuners/mc44s803.h b/drivers/media/common/tuners/mc44s803.h
-new file mode 100644
-index 0000000..34f3892
---- /dev/null
-+++ b/drivers/media/common/tuners/mc44s803.h
-@@ -0,0 +1,46 @@
-+/*
-+ *  Driver for Freescale MC44S803 Low Power CMOS Broadband Tuner
-+ *
-+ *  Copyright (c) 2009 Jochen Friedrich <jochen@scram.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-+ */
-+
-+#ifndef MC44S803_H
-+#define MC44S803_H
-+
-+struct dvb_frontend;
-+struct i2c_adapter;
-+
-+struct mc44s803_config {
-+	u8 i2c_address;
-+	u8 dig_out;
-+};
-+
-+#if defined(CONFIG_MEDIA_TUNER_MC44S803) || \
-+    (defined(CONFIG_MEDIA_TUNER_MC44S803_MODULE) && defined(MODULE))
-+extern struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
-+	 struct i2c_adapter *i2c, struct mc44s803_config *cfg);
-+#else
-+static inline struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
-+	 struct i2c_adapter *i2c, struct mc44s803_config *cfg)
-+{
-+	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	return NULL;
-+}
-+#endif /* CONFIG_MEDIA_TUNER_MC44S803 */
-+
-+#endif
-diff --git a/drivers/media/common/tuners/mc44s803_priv.h b/drivers/media/common/tuners/mc44s803_priv.h
-new file mode 100644
-index 0000000..14a9278
---- /dev/null
-+++ b/drivers/media/common/tuners/mc44s803_priv.h
-@@ -0,0 +1,208 @@
-+/*
-+ *  Driver for Freescale MC44S803 Low Power CMOS Broadband Tuner
-+ *
-+ *  Copyright (c) 2009 Jochen Friedrich <jochen@scram.de>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-+ */
-+
-+#ifndef MC44S803_PRIV_H
-+#define MC44S803_PRIV_H
-+
-+/* This driver is based on the information available in the datasheet
-+   http://www.freescale.com/files/rf_if/doc/data_sheet/MC44S803.pdf
-+
-+   SPI or I2C Address : 0xc0-0xc6
-+
-+   Reg.No | Function
-+   -------------------------------------------
-+       00 | Power Down
-+       01 | Reference Oszillator
-+       02 | Reference Dividers
-+       03 | Mixer and Reference Buffer
-+       04 | Reset/Serial Out
-+       05 | LO 1
-+       06 | LO 2
-+       07 | Circuit Adjust
-+       08 | Test
-+       09 | Digital Tune
-+       0A | LNA AGC
-+       0B | Data Register Address
-+       0C | Regulator Test
-+       0D | VCO Test
-+       0E | LNA Gain/Input Power
-+       0F | ID Bits
-+
-+*/
-+
-+#define MC44S803_OSC 26000000	/* 26 MHz */
-+#define MC44S803_IF1 1086000000 /* 1086 MHz */
-+#define MC44S803_IF2 36125000	/* 36.125 MHz */
-+
-+#define MC44S803_REG_POWER	0
-+#define MC44S803_REG_REFOSC	1
-+#define MC44S803_REG_REFDIV	2
-+#define MC44S803_REG_MIXER	3
-+#define MC44S803_REG_RESET	4
-+#define MC44S803_REG_LO1	5
-+#define MC44S803_REG_LO2	6
-+#define MC44S803_REG_CIRCADJ	7
-+#define MC44S803_REG_TEST	8
-+#define MC44S803_REG_DIGTUNE	9
-+#define MC44S803_REG_LNAAGC	0x0A
-+#define MC44S803_REG_DATAREG	0x0B
-+#define MC44S803_REG_REGTEST	0x0C
-+#define MC44S803_REG_VCOTEST	0x0D
-+#define MC44S803_REG_LNAGAIN	0x0E
-+#define MC44S803_REG_ID		0x0F
-+
-+/* Register definitions */
-+#define MC44S803_ADDR		0x0F
-+#define MC44S803_ADDR_S		0
-+/* REG_POWER */
-+#define MC44S803_POWER		0xFFFFF0
-+#define MC44S803_POWER_S	4
-+/* REG_REFOSC */
-+#define MC44S803_REFOSC		0x1FF0
-+#define MC44S803_REFOSC_S	4
-+#define MC44S803_OSCSEL		0x2000
-+#define MC44S803_OSCSEL_S	13
-+/* REG_REFDIV */
-+#define MC44S803_R2		0x1FF0
-+#define MC44S803_R2_S		4
-+#define MC44S803_REFBUF_EN	0x2000
-+#define MC44S803_REFBUF_EN_S	13
-+#define MC44S803_R1		0x7C000
-+#define MC44S803_R1_S		14
-+/* REG_MIXER */
-+#define MC44S803_R3		0x70
-+#define MC44S803_R3_S		4
-+#define MC44S803_MUX3		0x80
-+#define MC44S803_MUX3_S		7
-+#define MC44S803_MUX4		0x100
-+#define MC44S803_MUX4_S		8
-+#define MC44S803_OSC_SCR	0x200
-+#define MC44S803_OSC_SCR_S	9
-+#define MC44S803_TRI_STATE	0x400
-+#define MC44S803_TRI_STATE_S	10
-+#define MC44S803_BUF_GAIN	0x800
-+#define MC44S803_BUF_GAIN_S	11
-+#define MC44S803_BUF_IO		0x1000
-+#define MC44S803_BUF_IO_S	12
-+#define MC44S803_MIXER_RES	0xFE000
-+#define MC44S803_MIXER_RES_S	13
-+/* REG_RESET */
-+#define MC44S803_RS		0x10
-+#define MC44S803_RS_S		4
-+#define MC44S803_SO		0x20
-+#define MC44S803_SO_S		5
-+/* REG_LO1 */
-+#define MC44S803_LO1		0xFFF0
-+#define MC44S803_LO1_S		4
-+/* REG_LO2 */
-+#define MC44S803_LO2		0x7FFF0
-+#define MC44S803_LO2_S		4
-+/* REG_CIRCADJ */
-+#define MC44S803_G1		0x20
-+#define MC44S803_G1_S		5
-+#define MC44S803_G3		0x80
-+#define MC44S803_G3_S		7
-+#define MC44S803_CIRCADJ_RES	0x300
-+#define MC44S803_CIRCADJ_RES_S	8
-+#define MC44S803_G6		0x400
-+#define MC44S803_G6_S		10
-+#define MC44S803_G7		0x800
-+#define MC44S803_G7_S		11
-+#define MC44S803_S1		0x1000
-+#define MC44S803_S1_S		12
-+#define MC44S803_LP		0x7E000
-+#define MC44S803_LP_S		13
-+#define MC44S803_CLRF		0x80000
-+#define MC44S803_CLRF_S		19
-+#define MC44S803_CLIF		0x100000
-+#define MC44S803_CLIF_S		20
-+/* REG_TEST */
-+/* REG_DIGTUNE */
-+#define MC44S803_DA		0xF0
-+#define MC44S803_DA_S		4
-+#define MC44S803_XOD		0x300
-+#define MC44S803_XOD_S		8
-+#define MC44S803_RST		0x10000
-+#define MC44S803_RST_S		16
-+#define MC44S803_LO_REF		0x1FFF00
-+#define MC44S803_LO_REF_S	8
-+#define MC44S803_AT		0x200000
-+#define MC44S803_AT_S		21
-+#define MC44S803_MT		0x400000
-+#define MC44S803_MT_S		22
-+/* REG_LNAAGC */
-+#define MC44S803_G		0x3F0
-+#define MC44S803_G_S		4
-+#define MC44S803_AT1		0x400
-+#define MC44S803_AT1_S		10
-+#define MC44S803_AT2		0x800
-+#define MC44S803_AT2_S		11
-+#define MC44S803_HL_GR_EN	0x8000
-+#define MC44S803_HL_GR_EN_S	15
-+#define MC44S803_AGC_AN_DIG	0x10000
-+#define MC44S803_AGC_AN_DIG_S	16
-+#define MC44S803_ATTEN_EN	0x20000
-+#define MC44S803_ATTEN_EN_S	17
-+#define MC44S803_AGC_READ_EN	0x40000
-+#define MC44S803_AGC_READ_EN_S	18
-+#define MC44S803_LNA0		0x80000
-+#define MC44S803_LNA0_S		19
-+#define MC44S803_AGC_SEL	0x100000
-+#define MC44S803_AGC_SEL_S	20
-+#define MC44S803_AT0		0x200000
-+#define MC44S803_AT0_S		21
-+#define MC44S803_B		0xC00000
-+#define MC44S803_B_S		22
-+/* REG_DATAREG */
-+#define MC44S803_D		0xF0
-+#define MC44S803_D_S		4
-+/* REG_REGTEST */
-+/* REG_VCOTEST */
-+/* REG_LNAGAIN */
-+#define MC44S803_IF_PWR		0x700
-+#define MC44S803_IF_PWR_S	8
-+#define MC44S803_RF_PWR		0x3800
-+#define MC44S803_RF_PWR_S	11
-+#define MC44S803_LNA_GAIN	0xFC000
-+#define MC44S803_LNA_GAIN_S	14
-+/* REG_ID */
-+#define MC44S803_ID		0x3E00
-+#define MC44S803_ID_S		9
-+
-+/* Some macros to read/write fields */
-+
-+/* First shift, then mask */
-+#define MC44S803_REG_SM(_val, _reg)					\
-+	(((_val) << _reg##_S) & (_reg))
-+
-+/* First mask, then shift */
-+#define MC44S803_REG_MS(_val, _reg)					\
-+	(((_val) & (_reg)) >> _reg##_S)
-+
-+struct mc44s803_priv {
-+	struct mc44s803_config *cfg;
-+	struct i2c_adapter *i2c;
-+	struct dvb_frontend *fe;
-+
-+	u32 frequency;
-+};
-+
-+#endif
--- 
-1.5.6.5
+Regards,
+Hardik Shah 
+> 
+> Best regards,
+> 
+> Laurent Pinchart
 
