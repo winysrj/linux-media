@@ -1,49 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33911 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764342AbZAULfq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2009 06:35:46 -0500
-Message-ID: <4977088F.5080505@iki.fi>
-Date: Wed, 21 Jan 2009 13:35:43 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20]:40773 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751461AbZA0PXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jan 2009 10:23:46 -0500
+Message-ID: <497F26DD.8050200@gmx.de>
+Date: Tue, 27 Jan 2009 16:23:09 +0100
+From: Jan Kreuzer <kontrollator@gmx.de>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] getting started with msi tv card
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>	<20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi> <20090121003915.GA6120@debian-hp.lan>
-In-Reply-To: <20090121003915.GA6120@debian-hp.lan>
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Subject: Support for Technisat SkyStar USB 2 HD CI
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Daniel Dalton wrote:
-> On Wed, Jan 21, 2009 at 12:46:32AM +0200, Antti Palosaari wrote:
->> Yes, should work out of the box. No need to install any driver, driver 
->> is included in your Kernel.
-> 
-> /dev/dvb/adapter0/ is created. so does this mean the right modules have
-> been loaded?
+Hi everybody,
 
-Yes, drivers and firmware loaded. It should be all functional.
+i just got my hands on the above card, its an usb dvb-s2 device with an
+ci-slot.
+The Product page is here :
+http://www.technisat.com/indexdb3d.html?nav=PC_products,en,76-228
 
-> I've been googling, and have played with w_scan and me-tv.
-> Kaffeine unfortunately is qt and won't work with braille/speech, but
-> me-tv does. So I got sighted help to scan for channels in kaffeine, the
-> scan didn't find any channels.
-> Next, I ran the w_scan program, and that as well failed to find any
-> channels. Finally, I ran me-tv and that as well failed. (I selected my
-> location for me-tv).
-> 
-> So, how do I get w_scan or me-tv to find some channels? It's probably
-> not worth talking about kaffeine as I won't be able to use this. I'm
-> plugging my usb receiver into a tv connection in my home which a
-> standard tv would plug into.
-> 
-> Any ideas?
+It is currently not detectd by the v4l drivers, neither by the tree from
+linuxtv, nor by the s2-liplianin nor the
+multirpoto tree. It is however listed in this post:
+http://marc.info/?l=linux-dvb&m=122143814507358&w=2
+as supported by the multiproto-tree. However i cant get it to work. What
+is needed / what should i do to make
+ it work ? Note that i tried the multiproto-tree and also the
+s2-liplianin -ree.
 
-I think the problem is poor QT1010 tuning performance. You cannot do 
-much for that now. I recommended to get other stick.
+Thank you for your help
 
-regards
-Antti
+Jan Kreuzer
