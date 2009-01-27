@@ -1,56 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37804 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933AbZAOCzf (ORCPT
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108]:26442
+	"EHLO outbound.icp-qv1-irony-out1.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752723AbZA0Uik (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 21:55:35 -0500
-Date: Thu, 15 Jan 2009 00:54:46 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: CityK <cityk@rogers.com>, Hans Verkuil <hverkuil@xs4all.nl>,
-	V4L <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-Message-ID: <20090115005446.379aae99@pedra.chehab.org>
-In-Reply-To: <1231986761.2896.21.camel@pc10.localdom.local>
-References: <496A9485.7060808@gmail.com>
-	<496AB41E.8020507@rogers.com>
-	<20090112031947.134c29c9@pedra.chehab.org>
-	<200901120840.20194.hverkuil@xs4all.nl>
-	<496BF812.40102@rogers.com>
-	<1231816664.2680.21.camel@pc10.localdom.local>
-	<496D6CF6.6030005@rogers.com>
-	<1231986761.2896.21.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 27 Jan 2009 15:38:40 -0500
+Date: Wed, 28 Jan 2009 07:38:37 +1100
+From: Daniel Dalton <d.dalton@iinet.net.au>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] getting started with msi tv card
+Message-ID: <20090127203837.GA4254@debian-hp.lan>
+References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi> <20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi> <20090121003915.GA6120@debian-hp.lan> <4977088F.5080505@iki.fi> <20090122092844.GB14123@debian-hp.lan> <alpine.DEB.2.00.0901222327370.13623@ybpnyubfg.ybpnyqbznva> <20090127114045.GB10439@debian-hp.lan> <alpine.DEB.2.00.0901271809580.15738@ybpnyubfg.ybpnyqbznva>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0901271809580.15738@ybpnyubfg.ybpnyqbznva>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 15 Jan 2009 03:32:41 +0100
-hermann pitton <hermann-pitton@arcor.de> wrote:
+> The idea behind this is that Antti has suggested that your
+> tuner may not work well with strong signals, so we are
+> wanting to get a somewhat weaker signal.  It could be,
 
-> > Consulting on irc, both Eric and myself can confirm that DVB is working
-> > fine for the device (I can only test cable currently, but Eric
-> > successfully checked both QAM and 8-VSB).  I'm using recent Hg and Eric
-> > is using stock FC10 supplied drivers.  So, I'm not sure why Josh was
-> > having problems.  
+Ah, right, I'll give that ago, thanks.
+
+> though, that you will not get enough of a signal.  This
+> all will depend on the distance you are from the transmitter
+> site, the power it sends, and what sort of terrain exists
+> between you and the sender.
 > 
-> for me the same and I can't test on these.
-> The Pinnacle 310i seems to have the LNA support broken, can't test.
+> One thing has popped into my mind -- there are different
+> standards for coaxial connectors used in different parts
+> of the world for the same function, so I may have a totally
+> different idea of what you have...
+> 
+> Anyway, you are connected to your wall by a cable that
+> connects to your device.  Perhaps that cable is connected
+> to some sort of push-on or screw-on connector, or maybe
+> it is firmly attached to the wall without a connector.
+> 
 
-Hermann,
+There is a connector on the wall, and I guess an aerial on the roof.
 
-The DVB part shouldn't be affected by the patch. It changes the way that tuners
-are attached at the analog part. So, the tests should be on tea5767 radio and
-on analog tuner reception.
+> The part of the connector of interest will be the centre
+> conductor.  Through europe, this exists on TV-type tuners
+> as an outer ring, somewhat over 1cm diametre, and a smaller
+> ring inside with a couple millimetre diametre.  I can actually
+> take a length of bell wire or thin electrical wire, fold about
+> 1cm of it over on itself, and stick this into that centre
+> conductor to make a simple antenna that receives strong
+> signals.
 
-Also, his patch just changes the way tuner is binding. Manual adjustments on
-saa7134 cards structs (like adding TDA9887_PRESENT flag) will be needed to fix some
-issues like what you've reported (driver not loading automatically tda9887
-driver).
+Ah, ok. I think I get it now... Makes sense.
+> technically-minded friend who can help you with this, it
+> may be easiest.
 
-Cheers,
-Mauro
+Yep, I'll see if I can get some help.
+> Anyway, good luck; it could be that with this you are
+
+Thanks.
+
+> unable to receive any signal whatsoever, in which case all
+> the time I spent writing this will have been for nought,
+
+Oh... I'm sorry... I'll give it ago anyway and see what happens, and if
+it doesn't work, I'll look online for alternative tuners.
+
+Thanks very much,
+
+Daniel.
