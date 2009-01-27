@@ -1,112 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3264 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712AbZAUTLu (ORCPT
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108]:32029
+	"EHLO outbound.icp-qv1-irony-out1.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751178AbZA0UsU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jan 2009 14:11:50 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0LJBmYe009808
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 21 Jan 2009 20:11:48 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 21 Jan 2009 20:11:48 +0100 (CET)
-Message-Id: <200901211911.n0LJBmYe009808@smtp-vbr3.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+	Tue, 27 Jan 2009 15:48:20 -0500
+Date: Wed, 28 Jan 2009 07:48:17 +1100
+From: Daniel Dalton <d.dalton@iinet.net.au>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] getting started with msi tv card
+Message-ID: <20090127204817.GB4254@debian-hp.lan>
+References: <4975B5F1.7000306@iki.fi> <20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi> <20090121003915.GA6120@debian-hp.lan> <4977088F.5080505@iki.fi> <20090122092844.GB14123@debian-hp.lan> <alpine.DEB.2.00.0901222327370.13623@ybpnyubfg.ybpnyqbznva> <alpine.DEB.2.00.0901230956260.13623@ybpnyubfg.ybpnyqbznva> <20090127110710.GA10439@debian-hp.lan> <alpine.DEB.2.00.0901271537480.15738@ybpnyubfg.ybpnyqbznva>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0901271537480.15738@ybpnyubfg.ybpnyqbznva>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+> But your Linux machine will be working with the Transport
+> Stream directly, selecting the particular IDs of interest.
+> When you look at that particular ID, you see merely a
+> datastream including the payload.
+> 
+> So, just as your TV audio will be carried in a form which
+> will be similar to the mp3 files you've certainly used, or
+> whatever format, you can also write the teletext data to
+> a file and work with that.
+> 
 
-Results of the daily build of v4l-dvb:
+Ah, right.
 
-date:        Wed Jan 21 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10265:f4d7d0b84940
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc2-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc2-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc2-armv5-omap2: OK
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc2-i686: OK
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc2-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc2-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc2-powerpc64: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc2-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc2): ERRORS
+> When you get your tuner working, or one that does, if you
+> do receive a teletext service, I'll guide you through the
+> steps needed to actually see the content being broadcast.
 
-Detailed results are available here:
+Alright then, thanks very much.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> and give a feel for how the graphics should appear.
+> Maybe a full Unicode X font will include such characters
+> and I can simply map them to UTF8, but I'm primarily
+> interested in the text content information on my text console.
+> 
+> Here's the pr0n...
+> 
+>                       ???X???X*XX*???*???????           XXX*    AMI
+>                       ???X??????*??? ???X?* ???          **XXXX
+> 
+> No, this is not going to work.  There are too many characters
+> which are not yet converted to something and I'm having to add
+> as `?' by hand.  Anyway, the blocks on the left are used to
+> form words; to the right the blocks would be forming the top
+> of a female head.
+> 
 
-Full logs are available here:
+ah, ok... I kinda get it... :-)
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Thanks very much Barry for all your help with everything, I greatly
+appreciate it.
+
+Cheers,
+
+Daniel.
