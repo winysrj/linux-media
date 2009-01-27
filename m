@@ -1,116 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.174]:54244 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755102AbZAQQNQ (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:42836 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699AbZA0S7G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 11:13:16 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so102338ugf.37
-        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2009 08:13:12 -0800 (PST)
-Date: Sat, 17 Jan 2009 17:13:06 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: vdp <vdp@teletec.com.ua>
-cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>,
-	Linux Media Mailing List Thang
-	<linux-media@vger.kernel.org>
-Subject: Re[3]: [linux-dvb] dvb-t config for Ukraine_Kiev (ua)
-In-Reply-To: <1799153746.20090116113515@teletec.com.ua>
-Message-ID: <alpine.DEB.2.00.0901171603540.18169@ybpnyubfg.ybpnyqbznva>
-References: <mailman.1.1230548402.10016.linux-dvb@linuxtv.org> <495A0E46.6030903@teletec.com.ua> <alpine.DEB.2.00.0812301329490.29535@ybpnyubfg.ybpnyqbznva> <495A6A08.90909@teletec.com.ua> <alpine.DEB.2.00.0812302005410.29535@ybpnyubfg.ybpnyqbznva>
- <496617B4.5090508@teletec.com.ua> <alpine.DEB.2.00.0901090924250.26988@ybpnyubfg.ybpnyqbznva> <12410322804.20090114085746@teletec.com.ua> <alpine.DEB.2.00.0901170041060.18012@ybpnyubfg.ybpnyqbznva> <1799153746.20090116113515@teletec.com.ua>
+	Tue, 27 Jan 2009 13:59:06 -0500
+Date: Tue, 27 Jan 2009 10:59:04 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] New V4L2 ioctls for OMAP class of Devices
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ED08@dbde02.ent.ti.com>
+Message-ID: <Pine.LNX.4.58.0901271031160.17971@shell2.speakeasy.net>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535ED08@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dmitry, I am pleased that I was able to help you!
+On Tue, 27 Jan 2009, Shah, Hardik wrote:
+> > 90 and 270 degrees would modify the image size. How would that be handled in
+> > relationship with VIDIOC_S/G_FMT ?
+> [Shah, Hardik] Hi Laurent,
+> After setting the rotation degree user has to once again call the S_FMT
+> with the height and width to allow S_FMT to take care of reversing the
+> height and width of the panel and depending on that your crop window and
+> display window will be set if the rotation is set to 90 or 270.  While the
+> get format will give you same height and width set earlier.  Is this
+> answer to your question?
 
-But there is one thing that caught my interest, so I am again
-posting this question to the -dvb mailing list, and I guess
-to linux-media too:
+That seems like a bad idea.  Consider the case the hardware does scaling
+and rotation as separate steps.
 
-On Fri, 16 Jan 2009, vdp wrote:
+The hardware receives a Rec. 601 standard 720x480 image to it's
+scaling/rotation engine.
 
-> But when I add -tm8 (THANK YOU FOR AUDIT !!!!):
-> it start !!!!
-> dvbstream -tm 8 -c 0 -I 2 -qam 64 -gi 32 -cr 2_3 -bw 8 -f 650000000 -net 224.12.12.12:1234 4311 4312
+You have a selected a 640x480 image rotated 0 degrees.  This is ok.
 
-> tuning DVB-T (in United Kingdom) to 650000000 Hz, Bandwidth: 8
+You change the rotation to 90.
 
-To the readers of the list, and of linux-media, the default
-of `dvbstream' here is to use FFT transmission mode 2k, as
-was introduced in the UK, and it's clear how UK-centric this
-utility is based on the above line.  (UK not meaning UA or
-Ukraine)
+The hardware must re-program the scaler to produce a 480x640 image so that
+after rotation it will remain 640x480.
 
-Now as part of DSO in the UK, the multiplexes are slowly to
-convert from 2k to 8k, and most other parts of the world are
-presently using 8k.
+Then you must call S_FMT to request 480x640, which re-programs the scaler
+back to 640x480.
 
-In fact, as I `grep' the latest dvb-apps scan files, only the
-UK sites listed seem to be using 2k, for now.
+There are two problems here.  First, it's inefficient to reprogram the
+scaler from 640x480 to 480x640 just to change it right back to 640x480
+again.
 
-Does anyone familiar with DVB-T know whether 2k transmission mode 
-is used elsewhere in the world?
+But there is a much more serious problem.  Virtually all scaling hardware
+has various limitations of what it can do.  For instance, it is very common
+that the hardware can only shrink images, not enlarge them.  In the above
+example, changing the rotation from 0 to 90 will fail, since doing so would
+require scaling the 720x480 input to 480x640.  The hardware can't do that
+as it involves enlarging from 480 lines to 640.
 
-If not, would it not be reasonable to default to 8k for this
-code, to make it applicable to the parts of the UK that have
-switched as well as most of the rest of the world?
+How would one change the rotation?  Use S_FMT to change to 480x640 first,
+then change rotation?  That won't work because 480x640 at 0 degrees isn't
+supported.
 
-Reading the CVS RCS files, this doesn't seem to have been
-updated for several years, and presumably distributed binary
-packages are using the UK defaults, the code of which seems
-unchanged from 2002, so I imagine this could use reworking.
+The basic problem here is that the limitations on image size for a
+non-rotated image are different from the limitations of a rotated image.
 
+I think the specification should say that changing the rotation is allowed
+(not required, allowed) to change the image size.  Applications should call
+G_FMT after changing rotation to see if driver decided to alter the image
+size for efficiency or because of hardware limitations.  Any given image
+size may be valid in some rotations but not in other rotations.
 
-> wonderful word !!! You, from other country help me, real-time and free !!!!
+The *meaning* of width and height, i.e. how they relate to layout of data
+in memory, do not change when the image is rotated.
 
-It is indeed my pleasure.  While I have not made a visit to
-your country, with the closest being in Košice, SK, I prefer to
-think that we are in the same part of the world, with much
-in common...
-
-
-> with best regards, Dmitry
-> Odessa, Ukraine
-
-Now, back to the original subject of this message, a scanfile
-for Kиïв, with proper modulation values...
-
-Can you run the following commands for me, then send me the
-files in /tmp/stream-* so that I can verify the modulation?
-
-These will record three seconds worth of the NIT data with
-the modulation, into several small files in /tmp, for all
-the different multiplexes.
-
-First, the command you used above to stream 5 ĸaнaл :
-
-dvbstream -tm 8 -c 0 -I 2 -qam 64 -gi 32 -cr 2_3 -bw 8 \
-   -f 650000000  -o:/tmp/stream-650.ts -n 3  16
-
-Now try it with the other frequencies and see if you still can 
-lock:
-
-dvbstream -tm 8 -c 0 -I 2 -qam 64 -gi 32 -cr 3_4 -bw 8 \
-   -f 634000000  -o:/tmp/stream-634.ts -n 3  16
-
-dvbstream -tm 8 -c 0 -I 2 -qam 64 -gi 32 -cr 2_3 -bw 8 \
-   -f 714000000  -o:/tmp/stream-714.ts -n 3  16
-
-dvbstream -tm 8 -c 0 -I 2 -qam 64 -gi 32 -cr 2_3 -bw 8 \
-   -f 818000000  -o:/tmp/stream-818.ts -n 3  16
-
-And last, a frequency where the services are in MPEG-4:
-
-dvbstream -tm 8 -c 0 -I 2 -qam 64 -gi 32 -cr 2_3 -bw 8 \
-   -f 682000000  -o:/tmp/stream-682.ts -n 3  16
-
-
-If you have success, then you can send me all the files
-in /tmp/stream-*.ts, and I will look at them, make sure
-that all the data in the scanfile is correct, and confirm
-it to Christoph Pfister...
-
-thanks,
-barry bouwsma
+Since changing the image size during capture is problematic, it should be
+expected that trying to change the rotation during capture might return
+EBUSY.
