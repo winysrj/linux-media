@@ -1,61 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:25636 "HELO
-	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753726AbZATJak (ORCPT
+Received: from ayden.softclick-it.de ([217.160.202.102]:56952 "EHLO
+	ayden.softclick-it.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542AbZA1Bdn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 04:30:40 -0500
-Date: Tue, 20 Jan 2009 01:30:39 -0800 (PST)
-From: Uri Shkolnik <urishk@yahoo.com>
-Reply-To: urishk@yahoo.com
-Subject: Re: Siano's patches
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org, linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <Pine.LNX.4.58.0901191737550.11165@shell2.speakeasy.net>
+	Tue, 27 Jan 2009 20:33:43 -0500
+Message-ID: <497FB613.4040809@to-st.de>
+Date: Wed, 28 Jan 2009 02:34:11 +0100
+From: Tobias Stoeber <tobi@to-st.de>
+Reply-To: tobi@to-st.de
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Message-ID: <532534.51935.qm@web110811.mail.gq1.yahoo.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+CC: BOUWSMA Barry <freebeer.bouwsma@gmail.com>,
+	linux-media@vger.kernel.org,
+	"DVB mailin' list thingy" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
+References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>	 <497A27F7.8020201@to-st.de>	 <alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>	 <19a3b7a80901261228v393f5fcbv7559b573c0ca1539@mail.gmail.com>	 <alpine.DEB.2.00.0901262214200.15738@ybpnyubfg.ybpnyqbznva>	 <497EC855.7050301@to-st.de>	 <19a3b7a80901270237n761240bbn2627f782ddbffa29@mail.gmail.com>	 <497EF972.6090207@to-st.de>	 <alpine.DEB.2.00.0901271748160.15738@ybpnyubfg.ybpnyqbznva>	 <497F8EB1.2050004@to-st.de> <1233101550.2687.53.camel@pc10.localdom.local>
+In-Reply-To: <1233101550.2687.53.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
+hermann pitton schrieb:
+> The reverse effect will be, we have it already with federal state scan
+> files now, that we likely will see more questions about why the hell I
+> don't get this one and tuning failed ... 
 
+Regarding the de-Sachsen-Anhalt file, apart from 3 or 4 frequency 
+entries the rest is useless being within the state, because regarding 
+transmitters the areas are mostly not coordinated.
 
---- On Tue, 1/20/09, Trent Piepho <xyzzy@speakeasy.org> wrote:
+Brocken and Magdeburg are the only sites with Sachsen-Anhalt that are 
+corrdinated.
 
-> From: Trent Piepho <xyzzy@speakeasy.org>
-> Subject: Re: Siano's patches
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>, "Michael Krufky" <mkrufky@linuxtv.org>, linux-media@vger.kernel.org, "linux-dvb" <linux-dvb@linuxtv.org>
-> Date: Tuesday, January 20, 2009, 3:49 AM
-> On Mon, 19 Jan 2009, Uri Shkolnik wrote:
-> > Siano has some dozens of commercial Linux-based
-> customers using the
-> > discussed sources.  Those customers have their own QA
-> engineers
-> > additionally to Siano internal QA team (which includes
-> dedicated engineer
-> > for this task).  Some of those companies products are
-> already in the
-> > market (production level).
-> 
-> But how much testing do you give other manufacturers'
-> hardware with your
-> code?  Your hardware might work, but you could have broken
-> someone else's.
-> 
-> I've found that getting patches into the kernel is
-> usually significantly
-> harder than writing them in the first place.
+In fact, it is more common, that transmitters here are coordinated with 
+sites from others states, e.g. "ARD-Das Erste" multiplex in Halle/Saale 
+(Sachsen-Anhalt/Saxony-Anhalt) are coordinated with Leipzig 
+(Sachsen/Saxony) and Gera (Thüringen/Thuringia), because this area is 
+also topographically adjunct. "ZDF" multiplex is coordinated between 
+Hale/Saale and Leipzig ...
 
-mmm.... You have a good point here. I don't know, there is a kind of catch-22 here. True the code may break someone else', or violate something unknown to me. But, how can it be tested if you don't have suitable hardware?
+> To share a center frequency over several federal states under such
+> conditions seems to be plain wrong and I wonder if there was a rule.
 
-Take the SPI as example. The code is for system with PXA CPU, which is connected with SPI/SPP bus to the SMS DTV chip-set. You need such (hw) device in order to check/test it. Who has this hardware but some manufacturers? Maybe someone bought & hacked such a commercial device, but I never got any indication that anyone did such a thing.
+This does not matter, as the transmitters in Brauschweig 
+(Niedersachsen/Lower Saxony) and Halle/Saale (Sachsen-Anhalt) don't 
+interfere with each other (the sites are more than 140 km apart) and 
+there is a buffer zone of about 40 - 50 km between them, where you need 
+a directed roof antenna to either receive one of them.
 
-You can of course just compile the code and see if the build is completed successfully, without running it on a real target. This is some kind of code testing, and that is what I referred to as "kernel-coding related remarks" in my post. 
+As I've experienced so far while travelling, that there are only very 
+small parts in my federal state (Bundesland) of Sachsen-Anhalt where one 
+can receive more than one transmitter site (and in most of this cases, a 
+roof antenna is required, so you would normally have to direct this to a 
+specific transmitter).
 
-Uri 
+Well, I believe both scenarios(scan file for federal state versus scan 
+file for a DVB-T region) have their pros and cons. :(
 
+Fortunately programs like "Kaffeine" offer a full auto scan ...
 
-      
+Regards, Tobias
