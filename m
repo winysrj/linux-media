@@ -1,55 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:16806 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbZALGU3 (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.28]:2635 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751512AbZA1QRP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 01:20:29 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so11191462wfd.4
-        for <linux-media@vger.kernel.org>; Sun, 11 Jan 2009 22:20:28 -0800 (PST)
+	Wed, 28 Jan 2009 11:17:15 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so3019948yxm.1
+        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2009 08:17:14 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <200811291506.11758.tobias.lorenz@gmx.net>
-References: <5d5443650811282312w508c0804qf962f6cf5e859e2@mail.gmail.com>
-	 <200811291506.11758.tobias.lorenz@gmx.net>
-Date: Mon, 12 Jan 2009 11:50:28 +0530
-Message-ID: <5d5443650901112220x12827f8fre801c7e8d23d7479@mail.gmail.com>
-Subject: Re: FM transmitter support under v4l2?
-From: Trilok Soni <soni.trilok@gmail.com>
-To: Tobias Lorenz <tobias.lorenz@gmx.net>
-Cc: linux-media@vger.kernel.org
+Reply-To: siegeljb@umich.edu
+Date: Wed, 28 Jan 2009 11:17:14 -0500
+Message-ID: <2d21cac80901280817s4dcb498cx73c931e513f9161d@mail.gmail.com>
+Subject: cx18, HVR-1600 Clear qam tuning
+From: Jason Siegel <siegeljb@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tobias,
+What is the status of clear qam tuning with the HVR-1600?
 
-On Sat, Nov 29, 2008 at 7:36 PM, Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
-> Hi Trilok,
->
->> Anybody working on FM transmitter related drivers support under v4l2?
->
->> If no, what parts of v4l2 which could be tweaked in right order to
->
->> support such devices? I see that SI471x series seem to have FM
->
->> transmitters too.
->
-> right, there are several Si47xx series:
->
-> Si470x: receivers only
->
-> Si471x: transmitter only
+I've got me card setup and working, analog captures work well with
+cable, and ATSC tuning of ota signals work great with an antenna, but
+I can't find any clear qam cable stations.
 
-FYI..now maemo kernel team seems to have written Si4713 FM transmitter
-driver interfaced over I2C. It is available in the kernel diff here.
+I have a FusionHTDV5 usb tuner which finds 336 stations using qam256,
+so I know that they are there, and the cable signal is good.
 
-http://repository.maemo.org/pool/maemo5.0/free/k/kernel/kernel_2.6.27-20084805r03.diff.gz
+The HVR-1600 is even working with clear qam in Windows7... and has a
+SNR of around 30 dB.
+http://thegreenbutton.com/forums/thread/321338.aspx
 
-Please download and unzip it and search for
 
-radio-si4713.c
+Thanks,
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+-Jason
