@@ -1,85 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:40345 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520AbZAUC0Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 21:26:25 -0500
-Received: by bwz14 with SMTP id 14so11967434bwz.13
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 18:26:23 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1232503628.2685.5.camel@pc10.localdom.local>
-References: <496C9FDE.2040408@hemmail.se>
-	 <d9def9db0901131101y59cd5c1ct2344052f86b42feb@mail.gmail.com>
-	 <d9def9db0901151028k6ab8bd79q6627c7516020aabe@mail.gmail.com>
-	 <alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
-	 <d9def9db0901170216g5be0ed16sa1eeb4c4f9acce76@mail.gmail.com>
-	 <1232503628.2685.5.camel@pc10.localdom.local>
-Date: Wed, 21 Jan 2009 03:26:22 +0100
-Message-ID: <d9def9db0901201826j7bef2232s6ad12b7ff081ece3@mail.gmail.com>
-Subject: Re: [linux-dvb] Terratec XS HD support?
-From: Markus Rechberger <mrechberger@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: "DVB mailin' list thingy" <linux-dvb@linuxtv.org>,
-	em28xx@mcentral.de
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx33.mail.ru ([194.67.23.194]:5794 "EHLO mx33.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752794AbZA1RzS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2009 12:55:18 -0500
+Date: Wed, 28 Jan 2009 21:04:07 +0300
+From: Goga777 <goga777@bk.ru>
+To: Manu <eallaud@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Re : [linux-dvb] Technotrend Budget S2-3200 Digital artefacts
+ on HDchannels
+Message-ID: <20090128210407.3aceba63@bk.ru>
+In-Reply-To: <1233159564.8255.0@manu-laptop>
+References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
+	<157f4a8c0901260808i39b784f6m13db53db2f135a37@mail.gmail.com>
+	<c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>
+	<1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
+	<c74595dc0901261107i66125bfdpe35cb7b89144ab11@mail.gmail.com>
+	<497F6B2E.6010305@gmail.com>
+	<c74595dc0901271240i2008cacdp565fe69f3269ea55@mail.gmail.com>
+	<497F7C40.6030300@gmail.com>
+	<c74595dc0901271402g5a44fe05pecae642570e54e0f@mail.gmail.com>
+	<497F927E.8050009@gmail.com>
+	<b1dab3a10901280303s62a5afd8oe906ce93f05614dd@mail.gmail.com>
+	<1233159564.8255.0@manu-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 21, 2009 at 3:07 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
->
-> Am Samstag, den 17.01.2009, 11:16 +0100 schrieb Markus Rechberger:
->> On Sat, Jan 17, 2009 at 10:57 AM, BOUWSMA Barry
->> <freebeer.bouwsma@gmail.com> wrote:
->> > Hi Markus, I follow your list as a non-subscriber, but I thought
->> > it would be worthwhile to post this to linux-dvb as well, and
->> > eventually to linux-media...
->> >
->> > On Thu, 15 Jan 2009, Markus Rechberger wrote:
->> >
->> >> On Tue, Jan 13, 2009 at 8:01 PM, Markus Rechberger
->> >> <mrechberger@gmail.com> wrote:
->> >
->> >> >> Is there any news about Terratec HTC USB XS HD support?
->> >
->> >> > it's upcoming soon.
->> >
->> > Thanks Markus, that's good news for me, and for several people
->> > who have written me as well!
->> >
->> >
->> >> http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
->> >> you might track that site for upcoming information.
->> >
->> > Interesting.  You say that your code will make use of a BSD
->> > setup.  Can you or someone say something about this, or point
->> > to past discussion which explains this?  Would this be the
->> > userspace_tuner link on your wiki?
->> >
->> > In particular, I'm wondering whether this is completely
->> > compatible with the standard DVB utilities -- dvbscan,
->> > dvbstream, and the like, or whether a particular higher-
->> > level end-user application is required.
->> >
->> >
->>
->> The design goes hand in hand with some discussions that have been made
->> with some BSD developers.
->> The setup makes use of usbdevfs and pci configspace access from
->> userland, some work still has to be done there, it (will give/gives)
->> manufacturers the freedom to release opensource and binary drivers for
->> userland.
->> I'm a friend of open development and not of some kind of monopoly
->> where a few people rule everything (linux).
->
-> I do remember when BSD shared some tuner code with GNU/LINUX ;)
->
+> > I am writing just to share my experience with tt3200 drivers. The
+> > following are just observations about the behavior of my card:
+> > 
+> > 1. The card has never tuned reliably with the v4l-dvb s2api driver or
+> > the multiproto driver. This concerns not just high rate dvb-s2
+> > transponders but also some plain dvb-s transponders as well. And this
+> > is not just random hiccups but consistent behavior. German Eurosport 
+> > @
+> > 19.2e is a prime example.
+> > 2. When Igor first increased the high clock to 135MHz, there was a
+> > marked improvement. All of the tuning issues were gone. However I am
+> > using a rotor and the higher clock rate somehow broke rotor control.
+> > 3. Next Igor backed down the high clock to 99MHz and introduced a
+> > "very high clock" of 135MHz. Tuning went back to unreliable. Rotor
+> > control was ok.
+> > 4. I bought a hvr4000. And now all of my issues are gone.
+> 
+> I am thinking about it also :(
+> Does it work reliably with dvb-s/s2 and CAM?
 
-there is nothing wrong with that.
+concerning of dvb-s/s2 - yes it works well
+concerning of CAM - I didn't check,  I don't know
 
-As a reference:
-* http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
-* http://corona.homeunix.net/cx88wiki
+Goga
 
-regards,
-Markus
