@@ -1,33 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33392 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756225AbZATUGu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 15:06:50 -0500
-Message-ID: <49762ED6.3000204@iki.fi>
-Date: Tue, 20 Jan 2009 22:06:46 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20]:39054 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751172AbZA2KAh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 05:00:37 -0500
+Date: Thu, 29 Jan 2009 11:00:41 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: morimoto.kuninori@renesas.com,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] ov772x: add support S_CROP operation.
+In-Reply-To: <20090129075127.6dd3340c@caramujo.chehab.org>
+Message-ID: <Pine.LNX.4.64.0901291057470.5474@axis700.grange>
+References: <uskna4qh8.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0901250245440.4969@axis700.grange> <uzlheep1l.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0901260854010.4236@axis700.grange> <uk58hcp3k.wl%morimoto.kuninori@renesas.com>
+ <alpine.DEB.2.00.0901270851280.4618@axis700.grange>
+ <20090129075127.6dd3340c@caramujo.chehab.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] QQ box dvb-s usb dongle not supported ?
-References: <1232480273.23804.10.camel@hp>
-In-Reply-To: <1232480273.23804.10.camel@hp>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ar wrote:
-> I have bought the "QQ box" dvb-s usb dongle and it seems to be
-> unsupported.
+On Thu, 29 Jan 2009, Mauro Carvalho Chehab wrote:
 
-Is that same / similar device sold by DealExtreme?
+> On Tue, 27 Jan 2009 08:53:23 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> 
+> Hi Guennadi,
+> 
+> I'm understanding that you're reviewing this patch and other ones for
+> soc_camera and will send me a PULL request after reviewing those stuff.
 
-> HOW CAN I GET IT WORKING UNDER LINUX ?
+Yes, I'm (going to be) reviewing them, as soon as I find some time. Then 
+I'll send you two pull requests - fixes for 2.6.29 and 2.6.30 material. 
+AFAIK, unfortunately, mercurial doesn't support branches, so, I probably 
+will end up first sending you a pull request with fixes, and after some 
+time I'll also add 2.6.30 further development to the same tree and send 
+another pull request. No idea what I do, if after that more 2.6.29 fixes 
+come...
 
-You should open it and look what chips are used. Some hi res photos
-from device internals could be nice to see also. If you are lucky there 
-is drivers for chips...
+> I've updated patchwork to reflect this.
 
-regards
-Antti
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
