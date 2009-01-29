@@ -1,112 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3568 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753085AbZATTLo (ORCPT
+Received: from mognix.dark-green.com ([88.116.226.179]:63229 "EHLO
+	mognix.dark-green.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344AbZA2SHe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 14:11:44 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0KJBg4t006326
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 20:11:42 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 20 Jan 2009 20:11:42 +0100 (CET)
-Message-Id: <200901201911.n0KJBg4t006326@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+	Thu, 29 Jan 2009 13:07:34 -0500
+Message-ID: <4981F064.7070407@dark-green.com>
+Date: Thu, 29 Jan 2009 19:07:32 +0100
+From: gimli <gimli@dark-green.com>
+MIME-Version: 1.0
+To: "Igor M. Liplianin" <liplianin@tut.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
+References: <497F7117.9000607@dark-green.com> <200901291807.33531.liplianin@tut.by>
+In-Reply-To: <200901291807.33531.liplianin@tut.by>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+Hi,
 
-Results of the daily build of v4l-dvb:
+your patch seems to work.
 
-date:        Tue Jan 20 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10265:f4d7d0b84940
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+cu
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc2-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc2-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc2-armv5-omap2: OK
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc2-i686: OK
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc2-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc2-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc2-powerpc64: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc2-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc2): ERRORS
+Edgar (gimli) Hucek
 
-Detailed results are available here:
+Igor M. Liplianin schrieb:
+> В сообщении от 27 January 2009 22:39:51 gimli написал(а):
+>> Hi,
+>>
+>> the following changesets breaks Tuning to Vertical Transponders :
+>>
+>> http://mercurial.intuxication.org/hg/s2-liplianin/rev/1ca67881d96a
+>> http://linuxtv.org/hg/v4l-dvb/rev/2cd7efb4cc19
+>>
+>> For example :
+>>
+>> DMAX;BetaDigital:12246:vC34M2O0S0:S19.2E:27500:511:512=deu:32:0:10101:1:109
+>> 2:0
+>>
+>>
+>> cu
+>>
+>> Edgar ( gimli ) Hucek
+>>
+>> _______________________________________________
+>> linux-dvb users mailing list
+>> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+> More likely not polarization, but hi band may broken.
+> Anyway, please, try attached patch.
+> 
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
