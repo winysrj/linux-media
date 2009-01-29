@@ -1,58 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cinke.fazekas.hu ([195.199.244.225]:59986 "EHLO
-	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804AbZAKPWX (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2877 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931AbZA2J3a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 10:22:23 -0500
-Date: Sun, 11 Jan 2009 16:22:15 +0100 (CET)
-From: Marton Balint <cus@fazekas.hu>
-To: Trent Piepho <xyzzy@speakeasy.org>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: Re: [PATCH] cx88: fix unexpected video resize when setting tv norm
-In-Reply-To: <Pine.LNX.4.58.0901101325420.1626@shell2.speakeasy.net>
-Message-ID: <Pine.LNX.4.64.0901111543070.13850@cinke.fazekas.hu>
-References: <571b3176dc82a7206ade.1231614963@roadrunner.athome>
- <Pine.LNX.4.58.0901101325420.1626@shell2.speakeasy.net>
+	Thu, 29 Jan 2009 04:29:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Compiler warnings in pxa_camera.c
+Date: Thu, 29 Jan 2009 10:29:27 +0100
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901291029.27243.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 10 Jan 2009, Trent Piepho wrote:
-> On Sat, 10 Jan 2009, Marton Balint wrote:
-> > Cx88_set_tvnorm sets the size of the video to fixed 320x240. This is ugly at
-> > least, but also can cause problems, if it happens during an active video
-> > transfer. With this patch, cx88_set_scale will save the last requested video
-> > size, and cx88_set_tvnorm will scale the video to this size.
-> >
-> > diff -r 985ecd81d993 -r 571b3176dc82 linux/drivers/media/video/cx88/cx88.h
-> > @@ -352,6 +352,9 @@
-> >  	u32                        input;
-> >  	u32                        astat;
-> >  	u32			   use_nicam;
-> > +	unsigned int		   last_width;
-> > +	unsigned int		   last_height;
-> > +	enum v4l2_field		   last_field;
-> 
-> Instead of adding these extra fields to the core, maybe it would be better
-> to just add w/h/field as arguments to set_tvnorm?  I have a patch to do
-> this, but there are still problems.
+Hi Guennadi,
 
-I think you're right, it's probably better that way.
+For some time now I see the following warnings in pxa_camera.c under
+kernels 2.6.27 and 2.6.28 in the daily build:
 
-> Changing norms during capture has more problems.  I'm not sure if v4l2 even
-> allows it.  Even if allowed, I don't think the cx88 driver should try to
-> support it.
+  CC [M]  /marune/build/v4l-dvb-master/v4l/soc_camera.o
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:54:1: warning: "CICR0" redefined
+In file included from /marune/build/v4l-dvb-master/v4l/pxa_camera.c:43:
+arch/arm/mach-pxa/include/mach/pxa-regs.h:615:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:55:1: warning: "CICR1" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:616:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:56:1: warning: "CICR2" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:617:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:57:1: warning: "CICR3" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:618:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:58:1: warning: "CICR4" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:619:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:59:1: warning: "CISR" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:620:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:60:1: warning: "CIFR" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:621:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:61:1: warning: "CITOR" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:622:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:62:1: warning: "CIBR0" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:623:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:63:1: warning: "CIBR1" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:624:1: warning: this is the location of the previous definition
+/marune/build/v4l-dvb-master/v4l/pxa_camera.c:64:1: warning: "CIBR2" redefined
+arch/arm/mach-pxa/include/mach/pxa-regs.h:625:1: warning: this is the location of the previous definition
 
-What the other drivers do?
+It compiles fine under 2.6.29.
 
-> So I think the best thing would be to have S_STD return -EBUSY if there is
-> an ongoing capture.  Maybe even have v4l2-dev take care of that if
-> possible.
+Can you either try to fix this for kernels 2.6.27/28, or can I assume that
+this driver will only compile correctly under 2.6.29?
 
-It sounds reasonable. As a special case, changing the norm to the 
-current norm should be allowed, or not? Mplayer will print out error 
-messages, if it's not allowed.
+I don't know what the status is of this driver for these older kernels, so I
+don't dare touch this without input from you.
 
 Regards,
-  Marton.
+
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
