@@ -1,66 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3177 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753459AbZA0SRV (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45848 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753351AbZA2I2m convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 13:17:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH] New V4L2 ioctls for OMAP class of Devices
-Date: Tue, 27 Jan 2009 19:16:52 +0100
-Cc: "Shah, Hardik" <hardik.shah@ti.com>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EFE5@dbde02.ent.ti.com> <200901271415.58568.hverkuil@xs4all.nl> <Pine.LNX.4.58.0901271001480.17971@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0901271001480.17971@shell2.speakeasy.net>
+	Thu, 29 Jan 2009 03:28:42 -0500
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: DongSoo Kim <dongsoo.kim@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Thu, 29 Jan 2009 13:58:07 +0530
+Subject: RE: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F6BD@dbde02.ent.ti.com>
+In-Reply-To: <5e9665e10901282344v38999d5bvdc5530dd4151f869@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901271916.53224.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 27 January 2009 19:08:43 Trent Piepho wrote:
-> On Tue, 27 Jan 2009, Hans Verkuil wrote:
-> > > [Shah, Hardik] Hi Hans,
-> > > I got your above point.  Now regarding the enum I am not sure about
-> > > how to implement it.  Are you suggesting me to remove the control ID
-> > > for rotation and implement in some other way.  Please let me know if
-> > > I am missing something. Currently in driver I have implemented the
-> > > rotation in below way {
-> > >                 .id            = V4L2_CID_ROTATION,
-> > >                 .name          = "Rotation",
-> > >                 .minimum       = 0,
-> > >                 .maximum       = 270,
-> > >                 .step          = 90,
-> > >                 .default_value = -1,
-> > >                 .flags         = 0,
-> > >                 .type          = V4L2_CTRL_TYPE_INTEGER,
-> > > You want me to change V4L2_CTRL_TYPE_INTEGER to some enum or
-> > > something.
-> >
-> > Change it to V4L2_CTRL_TYPE_MENU. See:
-> > http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v
-> >4l2.html#VIDIOC-QUERYCTRL
->
-> Thinking about it more, I think an integer control like this might make
-> more sense.  default_value should be changed to 0 of course.  Extracting
-> the real meaning from the control setting is more obvious for the integer
-> control than a menu.  And what if some hardware allows for rotations
-> other than 90 degrees?
 
-If the hardware can do rotations other than 90 degrees then we get into the 
-area of video effects. In principle such a driver can implement this 
-rotation control as an integer rather than a menu (apps are supposed to 
-query the type of a control dynamically, after all). But for a case like 
-this where there are only four values I think a menu-type control is much 
-more user-friendly.
+
+> -----Original Message-----
+> From: DongSoo Kim [mailto:dongsoo.kim@gmail.com]
+> Sent: Thursday, January 29, 2009 1:14 PM
+> To: Shah, Hardik
+> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com
+> Subject: Re: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
+> 
+> Hello.
+> 
+> > +#define VIDIOC_S_COLOR_SPACE_CONV      _IOW('V', 83, struct
+> v4l2_color_space_conversion)
+> > +#define VIDIOC_G_COLOR_SPACE_CONV      _IOR('V', 84, struct
+> v4l2_color_space_conversion)
+> 
+> Do you mind if I ask a question about those ioctls?
+> Because as far as I understand, we can use VIDIOC_S_FMT ioctl to convert
+> colorspaces. Setting through colorspace member in v4l2_pix_format, we
+> could change output colorspace.
+> If there is some different use, can you tell me what it is?
+> 
+[Shah, Hardik] OMAP Display sub-system supports various pixel formats as inputs like YUV, UYVY, RGB24, RGB16 but the compositors which take these input format and displays on to the output devices like TV, LCD can only understand RGB format.  Hardware has provision for converting any data taken in YUV or UYVY format to be converted into the RGB formats, before giving it to the output devices.  To convert this hardware needs to be programmed with correct coefficient and offsets to convert from YUV to RGB.  These coefficients are pretty standard but still some one may require altering it. For this new ioctl is added.  Standard equation for converting from YUV or UYVY is 
+
+| R |		| RY RCr RCb |   | Y - 16   |
+| G | = 1/K | Gy GCr Gcb | * | Cr - 128 |
+| B |		| By BCr BCb |   | Cb - 128 |
+
+Where Ry, Rcr, Rcb Gy, Gcr, Gcb, By, Bcr and Bcb are the programmable coefficients.  But in future offsets like Y-16, Cr-128 or Cb-128 or constant like 1/K may also be programmable.  So I have added this new ioctl.
 
 Regards,
+Hardik Shah
 
-	Hans
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> Regards,
+> Nate
+> 
+> --
+> ========================================================
+> Dong Soo, Kim
+> Engineer
+> Mobile S/W Platform Lab. S/W centre
+> Telecommunication R&D Centre
+> Samsung Electronics CO., LTD.
+> e-mail : dongsoo.kim@gmail.com
+>            dongsoo45.kim@samsung.com
+> ========================================================
+
