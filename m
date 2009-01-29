@@ -1,155 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f11.google.com ([209.85.221.11]:61348 "EHLO
-	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753029AbZAVTtN (ORCPT
+Received: from smtp120.rog.mail.re2.yahoo.com ([68.142.224.75]:39741 "HELO
+	smtp120.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751955AbZA2Xou (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 14:49:13 -0500
-Received: by qyk4 with SMTP id 4so4796147qyk.13
-        for <linux-media@vger.kernel.org>; Thu, 22 Jan 2009 11:49:11 -0800 (PST)
+	Thu, 29 Jan 2009 18:44:50 -0500
+Message-ID: <49823F6C.8090401@rogers.com>
+Date: Thu, 29 Jan 2009 18:44:44 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.LFD.2.00.0901221434040.7609@tupari.net>
-References: <48F78D8A020000560001A654@GWISE1.matc.edu>
-	 <alpine.LFD.2.00.0901221434040.7609@tupari.net>
-Date: Thu, 22 Jan 2009 14:49:10 -0500
-Message-ID: <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>
-Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Michael Krufky <mkrufky@linuxtv.org>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl> <200901171720.03890.hverkuil@xs4all.nl> <49737088.7060800@rogers.com> <200901182011.11960.hverkuil@xs4all.nl> <49739D1E.5050800@rogers.com>
+In-Reply-To: <49739D1E.5050800@rogers.com>
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 22, 2009 at 2:42 PM, Joseph Shraibman
-<linuxtv.org@jks.tupari.net> wrote:
-> I too am having 0 signal strength with a Fusion HDTV 7 Dual Express.  scan
-> (from dvb-apps) does find channels, but my application won't work because
-> it is seeing no signal.  I tried rebuilding the drivers from repository
-> tip but it doesn't help.  The kernel I'm using is 2.6.27.9-73.fc9.i686.
-> lspci -v shows:
+CityK wrote:
+> Hans Verkuil wrote:
+>   
+>> I've made a new tree http://linuxtv.org/hg/~hverkuil/v4l-dvb-kworld/ 
+>> that calls 'enables the tuner' before loading the module. See if that 
+>> works.
+>>
+>> ...
+>>   
+>> I suspect that this might fix the bug.
+>>     
 >
-> 02:00.0 Multimedia video controller: Conexant Unknown device 8852 (rev 04)
->         Subsystem: DViCO Corporation Unknown device d618
->         Flags: bus master, fast devsel, latency 0, IRQ 17
->         Memory at fbc00000 (64-bit, non-prefetchable) [size=2M]
->         Capabilities: [40] Express Endpoint, MSI 00
->         Capabilities: [80] Power Management version 2
->         Capabilities: [90] Vital Product Data <?>
->         Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+
-> Queue=0/0 Enable-
->         Capabilities: [100] Advanced Error Reporting <?>
->         Capabilities: [200] Virtual Channel <?>
->         Kernel driver in use: cx23885
->         Kernel modules: cx23885
+> Hans,
 >
-> after "make load" in the v4l-dvb directory  dmesg shows:
->
-> cx23885_dvb_register() allocating 1 frontend(s)
-> cx23885[0]: cx23885 based dvb card
-> xc5000 1-0064: creating new instance
-> xc5000: Successfully identified at address 0x64
-> xc5000: Firmware has not been loaded previously
-> DVB: registering new adapter (cx23885[0])
-> DVB: registering adapter 1 frontend 0 (Samsung S5H1411 QAM/8VSB
-> Frontend)...
-> cx23885_dvb_register() allocating 1 frontend(s)
-> cx23885[0]: cx23885 based dvb card
-> xc5000 2-0064: creating new instance
-> xc5000: Successfully identified at address 0x64
-> xc5000: Firmware has not been loaded previously
-> DVB: registering new adapter (cx23885[0])
-> DVB: registering adapter 2 frontend 0 (Samsung S5H1411 QAM/8VSB
-> Frontend)...
-> cx23885_dev_checkrevision() New hardware revision found 0x0
-> cx23885_dev_checkrevision() Hardware revision unknown 0x0
-> cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 17, latency: 0, mmio:
-> 0xfbc00000
-> cx23885 0000:02:00.0: setting latency timer to 64
-> ivtvfb:  no cards found
-> or51132: Waiting for firmware upload(dvb-fe-or51132-vsb.fw)...
-> firmware: requesting dvb-fe-or51132-vsb.fw
-> or51132: Version: 10001134-19430000 (113-4-194-3)
-> or51132: Firmware upload complete.
->
->
-> On Thu, 16 Oct 2008, Jonathan Johnson wrote:
->
->> Hello linux-dvb members,
->>
->> I know another person posted a message similar to mine, but offered no diagnostic info, so I am.
->>
->> DViCO device d618 using driver cx23885
->> Conexant Device 8852 (rev 02)
->> Base OS: SuSE 11.0
->> kernel manually upgraded to 2.6.27
->> checked dmesg, and all firmware(s) load.
->>
->> I have a FusionHDTV Dual 7 tuner, and it gets no signal at all, and some times no channels appear
->> when I scan from with in mythtv, and sometimes some of the channels appear.
->>
->> 1. First I tried hooking a ATI 650 to Vista and got 100% strength all the time, so it wasn't the antenna.
->> 2. I then hooked up the FusionHDTV card to Vista and it also reported 100% signal strength.
->> Therefore the card is not broken.
->> 3. I have 2 ATI HDTV Wonder that have always worked perfectly, so signal strength is good.
->>
->>
->> When trying to record w/ MythTV I get
->> ---------
->> This occurs a couple times.
->> DVBSM(/dev/dvb/adapter1/frontend0), Warning can not measuer S/N
->> The following occurs many times:
->> DVBChan(3:/dev/dvb/adapter1/frontend0) Error:  Tune(): Setting Frontend using tuning parameters failed.
->> "eno: Invalid argument (22)"
->> -----------
->>
->> Spent 1/2 hour looking thru google results.
->> I decided despite how horrible luck I have with compiling certain things, I would give it a go anyway.
->> The kernel always compiles for me at least.  I went to linuxtv.org and followed the instructions.
->> I did the make and make install and got the invalid symbols mentioned on the website, and it said
->> reboot.  So I did, and I recompiled again, for the heck of it, and still have invalid symbols. Read the
->> INSTALL text file, and tried a bunch of options.    I tried make kernel-(something), and recompile the
->> kernel(completely), and reboot,and still no go.  I tried re-compiling v4l-dvb and still nothing.
->> I eventually tried "make all" and the compile failed with errors.  Could not get it to compile, and now
->> v4l-dvb was un-usable.
->>
->> I then installed and did a full compile of kernel 2.6.27.1 (released last night), and at least everything
->> now works.
->>
->> I would like to try the development version to see if that fixes things, but I am not skilled enough to
->> resolved the unresolved symbol problem.  insmod and modprobe failed with the same error.
->>
->>
->> Later,
->> Jonathan
->>
->>
->> -------------------------------------------
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> ...  it works !!  
 
-Are you sure you have zero signal strength, or just really low signal
-strength?  I am pretty sure on the s5h1411, the signal strength field
-is populated with the the SNR, which could be construed as very low
-signal strength if you were expecting a percentage scaled from 0 to
-65535.
+I may have found a problem (tvtime works perfectly; other analogue apps
+like xawtv/motv, kdetv ... are not working properly now -- you can do a
+channel scan with them and everything_appears_to work as expected (i.e.
+channels are found and are displayed/played correctly during the scan),
+BUT as soon as you actually go to use the app, it does not work
+(static).  It appears that the issue is related to dga and Xv (as
+passing the -nodga -noxv options with xawtv/motv actually works ...
+kdetv is hit and miss -- sometimes the v4l1 mode works, other times it
+doesn't (likely a pattern there but haven't found it yet), but v4l2
+plugin does NOT work at all (static)).  In addition, the nvidia driver
+is NOT the source of the error, as the same occurs under the nv driver
+as well. 
 
-Have you run femon to confirm that the strength field really is zero?
+Will have to do another test to confirm whether this error was
+introduced in the KWorld repo.  Consequently:
 
-Devin
+> Mauro Carvalho Chehab wrote:
+>   
+>> Hans Verkuil wrote:
+>>     
+>>> Note that Mauro merged my saa7134 changes, so these are now in the master 
+>>> repository.
+>>>     
+>>>       
+>> Yes. We need to fix it asap, to avoid regressions. It is time to review also
+>> the other codes that are touching on i2c gates at _init2().
+>>   
+>>     
+>
+> Thoughts on merging the changes from Hans' KWorld repo? 
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+If there were any thoughts on this, please put them on hold until I can
+test further. 
