@@ -1,65 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ayden.softclick-it.de ([217.160.202.102]:56952 "EHLO
-	ayden.softclick-it.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751542AbZA1Bdn (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:47888 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753855AbZA2MFt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 20:33:43 -0500
-Message-ID: <497FB613.4040809@to-st.de>
-Date: Wed, 28 Jan 2009 02:34:11 +0100
-From: Tobias Stoeber <tobi@to-st.de>
-Reply-To: tobi@to-st.de
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: BOUWSMA Barry <freebeer.bouwsma@gmail.com>,
-	linux-media@vger.kernel.org,
-	"DVB mailin' list thingy" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
-References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>	 <497A27F7.8020201@to-st.de>	 <alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>	 <19a3b7a80901261228v393f5fcbv7559b573c0ca1539@mail.gmail.com>	 <alpine.DEB.2.00.0901262214200.15738@ybpnyubfg.ybpnyqbznva>	 <497EC855.7050301@to-st.de>	 <19a3b7a80901270237n761240bbn2627f782ddbffa29@mail.gmail.com>	 <497EF972.6090207@to-st.de>	 <alpine.DEB.2.00.0901271748160.15738@ybpnyubfg.ybpnyqbznva>	 <497F8EB1.2050004@to-st.de> <1233101550.2687.53.camel@pc10.localdom.local>
-In-Reply-To: <1233101550.2687.53.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
+	Thu, 29 Jan 2009 07:05:49 -0500
+Date: Thu, 29 Jan 2009 10:05:20 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+Cc: matthieu castet <castet.matthieu@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support faulty USB IDs on DIBUSB_MC
+Message-ID: <20090129100520.3331f41f@caramujo.chehab.org>
+In-Reply-To: <alpine.LRH.1.10.0901291117110.15700@pub6.ifh.de>
+References: <484A72D3.7070500@free.fr>
+	<4974E4BE.2060107@free.fr>
+	<20090129074735.76e07d47@caramujo.chehab.org>
+	<alpine.LRH.1.10.0901291117110.15700@pub6.ifh.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 29 Jan 2009 11:19:32 +0100 (CET)
+Patrick Boettcher <patrick.boettcher@desy.de> wrote:
 
-hermann pitton schrieb:
-> The reverse effect will be, we have it already with federal state scan
-> files now, that we likely will see more questions about why the hell I
-> don't get this one and tuning failed ... 
+> > It doesn't sound a very good approach the need of recompiling the driver to
+> > allow it to work with a broken card. The better would be to have some modprobe
+> > option to force it to accept a certain USB ID as a valid ID for the card.
+> 
+> The most correct way would be to reprogram the eeprom, by simply writing 
+> to 0xa0 (0x50 << 1) I2C address... There was a thread on the linux-dvb some 
+> time ago.
 
-Regarding the de-Sachsen-Anhalt file, apart from 3 or 4 frequency 
-entries the rest is useless being within the state, because regarding 
-transmitters the areas are mostly not coordinated.
+Yes. Yet, it might be interesting to have some option to allow forcing.
 
-Brocken and Magdeburg are the only sites with Sachsen-Anhalt that are 
-corrdinated.
+> > The above is really ugly. IMO, we should replace this by
+> > ARRAY_SIZE(dibusb_mc_properties.devices). Of course, for this to work,
+> > num_device_descs should be bellow devices.
+> 
+> We could do that, still I'm not sure if ARRAY_SIZE will work in that 
+> situation?! Are you 
+> sure, Mauro?
 
-In fact, it is more common, that transmitters here are coordinated with 
-sites from others states, e.g. "ARD-Das Erste" multiplex in Halle/Saale 
-(Sachsen-Anhalt/Saxony-Anhalt) are coordinated with Leipzig 
-(Sachsen/Saxony) and Gera (Thüringen/Thuringia), because this area is 
-also topographically adjunct. "ZDF" multiplex is coordinated between 
-Hale/Saale and Leipzig ...
+Well, at least here, it is compiling fine. I can't really test it, since I
+don't have any dib0700 devices here.
 
-> To share a center frequency over several federal states under such
-> conditions seems to be plain wrong and I wonder if there was a rule.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-This does not matter, as the transmitters in Brauschweig 
-(Niedersachsen/Lower Saxony) and Halle/Saale (Sachsen-Anhalt) don't 
-interfere with each other (the sites are more than 140 km apart) and 
-there is a buffer zone of about 40 - 50 km between them, where you need 
-a directed roof antenna to either receive one of them.
-
-As I've experienced so far while travelling, that there are only very 
-small parts in my federal state (Bundesland) of Sachsen-Anhalt where one 
-can receive more than one transmitter site (and in most of this cases, a 
-roof antenna is required, so you would normally have to direct this to a 
-specific transmitter).
-
-Well, I believe both scenarios(scan file for federal state versus scan 
-file for a DVB-T region) have their pros and cons. :(
-
-Fortunately programs like "Kaffeine" offer a full auto scan ...
-
-Regards, Tobias
+diff -r 39a646207d0c linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Thu Jan 29 09:11:45 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Thu Jan 29 10:04:08 2009 -0200
+@@ -1447,7 +1447,7 @@
+ 	}
+ 
+ struct dvb_usb_device_properties dib0700_devices[] = {
+-	{
++	[0] = {
+ 		DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 
+ 		.num_adapters = 1,
+@@ -1460,7 +1460,6 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 8,
+ 		.devices = {
+ 			{   "DiBcom STK7700P reference design",
+ 				{ &dib0700_usb_id_table[0], &dib0700_usb_id_table[1] },
+@@ -1496,11 +1495,13 @@
+ 			}
+ 		},
+ 
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[0].devices),
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+-	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++	},
++	[1] = { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 
+ 		.num_adapters = 2,
+ 		.adapter = {
+@@ -1517,19 +1518,20 @@
+ 			}
+ 		},
+ 
+-		.num_device_descs = 1,
+ 		.devices = {
+ 			{   "Hauppauge Nova-T 500 Dual DVB-T",
+ 				{ &dib0700_usb_id_table[2], &dib0700_usb_id_table[3], NULL },
+ 				{ NULL },
+ 			},
+ 		},
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[1].devices),
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+-	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++	}, 
++	[2] = { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 
+ 		.num_adapters = 2,
+ 		.adapter = {
+@@ -1546,7 +1548,6 @@
+ 			}
+ 		},
+ 
+-		.num_device_descs = 4,
+ 		.devices = {
+ 			{   "Pinnacle PCTV 2000e",
+ 				{ &dib0700_usb_id_table[11], NULL },
+@@ -1566,13 +1567,15 @@
+ 			},
+ 
+ 		},
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[2].devices),
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+ 
+-	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++	},
++	[3] = { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 
+ 		.num_adapters = 1,
+ 		.adapter = {
+@@ -1584,7 +1587,6 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 3,
+ 		.devices = {
+ 			{   "ASUS My Cinema U3000 Mini DVBT Tuner",
+ 				{ &dib0700_usb_id_table[23], NULL },
+@@ -1599,12 +1601,14 @@
+ 				{ NULL },
+ 			}
+ 		},
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[3].devices),
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+-	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++	},
++	[4] = { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 
+ 		.num_adapters = 1,
+ 		.adapter = {
+@@ -1618,7 +1622,6 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 9,
+ 		.devices = {
+ 			{   "DiBcom STK7070P reference design",
+ 				{ &dib0700_usb_id_table[15], NULL },
+@@ -1657,13 +1660,15 @@
+ 				{ NULL },
+ 			},
+ 		},
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[4].devices),
+ 
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+ 
+-	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++	},
++	[5] = { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 
+ 		.num_adapters = 2,
+ 		.adapter = {
+@@ -1684,7 +1689,6 @@
+ 			}
+ 		},
+ 
+-		.num_device_descs = 5,
+ 		.devices = {
+ 			{   "DiBcom STK7070PD reference design",
+ 				{ &dib0700_usb_id_table[17], NULL },
+@@ -1707,11 +1711,13 @@
+ 				{ NULL },
+ 			}
+ 		},
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[5].devices),
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+-	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++	}, 
++	[6] = { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 
+ 		.num_adapters = 1,
+ 		.adapter = {
+@@ -1726,7 +1732,6 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 5,
+ 		.devices = {
+ 			{   "Terratec Cinergy HT USB XE",
+ 				{ &dib0700_usb_id_table[27], NULL },
+@@ -1753,11 +1758,13 @@
+ 				{ NULL },
+ 			},
+ 		},
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[6].devices),
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
+ 		.rc_query         = dib0700_rc_query
+-	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++	}, 
++	[7] = { DIB0700_DEFAULT_DEVICE_PROPERTIES,
+ 		.num_adapters = 1,
+ 		.adapter = {
+ 			{
+@@ -1771,7 +1778,6 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 2,
+ 		.devices = {
+ 			{   "Pinnacle PCTV HD Pro USB Stick",
+ 				{ &dib0700_usb_id_table[40], NULL },
+@@ -1782,6 +1788,7 @@
+ 				{ NULL },
+ 			},
+ 		},
++		.num_device_descs = ARRAY_SIZE(dib0700_devices[7].devices),
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+ 		.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
