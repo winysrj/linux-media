@@ -1,100 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:54618 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753675AbZAUCjm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 21:39:42 -0500
-Received: by bwz14 with SMTP id 14so11974613bwz.13
-        for <linux-media@vger.kernel.org>; Tue, 20 Jan 2009 18:39:39 -0800 (PST)
+Received: from smtp6-g21.free.fr ([212.27.42.6]:47867 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751678AbZA2Wvg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 17:51:36 -0500
+Message-ID: <498232EE.8060209@free.fr>
+Date: Thu, 29 Jan 2009 23:51:26 +0100
+From: matthieu castet <castet.matthieu@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <1232505328.2685.9.camel@pc10.localdom.local>
-References: <496C9FDE.2040408@hemmail.se>
-	 <d9def9db0901131101y59cd5c1ct2344052f86b42feb@mail.gmail.com>
-	 <d9def9db0901151028k6ab8bd79q6627c7516020aabe@mail.gmail.com>
-	 <alpine.DEB.2.00.0901171037230.18169@ybpnyubfg.ybpnyqbznva>
-	 <d9def9db0901170216g5be0ed16sa1eeb4c4f9acce76@mail.gmail.com>
-	 <1232503628.2685.5.camel@pc10.localdom.local>
-	 <d9def9db0901201826j7bef2232s6ad12b7ff081ece3@mail.gmail.com>
-	 <1232505328.2685.9.camel@pc10.localdom.local>
-Date: Wed, 21 Jan 2009 03:39:39 +0100
-Message-ID: <d9def9db0901201839l6c1b0de0g82dcd0601b11e7d5@mail.gmail.com>
-Subject: Re: [linux-dvb] Terratec XS HD support?
-From: Markus Rechberger <mrechberger@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org,
-	"DVB mailin' list thingy" <linux-dvb@linuxtv.org>,
-	em28xx@mcentral.de
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: tm6010 : strange i2c
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 21, 2009 at 3:35 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
->
-> Am Mittwoch, den 21.01.2009, 03:26 +0100 schrieb Markus Rechberger:
->> On Wed, Jan 21, 2009 at 3:07 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
->> >
->> > Am Samstag, den 17.01.2009, 11:16 +0100 schrieb Markus Rechberger:
->> >> On Sat, Jan 17, 2009 at 10:57 AM, BOUWSMA Barry
->> >> <freebeer.bouwsma@gmail.com> wrote:
->> >> > Hi Markus, I follow your list as a non-subscriber, but I thought
->> >> > it would be worthwhile to post this to linux-dvb as well, and
->> >> > eventually to linux-media...
->> >> >
->> >> > On Thu, 15 Jan 2009, Markus Rechberger wrote:
->> >> >
->> >> >> On Tue, Jan 13, 2009 at 8:01 PM, Markus Rechberger
->> >> >> <mrechberger@gmail.com> wrote:
->> >> >
->> >> >> >> Is there any news about Terratec HTC USB XS HD support?
->> >> >
->> >> >> > it's upcoming soon.
->> >> >
->> >> > Thanks Markus, that's good news for me, and for several people
->> >> > who have written me as well!
->> >> >
->> >> >
->> >> >> http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
->> >> >> you might track that site for upcoming information.
->> >> >
->> >> > Interesting.  You say that your code will make use of a BSD
->> >> > setup.  Can you or someone say something about this, or point
->> >> > to past discussion which explains this?  Would this be the
->> >> > userspace_tuner link on your wiki?
->> >> >
->> >> > In particular, I'm wondering whether this is completely
->> >> > compatible with the standard DVB utilities -- dvbscan,
->> >> > dvbstream, and the like, or whether a particular higher-
->> >> > level end-user application is required.
->> >> >
->> >> >
->> >>
->> >> The design goes hand in hand with some discussions that have been made
->> >> with some BSD developers.
->> >> The setup makes use of usbdevfs and pci configspace access from
->> >> userland, some work still has to be done there, it (will give/gives)
->> >> manufacturers the freedom to release opensource and binary drivers for
->> >> userland.
->> >> I'm a friend of open development and not of some kind of monopoly
->> >> where a few people rule everything (linux).
->> >
->> > I do remember when BSD shared some tuner code with GNU/LINUX ;)
->> >
->>
->> there is nothing wrong with that.
->>
->> As a reference:
->> * http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
->> * http://corona.homeunix.net/cx88wiki
->>
->> regards,
->> Markus
->
-> Without following your links for now,
-> for the code exchange during the last six years with what you claim,
->
+Hi,
 
-you must mistake me with someone, I did not claim anything for 6 years.
+I am trying to make work my hauppauge HVR900H, and I start looking at 
+http://linuxtv.org/hg/~mchehab/tm6010/ drivers and windows usb trace.
 
-regards,
-Markus
+
+After some experiment I found that the i2c is very strange :
+  * for the zl10353 demodulator, the register read only seems to work if 
+the register address is odd and we read at least 2 bytes[1]. And the 
+windows driver seems to really do that according usb trace (read always 
+2 bytes at odd address).
+
+  * the windows driver read the eeprom in the strange way : it use 
+REQ_14_SET_GET_I2C_WR2_RDN, but setting the offset in the high byte of 
+wIndex. And it does 16 bytes read, 1 bytes read for reading again the 
+last 16th byte, and continue 16 bytes read, 1 byte read.
+
+Did the people that worked on the tm6000 driver saw that weird i2c ?
+
+
+Matthieu
+
+
+[1]
+Doing REQ_16_SET_GET_I2C_WR1_RDN on the demodulator with different 
+register address and read size.
+
+0051: 00
+------
+0051: 00
+------
+0052: 00
+------
+0050: 00
+------
+004f: 00
+------
+0050: 00
+------
+0051: 44 46
+------
+0051: 44 46
+------
+0052: 46 46
+------
+0050: 46 46
+------
+004f: 46 0c
+------
+0050: 0c 0c
+------
+0051: 44 46 15 0f
+------
+0051: 44 46 15 0f
+------
+0052: 0f 0f 00 00
+------
+0050: 00 00 00 00
+------
+004f: 00 0c 44 46
+------
+0050: 46 46 00 00
+------
+0051: 44 46 15 0f 00 00 00 00
+------
+0051: 44 46 15 0f 00 00 00 00
+------
+0052: 00 00 00 00 00 00 00 00
+------
+0050: 00 00 00 00 00 00 00 00
+------
+004f: 00 0c 44 46 15 0f 00 00
+------
+0050: 00 00 00 00 00 00 00 00
+------
+0051: 44 46 15 0f 00 00 00 00 00 48 00 75 0d 0d 0d 00
+------
+0051: 44 46 15 0f 00 00 00 00 00 48 00 75 0d 0d 0d 00
+------
+0052: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+------
+0050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+------
+004f: 00 0c 44 46 15 0f 00 00 00 00 00 48 00 75 0d 0d
+------
+0050: 0d 0d 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+------
+0051: 44 46 15 0f 00 00 00 00 00 48 00 75 0d 0d 0d 00
+0061: 4d 0a 0f 0f 0f 0f c2 00 00 80 00 00 00 00 00 00
+------
+0051: 44 46 15 0f 00 00 00 00 00 48 00 75 0d 0d 0d 00
+0061: 4d 0a 0f 0f 0f 0f c2 00 00 80 00 00 00 00 00 00
+------
+0052: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0062: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+------
+0050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+------
+004f: 00 0c 44 46 15 0f 00 00 00 00 00 48 00 75 0d 0d
+005f: 0d 00 4d 0a 0f 0f 0f 0f c2 00 00 80 00 00 00 00
+------
+0050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+0060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+------
