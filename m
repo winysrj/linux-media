@@ -1,19 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0TI6jYe031166
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 13:06:45 -0500
-Received: from col0-omc3-s2.col0.hotmail.com (col0-omc3-s2.col0.hotmail.com
-	[65.55.34.140])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0TI6OYr014684
-	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 13:06:25 -0500
-Message-ID: <COL103-W81FDA0A3A5327FAC36491588C90@phx.gbl>
-From: George Adams <g_adams27@hotmail.com>
-To: <video4linux-list@redhat.com>
-Date: Thu, 29 Jan 2009 13:06:22 -0500
-Content-Type: text/plain; charset="windows-1256"
-Content-Transfer-Encoding: 8bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0TBeewc012219
+	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 06:40:40 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.190])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0TBeOsB008668
+	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 06:40:25 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so1424114nfc.21
+	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 03:40:24 -0800 (PST)
 MIME-Version: 1.0
-Subject: =?windows-1256?q?RealProducer_and_=22Capture_Buffer_Empty=22=FE?=
+Date: Thu, 29 Jan 2009 08:40:24 -0300
+Message-ID: <255e9dee0901290340l1939ff25gdfa8ee20638671d0@mail.gmail.com>
+From: "guindous (el Seba)" <guindous@cardello.com.ar>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Subject: =?windows-1252?q?Pinnacle_PCTV_Pro_110i_remote_=93read_error=94?=
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,142 +26,121 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi list!! My name is Sebastian from Mendoza, Argentina. And I'm
+looking for some help, please.
 
-Hello. I want to purchase a TV tuner card that will work with Linux and (Helix) RealProducer 11.  This will be for our church, where our needs for features are quite simple - we just need a card that can pick up a NTSC channel 3 signal (from a coax cable) and will work with RealProducer.
- 
-I don't know what to buy (recommendations greatly welcomed, BTW!) so I thought I'd start with the V4L2 Virtual Video Device driver that comes with my kernel.  This is a Gentoo box running Linux 2.6.28, and I have compiled the "vivi" driver.  Here is some output:
- 
-> modprobe vivi
-(/var/log/messages: Jan 29 00:36:40 www Linux video capture interface: v2.00)
-(/var/log/messages: Jan 29 00:36:40 www vivi: V4L2 device registered as /dev/video0)
-(/var/log/messages: Jan 29 00:36:40 www Video Technology Magazine Virtual Video Capture Board ver 0.5.0 successfully loaded.)
- 
-> lsmod | egrep -i "(video|vivi|v4l)" 
-vivi                   16788  0 
-videodev               32640  1 vivi
-v4l1_compat            15364  1 videodev
-compat_ioctl32          5248  1 vivi
-videobuf_vmalloc        9860  1 vivi
-videobuf_core          20356  2 vivi,videobuf_vmalloc
+I bought a Pinnacle PCTV Pro 110i and i'm building my own MythTV
+set-top-box using Mythbuntu 8.10. Everything went smoothly with this
+saa7134 analog card (video and dma sound – I haven't tried the radio,
+yet-)  until the IR. The remote didn't worked. I don't get any event
+when I press the buttons.
 
- 
-This creates the /dev/video0 device.  I have tested the vivi driver out with mplayer ("mencoder -tv driver=v4l2:width=640:height=480 tv:// -o tv.avi -ovc raw -endpos 5") and can successfully record the test pattern bars that "vivi" generates to an AVI file.  However, when I try encoding with RealProducer, I get this.
- 
-> /usr/local/helix/producer/producer -pd
-Helix DNA(TM) Producer 11.0 Build number: 11.0.0.2013
- 
-VIDEO
- 
-Device 00: vivi /dev/video0
-    Port 00: Camera
- 
-AUDIO
- 
-Device 00: Realtek ALC650F /dev/dsp
-    Port 00: vol
-    Port 01: line
-    Port 02: mic
-    Port 03: cd
-    Port 04: line1
-    Port 05: phin
-    Port 06: phout
-    Port 07: video
- 
-Device 01: SigmaTel STAC9708,11 /dev/dsp1
-    Port 00: vol
-    Port 01: line
-    Port 02: mic
-    Port 03: cd
-    Port 04: line1
-    Port 05: phin
-    Port 06: phout
-    Port 07: video
- 
-> /usr/local/helix/producer/producer -vc /dev/video0 -vp 0 -o /tmp/test.rm
-Helix DNA(TM) Producer 11.0 Build number: 11.0.0.2013
-Error: Could not set color format (I420) for video capture device (VIDIOCSPICT: depth=12, palette=15)
-Jan 29 00:50:21 www vivi: open called (minor=0)
-Jan 29 00:50:21 www vivi: open called (minor=0)
-Warning: Ignoring enableTwoPass for live encoding                              
-Info: Starting encode                                                          
-Error: Could not set image size to 160x120 for color format YUY2 (7) (VIDIOCMCAPTURE: buffer 0)
-Warning: Capture Buffer is empty at 552608645ms for last 61 times
-Warning: Capture Buffer is empty at 552609925ms for last 61 times
-Warning: Capture Buffer is empty at 552611205ms for last 61 times
- [CTRL-C]
-Info: Stop encoder request received                                            
-Info: Stopping encode                                                          
-Info: File /tmp/test.rm already exists. Archiving existing file to /tmp/test_arch003.rm. Writing new file to /tmp/test.rm.
-Info:        Out- Total Audio Video Pre- Audience Name                         
-Info:        Aud  kbps  kbps  kbps  roll                                       
-Info: Stat1: 1:1  0     n/a    0     0       256k DSL or Cable                 
-Info:        Out- Avg  Min  Min      Avg Min Min      Audience Name            
-Info:        Aud  FPS  FPS  FPS Time QI  QI  QI Time                           
-Info: Total Bitrate = 0 kbps                                                   
-Info: Encoding successful!                                                     
-Done  Errors: 2 Warnings: 4
- 
- 
-Doing a search for "Capture Buffer is empty" led me to http://lists-archives.org/video4linux/24820-bttv-2-6-26-problem.html , where someone had a similar problem and a workaround C program was given.  I haven't had any luck with it, though.  See for yourself:
- 
-(I used double-quotes instead of angle brackets on the "#include lines", since Hotmail seems to interpret them as HTML tags and removes them)
-  
-> cat fixvideo.c
-#include "sys/ioctl.h"
-#include "fcntl.h"
-#include "unistd.h"
-#include "linux/videodev.h"
- 
-void main()
-{
-  struct video_mmap vmm;
-  vmm.width=160;
-  vmm.height=120;
-  vmm.format=VIDEO_PALETTE_YUV420P;
-  vmm.frame=0;
-  ioctl(open("/dev/video0",O_RDWR),VIDIOCMCAPTURE,&vmm);
-}
- 
-> gcc -o fixvideo fixvideo.c
-fixvideo.c: In function ‘main’:
-fixvideo.c:7: warning: return type of ‘main’ is not ‘int’
- 
-> ./fixvideo
-(/var/log/messages: Jan 29 00:58:59 www vivi: open called (minor=0))
- 
-> /usr/local/helix/producer/producer -vc /dev/video0 -vp 0 -o /tmp/test.rm
-Helix DNA(TM) Producer 11.0 Build number: 11.0.0.2013
-Error: Could not set color format (I420) for video capture device (VIDIOCSPICT: depth=12, palette=15)
-Warning: Ignoring enableTwoPass for live encoding                              
-Info: Starting encode                                                          
-Error: Could not set image size to 160x120 for color format YUY2 (7) (VIDIOCMCAPTURE: buffer 0)
-Jan 29 00:51:00 www vivi: open called (minor=0)
-Jan 29 00:51:00 www vivi: open called (minor=0)
-Warning: Capture Buffer is empty at 552648316ms for last 61 times              
-Warning: Capture Buffer is empty at 552649596ms for last 61 times              
-Warning: Capture Buffer is empty at 552650877ms for last 61 times              
-        [CTRL-C]
-Info: Stop encoder request received                                            
-Info: Stopping encode                                                          
-Info: File /tmp/test.rm already exists. Archiving existing file to /tmp/test_arch004.rm. Writing new file to /tmp/test.rm.
-Info:        Out- Total Audio Video Pre- Audience Name                         
-Info:        Aud  kbps  kbps  kbps  roll                                       
-Info: Stat1: 1:1  0     n/a    0     0       256k DSL or Cable                 
-Info:        Out- Avg  Min  Min      Avg Min Min      Audience Name            
-Info:        Aud  FPS  FPS  FPS Time QI  QI  QI Time                           
-Info: Total Bitrate = 0 kbps                                                   
-Info: Encoding successful!                                                     
-Done  Errors: 2 Warnings: 4
- 
- 
-Can anyone help me understand what the problem is?  Is this something that's just a problem with the vivi driver, and won't be an issue when I get a real TV tuner card?  (again, suggestions on which one is compatible with RealProducer would be much appreciated!)  
- 
-Or is RealProducer just not compatible with V4L2, in spite of the v4l1_compat module?  In which case, am I just out of luck trying to encode video on a Linux box with RealProducer?
- 
-I've run out of ideas, so sincere thanks to anyone who can help!
-_________________________________________________________________
-Windows Live™ Hotmail®…more than just e-mail. 
-http://windowslive.com/howitworks?ocid=TXT_TAGLM_WL_t2_hm_justgotbetter_howitworks_012009
+Like the wiki page says I load the saa7134 and the ir-kbd-i2c modules.
+And It looks like that the control it's detected, but when I push the
+buttons syslog shows (using  "modprobe saa7134 ir_debug=1"):
+
+Jan 27 20:35:07 nena kernel: [  308.916687] Pinnacle PCTV/ir: read error
+Jan 27 20:35:07 nena kernel: [  309.016684] Pinnacle PCTV/ir: read error
+Jan 27 20:35:07 nena kernel: [  309.116671] Pinnacle PCTV/ir: read error
+
+Then activating the i2c_debug module option (and pressing buttons):
+
+Jan 27 20:36:07 nena kernel: [  368.232017] saa7133[0]: i2c xfer: < 8f
+ERROR: NO_DEVICE
+Jan 27 20:36:07 nena kernel: [  368.232167] Pinnacle PCTV/ir: read error
+
+More information about the setup:
+
+- Distro
+Mythbuntu Linux 8.10
+
+- Uname
+Linux nena 2.6.27-9-generic #1 SMP Thu Nov 20 22:15:32 UTC 2008 x86_64 GNU/Linux
+
+- lsinput
+/dev/input/event6
+ bustype : BUS_I2C
+ vendor  : 0x0
+ product : 0x0
+ version : 0
+ name    : "Pinnacle PCTV"
+ phys    : "i2c-1/1-0047/ir0"
+ bits ev : EV_SYN EV_KEY EV_REP
+
+- Remote version
+RC-42D (picture at:
+http://lirc.sourceforge.net/remotes/pinnacle_systems/RC-42D.jpg).
+
+- V4L2 Driver device info (modprobe ir-kbd-i2c saa7134 saa7134-alsa)
+Jan 27 20:34:59 nena kernel: [  300.555041] saa7130/34: v4l2 driver
+version 0.2.14 loaded
+Jan 27 20:34:59 nena kernel: [  300.555103] saa7133[0]: found at
+0000:03:07.0, rev: 209, irq: 21, latency: 32, mmio: 0xfdcff000
+Jan 27 20:34:59 nena kernel: [  300.555111] saa7133[0]: subsystem:
+11bd:002e, board: Pinnacle PCTV 40i/50i/110i (saa7133)
+[card=77,autodetected]
+Jan 27 20:34:59 nena kernel: [  300.555123] saa7133[0]: board init:
+gpio is 200c000
+Jan 27 20:34:59 nena kernel: [  300.700102] tuner' 1-004b: chip found
+@ 0x96 (saa7133[0])
+Jan 27 20:34:59 nena kernel: [  300.702652] ir-kbd-i2c: probe 0x7a @
+saa7133[0]: no
+Jan 27 20:34:59 nena kernel: [  300.708016] ir-kbd-i2c: probe 0x47 @
+saa7133[0]: yes
+Jan 27 20:34:59 nena kernel: [  300.708758] input: Pinnacle PCTV as
+/devices/virtual/input/input6
+Jan 27 20:34:59 nena kernel: [  300.749258] ir-kbd-i2c: Pinnacle PCTV
+detected at i2c-1/1-0047/ir0 [saa7133[0]]
+Jan 27 20:34:59 nena kernel: [  300.808537] saa7133[0]: i2c eeprom 00:
+bd 11 2e 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+Jan 27 20:34:59 nena kernel: [  300.808546] saa7133[0]: i2c eeprom 10:
+ff e0 60 02 ff 20 ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808552] saa7133[0]: i2c eeprom 20:
+01 2c 01 23 23 01 04 30 98 ff 00 e2 ff 22 00 c2
+Jan 27 20:34:59 nena kernel: [  300.808557] saa7133[0]: i2c eeprom 30:
+96 ff 03 30 15 01 ff 15 0e 6c a3 ea 03 d3 aa d1
+Jan 27 20:34:59 nena kernel: [  300.808562] saa7133[0]: i2c eeprom 40:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808567] saa7133[0]: i2c eeprom 50:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808572] saa7133[0]: i2c eeprom 60:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808578] saa7133[0]: i2c eeprom 70:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808583] saa7133[0]: i2c eeprom 80:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808588] saa7133[0]: i2c eeprom 90:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808596] saa7133[0]: i2c eeprom a0:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808601] saa7133[0]: i2c eeprom b0:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808606] saa7133[0]: i2c eeprom c0:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808611] saa7133[0]: i2c eeprom d0:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808617] saa7133[0]: i2c eeprom e0:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.808623] saa7133[0]: i2c eeprom f0:
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Jan 27 20:34:59 nena kernel: [  300.892518] tda829x 1-004b: setting
+tuner address to 61
+Jan 27 20:34:59 nena kernel: [  300.956515] tda829x 1-004b: type set
+to tda8290+75a
+Jan 27 20:35:03 nena kernel: [  304.821026] saa7133[0]: registered
+device video0 [v4l2]
+Jan 27 20:35:03 nena kernel: [  304.821784] saa7133[0]: registered device vbi0
+Jan 27 20:35:03 nena kernel: [  304.823561] saa7133[0]: registered device radio0
+Jan 27 20:35:03 nena kernel: [  304.896605] saa7134 ALSA driver for
+DMA sound loaded
+Jan 27 20:35:03 nena kernel: [  304.897441] saa7133[0]/alsa:
+saa7133[0] at 0xfdcff000 irq 21 registered as card -2
+
+If anybody need more information about this problem, I will be glad helping.
+
+--
+guindous
+(Sebastian)
 
 --
 video4linux-list mailing list
