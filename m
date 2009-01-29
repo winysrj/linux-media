@@ -1,78 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:45340 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751617AbZAOBnF (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1273 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752436AbZA2IlP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 20:43:05 -0500
-Subject: Re: KWorld ATSC 115 all static
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: CityK <cityk@rogers.com>, V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-In-Reply-To: <200901141924.41026.hverkuil@xs4all.nl>
-References: <496A9485.7060808@gmail.com> <496D6CF6.6030005@rogers.com>
-	 <200901140837.43282.hverkuil@xs4all.nl>
-	 <200901141924.41026.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Thu, 15 Jan 2009 02:43:17 +0100
-Message-Id: <1231983797.2896.8.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	Thu, 29 Jan 2009 03:41:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: Re: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
+Date: Thu, 29 Jan 2009 09:41:06 +0100
+Cc: DongSoo Kim <dongsoo.kim@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F6BD@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F6BD@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901290941.06705.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am Mittwoch, den 14.01.2009, 19:24 +0100 schrieb Hans Verkuil:
-> On Wednesday 14 January 2009 08:37:43 Hans Verkuil wrote:
-> > On Wednesday 14 January 2009 05:41:26 CityK wrote:
-> > > hermann pitton wrote:
-> > > > Hi,
-> > > >
-> > > > Am Montag, den 12.01.2009, 21:10 -0500 schrieb CityK:
-> > > >> Hans Verkuil wrote:
-> > > >>> Yes, I can. I'll do saa7134 since I have an empress card
-> > > >>> anyway. It should be quite easy (the cx18 complication is not
-> > > >>> an issue here).
-> > > >>>
-> > > >>> Regards,
-> > > >>>
-> > > >>> 	Hans
-> > > >>
-> > > >> Thanks Hans!
-> > > >
-> > > > yes, Hans is a very fine guy.
-> > >
-> > > He is indeed.
+On Thursday 29 January 2009 09:28:07 Shah, Hardik wrote:
+> > -----Original Message-----
+> > From: DongSoo Kim [mailto:dongsoo.kim@gmail.com]
+> > Sent: Thursday, January 29, 2009 1:14 PM
+> > To: Shah, Hardik
+> > Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com
+> > Subject: Re: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
 > >
-> > Absolutely! :-)
+> > Hello.
 > >
-> > FYI: I have a patch, but I won't have time to test it until Friday.
-> > You should get something from me then. The main change was actually
-> > to the saa6752hs.c i2c module (it wasn't yet converted to
-> > v4l2_subdev), and I need to test that first with my empress card.
-> 
-> OK, I couldn't help myself and went ahead and tested it. It seems fine, 
-> so please test my tree: 
-> 
-> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-saa7134
-> 
-> Let me know if it works. If it does, then I'll ask Mauro to pull from my 
-> tree.
+> > > +#define VIDIOC_S_COLOR_SPACE_CONV      _IOW('V', 83, struct
+> >
+> > v4l2_color_space_conversion)
+> >
+> > > +#define VIDIOC_G_COLOR_SPACE_CONV      _IOR('V', 84, struct
+> >
+> > v4l2_color_space_conversion)
+> >
+> > Do you mind if I ask a question about those ioctls?
+> > Because as far as I understand, we can use VIDIOC_S_FMT ioctl to
+> > convert colorspaces. Setting through colorspace member in
+> > v4l2_pix_format, we could change output colorspace.
+> > If there is some different use, can you tell me what it is?
+>
+> [Shah, Hardik] OMAP Display sub-system supports various pixel formats as
+> inputs like YUV, UYVY, RGB24, RGB16 but the compositors which take these
+> input format and displays on to the output devices like TV, LCD can only
+> understand RGB format.  Hardware has provision for converting any data
+> taken in YUV or UYVY format to be converted into the RGB formats, before
+> giving it to the output devices.  To convert this hardware needs to be
+> programmed with correct coefficient and offsets to convert from YUV to
+> RGB.
 
-Just found your email a few hours back after a PC and internet free day,
-but so far all seems to be fine and no new issues are visible. DVB-T and
-DVB-S are OK too.
+Does that mean that when I select a YUV format for output, I still need to 
+call the color space conversion ioctl? That is not right. Selecting a 
+format must setup the CSC with decent defaults. I assumed the CSC ioctls 
+were only meant for fine-grained control: first you call S_FMT to select 
+the pixelformat which sets up the CSC with defaults, then you call 
+VIDIOC_G/S_COLOR_SPACE_CONV to modify them if needed.
 
-Just for the record, we still have the issue on FMD1216ME MK3 hybrid
-tuners that the tda9887 is not loaded on boot. This still needs user
-intervention.
+Regards,
 
-Thanks!
+	Hans
 
-Cheers,
-Hermann
+> These coefficients are pretty standard but still some one may 
+> require altering it. For this new ioctl is added.  Standard equation for
+> converting from YUV or UYVY is
+>
+> | R |		| RY RCr RCb |   | Y - 16   |
+> | G | = 1/K | Gy GCr Gcb | * | Cr - 128 |
+> | B |		| By BCr BCb |   | Cb - 128 |
+>
+> Where Ry, Rcr, Rcb Gy, Gcr, Gcb, By, Bcr and Bcb are the programmable
+> coefficients.  But in future offsets like Y-16, Cr-128 or Cb-128 or
+> constant like 1/K may also be programmable.  So I have added this new
+> ioctl.
+>
+> Regards,
+> Hardik Shah
+>
+> > Regards,
+> > Nate
+> >
+> > --
+> > ========================================================
+> > Dong Soo, Kim
+> > Engineer
+> > Mobile S/W Platform Lab. S/W centre
+> > Telecommunication R&D Centre
+> > Samsung Electronics CO., LTD.
+> > e-mail : dongsoo.kim@gmail.com
+> >            dongsoo45.kim@samsung.com
+> > ========================================================
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
