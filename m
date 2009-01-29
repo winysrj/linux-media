@@ -1,98 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:39741 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137AbZASUq6 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1285 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbZA2IvS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jan 2009 15:46:58 -0500
-Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id A03DB786D25
-	for <linux-media@vger.kernel.org>; Mon, 19 Jan 2009 21:39:45 +0100 (CET)
-Message-ID: <4974E4BE.2060107@free.fr>
-Date: Mon, 19 Jan 2009 21:38:22 +0100
-From: matthieu castet <castet.matthieu@free.fr>
+	Thu, 29 Jan 2009 03:51:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Merging the v4l2 spec?
+Date: Thu, 29 Jan 2009 09:51:04 +0100
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support faulty USB IDs on DIBUSB_MC
-References: <484A72D3.7070500@free.fr>
-In-Reply-To: <484A72D3.7070500@free.fr>
-Content-Type: multipart/mixed;
- boundary="------------080901020804070106090203"
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901290951.04874.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080901020804070106090203
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Mauro,
 
-matthieu castet wrote:
-> Hi,
-> 
-> I got a LITE-ON USB2.0 DVB-T Tuner that loose it's cold state vid/pid 
-> and got  FX2 dev kit one (0x04b4, 0x8613).
-> 
-> This patch introduce an option similar to the DVB_USB_DIBUSB_MB_FAULTY :
-> it add the FX2 dev kit ids to the DIBUSB_MC driver if 
-> DVB_USB_DIBUSB_MC_FAULTY is selected.
-> 
-> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
-> 
+Is it possible to merge the v4l2 spec from my tree soon? With all the 
+various new API additions that are being discussed it would help a lot if 
+they can also make patches against the documentation at the same time.
 
-Ping
+BTW, I'm working on improving the qv4l2 tool to make it much more useful for 
+testing. I'm integrating it with the v4lconvert lib and added capture 
+support as well. It should become a proper testbench for drivers. All the 
+other tools around are really crappy, so I decided to extend qv4l2 instead.
 
---------------080901020804070106090203
-Content-Type: text/plain;
- name="dib3000c_faulty_id"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dib3000c_faulty_id"
+I've also bought a bunch of old hardware from ebay. I should be able to test 
+various old v4l1 drivers and convert them to v4l2. I basically want to be 
+able to test pretty much the whole v4l2 API, preferably with qv4l2. 
+Yesterday two webcams came in, so I can now test w9968cf and se401.
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvS2NvbmZpZyBiL2RyaXZl
-cnMvbWVkaWEvZHZiL2R2Yi11c2IvS2NvbmZpZwppbmRleCBmMDBhMGViLi5hNjU2YjliIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL0tjb25maWcKKysrIGIvZHJp
-dmVycy9tZWRpYS9kdmIvZHZiLXVzYi9LY29uZmlnCkBAIC02OCw2ICs2OCwxMiBAQCBjb25m
-aWcgRFZCX1VTQl9ESUJVU0JfTUMKIAkgIFNheSBZIGlmIHlvdSBvd24gc3VjaCBhIGRldmlj
-ZSBhbmQgd2FudCB0byB1c2UgaXQuIFlvdSBzaG91bGQgYnVpbGQgaXQgYXMKIAkgIGEgbW9k
-dWxlLgogCitjb25maWcgRFZCX1VTQl9ESUJVU0JfTUNfRkFVTFRZCisJYm9vbCAiU3VwcG9y
-dCBmYXVsdHkgVVNCIElEcyIKKwlkZXBlbmRzIG9uIERWQl9VU0JfRElCVVNCX01DCisJaGVs
-cAorCSAgU3VwcG9ydCBmb3IgZmF1bHR5IFVTQiBJRHMgZHVlIHRvIGFuIGludmFsaWQgRUVQ
-Uk9NIG9uIHNvbWUgTElURS1PTiBkZXZpY2VzLgorCiBjb25maWcgRFZCX1VTQl9ESUIwNzAw
-CiAJdHJpc3RhdGUgIkRpQmNvbSBEaUIwNzAwIFVTQiBEVkIgZGV2aWNlcyAoc2VlIGhlbHAg
-Zm9yIHN1cHBvcnRlZCBkZXZpY2VzKSIKIAlkZXBlbmRzIG9uIERWQl9VU0IKZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGlidXNiLW1jLmMgYi9kcml2ZXJzL21l
-ZGlhL2R2Yi9kdmItdXNiL2RpYnVzYi1tYy5jCmluZGV4IDA1OWNlYzkuLmFiNTc2NmEgMTAw
-NjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGlidXNiLW1jLmMKKysrIGIv
-ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWJ1c2ItbWMuYwpAQCAtNDIsNiArNDIsMTcg
-QEAgc3RhdGljIHN0cnVjdCB1c2JfZGV2aWNlX2lkIGRpYnVzYl9kaWIzMDAwbWNfdGFibGUg
-W10gPSB7CiAvKiAxMSAqLwl7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9VTFRJTUFfRUxFQ1RST05J
-QywJVVNCX1BJRF9BUlRFQ19UMTRfV0FSTSkgfSwKIC8qIDEyICovCXsgVVNCX0RFVklDRShV
-U0JfVklEX0xFQURURUssCQlVU0JfUElEX1dJTkZBU1RfRFRWX0RPTkdMRV9DT0xEKSB9LAog
-LyogMTMgKi8JeyBVU0JfREVWSUNFKFVTQl9WSURfTEVBRFRFSywJCVVTQl9QSURfV0lORkFT
-VF9EVFZfRE9OR0xFX1dBUk0pIH0sCisvKgorICogWFhYOiBTb21lIExJVEUtT04gZGV2aWNl
-cyBzZWVtIHRvIGxvb3NlIHRoZWlyIGlkIGFmdGVyIHNvbWUgdGltZS4gQmFkIEVFUFJPTSA/
-Pz8uCisgKiAgICAgIFdlIGRvbid0IGNhdGNoIHRoZXNlIGZhdWx0eSBJRHMgKG5hbWVseSAn
-Q3lwcmVzcyBGWDIgVVNCIGNvbnRyb2xsZXInKSB0aGF0CisgKiAgICAgIGhhdmUgYmVlbiBs
-ZWZ0IG9uIHRoZSBkZXZpY2UuIElmIHlvdSBkb24ndCBoYXZlIHN1Y2ggYSBkZXZpY2UgYnV0
-IGFuIExJVEUtT04KKyAqICAgICAgZGV2aWNlIHRoYXQncyBzdXBwb3NlZCB0byB3b3JrIHdp
-dGggdGhpcyBkcml2ZXIgYnV0IGlzIG5vdCBkZXRlY3RlZCBieSBpdCwKKyAqICAgICAgZnJl
-ZSB0byBlbmFibGUgQ09ORklHX0RWQl9VU0JfRElCVVNCX01DX0ZBVUxUWSB2aWEgeW91ciBr
-ZXJuZWwgY29uZmlnLgorICovCisKKyNpZmRlZiBDT05GSUdfRFZCX1VTQl9ESUJVU0JfTUNf
-RkFVTFRZCisvKiAxNCAqLwl7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9DWVBSRVNTLAkJVVNCX1BJ
-RF9VTFRJTUFfVFZCT1hfVVNCMl9GWF9DT0xEKSB9LAorI2VuZGlmCiAJCQl7IH0JCS8qIFRl
-cm1pbmF0aW5nIGVudHJ5ICovCiB9OwogTU9EVUxFX0RFVklDRV9UQUJMRSAodXNiLCBkaWJ1
-c2JfZGliMzAwMG1jX3RhYmxlKTsKQEAgLTg4LDcgKzk5LDExIEBAIHN0YXRpYyBzdHJ1Y3Qg
-ZHZiX3VzYl9kZXZpY2VfcHJvcGVydGllcyBkaWJ1c2JfbWNfcHJvcGVydGllcyA9IHsKIAog
-CS5nZW5lcmljX2J1bGtfY3RybF9lbmRwb2ludCA9IDB4MDEsCiAKKyNpZmRlZiBDT05GSUdf
-RFZCX1VTQl9ESUJVU0JfTUNfRkFVTFRZCisJLm51bV9kZXZpY2VfZGVzY3MgPSA4LAorI2Vs
-c2UKIAkubnVtX2RldmljZV9kZXNjcyA9IDcsCisjZW5kaWYKIAkuZGV2aWNlcyA9IHsKIAkJ
-eyAgICJEaUJjb20gVVNCMi4wIERWQi1UIHJlZmVyZW5jZSBkZXNpZ24gKE1PRDMwMDBQKSIs
-CiAJCQl7ICZkaWJ1c2JfZGliMzAwMG1jX3RhYmxlWzBdLCBOVUxMIH0sCkBAIC0xMTksNiAr
-MTM0LDEzIEBAIHN0YXRpYyBzdHJ1Y3QgZHZiX3VzYl9kZXZpY2VfcHJvcGVydGllcyBkaWJ1
-c2JfbWNfcHJvcGVydGllcyA9IHsKIAkJCXsgJmRpYnVzYl9kaWIzMDAwbWNfdGFibGVbMTJd
-LCBOVUxMIH0sCiAJCQl7ICZkaWJ1c2JfZGliMzAwMG1jX3RhYmxlWzEzXSwgTlVMTCB9LAog
-CQl9LAorI2lmZGVmIENPTkZJR19EVkJfVVNCX0RJQlVTQl9NQ19GQVVMVFkKKwkJeyAgICJM
-SVRFLU9OIFVTQjIuMCBEVkItVCBUdW5lciAoZmF1bHR5IFVTQiBJRHMpIiwKKwkJICAgIC8q
-IEFsc28gcmVicmFuZGVkIGFzIEludHVpeCBTODAwLCBUb3NoaWJhICovCisJCQl7ICZkaWJ1
-c2JfZGliMzAwMG1jX3RhYmxlWzE0XSwgTlVMTCB9LAorCQkJeyBOVUxMIH0sCisJCX0sCisj
-ZW5kaWYKIAkJeyBOVUxMIH0sCiAJfQogfTsK
---------------080901020804070106090203--
+Check out my qv4l2 tree for progress on this tool!
+
+Now all I need is lots more time :-(
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
