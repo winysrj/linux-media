@@ -1,37 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:53648 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725AbZAaQwG (ORCPT
+Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]:39465 "EHLO
+	shogun.pilppa.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759228AbZA2Vgs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jan 2009 11:52:06 -0500
-Message-ID: <498481B5.4030702@gmail.com>
-Date: Sat, 31 Jan 2009 17:52:05 +0100
-From: Roel Kluin <roel.kluin@gmail.com>
+	Thu, 29 Jan 2009 16:36:48 -0500
+Date: Thu, 29 Jan 2009 23:36:43 +0200 (EET)
+From: Mika Laitio <lamikr@pilppa.org>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+cc: gimli <gimli@dark-green.com>, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
+In-Reply-To: <200901292242.55298.liplianin@tut.by>
+Message-ID: <Pine.LNX.4.64.0901292335140.17122@shogun.pilppa.org>
+References: <497F7117.9000607@dark-green.com> <200901292112.15587.liplianin@tut.by>
+ <498203D7.6080002@dark-green.com> <200901292242.55298.liplianin@tut.by>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
-Subject: [PATCH] saa7146_i2c: saa7146_i2c_transfer() wrong?
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vi drivers/media/common/saa7146_i2c.c +292
+>> Edgar (gimli) Hucek
+>
+> Does simple patch work ?
+> I need your Acked-by :)
 
-in saa7146_i2c_transfer(..., int retries) 
-{
-	int address_err = 0;
-	do {
-		...
-		if (...)
-			address_err++;
-		...
-	} while (retries--);
+Hi, I have only saw one version of your patch in mailing list,
+did you send the simpler version somewhere?
 
-	/* if every retry had an address error, exit right away */
-        if (address_err == retries) {
-                goto out;
-        }
-	...
-}
-this is wrong, isn't it?
+Mika
