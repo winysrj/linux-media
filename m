@@ -1,72 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:50881 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758061AbZAVThg (ORCPT
+Received: from mognix.dark-green.com ([88.116.226.179]:55517 "EHLO
+	mognix.dark-green.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752297AbZA2Tad (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 14:37:36 -0500
-Date: Thu, 22 Jan 2009 17:37:00 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Vladimir Davydov <vladimir.davydov@promwad.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Request for new pixel format (JPEG2000)
-Message-ID: <20090122173700.208f290c@caramujo.chehab.org>
-In-Reply-To: <200901221203.48823.vladimir.davydov@promwad.com>
-References: <200901212146.39153.vladimir.davydov@promwad.com>
-	<1232600942.3764.130.camel@tux.localhost>
-	<200901220819.54460.hverkuil@xs4all.nl>
-	<200901221203.48823.vladimir.davydov@promwad.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 29 Jan 2009 14:30:33 -0500
+Message-ID: <498203D7.6080002@dark-green.com>
+Date: Thu, 29 Jan 2009 20:30:31 +0100
+From: gimli <gimli@dark-green.com>
+MIME-Version: 1.0
+To: "Igor M. Liplianin" <liplianin@tut.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
+References: <497F7117.9000607@dark-green.com> <200901291807.33531.liplianin@tut.by> <4981F064.7070407@dark-green.com> <200901292112.15587.liplianin@tut.by>
+In-Reply-To: <200901292112.15587.liplianin@tut.by>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 22 Jan 2009 12:03:48 +0200
-Vladimir Davydov <vladimir.davydov@promwad.com> wrote:
-
-> On Thursday 22 January 2009 09:19:54 Hans Verkuil wrote:
-> > On Thursday 22 January 2009 06:09:02 Alexey Klimov wrote:
-> > > (added linux-media mail-list)
-> > >
-> > > Hello, Vladimir
-> > >
-> > > On Wed, 2009-01-21 at 21:46 +0200, Vladimir Davydov wrote:
-> > > > Hi,
-> > > > Is it possible to add new pixel format to videodev2.h file?
-> > > >
-> > > > #define V4L2_PIX_FMT_MJ2C   v4l2_fourcc('M','J','2','C') /* Morgan JPEG
-> > > > 2000*/
-> > > >
-> > > > I have developed a V4L2 driver for the board with hardware JPEG2000
-> > > > codec (ADV202 chip). This driver uses that pixel format.
-> > > > I think JPEG 2000 is very perspective codec and it will be good if V4L2
-> > > > will support it.
-> > > >
-> > > > Short description of the device is here:
-> > > > http://www.promwad.com/markets/linux-video-jpeg2000-blackfin.html
-> >
-> > Vladimir,
-> >
-> > It shouldn't be a problem adding this, but we prefer to only add such
-> > things when the driver code is also added at the same time. Are you going
-> > to submit the driver code as well to the list?
-> >
-> > Thanks,
-> >
-> > 	Hans
+Igor M. Liplianin schrieb:
+> В сообщении от 29 January 2009 20:07:32 gimli написал(а):
+>> Hi,
+>>
+>> your patch seems to work.
+> If it works, then I prepare more simple patch.
 > 
-> Hans, 
-> I can sibmit the driver code. But this driver is only for the blackfin 
-> processor and will not work on other platforms. Does it make sense to include 
-> the driver to the kernel source? 
-> Maybe it will be better to include this driver to the blackfin.uclinux kernel 
-> tree. How do you think?
+> 
 
-Please submit the driver to linux-media. The proper place for those drivers are
-under drivers/media. We have also other drivers there that are architecture
-specific (like omap drivers, OLPC, etc).
+Hi,
 
-Cheers,
-Mauro.
+you can also put my :
+
+Signed-off-by: Edgar Hucek <gimli@dark-green.com>
+
+to the list.
+
+cu
+
+Edgar (gimli) Hucek
+
+
