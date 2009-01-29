@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:2635 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512AbZA1QRP (ORCPT
+Received: from mail.tut.by ([195.137.160.40]:51362 "EHLO speedy.tutby.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751631AbZA2Utb convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jan 2009 11:17:15 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so3019948yxm.1
-        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2009 08:17:14 -0800 (PST)
+	Thu, 29 Jan 2009 15:49:31 -0500
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: gimli <gimli@dark-green.com>, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
+Date: Thu, 29 Jan 2009 22:42:55 +0200
+References: <497F7117.9000607@dark-green.com> <200901292112.15587.liplianin@tut.by> <498203D7.6080002@dark-green.com>
+In-Reply-To: <498203D7.6080002@dark-green.com>
 MIME-Version: 1.0
-Reply-To: siegeljb@umich.edu
-Date: Wed, 28 Jan 2009 11:17:14 -0500
-Message-ID: <2d21cac80901280817s4dcb498cx73c931e513f9161d@mail.gmail.com>
-Subject: cx18, HVR-1600 Clear qam tuning
-From: Jason Siegel <siegeljb@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200901292242.55298.liplianin@tut.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-What is the status of clear qam tuning with the HVR-1600?
+On 29 ������ 2009, "Igor M. Liplianin" <liplianin@tut.by> wrote:
+> Igor M. Liplianin schrieb:
+> > В сообщении от 29 January 2009 20:07:32 gimli написал(а):
+> >> Hi,
+> >>
+> >> your patch seems to work.
+> >
+> > If it works, then I prepare more simple patch.
+>
+> Hi,
+>
+> you can also put my :
+>
+> Signed-off-by: Edgar Hucek <gimli@dark-green.com>
+>
+> to the list.
+>
+> cu
+>
+> Edgar (gimli) Hucek
 
-I've got me card setup and working, analog captures work well with
-cable, and ATSC tuning of ota signals work great with an antenna, but
-I can't find any clear qam cable stations.
+Does simple patch work ?
+I need your Acked-by :)
 
-I have a FusionHTDV5 usb tuner which finds 336 stations using qam256,
-so I know that they are there, and the cable signal is good.
-
-The HVR-1600 is even working with clear qam in Windows7... and has a
-SNR of around 30 dB.
-http://thegreenbutton.com/forums/thread/321338.aspx
-
-
-Thanks,
-
--Jason
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
