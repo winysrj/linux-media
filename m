@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <d.dalton@iinet.net.au>) id 1LPR7r-0003Hp-6A
-	for linux-dvb@linuxtv.org; Wed, 21 Jan 2009 01:39:25 +0100
-Date: Wed, 21 Jan 2009 11:39:15 +1100
-From: Daniel Dalton <d.dalton@iinet.net.au>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090121003915.GA6120@debian-hp.lan>
-References: <20090120091952.GB6792@debian-hp.lan> <4975B5F1.7000306@iki.fi>
-	<20090120220701.GB4150@debian-hp.lan> <49765448.8060108@iki.fi>
+Received: from gateway06.websitewelcome.com ([69.93.35.3])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1LSWZ5-00051s-Kf
+	for linux-dvb@linuxtv.org; Thu, 29 Jan 2009 14:04:16 +0100
+Received: from [77.109.104.35] (port=34564 helo=[127.0.0.1])
+	by gator143.hostgator.com with esmtpa (Exim 4.69)
+	(envelope-from <skerit@kipdola.com>) id 1LSWYw-0002PS-Ac
+	for linux-dvb@linuxtv.org; Thu, 29 Jan 2009 07:04:06 -0600
+Message-ID: <4981A93A.7080909@kipdola.com>
+Date: Thu, 29 Jan 2009 14:03:54 +0100
+From: Jelle De Loecker <skerit@kipdola.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <49765448.8060108@iki.fi>
-Subject: Re: [linux-dvb] getting started with msi tv card
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Extracting video stream
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,55 +27,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Antti,
+Hi everyone,
 
-On Wed, Jan 21, 2009 at 12:46:32AM +0200, Antti Palosaari wrote:
-> Yes, should work out of the box. No need to install any driver, driver 
-> is included in your Kernel.
+This is not a real -dvb question, but -media seemed too official.
 
-/dev/dvb/adapter0/ is created. so does this mean the right modules have
-been loaded?
+A device of mine is serving a video stream on a certain port, (Hawking 
+HNC210, video surveillance cam)
+unfortunately it uses its own (very simple) protocol: it's a bunch of 
+jpegs in a row.
 
-> >> However, tuner performance is not very good. With weak signal it works 
-> >> better than strong. All remote keys are not working because driver does 
-> >> not upload IR-table to the chip.
-> > 
-> > ok
-> 
-> I have newer one, gl861 5581, and this is the version which have remote 
-> problem. I think older Megasky have all remote buttons functional.
+I have this script that checks the stream every second and creates a 
+jpeg out of it,
+but I really want a continuous video stream. Is there a way to do this?
 
-Ah good
+This is the script:
 
-> 
-> > Mplayer works with this card? Great!
-> > 
-> > How would I begin configuring it for mplayer then?
-> 
-> I think mplayer is not very user friendly, try Kaffeine or Me-TV 
-> instead. Kaffeine have own channel scanner so it is very easy to 
-> configure. Otherwise you will need initial tuning file and then scan to 
-> get channels.conf. Try google for more info.
+#!/usr/bin/perl
+use IO::Socket;
+#SET WHERE CAMERA IS
+$sock = new IO::Socket::INET (PeerAddr => '10.11.0.101',
+                                PeerPort => 4321,
+                                Proto    => 'tcp',
+                                Timeout  => 1);
+#do it again forever
+while (1){
+#sleep timeout (this value give us 1fps)
+select(undef, undef, undef, 0.5);
 
-I've been googling, and have played with w_scan and me-tv.
-Kaffeine unfortunately is qt and won't work with braille/speech, but
-me-tv does. So I got sighted help to scan for channels in kaffeine, the
-scan didn't find any channels.
-Next, I ran the w_scan program, and that as well failed to find any
-channels. Finally, I ran me-tv and that as well failed. (I selected my
-location for me-tv).
+$sock->send("0110\n");
+$sock->read($size, 2);
+$sock->read($j1, 1);
+$sock->read($j2, 1);
+$j1=oct("0x".unpack("H*", $j1));
+$j2=oct("0x".unpack("H*", $j2));
+#print "J1_USERS:".$j1."\n";
+#print "J2:".$j2."\n";
+$size=oct("0x".unpack("H*", $size));
+#print "SIZE:".$size."\n";
+if ($size != 0) {
+$sock->read($data, $size);
+open OUTF, "> /var/www/hawking.jpg" or die "Can't open $outfile : $!";
+print OUTF $data;
+close OUTF;
+}
+}
 
-So, how do I get w_scan or me-tv to find some channels? It's probably
-not worth talking about kaffeine as I won't be able to use this. I'm
-plugging my usb receiver into a tv connection in my home which a
-standard tv would plug into.
-
-Any ideas?
-
-Thanks very much for your help,
-
-Daniel.
-
+Greetings,
+Jelle De Loecker
 
 _______________________________________________
 linux-dvb users mailing list
