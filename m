@@ -1,68 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web23205.mail.ird.yahoo.com ([217.146.189.60]:44142 "HELO
-	web23205.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752680AbZAZMPs convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jan 2009 07:15:48 -0500
-Date: Mon, 26 Jan 2009 12:09:05 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-Reply-To: newspaperman_germany@yahoo.com
-Subject: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on HDchannels
-To: linux-media@vger.kernel.org
-In-Reply-To: <000f01c97f85$c013f0c0$f4c6a5c1@tommy>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Message-ID: <283238.10141.qm@web23205.mail.ird.yahoo.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:45200 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751288AbZA2Ne6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 08:34:58 -0500
+Date: Thu, 29 Jan 2009 11:34:29 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+Cc: matthieu castet <castet.matthieu@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support faulty USB IDs on DIBUSB_MC
+Message-ID: <20090129113429.3137ac44@caramujo.chehab.org>
+In-Reply-To: <alpine.LRH.1.10.0901291329590.15700@pub6.ifh.de>
+References: <484A72D3.7070500@free.fr>
+	<4974E4BE.2060107@free.fr>
+	<20090129074735.76e07d47@caramujo.chehab.org>
+	<alpine.LRH.1.10.0901291117110.15700@pub6.ifh.de>
+	<20090129100520.3331f41f@caramujo.chehab.org>
+	<alpine.LRH.1.10.0901291329590.15700@pub6.ifh.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-the transponders you don't get lock are problem transponders of s2-3200.
-The driver is still not able to lock on dvb-s2 30000 3/4 transponders :(
+On Thu, 29 Jan 2009 14:08:01 +0100 (CET)
+Patrick Boettcher <patrick.boettcher@desy.de> wrote:
 
-Which software do you use to play HD content?
-you need either xine-lib 1.2 with external ffmpeg (recent developer's version).
-or xine-vdpau (if you have a NVIDIA graka that supports h264 hw acceleration).
-
-regards 
-
-Newsy
-
-
---- Tomas Drajsajtl <linux-dvb@drajsajtl.cz> schrieb am Mo, 26.1.2009:
-
-> Von: Tomas Drajsajtl <linux-dvb@drajsajtl.cz>
-> Betreff: Re: [linux-dvb] Technotrend Budget S2-3200 Digital artefacts on HDchannels
-> An: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-> Datum: Montag, 26. Januar 2009, 8:14
-> > Nat Geo HD and Histoy Channel HD are the only two HD
-> channels I can
-> > lock, and I have problems with digital artefacts,
-> lines across the
-> > screen missing data and tons of errors from the
-> frontend. See below for
-> > error log.
+> On Thu, 29 Jan 2009, Mauro Carvalho Chehab wrote:
+> >> We could do that, still I'm not sure if ARRAY_SIZE will work in that
+> >> situation?! Are you
+> >> sure, Mauro?
+> >
+> > Well, at least here, it is compiling fine. I can't really test it, since I
+> > don't have any dib0700 devices here.
 > 
-> Hi Jonas,
-> just guessing - try another card slot. If there are more
-> devices on one IRQ
-> the transfer speed from the card can be lower and causing
-> problems at
-> channels with higher bitrate. I had similar colision
-> between PCI network and
-> sound cards. When I moved one card to another slot, the
-> problem was solved.
+> Hmm, your patch is shifting the counting problem to another place. Instead 
+> of counting manually the devices-array-elements, one now needs to count 
+> the number of device_properties ;) .
+
+> With such a patch we would risk to break some device support and as I 
+> never saw a patch which broke the current num_device_descs-manual-count I 
+> don't see the need to change.
+
+Nothing is perfect ;)
+
+I suspect that you have more additions at the number of the devices than on the
+number of device properties. So, the risk of doing bad things seems lower.
+Also, a simple board addition won't need to touch at the number of devices.
+
+IMO, it is really bad to have to explicitly say the number of devices at those
+arrays. Maybe we may use some macro logic here to avoid such risks, or use a
+NULL terminated list instead.
+
 > 
-> Regards,
-> Tomas
-> 
-> 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead
-> linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> --
+>    Mail: patrick.boettcher@desy.de
+>    WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 
-      
+
+
+Cheers,
+Mauro
