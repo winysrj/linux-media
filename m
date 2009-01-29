@@ -1,40 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.sagem.com ([62.160.59.65]:59516 "EHLO mx1.sagem.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750923AbZAZB2o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 20:28:44 -0500
-Subject: Benoit RAQUE/DRD/SAGEM is not available.
-To: linux-media@vger.kernel.org
-Message-ID: <OFB8211231.DD21D96D-ONC125754A.000589DB-C125754A.000589DB@sagem.com>
-Date: Mon, 26 Jan 2009 02:00:29 +0100
-From: "Benoit RAQUE" <benoit.raque@sagem.com>
-Content-type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:53977 "EHLO
+	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751698AbZA2LCv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 06:02:51 -0500
+Date: Thu, 29 Jan 2009 03:02:47 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Marton Balint <cus@fazekas.hu>
+cc: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH] cx88: fix unexpected video resize when setting tv norm
+In-Reply-To: <Pine.LNX.4.64.0901290232500.25376@cinke.fazekas.hu>
+Message-ID: <Pine.LNX.4.58.0901290257330.17300@shell2.speakeasy.net>
+References: <571b3176dc82a7206ade.1231614963@roadrunner.athome>
+ <Pine.LNX.4.58.0901101325420.1626@shell2.speakeasy.net>
+ <Pine.LNX.4.64.0901290232500.25376@cinke.fazekas.hu>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 29 Jan 2009, Marton Balint wrote:
+> The status of this patch has changed to "Changes Requested" in
+> patchwork, but it's not obvious to me what changes are needed exactly.
+> Yes, in the comments quite a few questions came up, but we haven't
+> decided the correct course of action for good, and the patch also makes
+> sense in it's current form.
 
-Je serai absent(e) du  24/01/2009 au 02/02/2009.
-
-I'm on vacation until the 2nd of February.
-For any technical questions, you can contact Thierry Marchand at this
-address : thierry.marchand@sagem.com
-
-Best regards,
-
-Benoit Raque
-
-
-
-" Ce courriel et les documents qui y sont attaches peuvent contenir des inf=
-ormations confidentielles. Si vous n'etes  pas le destinataire escompte, me=
-rci d'en informer l'expediteur immediatement et de detruire ce courriel  ai=
-nsi que tous les documents attaches de votre systeme informatique. Toute di=
-vulgation, distribution ou copie du present courriel et des documents attac=
-hes sans autorisation prealable de son emetteur est interdite."=20
-
-" This e-mail and any attached documents may contain confidential or propri=
-etary information. If you are not the intended recipient, please advise the=
- sender immediately and delete this e-mail and all attached documents from =
-your computer system. Any unauthorised disclosure, distribution or copying =
-hereof is prohibited."
+The most serious problem with the patch is that the current image size may
+not be valid after changing norms.  The driver and v4l2 aren't designed to
+allow an invalid image size to be selected, yet this patch would allow that
+to happen.
