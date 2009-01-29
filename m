@@ -1,85 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:42123 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758313AbZAQRmP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 12:42:15 -0500
-Subject: Re: KWorld ATSC 115 all static
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: CityK <cityk@rogers.com>, Michael Krufky <mkrufky@linuxtv.org>,
-	V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-In-Reply-To: <200901171720.03890.hverkuil@xs4all.nl>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-	 <496FE555.7090405@rogers.com> <496FFCE2.8010902@rogers.com>
-	 <200901171720.03890.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 17 Jan 2009 18:42:24 +0100
-Message-Id: <1232214144.2702.77.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.tut.by ([195.137.160.40]:37616 "EHLO speedy.tutby.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759846AbZA2Xme (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 18:42:34 -0500
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: Mika Laitio <lamikr@pilppa.org>, gimli <gimli@dark-green.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
+Date: Fri, 30 Jan 2009 00:09:37 +0200
+References: <497F7117.9000607@dark-green.com> <200901292242.55298.liplianin@tut.by> <Pine.LNX.4.64.0901292335140.17122@shogun.pilppa.org>
+In-Reply-To: <Pine.LNX.4.64.0901292335140.17122@shogun.pilppa.org>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_hkigJnN1UFyy0t7"
+Message-Id: <200901300009.37576.liplianin@tut.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+--Boundary-00=_hkigJnN1UFyy0t7
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Am Samstag, den 17.01.2009, 17:20 +0100 schrieb Hans Verkuil:
-> On Friday 16 January 2009 04:20:02 CityK wrote:
-> > CityK wrote:
-> > > If you had meant taking Hans' source and applying your "hack" patch
-> > > to them, building and then proceeding with the modprobe steps, the
-> > > answer is that I haven't tried yet. Will test -- might not be
-> > > tonight though, as I have some other things that need attending
-> > > too.
+=F7 =D3=CF=CF=C2=DD=C5=CE=C9=C9 =CF=D4 29 January 2009 23:36:43 Mika Laitio=
+ =CE=C1=D0=C9=D3=C1=CC(=C1):
+> >> Edgar (gimli) Hucek
 > >
-> > Okay, I lied -- given that building is really a background process, I
-> > found time ... i.e. I cleaned up in the kitchen while the system
-> > compiled ... kneel before me world, as I am a master multi-tasker!
-> >
-> > >> Anyway, if the previous workaround works after Hans' changes, then
-> > >> I think his changes should be merged -- even though it doesnt fix
-> > >> ATSC115, it is indeed a step into the right direction.
-> > >>
-> > >> If the ATSC115 hack-fix patch doesn't apply anymore, please let me
-> > >> know -- I'll respin it.
-> >
-> > The "hack-fix" patch applies cleanly against Hans' sources. However,
-> > the test results are negative -- the previous workaround ("modprobe
-> > tuner -r and "modprobe tuner") fails to produce the desired result.
-> 
-> If you try to run 'modprobe -r tuner' when the saa7134 module build from 
-> my sources is loaded, then that should not work since saa7134 increases 
-> the use-count of the tuner module preventing it from being unloaded.
-> 
-> If you can do this, then that suggests that you are perhaps not using my 
-> modified driver at all.
-> 
-> BTW, I've asked Mauro to pull from my tree 
-> (www.linuxtv.org/hg/~hverkuil/v4l-dvb) which contains the converted 
-> saa7134 and saa6752hs drivers. It's definitely something that needs to 
-> be done regardless.
+> > Does simple patch work ?
+> > I need your Acked-by :)
+>
+> Hi, I have only saw one version of your patch in mailing list,
+> did you send the simpler version somewhere?
+>
+> Mika
+Sorry, send it to Edgar only.
+But it is unintentionally.
 
-Hans, Mauro has pulled them in already.
+=2D-=20
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-For my report for the old issue with the tda9987 not loaded for the
-md7134 card=12 with eeprom tuner detection and all the types with
-FMD1216ME MK3 hybrid subsumed there beside the older ones with analog
-only tuners (CTX917/918/925triple/946mpeg/921cardbus), the users must
-just unload the saa7134 and tuner modules and then load tda9887 and
-tuner before the saa7134 for now.
+--Boundary-00=_hkigJnN1UFyy0t7
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="hvr4000.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="hvr4000.patch"
 
-> Regards,
-> 
-> 	Hans
-> 
-> > In fact, as similar to the results reported in the previous message,
-> > performing such action produces no result in dmesg.
-> 
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1233253267 -7200
+# Node ID 3542d1c1e03add577ce85175327701c552d14856
+# Parent  4086371cea7b7f8b461e1a77513274aa43583c8c
+Bug fix: Restore HVR-4000 tuning.
 
-Cheers,
-Hermann
+From: Igor M. Liplianin <liplianin@me.by>
 
+Some cards uses cx24116 LNB_DC pin for LNB power control,
+some not uses, some uses it different way, like HVR-4000.
 
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+
+diff -r 4086371cea7b -r 3542d1c1e03a linux/drivers/media/dvb/frontends/cx24116.c
+--- a/linux/drivers/media/dvb/frontends/cx24116.c	Sat Jan 17 17:23:31 2009 +0200
++++ b/linux/drivers/media/dvb/frontends/cx24116.c	Thu Jan 29 20:21:07 2009 +0200
+@@ -1184,7 +1184,12 @@
+ 	if (ret != 0)
+ 		return ret;
+ 
+-	return cx24116_diseqc_init(fe);
++	ret = cx24116_diseqc_init(fe);
++	if (ret != 0)
++		return ret;
++
++	/* HVR-4000 needs this */
++	return cx24116_set_voltage(fe, SEC_VOLTAGE_13);
+ }
+ 
+ /*
+
+--Boundary-00=_hkigJnN1UFyy0t7--
