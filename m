@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:9672 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.157]:25957 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085AbZAYP0x (ORCPT
+	with ESMTP id S1751756AbZA2Kcb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jan 2009 10:26:53 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so3185690fgg.17
-        for <linux-media@vger.kernel.org>; Sun, 25 Jan 2009 07:26:51 -0800 (PST)
+	Thu, 29 Jan 2009 05:32:31 -0500
+Received: by fg-out-1718.google.com with SMTP id 13so913616fge.17
+        for <linux-media@vger.kernel.org>; Thu, 29 Jan 2009 02:32:29 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20090124203726.GA9808@blorp.plorb.com>
-References: <463244.61379.qm@web45416.mail.sp1.yahoo.com>
-	 <20090124203726.GA9808@blorp.plorb.com>
-Date: Sun, 25 Jan 2009 10:26:51 -0500
-Message-ID: <37219a840901250726q7f385702uf33c07ac5b09647d@mail.gmail.com>
-Subject: Re: [linux-dvb] HVR-1800 Support
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org, killero_24@yahoo.com
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <alpine.DEB.2.00.0901271748160.15738@ybpnyubfg.ybpnyqbznva>
+References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva>
+	 <497A27F7.8020201@to-st.de>
+	 <alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva>
+	 <19a3b7a80901261228v393f5fcbv7559b573c0ca1539@mail.gmail.com>
+	 <alpine.DEB.2.00.0901262214200.15738@ybpnyubfg.ybpnyqbznva>
+	 <497EC855.7050301@to-st.de>
+	 <19a3b7a80901270237n761240bbn2627f782ddbffa29@mail.gmail.com>
+	 <497EF972.6090207@to-st.de>
+	 <alpine.DEB.2.00.0901271748160.15738@ybpnyubfg.ybpnyqbznva>
+Date: Thu, 29 Jan 2009 11:32:29 +0100
+Message-ID: <19a3b7a80901290232p3b2dd1a1y42f7276dedfebf43@mail.gmail.com>
+Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Tobias Stoeber <tobi@to-st.de>,
+	"DVB mailin' list thingy" <linux-dvb@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 24, 2009 at 3:37 PM, Jeff DeFouw <jeffd@i2k.com> wrote:
-> On Tue, Jan 20, 2009 at 10:08:51PM -0800, Killero SS wrote:
->> i'm using ubuntu 8.10 2.6.27-9-generic
->> and tried compiling latest modules with hg-clone but my analog capture got broken, firmware error...
->> so i got back to original kernel modules
->> however, some people claim they get audio with analog on /dev/video1
->> this has never be my case, im using svideo signal so wondering if that may be it.
->> i get analog video on video0 and video1, but some colors look pretty weird, red for example.
+2009/1/27 BOUWSMA Barry <freebeer.bouwsma@gmail.com>:
+<snip>
+> I intend to take Christoph's files and massage them to add
+> bits of info, reviewing the info by hand, adding missing info
+> and generally trying to come up with something like the BW
+> file I created.
 >
-> The driver in the kernel and hg does not set up the registers properly
-> for the video or audio in S-Video mode.  I made some changes to get mine
-> working.  I can probably make a patch for you if you can get your source
-> build working.
+> But I want feedback about that file too, rather than to have
+> my changes be rejected after I've done the review and work.
+<snip>
 
-Why not sign it off and send it in to the list, to be merged into the
-official sources?
+I don't mind adding those further bits. They need to be after the main
+block in the file, so that they don't get overwritten when those files
+are updated e.g. because of a new pdf. They shouldn't be too
+excessive, but for example I prefer if you add the Leipzip transponder
+to the de-whatever file instead of creating a new de-Leipzig file, so
+this point shouldn't cause trouble to you. People don't have to scan
+every day, so it doesn't hurt if the scan time is increased by some
+seconds.
 
-Surely if there is a bug or missing feature that you've fixed, it
-should be merged into the repository so that everybody else can
-benefit from it.
+Thanks,
 
--Mike
+Christoph
+
+<snip>
