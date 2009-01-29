@@ -1,46 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f11.google.com ([209.85.221.11]:59144 "EHLO
-	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753923AbZAMR05 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jan 2009 12:26:57 -0500
-Received: by qyk4 with SMTP id 4so140566qyk.13
-        for <linux-media@vger.kernel.org>; Tue, 13 Jan 2009 09:26:56 -0800 (PST)
-Message-ID: <412bdbff0901130926g546ea6calc4507643891c8a7e@mail.gmail.com>
-Date: Tue, 13 Jan 2009 12:26:56 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Nicola Soranzo" <nsoranzo@tiscali.it>
-Subject: Re: No audio with Hauppauge WinTV-HVR-900 (R2)
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-In-Reply-To: <200901131823.23640.nsoranzo@tiscali.it>
+Received: from mail.gmx.net ([213.165.64.20]:49664 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754420AbZA2SfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 13:35:18 -0500
+Date: Thu, 29 Jan 2009 19:35:21 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: DongSoo Kim <dongsoo.kim@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>,
+	jongse.won@samsung.com, kyungmin.park@samsung.com
+Subject: Re: [V4L2] EV control API for digital camera
+In-Reply-To: <5e9665e10901281824ibccbf00lcbecba5b01fdcbea@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0901291934300.5474@axis700.grange>
+References: <5e9665e10901281824ibccbf00lcbecba5b01fdcbea@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <200901072031.27852.nsoranzo@tiscali.it>
-	 <20090108000530.1d4dbafa@pedra.chehab.org>
-	 <200901110411.36991.nsoranzo@tiscali.it>
-	 <200901131823.23640.nsoranzo@tiscali.it>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 13, 2009 at 12:23 PM, Nicola Soranzo <nsoranzo@tiscali.it> wrote:
-> Also, if I run
->
-> sudo arecord -D hw:2 -f dat prova.wav
->
-> arecord starts recording, but when I interrupt it with control-C I have a
-> complete kernel crash (even the Caps-Lock key is dead). For what I can
-> understand, the problem can be related to IRQ.
-> Can somebody help me?
+[removed redhat list from CC]
 
-I am already debugging that exact same issue.  I am waiting for a PCI
-serial card to show up (ordered last night), but as soon as it does I
-will isolate the problem.
+On Thu, 29 Jan 2009, DongSoo Kim wrote:
 
-Devin
+> Hello.
+> 
+> When we take pictures, sometimes we don't get satisfied with the
+> exposure of picture. Too dark or too bright.
+> 
+> For that reason, we need to bias EV which represents Exposure Value.
+> 
+> So..if I want to control digital camera module with V4L2 API, which
+> API should I take for EV control?
+> 
+> V4L2 document says that V4L2_CID_BRIGHTNESS is for picture brightness,
+> but it is for "Image properties" and that "image" means the image
+> frame of TV or PVR things.Am I right?
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+There's also V4L2_CID_EXPOSURE
+
+> 
+> If I may, can I use V4L2_CID_BRIGHTNESS for EV control of digital cameras?
+> 
+> or..otherwise I should make a new API for that functionality.
+> 
+> I'm little bit confused, because I think the brightness of picture
+> could differ from exposure value of digital camera..help me ;(
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
