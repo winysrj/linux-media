@@ -1,35 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:40773 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751461AbZA0PXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jan 2009 10:23:46 -0500
-Message-ID: <497F26DD.8050200@gmx.de>
-Date: Tue, 27 Jan 2009 16:23:09 +0100
-From: Jan Kreuzer <kontrollator@gmx.de>
-MIME-Version: 1.0
+Received: from mail.tut.by ([195.137.160.40]:48868 "EHLO speedy.tutby.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751750AbZA2QKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 11:10:17 -0500
+Received: from [213.184.224.34] (account liplianin@tut.by HELO dynamic-vpdn-128-6-50.telecom.by)
+  by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
+  with ESMTPA id 139795718 for linux-media@vger.kernel.org; Thu, 29 Jan 2009 18:07:39 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
 To: linux-media@vger.kernel.org
-Subject: Support for Technisat SkyStar USB 2 HD CI
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
+Date: Thu, 29 Jan 2009 18:07:33 +0200
+References: <497F7117.9000607@dark-green.com>
+In-Reply-To: <497F7117.9000607@dark-green.com>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_FRdgJHGoBgiuiVY"
+Message-Id: <200901291807.33531.liplianin@tut.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+--Boundary-00=_FRdgJHGoBgiuiVY
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-i just got my hands on the above card, its an usb dvb-s2 device with an
-ci-slot.
-The Product page is here :
-http://www.technisat.com/indexdb3d.html?nav=PC_products,en,76-228
+=F7 =D3=CF=CF=C2=DD=C5=CE=C9=C9 =CF=D4 27 January 2009 22:39:51 gimli =CE=
+=C1=D0=C9=D3=C1=CC(=C1):
+> Hi,
+>
+> the following changesets breaks Tuning to Vertical Transponders :
+>
+> http://mercurial.intuxication.org/hg/s2-liplianin/rev/1ca67881d96a
+> http://linuxtv.org/hg/v4l-dvb/rev/2cd7efb4cc19
+>
+> For example :
+>
+> DMAX;BetaDigital:12246:vC34M2O0S0:S19.2E:27500:511:512=3Ddeu:32:0:10101:1=
+:109
+>2:0
+>
+>
+> cu
+>
+> Edgar ( gimli ) Hucek
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-It is currently not detectd by the v4l drivers, neither by the tree from
-linuxtv, nor by the s2-liplianin nor the
-multirpoto tree. It is however listed in this post:
-http://marc.info/?l=linux-dvb&m=122143814507358&w=2
-as supported by the multiproto-tree. However i cant get it to work. What
-is needed / what should i do to make
- it work ? Note that i tried the multiproto-tree and also the
-s2-liplianin -ree.
+More likely not polarization, but hi band may broken.
+Anyway, please, try attached patch.
 
-Thank you for your help
+=2D-=20
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-Jan Kreuzer
+--Boundary-00=_FRdgJHGoBgiuiVY
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="10391.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="10391.patch"
+
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1233189531 -7200
+# Node ID d09924ba6c75233d8212ef79076739d9400d79a8
+# Parent  43dbc8ebb5a21c8991df5e5ead54b724c0dc18f4
+HVR-4000 Test
+
+diff -r 43dbc8ebb5a2 -r d09924ba6c75 linux/drivers/media/dvb/frontends/cx24116.c
+--- a/linux/drivers/media/dvb/frontends/cx24116.c	Tue Jan 27 23:47:50 2009 -0200
++++ b/linux/drivers/media/dvb/frontends/cx24116.c	Thu Jan 29 02:38:51 2009 +0200
+@@ -861,6 +861,7 @@
+ static int cx24116_set_tone(struct dvb_frontend *fe,
+ 	fe_sec_tone_mode_t tone)
+ {
++	struct cx24116_state *state = fe->demodulator_priv;
+ 	struct cx24116_cmd cmd;
+ 	int ret;
+ 
+@@ -870,8 +871,12 @@
+ 		return -EINVAL;
+ 	}
+ 
+-	/* Wait for LNB ready */
+-	ret = cx24116_wait_for_lnb(fe);
++	if (state->config->use_lnb_dc != 1)
++		ret = cx24116_set_voltage(fe, SEC_VOLTAGE_13);
++	else
++		/* Wait for LNB ready */
++		ret = cx24116_wait_for_lnb(fe);
++
+ 	if (ret != 0)
+ 		return ret;
+ 
+diff -r 43dbc8ebb5a2 -r d09924ba6c75 linux/drivers/media/dvb/frontends/cx24116.h
+--- a/linux/drivers/media/dvb/frontends/cx24116.h	Tue Jan 27 23:47:50 2009 -0200
++++ b/linux/drivers/media/dvb/frontends/cx24116.h	Thu Jan 29 02:38:51 2009 +0200
+@@ -35,6 +35,9 @@
+ 
+ 	/* Need to set MPEG parameters */
+ 	u8 mpg_clk_pos_pol:0x02;
++
++	/* Need to set LNB power control */
++	u8 use_lnb_dc;
+ };
+ 
+ #if defined(CONFIG_DVB_CX24116) || \
+diff -r 43dbc8ebb5a2 -r d09924ba6c75 linux/drivers/media/video/cx23885/cx23885-dvb.c
+--- a/linux/drivers/media/video/cx23885/cx23885-dvb.c	Tue Jan 27 23:47:50 2009 -0200
++++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c	Thu Jan 29 02:38:51 2009 +0200
+@@ -334,6 +334,7 @@
+ 
+ static struct cx24116_config dvbworld_cx24116_config = {
+ 	.demod_address = 0x05,
++	.use_lnb_dc = 1,
+ };
+ 
+ static int dvb_register(struct cx23885_tsport *port)
+
+--Boundary-00=_FRdgJHGoBgiuiVY--
