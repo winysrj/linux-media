@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail11a.verio-web.com ([204.202.242.23]:37843 "HELO
-	mail11a.verio-web.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752722AbZALRFv (ORCPT
+Received: from el-out-1112.google.com ([209.85.162.181]:38519 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbZA2C4x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 12:05:51 -0500
-Received: from mx70.stngva01.us.mxservers.net (204.202.242.141)
-	by mail11a.verio-web.com (RS ver 1.0.95vs) with SMTP id 2-0611529947
-	for <linux-media@vger.kernel.org>; Mon, 12 Jan 2009 12:05:49 -0500 (EST)
-Message-ID: <496B785F.3000505@sensoray.com>
-Date: Mon, 12 Jan 2009 09:05:35 -0800
-From: Dean Anderson <dean@sensoray.com>
+	Wed, 28 Jan 2009 21:56:53 -0500
+Received: by el-out-1112.google.com with SMTP id b25so1715753elf.1
+        for <linux-media@vger.kernel.org>; Wed, 28 Jan 2009 18:56:51 -0800 (PST)
 MIME-Version: 1.0
-To: Alexey Klimov <klimov.linux@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@isely.net>,
-	Thierry MERLE <thierry.merle@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Fw: [PATCH] v4l/dvb: remove err macro from few usb devices
-References: <20090108101342.58f7ce5e@pedra.chehab.org> <1231547630.4474.202.camel@tux.localhost>
-In-Reply-To: <1231547630.4474.202.camel@tux.localhost>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Reply-To: siegeljb@umich.edu
+In-Reply-To: <1233191016.3098.4.camel@palomino.walls.org>
+References: <2d21cac80901280817s4dcb498cx73c931e513f9161d@mail.gmail.com>
+	 <1233191016.3098.4.camel@palomino.walls.org>
+Date: Wed, 28 Jan 2009 21:56:51 -0500
+Message-ID: <2d21cac80901281856qbdb0541h762ecbbb6e85ab0a@mail.gmail.com>
+Subject: Re: cx18, HVR-1600 Clear qam tuning
+From: Jason Siegel <siegeljb@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alexey Klimov wrote:
-> Hello, all
->   
-> Dean, so you think that we don't need s2255 name in the beginning of
-> message and we doesn't need s2255_dev_err macros, right ?
+Thanks Andy,
+
+That did the trick! QAM256 is working!
+
+-J
+
+On Wed, Jan 28, 2009 at 8:03 PM, Andy Walls <awalls@radix.net> wrote:
+> On Wed, 2009-01-28 at 11:17 -0500, Jason Siegel wrote:
+>> What is the status of clear qam tuning with the HVR-1600?
 >
-> As i remember pr_err is just printk with KERN_ERR..
+> It should work.
 >
->   
-Not at all.  We must have s2255 in the beginning of the message.  I 
-wasn't sure only about pr_err, but it looks ok now. 
-
-The s2255_dev_err macros are a good idea.
-
-Thanks,
-
-Dean
-
-
-
-
+>> I've got me card setup and working, analog captures work well with
+>> cable, and ATSC tuning of ota signals work great with an antenna, but
+>> I can't find any clear qam cable stations.
+>
+> How are you scanning for cable channels?
+>
+>
+>> I have a FusionHTDV5 usb tuner which finds 336 stations using qam256,
+>> so I know that they are there, and the cable signal is good.
+>>
+>> The HVR-1600 is even working with clear qam in Windows7... and has a
+>> SNR of around 30 dB.
+>> http://thegreenbutton.com/forums/thread/321338.aspx
+>
+>
+> Devin just commited a patch to improve the lock time of the
+> cx24227/s5h1409 demodulator:
+>
+> http://linuxtv.org/hg/~dheitmueller/v4l-dvb-s5h1409/rev/6bb4e117a614
+>
+> I've tested it with my HVR-1600 and it improved things for me when
+> tuning ATSC OTA.  You may wish to give it a try.
+>
+> Regards,
+> Andy
+>
+>> Thanks,
+>>
+>> -Jason
+>
+>
+>
