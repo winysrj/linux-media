@@ -1,53 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32736 "EHLO mail.kapsi.fi"
+Received: from mail1.radix.net ([207.192.128.31]:63499 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751825AbZANSOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jan 2009 13:14:48 -0500
-Message-ID: <496E2B96.8060404@iki.fi>
-Date: Wed, 14 Jan 2009 20:14:46 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jochen Friedrich <jochen@scram.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCHv2] Add Freescale MC44S803 tuner driver
-References: <496E2912.8030604@scram.de>
-In-Reply-To: <496E2912.8030604@scram.de>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+	id S1752009AbZA2BCv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jan 2009 20:02:51 -0500
+Subject: Re: cx18, HVR-1600 Clear qam tuning
+From: Andy Walls <awalls@radix.net>
+To: siegeljb@umich.edu
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <2d21cac80901280817s4dcb498cx73c931e513f9161d@mail.gmail.com>
+References: <2d21cac80901280817s4dcb498cx73c931e513f9161d@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 28 Jan 2009 20:03:36 -0500
+Message-Id: <1233191016.3098.4.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi Jochen,
-Jochen Friedrich wrote:
-> Changes since v1:
-> - rebase against official linux tree. v1 was based against a local tree and didn't apply cleanly.
+On Wed, 2009-01-28 at 11:17 -0500, Jason Siegel wrote:
+> What is the status of clear qam tuning with the HVR-1600?
 
-Now it applies cleanly, but didn't compile. Some header file is missing.
+It should work.
 
-Antti
+> I've got me card setup and working, analog captures work well with
+> cable, and ATSC tuning of ota signals work great with an antenna, but
+> I can't find any clear qam cable stations.
 
-   CC [M]  /home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mxl5007t.o
-   CC [M]  /home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mc44s803.o
-/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mc44s803.c: In function 
-'mc44s803_attach':
-/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mc44s803.c:339: error: 
-'KERN_ERROR' undeclared (first use in this function)
-/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mc44s803.c:339: error: 
-(Each undeclared identifier is reported only once
-/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mc44s803.c:339: error: 
-for each function it appears in.)
-/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mc44s803.c:339: error: 
-expected ')' before string constant
-make[3]: *** [/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l/mc44s803.o] 
-Error 1
-make[2]: *** [_module_/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l] 
-Error 2
-make[2]: Leaving directory `/usr/src/kernels/2.6.27.9-159.fc10.x86_64'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/crope/linuxtv/code/af9015/81/v4l-dvb/v4l'
-make: *** [all] Error 2
-[crope@localhost v4l-dvb]$
+How are you scanning for cable channels?
 
 
--- 
-http://palosaari.fi/
+> I have a FusionHTDV5 usb tuner which finds 336 stations using qam256,
+> so I know that they are there, and the cable signal is good.
+> 
+> The HVR-1600 is even working with clear qam in Windows7... and has a
+> SNR of around 30 dB.
+> http://thegreenbutton.com/forums/thread/321338.aspx
+
+
+Devin just commited a patch to improve the lock time of the
+cx24227/s5h1409 demodulator:
+
+http://linuxtv.org/hg/~dheitmueller/v4l-dvb-s5h1409/rev/6bb4e117a614
+
+I've tested it with my HVR-1600 and it improved things for me when
+tuning ATSC OTA.  You may wish to give it a try.
+
+Regards,
+Andy
+
+> Thanks,
+> 
+> -Jason
+
+
