@@ -1,39 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from postfix2-g20.free.fr ([212.27.60.43]:44612 "EHLO
-	postfix2-g20.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbZALABL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jan 2009 19:01:11 -0500
-Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
-	by postfix2-g20.free.fr (Postfix) with ESMTP id 5A2F22EE091B
-	for <linux-media@vger.kernel.org>; Sun, 11 Jan 2009 23:00:57 +0100 (CET)
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <damm@igel.co.jp>
-Subject: Re: [PATCH] soc-camera: fix S_CROP breakage on PXA and SuperH
-References: <Pine.LNX.4.64.0901110148360.22041@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Mon, 12 Jan 2009 00:59:50 +0100
-In-Reply-To: <Pine.LNX.4.64.0901110148360.22041@axis700.grange> (Guennadi Liakhovetski's message of "Sun\, 11 Jan 2009 01\:53\:05 +0100 \(CET\)")
-Message-ID: <87d4etpf61.fsf@free.fr>
+Received: from znsun1.ifh.de ([141.34.1.16]:46589 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751931AbZA2NIQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jan 2009 08:08:16 -0500
+Date: Thu, 29 Jan 2009 14:08:01 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: matthieu castet <castet.matthieu@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support faulty USB IDs on DIBUSB_MC
+In-Reply-To: <20090129100520.3331f41f@caramujo.chehab.org>
+Message-ID: <alpine.LRH.1.10.0901291329590.15700@pub6.ifh.de>
+References: <484A72D3.7070500@free.fr> <4974E4BE.2060107@free.fr> <20090129074735.76e07d47@caramujo.chehab.org> <alpine.LRH.1.10.0901291117110.15700@pub6.ifh.de> <20090129100520.3331f41f@caramujo.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+On Thu, 29 Jan 2009, Mauro Carvalho Chehab wrote:
+>> We could do that, still I'm not sure if ARRAY_SIZE will work in that
+>> situation?! Are you
+>> sure, Mauro?
+>
+> Well, at least here, it is compiling fine. I can't really test it, since I
+> don't have any dib0700 devices here.
 
-> Recent format-negotiation patches caused S_CROP breakage in pxa_camera.c 
-> and sh_mobile_ceu_camera.c drivers, fix it.
+Hmm, your patch is shifting the counting problem to another place. Instead 
+of counting manually the devices-array-elements, one now needs to count 
+the number of device_properties ;) .
 
-> Tested on PXA, Magnus, please test on sh, Robert, any objections?
-No objection, that seems very sensible, and it was a regression introduced by
-the format negotiation, no doubt about it, sorry :(
+With such a patch we would risk to break some device support and as I 
+never saw a patch which broke the current num_device_descs-manual-count I 
+don't see the need to change.
 
-It's fine by me, and tested (also I don't work with S_CROP so I can only testify
-non-regression of my tests).
-
-Cheers.
+Patrick.
 
 --
-Robert
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
