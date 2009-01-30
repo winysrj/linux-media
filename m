@@ -1,43 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51606 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752155AbZAJTkD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jan 2009 14:40:03 -0500
-From: Malte Gell <malte.gell@gmx.de>
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:58462 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751023AbZA3Jrl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jan 2009 04:47:41 -0500
+Received: by ewy14 with SMTP id 14so610321ewy.13
+        for <linux-media@vger.kernel.org>; Fri, 30 Jan 2009 01:47:40 -0800 (PST)
+Subject: [linux-dvb] saa716x: HC82 does not work
+From: Martin Pauly <madmufflon@googlemail.com>
 To: linux-media@vger.kernel.org
-Subject: Re: dvb-t: searching for channels
-Date: Sat, 10 Jan 2009 20:40:05 +0100
-References: <200901101645.51230.malte.gell@gmx.de> <4968E810.2050307@rogers.com>
-In-Reply-To: <4968E810.2050307@rogers.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+In-Reply-To: <497F9DFA.3000603@gmail.com>
+References: <20090105170950.GA7131@dreamland.darkstar.lan>
+	 <497F9DFA.3000603@gmail.com>
+Content-Type: text/plain
+Date: Fri, 30 Jan 2009 10:47:36 +0100
+Message-Id: <1233308856.6759.16.camel@martin>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200901102040.06001.malte.gell@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Malte Gell wrote:
-> > Hello,
-> >
-> > I just purchased a Hauppauge Nova DVB-T USB stick and the kernel module
-> > and firmware recognizes it well. I have first used Kaffeine to search for
-> > channels, but it has found none.
+hey,
+i have a avermedia hc82. This one should be working with the saa716x
+driver, but it isnt. Im trying to get it working on a 64bit Ubuntu
+System. I installed the latest driver and loaded kernel moduls
+saa716x_core and saa716x_hybrid, but there still is no /dev/dvb
+directory. 
+The output of  lsmod | grep saa716x is: 
+saa716x_hybrid         19464  0 
+tda1004x               26244  1 saa716x_hybrid
+saa716x_core           67892  1 saa716x_hybrid
+dvb_core              113324  2 saa716x_hybrid,saa716x_core
+i2c_core               36128  2 tda1004x,saa716x_core
+so the modules are loaded.
+Any ideas? Anything I can do to make it work?
 
-> For answers to some of your questions, see:
-> http://www.linuxtv.org/wiki/index.php/Scan
-
-Thanks for the hint. But...:
-
-dvbscan /usr/share/dvb/dvb-t/de-Mannheim
-
-"Unable to query frontend status"
-
-Why is it unable to open the device? /dev/dvb/* exists, firmware and modules 
-loaded correctly...
-
-dvbscan is from dvb-1.1.0_CVS20080331
-
+Thanks,
+Martin
 
 
