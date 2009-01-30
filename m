@@ -1,34 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07IOTIx006115
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:24:29 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.25])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n07IOApq021853
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 13:24:12 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so3593658qwe.39
-	for <video4linux-list@redhat.com>; Wed, 07 Jan 2009 10:24:10 -0800 (PST)
-Message-ID: <412bdbff0901071024p7a16343cha01c09ea6ae2b5a2@mail.gmail.com>
-Date: Wed, 7 Jan 2009 13:24:10 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Paul Thomas" <pthomas8589@gmail.com>
-In-Reply-To: <c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0UNOjRw026367
+	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 18:24:45 -0500
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0UNOR2m011598
+	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 18:24:27 -0500
+From: "Curran, Dominic" <dcurran@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, "video4linux-list@redhat.com"
+	<video4linux-list@redhat.com>
+Date: Fri, 30 Jan 2009 17:24:20 -0600
+Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B5012A594C43@dlee07.ent.ti.com>
+In-Reply-To: <200901300954.09317.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>
-	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
-	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
-	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>
-	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>
-	<c785bba30901020850y51c7b9d2i47fd418828cd150c@mail.gmail.com>
-	<c785bba30901030922y17d67d0bm822304a650a0e812@mail.gmail.com>
-	<c785bba30901051633g7808197fl6d377420d799120c@mail.gmail.com>
-	<c785bba30901070927x9be4bdcr84ceb792ccac7afb@mail.gmail.com>
-Cc: video4linux-list <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: em28xx issues
+Content-Transfer-Encoding: 8bit
+Cc: linux-omap <linux-omap@vger.kernel.org>,
+	"greg.hofer@hp.com" <greg.hofer@hp.com>
+Subject: RE: [OMAPZOOM][PATCH 3/6] IMX046: Add support for Sony imx046
+ sensor.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,31 +30,151 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-A quick look at the code does show something interesting:
 
-There are a number of cases where we dereference the result of the
-"INPUT" macro as follows without checking the number of inputs
-defined:
 
-route.input = INPUT(index)->vmux;
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Friday, January 30, 2009 2:54 AM
+> To: video4linux-list@redhat.com
+> Cc: Curran, Dominic; linux-omap; greg.hofer@hp.com
+> Subject: Re: [OMAPZOOM][PATCH 3/6] IMX046: Add support for Sony imx046 sensor.
+>
+> Hi Dominic!
+>
+> First a small thing: please post to the new linux-media list in the future
+> as this list is being phased out.
 
-and here is the macro definition:
+[DC]
+OK, I have now subscribed to that list and will post to it when I resubmit.
+Thanks.
 
-#define INPUT(nr) (&em28xx_boards[dev->model].input[nr])
 
-It may be the case that a NULL pointer deference would occur if there
-was only one input defined (as is the case for the PointNix camera).
+> On Friday 30 January 2009 01:53:38 Dominic Curran wrote:
+> > From: Dominic Curran <dcurran@ti.com>
+> > Subject: [OMAPZOOM][PATCH 3/6] IMX046: Add support for Sony imx046
+> > sensor.
+> >
+> > This patch adds the driver files for the Sony IMX046 8MP camera sensor.
+> > Driver sets up the sensor to send frame data via the MIPI CSI2 i/f.
+> > Sensor is setup to output the following base sizes:
+> >  - 3280 x 2464 (8MP)
+> >  - 3280 x 616  (2MP)
+> >  - 820  x 616
+> > Sensor's output image format is Bayer10 (GrR/BGb).
+> >
+> > Driver has V4L2 controls for:
+> >  - Exposure
+> >  - Analog Gain
+> >
+> > Signed-off-by: Greg Hofer <greg.hofer@hp.com>
+> > Signed-off-by: Dominic Curran <dcurran@ti.com>
+> > ---
+> >  drivers/media/video/Kconfig  |    8
+> >  drivers/media/video/Makefile |    1
+> >  drivers/media/video/imx046.c | 1635
+> > +++++++++++++++++++++++++++++++++++++++++++ drivers/media/video/imx046.h
+> > |  326 ++++++++
+> >  4 files changed, 1970 insertions(+)
+> >  create mode 100644 drivers/media/video/imx046.c
+> >  create mode 100644 drivers/media/video/imx046.h
+> >
+> > Index: omapzoom04/drivers/media/video/Kconfig
+> > ===================================================================
+> > --- omapzoom04.orig/drivers/media/video/Kconfig
+> > +++ omapzoom04/drivers/media/video/Kconfig
+> > @@ -334,6 +334,14 @@ config VIDEO_OV3640_CSI2
+> >       This enables the use of the CSI2 serial bus for the ov3640
+> >       camera.
+> >
+> > +config VIDEO_IMX046
+> > +   tristate "Sony IMX046 sensor driver (8MP)"
+> > +   depends on I2C && VIDEO_V4L2
+> > +   ---help---
+> > +     This is a Video4Linux2 sensor-level driver for the Sony
+> > +     IMX046 camera.  It is currently working with the TI OMAP3
+> > +          camera controller.
+> > +
+>
+> Does this need an OMAP3 dependency? Or is it fully independent from omap?
 
-As a test, you might want to copy the other two inputs for the
-PointNix device profile from some other device, and see if you still
-hits an oops during input selection.
+[DC]
+OK, I have removed the text concerning OMAP3.
 
-Devin
+Yes, the driver 'should' be independent of OMAP.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+
+
+
+> >  config VIDEO_SAA7110
+> >     tristate "Philips SAA7110 video decoder"
+> >     depends on VIDEO_V4L1 && I2C
+> > Index: omapzoom04/drivers/media/video/Makefile
+> > ===================================================================
+> > --- omapzoom04.orig/drivers/media/video/Makefile
+> > +++ omapzoom04/drivers/media/video/Makefile
+> > @@ -115,6 +115,7 @@ obj-$(CONFIG_VIDEO_OV9640)      += ov9640.o
+> >  obj-$(CONFIG_VIDEO_MT9P012)        += mt9p012.o
+> >  obj-$(CONFIG_VIDEO_DW9710) += dw9710.o
+> >  obj-$(CONFIG_VIDEO_OV3640)     += ov3640.o
+> > +obj-$(CONFIG_VIDEO_IMX046)     += imx046.o
+> >
+> >  obj-$(CONFIG_USB_DABUSB)        += dabusb.o
+> >  obj-$(CONFIG_USB_OV511)         += ov511.o
+> > Index: omapzoom04/drivers/media/video/imx046.c
+> > ===================================================================
+> > --- /dev/null
+> > +++ omapzoom04/drivers/media/video/imx046.c
+> > @@ -0,0 +1,1635 @@
+> > +/*
+> > + * drivers/media/video/imx046.c
+> > + *
+> > + * Sony imx046 sensor driver
+> > + *
+> > + *
+> > + * Copyright (C) 2008 Hewlett Packard
+> > + *
+> > + * Leverage mt9p012.c
+> > + *
+> > + * This file is licensed under the terms of the GNU General Public
+> > License + * version 2. This program is licensed "as is" without any
+> > warranty of any + * kind, whether express or implied.
+> > + */
+> > +
+> > +#include <linux/i2c.h>
+> > +#include <linux/delay.h>
+> > +#include <media/v4l2-int-device.h>
+>
+> A general note on the usage of v4l2-int-device.h: this will be phased out
+> soon in favor of v4l2-subdev (see
+> Documentation/video4linux/v4l2-framework.txt, introduced in 2.6.29).
+>
+> You might want to discuss this with Vaibhav Hiremath regarding the timescale
+> of this conversion and whether it is better to wait until omap has been
+> converted before merging this driver. I'm willing to accept the driver
+> using the v4l2-int-device interface as long as I get the assurance that it
+> will be converted later.
+
+[DC]
+Yes I certainly would like for the driver to be accepted into the V4L2 tree.
+
+However, my first goal is to:
+ 1) run by v4l2 list and get comments.
+ 2) get it accepted into omapzoom tree.
+
+I believe omapzoom will move to 2.6.29 in near future.  At which stage I will patch this driver as appropriate for v4l2-framework and then resubmit to linux-media.
+
+Thanks
+dom
+
+
+>
+> Regards,
+>
+>       Hans
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
 
 --
 video4linux-list mailing list
