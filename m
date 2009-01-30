@@ -1,90 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:51216 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753276AbZAWTrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jan 2009 14:47:41 -0500
-Subject: Re: [linux-dvb] Which firmware for cx23885 and xc3028?
-From: Andy Walls <awalls@radix.net>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <20090123194122.ez7tev87a8kcw00g@webmail.detek.unideb.hu>
-References: <000001c97d7c$3005c130$0202a8c0@speedy>
-	 <20090123194122.ez7tev87a8kcw00g@webmail.detek.unideb.hu>
-Content-Type: text/plain
-Date: Fri, 23 Jan 2009 14:47:27 -0500
-Message-Id: <1232740047.3907.49.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:34574 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754009AbZA3Jlm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jan 2009 04:41:42 -0500
+Date: Fri, 30 Jan 2009 10:41:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+cc: Linux Media <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH] ov772x: add support S_CROP operation.
+In-Reply-To: <uy6wtma0c.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0901301031570.4617@axis700.grange>
+References: <uskna4qh8.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0901250245440.4969@axis700.grange> <uzlheep1l.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0901260854010.4236@axis700.grange> <uk58hcp3k.wl%morimoto.kuninori@renesas.com>
+ <alpine.DEB.2.00.0901270851280.4618@axis700.grange> <u3af1o8zz.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0901300829070.4617@axis700.grange> <uzlh9maun.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0901301002180.4617@axis700.grange> <uy6wtma0c.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-01-23 at 19:41 +0100, lnovak@dragon.unideb.hu wrote:
-> Wayne and Holly <wayneandholly@alice.it> wrote:
+On Fri, 30 Jan 2009, morimoto.kuninori@renesas.com wrote:
+
 > 
-> >> I am trying to make an AverMedia AverTV Hybrid Express (A577)
-> >> work under Linux. It seems all major chips (cx23885, xc3028
-> >> and af9013) are already supported, so it should be doable in
-> >> principle.
-> >>
-> >> I am stuck a little bit since AFAIK both cx23885 and xc3028
-> >> need an uploadable firmware. Where should I download/extract
-> >> such firmware from? I tried Steven Toth's repo (the Hauppauge
-> >> HVR-1400 seems to be built around these chips as well) but
-> >> even after copying the files under /lib/firmware it didn't
-> >> really work. I tried to specify different cardtypes for the
-> >> cx23885 module. For cardtype=2 I got a /dev/video0 and a
-> >> /dev/video1 (the latter is of course unusable, I don't have a
-> >> MPEG encoder chip on my card) but tuning was unsuccesful. All
-> >> the other types I tried either didn't work at all or only
-> >> resulted in dvb devices detected. For the moment, I am fine
-> >> without DVB, and are interested mainly in analog devices.
-> >>
-> >> Maybe I should locate the windows driver of my card and
-> >> extract the firmware files from it? If so, how do I proceed?
-> >>
-> >
-> > Have you followed these instructions?:
-> > http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#How_to_Obtain_the
-> > _Firmware
-> >
+> Dear Guennadi
 > 
-> Tried xc3028-v27.fw as well as v36 from Steven's site. There is nothing
-> showing up in the syslog when modprobing tuner-xc2028 (the doc mentions
-> the kernel driver should indicate which part it loads).
+> > > On my opinion, not only calling set_bus_param but also
+> > > try_fmt is important for tw9910.
+> > > Because tw9910 needs "INTERLACE" mode, and sh_mobile_ceu
+> > > sets "is_interlace flag" in try_fmt.
+> > 
+> > Ooh, this is wrong. As we discussed before - try_fmt shall not perform any 
+> > configuration, it only "tries," i.e., tests, whether the specified 
+> > configuration is possible. This has to be moved to S_FMT.
 > 
-> What's the situation with cx23885? After digging into the various docs
-> and descriptions pertaining to this chip, it's still not clear whether I
-> need a firmware (and if so, where from may I download/extract it).
+> Indeed.
+> But set_fmt doesn't called with "filed" now.
+> Can I fix it ?
 
-The publicly available product brief for that chip is here:
+Hm, ok, I was thinking about this several times, to use "struct 
+v4l2_format *fmt" instead of "__u32 pixfmt" as a second parameter to 
+set_fmt in both host and device structs. The disadvantage of this is, that 
+then the information in the third parameter "struct v4l2_rect *rect" 
+becomes redundant in case of S_FMT... I think, it might be better to 
+finally separate S_FMT and S_CROP, i.e., add new set_crop methods to both 
+host and device structs and switch all drivers to use them... Looks like 
+this would be a cleaner solution than keeping them together and struggling 
+to differentiate between the two... Specific drivers can then decide to 
+implement them using the same function internally, like, e.g., mt9m001 
+which doesn't use pixfmt at all, or mt9v022, which only uses it to check 
+validity.
 
-http://www.conexant.com/products/entry.jsp?id=393
-
-Given that the Linux driver tries to
-
-	request_module("cx25840");
-
-for some CX23885 boards and that the cx25840 linux module has cx23885
-specific code in it, it's safe to assume you'll need the
-"v4l-cx23885-avcore-01.fw" file from somewhere.  It's function is likely
-very similar to firmware for the cx25840, but it's also very likely the
-images are subtly different and hence not interchangable.
-
-Since you don't have a CX23417 MPEG encoder chip handing off the bridge,
-you shouldn't need the "v4l-cx23885-fw.enc" file.
-
-I know very little about this driver myself, so I can't speak to the
-state of analog support for any supported card, much less how well an
-unsupported card may work.
-
-
-Regards,
-Andy
-
-> Many thanks for your help!
-> 
-> Greetings,
-> 
-> Levente
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
