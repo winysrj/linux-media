@@ -1,76 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2182 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413AbZAVOtf (ORCPT
+Received: from wp107.webpack.hosteurope.de ([80.237.132.114]:58169 "EHLO
+	wp107.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752731AbZA3OPE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 09:49:35 -0500
-Message-ID: <52420.62.70.2.252.1232635748.squirrel@webmail.xs4all.nl>
-Date: Thu, 22 Jan 2009 15:49:08 +0100 (CET)
-Subject: Re: [PATCH] V4L/DVB: fix
-     v4l2_device_call_all/v4l2_device_call_until_err macro
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Roel Kluin" <roel.kluin@gmail.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	"lkml" <linux-kernel@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 30 Jan 2009 09:15:04 -0500
+Cc: linux-media@vger.kernel.org
+Message-Id: <DFCABB73-4712-441C-A63E-66A7618399BF@darav.de>
+From: Rietzschel Carsten <cr7@darav.de>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <7E87D995-F966-46C9-8023-1743B18BD4C1@gmx.de>
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
+Date: Fri, 30 Jan 2009 14:51:23 +0100
+References: <496204D8.6090602@okg-computer.de><20090105130757.GW12059@titan.makhutov-it.de>	<49620916.7060704@dark-green.com> <8CB3D7E10E304E0-1674-1438@WEBMAIL-MY25.sysops.aol.com> <496B3494.4030500@okg-computer.de> <6940F926-0668-4B88-BF78-32C69EE51919@gmx.de> <158C8110-E256-44A4-9418-E45A94855F62@gmx.de> <49807720.2020808@gmail.com> <A2511C63-B74D-4E71-807C-BD8FCACCAFFF@gmx.de> <498226ED.6000409@gmail.com> <7E87D995-F966-46C9-8023-1743B18BD4C1@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Manu,
+Hello together,
 
-> When these macros aren't called with 'grp_id' this will result in a
-> build failure.
+in the meantime I was able to test the device on windows. It works  
+without any problems for over an hour.
 
-Hi Roel,
+Also I tried again different SAT- und USB-cables.
+Also with all other USB-devices dettached - the error still comes.
 
-Thanks, however it is fixed already in the v4l-dvb repo so it should
-appear upstream as soon as Mauro prepares the next pull request.
+First I'm getting "TS continuity errors"
+and after a while (let's say 15 minutest) ...
 
-Regards,
-
-       Hans
-
->
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
-> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-> index 9bf4ccc..ad86caa 100644
-> --- a/include/media/v4l2-device.h
-> +++ b/include/media/v4l2-device.h
-> @@ -94,16 +94,16 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev
-> *sd);
->  /* Call the specified callback for all subdevs matching grp_id (if 0,
-> then
->     match them all). Ignore any errors. Note that you cannot add or delete
->     a subdev while walking the subdevs list. */
-> -#define v4l2_device_call_all(dev, grp_id, o, f, args...) 		\
-> +#define v4l2_device_call_all(dev, _grp_id, o, f, args...) 		\
->  	__v4l2_device_call_subdevs(dev, 				\
-> -			!(grp_id) || sd->grp_id == (grp_id), o, f , ##args)
-> +			!(_grp_id) || sd->grp_id == (_grp_id), o, f , ##args)
->
->  /* Call the specified callback for all subdevs matching grp_id (if 0,
-> then
->     match them all). If the callback returns an error other than 0 or
->     -ENOIOCTLCMD, then return with that error code. Note that you cannot
->     add or delete a subdev while walking the subdevs list. */
-> -#define v4l2_device_call_until_err(dev, grp_id, o, f, args...) 		\
-> +#define v4l2_device_call_until_err(dev, _grp_id, o, f, args...) 		\
->  	__v4l2_device_call_subdevs_until_err(dev,			\
-> -		       !(grp_id) || sd->grp_id == (grp_id), o, f , ##args)
-> +		       !(_grp_id) || sd->grp_id == (_grp_id), o, f , ##args)
->
->  #endif
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Jan 30 14:42:20 vdr dvb-usb: bulk message failed: -110 (8/0)
+Jan 30 14:42:20 vdr ttusb2: there might have been an error during  
+control message transfer. (rlen = 4, was 0)
+Jan 30 14:42:20 vdr ttusb2: i2c transfer failed.
+Jan 30 14:42:22 vdr dvb-usb: bulk message failed: -110 (9/0)
+Jan 30 14:42:22 vdr ttusb2: there might have been an error during  
+control message transfer. (rlen = 3, was 0)
+Jan 30 14:42:22 vdr ttusb2: i2c transfer failed.
+Jan 30 14:42:24 vdr dvb-usb: bulk message failed: -110 (8/0)
+Jan 30 14:42:24 vdr ttusb2: there might have been an error during  
+control message transfer. (rlen = 4, was 0)
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Thanks for your help!
+darav
