@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0VB74iq018113
-	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 06:07:04 -0500
-Received: from smtp-out5.blueyonder.co.uk (smtp-out5.blueyonder.co.uk
-	[195.188.213.8])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0VB6oKO020470
-	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 06:06:50 -0500
-Message-ID: <498430DF.7080507@blueyonder.co.uk>
-Date: Sat, 31 Jan 2009 11:07:11 +0000
-From: Ian Davidson <id012c3076@blueyonder.co.uk>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0U0rrnj032175
+	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:53:53 -0500
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0U0rbTj014643
+	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:53:37 -0500
+From: Dominic Curran <dcurran@ti.com>
+To: "linux-omap" <linux-omap@vger.kernel.org>, video4linux-list@redhat.com
+Date: Thu, 29 Jan 2009 18:53:31 -0600
 MIME-Version: 1.0
-To: Jackson Yee <jackson@gotpossum.com>,
-	Video 4 Linux <video4linux-list@redhat.com>
-References: <497CD894.7070101@blueyonder.co.uk>
-	<26aa882f0901251857k1f4eea3cs83360b15dfdc8f5a@mail.gmail.com>
-In-Reply-To: <26aa882f0901251857k1f4eea3cs83360b15dfdc8f5a@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Re: Capturing to AVI using streamer
-Reply-To: ian.davidson@bigfoot.com
+Content-Disposition: inline
+Message-Id: <200901291853.31318.dcurran@ti.com>
+Cc: greg.hofer@hp.com
+Subject: [OMAPZOOM][PATCH 2/6] Increase isp workaround buffer size for 8MP
+	sensor.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,100 +28,90 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+From: Dominic Curran <dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH 2/6] Increase isp workaround buffer size for 8MP 
+sensor.
 
+A temporary buffer is created to hold the image while it is written by
+Previewer module and then read by Resizer module. This is called LSC
+Workaround. To take into account the Sony IMX046 8MP sensor that buffer
+needs to be increased in size.
+Changed the #defines to be upper case.
+Patch also fixes the initialization of a couple of CCDC values.
 
-Jackson Yee wrote:
-> Ian,
->
-> I'm not familiar with streamer, but your problem could be either
-> hardware or software. Please install mplayer on your Fedora system,
-> run the command 'midentify' on your AVI file, and post the results for
-> us. You may also want to use other software such as XawTV or TVTime on
-> your Fedora system to test the capture hardware as well.
->
-> Regards,
-> Jackson Yee
-> The Possum Company
-> 540-818-4079
-> me@gotpossum.com
->
-> On Sun, Jan 25, 2009 at 4:24 PM, Ian Davidson
-> <id012c3076@blueyonder.co.uk> wrote:
->   
->> I used to capture video to AVI format using streamer on a single processor
->> system running Fedora Core 4.  I would set up streamer to run for 40 minutes
->> - but at a convenient time stop streamer using Ctrl-C (according to the
->> documentation) and the AVI file would be 'wrapped up' nicely.  I could take
->> the AVI file to a Windows machine and edit the captured video.
->>
->> I am now using streamer as before but on a dual processor system running
->> Fedora 9.  I get an AVI file but some editing software is unable to find the
->> video stream.
->>
->> Is this a problem caused by a) the change of hardware or b) the change of
->> software?
->>
->> Ian
->>
->> --
->> Ian Davidson
->> 239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
->> --
->> Facts used in this message may or may not reflect an underlying objective
->> reality. Facts are supplied for personal use only. Recipients quoting
->> supplied information do so at their own risk. Facts supplied may vary in
->> whole or part from widely accepted standards. While painstakingly
->> researched, facts may or may not be indicative of actually occurring events
->> or natural phenomena. The author accepts no responsibility for personal loss
->> or injury resulting from memorisation and subsequent use.
->>
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->>     
+Signed-off-by: Dominic Curran <dcurran@ti.com>
+---
+ drivers/media/video/isp/isp.c     |   10 +++++-----
+ drivers/media/video/isp/isp.h     |    4 ++--
+ drivers/media/video/isp/ispccdc.c |    2 ++
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
-streamer is part of the same bundle as xawtv.
-
-Here is the output from midentify
-
-
-ID_VIDEO_ID=0
-ID_AUDIO_ID=1
-ID_FILENAME=Sun23-1841.avi
-ID_DEMUXER=avi
-ID_VIDEO_FORMAT=MJPG
-ID_VIDEO_BITRATE=4161976
-ID_VIDEO_WIDTH=352
-ID_VIDEO_HEIGHT=288
-ID_VIDEO_FPS=25.000
-ID_VIDEO_ASPECT=0.0000
-ID_AUDIO_FORMAT=1
-ID_AUDIO_BITRATE=705600
-ID_AUDIO_RATE=0
-ID_AUDIO_NCH=0
-ID_LENGTH=2041.68
-ID_SEEKABLE=1
-ID_VIDEO_CODEC=ffmjpeg
-ID_AUDIO_BITRATE=705600
-ID_AUDIO_RATE=44100
-ID_AUDIO_NCH=1
-ID_AUDIO_CODEC=pcm
-
-
--- 
-Ian Davidson
-239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
--- 
-Facts used in this message may or may not reflect an underlying objective reality. 
-Facts are supplied for personal use only. 
-Recipients quoting supplied information do so at their own risk. 
-Facts supplied may vary in whole or part from widely accepted standards. 
-While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
-The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
-
+Index: omapzoom04/drivers/media/video/isp/isp.c
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/isp.c
++++ omapzoom04/drivers/media/video/isp/isp.c
+@@ -1172,20 +1172,20 @@ void omapisp_unset_callback()
+  **/
+ u32 isp_buf_allocation(void)
+ {
+-	buff_addr = (void *) vmalloc(buffer_size);
++	buff_addr = (void *) vmalloc(ISP_BUFFER_MAX_SIZE);
+ 
+ 	if (!buff_addr) {
+ 		printk(KERN_ERR "Cannot allocate memory ");
+ 		return -ENOMEM;
+ 	}
+ 
+-	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
++	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, ISP_BUFFER_MAX_PAGES);
+ 	if (!sglist_alloc) {
+ 		printk(KERN_ERR "videobuf_vmalloc_to_sg error");
+ 		return -ENOMEM;
+ 	}
+-	num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
+-	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
++	num_sc = dma_map_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
++	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, ISP_BUFFER_MAX_PAGES);
+ 	if (!buff_addr_mapped) {
+ 		printk(KERN_ERR "ispmmu_map_sg mapping failed ");
+ 		return -ENOMEM;
+@@ -1217,7 +1217,7 @@ void isp_buf_free(void)
+ {
+ 	if (alloc_done == 1) {
+ 		ispmmu_unmap(buff_addr_mapped);
+-		dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
++		dma_unmap_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
+ 		kfree(sglist_alloc);
+ 		vfree(buff_addr);
+ 		alloc_done = 0;
+Index: omapzoom04/drivers/media/video/isp/isp.h
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/isp.h
++++ omapzoom04/drivers/media/video/isp/isp.h
+@@ -69,8 +69,8 @@
+ #define NUM_ISP_CAPTURE_FORMATS 	(sizeof(isp_formats) /\
+ 							sizeof(isp_formats[0]))
+ #define ISP_WORKAROUND 1
+-#define buffer_size (1024 * 1024 * 10)
+-#define no_of_pages (buffer_size / (4 * 1024))
++#define ISP_BUFFER_MAX_SIZE (1024 * 1024 * 16)
++#define ISP_BUFFER_MAX_PAGES (ISP_BUFFER_MAX_SIZE / (4 * 1024))
+ 
+ typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
+ typedef void (*isp_callback_t) (unsigned long status,
+Index: omapzoom04/drivers/media/video/isp/ispccdc.c
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/ispccdc.c
++++ omapzoom04/drivers/media/video/isp/ispccdc.c
+@@ -1265,6 +1265,8 @@ int ispccdc_config_size(u32 input_w, u32
+ 	}
+ 
+ 	if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
++		ispccdc_obj.ccdcin_woffset = 0;
++		ispccdc_obj.ccdcin_hoffset = 0;
+ 		omap_writel((ispccdc_obj.ccdcin_woffset <<
+ 					ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
+ 					(ispccdc_obj.ccdcin_w <<
 
 --
 video4linux-list mailing list
