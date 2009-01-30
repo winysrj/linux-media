@@ -1,42 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [84.77.67.98] ([84.77.67.98]:4802 "EHLO ventoso.org"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1762062AbZAQSuP convert rfc822-to-8bit (ORCPT
+Received: from mognix.dark-green.com ([88.116.226.179]:62985 "EHLO
+	mognix.dark-green.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756369AbZA3AKU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 13:50:15 -0500
-Received: from noname (localhost.localdomain [127.0.0.1])
-	by ventoso.org (Postfix) with ESMTP id 1500CC141D4
-	for <linux-media@vger.kernel.org>; Sat, 17 Jan 2009 19:28:12 +0100 (CET)
-Date: Sat, 17 Jan 2009 19:28:39 +0100
-From: Luca Olivetti <luca@ventoso.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [linux-dvb] RFC - Flexcop Streaming watchdog (VDSB)
-Message-ID: <20090117192839.3ab797e4@noname>
-In-Reply-To: <alpine.LRH.1.10.0901170923030.5725@pub4.ifh.de>
-References: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de>
-	<4970D464.5070509@gmx.de>
-	<alpine.DEB.2.00.0901170035190.18012@ybpnyubfg.ybpnyqbznva>
-	<alpine.LRH.1.10.0901170923030.5725@pub4.ifh.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 29 Jan 2009 19:10:20 -0500
+Message-ID: <4982456A.6070502@dark-green.com>
+Date: Fri, 30 Jan 2009 01:10:18 +0100
+From: gimli <gimli@dark-green.com>
+MIME-Version: 1.0
+To: "Igor M. Liplianin" <liplianin@tut.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Broken Tuning on Wintv Nova HD S2
+References: <497F7117.9000607@dark-green.com> <200901292112.15587.liplianin@tut.by> <498203D7.6080002@dark-green.com> <200901292242.55298.liplianin@tut.by>
+In-Reply-To: <200901292242.55298.liplianin@tut.by>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-El Sat, 17 Jan 2009 09:29:29 +0100 (CET)
-Patrick Boettcher <patrick.boettcher@desy.de> escribi�:
+Igor M. Liplianin schrieb:
+> On 29 ������ 2009, "Igor M. Liplianin" <liplianin@tut.by> wrote:
+>> Igor M. Liplianin schrieb:
+>>> В сообщении от 29 January 2009 20:07:32 gimli написал(а):
+>>>> Hi,
+>>>>
+>>>> your patch seems to work.
+>>> If it works, then I prepare more simple patch.
+>> Hi,
+>>
+>> you can also put my :
+>>
+>> Signed-off-by: Edgar Hucek <gimli@dark-green.com>
+>>
+>> to the list.
+>>
+>> cu
+>>
+>> Edgar (gimli) Hucek
+> 
+> Does simple patch work ?
+> I need your Acked-by :)
+> 
 
-> I have to say, that the user which showed me the problem was using
-> the rev2.8 and due to the lack of time I couldn't check with other
-> versions than this card yet.
-
-Well, I'm definitely seeing this with an old skystar 2 (I'm not sure
-of the version but it's 3-4 years old, b2c-flexcop says it's an 'old
-version') used exclusively by vdr, but then I've last updated the
-driver about a year ago.
-I'm not seeing it very often, but it may be because I'm not continuosly
-switching channels as I did years ago.
-
-Bye
--- 
-Luca
+Acked-by : Edgar Hucek <gimli@dark-green.com>
