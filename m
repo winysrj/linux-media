@@ -1,98 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4837 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757984AbZAOOBb (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3125 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752258AbZA3So6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2009 09:01:31 -0500
-Message-ID: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-Date: Thu, 15 Jan 2009 15:01:28 +0100 (CET)
-Subject: Re: KWorld ATSC 115 all static
+	Fri, 30 Jan 2009 13:44:58 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0UIiqud078367
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 30 Jan 2009 19:44:56 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 30 Jan 2009 19:44:52 +0100 (CET)
+Message-Id: <200901301844.n0UIiqud078367@smtp-vbr8.xs4all.nl>
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-Cc: "CityK" <cityk@rogers.com>,
-	"hermann pitton" <hermann-pitton@arcor.de>,
-	"V4L" <video4linux-list@redhat.com>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Josh Borke" <joshborke@gmail.com>,
-	"David Lonie" <loniedavid@gmail.com>, linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-> Hans Verkuil wrote:
->> On Thursday 15 January 2009 06:01:28 CityK wrote:
->>
->>> Hans Verkuil wrote:
->>>
->>>> OK, I couldn't help myself and went ahead and tested it. It seems
->>>> fine, so please test my tree:
->>>>
->>>> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-saa7134
->>>>
->>>> Let me know if it works.
->>>>
->>> Hi Hans,
->>>
->>> It didn't work.  No analog reception on either RF input.  (as Mauro
->>> noted, DVB is unaffected; it still works).
->>>
->>> dmesg output looks right:
->>>
->>> tuner-simple 1-0061: creating new instance
->>> tuner-simple 1-0061: type set to 68 (Philips TUV1236D ATSC/NTSC dual
->>> in)
->>>
->>> I tried backing out of the modules and then reloading them, but no
->>> change.  (including after fresh build or after rebooting)
->>>
->>
->> Can you give the full dmesg output? Also, is your board suppossed to
->> have a tda9887 as well?
->>
->
-> Hans' changes are not enough to fix the ATSC115 issue.
+Results of the daily build of v4l-dvb:
 
-Ah, OK.
+date:        Fri Jan 30 19:00:06 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10402:3541eb5b56f7
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> I believe that if you can confirm that the same problem exists, but the
-> previous workaround continues to work even after Hans' changes, then I
-> believe that confirms that Hans' changes Do the Right Thing (tm).
->
-> ATSC115 is broken not because the tuner type assignment has been removed
-> from attach_inform.
->
-> This is actually a huge problem across all analog drivers now, since we
-> are no longer able to remove the "tuner" module and modprobe it again --
-> the second modprobe will not allow for an attach, as there will be no
-> way for the module to be recognized without having the glue code needed
-> inside attach_inform...
+linux-2.6.16.61-armv5: WARNINGS
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29-rc3-armv5-ixp: WARNINGS
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29-rc3-armv5-omap2: WARNINGS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29-rc3-i686: ERRORS
+linux-2.6.16.61-m32r: WARNINGS
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc3-m32r: OK
+linux-2.6.16.61-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29-rc3-powerpc64: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29-rc3-x86_64: ERRORS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc3): ERRORS
 
-Huh? Why would you want to rmmod and modprobe tuner? Anyway, drivers that
-use v4l2_subdev (like my converted saa7134) will increase the tuner module
-usecount, preventing it from being rmmod'ed.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-      Hans
+Full logs are available here:
 
-> ...unless somebody has a suggestion?
->
-> Anyway, if the previous workaround works after Hans' changes, then I
-> think his changes should be merged -- even though it doesnt fix ATSC115,
-> it is indeed a step into the right direction.
->
-> If the ATSC115 hack-fix patch doesn't apply anymore, please let me know
-> -- I'll respin it.
->
-> Regards,
->
-> Mike Krufky
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
