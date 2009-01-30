@@ -1,38 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:34169 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754395AbZATTni (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jan 2009 14:43:38 -0500
-Message-ID: <4976295E.2070509@free.fr>
-Date: Tue, 20 Jan 2009 20:43:26 +0100
-From: matthieu castet <castet.matthieu@free.fr>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: haupauge remote keycode for av7110_loadkeys
-References: <4974E428.7020702@free.fr> <20090119185326.29da37da@caramujo.chehab.org>
-In-Reply-To: <20090119185326.29da37da@caramujo.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from dd18532.kasserver.com ([85.13.139.13]:51505 "EHLO
+	dd18532.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100AbZA3MXl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jan 2009 07:23:41 -0500
+Date: Fri, 30 Jan 2009 13:23:39 +0100
+From: Carsten Meier <cm@trexity.de>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Howto obtain sysfs-pathes for DVB devices?
+Message-ID: <20090130132339.3e96df3d@tuvok>
+In-Reply-To: <200901301251.05258.zzam@gentoo.org>
+References: <20090128164617.569d5952@tuvok>
+	<1233281227.2688.3.camel@pc10.localdom.local>
+	<20090130121952.787cdf24@tuvok>
+	<200901301251.05258.zzam@gentoo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Am Fri, 30 Jan 2009 12:51:03 +0100
+schrieb Matthias Schwarzott <zzam@gentoo.org>:
 
-Mauro Carvalho Chehab wrote:
-> On Mon, 19 Jan 2009 21:35:52 +0100
-> matthieu castet <castet.matthieu@free.fr> wrote:
+> On Freitag, 30. Januar 2009, Carsten Meier wrote:
+> > Am Fri, 30 Jan 2009 03:07:07 +0100
+> >
+> > schrieb hermann pitton <hermann-pitton@arcor.de>:
+> > > Hi,
+> > >
+> > > Am Mittwoch, den 28.01.2009, 16:46 +0100 schrieb Carsten Meier:
+> > > > Hello again,
+> > > >
+> > > > now I've managed to obtain syfs-pathes for v4l2-devices. But
+> > > > what about dvb? I haven't found something like bus_info in the
+> > > > dvb-api-docs. (I'm new to it) Any hints for this?
+> > > >
+> > > > Thanks,
+> > > > Carsten
+> > >
+> > > I'm also still new on it ...
+> > >
+> > > Maybe anything useful here?
+> > >
+> > > cat /sys/class/dvb/dvb0.frontend0/uevent
+> > > MAJOR=212
+> > > MINOR=0
+> > > PHYSDEVPATH=/devices/pci0000:00/0000:00:08.0/0000:01:07.0
+> > > PHYSDEVBUS=pci
+> > > PHYSDEVDRIVER=saa7134
+> > >
+> > > Cheers,
+> > > Hermann
+> >
+> > Hi,
+> >
+> > IMHO there is no other way (not counting other daemons) than
+> > scanning the dvb-device-files, stat() them, and compare major and
+> > minor numbers with sysfs-contents. Anyway, I think I'll switch to
+> > HAL for that...
+> >
 > 
+> One way of asking udev is this:
+> udevadm info -q path -n /dev/dvb/adapter0/frontend0
 > 
-> Matthieu,
-> 
-> You can replace the ir-kbd-i2c keys using the standard input ioctls for it.
-> Take a look at v4l2-apps/util/keycode app. It allows you to read and replace
-> any IR keycodes on the driver that properly implements the event support
-> (including ir-kbd-i2c).
-great I wasn't aware of this.
-But this doesn't seem very friendly : all remote keycodes are in kernel.
-If you want to change the remote, you have to do/provide the keycode for 
-your remote even if it is already in kernel.
+> Regards
+> Matthias
 
-Matthieu
+Ok, then I think I'm gonna use it... :) It's much more simple than
+struggling through dbus-/hal-libs and the various unfinished c++
+bindings, although I normally don't like to start system-tools from c++.
+Or is there any c-api for it? I haven't found one.
+
+Thanks,
+Carsten
