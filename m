@@ -1,45 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:1390 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758234AbZAQTK4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jan 2009 14:10:56 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so109173ugf.37
-        for <linux-media@vger.kernel.org>; Sat, 17 Jan 2009 11:10:54 -0800 (PST)
-Date: Sat, 17 Jan 2009 20:10:48 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Gregoire Favre <gregoire.favre@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Where to buy a Dual PCI-e DVB-s2 card in switzerland
- ?
-In-Reply-To: <20090117183611.GE27280@gmail.com>
-Message-ID: <alpine.DEB.2.00.0901171951430.18169@ybpnyubfg.ybpnyqbznva>
-References: <20090117183611.GE27280@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:51363 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752425AbZA3OFf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jan 2009 09:05:35 -0500
+Message-ID: <49830903.8050107@gmx.de>
+Date: Fri, 30 Jan 2009 15:04:51 +0100
+From: Jan Kreuzer <kontrollator@gmx.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Support for Technisat SkyStar USB 2 HD CI (take 2)
+References: <497F26DD.8050200@gmx.de>
+In-Reply-To: <497F26DD.8050200@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Feckin' Reply-To header makes it difficult to send a personal
-reply as well as a followup to the desired place...  Grrr...)
+Hi Everybody,
 
-On Sat, 17 Jan 2009, Gregoire Favre wrote:
+i realized that i did not give enough  Information in the last mail. I
+added a page on the v4l-wiki about the above device, its here:
+http://linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_2_HD_CI
+There you can find the usb-id. What should i do to get more information
+of the device (eg chipset/tuner used, ...)?.
 
-> Igor Liplianin just announced support for XpressVu PCIe Dual Tuner Card
-> and I was wondering where I could buy one, preferably in Switzerland.
+Thank you
 
-Seems that it is not yet widely available...
-
-Can I assume you are in the Suisse Romande, and somewhat far
-from Germany/Basel, or perhaps somewhere like Zürich?  You
-can often save enough and get Mwst back if you shop over the
-border.  Feel free to respond privately if you do not wish
-to make your location public...
-
-In any case, I would suggest perhaps waiting a few weeks, and
-then seeing where it can be found in various online shops and
-price comparison sites...
-
-
-barry bouwsma
+Jan Kreuzer
