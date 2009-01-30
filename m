@@ -1,32 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n020cuXI020290
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 19:38:56 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n020ce78024087
-	for <video4linux-list@redhat.com>; Thu, 1 Jan 2009 19:38:40 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so6162887wfc.6
-	for <video4linux-list@redhat.com>; Thu, 01 Jan 2009 16:38:38 -0800 (PST)
-Message-ID: <c785bba30901011638q4b1f0b92y6898672f0cb8efb0@mail.gmail.com>
-Date: Thu, 1 Jan 2009 17:38:38 -0700
-From: "Paul Thomas" <pthomas8589@gmail.com>
-To: video4linux-list <video4linux-list@redhat.com>
-In-Reply-To: <c785bba30901010845if28f369n7a9c501e34b2efa8@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0U0rnJB032157
+	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:53:49 -0500
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0U0rWFC014623
+	for <video4linux-list@redhat.com>; Thu, 29 Jan 2009 19:53:32 -0500
+From: Dominic Curran <dcurran@ti.com>
+To: "linux-omap" <linux-omap@vger.kernel.org>, video4linux-list@redhat.com
+Date: Thu, 29 Jan 2009 18:53:26 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <c785bba30812301646vf7572dcua9361eb10ec58716@mail.gmail.com>
-	<412bdbff0812311323rd83eac8l35f29195b599d3e@mail.gmail.com>
-	<c785bba30812311330w26ce5817l10db52d5be98d175@mail.gmail.com>
-	<412bdbff0812311420n3f42e13ew899be73cd855ba5d@mail.gmail.com>
-	<c785bba30812311424r87bd070v9a01828c77d6a2a6@mail.gmail.com>
-	<412bdbff0812311435n429787ecmbcab8de00ba05b6b@mail.gmail.com>
-	<c785bba30812311444l65b3825aq844b79dd6f420c09@mail.gmail.com>
-	<412bdbff0812311452o64538cdav4b948f6a9214ccdd@mail.gmail.com>
-	<c785bba30812311504g22d2a06dkd4b1a7dc9a5b2df1@mail.gmail.com>
-	<c785bba30901010845if28f369n7a9c501e34b2efa8@mail.gmail.com>
-Subject: Re: em28xx issues
+Message-Id: <200901291853.26533.dcurran@ti.com>
+Cc: greg.hofer@hp.com
+Subject: [OMAPZOOM][PATCH 1/6] CSI2: Add function to change number of data
+	lanes used.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,52 +28,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Any thoughts on the debug parameter? Do I set the debug level a different way?
+From: Dominic Curran <dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH 1/6] CSI2: Add function to change number of data lanes 
+used.
 
-thanks,
-Paul
+Add new CSI2 function.
+New function is isp_csi2_complexio_lanes_count().
+Sets the number of CSI2 data lanes that should be used.
 
-On Thu, Jan 1, 2009 at 9:45 AM, Paul Thomas <pthomas8589@gmail.com> wrote:
-> I get "em28xx: Unknown parameter `debug'" when I try "modprobe em28xx debug=1".
->
-> thanks,
-> Paul
->
-> On Wed, Dec 31, 2008 at 4:04 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->> Thanks,
->>
->> I have to run now, but I'll try this tomorrow.
->>
->> On Wed, Dec 31, 2008 at 3:52 PM, Devin Heitmueller
->> <devin.heitmueller@gmail.com> wrote:
->>> On Wed, Dec 31, 2008 at 5:44 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
->>>> How was it working with Skype? Can we hard code the settings for testing?
->>>>
->>>> thanks,
->>>> Paul
->>>
->>> Well, regardless of the device profile issue, it's not clear why it is
->>> segfaulting.  In theory, it should work but you should only get a
->>> single input available instead of being able to pick between composite
->>> and s-video.
->>>
->>> I think with this device you should be able to set a modprobe option
->>> for "debug=1" which might provide a bit more insight.
->>>
->>> Try this.  Unplug the device, run "make unload", and then "modprobe
->>> em28xx".  Then plug the device in.  You should start seeing more info
->>> in the dmesg output.  Then start the app that segfaults and report the
->>> dmesg contents.
->>>
->>> Devin
->>>
->>> --
->>> Devin J. Heitmueller
->>> http://www.devinheitmueller.com
->>> AIM: devinheitmueller
->>>
->>
->
+Signed-off-by: Dominic Curran <dcurran@ti.com>
+Signed-off-by: Greg Hofer <greg.hofer@hp.com>
+---
+ drivers/media/video/isp/ispcsi2.c |   33 +++++++++++++++++++++++++++++++--
+ drivers/media/video/isp/ispcsi2.h |    5 +++++
+ 2 files changed, 36 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 drivers/media/video/isp/ispcsi2.c
+ mode change 100644 => 100755 drivers/media/video/isp/ispcsi2.h
+
+Index: omapzoom04/drivers/media/video/isp/ispcsi2.c
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/ispcsi2.c
++++ omapzoom04/drivers/media/video/isp/ispcsi2.c
+@@ -112,6 +112,11 @@ int isp_csi2_complexio_lanes_config(stru
+ 			currlanes_u->data[i] = true;
+ 			update_complexio_cfg1 = true;
+ 		}
++		/* If the lane position is non zero then we can assume that
++		 * the initial lane state is on.
++		 */
++		if (currlanes->data[i].pos)
++			currlanes->data[i].state = ISP_CSI2_LANE_ON;
+ 	}
+ 
+ 	if (currlanes->clk.pos != reqcfg->clk.pos) {
+@@ -158,9 +163,10 @@ int isp_csi2_complexio_lanes_update(bool
+ 									1));
+ 			reg |= (currlanes->data[i].pol <<
+ 				ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i + 1));
+-			reg |= (currlanes->data[i].pos <<
++			if (currlanes->data[i].state == ISP_CSI2_LANE_ON)
++				reg |= (currlanes->data[i].pos <<
+ 				ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i +
+-									1));
++					 1));
+ 			currlanes_u->data[i] = false;
+ 		}
+ 	}
+@@ -181,6 +187,29 @@ int isp_csi2_complexio_lanes_update(bool
+ }
+ 
+ /**
++ * isp_csi2_complexio_lanes_count - Turn data lanes on/off dynamically.
++ * @ cnt: Number of data lanes to enable.
++ *
++ * Always returns 0.
++ **/
++int isp_csi2_complexio_lanes_count(int cnt)
++{
++	struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
++	int i;
++
++	for (i = 0; i < 4; i++) {
++		if (i < cnt)
++			currlanes->data[i].state = ISP_CSI2_LANE_ON;
++		else
++			currlanes->data[i].state = ISP_CSI2_LANE_OFF;
++	}
++
++	isp_csi2_complexio_lanes_update(true);
++	return 0;
++}
++EXPORT_SYMBOL(isp_csi2_complexio_lanes_count);
++
++/**
+  * isp_csi2_complexio_lanes_get - Gets CSI2 ComplexIO lanes configuration.
+  *
+  * Gets settings from HW registers and fills in the internal driver memory
+Index: omapzoom04/drivers/media/video/isp/ispcsi2.h
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/ispcsi2.h
++++ omapzoom04/drivers/media/video/isp/ispcsi2.h
+@@ -20,6 +20,9 @@
+ #define OMAP_ISP_CSI2_API_H
+ #include <linux/videodev2.h>
+ 
++#define ISP_CSI2_LANE_OFF 	0
++#define ISP_CSI2_LANE_ON 	1
++
+ enum isp_csi2_irqevents {
+ 	OCP_ERR_IRQ = 0x4000,
+ 	SHORT_PACKET_IRQ = 0x2000,
+@@ -63,6 +66,7 @@ enum isp_csi2_frame_mode {
+ struct csi2_lanecfg {
+ 	u8 pos;
+ 	u8 pol;
++	u8 state; 	/*Current state - 1-Used  0-Unused */
+ };
+ 
+ struct isp_csi2_lanes_cfg {
+@@ -175,6 +179,7 @@ struct isp_csi2_cfg_update {
+ 
+ int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg);
+ int isp_csi2_complexio_lanes_update(bool force_update);
++int isp_csi2_complexio_lanes_count(int cnt);
+ int isp_csi2_complexio_lanes_get(void);
+ int isp_csi2_complexio_power_autoswitch(bool enable);
+ int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd);
 
 --
 video4linux-list mailing list
