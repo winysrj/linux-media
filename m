@@ -1,40 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:46589 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751931AbZA2NIQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 08:08:16 -0500
-Date: Thu, 29 Jan 2009 14:08:01 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: matthieu castet <castet.matthieu@free.fr>,
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4911 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752173AbZA3JDH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jan 2009 04:03:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCHv2] New V4L2 ioctls for OMAP class of Devices
+Date: Fri, 30 Jan 2009 10:02:37 +0100
+Cc: DongSoo Kim <dongsoo.kim@gmail.com>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support faulty USB IDs on DIBUSB_MC
-In-Reply-To: <20090129100520.3331f41f@caramujo.chehab.org>
-Message-ID: <alpine.LRH.1.10.0901291329590.15700@pub6.ifh.de>
-References: <484A72D3.7070500@free.fr> <4974E4BE.2060107@free.fr> <20090129074735.76e07d47@caramujo.chehab.org> <alpine.LRH.1.10.0901291117110.15700@pub6.ifh.de> <20090129100520.3331f41f@caramujo.chehab.org>
+References: <1233206626-19157-1-git-send-email-hardik.shah@ti.com> <200901290933.36754.hverkuil@xs4all.nl> <Pine.LNX.4.58.0901291355570.17300@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0901291355570.17300@shell2.speakeasy.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200901301002.38257.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jan 2009, Mauro Carvalho Chehab wrote:
->> We could do that, still I'm not sure if ARRAY_SIZE will work in that
->> situation?! Are you
->> sure, Mauro?
+On Thursday 29 January 2009 22:59:13 Trent Piepho wrote:
+> On Thu, 29 Jan 2009, Hans Verkuil wrote:
+> > On Thursday 29 January 2009 08:44:20 DongSoo Kim wrote:
+> > > Hello.
+> > >
+> > > > +#define VIDIOC_S_COLOR_SPACE_CONV      _IOW('V', 83, struct
+> > > > v4l2_color_space_conversion) +#define VIDIOC_G_COLOR_SPACE_CONV
+> > > > _IOR('V', 84, struct v4l2_color_space_conversion)
+> > >
+> > > Do you mind if I ask a question about those ioctls?
+> > > Because as far as I understand, we can use VIDIOC_S_FMT ioctl to
+> > > convert colorspaces. Setting through colorspace member in
+> > > v4l2_pix_format, we could change output colorspace.
+> >
+> > Colorspace is read-only, you cannot set it. It just gives you the
+> > colorspace that the hardware uses by default.
 >
-> Well, at least here, it is compiling fine. I can't really test it, since I
-> don't have any dib0700 devices here.
+> Is there a reason it must be read-only?
 
-Hmm, your patch is shifting the counting problem to another place. Instead 
-of counting manually the devices-array-elements, one now needs to count 
-the number of device_properties ;) .
+The V4L2 spec. And I've no idea if we can safely change it to a read/write 
+property or if there are apps out their that do not set this field.
 
-With such a patch we would risk to break some device support and as I 
-never saw a patch which broke the current num_device_descs-manual-count I 
-don't see the need to change.
+> > If you want to fully control the colorspace, then you need these
+> > ioctls.
+>
+> I don't know about "fully".  I don't see anything about gamma correction.
+> Since there is no documentation, it's also not clear if it can describe
+> the full range luma the bt848 and cx88 can produce.
 
-Patrick.
+I'm also waiting for full documentation on this. I do know that this type of 
+matrix is common in other devices as well.
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+I'm not sure if gamma correction can be done with CSC, but I think that 
+should be done through a separate control anyway. However, I'm no expert.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
