@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailhost.okg-computer.de ([85.131.254.125])
+Received: from imo-d06.mx.aol.com ([205.188.157.38])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@okg-computer.de>) id 1LMLiU-0001ao-MS
-	for linux-dvb@linuxtv.org; Mon, 12 Jan 2009 13:16:28 +0100
-Received: from [10.10.42.131] (f053210043.adsl.alicedsl.de [78.53.210.43])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mailhost.okg-computer.de (Postfix) with ESMTP id 2EF9C4417F
-	for <linux-dvb@linuxtv.org>; Mon, 12 Jan 2009 13:16:21 +0100 (CET)
-Message-ID: <496B3494.4030500@okg-computer.de>
-Date: Mon, 12 Jan 2009 13:16:20 +0100
-From: =?UTF-8?B?SmVucyBLcmVoYmllbC1HcsOkdGhlcg==?= <linux-dvb@okg-computer.de>
-MIME-Version: 1.0
+	(envelope-from <td9678td@aim.com>) id 1LSydl-0002Do-Hx
+	for linux-dvb@linuxtv.org; Fri, 30 Jan 2009 20:02:58 +0100
+Received: from td9678td@aim.com
+	by imo-d06.mx.aol.com  (mail_out_v39.1.) id m.cbb.3345d980 (37036)
+	for <linux-dvb@linuxtv.org>; Fri, 30 Jan 2009 14:02:11 -0500 (EST)
 To: linux-dvb@linuxtv.org
-References: <496204D8.6090602@okg-computer.de><20090105130757.GW12059@titan.makhutov-it.de>	<49620916.7060704@dark-green.com>
-	<8CB3D7E10E304E0-1674-1438@WEBMAIL-MY25.sysops.aol.com>
-In-Reply-To: <8CB3D7E10E304E0-1674-1438@WEBMAIL-MY25.sysops.aol.com>
-Subject: Re: [linux-dvb] S2API (pctv452e) artefacts in video stream
+Date: Fri, 30 Jan 2009 14:02:09 -0500
+MIME-Version: 1.0
+From: td9678td@aim.com
+Message-Id: <8CB51246322D849-12C0-14@WEBMAIL-DY29.sysops.aol.com>
+Subject: [linux-dvb] Compro T750 wiki
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,61 +20,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkhCgpTbyB0aGlzIHByb2JsZW0gY29uY2VybnMgbW9yZSBwZW9wbGUgYW5kIHNob3VsZCBiZSBh
-IGdlbmVyYWwgYnVnPz8KTXkgZGV2aWNlIGlzIHdvcmtpbmcgd2VsbCBpbiB3aW5kb3dzLCBzbyBp
-dCBjb3VsZCBub3QgYmUgdGhlIGRpc2gsIHRoZSAKY2FibGUgb3IgdGhlIGRldmljZSBpdHNlbGYu
-CgpDYW4gSSBkbyBhbnl0aGluZyBmb3IgZGVidWdnaW5nIHRoaXMgcHJvYmxlbT8gTGV0IG1lIGtu
-b3chCgpKZW5zCgoKZGJveDJhbHBoYUBuZXRzY2FwZS5uZXQgc2NocmllYjoKPgo+IGkgY2FuIGNv
-bmZpcm0gdGhlIHZlcnkgc2FtZSBwcm9ibGVtIHN5bXB0b21zIHdpdGggYSB0ZWNobm90cmVuZCBk
-dmItczIgCj4gMzYwMCB1c2IgZGV2aWNlLgo+Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0K
-PiBGcm9tOiBnaW1saSA8Z2ltbGlAZGFyay1ncmVlbi5jb20+Cj4gVG86IEFydGVtIE1ha2h1dG92
-IDxhcnRlbUBtYWtodXRvdi5vcmc+Cj4gQ2M6IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IFNlbnQ6
-IE1vbiwgNSBKYW4gMjAwOSAyOjIwIHBtCj4gU3ViamVjdDogUmU6IFtsaW51eC1kdmJdIFMyQVBJ
-IChwY3R2NDUyZSkgYXJ0ZWZhY3RzIGluIHZpZGVvIHN0cmVhbQo+Cj4gQXJ0ZW0gTWFraHV0b3Yg
-c2NocmllYjoKPgo+ID4gSGksCj4KPiA+IAo+Cj4gPiBPbiBNb24sIEphbiAwNSwgMjAwOSBhdCAw
-MjowMjoxNlBNICswMTAwLCBKZW5zIEtyZWhiaWVsLUdyw6R0aGVyIHdyb3RlOgo+Cj4gPj4gSGkh
-Cj4KPiA+Pgo+Cj4gPj4gSSB1c2UgYSBQaW5uYWNsZSBVU0ItUmVjZWl2ZXIgKFBDVFYgU2F0IEhE
-VFYgUHJvKS4gVGhlIG1vZHVsZSBpcyAKPgo+ID4+IGR2Yi11c2ItcGN0djQ1MmUuCj4KPiA+Pgo+
-Cj4gPj4gSSB1c2UgdGhlIHJlcG9zaXRvcnkgZnJvbSBJZ29yIExpcGxpYW5pbiAoYWN0dWFsIGhn
-IHJlbGVhc2UpLiBUaGUgbW9kdWxlIAo+Cj4gPj4gY29tcGlsZXMgYW5kIGxvYWRzIGZpbmUuIFRo
-ZSBzY2FubmluZyB3aXRoIHNjYW4tczIgYW5kIHphcHBpbmcgd2l0aCAKPgo+ID4+IHN6YXAtczIg
-YWxzbyB3aXJrIGZpbmUuCj4KPiA+PiBCdXQgd2hlbiBJIHJlY29yZCBUViBmcm9tIHRoZSBVU0It
-ZGV2aWNlIHdpdGggImNhdCAKPgo+ID4+IC9kZXYvZHZiL2FkYXB0ZXIwL2R2cjAgPiAoZmlsZW5h
-bWUpIiBJIGdvdCB0aGUgVFYtU3RyZWFtIG9mIHRoZSBhY3R1YWwgCj4KPiA+PiB0di1zdGF0aW9u
-ICh6YXBwZWQgd2l0aCAic3phcC1zMiAtciBTQVQuMSIgZm9yIGV4YW1wbGUpLgo+Cj4gPj4gVGhp
-cyByZWNvcmRlZCB2aWRlbyBoYXMgYXJ0ZWZhY3RzLCBldmVuIG1pc3NlZCBmcmFtZXMuCj4KPiA+
-Pgo+Cj4gPj4gQW55b25lIGVsc2UgaGF2aW5nIHRoaXMgcHJvYmxlbT8gSSByZW1lbWJlciB0aGF0
-IG9uIG11bHRpcHJvdG8gdGhlcmUgd2FzIAo+Cj4gPj4gYSBzaW1pbGFyIHByb2IKPiBsZW0gd2l0
-aCB0aGUgcGN0djQ1MmUgdW50aWwgRG9taW5payBLdWhsZW4gcGF0Y2hlZCAKPgo+ID4+IHNvbXRo
-aW5nIHNpbmNlIHRoZW4gdGhlIHZpZGVvIHdhcyBPSy4gSXMgaXQgcG9zc2libGUgdGhhdCB0aGUg
-c2FtZSAKPgo+ID4+ICJlcnJvciIgaXMgaW4gdGhlIFMyQVBJLWRyaXZlcj8KPgo+ID4gCj4KPiA+
-IEkgaGF2ZSBzaW1pbGFyIHByb2JsZW1zIHdpdGggbXkgU2t5U3RhciBIRCAoc3RiMDg5OSksIGJ1
-dCBJCj4KPiA+IGFtIHN0aWxsIHVzaW5nIHRoZSBtdWx0aXByb3RvIGRyaXZlcnMuCj4KPiA+IAo+
-Cj4gPiBSZWdhcmRzLCBBcnRlbQo+Cj4gPiAKPgo+ID4gX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KPgo+ID4gbGludXgtZHZiIG1haWxpbmcgbGlzdAo+Cj4g
-PiBsaW51eC1kdmJAbGludXh0di5vcmcKPgo+ID4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2kt
-YmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4KPgo+Cj4gSGkgaGF2ZSBhbHNvIGEgc2lt
-aWxhciBwcm9ibGVtIG9uIHRoZSBUZXJyYVRlYyBDaW5lcmd5IFMyIFBDSSBIRAo+Cj4gd2l0aCB0
-aGUgUzJBUEkgZHJpdmVycyBmcm9tIHRoZSBMaXBsaWFuaW4gdHJlZS4KPgo+Cj4KPiBtZmcKPgo+
-Cj4KPiBFZGdhciAoZ2ltbGkpIEh1Y2VrCj4KPgo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KPgo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPgo+IGxp
-bnV4LWR2YkBsaW51eHR2Lm9yZwo+Cj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21h
-aWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4KPgo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IEdldCBhICpm
-cmVlIE1QMyogZXZlcnkgZGF5IHdpdGggdGhlIFNwaW5uZXIuY29tIFRvb2xiYXIuIEdldCBpdCBO
-b3cgCj4gPGh0dHA6Ly90b29sYmFyLmFvbC5jb20vc3Bpbm5lci9kb3dubG9hZC5odG1sP25jaWQ9
-ZW1sd2V1c2Rvd24wMDAwMDAyMD4uCj4KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPgo+IF9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbGludXgtZHZiIG1haWxpbmcg
-bGlzdAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cubGludXh0di5vcmcvY2dp
-LWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2YgoKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiB1c2VycyBtYWlsaW5nIGxpc3QKRm9y
-IFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2UgaW5zdGVhZCBsaW51eC1tZWRpYUB2Z2Vy
-Lmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
-Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hi,
+
+i've just added some info about my Compro T750 card to the LinuxTv-wiki 
+(http://www.linuxtv.org/wiki/index.php/Compro_Videomate_T750) to speed 
+up the development.
+
+regards,
+Daniel
+
+
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
