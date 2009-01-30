@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0IBnlQg013952
-	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 06:49:47 -0500
-Received: from mta2.glocalnet.net (mta2.glocalnet.net [213.163.128.209])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0IBnVHk001429
-	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 06:49:31 -0500
-Received: from mail.jarkeborn.se (78.82.254.235) by mta2.glocalnet.net
-	(7.3.130) (authenticated as 4integration@glocalnet.net)
-	id 492BECA800799664 for video4linux-list@redhat.com;
-	Sun, 18 Jan 2009 12:49:31 +0100
-Received: from [192.168.1.3] (DD-WRT.highway [192.168.1.20])
-	by mail.jarkeborn.se (Postfix) with ESMTPSA id CD5DC66141
-	for <video4linux-list@redhat.com>; Sun, 18 Jan 2009 12:49:30 +0100 (CET)
-Message-ID: <4973174A.30406@jarkeborn.se>
-Date: Sun, 18 Jan 2009 12:49:30 +0100
-From: Jocke <maillist@jarkeborn.se>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0UNFukE023293
+	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 18:15:56 -0500
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n0UNFdHW008665
+	for <video4linux-list@redhat.com>; Fri, 30 Jan 2009 18:15:39 -0500
+From: "Curran, Dominic" <dcurran@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, linux-omap
+	<linux-omap@vger.kernel.org>, "video4linux-list@redhat.com"
+	<video4linux-list@redhat.com>
+Date: Fri, 30 Jan 2009 17:15:32 -0600
+Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B5012A594C32@dlee07.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA790201@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Removed drivers...help
+Content-Transfer-Encoding: 8bit
+Cc: "greg.hofer@hp.com" <greg.hofer@hp.com>
+Subject: RE: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,23 +29,107 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
 
-I have a fresh Ubuntu Server 8.10 and it had support for my DVB cards 
-but since I have used the latest v4l-dvb drivers before I did the same 
-this time.
 
-I am struggeling with my TV cards and tried with the latest v4l-dvb 
-source/firmware and from a v4l-dvb perspective it looked fine. However I 
-have problem with opensascng so I wanted to revert to the default 
-v4l-dvb drivers to see if that work.
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Thursday, January 29, 2009 9:52 PM
+> To: Curran, Dominic; linux-omap; video4linux-list@redhat.com
+> Cc: greg.hofer@hp.com
+> Subject: RE: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
+>
+>
+>
+> Thanks,
+> Vaibhav Hiremath
+>
+> > -----Original Message-----
+> > From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
+> > bounces@redhat.com] On Behalf Of Curran, Dominic
+> > Sent: Friday, January 30, 2009 6:24 AM
+> > To: linux-omap; video4linux-list@redhat.com
+> > Cc: greg.hofer@hp.com
+> > Subject: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
+> >
+> > From: Dominic Curran <dcurran@ti.com>
+> > Subject: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
+> >
+> > Rename i2c structures to something sensible.
+> > This patch is not specific for imx046 sensor.
+> > Do this in preparation for i2c changes for imx046 sensor.
+> >
+> > Signed-off-by: Greg Hofer <greg.hofer@hp.com>
+> > Signed-off-by: Dominic Curran <dcurran@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-zoom2.c |   14 +++++++-------
+> >  1 file changed, 7 insertions(+), 7 deletions(-)
+> >
+> > Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+> > ===================================================================
+> > --- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
+> > +++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+> > @@ -472,7 +472,7 @@ static struct twl4030_platform_data ldp_
+> >     .keypad         = &ldp_kp_twl4030_data,
+> >  };
+> >
+> > -static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
+> > +static struct i2c_board_info __initdata zoom2_i2c_bus1_info[] = {
+> [Hiremath, Vaibhav] I think zoom2_i2c1_info should be sufficient, since
+> i2c1,2,3 itself indicates bus.
 
-So I executed "make rminstall" but that seems to remove all video drivers :(
 
-- How can I get back to the default Ubuntu drivers?
+I also didn't take this.
+As a 'newbie' I was a little confused what this structure was about when I first came across it, and having the word 'bus' there would have helped me.
 
-Best Regards
-Joacim
+Again, I will reconsider if you feel it's a big issue.
+
+Thanks
+dom
+
+
+>
+> >     {
+> >             I2C_BOARD_INFO("twl4030", 0x48),
+> >             .flags = I2C_CLIENT_WAKE,
+> > @@ -507,7 +507,7 @@ static struct synaptics_i2c_rmi_platform
+> >     .power          = &synaptics_power,
+> >  };
+> >
+> > -static struct i2c_board_info __initdata ldp3430_i2c_board_info[] =
+> > {
+> > +static struct i2c_board_info __initdata zoom2_i2c_bus2_info[] = {
+> >     {
+> >             I2C_BOARD_INFO(SYNAPTICS_I2C_RMI_NAME,
+> > SYNAPTICS_I2C_ADDR),
+> >             .platform_data = &ldp3430_synaptics_platform_data,
+> > @@ -518,12 +518,12 @@ static struct i2c_board_info __initdata
+> >
+> >  static int __init omap_i2c_init(void)
+> >  {
+> > -   omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
+> > -                   ARRAY_SIZE(ldp_i2c_boardinfo));
+> > +   omap_register_i2c_bus(1, 2600, zoom2_i2c_bus1_info,
+> > +                   ARRAY_SIZE(zoom2_i2c_bus1_info));
+> >  #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
+> > -   ldp3430_i2c_board_info[0].irq =
+> > OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
+> > -   omap_register_i2c_bus(2, 100, ldp3430_i2c_board_info,
+> > -                   ARRAY_SIZE(ldp3430_i2c_board_info));
+> > +   zoom2_i2c_bus2_info[0].irq =
+> > OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
+> > +   omap_register_i2c_bus(2, 100, zoom2_i2c_bus2_info,
+> > +                   ARRAY_SIZE(zoom2_i2c_bus2_info));
+> >  #endif
+> >     omap_register_i2c_bus(3, 400, NULL, 0);
+> >     return 0;
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe mailto:video4linux-list-
+> > request@redhat.com?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
