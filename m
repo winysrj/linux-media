@@ -1,112 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3774 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752395AbZARTE2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jan 2009 14:04:28 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0IJ4QAf098190
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 18 Jan 2009 20:04:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 18 Jan 2009 20:04:26 +0100 (CET)
-Message-Id: <200901181904.n0IJ4QAf098190@smtp-vbr16.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.ammma.de ([213.83.39.131]:4674 "EHLO ammma.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751928AbZAaN7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jan 2009 08:59:46 -0500
+Received: from ammma.net (hydra.ammma.mil [192.168.110.1])
+	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id n0VDZJI30031
+	for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 14:35:19 +0100
+Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
+	by ammma.net (8.12.11.20060308/8.12.11/AMMMa AG) with ESMTP id n0VDXoYY014687
+	for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 14:33:51 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 4F5B7431E52
+	for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 14:33:50 +0100 (CET)
+Received: from neo.wg.de ([127.0.0.1])
+	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 6WJAnvTP+j2p for <linux-media@vger.kernel.org>;
+	Sat, 31 Jan 2009 14:33:45 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 469DE431E60
+	for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 14:33:45 +0100 (CET)
+Message-ID: <20090131143345.632216fzff79u0jk@neo.wg.de>
+Date: Sat, 31 Jan 2009 14:33:45 +0100
+From: Jan Schneider <jan@horde.org>
 To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Subject: Fwd: [linux-dvb] Technotrend C-2300 and CAM
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+Not sure if linux-dvb messages are automatically forwarded...
 
-Results of the daily build of v4l-dvb:
+----- Weitergeleitete Nachricht von jan@horde.org -----
+      Datum: Sat, 31 Jan 2009 12:43:51 +0100
+        Von: Jan Schneider <jan@horde.org>
+Antwort an: linux-media@vger.kernel.org
+    Betreff: [linux-dvb] Technotrend C-2300 and CAM
+         An: linux-dvb@linuxtv.org
 
-date:        Sun Jan 18 19:00:02 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10241:7981bdd4e25a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Hi,
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc2-armv5: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29-rc2-armv5-ixp: ERRORS
-linux-2.6.27-armv5-omap2: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29-rc2-armv5-omap2: ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29-rc2-i686: ERRORS
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc2-m32r: ERRORS
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: WARNINGS
-linux-2.6.27-mips: WARNINGS
-linux-2.6.28-mips: WARNINGS
-linux-2.6.29-rc2-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc2-powerpc64: ERRORS
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc2-x86_64: ERRORS
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc2): ERRORS
+for some reason, my CAM (Alphacrypt Classic) doesn't seem to be
+detected by my Technotrend C-2300/CI combination. There is nothing in
+the kernel log/syslog when inserting or removing the card. I updated
+the card to the latest firmware (3.18) to no avail.
+I don't even know where to start debugging. No windows here, so I
+can't really tell whether this is a hardware problem.
+Any hints on where to start looking would help. The combination seems
+to work fine for almost everybody, beside one single thread on this
+list in 2007 that didn't come to a conclusion either.
 
-Detailed results are available here:
+Jan.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+--
+Do you need professional PHP or Horde consulting?
+http://horde.org/consulting/
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+----- Ende der weitergeleiteten Nachricht -----
+
+
+Jan.
+
+-- 
+Do you need professional PHP or Horde consulting?
+http://horde.org/consulting/
+
