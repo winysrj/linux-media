@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n07Kv37p029554
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 15:57:03 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n07KuUC7032652
-	for <video4linux-list@redhat.com>; Wed, 7 Jan 2009 15:56:34 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so3637910qwe.39
-	for <video4linux-list@redhat.com>; Wed, 07 Jan 2009 12:56:30 -0800 (PST)
-Message-ID: <412bdbff0901071248p5c0ddee3qa034a0db7021998@mail.gmail.com>
-Date: Wed, 7 Jan 2009 15:48:15 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: marilynnpg@tx.rr.com
-In-Reply-To: <20090107203537.3M8BX.5758.root@cdptpa-web12-z01>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0VB74iq018113
+	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 06:07:04 -0500
+Received: from smtp-out5.blueyonder.co.uk (smtp-out5.blueyonder.co.uk
+	[195.188.213.8])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0VB6oKO020470
+	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 06:06:50 -0500
+Message-ID: <498430DF.7080507@blueyonder.co.uk>
+Date: Sat, 31 Jan 2009 11:07:11 +0000
+From: Ian Davidson <id012c3076@blueyonder.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jackson Yee <jackson@gotpossum.com>,
+	Video 4 Linux <video4linux-list@redhat.com>
+References: <497CD894.7070101@blueyonder.co.uk>
+	<26aa882f0901251857k1f4eea3cs83360b15dfdc8f5a@mail.gmail.com>
+In-Reply-To: <26aa882f0901251857k1f4eea3cs83360b15dfdc8f5a@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <412bdbff0901071123u37284eb7k7b2f861e91555bf0@mail.gmail.com>
-	<20090107203537.3M8BX.5758.root@cdptpa-web12-z01>
-Cc: video4linux-list@redhat.com
-Subject: Re: Windows vs Linux DVR System?
+Cc: 
+Subject: Re: Capturing to AVI using streamer
+Reply-To: ian.davidson@bigfoot.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,25 +31,100 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jan 7, 2009 at 3:35 PM,  <marilynnpg@tx.rr.com> wrote:
-> Devin, All that you are saying may be true.  All that I can say is that when I combine the USB 36ft cable with my Logitech QuickCam Pro at 30 frames/ second with a 960 by 720 pixels frame size, it worked flawlessly.
 
-Sure, for simple CCD analog capture devices, I can see that working.
 
-For any device with a tuner, analog decoder, or ATSC/DVB demodulator,
-you're already pretty much at 500ma.  In fact, using an inline meter,
-I have seen devices exceed 500ma and it results in some fun debugging
-for some environments depending on how the USB host handles exceeding
-the maximum power threshold.
+Jackson Yee wrote:
+> Ian,
+>
+> I'm not familiar with streamer, but your problem could be either
+> hardware or software. Please install mplayer on your Fedora system,
+> run the command 'midentify' on your AVI file, and post the results for
+> us. You may also want to use other software such as XawTV or TVTime on
+> your Fedora system to test the capture hardware as well.
+>
+> Regards,
+> Jackson Yee
+> The Possum Company
+> 540-818-4079
+> me@gotpossum.com
+>
+> On Sun, Jan 25, 2009 at 4:24 PM, Ian Davidson
+> <id012c3076@blueyonder.co.uk> wrote:
+>   
+>> I used to capture video to AVI format using streamer on a single processor
+>> system running Fedora Core 4.  I would set up streamer to run for 40 minutes
+>> - but at a convenient time stop streamer using Ctrl-C (according to the
+>> documentation) and the AVI file would be 'wrapped up' nicely.  I could take
+>> the AVI file to a Windows machine and edit the captured video.
+>>
+>> I am now using streamer as before but on a dual processor system running
+>> Fedora 9.  I get an AVI file but some editing software is unable to find the
+>> video stream.
+>>
+>> Is this a problem caused by a) the change of hardware or b) the change of
+>> software?
+>>
+>> Ian
+>>
+>> --
+>> Ian Davidson
+>> 239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
+>> --
+>> Facts used in this message may or may not reflect an underlying objective
+>> reality. Facts are supplied for personal use only. Recipients quoting
+>> supplied information do so at their own risk. Facts supplied may vary in
+>> whole or part from widely accepted standards. While painstakingly
+>> researched, facts may or may not be indicative of actually occurring events
+>> or natural phenomena. The author accepts no responsibility for personal loss
+>> or injury resulting from memorisation and subsequent use.
+>>
+>>
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
+>>     
 
-Cheers,
+streamer is part of the same bundle as xawtv.
 
-Devin
+Here is the output from midentify
+
+
+ID_VIDEO_ID=0
+ID_AUDIO_ID=1
+ID_FILENAME=Sun23-1841.avi
+ID_DEMUXER=avi
+ID_VIDEO_FORMAT=MJPG
+ID_VIDEO_BITRATE=4161976
+ID_VIDEO_WIDTH=352
+ID_VIDEO_HEIGHT=288
+ID_VIDEO_FPS=25.000
+ID_VIDEO_ASPECT=0.0000
+ID_AUDIO_FORMAT=1
+ID_AUDIO_BITRATE=705600
+ID_AUDIO_RATE=0
+ID_AUDIO_NCH=0
+ID_LENGTH=2041.68
+ID_SEEKABLE=1
+ID_VIDEO_CODEC=ffmjpeg
+ID_AUDIO_BITRATE=705600
+ID_AUDIO_RATE=44100
+ID_AUDIO_NCH=1
+ID_AUDIO_CODEC=pcm
+
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Ian Davidson
+239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
+-- 
+Facts used in this message may or may not reflect an underlying objective reality. 
+Facts are supplied for personal use only. 
+Recipients quoting supplied information do so at their own risk. 
+Facts supplied may vary in whole or part from widely accepted standards. 
+While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
+The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
+
 
 --
 video4linux-list mailing list
