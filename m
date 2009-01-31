@@ -1,57 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60981 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526AbZA2JTE (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.231]:45625 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754095AbZAaBcc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jan 2009 04:19:04 -0500
-Date: Thu, 29 Jan 2009 07:18:29 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Roel Kluin <roel.kluin@gmail.com>, linux-media@vger.kernel.org,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Bttv: move check on unsigned
-Message-ID: <20090129071829.78e87158@caramujo.chehab.org>
-In-Reply-To: <Pine.LNX.4.58.0901241718090.17971@shell2.speakeasy.net>
-References: <497250C7.6030502@gmail.com>
-	<Pine.LNX.4.58.0901191020460.11165@shell2.speakeasy.net>
-	<Pine.LNX.4.58.0901241718090.17971@shell2.speakeasy.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 30 Jan 2009 20:32:32 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so706431rvb.1
+        for <linux-media@vger.kernel.org>; Fri, 30 Jan 2009 17:32:31 -0800 (PST)
+Date: Fri, 30 Jan 2009 17:32:14 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Jan Grmela <grmela+linuxdriver@gmail.com>
+Cc: prjmgr@linuxdriverproject.org, linux-media@vger.kernel.org
+Subject: Re: DUTV005 USB DVB-T dongle
+Message-ID: <20090131013214.GA11279@jenkins>
+References: <6d562c690901301619g2918a76eq46350e116e2ccf67@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6d562c690901301619g2918a76eq46350e116e2ccf67@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 24 Jan 2009 17:27:09 -0800 (PST)
-Trent Piepho <xyzzy@speakeasy.org> wrote:
+On 01:19 Sat 31 Jan 2009, Jan Grmela wrote:
+> I've bought some cheap DVB-T USB dongle at eBay last month but after
+> some unsuccessful tries to get it working, I've figured out that
+> there's no Linux driver for the device available since the chipset is
+> quite new. There are a lot of other people complaining that they need
+> to use Windows to watch TV.
+> 
+> Moosy's got a lot of info, USB dumps and datasheets at
+> http://sites.google.com/site/moosyresearch/dutv005
+> 
+> I'm ready to lend the device to a developer willing to create a Linux
+> driver for it because it's basically useless for me now.
+> 
+> (please ignore the previous e-mails sent from a wrong e-mail address)
 
-> On Mon, 19 Jan 2009, Trent Piepho wrote:
-> > On Sat, 17 Jan 2009, Roel Kluin wrote:
-> > > Please review, this patch was not tested.
-> > >
-> > > The static function set_tvnorm is called in
-> > > drivers/media/video/bt8xx/bttv-driver.c:
-> > >
-> > > 1355:   set_tvnorm(btv, norm);
-> > > 1868:   set_tvnorm(btv, i);
-> > > 3273:   set_tvnorm(btv,btv->tvnorm);
-> > >
-> > > in the first two with an unsigned, but bttv->tvnorm is signed.
-> >
-> > Probably better to just change bttv->tvnorm is unsigned if we can.
-> 
-> Here is an improved patch that does a full tvnorm fix for the driver.  The
-> tvnorm value is an index into an array and is never allowed to be negative
-> or otherwise invalid.  Most places it was passed around were unsigned, but
-> a few structs and functions had signed values.
-> 
-> I got rid of the "< 0" checks and changed some ">= BTTV_TVNORMS" checks
-> to BUG_ON().
-> 
-> Any problems with this patch Roel?
-> 
-> Mauro, don't apply as is, I'll send a pull request for a real patch later.
-
-Ok.
+CC'ing the linux-media list which includes the DVB developers. Perhaps
+someone from that list has some idea about the device or would be
+interested in helping out.
 
 Cheers,
-Mauro
+
+	Brandon
