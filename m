@@ -1,208 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50591 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754319AbZAMCDo convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.153]:22545 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752165AbZAaPH6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jan 2009 21:03:44 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>
-Date: Mon, 12 Jan 2009 20:03:13 -0600
-Subject: [REVIEW PATCH 03/14] OMAP34XX: CAM: Resources fixes
-Message-ID: <A24693684029E5489D1D202277BE894416429F99@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+	Sat, 31 Jan 2009 10:07:58 -0500
+Subject: Re: [OMAPZOOM][PATCH v2 2/6] Increase isp workaround buffer size
+ for 8MP sensor.
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Dominic Curran <dcurran@ti.com>
+Cc: linux-media@vger.kernel.org,
+	linux-omap <linux-omap@vger.kernel.org>, greg.hofer@hp.com
+In-Reply-To: <200901301745.54348.dcurran@ti.com>
+References: <200901301745.54348.dcurran@ti.com>
+Content-Type: text/plain
+Date: Sat, 31 Jan 2009 18:08:29 +0300
+Message-Id: <1233414510.19658.18.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch reassigns resources of a omap3isp platform device,
-which is more adequate than the older one. This is needed for
-using __raw_[readl,writel] calls after ioremapping the specified
-platform resources in ISP driver.
+Hello, Dominic
+May i ask few questions ?
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/devices.c              |   76 ++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/mach/omap34xx.h |   53 +++++++++++++++++++-
- 2 files changed, 123 insertions(+), 6 deletions(-)
+Well, looks like it's unrelated to your patch. Lines that don't looks
+okay to me appear in your patch.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index d7e848e..4617c8b 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -56,10 +56,68 @@ static inline void omap_init_camera(void)
- 
- #elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
- 
--static struct resource cam_resources[] = {
-+static struct resource omap34xxcam_resources[] = {
-+};
-+
-+static struct resource omap3isp_resources[] = {
-+	{
-+		.start		= OMAP3_ISP_BASE,
-+		.end		= OMAP3_ISP_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_CBUFF_BASE,
-+		.end		= OMAP3_ISP_CBUFF_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_CCP2_BASE,
-+		.end		= OMAP3_ISP_CCP2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_CCDC_BASE,
-+		.end		= OMAP3_ISP_CCDC_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_HIST_BASE,
-+		.end		= OMAP3_ISP_HIST_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_H3A_BASE,
-+		.end		= OMAP3_ISP_H3A_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
- 	{
--		.start		= OMAP34XX_CAMERA_BASE,
--		.end		= OMAP34XX_CAMERA_BASE + 0x1B70,
-+		.start		= OMAP3_ISP_PREV_BASE,
-+		.end		= OMAP3_ISP_PREV_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_RESZ_BASE,
-+		.end		= OMAP3_ISP_RESZ_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_SBL_BASE,
-+		.end		= OMAP3_ISP_SBL_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_MMU_BASE,
-+		.end		= OMAP3_ISP_MMU_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_CSI2A_BASE,
-+		.end		= OMAP3_ISP_CSI2A_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3_ISP_CSI2PHY_BASE,
-+		.end		= OMAP3_ISP_CSI2PHY_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-@@ -71,13 +129,21 @@ static struct resource cam_resources[] = {
- static struct platform_device omap_cam_device = {
- 	.name		= "omap34xxcam",
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(cam_resources),
--	.resource	= cam_resources,
-+	.num_resources	= ARRAY_SIZE(omap34xxcam_resources),
-+	.resource	= omap34xxcam_resources,
-+};
-+
-+static struct platform_device omap_isp_device = {
-+	.name		= "omap3isp",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(omap3isp_resources),
-+	.resource	= omap3isp_resources,
- };
- 
- static inline void omap_init_camera(void)
- {
- 	platform_device_register(&omap_cam_device);
-+	platform_device_register(&omap_isp_device);
- }
- #else
- static inline void omap_init_camera(void)
-diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
-index 27a1e45..d19c423 100644
---- a/arch/arm/plat-omap/include/mach/omap34xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap34xx.h
-@@ -56,7 +56,32 @@
- #define OMAP34XX_SR1_BASE	0x480C9000
- #define OMAP34XX_SR2_BASE	0x480CB000
- 
--#define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
-+#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
-+#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
-+#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
-+#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
-+#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
-+#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
-+#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
-+#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
-+#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
-+#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
-+#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
-+#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+
-+#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
-+#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-+#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
-+#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
-+#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
-+#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
-+#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
-+#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
-+#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
-+#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
-+#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
-+#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
-+
- #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
- 
- 
-@@ -67,6 +92,32 @@
- #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
- #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
- 
-+#define OMAP3_ISP_BASE			OMAP3430_ISP_BASE
-+#define OMAP3_ISP_CBUFF_BASE		OMAP3430_ISP_CBUFF_BASE
-+#define OMAP3_ISP_CCP2_BASE		OMAP3430_ISP_CCP2_BASE
-+#define OMAP3_ISP_CCDC_BASE		OMAP3430_ISP_CCDC_BASE
-+#define OMAP3_ISP_HIST_BASE		OMAP3430_ISP_HIST_BASE
-+#define OMAP3_ISP_H3A_BASE		OMAP3430_ISP_H3A_BASE
-+#define OMAP3_ISP_PREV_BASE		OMAP3430_ISP_PREV_BASE
-+#define OMAP3_ISP_RESZ_BASE		OMAP3430_ISP_RESZ_BASE
-+#define OMAP3_ISP_SBL_BASE		OMAP3430_ISP_SBL_BASE
-+#define OMAP3_ISP_MMU_BASE		OMAP3430_ISP_MMU_BASE
-+#define OMAP3_ISP_CSI2A_BASE		OMAP3430_ISP_CSI2A_BASE
-+#define OMAP3_ISP_CSI2PHY_BASE		OMAP3430_ISP_CSI2PHY_BASE
-+
-+#define OMAP3_ISP_END			OMAP3430_ISP_END
-+#define OMAP3_ISP_CBUFF_END		OMAP3430_ISP_CBUFF_END
-+#define OMAP3_ISP_CCP2_END		OMAP3430_ISP_CCP2_END
-+#define OMAP3_ISP_CCDC_END		OMAP3430_ISP_CCDC_END
-+#define OMAP3_ISP_HIST_END		OMAP3430_ISP_HIST_END
-+#define OMAP3_ISP_H3A_END		OMAP3430_ISP_H3A_END
-+#define OMAP3_ISP_PREV_END		OMAP3430_ISP_PREV_END
-+#define OMAP3_ISP_RESZ_END		OMAP3430_ISP_RESZ_END
-+#define OMAP3_ISP_SBL_END		OMAP3430_ISP_SBL_END
-+#define OMAP3_ISP_MMU_END		OMAP3430_ISP_MMU_END
-+#define OMAP3_ISP_CSI2A_END		OMAP3430_ISP_CSI2A_END
-+#define OMAP3_ISP_CSI2PHY_END		OMAP3430_ISP_CSI2PHY_END
-+
- #endif
- 
- #define OMAP34XX_DSP_BASE	0x58000000
+On Fri, 2009-01-30 at 17:45 -0600, Dominic Curran wrote:
+> From: Dominic Curran <dcurran@ti.com>
+> Subject: [OMAPZOOM][PATCH v2 2/6] Increase isp workaround buffer size for 8MP 
+> sensor.
+> 
+> A temporary buffer is created to hold the image while it is written by
+> Previewer module and then read by Resizer module. This is called LSC
+> Workaround. To take into account the Sony IMX046 8MP sensor that buffer
+> needs to be increased in size.
+> Changed the #defines to be upper case.
+> Patch also fixes the initialization of a couple of CCDC values.
+> 
+> Signed-off-by: Dominic Curran <dcurran@ti.com>
+> ---
+>  drivers/media/video/isp/isp.c     |   10 +++++-----
+>  drivers/media/video/isp/isp.h     |    7 +++++--
+>  drivers/media/video/isp/ispccdc.c |    2 ++
+>  drivers/media/video/isp/ispmmu.h  |    3 +++
+>  4 files changed, 15 insertions(+), 7 deletions(-)
+> 
+> Index: omapzoom04/drivers/media/video/isp/isp.c
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/isp.c
+> +++ omapzoom04/drivers/media/video/isp/isp.c
+> @@ -1172,20 +1172,20 @@ void omapisp_unset_callback()
+>   **/
+>  u32 isp_buf_allocation(void)
+>  {
+> -	buff_addr = (void *) vmalloc(buffer_size);
+> +	buff_addr = (void *) vmalloc(ISP_BUFFER_MAX_SIZE);
+>  
+>  	if (!buff_addr) {
+>  		printk(KERN_ERR "Cannot allocate memory ");
+
+Will user understand what module (or system of kernel) provide this
+printk message ? Should module name be here ?
+
+>  		return -ENOMEM;
+>  	}
+>  
+> -	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
+> +	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, ISP_BUFFER_MAX_PAGES);
+>  	if (!sglist_alloc) {
+>  		printk(KERN_ERR "videobuf_vmalloc_to_sg error");
+
+Well, may be here too..
+By the way, why there is no "\n" in the end of messages in this
+function ?
+
+>  		return -ENOMEM;
+>  	}
+> -	num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
+> -	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
+> +	num_sc = dma_map_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
+> +	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, ISP_BUFFER_MAX_PAGES);
+>  	if (!buff_addr_mapped) {
+>  		printk(KERN_ERR "ispmmu_map_sg mapping failed ");
+
+Probably the same thing here.
+May be someone can correct sitation if necessary..
+
+>  		return -ENOMEM;
+> @@ -1217,7 +1217,7 @@ void isp_buf_free(void)
+>  {
+>  	if (alloc_done == 1) {
+>  		ispmmu_unmap(buff_addr_mapped);
+> -		dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
+> +		dma_unmap_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
+>  		kfree(sglist_alloc);
+>  		vfree(buff_addr);
+>  		alloc_done = 0;
+> Index: omapzoom04/drivers/media/video/isp/isp.h
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/isp.h
+> +++ omapzoom04/drivers/media/video/isp/isp.h
+> @@ -26,6 +26,9 @@
+>  #define OMAP_ISP_TOP_H
+>  #include <media/videobuf-dma-sg.h>
+>  #include <linux/videodev2.h>
+> +
+> +#include "ispmmu.h"
+> +
+>  #define OMAP_ISP_CCDC		(1 << 0)
+>  #define OMAP_ISP_PREVIEW	(1 << 1)
+>  #define OMAP_ISP_RESIZER	(1 << 2)
+> @@ -69,8 +72,8 @@
+>  #define NUM_ISP_CAPTURE_FORMATS 	(sizeof(isp_formats) /\
+>  							sizeof(isp_formats[0]))
+>  #define ISP_WORKAROUND 1
+> -#define buffer_size (1024 * 1024 * 10)
+> -#define no_of_pages (buffer_size / (4 * 1024))
+> +#define ISP_BUFFER_MAX_SIZE (1024 * 1024 * 16)
+> +#define ISP_BUFFER_MAX_PAGES (ISP_BUFFER_MAX_SIZE / ISPMMU_PAGE_SIZE)
+>  
+>  typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
+>  typedef void (*isp_callback_t) (unsigned long status,
+> Index: omapzoom04/drivers/media/video/isp/ispccdc.c
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/ispccdc.c
+> +++ omapzoom04/drivers/media/video/isp/ispccdc.c
+> @@ -1265,6 +1265,8 @@ int ispccdc_config_size(u32 input_w, u32
+>  	}
+>  
+>  	if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
+> +		ispccdc_obj.ccdcin_woffset = 0;
+> +		ispccdc_obj.ccdcin_hoffset = 0;
+>  		omap_writel((ispccdc_obj.ccdcin_woffset <<
+>  					ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
+>  					(ispccdc_obj.ccdcin_w <<
+> Index: omapzoom04/drivers/media/video/isp/ispmmu.h
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/ispmmu.h
+> +++ omapzoom04/drivers/media/video/isp/ispmmu.h
+> @@ -59,6 +59,9 @@
+>  /* Number of entries per L2 Page table */
+>  #define ISPMMU_L2D_ENTRIES_NR		256
+>  
+> +/* Size of MMU page in bytes */
+> +#define ISPMMU_PAGE_SIZE		4096
+> +
+>  /*
+>   * Statically allocate 16KB for L2 page tables. 16KB can be used for
+>   * up to 16 L2 page tables which cover up to 16MB space. We use an array of 16
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
-1.5.6.5
+Best regards, Klimov Alexey
 
