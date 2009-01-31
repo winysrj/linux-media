@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0596LLg006410
-	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 04:06:21 -0500
-Received: from mail-ew0-f21.google.com (mail-ew0-f21.google.com
-	[209.85.219.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n05968ck019998
-	for <video4linux-list@redhat.com>; Mon, 5 Jan 2009 04:06:08 -0500
-Received: by ewy14 with SMTP id 14so8027599ewy.3
-	for <video4linux-list@redhat.com>; Mon, 05 Jan 2009 01:06:06 -0800 (PST)
-Message-ID: <ca1417c50901050106r4daec80fjda716f48e3f3229a@mail.gmail.com>
-Date: Mon, 5 Jan 2009 14:36:06 +0530
-From: "rahul G" <freevofc6@gmail.com>
-To: video4linux-list@redhat.com
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0VFi8qh002736
+	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 10:44:08 -0500
+Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0VFhn5K030630
+	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 10:43:49 -0500
+Message-ID: <42400.82.95.89.49.1233416628.squirrel@webmail.xs4all.nl>
+Date: Sat, 31 Jan 2009 16:43:48 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "TJ" <linux@tjworld.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Help For Win Tv HVR 900 !!!
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: FTBFS: v4l/tvmixer.c:226: error: 'I2C_DRIVERID_TVMIXER'
+ undeclared here
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,27 +26,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All...
-           I am using Win Tv HVR-900 usb card for linux-2.6.26.4.after
-searching on  net I got the information that this card is supported by
-em28xx drivers so for that I downloaded
 
-"em28xx-new-63cfb1b72ab6" drivers after compiling and installing this
-drivers.dmesg shows only this msg.
+> http://www.linuxtv.org/hg/v4l-dvb
+>
+> v4l/tvmixer.c:226: error: 'I2C_DRIVERID_TVMIXER' undeclared here
+>
+> There is a FTBFS as a result of changeset 10402 (backport merge
+> 3541eb5b56f7) where the definition of I2C_DRIVERID_TVMIXER was removed:
 
-em28xx v4l2 driver version 0.1.0 loaded
-usbcore: registered new interface driver em28xx
-
-it supposed to show card found and other details about firmware and rest of
-the thing ... something like that..But it is not showing anything afer
-this.Can any one give me some pointers regarding this .Or If any one is
-having some proper installation procedure of hvr-900 on linux please send
-it  to me ...
-
-Thanks In Advance..
+I've already asked Mauro to pull from my ~hverkuil/v4l-dvb tree to fix
+this issue.
 
 Regards,
-Freevofc6
+
+      Hans
+
+>
+> +++ b/linux/include/linux/i2c-id.h	Thu Jan 29 10:57:25 2009 -0200
+> @@ -40,9 +40,7 @@
+> #define I2C_DRIVERID_SAA7185B	13	/* video encoder		*/
+> #define I2C_DRIVERID_SAA7110	22	/* video decoder		*/
+> #define I2C_DRIVERID_SAA5249	24	/* SAA5249 and compatibles	*/
+> -#define I2C_DRIVERID_PCF8583	25	/* real time clock		*/
+> #define I2C_DRIVERID_TDA7432	27	/* Stereo sound processor	*/
+> -#define I2C_DRIVERID_TVMIXER    28      /* Mixer driver for tv cards
+> */
+> #define I2C_DRIVERID_TVAUDIO    29      /* Generic TV sound driver      */
+>
+>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
