@@ -1,18 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0VNU3dV013348
-	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 18:30:03 -0500
-Received: from ws6-3.us4.outblaze.com (ws6-3.us4.outblaze.com [205.158.62.199])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n0VNTkAP023876
-	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 18:29:46 -0500
-Message-ID: <4984DEE6.90005@bigpond.net.au>
-Date: Sun, 01 Feb 2009 10:29:42 +1100
-From: Trevor Campbell <tca42186@bigpond.net.au>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n0VDVXUj026100
+	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 08:31:33 -0500
+Received: from dd6904.kasserver.com (dd6904.kasserver.com [85.13.131.139])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n0VDVEs7025596
+	for <video4linux-list@redhat.com>; Sat, 31 Jan 2009 08:31:15 -0500
+Message-ID: <498452A1.4080701@softronic-mannheim.de>
+Date: Sat, 31 Jan 2009 14:31:13 +0100
+From: =?ISO-8859-15?Q?Marius_R=E4sener?= <mr@softronic-mannheim.de>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Kiaser Baas Video to DVD maker - No Sound
+To: Manu Abraham <abraham.manu@gmail.com>
+References: <4982FB36.7080008@softronic-mannheim.de>
+	<498322D8.5040702@gmail.com>
+In-Reply-To: <498322D8.5040702@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Terratec Cinergy C PCI - Mantis Driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,111 +28,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have a Kiaser Baas Video to DVD maker which with help and a patch from 
-Devin Heitmueller and MArcus Rechberger I hav got working fine but there 
-is no sound captured.
+Hi again,
 
-I have been able to install a copy of Win XP  and the siupplied drivers 
-and so verify the device actually works correctly.
+i tried older version now from the driver without success.
 
-I tested with both tvtime and mplayer and they both displayed video 
-well, using
-both the composite and s-video inputs.
+i tried     sudo rmmod mantis.ko  ... or with mantis_core.ko
+"Module mantis does not exist in /proc/modules" on both modules
 
-I am using pulse audio , but tried tvtime using padsp.  but no joy.
+i really have no idea what to do ... i also looked at the driver sources 
+... but thats far to advance for me right now ... i mean there a really 
+much lines of code :)
 
-More Info:
-When the device is plugged in it shows as a USB audio device.  I am not 
-sure if
-this should be the case or not.  Gnome sound recorder doesn't seem to 
-see any
-input and sort of locks up if I try to record using this device.
+greetings
+marius
 
-lsmod output
-# lsmod | grep em28
-em28xx                377792  1
-videodev               35840  2 em28xx
-v4l1_compat            18052  2 em28xx,videodev
-i2c_core               24212  4 em28xx,saa7115,v4l2_common,i2c_i801
-usbcore               137584  9
-em28xx,snd_usb_audio,snd_usb_lib,usbhid,btusb,uhci_hcd,ohci_hcd,ehci_hcd
-
-
-Output from mplayer:
-$ mplayer tv://
-MPlayer 1.0-1.rc2.18.1mdv2009.0-4.3.2 (C) 2000-2007 MPlayer Team
-CPU: Genuine Intel(R) CPU           T2400  @ 1.83GHz (Family: 6, Model: 14,
-Stepping: 8)
-CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-Compiled with runtime CPU detection.
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote 
-control.
-
-Playing tv://.
-TV file format detected.
-Selected driver: v4l2
- name: Video 4 Linux 2 input
- author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
- comment: first try, more to come  ;-)
-Selected device: Pinnacle Dazzle DVC 90
- Capabilites:  video capture  audio  read/write  streaming
- supported norms: 0 = PAL-BG; 1 = SECAM L; 2 = NTSC M;
- inputs: 0 = Composite1; 1 = S-Video;
- Current input: 0
- Current format: YUYV
-tv.c: norm_from_string(pal): Bogus norm parameter, setting default.
-Selected input hasn't got a tuner!
-v4l2: ioctl set Brightness 128 failed: Numerical result out of range
-v4l2: ioctl set Hue 0 failed: Invalid argument
-v4l2: ioctl set Saturation 64 failed: Numerical result out of range
-v4l2: ioctl set Contrast 64 failed: Numerical result out of range
-xscreensaver_disable: Could not find XScreenSaver window.
-==========================================================================
-Opening video decoder: [raw] RAW Uncompressed Video
-VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
-VDec: using Packed YUY2 as output csp (no 0)
-Movie-Aspect is undefined - no prescaling applied.
-VO: [xv] 640x480 => 640x480 Packed YUY2  [zoom]
-Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
-==========================================================================
-Audio: no sound
-Starting playback...
-v4l2: 817 frames successfully processed, 3 frames dropped.
-
-Exiting... (Quit)
-
-Here is the dmesg output.
-
-usb 1-3: new high speed USB device using ehci_hcd and address 5
-usb 1-3: configuration #1 chosen from 1 choice
-usb 1-3: New USB device found, idVendor=1b80, idProduct=e302
-usb 1-3: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-usb 1-3: Product: USB 2861 Device
-Linux video capture interface: v2.00
-em28xx v4l2 driver version 0.0.1 loaded
-em28xx: new video device (1b80:e302): interface 0, class 255
-em28xx: device is attached to a USB 2.0 bus
-em28xx #0: Alternate settings: 8
-em28xx #0: Alternate setting 0, max size= 0
-em28xx #0: Alternate setting 1, max size= 0
-em28xx #0: Alternate setting 2, max size= 1448
-em28xx #0: Alternate setting 3, max size= 2048
-em28xx #0: Alternate setting 4, max size= 2304
-em28xx #0: Alternate setting 5, max size= 2580
-em28xx #0: Alternate setting 6, max size= 2892
-em28xx #0: Alternate setting 7, max size= 3072
-saa7115' 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-attach_inform: saa7113 detected.
-em28xx #0: V4L2 device registered as /dev/video0
-em28xx #0: Found Pinnacle Dazzle DVC 90
-audio device (1b80:e302): interface 1, class 1
-usbcore: registered new interface driver em28xx
-usbcore: registered new interface driver snd-usb-audio
-
-Thanks
-Trevor
+Am 30.01.2009 16:55, schrieb Manu Abraham:
+> Marius Räsener wrote:
+>    
+>> Hi V4L-List,
+>>
+>> i hope i can find a solution with your help here.
+>> The situation:
+>> Hp ProLiant DL380 G2 Server should become a LinuxMCE Core (got that cheap).
+>> LinuxMCE is based on Kubuntu 7.10 (i386 in my case)
+>> I think the components of the System arent relevant, but correct my
+>> please if not.
+>> Maybe that there are only PCI-X slots available, but all Cards I use are
+>> 3.3V compatible (with the 2 notch).
+>>
+>> DVB-C Card is "Terratec Cingery C PCI HD".
+>>
+>> I installed the card via this method:
+>>
+>> cd /usr/src
+>> sudo apt-get install mercurial
+>> sudo hg clone http://jusst.de/hg/mantis cd mantis
+>> sudo make
+>> sudo make install
+>> sudo reboot
+>>
+>>
+>> this worked for me several times.
+>> (
+>> i got the expected dmesg output:
+>> [  101.667604] found a VP-2040 PCI DVB-C device on (0a:01.0),
+>> [  101.670427] DVB: registering new adapter (Mantis dvb adapter)
+>> [  102.189326] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
+>> [  102.192819] mantis_frontend_init (0): found Philips CU1216 DVB-C
+>> frontend (TDA10023) @ 0x0c
+>> [  102.192823] mantis_frontend_init (0): Mantis DVB-C Philips CU1216
+>> frontend attach success
+>> [  102.192829] DVB: registering adapter 0 frontend 0 (Philips TDA10023
+>> DVB-C)...
+>> )
+>> but after the last complete new-installation its not anymore.
+>> (
+>> now die dmesg output:
+>> ~: dmesg | grep -i dvb
+>> ~:
+>> )
+>> i'm not sure what to try next. the card itself installs in Vista x64
+>> without any errors so its no hardware defect i guess.
+>> i also tried to install a older version of the mantis driver, but i'm
+>> not sure if i downloaded them correctly.
+>> i'm also not sure if i can reinstall older or newer versions of the
+>> driver without messing something up. does that work?
+>> i also tried several different pci-x slots caused that procedure
+>> sometimes helped me in windows environment...
+>>
+>> any hints please for me before i jump from a bridge or something :)
+>>      
+>
+> Please load the mantis_core.ko module before you load the mantis.ko
+> module.
+>
+> Regards,
+> Manu
+>    
 
 --
 video4linux-list mailing list
