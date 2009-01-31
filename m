@@ -1,203 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]:54153 "EHLO
-	shogun.pilppa.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752865AbZAJSwp (ORCPT
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:50748 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752213AbZAaVQJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jan 2009 13:52:45 -0500
-Date: Sat, 10 Jan 2009 20:45:50 +0200 (EET)
-From: Mika Laitio <lamikr@pilppa.org>
+	Sat, 31 Jan 2009 16:16:09 -0500
+Received: from hrndva-web09-z01 ([10.128.132.100])
+          by hrndva-smta02.mail.rr.com with ESMTP
+          id <20090131211606.MGFB9192.hrndva-smta02.mail.rr.com@hrndva-web09-z01>
+          for <linux-media@vger.kernel.org>;
+          Sat, 31 Jan 2009 21:16:06 +0000
+Message-ID: <20090131211606.85FN5.74290.root@hrndva-web09-z01>
+Date: Sat, 31 Jan 2009 16:16:06 -0500
+From: <christopherwanderson@columbus.rr.com>
 To: linux-media@vger.kernel.org
-Subject: latest S2API segfaults for cx88 (hvr-1300 and hvr-4000)
-Message-ID: <Pine.LNX.4.64.0901102027360.4390@shogun.pilppa.org>
+Subject: 
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463809533-135437087-1231613150=:4390"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----1463809533-135437087-1231613150=:4390
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-
-Hi
-
-I checked out and build today the latest vl4-dvb drivers
-(changeset:   10210:985ecd81d993) against the 2.6.27.1 kernel
-and the drivers segfaults on load for me.
-
-Attached is the segfault + /proc/interrupts output.
-
-I have in my system both the hvr-1300 and hvr-4000.
-Last driver version that I have tested to work is from 2008-12-31.
-(changeset:   10165:3e5f56413191 which added the FE_CAN_2G_MODULATION 
-flag)
-
-With this older version of driver I am able to tune to dvb-t (from 
-hvr-1300) and dvb-s/s2 (from hvr-4000) with command line tools like scan, 
-szap,szap2 or older vdr-1.6.0 which is not aware from s2api and uses thus 
-older dvb driver api.
-
-But even with that version (2008-12-31) version of driver there is some 
-problem, because unlike the hvr-3200 users, I am not able to change dvb-s 
-or dvb-s2 channels with vdr-1.7.3. Changing of dvb-t channels works ok.
-If I have earlier szapped the correct dvb-s/s2 channel by using the 
-szap/szap-s2 and then quitted it with ctrl-c and started vdr-1.7.3, I am 
-able to watch that S/S2 channels, but any attempt to switch for 
-some other s/s2 channels will fail. Unlike Gregoire Favre who is not able 
-to tune any S/S2 channels even from command line, I do not have diseqs 
-installed in my system. (hvr-4000 is connected directly via wire to lnb)
-
-Mika
-
-
----1463809533-135437087-1231613150=:4390
-Content-Type: TEXT/plain; charset=US-ASCII; name=dvbdriver_crash.txt
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0901102045500.4390@shogun.pilppa.org>
-Content-Description: 
-Content-Disposition: attachment; filename=dvbdriver_crash.txt
-
-ZG1lc2cNCi0tLS0tDQpjeDg4LW1wZWcgZHJpdmVyIG1hbmFnZXIgMDAwMDow
-MzowNy4yOiBQQ0kgSU5UIEEgLT4gR1NJIDIxIChsZXZlbCwgbG93KSAtPiBJ
-UlEgMjENCmN4ODhbMV0vMjogZm91bmQgYXQgMDAwMDowMzowNy4yLCByZXY6
-IDUsIGlycTogMjEsIGxhdGVuY3k6IDMyLCBtbWlvOiAweGY4MDAwMDAwDQpj
-eDg4MDAgMDAwMDowMzowNi4wOiBQQ0kgSU5UIEEgLT4gR1NJIDIwIChsZXZl
-bCwgbG93KSAtPiBJUlEgMjANCmN4ODhbMF0vMDogZm91bmQgYXQgMDAwMDow
-MzowNi4wLCByZXY6IDUsIGlycTogMjAsIGxhdGVuY3k6IDMyLCBtbWlvOiAw
-eGY2MDAwMDAwDQp3bTg3NzUnIDEtMDAxYjogY2hpcCBmb3VuZCBAIDB4MzYg
-KGN4ODhbMF0pDQp3bTg3NzUnIDItMDAxYjogY2hpcCBmb3VuZCBAIDB4MzYg
-KGN4ODhbMV0pDQpjeDg4WzBdLzA6IHJlZ2lzdGVyZWQgZGV2aWNlIHZpZGVv
-MCBbdjRsMl0NCmN4ODhbMF0vMDogcmVnaXN0ZXJlZCBkZXZpY2UgdmJpMA0K
-Y3g4OFswXS8wOiByZWdpc3RlcmVkIGRldmljZSByYWRpbzANCmN4ODgwMCAw
-MDAwOjAzOjA3LjA6IFBDSSBJTlQgQSAtPiBHU0kgMjEgKGxldmVsLCBsb3cp
-IC0+IElSUSAyMQ0KY3g4OFsxXS8wOiBmb3VuZCBhdCAwMDAwOjAzOjA3LjAs
-IHJldjogNSwgaXJxOiAyMSwgbGF0ZW5jeTogMzIsIG1taW86IDB4ZmEwMDAw
-MDANCmN4ODhbMV0vMDogcmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8xIFt2NGwy
-XQ0KY3g4OFsxXS8wOiByZWdpc3RlcmVkIGRldmljZSB2YmkxDQpjeDg4WzFd
-LzA6IHJlZ2lzdGVyZWQgZGV2aWNlIHJhZGlvMQ0KY3g4OC8yOiBjeDIzODh4
-IGR2YiBkcml2ZXIgdmVyc2lvbiAwLjAuNiBsb2FkZWQNCmN4ODgvMjogcmVn
-aXN0ZXJpbmcgY3g4ODAyIGRyaXZlciwgdHlwZTogZHZiIGFjY2Vzczogc2hh
-cmVkDQpjeDg4WzBdLzI6IHN1YnN5c3RlbTogMDA3MDo5NjAxLCBib2FyZDog
-SGF1cHBhdWdlIFdpblRWLUhWUjEzMDAgRFZCLVQvSHlicmlkIE1QRUcgRW5j
-b2RlciBbY2FyZD01Nl0NCmN4ODhbMF0vMjogY3gyMzg4eCBiYXNlZCBEVkIv
-QVRTQyBjYXJkDQpCVUc6IHVuYWJsZSB0byBoYW5kbGUga2VybmVsIE5VTEwg
-cG9pbnRlciBkZXJlZmVyZW5jZSBhdCAwMDAwMDAwMDAwMDAwMDAwDQpJUDog
-WzxmZmZmZmZmZjgwNGZkNDZkPl0gX19tdXRleF9sb2NrX3Nsb3dwYXRoKzB4
-M2QvMHhkMA0KUEdEIDZhODkxMDY3IFBVRCA2YThjODA2NyBQTUQgMCANCk9v
-cHM6IDAwMDIgWzFdIFNNUCANCkNQVSAxIA0KTW9kdWxlcyBsaW5rZWQgaW46
-IGN4ODhfZHZiKCspIGN4ODhfdnAzMDU0X2kyYyB2aWRlb2J1Zl9kdmIgZHZi
-X2NvcmUgd204Nzc1IHNuZF9zZXFfZHVtbXkgc25kX3NlcV9vc3MgdHVuZXJf
-c2ltcGxlIHR1bmVyX3R5cGVzIHNuZF9zZXFfbWlkaV9ldmVudCBzbmRfc2Vx
-IHRkYTk4ODcgc25kX3NlcV9kZXZpY2UgdGRhODI5MCBzbmRfcGNtX29zcyBz
-bmRfaGRhX2ludGVsIHR1bmVyIGN4ODgwMCBjeDg4MDIgY3g4OF9hbHNhIGN4
-ODh4eCBzbmRfcGNtIGlyX2NvbW1vbiBzbmRfdGltZXIgc25kX3BhZ2VfYWxs
-b2Mgc25kX2h3ZGVwIHNuZF9taXhlcl9vc3MgdjRsMl9jb21tb24gdmlkZW9k
-ZXYgaTJjX2FsZ29fYml0IHI4MTY5IHBwZGV2IHR2ZWVwcm9tIHY0bDFfY29t
-cGF0IG9oY2kxMzk0IHBjc3BrciB2NGwyX2NvbXBhdF9pb2N0bDMyIG1paSB0
-aGVybWFsIHBhcnBvcnRfcGMgdmlkZW9idWZfZG1hX3NnIHNocGNocCBpZWVl
-MTM5NCB2aWRlb2J1Zl9jb3JlIGkyY19waWl4NCBidGN4X3Jpc2MgcGNpX2hv
-dHBsdWcgcGFycG9ydCB3bWkgcHJvY2Vzc29yIGs4dGVtcCBzZXJpb19yYXcg
-cnRjX2Ntb3Mgc2cgYnV0dG9uIHNyX21vZCBpMmNfY29yZSBldmRldiBqb3lk
-ZXYgc25kIGxpcmNfaW1vbiBsaXJjX2RldiBzb3VuZGNvcmUgYXRpaXhwIGlk
-ZV9jb3JlIHBhdGFfYXRpaXhwIGF0YV9waWl4IGFoY2kgbGliYXRhIGRvY2sg
-c2RfbW9kIHNjc2lfbW9kIGNyY190MTBkaWYgZXh0MyBqYmQgdWhjaV9oY2Qg
-b2hjaV9oY2QgZWhjaV9oY2QgdXNiaGlkIHVzYmNvcmUgZmZfbWVtbGVzcyBb
-bGFzdCB1bmxvYWRlZDogc2NzaV93YWl0X3NjYW5dDQpQaWQ6IDE1NjksIGNv
-bW06IG1vZHByb2JlIE5vdCB0YWludGVkIDIuNi4yNy43LTFsYW1pa3IgIzEN
-ClJJUDogMDAxMDpbPGZmZmZmZmZmODA0ZmQ0NmQ+XSAgWzxmZmZmZmZmZjgw
-NGZkNDZkPl0gX19tdXRleF9sb2NrX3Nsb3dwYXRoKzB4M2QvMHhkMA0KUlNQ
-OiAwMDE4OmZmZmY4ODAwNmE4NjFkNzggIEVGTEFHUzogMDAwMTAyNDYNClJB
-WDogZmZmZjg4MDA2YTg2MWQ3OCBSQlg6IGZmZmY4ODAwNmRkMjI1ODggUkNY
-OiAwMDAwMDAwMDAwMDAwMDAwDQpSRFg6IDAwMDAwMDAwMDAwMDAwMDAgUlNJ
-OiAwMDAwMDAwMDAwMDAwMDAxIFJESTogZmZmZjg4MDA2ZGQyMjU4Yw0KUkJQ
-OiBmZmZmODgwMDZhODYxZGM4IFIwODogMDAwMDAwMDAwMDAwMDAwMCBSMDk6
-IDAwMDAwMDAwMDAwMDAwMDcNClIxMDogZmZmZjg4MDA2YTg2MWQ0OCBSMTE6
-IGZmZmZmZmZmODA3OWU3ZTAgUjEyOiBmZmZmODgwMDZkZDIyNThjDQpSMTM6
-IDAwMDAwMDAwMDAwMDAwMDEgUjE0OiBmZmZmODgwMDZhOGI0MjkwIFIxNTog
-ZmZmZjg4MDA2ZGQyMjU5MA0KRlM6ICAwMDAwN2Y3NzM3N2VkNmYwKDAwMDAp
-IEdTOmZmZmY4ODAwNmY4MDI4ODAoMDAwMCkga25sR1M6MDAwMDAwMDAwMDAw
-MDAwMA0KQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENSMDogMDAwMDAw
-MDA4MDA1MDAzYg0KQ1IyOiAwMDAwMDAwMDAwMDAwMDAwIENSMzogMDAwMDAw
-MDA2YTQyMDAwMCBDUjQ6IDAwMDAwMDAwMDAwMDA2ZTANCkRSMDogMDAwMDAw
-MDAwMDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAwMDAwMDAgRFIyOiAwMDAwMDAw
-MDAwMDAwMDAwDQpEUjM6IDAwMDAwMDAwMDAwMDAwMDAgRFI2OiAwMDAwMDAw
-MGZmZmYwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQwMA0KUHJvY2VzcyBtb2Rw
-cm9iZSAocGlkOiAxNTY5LCB0aHJlYWRpbmZvIGZmZmY4ODAwNmE4NjAwMDAs
-IHRhc2sgZmZmZjg4MDA2YThiNDI5MCkNClN0YWNrOiAgZmZmZjg4MDA2ZGQy
-MjU5MCAwMDAwMDAwMDAwMDAwMDAwIDAwMDAwMDAwMDAwMDAwMDAgZmZmZjg4
-MDA2ZWM3N2EyMA0KIGZmZmY4ODAwNmRkMjI0MDAgZmZmZjg4MDA2ZGQyMjU4
-OCBmZmZmODgwMDZkY2RhMDAwIDAwMDAwMDAwMDAwMDAwMDENCiBmZmZmODgw
-MDZkZDIyNTg4IGZmZmY4ODAwNmRkMjI0MDggZmZmZjg4MDA2YTg2MWRlOCBm
-ZmZmZmZmZjgwNGZkMjZlDQpDYWxsIFRyYWNlOg0KIFs8ZmZmZmZmZmY4MDRm
-ZDI2ZT5dIG11dGV4X2xvY2srMHgxZS8weDMwDQogWzxmZmZmZmZmZmEwM2Fj
-MThkPl0gdmlkZW9idWZfZHZiX2dldF9mcm9udGVuZCsweDFkLzB4ODAgW3Zp
-ZGVvYnVmX2R2Yl0NCiBbPGZmZmZmZmZmYTAzYjM5Y2Y+XSBjeDg4MDJfZHZi
-X3Byb2JlKzB4MTJmLzB4MWQ5MCBbY3g4OF9kdmJdDQogWzxmZmZmZmZmZjgw
-MmM2YTdhPl0gPyBfX2ttYWxsb2MrMHhiYS8weDExMA0KIFs8ZmZmZmZmZmZh
-MDJhNDQzZD5dIGN4ODgwMl9yZWdpc3Rlcl9kcml2ZXIrMHgxY2QvMHgyNjAg
-W2N4ODgwMl0NCiBbPGZmZmZmZmZmYTAzYjU2ZTA+XSA/IGR2Yl9pbml0KzB4
-MC8weDMwIFtjeDg4X2R2Yl0NCiBbPGZmZmZmZmZmYTAzYjU3MDc+XSBkdmJf
-aW5pdCsweDI3LzB4MzAgW2N4ODhfZHZiXQ0KIFs8ZmZmZmZmZmY4MDIwOTAz
-Yz5dIF9zdGV4dCsweDNjLzB4MTcwDQogWzxmZmZmZmZmZjgwMjcyOTNiPl0g
-c3lzX2luaXRfbW9kdWxlKzB4YmIvMHgxZjANCiBbPGZmZmZmZmZmODAyMGM2
-OWE+XSBzeXN0ZW1fY2FsbF9mYXN0cGF0aCsweDE2LzB4MWINCg0KDQpDb2Rl
-OiA4OSBmYiA0YyA4OSBlNyA0YyA4ZCA3YiAwOCA0OCA4MyBlYyAyOCA2NSA0
-YyA4YiAzNCAyNSAwMCAwMCAwMCAwMCBlOCA0MyAxNyAwMCAwMCA0OCA4YiA1
-MyAxMCA0OCA4ZCA0NSBiMCA0YyA4OSA3ZCBiMCA0OCA4OSA0MyAxMCA8NDg+
-IDg5IDAyIDQ4IDg5IDU1IGI4IDQ4IGM3IGMyIGZmIGZmIGZmIGZmIDRjIDg5
-IDc1IGMwIDQ4IDg5IGQwIA0KUklQICBbPGZmZmZmZmZmODA0ZmQ0NmQ+XSBf
-X211dGV4X2xvY2tfc2xvd3BhdGgrMHgzZC8weGQwDQogUlNQIDxmZmZmODgw
-MDZhODYxZDc4Pg0KQ1IyOiAwMDAwMDAwMDAwMDAwMDAwDQotLS1bIGVuZCB0
-cmFjZSA0YmQ3YTFlYzk5YmVkZjM5IF0tLS0NCmN4MjM4OHggYmxhY2tiaXJk
-IGRyaXZlciB2ZXJzaW9uIDAuMC42IGxvYWRlZA0KY3g4OC8yOiByZWdpc3Rl
-cmluZyBjeDg4MDIgZHJpdmVyLCB0eXBlOiBibGFja2JpcmQgYWNjZXNzOiBz
-aGFyZWQNCmN4ODhbMF0vMjogc3Vic3lzdGVtOiAwMDcwOjk2MDEsIGJvYXJk
-OiBIYXVwcGF1Z2UgV2luVFYtSFZSMTMwMCBEVkItVC9IeWJyaWQgTVBFRyBF
-bmNvZGVyIFtjYXJkPTU2XQ0KY3g4OFswXS8yOiBjeDIzNDE2IGJhc2VkIG1w
-ZWcgZW5jb2RlciAoYmxhY2tiaXJkIHJlZmVyZW5jZSBkZXNpZ24pDQpjeDg4
-WzBdLzItYmI6IEZpcm13YXJlIGFuZC9vciBtYWlsYm94IHBvaW50ZXIgbm90
-IGluaXRpYWxpemVkIG9yIGNvcnJ1cHRlZA0KZmlybXdhcmU6IHJlcXVlc3Rp
-bmcgdjRsLWN4MjM0MXgtZW5jLmZ3DQpjeDg4WzBdLzItYmI6IEZpcm13YXJl
-IHVwbG9hZCBzdWNjZXNzZnVsLg0KY3g4OFswXS8yLWJiOiBGaXJtd2FyZSB2
-ZXJzaW9uIGlzIDB4MDIwNjAwMzkNCmN4ODhbMF0vMjogcmVnaXN0ZXJlZCBk
-ZXZpY2UgdmlkZW8yIFttcGVnXQ0KY3g4OFsxXS8yOiBzdWJzeXN0ZW06IDAw
-NzA6NjkwMiwgYm9hcmQ6IEhhdXBwYXVnZSBXaW5UVi1IVlI0MDAwIERWQi1T
-L1MyL1QvSHlicmlkIFtjYXJkPTY4XQ0KY3g4OFsxXS8yOiBjeDg4MDIgcHJv
-YmUgZmFpbGVkLCBlcnIgPSAtMTkNCg0KDQpbcm9vdEB0aW5rYSBsYW1pa3Jd
-IyBjYXQgL3Byb2MvaW50ZXJydXB0cyANCiAgICAgICAgICAgQ1BVMCAgICAg
-ICBDUFUxICAgICAgIA0KICAwOiAgICAgICAgMTM2ICAgICAgICAgIDIgICBJ
-Ty1BUElDLWVkZ2UgICAgICB0aW1lcg0KICAxOiAgICAgICAgICAwICAgICAg
-ICAgIDIgICBJTy1BUElDLWVkZ2UgICAgICBpODA0Mg0KICA0OiAgICAgICAg
-ICAwICAgICAgICAgIDIgICBJTy1BUElDLWVkZ2UgICAgDQogIDc6ICAgICAg
-ICAgIDAgICAgICAgICAgMCAgIElPLUFQSUMtZWRnZSAgICAgIHBhcnBvcnQw
-DQogIDg6ICAgICAgICAgIDAgICAgICAgICAgMSAgIElPLUFQSUMtZWRnZSAg
-ICAgIHJ0YzANCiAgOTogICAgICAgICAgMCAgICAgICAgICAwICAgSU8tQVBJ
-Qy1mYXN0ZW9pICAgYWNwaQ0KIDEyOiAgICAgICAgICAwICAgICAgICAgIDQg
-ICBJTy1BUElDLWVkZ2UgICAgICBpODA0Mg0KIDE0OiAgICAgICAgIDIyICAg
-ICAgIDIwNzQgICBJTy1BUElDLWVkZ2UgICAgICBwYXRhX2F0aWl4cA0KIDE1
-OiAgICAgICAgICAwICAgICAgICAgIDAgICBJTy1BUElDLWVkZ2UgICAgICBw
-YXRhX2F0aWl4cA0KIDE2OiAgICAgICAxMjA3ICAgICAgIDQ5MzAgICBJTy1B
-UElDLWZhc3Rlb2kgICBvaGNpX2hjZDp1c2IzLCBvaGNpX2hjZDp1c2I0LCBI
-REEgSW50ZWwNCiAxNzogICAgICAgICAgMCAgICAgICAgICA3ICAgSU8tQVBJ
-Qy1mYXN0ZW9pICAgZWhjaV9oY2Q6dXNiMQ0KIDE4OiAgICAgICAgMTkwICAg
-ICAgOTIyMjAgICBJTy1BUElDLWZhc3Rlb2kgICBvaGNpX2hjZDp1c2I1LCBv
-aGNpX2hjZDp1c2I2LCBvaGNpX2hjZDp1c2I3LCBldGgwDQogMTk6ICAgICAg
-ICAgIDAgICAgICAgICAyNyAgIElPLUFQSUMtZmFzdGVvaSAgIGVoY2lfaGNk
-OnVzYjIsIEhEQSBJbnRlbA0KIDIwOiAgICAgICAgICAyICAgICAgICAzNTAg
-ICBJTy1BUElDLWZhc3Rlb2kgICBjeDg4WzBdLCBjeDg4WzBdLCBjeDg4WzBd
-DQogMjE6ICAgICAgICAyNjMgICAgICA0NDI2NCAgIElPLUFQSUMtZmFzdGVv
-aSAgIGN4ODhbMV0sIGN4ODhbMV0sIGN4ODhbMV0NCiAyMjogICAgICAgICA2
-OSAgICAgIDEzMTA1ICAgSU8tQVBJQy1mYXN0ZW9pICAgYWhjaSwgb2hjaTEz
-OTQNCk5NSTogICAgICAgICAgMCAgICAgICAgICAwICAgTm9uLW1hc2thYmxl
-IGludGVycnVwdHMNCkxPQzogICAgICA2NDIzMSAgICAgIDgzNDkzICAgTG9j
-YWwgdGltZXIgaW50ZXJydXB0cw0KUkVTOiAgICAgIDEwNzIyICAgICAgIDY0
-NDIgICBSZXNjaGVkdWxpbmcgaW50ZXJydXB0cw0KQ0FMOiAgICAgICAgNTAz
-ICAgICAgICAzNDQgICBmdW5jdGlvbiBjYWxsIGludGVycnVwdHMNClRMQjog
-ICAgICAgIDkwMiAgICAgICAgNjI0ICAgVExCIHNob290ZG93bnMNClRSTTog
-ICAgICAgICAgMCAgICAgICAgICAwICAgVGhlcm1hbCBldmVudCBpbnRlcnJ1
-cHRzDQpUSFI6ICAgICAgICAgIDAgICAgICAgICAgMCAgIFRocmVzaG9sZCBB
-UElDIGludGVycnVwdHMNClNQVTogICAgICAgICAgMCAgICAgICAgICAwICAg
-U3B1cmlvdXMgaW50ZXJydXB0cw0KRVJSOiAgICAgICAgICAwDQoNCg==
-
----1463809533-135437087-1231613150=:4390--
+Can I get as much disassembly of the PAC7302 drivers with your comments next to it? I am trying to improve my webcam and currently disassembling the driver, in Vista64 with IDA Pro. (I still have the 32 bit driver files as I upgraded from xp32)
+I am helping on the gAIM/Pidgin voice/video chat and this driver isn't where I  would like it to be. I need better color balance, even after changing alot of options I still turn out orange quite a bit.
+I have Assembly expierence, I own the Intel Instruction Manuals, so figuring out the actual given driver with a little bit of help based on the current progress should not be difficult
+Christopher W. Anderson 
+ 
