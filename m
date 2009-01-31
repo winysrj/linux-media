@@ -1,90 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from h-66-166-198-124.nycmny83.covad.net ([66.166.198.124]:56516
-	"EHLO tupari.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254AbZAVWIh (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1690 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751861AbZAaSmS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jan 2009 17:08:37 -0500
-Date: Thu, 22 Jan 2009 17:07:59 -0500 (EST)
-From: Joseph Shraibman <linuxtv.org@jks.tupari.net>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fusion HDTV 7 Dual Express
-In-Reply-To: <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com>
-Message-ID: <alpine.LFD.2.00.0901221706250.8336@tupari.net>
-References: <48F78D8A020000560001A654@GWISE1.matc.edu>  <alpine.LFD.2.00.0901221434040.7609@tupari.net>  <412bdbff0901221149x100cf8abwd07d2c5821e286b2@mail.gmail.com>  <alpine.LFD.2.00.0901221542190.7960@tupari.net>  <412bdbff0901221328u6338ecd9q9ecc2ecab19051e5@mail.gmail.com>
-  <alpine.LFD.2.00.0901221635550.8219@tupari.net> <412bdbff0901221343s7fc16ecdl3bed34c8e50ee3da@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	Sat, 31 Jan 2009 13:42:18 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n0VIgCQl012356
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 19:42:16 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 31 Jan 2009 19:42:12 +0100 (CET)
+Message-Id: <200901311842.n0VIgCQl012356@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ignore my previous email.  The card wasn't tuned to anything.  I tuned to 
-a known good station and get this:
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-FE: Samsung S5H1411 QAM/8VSB Frontend (ATSC)
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 0127 | snr 0127 | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
-status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-FE_HAS_LOCK
+Results of the daily build of v4l-dvb:
 
+date:        Sat Jan 31 19:00:06 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10405:138cb0226301
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-On Thu, 22 Jan 2009, Devin Heitmueller wrote:
+linux-2.6.16.61-armv5: WARNINGS
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29-rc3-armv5-ixp: ERRORS
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: ERRORS
+linux-2.6.29-rc3-armv5-omap2: WARNINGS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29-rc3-i686: ERRORS
+linux-2.6.16.61-m32r: WARNINGS
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc3-m32r: OK
+linux-2.6.16.61-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29-rc3-powerpc64: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29-rc3-x86_64: ERRORS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc3): ERRORS
 
-> On Thu, Jan 22, 2009 at 4:37 PM, Joseph Shraibman
-> <linuxtv.org@jks.tupari.net> wrote:
->>> On some demods, the strength and SNR indicators are only valid if you
->>> have a lock.
->>
->> But why don't I get a lock?  I was getting signals with my pcHDTV3000 so I
->> know it isn't an antenna problem.
->
-> I just looked back at your dmesg output, and I am somewhat confused.
-> Do you have multiple cards installed in the host at the same time?
-> Isn't the Oren OR51132 the other card?  I would assume that you would
-> need to be looking at the output of the s5h1411 frontend with femon if
-> you're trying to capture on the Fusion HDTV 7 Dual Express.  Or
-> perhaps I am just missing something here.
->
-> Devin
->
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
