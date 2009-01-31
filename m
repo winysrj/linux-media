@@ -1,111 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:39376 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755859AbZAONvJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jan 2009 08:51:09 -0500
-Content-Type: text/plain; charset="utf-8"
-Date: Thu, 15 Jan 2009 14:51:07 +0100
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <200901071558.08220.liplianin@tut.by>
-Message-ID: <20090115135107.298140@gmx.net>
+Received: from mail-fx0-f20.google.com ([209.85.220.20]:62315 "EHLO
+	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752647AbZAaVt1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jan 2009 16:49:27 -0500
+Received: by fxm13 with SMTP id 13so817792fxm.13
+        for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 13:49:25 -0800 (PST)
 MIME-Version: 1.0
-References: <49634AFE.2080405@borodulin.fi>
- <200901071558.08220.liplianin@tut.by>
-Subject: Re: [linux-dvb] The status and future of Mantis driver
-To: abraham.manu@gmail.com, "Igor M. Liplianin" <liplianin@tut.by>,
-	linux-dvb@linuxtv.org, mchehab@infradead.org,
-	linux-media@vger.kernel.org, pauli@borodulin.fi,
-	rscheidegger_lists@hispeed.ch, marko.ristola@kolumbus.fi,
-	krisu@nomadiclab.com
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <7951d5d30901311346i162ce575j76fd660fa0b0e176@mail.gmail.com>
+References: <7951d5d30901311346i162ce575j76fd660fa0b0e176@mail.gmail.com>
+Date: Sat, 31 Jan 2009 22:49:25 +0100
+Message-ID: <7951d5d30901311349l769195b7x9202b78970b6b8b5@mail.gmail.com>
+Subject: Re: PXA Quick capture interface with HV7131RP-Camera
+From: Bennet Fischer <bennetfischer@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
--------- Original-Nachricht --------
-> Datum: Wed, 7 Jan 2009 15:58:08 +0200
-> Von: "Igor M. Liplianin" <liplianin@tut.by>
-> An: linux-dvb@linuxtv.org
-> Betreff: Re: [linux-dvb] The status and future of Mantis driver
-
-> В сообщении от 6 January 2009 14:13:50 Pauli Borodulin
-> написал(а):
-> > Heya!
-> >
-> > I found out that there is some new activity on Manu Abraham's Mantis
-> > driver, so I thought I could throw in some thoughts about it.
-> >
-> > I have been using Manu's Mantis driver (http://www.jusst.de/hg/mantis)
-> > for over two years now. I have a VP-2033 card (DVB-C) and at least for
-> > the last year the driver has worked without any hickups in my daily
-> > (VDR) use. For a long time I have thought that the driver should already
-> > be merged to the v4l-dvb tree.
-> >
-> > Igor M. Liplianin has created a new tree
-> > (http://mercurial.intuxication.org/hg/s2-liplianin) with the description
-> > "DVB-S(S2) drivers for Linux". Mantis driver was merged into the tree in
-> > October and since then some fixes has also been applied to the driver.
-> > Some of these fixes already exist in Manu's tree, some don't. Both trees
-> > are missing the remote control support for VP-2033 and VP-2040.
-> >
-> > Until merging of the driver into s2-liplianin, there was a single tree
-> > for the Mantis driver development. Now that there are two trees, I fear
-> > that the development could scatter if there's no clear idea how the
-> > driver is going to get into v4l-dvb. Also, the driver is not only
-> > DVB-S(S2), but it also contains support for VP-2033 (DVB-C), VP-2040
-> > (DVB-C) and VP-3030 (DVB-T). DVB-S(S2) stuff will probably greatly(?)
-> > delay getting the support for DVB-C/T Mantis cards into v4l-dvb.
-> >
-> > For my personal use I have created a patch against the latest v4l-dvb
-> > based on Manu's Mantis tree including the remote control support for
-> > VP-2033 and VP-2040. But what I would really like to see is Mantis
-> > driver merged into v4l-dvb and later into mainstream.
-> >
-> > Igor, what are your thoughts about the Mantis driver? How about the
-> > other Mantis users, like Marko Ristola, Roland Scheidegger, and Kristian
-> > Slavov?
-> Anyone and everyone is permitted to take anything and everything from
-> s2-liplianin.
-> The tree was made for testing purposes. If it works, than it works:)
-> Me and Manu Abraham is not a friends, so ask him to make a pull request
-> for mantis.
-> And after that we(we like community) with combined efforts bring it to
-> v4l-dvb.
-> 
-
-Manu,
-
-will you issue the pull request for the mantis driver?
-
-The version at s2-liplianin is synchronised with the current kernel and is functional
-for a number of cards. 
-
-Please respond.
-
-Hans
+Hi
 
 
-> >
-> > Regards,
-> > Pauli Borodulin
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> 
-> 
-> -- 
-> Igor M. Liplianin
-> Microsoft Windows Free Zone - Linux used for all Computing Tasks
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+I am trying to get a camera to work together with an PXA270 processor.
+My system has the following specs:
 
--- 
-Release early, release often.
+Platform: Gumstix Verdex Pro
+Camera: HV7131RP
+OS: Linux 2.6.28
 
-Sensationsangebot verlängert: GMX FreeDSL - Telefonanschluss + DSL 
-für nur 16,37 Euro/mtl.!* http://dsl.gmx.de/?ac=OM.AD.PD003K1308T4569a
+I wrote a simple driver for the camera which omits all the i2c-stuff
+because the camera starts already in a default configuration which
+works fine for me.
+A V4L2-device is generated and everything looks fine. But when i start
+to capture, no data arrives BUT the Quick Capture Interface outputs a
+MCLK and the camera responds with a PCLK, LV and FV (and data of
+couse).
+For getting a bit closer to the origin of the problem I disabled DMA
+in pxa_camera.c and enabled all Interrupts in the CICR0 register. No
+interrupt is generated. Even by disabling DMA and IRQ and looking into
+CISR nothing happens.
+I checked all the CIF registers bitwise. The polarity of the LV and FV
+is correct, the alternate pin functions are correct, the interrupt bit
+is non-masked, the size of the pixel matrix is correct. I'm a bit
+desperate because at the moment I have no idea what to do next. I
+would be thankful for any hint.
+
+
+Greetings,
+Bennet.
