@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:38435 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750886AbZBQNPA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 08:15:00 -0500
-Date: Tue, 17 Feb 2009 10:14:30 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: =?ISO-8859-1?B?TultZXRoIE3hcnRvbg==?= <nm127@freemail.hu>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Trivial Patch Monkey <trivial@kernel.org>
-Subject: Re: [PATCH] DAB: fix typo
-Message-ID: <20090217101430.51db676b@pedra.chehab.org>
-In-Reply-To: <alpine.LNX.1.10.0902171220370.18110@jikos.suse.cz>
-References: <498622DA.9080106@freemail.hu>
-	<alpine.LNX.1.10.0902111400540.31014@jikos.suse.cz>
-	<20090217081917.568af731@pedra.chehab.org>
-	<alpine.LNX.1.10.0902171220370.18110@jikos.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail.gmx.net ([213.165.64.20]:56989 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751264AbZBATMX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2009 14:12:23 -0500
+Date: Sun, 1 Feb 2009 20:12:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Magnus <magnus.damm@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] sh_mobile_ceu: Add FLDPOL operation
+In-Reply-To: <uskn1m9qt.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0902012008530.17985@axis700.grange>
+References: <uskn1m9qt.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 17 Feb 2009 12:21:53 +0100 (CET)
-Jiri Kosina <jkosina@suse.cz> wrote:
+On Fri, 30 Jan 2009, Kuninori Morimoto wrote:
 
-> On Tue, 17 Feb 2009, Mauro Carvalho Chehab wrote:
 > 
-> > > > From: Márton Németh <nm127@freemail.hu>
-> > > > 
-> > > > Fix typo in "DAB adapters" section in Kconfig.
-> > > > 
-> > > > Signed-off-by: Márton Németh <nm127@freemail.hu>
-> > > > ---
-> > > > --- linux-2.6.29-rc3/drivers/media/Kconfig.orig	2008-12-25 00:26:37.000000000 +0100
-> > > > +++ linux-2.6.29-rc3/drivers/media/Kconfig	2009-02-01 13:30:54.000000000 +0100
-> > > > @@ -117,7 +117,7 @@ source "drivers/media/dvb/Kconfig"
-> > > >  config DAB
-> > > >  	boolean "DAB adapters"
-> > > >  	---help---
-> > > > -	  Allow selecting support for for Digital Audio Broadcasting (DAB)
-> > > > +	  Allow selecting support for Digital Audio Broadcasting (DAB)
-> > > >  	  Receiver adapters.
-> > > 
-> > > Didn't find this in today's linux-next, so I have applied it to trivial 
-> > > tree.
-> > I was just applying it on my tree right now. Anyway, it is OK for me if you
-> > apply it at trivial.
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/sh_mobile_ceu_camera.c |    7 +++++++
+>  include/media/sh_mobile_ceu.h              |    2 ++
+>  2 files changed, 9 insertions(+), 0 deletions(-)
 > 
-> No problem, if you take it through your tree I am fine with that, it will 
-> be easier that way to avoid conflicts in -next.
-> 
-> I am dropping the patch from trivial tree.
+> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> index 07b7b4c..366e5f5 100644
+> --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> @@ -118,6 +118,12 @@ static unsigned long make_bus_param(struct sh_mobile_ceu_dev *pcdev)
+>  	if (pcdev->pdata->flags & SH_CEU_FLAG_USE_16BIT_BUS)
+>  		flags |= SOCAM_DATAWIDTH_16;
+>  
+> +	if (pcdev->pdata->flags & SH_CEU_FLAG_USE_FLDPOL_HIGH)
+> +		flags |= SOCAM_FLDPOL_ACTIVE_HIGH;
+> +
+> +	if (pcdev->pdata->flags & SH_CEU_FLAG_USE_FLDPOL_LOW)
+> +		flags |= SOCAM_FLDPOL_ACTIVE_LOW;
+> +
+>  	if (flags & SOCAM_DATAWIDTH_MASK)
+>  		return flags;
+>  
+> @@ -474,6 +480,7 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
+>  	    icd->current_fmt->fourcc == V4L2_PIX_FMT_NV61)
+>  		value ^= 0x00000100; /* swap U, V to change from NV1x->NVx1 */
+>  
+> +	value |= common_flags & SOCAM_FLDPOL_ACTIVE_LOW ? 1 << 16 : 0;
+>  	value |= common_flags & SOCAM_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
+>  	value |= common_flags & SOCAM_HSYNC_ACTIVE_LOW ? 1 << 0 : 0;
+>  	value |= buswidth == 16 ? 1 << 12 : 0;
 
-Ok. I've just sent it to my linux-next tree.
+Why are you basing your decision to use active low or high level of the 
+Field ID signal upon the platform data? Doesn't it depend on the 
+configuration of the connected device, and, possibly, an inverter between 
+them? So, looks like it should be handled in exactly the same way as all 
+other signals - negotiate with the connected device (sensor / decoder / 
+...) and apply platform-defined inverters if any?
 
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
