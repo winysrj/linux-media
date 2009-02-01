@@ -1,20 +1,35 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail05.syd.optusnet.com.au ([211.29.132.186])
+Received: from mail.ammma.de ([213.83.39.131] helo=ammma.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lindsay.mathieson@gmail.com>) id 1LU5ZT-0008CA-Vz
-	for linux-dvb@linuxtv.org; Mon, 02 Feb 2009 21:39:09 +0100
-Received: from blackpaw.dyndns.org (c122-108-213-22.rochd4.qld.optusnet.com.au
-	[122.108.213.22]) (authenticated sender lindsay.mathieson)
-	by mail05.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	n12KcxKM008826
-	for <linux-dvb@linuxtv.org>; Tue, 3 Feb 2009 07:38:59 +1100
-To: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org,
-	linux-media@vger.kernel.org
-From: Lindsay Mathieson <lindsay.mathieson@gmail.com>
-Date: Tue, 3 Feb 2009 06:38:56 +1000
+	(envelope-from <jan@horde.org>) id 1LTlDC-0000VC-SR
+	for linux-dvb@linuxtv.org; Sun, 01 Feb 2009 23:54:48 +0100
+Received: from ammma.net (hydra.ammma.mil [192.168.110.1])
+	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id n11MuCI05358
+	for <linux-dvb@linuxtv.org>; Sun, 1 Feb 2009 23:56:12 +0100
+Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
+	by ammma.net (8.12.11.20060308/8.12.11/AMMMa AG) with ESMTP id
+	n11Msfc0002955
+	for <linux-dvb@linuxtv.org>; Sun, 1 Feb 2009 23:54:42 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 8A7003F72F4
+	for <linux-dvb@linuxtv.org>; Sun,  1 Feb 2009 23:54:41 +0100 (CET)
+Received: from neo.wg.de ([127.0.0.1])
+	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id RU08tnqyOxRH for <linux-dvb@linuxtv.org>;
+	Sun,  1 Feb 2009 23:54:35 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 2AFD63FB511
+	for <linux-dvb@linuxtv.org>; Sun,  1 Feb 2009 23:54:35 +0100 (CET)
+Message-ID: <20090201235434.2795793if603bysc@neo.wg.de>
+Date: Sun, 01 Feb 2009 23:54:34 +0100
+From: Jan Schneider <jan@horde.org>
+To: linux-dvb@linuxtv.org
+References: <20090131124351.169513hbsz3js5fk@neo.wg.de>
+	<002d01c984b1$ab3820f0$217da8c0@tdrpc>
+In-Reply-To: <002d01c984b1$ab3820f0$217da8c0@tdrpc>
 MIME-Version: 1.0
-Message-Id: <200902030638.56764.lindsay.mathieson@gmail.com>
-Subject: Re: [linux-dvb] TinyTwin (af9015) - tuner 0 not working
+Content-Disposition: inline
+Subject: Re: [linux-dvb] Technotrend C-2300 and CAM
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,131 +38,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0740860927=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0740860927==
-Content-Type: multipart/signed;
-  boundary="nextPart8018393.K5UPmHL8fO";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Zitat von Tomas Drajsajtl <linux-dvb@drajsajtl.cz>:
 
---nextPart8018393.K5UPmHL8fO
-Content-Type: multipart/alternative;
-  boundary="Boundary-00=_gn1hJvwpMGXdW+w"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>> Hi,
+>>
+>> for some reason, my CAM (Alphacrypt Classic) doesn't seem to be
+>> detected by my Technotrend C-2300/CI combination. There is nothing in
+>> the kernel log/syslog when inserting or removing the card. I updated
+>> the card to the latest firmware (3.18) to no avail.
+>> I don't even know where to start debugging. No windows here, so I
+>> can't really tell whether this is a hardware problem.
+>> Any hints on where to start looking would help. The combination seems
+>> to work fine for almost everybody, beside one single thread on this
+>> list in 2007 that didn't come to a conclusion either.
+>>
+>> Jan.
+>
+> Hi Jan, I have the same problem with my C-2300 card and TechniCrypt CX
+> (CAM). After several days of testing different kernels and drivers I tried
+> it somewhere in Windows and found that it's not working there as well. Maybe
+> some HW incompatibility... The CAM I have is the only one provided and
+> supported by my cable operator so I had to get another card. C-1501 is
+> functional for me and even cheaper.
 
---Boundary-00=_gn1hJvwpMGXdW+w
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Thanks for the feedback. The Alphacrypt CAM seems to be known as  
+working fine with that card, and I would hate to have to install  
+Windows just to rule out a hardware issue. But I guess I'd give it a  
+try if no-one else has some idea.
 
-On Tue, 3 Feb 2009 06:07:15 am you wrote:
-> Have you tried replug stick? Hopefully it does not have burned.
+Jan.
 
-Yes, I unloaded the drive module and replugged, after that it worked and is=
-=20
-still working 18 hours later.
+-- 
+Do you need professional PHP or Horde consulting?
+http://horde.org/consulting/
 
-If it happens again is there any tests or logs you'd like me to do?
-
-> Could you test whether this driver works:
-> http://linuxtv.org/hg/~anttip/af9015-mxl500x/
-> It uses different tuner driver.
-
-Do you still want me to do that now its working?
-
-Thanks,
-
-=2D-=20
-Lindsay Mathieson
-http://blackpaw.jalbum.net/home
-
-
---Boundary-00=_gn1hJvwpMGXdW+w
-Content-Type: text/html;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-=
-html40/strict.dtd"><html><head><meta name=3D"qrichtext" content=3D"1" /><st=
-yle type=3D"text/css">p, li { white-space: pre-wrap; }</style></head><body =
-style=3D" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-=
-style:normal;"><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:=
-0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">On Tue, 3 Feb =
-2009 06:07:15 am you wrote:</p><p style=3D" margin-top:0px; margin-bottom:0=
-px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;=
-">&gt; Have you tried replug stick? Hopefully it does not have burned.</p><=
-p style=3D"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; mar=
-gin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"><br><=
-/p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-=
-right:0px; -qt-block-indent:0; text-indent:0px;">Yes, I unloaded the drive =
-module and replugged, after that it worked and is </p><p style=3D" margin-t=
-op:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-ind=
-ent:0; text-indent:0px;">still working 18 hours later.</p><p style=3D"-qt-p=
-aragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; ma=
-rgin-right:0px; -qt-block-indent:0; text-indent:0px;"><br></p><p style=3D" =
-margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-b=
-lock-indent:0; text-indent:0px;">If it happens again is there any tests or =
-logs you'd like me to do?</p><p style=3D"-qt-paragraph-type:empty; margin-t=
-op:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-ind=
-ent:0; text-indent:0px;"><br></p><p style=3D" margin-top:0px; margin-bottom=
-:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0p=
-x;">&gt; Could you test whether this driver works:</p><p style=3D" margin-t=
-op:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-ind=
-ent:0; text-indent:0px;">&gt; http://linuxtv.org/hg/~anttip/af9015-mxl500x/=
-</p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0px; margin=
-=2Dright:0px; -qt-block-indent:0; text-indent:0px;">&gt; It uses different =
-tuner driver.</p><p style=3D"-qt-paragraph-type:empty; margin-top:0px; marg=
-in-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-=
-indent:0px;"><br></p><p style=3D" margin-top:0px; margin-bottom:0px; margin=
-=2Dleft:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Do you=
- still want me to do that now its working?</p><p style=3D"-qt-paragraph-typ=
-e:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0=
-px; -qt-block-indent:0; text-indent:0px;"><br></p><p style=3D" margin-top:0=
-px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:=
-0; text-indent:0px;">Thanks,</p><p style=3D"-qt-paragraph-type:empty; margi=
-n-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-=
-indent:0; text-indent:0px;"><br></p><p style=3D" margin-top:0px; margin-bot=
-tom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent=
-:0px;">-- </p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0=
-px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Lindsay Mathies=
-on</p><p style=3D" margin-top:0px; margin-bottom:0px; margin-left:0px; marg=
-in-right:0px; -qt-block-indent:0; text-indent:0px;">http://blackpaw.jalbum.=
-net/home</p><p style=3D"-qt-paragraph-type:empty; margin-top:0px; margin-bo=
-ttom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-inden=
-t:0px;"><br></p></body></html>
---Boundary-00=_gn1hJvwpMGXdW+w--
-
---nextPart8018393.K5UPmHL8fO
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkmHWeAACgkQNbLM9wS4sYe+GACgyJ/+t6Su1uy0z3Qldhwbtruo
-oMEAn3xXVmHvfNcsmOCvzYTEt+eS6nZm
-=Zh5Q
------END PGP SIGNATURE-----
-
---nextPart8018393.K5UPmHL8fO--
-
-
---===============0740860927==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0740860927==--
