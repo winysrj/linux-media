@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:49230 "EHLO smtp5-g21.free.fr"
+Received: from mx34.mail.ru ([194.67.23.200]:10455 "EHLO mx34.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751786AbZBCMBH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2009 07:01:07 -0500
-Date: Tue, 3 Feb 2009 12:55:32 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: kingshuk.chakravarty@tcs.com
-Cc: linux-media@vger.kernel.org
-Subject: Re: OV7660 PROBLEM
-Message-ID: <20090203125532.0fc67c40@free.fr>
-In-Reply-To: <OFA01C3430.20FC7A86-ON65257552.001E9B2A-65257552.0020CEA6@tcs.com>
-References: <OFA01C3430.20FC7A86-ON65257552.001E9B2A-65257552.0020CEA6@tcs.com>
+	id S1751466AbZBAOXI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2009 09:23:08 -0500
+Date: Sun, 1 Feb 2009 17:32:23 +0300
+From: Goga777 <goga777@bk.ru>
+To: ColinThomas@dunelm.org.uk
+Cc: ColinThomas@olneybucks.freeserve.co.uk, linux-media@vger.kernel.org
+Subject: Re: LinuxTv issue with Hauppauge WinTV-NOVA-TD-Stick - very near
+ (but not quite ) working]
+Message-ID: <20090201173223.64d26aff@bk.ru>
+In-Reply-To: <1233490764.3355.25.camel@gallifrey>
+References: <1233490764.3355.25.camel@gallifrey>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 3 Feb 2009 11:28:20 +0530
-kingshuk.chakravarty@tcs.com wrote:
-> Respected sir,
-
-Hello Kingshuk,
-
-> I have already installed the linux webcam driver(gspca not UVC) for
-> MS LIFE CAM Vx3000. But the problem is, though I can see the
-> picture ,but it is grainy and some where it lacks the details,for
-> your reference the screen shot file is attached.
+> I amn running the NOVA device with an external aerial cable: with good
+> signal and S/N ratios, so am not using their mini aerial
 > 
-> Now I am working on gspcav1-20071224 file.There I have found, no
-> switch case for the sensor OV7660 for auto exposure in sn9cxxx.h
-> though it is doing auto exposure check if the camera type is not JPGH.
+> Any thoughts to the missing piece of the jigsaw would be most welcome.
 > 
-> I am little bit confused why this grainy pic is coming...is there any
-> bug during color converson from RGB to YUV. Please guide me if
-> possible....
+> Best regards
+> 
+> Colin Thomas
 
-The gspca v1 is not maintained anymore. You must now use the gspca v2.
-All information is in my web page. Please, start with the
-gspca_README.txt.
+please try http://mercurial.intuxication.org/hg/s2-liplianin
+with scan-s2 http://mercurial.intuxication.org/hg/scan-s2
 
-Best regards.
+with ini files from http://www.vdr-settings.com/download/channels/CLyngsatSP.tar.bz2 (folder scan-s2)
 
--- 
-Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+and http://hg.kewl.org/dvb2010/ with xml files from http://www.vdr-settings.com/download/channels/CLyngsatSP.tar.bz2
+
+
+I hope it will help you
+
+Goga
+
+
+
+
