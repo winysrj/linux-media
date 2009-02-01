@@ -1,48 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:58903 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753080AbZBCT3A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2009 14:29:00 -0500
-Date: Tue, 3 Feb 2009 20:23:07 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: kilgota@banach.math.auburn.edu
-Cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
-Message-ID: <20090203202307.0ae074ec@free.fr>
-In-Reply-To: <alpine.LNX.2.00.0902031302060.1882@banach.math.auburn.edu>
-References: <200901192322.33362.linux@baker-net.org.uk>
-	<200901272101.27451.linux@baker-net.org.uk>
-	<alpine.LNX.2.00.0901271543560.21122@banach.math.auburn.edu>
-	<200901272228.42610.linux@baker-net.org.uk>
-	<20090128113540.25536301@free.fr>
-	<alpine.LNX.2.00.0901281554500.22748@banach.math.auburn.edu>
-	<20090131203650.36369153@free.fr>
-	<alpine.LNX.2.00.0902022032230.1080@banach.math.auburn.edu>
-	<20090203103925.25703074@free.fr>
-	<alpine.LNX.2.00.0902031115190.1706@banach.math.auburn.edu>
-	<alpine.LNX.2.00.0902031210320.1792@banach.math.auburn.edu>
-	<20090203191311.2c1695b7@free.fr>
-	<alpine.LNX.2.00.0902031302060.1882@banach.math.auburn.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-fx0-f20.google.com ([209.85.220.20]:32920 "EHLO
+	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751419AbZBAVn4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2009 16:43:56 -0500
+Received: by fxm13 with SMTP id 13so1151857fxm.13
+        for <linux-media@vger.kernel.org>; Sun, 01 Feb 2009 13:43:53 -0800 (PST)
+MIME-Version: 1.0
+Date: Sun, 1 Feb 2009 21:43:53 +0000
+Message-ID: <ecb42d620902011343y115a9c57wc9b05606f58e128f@mail.gmail.com>
+Subject: Driver for WinTV-NOVA-S-USB2
+From: Stephen Brooks <stephen.brooks@techie.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 3 Feb 2009 13:15:58 -0600 (CST)
-kilgota@banach.math.auburn.edu wrote:
+Hello all,
+Just a quick question to everyone is anyone writing a driver for
+WinTV-NOVA-S-USB2? It seems to be made up from already supported
+devices so the driver looks straight forward. I'm happy to dive in and
+give it a go as long as I'm not treading on any ones toes :)
 
-> > Why is there 2 sq905 processes?  
-> 
-> I of course do not fully understand why there are two such processes. 
-> However, I would suspect that [sq905/0] is running on processor 0 and 
-> [sq905/1] is running on processor 1. As I remember, there is only one 
-> [sq905] process which runs on a single-core machine.
+I see someone wrote the wiki page for the device
+(http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-S-USB2) so
+I was wondering if anyone got any further?
 
-Indeed, the problem is there! You must have only one process reading the
-webcam! I do not see how this can work with these 2 processes...
+(I've done C coding for 16 years, this won't be my first kernel
+driver, but will be my first Linux kernel driver)
 
 -- 
-Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Stephen Brooks
