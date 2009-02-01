@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1PH3Jll011353
-	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 12:03:19 -0500
-Received: from smtp110.biz.mail.re2.yahoo.com (smtp110.biz.mail.re2.yahoo.com
-	[206.190.53.9])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n1PH33Ax003645
-	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 12:03:03 -0500
-Message-ID: <49A578B0.2000108@embeddedalley.com>
-Date: Wed, 25 Feb 2009 19:58:24 +0300
-From: Vitaly Wool <vital@embeddedalley.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n11HxSiZ008550
+	for <video4linux-list@redhat.com>; Sun, 1 Feb 2009 12:59:38 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n11HvMTI013613
+	for <video4linux-list@redhat.com>; Sun, 1 Feb 2009 12:57:53 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so402928fgg.7
+	for <video4linux-list@redhat.com>; Sun, 01 Feb 2009 09:57:12 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <49A3A61F.30509@embeddedalley.com>	<20090224234205.7a5ca4ca@pedra.chehab.org>	<49A53CB9.1040109@embeddedalley.com>	<20090225090728.7f2b0673@caramujo.chehab.org>	<49A567D9.80805@embeddedalley.com>
-	<20090225101812.212fabbe@caramujo.chehab.org>
-In-Reply-To: <20090225101812.212fabbe@caramujo.chehab.org>
-Content-Type: text/plain; charset=KOI8-R; format=flowed
+Date: Sun, 1 Feb 2009 17:57:11 +0000
+Message-ID: <286e6b7c0902010957g62d19274u8bbe75932e6a1f9@mail.gmail.com>
+From: D <d.a.nstowell+v4l@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, em28xx@mcentral.de
-Subject: Re: em28xx: Compro VideoMate For You sound problems
+Subject: VIDIOCGMBUF "Invalid argument" (hasciicam on eee, 2.6.27-8-eeepc)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,18 +26,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro Carvalho Chehab wrote:
-> The actual value for amux will depend on your mixer chip, if there is any.
-> Could you provide your full em28xx log? Let's see if it will detect EM202 or
-> another AC97 chip.
->
->   
+Hi -
 
-Well that's what it says:
-[12749.748715] em28xx #0: No AC97 audio processor
+I have an asus eee running eeebuntu 8.10, and I'm trying to get
+hasciicam [1] to work with the built-in UVC webcam. (All works fine
+when using "cheese" to confirm the webcam is working.) The hasciicam
+code calls the VIDIOCGMBUF ioctl and that's where it fails. Here's the
+code (from hasciicam.c):
 
-Thanks,
-   Vitaly
+  if (ioctl (dev, VIDIOCGMBUF, &grab_map) == -1) {
+    perror("!! error in ioctl VIDIOCGMBUF: ");
+    return -1;
+  }
+
+...where dev is pretty definitely open (we have already successfully
+called VIDIOCGCAP and suchlike), and grab_map is a struct of type
+video_mbuf as it should be. And here's the result:
+
+  !! error in ioctl VIDIOCGMBUF: Invalid argument
+
+Does this suggest that hasciicam is calling the ioctl incorrectly?
+(For example, in [2] it says "a user first sets the desired image size
+and depth properties" before calling it, although it doesn't spell out
+precisely how that is done.) Or does it mean this particular ioctl is
+not available on the given setup?
+
+I'd be grateful for any suggestions.
+
+Thanks
+Dan
+
+kernel 2.6.27-8-eeepc
+
+[1] http://ascii.dyne.org/
+[2] http://www.linuxtv.org/downloads/video4linux/API/V4L1_API.html
+-- 
+http://www.mcld.co.uk
 
 --
 video4linux-list mailing list
