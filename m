@@ -1,32 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:46640 "EHLO
-	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbZBJSZ2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 13:25:28 -0500
-Date: Tue, 10 Feb 2009 10:25:26 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Eduard Huguet <eduardhc@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: cx8802.ko module not being built with current HG tree
-In-Reply-To: <617be8890902100349r39c49edfr4c3373669d698b72@mail.gmail.com>
-Message-ID: <Pine.LNX.4.58.0902101018260.24268@shell2.speakeasy.net>
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
- <617be8890902050759x74c08498o355be1d34d7735fe@mail.gmail.com>
- <20090210093753.69b21572@pedra.chehab.org> <617be8890902100349r39c49edfr4c3373669d698b72@mail.gmail.com>
+Received: from mail-bw0-f12.google.com ([209.85.218.12]:59119 "EHLO
+	mail-bw0-f12.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395AbZBAV2B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2009 16:28:01 -0500
+Received: by bwz5 with SMTP id 5so950101bwz.13
+        for <linux-media@vger.kernel.org>; Sun, 01 Feb 2009 13:27:58 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: 8BIT
+Date: Sun, 1 Feb 2009 21:27:58 +0000
+Message-ID: <ecb42d620902011327j497c95a0k53dda28f8beaeca9@mail.gmail.com>
+Subject: Driver for WinTV-NOVA-S-USB2
+From: Stephen Brooks <nightbikeman@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Feb 2009, Eduard Huguet wrote:
->     I don't have yet the buggy config, but the steps I was following
-> when I encounter the problem were the following:
->         · hg clone http://linuxtv.org/hg/v4l-dvb
->         · cd v4l-dvb
->         · make menuconfig
+Hello all,
+Just a quick question to everyone is anyone writing a driver for
+WinTV-NOVA-S-USB2? It seems to be made up from already supported
+devices so the driver looks straight forward. I'm happy to dive in and
+give it a go as long as I'm not treading on any ones toes :)
 
-This is what I did too.  Just use the menuconfig or xconfig targets.  Maybe
-the kernel kconfig behavior has changed?
+I see someone wrote the wiki page for the device
+(http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-S-USB2) so
+I was wondering if anyone got any further?
+
+(I've done C coding for 16 years, this won't be my first kernel
+driver, but will be my first Linux kernel driver)
+
+-- 
+Stephen Brooks
