@@ -1,47 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51988 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222AbZBMUtt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 15:49:49 -0500
-Date: Fri, 13 Feb 2009 18:49:21 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: v4l2_driver.c status
-Message-ID: <20090213184921.222c8823@pedra.chehab.org>
-In-Reply-To: <200902131347.11272.hverkuil@xs4all.nl>
-References: <200902131347.11272.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:49955 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753189AbZBAWhy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Feb 2009 17:37:54 -0500
+Date: Sun, 1 Feb 2009 23:37:56 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Magnus <magnus.damm@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] sh_mobile_ceu: SOCAM flags are prepared at itself.
+In-Reply-To: <Pine.LNX.4.64.0902012017230.17985@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0902012335150.17985@axis700.grange>
+References: <uvdrxm9sd.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0902012017230.17985@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 13 Feb 2009 13:47:10 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Sun, 1 Feb 2009, Guennadi Liakhovetski wrote:
 
-> Hi Mauro,
+> On Fri, 30 Jan 2009, Kuninori Morimoto wrote:
 > 
-> What is the status of the v4l2_driver.c in v4l2util? (formerly known as 
-> libv4l2, see my pull request).
+> > 
+> > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> > Signed-off-by: Magnus Damm <damm@igel.co.jp>
+> > ---
+> >  drivers/media/video/sh_mobile_ceu_camera.c |   27 +++++++++++++++++++++++++--
+> >  include/media/sh_mobile_ceu.h              |    5 +++--
+> >  2 files changed, 28 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> > index 9cde91a..07b7b4c 100644
+> > --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> > +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> > @@ -101,6 +101,29 @@ struct sh_mobile_ceu_dev {
+> >  	const struct soc_camera_data_format *camera_fmt;
+> >  };
+> >  
+> > +static unsigned long make_bus_param(struct sh_mobile_ceu_dev *pcdev)
+> > +{
+> > +	unsigned long flags;
+> > +
+> > +	flags = SOCAM_SLAVE |
 > 
-> While the original v4l2util just contained frequency tables (not much can go 
-> wrong there), adding the v4l2_driver.c code in that library makes me 
-> uncomfortable because: 1) it is undocumented, 2) it is unreviewed (and I 
-> certainly do not agree with several of the choices made here!).
-> 
-> I propose that v4l2_driver.c is moved to a new library (v4l2driver?) with a 
-> README clarifying that this is experimental.
-> 
-> I'm also willing to do a review of v4l2_driver.c for you.
-> 
-> When a better and documented API is made, then it can be moved to v4l2util 
-> and released officially.
-> 
-> Documentation should probably go to the V4L2 spec in a separate chapter.
+> Guys, are you both sure this should be SLAVE, not MASTER? Have you tested 
+> it? Both tw9910 and ov772x register themselves as MASTER and from the 
+> datasheet the interface seems to be a typical master parallel to me... I 
+> think with this patch you would neither be able to use your driver with 
+> tw9910 nor with ov772x...
 
-Seems fine for me.
+Ok, sorry, you, probably, did test it and it worked, but just because the 
+SLAVE / MASTER flag is not tested in soc_camera_bus_param_compatible(), 
+which I should fix with the next pull, but this does look wrong. Please, 
+fix.
 
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
