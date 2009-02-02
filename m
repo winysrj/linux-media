@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2f.orange.fr ([80.12.242.151])
+Received: from mail01.syd.optusnet.com.au ([211.29.132.182])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <catimimi@libertysurf.fr>) id 1LcLh6-00031S-4g
-	for linux-dvb@linuxtv.org; Wed, 25 Feb 2009 16:29:08 +0100
-Message-ID: <49A563A1.2000704@libertysurf.fr>
-Date: Wed, 25 Feb 2009 16:28:33 +0100
-From: Catimimi <catimimi@libertysurf.fr>
+	(envelope-from <lindsay.mathieson@gmail.com>) id 1LU5YL-0007hd-16
+	for linux-dvb@linuxtv.org; Mon, 02 Feb 2009 21:37:58 +0100
+Received: from blackpaw.dyndns.org (c122-108-213-22.rochd4.qld.optusnet.com.au
+	[122.108.213.22]) (authenticated sender lindsay.mathieson)
+	by mail01.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
+	n12KblEC026731
+	for <linux-dvb@linuxtv.org>; Tue, 3 Feb 2009 07:37:47 +1100
+From: Lindsay Mathieson <lindsay.mathieson@gmail.com>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org,
+	Antti Palosaari <crope@iki.fi>
+Date: Tue, 3 Feb 2009 06:37:39 +1000
+References: <546B4176F0487A4CBA62FC16EFC1D9D6026FC2@EXCHANGE.joratech.com>
+	<4987568A.6060504@iki.fi>
+In-Reply-To: <4987568A.6060504@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-References: <f6ae13650902250413k4b3e4feag296b4270327fd944@mail.gmail.com>
-In-Reply-To: <f6ae13650902250413k4b3e4feag296b4270327fd944@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Pinnacle PCTV 310i
+Message-Id: <200902030637.40168.lindsay.mathieson@gmail.com>
+Cc: Andrew Williams <andrew.williams@joratech.com>
+Subject: Re: [linux-dvb]
+ =?iso-8859-1?q?KWorld_PlusTV_Dual_DVB-T_Stick_=28DVB-?=
+ =?iso-8859-1?q?T_399U=29_/_AF9015_-=09Dual_tuner_enabled_by_default_=3DBa?=
+ =?iso-8859-1?q?d_signal_reception?=
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -20,147 +30,89 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0576506691=="
+Content-Type: multipart/mixed; boundary="===============1500838139=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0576506691==
-Content-Type: text/html; charset=ISO-8859-15
+--===============1500838139==
+Content-Type: multipart/signed;
+  boundary="nextPart1972300.WJWavdUU2r";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+
+--nextPart1972300.WJWavdUU2r
+Content-Type: multipart/alternative;
+  boundary="Boundary-00=_Um1hJ+I3XZb5P0l"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+--Boundary-00=_Um1hJ+I3XZb5P0l
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content=3D"text/html;charset=3DISO-8859-15"
- http-equiv=3D"Content-Type">
-  <title></title>
-</head>
-<body bgcolor=3D"#ffffff" text=3D"#000000">
-Fredrik Persson a =E9crit=A0:
-<blockquote
- cite=3D"mid:f6ae13650902250413k4b3e4feag296b4270327fd944@mail.gmail.com"
- type=3D"cite">Hi<br>
-  <br>
-I have a Pinnacle PCTV Hybrid Pro310i card which I use on a MythBuntu
-8.10 installation with a 2.6.27-11 Kernel. The installation works great
-out of the box except for one thing.<br>
-  <br>
-It often happens that I can't use the dvb part of the card. When this
-happens i get this from dmesg:<br>
-  <br>
-Feb 19 06:56:51 mythtv kernel: [=A0 828.597021] tda1004x: setting up plls
-for 48MHz sampling clock<br>
-Feb 19 06:56:53 mythtv kernel: [=A0 830.841022] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 06:56:53 mythtv kernel: [=A0 830.880022] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 06:56:53 mythtv kernel: [=A0 830.880026] tda1004x: trying to boot
-from eeprom<br>
-Feb 19 06:56:56 mythtv kernel: [=A0 833.209021] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 06:56:56 mythtv kernel: [=A0 833.248022] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 06:56:56 mythtv kernel: [=A0 833.248025] tda1004x: waiting for
-firmware upload...<br>
-Feb 19 06:56:56 mythtv kernel: [=A0 833.248029] firmware: requesting
-dvb-fe-tda10046.fw<br>
-Feb 19 06:57:10 mythtv kernel: [=A0 847.772029] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 06:57:10 mythtv kernel: [=A0 847.812019] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 06:57:10 mythtv kernel: [=A0 847.812024] tda1004x: firmware upload
-failed<br>
-Feb 19 06:57:42 mythtv kernel: [=A0 879.832020] tda1004x: setting up plls
-for 48MHz sampling clock<br>
-Feb 19 06:57:45 mythtv kernel: [=A0 882.076020] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 06:57:45 mythtv kernel: [=A0 882.116016] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 06:57:45 mythtv kernel: [=A0 882.116021] tda1004x: trying to boot
-from eeprom<br>
-Feb 19 06:57:47 mythtv kernel: [=A0 884.444022] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 06:57:47 mythtv kernel: [=A0 884.484019] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 06:57:47 mythtv kernel: [=A0 884.484024] tda1004x: waiting for
-firmware upload...<br>
-Feb 19 06:57:47 mythtv kernel: [=A0 884.484027] firmware: requesting
-dvb-fe-tda10046.fw<br>
-Feb 19 06:58:02 mythtv kernel: [=A0 899.164015] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 06:58:02 mythtv kernel: [=A0 899.204168] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 06:58:02 mythtv kernel: [=A0 899.204175] tda1004x: firmware upload
-failed<br>
-Feb 19 07:14:31 mythtv kernel: [ 1888.392018] tda1004x: setting up plls
-for 48MHz sampling clock<br>
-Feb 19 07:14:33 mythtv kernel: [ 1890.636018] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 07:14:33 mythtv kernel: [ 1890.676016] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 07:14:33 mythtv kernel: [ 1890.676020] tda1004x: trying to boot
-from eeprom<br>
-Feb 19 07:14:36 mythtv kernel: [ 1893.005014] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 07:14:36 mythtv kernel: [ 1893.045014] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 07:14:36 mythtv kernel: [ 1893.045017] tda1004x: waiting for
-firmware upload...<br>
-Feb 19 07:14:36 mythtv kernel: [ 1893.045021] firmware: requesting
-dvb-fe-tda10046.fw<br>
-Feb 19 07:14:50 mythtv kernel: [ 1907.516019] tda1004x: timeout waiting
-for DSP ready<br>
-Feb 19 07:14:50 mythtv kernel: [ 1907.556021] tda1004x: found firmware
-revision 0 -- invalid<br>
-Feb 19 07:14:50 mythtv kernel: [ 1907.556029] tda1004x: firmware upload
-failed<br>
-  <br>
-  <br>
-It does however not happen every time. I can't make out a clear pattern
-for when this occurs. When i diff the output from dmesg from when
-everything works with the output when i fails I can't find any
-significant difference. I hope someone recognizes this problem and can
-help me.<br>
-  <br>
-  <br>
-Best regards<br>
-  <br>
-/Fredrik<br>
-</blockquote>
-<br>
-Hi,<br>
-Did you upload firmware "dvb-fe-tda10046.fw" in folder /lib/firmware ?<br=
->
-<br>
-Regards.<br>
-Michel.<br>
-<br>
-<br>
-<blockquote
- cite=3D"mid:f6ae13650902250413k4b3e4feag296b4270327fd944@mail.gmail.com"
- type=3D"cite">
-  <pre wrap=3D"">
-<hr size=3D"4" width=3D"90%">
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead <a class=3D"moz-txt-link-abbr=
-eviated" href=3D"mailto:linux-media@vger.kernel.org">linux-media@vger.ker=
-nel.org</a>
-<a class=3D"moz-txt-link-abbreviated" href=3D"mailto:linux-dvb@linuxtv.or=
-g">linux-dvb@linuxtv.org</a>
-<a class=3D"moz-txt-link-freetext" href=3D"http://www.linuxtv.org/cgi-bin=
-/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listi=
-nfo/linux-dvb</a></pre>
-</blockquote>
-<br>
-</body>
-</html>
+On Tue, 3 Feb 2009 06:24:42 am Antti Palosaari wrote:
+> Yes, it really looks like there is some sensitivity drop when both
+> tuners are enabled. However in my understanding tuner #1 in dual mode
+> have almost same performance than tuner #0 in single mode. Also current
+> MXL5005S tuner driver has not best performance...
+
+Yes, I'd noticed that. My TT works fine for most channels with both tuners=
+=20
+except for one (SBS) which has less signal strength, both tuners fail on it=
+ -=20
+my single tuners don't.
+
+Another dual tuner (Lifeview TV Walker) has similar problems.
+
+All my tuners are feed off a powered splitter so I presume the problem with=
+ the=20
+dual tuners are they split the signal internally.
+
+I'll give the alternative driver you posted a go.
+
+=2D-=20
+Lindsay Mathieson
+http://blackpaw.jalbum.net/home
+
+--Boundary-00=_Um1hJ+I3XZb5P0l
+Content-Type: text/html;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-style:normal;">On Tue, 3 Feb 2009 06:24:42 am Antti Palosaari wrote:<br>
+&gt; Yes, it really looks like there is some sensitivity drop when both<br>
+&gt; tuners are enabled. However in my understanding tuner #1 in dual mode<br>
+&gt; have almost same performance than tuner #0 in single mode. Also current<br>
+&gt; MXL5005S tuner driver has not best performance...<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Yes, I'd noticed that. My TT works fine for most channels with both tuners except for one (SBS) which has less signal strength, both tuners fail on it - my single tuners don't.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Another dual tuner (Lifeview TV Walker) has similar problems.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>All my tuners are feed off a powered splitter so I presume the problem with the dual tuners are they split the signal internally.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>I'll give the alternative driver you posted a go.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>-- <br>
+Lindsay Mathieson<br>
+http://blackpaw.jalbum.net/home</p></body></html>
+--Boundary-00=_Um1hJ+I3XZb5P0l--
+
+--nextPart1972300.WJWavdUU2r
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkmHWZQACgkQNbLM9wS4sYdDXgCgg8kM9F0ChdDD2ge0a7gHCJ1L
+ubUAniJ51NZ0TgsIZVcXR9Ae1vaIUOoZ
+=5ssl
+-----END PGP SIGNATURE-----
+
+--nextPart1972300.WJWavdUU2r--
 
 
-
---===============0576506691==
+--===============1500838139==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -171,4 +123,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0576506691==--
+--===============1500838139==--
