@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mi0.bluebottle.com ([206.188.25.15])
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vallhaus71@bluebottle.com>) id 1LYf3O-0004aQ-4W
-	for linux-dvb@linuxtv.org; Sun, 15 Feb 2009 12:20:56 +0100
-Received: from fe1.bluebottle.com (internal.bluebottle.com [206.188.24.43])
-	by mi0.bluebottle.com (8.13.1/8.13.1) with ESMTP id n1FBKIFf008258
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Sun, 15 Feb 2009 11:20:18 GMT
-Received: from localhost (internal.bluebottle.com [206.188.24.43])
-	(authenticated bits=0)
-	by fe1.bluebottle.com (8.13.1/8.13.1) with ESMTP id n1FBKENO031415
-	for <linux-dvb@linuxtv.org>; Sun, 15 Feb 2009 11:20:17 GMT
-To: linux-dvb@linuxtv.org
-Message-ID: <1234696814.4997fa6ea906c@mail.bluebottle.com>
-Date: Sun, 15 Feb 2009 11:20:14 +0000
-From: Kevin <vallhaus71@bluebottle.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LU3FW-0006xK-HX
+	for linux-dvb@linuxtv.org; Mon, 02 Feb 2009 19:10:23 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so264706nfb.11
+	for <linux-dvb@linuxtv.org>; Mon, 02 Feb 2009 10:10:18 -0800 (PST)
+Date: Mon, 2 Feb 2009 19:09:57 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Jelle De Loecker <skerit@kipdola.com>
+In-Reply-To: <4981A93A.7080909@kipdola.com>
+Message-ID: <alpine.DEB.2.00.0902021322550.13427@ybpnyubfg.ybpnyqbznva>
+References: <4981A93A.7080909@kipdola.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Philips saa7131e chip on Asus
+Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Extracting video stream
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -31,33 +28,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi, is there anyone who can please give me a hand, after months reading and trying things out, I still cannot make this work.
-I have an Asus Wifi tv card which came with my P5WD2 board. This card is shown as 'Asus Tiger Analog Tv Card' in xp and works well in that os.  Looking at the physical card I can see these writings on the chips and tuners (looks like it has 2)
-Philips saa7131E
-D33005   CE4403
-TN05211   SB0780 (don't know if these might help)
-I am trying to make it work on Ubuntu 8.10 (32 bit) (also tried on 64 bit---nothing)
-After  a brand new installation and updates to the kernel source and headers, my Kernel is 2.6.27.
-I also installed the latest Mercurial and also copied firmware drivers (tda10046)  to the /lib/firmware folder. 
+Sorry for taking so long to reply...
 
-lspci shows this;
-01:01.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
+On Thu, 29 Jan 2009, Jelle De Loecker wrote:
 
-sudo lspci -v shows this
-01:01.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
-	Subsystem: ASUSTeK Computer Inc. Device 818c
-	Flags: bus master, medium devsel, latency 64, IRQ 22
-	Memory at e7edb800 (32-bit, non-prefetchable) [size=2K]
-	Capabilities: [40] Power Management version 2
-	Kernel driver in use: saa7134
-	Kernel modules: saa7134
+> This is not a real -dvb question, but -media seemed too official.
 
-The device being shown as 818c is not like any other Asus dual card I have read about.
-Looks like the card is being found but it is not being autodetected, dmesg is showing it as card=0.  I am manually forcing card numbers in /etc/modprobe.d/options file.  I have tried all the Asus card numbers there are in the cardlist but still did not manage to scan any channel.
-I have only one connection to the card and it;s from cable tv.
+Unfortunately, it is exactly the sort of question that belongs
+on -media (or the v4linux list it replaced), and has no bearing
+on DVB at all...
 
-Sorry if I took too long, tried to give as much info as possible, and please excuse me if this is the wrong place were to put this request, if it is can you kindly guide me where I may ask for help.  TIA
+``Too official''?  On a list where more than half the posts
+seem to discuss webcams and other analogue sources?
+Nevertheless...
 
+
+> unfortunately it uses its own (very simple) protocol: it's a bunch of 
+> jpegs in a row.
+> I have this script that checks the stream every second and creates a 
+> jpeg out of it,
+> but I really want a continuous video stream. Is there a way to do this?
+
+I really don't know anything about this, but might MJPEG
+(a motion-picture series of JPEG images) be a solution?
+
+You are far more likely to reach people who can help on the
+-media list, if you haven't received an off-list response
+already...
+
+
+just saying,
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
