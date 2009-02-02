@@ -1,113 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36846 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753439AbZBURcI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2009 12:32:08 -0500
-Message-ID: <49A03A94.9030008@iki.fi>
-Date: Sat, 21 Feb 2009 19:32:04 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from fk-out-0910.google.com ([209.85.128.188]:16343 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755757AbZBBWng (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 17:43:36 -0500
+Received: by fk-out-0910.google.com with SMTP id f33so1415094fkf.5
+        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 14:43:33 -0800 (PST)
 MIME-Version: 1.0
-To: Dmitri Belimov via Mercurial <d.belimov@gmail.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
-References: <E1LHmrf-0004LH-VV@www.linuxtv.org>
-In-Reply-To: <E1LHmrf-0004LH-VV@www.linuxtv.org>
-Content-Type: text/plain; charset=us-ascii; format=flowed
+In-Reply-To: <497F78E9.9090608@gmail.com>
+References: <640929.18092.qm@web23204.mail.ird.yahoo.com>
+	 <c74595dc0901260744i32d7deeg9a5219faca10dc93@mail.gmail.com>
+	 <157f4a8c0901260751l39214908ydfeed5ba12b4d48b@mail.gmail.com>
+	 <157f4a8c0901260808i39b784f6m13db53db2f135a37@mail.gmail.com>
+	 <c74595dc0901260819g22f690d1qe809808eacb829da@mail.gmail.com>
+	 <1a297b360901260950r599b944aoea24dcbdecbc9515@mail.gmail.com>
+	 <1232998154.24736.2@manu-laptop> <497F66E5.9060901@gmail.com>
+	 <c74595dc0901271237j7495ddeaif44288ad47416ddd@mail.gmail.com>
+	 <497F78E9.9090608@gmail.com>
+Date: Mon, 2 Feb 2009 22:43:33 +0000
+Message-ID: <157f4a8c0902021443s5b567aap461b50d305088699@mail.gmail.com>
+Subject: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts on
+	HDchannels
+From: Chris Silva <2manybills@gmail.com>
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-This patch breaks devices using tuner behind zl10353 i2c-gate.
-au6610:
-Sigmatek DVB-110 DVB-T USB2.0
+On Tue, Jan 27, 2009 at 9:13 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Alex Betis wrote:
+>> On Tue, Jan 27, 2009 at 9:56 PM, Manu Abraham <abraham.manu@gmail.com>wrote:
+>>
+>>>> Hmm OK, but is there by any chance a fix for those issues somewhere or
+>>>> in the pipe at least? I am willing to test (as I already offered), I
+>>>> can compile the drivers, spread printk or whatever else is needed to
+>>>> get useful reports. Let me know if I can help sort this problem. BTW in
+>>>> my case it is DVB-S2 30000 SR and FEC 5/6.
+>>> It was quite not appreciable on my part to provide a fix or reply in
+>>> time nor spend much time on it earlier, but that said i was quite
+>>> stuck up with some other things.
+>>>
+>>> Can you please pull a copy of the multiproto tree
+>>> http://jusst.de/hg/multiproto or the v4l-dvb tree from
+>>> http://jusst.de/hg/v4l-dvb
+>>>
+>>> and apply the following patch and comment what your result is ?
+>>> Before applying please do check whether you still have the issues.
+>>
+>> Manu,
+>> I've tried to increase those timers long ago when played around with my card
+>> (Twinhan 1041) and scan utility.
+>> I must say that I've concentrated mostly on DVB-S channels that wasn't
+>> always locking.
+>> I didn't notice much improvements. The thing that did help was increasing
+>> the resolution of scan zigzags.
+>
+> With regards to the zig-zag, one bug is fixed in the v4l-dvb tree.
+> Most likely you haven't tried that change.
+>
+>> I've sent a patch on that ML and people were happy with the results.
+>
+> I did look at your patch, but that was completely against the tuning
+> algorithm.
+>
+> [..]
+>
+>> I believe DVB-S2 lock suffer from the same problem, but in that case the
+>> zigzag is done in the chip and not in the driver.
+>
+> Along with the patch i sent, does the attached patch help you in
+> anyway (This works out for DVB-S2 only)?
+>
 
-gl861:
-MSI Mega Sky 55801 DVB-T USB2.0
-A-LINK DTU DVB-T USB2.0
+Manu,
 
-Probably some other too.
+I've tried both multiproto branches you indicated above, *with* and
+*without* the patches you sent to the ML (fix_iterations.patch and
+increase timeout.patch) on this thread.
+Sadly, same behavior as S2API V4L-DVB current branch. No lock on 30000
+3/4 channels. It achieves a 0.5 second jittery sound but no image. It
+seems the driver is struggling to correctly lock on that channel, but
+doesn't get there in time... Or maybe the hardware... Dunno...
 
-I think it is better to disable i2c-gate setting callback to NULL after 
-demod attach like dtv5100 does this.
+Channels like
 
-Also .no_tuner is bad name what it does currently. My opinion is that 
-current .no_tuner = 1 should be set as default, because most 
-configuration does not this kind of slave tuner setup where tuner is 
-programmed by demod.
-Change no_tuner to slave_tuner and set slave_tuner = 1 only when needed 
-(not many drivers using that).
+ASTRA HD+;BetaDigital:11914:hC910M2O35S1:S19.2E:27500:1279=27:0;1283=deu:0:0:131:133:6:0
+PREMIERE HD,PREM
+HD;PREMIERE:11914:hC910M2O35S1:S19.2E:27500:767=27:0;771=deu,772=eng:32:1837,1833,1834,9C4:129:133:6:0
+DISCOVERY HD,DISC
+HD;PREMIERE:11914:hC910M2O35S1:S19.2E:27500:1023=27:0;1027=deu:32:1837,1833,1834,9C4:130:133:6
 
-Here is small scheme to clear tuner cotrolling issues.
-http://www.otit.fi/~crope/v4l-dvb/controlling_tuner.txt
+work just fine.
 
-regards
-Antti
+But channels like
 
-Patch from Dmitri Belimov wrote:
-> The patch number 10151 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
-> 
-> Kernel patches in this development tree may be modified to be backward
-> compatible with older kernels. Compatibility modifications will be
-> removed before inclusion into the mainstream Kernel
-> 
-> If anyone has any objections, please let us know by sending a message to:
-> 	v4l-dvb-maintainer@linuxtv.org
-> 
-> ------
-> 
-> From: Dmitri Belimov  <d.belimov@gmail.com>
-> Fix I2C bridge error in zl10353
-> 
-> 
-> Fix I2C bridge error in zl10353 if no tunner attached to internal I2C
-> bus of zl10353 chip.
-> 
-> When set enable bridge from internal I2C bus to the main I2C bus
-> (saa7134) the main I2C bus stopped very hardly. No any communication. In
-> our next board we solder additional resistors to internal I2C bus.
-> 
-> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> ---
-> 
->  linux/drivers/media/dvb/frontends/zl10353.c |    7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff -r 166b13cf6fcd -r 24e51eac4234 linux/drivers/media/dvb/frontends/zl10353.c
-> --- a/linux/drivers/media/dvb/frontends/zl10353.c	Wed Nov 12 15:04:28 2008 +0000
-> +++ b/linux/drivers/media/dvb/frontends/zl10353.c	Tue Dec 23 06:50:09 2008 +0000
-> @@ -598,7 +598,14 @@ static int zl10353_init(struct dvb_front
->  
->  static int zl10353_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
->  {
-> +	struct zl10353_state *state = fe->demodulator_priv;
->  	u8 val = 0x0a;
-> +
-> +	if (state->config.no_tuner) {
-> +		/* No tuner attached to the internal I2C bus */
-> +		/* If set enable I2C bridge, the main I2C bus stopped hardly */
-> +		return 0;
-> +	}
->  
->  	if (enable)
->  		val |= 0x10;
-> 
-> 
-> ---
-> 
-> Patch is available at: http://linuxtv.org/hg/v4l-dvb/rev/24e51eac4234f118d51b386c6e3168e8d8f461ae
-> 
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+National Geographic HD;National Geographic
+HD:11731:vC34M5O25S1:S30.0W:29000:6496=27:6497:0:1802:943:54:47:0
+MOV HD;MOV HD:11731:vC34M5O25S1:S30.0W:29000:6512=27:6513=por:0:1802:944:54:47:0
+Sport TV - HD;Sport TV -
+HD:11731:vC34M5O25S1:S30.0W:29000:6528=27:6529=por:0:1802:945:54:47:0
+RTP HD;RTP HD:11731:vC34M5O25S1:S30.0W:29000:6544=27:6545:0:1802:946:54:47:0
+TVCine 4 HD;TVCine 4
+HD:11731:vC34M5O25S1:S30.0W:29000:6560=27:6561:0:1802:947:54:47:0
+Disney Cinemagic
+HD:11731:vC34M5O25S1:S30.0W:29000:6576=27:6577=por:0:1802:948:54:47:0
+Eurosport HD:11731:vC34M5O25S1:S30.0W:29000:6592=27:6593=por:0:1802:949:54:47:0
 
+or
 
--- 
-http://palosaari.fi/
+[0065];:12012:hC34M5S1:S30.0W:30000:4097:4098:4100:100:101:0:0:0
+[0066];:12012:hC34M5S1:S30.0W:30000:4105:4106:4100:100:102:0:0:0
+[0067];:12012:hC34M5S1:S30.0W:30000:4113:4114:4100:100:103:0:0:0
+[0068];:12012:hC34M5S1:S30.0W:30000:4121:4122:4100:100:104:0:0:0
+[0069];:12012:hC34M5S1:S30.0W:30000:4129:4130:4100:100:105:0:0:0
+[006a];:12012:hC34M5S1:S30.0W:30000:4137:4138:4100:100:106:0:0:0
+[006b];:12012:hC34M5S1:S30.0W:30000:4145:4146:4100:100:107:0:0:0
+
+simply don't work.
+
+BTW, I think the channels above that don't work have a 0x0B stream
+indication. Satellite operators are misleading on the stream (h.222)
+when in fact they are h.264. Read that were on the ML. Don't know if
+it affects anything, but hey... I have to try everything! ;)
+
+I'm available to any tests necessary to fix this once and for all, if possible.
+
+Just let me know.
+
+Thanks for all your hard work.
+
+Chris
