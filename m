@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47589 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754005AbZBYDRb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 22:17:31 -0500
-Date: Wed, 25 Feb 2009 00:16:35 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: kilgota@banach.math.auburn.edu
-Cc: Adam Baker <linux@baker-net.org.uk>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+Received: from iolanthe.rowland.org ([192.131.102.54]:53942 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757746AbZBBV7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 16:59:44 -0500
+Date: Mon, 2 Feb 2009 16:59:43 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Adam Baker <linux@baker-net.org.uk>
+cc: kilgota@banach.math.auburn.edu,
 	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-Message-ID: <20090225001635.0543a2dc@pedra.chehab.org>
-In-Reply-To: <alpine.LNX.2.00.0902241914530.15651@banach.math.auburn.edu>
-References: <200902180030.52729.linux@baker-net.org.uk>
-	<200902211253.58061.hverkuil@xs4all.nl>
-	<20090223080715.0c97774e@pedra.chehab.org>
-	<200902232237.32362.linux@baker-net.org.uk>
-	<alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
-	<alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org>
-	<alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu>
-	<alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org>
-	<alpine.LNX.2.00.0902241914530.15651@banach.math.auburn.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	<linux-media@vger.kernel.org>
+Subject: Re: Bug in gspca USB webcam driver
+In-Reply-To: <200902022135.00908.linux@baker-net.org.uk>
+Message-ID: <Pine.LNX.4.44L0.0902021651460.13005-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 24 Feb 2009 20:12:00 -0600 (CST)
-kilgota@banach.math.auburn.edu wrote:
+On Mon, 2 Feb 2009, Adam Baker wrote:
 
-> > For sure we need to have a way for retrieving this information for devices 
-> > like the sq905 cameras, where the information can't be currently be 
-> > determined by userspace.  
+> Thanks for confirming that Alan. I'd been looking at this too and suspected 
+> this was the case but as it wouldn't fail on my uniprocessor machine I 
+> couldn't prove it. (Theodore, if you can generate the log we discussed of 
+> this failing it might still be helpful in tracking down the underlying 
+> problem.)
+
+Note that I'm looking at the gspca.c routine from 2.6.29-rc3.  If 
+changes have been made since that version, I don't know what they are.
+
+> > To summarize: Unplugging the camera while it is in use by a program
+> > causes an oops (particularly on an SMP machine).
+> >
+> > The problem is that gspca_stream_off() calls destroy_urbs(), which in
+> > turn calls usb_buffer_free() -- but this happens too late, after
+> > gspca_disconnect() has returned.  By that time gspca_dev->dev is a
+> > stale pointer, so it shouldn't be passed to usb_buffer_free().
+> >
 > 
-> Yes, indeed. Except for just one word, "currently." It does not fit here. 
+> By my reading it should be OK for gspca_disconnect to have returned as long as 
+> video_unregister_device waits for the last close to complete before calling 
+> gspca_release. I know that there were some patches a while back that 
+> attempted to ensure that was the case so I suspect there is still a hole 
+> there.
 
-Yes, it fits, since, after implementing the API, the userspace will have this
-information by using the agreed API.
+gspca_disconnect() should _not_ wait for the last close.  It should do 
+what it needs to do and return as quickly as possible.  This means 
+there must be two paths for releasing USB resources: release upon last 
+close and release upon disconnect.
 
-> > If so, IMO, the 
-> > better approach is to use a flag at the v4l2_input, as already discussed in 
-> > this thread.  
-> 
-> OK.
+I suppose the easiest way to work around the problem would be to take a
+reference to the usb_device structure (usb_get_dev()) for each open and
+to drop the reference when the stream is closed.  But it would be
+preferable to do things the way I described before: Make disconnect put
+an open stream into an error state and release all the USB resources
+immediately.
 
-As it seems to be a consensus that the better is to use a flag inside
-v4l2_input, could you please provide us an RFC patch to implement it and update
-the V4L2 spec?
+Alan Stern
 
-Cheers,
-Mauro
