@@ -1,62 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-2.mail.uk.tiscali.com ([212.74.114.38]:52669
-	"EHLO mk-outboundfilter-2.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752519AbZBGRP2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Feb 2009 12:15:28 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: libv4l and HFLIP / VFLIP again
-Date: Sat, 7 Feb 2009 17:15:24 +0000
-Cc: linux-media@vger.kernel.org, Olivier Lorin <o.lorin@laposte.net>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	kilgota@banach.math.auburn.edu,
-	"Jean-Francois Moine" <moinejf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Received: from bombadil.infradead.org ([18.85.46.34]:47292 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752349AbZBBQLm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 11:11:42 -0500
+Date: Mon, 2 Feb 2009 14:09:39 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: roel kluin <roel.kluin@gmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] newport: newport_*wait() return 0 on timeout
+Message-ID: <20090202140939.2a568e79@caramujo.chehab.org>
+In-Reply-To: <25e057c00902020532p7a22f9d6pbfdc4f26c85c4dfd@mail.gmail.com>
+References: <49846E63.8070507@gmail.com>
+	<20090202100852.733c6c8e@caramujo.chehab.org>
+	<25e057c00902020532p7a22f9d6pbfdc4f26c85c4dfd@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902071715.24282.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Mon, 2 Feb 2009 14:32:09 +0100
+roel kluin <roel.kluin@gmail.com> wrote:
 
-Now that the SQ-905 driver has been accepted into the gspca tree it is time to 
-consider how best to address passing the sensor orientation from the driver 
-to libv4l.
+> 2009/2/2 Mauro Carvalho Chehab <mchehab@infradead.org>:
+> > Hi Roel,
+> >
+> > It seems that you've sent this driver to the wrong ML. Video adapters are not handled on those ML's.
+> 
+> Any idea where it should be sent?
 
-For this camera the approach taken so far of knowing what orientation is 
-needed based on the USB ID won't work as there are variants of the camera 
-with different sensor orientation but the same ID. The driver can detect this 
-based on some initialisation messages but needs to tell libv4l.
+$ git log include/video/newport.h
+commit 3f08ff4a4dab1ebef06d154050fb80ce2c13fc9c
+Author: Adrian Bunk <bunk@stusta.de>
+Date:   Mon Jan 9 20:53:35 2006 -0800
 
-For SQ-905 the orientation will remain fixed but we know there exist cameras 
-that provide some form of tilt switch to detect orientation so the adopted 
-solution should be able to cope with those too.
+    [PATCH] include/video/newport.h: "extern inline" -> "static inline"
+    
+    "extern inline" doesn't make much sense.
+    
+    Signed-off-by: Adrian Bunk <bunk@stusta.de>
+    Cc: "Antonino A. Daplas" <adaplas@pol.net>
+    Signed-off-by: Andrew Morton <akpm@osdl.org>
+    Signed-off-by: Linus Torvalds <torvalds@osdl.org>
 
-Olivier Lorin has proposed a solution to this problem that involves using 2 
-new bits in v4l2_buffer->flags and has offered a patch for libv4l to add 
-support for the 180 degree rotation case.
+Hmm... this is the only change on this file since -git history. I would forward the patch to Andrew.
 
-Does anyone have a suggestion for a better way to address this problem? If not 
-I'll prepare a patch to add the flags to include/linux/videodev2.h and one to 
-set them in sq905.c.
-
-After that I'll work on expanding Olivier Lorin's patch to
-1) Ignore the flag from the driver for cameras listed in v4lconvert_flags 
-(otherwise as the kernel driver doesn't currently set the flag for those 
-cameras the change would be incompatible with current kernels for those 
-cameras).
-2) support independent setting of HFLIP  and VFLIP (some SQ-905 cameras need 
-only VFLIP).
-
-And finally add the flags in the kernel drivers for the cameras listed in 
-v4lconvert_flags so that eventually (once we are confident no-one running 
-2.6.29 will want a new libv4l) that functionality can be removed from libv4l.
-
-What is the preferred version of libv4l to prepare patches against? Is it 
-http://linuxtv.org/hg/~hgoede/v4l-dvb
-
-Adam Baker
+Cheers,
+Mauro
