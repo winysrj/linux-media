@@ -1,71 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2902 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046AbZBNT6I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2009 14:58:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: libv4l2 library problem
-Date: Sat, 14 Feb 2009 20:57:57 +0100
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-References: <200902131357.46279.hverkuil@xs4all.nl> <200902141511.13334.hverkuil@xs4all.nl> <20090214165808.2a54e048@pedra.chehab.org>
-In-Reply-To: <20090214165808.2a54e048@pedra.chehab.org>
+Received: from mu-out-0910.google.com ([209.85.134.187]:39310 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752676AbZBBMen (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 07:34:43 -0500
+Received: by mu-out-0910.google.com with SMTP id g7so1029212muf.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 04:34:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+In-Reply-To: <Pine.LNX.4.64.0902012344400.17985@axis700.grange>
+References: <7951d5d30901311346i162ce575j76fd660fa0b0e176@mail.gmail.com>
+	 <7951d5d30901311349l769195b7x9202b78970b6b8b5@mail.gmail.com>
+	 <Pine.LNX.4.64.0902012344400.17985@axis700.grange>
+Date: Mon, 2 Feb 2009 13:34:41 +0100
+Message-ID: <7951d5d30902020434l123b69b1vf4334701cbfa9e58@mail.gmail.com>
+Subject: Re: PXA Quick capture interface with HV7131RP-Camera
+From: Bennet Fischer <bennetfischer@googlemail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902142057.57622.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 14 February 2009 19:58:08 Mauro Carvalho Chehab wrote:
+struct pxacamera_platform_data gumstix_pxacamera_platform_data = {
+	.init	= gumstix_pxacamera_init,
+	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
+		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN | PXA_CAMERA_PCP,
+	.mclk_10khz = 1000,
+};
+
+^^ some register values are overwritten by my driver, so the more
+interesting part are the register values of the quick capture
+interface.
+
+Here are the register values taken at the end of the capture:
+
+CICR0: 900003FF
+- DMAEN = 1
+- ENB = 1
+- All interrupts masked
+
+CICR1: 13F8012
+- DW = 2 (8 Bit)
+- COLOR_SP = 2 (YCbCr)
+- PPL = 639
+
+CICR2: 0
+
+CICR3: 1DF
+- LPF = 479
+
+CICR4: D80005
+- DIV = 5
+- MCLK_EN = 1
+- VSP = 1
+- PCP = 1
+- PCLK_EN = 1
+
+CISR: 0
+^^ No interrupt flag is set
+
+CITOR: 0
+
+CIFR: 0 (even by enabling the fifos with 7 it doesn't work)
+
+
+So according to the registers it should work. I even checked if the
+PCLK, FV and LV signals arrive at the CPU by reading the according
+pins as GPIOs.
+
+
+
+2009/2/1 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> On Sat, 31 Jan 2009, Bennet Fischer wrote:
 >
-> Hans and Andy,
+>> Hi
+>>
+>>
+>> I am trying to get a camera to work together with an PXA270 processor.
+>> My system has the following specs:
+>>
+>> Platform: Gumstix Verdex Pro
+>> Camera: HV7131RP
+>> OS: Linux 2.6.28
+>>
+>> I wrote a simple driver for the camera which omits all the i2c-stuff
+>> because the camera starts already in a default configuration which
+>> works fine for me.
+>> A V4L2-device is generated and everything looks fine. But when i start
+>> to capture, no data arrives BUT the Quick Capture Interface outputs a
+>> MCLK and the camera responds with a PCLK, LV and FV (and data of
+>> couse).
+>> For getting a bit closer to the origin of the problem I disabled DMA
+>> in pxa_camera.c and enabled all Interrupts in the CICR0 register. No
+>> interrupt is generated. Even by disabling DMA and IRQ and looking into
+>> CISR nothing happens.
+>> I checked all the CIF registers bitwise. The polarity of the LV and FV
+>> is correct, the alternate pin functions are correct, the interrupt bit
+>> is non-masked, the size of the pixel matrix is correct. I'm a bit
+>> desperate because at the moment I have no idea what to do next. I
+>> would be thankful for any hint.
 >
-> I understand that this have low priority. The only practical usage is if
-> someone wants to do a better encoding for some video above the limits
-> that cx2341x provides (for example, encoding with the same rate, but with
-> MPEG 4, to have a higher quality).
+> Maybe you could post your platform data, i.e., your struct
+> pxacamera_platform_data?
 >
-> What I'm trying to say is that I don't see much value to change libv4l2
-> to support read() method and HM12, since using read() method for a stream
-> without a metadata doesn't work very well (sync issues, etc), but this is
-> just my 2 cents.
-
-The core issue is that libv4l2 shouldn't attempt to use mmap() with read() 
-if the driver doesn't support mmap(). If that's fixed, then I'm happy. I 
-think it's a simple thing for Hans to fix. If he doesn't have the time for 
-that, then I can take a look as well since I'd like to get the HM12 
-converter merged. It's handy for testing with qv4l2.
-
-> With respect with ivtv-alsa and cx18-alsa, I think that, once having the
-> driver ported to videobuf, it shouldn't be hard to use cx88-alsa as a
-> reference for writing those drivers.
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
 >
-> About the efforts to port it, only you can evaluate it. In the case of
-> em28xx, once having a videobuf driver for usb, it weren't hard to port it
-> to videobuf (almost all troubles we had were related to the usage of a
-> new videobuf module - videobuf-vmalloc). The resulting code worked a way
-> better than the original driver and it is now easier to understand what
-> it is doing at the videobuffers than what it used to be.
-
-Just to be clear, if I would start out now creating the driver I would base 
-it around videobuf. Or if we had problems with the DMA and buffering, I 
-would probably choose to move to videobuf as well. But we have two stable 
-drivers and no user demand to implement videobuf/alsa. Everyone uses the 
-MPEG stream, and using streaming I/O to get the MPEG stream just makes no 
-sense. The read() call is the natural way to access MPEG data.
-
-Given a choice between working on the v4l2_device/v4l2_subdev conversion and 
-upgrading V4L1 drivers to V4L2, or implementing videobuf/alsa in cx18/ivtv, 
-then it is clear that the first is a much more important use of my time.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
