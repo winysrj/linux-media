@@ -1,249 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:39034 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752411AbZBZONO convert rfc822-to-8bit (ORCPT
+Received: from mk-outboundfilter-5.mail.uk.tiscali.com ([212.74.114.1]:5765
+	"EHLO mk-outboundfilter-5.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752956AbZBBX2t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2009 09:13:14 -0500
-Date: Thu, 26 Feb 2009 11:12:36 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Cc: linux-media@vger.kernel.org
-Subject: Re: dm1105: not demuxing from interrupt context
-Message-ID: <20090226111236.470cf9a0@caramujo.chehab.org>
-In-Reply-To: <200902190718.47890.liplianin@tut.by>
-References: <200902190718.47890.liplianin@tut.by>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 2 Feb 2009 18:28:49 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Bug in gspca USB webcam driver
+Date: Mon, 2 Feb 2009 23:28:44 +0000
+Cc: kilgota@banach.math.auburn.edu,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+References: <Pine.LNX.4.44L0.0902021651460.13005-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.0902021651460.13005-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902022328.44386.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 19 Feb 2009 07:18:47 +0200
-"Igor M. Liplianin" <liplianin@tut.by> wrote:
+On Monday 02 February 2009, Alan Stern wrote:
+> On Mon, 2 Feb 2009, Adam Baker wrote:
+<snip>
+> > > To summarize: Unplugging the camera while it is in use by a program
+> > > causes an oops (particularly on an SMP machine).
+> > >
+> > > The problem is that gspca_stream_off() calls destroy_urbs(), which in
+> > > turn calls usb_buffer_free() -- but this happens too late, after
+> > > gspca_disconnect() has returned.  By that time gspca_dev->dev is a
+> > > stale pointer, so it shouldn't be passed to usb_buffer_free().
+> >
+> > By my reading it should be OK for gspca_disconnect to have returned as
+> > long as video_unregister_device waits for the last close to complete
+> > before calling gspca_release. I know that there were some patches a while
+> > back that attempted to ensure that was the case so I suspect there is
+> > still a hole there.
+>
+> gspca_disconnect() should _not_ wait for the last close.  It should do
+> what it needs to do and return as quickly as possible.  This means
+> there must be two paths for releasing USB resources: release upon last
+> close and release upon disconnect.
+>
 
-> I read in mailing list about design error in dm1105.
-> So I am designer.
-> DMA buffer in the driver itself organized like ringbuffer
-> and not difficult to bind it to tasklet or work queue.
-> I choose work queue, because it is like trend :)
-> The code tested by me on quite fast computer and it works as usual.
-> I think, on slow computer difference must be noticeable.
-> The patch is preliminary.
-> Anyone can criticize.
+I was being slightly imprecise in saying it waits, it uses the 
+device_register / unregister mechanism so it does effectively set a flag that 
+results in the release being called on last close. video_unregister_device 
+does use a mutex while updating some internal flags but as far as I can tell 
+the USB subsystem won't call gspca_disconnect in interrupt context so that 
+should be OK.
 
-The patch looks fine for me, but, as you said this i preliminary, I'm marking
-it as RFC on patchwork. Please send me the final revision of it, after having a
-final version.
+What I hadn't noticed before is that usb_buffer_free needs the usb device 
+pointer and as you say that is no longer valid after gspca_disconnect returns 
+even if gspca_release hasn't freed the rest of the gspca struct. If that is 
+the problem then I presume the correct behaviour is for gspca_disconnect to 
+ensure that all URBs are killed and freed before gspca_disconnect returns. 
+This shouldn't be a problem for sq905 (which doesn't use these URBs) or 
+isochronous cameras (which don't need to resubmit URBs) but the finepix 
+driver (the other supported bulk device) will need some careful consideration 
+to avoid a race between killing the URB and resubmitting it.
 
-Cheers,
-Mauro.
-> 
-> diff -r 359d95e1d541 -r f22da8d6a83c linux/drivers/media/dvb/dm1105/dm1105.c
-> --- a/linux/drivers/media/dvb/dm1105/dm1105.c   Wed Feb 18 09:49:37 2009 -0300
-> +++ b/linux/drivers/media/dvb/dm1105/dm1105.c   Thu Feb 19 04:38:32 2009 +0200
-> @@ -220,10 +220,14 @@
->         /* i2c */
->         struct i2c_adapter i2c_adap;
->  
-> +       /* irq */
-> +       struct work_struct work;
-> +
->         /* dma */
->         dma_addr_t dma_addr;
->         unsigned char *ts_buf;
->         u32 wrp;
-> +       u32 nextwrp;
->         u32 buffer_size;
->         unsigned int    PacketErrorCount;
->         unsigned int dmarst;
-> @@ -418,6 +422,9 @@
->         u8 data;
->         u16 keycode;
->  
-> +       if (ir_debug)
-> +               printk(KERN_INFO "%s: received byte 0x%04x\n", __func__, ircom);
-> +
->         data = (ircom >> 8) & 0x7f;
->  
->         input_event(ir->input_dev, EV_MSC, MSC_RAW, (0x0000f8 << 16) | data);
-> @@ -434,6 +441,50 @@
->  
->  }
->  
-> +/* work handler */
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
-> +static void dm1105_dmx_buffer(void *_dm1105dvb)
-> +#else
-> +static void dm1105_dmx_buffer(struct work_struct *work)
-> +#endif
-> +{
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
-> +       struct dm1105dvb *dm1105dvb = _dm1105dvb;
-> +#else
-> +       struct dm1105dvb *dm1105dvb =
-> +                               container_of(work, struct dm1105dvb, work);
-> +#endif
-> +       unsigned int nbpackets;
-> +       u32 oldwrp = dm1105dvb->wrp;
-> +       u32 nextwrp = dm1105dvb->nextwrp;
-> +
-> +       if (!((dm1105dvb->ts_buf[oldwrp] == 0x47) &&
-> +                       (dm1105dvb->ts_buf[oldwrp + 188] == 0x47) &&
-> +                       (dm1105dvb->ts_buf[oldwrp + 188 * 2] == 0x47))) {
-> +               dm1105dvb->PacketErrorCount++;
-> +               /* bad packet found */
-> +               if ((dm1105dvb->PacketErrorCount >= 2) &&
-> +                               (dm1105dvb->dmarst == 0)) {
-> +                       outb(1, dm_io_mem(DM1105_RST));
-> +                       dm1105dvb->wrp = 0;
-> +                       dm1105dvb->PacketErrorCount = 0;
-> +                       dm1105dvb->dmarst = 0;
-> +                       return;
-> +               }
-> +       }
-> +
-> +       if (nextwrp < oldwrp) {
-> +               memcpy(dm1105dvb->ts_buf + dm1105dvb->buffer_size,
-> +                                               dm1105dvb->ts_buf, nextwrp);
-> +               nbpackets = ((dm1105dvb->buffer_size - oldwrp) + nextwrp) / 188;
-> +       } else
-> +               nbpackets = (nextwrp - oldwrp) / 188;
-> +
-> +       dm1105dvb->wrp = nextwrp;
-> +       dvb_dmx_swfilter_packets(&dm1105dvb->demux,
-> +                                       &dm1105dvb->ts_buf[oldwrp], nbpackets);
-> +}
-> +
->  #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
->  static irqreturn_t dm1105dvb_irq(int irq, void *dev_id, struct pt_regs *regs)
->  #else
-> @@ -441,11 +492,6 @@
->  #endif
->  {
->         struct dm1105dvb *dm1105dvb = dev_id;
-> -       unsigned int piece;
-> -       unsigned int nbpackets;
-> -       u32 command;
-> -       u32 nextwrp;
-> -       u32 oldwrp;
->  
->         /* Read-Write INSTS Ack's Interrupt for DM1105 chip 16.03.2008 */
->         unsigned int intsts = inb(dm_io_mem(DM1105_INTSTS));
-> @@ -454,48 +500,17 @@
->         switch (intsts) {
->         case INTSTS_TSIRQ:
->         case (INTSTS_TSIRQ | INTSTS_IR):
-> -               nextwrp = inl(dm_io_mem(DM1105_WRP)) -
-> -                       inl(dm_io_mem(DM1105_STADR)) ;
-> -               oldwrp = dm1105dvb->wrp;
-> -               spin_lock(&dm1105dvb->lock);
-> -               if (!((dm1105dvb->ts_buf[oldwrp] == 0x47) &&
-> -                               (dm1105dvb->ts_buf[oldwrp + 188] == 0x47) &&
-> -                               (dm1105dvb->ts_buf[oldwrp + 188 * 2] == 0x47))) {
-> -                       dm1105dvb->PacketErrorCount++;
-> -                       /* bad packet found */
-> -                       if ((dm1105dvb->PacketErrorCount >= 2) &&
-> -                                       (dm1105dvb->dmarst == 0)) {
-> -                               outb(1, dm_io_mem(DM1105_RST));
-> -                               dm1105dvb->wrp = 0;
-> -                               dm1105dvb->PacketErrorCount = 0;
-> -                               dm1105dvb->dmarst = 0;
-> -                               spin_unlock(&dm1105dvb->lock);
-> -                               return IRQ_HANDLED;
-> -                       }
-> -               }
-> -               if (nextwrp < oldwrp) {
-> -                       piece = dm1105dvb->buffer_size - oldwrp;
-> -                       memcpy(dm1105dvb->ts_buf + dm1105dvb->buffer_size, dm1105dvb->ts_buf, 
-> nextwrp);
-> -                       nbpackets = (piece + nextwrp)/188;
-> -               } else  {
-> -                       nbpackets = (nextwrp - oldwrp)/188;
-> -               }
-> -               dvb_dmx_swfilter_packets(&dm1105dvb->demux, &dm1105dvb->ts_buf[oldwrp], 
-> nbpackets);
-> -               dm1105dvb->wrp = nextwrp;
-> -               spin_unlock(&dm1105dvb->lock);
-> +               dm1105dvb->nextwrp = inl(dm_io_mem(DM1105_WRP)) -
-> +                                       inl(dm_io_mem(DM1105_STADR));
-> +               schedule_work(&dm1105dvb->work);
->                 break;
->         case INTSTS_IR:
-> -               command = inl(dm_io_mem(DM1105_IRCODE));
-> -               if (ir_debug)
-> -                       printk("dm1105: received byte 0x%04x\n", command);
-> -
-> -               dm1105dvb->ir.ir_command = command;
-> +               dm1105dvb->ir.ir_command = inl(dm_io_mem(DM1105_IRCODE));
->                 tasklet_schedule(&dm1105dvb->ir.ir_tasklet);
->                 break;
->         }
-> +
->         return IRQ_HANDLED;
-> -
-> -
->  }
->  
->  /* register with input layer */
-> @@ -717,7 +732,7 @@
->  
->         dm1105dvb = kzalloc(sizeof(struct dm1105dvb), GFP_KERNEL);
->         if (!dm1105dvb)
-> -               goto out;
-> +               return -ENOMEM;
->  
->         dm1105dvb->pdev = pdev;
->         dm1105dvb->buffer_size = 5 * DM1105_DMA_BYTES;
-> @@ -747,13 +762,9 @@
->         spin_lock_init(&dm1105dvb->lock);
->         pci_set_drvdata(pdev, dm1105dvb);
->  
-> -       ret = request_irq(pdev->irq, dm1105dvb_irq, IRQF_SHARED, DRIVER_NAME, dm1105dvb);
-> +       ret = dm1105dvb_hw_init(dm1105dvb);
->         if (ret < 0)
->                 goto err_pci_iounmap;
-> -
-> -       ret = dm1105dvb_hw_init(dm1105dvb);
-> -       if (ret < 0)
-> -               goto err_free_irq;
->  
->         /* i2c */
->         i2c_set_adapdata(&dm1105dvb->i2c_adap, dm1105dvb);
-> @@ -820,8 +831,19 @@
->  
->         dvb_net_init(dvb_adapter, &dm1105dvb->dvbnet, dmx);
->         dm1105_ir_init(dm1105dvb);
-> -out:
-> -       return ret;
-> +
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 20)
-> +       INIT_WORK(&dm1105dvb->work, dm1105_dmx_buffer, dm1105dvb);
-> +#else
-> +       INIT_WORK(&dm1105dvb->work, dm1105_dmx_buffer);
-> +#endif
-> +
-> +       ret = request_irq(pdev->irq, dm1105dvb_irq, IRQF_SHARED,
-> +                                               DRIVER_NAME, dm1105dvb);
-> +       if (ret < 0)
-> +               goto err_free_irq;
-> +
-> +       return 0;
->  
->  err_disconnect_frontend:
->         dmx->disconnect_frontend(dmx);
-> @@ -850,7 +872,7 @@
->  err_kfree:
->         pci_set_drvdata(pdev, NULL);
->         kfree(dm1105dvb);
-> -       goto out;
-> +       return ret;
->  }
->  
->  static void __devexit dm1105_remove(struct pci_dev *pdev)
-> [Erro ao decodificar BASE64]
+Theodore, could you check if adding a call to destroy_urbs() in 
+gspca_disconnect fixes the crash. (destroy_urbs only frees non NULL urb 
+pointers so should be safe to call from both disconnect and stream_off, 
+whichever occurs first).
 
+> I suppose the easiest way to work around the problem would be to take a
+> reference to the usb_device structure (usb_get_dev()) for each open and
+> to drop the reference when the stream is closed.  But it would be
+> preferable to do things the way I described before: Make disconnect put
+> an open stream into an error state and release all the USB resources
+> immediately.
+>
+> Alan Stern
 
-
-
-Cheers,
-Mauro
+Adam
