@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42905 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754036AbZBQAl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 19:41:59 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [BUG] changeset 9029 (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
-Date: Tue, 17 Feb 2009 01:40:52 +0100
-Cc: linux-media@vger.kernel.org, e9hack <e9hack@googlemail.com>,
-	obi@linuxtv.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-dvb@linuxtv.org
-References: <4986507C.1050609@googlemail.com> <200902151336.17202@orion.escape-edv.de> <Pine.LNX.4.58.0902160811340.24268@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0902160811340.24268@shell2.speakeasy.net>
+Received: from relay.ptn-ipout01.plus.net ([212.159.7.35]:3918 "EHLO
+	relay.ptn-ipout01.plus.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752552AbZBBT3y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Feb 2009 14:29:54 -0500
+Message-ID: <498746E9.8010000@clara.co.uk>
+Date: Mon, 02 Feb 2009 19:18:01 +0000
+From: Chris Mayo <mayo@clara.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] general protection fault: 0000 [1] SMP with 2.6.27
+ and	2.6.28
+References: <49565ABD.7030209@clara.co.uk> <498467E3.4010403@clara.co.uk>	 <1233524352.3091.51.camel@palomino.walls.org>	 <200902012338.49861@orion.escape-edv.de> <1233536229.3091.58.camel@palomino.walls.org>
+In-Reply-To: <1233536229.3091.58.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902170140.53617@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Trent Piepho wrote:
-> On Sun, 15 Feb 2009, Oliver Endriss wrote:
-> > e9hack wrote:
-> > > this change set is wrong. The affected functions cannot be called from an interrupt
-> > > context, because they may process large buffers. In this case, interrupts are disabled for
-> > > a long time. Functions, like dvb_dmx_swfilter_packets(), could be called only from a
-> > > tasklet. This change set does hide some strong design bugs in dm1105.c and au0828-dvb.c.
-> > >
-> > > Please revert this change set and do fix the bugs in dm1105.c and au0828-dvb.c (and other
-> > > files).
-> >
-> > @Mauro:
-> >
-> > This changeset _must_ be reverted! It breaks all kernels since 2.6.27
-> > for applications which use DVB and require a low interrupt latency.
-> >
-> > It is a very bad idea to call the demuxer to process data buffers with
-> > interrupts disabled!
+Andy Walls wrote:
+> On Sun, 2009-02-01 at 23:38 +0100, Oliver Endriss wrote:
+>> Andy Walls wrote:
+>>> On Sat, 2009-01-31 at 15:01 +0000, Chris Mayo wrote:
 > 
-> I agree, this is bad.  The demuxer is far too much work to be done with
-> IRQs off.  IMHO, even doing it under a spin-lock is excessive.  It should
-> be a mutex.  Drivers should use a work-queue to feed the demuxer.
+>>> So tuner_addr is non-NULL and is not a valid pointer either.
+>>>
+>>> It looks like linux/drivers/media/dvb/ttpci/budget.c:frontend_init() is
+>>> setting the pointer up properly.  So something else is trashing the
+>>> struct dvb_frontend structure pointed to by the variable fe.  Finding
+>>> what's doing that will be difficult.
+>>>
+>>> Without a device nor steps to reliably reproduce, that's about all I can
+>>> help with.
+>>>
+>>> Regards,
+>>> Andy
+>> Afaik this bug was fixed in changeset
+>> http://linuxtv.org/hg/v4l-dvb/rev/f4d7d0b84940
+>>
+>> CU
+>> Oliver
+> 
+> Thanks.  I didn't realize the initialization to NULL was a recent fix.
+> I was looking at very recent v4l-dvb source code with that change in
+> place (which is why I thought tracking down the problem would be hard).
+> 
+> I agree that that change likely fixes the problem, if Chris doesn't have
+> it in place.
+> 
+> Regards,
+> Andy
+> 
 
-Agreed, this would be the best solution.
+I didn't have the patch (and hadn't seen it so seems a good advert for
+merging the lists). Have applied it to 2.6.28 and OK so far. Thanks for
+pointing it out and the investigation.
 
-On the other hand, a workqueue handler would be scheduled later, so you
-need larger buffers in the driver. Some chipsets have very small
-buffers...
-
-Anway, this would be a major change. All drivers must be carefully
-modified and tested for an extended period.
-
-Meanwhile I had a look at the changeset, and I do not understand why
-spin_lock_irq... should be required everywhere.
-
-Afaics a driver may safely call dvb_dmx_swfilter_packets,
-dvb_dmx_swfilter_204 or dvb_dmx_swfilter from process context, tasklet
-or interrupt handler 'as is'.
-
-@Andreas:
-Could you please explain in more detail what bad things might happen?
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Chris
