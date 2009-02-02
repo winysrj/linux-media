@@ -1,79 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-5.mail.uk.tiscali.com ([212.74.114.1]:5765
-	"EHLO mk-outboundfilter-5.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752956AbZBBX2t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 18:28:49 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Bug in gspca USB webcam driver
-Date: Mon, 2 Feb 2009 23:28:44 +0000
-Cc: kilgota@banach.math.auburn.edu,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-References: <Pine.LNX.4.44L0.0902021651460.13005-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.0902021651460.13005-100000@iolanthe.rowland.org>
+Received: from 78-86-168-217.zone2.bethere.co.uk ([78.86.168.217]:40359 "EHLO
+	homer.jasonline.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698AbZBBGvJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 01:51:09 -0500
+Message-ID: <498697B5.10200@jasonline.co.uk>
+Date: Mon, 02 Feb 2009 06:50:29 +0000
+From: Jason Harvey <softdevice@jasonline.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+CC: Thierry Merle <thierry.merle@free.fr>
+Subject: Re: CinergyT2 not working with newer alternative driver
+References: <4984E50D.8000506@jasonline.co.uk> <49857A09.9020302@free.fr> <49859A71.70701@jasonline.co.uk> <4986925A.9040800@free.fr>
+In-Reply-To: <4986925A.9040800@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902022328.44386.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 02 February 2009, Alan Stern wrote:
-> On Mon, 2 Feb 2009, Adam Baker wrote:
-<snip>
-> > > To summarize: Unplugging the camera while it is in use by a program
-> > > causes an oops (particularly on an SMP machine).
-> > >
-> > > The problem is that gspca_stream_off() calls destroy_urbs(), which in
-> > > turn calls usb_buffer_free() -- but this happens too late, after
-> > > gspca_disconnect() has returned.  By that time gspca_dev->dev is a
-> > > stale pointer, so it shouldn't be passed to usb_buffer_free().
-> >
-> > By my reading it should be OK for gspca_disconnect to have returned as
-> > long as video_unregister_device waits for the last close to complete
-> > before calling gspca_release. I know that there were some patches a while
-> > back that attempted to ensure that was the case so I suspect there is
-> > still a hole there.
->
-> gspca_disconnect() should _not_ wait for the last close.  It should do
-> what it needs to do and return as quickly as possible.  This means
-> there must be two paths for releasing USB resources: release upon last
-> close and release upon disconnect.
->
+Thierry Merle wrote:
+> Jason Harvey wrote:
+>   
+>> Thierry Merle wrote:
+>>     
+>>> Hi Jason,
+>>> Jason Harvey wrote:
+>>>  
+>>>       
+>>>> I have been successfully using VDR with two CinergyT2s for 18 months.
+>>>> After adding a Hauppage NOVA-S2-HD I updated my v4l-dvb drivers hoping
+>>>> to get S2 capability and test a newer VDR for HD reception.
+>>>>
+>>>> The CinergyT2s stopped working. The kernel module loads, the blue leds
+>>>> flash as expected but they don't lock on to a signal for long.
+>>>> Signal strength shown in femon is erratic and a lock only rarely
+>>>> achieved.
+>>>>
+>>>> I checked through the mercurial tree to see what had changed.
+>>>> It looks like the following change is the one that stops the CinergyT2s
+>>>> working on my system.
+>>>> http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git;a=commit;h=986bd1e58b18c09b753f797df19251804bfe3e84
+>>>>
+>>>>
+>>>>
+>>>> I deleted the newer version of the module and replace it with the
+>>>> previous deleted code.
+>>>> Make'd and installed the old version works as expected.
+>>>>
+>>>> Machine they're plugged into is running Fedora 10,
+>>>> 2.6.27.12-170.2.5.fc10.i686
+>>>> I downloaded the current v4l-dvb today (31Jan2009) and tried it all
+>>>> again before posting this message.
+>>>>
+>>>> Not sure where to look next, I did start to capture the USB traffic to
+>>>> see if I could spot the difference...
+>>>>
+>>>>     
+>>>>         
+>>> Please take a look at the message logs (dmesg).
+>>> You can follow the instructions described here
+>>> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+>>> and report where it fails.
+>>>
+>>> I use tzap like this: tzap -c $HOME/.tzap/channels.conf -s -t 120 -r
+>>> -o output.mpg "SomeChannel"
+>>> I am able to play with mplayer too.
+>>> Regards,
+>>> Thierry
+>>>   
+>>>       
+>> Hi Thierry,
+>>
+>> Thank you for the quick reply.
+>> I should have looked in dmesg before...
+>> Checking dmesg before I used tzap shows a problem. dvb-usb: recv bulk
+>> message failed: -110
+>>
+>> **** Extract of dmesg ****
+>>
+>> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm
+>> state.
+>> dvb-usb: will pass the complete MPEG2 transport stream to the software
+>> demuxer.
+>> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
+>> Receiver)
+>> DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed
+>> DVB-T Receiver)...
+>> input: IR-receiver inside an USB DVB receiver as
+>> /devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input8
+>> dvb-usb: schedule remote query interval to 50 msecs.
+>> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+>> initialized and connected.
+>> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm
+>> state.
+>> dvb-usb: will pass the complete MPEG2 transport stream to the software
+>> demuxer.
+>> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
+>> Receiver)
+>> DVB: registering adapter 1 frontend 0 (TerraTec/qanu USB2.0 Highspeed
+>> DVB-T Receiver)...
+>> input: IR-receiver inside an USB DVB receiver as
+>> /devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input9
+>> dvb-usb: schedule remote query interval to 50 msecs.
+>> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+>> initialized and connected.
+>> usbcore: registered new interface driver cinergyT2
+>>
+>> dvb-usb: recv bulk message failed: -110
+>> dvb-usb: recv bulk message failed: -110
+>>
+>> ****
+>>
+>> Running tzap fails to tune/lock
+>>
+>> #tzap -a 0 -c channels.conf_dvbt -s -t 120 -r -o output.mpg "BBC ONE"
+>>
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> reading channels from file 'channels.conf_dvbt'
+>> tuning to 505833330 Hz
+>> video pid 0x0258, audio pid 0x0259
+>> status 01 | signal c11f | snr 0000 | ber ffffffff | unc ffffffff |
+>>
+>> No more messages in dmesg.
+>>
+>> I shut down the PC, removed all power, unplugged the CinergyT2s, gave it
+>> twenty seconds and powered back up.
+>> Once it had booted I plugged in one of the devices and the dmesg output
+>> below.
+>>
+>>
+>> usb 2-5: new high speed USB device using ehci_hcd and address 3
+>> usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid
+>> maxpacket 64
+>> usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has
+>> invalid maxpacket 64
+>> usb 2-5: configuration #1 chosen from 1 choice
+>> usb 2-5: New USB device found, idVendor=0ccd, idProduct=0038
+>> usb 2-5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+>> usb 2-5: Product: Cinergy T?
+>> usb 2-5: Manufacturer: TerraTec GmbH
+>> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm
+>> state.
+>> dvb-usb: will pass the complete MPEG2 transport stream to the software
+>> demuxer.
+>> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
+>> Receiver)
+>> DVB: registering adapter 1 frontend 0 (TerraTec/qanu USB2.0 Highspeed
+>> DVB-T Receiver)...
+>> input: IR-receiver inside an USB DVB receiver as
+>> /devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input9
+>> dvb-usb: schedule remote query interval to 50 msecs.
+>> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+>> initialized and connected.
+>> usbcore: registered new interface driver cinergyT2
+>> dvb-usb: recv bulk message failed: -110
+>>
+>> Cannot tzap or scan.
+>>
+>> With the old version of the driver I don't have any trouble at all.
+>>
+>>     
+> I do have this bulk message error too, sometimes (this is a timeout on recv).
+> I can tune channels but I think I have a particular version of the CinergyT2 (there are several).
+> You can turn on the debug infos:
+> modprobe dvb-core dvbdev_debug=1 debug=1
+> modprobe dvb-usb-cinergyT2 debug=7
+> and see again dmesg...
+>   
 
-I was being slightly imprecise in saying it waits, it uses the 
-device_register / unregister mechanism so it does effectively set a flag that 
-results in the release being called on last close. video_unregister_device 
-does use a mutex while updating some internal flags but as far as I can tell 
-the USB subsystem won't call gspca_disconnect in interrupt context so that 
-should be OK.
+Dmesg on plugging in the device as follows :-
 
-What I hadn't noticed before is that usb_buffer_free needs the usb device 
-pointer and as you say that is no longer valid after gspca_disconnect returns 
-even if gspca_release hasn't freed the rest of the gspca struct. If that is 
-the problem then I presume the correct behaviour is for gspca_disconnect to 
-ensure that all URBs are killed and freed before gspca_disconnect returns. 
-This shouldn't be a problem for sq905 (which doesn't use these URBs) or 
-isochronous cameras (which don't need to resubmit URBs) but the finepix 
-driver (the other supported bulk device) will need some careful consideration 
-to avoid a race between killing the URB and resubmitting it.
+    usb 2-5: new high speed USB device using ehci_hcd and address 3
+    usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has
+    invalid maxpacket 64
+    usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has
+    invalid maxpacket 64
+    usb 2-5: configuration #1 chosen from 1 choice
+    usb 2-5: New USB device found, idVendor=0ccd, idProduct=0038
+    usb 2-5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+    usb 2-5: Product: Cinergy T?
+    usb 2-5: Manufacturer: TerraTec GmbH
+    dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in
+    warm state.
+    dvb-usb: will pass the complete MPEG2 transport stream to the
+    software demuxer.
+    DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
+    Receiver)
+    DVB: register adapter1/demux0 @ minor: 4 (0x04)
+    DVB: register adapter1/dvr0 @ minor: 5 (0x05)
+    DVB: register adapter1/net0 @ minor: 6 (0x06)
+    DVB: registering adapter 1 frontend 0 (TerraTec/qanu USB2.0
+    Highspeed DVB-T Receiver)...
+    DVB: register adapter1/frontend0 @ minor: 7 (0x07)
+    input: IR-receiver inside an USB DVB receiver as
+    /devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input9
+    dvb-usb: schedule remote query interval to 50 msecs.
+    dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+    initialized and connected.
+    usbcore: registered new interface driver cinergyT2
 
-Theodore, could you check if adding a call to destroy_urbs() in 
-gspca_disconnect fixes the crash. (destroy_urbs only frees non NULL urb 
-pointers so should be safe to call from both disconnect and stream_off, 
-whichever occurs first).
 
-> I suppose the easiest way to work around the problem would be to take a
-> reference to the usb_device structure (usb_get_dev()) for each open and
-> to drop the reference when the stream is closed.  But it would be
-> preferable to do things the way I described before: Make disconnect put
-> an open stream into an error state and release all the USB resources
-> immediately.
->
-> Alan Stern
+tzap -a 1 -c channels.conf_dvbt -s -t 120 -r -o output.mpg "BBC ONE"
+only puts the following two lines into dmesg :-
 
-Adam
+function : dvb_dvr_open
+cinergyt2_fe_sleep() Called
+
+Not much there really!
+
+Regards, Jason
