@@ -1,282 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:52445 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751394AbZBOUY1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 15:24:27 -0500
-Subject: Re: [linux-dvb] [BUG] changeset 9029
- (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
-From: Andy Walls <awalls@radix.net>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <200902151336.17202@orion.escape-edv.de>
-References: <4986507C.1050609@googlemail.com>
-	 <200902151336.17202@orion.escape-edv.de>
-Content-Type: text/plain
-Date: Sun, 15 Feb 2009 15:25:13 -0500
-Message-Id: <1234729513.3172.8.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:13230
+	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753598AbZBBVfE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Feb 2009 16:35:04 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Bug in gspca USB webcam driver
+Date: Mon, 2 Feb 2009 21:35:00 +0000
+Cc: kilgota@banach.math.auburn.edu,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+References: <Pine.LNX.4.44L0.0902021558280.10089-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.0902021558280.10089-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902022135.00908.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-02-15 at 13:36 +0100, Oliver Endriss wrote:
-> e9hack wrote:
-> > Hi,
-> > 
-> > this change set is wrong. The affected functions cannot be called from an interrupt
-> > context, because they may process large buffers. In this case, interrupts are disabled for
-> > a long time. Functions, like dvb_dmx_swfilter_packets(), could be called only from a
-> > tasklet. This change set does hide some strong design bugs in dm1105.c and au0828-dvb.c.
-> > 
-> > Please revert this change set and do fix the bugs in dm1105.c and au0828-dvb.c (and other
-> > files).
-> 
-> @Mauro:
-> 
-> This changeset _must_ be reverted! It breaks all kernels since 2.6.27
-> for applications which use DVB and require a low interrupt latency.
-> 
-> It is a very bad idea to call the demuxer to process data buffers with
-> interrupts disabled!
-> 
-> FYI, a LIRC problem was reported here:
->   http://vdrportal.de/board/thread.php?postid=786366#post786366
-> 
-> and it has been verified that changeset
->   http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833
-> causes the problem:
->   http://vdrportal.de/board/thread.php?postid=791813#post791813
-> 
-> Please revert this changeset immediately and submit a fix to the stable
-> kernels >= 2.6.27.
-> 
-> CU
-> Oliver
+On Monday 02 February 2009, Alan Stern wrote:
+> On Mon, 2 Feb 2009 kilgota@banach.math.auburn.edu wrote:
+> > The attached file is an extract from dmesg from the Pentium4 Dual Core
+> > machine. One can see that the camera has been attached, and then an svv
+> > session has been run. The kernel is the "stock" Slackware 2.6.27.7 kernel
+> > (*). We have a situation, again, in which svv (**) can not be exited. We
+> > have an oops in the log, and we have a filesystem check on reboot, which
+> > is going on as I write this.
+>
+> Well, the problem is clear enough, and it is in the gspca.c module, not
+> your sq905-3 driver.  I'm not sure what the best way is to fix it, so
+> I'm CC'ing the people responsible for the gspca driver.
+>
+Thanks for confirming that Alan. I'd been looking at this too and suspected 
+this was the case but as it wouldn't fail on my uniprocessor machine I 
+couldn't prove it. (Theodore, if you can generate the log we discussed of 
+this failing it might still be helpful in tracking down the underlying 
+problem.)
 
+> To summarize: Unplugging the camera while it is in use by a program
+> causes an oops (particularly on an SMP machine).
+>
+> The problem is that gspca_stream_off() calls destroy_urbs(), which in
+> turn calls usb_buffer_free() -- but this happens too late, after
+> gspca_disconnect() has returned.  By that time gspca_dev->dev is a
+> stale pointer, so it shouldn't be passed to usb_buffer_free().
+>
 
-The patch below is an idea for a fix that uses a module parameter to
-give back right away the original behavior to those who need it, while
-buying time to fix the drivers that are doing things wrong.
+By my reading it should be OK for gspca_disconnect to have returned as long as 
+video_unregister_device waits for the last close to complete before calling 
+gspca_release. I know that there were some patches a while back that 
+attempted to ensure that was the case so I suspect there is still a hole 
+there.
 
+> What should happen is that as part of disconnect processing, the
+> existing stream(s) should be put in an error state and destroy_urbs()
+> should be called immediately.  Then when gspca_stream_off() calls
+> destroy_urbs() again there would be no more work left to do.
+>
+> Alan Stern
+>
 
-I don't know if this patch will be acceptable to anyone, and I suspect
-there will be disagreement on the default behavior.
-
-It compiles and comes through checkpatch.pl with only one warning about
-an extern declaration I didn't know where to place.  This patch still
-needs to be checked for correctness and tested.
-
-
-Regards,
-Andy
-
-
-Signed-off-by: Andy Walls <awalls@radix.net>
-
-
-diff -r 3976e528b4a6 linux/drivers/media/dvb/dvb-core/dmxdev.c
---- a/linux/drivers/media/dvb/dvb-core/dmxdev.c	Sat Feb 14 15:08:37 2009 -0500
-+++ b/linux/drivers/media/dvb/dvb-core/dmxdev.c	Sun Feb 15 14:55:49 2009 -0500
-@@ -35,6 +35,17 @@
- 
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
-+
-+/*
-+ * FIXME - remove this conservative lock kludge, when the offending drivers
-+ * that make some calls improperly from an interrupt context are fixed.
-+ */
-+int dmxdev_conservative_locks;
-+
-+module_param_named(conservative_locks, dmxdev_conservative_locks, int, 0644);
-+MODULE_PARM_DESC(conservative_locks,
-+		 "Work around for drivers that make calls\n"
-+		 "\t\twith interrupts disabled (default:0/off).");
- 
- #define dprintk	if (debug) printk
- 
-@@ -364,16 +375,22 @@
- 				       enum dmx_success success)
- {
- 	struct dmxdev_filter *dmxdevfilter = filter->priv;
--	unsigned long flags;
-+	unsigned long flags = 0;
- 	int ret;
- 
- 	if (dmxdevfilter->buffer.error) {
- 		wake_up(&dmxdevfilter->buffer.queue);
- 		return 0;
- 	}
--	spin_lock_irqsave(&dmxdevfilter->dev->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_lock_irqsave(&dmxdevfilter->dev->lock, flags);
-+	else
-+		spin_lock(&dmxdevfilter->dev->lock);
- 	if (dmxdevfilter->state != DMXDEV_STATE_GO) {
--		spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+		if (dmxdev_conservative_locks)
-+			spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+		else
-+			spin_unlock(&dmxdevfilter->dev->lock);
- 		return 0;
- 	}
- 	del_timer(&dmxdevfilter->timer);
-@@ -392,7 +409,10 @@
- 	}
- 	if (dmxdevfilter->params.sec.flags & DMX_ONESHOT)
- 		dmxdevfilter->state = DMXDEV_STATE_DONE;
--	spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+	else
-+		spin_unlock(&dmxdevfilter->dev->lock);
- 	wake_up(&dmxdevfilter->buffer.queue);
- 	return 0;
- }
-@@ -404,12 +424,18 @@
- {
- 	struct dmxdev_filter *dmxdevfilter = feed->priv;
- 	struct dvb_ringbuffer *buffer;
--	unsigned long flags;
-+	unsigned long flags = 0;
- 	int ret;
- 
--	spin_lock_irqsave(&dmxdevfilter->dev->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_lock_irqsave(&dmxdevfilter->dev->lock, flags);
-+	else
-+		spin_lock(&dmxdevfilter->dev->lock);
- 	if (dmxdevfilter->params.pes.output == DMX_OUT_DECODER) {
--		spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+		if (dmxdev_conservative_locks)
-+			spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+		else
-+			spin_unlock(&dmxdevfilter->dev->lock);
- 		return 0;
- 	}
- 
-@@ -419,7 +445,10 @@
- 	else
- 		buffer = &dmxdevfilter->dev->dvr_buffer;
- 	if (buffer->error) {
--		spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+		if (dmxdev_conservative_locks)
-+			spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+		else
-+			spin_unlock(&dmxdevfilter->dev->lock);
- 		wake_up(&buffer->queue);
- 		return 0;
- 	}
-@@ -430,7 +459,10 @@
- 		dvb_ringbuffer_flush(buffer);
- 		buffer->error = ret;
- 	}
--	spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_unlock_irqrestore(&dmxdevfilter->dev->lock, flags);
-+	else
-+		spin_unlock(&dmxdevfilter->dev->lock);
- 	wake_up(&buffer->queue);
- 	return 0;
- }
-diff -r 3976e528b4a6 linux/drivers/media/dvb/dvb-core/dvb_demux.c
---- a/linux/drivers/media/dvb/dvb-core/dvb_demux.c	Sat Feb 14 15:08:37 2009 -0500
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_demux.c	Sun Feb 15 14:55:49 2009 -0500
-@@ -37,6 +37,12 @@
- ** #define DVB_DEMUX_SECTION_LOSS_LOG to monitor payload loss in the syslog
- */
- // #define DVB_DEMUX_SECTION_LOSS_LOG
-+
-+/*
-+ * FIXME - remove this conservative lock kludge, when the offending drivers
-+ * that make some calls improperly from an interrupt context are fixed.
-+ */
-+extern int dmxdev_conservative_locks;
- 
- /******************************************************************************
-  * static inlined helper functions
-@@ -399,9 +405,12 @@
- void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
- 			      size_t count)
- {
--	unsigned long flags;
-+	unsigned long flags = 0;
- 
--	spin_lock_irqsave(&demux->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_lock_irqsave(&demux->lock, flags);
-+	else
-+		spin_lock(&demux->lock);
- 
- 	while (count--) {
- 		if (buf[0] == 0x47)
-@@ -409,17 +418,23 @@
- 		buf += 188;
- 	}
- 
--	spin_unlock_irqrestore(&demux->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_unlock_irqrestore(&demux->lock, flags);
-+	else
-+		spin_unlock(&demux->lock);
- }
- 
- EXPORT_SYMBOL(dvb_dmx_swfilter_packets);
- 
- void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count)
- {
--	unsigned long flags;
-+	unsigned long flags = 0;
- 	int p = 0, i, j;
- 
--	spin_lock_irqsave(&demux->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_lock_irqsave(&demux->lock, flags);
-+	else
-+		spin_lock(&demux->lock);
- 
- 	if (demux->tsbufp) {
- 		i = demux->tsbufp;
-@@ -452,18 +467,24 @@
- 	}
- 
- bailout:
--	spin_unlock_irqrestore(&demux->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_unlock_irqrestore(&demux->lock, flags);
-+	else
-+		spin_unlock(&demux->lock);
- }
- 
- EXPORT_SYMBOL(dvb_dmx_swfilter);
- 
- void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf, size_t count)
- {
--	unsigned long flags;
-+	unsigned long flags = 0;
- 	int p = 0, i, j;
- 	u8 tmppack[188];
- 
--	spin_lock_irqsave(&demux->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_lock_irqsave(&demux->lock, flags);
-+	else
-+		spin_lock(&demux->lock);
- 
- 	if (demux->tsbufp) {
- 		i = demux->tsbufp;
-@@ -504,7 +525,10 @@
- 	}
- 
- bailout:
--	spin_unlock_irqrestore(&demux->lock, flags);
-+	if (dmxdev_conservative_locks)
-+		spin_unlock_irqrestore(&demux->lock, flags);
-+	else
-+		spin_unlock(&demux->lock);
- }
- 
- EXPORT_SYMBOL(dvb_dmx_swfilter_204);
-
-
+Adam Baker
 
