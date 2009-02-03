@@ -1,108 +1,301 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:54438 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754872AbZBKMxq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2009 07:53:46 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so8368ugf.37
-        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2009 04:53:44 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <49929D6D.1000507@koala.ie>
-References: <49929D6D.1000507@koala.ie>
-Date: Wed, 11 Feb 2009 13:53:44 +0100
-Message-ID: <d2f9b55e0902110453h5644739dxfebc92607ca966f5@mail.gmail.com>
-Subject: Re: failure of Cinergy Hybrid T USB XS on amd64
-From: Alain Perrot <alain.perrot@gmail.com>
-To: Simon Kenyon <simon@koala.ie>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:39601 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493AbZBCGa2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 01:30:28 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n136UJDC003380
+	for <linux-media@vger.kernel.org>; Tue, 3 Feb 2009 00:30:25 -0600
+From: Hardik Shah <hardik.shah@ti.com>
+To: linux-media@vger.kernel.org
+Cc: Hardik Shah <hardik.shah@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
+	Hari Nagalla <hnagalla@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH] Documentation update for New V4L2 ioctls for OMAP
+Date: Tue,  3 Feb 2009 12:00:14 +0530
+Message-Id: <1233642614-30879-1-git-send-email-hardik.shah@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 11, 2009 at 10:42 AM, Simon Kenyon <simon@koala.ie> wrote:
-> does anyone know what is going on here?
->
-> i know the device works because i can use it on my eee 900 running gentoo
->
-> however i get a failure to load the driver (hg pull as of yesterday) on two
-> different linux boxes. they are both running gentoo on an amd64
->
-> uname -a gives:
->
-> Linux newyork 2.6.27-gentoo-r8 #1 SMP PREEMPT Wed Feb 11 00:10:13 GMT 2009
-> x86_64 AMD Athlon(tm) 64 X2 Dual Core Processor 6000+ AuthenticAMD GNU/Linux
+1.  Added documentation for VIDIOC_COLOR_S_SPACE_CONV and
+VIDIOC_G_COLOR_SPACE_CONV
+2.  Added documentation for new CID V4L2_CID_ROTATION and
+V4L2_CID_BG_COLOR
 
-Hi,
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Hari Nagalla <hnagalla@ti.com>
+Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ Makefile                       |    4 +
+ controls.sgml                  |   12 +++-
+ v4l2.sgml                      |    1 +
+ vidioc-g-color-space-conv.sgml |  182 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 198 insertions(+), 1 deletions(-)
+ create mode 100644 vidioc-g-color-space-conv.sgml
 
-I currently have the same issue while trying to make my Dazzle TV Hybrid
-(USB ID eb1a:2881, looks like the exact same hardware as the Pinnacle Hybrid
-Pro) work with the v4l-dvb tree from linuxtv.org on my 64-bit systems
-(Kubuntu 8.10, Linux 2.6.27, AMD Sempron 64 and Intel Core 2 Duo).
+diff --git a/Makefile b/Makefile
+index 9a13c91..b76b4a7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -67,6 +67,7 @@ SGMLS = \
+ 	vidioc-g-audio.sgml \
+ 	vidioc-g-audioout.sgml \
+ 	vidioc-dbg-g-chip-ident.sgml \
++	vidioc-g-color-space-conv.sgml \
+ 	vidioc-g-crop.sgml \
+ 	vidioc-g-ctrl.sgml \
+ 	vidioc-g-enc-index.sgml \
+@@ -156,6 +157,7 @@ IOCTLS = \
+ 	VIDIOC_ENUM_FRAMESIZES \
+ 	VIDIOC_G_AUDIO \
+ 	VIDIOC_G_AUDOUT \
++	VIDIOC_G_COLOR_SPACE_CONV \
+ 	VIDIOC_G_CROP \
+ 	VIDIOC_G_CTRL \
+ 	VIDIOC_G_ENC_INDEX \
+@@ -186,6 +188,7 @@ IOCTLS = \
+ 	VIDIOC_STREAMON \
+ 	VIDIOC_S_AUDIO \
+ 	VIDIOC_S_AUDOUT \
++	VIDIOC_S_COLOR_SPACE_CONV \
+ 	VIDIOC_S_CROP \
+ 	VIDIOC_S_CTRL \
+ 	VIDIOC_S_EXT_CTRLS \
+@@ -249,6 +252,7 @@ STRUCTS = \
+ 	v4l2_capability \
+ 	v4l2_captureparm \
+ 	v4l2_clip \
++	v4l2_color_space_conv \
+ 	v4l2_control \
+ 	v4l2_crop \
+ 	v4l2_cropcap \
+diff --git a/controls.sgml b/controls.sgml
+index 0df57dc..c9ef5e8 100644
+--- a/controls.sgml
++++ b/controls.sgml
+@@ -272,10 +272,20 @@ minimum value disables backlight compensation.</entry>
+ 	    <entry>Enable the color killer (&ie; force a black &amp; white image in case of a weak video signal).</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CID_ROTATION</constant></entry>
++	    <entry>integer</entry>
++	    <entry>Rotates the image by specified angle.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_CID_BG_COLOR</constant></entry>
++	    <entry>integer</entry>
++	    <entry>Sets the background color on the current output device</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+ 	    <entry></entry>
+ 	    <entry>End of the predefined control IDs (currently
+-<constant>V4L2_CID_COLOR_KILLER</constant> + 1).</entry>
++<constant>V4L2_CID_BG_COLOR</constant> + 1).</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+diff --git a/v4l2.sgml b/v4l2.sgml
+index 9f43b6d..f9f0986 100644
+--- a/v4l2.sgml
++++ b/v4l2.sgml
+@@ -435,6 +435,7 @@ available here: <ulink url="http://linuxtv.org/downloads/video4linux/API/V4L2_AP
+     &sub-querystd;
+     &sub-reqbufs;
+     &sub-s-hw-freq-seek;
++    &sub-g-color-space-conv;
+     &sub-streamon;
+     <!-- End of ioctls. -->
+     &sub-mmap;
+diff --git a/vidioc-g-color-space-conv.sgml b/vidioc-g-color-space-conv.sgml
+new file mode 100644
+index 0000000..a24ae4c
+--- /dev/null
++++ b/vidioc-g-color-space-conv.sgml
+@@ -0,0 +1,182 @@
++<refentry id="vidioc-g-color-space-conv">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_S_COLOR_SPACE_CONV, VIDIOC_G_COLOR_SPACE_CONV</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_S_COLOR_SPACE_CONV</refname>
++    <refname>VIDIOC_G_COLOR_SPACE_CONV</refname>
++    <refpurpose>Get or Set the color space conversion matrix </refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_color_space_conv
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_G_COLOR_SPACE_CONV, VIDIOC_S_COLOR_SPACE_CONV</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>This ioctl is used to set the color space conversion matrix.
++Few Video hardware has a programmable color space conversion matrix which
++converts the data from one color space to other color space
++typically from YUV or UYVY to RGB and vice versa.  Normally hardware has
++default value for the conversion matrix but application may need to tune that.
++    </para>
++	<para>Typical color conversion matrix looks like</para>
++
++	<formalpara>
++	    <title>Typical color space conversion matrix equation.</title>
++		<para>
++		<informaltable frame="none">
++		<tgroup cols="15" align="center">
++		  <colspec align="left" colwidth="1*">
++		  <tbody valign="top">
++		    <row>
++		      <entry>|</entry>
++		      <entry>O<subscript>0</subscript></entry>
++		      <entry>|</entry>
++		      <entry></entry>
++			  <entry></entry>
++			  <entry></entry>
++		      <entry>|</entry>
++			  <entry>C<subscript>0,0</subscript></entry>
++		      <entry>C<subscript>0,1</subscript></entry>
++		      <entry>C<subscript>0,2</subscript></entry>
++		      <entry>|</entry>
++		      <entry></entry>
++			  <entry>|</entry>
++		      <entry>Of<subscript>0</subscript></entry>
++		      <entry>|</entry>
++		    </row>
++		    <row>
++		      <entry>|</entry>
++		      <entry>O<subscript>1</subscript></entry>
++		      <entry>|</entry>
++		      <entry></entry>
++			  <entry>=</entry>
++			  <entry>K</entry>
++		      <entry>|</entry>
++			  <entry>C<subscript>1,0</subscript></entry>
++		      <entry>C<subscript>1,1</subscript></entry>
++		      <entry>C<subscript>1,2</subscript></entry>
++		      <entry>|</entry>
++		      <entry>*</entry>
++			  <entry>|</entry>
++		      <entry>Of<subscript>1</subscript></entry>
++		      <entry>|</entry>
++		    </row>
++			 <row>
++		      <entry>|</entry>
++		      <entry>O<subscript>2</subscript></entry>
++		      <entry>|</entry>
++		      <entry></entry>
++			  <entry></entry>
++			  <entry></entry>
++		      <entry>|</entry>
++			  <entry>C<subscript>2,0</subscript></entry>
++		      <entry>C<subscript>2,1</subscript></entry>
++		      <entry>C<subscript>2,2</subscript></entry>
++		      <entry>|</entry>
++		      <entry></entry>
++			  <entry>|</entry>
++		      <entry>Of<subscript>2</subscript></entry>
++		      <entry>|</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++		</para>
++	  </formalpara>
++
++	<para>Where Ci,j are the coefficients, K is the constant factor and
++Ofi is the  offsets.  All the hardware may not allow modifying
++all of these parameters.</para>
++
++	<para>To set values for the color conversion matrix, applications call
++<constant>VIDIOC_S_COLOR_SPACE_CONV</constant> with the pointer to a
++<structname>v4l2_color_space_conv</structname> structure.  Driver
++checks and updates the parameters in the hardware. To get the values
++applications call <constant>VIDIOC_G_COLOR_SPACE_CONV</constant> with a pointer
++to <structname>v4l2_color_space_conv</structname> and driver will fill the
++structure with appropriate values.</para>
++
++    <table pgwide="1" frame="none" id="v4l2-color-space-conv">
++      <title>struct <structname>v4l2_color_space_conv</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__s32</entry>
++	    <entry><structfield>coefficients</structfield></entry>
++	    <entry>Conversion Matrix coefficeints. It is a array of 3X3.</entry>
++	  </row>
++	  <row>
++	    <entry>__s32</entry>
++	    <entry><structfield>const_factor</structfield></entry>
++	    <entry>Constant to be multiplied with the conversion matrix.</entry>
++	  </row>
++	  <row>
++	    <entry>__s32</entry>
++	    <entry><structfield>offsets</structfield></entry>
++	    <entry>Offset for the each entry in color conversion matrix.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>EINVAL</errorcode></term>
++	<listitem>
++	  <para>The hardware doesn't supports color space conversion.</para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
++
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+--
+1.5.6
 
-My USB device seems very similar to yours : em288x, tvp5150, xc3028 and
-zl10353 chips.
-
-I've added some code to the em28xx driver to provide support for my device,
-but for now I'm stuck with the "zl10353_read_register: readreg error (reg=127,
-ret==-19)" error message...
-
-Note that the device works with the em28xx-new driver from mcentral.de.
-
-
-> and this is the output from the driver load:
->
-> usb 2-1: new high speed USB device using ehci_hcd and address 4
-> usb 2-1: configuration #1 chosen from 1 choice
-> em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS @ 480
-> Mbps (0ccd:0042, interface 0, class 0)
-> em28xx #0: Identified as Terratec Hybrid XS (card=11)
-> em28xx #0: chip ID is em2882/em2883
-> tvp5150' 2-005c: chip found @ 0xb8 (em28xx #0)
-> tuner' 2-0061: chip found @ 0xc2 (em28xx #0)
-> em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 42 00 50 12 5c 03 6a 32 9c 34
-> em28xx #0: i2c eeprom 10: 00 00 06 57 46 07 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 00 00 00
-> em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 32 03 43 00 69 00
-> em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 48 00 79 00
-> em28xx #0: i2c eeprom 80: 62 00 72 00 69 00 64 00 20 00 54 00 20 00 55 00
-> em28xx #0: i2c eeprom 90: 53 00 42 00 20 00 58 00 53 00 00 00 34 03 54 00
-> em28xx #0: i2c eeprom a0: 65 00 72 00 72 00 61 00 54 00 65 00 63 00 20 00
-> em28xx #0: i2c eeprom b0: 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00
-> em28xx #0: i2c eeprom c0: 69 00 63 00 20 00 47 00 6d 00 62 00 48 00 00 00
-> em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x41d0bf96
-> em28xx #0: EEPROM info:
-> em28xx #0:      AC97 audio (5 sample rates)
-> em28xx #0:      500mA max power
-> em28xx #0:      Table at 0x06, strings=0x326a, 0x349c, 0x0000
-> xc2028 2-0061: creating new instance
-> xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-> firmware: requesting xc3028-v27.fw
-> xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028
-> firmware, ver 2.7
-> xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-> xc2028 2-0061: Loading firmware for type=(0), id 000000000000b700.
-> SCODE (20000000), id 000000000000b700:
-> xc2028 2-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id
-> 0000000000008000.
-> em28xx #0: Config register raw data: 0x50
-> em28xx #0: AC97 vendor ID = 0x83847652
-> em28xx #0: AC97 features = 0x6a90
-> em28xx #0: Sigmatel audio processor detected(stac 9752)
-> tvp5150' 2-005c: tvp5150am1 detected.
-> em28xx #0: v4l2 driver version 0.1.1
-> em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi1
-> zl10353_read_register: readreg error (reg=127, ret==-19)
-> em28xx #0/2: dvb frontend not attached. Can't attach xc3028
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
