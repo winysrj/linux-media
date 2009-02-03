@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:54916 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752500AbZBJAbp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Feb 2009 19:31:45 -0500
-Subject: Re: cx18, HVR-1600 Clear qam tuning
-From: Andy Walls <awalls@radix.net>
-To: "Williams, Phil A" <phil.a.williams@lmco.com>
+Received: from fg-out-1718.google.com ([72.14.220.153]:49341 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703AbZBCBHc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 20:07:32 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so763350fgg.17
+        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 17:07:32 -0800 (PST)
+Subject: [patch review 0/8] radio-mr800 patch series
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <CCB65A8C741893429D41536D8B5F6D921CCFF080@emss01m15.us.lmco.com>
-References: <CCB65A8C741893429D41536D8B5F6D921CCFF080@emss01m15.us.lmco.com>
 Content-Type: text/plain
-Date: Mon, 09 Feb 2009 19:32:30 -0500
-Message-Id: <1234225950.3094.22.camel@palomino.walls.org>
+Date: Tue, 03 Feb 2009 04:07:03 +0300
+Message-Id: <1233623223.17456.246.camel@tux.localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-02-09 at 16:14 -0800, Williams, Phil A wrote:
-> I'm using an HVR-1600, having a heck of a time, and wanted to give this
-> patch a try. Can someone point me to a good wiki or howto on how to
-> incorporate this patch?
-> 
-> >Devin just commited a patch to improve the lock time of the
-> >cx24227/s5h1409 demodulator:
-> >
-> >http://linuxtv.org/hg/~dheitmueller/v4l-dvb-s5h1409/rev/6bb4e117a614
+Hello, all
 
+This patch series serves generally to add new feature (stereo support)
+into driver, fix small old issues, and prepare driver to next changes.
 
-It's already in the latest v4l-dvb repo.
+Comments, suggestions, remarks are welcome :)
 
-Here's a wiki link on setting up the latest cx18 driver from the v4l-dvb
-repo:
+Changes are:
 
-http://www.ivtvdriver.org/index.php/Cx18
+[patch review 1/8] radio-mr800: codingstyle cleanups
+[patch review 2/8] radio-mr800: place dev_err instead of dev_warn
+[patch review 3/8] radio-mr800: add more dev_err messages in probe
+[patch review 4/8] radio-mr800: move radio start and stop in one
+function
+[patch review 5/8] radio-mr800: fix amradio_set_freq
+[patch review 6/8] radio-mr800: add stereo support
+[patch review 7/8] radio-mr800: add few lost mutex locks
+[patch review 8/8] radio-mr800: increase version and add comments
 
-Regards,
-Andy
+Tested under 2.6.29-rc3 with gcc-4.3.3 help. Works fine.
+
+-- 
+Best regards, Klimov Alexey
 
