@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+Received: from echoes.night-light.net ([84.49.14.38] ident=root)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1LVnsv-0003Ez-W6
-	for linux-dvb@linuxtv.org; Sat, 07 Feb 2009 15:10:18 +0100
-Date: Sat, 7 Feb 2009 15:04:51 +0100
-From: Josef Wolf <jw@raven.inka.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090207140451.GC19668@raven.wolf.lan>
-References: <20090207015744.GA19668@raven.wolf.lan>
+	(envelope-from <linuxtv@night-light.net>) id 1LUQW7-0002Qt-AQ
+	for linux-dvb@linuxtv.org; Tue, 03 Feb 2009 20:01:04 +0100
+Received: from [192.168.1.22] (mediastation.night-light.localnet
+	[192.168.1.22])
+	by echoes.night-light.net (8.14.3/8.14.3/SuSE Linux 0.8) with ESMTP id
+	n13J0wR9023538
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Tue, 3 Feb 2009 20:00:58 +0100
+Message-ID: <4988946A.9030502@night-light.net>
+Date: Tue, 03 Feb 2009 20:00:58 +0100
+From: Jonas Kvinge <linuxtv@night-light.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20090207015744.GA19668@raven.wolf.lan>
-Subject: Re: [linux-dvb] Tuning problems with loss of TS packets
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts
+ on HDchannels]
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,54 +30,78 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Feb 07, 2009 at 02:57:44AM +0100, Josef Wolf wrote:
-> Hello,
-> 
-> sometimes, I experience non-deterministic problems with tuning on some
-> transponders with dvb-s.  For example, on astra-H-11954, I have about
-> 50% chance to get a good tune.  If I get a bad tune, I still receive
-> TS packets from the chosen transponder, but about 10%..20% of the
-> packets are lost.  The (remaining) packets contain PAT/PMT/PES packets
-> from the chosen transponder, so it is pretty safe to assume that
-> actual tuning worked properly.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I have tried to analyze the cc (continuation counter) field of the TS
-packets to get more clue. This is what I found on the astra-H-11954 (zdf)
-transponder:
 
-When I get a "bad" tune (that is: mplayer and vlc get stuck), the
-cc errors are unsystematic.  All PIDs are affected, and the amount
-of lost packets varies.  But from time to time regularities can be
-seen:
+Manu Abraham wrote:
+> Alex Betis wrote:
+>> On Tue, Jan 27, 2009 at 9:56 PM, Manu Abraham <abraham.manu@gmail.com>wrote:
+>>
+>>>> Hmm OK, but is there by any chance a fix for those issues somewhere or
+>>>> in the pipe at least? I am willing to test (as I already offered), I
+>>>> can compile the drivers, spread printk or whatever else is needed to
+>>>> get useful reports. Let me know if I can help sort this problem. BTW in
+>>>> my case it is DVB-S2 30000 SR and FEC 5/6.
+>>> It was quite not appreciable on my part to provide a fix or reply in
+>>> time nor spend much time on it earlier, but that said i was quite
+>>> stuck up with some other things.
+>>>
+>>> Can you please pull a copy of the multiproto tree
+>>> http://jusst.de/hg/multiproto or the v4l-dvb tree from
+>>> http://jusst.de/hg/v4l-dvb
+>>>
+>>> and apply the following patch and comment what your result is ?
+>>> Before applying please do check whether you still have the issues.
+>> Manu,
+>> I've tried to increase those timers long ago when played around with my card
+>> (Twinhan 1041) and scan utility.
+>> I must say that I've concentrated mostly on DVB-S channels that wasn't
+>> always locking.
+>> I didn't notice much improvements. The thing that did help was increasing
+>> the resolution of scan zigzags.
+>
+> With regards to the zig-zag, one bug is fixed in the v4l-dvb tree.
+> Most likely you haven't tried that change.
+>
+>> I've sent a patch on that ML and people were happy with the results.
+>
+> I did look at your patch, but that was completely against the tuning
+> algorithm.
+>
+> [..]
+>
+>> I believe DVB-S2 lock suffer from the same problem, but in that case the
+>> zigzag is done in the chip and not in the driver.
+>
+> Along with the patch i sent, does the attached patch help you in
+> anyway (This works out for DVB-S2 only)?
+>
+>
+>
 
-     cc pid:967 expect:3  got:5   *
-     cc pid:970 expect:3  got:5   *
-     cc pid:966 expect:3  got:5   *
-     cc pid:18  expect:10 got:11
-     cc pid:969 expect:5  got:6
-     cc pid:131 expect:10 got:9
-     cc pid:710 expect:7  got:11
-     cc pid:967 expect:13 got:15   *
-     cc pid:970 expect:13 got:15   *
-     cc pid:966 expect:13 got:15   *
-     cc pid:968 expect:11 got:13
-     cc pid:230 expect:12 got:15
-     cc pid:330 expect:5  got:8
-     cc pid:620 expect:1  got:5
-     cc pid:130 expect:5  got:9   +
-     cc pid:630 expect:5  got:9   +
-     cc pid:220 expect:6  got:10
-     cc pid:120 expect:14 got:2
-     cc pid:968 expect:4  got:6
-     cc pid:967 expect:7  got:9   *
-     cc pid:970 expect:7  got:9   *
-     cc pid:966 expect:7  got:9   *
+- From what I understand the driver still has some issues. Got feedback
+from another guy with Canal Digital in Norway that he has the same
+issues as me.
 
-I have marked the interesting lines.  Most interesting are the lines
-marked with stars.  This is the same sequence of PIDs in the same
-order and with the same amount of lost packets.  This does not look
-like a coincidence to me.
+Not sure if the diff was an attempt to fix the digital artefacts but I
+tried applying the diff manually on the source I grabbed from
+http://jusst.de/hg/v4l-dvb/ but did not notice any improvements or
+difference with the artefacts. Would any logs be helpful?
 
+If there is anything else I could try I'm willing to try it out. I
+appreciate your effort. Thanks.
+
+
+Jonas
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkmIlGoACgkQpvOo+MDrK1H4yACdHPoej4cSsfPvp7m4NUGsAjAz
+36EAn3cz9MffjPWztzyMEOcs0VcxhQdD
+=h9tA
+-----END PGP SIGNATURE-----
 
 _______________________________________________
 linux-dvb users mailing list
