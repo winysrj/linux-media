@@ -1,65 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1228 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647AbZBNV76 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2009 16:59:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Adding a control for Sensor Orientation
-Date: Sat, 14 Feb 2009 22:59:44 +0100
-Cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	Jean-Francois Moine <moinejf@free.fr>,
-	kilgota@banach.math.auburn.edu, Olivier Lorin <o.lorin@laposte.net>
-References: <200902142048.51863.linux@baker-net.org.uk> <49973DDB.7000109@redhat.com>
-In-Reply-To: <49973DDB.7000109@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from fg-out-1718.google.com ([72.14.220.157]:44655 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753029AbZBCBIt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 20:08:49 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so763430fgg.17
+        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 17:08:48 -0800 (PST)
+Subject: [patch review 5/8] radio-mr800: fix amradio_set_freq
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Tue, 03 Feb 2009 04:08:45 +0300
+Message-Id: <1233623325.17456.261.camel@tux.localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902142259.44431.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 14 February 2009 22:55:39 Hans de Goede wrote:
-> Adam Baker wrote:
-> > Hi all,
-> >
-> > Hans Verkuil put forward a convincing argument that sensor orientation
-> > shouldn't be part of the buffer flags as then it would be unavailable
-> > to clients that use read()
->
-> Yes and this is a bogus argument, clients using read also do not get
-> things like timestamps, and vital information like which field is in the
-> read buffer when dealing with interleaved sources. read() is a simple
-> interface for simple applications. Given that the only user of these
-> flags will likely be libv4l I *strongly* object to having this info in
-> some control, it is not a control, it is a per frame (on some cams)
-> information about how to interpret that frame, the buffer flags is a very
-> logical place, *the* logical place even for this!
->
-> The fact that there is no way to transport metadata about a frame like
-> flags, but also timestamp and field! Is a problem with the read interface
-> in general, iow read() is broken wrt to this. If people care add some
-> ioctl or something which users of read() can use to get the buffer
-> metadata from the last read() buffer, stuffing buffer metadata in a
-> control (barf), because of read() brokenness is a very *bad* idea, and
-> won't work in general due to synchronization problems.
->
-> Doing this as a control will be a pain to implement both at the driver
-> level, see the discussion this is causing, and in libv4l. For libv4l this
-> will basicly mean polling the control. And hello polling is lame and
-> something from the 1980-ies.
->
-> Please just make this a buffer flag.
+Fixing frequency adjustment to provide better diapason(band?) fit.
+Also, add AMRADIO_SET_FREQ to the list of commands.
 
-OK, make it a buffer flag. I've got to agree that it makes more sense to do 
-it that way.
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Regards,
+--
+diff -r d2d1176133ad linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Mon Feb 02 03:57:46 2009 +0300
++++ b/linux/drivers/media/radio/radio-mr800.c	Mon Feb 02 06:38:01 2009 +0300
+@@ -92,6 +92,7 @@
+  * Commands that device should understand
+  * List isnt full and will be updated with implementation of new functions
+  */
++#define AMRADIO_SET_FREQ	0xa4
+ #define AMRADIO_SET_MUTE	0xab
+ 
+ /* Comfortable defines for amradio_set_mute */
+@@ -223,7 +224,7 @@
+ {
+ 	int retval;
+ 	int size;
+-	unsigned short freq_send = 0x13 + (freq >> 3) / 25;
++	unsigned short freq_send = 0x10 + (freq >> 3) / 25;
+ 
+ 	/* safety check */
+ 	if (radio->removed)
+@@ -235,7 +236,7 @@
+ 	radio->buffer[1] = 0x55;
+ 	radio->buffer[2] = 0xaa;
+ 	radio->buffer[3] = 0x03;
+-	radio->buffer[4] = 0xa4;
++	radio->buffer[4] = AMRADIO_SET_FREQ;
+ 	radio->buffer[5] = 0x00;
+ 	radio->buffer[6] = 0x00;
+ 	radio->buffer[7] = 0x08;
 
-	Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Best regards, Klimov Alexey
+
