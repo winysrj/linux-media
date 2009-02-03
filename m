@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout07.t-online.de ([194.25.134.83]:34205 "EHLO
-	mailout07.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbZBQAqI (ORCPT
+Received: from mailrelay005.isp.belgacom.be ([195.238.6.171]:58409 "EHLO
+	mailrelay005.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751472AbZBCKUK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 19:46:08 -0500
-From: "Andreas Witte" <andreaz@t-online.de>
-To: <linux-media@vger.kernel.org>
-Subject: Sometimes no lock on digivox miniII (Ver3.0)
-Date: Tue, 17 Feb 2009 01:45:44 +0100
-Message-ID: <016001c99099$11476f20$33d64d60$@de>
+	Tue, 3 Feb 2009 05:20:10 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Dongsoo Kim <dongsoo.kim@gmail.com>
+Subject: Re: [V4L2] EV control API for digital camera
+Date: Tue, 3 Feb 2009 11:20:01 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	=?euc-kr?q?=C7=FC=C1=D8_=B1=E8?= <riverful.kim@samsung.com>,
+	jongse.won@samsung.com, kyungmin.park@samsung.com
+References: <5e9665e10901281824ibccbf00lcbecba5b01fdcbea@mail.gmail.com> <Pine.LNX.4.64.0901291934300.5474@axis700.grange> <B44B29E7-9C46-4F34-8CE4-AB17D6CCBCB7@gmail.com>
+In-Reply-To: <B44B29E7-9C46-4F34-8CE4-AB17D6CCBCB7@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-	charset="US-ASCII"
+  charset="euc-kr"
 Content-Transfer-Encoding: 7bit
-Content-Language: de
+Content-Disposition: inline
+Message-Id: <200902031120.01937.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello List,
+Hi Nate,
 
-after changing my system to newer hardware (and use the latest driver for
-af9015), it
-seems the device didnt get a lock sometimes (mostly in the case the system
-is started up).
-I use the stick together with mythtv. If i get the partial lock, i restart
-mythbackend or 
-switch channel - then i get the lock. If i get it just the first time the
-stick is working 
-fine for the whole day. Only the very first channelpick after system start
-seems to be the 
-problem.
+On Thursday 29 January 2009, Dongsoo Kim wrote:
+> Thank you.
+>
+> So if V4L2_CID_EXPOSURE is for Exposure Value control, I think there
+> is no api for exposure metering. right?
 
-I cant reproduce this at all. Sometimes it works, sometimes not. Anybody
-else seeing this? 
-Im on gentoo with 2.6.28 kernel.
+V4L2_CID_EXPOSURE controls the exposure time. This is often implemented 
+through a mechanical or electronic shutter in the device.
 
-Any Ideas?
+What kind of exposure metering do you have in mind ? Can you give us some 
+details ?
 
-Regards,
-Andreas
+> Actually many of APIs for camera are missing I guess.
 
+You're probably right. The V4L1/V4L2 API have been developed for frame 
+grabbers and extended to webcams. Now that high-end digital cameras get USB 
+connectivity, the V4L2 API should be extended with new controls. Feel free to 
+submit proposals for discussion on the linux-media mailing list.
 
+Best regards,
+
+Laurent Pinchart
