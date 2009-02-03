@@ -1,111 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2108 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753571AbZBRTPD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 14:15:03 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1IJF0Q2093693
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 20:15:00 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 18 Feb 2009 20:15:00 +0100 (CET)
-Message-Id: <200902181915.n1IJF0Q2093693@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from iolanthe.rowland.org ([192.131.102.54]:51369 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751565AbZBCT7b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 14:59:31 -0500
+Date: Tue, 3 Feb 2009 14:59:30 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: kilgota@banach.math.auburn.edu
+cc: Jean-Francois Moine <moinejf@free.fr>,
+	Adam Baker <linux@baker-net.org.uk>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+In-Reply-To: <alpine.LNX.2.00.0902031343030.1944@banach.math.auburn.edu>
+Message-ID: <Pine.LNX.4.44L0.0902031457180.2272-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Tue, 3 Feb 2009 kilgota@banach.math.auburn.edu wrote:
 
-Results of the daily build of v4l-dvb:
+> 
+> 
+> On Tue, 3 Feb 2009, Jean-Francois Moine wrote:
+> 
+> > On Tue, 3 Feb 2009 13:15:58 -0600 (CST)
+> > kilgota@banach.math.auburn.edu wrote:
+> >
+> >>> Why is there 2 sq905 processes?
+> >>
+> >> I of course do not fully understand why there are two such processes.
+> >> However, I would suspect that [sq905/0] is running on processor 0 and
+> >> [sq905/1] is running on processor 1. As I remember, there is only one
+> >> [sq905] process which runs on a single-core machine.
+> >
+> > Indeed, the problem is there! You must have only one process reading the
+> > webcam! I do not see how this can work with these 2 processes...
+> 
+> The problem, then, would seem to me to boil down to the question of 
+> whether that is up to us. Apparently, a decision like that is not up to 
+> us, but rather it is up to the compiler and to the rest of the kernel to 
+> decide.
 
-date:        Wed Feb 18 19:00:06 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10653:359d95e1d541
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Nonsense.  It's simply a matter of how you create your workqueue.  In 
+the code you sent me, you call create_workqueue().  Instead, just call 
+create_singlethread_workqueue().  Or maybe even 
+create_freezeable_workqueue().
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: WARNINGS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: WARNINGS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc5-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc5-x86_64: WARNINGS
-fw/apps: OK
-spec: ERRORS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
+Alan Stern
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
