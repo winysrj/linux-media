@@ -1,38 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.sissa.it ([147.122.11.135]:45065 "EHLO smtp.sissa.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752782AbZBSRPP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 12:15:15 -0500
-From: Nicola Soranzo <nsoranzo@tiscali.it>
-To: Markus Rechberger <mrechberger@gmail.com>
-Subject: Re: [PATCH] em28xx: register device to soundcard for sysfs
-Date: Thu, 19 Feb 2009 18:15:16 +0100
-Cc: Linux Media <linux-media@vger.kernel.org>
-References: <200902191741.57767.nsoranzo@tiscali.it> <d9def9db0902190857p331d7667td0900ec6e8a9c75f@mail.gmail.com>
-In-Reply-To: <d9def9db0902190857p331d7667td0900ec6e8a9c75f@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200902191815.16460.nsoranzo@tiscali.it>
+Received: from fg-out-1718.google.com ([72.14.220.157]:44655 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752918AbZBCBIJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 20:08:09 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so763430fgg.17
+        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 17:08:07 -0800 (PST)
+Subject: [patch review 2/8] radio-mr800: place dev_err instead of dev_warn
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Tue, 03 Feb 2009 04:08:02 +0300
+Message-Id: <1233623282.17456.254.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alle giovedì 19 febbraio 2009, Markus Rechberger ha scritto:
-> On Thu, Feb 19, 2009 at 5:41 PM, Nicola Soranzo <nsoranzo@tiscali.it> wrote:
-> > As explained in "Writing an ALSA driver" (T. Iwai),
->
-> when writing a patch write the truth about where it comes from, eg.
-> the author of the patch.
+There should be dev_err message if video_register_device() fails.
+Correct this situation.
 
-I'm sorry Markus, but you're just the inspirer of the patch.
-I wanted to use your code and so two weeks ago I asked you twice privately if 
-it was ok for you, and you didn't answer me.
-Then I checked the documentation cited above, changed the one-line patch to be 
-more general and now it does not contain code from your tree anymore.
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Anyway, thanks for the idea
-Nicola
+--
+diff -r ed1aa70cfdfa linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Mon Feb 02 02:29:52 2009 +0300
++++ b/linux/drivers/media/radio/radio-mr800.c	Mon Feb 02 02:52:52 2009 +0300
+@@ -672,7 +672,7 @@
+ 	video_set_drvdata(radio->videodev, radio);
+ 	retval = video_register_device(radio->videodev,	VFL_TYPE_RADIO,	radio_nr);
+ 	if (retval < 0) {
+-		dev_warn(&intf->dev, "could not register video device\n");
++		dev_err(&intf->dev, "could not register video device\n");
+ 		video_device_release(radio->videodev);
+ 		kfree(radio->buffer);
+ 		kfree(radio);
+
+
+-- 
+Best regards, Klimov Alexey
 
