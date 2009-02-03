@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4267 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750886AbZBPWun (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 17:50:43 -0500
-Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1GMoeCT074476
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 23:50:41 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: DVB v3 API question
-Date: Mon, 16 Feb 2009 23:50:50 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Received: from smtp4-g21.free.fr ([212.27.42.4]:49855 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751358AbZBCJom (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Feb 2009 04:44:42 -0500
+Date: Tue, 3 Feb 2009 10:39:25 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: kilgota@banach.math.auburn.edu, Adam Baker <linux@baker-net.org.uk>
+Cc: <linux-media@vger.kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+Message-ID: <20090203103925.25703074@free.fr>
+In-Reply-To: <alpine.LNX.2.00.0902022032230.1080@banach.math.auburn.edu>
+References: <200901192322.33362.linux@baker-net.org.uk>
+	<200901272101.27451.linux@baker-net.org.uk>
+	<alpine.LNX.2.00.0901271543560.21122@banach.math.auburn.edu>
+	<200901272228.42610.linux@baker-net.org.uk>
+	<20090128113540.25536301@free.fr>
+	<alpine.LNX.2.00.0901281554500.22748@banach.math.auburn.edu>
+	<20090131203650.36369153@free.fr>
+	<alpine.LNX.2.00.0902022032230.1080@banach.math.auburn.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902162350.50319.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Mon, 2 Feb 2009 20:36:31 -0600 (CST)
+kilgota@banach.math.auburn.edu wrote:
+> Just now when I logged in, a fortune came up which says:
+> 
+> "A little experience often upsets a lot of theory."
+> 
+> It struck me funny after our recent experiences, so I thought I would 
+> share it with both of you.
 
-I've made a v4l-dvb tree containing the old DVB API sources as found here: 
-http://www.linuxtv.org/cgi-bin/viewcvs.cgi/DVB/doc/dvbapi/.
+Hello,
 
-This tree is here: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-api
+May be this message made me to look again at the gspca code. Well, it's
+my fault: I did not check the previous patch. Sorry for all trouble.
 
-Run 'make spec' to build both the v4l2-spec and the dvb-spec, or 
-run 'make -C dvb-spec' to build only the latter. You'll need the transfig 
-package to get the dvb-spec to compile.
+The patch is simply:
 
-My question is if this is indeed the most recent version that we have? There 
-is a dvb-api-v4 pdf document, but it is my understanding that v4 was 
-actually never implemented and never got beyond the proposal stage. Is that 
-correct? Or are there bits and pieces that were actually used?
+diff -r 3f4a7bc53d8e linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Mon Feb 02 20:25:38 2009 +0100
++++ b/linux/drivers/media/video/gspca/gspca.c	Tue Feb 03 10:37:51 2009 +0100
+@@ -435,7 +435,7 @@
+ 			break;
+ 
+ 		gspca_dev->urb[i] = NULL;
+-		if (!gspca_dev->present)
++		if (gspca_dev->present)
+ 			usb_kill_urb(urb);
+ 		if (urb->transfer_buffer != NULL)
+ 			usb_buffer_free(gspca_dev->dev,
 
-The original documentation for v4 is here: 
-http://www.linuxtv.org/cgi-bin/viewcvs.cgi/dvb-kernel-v4/linux/Documentation/dvb/
 
-If someone can tell me the best version to use, then I'll merge it in 
-v4l-dvb and people can start to update this document. I can actually do the 
-updates for the audio.tex and video.tex part myself.
-
-Regards,
-
-	Hans
+Best regards.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
