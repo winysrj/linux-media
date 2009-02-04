@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56989 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751264AbZBATMX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 14:12:23 -0500
-Date: Sun, 1 Feb 2009 20:12:29 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Magnus <magnus.damm@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] sh_mobile_ceu: Add FLDPOL operation
-In-Reply-To: <uskn1m9qt.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0902012008530.17985@axis700.grange>
-References: <uskn1m9qt.wl%morimoto.kuninori@renesas.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:50998 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755574AbZBDWlx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2009 17:41:53 -0500
+Date: Wed, 4 Feb 2009 16:53:48 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Andy Walls <awalls@radix.net>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+In-Reply-To: <200902042234.37125.linux@baker-net.org.uk>
+Message-ID: <alpine.LNX.2.00.0902041647470.3988@banach.math.auburn.edu>
+References: <200901192322.33362.linux@baker-net.org.uk> <200902042138.05028.linux@baker-net.org.uk> <alpine.LNX.2.00.0902041610030.3988@banach.math.auburn.edu> <200902042234.37125.linux@baker-net.org.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Jan 2009, Kuninori Morimoto wrote:
 
-> 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> ---
->  drivers/media/video/sh_mobile_ceu_camera.c |    7 +++++++
->  include/media/sh_mobile_ceu.h              |    2 ++
->  2 files changed, 9 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-> index 07b7b4c..366e5f5 100644
-> --- a/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
-> @@ -118,6 +118,12 @@ static unsigned long make_bus_param(struct sh_mobile_ceu_dev *pcdev)
->  	if (pcdev->pdata->flags & SH_CEU_FLAG_USE_16BIT_BUS)
->  		flags |= SOCAM_DATAWIDTH_16;
->  
-> +	if (pcdev->pdata->flags & SH_CEU_FLAG_USE_FLDPOL_HIGH)
-> +		flags |= SOCAM_FLDPOL_ACTIVE_HIGH;
-> +
-> +	if (pcdev->pdata->flags & SH_CEU_FLAG_USE_FLDPOL_LOW)
-> +		flags |= SOCAM_FLDPOL_ACTIVE_LOW;
-> +
->  	if (flags & SOCAM_DATAWIDTH_MASK)
->  		return flags;
->  
-> @@ -474,6 +480,7 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
->  	    icd->current_fmt->fourcc == V4L2_PIX_FMT_NV61)
->  		value ^= 0x00000100; /* swap U, V to change from NV1x->NVx1 */
->  
-> +	value |= common_flags & SOCAM_FLDPOL_ACTIVE_LOW ? 1 << 16 : 0;
->  	value |= common_flags & SOCAM_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
->  	value |= common_flags & SOCAM_HSYNC_ACTIVE_LOW ? 1 << 0 : 0;
->  	value |= buswidth == 16 ? 1 << 12 : 0;
 
-Why are you basing your decision to use active low or high level of the 
-Field ID signal upon the platform data? Doesn't it depend on the 
-configuration of the connected device, and, possibly, an inverter between 
-them? So, looks like it should be handled in exactly the same way as all 
-other signals - negotiate with the connected device (sensor / decoder / 
-...) and apply platform-defined inverters if any?
+On Wed, 4 Feb 2009, Adam Baker wrote:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+> On Wednesday 04 February 2009, kilgota@banach.math.auburn.edu wrote:
+> <snip description of attempting to stream from 2 cameras at once>
+>> 4. After removing the first camera which was plugged in, I tried to start
+>> the stream from the second one. The stream will not start. A message says
+>> that
+>>
+>> Cannot identify 'dev/video0': 2. No such file or directory.
+>
+> This line points to an error in your test method.
+>
+> You need to start the second stream with svv -d /dev/video1 to tell it to pick
+> the second camera.
+>
+> Adam
+>
+
+Oops, right.
+
+Well, in that case I have to report that two cameras work 
+simultaneously just fine. No problem at all.
+
+Theodore Kilgore
