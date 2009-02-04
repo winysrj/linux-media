@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:56202 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753797AbZBXUlf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 15:41:35 -0500
-Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n1OKfWOn010167
-	for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 20:41:32 GMT
-Message-ID: <49A45B7C.3040609@koala.ie>
-Date: Tue, 24 Feb 2009 20:41:32 +0000
-From: Simon Kenyon <simon@koala.ie>
+Received: from netrider.rowland.org ([192.131.102.5]:1942 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751358AbZBDB7E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 20:59:04 -0500
+Date: Tue, 3 Feb 2009 20:59:02 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Jean-Francois Moine <moinejf@free.fr>,
+	<kilgota@banach.math.auburn.edu>, <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+In-Reply-To: <200902032209.44133.linux@baker-net.org.uk>
+Message-ID: <Pine.LNX.4.44L0.0902032045570.18064-100000@netrider.rowland.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-References: <20090223144917.257a8f65@hyperion.delvare> <49A3E07E.6020701@tesco.net>
-In-Reply-To: <49A3E07E.6020701@tesco.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-John Pilkington wrote:
-> Jean Delvare wrote:
->
->> * Enterprise-class distributions (RHEL, SLED) are not the right target
->>   for the v4l-dvb repository, so we don't care which kernels these are
->>   running.
->
->
-> I think you should be aware that the mythtv and ATrpms communities 
-> include a significant number of people who have chosen to use the 
-> CentOS_5 series in the hope of getting systems that do not need to be 
-> reinstalled every few months.  I hope you won't disappoint them.
->
-> John P
-just had a quick look at mythtv-users
-there are a handful using centos
---
-simon
+On Tue, 3 Feb 2009, Adam Baker wrote:
+
+> The sq905 driver doesn't use the URBs provided by gspca, it uses 
+> usb_control_msg and usb_bulk_msg which I presume do the right thing 
+> internally. There would be a tiny window in between when it checks the 
+> dev->streaming flag and when it sends a new USB msg for the disconnect to 
+> occur and invalidate the dev pointer. That could be fixed by holding 
+> gspca_dev->usb_lock in gspca_disconnect when it sets gspca_dev->present = 0.
+> 
+> That would also address the race between open and disconnect.
+> 
+> Unfortunately the finepix driver sometimes uses calls to schedule_delayed_work 
+> in the completion handler which then makes the call to usb_submit_urb. Fixing 
+> that will require someone with access to a suitable camera to test it 
+> otherwise there is a significant risk of adding deadlocks. It already suffers 
+> from this bug so we aren't making it worse.
+
+If the driver submits URBs from a work routine then usb_kill_urb's
+guarantees don't apply.  You'll need to synchronize all three routines:
+disconnect, the completion handler, and the work routine.  That means 
+you'll have to use a spinlock, since a completion handler isn't allowed 
+to acquire a mutex.
+
+Alan Stern
+
