@@ -1,56 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-5.mail.uk.tiscali.com ([212.74.114.1]:59514
-	"EHLO mk-outboundfilter-5.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751328AbZBCXNV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2009 18:13:21 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Subject: [PATCH] Make sure gspca cleans up USB resources during disconnect
-Date: Tue, 3 Feb 2009 23:13:17 +0000
-Cc: kilgota@banach.math.auburn.edu,
-	Alan Stern <stern@rowland.harvard.edu>,
+Received: from banach.math.auburn.edu ([131.204.45.3]:51523 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025AbZBDW6B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2009 17:58:01 -0500
+Date: Wed, 4 Feb 2009 17:09:55 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Andy Walls <awalls@radix.net>,
+	Jean-Francois Moine <moinejf@free.fr>,
 	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+In-Reply-To: <alpine.LNX.2.00.0902041647470.3988@banach.math.auburn.edu>
+Message-ID: <alpine.LNX.2.00.0902041657320.3988@banach.math.auburn.edu>
+References: <200901192322.33362.linux@baker-net.org.uk> <200902042138.05028.linux@baker-net.org.uk> <alpine.LNX.2.00.0902041610030.3988@banach.math.auburn.edu> <200902042234.37125.linux@baker-net.org.uk>
+ <alpine.LNX.2.00.0902041647470.3988@banach.math.auburn.edu>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902032313.17538.linux@baker-net.org.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a device using the gspca framework is unplugged while it is still streaming
-then the call that is used to free the URBs that have been allocated occurs
-after the pointer it uses becomes invalid at the end of gspca_disconnect.
-Make another cleanup call in gspca_disconnect while the pointer is still
-valid (multiple calls are OK as destroy_urbs checks for pointers already
-being NULL.
 
-Signed-off-by: Adam Baker <linux@baker-net.org.uk>
 
----
-diff -r 4d0827823ebc linux/drivers/media/video/gspca/gspca.c
---- a/linux/drivers/media/video/gspca/gspca.c	Tue Feb 03 10:42:28 2009 +0100
-+++ b/linux/drivers/media/video/gspca/gspca.c	Tue Feb 03 23:07:34 2009 +0000
-@@ -434,6 +434,7 @@ static void destroy_urbs(struct gspca_de
- 		if (urb == NULL)
- 			break;
- 
-+		BUG_ON(!gspca_dev->dev);
- 		gspca_dev->urb[i] = NULL;
- 		if (gspca_dev->present)
- 			usb_kill_urb(urb);
-@@ -1953,8 +1954,12 @@ void gspca_disconnect(struct usb_interfa
- {
- 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
- 
-+	mutex_lock(&gspca_dev->usb_lock);
- 	gspca_dev->present = 0;
-+	mutex_unlock(&gspca_dev->usb_lock);
- 
-+	destroy_urbs(gspca_dev);
-+	gspca_dev->dev = NULL;
- 	usb_set_intfdata(intf, NULL);
- 
- 	/* release the device */
+On Wed, 4 Feb 2009, kilgota@banach.math.auburn.edu wrote:
+
+>
+>
+> On Wed, 4 Feb 2009, Adam Baker wrote:
+>
+>> On Wednesday 04 February 2009, kilgota@banach.math.auburn.edu wrote:
+>> <snip description of attempting to stream from 2 cameras at once>
+>>> 4. After removing the first camera which was plugged in, I tried to start
+>>> the stream from the second one. The stream will not start. A message says
+>>> that
+>>> 
+>>> Cannot identify 'dev/video0': 2. No such file or directory.
+>> 
+>> This line points to an error in your test method.
+>> 
+>> You need to start the second stream with svv -d /dev/video1 to tell it to 
+>> pick
+>> the second camera.
+>> 
+>> Adam
+>> 
+>
+> Oops, right.
+>
+> Well, in that case I have to report that two cameras work simultaneously just 
+> fine. No problem at all.
+
+For completeness, I should add the following:
+
+ps ax now shows two svv processes. One of them is svv -d /dev/video1 and 
+is followed by [sq905] and the second one is svv followed by [sq905]. Why 
+in reverse order? Well, probably it is that I now fired up the second 
+camera first and the first one after that. The workqueue in the 
+module is started with
+
+dev->work_thread = create_singlethread_workqueue(MODULE_NAME);
+
+so these are distinct instances of [sq905].
+
+Now am I supposed to check what happens if I start jerking them off of 
+their tethers without closing the capture windows? No thanks, not this 
+time. Let's wait until that problem is solved with just one camera. :)
+
+
+Theodore Kilgore
