@@ -1,62 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:35786 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752541AbZBQRSt (ORCPT
+Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37]:26863
+	"EHLO mk-outboundfilter-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756198AbZBDWHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 12:18:49 -0500
-Received: from smtp2-g21.free.fr (smtp2-g21.free.fr [212.27.42.2])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 39D552F6DC
-	for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 18:18:30 +0100 (CET)
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: Re: [PATCH] mt9m111: Call icl->reset() on mt9m111_reset().
-References: <20090217112339.f959035b.ospite@studenti.unina.it>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Tue, 17 Feb 2009 18:17:13 +0100
-In-Reply-To: <20090217112339.f959035b.ospite@studenti.unina.it> (Antonio Ospite's message of "Tue\, 17 Feb 2009 11\:23\:39 +0100")
-Message-ID: <87prhhrnja.fsf@free.fr>
+	Wed, 4 Feb 2009 17:07:48 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: "Jean-Francois Moine" <moinejf@free.fr>
+Subject: Re: [PATCH] Make sure gspca cleans up USB resources during disconnect
+Date: Wed, 4 Feb 2009 22:07:44 +0000
+Cc: kilgota@banach.math.auburn.edu,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-media@vger.kernel.org
+References: <200902032313.17538.linux@baker-net.org.uk> <20090204174008.31846f22@free.fr>
+In-Reply-To: <20090204174008.31846f22@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902042207.44867.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antonio Ospite <ospite@studenti.unina.it> writes:
-
-> Call icl->reset() on mt9m111_reset().
+On Wednesday 04 February 2009, Jean-Francois Moine wrote:
+> On Tue, 3 Feb 2009 23:13:17 +0000
 >
-> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> Adam Baker <linux@baker-net.org.uk> wrote:
+> > If a device using the gspca framework is unplugged while it is still
+> > streaming then the call that is used to free the URBs that have been
+> > allocated occurs after the pointer it uses becomes invalid at the end
+> > of gspca_disconnect. Make another cleanup call in gspca_disconnect
+> > while the pointer is still valid (multiple calls are OK as
+> > destroy_urbs checks for pointers already being NULL.
+> >
+> > Signed-off-by: Adam Baker <linux@baker-net.org.uk>
+> >
+> > ---
+> > diff -r 4d0827823ebc linux/drivers/media/video/gspca/gspca.c
+> > --- a/linux/drivers/media/video/gspca/gspca.c	Tue Feb 03
+> > 10:42:28 2009 +0100 +++
+> > b/linux/drivers/media/video/gspca/gspca.c	Tue Feb 03 23:07:34
+> > 2009 +0000 @@ -434,6 +434,7 @@ static void destroy_urbs(struct
+> > gspca_de if (urb == NULL) break;
+> >
+> > +		BUG_ON(!gspca_dev->dev);
 >
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index c043f62..92dd7f3 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -393,6 +393,8 @@ static int mt9m111_disable(struct soc_camera_device *icd)
->  
->  static int mt9m111_reset(struct soc_camera_device *icd)
->  {
-> +	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
-> +	struct soc_camera_link *icl = mt9m111->client->dev.platform_data;
->  	int ret;
->  
->  	ret = reg_set(RESET, MT9M111_RESET_RESET_MODE);
-> @@ -401,6 +403,10 @@ static int mt9m111_reset(struct soc_camera_device *icd)
->  	if (!ret)
->  		ret = reg_clear(RESET, MT9M111_RESET_RESET_MODE
->  				| MT9M111_RESET_RESET_SOC);
-> +
-> +	if (icl->reset)
-> +		icl->reset(&mt9m111->client->dev);
-> +
->  	return ret;
->  }
->  
+> No: this function is called on close after disconnect. when the pointer
+> is NULL.
 
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+But at that time urb should be NULL so we don't get to the BUG_ON. If we urb 
+is not NULL but gspca_dev->dv is then something has gone wrong and it is 
+impossible to clean up properly.
 
-Guennadi, would you queue that up for next, please ?
+>
+> >  		gspca_dev->urb[i] = NULL;
+> >  		if (gspca_dev->present)
+> >  			usb_kill_urb(urb);
+> > @@ -1953,8 +1954,12 @@ void gspca_disconnect(struct usb_interfa
+> >  {
+> >  	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
+> >
+> > +	mutex_lock(&gspca_dev->usb_lock);
+> >  	gspca_dev->present = 0;
+> > +	mutex_unlock(&gspca_dev->usb_lock);
+>
+> I do not see what is the use of the lock...
 
-Cheers.
+It ensure that if elsewhere there is the code sequence
+mutex_lock
+if (!dev->present)
+	goto cleanup;
+use usb or urb
+mutex_unlock
 
---
-Robert
+then if it finds dev->present set it knows that the urb and usb pointers will 
+remain valid pointers (even if they refer to a disconnected device) until the 
+code has finished using them. 
+
+>
+> > +	destroy_urbs(gspca_dev);
+> > +	gspca_dev->dev = NULL;
+>
+> As I understand, the usb device is freed at disconnection time after
+> the call to the (struct usb_driver *)->disconnect() function. I did not
+> know that and I could not find yet how! So, this is OK for me.
+>
+> >  	usb_set_intfdata(intf, NULL);
+> >
+> >  	/* release the device */
+>
+> Now, as the pointer to the usb_driver may be NULL, I have to check if an
+> (other) oops may occur elsewhere...
+>
+
+As I said, I believe that is possible with the finepix driver and the sequence 
+I quoted above with checking gspca_dev->present with usb_lock held is the fix 
+but I'm not confident of fixing that completely without access to the 
+hardware, especially as you can't do that in the completion handler. It 
+shouldn't introduce a regression though as before you would be attempting to 
+access freed memory and now you have a NULL pointer instead so such code was 
+already buggy.
+
+I have tested pulling the cable out during streaming after making this change 
+on both sq905 and pac207 so whilst I can't say for certain they are OK 
+
+Having thought about it a bit more I suspect that you should also now remove 
+the if (gspca_dev->present) check on usb_kill_urb as it is possible there may 
+be urbs still awaiting completion when disconnect happens.
+
+> Thank you.
+
+Thank You - If it wasn't for your work on gspca I'd still be using a buggy old 
+driver that had no chance of making it to main line.
+
+Adam
+
