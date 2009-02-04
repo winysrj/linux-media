@@ -1,106 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3749 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962AbZBUN2k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2009 08:28:40 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: Re: Minimum kernel version supported by v4l-dvb
-Date: Sat, 21 Feb 2009 14:28:31 +0100
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	urishk@yahoo.com, linux-media@vger.kernel.org
-References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl> <Pine.LNX.4.58.0902210343520.24268@shell2.speakeasy.net> <20090221141130.1c4f1265@hyperion.delvare>
-In-Reply-To: <20090221141130.1c4f1265@hyperion.delvare>
+Received: from netrider.rowland.org ([192.131.102.5]:1948 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751738AbZBDCCp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 21:02:45 -0500
+Date: Tue, 3 Feb 2009 21:02:44 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: kilgota@banach.math.auburn.edu
+cc: Jean-Francois Moine <moinejf@free.fr>,
+	Adam Baker <linux@baker-net.org.uk>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+In-Reply-To: <alpine.LNX.2.00.0902031551020.2103@banach.math.auburn.edu>
+Message-ID: <Pine.LNX.4.44L0.0902032059120.18064-100000@netrider.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902211428.31814.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 21 February 2009 14:11:30 Jean Delvare wrote:
-> Hi Trent,
->
-> On Sat, 21 Feb 2009 04:06:53 -0800 (PST), Trent Piepho wrote:
-> > On Fri, 20 Feb 2009, Mauro Carvalho Chehab wrote:
-> > > On Sat, 21 Feb 2009 02:12:53 +0100
-> > >
-> > > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > > That's what the i2c_new_probed_device() call is for (called through
-> > > > v4l2_i2c_new_probed_subdev). You pass a list of i2c addresses that
-> > > > the i2c core will probe for you: but this comes from the adapter
-> > > > driver, not from the i2c module.
-> > >
-> > > This is a problem. The current procedure used by end users will stop
-> > > working. It is a little worse: as the adapter driver has no means to
-> > > know that some device could need tvaudio or other similar devices, we
-> > > would need some hacking to allow the user to pass a parameter to the
-> > > driver in order to test/load such drivers, since there's no
-> > > documentation of when such things are needed.
+On Tue, 3 Feb 2009 kilgota@banach.math.auburn.edu wrote:
+
+> > Nonsense.  It's simply a matter of how you create your workqueue.  In
+> > the code you sent me, you call create_workqueue().  Instead, just call
+> > create_singlethread_workqueue().  Or maybe even
+> > create_freezeable_workqueue().
 > >
-> > The new i2c driver interface also supports a ->detect() method and a
-> > list of address_data to use it with.  This is much more like the legacy
-> > model than using i2c_new_probed_device().
->
-> Correct.
->
-> > I think a compatability layer than implements attach_adapter,
-> > detach_adapter, and detach_client using a new-style driver's detect,
-> > probe, remove, and address_data should not be that hard.
->
-> Well, that's basically what Hans has been doing with
-> v4l2-i2c-drv-legacy.h for months now, isn't it? This is the easy part
-> (even though even this wasn't exactly trivial...)
-
-Sorry, that's not quite true. v4l2-i2c-drv-legacy.h is for i2c modules that 
-are either called new-style (by converted adapter drivers) or old-style (by 
-not-yet converted adapter drivers). It does that by creating two i2c_driver 
-instances, one for each variant. By contrast, i2c modules that include 
-v4l2-i2c-drv.h can only be called by converted adapter drivers. This has 
-nothing to do with detect(). I'm not using that at all.
-
-It was always the intention that the legacy.h header would disappear once 
-all adapter drivers are converted. But v4l2-i2c-drv.h still has to support 
-kernels < 2.6.22 were the new API doesn't exist at all. That's the sticking 
-point that prevents us from dropping this header as well and go back to a 
-normally written i2c module without all this nonsense.
-
-You may have meant the same thing, Jean, but I thought I should clarify it 
-yet a bit more :-)
-
-> The hard part is when you want to use pure new-style i2c binding (using
-> i2c_new_device() or i2c_new_probed_device()) in the upstream kernel.
-> There is simply no equivalent in pre-2.6.22 kernels. So no matter what
-> amount of compatibility code you add (and it would get _a lot_ of
-> compatibility code to get there), at best you will get a different
-> behavior between new and old kernels, worst case the driver will simply
-> not work in old kernels.
->
-> > > > But v4l2-i2c-drv.h is bad enough, and even worse is what it looks
-> > > > like in the kernel when the compat code has been stripped from it:
-> > > > it's turned into a completely pointless header. And all the v4l2
-> > > > i2c modules look peculiar as well due to that header include.
+> > Alan Stern
 > >
-> > As I've said before, the v4l2-i2c headers are lot more complicated than
-> > they need to be.  I have a tree that's shrunk them greatly.  I don't
-> > think it's fair to give the current headers as an example of how
-> > complicated i2c backward compat _must_ be.
->
-> Well, why don't send your patches out to Hans and myself for review? If
-> you came up with simplifications that work, we will be very happy to
-> apply them.
+> 
+> OK, seems one way out, might even work. I will definitely try that.
+> 
+> Update. I did try it.
+> 
+> No it does not work, sorry. :/
 
-The point is not how easy or complicated these headers are, the point is 
-that we shouldn't have them at all since they make no sense in the upstream 
-kernel.
+Again, nonsense.  Of course it works.  It causes the kernel to create
+only one workqueue thread instead of two.  That's what it's supposed to
+do -- it was never intended to fix your oops.
 
-Regards,
+> While you have this matter on your mind, I am curious about the following:
+> 
+> As the code for the sq905 module evolved through various stages, the 
+> only occasion on which any real trouble arose was at the end, when we put 
+> in the mutex locks which you can see in the code now. Before they were put 
+> in, these problems which we are discussing now did not occur. 
+> Specifically, there was not any such problem about an oops caused by 
+> camera removal until the mutex locks were put in the code. And I strongly 
+> suspect -- nay, I am almost certain -- that with that the same code you 
+> are looking at now, the oops would go away if all those mutex locks were 
+> simply commented out and the code re-compiled and reinstalled. Can you 
+> explain this? I am just curious about why.
 
-	Hans
+You're wrong, the oops would not go away.  It would just become a lot 
+less likely to occur -- and thereby all the more insidious.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Alan Stern
+
