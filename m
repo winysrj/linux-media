@@ -1,48 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp129.rog.mail.re2.yahoo.com ([206.190.53.34]:38141 "HELO
-	smtp129.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752256AbZBVTwi (ORCPT
+Received: from mk-outboundfilter-2.mail.uk.tiscali.com ([212.74.114.38]:9452
+	"EHLO mk-outboundfilter-2.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755656AbZBDWek (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 14:52:38 -0500
-Message-ID: <49A1AD04.9040801@rogers.com>
-Date: Sun, 22 Feb 2009 14:52:36 -0500
-From: CityK <cityk@rogers.com>
+	Wed, 4 Feb 2009 17:34:40 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: kilgota@banach.math.auburn.edu
+Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
+Date: Wed, 4 Feb 2009 22:34:36 +0000
+Cc: Andy Walls <awalls@radix.net>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+References: <200901192322.33362.linux@baker-net.org.uk> <200902042138.05028.linux@baker-net.org.uk> <alpine.LNX.2.00.0902041610030.3988@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0902041610030.3988@banach.math.auburn.edu>
 MIME-Version: 1.0
-To: sonofzev@iinet.net.au
-CC: linux-media@vger.kernel.org
-Subject: Re: Fwd: [linux-dvb] dvico dual express incorrect firmware version
- readback!!!
-References: <32383.1234823971@iinet.net.au>
-In-Reply-To: <32383.1234823971@iinet.net.au>
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902042234.37125.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sonofzev@iinet.net.au wrote:
-> On Mon Feb 16 22:51 , "sonofzev@iinet.net.au"  sent:
+On Wednesday 04 February 2009, kilgota@banach.math.auburn.edu wrote:
+<snip description of attempting to stream from 2 cameras at once>
+> 4. After removing the first camera which was plugged in, I tried to start
+> the stream from the second one. The stream will not start. A message says
+> that
 >
->   
->>> I have done alot more testing and have found that it seems to be only after
->>> mythtv has accessed the device where this problem beings begins... 
->>>
->>>       
->> Same result with the hg version updated tonight. 
->>
->> I haven't had a chance to use another tv app yet as we are currently watching TV. 
->>
->> I will send a further update later. 
->>     
->
->
-> Is anyone else actually seeing this "Incorrect Firmware Version Readback" error?? 
->
-> Is there something I am missing? (stupid kernel setup or something??)... 
->
-> Should I  try and source the firmware again or is this unlikely to be the issue?
->   
+> Cannot identify 'dev/video0': 2. No such file or directory.
 
-Have you tested this outside MythTV (which is a huge layer of extra
-complexity) ?
+This line points to an error in your test method.
 
+You need to start the second stream with svv -d /dev/video1 to tell it to pick 
+the second camera.
 
+Adam
