@@ -1,54 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:37053 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:47464 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750814AbZBPRsW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 12:48:22 -0500
-Message-ID: <4999A6DD.7030707@gmx.de>
-Date: Mon, 16 Feb 2009 18:48:13 +0100
-From: wk <handygewinnspiel@gmx.de>
+	id S1752472AbZBEMee (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Feb 2009 07:34:34 -0500
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Thu, 05 Feb 2009 13:34:31 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <40866.62.178.208.71.1231178997.squirrel@webmail.dark-green.com>
+Message-ID: <20090205123431.29950@gmx.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DVB-API v5 questions and no dvb developer answering ?
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <49346726.7010303@insite.cz> <4934D218.4090202@verbraak.org>   
+ <4935B72F.1000505@insite.cz>   
+ <c74595dc0812022332s2ef51d1cn907cbe5e4486f496@mail.gmail.com>   
+ <c74595dc0812022347j37e83279mad4f00354ae0e611@mail.gmail.com>   
+ <49371511.1060703@insite.cz> <4938C8BB.5040406@verbraak.org>   
+ <c74595dc0812050100q52ab86bewebe8dbf17bddbb51@mail.gmail.com>   
+ <20081206170753.69410@gmx.net> <20081209153451.75130@gmx.net>   
+ <20081215143047.45940@gmx.net> <20090104192435.72460@gmx.net>   
+ <59327.62.178.208.71.1231173948.squirrel@webmail.dark-green.com>   
+ <20090105173606.271160@gmx.net>
+ <40866.62.178.208.71.1231178997.squirrel@webmail.dark-green.com>
+Subject: Re: [PATCH] Mantis Bug (was Technisat HD2 cannot           szap/scan)
+To: gimli@dark-green.com
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The last week two guys were kindly asking here on the list where to find 
-a written DVB-API v5 documentation,
-but nobody of the dvb driver community was answering.
-
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg01350.html
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg01300.html
-
-Does that mean that:
-- dvb developers are currently not interested in application developers 
-integrating new DVB-API v5? or..
-- no dvb developer reading that list knows something about 
-documentation? or..
-- does it simply not exist, so who is working on that api documentation 
-stuff?
+> Hi,
+> 
+> checked it again. Your lnbp21 patch definitely kills S2 tuning
+> on the Terratec Cinergy S2 PCI HD.
+> 
+> mfg
+> 
+> Edgar ( gimli ) Hucek
 
 
-The offical documentation found on linuxtv.org is outdated and already 5 
-years old, and describes only api v3.
-See http://www.linuxtv.org/downloads/linux-dvb-api-1.0.0.pdf
+I looked at it again and here is a new patch to set the LNBP21 
+options for the Twinhan VP-1041. This works better for me, including
+DVB-S2 channels. The EN enable bit is now not permanently set so
+sleep behavior is correct.
 
-Please read also the announcements on linuxtv:
-http://www.linuxtv.org/news.php?entry=2008-09-23.mchehab
-[quote]
-Some improvements were proposed by the LinuxTV developers, in order to 
-improve the S2API, including:
-...
-* Update DVB API documentation to reflect the API changes;"
-[/quote]
+Please note that I have a DiSEqC 1.2 rotor between the VP-1041 card
+and the LNB. That is quite a normal configuration, but the driver was
+probably not properly tested with rotors (and switches?) before.
 
-But also this statement is already now five months old,
-so i guess documentation should be finished meanwhile or at least 
-started and usable/redistributable..
+To rotate with scan-s2 use the patch I posted, which will be applied
+there soon:
+http://linuxtv.org/pipermail/linux-dvb/2009-January/031660.html
 
-Is it possible to get some information on that topic?
+Regards,
+Hans
 
--Winfried
+Patch is against latest http://mercurial.intuxication.org/hg/s2-liplianin  repo.
 
+Signed-off-by: Hans Werner <hwerner4@gmx.de>
+ 
+diff -r 084878324629 linux/drivers/media/dvb/mantis/mantis_dvb.c
+--- a/linux/drivers/media/dvb/mantis/mantis_dvb.c
++++ b/linux/drivers/media/dvb/mantis/mantis_dvb.c
+@@ -239,7 +239,8 @@ int __devinit mantis_frontend_init(struc
+ 			vp1041_config.demod_address);
+ 
+ 			if (stb6100_attach(mantis->fe, &vp1041_stb6100_config, &mantis->adapter)) {
+-				if (!lnbp21_attach(mantis->fe, &mantis->adapter, 0, 0)) {
++				// static current limit, no extra 1V, high current limit, tone from DSQIN pin (stb0899)
++				if (!lnbp21_attach(mantis->fe, &mantis->adapter, LNBP21_PCL , LNBP21_LLC | LNBP21_ISEL | LNBP21_TEN)) {
+ 					printk("%s: No LNBP21 found!\n", __FUNCTION__);
+ 					mantis->fe = NULL;
+ 				}
 
+-- 
+Release early, release often.
+
+Jetzt 1 Monat kostenlos! GMX FreeDSL - Telefonanschluss + DSL 
+für nur 17,95 Euro/mtl.!* http://dsl.gmx.de/?ac=OM.AD.PD003K11308T4569a
