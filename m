@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1QK9JZa020008
-	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 15:09:19 -0500
-Received: from mk-filter-1-a-1.mail.uk.tiscali.com
-	(mk-filter-1-a-1.mail.uk.tiscali.com [212.74.100.52])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1QK8vvO019756
-	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 15:08:58 -0500
-From: "Mark Burton" <mj.burton@tiscali.co.uk>
-To: <video4linux-list@redhat.com>
-References: <20090226170042.A1E4C61CBC5@hormel.redhat.com>
-Date: Thu, 26 Feb 2009 20:08:51 -0000
-Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAALR6HK1gY7tAkFD4nHyXL9zCgAAAEAAAANm8fLLecxRCiEdsYLdu2LgBAAAAAA==@tiscali.co.uk>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n158b7YI025644
+	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 03:37:07 -0500
+Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n158apkq030526
+	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 03:36:52 -0500
+Message-ID: <498AA511.1030803@maxwell.research.nokia.com>
+Date: Thu, 05 Feb 2009 10:36:33 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+To: halli manjunatha <hallimanju@gmail.com>
+References: <ca6476860902040437h710ab4echd5e837502ce796d3@mail.gmail.com>
+In-Reply-To: <ca6476860902040437h710ab4echd5e837502ce796d3@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20090226170042.A1E4C61CBC5@hormel.redhat.com>
-Subject: Peak DVB-T USB device
+Cc: video4linux-list@redhat.com
+Subject: Re: Missing first 4 frames
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,26 +27,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+halli manjunatha wrote:
+> Hi ,
+>        I am working on omap3 custom board and using the TI's camera patches
+> on 2.6.28 kernel  and the problem is that first 4 frames are coming 1/4 of
+> HVGA but i am capturing HVGA  images. after 4 frames everything is normal.
 
-I have just recently acquired a new DVB stick device PEAK 202344AGPK (See
-http://www.amazon.co.uk/PEAK-DVB-T-DIGITAL-STICK-Electronics/dp/B0010KI5SI).
+I would start looking the problem from the sensor side first, unless you 
+already have done it. I haven't seen anything like this not depending on 
+sensor on OMAP 3 ISP.
 
-This device is an Afatech based device, and marked on the PCB it has DVB-T
-395U Rev D. This device seems to have the same PCB as the K-World DVB-T 395U
-which is a supported device, but it has a different USB ID (1b80:e395) to
-the K-World device.
+If this is happening only with newer version of drivers then my guess is 
+that it's because there was a change that reverted the order in which 
+the ISP and sensor were started. Earlier the sensor was started first, 
+now it's the ISP (which is generally correct).
 
-By modifying the value of USB_PID_KWORLD_399U to 0xe395 in the file
-dvb-usb-ids.h the device seems to work well with MythTV, although the remote
-control does not seem to be recognised.
+Regards,
 
-Would it be possible for somebody to add in to the code support for this
-device ? I'd be happy to do some testing and confirm operation.
-
-Thanks
-
-Mark
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
 
 --
 video4linux-list mailing list
