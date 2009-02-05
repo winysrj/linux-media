@@ -1,42 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.238]:54518 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573AbZBFC0Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2009 21:26:24 -0500
-MIME-Version: 1.0
-In-Reply-To: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-References: <Acl1IyQQvIDQejCAQ5O/QnkHIBmt3w==>
-	 <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-Date: Fri, 6 Feb 2009 11:26:23 +0900
-Message-ID: <5e9665e10902051826k7863ea56v99bdff7ee429c832@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-From: DongSoo Kim <dongsoo.kim@gmail.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4721 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753416AbZBETLz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2009 14:11:55 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n15JBr48047023
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 5 Feb 2009 20:11:53 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 5 Feb 2009 20:11:53 +0100 (CET)
+Message-Id: <200902051911.n15JBr48047023@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-This could be something trivial.
+Results of the daily build of v4l-dvb:
 
-On Tue, Jan 13, 2009 at 11:03 AM, Aguirre Rodriguez, Sergio Alberto
-<saaguirre@ti.com> wrote:
-> +/**
-> + * struct omap34xxcam_hw_config - struct for vidioc_int_g_priv ioctl
-> + * @xclk: OMAP34XXCAM_XCLK_A or OMAP34XXCAM_XCLK_B
-> + * @sensor_isp: Is sensor smart/SOC or raw
-> + * @s_pix_sparm: Access function to set pix and sparm.
-> + * Pix will override sparm
-> + */
-> +struct omap34xxcam_hw_config {
-> +       int dev_index; /* Index in omap34xxcam_sensors */
+date:        Thu Feb  5 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10432:71e5a36634ea
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I found "omap34xxcam_sensors" in your comment, but it couldn't found anywhere.
-Let me guess that it means "omap34xxcam_videodev". Am I right?
-Cheers.
+linux-2.6.16.61-armv5: WARNINGS
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc3-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc3-armv5-omap2: OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc3-i686: WARNINGS
+linux-2.6.16.61-m32r: WARNINGS
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc3-m32r: OK
+linux-2.6.16.61-mips: WARNINGS
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc3-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc3-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc3-x86_64: WARNINGS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc3): ERRORS
 
-Regards,
-Nate
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
