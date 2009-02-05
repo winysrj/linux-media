@@ -1,66 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:32226 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693AbZBWW5x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2009 17:57:53 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so24394fgg.17
-        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2009 14:57:50 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <37843.1235429340@iinet.net.au>
-References: <37843.1235429340@iinet.net.au>
-Date: Mon, 23 Feb 2009 17:57:50 -0500
-Message-ID: <37219a840902231457k20895709j7b9416a48128547e@mail.gmail.com>
-Subject: Re: running multiple DVB cards successfully.. what do I need to
-	know?? (major and minor numbers??)
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: sonofzev@iinet.net.au
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:61776 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751966AbZBEEZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Feb 2009 23:25:58 -0500
+Subject: Question of V4L2 API spec for sliced VBI VIDIOC_S_FMT
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Content-Type: text/plain
+Date: Wed, 04 Feb 2009 23:25:58 -0500
+Message-Id: <1233807958.4422.21.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 23, 2009 at 5:49 PM, sonofzev@iinet.net.au
-<sonofzev@iinet.net.au> wrote:
-> Some of you may have read some of my posts about an "incorrect firmware readback"
-> message appearing in my dmesg, shortly after a tuner was engaged.
->
-> I have isolated this problem, but the workaround so far has not been pretty.
-> On a hunch I removed my Dvico Fusion HDTV lite card from the system, running now
-> only with the Dvico Fusion Dual Express.
->
-> The issue has gone, I am not getting the kdvb process hogging cpu cycles and this
-> message has stopped.
->
-> I had tried both letting the kernel (or is it udev) assign the major and minor
-> numbers and I had tried to manually set them via modprobe.conf (formerly
-> modules.conf, I don't know if this is a global change or specific to Gentoo)....
->
-> I had the major number the same for both cards, with a separate minor number for
-> each of the three tuners, this seems to be the same.
->
-> Is this how I should be setting up for 2 cards or should I be using some other
-> type of configuration.
+The V4L2 spec has some funny languague in the VIDIOC_S_FMT, and
+VIDIOC_TRY_FMT documentation and section 4.8.3 on setting or trying
+sliced VBI formats.
 
-Allan,
+For VIDIOC_TRY_FMT for sliced vbi, the ioctl() is only supposed to fail
+if the v4l2_format->type is for sliced vbi capture or sliced vbi output
+and it is not supported.  Otherwise the ioctl() is to successfully
+return the sanitized v4l2_format->fmt.sliced.service_set and
+v4l2_format->fmt.sliced.service_lines, even if the sanitization returns
+them all as 0, implying no support for what was requested.  I'm OK with
+all that so far.
 
-I recommend to use the 'adapter_nr' module option.  You can specify
-this option in modprobe.conf -- the name of this file is
-distro-specific.
+For the VIDIOC_S_FMT for sliced vbi, the driver is supposed to return
+-EBUSY if the operation can happen right now (that's fine), or -EINVAL
+if the passed in parameters are "ambiguous".  What does ambiguous mean
+here?  Specifically, does that include a VIDIOC_S_FMT where the
+v4l2_format->fmt.sliced.service_set and
+v4l2_format->fmt.sliced.service_lines all come back as zero when
+sanitized as with VIDIOC_TRY_FMT?
 
-For instance, to make the dual card appear before the lite card:
+I ask, becasue the cx18 driver, with VBI ioctl() code of ivtv origin,
+returns -EINVAL in this case, but that doesn't seem right to me.
+There's nothing ambiguous about a well formed request for a service set
+combination that isn't supported at all by the hardware.  It's a valid
+request, as affirmed by VIDIOC_TRY_FMT, even if it is a useless request
+as far as VIDIOC_S_FMT and actually capturing VBI data is concerned.
 
-options cx23885 adapter_nr=0,1
-options dvb-bt8xx adapter_nr=2
-
-to make the lite card appear before the dual card:
-
-options cx23885 adapter_nr=0
-options dvb-bt8xx adapter_nr=1,2
-
-I hope you find this helpful.
+I suspect there might be some history or rationale I don't know about
+which would be fine.  I'd just like to clean up the ambiguous
+"ambiguous" in the V4L2 spec in that case.
 
 Regards,
+Andy
 
-Mike
