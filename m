@@ -1,27 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail01.syd.optusnet.com.au ([211.29.132.182])
+Received: from mail-fx0-f10.google.com ([209.85.220.10])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lindsay.mathieson@gmail.com>) id 1LU5YL-0007hd-16
-	for linux-dvb@linuxtv.org; Mon, 02 Feb 2009 21:37:58 +0100
-Received: from blackpaw.dyndns.org (c122-108-213-22.rochd4.qld.optusnet.com.au
-	[122.108.213.22]) (authenticated sender lindsay.mathieson)
-	by mail01.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id
-	n12KblEC026731
-	for <linux-dvb@linuxtv.org>; Tue, 3 Feb 2009 07:37:47 +1100
-From: Lindsay Mathieson <lindsay.mathieson@gmail.com>
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org,
-	Antti Palosaari <crope@iki.fi>
-Date: Tue, 3 Feb 2009 06:37:39 +1000
-References: <546B4176F0487A4CBA62FC16EFC1D9D6026FC2@EXCHANGE.joratech.com>
-	<4987568A.6060504@iki.fi>
-In-Reply-To: <4987568A.6060504@iki.fi>
+	(envelope-from <eduardhc@gmail.com>) id 1LV6Z5-0005Xk-Bf
+	for linux-dvb@linuxtv.org; Thu, 05 Feb 2009 16:54:55 +0100
+Received: by fxm3 with SMTP id 3so471016fxm.17
+	for <linux-dvb@linuxtv.org>; Thu, 05 Feb 2009 07:54:21 -0800 (PST)
 MIME-Version: 1.0
-Message-Id: <200902030637.40168.lindsay.mathieson@gmail.com>
-Cc: Andrew Williams <andrew.williams@joratech.com>
-Subject: Re: [linux-dvb]
- =?iso-8859-1?q?KWorld_PlusTV_Dual_DVB-T_Stick_=28DVB-?=
- =?iso-8859-1?q?T_399U=29_/_AF9015_-=09Dual_tuner_enabled_by_default_=3DBa?=
- =?iso-8859-1?q?d_signal_reception?=
+Date: Thu, 5 Feb 2009 16:54:21 +0100
+Message-ID: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
+From: Eduard Huguet <eduardhc@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] cx8802.ko module not being built with current HG tree
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -30,97 +19,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1500838139=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1500838139==
-Content-Type: multipart/signed;
-  boundary="nextPart1972300.WJWavdUU2r";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Hi,
+   Maybe I'm wrong, but I think there is something wrong in current
+Kconfig file for cx88 drivers. I've been struggling for some hours
+trying to find why, after compiling a fresh copy of the LinuxTV HG
+drivers, I wasn't unable to modprobe cx88-dvb module, which I need for
+HVR-3000.
 
---nextPart1972300.WJWavdUU2r
-Content-Type: multipart/alternative;
-  boundary="Boundary-00=_Um1hJ+I3XZb5P0l"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The module was not being load because kernel was failing to find
+cx8802_get_driver, etc... entry points, which are exported by
+cx88-mpeg.c.
 
---Boundary-00=_Um1hJ+I3XZb5P0l
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+The strange part is that, according to the cx88/Kconfig file this file
+should be automatically added as dependency if either CX88_DVB or
+CX88_BLACKBIRD were selected,
+but for some strange reason it wasn't.
 
-On Tue, 3 Feb 2009 06:24:42 am Antti Palosaari wrote:
-> Yes, it really looks like there is some sensitivity drop when both
-> tuners are enabled. However in my understanding tuner #1 in dual mode
-> have almost same performance than tuner #0 in single mode. Also current
-> MXL5005S tuner driver has not best performance...
+After a 'make menuconfig' in HG tree the kernel configuration
+contained these lines (this was using the default config, without
+adding / removing anything):
+CONFIG_VIDEO_CX88=m
+CONFIG_VIDEO_CX88_ALSA=m
+CONFIG_VIDEO_CX88_BLACKBIRD=m
+CONFIG_VIDEO_CX88_DVB=m
+CONFIG_VIDEO_CX88_MPEG=y
+CONFIG_VIDEO_CX88_VP3054=m
 
-Yes, I'd noticed that. My TT works fine for most channels with both tuners=
-=20
-except for one (SBS) which has less signal strength, both tuners fail on it=
- -=20
-my single tuners don't.
+Notice that they are all marked as 'm' excepting
+CONFIG_VIDEO_CX88_MPEG, which is marked as 'y'. I don't know if it's
+relevant or not, but the fact is that the module was not being
+compiled at all. The option was not visible inside menuconfig, by the
+way.
 
-Another dual tuner (Lifeview TV Walker) has similar problems.
+I've done some changes inside Kconfig to make it visible in
+menuconfig, and by doing this I've been able to set it to 'm' and
+rebuild, which has just worked apparently.
 
-All my tuners are feed off a powered splitter so I presume the problem with=
- the=20
-dual tuners are they split the signal internally.
+This Kconfig file was edited in revisions 10190 & 10191, precisely for
+reasons related to cx8802 dependencies, so I'm not sure the solution
+taken there was the right one.
 
-I'll give the alternative driver you posted a go.
-
-=2D-=20
-Lindsay Mathieson
-http://blackpaw.jalbum.net/home
-
---Boundary-00=_Um1hJ+I3XZb5P0l
-Content-Type: text/html;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-style:normal;">On Tue, 3 Feb 2009 06:24:42 am Antti Palosaari wrote:<br>
-&gt; Yes, it really looks like there is some sensitivity drop when both<br>
-&gt; tuners are enabled. However in my understanding tuner #1 in dual mode<br>
-&gt; have almost same performance than tuner #0 in single mode. Also current<br>
-&gt; MXL5005S tuner driver has not best performance...<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Yes, I'd noticed that. My TT works fine for most channels with both tuners except for one (SBS) which has less signal strength, both tuners fail on it - my single tuners don't.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Another dual tuner (Lifeview TV Walker) has similar problems.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>All my tuners are feed off a powered splitter so I presume the problem with the dual tuners are they split the signal internally.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>I'll give the alternative driver you posted a go.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>-- <br>
-Lindsay Mathieson<br>
-http://blackpaw.jalbum.net/home</p></body></html>
---Boundary-00=_Um1hJ+I3XZb5P0l--
-
---nextPart1972300.WJWavdUU2r
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkmHWZQACgkQNbLM9wS4sYdDXgCgg8kM9F0ChdDD2ge0a7gHCJ1L
-ubUAniJ51NZ0TgsIZVcXR9Ae1vaIUOoZ
-=5ssl
------END PGP SIGNATURE-----
-
---nextPart1972300.WJWavdUU2r--
-
-
---===============1500838139==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Best regards,
+  Eduard Huguet
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1500838139==--
