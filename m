@@ -1,52 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:36634 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbZBHNnV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2009 08:43:21 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so882885fgg.17
-        for <linux-media@vger.kernel.org>; Sun, 08 Feb 2009 05:43:19 -0800 (PST)
-Subject: [patch review] em28xx-audio: replace printk with em28xx_errdev
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sun, 08 Feb 2009 16:43:28 +0300
-Message-Id: <1234100608.10910.16.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from omr3.bezeqint.net ([192.115.104.13]:52530 "EHLO
+	omr3.bezeqint.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756220AbZBEBie convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Feb 2009 20:38:34 -0500
+From: Siemens Award Team <info@lely.co.uk>
+Subject: SIEMENS PROMO
+Reply-To: siemens3@btinternet.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Message-Id: <20090205033917.DFQ56614@mas28.bezeqint.net>
+Date: Thu,  5 Feb 2009 03:39:17 +0200 (IST)
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
-i hope this patch will be useful.
+The sum of £750,000,00 GBP was won by your E-MAIL ID IN OUR 
+SIEMENS PROMO, Do get back to this office with your infor 
+via (siemens3@btinternet.com) 
+Name:           
+Conntry:          
+Sex:         
+Age:       
+Addres:
 
-Probably this change should looks like:
-
-printk(KERN_ERR "em28xx-audio.c:..") but i suppose that em28xx_errdev is
-better.
-
---
-Patch removes printk and place em28xx_errdev macros to provide
-information about driver name to dmesg.
-
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
-
----
-diff -r 71e5a36634ea linux/drivers/media/video/em28xx/em28xx-audio.c
---- a/linux/drivers/media/video/em28xx/em28xx-audio.c	Mon Feb 02 10:33:31 2009 +0100
-+++ b/linux/drivers/media/video/em28xx/em28xx-audio.c	Sun Feb 08 15:28:18 2009 +0300
-@@ -254,7 +254,7 @@
- 			dev->adev.capture_stream = STREAM_OFF;
- 			em28xx_isoc_audio_deinit(dev);
- 		} else {
--			printk(KERN_ERR "An underrun very likely occurred. "
-+			em28xx_errdev("An underrun very likely occurred. "
- 					"Ignoring it.\n");
- 		}
- 		return 0;
-
-
-
--- 
-Best regards, Klimov Alexey
-
+Regards
+Mrs Rose Bill
