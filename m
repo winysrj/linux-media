@@ -1,40 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82]:45072 "HELO
-	smtp104.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750851AbZBSDoK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 22:44:10 -0500
-Message-ID: <499CD588.8030104@rogers.com>
-Date: Wed, 18 Feb 2009 22:44:08 -0500
-From: CityK <cityk@rogers.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2582 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752735AbZBEH3i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Feb 2009 02:29:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: Question of V4L2 API spec for sliced VBI VIDIOC_S_FMT
+Date: Thu, 5 Feb 2009 08:29:33 +0100
+Cc: linux-media@vger.kernel.org
+References: <1233807958.4422.21.camel@palomino.walls.org>
+In-Reply-To: <1233807958.4422.21.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [Bulk] [linux-dvb] Problem with TV card's sound (SAA7134)
-References: <BAY111-W598DBD904310E159C109CC5B40@phx.gbl>
-In-Reply-To: <BAY111-W598DBD904310E159C109CC5B40@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902050829.33640.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-panagiotis takis_rs wrote:
-> Hey!!
->  
-> I have a problem with my tv card(pinnacle pctv 310i)
-> I can see image but i have no sound.
-> I have tried both tvtime and kdetv.
->  
-> I have found this http://ubuntuforums.org/showthread.php?t=568528 . Is it related with my problem?
->  
-> My tv card give audio output with this way: direct cable connection from
-> tv card to sound card ( same cable witch connect cdrom and soundcard )
+On Thursday 05 February 2009 05:25:58 Andy Walls wrote:
+> The V4L2 spec has some funny languague in the VIDIOC_S_FMT, and
+> VIDIOC_TRY_FMT documentation and section 4.8.3 on setting or trying
+> sliced VBI formats.
+>
+> For VIDIOC_TRY_FMT for sliced vbi, the ioctl() is only supposed to fail
+> if the v4l2_format->type is for sliced vbi capture or sliced vbi output
+> and it is not supported.  Otherwise the ioctl() is to successfully
+> return the sanitized v4l2_format->fmt.sliced.service_set and
+> v4l2_format->fmt.sliced.service_lines, even if the sanitization returns
+> them all as 0, implying no support for what was requested.  I'm OK with
+> all that so far.
+>
+> For the VIDIOC_S_FMT for sliced vbi, the driver is supposed to return
+> -EBUSY if the operation can happen right now (that's fine), or -EINVAL
+> if the passed in parameters are "ambiguous".  What does ambiguous mean
+> here?  Specifically, does that include a VIDIOC_S_FMT where the
+> v4l2_format->fmt.sliced.service_set and
+> v4l2_format->fmt.sliced.service_lines all come back as zero when
+> sanitized as with VIDIOC_TRY_FMT?
 
-I didn't read through the link you provided, but it appeared to be in
-regards to getting audio via DMA (using the card's 7134 chip to digitize
-the audio and send it over the PCI bus to the host system).  You, on the
-other hand, indicate that you are attempting to use the method of
-running a patch cable between your TV card and sound card (meaning that
-the sound card will do the digitizing instead).  Question:  have you
-checked your audio mixer to make sure that any of the inputs are not muted?
+This is wrong. However, the VIDIOC_S_FMT ioctl documentation is correct. The 
+only way you can get an EINVAL is if the operation is not supported. I will 
+update the spec accordingly. I saw some more weird stuff in there that 
+looks like copy-and-pasted text from another section and that probably 
+should be removed as well.
 
+> I ask, becasue the cx18 driver, with VBI ioctl() code of ivtv origin,
+> returns -EINVAL in this case, but that doesn't seem right to me.
+> There's nothing ambiguous about a well formed request for a service set
+> combination that isn't supported at all by the hardware.  It's a valid
+> request, as affirmed by VIDIOC_TRY_FMT, even if it is a useless request
+> as far as VIDIOC_S_FMT and actually capturing VBI data is concerned.
+
+If you look at the latest ivtv code you will see that ivtv no longer returns 
+EINVAL. It was an ivtv driver bug that was fixed after cx18 split off from 
+ivtv.
+
+> I suspect there might be some history or rationale I don't know about
+> which would be fine.  I'd just like to clean up the ambiguous
+> "ambiguous" in the V4L2 spec in that case.
+
+I can state unambiguously that the ambiguous 'ambiguous' in the spec is 
+indeed ambiguous and I will unambiguously remove that ambiguous 
+statement. :-)
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
