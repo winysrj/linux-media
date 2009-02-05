@@ -1,47 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:47467 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755473AbZBCRW3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 12:22:29 -0500
-Date: Tue, 3 Feb 2009 11:22:25 -0600
-From: David Engel <david@istwok.net>
-To: CityK <cityk@rogers.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-Message-ID: <20090203172225.GA16385@opus.istwok.net>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl> <496FE555.7090405@rogers.com> <496FFCE2.8010902@rogers.com> <200901171720.03890.hverkuil@xs4all.nl> <49737088.7060800@rogers.com> <20090202235820.GA9781@opus.istwok.net> <4987DE4E.2090902@rogers.com>
+Received: from mail.gmx.net ([213.165.64.20]:55009 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750915AbZBEXV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Feb 2009 18:21:29 -0500
+Date: Fri, 6 Feb 2009 00:21:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] sh_mobile_ceu_camera: NV12/21/16/61 are added only once.
+In-Reply-To: <aec7e5c30901222024k3600b6b6t718998b945461a40@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0902060012000.12903@axis700.grange>
+References: <ur62u4qh5.wl%morimoto.kuninori@renesas.com>
+ <aec7e5c30901222024k3600b6b6t718998b945461a40@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4987DE4E.2090902@rogers.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 03, 2009 at 01:03:58AM -0500, CityK wrote:
-> Nope, this thread is still alive and well -- I posted to it last Thurs
-> (?), and Mauro replied, but I haven't had time to follow up with this
-> since then. 
 
-I never received received anythin after Jan. 18 and couldn't find
-anything in the archives.  Strange.
+On Fri, 23 Jan 2009, Magnus Damm wrote:
 
-> Anyway, here's a synopsis of the situation:
+> On Fri, Jan 23, 2009 at 9:28 AM, Kuninori Morimoto
+> <morimoto.kuninori@renesas.com> wrote:
+> > NV12/21/16/61 had been added every time
+> > UYVY/VYUY/YUYV/YVYU appears on get_formats.
+> > This patch modify this problem.
+> 
+> That's one way to do it. Every similar driver has to do the same thing. Yuck.
+> 
+> Or we could have a better translation framework that does OR for us,
+> using for instance bitmaps.
 
-Thanks.
+This has been on my list for a while now, but I'm quite busy these days, 
+but I think I now have an idea how to fix this problem in a less 
+destructive way, withoug undermining the soc-camera algorithms:-) Please, 
+have a look at the patch below. Does it fix the problem for you? If not - 
+how can we modify it to work for you? Notice - not even completely compile 
+tested:-)
 
-> - Further, somewhat concurrently, I discovered that (with Hans' kworld
-> test repo) analog TV was ONLY working with tvtime ... xawtv/motv and
-> kdetv were borked (I don't use Myth, so I have no idea what its status
-> would be ... though, I'd suspect that it works like tvtime). I quickly
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
-I will try it with MythTV.
 
-David
--- 
-David Engel
-david@istwok.net
+Fix multiple inclusion of NV* formats into the available format list.
+
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index a53f5bb..b8234c7 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -585,11 +585,29 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
+ 	if (ret < 0)
+ 		return 0;
+ 
++	/* Beginning of a pass */
++	if (!idx)
++		icd->host_priv = NULL;
++
+ 	switch (icd->formats[idx].fourcc) {
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_VYUY:
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_YVYU:
++		if (icd->host_priv)
++			goto add_single_format;
++
++		/*
++		 * Our case is simple so far: for any of the above four camera
++		 * formats we add all our four synthesized NV* formats, so,
++		 * just marking the device with a single flag suffices. If
++		 * the format generation rules are more complex, you would have
++		 * to actually hang your already added / counted formats onto
++		 * the host_priv pointer and check whether the format you're
++		 * going to add now is already there.
++		 */
++		icd->host_priv = (void *)sh_mobile_ceu_formats;
++
+ 		n = ARRAY_SIZE(sh_mobile_ceu_formats);
+ 		formats += n;
+ 		for (k = 0; xlate && k < n; k++) {
+@@ -602,6 +620,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
+ 				icd->formats[idx].name);
+ 		}
+ 	default:
++add_single_format:
+ 		/* Generic pass-through */
+ 		formats++;
+ 		if (xlate) {
