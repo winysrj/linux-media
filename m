@@ -1,98 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:50304 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017AbZBJM2Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 07:28:25 -0500
-Date: Tue, 10 Feb 2009 10:27:32 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jonathan Isom <jeisom@gmail.com>
-Cc: hermann pitton <hermann-pitton@arcor.de>, CityK <cityk@rogers.com>,
-	V4L <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
-	David Engel <david@istwok.net>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-Message-ID: <20090210102732.5421a296@pedra.chehab.org>
-In-Reply-To: <1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-	<4987DE4E.2090902@rogers.com>
-	<20090209004343.5533e7c4@caramujo.chehab.org>
-	<1234226235.2790.27.camel@pc10.localdom.local>
-	<1234227277.3932.4.camel@pc10.localdom.local>
-	<1234229460.3932.27.camel@pc10.localdom.local>
-	<20090210003520.14426415@pedra.chehab.org>
-	<1234235643.2682.16.camel@pc10.localdom.local>
-	<1234237395.2682.22.camel@pc10.localdom.local>
-	<20090210041512.6d684be3@pedra.chehab.org>
-	<1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:34980 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183AbZBFRcn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 12:32:43 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 6 Feb 2009 23:02:11 +0530
+Subject: RE: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
+ v2
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B22F@dbde02.ent.ti.com>
+In-Reply-To: <498C513E.6080501@maxwell.research.nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Feb 2009 06:07:51 -0600
-Jonathan Isom <jeisom@gmail.com> wrote:
 
-> On Tue, Feb 10, 2009 at 12:15 AM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> > On Tue, 10 Feb 2009 04:43:15 +0100
-> > hermann pitton <hermann-pitton@arcor.de> wrote:
+
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@maxwell.research.nokia.com]
+> Sent: Friday, February 06, 2009 8:33 PM
+> To: Hiremath, Vaibhav
+> Cc: Ailus Sakari (Nokia-D/Helsinki); Aguirre Rodriguez, Sergio
+> Alberto; Nagalla, Hari; video4linux-list@redhat.com; linux-
+> omap@vger.kernel.org; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
+> media@vger.kernel.org
+> Subject: Re: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012
+> sensor driver v2
+> 
+> Hiremath, Vaibhav wrote:
+> > [Hiremath, Vaibhav] Sakari, Can you share your version of code
+> > (either in form of patches or source) here onto the mailing list,
+> so
+> > that everybody those who are interested will be aware of changes?
+> 
+> I will synchronise soon with Sergio (as he noted). After that we'll
+> send
+> a new patchset. I was thinking of separating the ISP and camera
+> driver
+> patches from other hardware dependent patches. The resulting
+> patchset
+> wouldn't be that huge anymore but on the other hand it wouldn't be
+> very
+> usable as such.
+> 
+[Hiremath, Vaibhav] How much change can we expect as compared to the patches posted by Sergio on 14th Jan?
+
+> > Atleast for me I would get prior view of changes which might
+> affect
+> > BT656 support (posted on top of Sergio's patch).
 > >
-> >>
-> >> Am Dienstag, den 10.02.2009, 04:14 +0100 schrieb hermann pitton:
-> >> > Am Dienstag, den 10.02.2009, 00:35 -0200 schrieb Mauro Carvalho Chehab:
-> >> > > On Tue, 10 Feb 2009 02:31:00 +0100
-> >> > > hermann pitton <hermann-pitton@arcor.de> wrote:
-> >>
-> >> > > > >
-> >> > > > > BTW, just to remember.
-> >> > > > >
-> >> > > > > Tvtime with signal detection on shows a blue screen without signal.
-> >> > > > > With signal detection off, just good old snow.
-> >> > >
-> >> > > So, the tda9887 or the PLL are configured wrongly.
-> >> > >
-> >>
-> >> Urgh, not to add more confusion here at least.
-> >>
-> >> Good old snow means the analog signal is perfect.
-> >>
-> >> I stopped since long to connect a real signal to it surfing the grounds
-> >> on my stomach, but it is for sure working then and the pll is always
-> >> fine.
-> >
-> > Ah, ok. So, now, we just need CityK (or someone else with ATSC 115) to confirm
-> > that everything is fine on their side. This patch may also fix other similar
-> > troubles on a few devices that seem to need some i2c magic before probing the
-> > tuner.
+> > Again one more thing I would like to bring to your notice is about
+> > sub-device framework. Also we need to plan for the migration from
+> > V4L2-int to sub-device framework, which is of equal important. I
+> feel
+> > the more time we spend in merging and aligning offline, more we
+> are
+> > carrying risk.
 > 
-> Just tried the latest hg and I can confirm that both an ATSC 110 and
-> 115 work with tvtime
-> and ATSC.
+> I agree that we should be moving to v4l2 sub-device at some point,
+> preferrably sooner than later, but I think the ISP driver should get
+> a
+> much much better interface than it currently has. So that should be
+> part
+> of the task.
 > 
-Jonathan,
-
-You tried the latest tree at http://linuxtv.org/hg/v4l-dvb or my saa7134 tree
-(http://linuxtv.org/hg/~mchehab/saa7134)?
-
-In the first case, could you please confirm that it works fine also with the saa7134 tree?
-
-> Later
+> > According to me as I mentioned before, the plan should be to push
+> > ISP-Camera with V4L2-int interface as early as possible with
+> whatever
+> > minimal sensor/decoder support we have today, which will make sure
+> > that our underneath ISP-library is in place. Once that is placed
+> in,
+> > we can have additional patches on top of it to add more features.
 > 
-> Jonathan
+> I agree. But I'd say that fixing the bugs and cleaning up the code
+> is as
+> least as important than adding new features.
 > 
-> > Cheers,
-> > Mauro
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+[Hiremath, Vaibhav] It would be really great if you could share your plan of action for ISP-Camera driver that would really help to plan our milestone accordingly.
 
+> > In this way, we can plan for migration to sub-device framework and
+> > also be easier and simpler. Even if any customers are interested,
+> > they can pick it up the ISP library and start development on top
+> of
+> > it.
+> 
+> There's still a long way to get there --- the ISP driver's current
+> interface and internals don't mix well with either v4l2 sub-device
+> or
+> v4l2-int-if. For example, there's no ISP object, just function calls
+> and
+> then output frame size / frame interval enumeration doesn't work
+> properly for YUV (maybe not even for RAW10). Enumerating frame size
+> has
+> side effects. The ISP driver doesn't have a standard interface, it's
+> now
+> specific to OMAP 3. And this is just an example...
+> 
+> Regards,
+> 
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
 
-
-
-Cheers,
-Mauro
