@@ -1,70 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:34806 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892AbZBZLG0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2009 06:06:26 -0500
-Received: by fxm24 with SMTP id 24so446410fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 03:06:23 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <go5s7i$no6$1@ger.gmane.org>
-References: <617be8890902260101y68ef8b3am8823a7972fa49a7b@mail.gmail.com>
-	 <go5s7i$no6$1@ger.gmane.org>
-Date: Thu, 26 Feb 2009 12:06:23 +0100
-Message-ID: <617be8890902260306l64c20bf9qc3a0b2979f05aea3@mail.gmail.com>
-Subject: Re: Is there a way to get linux-media daily digests?
-From: Eduard Huguet <eduardhc@gmail.com>
-To: Pierre Gronlier <ticapix@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2190 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751384AbZBFU2P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 15:28:15 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n16KSDpC081544
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 6 Feb 2009 21:28:14 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 6 Feb 2009 21:28:13 +0100 (CET)
+Message-Id: <200902062028.n16KSDpC081544@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yes, but this way implies using a feed reader or similar. I'm aware of
-this way, but this would mean unsubscribing from the list to stop
-receiving the mails and just read them through an external program /
-webpage. What also means that, if I want to post a new message or just
-answering one I'd need to re-subscribe again just for doing so.
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-I really preferred the other way (it's what I also use for other mail
-lists such as mythtv-users and mythtv-dev), and I found it very
-convenient...
+Results of the daily build of v4l-dvb:
 
-Regards
-  Eduard
+date:        Fri Feb  6 20:16:10 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10432:71e5a36634ea
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.16.61-armv5: WARNINGS
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc3-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc3-armv5-omap2: OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc3-i686: WARNINGS
+linux-2.6.16.61-m32r: WARNINGS
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc3-m32r: OK
+linux-2.6.16.61-mips: WARNINGS
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc3-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc3-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc3-x86_64: WARNINGS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc3): ERRORS
 
+Detailed results are available here:
 
-2009/2/26 Pierre Gronlier <ticapix@gmail.com>:
-> Eduard Huguet wrote:
->> Hi,
->>     Well, title says old... In previously linux-dvb list I was
->> subscribed to the daily digest modality of the list, so I was getting
->> only 2 or 3 digest messages per day. This is something I really miss
->> now, as I really prefer this way of subscribing to a mail list,
->> instead of just receiving every mail sent (I'm just scared thinking
->> what I will find in my mailbox when I come back from holidays...).
->>
->> Is there a way to use such a modality for linux-media?
->>
->> Best regards,
->>   Eduard
->>
->> PS: if I've just missed something and the possibility exists but I'm
->> just too dumb to find it, please send me the link with a big RTFM in
->> it, I'll take no offense...
->
-> You can subscribe to a newsgroup via gmane:
-> http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
->
-> this way your mailbox will not be overloaded.
->
-> --
-> pierre
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
