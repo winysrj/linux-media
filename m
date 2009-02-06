@@ -1,28 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.106]:60368
-	"EHLO outbound.icp-qv1-irony-out1.iinet.net.au"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755676AbZBYVlX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2009 16:41:23 -0500
-Received: from e4.eyal.emu.id.au (really [192.168.3.4]) by eyal.emu.id.au
-	via in.smtpd with esmtp
-	id <m1LcRLH-001ILHC@eyal.emu.id.au> (Debian Smail3.2.0.115)
-	for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 08:30:59 +1100 (EST)
-Message-ID: <49A5B891.5050409@eyal.emu.id.au>
-Date: Thu, 26 Feb 2009 08:30:57 +1100
-From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
-MIME-Version: 1.0
-To: list linux-dvb <linux-media@vger.kernel.org>
-Subject: saa716x: fedora 10 missing spi in kernels?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp6-g21.free.fr ([212.27.42.6]:52890 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751564AbZBFSjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Feb 2009 13:39:44 -0500
+Date: Fri, 6 Feb 2009 19:30:13 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Adam Baker <linux@baker-net.org.uk>
+Cc: Linux Media <linux-media@vger.kernel.org>,
+	Driver Development <sqcam-devel@lists.sourceforge.net>,
+	kilgota@banach.math.auburn.edu
+Subject: Re: [PATCH v3] Add support for sq905 based cameras to gspca
+Message-ID: <20090206193013.659c6de4@free.fr>
+In-Reply-To: <200902061804.36756.linux@baker-net.org.uk>
+References: <200902061804.36756.linux@baker-net.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I find that the latest drivers for the saa716x require spi but the necessary symbols
-are unresolved. My f10 kernel .config shows CONFIG_SPI=n.
+On Fri, 6 Feb 2009 18:04:36 +0000
+Adam Baker <linux@baker-net.org.uk> wrote:
 
-Is this correct? How can I load the saa driver?
+> Add initial support for cameras based on the SQ Technologies SQ-905
+> chipset (USB ID 2770:9120) to V4L2 using the gspca infrastructure.
+> Currently only supports one resolution and doesn't attempt to inform
+> libv4l what image flipping options are needed.
+
+Applied.
+
+As you did not add the supported webcam (Argus Digital Camera DC1512) to
+	linux/Documentation/video4linux/gspca.txt,
+I had a look at the ms-win driver, and this one also supports the
+webcam 2770:9130 (TCG 501). May I (or you) add it in the sq905's
+device_table?
 
 -- 
-Eyal Lebedinsky	(eyal@eyal.emu.id.au)
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
