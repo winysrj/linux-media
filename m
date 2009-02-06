@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KFUMVd026705
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 10:30:22 -0500
-Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
-	[209.85.217.171])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1KFUBIn011533
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 10:30:11 -0500
-Received: by gxk19 with SMTP id 19so2403766gxk.3
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 07:30:11 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <499EC9CC.3040703@linuxtv.org>
-References: <412bdbff0902200317h26f4d42fh4327b3ff08c79d5c@mail.gmail.com>
-	<499EC9CC.3040703@linuxtv.org>
-Date: Fri, 20 Feb 2009 10:30:11 -0500
-Message-ID: <412bdbff0902200730p5a2a0822rb3b15d9c316365af@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n161cIlf009861
+	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 20:38:18 -0500
+Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
+	[151.189.21.57])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n161bvIF023120
+	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 20:37:58 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Denio Hsiao <deniohsiao@gmail.com>
+In-Reply-To: <f83cfa0a0902051729h310f038fi3436edc0807ad88f@mail.gmail.com>
+References: <147fc4b90902050823i15baa12fjb3ac7493bc473e0@mail.gmail.com>
+	<f83cfa0a0902051729h310f038fi3436edc0807ad88f@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 06 Feb 2009 02:38:50 +0100
+Message-Id: <1233884330.2689.14.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: HVR-950q analog support - testers wanted
+Cc: video4linux-list@redhat.com
+Subject: Re: tv recording/preview software for saa7130 analogue PAL tv.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,52 +29,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Feb 20, 2009 at 10:18 AM, Steven Toth <stoth@linuxtv.org> wrote:
-> Devin Heitmueller wrote:
->>
->> Hello,
->>
->> There is now a test repository that provides analog support for the
->> HVR-950q:
->>
->> http://linuxtv.org/hg/~dheitmueller/hvr950q-analog
->>
->> I welcome people interested in analog support for the 950q to download
->> the tree and provide feedback.
->
-> I only have time today for a small amount of testing but QAM and ATSC are
-> still working reliably. No obvious issues. No obvious regressions.
->
-> I'll load this up on my myth box this weekend and ensure it's still reliable
-> over the long term.
->
-> I'll be in touch.
+Hi,
 
-Hello Steven,
+Am Freitag, den 06.02.2009, 09:29 +0800 schrieb Denio Hsiao:
+> Hi, Richard,
+> How about Tvtime?
+> 
+> http://tvtime.sourceforge.net/
 
-Thank you for taking the time to test.
+tvtime is a great app, but never did record anything.
 
-One thing that would be useful, and I'm addressing this to everyone,
-is when reporting feedback (positive or negative) you please indicate
-which application(s) you tested with, as well as what kernel version
-and CPU architecture you tested on.
+Cheers,
+Hermann
 
-Right now one of the big issues is while that I do not know of any
-issues, the code has had limited exposure in terms of the applications
-and kernels tested with.  By providing this information, that will
-help me tremendously in evaluating whether enough *different* cases
-are being tested or whether everybody is basically testing the same
-thing.
+> 
+> Denio
+> 
+> 2009/2/6 richard cinema <richard.cinema@gmail.com>:
+> > debian, latest sid update, kernel 2.6.28, saa713X analogue tv card. amd x2
+> > 3600+8500GT 512M+3G RAM
+> >
+> > i should mention here, my tv card+pc can do tv recording to mpg4 in PAL SD
+> > size very well in windows, so there is no
+> > hardware limition, i think.
+> >
+> > so, for recording tv in linux, i have tried these software:
+> >
+> > 1.xawtv: can record , have audiobuffer errors when selecting some modern
+> > codecs, but the big problem is there is no codec bitrate settings.
+> >
+> > 2.mencoder: picture is ok, no sync issues when recording in SD resolution,
+> > but can't preview at the same time.
+> >
+> >                   2.1.  mencoder xxx...xxx -o >( tee test.avi | mplayer -)
+> > not work, it just sit there, no output, no recording.
+> >
+> > 3. transcode: sometimes works, sometimes not, no preview funtion, haven't
+> > tried the tee trick.
+> >
+> > 4. pvr: old/new version not work,  lots of options are grey out in the
+> > setting window( in root/user mode).
+> >
+> > 5. mythtv: what i want is just a simple recording software with record
+> > monitor function, not a big MCE like monster. have tried to installed but
+> > the mysql setup is really a mess to me.
+> >
+> > 6.cupid: this one looks promising, but is stopped development now. require
+> > old gstream0.8, i don't know how to make it use the gstream0.10, anyone
+> > knows?
+> >
+> > 7. chease: maybe the same programmer as 6, this one can record, but the
+> > final file is out of sync, picture is like slideshow, also no bitrate/codec
+> > settings.
+> >
+> > 8+9+10=vlc+ffmpeg+gst-launch? not confidient about them, will continuing my
+> > trial and error.
+> >
+> > besides of above 10, are there other softwares can finish this task ?
 
-Thanks,
-
-Devin
-
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 --
 video4linux-list mailing list
