@@ -1,95 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:58401 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbZBKBFN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 20:05:13 -0500
-Subject: Re: Any supported Dual DVB-S cards?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Steven Ellis <mail_lists@stevencherie.net>
-Cc: Daniel Pocock <daniel@pocock.com.au>, linux-media@vger.kernel.org
-In-Reply-To: <499154D6.1040108@stevencherie.net>
-References: <498EAD1F.8040300@stevencherie.net>
-	 <49904330.2070606@pocock.com.au>  <499154D6.1040108@stevencherie.net>
-Content-Type: text/plain
-Date: Wed, 11 Feb 2009 02:06:00 +0100
-Message-Id: <1234314360.4463.48.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Received: from smtp.nokia.com ([192.100.122.230]:32977 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080AbZBFPE2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 10:04:28 -0500
+Message-ID: <498C513E.6080501@maxwell.research.nokia.com>
+Date: Fri, 06 Feb 2009 17:03:26 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
+ v2
+References: <19F8576C6E063C45BE387C64729E739403FA81B0D0@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA81B0D0@dbde02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve!
+Hiremath, Vaibhav wrote:
+> [Hiremath, Vaibhav] Sakari, Can you share your version of code
+> (either in form of patches or source) here onto the mailing list, so
+> that everybody those who are interested will be aware of changes?
 
-Am Dienstag, den 10.02.2009, 23:20 +1300 schrieb Steven Ellis:
-> Daniel Pocock wrote:
-> > Steven Ellis wrote:
-> >> Noticed that Pinnacle now do a dual tuner PCI based DVB-S card
-> >>
-> >> http://www.pinnaclesys.com/PublicSite/uk/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+(DVB-S_DVB-T)/PCTV+Dual+Sat+Pro+PCI.htm
-> >>
-> >>
-> >> And that development is underway. Has anyone found a dual tuner card
-> >> that works?
-> >>   
-> > Is it possible to use multiple USB devices to do the same thing as a
-> > dual tuner card?
-> The problem is I want to house the tuners inside of a media PC case
-> which is harder with USB devices.
+I will synchronise soon with Sergio (as he noted). After that we'll send 
+a new patchset. I was thinking of separating the ISP and camera driver 
+patches from other hardware dependent patches. The resulting patchset 
+wouldn't be that huge anymore but on the other hand it wouldn't be very 
+usable as such.
+
+> Atleast for me I would get prior view of changes which might affect
+> BT656 support (posted on top of Sergio's patch).
 > 
-> Also I have spare PCIe slots if there was a dual tuner PCIe unit at a
-> reasonable price.
-> 
-> Steve
-> 
+> Again one more thing I would like to bring to your notice is about
+> sub-device framework. Also we need to plan for the migration from
+> V4L2-int to sub-device framework, which is of equal important. I feel
+> the more time we spend in merging and aligning offline, more we are
+> carrying risk.
 
-Same here :)
+I agree that we should be moving to v4l2 sub-device at some point, 
+preferrably sooner than later, but I think the ISP driver should get a 
+much much better interface than it currently has. So that should be part 
+of the task.
 
-Just for completeness, we support a device on saa7134 with dual DVB-S
-tuners and demods and also with dual DVB-T/analog hybrid tuners and
-DVB-T demods and external video inputs. (4 streams at once are always
-possible)
+> According to me as I mentioned before, the plan should be to push
+> ISP-Camera with V4L2-int interface as early as possible with whatever
+> minimal sensor/decoder support we have today, which will make sure
+> that our underneath ISP-library is in place. Once that is placed in,
+> we can have additional patches on top of it to add more features.
 
-It is card=96 Medion8800 Quad(ro), better called Creatix CTX944
-(www.creatix.de).
+I agree. But I'd say that fixing the bugs and cleaning up the code is as 
+least as important than adding new features.
 
-It has also two saa7131e, which causes that it needs at least a blue
-multi busmaster capable PCI slot, often found on MSI mobos. Within a
-green one it also offers a soft modem ...
+> In this way, we can plan for migration to sub-device framework and
+> also be easier and simpler. Even if any customers are interested,
+> they can pick it up the ISP library and start development on top of
+> it.
 
-Everything works, except the second DVB-S tuner needs the first one
-active too at the same time, this is caused by the shared dual isl6405
-LNB controller, which has only i2c access from the first PCI bridge.
+There's still a long way to get there --- the ISP driver's current 
+interface and internals don't mix well with either v4l2 sub-device or 
+v4l2-int-if. For example, there's no ISP object, just function calls and 
+then output frame size / frame interval enumeration doesn't work 
+properly for YUV (maybe not even for RAW10). Enumerating frame size has 
+side effects. The ISP driver doesn't have a standard interface, it's now 
+specific to OMAP 3. And this is just an example...
 
-Long story short, that second LNB supply should be initialized at 13
-Volts, the buffers sent are correct, but stays always at 18 Volts.
+Regards,
 
-This is the same for recent Philips/NXP/m$ drivers and ours for my
-observations.
-
-OTOH, also tuner RF loopthrough from the first DVB-S tuner to the second
-is enabled, which allows also 13 Volts transponder reception on the
-second. There is some small signal quality loss then, which is not the
-case for routing the DVB-T RF through to the second tda9875ac1 for
-DVB-T.
-
-I know Aldi/Medion is/are selling in Australia since years and we had
-feed back for the early cardbus devices from there, but don't know about
-NZ.
-
-If it should happen that you have such a blue PCI slot and are still
-curious enough, I guess I can get one down to you from second hand
-markets.
-
-If you still have at least two normal PCI slots free and are thinking
-about a linux media machine for distribution currently, two LifeView
-Trio or better two Asus 3in1 might do it, but are still rather
-expensive.
-
-I can't tell if you can get some supported Creatix CTX948 triple out of
-them for better conditions, but maybe worth at try.
-
-Cheers,
-Hermann
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
