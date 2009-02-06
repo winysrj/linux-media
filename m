@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1IAnmsX030250
-	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 05:49:48 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1IAnJBl009379
-	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 05:49:19 -0500
-Date: Wed, 18 Feb 2009 07:48:49 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Roel Kluin <roel.kluin@gmail.com>
-Message-ID: <20090218074849.70209e5d@pedra.chehab.org>
-In-Reply-To: <499BD0AE.8000603@gmail.com>
-References: <499BD0AE.8000603@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n16HCaTt018311
+	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 12:12:36 -0500
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.176])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n16HBuo9029936
+	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 12:11:56 -0500
+Received: by wa-out-1112.google.com with SMTP id n4so442577wag.19
+	for <video4linux-list@redhat.com>; Fri, 06 Feb 2009 09:11:55 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 6 Feb 2009 22:41:55 +0530
+Message-ID: <1249fb080902060911g4b8f68abuefa13ee4497e779b@mail.gmail.com>
+From: Akhila Madhukumar <akhilapisces@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [PATCH] V4L: missing parentheses?
+Subject: Debug
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,27 +26,7 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 18 Feb 2009 10:11:10 +0100
-Roel Kluin <roel.kluin@gmail.com> wrote:
-
-> From: Roel Kluin <roel.kluin@gmail.com>
-> To: Michael Krufky <mkrufky@linuxtv.org>
-> CC: Mauro Carvalho Chehab <mchehab@infradead.org>,  video4linux-list@redhat.com, Andrew Morton <akpm@linux-foundation.org>
-> Subject: [PATCH] V4L: missing parentheses?
-> Date: Wed, 18 Feb 2009 10:11:10 +0100
-> User-Agent: Thunderbird 2.0.0.18 (X11/20081105)
-
-Hi Roel,
-
-Please use linux-media@vger.kernel.org, instead of v4l-list, for all patches
-for drivers/media, otherwise your patch will likely be lost.
-
-We are currently using patchwork.kernel.org as our patch repository. It only
-handles patches sent to the new ML.
-
-Cheers,
-Mauro
-
+How to debug the v4l2 source code?
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
