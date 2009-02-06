@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1996dQM027427
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 04:06:39 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.169])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1995VvL022518
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 04:05:31 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so1871515wfc.6
-	for <video4linux-list@redhat.com>; Mon, 09 Feb 2009 01:05:31 -0800 (PST)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n16JUljA005167
+	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 14:30:57 -0500
+Received: from mail-gx0-f10.google.com (mail-gx0-f10.google.com
+	[209.85.217.10])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n16JSkru022028
+	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 14:29:06 -0500
+Received: by gxk3 with SMTP id 3so942345gxk.3
+	for <video4linux-list@redhat.com>; Fri, 06 Feb 2009 11:28:36 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 9 Feb 2009 17:05:31 +0800
-Message-ID: <147fc4b90902090105h1a9e27d2ib4a69f27c42e7f4a@mail.gmail.com>
-From: richard cinema <richard.cinema@gmail.com>
-To: video4linux-list@redhat.com
+In-Reply-To: <BA0FC5592CBB4036B1CD04CB0A5CBF39@lynxwebdesign>
+References: <BA0FC5592CBB4036B1CD04CB0A5CBF39@lynxwebdesign>
+Date: Fri, 6 Feb 2009 14:28:35 -0500
+Message-ID: <412bdbff0902061128y60a5778u962a98e328b412bc@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Wayne Bragg <wlbragg@cox.net>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: motv can't save preference and small preview window problem
+Cc: video4linux-list@redhat.com
+Subject: Re: compiling and installing driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,33 +30,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-just compile xawtv.3.x from source, in my opinion, motv is better than
-xawtv, at least, in interface:D
+On Fri, Feb 6, 2009 at 2:25 PM, Wayne Bragg <wlbragg@cox.net> wrote:
+> Can someone point me to docs on compiling and installing the v4l drivers in Ubuntu. I
+> am a total dweeb newbe and need a good tutorial.
 
-but the problems:
+http://linuxtv.org/repo/
 
-1 : i changed some options in the preference such as mixer setting and mixer
-control, close motv, rerun it, and all the options i changed just  grey out
-again:( in the man page, seems no related info there.
+Devin
 
-2 : video preview window is alway 320x240, i tried to set below Xresouce and
-restart X but not work, seems motv doesn't respect this resource setting,
-change to 720x576 still get the same result:
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
-xawtv.geometry: 768x576
-
-3. audio mode is always mono even i manually choose stereo.
-
-on the contrary, xawtv is ok on this.
-
-4. i set debug verbose to level 2, if don't, there will be a error info
-window popup and keep saying something like this, although this doesn't
-impact on recording/viewing, it's boring to see this again and again, does
-there exist a way to disable this error msg permantly ?
-:
-
-ioctl: VIDIOC_REQBUFS(count=2;type=VIDEO_CAPTURE;memory=MMAP): temporary
-unavailable
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
