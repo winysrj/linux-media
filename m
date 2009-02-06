@@ -1,111 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3002 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031AbZB1TRT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Feb 2009 14:17:19 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1SJHElO064992
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 28 Feb 2009 20:17:14 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 28 Feb 2009 20:17:14 +0100 (CET)
-Message-Id: <200902281917.n1SJHElO064992@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from banach.math.auburn.edu ([131.204.45.3]:56146 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbZBFTC0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 14:02:26 -0500
+Date: Fri, 6 Feb 2009 13:14:19 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Jean-Francois Moine <moinejf@free.fr>
+cc: Adam Baker <linux@baker-net.org.uk>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Driver Development <sqcam-devel@lists.sourceforge.net>
+Subject: Re: [PATCH v3] Add support for sq905 based cameras to gspca
+In-Reply-To: <20090206193013.659c6de4@free.fr>
+Message-ID: <alpine.LNX.2.00.0902061304000.19328@banach.math.auburn.edu>
+References: <200902061804.36756.linux@baker-net.org.uk> <20090206193013.659c6de4@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
 
-Results of the daily build of v4l-dvb:
 
-date:        Sat Feb 28 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10778:c770b20d15c6
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+On Fri, 6 Feb 2009, Jean-Francois Moine wrote:
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: ERRORS
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc5-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc5-x86_64: WARNINGS
-fw/apps: WARNINGS
-spec: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
+> On Fri, 6 Feb 2009 18:04:36 +0000
+> Adam Baker <linux@baker-net.org.uk> wrote:
+>
+>> Add initial support for cameras based on the SQ Technologies SQ-905
+>> chipset (USB ID 2770:9120) to V4L2 using the gspca infrastructure.
+>> Currently only supports one resolution and doesn't attempt to inform
+>> libv4l what image flipping options are needed.
+>
+> Applied.
+>
+> As you did not add the supported webcam (Argus Digital Camera DC1512) to
+> 	linux/Documentation/video4linux/gspca.txt,
+> I had a look at the ms-win driver, and this one also supports the
+> webcam 2770:9130 (TCG 501). May I (or you) add it in the sq905's
+> device_table?
 
-Detailed results are available here:
+Jean-Francois,
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+I am aware that it says this in the inf file for the win driver for these 
+cameras, but in all of these years I have never seen any 0x2770:0x9130 
+device in the wild. As far as I know there really is no such thing, or 
+they put the number in there thinking it was going to be used for some 
+chip that never got produced, or something like that. As to the specific 
+camera that you mention, the Argus DC-1512, I have owned one of them for 
+years, and I have used it as recently as yesterday evening for testing the 
+gspca driver. I assure you, it comes up as Product 0x9120 and works just 
+fine.
 
-Full logs are available here:
+If you want a list of the cameras that I know will work, then a good place 
+to start would be the list in libgphoto2/camlibs/sq905/library.c. The 
+exception is that a camera which is listed there which has a product 
+number 0x913C and I can personaly report that, so far, I have been unable 
+to cause it to stream. It might be that, with this timing issue fixed, it 
+can now do so. But it is a pretty messed up camera anyway. See the README 
+about it.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Understand, too, that there are lots of these cameras out there that I do 
+not even know about. The SQ905 for a while was practically *the* chip to 
+put in cameras. But AFAIK they are all the same inside, except for minor 
+details.
 
-The V4L2 specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Theodore Kilgore
