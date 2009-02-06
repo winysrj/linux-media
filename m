@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:31461 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753287AbZBBUHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 15:07:19 -0500
-Message-ID: <49875273.6060902@iki.fi>
-Date: Mon, 02 Feb 2009 22:07:15 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.citynetwork.se ([62.95.110.81]:36822 "EHLO
+	smtp05.citynetwork.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752766AbZBFSZd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 13:25:33 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by smtp05.citynetwork.se (Postfix) with ESMTP id EB99228C1A2
+	for <linux-media@vger.kernel.org>; Fri,  6 Feb 2009 19:17:27 +0100 (CET)
+Received: from smtp05.citynetwork.se ([127.0.0.1])
+	by localhost (smtp05.citynetwork.se [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id rzz8BgiwvYiS for <linux-media@vger.kernel.org>;
+	Fri,  6 Feb 2009 19:17:27 +0100 (CET)
+Received: from xplap (c83-250-187-25.bredband.comhem.se [83.250.187.25])
+	(Authenticated sender: marten.gustafsson@holisticode.se)
+	by smtp05.citynetwork.se (Postfix) with ESMTPA id F38D628C1A1
+	for <linux-media@vger.kernel.org>; Fri,  6 Feb 2009 19:17:26 +0100 (CET)
+From: =?iso-8859-1?Q?M=E5rten_Gustafsson?=
+	<marten.gustafsson@holisticode.se>
+To: <linux-media@vger.kernel.org>
+Subject: 
+Date: Fri, 6 Feb 2009 19:16:47 +0100
+Message-ID: <720AE5B388FE4585B23F5428DB26FF5A@xplap>
 MIME-Version: 1.0
-To: Lindsay Mathieson <lindsay.mathieson@gmail.com>
-CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: TinyTwin (af9015) - tuner 0 not working
-References: <49864b5b.104.2583.763472724@blackpaw.dyndns.org>
-In-Reply-To: <49864b5b.104.2583.763472724@blackpaw.dyndns.org>
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lindsay Mathieson wrote:
-> I've had a DigitalNow TinyTwin dual usb tuner working on my
-> mythbox for a week now (latest v4l-dvb trunk).
+> Carl Oscar Ejwertz wrote:
+> > I was wondering if the support for this card is fixed or is
+> going to be
+> > fixed in some tree?
+> > I know that there has been support for the card in manu:s
+> Mantis tree
+> > but hasn't been working for a long time.
+> > For some reason the interface has been disabled in the sourcecode.
 > 
-> A odd problem with the tuner has surfaced. Today Tuner 0
-> stopped getting a lock on any channel. Signal strength is
-> 95%+, Bit Errors are Zero.
+> Have added initial support for this card, as well as a large overhaul 
+> of the driver for a couple of performance impacts.
 > 
-> However Tuner 1 is locking on and displaying channels just
-> fine. Tuner 0 used to work fine. I've rebooted, but the
-> problem hasn't gone away.
+> Please do test with the latest updates from http://jusst.de/hg/mantis.
 > 
-> Any suggestions?
+> 
+> Regards,
+> Manu
 
-Have you tried replug stick? Hopefully it does not have burned.
-Could you test whether this driver works:
-http://linuxtv.org/hg/~anttip/af9015-mxl500x/
-It uses different tuner driver.
+Is there by any chance support for CA ?
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Regards 
+
+Mårten Gustafsson
+
