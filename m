@@ -1,76 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f222.google.com ([209.85.217.222]:49032 "EHLO
-	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752902AbZBOWdd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 17:33:33 -0500
-Received: by gxk22 with SMTP id 22so2518572gxk.13
-        for <linux-media@vger.kernel.org>; Sun, 15 Feb 2009 14:33:31 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4998938B.6000702@rogers.com>
-References: <200902152115.58993.aspeltami@gmail.com>
-	 <49987D43.2000805@rogers.com>
-	 <412bdbff0902151254u14474393id1d7c9bee98515df@mail.gmail.com>
-	 <4998938B.6000702@rogers.com>
-Date: Sun, 15 Feb 2009 17:33:31 -0500
-Message-ID: <412bdbff0902151433q44b65b02p898c5ecd7ef28297@mail.gmail.com>
-Subject: Re: firmware
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: CityK <cityk@rogers.com>
-Cc: Michele <aspeltami@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1299 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752500AbZBGTLy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Feb 2009 14:11:54 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n17JBq6k085248
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 7 Feb 2009 20:11:52 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 7 Feb 2009 20:11:52 +0100 (CET)
+Message-Id: <200902071911.n17JBq6k085248@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 15, 2009 at 5:13 PM, CityK <cityk@rogers.com> wrote:
->
-> Devin Heitmueller wrote:
->> CityK,
->>
->> That actually wasn't a very helpful link you sent ... the page on the XC3028 and XC2028 pointed to on
->> that page makes no reference to getting the firmware for the low power version of the chip.
->>
->> Michele,
->>
->> You can get the firmware here:
->>
->> http://steventoth.net/linux/hvr1400/xc3028L-v36.fw
->>
->
-> My apologies, I first off, didn't notice the low power chip, and, in any
-> regard, even if I had, I was under the impression that it was documented
-> there.  I will amend that shortly.
->
-> Devin Heitmueller wrote:
->> On Sun, Feb 15, 2009 at 3:38 PM, CityK <cityk@rogers.com> wrote:
->>>> Michele wrote:
->>>>
->>>>> my gentoo system ... I need a firmware called "xc3028L-v36.fw"
->>>> Follow the rabbit: http://www.linuxtv.org/wiki/index.php/Firmware
->>>>
->>>>
->> CityK,
->> That actually wasn't a very helpful link you sent ... The user would
->> have to know he has a Xceive 3028L tuner, and even if he had been able
->> to figure that out,
->>
->
-> I would hope that someone using Gentoo (hardly a hands off distro) would
-> be sharp enough to know how to follow the rabbit down the hole  ...
-> although I'd advise that they avoid sipping from any vessel labelled
-> with the words "Drink Me"
->
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-CityK,
+Results of the daily build of v4l-dvb:
 
-Thanks for taking the time to update the docs.  Your efforts are appreciated.
+date:        Sat Feb  7 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10432:71e5a36634ea
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Regards,
+linux-2.6.16.61-armv5: WARNINGS
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc3-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc3-armv5-omap2: OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc3-i686: WARNINGS
+linux-2.6.16.61-m32r: WARNINGS
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc3-m32r: OK
+linux-2.6.16.61-mips: WARNINGS
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc3-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc3-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc3-x86_64: WARNINGS
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc3): ERRORS
 
-Devin
+Detailed results are available here:
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
