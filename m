@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.190])
+Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LU3FW-0006xK-HX
-	for linux-dvb@linuxtv.org; Mon, 02 Feb 2009 19:10:23 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so264706nfb.11
-	for <linux-dvb@linuxtv.org>; Mon, 02 Feb 2009 10:10:18 -0800 (PST)
-Date: Mon, 2 Feb 2009 19:09:57 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Jelle De Loecker <skerit@kipdola.com>
-In-Reply-To: <4981A93A.7080909@kipdola.com>
-Message-ID: <alpine.DEB.2.00.0902021322550.13427@ybpnyubfg.ybpnyqbznva>
-References: <4981A93A.7080909@kipdola.com>
+	(envelope-from <jw@raven.inka.de>) id 1LVkvL-0001VB-33
+	for linux-dvb@linuxtv.org; Sat, 07 Feb 2009 12:00:37 +0100
+Date: Sat, 7 Feb 2009 11:57:13 +0100
+From: Josef Wolf <jw@raven.inka.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20090207105713.GB19668@raven.wolf.lan>
+References: <20090207015744.GA19668@raven.wolf.lan>
+	<c74595dc0902070112k19946af8h8885dcdc73de8a55@mail.gmail.com>
 MIME-Version: 1.0
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Extracting video stream
+Content-Disposition: inline
+In-Reply-To: <c74595dc0902070112k19946af8h8885dcdc73de8a55@mail.gmail.com>
+Subject: Re: [linux-dvb] Tuning problems with loss of TS packets
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,37 +27,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sorry for taking so long to reply...
+On Sat, Feb 07, 2009 at 11:12:25AM +0200, Alex Betis wrote:
+[ ... ]
+> > To be precise: on an already set-up transponder, re-executing this
+> > function:
+> >
+> >  static void tune_frequency (int ifreq, int sr)
+> >  {
+> >      struct dvb_frontend_parameters tuneto;
+> >
+> >      tuneto.frequency = ifreq*1000;
+> >      tuneto.inversion = INVERSION_AUTO;
+> >      tuneto.u.qpsk.symbol_rate = sr*1000;
+> >      tuneto.u.qpsk.fec_inner = FEC_AUTO;
+> >
+> >      if (ioctl(fefd, FE_SET_FRONTEND, &tuneto) == -1) {
+> >          fatal ("FE_SET_FRONTEND failed: %s\n", strerror (errno));
+> >      }
+> >  }
+> >
+> > with _exactly_ the same values for ifreq and sr, is able to toggle from
+> > good TS stream to bad TS stream or vice-versa.  As long as I avoid to
+> > call this function, the quality of the stream does _not_ change.
+> 
+> I had exactly the same behavior of Twinhan SP-200 (1027) card until I
+> totally gave up and bought Twinhan SP-400 (1041) card.
+> Interesting if those 2 cards have the same components.
 
-On Thu, 29 Jan 2009, Jelle De Loecker wrote:
+The cards I have are of those:
+http://www.linuxtv.org/wiki/index.php/TechnoTrend_PCline_budget_DVB-S
+Do you think the problem is related to hardware?
 
-> This is not a real -dvb question, but -media seemed too official.
+> > I have tried to use fixed values instead of *_AUTO for FEC and INVERSION,
+> > but that did not help either.
+> >
+> > Any ideas?
+> 
+> What driver repository you use? And what driver is loaded for that card?
+> My guess was that the tuner is not properly reset/set before the tuning.
+> But (again) since I don't have any chip specification, I didn't have much
+> progress with that.
 
-Unfortunately, it is exactly the sort of question that belongs
-on -media (or the v4linux list it replaced), and has no bearing
-on DVB at all...
+  # lsmod|egrep '(dvb|budget|stv|saa|ttpci)'
+  stv0299                11280  1
+  budget_ci              18956  3
+  budget_core            12332  1 budget_ci
+  dvb_core               87948  3 stv0299,budget_ci,budget_core
+  saa7146                18080  2 budget_ci,budget_core
+  ttpci_eeprom            2520  1 budget_core
+  ir_common              43340  1 budget_ci
+  i2c_core               35280  5 stv0299,budget_ci,budget_core,ttpci_eeprom,i2c_piix4
+  #
 
-``Too official''?  On a list where more than half the posts
-seem to discuss webcams and other analogue sources?
-Nevertheless...
-
-
-> unfortunately it uses its own (very simple) protocol: it's a bunch of 
-> jpegs in a row.
-> I have this script that checks the stream every second and creates a 
-> jpeg out of it,
-> but I really want a continuous video stream. Is there a way to do this?
-
-I really don't know anything about this, but might MJPEG
-(a motion-picture series of JPEG images) be a solution?
-
-You are far more likely to reach people who can help on the
--media list, if you haven't received an off-list response
-already...
-
-
-just saying,
-barry bouwsma
+I have not yet compiled my own drivers, so I use the drivers that came
+with the disro (opensuse-11.1, x86_64).  But I am about to dive into the
+driver to narrow down the problem closer.  Any hint how to compile my
+own drivers on opensuse?
 
 _______________________________________________
 linux-dvb users mailing list
