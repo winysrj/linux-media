@@ -1,47 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 78-86-168-217.zone2.bethere.co.uk ([78.86.168.217]:45322 "EHLO
-	homer.jasonline.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751947AbZBAAJ5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jan 2009 19:09:57 -0500
-Received: from quad.jasonline.co.uk (quad.jasonline.co.uk [192.168.0.13])
-	by homer.jasonline.co.uk (Postfix) with ESMTP id 4B2D9B682AB
-	for <linux-media@vger.kernel.org>; Sat, 31 Jan 2009 23:55:57 +0000 (GMT)
-Message-ID: <4984E50D.8000506@jasonline.co.uk>
-Date: Sat, 31 Jan 2009 23:55:57 +0000
-From: Jason Harvey <softdevice@jasonline.co.uk>
+Received: from cuda.parknet.dk ([84.238.112.40]:52543 "EHLO cuda.parknet.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750915AbZBGWNw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Feb 2009 17:13:52 -0500
+Received: from [10.20.30.200] (localhost [127.0.0.1])
+	by cuda.parknet.dk (Spam Firewall) with ESMTP id 789471A55D1C
+	for <linux-media@vger.kernel.org>; Sat,  7 Feb 2009 22:54:38 +0100 (CET)
+Received: from [10.20.30.200] ([10.49.141.10]) by cuda.parknet.dk with ESMTP id AKzm1SE18hQdJKRi for <linux-media@vger.kernel.org>; Sat, 07 Feb 2009 22:54:38 +0100 (CET)
+Message-ID: <498E031E.9040503@agnoletti.dk>
+Date: Sat, 07 Feb 2009 22:54:38 +0100
+From: Klaus Agnoletti <klaus@agnoletti.dk>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: CinergyT2 not working with newer alternative driver
+Subject: channels.conf file for danish DVB-C provider AFDK (www.afdk.tv)
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have been successfully using VDR with two CinergyT2s for 18 months.
-After adding a Hauppage NOVA-S2-HD I updated my v4l-dvb drivers hoping 
-to get S2 capability and test a newer VDR for HD reception.
+Hello,
 
-The CinergyT2s stopped working. The kernel module loads, the blue leds 
-flash as expected but they don't lock on to a signal for long.
-Signal strength shown in femon is erratic and a lock only rarely achieved.
+I've managed to make a channels.conf file for danish DVB-C provider 
+AFDK. MythTV can't find any channels by scanning, so they go in the 
+'broken DVB-C provider category.
 
-I checked through the mercurial tree to see what had changed.
-It looks like the following change is the one that stops the CinergyT2s 
-working on my system.
-http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git;a=commit;h=986bd1e58b18c09b753f797df19251804bfe3e84
+Please provide the channels.conf in the dvb-utils package.
 
-I deleted the newer version of the module and replace it with the 
-previous deleted code.
-Make'd and installed the old version works as expected.
+dk-Copenhagen-AFDK channels.conf:
+---------------------------------------------------------------
+Animal Planet:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1000:1001:407
+BBC Prime:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:270:272:3
+BBC World News:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:264:265:2
+CNN 
+International:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:700:701:202
+Das Erste:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:101:102:28106
+Discovery :490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:111:112:412
+Discov Science:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:286:288:5
+Discov Trav&liv:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:278:280:4
+Discov World:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:294:296:6
+Disney Channel:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:258:259:1
+DR1:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:111:121:101
+DR2:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:211:221:102
+DR UPDATE / 
+Tegnsprog:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:311:321:103
+Eurosport:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:513:644:905
+Hlm_Jtx:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1100:0:230
+Kanal 4 DK:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:516:664:3210
+Kanal 5 :490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1200:1201:229
+Kanal Kbh:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:4001:4002:4099
+MTV :602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:519:668:3205
+Nat Geo Channel:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:400:401:201
+Nature/Crime/Playboy:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:278:279:3
+Nickelodeon:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:302:306:7
+Playhouse 
+Disney:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:513:648:1544
+ProSieben 
+Austria:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:161:84:20002
+SBS NET:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:513:644:2406
+SVT1 Sydnytt:394000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1019:1018:5880
+SVT2 Sydnytt:394000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1029:1028:5650
+TCM_Cartoon:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:700:701:411
+Toon Disney:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:269:270:2
+TV 2 :386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:2111:2121:217
+TV2 Charlie:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:515:648:2801
+TV2 Film:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:109:688:2809
+TV2 NEWS:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:290:291:5
+TV 2 Norge:394000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:514:668:1508
+TV 2 SPORT:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:7061:7062:7060
+TV2 Zulu:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:105:660:611
+TV3 Denmark:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:257:260:1120
+TV5MONDE EUROPE:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:45:46:10060
+VH1:618000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:600:601:204
+VIVA 
+Germany:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:4061:4062:28676
+Voice :794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:285:286:4
+ZDF:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:110:120:28006
 
-Machine they're plugged into is running Fedora 10, 
-2.6.27.12-170.2.5.fc10.i686
-I downloaded the current v4l-dvb today (31Jan2009) and tried it all 
-again before posting this message.
-
-Not sure where to look next, I did start to capture the USB traffic to 
-see if I could spot the difference...
-
-Thanks,
-Jason
+/klaus
