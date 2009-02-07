@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n11HxSiZ008550
-	for <video4linux-list@redhat.com>; Sun, 1 Feb 2009 12:59:38 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n11HvMTI013613
-	for <video4linux-list@redhat.com>; Sun, 1 Feb 2009 12:57:53 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so402928fgg.7
-	for <video4linux-list@redhat.com>; Sun, 01 Feb 2009 09:57:12 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 1 Feb 2009 17:57:11 +0000
-Message-ID: <286e6b7c0902010957g62d19274u8bbe75932e6a1f9@mail.gmail.com>
-From: D <d.a.nstowell+v4l@gmail.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n172ke5n022962
+	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 21:46:47 -0500
+Received: from mail-in-06.arcor-online.net (mail-in-06.arcor-online.net
+	[151.189.21.46])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n172Nlpp008443
+	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 21:23:55 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20090207104354.55581cdf@glory.loctelecom.ru>
+References: <163227.41578.qm@web35306.mail.mud.yahoo.com>
+	<498CDCD9.1010305@eng.wayne.edu>
+	<20090207104354.55581cdf@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Sat, 07 Feb 2009 03:24:27 +0100
+Message-Id: <1233973467.3933.10.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: VIDIOCGMBUF "Invalid argument" (hasciicam on eee, 2.6.27-8-eeepc)
+Cc: video4linux-list@redhat.com
+Subject: Re: Philips saa6752hs mpeg encoder recommendation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,42 +30,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi -
+Hi,
 
-I have an asus eee running eeebuntu 8.10, and I'm trying to get
-hasciicam [1] to work with the built-in UVC webcam. (All works fine
-when using "cheese" to confirm the webcam is working.) The hasciicam
-code calls the VIDIOCGMBUF ioctl and that's where it fails. Here's the
-code (from hasciicam.c):
+Am Samstag, den 07.02.2009, 10:43 +0900 schrieb Dmitri Belimov:
+> Hi Brian
+> 
+> > Hello all,
+> > 
+> > I'd like to do some mpeg encoder testing on linux with the Philips
+> > saa6752hs mpeg encoder but I'm having a difficult time finding
+> > PCI cards that use the chip.
+> > 
+> > If anyone has any recommendations on cards that make use of
+> > the Philips saa6752hs chip and associated linux driver, I'd really
+> > appreciate the info. Especially cards that are still available new
+> > or readily available used.
+> 
+> Our TV tuners has hardware MPEG encoder saa6752hs:
+> BeholdTV M6
+> BeholdTV M63
+> BeholdTV M6 Extra
 
-  if (ioctl (dev, VIDIOCGMBUF, &grab_map) == -1) {
-    perror("!! error in ioctl VIDIOCGMBUF: ");
-    return -1;
-  }
+I was just about to point to you.
 
-...where dev is pretty definitely open (we have already successfully
-called VIDIOCGCAP and suchlike), and grab_map is a struct of type
-video_mbuf as it should be. And here's the result:
+> We made support this cards in Linux with Hans Verkuil (big thanks). 
+> See saa7134-empress.c and saa6752hs.c source code (in media/video/saa7134 folder).
+> 
+> And bad news. You can't buy our card outside of Russia.
 
-  !! error in ioctl VIDIOCGMBUF: Invalid argument
+Hmm, assuming you have still some amount of chips, why you don't try to
+sell global like all others do after all the work you had to get the
+mess sorted?
 
-Does this suggest that hasciicam is calling the ioctl incorrectly?
-(For example, in [2] it says "a user first sets the desired image size
-and depth properties" before calling it, although it doesn't spell out
-precisely how that is done.) Or does it mean this particular ioctl is
-not available on the given setup?
+Given that nvidia and others have GPU hardware acceleration for HDTV
+more or less ready, even with GNU/Linux on current cheap supermarket
+PCs, what to wait for?
 
-I'd be grateful for any suggestions.
+The remaining market is _now_ and not in any future. 
 
-Thanks
-Dan
+> With my best regards, Dmitry.
 
-kernel 2.6.27-8-eeepc
+Best as well, get them out.
 
-[1] http://ascii.dyne.org/
-[2] http://www.linuxtv.org/downloads/video4linux/API/V4L1_API.html
--- 
-http://www.mcld.co.uk
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
