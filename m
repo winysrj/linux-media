@@ -1,37 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 217-112-173-73.cust.avonet.cz ([217.112.173.73]:33519 "EHLO
-	podzimek.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754237AbZBRWKw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 17:10:52 -0500
-Message-ID: <499C863B.5000507@podzimek.org>
-Date: Wed, 18 Feb 2009 23:05:47 +0100
-From: Andrej Podzimek <andrej@podzimek.org>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: AF9015_REMOTE_MSI_DIGIVOX_MINI_II_V3 works, but keys get stuck
-References: <49738339.9030203@podzimek.org> <4973900C.6090406@iki.fi>
-In-Reply-To: <4973900C.6090406@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([18.85.46.34]:43843 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752987AbZBHKIn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2009 05:08:43 -0500
+Date: Sun, 8 Feb 2009 08:07:47 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: CityK <cityk@rogers.com>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	David Engel <david@istwok.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090208080747.7d0ed1c5@caramujo.chehab.org>
+In-Reply-To: <498926EE.4050204@rogers.com>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+	<496FE555.7090405@rogers.com>
+	<496FFCE2.8010902@rogers.com>
+	<200901171720.03890.hverkuil@xs4all.nl>
+	<49737088.7060800@rogers.com>
+	<20090202235820.GA9781@opus.istwok.net>
+	<4987DE4E.2090902@rogers.com>
+	<1233714662.3728.45.camel@pc10.localdom.local>
+	<498926EE.4050204@rogers.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> After reloading the module, the remote control (almost) worked. Unfortunately, keys got stuck somehow, just as if I were holding a key on the keyboard. Another key press changed the event being repeated, but there seemed to be *no* key release events at all.
->>
->> Pressing the channel up/down keys seemed to stop that key event flood, but both of my keyboards (one on the laptop and an external one) stopped working. Again, this may have been due to the absence of a key release event. (This time the key events were not that obvious, since channel up/down does not produce an alphanumeric key code.)
->>
->> I use kernel 2.6.27.10, revision af9015-57423d241699 and (presumably) MSI Digivox Mini II V3.
->>
->> Either I misunderstood / misconfigured something, or this could be a bug. I'm not familiar with this source code and don't have time to explore it in detail. However, feel free to ask for debugging output and other data you may need.
-> 
-> This seems to be hw bug. For more information:
-> 
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030292.html
+On Wed, 04 Feb 2009 00:26:06 -0500
+CityK <cityk@rogers.com> wrote:
 
-Hello,
+> Nope -- as I mentioned, dropping back to a snapshot from roughly 3 weeks
+> ago and applying Mike's patch works with both the nv and nvidia driver,
+> hence disproving that it is anything X related. 
 
-Those quirks worked perfectly fine before I switched to kernel 2.6.28. (I use 2.6.28.6 at the moment.) Now I have the same problem again. Is there a new workaround? Tried the driver included in the kernel and the mercurial tree. Keys remain „down“ in both cases.
+CityK,
 
-Regards,
+It seems I missed your email with the detailed logs.
 
-Andrej Podzimek
+Let's go by parts: Let's first try to solve the issue with the i2c gate, in
+order to have both analog and digital modes to work properly. After having it
+fixed, we can go ahead and check if the issue with some softwares are a
+regression at the driver (or at v4l core) or something else at X space.
+
+Could you please send me the logs of the driver of it working (old tree +
+Mike's patch) and not working (with current tip)?
+
+Please load it with the following debug options:
+	modprobe saa7134 i2c_scan=1 video_debug=3 core_debug=1 i2c_debug=1
+
+Btw, I have one PCMCIA board with me that stopped working with Hans patches
+applied at tip. So, I suspect that some regression were caused by the i2c
+conversion. I'll use this board to debug the driver.
+
+Cheers,
+Mauro
