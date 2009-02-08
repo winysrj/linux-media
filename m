@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f176.google.com ([209.85.218.176])
+Received: from ti-out-0910.google.com ([209.85.142.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <threnard@gmail.com>) id 1LaEbS-0000yD-Eh
-	for linux-dvb@linuxtv.org; Thu, 19 Feb 2009 20:30:35 +0100
-Received: by bwz24 with SMTP id 24so1534902bwz.17
-	for <linux-dvb@linuxtv.org>; Thu, 19 Feb 2009 11:30:00 -0800 (PST)
-Message-ID: <499DB335.50807@laposte.net>
-Date: Thu, 19 Feb 2009 20:29:57 +0100
-From: Thomas RENARD <threnard@gmail.com>
+	(envelope-from <gundyman@gmail.com>) id 1LVyMm-00029H-5b
+	for linux-dvb@linuxtv.org; Sun, 08 Feb 2009 02:21:49 +0100
+Received: by ti-out-0910.google.com with SMTP id j2so1552847tid.13
+	for <linux-dvb@linuxtv.org>; Sat, 07 Feb 2009 17:21:41 -0800 (PST)
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Can I use AVerTV Volar Black HD (A850) with Linux ?
+In-Reply-To: <4989C87A.2020803@linuxtv.org>
+References: <20090204183447.26c0903b.davmac@davmac.org>
+	<4989C87A.2020803@linuxtv.org>
+Date: Sun, 8 Feb 2009 12:21:40 +1100
+Message-ID: <e8207f160902071721k6247b4c8q8dfcbac20b0ddd88@mail.gmail.com>
+From: David Gundersen <gundyman@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR2250 / HVR2200 / SAA7164 status
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,171 +23,128 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0424094843=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+--===============0424094843==
+Content-Type: multipart/alternative; boundary=0016e652f64288be5d04625e130a
 
-I bought this USB card : AVerTV Volar Black HD (A850) - 
-http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=460&tab=APDriver.
-I don't find anything relevant about using this card on linux.
+--0016e652f64288be5d04625e130a
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Can I use this card on Linux ? How ?
+Steve,
 
-Here is some information :
+Do you know if Hauppauge are willing/able to dish out the
+hardware/programming specifications for these cards?
 
-thomas@trubuntu:~$ dmesg
-[  204.468031] usb 1-3: new full speed USB device using ohci_hcd and 
-address 11
-[  204.648022] usb 1-3: device descriptor read/64, error -62
-[  204.932027] usb 1-3: device descriptor read/64, error -62
-[  205.212025] usb 1-3: new full speed USB device using ohci_hcd and 
-address 12
-[  205.392026] usb 1-3: device descriptor read/64, error -62
-[  205.676267] usb 1-3: device descriptor read/64, error -62
-[  205.956026] usb 1-3: new full speed USB device using ohci_hcd and 
-address 13
-[  206.367700] usb 1-3: device not accepting address 13, error -62
-[  206.544046] usb 1-3: new full speed USB device using ohci_hcd and 
-address 14
-[  206.952015] usb 1-3: device not accepting address 14, error -62
-[  206.952696] hub 1-0:1.0: unable to enumerate USB device on port 3
-[  206.953461] ppdev0: registered pardevice
-[  207.000249] ppdev0: unregistered pardevice
-[  207.134128] ppdev0: registered pardevice
-[  207.180716] ppdev0: unregistered pardevice
-[  207.420177] ppdev0: registered pardevice
-[  207.468035] ppdev0: unregistered pardevice
-[  213.643907] type=1503 audit(1235066401.409:6): 
-operation="inode_permission" requested_mask="::x" denied_mask="::x" 
-fsuid=7 name="/usr/NX/bin/nxspool" pid=7880 profile="/usr/sbin/cupsd"
-[  681.700334] usb 3-6: new high speed USB device using ehci_hcd and 
-address 3
-[  681.889296] usb 3-6: configuration #1 chosen from 1 choice
-[  719.776030] usb 1-3: new full speed USB device using ohci_hcd and 
-address 15
-[  719.960026] usb 1-3: device descriptor read/64, error -62
-[  720.244031] usb 1-3: device descriptor read/64, error -62
-[  720.524031] usb 1-3: new full speed USB device using ohci_hcd and 
-address 16
-[  720.706552] usb 1-3: device descriptor read/64, error -62
-[  720.988024] usb 1-3: device descriptor read/64, error -62
-[  721.272059] usb 1-3: new full speed USB device using ohci_hcd and 
-address 17
-[  721.680021] usb 1-3: device not accepting address 17, error -62
-[  721.856043] usb 1-3: new full speed USB device using ohci_hcd and 
-address 18
-[  722.264442] usb 1-3: device not accepting address 18, error -62
-[  722.264790] hub 1-0:1.0: unable to enumerate USB device on port 3
+I understand that you're busy with other things, but it seems that there are
+a lot of people waiting on support for these cards, and by the sound of it
+there are at least a few who have enough experience and/or time to have a
+good run at getting something going..
+
+I don't want to sound ungrateful, as I (and many others) appreciate the
+amount of time and effort that you put into these things but I also
+appreciate that there's only so much time in the day that you can spend on
+driver development, and I think that you should at least acknowledge people
+who are willing and able to help (eg. Davin), rather than just coming back
+with 'no progress'...
+
+If there are problems organising things like NDA's etc or if Hauppauge don't
+want to share information then that's fine - I guess we'll just have to
+wait...  but if there is any way of letting someone else have a go, then all
+I would ask is that you please consider letting them take some of the burden
+off your shoulders.
+
+Regards,
+Dave.
 
 
---------------------------------------------------------------
+On Thu, Feb 5, 2009 at 3:55 AM, Steven Toth <stoth@linuxtv.org> wrote:
+
+> Davin McCall wrote:
+> > Steven Toth wrote:
+> >
+> >> Feel free to ping me through this mailing list every few weeks.
+> >>
+> >
+> > So, ping...
+>
+> No progress, sorry.
+>
+> - Steve
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+--0016e652f64288be5d04625e130a
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<br>Steve,<br><br>Do you know if Hauppauge are willing/able to dish out the=
+ hardware/programming specifications for these cards?&nbsp; <br><br>I under=
+stand that you&#39;re busy with other things, but it seems that there are a=
+ lot of people waiting on support for these cards, and by the sound of it t=
+here are at least a few who have enough experience and/or time to have a go=
+od run at getting something going..&nbsp; <br>
+<br>I don&#39;t want to sound ungrateful, as I (and many others) appreciate=
+ the amount of time and effort that you put into these things but I also ap=
+preciate that there&#39;s only so much time in the day that you can spend o=
+n driver development, and I think that you should at least acknowledge peop=
+le who are willing and able to help (eg. Davin), rather than just coming ba=
+ck with &#39;no progress&#39;...<br>
+<br>If there are problems organising things like NDA&#39;s etc or if Hauppa=
+uge don&#39;t want to share information then that&#39;s fine - I guess we&#=
+39;ll just have to wait...&nbsp; but if there is any way of letting someone=
+ else have a go, then all I would ask is that you please consider letting t=
+hem take some of the burden off your shoulders.<br>
+<br>Regards,<br>Dave.<br><br><br><div class=3D"gmail_quote">On Thu, Feb 5, =
+2009 at 3:55 AM, Steven Toth <span dir=3D"ltr">&lt;<a href=3D"mailto:stoth@=
+linuxtv.org">stoth@linuxtv.org</a>&gt;</span> wrote:<br><blockquote class=
+=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204); margin=
+: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div class=3D"Ih2E3d">Davin McCall wrote:<br>
+&gt; Steven Toth wrote:<br>
+&gt;<br>
+&gt;&gt; Feel free to ping me through this mailing list every few weeks.<br=
+>
+&gt;&gt;<br>
+&gt;<br>
+&gt; So, ping...<br>
+<br>
+</div>No progress, sorry.<br>
+<br>
+- Steve<br>
+<div><div></div><div class=3D"Wj3C7c"><br>
+_______________________________________________<br>
+linux-dvb users mailing list<br>
+For V4L/DVB development, please use instead <a href=3D"mailto:linux-media@v=
+ger.kernel.org">linux-media@vger.kernel.org</a><br>
+<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
+t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
+br>
+</div></div></blockquote></div><br>
+
+--0016e652f64288be5d04625e130a--
 
 
-thomas@trubuntu:~$ dmesg | grep dvb
-thomas@trubuntu:~$
-
-
---------------------------------------------------------------
-thomas@trubuntu:~$ lsusb -v
-
-Bus 003 Device 003: ID 07ca:850a AVerMedia Technologies, Inc.
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x07ca AVerMedia Technologies, Inc.
-  idProduct          0x850a
-  bcdDevice            1.01
-  iManufacturer           1 AVerMedia
-  iProduct                2 A850 DVBT
-  iSerial                 3 301475201032000
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
-
-Thank you !
-
+--===============0424094843==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0424094843==--
