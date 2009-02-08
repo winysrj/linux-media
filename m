@@ -1,47 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46287 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755141AbZB0Phu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 10:37:50 -0500
-Date: Fri, 27 Feb 2009 12:37:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Old Video ML <video4linux-list@redhat.com>
-Subject: Re: Conversion of vino driver for SGI to not use the legacy decoder
- API
-Message-ID: <20090227123714.393831b0@pedra.chehab.org>
-In-Reply-To: <20090227105057.6dc04bf0@gmail.com>
-References: <20090226214742.6576f30b@pedra.chehab.org>
-	<200902270819.17862.hverkuil@xs4all.nl>
-	<20090227100947.160abd0b@hyperion.delvare>
-	<20090227082216.574b42cf@pedra.chehab.org>
-	<20090227105057.6dc04bf0@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx5.orcon.net.nz ([219.88.242.55]:39141 "EHLO mx5.orcon.net.nz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752324AbZBHK0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Feb 2009 05:26:12 -0500
+Received: from Debian-exim by mx5.orcon.net.nz with local (Exim 4.67)
+	(envelope-from <mail_lists@stevencherie.net>)
+	id 1LW6SL-0004Dq-9k
+	for linux-media@vger.kernel.org; Sun, 08 Feb 2009 23:00:05 +1300
+Received: from [121.98.196.30] (helo=penguin.home.stevencherie.net)
+	by mx5.orcon.net.nz with esmtp (Exim 4.67)
+	(envelope-from <mail_lists@stevencherie.net>)
+	id 1LW6SK-0004DS-SK
+	for linux-media@vger.kernel.org; Sun, 08 Feb 2009 23:00:05 +1300
+Received: from [10.84.0.18] (vpnmacbuntu [10.84.0.18])
+	by penguin.home.stevencherie.net (Postfix) with ESMTP id 72ECF2BD94
+	for <linux-media@vger.kernel.org>; Sun,  8 Feb 2009 23:00:00 +1300 (NZDT)
+Message-ID: <498EAD1F.8040300@stevencherie.net>
+Date: Sun, 08 Feb 2009 22:59:59 +1300
+From: Steven Ellis <mail_lists@stevencherie.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Any supported Dual DVB-S cards?
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Feb 2009 10:50:57 -0300
-Douglas Schilling Landgraf <dougsland@gmail.com> wrote:
+Noticed that Pinnacle now do a dual tuner PCI based DVB-S card
 
-> > Douglas,
-> > 
-> > As you've done several radio conversions to V4L2 API, maybe you can
-> > also handle this one.
-> 
-> yes.
+http://www.pinnaclesys.com/PublicSite/uk/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+(DVB-S_DVB-T)/PCTV+Dual+Sat+Pro+PCI.htm
 
-Hmm... too late, I've just converted it ;) My Internet connection dropped and I
-was without email access, so... Well, it is done.
+And that development is underway. Has anyone found a dual tuner card
+that works?
 
-I'll commit the changesets right now. Could you please help reviewing it? I'll
-also forward it to -alsa people.
-
-
-Cheers,
-Mauro
+Steve
