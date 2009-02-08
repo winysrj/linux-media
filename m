@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1LAtnqp019715
-	for <video4linux-list@redhat.com>; Sat, 21 Feb 2009 05:55:49 -0500
-Received: from yourtal3.yourtal.com (yourtal3.yourtal.com [209.172.44.134])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1LAtZKH026963
-	for <video4linux-list@redhat.com>; Sat, 21 Feb 2009 05:55:35 -0500
-Message-ID: <F13ADD43ECED4C45A8BE7A74E5B02BFE@W1>
-From: "Sergei Antonov" <sa@sa.pp.ru>
-To: <video4linux-list@redhat.com>
-Date: Sat, 21 Feb 2009 13:55:27 +0300
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n18L1Avw018449
+	for <video4linux-list@redhat.com>; Sun, 8 Feb 2009 16:01:10 -0500
+Received: from indigo.eng.wayne.edu (coemail.eng.wayne.edu [141.217.43.45])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n18L0LdV029092
+	for <video4linux-list@redhat.com>; Sun, 8 Feb 2009 16:00:21 -0500
+Received: from [172.21.8.203] ([141.217.200.220]) (authenticated bits=0)
+	by indigo.eng.wayne.edu (8.13.8/8.13.4) with ESMTP id n18L0JZj000904
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Sun, 8 Feb 2009 16:00:20 -0500 (EST)
+Message-ID: <498F47E3.5070007@eng.wayne.edu>
+Date: Sun, 08 Feb 2009 16:00:19 -0500
+From: Brian Thompson <brian@eng.wayne.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1";
-	reply-type=original
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Genius Look 317
+Subject: looking for card source
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,27 +28,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!
-I'm trying to make 'Genius Look 317' (0c45:60b0, gspca recognizes it) webcam work.
 
-v4lgrab.c (from linux-2.6.28.5\Documentation\video4linux) loops infinitely in this code:
+Hello all,
 
-  do {
-    int newbright;
-    read(fd, buffer, win.width * win.height * bpp);
-    f = get_brightness_adj(buffer, win.width * win.height, &newbright);
-    if (f) {
-      vpic.brightness += (newbright << 8);
-      if(ioctl(fd, VIDIOCSPICT, &vpic)==-1) {
-        perror("VIDIOSPICT");
-        break;
-      }
-    }
-  } while (f);
+I'm looking for a source to purchase one or more of the following
+cards, new or used:
 
-because variable 'f' is always non-zero.
-If I write 'while(0);' the resulting .ppm contains some random pixels in the top and the rest of the picture is black.
-Need help.
+Beholder BeholdTV M63
+KNC1 TV Station DVR
+BMK MPEX (with or without the built-in tuner)
+
+Just looking to do some tests with the card in order to compare its
+Philips encoder chip against a similar Conexant chip. If you have one
+you're willing to part with or know of a source that will ship to the
+USA, please let me know.
+
+Thanks,
+Brian
 
 --
 video4linux-list mailing list
