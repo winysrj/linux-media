@@ -1,31 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:38123 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013AbZBKREJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2009 12:04:09 -0500
-Message-ID: <16077102.1234371844902.JavaMail.ngmail@webmail19.arcor-online.net>
-Date: Wed, 11 Feb 2009 18:04:04 +0100 (CET)
-From: schollsky@arcor.de
-To: crope@iki.fi
-Subject: Aw: Re: Driver for this DVB-T tuner?
+Received: from mail1.radix.net ([207.192.128.31]:35938 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752336AbZBHVay (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Feb 2009 16:30:54 -0500
+Subject: Re: Looking for cheap big-endian system with PCI slot
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <200902082219.53360.hverkuil@xs4all.nl>
+References: <200902082219.53360.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sun, 08 Feb 2009 16:31:45 -0500
+Message-Id: <1234128705.3108.14.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti wrote:
- 
-> Still old firmware. What md5sum says?
+On Sun, 2009-02-08 at 22:19 +0100, Hans Verkuil wrote:
+> Hi all,
 > 
-> [root@localhost ~]# md5sum /lib/firmware/dvb-usb-af9015.fw
-> dccbc92c9168cc629a88b34ee67ede7b  /lib/firmware/dvb-usb-af9015.fw
+> I wonder if anyone knows a reasonably priced big-endian system with a PCI 
+> slot that I can use to test PCI capture cards with a big-endian linux 
+> installation. Preferable something small like a mini-ITX board.
+> 
+> I haven't been able to find anything yet, but perhaps someone has an idea of 
+> where to find something like this?
 
-Same as yours:
+This looks like it has promise:
 
-$ md5sum /lib/firmware/dvb-usb-af9015.fw 
-dccbc92c9168cc629a88b34ee67ede7b  dvb-usb-af9015.fw
+http://www.linux-mips.org/wiki/Mips_Malta
 
-Do I have to enable HOTPLUG_PCI additionally to HOTPLUG for kernel?
+I don't know where to get one though, but it looks like one might be
+able to select the endianess that gets used.
+
+(I have a recollection that PA-RISC, and maybe MIPS, would let you
+specify endianess with a processor control register, but it's been a
+while.)
+
+Regards,
+Andy
+
+> Thanks,
+> 
+> 	Hans
+> 
+
