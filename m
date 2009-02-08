@@ -1,42 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailsender.it.unideb.hu ([193.6.138.90]:49097 "EHLO
-	mailsender.it.unideb.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753370AbZBPIst convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 03:48:49 -0500
-Subject: Re: [linux-dvb] DViCO FusionHDTV7 Dual Express
-From: Levente =?ISO-8859-1?Q?Nov=E1k?= <lnovak@dragon.unideb.hu>
-To: CityK <cityk@rogers.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-In-Reply-To: <49989D42.8040008@rogers.com>
-References: <e32e0e5d0902051548x3023851cua78424304a09cb7e@mail.gmail.com>
-	 <49989D42.8040008@rogers.com>
-Content-Type: text/plain; charset=utf-8
-Date: Mon, 16 Feb 2009 09:20:47 +0100
-Message-Id: <1234772447.26272.0.camel@novak.chem.klte.hu>
+Received: from fg-out-1718.google.com ([72.14.220.155]:39192 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672AbZBHN2W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2009 08:28:22 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so881205fgg.17
+        for <linux-media@vger.kernel.org>; Sun, 08 Feb 2009 05:28:20 -0800 (PST)
+Subject: [patch] dsbr100: add few lost mutex locks
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Sun, 08 Feb 2009 16:28:27 +0300
+Message-Id: <1234099707.10910.2.camel@tux.localhost>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009. 02. 15, vasárnap keltezéssel 17.54-kor CityK ezt írta:
-> Tim Lucas wrote:
-> > My cable system was recently updated to time warner so I thought I
-> > would try to get the mythbuntu box working again.  
-> > I have the DViCO FusionHDTV7 Dual Express card which seems to be
-> > recognized by my system but I still cannot tune channels. I tried
-> > using tvtime and got the following error
-> >
-> > I/O error : Permission denied
-> > Cannot change owner of /home/lucas/.tvtime/tvtime.xml: Permission denied.
-> > videoinput: Cannot open capture device /dev/video0: No such file or
-> > directory.
-> 
-> Analog is currently not supported by the cx23885 driver
+Patch adds two lost mutex locks.
 
-Only for the DViCO FusionHDTV7 Dual Express or for all cx23885-based
-cards?
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Levente
+--
+diff -r 71e5a36634ea linux/drivers/media/radio/dsbr100.c
+--- a/linux/drivers/media/radio/dsbr100.c	Mon Feb 02 10:33:31 2009 +0100
++++ b/linux/drivers/media/radio/dsbr100.c	Sun Feb 08 16:24:34 2009 +0300
+@@ -455,7 +455,10 @@
+ 	if (radio->removed)
+ 		return -EIO;
+ 
++	mutex_lock(&radio->lock);
+ 	radio->curfreq = f->frequency;
++	mutex_unlock(&radio->lock);
++
+ 	retval = dsbr100_setfreq(radio, radio->curfreq);
+ 	if (retval < 0)
+ 		dev_warn(&radio->usbdev->dev, "Set frequency failed\n");
+@@ -606,7 +609,10 @@
+ 	if (!radio)
+ 		return -ENODEV;
+ 
++	mutex_lock(&radio->lock);
+ 	radio->users = 0;
++	mutex_unlock(&radio->lock);
++
+ 	if (!radio->removed) {
+ 		retval = dsbr100_stop(radio);
+ 		if (retval < 0) {
 
+
+
+-- 
+Best regards, Klimov Alexey
 
