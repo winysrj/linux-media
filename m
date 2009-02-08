@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1O76D3T013565
-	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 02:06:13 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1O75w0f023691
-	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 02:05:59 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so50221fgg.7
-	for <video4linux-list@redhat.com>; Mon, 23 Feb 2009 23:05:58 -0800 (PST)
-Date: Tue, 24 Feb 2009 16:06:42 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: V4L <video4linux-list@redhat.com>
-Message-ID: <20090224160642.2200eb25@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n180QMgi012285
+	for <video4linux-list@redhat.com>; Sat, 7 Feb 2009 19:26:22 -0500
+Received: from s5.cableone.net (s5.cableone.net [24.116.0.231])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n180Q49U014817
+	for <video4linux-list@redhat.com>; Sat, 7 Feb 2009 19:26:05 -0500
+Received: from Desktop (unverified [24.119.216.113])
+	by s5.cableone.net (CableOne SMTP Service s5) with ESMTP id
+	13788833-1872270
+	for <video4linux-list@redhat.com>; Sat, 07 Feb 2009 17:26:01 -0700
+From: "Chris S. Wilson" <info@coolcatpc.com>
+To: <video4linux-list@redhat.com>
+Date: Sat, 7 Feb 2009 18:25:58 -0600
+Message-ID: <000301c98983$d0d1c7e0$727557a0$@com>
+MIME-Version: 1.0
+Content-Language: en-us
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Subject: new tuner
+Subject: New Card - BT878
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,46 +30,126 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All.
+Hello Everyone, I got a new BT878 card instead of my ATI, I cant seem to get
+it to work:
 
-How I can add new type of tuner to video4linux??
+ 
 
-I add new definition into  linux/include/media/tuner.h
-#define TUNER_PHILIPS_FM1216MK5		79
+LSPCI shows me:
 
-add some data to
-/linux/drivers/media/common/tuners/tuner-types.c
+ 
 
-/* ------------ TUNER_PHILIPS_FM1216MK5 - Philips PAL ------------ */
+00:00.0 RAM memory: nVidia Corporation MCP61 Memory Controller (rev a1)
 
-static struct tuner_range tuner_fm1216mk5_pal_ranges[] = {
-	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
-	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
-	{ 16 * 999.99        , 0x8e, 0x04, },
-};
+00:01.0 ISA bridge: nVidia Corporation MCP61 LPC Bridge (rev a2)
 
-static struct tuner_params tuner_fm1216mk5_params[] = {
-	{
-		.type   = TUNER_PARAM_TYPE_PAL,
-		.ranges = tuner_fm1216mk5_pal_ranges,
-		.count  = ARRAY_SIZE(tuner_fm1216mk5_pal_ranges),
- 		.cb_first_if_lower_freq = 1,
- 		.has_tda9887 = 1,
- 		.port1_active = 1,
- 		.initdata = tua603x_agc112,
- 		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
- 	},
-		[TUNER_PHILIPS_FM1216MK5] = { /* Philips PAL */
-		.name   = "Philips PAL/SECAM multi (FM1216 MK5)",
-		.params = tuner_fm1216mk5_params,
-		.count  = ARRAY_SIZE(tuner_fm1216mk5_params),
-	},
+00:01.1 SMBus: nVidia Corporation MCP61 SMBus (rev a2)
 
-But when I change type of tuner to new model build exit with error. Incorrect tuner name.
+00:01.2 RAM memory: nVidia Corporation MCP61 Memory Controller (rev a2)
 
-What is wrong??
+00:02.0 USB Controller: nVidia Corporation MCP61 USB Controller (rev a3)
 
-With my best regards, Dmitry.
+00:02.1 USB Controller: nVidia Corporation MCP61 USB Controller (rev a3)
+
+00:04.0 PCI bridge: nVidia Corporation MCP61 PCI bridge (rev a1)
+
+00:05.0 Audio device: nVidia Corporation MCP61 High Definition Audio (rev
+a2)
+
+00:06.0 IDE interface: nVidia Corporation MCP61 IDE (rev a2)
+
+00:08.0 IDE interface: nVidia Corporation MCP61 SATA Controller (rev a2)
+
+00:08.1 IDE interface: nVidia Corporation MCP61 SATA Controller (rev a2)
+
+00:09.0 PCI bridge: nVidia Corporation MCP61 PCI Express bridge (rev a2)
+
+00:0b.0 PCI bridge: nVidia Corporation MCP61 PCI Express bridge (rev a2)
+
+00:0c.0 PCI bridge: nVidia Corporation MCP61 PCI Express bridge (rev a2)
+
+00:0d.0 VGA compatible controller: nVidia Corporation GeForce 6150SE nForce
+430 (rev a2)
+
+00:18.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
+HyperTransport Technology Configuration
+
+00:18.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
+Address Map
+
+00:18.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] DRAM
+Controller
+
+00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron]
+Miscellaneous Control
+
+01:05.0 Multimedia video controller: Brooktree Corporation Bt879(??) Video
+Capture (rev 11)
+
+01:05.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture
+(rev 11)
+
+01:09.0 FireWire (IEEE 1394): Texas Instruments TSB43AB23 IEEE-1394a-2000
+Controller (PHY/Link)
+
+03:00.0 Ethernet controller: Marvell Technology Group Ltd. 88E8039 PCI-E
+Fast Ethernet Controller (rev 14)
+
+ 
+
+Then I modprobe bttv, and lsmod:
+
+ 
+
+[root@server-1 ~]# lsmod |grep bttv
+
+bttv                  150868  1 bt878
+
+videodev               32000  3 bttv,ivtv,cx88xx
+
+ir_common              38532  2 bttv,cx88xx
+
+compat_ioctl32          5120  2 bttv,ivtv
+
+i2c_algo_bit            8836  3 bttv,ivtv,cx88xx
+
+v4l2_common            12800  3 bttv,ivtv,cx2341x
+
+videobuf_dma_sg        13828  2 bttv,cx88xx
+
+videobuf_core          18052  3 bttv,cx88xx,videobuf_dma_sg
+
+btcx_risc               7560  2 bttv,cx88xx
+
+tveeprom               14596  3 bttv,ivtv,cx88xx
+
+i2c_core               21396  8
+bttv,ivtv,cx88xx,i2c_algo_bit,v4l2_common,tveeprom,nvidia,i2c_nforce2
+
+[root@server-1 ~]#
+
+ 
+
+ 
+
+I get no /dev/video0 like I did with this card on my centos 5.1 box, I am
+running Fedora Core 10 on this machine with kernel 2.6.27, any ideas anyone?
+I tried a ./MAKEDEV video0 however this did not fix the issue.
+
+ 
+
+I've browsed around the wiki, read the docs, but cant seem to find any
+answers. Any help would be greatly appreciated.
+
+ 
+
+Thanks in advance!
+
+ 
+
+Chris W
+
+ 
 
 --
 video4linux-list mailing list
