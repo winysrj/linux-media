@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f176.google.com ([209.85.218.176])
+Received: from mail-ew0-f20.google.com ([209.85.219.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alexxyum@gmail.com>) id 1LbElc-0002My-0V
-	for linux-dvb@linuxtv.org; Sun, 22 Feb 2009 14:53:12 +0100
-Received: by bwz24 with SMTP id 24so3904121bwz.17
-	for <linux-dvb@linuxtv.org>; Sun, 22 Feb 2009 05:52:38 -0800 (PST)
-From: Alexey Shvetsov <alexxy@gentoo.org>
-To: linux-dvb@linuxtv.org
-Date: Sun, 22 Feb 2009 13:00:53 +0300
+	(envelope-from <oscarmax3@gmail.com>) id 1LWCPU-00033S-M2
+	for linux-dvb@linuxtv.org; Sun, 08 Feb 2009 17:21:33 +0100
+Received: by ewy13 with SMTP id 13so2031933ewy.17
+	for <linux-dvb@linuxtv.org>; Sun, 08 Feb 2009 08:20:56 -0800 (PST)
+Message-ID: <498F0667.50000@gmail.com>
+Date: Sun, 08 Feb 2009 17:20:55 +0100
+From: Carl Oscar Ejwertz <oscarmax3@gmail.com>
 MIME-Version: 1.0
-Message-Id: <200902221300.59667.alexxy@gentoo.org>
-Subject: [linux-dvb] saa716x : AVerMedia_AVerTV_Speedy_Hybrid_PCI-E
+To: Manu Abraham <abraham.manu@gmail.com>
+References: <4984E294.6020401@gmail.com> <498B7945.4060200@gmail.com>
+In-Reply-To: <498B7945.4060200@gmail.com>
+Cc: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Mantis Update was Re: Twinhan DTV Ter-CI (3030
+ Mantis) ???
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,56 +23,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0557390318=="
+Content-Type: multipart/mixed; boundary="===============2078871114=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0557390318==
-Content-Type: multipart/signed;
-  boundary="nextPart2846962.YQZYSG4LHH";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+--===============2078871114==
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
---nextPart2846962.YQZYSG4LHH
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<br>
+<br>
+Den 2009-02-06 00:41, Manu Abraham skrev:
+<blockquote cite="mid:498B7945.4060200@gmail.com" type="cite">
+  <pre wrap="">Carl Oscar Ejwertz wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">I was wondering if the support for this card is fixed or is going to be 
+fixed in some tree?
+I know that there has been support for the card in manu:s Mantis tree 
+but hasn't been working for a long time.
+For some reason the interface has been disabled in the sourcecode.
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+Have added initial support for this card, as well as a large
+overhaul of the driver for a couple of performance impacts.
 
-Hi all!
-
-I have AVerMedia_AVerTV_Speedy_Hybrid_PCI-E its seems to recognized by sa71=
-6x
-More info can be found here=20
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Speedy_Hybrid_PCI-E =
-=3D)
-Its only recognzed by this driver actualy i cant get any signal from this=20
-card.
-=2D-=20
-Alexey 'Alexxy' Shvetsov
-Gentoo/KDE
-Gentoo/MIPS
-Gentoo Team Ru
-
---nextPart2846962.YQZYSG4LHH
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.10 (GNU/Linux)
-
-iEYEABECAAYFAkmhIlsACgkQ5BmOA85PVLjCNACeLlqZrbxFw/vcdEoFBBd2nU0x
-LHIAn11K4dOJ/Bm1MX/h9WzRiwH+U9VY
-=W+ne
------END PGP SIGNATURE-----
-
---nextPart2846962.YQZYSG4LHH--
+Please do test with the latest updates from <a class="moz-txt-link-freetext" href="http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</a>.
 
 
---===============0557390318==
+Regards,
+Manu
+
+  </pre>
+</blockquote>
+Hi Manu!<br>
+<br>
+Tried the new drivers but it doesn't work.. I get errors in dmesg.<br>
+<br>
+[ 1304.254458] Mantis 0000:01:06.0: PCI INT A -&gt; Link[APC1] -&gt;
+GSI 16 (level, low) -&gt; IRQ 16<br>
+[ 1304.258997] DVB: registering new adapter (Mantis DVB adapter)<br>
+[ 1304.676816] Mantis 0000:01:06.0: PCI INT A disabled<br>
+[ 1304.678509] Mantis: probe of 0000:01:06.0 failed with error -1<br>
+<br>
+Is it something easy to fix?
+</body>
+</html>
+
+
+--===============2078871114==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -79,4 +92,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0557390318==--
+--===============2078871114==--
