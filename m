@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:5819 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880AbZBQADK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 19:03:10 -0500
-Received: by rv-out-0506.google.com with SMTP id g9so1247383rvb.5
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 16:03:09 -0800 (PST)
+Received: from 246-113.netfront.net ([202.81.246.113]:43353 "EHLO akbkhome.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754296AbZBIOKh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Feb 2009 09:10:37 -0500
+Message-ID: <49902EBC.8020500@akbkhome.com>
+Date: Mon, 09 Feb 2009 21:25:16 +0800
+From: Alan Knowles <mailinglist@akbkhome.com>
 MIME-Version: 1.0
-In-Reply-To: <4999DD20.5080801@gmx.de>
-References: <4999A6DD.7030707@gmx.de> <200902161908.15698.hverkuil@xs4all.nl>
-	 <a3ef07920902161037nf02b51dl2b411e33ddc76933@mail.gmail.com>
-	 <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
-	 <4999DD20.5080801@gmx.de>
-Date: Mon, 16 Feb 2009 16:03:09 -0800
-Message-ID: <a3ef07920902161603x2c3bea3ar7728677d712197fd@mail.gmail.com>
-Subject: Re: DVB-API v5 questions and no dvb developer answering ?
-From: VDR User <user.vdr@gmail.com>
-To: wk <handygewinnspiel@gmx.de>
-Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dib0700 "buggy sfn workaround" or equivalent
+References: <e021c7c00902090411j4df14a69me568a6022a5bc4d2@mail.gmail.com> <e021c7c00902090413l12af9229t8a4db36f7c4ce160@mail.gmail.com>
+In-Reply-To: <e021c7c00902090413l12af9229t8a4db36f7c4ce160@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 16, 2009 at 1:39 PM, wk <handygewinnspiel@gmx.de> wrote:
-> Devin,
->
-> can you please explain, how others should contribute to an dvb api if
-> - the only DVB API file to be found is a pdf file, and therefore not
-> editable. Which files exactly to be edited you are writing of?
-> - one doesn't know which ioctls exist for what function, which return codes
-> and arguments, how to understand and to use..?
->
-> What you suggest is almost impossible to someone not perfectly familiar with
-> the drivers, only for dvb experts who have written at least a bunch of
-> drivers.
-> Its something different than sending patches for one single driver where
-> some bug/improvement was found.
->
-> On the other hand, in principle a driver without existing api doc is
-> useless. Nobody can use it, the same for drivers with undocumented new
-> features.
+Not sure if it's the same issue, but we had the similar problem with the 
+ASUS 3100 mycinema DVB-TH card
 
-Exactly!  Should be entertaining to hear the answers to everything but
-the first 'what files do you edit', though the rest of the questions
-will likely continue to be ignored.  It seems some think those not
-familiar with s2api technical structure should reverse engineer it and
-write the documentation rather then the people who actually created
-it.  To even suggest such a thing is absurd in my humble opinion.
-Talk about counter-productive...
+killing off this function appeared to fix it..
+
+int dvb_usb_remote_init(struct dvb_usb_device *d)
+{
+        struct input_dev *input_dev;
+	return 0;
+}
+
+Regards
+Alan
+
+Brett wrote:
+> Hello,
+>
+> I have a dvb_usb_dib0700 (Nova 500 dual) card and it shows similar
+> issues to the dvb_usb_dib3000mc card, ie:
+>
+> "This card has an issue (which particularly manifests itself in
+> Australia where a bandwidth of 7MHz is used) with jittery reception -
+> artifacts and choppy sound throughout recordings despite having full
+> signal strength. Australian users will typically see this behaviour on
+> SBS and ABC channels"
+>
+> The fix for the dib3000mc is to enable the 'buggy sfn workaround' but
+> there is no such option for the dib 0700 :
+>
+> The buggy sfn workaround workaround does "dib7000p_write_word(state,
+> 166, 0x4000);" if it is active, or "dib7000p_write_word(state, 166,
+> 0x0000)" if it inactive, in the dib3000mc driver. I presume this
+> tweaks a bandwidth filter or something similar for the dib3000mc, is
+> there  such an equivalent feature for the dib0700 chipset ?
+>
+> Does anybody have specs on the dib0700 that describes registers, or
+> how to set tuner bandwidth etc., during tuning ?
+>
+> Cheers
+> Brett
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>   
+
