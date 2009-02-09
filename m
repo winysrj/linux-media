@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1O7rq2a000475
-	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 02:53:52 -0500
-Received: from smtp109.biz.mail.re2.yahoo.com (smtp109.biz.mail.re2.yahoo.com
-	[206.190.53.8])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n1O7rbiS008892
-	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 02:53:38 -0500
-Message-ID: <49A3A61F.30509@embeddedalley.com>
-Date: Tue, 24 Feb 2009 10:47:43 +0300
-From: Vitaly Wool <vital@embeddedalley.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n19G6IPg030386
+	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 11:06:18 -0500
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n19G60uC019609
+	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 11:06:00 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so368791ywe.81
+	for <video4linux-list@redhat.com>; Mon, 09 Feb 2009 08:06:00 -0800 (PST)
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=KOI8-R; format=flowed
+In-Reply-To: <4990525D.5020205@linuxtv.org>
+References: <509279.77236.qm@web31601.mail.mud.yahoo.com>
+	<4990525D.5020205@linuxtv.org>
+Date: Mon, 9 Feb 2009 11:06:00 -0500
+Message-ID: <412bdbff0902090806o7e0493avaa125876837a6804@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: em28xx@mcentral.de
-Subject: em28xx: Compro VideoMate For You sound problems
+Cc: video4linux-list@redhat.com
+Subject: Re: HVR-950Q status
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,24 +30,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Mon, Feb 9, 2009 at 10:57 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>
+>> This is where the fun ended.  I banged my head on VLC, MythTV, me-tv,
+>> tvtime, vdr and others to no avail.  A little digging in the lists seemed to
+>> suggest I might be able to bring in over the air stations.  But my hope is
+>> to bring in analog NTSC cable channels and (gasp), possibly even Clear QAM
+>> HD channels.  Is there any hope or current effort to get analog NTSC working
+>> on this dongle?  Also, are there any USB dongles which support HD Clear QAM?
+>>  While I am primarily interested in analog NTSC (yeah, I hear ya, shoulda
+>> bought an HVR-950), getting analog and Clear QAM HD would be great.  While I
+>> would love to get my HVR-950Q working, I would settle for another well
+>> supported USB dongle with at least analog cable support that in known to
+>> work well with MythTV.
+>>
+>> Thanks in advance for any feedback you can provide.
+>>
+>> Regards,
+>> Jon
+>
+> NTSC is not supported.
+>
+> The 950Q works well with MythTV for ATSC and ClearQAM. I suggest you google
+> or read the wikis at linuxtv.org. You might also want to check on linux
+> support for any new product before purchasing and 'banging your head'.
+>
+> - Steve
 
-about half a year ago I posted the patch that basically enabled Compro 
-VideoMate For You USB TV box support.
-The main problem is I couldn't get the sound working. I was poking 
-around that for some time then but gave up soon. Now I spent some time 
-debugging the problem without any real success, tried the new 
-(alternative) version of the em28xx driver suite from Markus and had no 
-luck with it either.
+To expand on Steven's comments, the following page has the list of
+supported USB devices:
 
-So I kind of decomposed the box and found out the audio decoder chip 
-used there was Philips TDA9874A. As far as I can see, it's not supported 
-within the em28xx suite although it is for other TV tuner drivers. Could 
-anyone please give me some guidance on how to add that to em28xx to 
-shorten my way to getting the sound working on that good ol' box?
+http://linuxtv.org/wiki/index.php/ATSC_USB_Devices#Supported_ATSC_USB_Devices
 
-Thanks,
-   Vitaly
+Pay particular attention to the entries with footnote #1, which are
+devices such as the 950Q where the hardware supports analog but the
+driver does not.  This is actually a pretty common problem with the
+newer class of devices that support ClearQAM.
+
+Regards,
+
+Devin
+
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
