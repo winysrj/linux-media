@@ -1,96 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56663 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750740AbZBTTht (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 14:37:49 -0500
-Date: Fri, 20 Feb 2009 11:37:45 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>
-Subject: Re: [PATCH 1/2] Pad configuration for OMAP3EVM Multi-Media
-	Daughter Card Support
-Message-ID: <20090220193744.GY7414@atomide.com>
-References: <1233256950-26704-1-git-send-email-hvaibhav@ti.com> <19F8576C6E063C45BE387C64729E739403FA81B81F@dbde02.ent.ti.com>
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:46580 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754084AbZBIV5L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 16:57:11 -0500
+Received: by ewy14 with SMTP id 14so2811216ewy.13
+        for <linux-media@vger.kernel.org>; Mon, 09 Feb 2009 13:57:09 -0800 (PST)
+Message-ID: <4990A6B2.1080902@gmail.com>
+Date: Mon, 09 Feb 2009 22:57:06 +0100
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA81B81F@dbde02.ent.ti.com>
+To: hvaibhav@ti.com, mchehab@redhat.com
+CC: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: [PATCH] v4l/tvp514x: try_count reaches 0, not -1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [090210 04:11]:
-> 
-> 
-> Thanks,
-> Vaibhav Hiremath
-> 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Friday, January 30, 2009 12:52 AM
-> > To: linux-omap@vger.kernel.org
-> > Cc: linux-media@vger.kernel.org; Hiremath, Vaibhav; Jadav, Brijesh
-> > R; Shah, Hardik
-> > Subject: [PATCH 1/2] Pad configuration for OMAP3EVM Multi-Media
-> > Daughter Card Support
-> > 
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > 
-> > On OMAP3EVM Mass Market Daugher Card following GPIO pins are being
-> > used -
-> > 
-> > GPIO134 --> Enable/Disable TVP5146 interface
-> > GPIO54 --> Enable/Disable Expansion Camera interface
-> > GPIO136 --> Enable/Disable Camera (Sensor) interface
-> > 
-> > Added entry for the above GPIO's in mux.c and mux.h file
-> > 
-> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> > Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/mux.c             |    6 ++++++
-> >  arch/arm/plat-omap/include/mach/mux.h |    5 ++++-
-> >  2 files changed, 10 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> > index 1556688..d226d81 100644
-> > --- a/arch/arm/mach-omap2/mux.c
-> > +++ b/arch/arm/mach-omap2/mux.c
-> > @@ -471,6 +471,12 @@ MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
-> >  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> >  MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
-> >  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> > +MUX_CFG_34XX("AG4_34XX_GPIO134", 0x160,
-> > +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> > +MUX_CFG_34XX("U8_34XX_GPIO54", 0x0b4,
-> > +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> > +MUX_CFG_34XX("AE4_34XX_GPIO136", 0x164,
-> > +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> > 
-> >  };
-> > 
-> > diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-
-> > omap/include/mach/mux.h
-> > index 67fddec..ace037f 100644
-> > --- a/arch/arm/plat-omap/include/mach/mux.h
-> > +++ b/arch/arm/plat-omap/include/mach/mux.h
-> > @@ -795,7 +795,10 @@ enum omap34xx_index {
-> >  	AF6_34XX_GPIO140_UP,
-> >  	AE6_34XX_GPIO141,
-> >  	AF5_34XX_GPIO142,
-> > -	AE5_34XX_GPIO143
-> > +	AE5_34XX_GPIO143,
-> > +	AG4_34XX_GPIO134,
-> > +	U8_34XX_GPIO54,
-> > +	AE4_34XX_GPIO136,
-> >  };
-> > 
-> [Hiremath, Vaibhav] If there are no review comments on this then probably this patch should go through, since this is independent and being used with Multi-Media Daughter card support.
+with while (try_count-- > 0) { ... } try_count reaches 0, not -1.
 
-Added to omap-upstream queue and pushing to linux-omap.
-
-Tony
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+index 8e23aa5..5f4cbc2 100644
+--- a/drivers/media/video/tvp514x.c
++++ b/drivers/media/video/tvp514x.c
+@@ -686,7 +686,7 @@ static int ioctl_s_routing(struct v4l2_int_device *s,
+ 			break;	/* Input detected */
+ 	}
+ 
+-	if ((current_std == STD_INVALID) || (try_count < 0))
++	if ((current_std == STD_INVALID) || (try_count <= 0))
+ 		return -EINVAL;
+ 
+ 	decoder->current_std = current_std;
