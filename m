@@ -1,61 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33708 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752440AbZBSH3w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 02:29:52 -0500
-Date: Thu, 19 Feb 2009 08:29:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-cc: Magnus Damm <magnus.damm@gmail.com>,
-	Matthieu CASTET <matthieu.castet@parrot.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc-camera : sh_mobile_ceu_camera race on free_buffer ?
-In-Reply-To: <uy6w3jl44.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0902190825040.4252@axis700.grange>
-References: <497487F2.7070400@parrot.com> <aec7e5c30901192046j1a595day51da698181d034e5@mail.gmail.com>
- <497598ED.3050502@parrot.com> <aec7e5c30902130214k6a0fc8ck74b412f41fa63385@mail.gmail.com>
- <u7i3rgpeo.wl%morimoto.kuninori@renesas.com> <Pine.LNX.4.64.0902181938311.6371@axis700.grange>
- <uy6w3jl44.wl%morimoto.kuninori@renesas.com>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:54563 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755761AbZBIUKt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Feb 2009 15:10:49 -0500
+Message-ID: <49908DE3.5000606@free.fr>
+Date: Mon, 09 Feb 2009 21:11:15 +0100
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Jason Harvey <softdevice@jasonline.co.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: CinergyT2 not working with newer alternative driver
+References: <4984E50D.8000506@jasonline.co.uk> <49857A09.9020302@free.fr> <49859A71.70701@jasonline.co.uk> <4986925A.9040800@free.fr> <498697B5.10200@jasonline.co.uk> <498F50AE.4080004@free.fr> <499071FC.7080005@jasonline.co.uk>
+In-Reply-To: <499071FC.7080005@jasonline.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 19 Feb 2009, morimoto.kuninori@renesas.com wrote:
-
-> Dear Guennadi
+Jason Harvey wrote:
+> Thierry Merle wrote:
+>> Another thing, do you know the firmware version of your tuner?
+>> I have the 1.06 version.
+>>   
+> Both are running on firmware 1.08
+> Wonder if I can downgrade them... will look into that.
+Yes, and I will try to find time to upgrade mine.
+>> Look at lsusb -vvv, this is the "bcdDevice" line for the CinergyT2
+>> device.
+>> Sorry but I have no idea of the origin of the problem.
+>> If I had time I would compare USB dumps between the old driver and the
+>> new one for the same tuning operation.
+>>   
+> I'll try and get the USB dumps and a comparison done myself within the
+> next week or two.
+OK thanks; I will be able to help you by doing some perl scripts.
+> Think I have a spare PC around with an older Fedora on it with a kernel
+> that worked.
+> I did see another posting to this mail list from someone with the same
+> problem which I'll take as confirmation that it is not just me :)
 > 
-> > > It works well on all cases.
-> > So I can add your "Tested-by:"?
-> 
-> Yes please.
-> 
-> > You can try to trigger the race with the capture.c example. Reduce the 
-> > "count" variable in mainloop() and run capture.c in a loop for a while... 
-> > Try without this patch and then with this patch. But I think this is a 
-> > correct fix, so, unless you say, it crashes without it and with it, I'll 
-> > apply it.
-> 
-> I tried with following command option
-> 
-> # capture_example -d /dev/videoX -f -c 1000
-> 
-> I used -f option, I think you already know the reason =).
-
-Yes, and I'm working on that.
-
-> I think -c 1000 is enough.
-
-No, sorry, this is not the test I meant. "-c" doesn't really stress the 
-path we need. You really have to execute capture_example multiple times 
-completely. The race we're trying to catch happens on STREAMOFF, and for 
-that you have to run the example completely through. So, I would suggest 
-something like
-
-for (( i=0; i<100; i++ )); do capture_example -d /dev/videoX -f -c 4; done
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Yes I know, but the user did not answer the last time so we committed the redesign and we expect to find another user with the problem :)
+Regards,
+Thierry
