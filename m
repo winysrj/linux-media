@@ -1,35 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:46033 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019AbZBOUQJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 15:16:09 -0500
-Received: by bwz5 with SMTP id 5so2716840bwz.13
-        for <linux-media@vger.kernel.org>; Sun, 15 Feb 2009 12:16:06 -0800 (PST)
-From: Michele <aspeltami@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: firmware
-Date: Sun, 15 Feb 2009 21:15:58 +0100
+Received: from znsun1.ifh.de ([141.34.1.16]:55868 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753317AbZBIO4V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Feb 2009 09:56:21 -0500
+Date: Mon, 9 Feb 2009 15:55:35 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: =?ISO-8859-15?Q?Michael_M=FCller?= <mueller_michael@alice-dsl.net>
+cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	linux-dvb@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add Elgato EyeTV Diversity to dibcom driver
+In-Reply-To: <B7621984-DEB8-4F0C-B5EF-733CD30E7441@alice-dsl.net>
+Message-ID: <alpine.LRH.1.10.0902091555120.3870@pub3.ifh.de>
+References: <B7621984-DEB8-4F0C-B5EF-733CD30E7441@alice-dsl.net>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902152115.58993.aspeltami@gmail.com>
+Content-Type: MULTIPART/MIXED; BOUNDARY="579696399-1288789372-1234191335=:3870"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'm new here and i'm trying TM6061 driver from your repo. Actually I'm now 
-able to make the module tm6000 and I find my card (wintv-hvr-900h) as card 9.
-But when today for the first time my gentoo system recognize it I discovered 
-that I need a firmware called "xc3028L-v36.fw".
- I searched a while over the net and it seems to be in vendor CD but it isn't, 
-even downloading drivers from webpage I find a sys file but it is not 
-tridvid.sys, it is called hcw66xxx.sys (and also it seems to be a 64bit 
-version called  hcw66x64.sys). I tried both of them but nothing happend, I 
-also try to find that file over internet but everytime file checks fail. 
-Someone have some suggestion about where to find it?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks
-Michele
+--579696399-1288789372-1234191335=:3870
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
+
+On Sun, 8 Feb 2009, Michael Müller wrote:
+
+> This patch introduces support for DVB-T for the following dibcom based card:
+> 	Elgato EyeTV Diversity (USB-ID: 0fd9:0011)
+>
+> Support for the Elgato silver IR remote is added too (set parameter 
+> dvb_usb_dib0700_ir_proto=0)
+>
+> Signed-off-by: Michael Müller <mueller_michael@alice-dsl.net>
+>
+
+Thanks, applied.
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+--579696399-1288789372-1234191335=:3870--
