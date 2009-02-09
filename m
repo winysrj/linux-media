@@ -1,73 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37126 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751828AbZBUQjF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2009 11:39:05 -0500
-Message-ID: <49A02E23.9020807@iki.fi>
-Date: Sat, 21 Feb 2009 18:38:59 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.trendhosting.net ([195.8.117.5]:34017 "EHLO
+	thp003.trendhosting.net" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753448AbZBIOxD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 09:53:03 -0500
+Received: from mail.trendhosting.net (mail.trendhosting.net [195.8.117.7])
+	by thp003.trendhosting.net (Postfix) with ESMTP id 7C2E0150BA
+	for <linux-media@vger.kernel.org>; Mon,  9 Feb 2009 14:51:01 +0000 (GMT)
+Received: from localhost (localhost [127.0.0.1])
+	by mail.trendhosting.net (Postfix) with ESMTP id EFE49A95E7
+	for <linux-media@vger.kernel.org>; Mon,  9 Feb 2009 14:52:59 +0000 (GMT)
+Received: from mail.trendhosting.net ([127.0.0.1])
+	by localhost (th4.trendhosting.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id XvsTd5YlQ4j8 for <linux-media@vger.kernel.org>;
+	Mon,  9 Feb 2009 14:52:44 +0000 (GMT)
+Received: from [127.0.0.1] (th4.trendhosting.net [195.8.117.7])
+	by mail.trendhosting.net (Postfix) with ESMTP id 425C0A9562
+	for <linux-media@vger.kernel.org>; Mon,  9 Feb 2009 14:52:41 +0000 (GMT)
+Message-ID: <499042E7.8080406@pocock.com.au>
+Date: Mon, 09 Feb 2009 14:51:19 +0000
+From: Daniel Pocock <daniel@pocock.com.au>
 MIME-Version: 1.0
-To: Laurent Haond <lhaond@bearstech.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Can I use AVerTV Volar Black HD (A850) with Linux
- ?
-References: <499F5452.6050205@bearstech.com> <7a3c9e3d0902210108w77e440e2u6d688f3614ccf972@mail.gmail.com> <499FEF0A.2070001@bearstech.com>
-In-Reply-To: <499FEF0A.2070001@bearstech.com>
+To: linux-media@vger.kernel.org
+Subject: Re: initial experiences with DVB-S
+References: <497AFB36.90203@pocock.com.au>
+In-Reply-To: <497AFB36.90203@pocock.com.au>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello and thank you for information,
 
-According to your previous post, you are correct. I did one of the most 
-typical mistake when adding new usb-id:s :) (didn't increase 
-.num_device_descs).
+>
+> - Any recommendation on a USB solution?  What to buy, and where to buy 
+> it.
 
-Laurent Haond wrote:
-> af9015_usb_probe: interface:0
-> af9015_read_config: IR mode:0
+I'm considering exchanging my S-1500 PCI for an S-2400 USB - any 
+comments on this alternative?  It comes with an external PSU, so I'm 
+hoping it will also solve the problem below.
+>
+> - The Technotrend card causes a constant increase in the power usage - 
+> even when I'm not watching anything.  This makes my PSU noisier, not 
+> good for a multi-media experience.  Maybe the device list needs a 
+> column with info about power usage?  In comparison, plugging in my 
+> DVB-T USB stick makes no noticeable difference in PSU fan noise.  I 
+> wouldn't mind paying more for a solution without the noise issue.
 
-Is there remote at all?
-
-> af9015_read_config: TS mode:1
-> af9015_read_config: [0] xtal:2 set adc_clock:28000
-> af9015_read_config: [0] IF1:36125
-
-hmmm, typical IF for many DVB-T tuners but very strange for MXL5003S. 
-Maxlinear uses normally / default 4570kHz. I think thats why it does not 
-work. Could you change .if_freq to IF_FREQ_36125000HZ and test? 
-AVerMedia seems to use many times very weird configurations that are not 
-reference nor default ones.
-
-> af9015_read_config: [0] MT2060 IF1:0
-> af9015_read_config: [0] tuner id:13
-> af9015_read_config: [1] xtal:2 set adc_clock:28000
-> af9015_read_config: [1] IF1:36125
-> af9015_read_config: [1] MT2060 IF1:1220
-> af9015_read_config: [1] tuner id:130
-> af9015_identify_state: reply:01
-
-> af9015_copy_firmware:
-> af9015: command failed:2
-> af9015: firmware copy to 2nd frontend failed, will disable it
-> dvb-usb: no frontend was attached by 'AVerMedia A850'
-> dvb-usb: AVerMedia A850 successfully initialized and connected.
-
-No knowledge why it fails. I suspect wrong GPIO, again this is AverMedia 
-device... You should take usb-sniff and look correct GPIO from there.
-
-> af9015_init:
-> af9015_init_endpoint: USB speed:3
-> af9015_download_ir_table:
-> 
-> 
-> dvbscan fails with this error : Unable to query frontend status
-> and sometimes (not everytimes) dmesg shows :
-> af9015: recv bulk message failed:-110
-> af9013: I2C read failed reg:d417
-
-regards
-Antti
--- 
-http://palosaari.fi/
