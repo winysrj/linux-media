@@ -1,73 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:44768 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752180AbZBPI0A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 03:26:00 -0500
-Message-ID: <49992418.3020903@redhat.com>
-Date: Mon, 16 Feb 2009 09:30:16 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Trent Piepho <xyzzy@speakeasy.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>
-Subject: Re: Adding a control for Sensor Orientation
-References: <200902142048.51863.linux@baker-net.org.uk> <alpine.LNX.2.00.0902141624410.315@banach.math.auburn.edu> <4997DB74.6000108@redhat.com> <200902151019.35555.hverkuil@xs4all.nl> <4997E05F.9080509@redhat.com> <Pine.LNX.4.58.0902150445490.24268@shell2.speakeasy.net> <49981C9F.7000305@redhat.com> <Pine.LNX.4.58.0902151506220.24268@shell2.speakeasy.net> <alpine.LNX.2.00.0902151844340.1496@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0902151844340.1496@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:47005 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753731AbZBICoZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2009 21:44:25 -0500
+Date: Mon, 9 Feb 2009 00:43:43 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: CityK <cityk@rogers.com>
+Cc: David Engel <david@istwok.net>, Hans Verkuil <hverkuil@xs4all.nl>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Josh Borke <joshborke@gmail.com>,
+	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090209004343.5533e7c4@caramujo.chehab.org>
+In-Reply-To: <4987DE4E.2090902@rogers.com>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+ <496FE555.7090405@rogers.com>
+ <496FFCE2.8010902@rogers.com>
+ <200901171720.03890.hverkuil@xs4all.nl>
+ <49737088.7060800@rogers.com>
+ <20090202235820.GA9781@opus.istwok.net>
+ <4987DE4E.2090902@rogers.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 03 Feb 2009 01:03:58 -0500
+CityK <cityk@rogers.com> wrote:
 
-
-kilgota@banach.math.auburn.edu wrote:
+> David Engel wrote:
+> > As far as I can tell, this thread petered out without a resolution.  
+> > CityK later posted on avsforum, however, that analog on his card was
+> > after more changes by Hans.  I'm confused.  Is analog on the KWorld
+> > 115 supposed to be working again or not?  I saw that some changes by
+> > Hans made it into the main Hg repository, but as of yesterday, analog
+> > still didn't work for me.
+> >   
 > 
-
-<huge snip>
-
-> Therefore,
+> Nope, this thread is still alive and well -- I posted to it last Thurs
+> (?), and Mauro replied, but I haven't had time to follow up with this
+> since then. Anyway, here's a synopsis of the situation:
 > 
-> 1. Everyone seems to agree that the kernel module itself is not going to 
-> do things like rotate or flip data even if a given supported device 
-> always needs that done.
+> - Hans had a first go at the saa7134 (and related modules) in this work
+> was in his v4l-dvb-saa7134 test repo .... these initial changes,
+> unfortunately, were NOT sufficient on their own to get analog TV
+> working. These changes did, however, get pulled into the mainline of v4l-dvb
 > 
-> However, this decision has a consequence:
+> - Hans' second attempt at this is found in his v4l-dvb-kworld test repo
+> ... testing this code revealed that analog tv did indeed work again with
+> tvtime ... I also noted that there seems to be a bit of redundancy now
+> in terms of the tuner being initialized twice
 > 
-> 2. Therefore, the module must send the information about what is needed 
-> out of the module, to whatever place is going to deal with it. 
-> Information which is known to the module but unknown anywere else must 
-> be transmitted somehow.
+> - Mauro created a patch intended to be applied against mainline ... I
+> tested and analog tv did NOT work
 > 
-> Now there is a further consequence:
+> - On Sunday Jan 25th I sent a lengthy message to the list, outlining
+> some debug results etc. and also informing Mauro that his patch did NOT
+> work ... I know that, at the very least, Trent and Hermann received that
+> message, because they quoted from it in further discussion about the i2c
+> gate (the inherent underlying problem at the heart of the issue).
 > 
-> 3. In view of (1) and (2) there has to be a way agreed upon for the 
-> module to pass the relevant information onward.
+> - A few days later, scanning through the #irc logs, I caught a
+> discussion, regarding Mauro's patch getting pulled into mainline, and
+> the discussion seemed to indicate that there was some confusion as to
+> what I had said worked and what doesn't. This surprised me for I had
+> been pretty explicit in my Jan 25th mail list message. The other
+> alternative was perhaps they simply had missed that message...so, in
+> order to clear the situation up, I went to the mailing list archive to
+> find a link for my message...only to discover it was NEVER
+> achieved/recorded....grrrrr. So I'm at a complete loss as to who
+> actually saw the Jan 25th message and who didn't.
 > 
-> It is precisely on item 3 that we are stuck right now. There is an 
-> immediate need, not a theoretical need but an immediate need. However, 
-> there is no agreed-upon method or convention for communication.
+> - Further, somewhat concurrently, I discovered that (with Hans' kworld
+> test repo) analog TV was ONLY working with tvtime ... xawtv/motv and
+> kdetv were borked (I don't use Myth, so I have no idea what its status
+> would be ... though, I'd suspect that it works like tvtime). I quickly
+> traced this problem to be related to dga and Xv. A very similar
+> situation with these apps existed several years ago when the proprietary
+> X drivers from nvidia and ati removed dga functionality from their
+> respective drivers (for some background read:
+> http://www.nvnews.net/vbulletin/showthread.php?t=68232, and also the
+> relevant portion of the FAQ from the nvidia readme:
+> ftp://download.nvidia.com/XFree86/Linux-x86_64/180.27/README/chapter-07.html),
+> however, the basic nv driver would still function. Nvidia would later
+> provide a workaround to this issue in their driver.
+> So, in this modern day occurrence of this similar error/bug, the obvious
+> first test is to eliminate the proprietary driver from the equation.
+> However, the test result with the nv driver was the same -- borked
+> motv/xawtv and kdetv. I reported this, saying that I suspected that a
+> something may have been introduced somewhere resulting in this issue
+> with these apps resurfacing. This is why I asked that Hans' kworld repo
+> NOT be pulled into mainline (if there had been any thought to that --
+> though I don't think there was, because I now realize that I don't think
+> many had even seen my prior Jan 25th message !) until further testing
+> was performed.
 > 
+> - Mauro replied believing that this was unrelated to anything v4l-dvb,
+> but rather an artefact of the X drivers. I suspected that that was NOT
+> the case (the nv driver failing in my previous test was my cue). The
+> next obvious test was to revert back to an older v4l-dvb snapshot that
+> was patched with Mike Krufky's hack/workaround.
 
-We are no longer stuck here, the general agreement is adding 2 new buffer 
-flags, one to indicate the driver knows the data in the buffer is
-vflipped and one for hflip. Then we can handle v-flipped, h-flipped and 180 
-degrees cameras
+It took me some time today to bisect and trying to see what's going wrong with
+some userspace apps. 
 
-This is agreed up on, Trent is arguing we may need more flags in the future, 
-but that is something for the future, all we need know is these 2 flags and 
-Hans Verkuil who AFAIK was the only one objecting to doing this with buffer 
-flags has agreed this is the best solution.
+At the end, I discovered that changeset 10240 fixed a bug that affected some
+userspace bad behaviour of setting defaults to zero, if a control is not found.
 
-So Adam, kilgota, please ignore the rest of this thread and move forward with 
-the driver, just add the necessary buffer flags to videodev2.h as part of your 
-patch (It is usually to submit new API stuff with the same patch which 
-introduces the first users of this API.
+Due to that userspace bad behaviour, both tvtime and xawtv were using 0 for all
+video controls (brightness, contrast, color, hue). The practical effect is that
+a black image were displayed.
 
-I welcome libv4l patches to use these flags.
+The fix were as simple as putting all controls at 50%.
 
-Regards,
+Could this be your case also?
 
-Hans
+Cheers,
+Mauro
