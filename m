@@ -1,78 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61243 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754679AbZB0Qb6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 11:31:58 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: video4linux-list@redhat.com, tuukka.o.toivonen@nokia.com,
-	saaguirre@ti.com, antti.koskipaa@nokia.com, david.cohen@nokia.com,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: [PATCH 2/4] V4L: Int if: Dummy slave
-Date: Fri, 27 Feb 2009 18:31:31 +0200
-Message-Id: <1235752293-14452-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1235752293-14452-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-References: <49A81502.3090002@maxwell.research.nokia.com>
- <1235752293-14452-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:42843 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751549AbZBIQfd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 11:35:33 -0500
+Date: Mon, 9 Feb 2009 14:34:56 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Arjan van de Ven <arjan@infradead.org>
+Cc: linux-kernel@vger.kernel.org, rusty@rustcorp.com.au,
+	jkosina@suse.cz, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] use the new request_module_nowait() in
+ drivers/media
+Message-ID: <20090209143456.1c5d7f0b@pedra.chehab.org>
+In-Reply-To: <20090208110052.6f3deafc@infradead.org>
+References: <20090208104201.6124ab6a@infradead.org>
+	<20090208104314.4e74e6a8@infradead.org>
+	<20090208110052.6f3deafc@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@nokia.com>
+On Sun, 8 Feb 2009 11:00:52 -0800
+Arjan van de Ven <arjan@infradead.org> wrote:
 
-This patch implements a dummy slave that has no functionality. Helps
-managing slaves in the OMAP 3 camera driver; no need to check for NULL
-pointers.
+> On Sun, 8 Feb 2009 10:43:14 -0800
+> Arjan van de Ven <arjan@infradead.org> wrote:
+> 
+> blargh I sent an older version of this patch
+> I meant to send this one
+> 
+> From 2311993ceed96ec0bb023419120d9aeada205242 Mon Sep 17 00:00:00 2001
+> From: Arjan van de Ven <arjan@linux.intel.com>
+> Subject: [PATCH] use the new request_module_nowait() in drivers/media
+> 
+> Several drivers/media/video drivers use keventd to load modules
+> to avoid the "load a module from the module init code" deadlock.
+> 
+> Now that we have request_module_nowait() this can be simplified
+> greatly.
+> 
+> Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
----
- drivers/media/video/v4l2-int-device.c |   19 +++++++++++++++++++
- include/media/v4l2-int-device.h       |    2 ++
- 2 files changed, 21 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
-index eb8dc84..483ee2e 100644
---- a/drivers/media/video/v4l2-int-device.c
-+++ b/drivers/media/video/v4l2-int-device.c
-@@ -67,6 +67,25 @@ static void __v4l2_int_device_try_attach_all(void)
- 	}
- }
- 
-+static struct v4l2_int_slave dummy_slave = {
-+	/* Dummy pointer to avoid underflow in find_ioctl. */
-+	.ioctls = (void *)sizeof(struct v4l2_int_ioctl_desc),
-+	.num_ioctls = 0,
-+};
-+
-+static struct v4l2_int_device dummy = {
-+	.type = v4l2_int_type_slave,
-+	.u = {
-+		.slave = &dummy_slave,
-+	},
-+};
-+
-+struct v4l2_int_device *v4l2_int_device_dummy()
-+{
-+	return &dummy;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_int_device_dummy);
-+
- void v4l2_int_device_try_attach_all(void)
- {
- 	mutex_lock(&mutex);
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index fbf5855..5d254c4 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -84,6 +84,8 @@ struct v4l2_int_device {
- 	void *priv;
- };
- 
-+struct v4l2_int_device *v4l2_int_device_dummy(void);
-+
- void v4l2_int_device_try_attach_all(void);
- 
- int v4l2_int_device_register(struct v4l2_int_device *d);
--- 
-1.5.6.5
-
+Cheers,
+Mauro
