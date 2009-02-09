@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n12EesIw017851
-	for <video4linux-list@redhat.com>; Mon, 2 Feb 2009 09:40:55 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n12Ee9g4023808
-	for <video4linux-list@redhat.com>; Mon, 2 Feb 2009 09:40:09 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so1532448wfc.6
-	for <video4linux-list@redhat.com>; Mon, 02 Feb 2009 06:40:08 -0800 (PST)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n19H2Fgd006747
+	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 12:02:15 -0500
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.188])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n19H1xke026406
+	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 12:01:59 -0500
+Received: by rn-out-0910.google.com with SMTP id k50so1487926rnd.7
+	for <video4linux-list@redhat.com>; Mon, 09 Feb 2009 09:01:59 -0800 (PST)
 MIME-Version: 1.0
-Date: Tue, 3 Feb 2009 01:40:08 +1100
-Message-ID: <221f66db0902020640r1d6c0037jdfa6d08fe12bf9d8@mail.gmail.com>
-From: Arman Haghi <arman.haghi@gmail.com>
-To: video4linux-list@redhat.com
+In-Reply-To: <b24e53350902090859h6a714b2fh8cfaf8d487cecc44@mail.gmail.com>
+References: <509279.77236.qm@web31601.mail.mud.yahoo.com>
+	<4990525D.5020205@linuxtv.org>
+	<b24e53350902090859h6a714b2fh8cfaf8d487cecc44@mail.gmail.com>
+Date: Mon, 9 Feb 2009 12:01:58 -0500
+Message-ID: <b24e53350902090901t75c88111o8f2309350eb72666@mail.gmail.com>
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
+To: Steven Toth <stoth@linuxtv.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: AverMedia "DVD EZMaker USB Plus"
+Cc: video4linux-list@redhat.com
+Subject: Re: HVR-950Q status
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,32 +31,87 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Everyone,
+On Mon, Feb 9, 2009 at 11:59 AM, Robert Krakora
+<rob.krakora@messagenetsystems.com> wrote:
+> On Mon, Feb 9, 2009 at 10:57 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>>
+>>> This is where the fun ended.  I banged my head on VLC, MythTV, me-tv,
+>>> tvtime, vdr and others to no avail.  A little digging in the lists seemed to
+>>> suggest I might be able to bring in over the air stations.  But my hope is
+>>> to bring in analog NTSC cable channels and (gasp), possibly even Clear QAM
+>>> HD channels.  Is there any hope or current effort to get analog NTSC working
+>>> on this dongle?  Also, are there any USB dongles which support HD Clear QAM?
+>>>  While I am primarily interested in analog NTSC (yeah, I hear ya, shoulda
+>>> bought an HVR-950), getting analog and Clear QAM HD would be great.  While I
+>>> would love to get my HVR-950Q working, I would settle for another well
+>>> supported USB dongle with at least analog cable support that in known to
+>>> work well with MythTV.
+>>>
+>>> Thanks in advance for any feedback you can provide.
+>>>
+>>> Regards,
+>>> Jon
+>>
+>> NTSC is not supported.
+>>
+>> The 950Q works well with MythTV for ATSC and ClearQAM. I suggest you google
+>> or read the wikis at linuxtv.org. You might also want to check on linux
+>> support for any new product before purchasing and 'banging your head'.
+>>
+>> - Steve
+>>
+>>
+>>
+>>
+>> --> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
+>>
+>
+> Jon:
+>
+> I too ran into this problem when purchasing what I thought was an
+> HVR950.  I bought several of what I thought were HVR950 and I ended up
+> getting both HVR950 and HVR950Q parts in the same packaging.  After
+> further investigation, the folks at Hauppauge explained the reason
+> behind packaging the HVR950Q as an HVR950.  I do not want to
+> miss-quote them, so please call them if you want the explanation.
+> They are very "up-front".  HVR950Q analog works quite well on Windows
+> machines though I do prefer and almost exclusively only build Linux
+> machines.  With all due respect to Hauppauge, KWorld makes a part call
+> the KWorld 330U that is basically an HVR950 with a slightly different
+> front end.  However, it cannot do QAM256 (Clear QAM) but it works very
+> well for 8VSB (ATSC) and NTSC.
+>
+> New Egg has them for only $50.  Ignore the reviews, this is a good
+> part.  It is not listed as supported yet only because we have not
+> fully tested the analog video and audio inputs.  Please get the latest
+> V4L code from the tree at www.linuxtv.org.
+>
+> http://www.newegg.com/Product/Product.aspx?Item=N82E16815260006&nm_mc=OTC-Froogle&cm_mmc=OTC-Froogle-_-Video+Devices+++TV+Tuners-_-Kworld+Computer+Co.+Ltd-_-15260006
+>
+> Best Regards,
+>
+> Software Engineer
+> MessageNet Systems
+> 101 East Carmel Dr. Suite 105
+> Carmel, IN 46032
+> (317)566-1677 Ext. 206
+> (317)663-0808 Fax
+>
 
-I have researched and experimented extensively before posting, read
-the mailing lists etc, no luck so far, would really appreciate an
-expert look in.
+Sorry for the poor grammar...I am a bit "under the weather" and it is
+hard for me to type on the couch...:-(
 
-My Product: AverMedia "DVD EZMaker USB Plus"
-
-1. Has anyone got this working under linux?
-
-2. Has anyone gotten anything similar to work (e.g. USB Gold), and
-with what driver? (e.g. saa71xx or cx88 etc)
-
-3. How do I work out the device's chipset?
-
-I found this recent post:
-http://n2.nabble.com/AVerMedia-EZMaker-USB-Gold-td1492322.html
-
-I really appreciate any help, I love this device and had great results
-with it a couple of years ago in Windoze XP, but hate XP and refuse to
-use it again.
-
-Cheers,
-
-Arman Haghi
-arman.haghi@gmail.com
+-- 
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
