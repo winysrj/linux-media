@@ -1,57 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:53397 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755969AbZBKT7l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2009 14:59:41 -0500
-Message-ID: <49932E47.7050307@free.fr>
-Date: Wed, 11 Feb 2009 21:00:07 +0100
-From: Thierry Merle <thierry.merle@free.fr>
-MIME-Version: 1.0
-To: Johannes Engel <jcnengel@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-usb-cinergyT2
-References: <498C8988.8030103@googlemail.com>
-In-Reply-To: <498C8988.8030103@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:64087 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753940AbZBIQEL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 11:04:11 -0500
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KET00KLR3AXSE30@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 09 Feb 2009 11:04:09 -0500 (EST)
+Date: Mon, 09 Feb 2009 11:04:08 -0500
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: [linux-dvb] HVR2250 / HVR2200 / SAA7164 status
+In-reply-to: <e8207f160902071721k6247b4c8q8dfcbac20b0ddd88@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Message-id: <499053F8.7090907@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <20090204183447.26c0903b.davmac@davmac.org>
+ <4989C87A.2020803@linuxtv.org>
+ <e8207f160902071721k6247b4c8q8dfcbac20b0ddd88@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Johannes,
+David Gundersen wrote:
+> 
+> Steve,
+> 
+> Do you know if Hauppauge are willing/able to dish out the 
+> hardware/programming specifications for these cards? 
 
-Johannes Engel wrote:
-> Hello!
-> 
-> Switching to the new kernel 2.6.28 including the new driver for my Terratec Cinergy T² made the thing almost unusable.
-> Neither mplayer nor scan resp. w_scan is able to tune the card anymore, not even the led lights up anymore. Sometimes tzap manages to get out a proper signal, but not reliably.
-> 
-> The kernel logs says the following:
-> 
-> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
-> deinitialized and disconnected.
-> usbcore: deregistering interface driver cinergyT2
-> usb 5-1: new high speed USB device using ehci_hcd and address 13
-> usb 5-1: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid maxpacket 64
-> usb 5-1: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 64
-> usb 5-1: configuration #1 chosen from 1 choice
-> usb 5-1: New USB device found, idVendor=0ccd, idProduct=0038
-> usb 5-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> usb 5-1: Product: Cinergy T�
-> usb 5-1: Manufacturer: TerraTec GmbH
-> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
-> DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)...
-> input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb5/5-1/input/input17
-> dvb-usb: schedule remote query interval to 50 msecs.
-> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully initialized and connected.
-> usbcore: registered new interface driver cinergyT2
-> 
-> Do you need any further information? Please CC me, since I am not subscribed to the list.
-> 
-another user has got the same problem, except that the led still lights up.
-Can you tell us what it the firmware version in your device?
-You can see it by doing lsusb -vvv, for the Cinergy T2 entry this is the "bcdDevice" line.
-I have the 1.06 firmware version and it works.
-Cheers,
-Thierry
+David, you're not the first to ask and I doubt you'll be the last.
+
+No, sorry, this isn't something Hauppauge can dish out. When I have time I'll 
+get back to it. Until then the status is the same 'no progress'. It's not an 
+itch that I need to scratch right now.
+
+What the status changes these lists will be the first to know.
+
+- Steve
