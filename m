@@ -1,54 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:48652 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753113AbZBVWfp (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1620 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758786AbZBJTUt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 17:35:45 -0500
-Date: Sun, 22 Feb 2009 16:47:31 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-In-Reply-To: <49A1CA5B.5000407@redhat.com>
-Message-ID: <alpine.LNX.2.00.0902221635440.10870@banach.math.auburn.edu>
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com> <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu> <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
- <49A1CA5B.5000407@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	Tue, 10 Feb 2009 14:20:49 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1AJKlc1005119
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:20:47 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 10 Feb 2009 20:20:47 +0100 (CET)
+Message-Id: <200902101920.n1AJKlc1005119@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
+Results of the daily build of v4l-dvb:
 
-On Sun, 22 Feb 2009, Hans de Goede wrote:
+date:        Tue Feb 10 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10503:9cb19f080660
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-<big snip>
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc4-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc4-armv5-omap2: OK
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc4-i686: WARNINGS
+linux-2.6.16.61-m32r: OK
+linux-2.6.17.14-m32r: OK
+linux-2.6.18.8-m32r: OK
+linux-2.6.19.5-m32r: OK
+linux-2.6.20.21-m32r: OK
+linux-2.6.21.7-m32r: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc4-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc4-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc4-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc4-x86_64: WARNINGS
+fw/apps: OK
+spec: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc4): ERRORS
 
-> Yes that is what we are talking about, the camera having a gravity switch 
-> (usually nothing as advanced as a gyroscope). Also the bits we are talking 
-> about are in a struct which communicates information one way, from the camera 
-> to userspace, so there is no way to clear the bits to make the camera do 
-> something.
->
-> Regards,
->
-> Hans
+Detailed results are available here:
 
-Well, of course the bits are in a struct which is communicates information 
-one way from the camera to userspace. But userspace can do what it deems 
-appropriate with those bits. My point was that if userspace wants to turn 
-the camera upside down in software, all it has to do is to negate those 
-bits. For that purpose, it does not matter whether the bits were 
-originally set "on" (indicating that the sensor is upside down in the 
-camera) or whether they were set "off" (indicating the sensor is right 
-side up in the camera). Now, if it is a question of passing along a 
-changing camera orientation, it is obvious that has to be done with some 
-other mechanism. So, unless my not terribly profound observation about 
-the ability to negate bits was confusing, we are not in disagreement.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Theodore Kilgore
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
