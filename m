@@ -1,48 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from faui03.informatik.uni-erlangen.de ([131.188.30.103]:49423 "EHLO
-	faui03.informatik.uni-erlangen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752348AbZBBLzl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 06:55:41 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: video4linux-list@redhat.com
-Subject: Re: PV143N watchdog
-Date: Mon, 2 Feb 2009 12:45:42 +0100
-Cc: Getcho Getchev <ggetchev@constalant.com>,
-	linux-media@vger.kernel.org
-References: <C528BDC8-8F63-4ED6-AED9-56F0F27C702F@constalant.com>
-In-Reply-To: <C528BDC8-8F63-4ED6-AED9-56F0F27C702F@constalant.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mail.27o.de ([89.110.156.182]:58270 "EHLO mail.27o.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755426AbZBJVxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2009 16:53:19 -0500
+Received: from dslb-084-058-070-061.pools.arcor-ip.net ([84.58.70.61] helo=earth.lan)
+	by mail.27o.de with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63)
+	(envelope-from <klaus@flittner.org>)
+	id 1LX0HV-0003hZ-Gj
+	for linux-media@vger.kernel.org; Tue, 10 Feb 2009 22:36:37 +0100
+Date: Tue, 10 Feb 2009 22:36:35 +0100
+From: Klaus Flittner <klaus@flittner.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add Elgato EyeTV DTT to dibcom driver
+Message-ID: <20090210223635.71abc667@earth.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902021245.45185.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 02 February 2009 10:34, Getcho Getchev wrote:
-> Greetings,
-> I am trying to control the PV143N watchdog via bttv driver under linux
-> kernel 2.6.24.3.
-> According to the specification the watchdog is located at address
-> 0x56, subaddress 0x01.
-> However when I try to write something (a value of 0, 1 or 2) on that
-> address I get NACK result.
-> I am using i2c_master_send() function and software bitbanging
-> algorithm, implemented in bttv-i2c.c
-> At the beginning I suspected the SCL line (the clock for the
-> communication must be set at 100 KHz) but when I saw the delay time is
-> 5 microseconds I realized the period is 10 microseconds which makes
-> 100 KHz. I tried to write the same data on address 0x2B and I
-> succeeded (although I do not know what is there on that address) so it
+This patch introduces support for DVB-T for the following dibcom based card:
+  Elgato EyeTV DTT (USB-ID: 0fd9:0021)
 
-That really sounds like a common i2c miss-understanding.
-Linux kernel i2c functions use only the 7bit address part of the i2c address.
-So it sounds like your device has address 0x56 for writing and 0x57 for 
-reading. (is this correct?)
-Now you give i2c_master_send or i2c_transfer the 7bit part, 0x56 >> 1, and 
-that is 0x2B.
+Signed-off-by: Klaus Flittner <klaus@flittner.org>
 
-Regards
-Matthias
+diff -r 9cb19f080660 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Tue Feb 10 05:26:05 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Tue Feb 10 22:21:16 2009 +0100
+@@ -1419,6 +1419,7 @@
+ 	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_EXPRESS) },
+ 	{ USB_DEVICE(USB_VID_TERRATEC,
+ 			USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2) },
++	{ USB_DEVICE(USB_VID_ELGATO,	USB_PID_ELGATO_EYETV_DTT) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -1618,7 +1619,7 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 9,
++		.num_device_descs = 10,
+ 		.devices = {
+ 			{   "DiBcom STK7070P reference design",
+ 				{ &dib0700_usb_id_table[15], NULL },
+@@ -1654,6 +1655,10 @@
+ 			},
+ 			{   "Terratec Cinergy T USB XXS",
+ 				{ &dib0700_usb_id_table[33], NULL },
++				{ NULL },
++			},
++			{   "Elgato EyeTV DTT",
++				{ &dib0700_usb_id_table[44], NULL },
+ 				{ NULL },
+ 			},
+ 		},
+diff -r 9cb19f080660 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Feb 10 05:26:05 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Feb 10 22:21:16 2009 +0100
+@@ -27,6 +27,7 @@
+ #define USB_VID_DIBCOM				0x10b8
+ #define USB_VID_DPOSH				0x1498
+ #define USB_VID_DVICO				0x0fe9
++#define USB_VID_ELGATO				0x0fd9
+ #define USB_VID_EMPIA				0xeb1a
+ #define USB_VID_GENPIX				0x09c0
+ #define USB_VID_GRANDTEC			0x5032
+@@ -237,5 +238,6 @@
+ #define USB_PID_XTENSIONS_XD_380			0x0381
+ #define USB_PID_TELESTAR_STARSTICK_2			0x8000
+ #define USB_PID_MSI_DIGI_VOX_MINI_III                   0x8807
++#define USB_PID_ELGATO_EYETV_DTT			0x0021
+ 
+ #endif
+diff -r 9cb19f080660 linux/drivers/media/dvb/dvb-usb/dvb-usb.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb.h	Tue Feb 10 05:26:05 2009 -0200
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb.h	Tue Feb 10 22:21:16 2009 +0100
+@@ -224,7 +224,7 @@
+ 	int generic_bulk_ctrl_endpoint;
+ 
+ 	int num_device_descs;
+-	struct dvb_usb_device_description devices[9];
++	struct dvb_usb_device_description devices[10];
+ };
+ 
+ /**
