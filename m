@@ -1,98 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4894 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbZBVKFU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 05:05:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Adam Baker <linux@baker-net.org.uk>
-Subject: Re: RFCv1: v4l-dvb development models & old kernel support
-Date: Sun, 22 Feb 2009 11:05:26 +0100
-Cc: linux-media@vger.kernel.org
-References: <200902211200.45373.hverkuil@xs4all.nl> <200902212347.47109.linux@baker-net.org.uk>
-In-Reply-To: <200902212347.47109.linux@baker-net.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Received: from bombadil.infradead.org ([18.85.46.34]:51763 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752106AbZBJCgl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 21:36:41 -0500
+Date: Tue, 10 Feb 2009 00:35:20 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: CityK <cityk@rogers.com>, V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
+	David Engel <david@istwok.net>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090210003520.14426415@pedra.chehab.org>
+In-Reply-To: <1234229460.3932.27.camel@pc10.localdom.local>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+	<496FE555.7090405@rogers.com>
+	<496FFCE2.8010902@rogers.com>
+	<200901171720.03890.hverkuil@xs4all.nl>
+	<49737088.7060800@rogers.com>
+	<20090202235820.GA9781@opus.istwok.net>
+	<4987DE4E.2090902@rogers.com>
+	<20090209004343.5533e7c4@caramujo.chehab.org>
+	<1234226235.2790.27.camel@pc10.localdom.local>
+	<1234227277.3932.4.camel@pc10.localdom.local>
+	<1234229460.3932.27.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902221105.26785.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 22 February 2009 00:47:46 Adam Baker wrote:
-> On Saturday 21 February 2009, Hans Verkuil wrote:
-> > The high rate of changes and new drivers means that keeping up the
-> > backwards compatibility becomes an increasingly heavy burden.
-> >
-> > This leads to two questions:
-> >
-> > 1) Can we change our development model in such a way that this burden
-> > is reduced?
->
-> Possibly but even just spreading the burden better (and avoiding the
-> compat code affecting the main tree in the case of i2c) would be a
-> worthwhile change.
->
-> > 2) How far back do we want to support older kernels anyway?
->
-> To the point that the effort expended on the compat work is balanced by
-> the benefit of more testers.
->
-> > These questions are related, since changes in the development model has
-> > implications for the answer to the second question.
-> >
-> >
-> > 1: Alternatives to the development model
-> > ----------------------------------------
-> >
-> > I see the following options:
-> >
-> > A) Keep our current model. This also keeps the way we do our backwards
-> > compatibility unchanged.
-> >
-> > B) Switch to a git tree that tracks Linus' tree closely and we drop
-> > backwards compatibility completely.
-> >
-> > C) Switch to the ALSA approach (http://git.alsa-project.org/).
->
-> Another example of this approach can be seen with the linux-wireless git
-> tree. There is a description of the process at
-> http://linuxwireless.org/en/users/Download#Developers
->
-> It might be a more relevant example as there are changes in 2.6.27 that
-> make it difficult to support older kernels. They therefore made a
-> decision at that point to restrict the automated backporting to 2.6.27
-> onwards and say patches will be accepted to the compat tree that covers
-> 2.6.21 to 2.6.26 if a driver change is compatible but they must be
-> manually flagged as being suitable (I've no idea how many are).
->
-> It does require one person (who isn't the main wireless maintainer) to be
-> the maintainer of the compat tree.
+On Tue, 10 Feb 2009 02:31:00 +0100
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-This would basically mean making a snapshot of the v4l-dvb repository, 
-calling it v4l-dvb-old and relying on people to update it with fixes. I did 
-think about this myself but I thought it unlikely that the old tree would 
-see much work, if at all. It's what they are admitting to on the wireless 
-site as well. This could be an option if we are faced with an incompatible 
-kernel change, but in this particular case it is my gut-feeling that 2.6.22 
-is old enough that people can just upgrade to that release.
+> > > Mauro, I know you are waiting for CityK, but I can report so far that I
+> > > never did see that black screen going away by adjusting the controls and
+> > > never had that black screen.
+> > > 
+> > > Tvtime and xawtv were always working under my conditions so far.
 
-> > And luckily, since the oldest kernel currently in regular use is 2.6.22
-> > that makes a very good argument for dropping the i2c compatibility
-> > mess.
->
-> Unfortunately this all omits one important point, are there any key
-> developers for whom dropping support for old kernels will cause them a
-> problem which could reduce their productivity.  Mauro has stated that it
-> would cause him a problem but I can't tell how big a problem it would
-> really be.
+Good to know.
 
-I'll start a poll. Let's see what the opinion is.
+> > > The very old troubles, like tda9887 not present after boot on my md7134
+> > > devices with FMD1216ME MK3 hybrid, and the even unrelated issue with the
+> > > tda10046 not properly controlled anymore after suspend/resume,
+> > > are unchanged on your current saa7134 attempt, but also no new issues
+> > > visible so far.
 
-Regards,
+Ok, let's go by parts:
 
-	Hans
+1) We need to know the sequence that enables tda9887 on md7134/fmd1216me, in
+order to fix it. If someone has fmd1216me, please write me in priv or help us
+to fix the code for it.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+2) I bet that the issue with tda10046 is related to firmware loading. I made
+some tests with a TV @nyware cardbus device that has a tda10046 + tda8290/tda8975.
+
+What happens is that this device supports two type of firmware loads. The first
+one requires an i2c eeprom with the firmware inside. The driver just writes
+0x04 at register 0x07 and waits for some time. The hardware does the firmware load.
+
+On the second mode, firmware bytes are transferred from the driver into the tda10046 memory.
+
+At the tests I made here, on both modes, the i2c bus can't have any other
+traffic during the firmware load. Otherwise, an invalid firmware will be loaded
+and tda10046 will hangup.
+
+I've started to implement some locks at saa7134 driver (on my saa7134
+experimental tree), but it is not finished yet. I didn't touch at the sleep code yet.
+
+> > > 
+> > 
+> > BTW, just to remember.
+> > 
+> > Tvtime with signal detection on shows a blue screen without signal.
+> > With signal detection off, just good old snow.
+
+So, the tda9887 or the PLL are configured wrongly.
+
+> > The tda8275/75a shows a black screen without having lock, not even snow,
+> > if it should be related.
+> 
+> Sorry, to add one more about "black" screens :)
+> 
+> Without the tda9887 loaded, the FMD1216ME MK3 hybrid also shows a black
+> screen, but it is slightly different from the fully black screen of the
+> tda8275, which is in fact an overlay like the blue screen on tvtime. It
+> has some white points visible and on some channels even _very_ decent
+> ghosting of TV.
+
+Probably, tda9887 is configured for STD/M, instead of STD/BG. Fixing tda9887
+will also fix this issue.
+
+> The status of the tda9885/6/7 on the TUV1236D is still not clear to me,
+> until I see debug enabled on it for switching TV standards and just
+> nothing ever changes.
+
+Sorry but I didn't understand what you're meaning with your TUV1236D-based device.
+> 
+> Cheers,
+> Hermann
+> 
+> 
+
+
+
+
+Cheers,
+Mauro
