@@ -1,76 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:34119 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751949AbZBCKsp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 05:48:45 -0500
-Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KEH00K7LKP8R7@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Feb 2009 19:48:44 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KEH00IAWKP4U2@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Feb 2009 19:48:40 +0900 (KST)
-Date: Tue, 03 Feb 2009 19:48:48 +0900
-From: Dongsoo Kim <dongsoo45.kim@samsung.com>
-Subject: Re: [V4L2] EV control API for digital camera
-In-reply-to: <200902031120.01937.laurent.pinchart@skynet.be>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: Dongsoo Kim <dongsoo.kim@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	=?euc-kr?Q?=C7=FC=C1=D8_=B1=E8?= <riverful.kim@samsung.com>,
-	jongse.won@samsung.com, kyungmin.park@samsung.com
-Reply-to: dongsoo45.kim@samsung.com
-Message-id: <1233658128.6845.20.camel@chromatix>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-References: <5e9665e10901281824ibccbf00lcbecba5b01fdcbea@mail.gmail.com>
- <Pine.LNX.4.64.0901291934300.5474@axis700.grange>
- <B44B29E7-9C46-4F34-8CE4-AB17D6CCBCB7@gmail.com>
- <200902031120.01937.laurent.pinchart@skynet.be>
+Received: from smtpd4.aruba.it ([62.149.128.209]:53895 "HELO smtp7.aruba.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752616AbZBJLdY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2009 06:33:24 -0500
+Message-ID: <499165F4.6080405@avalpa.com>
+Date: Tue, 10 Feb 2009 12:33:08 +0100
+From: Andrea Venturi <a.venturi@avalpa.com>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: TS sample from freeview, anyone?
+References: <498C02BE.9010004@avalpa.com> <alpine.DEB.2.01.0902100948270.1147@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.01.0902100948270.1147@ybpnyubfg.ybpnyqbznva>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+BOUWSMA Barry wrote:
+> On Fri, 6 Feb 2009, Andrea Venturi wrote:
+>
+>   
+>> i'm looking for a full TS sample of a freeview mheg RedButton transmission.
+>>     
+>
+> How much are you looking for -- in other words, do you need
+> the full service including video that a RedButton service
+> might bring up, or do you just need a sample of, well,
+> Digital Teletext?
+>   
 
+i'd like to have a couple of minute of a full TS from Freeview, to give 
+a quick glance to Red button service.
 
+supposed it's a 24Mbps, a couple of minutes should be something like 
+350MB of dump.
 
-On 화, 2009-02-03 at 11:20 +0100, Laurent Pinchart wrote:
-> Hi Nate,
-> 
-> On Thursday 29 January 2009, Dongsoo Kim wrote:
-> > Thank you.
-> >
-> > So if V4L2_CID_EXPOSURE is for Exposure Value control, I think there
-> > is no api for exposure metering. right?
-> 
-> V4L2_CID_EXPOSURE controls the exposure time. This is often implemented 
-> through a mechanical or electronic shutter in the device.
-> 
-> What kind of exposure metering do you have in mind ? Can you give us some 
-> details ?
+> I'm assuming that you're in Italia (based on your mail
+> headers).  Therefore you likely would have problems in
+> receiving television programming via satellite on Astra
+> 2D, although I've had error-free reception with a 60cm
+> dish in Zuerich long before I was aware of the spotbeam.
+>   
+i know that i could try freesat albeit has a tight footprint, but i just 
+have a fixed dish toward 13 east
 
-I mean photometry which is all about light meter (or exposure meter).
-Like spot metering, center weighted things..
+> However, the BBC radio services are on a pan-european beam
+> and also (since some months) include a minimal MHEG
+> application that I've been able to receive and view, like
+> the BBCi services on the TV channels -- also available
+> from the BBC (if not ITV too) via satellite/Freesat, and
+> which is likely to be pretty much identical with that
+> received via Freeview...
+>   
 
-> 
-> > Actually many of APIs for camera are missing I guess.
-> 
-> You're probably right. The V4L1/V4L2 API have been developed for frame 
-> grabbers and extended to webcams. Now that high-end digital cameras get USB 
-> connectivity, the V4L2 API should be extended with new controls. Feel free to 
-> submit proposals for discussion on the linux-media mailing list.
-> 
-Thank you for you encouraging words.
-Actually I'm working on some ISP devices from NEC, Fujitsu. and ARM SOC
-camera interface peripheral like PXA3, S3C64XX, OMAP3..
-I wish I could make a device very close to a real digital camera.
-It wouldn't take so long until I submit a RFC about V4L2 API for digital
-camera :) (I hope so at least)
-Cheers.
+is there really MHEG over the BBC radio service?
 
-Regards,
-Nate
+do you mean on these BBC "World service" at 13 degree?
+
+  http://www.lyngsat.com/hotbird.html
+
+the transponder TP *50 at freq. 11727V
+
+thanx in advance
+
+Andrea
+*
+>
+> So, unless you've received off-list assistance, this may
+> be a possibility to get something
+>
+> barry bouwsma
+>
+>   
 
