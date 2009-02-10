@@ -1,102 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:45009 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755476AbZBXWhW convert rfc822-to-8bit (ORCPT
+Received: from mail-in-15.arcor-online.net ([151.189.21.55]:41913 "EHLO
+	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758183AbZBJTQo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 17:37:22 -0500
-Received: by bwz5 with SMTP id 5so6231051bwz.13
-        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 14:37:18 -0800 (PST)
+	Tue, 10 Feb 2009 14:16:44 -0500
+Received: from mail-in-04-z2.arcor-online.net (mail-in-04-z2.arcor-online.net [151.189.8.16])
+	by mx.arcor.de (Postfix) with ESMTP id AA0C2E3A25
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:16:42 +0100 (CET)
+Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net [151.189.21.44])
+	by mail-in-04-z2.arcor-online.net (Postfix) with ESMTP id 8FAFFAC456
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:16:42 +0100 (CET)
+Received: from webmail19.arcor-online.net (webmail19.arcor-online.net [151.189.8.77])
+	by mail-in-04.arcor-online.net (Postfix) with ESMTP id 97EEF77C4D
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:16:21 +0100 (CET)
+Message-ID: <28303533.1234293381186.JavaMail.ngmail@webmail19.arcor-online.net>
+Date: Tue, 10 Feb 2009 20:16:21 +0100 (CET)
+From: schollsky@arcor.de
+To: linux-media@vger.kernel.org
+Subject: Re: Driver for this DVB-T tuner?
+In-Reply-To: <49909F83.9000607@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20090224135720.9e752fee.akpm@linux-foundation.org>
-References: <bug-12768-10286@http.bugzilla.kernel.org/>
-	 <20090224135720.9e752fee.akpm@linux-foundation.org>
-Date: Tue, 24 Feb 2009 23:37:18 +0100
-Message-ID: <d9def9db0902241437o7ffa06a0l57648bea1c922707@mail.gmail.com>
-Subject: Re: [Bugme-new] [Bug 12768] New: usb_alloc_urb() leaks memory
-	together with uvcvideo driver
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-media@vger.kernel.org, bugme-daemon@bugzilla.kernel.org,
-	nm127@freemail.hu
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
+References: <49909F83.9000607@iki.fi> <498F387A.7080606@iki.fi> <1234122710.31277.5.camel@localhost> <3986146.1234210524773.JavaMail.ngmail@webmail12.arcor-online.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 24, 2009 at 10:57 PM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> (switched to email.  Please respond via emailed reply-to-all, not via the
-> bugzilla web interface).
->
-> On Mon, 23 Feb 2009 22:08:37 -0800 (PST)
-> bugme-daemon@bugzilla.kernel.org wrote:
->
->> http://bugzilla.kernel.org/show_bug.cgi?id=12768
->
-> There's additional info at the link.
->
->>            Summary: usb_alloc_urb() leaks memory together with uvcvideo
->>                     driver
->>            Product: Drivers
->>            Version: 2.5
->>      KernelVersion: 2.6.28
->>           Platform: All
->>         OS/Version: Linux
->>               Tree: Mainline
->>             Status: NEW
->>           Severity: normal
->>           Priority: P1
->>          Component: USB
->>         AssignedTo: greg@kroah.com
->>         ReportedBy: nm127@freemail.hu
->>
->>
->> Latest working kernel version:
->> Earliest failing kernel version:
->> Distribution:
->> Hardware Environment: EeePC 901
->> Software Environment: Debian 5.0
->> Problem Description:
->>
->> Steps to reproduce:
->> 1. Boot the system
->> 2. start an xterm window and execute the following command:
->>
->> $ while true; do clear; cat /proc/slab_allocators |grep usb_alloc; sleep 1;
->> done
->>
->> This will print out similar lines each second:
->>
->> size-2048: 18 usb_alloc_dev+0x1d/0x212 [usbcore]
->> size-2048: 2280 usb_alloc_urb+0xc/0x2b [usbcore]
->> size-1024: 85 usb_alloc_urb+0xc/0x2b [usbcore]
->> size-128: 10 usb_alloc_urb+0xc/0x2b [usbcore]
->>
->> 3. Start xawtv, this will show the picture of the webcam
->> 4. Exit xawtv
->>
->> Current result:
->> In the output of /proc/slab_allocators the number of blocks allocated by
->> usb_alloc_urb() increases, however, the xawtv is no longer running:
->>
->> size-2048: 18 usb_alloc_dev+0x1d/0x212 [usbcore]
->> size-2048: 2280 usb_alloc_urb+0xc/0x2b [usbcore]
->> size-1024: 100 usb_alloc_urb+0xc/0x2b [usbcore]
->> size-128: 10 usb_alloc_urb+0xc/0x2b [usbcore]
->>
->> Each time xawtv is started and stopped the value increases at the
->> usb_alloc_urb().
->>
->> Expected result: the same memory usage is reached again after xawtv exited.
->>
->
-> I assume this is a v4l bug and not a USB core bug?
->
+ 
 
-the history of this bug is that someone complained that the em28xx
-driver leaked, Nemeth traced it back and found out that it also
-happens with uvcvideo - both drivers kinda have an independent
-implementation and it happens with both.
 
-Markus
+----- Original Nachricht ----
+Von:     Antti Palosaari <crope@iki.fi>
+An:      schollsky@arcor.de
+Datum:   09.02.2009 22:26
+Betreff: Re: Aw: Re: Driver for this DVB-T tuner?
+
+> schollsky@arcor.de wrote:
+> > Wow that was fast! Thanks!!!
+> > 
+> >> You should use driver from
+> >> http://linuxtv.org/hg/~anttip/mc44s803/
+> > 
+> > I managed to do that.
+> > 
+> >>> af9013: firmware version:4.65.0
+> >> Use 4.95.0 instead.
+> > 
+> > How do I insert it correctly into the source tree? 
+> > A short hint (to a readme) should help. 
+> 
+> Sorry, didn't understand what you mean.
+
+I've downloaded the af9015 firmware version 4.95.0 from here:
+
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/
+
+but simply downloading and installing into /lib/firmware seems to be not enough here (Mandriva 2009.0).
+
+> Anyhow, Mauro just committed this driver to the master, you can now use 
+
+I did so, but firmware 4.95.0 is not included?!?
+
+Thanks,
+
+Stefan
