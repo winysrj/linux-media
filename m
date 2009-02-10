@@ -1,85 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3748 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758059AbZBPOAv (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:41871 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752502AbZBJMLd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 09:00:51 -0500
-Message-ID: <42583.62.70.2.252.1234792848.squirrel@webmail.xs4all.nl>
-Date: Mon, 16 Feb 2009 15:00:48 +0100 (CET)
-Subject: Re: Adding a control for Sensor Orientation
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: "Trent Piepho" <xyzzy@speakeasy.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	kilgota@banach.math.auburn.edu,
-	"Adam Baker" <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	"Olivier Lorin" <o.lorin@laposte.net>
+	Tue, 10 Feb 2009 07:11:33 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>
+Date: Tue, 10 Feb 2009 17:41:23 +0530
+Subject: RE: [PATCH 1/2] Pad configuration for OMAP3EVM Multi-Media Daughter
+ Card Support
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B81F@dbde02.ent.ti.com>
+In-Reply-To: <1233256950-26704-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> If you want to add two bits with
->> mount information, feel free. But don't abuse them for pivot
->> information.
->> If you want that, then add another two bits for the rotation:
->>
->> #define V4L2_BUF_FLAG_VFLIP     0x0400
->> #define V4L2_BUF_FLAG_HFLIP     0x0800
->>
->> #define V4L2_BUF_FLAG_PIVOT_0   0x0000
->> #define V4L2_BUF_FLAG_PIVOT_90  0x1000
->> #define V4L2_BUF_FLAG_PIVOT_180 0x2000
->> #define V4L2_BUF_FLAG_PIVOT_270 0x3000
->> #define V4L2_BUF_FLAG_PIVOT_MSK 0x3000
->>
->
-> Ok, this seems good. But if we want to distinguish between static sensor
-> mount
-> information, and dynamic sensor orientation changing due to pivotting,
-> then I
-> think we should only put the pivot flags in the buffer flags, and the
-> static
-> flags should be in the VIDIOC_QUERYCAP capabilities flag, what do you
-> think of
-> that?
 
-That's for driver global information. This type of information is
-input-specific (e.g. input 1 might be from an S-Video input and does not
-require v/hflip, and input 2 is from a sensor and does require v/hflip).
-So struct v4l2_input seems a good place for it.
 
-Looking at v4l2_input there is a status field, but the status information
-is valid for the current input only. We can:
+Thanks,
+Vaibhav Hiremath
 
-1) add flags here and only set the mounting information for the current
-input,
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Friday, January 30, 2009 12:52 AM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-media@vger.kernel.org; Hiremath, Vaibhav; Jadav, Brijesh
+> R; Shah, Hardik
+> Subject: [PATCH 1/2] Pad configuration for OMAP3EVM Multi-Media
+> Daughter Card Support
+> 
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> On OMAP3EVM Mass Market Daugher Card following GPIO pins are being
+> used -
+> 
+> GPIO134 --> Enable/Disable TVP5146 interface
+> GPIO54 --> Enable/Disable Expansion Camera interface
+> GPIO136 --> Enable/Disable Camera (Sensor) interface
+> 
+> Added entry for the above GPIO's in mux.c and mux.h file
+> 
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/mach-omap2/mux.c             |    6 ++++++
+>  arch/arm/plat-omap/include/mach/mux.h |    5 ++++-
+>  2 files changed, 10 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 1556688..d226d81 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -471,6 +471,12 @@ MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+>  MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("AG4_34XX_GPIO134", 0x160,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("U8_34XX_GPIO54", 0x0b4,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("AE4_34XX_GPIO136", 0x164,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> 
+>  };
+> 
+> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-
+> omap/include/mach/mux.h
+> index 67fddec..ace037f 100644
+> --- a/arch/arm/plat-omap/include/mach/mux.h
+> +++ b/arch/arm/plat-omap/include/mach/mux.h
+> @@ -795,7 +795,10 @@ enum omap34xx_index {
+>  	AF6_34XX_GPIO140_UP,
+>  	AE6_34XX_GPIO141,
+>  	AF5_34XX_GPIO142,
+> -	AE5_34XX_GPIO143
+> +	AE5_34XX_GPIO143,
+> +	AG4_34XX_GPIO134,
+> +	U8_34XX_GPIO54,
+> +	AE4_34XX_GPIO136,
+>  };
+> 
+[Hiremath, Vaibhav] If there are no review comments on this then probably this patch should go through, since this is independent and being used with Multi-Media Daughter card support.
 
-2) add flags here and document that these flags are valid for any input,
-not just the current, or:
-
-3) take one of the reserved fields and turn that into a 'flags' field that
-can be used for static info about the input.
-
-To be honest, I prefer 3.
-
-The same can be done for v4l2_output should it become necessary in the
-future.
-
-Actually, pivot information could be stored here as well. Doing that makes
-it possible to obtain the orientation without needing to start a capture,
-and makes it possible to be used (although awkwardly) with the read()
-interface.
-
-You still want to report this information in v4l2_buffer as well since it
-can change on the fly.
-
-Regards,
-
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>  struct omap_mux_cfg {
+> --
+> 1.5.6
 
