@@ -1,64 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:24012 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752424AbZBXNP4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 08:15:56 -0500
-Date: Tue, 24 Feb 2009 14:15:40 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: John Pilkington <J.Pilk@tesco.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-Message-ID: <20090224141540.4b8a765f@hyperion.delvare>
-In-Reply-To: <49A3DDFC.6010608@tesco.net>
-References: <20090223144917.257a8f65@hyperion.delvare>
-	<49A3DDFC.6010608@tesco.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from comal.ext.ti.com ([198.47.26.152]:45623 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929AbZBJESv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 23:18:51 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Roel Kluin <roel.kluin@gmail.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Tue, 10 Feb 2009 09:48:25 +0530
+Subject: RE: [PATCH] v4l/tvp514x: try_count reaches 0, not -1
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B5F0@dbde02.ent.ti.com>
+In-Reply-To: <4990A6B2.1080902@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi John,
 
-(re-adding linux-media on Cc as I doubt you dropped it on purpose...)
 
-On Tue, 24 Feb 2009 11:46:04 +0000, John Pilkington wrote:
-> Jean Delvare wrote:
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: Roel Kluin [mailto:roel.kluin@gmail.com]
+> Sent: Tuesday, February 10, 2009 3:27 AM
+> To: Hiremath, Vaibhav; mchehab@redhat.com
+> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com
+> Subject: [PATCH] v4l/tvp514x: try_count reaches 0, not -1
 > 
-> > * Enterprise-class distributions (RHEL, SLED) are not the right target
-> >   for the v4l-dvb repository, so we don't care which kernels these are
-> >   running.
+> with while (try_count-- > 0) { ... } try_count reaches 0, not -1.
 > 
-> I think you should be aware that the mythtv and ATrpms communities 
-> include a significant number of people who have chosen to use the 
-> CentOS_5 series in the hope of getting systems that do not need to be 
-> reinstalled every few months.  I hope you won't disappoint them.
+[Hiremath, Vaibhav] Please look at the loop,
 
-CentOS is a parasite, if it dies I can't care less. CentOS users have
-the recurrent habit to expect professional support from the community
-without giving anything in return. Even worse: they consider that
-running an antediluvian OS is the default and they don't understand why
-upstream developers won't help them.
+        while (try_count-- > 0) {
+		Wait till TVP locks the Signal.
+        }
 
-You said it yourself: they expect to be able to keep the same system
-for a long time. This is a service you normally get from Red Hat or
-Novell, and you pay for it. This is something the community is
-generally not willing to offer for free, because it is not fun.
+        if ((current_std == STD_INVALID) || (try_count < 0))
+                return -EINVAL;
 
-If the MythTV community cares that much about the v4l-dvb tree, they are
-free to fork it right before support for kernel 2.6.18 is dropped, and
-maintain that copy themselves. But their model is broken to start with:
-sticking to a several-year-old kernel and OS, and OTOH picking critical
-(for their use case) kernel drivers from a development tree which
-evolves continuously by definition, makes little sense. Then again, I
-would be happy to keep support for them if the cost wasn't too high.
-But right now, the cost _is_ too high.
+The above loop fails to lock the signal, and then the value of try_count will be -1 and not 0. The values 0-4 indicates the signal has been locked, provided that current_std != STD_INVALID.
 
-Your view of community distributions is a bit too negative BTW. You
-don't need to go to the extreme CentOS_5 is to not have to reinstall
-every few months. openSUSE distributions are maintained for 2 years for
-example.
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> diff --git a/drivers/media/video/tvp514x.c
+> b/drivers/media/video/tvp514x.c
+> index 8e23aa5..5f4cbc2 100644
+> --- a/drivers/media/video/tvp514x.c
+> +++ b/drivers/media/video/tvp514x.c
+> @@ -686,7 +686,7 @@ static int ioctl_s_routing(struct
+> v4l2_int_device *s,
+>  			break;	/* Input detected */
+>  	}
+> 
+> -	if ((current_std == STD_INVALID) || (try_count < 0))
+> +	if ((current_std == STD_INVALID) || (try_count <= 0))
+>  		return -EINVAL;
+> 
+>  	decoder->current_std = current_std;
 
--- 
-Jean Delvare
+[Hiremath, Vaibhav] I believe we don't need this fix here.
