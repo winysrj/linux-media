@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web35805.mail.mud.yahoo.com ([66.163.179.174]:27863 "HELO
-	web35805.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752894AbZBTQQa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 11:16:30 -0500
-Date: Fri, 20 Feb 2009 08:16:29 -0800 (PST)
-From: Amy Overmyer <aovermy@yahoo.com>
-Subject: Re: vbox cat's eye 3560 usb device
+Received: from mailgw3a.lmco.com ([192.35.35.7]:52043 "EHLO mailgw3a.lmco.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751786AbZBJAO7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Feb 2009 19:14:59 -0500
+Received: from emss04g01.ems.lmco.com (relay4.ems.lmco.com [166.17.13.122])by mailgw3a.lmco.com  (LM-6) with ESMTP id n1A0EwDG010619for <linux-media@vger.kernel.org>; Mon, 9 Feb 2009 19:14:58 -0500 (EST)
+Received: from CONVERSION2-DAEMON.lmco.com by lmco.com (PMDF V6.3-x14 #31428)
+ id <0KET00E01Q0YQR@lmco.com> for linux-media@vger.kernel.org; Mon, 09 Feb 2009 19:14:58 -0500 (EST)
+Received: from EMSS01I00.us.lmco.com ([137.249.139.145]) by lmco.com (PMDF V6.3-x14 #31428)
+ with ESMTP id <0KET00A85Q0SIO@lmco.com> for linux-media@vger.kernel.org; Mon, 09 Feb 2009 19:14:53 -0500 (EST)
+Date: Mon, 09 Feb 2009 16:14:50 -0800
+From: "Williams, Phil A" <phil.a.williams@lmco.com>
+Subject: Re: cx18, HVR-1600 Clear qam tuning
 To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Message-ID: <132842.8631.qm@web35805.mail.mud.yahoo.com>
+Message-id: <CCB65A8C741893429D41536D8B5F6D921CCFF080@emss01m15.us.lmco.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7BIT
+Content-class: urn:content-classes:message
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Lastly, are there any other IC components on the back or front of the
-> PCB ?  Can you provide pics (upload them to the wiki article)) ?
+I'm using an HVR-1600, having a heck of a time, and wanted to give this
+patch a try. Can someone point me to a good wiki or howto on how to
+incorporate this patch?
 
-The back only has a couple components, probably for electrical, no ICs.
-The
-front only has the cypress (100 pin pkg) chip and the NIM, with a
-couple small components, that I can't read what they are. The PCB is
-stamped osc by one of them and usbid on the other, so I'm guessing one
-is an oscillator and the other the PROM where the cold USB id is stored.
+>Devin just commited a patch to improve the lock time of the
+>cx24227/s5h1409 demodulator:
+>
+>http://linuxtv.org/hg/~dheitmueller/v4l-dvb-s5h1409/rev/6bb4e117a614
+>
+>I've tested it with my HVR-1600 and it improved things for me when
+>tuning ATSC OTA.  You may wish to give it a try.
 
-I
-opened up the NIM (hey, they're $30 at my local computer store right
-now, so even if I kill it, I have an extra), and I saw my old friend
-the BCM3510 (I have a 1rst gen air2pc pci card that works pretty well
-for me) and a smaller chip marked tua6030 (or could be 6080, the
-writing is faint, but infineon doesn't look like they make an 6080). 
+Thanks,
 
-I have photos but need to upload them.
+Phil/TW
 
-> have a look at the cxusb, its likely closer to what you want:
-> http://linuxtv.org/hg/v4l-dvb/file/tip/linux/drivers/media/dvb/dvb-usb/
-
-OK, I'll take a look there. Thank you.
-
-
-      
