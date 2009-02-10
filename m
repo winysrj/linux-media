@@ -1,102 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:5078 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754512AbZBQFO5 convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:50304 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752017AbZBJM2Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 00:14:57 -0500
-Received: by yw-out-2324.google.com with SMTP id 5so1060636ywh.1
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 21:14:56 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
-References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
-	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
-	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
-	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
-Date: Tue, 17 Feb 2009 00:14:56 -0500
-Message-ID: <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
-Subject: =?windows-1256?Q?Re=3A_HVR=2D1500_tuner_seems_to_be_recognized=2C_but_wont_?=
-	=?windows-1256?Q?turn_on=2E=FE?=
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Thomas Nicolai <nickotym@hotmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1256
-Content-Transfer-Encoding: 8BIT
+	Tue, 10 Feb 2009 07:28:25 -0500
+Date: Tue, 10 Feb 2009 10:27:32 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jonathan Isom <jeisom@gmail.com>
+Cc: hermann pitton <hermann-pitton@arcor.de>, CityK <cityk@rogers.com>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
+	David Engel <david@istwok.net>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090210102732.5421a296@pedra.chehab.org>
+In-Reply-To: <1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+	<4987DE4E.2090902@rogers.com>
+	<20090209004343.5533e7c4@caramujo.chehab.org>
+	<1234226235.2790.27.camel@pc10.localdom.local>
+	<1234227277.3932.4.camel@pc10.localdom.local>
+	<1234229460.3932.27.camel@pc10.localdom.local>
+	<20090210003520.14426415@pedra.chehab.org>
+	<1234235643.2682.16.camel@pc10.localdom.local>
+	<1234237395.2682.22.camel@pc10.localdom.local>
+	<20090210041512.6d684be3@pedra.chehab.org>
+	<1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/2/17 Thomas Nicolai <nickotym@hotmail.com>:
->
-> Here is the pertinent part of the dmesg I got tonight:
->
-> dmesg
->
->  407.155095] firmware: requesting xc3028-v27.fw
-> [  407.248329] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-> [  407.447731] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-> [  407.970376] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
-> [  407.970385] xc2028 1-0061: -5 returned from send
-> [  407.970390] xc2028 1-0061: Error -22 while loading base firmware
-> [  408.222453] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-> [  408.744786] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
-> [  408.744791] xc2028 1-0061: -5 returned from send
-> [  408.744793] xc2028 1-0061: Error -22 while loading base firmware
-> [  409.945750] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-> [  411.102083] xc2028 1-0061: Loading firmware for type=D2633 DTV6 ATSC (10030), id 0000000000000000.
->
->
-> ----------------------------------------
->> From: nickotym@hotmail.com
->> To: devin.heitmueller@gmail.com
->> CC: linux-media@vger.kernel.org
->> Subject: RE: HVR-1500 tuner seems to be recognized, but wont turn on.þ
->> Date: Sat, 14 Feb 2009 12:05:09 -0600
->>
->>
->>
->>
->>
->>> That looks really suspicious. Perhaps the xc3028 tuner is being put
->>> to sleep and not being woken up properly.
->>>
->>> Could you please post the full dmesg output showing the initialization
->>> of the device?
->>>
->>> Devin
->>
->>
->> I turned kubuntu on, shut off the backend for mythtv and then did a scan using dvbscan.
->>
->> Here is the full dmesg output, sorry it is long I wanted to include it all in case i missed anything.:
->>
->>
->> dmesg
->>
->
->
-> _________________________________________________________________
-> Windows Live™: Keep your life in sync.
-> http://windowslive.com/howitworks?ocid=TXT_TAGLM_WL_t1_allup_howitworks_022009
->
+On Tue, 10 Feb 2009 06:07:51 -0600
+Jonathan Isom <jeisom@gmail.com> wrote:
 
-Sorry for not getting back to you sooner.
+> On Tue, Feb 10, 2009 at 12:15 AM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> > On Tue, 10 Feb 2009 04:43:15 +0100
+> > hermann pitton <hermann-pitton@arcor.de> wrote:
+> >
+> >>
+> >> Am Dienstag, den 10.02.2009, 04:14 +0100 schrieb hermann pitton:
+> >> > Am Dienstag, den 10.02.2009, 00:35 -0200 schrieb Mauro Carvalho Chehab:
+> >> > > On Tue, 10 Feb 2009 02:31:00 +0100
+> >> > > hermann pitton <hermann-pitton@arcor.de> wrote:
+> >>
+> >> > > > >
+> >> > > > > BTW, just to remember.
+> >> > > > >
+> >> > > > > Tvtime with signal detection on shows a blue screen without signal.
+> >> > > > > With signal detection off, just good old snow.
+> >> > >
+> >> > > So, the tda9887 or the PLL are configured wrongly.
+> >> > >
+> >>
+> >> Urgh, not to add more confusion here at least.
+> >>
+> >> Good old snow means the analog signal is perfect.
+> >>
+> >> I stopped since long to connect a real signal to it surfing the grounds
+> >> on my stomach, but it is for sure working then and the pll is always
+> >> fine.
+> >
+> > Ah, ok. So, now, we just need CityK (or someone else with ATSC 115) to confirm
+> > that everything is fine on their side. This patch may also fix other similar
+> > troubles on a few devices that seem to need some i2c magic before probing the
+> > tuner.
+> 
+> Just tried the latest hg and I can confirm that both an ATSC 110 and
+> 115 work with tvtime
+> and ATSC.
+> 
+Jonathan,
 
-I don't claim to know much about this card, but there was a relatively
-recent change where the tuner gets put to sleep, which might explain
-why you are having i2c communication failures.
+You tried the latest tree at http://linuxtv.org/hg/v4l-dvb or my saa7134 tree
+(http://linuxtv.org/hg/~mchehab/saa7134)?
 
-Try the following:
+In the first case, could you please confirm that it works fine also with the saa7134 tree?
 
-<unplug the card>
-make unload
-modprobe tuner-xc2028 no_poweroff=1 debug=1
-<plug in the card>
-<see if it starts working>
+> Later
+> 
+> Jonathan
+> 
+> > Cheers,
+> > Mauro
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 
-If that doesn't work, send the dmesg output.
 
-Devin
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+
+Cheers,
+Mauro
