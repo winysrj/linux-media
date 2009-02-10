@@ -1,80 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:45183 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752064AbZBAV3d (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:50320 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750887AbZBJMaE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 16:29:33 -0500
-Subject: Re: [PATCH] Leadtek WinFast DTV-1800H and DTV-2000H
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Miroslav =?UTF-8?Q?=C5=A0ustek?= <sustmidown@centrum.cz>,
-	Mirek =?UTF-8?Q?Sluge=C5=88?= <thunder.m@email.cz>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <200902011737.4646@centrum.cz>
-References: <200902011729.11885@centrum.cz> <200902011730.15853@centrum.cz>
-	 <200902011731.21563@centrum.cz> <200902011732.21401@centrum.cz>
-	 <200902011733.12125@centrum.cz> <200902011734.8961@centrum.cz>
-	 <200902011735.14944@centrum.cz> <200902011736.23401@centrum.cz>
-	 <200902011737.4646@centrum.cz>
-Content-Type: text/plain; charset=UTF-8
-Date: Sun, 01 Feb 2009 22:29:47 +0100
-Message-Id: <1233523787.11484.30.camel@pc10.localdom.local>
+	Tue, 10 Feb 2009 07:30:04 -0500
+Date: Tue, 10 Feb 2009 10:29:36 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: cx8802.ko module not being built with current HG tree
+Message-ID: <20090210102936.7782b1ec@pedra.chehab.org>
+In-Reply-To: <20090210100955.715770d0@pedra.chehab.org>
+References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
+	<617be8890902050759x74c08498o355be1d34d7735fe@mail.gmail.com>
+	<20090210093753.69b21572@pedra.chehab.org>
+	<617be8890902100357s7a56776av3475db0cfd486b9@mail.gmail.com>
+	<20090210100955.715770d0@pedra.chehab.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, 10 Feb 2009 10:09:55 -0200
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-Am Sonntag, den 01.02.2009, 17:37 +0100 schrieb Miroslav Å ustek:
-> Hi, few months ago I sent the patch for Leadtek WinFast DTV-1800H card, but it wasn't merged to repository yet.
-> Maybe it's because of the merging of mailing lists. I'm sending it again.
+> On Tue, 10 Feb 2009 12:57:47 +0100
+> Eduard Huguet <eduardhc@gmail.com> wrote:
 > 
-> These are the original messages:
-> http://linuxtv.org/pipermail/linux-dvb/2008-October/029859.html
-> http://linuxtv.org/pipermail/linux-dvb/2008-November/030362.html
+> > Hi,
+> >     Just tried it right now, with these simple steps:
+> > 
+> >       · hg clone http://linuxtv.org/hg/v4l-dvb
+> >       · cd v4l-dvb
+> >       · make menuconfig & exit from it without touching anything
+> > 
+> > I attach the resulting v4l/.config file generated. As you can see,
+> > CX88_MPEG is being marked as 'Y' instead that 'M':
+> > 
+> > $ grep CX88 v4l/.config
+> > CONFIG_VIDEO_CX88=m
+> > CONFIG_VIDEO_CX88_ALSA=m
+> > CONFIG_VIDEO_CX88_BLACKBIRD=m
+> > CONFIG_VIDEO_CX88_DVB=m
+> > CONFIG_VIDEO_CX88_MPEG=y
+> > CONFIG_VIDEO_CX88_VP3054=m
 > 
-> Briefly, patch adds support for analog tv, radio, dvb-t and remote control.
-> About three people already confirmed the functionality.
-> ----
+> Weird. I 've applied your changeset and copied it at v4l/.config. Then, a make
+> menuconfig and exit, just to be sure that kernel build would touch on it.
+> Everything worked fine.
 > 
-> The second patch I attached (leadtek_winfast_dtv2000h.patch) is from Mirek SlugeÅˆ and it adds support for some revisions of Leadtek WinFast DTV-2000H.
-> I don't have any of DTV-2000H cards, so I cannot confirm its correctness.
+> > I'm compiling against Ubuntu kernel 2.6.22, which I know it's pretty
+> > old. Can this make any difference?
 > 
-> Here is the original message from Mirek SlugeÅˆ:
-> http://linuxtv.org/pipermail/linux-dvb/2008-November/030644.html
+> I'm using here kernel 2.6.28.2. Maybe this is some bug on the Ubuntu's kernel
+> kbuild, since make *config options at the out-of-tree kernel is a wrapper to
+> the kernel kbuild.
 > 
-> (The patch is dependent on 1800H patch.)
-> ----
+> Could you please try the same procedure with a newer kernel? There's no need to
+> install the kernel on your machine. All you need to do is something like:
 > 
-> I hope this is the last time I'm bothering you with this thing. ;)
-> 
-> - Miroslav Å ustek
-> 
+> wget <newer kernel like 2.6.28.4>
+> tar -xvfoj <kernel>
+> cd linux
 
-Miroslav, Mirek, looks OK so far,
+Hmm.. you'll need to provide some .config to the downloaded kernel. You may do it my
+running "make allyesconfig" or "make allmodconfig". Another approach would be
+to run "make oldconfig", but, in the latter case, you would need to answer to
+several questions (it is probably ok to just press enter to all questions).
 
-but biggest problem is that all patches have no Signed-off-by line.
-Try README.patches in v4l-dvb and related.
+> make init
+> 
+> cd ~/v4l-dvb
+> make release DIR=<newer kernel patch>
+> make menuconfig
+> 
+> The "make release" will allow you to use the Kbuild of the newer kernel.
+> 
+> > 
+> > Best regards,
+> >   Eduard
+> > 
+> > PS: by the way, this works fine when using revision 10189,  just
+> > before CX88 dependencies got altered.
+> 
+> The problem is that the old Kconfig were causing breakages upstream.
+> 
+> Cheers,
+> Mauro
 
-The not at all working radio on the DTV2000H_J could indicate that it is
-a FMD1216MEX with different radio IF, which was recently added by Darron
-Broad. Good idea how they did expand the antenna input connectors.
 
-Also, for the unsupported XCeive4000 on the DTV2000H_PLUS I guess
-TUNER_ABSENT should be used until support for it is ready and all
-related ?
 
-There is another patch from Mirek for saa7134 with multiple multi
-frontend boards from Nov. 28 2008 where I asked for his SOB, but no
-response. It has at least a tested-by from me and an updated version
-against recent v4l-dvb can be provided.
-http://www.linuxtv.org/pipermail/linux-dvb/2009-January/031217.html
-
-Mauro seems to prefer to have v4l-dvb related e-mails at infradead.org.
-Changed to it.
 
 Cheers,
-Hermann
-
-
+Mauro
