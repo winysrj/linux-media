@@ -1,57 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:41841 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108AbZBXFE7 (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.241]:36448 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753084AbZBJMsP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 00:04:59 -0500
-Date: Mon, 23 Feb 2009 21:04:48 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: David Ellingsworth <david@identd.dyndns.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-In-Reply-To: <30353c3d0902230653w419e10c4u73b7f70f135d6663@mail.gmail.com>
-Message-ID: <Pine.LNX.4.58.0902231842300.24268@shell2.speakeasy.net>
-References: <200902221115.01464.hverkuil@xs4all.nl>
- <30353c3d0902230653w419e10c4u73b7f70f135d6663@mail.gmail.com>
+	Tue, 10 Feb 2009 07:48:15 -0500
+Received: by an-out-0708.google.com with SMTP id c2so993754anc.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 04:48:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20090210102732.5421a296@pedra.chehab.org>
+References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
+	 <1234226235.2790.27.camel@pc10.localdom.local>
+	 <1234227277.3932.4.camel@pc10.localdom.local>
+	 <1234229460.3932.27.camel@pc10.localdom.local>
+	 <20090210003520.14426415@pedra.chehab.org>
+	 <1234235643.2682.16.camel@pc10.localdom.local>
+	 <1234237395.2682.22.camel@pc10.localdom.local>
+	 <20090210041512.6d684be3@pedra.chehab.org>
+	 <1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com>
+	 <20090210102732.5421a296@pedra.chehab.org>
+Date: Tue, 10 Feb 2009 06:48:12 -0600
+Message-ID: <1767e6740902100448q4f710a87q511b61433e992898@mail.gmail.com>
+Subject: Re: KWorld ATSC 115 all static
+From: Jonathan Isom <jeisom@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: hermann pitton <hermann-pitton@arcor.de>, CityK <cityk@rogers.com>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
+	David Engel <david@istwok.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Feb 2009, David Ellingsworth wrote:
-> On Sun, Feb 22, 2009 at 5:15 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Optional question:
+On Tue, Feb 10, 2009 at 6:27 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On Tue, 10 Feb 2009 06:07:51 -0600
+> Jonathan Isom <jeisom@gmail.com> wrote:
 >
-> Why can't we drop support for all but the latest kernel?
+>> On Tue, Feb 10, 2009 at 12:15 AM, Mauro Carvalho Chehab
+>> <mchehab@infradead.org> wrote:
+>> > On Tue, 10 Feb 2009 04:43:15 +0100
+>> > hermann pitton <hermann-pitton@arcor.de> wrote:
+>> >
+>> >>
+>> >> Am Dienstag, den 10.02.2009, 04:14 +0100 schrieb hermann pitton:
+>> >> > Am Dienstag, den 10.02.2009, 00:35 -0200 schrieb Mauro Carvalho Chehab:
+>> >> > > On Tue, 10 Feb 2009 02:31:00 +0100
+>> >> > > hermann pitton <hermann-pitton@arcor.de> wrote:
+>> >>
+>> >> > > > >
+>> >> > > > > BTW, just to remember.
+>> >> > > > >
+>> >> > > > > Tvtime with signal detection on shows a blue screen without signal.
+>> >> > > > > With signal detection off, just good old snow.
+>> >> > >
+>> >> > > So, the tda9887 or the PLL are configured wrongly.
+>> >> > >
+>> >>
+>> >> Urgh, not to add more confusion here at least.
+>> >>
+>> >> Good old snow means the analog signal is perfect.
+>> >>
+>> >> I stopped since long to connect a real signal to it surfing the grounds
+>> >> on my stomach, but it is for sure working then and the pll is always
+>> >> fine.
+>> >
+>> > Ah, ok. So, now, we just need CityK (or someone else with ATSC 115) to confirm
+>> > that everything is fine on their side. This patch may also fix other similar
+>> > troubles on a few devices that seem to need some i2c magic before probing the
+>> > tuner.
+>>
+>> Just tried the latest hg and I can confirm that both an ATSC 110 and
+>> 115 work with tvtime
+>> and ATSC.
+>>
+> Jonathan,
 >
-> >
-> > Why:
+> You tried the latest tree at http://linuxtv.org/hg/v4l-dvb or my saa7134 tree
+> (http://linuxtv.org/hg/~mchehab/saa7134)?
 >
-> As others have already pointed out, it is a waste of time for
-> developers who volunteer their time to work on supporting prior kernel
-> revisions for use by enterprise distributions. The task of
-> back-porting driver modifications to earlier kernels lessens the
-> amount of time developers can focus on improving the quality and
-> stability of new and existing drivers. Furthermore, it deters driver
-> development since  there an expectation that they will back-port their
-> driver to earlier kernel versions. Finally, as a developer, I have
+> In the first case, could you please confirm that it works fine also with the saa7134 tree?
 
-We don't backport the drivers to older kernels.  That's what drivers kept
-in a full kernel tree end up doing.
+Hi
+  I can confirm they work with both trees.
 
-Generally there is just the code for the newest kernel to think about.
-Most of the driver code doesn't have backward compatibility ifdefs.  Most
-of the compat issues are handled transparently by compat.h and only those
-developers who patch compat.h ever need to know they exist.
+Later
 
-When a developer does need to deal with some compat ifdef in a driver,
-almost all the time it's something trivial and obvious.  Change the
-variable name in both branches.  Copy in a couple lines of boilerplate.
+Jonathan
 
-Sometimes a bigger issue comes up.  IIRC, around 2.6.16 there was a major
-class_device change in the kernel and backward compat code for it ended up
-being a nightmare.  So we didn't do it.  We stopped supporting back to
-~2.6.11 and moved up the target past the problem change.
 
-Maybe this has happened again with the changes to i2c?  I don't think
-it's that hard, but I've yet to do it myself, so maybe it is.
+>> Later
+>>
+>> Jonathan
+>>
+>> > Cheers,
+>> > Mauro
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >
+>
+>
+>
+>
+> Cheers,
+> Mauro
+>
