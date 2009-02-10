@@ -1,91 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4120 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828AbZBGRy4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Feb 2009 12:54:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Adam Baker <linux@baker-net.org.uk>
-Subject: Re: libv4l and HFLIP / VFLIP again
-Date: Sat, 7 Feb 2009 18:54:29 +0100
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	kilgota@banach.math.auburn.edu,
-	"Jean-Francois Moine" <moinejf@free.fr>
-References: <200902071715.24282.linux@baker-net.org.uk>
-In-Reply-To: <200902071715.24282.linux@baker-net.org.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:30478 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755262AbZBJTb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2009 14:31:57 -0500
+Message-ID: <4991D629.6060100@iki.fi>
+Date: Tue, 10 Feb 2009 21:31:53 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: schollsky@arcor.de
+CC: linux-media@vger.kernel.org
+Subject: Re: Driver for this DVB-T tuner?
+References: <49909F83.9000607@iki.fi> <498F387A.7080606@iki.fi> <1234122710.31277.5.camel@localhost> <3986146.1234210524773.JavaMail.ngmail@webmail12.arcor-online.net> <26204941.1234293468460.JavaMail.ngmail@webmail19.arcor-online.net>
+In-Reply-To: <26204941.1234293468460.JavaMail.ngmail@webmail19.arcor-online.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902071854.29637.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 07 February 2009 18:15:24 Adam Baker wrote:
-> Hi All,
->
-> Now that the SQ-905 driver has been accepted into the gspca tree it is
-> time to consider how best to address passing the sensor orientation from
-> the driver to libv4l.
->
-> For this camera the approach taken so far of knowing what orientation is
-> needed based on the USB ID won't work as there are variants of the camera
-> with different sensor orientation but the same ID. The driver can detect
-> this based on some initialisation messages but needs to tell libv4l.
->
-> For SQ-905 the orientation will remain fixed but we know there exist
-> cameras that provide some form of tilt switch to detect orientation so
-> the adopted solution should be able to cope with those too.
->
-> Olivier Lorin has proposed a solution to this problem that involves using
-> 2 new bits in v4l2_buffer->flags and has offered a patch for libv4l to
-> add support for the 180 degree rotation case.
->
-> Does anyone have a suggestion for a better way to address this problem?
-> If not I'll prepare a patch to add the flags to include/linux/videodev2.h
-> and one to set them in sq905.c.
+schollsky@arcor.de wrote:
+> I've downloaded the af9015 firmware version 4.95.0 from here:
+> 
+> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/
 
-Well, since you ask :-)
+Thats ok
 
-I think doing this in the v4l2_buffer flags is not quite the right place. 
-Basically a high-level property (sensor orientation) is reported in a very 
-low-level flags field.
+> but simply downloading and installing into /lib/firmware seems to be not enough here (Mandriva 2009.0).
 
-Personally I would prefer to see a SENSOR_ORIENTATION (or something similar) 
-read-only control that libv4l could read X seconds or so when capturing. 
-Besides, using v4l2_buffer will not work if you use the read() interface. 
-And as an end-user I am actually interested in seeing what the orientation 
-is.
+?? How did you installed old 4.65.0 firmware? Just replace 4.65.0 
+firmware file (file name is same) with 4.95.0 is enough.
 
-Regards,
+>> Anyhow, Mauro just committed this driver to the master, you can now use 
+> 
+> I did so, but firmware 4.95.0 is not included?!?
 
-	Hans
+Is not included? Firmware does not come with driver - it should be 
+downloaded and installed separately.
 
-> After that I'll work on expanding Olivier Lorin's patch to
-> 1) Ignore the flag from the driver for cameras listed in v4lconvert_flags
-> (otherwise as the kernel driver doesn't currently set the flag for those
-> cameras the change would be incompatible with current kernels for those
-> cameras).
-> 2) support independent setting of HFLIP  and VFLIP (some SQ-905 cameras
-> need only VFLIP).
->
-> And finally add the flags in the kernel drivers for the cameras listed in
-> v4lconvert_flags so that eventually (once we are confident no-one running
-> 2.6.29 will want a new libv4l) that functionality can be removed from
-> libv4l.
->
-> What is the preferred version of libv4l to prepare patches against? Is it
-> http://linuxtv.org/hg/~hgoede/v4l-dvb
->
-> Adam Baker
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What it now prints to the /var/log/messages ?
 
-
-
+regards
+Antti
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+http://palosaari.fi/
