@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay005.isp.belgacom.be ([195.238.6.171]:26455 "EHLO
-	mailrelay005.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751142AbZBROr5 (ORCPT
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:47579 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754094AbZBJLtU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 09:47:57 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: gilles <gilles.gigan@gmail.com>
-Subject: Re: Comments on V4L controls
-Date: Wed, 18 Feb 2009 15:51:32 +0100
-Cc: linux-media@vger.kernel.org
-References: <4994A667.2000909@gmail.com>
-In-Reply-To: <4994A667.2000909@gmail.com>
+	Tue, 10 Feb 2009 06:49:20 -0500
+Received: by bwz5 with SMTP id 5so2548097bwz.13
+        for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 03:49:18 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+In-Reply-To: <alpine.DEB.2.01.0902101024560.1147@ybpnyubfg.ybpnyqbznva>
+References: <498E031E.9040503@agnoletti.dk> <498EB8AE.7030706@agnoletti.dk>
+	 <19a3b7a80902090737r156bf86egdf791851a0b1c63d@mail.gmail.com>
+	 <alpine.DEB.2.01.0902101024560.1147@ybpnyubfg.ybpnyqbznva>
+Date: Tue, 10 Feb 2009 12:49:18 +0100
+Message-ID: <19a3b7a80902100349k2881715ard4f5d68ccf3fdec8@mail.gmail.com>
+Subject: Re: channels.conf file for danish DVB-C provider AFDK (www.afdk.tv)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: Klaus Agnoletti <klaus@agnoletti.dk>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902181551.32623.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gilles,
-
-On Thursday 12 February 2009 23:44:55 gilles wrote:
-> Hi everyone,
-> Sorry for double posting, but I originally sent this to the old mailing
-> list. Here it is:
+2009/2/10 BOUWSMA Barry <freebeer.bouwsma@gmail.com>:
+> On Mon, 9 Feb 2009, Christoph Pfister wrote:
 >
-> I have a couple of comments / suggestions regarding the part on controls of
-> the V4L2 api:
-> Some controls, such as pan relative and tilt relative are write-only, and
-> reading their value makes little sense. Yet, there is no way of knowing
-> about this, but to try and read a value and be greeted with EINVAL or
-> similar. There is already a read-only flag (V4L2_CTRL_FLAG_READ_ONLY) in
-> struct v4l2_query. Does it make sense to add another one for write-only
-> controls ?
+>> > I sent you the wrong file, it occured to me.. The right one goes here :
+>> Added, thanks :)
+>
+>> > C 386000000 6875000 AUTO QAM64
+>
+> Looking at all the other dvb-c scanfiles, would it not be most
+> likely that the FEC here would be also NONE, like all others,
+> regardless of comparable symbol rate or modulation?
 
-Yes it does. Martin Rubli from Logitech sent a mail in April 2008 to the 
-video4linux mailing list. Search the list archives for "[PATCH] Support for 
-write-only controls". Feel free to submit a patch.
+Yes; I've fixed this while committing.
 
-> The extended controls Pan / Tilt  reset are defined in the API as boolean
-> controls. Shouldnt these be defined as buttons instead, as they dont really
-> hold a state (enabled/disabled) ?
+> I am ignorant about DVB-C practice, and don't have access to
+> the NIT tables of any providers, so I'm happy to be wrong...
 
-Agreed. As no driver seem to be using those controls yet, it should be safe to 
-update the spec. Could you submit a patch ?
+EN300429 says that no convolutional coding (= inner fec) shall be used
+for dvb-c, so you aren't wrong :)
 
-Best regards,
+> barry bouwsma
 
-Laurent Pinchart
-
+Christoph
