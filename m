@@ -1,111 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2278 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753868AbZBITNp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 14:13:45 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n19JDdps082532
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 9 Feb 2009 20:13:43 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 9 Feb 2009 20:13:39 +0100 (CET)
-Message-Id: <200902091913.n19JDdps082532@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from mail.kapsi.fi ([217.30.184.167]:34778 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754984AbZBJVOg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2009 16:14:36 -0500
+Message-ID: <4991EE34.3040507@iki.fi>
+Date: Tue, 10 Feb 2009 23:14:28 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+CC: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] EC168
+References: <457563803.20081123042151@gmail.com> <1766329077.20081126030346@gmail.com>
+In-Reply-To: <1766329077.20081126030346@gmail.com>
+Content-Type: text/plain; charset=windows-1250; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+Tanguy Pruvot wrote:
+> #define CMD_EC168_RAM       0x00 //RW- Read/Write RAM (Firmware go to addr 0-0x1EFF)
+> #define CMD_EC168_GETSTATUS 0x01 //R-- ex: dfu_ctrl_get(device,0x01,0x0000,0x01A0,buffer,0x1A);
+> #define CMD_EC168_STREAM    0x03 //R-X ex: dfu_ctrl(device,0x03,0/0x20,0xFF00);
+>                                  //    disable/enable streaming 
+> #define CMD_EC168_SET_POWER 0x04 //--X ex: dfu_ctrl(device,0x04,0/1,0x0008);
+>                                  //    disable/enable LED
+>                                  //    indexes seen: 206,208,8,9,A,B
+> #define CMD_EC168_UNKNOWN   0x10 //--X ???
+> #define CMD_EC168_READ_BUF  0x20 //R-- ex: dfu_ctrl_get(device,0x20,0x0000,0x01A0,buffer,0x1A); 
+> #define CMD_EC168_WRITE_BUF 0x21 //-W- 
+> #define CMD_EC168_SET       0x30 //--X ex: dfu_ctrl(device, 0x30, 0x0709, 0x1A);
 
-Results of the daily build of v4l-dvb:
+Are you still hacking that device?
+I tried to order Intel CE6230 device but got EC168 (SinoVideo 3420A-2). 
+I take one USB-sniff and here are commands as I think:
 
-date:        Mon Feb  9 19:00:07 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10451:18c79168ec6c
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+00 firmware download
+01 ? config
+03 demodulator
+04 ? GPIO (LED)
+10 streaming control
+20 I2C read
+21 I2C write
+30 HID table download
 
-linux-2.6.16.61-armv5: WARNINGS
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc4-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc4-armv5-omap2: OK
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc4-i686: WARNINGS
-linux-2.6.16.61-m32r: WARNINGS
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc4-m32r: OK
-linux-2.6.16.61-mips: WARNINGS
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc4-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc4-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc4-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc4): ERRORS
+Looks like EC168 has EC100 demodulator integrated. And programming this 
+demodulator seems to be rather easy, not very many bytes...
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+regards
+Antti
+-- 
+http://palosaari.fi/
