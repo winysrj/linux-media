@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from wf-out-1314.google.com ([209.85.200.175])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1LcQcs-0007a6-BH
-	for linux-dvb@linuxtv.org; Wed, 25 Feb 2009 21:45:06 +0100
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1LcQco-0000Bf-AY
-	for linux-dvb@linuxtv.org; Wed, 25 Feb 2009 20:45:02 +0000
-Received: from 93-125-199-158.dsl.alice.nl ([93.125.199.158])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Wed, 25 Feb 2009 20:45:02 +0000
-Received: from erik_bies by 93-125-199-158.dsl.alice.nl with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Wed, 25 Feb 2009 20:45:02 +0000
-To: linux-dvb@linuxtv.org
-From: erik <erik_bies@hotmail.com>
-Date: Wed, 25 Feb 2009 20:42:00 +0000 (UTC)
-Message-ID: <loom.20090225T203249-735@post.gmane.org>
-References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>
-	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>
-	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>
-	<1223598995.4825.12.camel@pc10.localdom.local>
-	<7b41dd970810121321m715f7a81nf2c6e07485603571@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+	(envelope-from <alex.betis@gmail.com>) id 1LWrtT-00009f-3O
+	for linux-dvb@linuxtv.org; Tue, 10 Feb 2009 13:39:15 +0100
+Received: by wf-out-1314.google.com with SMTP id 28so2819387wfc.17
+	for <linux-dvb@linuxtv.org>; Tue, 10 Feb 2009 04:39:09 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1234217761.2790.15.camel@pc10.localdom.local>
+References: <200902091233.26086.Nicola.Sabbi@poste.it>
+	<1234217761.2790.15.camel@pc10.localdom.local>
+Date: Tue, 10 Feb 2009 14:39:09 +0200
+Message-ID: <c74595dc0902100439j66981bd7tc68b4a3d177abbe3@mail.gmail.com>
+From: Alex Betis <alex.betis@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] mt352 no more working after suspend to disk
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -32,32 +23,165 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0972737128=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-a2xhYXMgZGUgd2FhbCA8a2xhYXMuZGUud2FhbCA8YXQ+IGdtYWlsLmNvbT4gd3JpdGVzOgo+IAo+
-IE9uIEZyaSwgT2N0IDEwLCAyMDA4IGF0IDI6MzYgQU0sIGhlcm1hbm4gcGl0dG9uIDxoZXJtYW5u
-LXBpdHRvbiA8YXQ+IGFyY29yLmRlPgp3cm90ZToKPiBIaSwKPiBBbSBEb25uZXJzdGFnLCBkZW4g
-MDkuMTAuMjAwOCwgMjI6MTUgKzAyMDAgc2NocmllYiBrbGFhcyBkZSB3YWFsOgo+ICBUaGUgdGFi
-bGUgc3RhcnRzIGEgbmV3IHNlZ21lbnQgYXQgMzkwTUh6LAo+ID4gaXQgdGhlbiBzdGFydHMgdG8g
-dXNlIFZDTzIgaW5zdGVhZCBvZiBWQ08xLgo+ID4gSSBoYXZlIG5vdyAoaGFjaywgaGFjaykgY2hh
-bmdlZCB0aGUgc2VnbWVudCBzdGFydCBmcm9tIDM5MCB0byAzOTVNSHoKPiA+IHNvIHRoYXQgdGhl
-IDM4OE1IeiBpcyBzdGlsbCB0dW5lZCB3aXRoIFZDTzEsIGFuZCB0aGlzIHdvcmtzIE9LISEKPiA+
-IExpa2UgdGhpczoKPiA+Cj4gPiBzdGF0aWMgY29uc3Qgc3RydWN0IHRkYTgyN3hhX2RhdGEgdGRh
-ODI3eGFfZHZidFtdID0gewo+ID4gwqAgwqAgeyAubG9tYXggPSDCoDU2ODc1MDAwLCAuc3ZjbyA9
-IDMsIC5zcGQgPSA0LCAuc2NyID0gMCwgLnNicyA9Cj4gPiAwLCAuZ2MzID0gMX0sCj4gPiAjZWxz
-ZQo+ID4gwqAgwqAgeyAubG9tYXggPSAzOTUwMDAwMDAsIC5zdmNvID0gMiwgLnNwZCA9IDEsIC5z
-Y3IgPSAwLCAuc2JzID0KPiA+IDMsIC5nYzMgPSAxfSwKPiA+ICNlbmRpZgo+ID4gwqAgwqAgeyAu
-bG9tYXggPSA0NTUwMDAwMDAsIC5zdmNvID0gMywgLnNwZCA9IDEsIC5zY3IgPSAwLCAuc2JzID0K
-PiA+IDMsIC5nYzMgPSAxfSwKPiA+IGV0YyBldGMKPiA+CgpIaSBLbGFhcy9IZXJtYW5uCgpZb3Vy
-IGZpeCB3b3JrcyBwZXJmZWN0bHkgZm9yIG1lIGFzIHdlbGwuIFByaW9yIEkgY291bGQgbm90IGdl
-dCB0aGUgY2hhbm5lbHMgaW4KdGhlIDM4Njc1MDAwMCBmcmVxLiBXaXRoIEZpeCBhcHBpZWQgbXkg
-WmlnZ28gbG9ja2luZyBpc3N1ZXMgZGlzYXBwZWFyZWQuCgpJcyB0aGVyZSBhbnkgY2hhbmNlIHRv
-IGdldCBpdCBpbnRvIHRoZSBvZmZpY2lhbCB2ZXJzaW9uPwoKRXJpawoKCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGlu
-ZyBsaXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgt
-bWVkaWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3Lmxp
-bnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+--===============0972737128==
+Content-Type: multipart/alternative; boundary=001636e1fcd912f75504628fc624
+
+--001636e1fcd912f75504628fc624
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+I've tried to configure my system for suspends and here are my conclusions,
+maybe it will be helpful:
+
+Make sure no applications are using drivers that generally make problems
+after suspend, that means you have to stop/kill them before suspending. I
+use pm-utils script to stop application before suspend and start
+applications after that.
+Make sure you reload the drivers after resume. pm-utils has a feature to
+unload modules before suspend and reload them after resume automatically,
+check the SUSPEND_MODULES configuration. That method works fine for my DVB-S
+drivers, but don't work for my WiFi card, so I had to reload the driver
+after resume in my script.
+
+Hope it helps.
+
+On Tue, Feb 10, 2009 at 12:16 AM, hermann pitton <hermann-pitton@arcor.de>wrote:
+
+> Hi Nico,
+>
+> Am Montag, den 09.02.2009, 12:33 +0100 schrieb Nico Sabbi:
+> > Hi,
+> > if I suspend to disk and next resume I have to manually remove and
+> > reload my mt352 driver, otherwise it complains of a lot of i2c
+> > errors.
+> >
+> > My kernel is suse's 2.6.27.
+> >
+> > Is this problem fixed in recent kernels or in hg?
+> >
+> > Thanks,
+> >       Nico
+> >
+>
+> don't know on what driver you report it, but since I know you also have
+> saa7134 driver devices, nobody claimed so far that dvb is suspend/resume
+> safe.
+>
+> I recently reported that people have to stay aware after resume, that
+> even without using any dvb app actually during suspend, analog needs to
+> be re-initialized first after that to get the tda10046 in a proper state
+> for DVB-T again, at least on hybrid devices. Unshared DVB-S tuners and
+> demods do stand this already. (medion 8800quad, CTX948, Asus 3in1)
+>
+> You can suspend to RAM on analog for example with a running tvtime and
+> resume, but dma sound on saa7134-alsa is also not handled yet. Analog
+> sound works.
+>
+> That is the status as far I have it.
+>
+> Cheers,
+> Hermann
+>
+>
+>
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
+--001636e1fcd912f75504628fc624
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">I&#39;ve tried to configure my system for suspends and her=
+e are my conclusions, maybe it will be helpful:<br><br>Make sure no applica=
+tions are using drivers that generally make problems after suspend, that me=
+ans you have to stop/kill them before suspending. I use pm-utils script to =
+stop application before suspend and start applications after that.<br>
+Make sure you reload the drivers after resume. pm-utils has a feature to un=
+load modules before suspend and reload them after resume automatically, che=
+ck the SUSPEND_MODULES configuration. That method works fine for my DVB-S d=
+rivers, but don&#39;t work for my WiFi card, so I had to reload the driver =
+after resume in my script.<br>
+<br>Hope it helps.<br><br><div class=3D"gmail_quote">On Tue, Feb 10, 2009 a=
+t 12:16 AM, hermann pitton <span dir=3D"ltr">&lt;<a href=3D"mailto:hermann-=
+pitton@arcor.de">hermann-pitton@arcor.de</a>&gt;</span> wrote:<br><blockquo=
+te class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204)=
+; margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi Nico,<br>
+<br>
+Am Montag, den 09.02.2009, 12:33 +0100 schrieb Nico Sabbi:<br>
+&gt; Hi,<br>
+&gt; if I suspend to disk and next resume I have to manually remove and<br>
+&gt; reload my mt352 driver, otherwise it complains of a lot of i2c<br>
+&gt; errors.<br>
+&gt;<br>
+&gt; My kernel is suse&#39;s 2.6.27.<br>
+&gt;<br>
+&gt; Is this problem fixed in recent kernels or in hg?<br>
+&gt;<br>
+&gt; Thanks,<br>
+&gt; &nbsp; &nbsp; &nbsp; Nico<br>
+&gt;<br>
+<br>
+don&#39;t know on what driver you report it, but since I know you also have=
+<br>
+saa7134 driver devices, nobody claimed so far that dvb is suspend/resume<br=
+>
+safe.<br>
+<br>
+I recently reported that people have to stay aware after resume, that<br>
+even without using any dvb app actually during suspend, analog needs to<br>
+be re-initialized first after that to get the tda10046 in a proper state<br=
+>
+for DVB-T again, at least on hybrid devices. Unshared DVB-S tuners and<br>
+demods do stand this already. (medion 8800quad, CTX948, Asus 3in1)<br>
+<br>
+You can suspend to RAM on analog for example with a running tvtime and<br>
+resume, but dma sound on saa7134-alsa is also not handled yet. Analog<br>
+sound works.<br>
+<br>
+That is the status as far I have it.<br>
+<br>
+Cheers,<br>
+Hermann<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+_______________________________________________<br>
+linux-dvb users mailing list<br>
+For V4L/DVB development, please use instead <a href=3D"mailto:linux-media@v=
+ger.kernel.org">linux-media@vger.kernel.org</a><br>
+<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
+t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
+br>
+</blockquote></div><br></div>
+
+--001636e1fcd912f75504628fc624--
+
+
+--===============0972737128==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0972737128==--
