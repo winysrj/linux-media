@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:49858 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752808AbZBBQEz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 11:04:55 -0500
-Received: from ::ffff:71.117.247.66 ([71.117.247.66]) by xenotime.net for <linux-media@vger.kernel.org>; Mon, 2 Feb 2009 08:04:49 -0800
-Message-ID: <498719A2.9030908@xenotime.net>
-Date: Mon, 02 Feb 2009 08:04:50 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:54719 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754644AbZBJUJW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2009 15:09:22 -0500
+Received: from mail-in-20-z2.arcor-online.net (mail-in-20-z2.arcor-online.net [151.189.8.85])
+	by mx.arcor.de (Postfix) with ESMTP id 82AC028EED7
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 21:09:20 +0100 (CET)
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net [151.189.21.54])
+	by mail-in-20-z2.arcor-online.net (Postfix) with ESMTP id 74E49107D40
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 21:09:20 +0100 (CET)
+Received: from webmail15.arcor-online.net (webmail15.arcor-online.net [151.189.8.68])
+	by mail-in-14.arcor-online.net (Postfix) with ESMTP id 967D837E404
+	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 21:09:15 +0100 (CET)
+Message-ID: <28228543.1234296552867.JavaMail.ngmail@webmail15.arcor-online.net>
+Date: Tue, 10 Feb 2009 21:09:12 +0100 (CET)
+From: schollsky@arcor.de
+To: linux-media@vger.kernel.org
+Subject: Re: Driver for this DVB-T tuner?
 MIME-Version: 1.0
-To: roel kluin <roel.kluin@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] newport: newport_*wait() return 0 on timeout
-References: <49846E63.8070507@gmail.com>	 <20090202100852.733c6c8e@caramujo.chehab.org> <25e057c00902020532p7a22f9d6pbfdc4f26c85c4dfd@mail.gmail.com>
-In-Reply-To: <25e057c00902020532p7a22f9d6pbfdc4f26c85c4dfd@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+References: <18289095.1234295868817.JavaMail.ngmail@webmail15.arcor-online.net> <4991D629.6060100@iki.fi> <49909F83.9000607@iki.fi> <498F387A.7080606@iki.fi> <1234122710.31277.5.camel@localhost> <3986146.1234210524773.JavaMail.ngmail@webmail12.arcor-online.net> <26204941.1234293468460.JavaMail.ngmail@webmail19.arcor-online.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-roel kluin wrote:
-> 2009/2/2 Mauro Carvalho Chehab <mchehab@infradead.org>:
->> Hi Roel,
->>
->> It seems that you've sent this driver to the wrong ML. Video adapters are not handled on those ML's.
+Antti wrote:
+
+> ?? How did you installed old 4.65.0 firmware? Just replace 4.65.0 
+> firmware file (file name is same) with 4.95.0 is enough.
 > 
-> Any idea where it should be sent?
 
-drivers/video/* generally go to here AFAIK:
+I'm not fully sure, if I did it at all, it was from an old, unsuccessful attempt.
+Tryed an "updatedb" as root and the only places where I could find it has the new
+version. I'm suspecting it comes with standard kernel 2.6.27.10-1 on Mandriva, which
+I'm using. Should I deactivate 9015 from standard kernel options?
 
-FRAMEBUFFER LAYER
-P:	Antonino Daplas
-M:	adaplas@gmail.com
-L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-W:	http://linux-fbdev.sourceforge.net/
-S:	Maintained
+Anyhow - is there no default place to store firmware when compiling a kernel or modules?
+
+> What it now prints to the /var/log/messages ?
+
+This is still as before:
+
+Feb 10 20:10:44 localhost kernel: af9013: firmware version:4.65.0
 
 
+Thanks for your help,
 
-~Randy
+Stefan
+
