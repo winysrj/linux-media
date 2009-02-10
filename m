@@ -1,14 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp101.biz.mail.mud.yahoo.com ([68.142.200.236])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <xbzhang@telegentsystems.com>) id 1LXoex-0000AL-Ll
-	for linux-dvb@linuxtv.org; Fri, 13 Feb 2009 04:24:12 +0100
-Message-ID: <4994E795.6030700@telegentsystems.com>
-Date: Fri, 13 Feb 2009 11:23:01 +0800
-From: Zhang Xiaobing <xbzhang@telegentsystems.com>
+Received: from mail-bw0-f176.google.com ([209.85.218.176])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1LWiuE-0001kZ-N7
+	for linux-dvb@linuxtv.org; Tue, 10 Feb 2009 04:03:28 +0100
+Received: by bwz24 with SMTP id 24so2102629bwz.17
+	for <linux-dvb@linuxtv.org>; Mon, 09 Feb 2009 19:02:53 -0800 (PST)
+Date: Tue, 10 Feb 2009 04:02:49 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Message-ID: <alpine.DEB.2.01.0902100347560.1147@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] A dvb-core code problem
+Subject: [linux-dvb] Stupid beginner-level code question...
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -17,112 +19,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1383362058=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============1383362058==
-Content-Type: multipart/alternative;
- boundary="------------000502000301090107030101"
+Howdy,
 
-This is a multi-part message in MIME format.
---------------000502000301090107030101
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+whilst counting interrupts on my machines, I pondered whether
+I could double the work one machine could handle by not parsing
+a 33Mbit/sec transport stream, but only the PID carrying the
+128kbit/sec payload.
 
-I found a code problem in dvb-core when I was debugging with my dvb driver.
+I observed the following code for one device, the USB Opera
+DVB-S receiver which supposedly delivers the full transponder
+stream when attached to a USB2 controller, optionally filtered:
 
-The code in dvb_dvr_release() file dmxdev.c
-/* TODO */
-    dvbdev->users--;
-    if(*dvbdev->users== -1* && dmxdev->exit==1) {
-        fops_put(file->f_op);
-        file->f_op = NULL;
-        mutex_unlock(&dmxdev->mutex);
-
-"dvbdev->users== -1" should be changed to "dvbdev->users== 1", otherwise 
-driver may block forever in dvb_dmxdev_release() where a wakeup 
-condition is "dvbdev->users== 1".
-
-Here is the code in dvb_dmxdev_release().
-
-if (dmxdev->dvr_dvbdev->users > 1) {
-        wait_event(dmxdev->dvr_dvbdev->wait_queue,
-                *dmxdev->dvr_dvbdev->users==1*);
+static int opera1_pid_filter_control(struct dvb_usb_adapter *adap, int onoff)
+{
+        int u = 0x04;
+        u8 b_pid[3];
+        struct i2c_msg msg[] = {
+                {.addr = ADDR_B1A6_STREAM_CTRL,.buf = b_pid,.len = 3},
+        };
+        if (dvb_usb_opera1_debug)
+                info("%s hw-pidfilter", onoff ? "enable" : "disable");
+        for (; u < 0x7e; u += 2) {
+                b_pid[0] = u;
+                b_pid[1] = 0;
+                b_pid[2] = 0x80;
+                i2c_transfer(&adap->dev->i2c_adap, msg, 1);
+        }
+        return 0;
 }
 
-I hope it is right to post this message here.
-
--- 
-
-Xiaobing Zhang
+Full source within dvb-usb/opera1.c; in particular the code which
+precedes this and actually sets selected PIDs and is quite 
+similar.
 
 
---------------000502000301090107030101
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-I found a code problem in dvb-core when I was debugging with my dvb
-driver.<br>
-<br>
-The code in dvb_dvr_release() file dmxdev.c<br>
-/* TODO */<br>
-&nbsp;&nbsp;&nbsp; dvbdev-&gt;users--;<br>
-&nbsp;&nbsp;&nbsp; if(<b>dvbdev-&gt;users== -1</b> &amp;&amp; dmxdev-&gt;exit==1) {<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; fops_put(file-&gt;f_op);<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; file-&gt;f_op = NULL;<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; mutex_unlock(&amp;dmxdev-&gt;mutex);<br>
-<br>
-"dvbdev-&gt;users== -1" should be changed to "dvbdev-&gt;users== 1",
-otherwise driver may block forever in dvb_dmxdev_release() where a
-wakeup condition is "dvbdev-&gt;users== 1". <br>
-<br>
-Here is the code in dvb_dmxdev_release().<br>
-<br>
-if (dmxdev-&gt;dvr_dvbdev-&gt;users &gt; 1) {<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; wait_event(dmxdev-&gt;dvr_dvbdev-&gt;wait_queue,<br>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <b>dmxdev-&gt;dvr_dvbdev-&gt;users==1</b>);<br>
-}<br>
-<br>
-I hope it is right to post this message here.<br>
-<br>
-<div class="moz-signature">-- <br>
-<meta http-equiv="CONTENT-TYPE" content="text/html; ">
-<title></title>
-<meta name="GENERATOR" content="OpenOffice.org 2.4  (Linux)">
-<meta name="AUTHOR" content="zhang">
-<meta name="CREATED" content="20081117;15071400">
-<meta name="CHANGEDBY" content="zhang">
-<meta name="CHANGED" content="20081119;15534200">
-<meta name="CHANGEDBY" content="zhang">
-<p style="margin-bottom: 0in; line-height: 0.1in;" align="justify"><font
- color="#365f91"><font size="2">Xiaobing </font></font><font
- color="#365f91"><font size="2">Zhang
-</font></font></p>
-</div>
-</body>
-</html>
-
---------------000502000301090107030101--
+Anyway, what bothers me about the above code is that I can't see
+that it acts any different, save for possibly printing out a
+different debug message, regardless of the intent to enable the
+internal hardware PID filter, or disable it and pass the entire
+stream.
 
 
---===============1383362058==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Or have I been awake too long, and can no longer think or see
+straight?
+
+thanks
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1383362058==--
