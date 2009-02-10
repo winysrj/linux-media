@@ -1,104 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:33742 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753721AbZBWAT6 (ORCPT
+Received: from smtp.sissa.it ([147.122.11.135]:49186 "EHLO smtp.sissa.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753084AbZBJT7G convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 19:19:58 -0500
-Date: Sun, 22 Feb 2009 16:19:57 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-In-Reply-To: <49A1DF50.1080903@redhat.com>
-Message-ID: <Pine.LNX.4.58.0902221603410.24268@shell2.speakeasy.net>
-References: <200902180030.52729.linux@baker-net.org.uk>
- <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com>
- <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu>
- <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
- <49A1CA5B.5000407@redhat.com> <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
- <49A1D7B2.5070601@redhat.com> <Pine.LNX.4.58.0902221504410.24268@shell2.speakeasy.net>
- <49A1DF50.1080903@redhat.com>
+	Tue, 10 Feb 2009 14:59:06 -0500
+From: Nicola Soranzo <nsoranzo@tiscali.it>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] em28xx: Codign style fixes and a typo correction
+Date: Tue, 10 Feb 2009 20:59:05 +0100
+References: <200902091750.45091.nsoranzo@tiscali.it> <20090209194910.22015d34@pedra.chehab.org>
+In-Reply-To: <20090209194910.22015d34@pedra.chehab.org>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200902102059.05536.nsoranzo@tiscali.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Feb 2009, Hans de Goede wrote:
-> Trent Piepho wrote:
-> > On Sun, 22 Feb 2009, Hans de Goede wrote:
-> >> Trent Piepho wrote:
-> >>> On Sun, 22 Feb 2009, Hans de Goede wrote:
-> >>>> Yes that is what we are talking about, the camera having a gravity switch
-> >>>> (usually nothing as advanced as a gyroscope). Also the bits we are talking
-> >>>> about are in a struct which communicates information one way, from the camera
-> >>>> to userspace, so there is no way to clear the bits to make the camera do something.
-> >>> First, I'd like to say I agree with most that the installed orientation of
-> >>> the camera sensor really is a different concept than the current value of a
-> >>> gravity sensor.  It's not necessary, and maybe not even desirable, to
-> >>> handle them in the same way.
-> >>>
-> >>> I do not see the advantage of using reserved bits instead of controls.
-> >>>
-> >>> The are a limited number of reserved bits.  In some structures there are
-> >>> only a few left.  They will run out.  Then what?  Packing non-standard
-> >>> sensor attributes and camera sensor meta-data into a few reserved bits is
-> >>> not a sustainable policy.
-> >>>
-> >>> Controls on the other card are not limited and won't run out.
-> >>>
-> >> Yes but these things are *not* controls, end of discussion. The control API is
-> >> for controls, not to stuff all kind of cruft in.
+Alle lunedì 09 febbraio 2009, hai scritto:
+> On Mon, 9 Feb 2009 17:50:44 +0100
+> Nicola Soranzo <nsoranzo@tiscali.it> wrote:
+> > Lots of codign style fixes and a typo correction for em28xx.
 > >
-> > All kind of cruft belongs in the reserved bits of whatever field it can be
-> > stuffed in?
+> > Priority: low
+> >
+> > Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
+> >
+> > ---
+> > diff -r 71e5a36634ea linux/drivers/media/video/em28xx/em28xx-audio.c
+> > --- a/linux/drivers/media/video/em28xx/em28xx-audio.c	Mon Feb 02 10:33:31
+> > 2009 +0100
+> > +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c	Mon Feb 09 12:47:13
+> > 2009 +0100
+> > @@ -264,8 +264,7 @@
+> >  }
+> >
+> >  #if LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 16)
+> > -static int snd_pcm_alloc_vmalloc_buffer(snd_pcm_substream_t *subs,
+> > -					size_t size)
+> > +static int snd_pcm_alloc_vmalloc_buffer(snd_pcm_substream_t *subs,
+> > size_t size)
 >
-> Not whatever field, these are input properties which happen to also be pretty
-> binary so putting them in the input flags field makes plenty of sense.
->
-> > What is the difference?  Why does it matter?  Performance?  Maintenance?
-> > Is there something that's not possible?  I do not find "end of discussion"
-> > to be a very convincing argument.
->
-> Well they are not controls, that is the difference, the control interface is
-> for controls (and only for controls, end of discussion if you ask me). These
-> are not controls but properties, they do not have a default min and max value,
+> Please, prefer, instead, something like:
+> +static int snd_pcm_alloc_vmalloc_buffer(snd_pcm_substream_t *subs,
+> 					 size_t size)
 
-Camera pivot sensor ranges from 0 to 270.  How is that not a min and max?
+This part was line wrapped by KMail (I've changed its setting as suggested), the original was:
 
-> they have only one *unchanging* value, there  is nothing the application can
+diff -r 9cb19f080660 linux/drivers/media/video/em28xx/em28xx-audio.c
+--- a/linux/drivers/media/video/em28xx/em28xx-audio.c	Tue Feb 10 05:26:05 2009 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-audio.c	Tue Feb 10 20:33:23 2009 +0100
+@@ -264,8 +264,7 @@ static int em28xx_cmd(struct em28xx *dev
+ }
+ 
+ #if LINUX_VERSION_CODE <= KERNEL_VERSION(2, 6, 16)
+-static int snd_pcm_alloc_vmalloc_buffer(snd_pcm_substream_t *subs,
+-					size_t size)
++static int snd_pcm_alloc_vmalloc_buffer(snd_pcm_substream_t *subs, size_t size)
+ #else
+ static int snd_pcm_alloc_vmalloc_buffer(struct snd_pcm_substream *subs,
+ 					size_t size)
 
-Camera sensors don't have an unchanging value.
+The function definition is <= 80 characters, so I've put it on one line. Do you
+anyway prefer the second parameter on the other line for consistency?
 
-And who says scan order can't change?  Suppose the camera returns raw bayer
-format data top to bottom, but if you request yuv then an image processing
-section needs to kick in and that returns the data bottom to top.
+Thanks for the review, I've fixed all other required changes and I will send 
+the new version later.
 
-> control / change. It has been suggested to make them readonly, but that does
-> not fix the ugliness. A proper written v4l2 application will enumerate all the
-> controls, and then the user will see a grayed out control saying: "your cam is
-> upside down" what is there to control ? will this be a grayed out slider? or a
-> grayed out checkbox "your cam is upside down", or maybe a not grayed out
-> dropdown: where the user can select: "my sensor is upside down", "I deny my
-> sensor is upside down", "I don't care my sensor is upside down", "WTF is this
-> doing in my webcam control panel?", "nwod edispu si rosnes yM"
+Nicola
 
-Why is there a read-only flag for controls if the concept is so mind
-blowing to users?  Have there been complaints about it?
-
-> Do you know I have an idea, lets get rid of the S2 API for DVB and put all that
-> in controls too. Oh, and think like standards for video formats, surely that
-> can be a control too, and ... and, ...
-
-Good point.  The S2 API is much more like the control interface than the
-previous API.  Enumerated attributes which can be set one at a time or in
-groups.  More can be added.  There is some meta data about them.  The old
-API used the a limited number of fixed structs, a few reserved bits, no
-meta-data, and a query/set everything at once API.
-
-I think the camera meta-data and camera sensor API should look more like
-S2.
