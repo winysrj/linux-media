@@ -1,116 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay0-omc3-s6.bay0.hotmail.com ([65.54.246.206]:13506 "EHLO
-	bay0-omc3-s6.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750727AbZBQFat (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 00:30:49 -0500
-Message-ID: <BAY102-W54F614817092361870868DCFB40@phx.gbl>
-From: Thomas Nicolai <nickotym@hotmail.com>
-To: <devin.heitmueller@gmail.com>
-CC: <linux-media@vger.kernel.org>
-Subject: =?windows-1256?Q?RE:_HVR-1500_tuner_seems_to_be_recognized=2C_but_wont_tu?=
- =?windows-1256?Q?rn_on.=FE?=
-Date: Mon, 16 Feb 2009 23:30:48 -0600
-In-Reply-To: <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
-References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
-	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
- 	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
- 	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
- <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
-Content-Type: text/plain; charset="windows-1256"
-Content-Transfer-Encoding: 8bit
-MIME-Version: 1.0
+Received: from mail1.radix.net ([207.192.128.31]:54916 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752500AbZBJAbp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Feb 2009 19:31:45 -0500
+Subject: Re: cx18, HVR-1600 Clear qam tuning
+From: Andy Walls <awalls@radix.net>
+To: "Williams, Phil A" <phil.a.williams@lmco.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <CCB65A8C741893429D41536D8B5F6D921CCFF080@emss01m15.us.lmco.com>
+References: <CCB65A8C741893429D41536D8B5F6D921CCFF080@emss01m15.us.lmco.com>
+Content-Type: text/plain
+Date: Mon, 09 Feb 2009 19:32:30 -0500
+Message-Id: <1234225950.3094.22.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-I have tried this a couple times, but when I unplug the card, the computer freezes.  Any solutions to that?  Will it work to do the modprobe you listed after turning the computer on and leaving the card out, then putting it in and then doing the modprobe?
-
-
-----------------------------------------
-> Date: Tue, 17 Feb 2009 00:14:56 -0500
-> Subject: Re: HVR-1500 tuner seems to be recognized, but wont turn on.þ
-> From: devin.heitmueller@gmail.com
-> To: nickotym@hotmail.com
-> CC: linux-media@vger.kernel.org
->
-> 2009/2/17 Thomas Nicolai :
->>
->> Here is the pertinent part of the dmesg I got tonight:
->>
->> dmesg
->>
->> 407.155095] firmware: requesting xc3028-v27.fw
->> [ 407.248329] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
->> [ 407.447731] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 407.970376] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
->> [ 407.970385] xc2028 1-0061: -5 returned from send
->> [ 407.970390] xc2028 1-0061: Error -22 while loading base firmware
->> [ 408.222453] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 408.744786] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
->> [ 408.744791] xc2028 1-0061: -5 returned from send
->> [ 408.744793] xc2028 1-0061: Error -22 while loading base firmware
->> [ 409.945750] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 411.102083] xc2028 1-0061: Loading firmware for type=D2633 DTV6 ATSC (10030), id 0000000000000000.
->>
->>
->> ----------------------------------------
->>> From: nickotym@hotmail.com
->>> To: devin.heitmueller@gmail.com
->>> CC: linux-media@vger.kernel.org
->>> Subject: RE: HVR-1500 tuner seems to be recognized, but wont turn on.þ
->>> Date: Sat, 14 Feb 2009 12:05:09 -0600
->>>
->>>
->>>
->>>
->>>
->>>> That looks really suspicious. Perhaps the xc3028 tuner is being put
->>>> to sleep and not being woken up properly.
->>>>
->>>> Could you please post the full dmesg output showing the initialization
->>>> of the device?
->>>>
->>>> Devin
->>>
->>>
->>> I turned kubuntu on, shut off the backend for mythtv and then did a scan using dvbscan.
->>>
->>> Here is the full dmesg output, sorry it is long I wanted to include it all in case i missed anything.:
->>>
->>>
->>> dmesg
->>>
->>
->>
->> _________________________________________________________________
->> Windows Live™: Keep your life in sync.
->> http://windowslive.com/howitworks?ocid=TXT_TAGLM_WL_t1_allup_howitworks_022009
->>
->
-> Sorry for not getting back to you sooner.
->
-> I don't claim to know much about this card, but there was a relatively
-> recent change where the tuner gets put to sleep, which might explain
-> why you are having i2c communication failures.
->
-> Try the following:
->
+On Mon, 2009-02-09 at 16:14 -0800, Williams, Phil A wrote:
+> I'm using an HVR-1600, having a heck of a time, and wanted to give this
+> patch a try. Can someone point me to a good wiki or howto on how to
+> incorporate this patch?
 > 
-> make unload
-> modprobe tuner-xc2028 no_poweroff=1 debug=1
-> 
-> 
->
-> If that doesn't work, send the dmesg output.
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
+> >Devin just commited a patch to improve the lock time of the
+> >cx24227/s5h1409 demodulator:
+> >
+> >http://linuxtv.org/hg/~dheitmueller/v4l-dvb-s5h1409/rev/6bb4e117a614
 
-_________________________________________________________________
-Windows Live™: E-mail. Chat. Share. Get more ways to connect. 
-http://windowslive.com/explore?ocid=TXT_TAGLM_WL_t2_allup_explore_022009
+
+It's already in the latest v4l-dvb repo.
+
+Here's a wiki link on setting up the latest cx18 driver from the v4l-dvb
+repo:
+
+http://www.ivtvdriver.org/index.php/Cx18
+
+Regards,
+Andy
+
