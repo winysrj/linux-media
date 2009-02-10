@@ -1,20 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1MHGpuk010345
-	for <video4linux-list@redhat.com>; Sun, 22 Feb 2009 12:16:51 -0500
-Received: from ns1.tacitlabs.com (support.team.at.shellium.org
-	[207.192.71.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1MHGdi5007957
-	for <video4linux-list@redhat.com>; Sun, 22 Feb 2009 12:16:39 -0500
-Date: Sun, 22 Feb 2009 12:16:38 -0500
-To: video4linux-list@redhat.com
-Message-ID: <20090222171638.GA19029@shellium.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1A46o75020756
+	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 23:06:50 -0500
+Received: from web35306.mail.mud.yahoo.com (web35306.mail.mud.yahoo.com
+	[66.163.179.100])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n1A46WIh010796
+	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 23:06:32 -0500
+Date: Mon, 9 Feb 2009 20:06:31 -0800 (PST)
+From: Curtis Schroeder <cstarjewel@yahoo.com>
+To: Jean-Francois Moine <moinejf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=unknown-8bit
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-From: dkremer@shellium.org
-Subject: PROBLEM: gspca driver with a logitech quickcam express and a USB hub
+Message-ID: <542627.18212.qm@web35306.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: Philips SPC 600 NCP
+Reply-To: Curtis Schroeder <cstarjewel@yahoo.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,64 +26,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+Although I am an experienced Solaris middle-ware programmer and have some limited driver experience on VxWorks, I am new to the world of Linux drivers.  I'll likely need a bit of hand-holding on this one.
 
-My webcam doesn't work when it is plugged with a hub to my computer.
+First, here is the command stream I got from the Ubuntu forums in trying to get my new web cam working.  At this point it is well known that web cam support in 8.10 is broken, hence the need to compile an install a new copy of gspca.
 
-When my webcam is used with a hub, I have the following error log :
 
-//loading of the device by gspca
-usb 1-4.4: new full speed USB device using ehci_hcd and address 12
-usb 1-4.4: configuration #1 chosen from 1 choice
-gspca: probing 046d:0928
-gspca: probe ok
+sudo apt-get install subversion build-essential linux-headers-$(uname -r) &&
+wget http://linuxtv.org/hg/~jfrancois/gspca/archive/tip.tar.bz2 &&
+tar xf tip.tar.bz2 &&
+cd gspca-* &&
+make &&
+sudo make install &&
+sudo depmod -ae $(uname -r)
 
-//I'm launching svv, the soft shipped by Jean François Moine
-gspca: usb_submit_urb [0] err -28
-gspca: usb_submit_urb [0] err -28
-gspca: usb_submit_urb [0] err -28
-gspca: usb_submit_urb [0] err -28
-gspca: usb_submit_urb [0] err -28
-gspca: usb_submit_urb [0] err -28
+Here is the output from dmesg:
+[22620.920030] usb 3-2: new full speed USB device using uhci_hcd and address 2
+[22621.111879] usb 3-2: configuration #1 chosen from 1 choice
+[22621.620524] Linux video capture interface: v2.00
+[22621.645354] usbcore: registered new interface driver snd-usb-audio
+[22621.667744] sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers v1:1.47pre49
+[22621.670466] usb 3-2: SN9C105 PC Camera Controller detected (vid:pid 0x0471:0x0327)
+[22621.851468] usb 3-2: No supported image sensor detected for this bridge
+[22621.852729] usbcore: registered new interface driver sn9c102
 
-When I use a direct acces to a USB port of my computer, without a hub
-between the host and the camera, the camera is working perfectly, and I
-have not this problem.
+So, you are correct that it is trying to use the sn9c102 driver.  Could you provide me with a little more information on how to remove this driver from the gspca config before rebuilding it?  Do I comment it out in the v4l/.config file or change the "=m" to something else?
 
-The complete lsusb map is :
- 
-Bus 001 Device 012: ID 046d:0928 Logitech, Inc. QuickCam Express
-Bus 001 Device 011: ID 152d:2336 JMicron Technology Corp. / JMicron USA
-Technology Corp.
-Bus 001 Device 004: ID 046d:c404 Logitech, Inc. TrackMan Wheel
-Bus 001 Device 003: ID 0603:00f2 Novatek Microelectronics Corp.
-Bus 001 Device 002: ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+I've downloaded svv.c, but I'm having trouble linking it.  It appears to need library /usr/lib/libv4l/v4l2convert.so, but the -l directive prepends "lib" onto the lib name, so the linker doesn't find it.  What is the appropriate gcc syntax to link svv.c with this lib?  Or is there a bug in the make install such that the lib was not named correctly?
 
-The usb string id for my webcam is :
-ID 046d:0928 Logitech, Inc. QuickCam Express
+Thanks for your help,
 
-The usb string id for my HUB is :
-ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
+Curt
 
-I'm currently using archlinux, with a 2.6.28.6 kernel. I'm using the
-gspca_main and gspca_spca561 modules.
 
-cat /proc/version :
-Linux version 2.6.28-ARCH (root@T-POWA-LX) (gcc version 4.3.3 (GCC) ) #1
-SMP PREEMPT Wed Feb 18 21:27:38 UTC 2009
 
-I just wanted help maybe for the gspca driver if it could be. Thank you
-to Jean François Moine for gspca.
+
+________________________________
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Curtis Schroeder <cstarjewel@yahoo.com>
+Cc: video4linux-list@redhat.com
+Sent: Saturday, February 7, 2009 3:07:03 AM
+Subject: Re: Philips SPC 600 NCP
+
+On Fri, 6 Feb 2009 16:47:49 -0800 (PST)
+Curtis Schroeder <cstarjewel@yahoo.com> wrote:
+
+> I recently picked up a Philips SPC 600 NC web cam on clearance,
+> because I had read in the Ekiga documentation that most Philips web
+> cams were compatible.  Evidently the SPC 600 NC currently is not
+> compatible with Linux.  I've downloaded and installed
+> gspca-4d0827823ebc in my 64-bit Ubuntu 8.10 installation, but it
+> reports in dmesg that it does not recognize the sensor.  Is there a
+> utility I can run and report the results back to this list that would
+> help get this situation corrected?
+
+Hello Curt,
+
+I don't know which driver you used. If it is the sn9c102, please,
+regenerate, removing this driver from the config.
+
+Also, as this webcam has not be tested yet, I'd be glad to know if it
+works. If it does not, may you send me the last kernel messages after
+pluging the webcam (do a grep on 'gspca' and 'sonixj'), and the
+image.dat generated by my program svv (if any - do 'svv -rg').
+
+Regards.
 
 -- 
+Ken ar c'hentan    |          ** Breizh ha Linux atav! **
+Jef        |        http://moinejf.free.fr/
 
-David Kremer
 
+
+      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
