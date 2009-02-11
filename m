@@ -1,70 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33028 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753188AbZBBUYo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 15:24:44 -0500
-Message-ID: <4987568A.6060504@iki.fi>
-Date: Mon, 02 Feb 2009 22:24:42 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org,
-	Andrew Williams <andrew.williams@joratech.com>
-Subject: Re: [linux-dvb] KWorld PlusTV Dual DVB-T Stick (DVB-T 399U) / AF9015
- -	Dual tuner enabled by default =Bad signal reception
-References: <546B4176F0487A4CBA62FC16EFC1D9D6026FC2@EXCHANGE.joratech.com>
-In-Reply-To: <546B4176F0487A4CBA62FC16EFC1D9D6026FC2@EXCHANGE.joratech.com>
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:41306 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752341AbZBKBs5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2009 20:48:57 -0500
+Subject: Re: [linux-dvb] mt352 no more working after suspend to disk
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Nico Sabbi <Nicola.Sabbi@poste.it>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200902101511.39175.Nicola.Sabbi@poste.it>
+References: <200902091233.26086.Nicola.Sabbi@poste.it>
+	 <1234217761.2790.15.camel@pc10.localdom.local>
+	 <c74595dc0902100439j66981bd7tc68b4a3d177abbe3@mail.gmail.com>
+	 <200902101511.39175.Nicola.Sabbi@poste.it>
+Content-Type: text/plain
+Date: Wed, 11 Feb 2009 02:49:57 +0100
+Message-Id: <1234316997.4463.71.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Andrew,
-Andrew Williams wrote:
-> In the past I have had problems with reception for the AF9015 if both
-> tuners were enabled.
-> It was disabled by default or I could manually enable dual tuners with
-> dvb-usb-af9015 dual_mode=1 (modprobe.d/options)
+
+Am Dienstag, den 10.02.2009, 15:11 +0100 schrieb Nico Sabbi:
+> On Tuesday 10 February 2009 13:39:09 Alex Betis wrote:
+> > On Tue, Feb 10, 2009 at 12:16 AM, hermann pitton 
+> <hermann-pitton@arcor.de>wrote:
+> > > Hi Nico,
+> > >
+> > > Am Montag, den 09.02.2009, 12:33 +0100 schrieb Nico Sabbi:
+> > > > Hi,
+> > > > if I suspend to disk and next resume I have to manually remove
+> > > > and reload my mt352 driver, otherwise it complains of a lot of
+> > > > i2c errors.
+> > > >
+> > > > My kernel is suse's 2.6.27.
+> > > >
+> > > > Is this problem fixed in recent kernels or in hg?
+> > > >
+> > > > Thanks,
+> > > >       Nico
+> > >
+> > > don't know on what driver you report it, but since I know you
+> > > also have saa7134 driver devices, nobody claimed so far that dvb
+> > > is suspend/resume safe.
+> > >
+> > > I recently reported that people have to stay aware after resume,
+> > > that even without using any dvb app actually during suspend,
+> > > analog needs to be re-initialized first after that to get the
+> > > tda10046 in a proper state for DVB-T again, at least on hybrid
+> > > devices. Unshared DVB-S tuners and demods do stand this already.
+> > > (medion 8800quad, CTX948, Asus 3in1)
+> > >
+> > > You can suspend to RAM on analog for example with a running
+> > > tvtime and resume, but dma sound on saa7134-alsa is also not
+> > > handled yet. Analog sound works.
+> > >
+> > > That is the status as far I have it.
+> > >
 > 
-> If both tuners were enabled there was a lot of signal degradation,
-> however, with only 1 tuner enabled the quality was VERY good.
+> Hi Hermann,
+> the only card that gave me problems so was is my Airstar2 PCI card,
+> while my Lifeview Trio worked perfectly after resume
 
-Yes, it really looks like there is some sensitivity drop when both 
-tuners are enabled. However in my understanding tuner #1 in dual mode 
-have almost same performance than tuner #0 in single mode. Also current 
-MXL5005S tuner driver has not best performance...
+Nico, Alex, thanks.
 
-Could you test if that tuner driver performs any better for you:
-http://linuxtv.org/hg/~anttip/af9015-mxl500x/
+Fine so far then without a running DVB-S app.
 
-> I have just downloaded the latest drivers and it seems that both tuners
-> are enabled by default and there is no parameter that I can find to
-> disable the second tuner.
-> Now I am back to where I was before with bad signal degradation but no
-> way to disable the second tuner.
+That we don't get trouble with those maybe building high end linux media
+machines currently, status for me for the other reception methods is as
+announced above :)
 
-Yes, I removed whole parameter. If there will be much negative feedback 
-then I should consider add that parameter back - but probably dual mode 
-enabled by default.
+Cheers,
+Hermann
 
-> With drivers dated 22 Dec 2008 the second tuner was still disabled by
-> default. Also the driver from 22 December 2008 lit an LED on the Tuner
-> to indicate that the firmware was loaded/stick was initialised.
-> Something that I did not have before (the LED).
-> 
-> Now with the latest driver, the LED does not function anymore but more
-> importantly, both tuners are enabled by default.
 
-hmm, haven't changed LED controls. I should look that later.
-
-> Is there any way that I can disable the second tuner without having to
-> revert to the old drivers?
-
-Not currently. I will wait some feedback and make decision about that.
-
-Thank you for feedback.
-
-regards
-Antti
--- 
-http://palosaari.fi/
