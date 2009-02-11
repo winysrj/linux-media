@@ -1,113 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45307 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931AbZBNKcf (ORCPT
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:46868 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752616AbZBKXVy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2009 05:32:35 -0500
-Date: Sat, 14 Feb 2009 08:32:06 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: libv4l2 library problem
-Message-ID: <20090214083206.665561f6@pedra.chehab.org>
-In-Reply-To: <200902141008.31748.hverkuil@xs4all.nl>
-References: <200902131357.46279.hverkuil@xs4all.nl>
-	<20090214065206.1a9494d9@pedra.chehab.org>
-	<200902141008.31748.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 11 Feb 2009 18:21:54 -0500
+Date: Wed, 11 Feb 2009 17:21:49 -0600
+From: David Engel <david@istwok.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jonathan Isom <jeisom@gmail.com>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
+	CityK <cityk@rogers.com>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090211232149.GA28415@opus.istwok.net>
+References: <1234227277.3932.4.camel@pc10.localdom.local> <1234229460.3932.27.camel@pc10.localdom.local> <20090210003520.14426415@pedra.chehab.org> <1234235643.2682.16.camel@pc10.localdom.local> <1234237395.2682.22.camel@pc10.localdom.local> <20090210041512.6d684be3@pedra.chehab.org> <1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com> <20090210102732.5421a296@pedra.chehab.org> <20090211035016.GA3258@opus.istwok.net> <20090211054329.6c54d4ad@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090211054329.6c54d4ad@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 14 Feb 2009 10:08:31 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> On Saturday 14 February 2009 09:52:06 Mauro Carvalho Chehab wrote:
-> > On Fri, 13 Feb 2009 13:57:45 +0100
-> >
-> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > Hi Hans,
-> > >
-> > > I've developed a converter for the HM12 format (produced by Conexant
-> > > MPEG encoders as used in the ivtv and cx18 drivers).
-> > >
-> > > But libv4l2 has a problem in its implementation of v4l2_read: it
-> > > assumes that the driver can always do streaming. However, that is not
-> > > the case for some drivers, including cx18 and ivtv. These drivers only
-> > > implement read() functionality and no streaming.
-> > >
-> > > Can you as a minimum modify libv4l2 so that it will check for this
-> > > case? The best solution would be that libv4l2 can read HM12 from the
-> > > driver and convert it on the fly. But currently it tries to convert
-> > > HM12 by starting to stream, and that produces an error.
-> > >
-> > > This bug needs to be fixed first before I can contribute my HM12
-> > > converter.
-> >
-> > Hans Verkuil,
-> >
-> > I think it would be valuable if you could convert the drivers to use
-> > videobuf. There's currently a videobuf variation for devices that don't
-> > support scatter/gather dma transfers. By using videobuf, the mmap()
-> > methods (and also overlay, if you want) will be supported.
+On Wed, Feb 11, 2009 at 05:43:29AM -0200, Mauro Carvalho Chehab wrote:
+> On Tue, 10 Feb 2009 21:50:16 -0600
+> David Engel <david@istwok.net> wrote:
+> > MythTV eventually worked too, but I had to do the
+> > "unload/reload modules and run tvtime" procedure I reported earlier
+> > when I tried Hans' kworld tree.
 > 
-> It's been on my todo list for ages, but I don't see it happening anytime 
-> soon. It will be difficult to do and the simple fact of the matter is that 
-> the read() interface is much more suitable for MPEG streams than mmap, and 
-> almost nobody is using the raw video streams where mmap would make sense.
+> Maybe this is a race condition I have here with tda1004x. With tda1004x, the i2c
+> bus shouldn't be used by any other device during the firmware transfers,
+> otherwise the firmware load will fail, and tda1004x goes into an unstable
+> state. With this device, it even affects all subsequent i2c acesses. The only
+> alternative to recover tda1004x is to reboot the card (e. g. with my cardbus
+> device, I have to physically remove it and re-insert).
 > 
-> The only reason for doing this would be to make the driver consistent with 
-> the other drivers in V4L2. Which is a valid argument, but as long as we 
-> still have V4L1 drivers to convert I'd argue that this is definitely a low 
-> prio task.
+> What happens is that some softwares (including udev) open the device, and send
+> some VIDIOC_G_TUNER in order to check some tuner characteristics. However, this
+> command generates some i2c transfers, to retrieve signal strength. If this
+> happens while the firmware is being loaded, the bug occurs.
+> 
+> In order to fix, a careful review of all locks on the driver is needed. We will
+> likely need to change the demod interface for the boards that have this
+> trouble, in order to be aware of when a firmware transfer started.
+> 
+> This lock review is currently on my TODO list.
+> 
+> To be sure that this is the case, could you please add this on
+> your /etc/modprobe (or at a file inside /etc/modprobe.d):
+> 
+> 	options nxt200x debug=1
+> 	options tuner-simple debug=1
+> 	options tuner debug=1
+> 	options dvb-core frontend_debug=1
+> 
+> And test again, sending us the produced logs when the device works and when it
+> breaks. I guess we'll discover some tuner dmesg's in the middle of the firmware
+> load sequence.
 
-I suspect that the only two drivers that don't support mmap() are ivtv and
-cx18. All other drivers support it, including other drivers that also provides
-compressed data (like jpeg webcams). In a matter of fact, most applications
-work only with mmap() interface (being mythtv and mplayer capable of supporting
-both read() and mmap()). So, by providing mmap(), other applications will
-benefit of it.
+I will do this, but it will be tomorrow evening before I can get to
+it.
 
-Also, there is a sort of chicken and egg trouble: almost nobody uses raw
-formats, since it uses a non-standard format that it is not supported by
-userspace apps. The libv4l2 is the proper way for handling it, but only works
-with mmap().
-
-The usage of read() for raw formats is possible, but, read() method doesn't
-provide any meta-data info. For example, there's no timestamp that would be
-useful for syncing audio and video and detect frame losses. Also, if, for some
-reason, you loose a half frame, the result would be a disaster if you're using
-the read() method.
-
-So, IMO, adding read() support to libv4l2 would be just a hack and will likely
-cause more troubles than benefits. This is just my 2 cents.
-
-> BTW, it would help if someone would actually document videobuf. 
-> Documentation should be much more important than it currently is.
-
-Videobuf usage is not that complicate. You just need to provide ops for four handlers:
-
-q->ops->buf_setup   - calculates the size of the video buffers and avoid they to
-		      waste more than some maximum limit of RAM; 
-q->ops->buf_prepare - fills the video buffer structs and calls
-		      videobuf_iolock() to alloc and prepare mmaped memory; 
-q->ops->buf_queue   - advices the driver that another buffer were
-		      requested (by read() or by QBUF); 
-q->ops->buf_release - frees any buffer that were allocated.
-
-In order to use it, the driver need to have a code (generally called at
-interrupt context) that will properly handle the buffer request lists,
-announcing that a new buffer were filled.
-
-There are a number of videobuf methods that practically matches the video
-buffer ioctls. for example videobuf_streamon() should be called for streaming
-the video on (VIDIOC_STREAMON).
-
-The better way to understand it is to take a look at vivi driver. 
-
-Anyway, I just documented it, from the driver authors POV:
-	http://linuxtv.org/hg/v4l-dvb/rev/6f4cff0e7f16
-
-Cheers,
-Mauro
+David
+-- 
+David Engel
+david@istwok.net
