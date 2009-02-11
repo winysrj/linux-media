@@ -1,62 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:42965 "EHLO
-	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911AbZBMKrk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 05:47:40 -0500
-Date: Fri, 13 Feb 2009 02:47:32 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: cx8802.ko module not being built with current HG tree
-In-Reply-To: <20090211055338.393fa187@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.58.0902130225230.24268@shell2.speakeasy.net>
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
- <200902102132.00114.hverkuil@xs4all.nl> <20090210184147.61d4655e@pedra.chehab.org>
- <200902102221.40067.hverkuil@xs4all.nl> <20090210221710.389c264e@pedra.chehab.org>
- <Pine.LNX.4.58.0902101633090.24268@shell2.speakeasy.net>
- <20090211055338.393fa187@pedra.chehab.org>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:53397 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755969AbZBKT7l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2009 14:59:41 -0500
+Message-ID: <49932E47.7050307@free.fr>
+Date: Wed, 11 Feb 2009 21:00:07 +0100
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Johannes Engel <jcnengel@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvb-usb-cinergyT2
+References: <498C8988.8030103@googlemail.com>
+In-Reply-To: <498C8988.8030103@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Feb 2009, Mauro Carvalho Chehab wrote:
-> On Tue, 10 Feb 2009 17:20:52 -0800 (PST)
-> Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > I still think using select is better.  What Roman Zippel was talking about
-> > was the mess with select and the tuner drivers.  I agree that's a mess and
-> > there are better ways to do it without using select.  But the MPEG module
-> > is like a library used by just DVB and BLACKBIRD.  It seems like the ideal
-> > case for using select.
->
-> I can't foresee any case where this logic would fail in the future.
->
-> Let's suppose that some newer dependencies would be needed. If those
-> dependencies will be properly added at DVB and/or at BLACKBIRD, this logic will
-> still work. There's no possible case where CX88_MPEG would need a dependency
-> that aren't needed by either DVB and/or BLACKBIRD. Also, by using depends on,
+Hello Johannes,
 
-I think this is the reason select is the better choice here.  The only
-reason select might have a problem is if CX88_MPEG had a dependency that
-that DVB and BLACKBIRD do not have.  But like you said, that isn't going to
-happen, so there is no problem with select.
-
-> instead of select, will warrant that CX88_MPEG will have the proper 'y' or 'm'
-> value, depending on the dependencies of CX88_DVB and CX88_BLACKBIRD.
-
-Using select like I did will result in CX88_MPEG having the proper 'y' or
-'m' as well.
-
-> It seems that this is exactly what Roman expected to be fixed by changing from
-> "select" to "depends on" with tuners.
-
-The problem with the tuners is that the many tuners each have many
-different dependencies and are used by multiple drivers.  select requires
-that the drivers using the tuners consider those depedencies and if the
-tuners change the drivers must also be updated.  But with CX88_MPEG we
-don't have this problem.
-
-We also want to be able to manually override tuner selection, which makes
-things even more complicated for the tuners.
+Johannes Engel wrote:
+> Hello!
+> 
+> Switching to the new kernel 2.6.28 including the new driver for my Terratec Cinergy T² made the thing almost unusable.
+> Neither mplayer nor scan resp. w_scan is able to tune the card anymore, not even the led lights up anymore. Sometimes tzap manages to get out a proper signal, but not reliably.
+> 
+> The kernel logs says the following:
+> 
+> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+> deinitialized and disconnected.
+> usbcore: deregistering interface driver cinergyT2
+> usb 5-1: new high speed USB device using ehci_hcd and address 13
+> usb 5-1: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid maxpacket 64
+> usb 5-1: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 64
+> usb 5-1: configuration #1 chosen from 1 choice
+> usb 5-1: New USB device found, idVendor=0ccd, idProduct=0038
+> usb 5-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> usb 5-1: Product: Cinergy T�
+> usb 5-1: Manufacturer: TerraTec GmbH
+> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
+> DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)...
+> input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb5/5-1/input/input17
+> dvb-usb: schedule remote query interval to 50 msecs.
+> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully initialized and connected.
+> usbcore: registered new interface driver cinergyT2
+> 
+> Do you need any further information? Please CC me, since I am not subscribed to the list.
+> 
+another user has got the same problem, except that the led still lights up.
+Can you tell us what it the firmware version in your device?
+You can see it by doing lsusb -vvv, for the Cinergy T2 entry this is the "bcdDevice" line.
+I have the 1.06 firmware version and it works.
+Cheers,
+Thierry
