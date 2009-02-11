@@ -1,111 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.187]:39310 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752676AbZBBMen (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 07:34:43 -0500
-Received: by mu-out-0910.google.com with SMTP id g7so1029212muf.1
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 04:34:41 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0902012344400.17985@axis700.grange>
-References: <7951d5d30901311346i162ce575j76fd660fa0b0e176@mail.gmail.com>
-	 <7951d5d30901311349l769195b7x9202b78970b6b8b5@mail.gmail.com>
-	 <Pine.LNX.4.64.0902012344400.17985@axis700.grange>
-Date: Mon, 2 Feb 2009 13:34:41 +0100
-Message-ID: <7951d5d30902020434l123b69b1vf4334701cbfa9e58@mail.gmail.com>
-Subject: Re: PXA Quick capture interface with HV7131RP-Camera
-From: Bennet Fischer <bennetfischer@googlemail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bombadil.infradead.org ([18.85.46.34]:53855 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754332AbZBKHyJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Feb 2009 02:54:09 -0500
+Date: Wed, 11 Feb 2009 05:53:38 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: cx8802.ko module not being built with current HG tree
+Message-ID: <20090211055338.393fa187@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.58.0902101633090.24268@shell2.speakeasy.net>
+References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
+	<200902102132.00114.hverkuil@xs4all.nl>
+	<20090210184147.61d4655e@pedra.chehab.org>
+	<200902102221.40067.hverkuil@xs4all.nl>
+	<20090210221710.389c264e@pedra.chehab.org>
+	<Pine.LNX.4.58.0902101633090.24268@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct pxacamera_platform_data gumstix_pxacamera_platform_data = {
-	.init	= gumstix_pxacamera_init,
-	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
-		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN | PXA_CAMERA_PCP,
-	.mclk_10khz = 1000,
-};
+On Tue, 10 Feb 2009 17:20:52 -0800 (PST)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-^^ some register values are overwritten by my driver, so the more
-interesting part are the register values of the quick capture
-interface.
+> On Tue, 10 Feb 2009, Mauro Carvalho Chehab wrote:
+> > > I did some more testing and the bug disappears in kernel 2.6.25. Also, if I
+> > > just run 'make', then the .config file it produces is fine. I wonder if it
+> > > isn't a bug in menuconfig itself.
+> >
+> > It seems to be a bug at the Kbuild, fixed on Feb, 2008, on this changeset:
+> > commit 587c90616a5b44e6ccfac38e64d4fecee51d588c (attached).
+> >
+> > As explained, after the patch description, the value for the Kconfig var, after
+> > the patch, uses this formula:
+> >
+> >     	(value && dependency) || select
+> 
+> It's odd that the patch is for "fix select in combination with default",
+> yet there is no select used for CX88_DVB.
 
-Here are the register values taken at the end of the capture:
+If you look at the patch code, it fixed the handling for non-visible Kconfig vars.
 
-CICR0: 900003FF
-- DMAEN = 1
-- ENB = 1
-- All interrupts masked
+> I think what you've done with CX88_MPEG is something that nothing else in has used before, which made use
+> of the behavior introduced by this patch in a new way.
+> 
+> > And there there's no select, the value of CONFIG_CX88_MPEG is determined by:
+> > 	('y' && dependency)
+> >
+> > The most complex case is when we have CX88 defined as:
+> > 	CX88 = 'y'
+> >
+> > if both CX88_DVB and CX88_BLACKBIRD are defined as 'm' (or one of them is 'n'
+> > and the other is 'm'), then CX88_MPEG is defined as:
+> > 	CX88_MPEG = 'm'
+> >
+> > If one of CX88_DVB or CX88_BLACKBIRD is defined as 'y'; then we have:
+> > 	CX88_MPEG = 'y'
+> >
+> > If both are 'n', we have:
+> > 	CX88_MPEG = 'n'
+> >
+> > So, it seems that, after commit 587c90616a5b44e6ccfac38e64d4fecee51d588c,
+> > everything is working as expected. We just need to provide a hack at the
+> > out-of-tree build system for kernels that don't have this commit applied.
+> 
+> I still think using select is better.  What Roman Zippel was talking about
+> was the mess with select and the tuner drivers.  I agree that's a mess and
+> there are better ways to do it without using select.  But the MPEG module
+> is like a library used by just DVB and BLACKBIRD.  It seems like the ideal
+> case for using select.
 
-CICR1: 13F8012
-- DW = 2 (8 Bit)
-- COLOR_SP = 2 (YCbCr)
-- PPL = 639
+I can't foresee any case where this logic would fail in the future. 
 
-CICR2: 0
+Let's suppose that some newer dependencies would be needed. If those
+dependencies will be properly added at DVB and/or at BLACKBIRD, this logic will
+still work. There's no possible case where CX88_MPEG would need a dependency
+that aren't needed by either DVB and/or BLACKBIRD. Also, by using depends on,
+instead of select, will warrant that CX88_MPEG will have the proper 'y' or 'm'
+value, depending on the dependencies of CX88_DVB and CX88_BLACKBIRD.
 
-CICR3: 1DF
-- LPF = 479
+It seems that this is exactly what Roman expected to be fixed by changing from
+"select" to "depends on" with tuners.
 
-CICR4: D80005
-- DIV = 5
-- MCLK_EN = 1
-- VSP = 1
-- PCP = 1
-- PCLK_EN = 1
-
-CISR: 0
-^^ No interrupt flag is set
-
-CITOR: 0
-
-CIFR: 0 (even by enabling the fifos with 7 it doesn't work)
-
-
-So according to the registers it should work. I even checked if the
-PCLK, FV and LV signals arrive at the CPU by reading the according
-pins as GPIOs.
-
-
-
-2009/2/1 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> On Sat, 31 Jan 2009, Bennet Fischer wrote:
->
->> Hi
->>
->>
->> I am trying to get a camera to work together with an PXA270 processor.
->> My system has the following specs:
->>
->> Platform: Gumstix Verdex Pro
->> Camera: HV7131RP
->> OS: Linux 2.6.28
->>
->> I wrote a simple driver for the camera which omits all the i2c-stuff
->> because the camera starts already in a default configuration which
->> works fine for me.
->> A V4L2-device is generated and everything looks fine. But when i start
->> to capture, no data arrives BUT the Quick Capture Interface outputs a
->> MCLK and the camera responds with a PCLK, LV and FV (and data of
->> couse).
->> For getting a bit closer to the origin of the problem I disabled DMA
->> in pxa_camera.c and enabled all Interrupts in the CICR0 register. No
->> interrupt is generated. Even by disabling DMA and IRQ and looking into
->> CISR nothing happens.
->> I checked all the CIF registers bitwise. The polarity of the LV and FV
->> is correct, the alternate pin functions are correct, the interrupt bit
->> is non-masked, the size of the pixel matrix is correct. I'm a bit
->> desperate because at the moment I have no idea what to do next. I
->> would be thankful for any hint.
->
-> Maybe you could post your platform data, i.e., your struct
-> pxacamera_platform_data?
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
->
+Cheers,
+Mauro
