@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38600 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751614AbZBBHgc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 02:36:32 -0500
-Date: Mon, 2 Feb 2009 08:36:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-cc: Magnus <magnus.damm@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] sh_mobile_ceu: SOCAM flags are prepared at itself.
-In-Reply-To: <uocxlzn8c.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0902020832570.4218@axis700.grange>
-References: <uvdrxm9sd.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.0902012017230.17985@axis700.grange>
- <Pine.LNX.4.64.0902012335150.17985@axis700.grange> <uocxlzn8c.wl%morimoto.kuninori@renesas.com>
+Received: from mail7.sea5.speakeasy.net ([69.17.117.9]:40230 "EHLO
+	mail7.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753495AbZBKBUy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Feb 2009 20:20:54 -0500
+Date: Tue, 10 Feb 2009 17:20:52 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: cx8802.ko module not being built with current HG tree
+In-Reply-To: <20090210221710.389c264e@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.58.0902101633090.24268@shell2.speakeasy.net>
+References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
+ <200902102132.00114.hverkuil@xs4all.nl> <20090210184147.61d4655e@pedra.chehab.org>
+ <200902102221.40067.hverkuil@xs4all.nl> <20090210221710.389c264e@pedra.chehab.org>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2 Feb 2009, morimoto.kuninori@renesas.com wrote:
+On Tue, 10 Feb 2009, Mauro Carvalho Chehab wrote:
+> > I did some more testing and the bug disappears in kernel 2.6.25. Also, if I
+> > just run 'make', then the .config file it produces is fine. I wonder if it
+> > isn't a bug in menuconfig itself.
+>
+> It seems to be a bug at the Kbuild, fixed on Feb, 2008, on this changeset:
+> commit 587c90616a5b44e6ccfac38e64d4fecee51d588c (attached).
+>
+> As explained, after the patch description, the value for the Kconfig var, after
+> the patch, uses this formula:
+>
+>     	(value && dependency) || select
 
-> > > Guys, are you both sure this should be SLAVE, not MASTER? Have you tested 
-> > > it? Both tw9910 and ov772x register themselves as MASTER and from the 
-> 
-> Of course I tested it.
+It's odd that the patch is for "fix select in combination with default",
+yet there is no select used for CX88_DVB.  I think what you've done with
+CX88_MPEG is something that nothing else in has used before, which made use
+of the behavior introduced by this patch in a new way.
 
-Yes, as I said, I have overseen the fact, that soc-camera doesn't 
-currently check for master / slave mode, so it would work for you even 
-with a wrong setting. Sorry again.
+> And there there's no select, the value of CONFIG_CX88_MPEG is determined by:
+> 	('y' && dependency)
+>
+> The most complex case is when we have CX88 defined as:
+> 	CX88 = 'y'
+>
+> if both CX88_DVB and CX88_BLACKBIRD are defined as 'm' (or one of them is 'n'
+> and the other is 'm'), then CX88_MPEG is defined as:
+> 	CX88_MPEG = 'm'
+>
+> If one of CX88_DVB or CX88_BLACKBIRD is defined as 'y'; then we have:
+> 	CX88_MPEG = 'y'
+>
+> If both are 'n', we have:
+> 	CX88_MPEG = 'n'
+>
+> So, it seems that, after commit 587c90616a5b44e6ccfac38e64d4fecee51d588c,
+> everything is working as expected. We just need to provide a hack at the
+> out-of-tree build system for kernels that don't have this commit applied.
 
-> > Ok, sorry, you, probably, did test it and it worked, but just because the 
-> > SLAVE / MASTER flag is not tested in soc_camera_bus_param_compatible(), 
-> > which I should fix with the next pull, but this does look wrong. Please, 
-> > fix.
-> 
-> Hmm. I should have asked you what is MASTER/SLAVE before sending patch.
-> I suspect it it about who generates the clock signal 
-> either the camera or the host.
-> Our CEU does not support any clock generation so it is always SLAVE.
-> Therefore I didn't support MASTER for CEU.
-> 
-> But it seems wrong understanding...
-> I would like ask you What MASTER/SLAVE means ?
-
-MASTER / SLAVE means not the role of the respective device, but the mode. 
-Master mode means the camera sensor / decoder / whatever other client is 
-the master, i.e., generates the pixel clock and sync signals, the slave 
-mode means, that the host generates all sync signals.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+I still think using select is better.  What Roman Zippel was talking about
+was the mess with select and the tuner drivers.  I agree that's a mess and
+there are better ways to do it without using select.  But the MPEG module
+is like a library used by just DVB and BLACKBIRD.  It seems like the ideal
+case for using select.
