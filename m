@@ -1,38 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-2.ms.rz.RWTH-Aachen.DE ([134.130.7.73]:48849 "EHLO
-	mta-2.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754232AbZBZQlI (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:52808 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758173AbZBKWuy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2009 11:41:08 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-disposition: inline
-Content-type: text/plain; charset=us-ascii
-Received: from ironport-out-1.rz.rwth-aachen.de ([134.130.5.40])
- by mta-2.ms.rz.RWTH-Aachen.de
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008))
- with ESMTP id <0KFO00BJAMCHYS10@mta-2.ms.rz.RWTH-Aachen.de> for
- linux-media@vger.kernel.org; Thu, 26 Feb 2009 17:41:05 +0100 (CET)
-Received: from mem-2.ms.rz.rwth-aachen.de
- (mem-2.ms.rz.RWTH-Aachen.DE [134.130.7.67])	by smarthost.rwth-aachen.de
- (8.13.8+Sun/8.13.8/1) with ESMTP id n1QGf5Hp018466	for
- <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 17:41:05 +0100 (CET)
-Received: from msg-int.RWTH-Aachen.de (localhost [127.0.0.1])
-	by mem-2.ms.rz.rwth-aachen.de (8.13.8+Sun/8.13.8) with ESMTP id n1QGf5ah018463
-	for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 17:41:05 +0100 (CET)
-From: Kaan Aksit <Kaan.Aksit@rwth-aachen.de>
-To: linux-media@vger.kernel.org
-Message-id: <fb3ab7705a58.49a6e241@rwth-aachen.de>
-Date: Thu, 26 Feb 2009 18:41:05 +0200
-Content-language: en
-Subject: AF9015 USB TV STICK
+	Wed, 11 Feb 2009 17:50:54 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so143067fgg.17
+        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2009 14:50:50 -0800 (PST)
+Message-ID: <4993564D.1060903@googlemail.com>
+Date: Wed, 11 Feb 2009 23:50:53 +0100
+From: Johannes Engel <jcnengel@googlemail.com>
+MIME-Version: 1.0
+To: Thierry Merle <thierry.merle@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvb-usb-cinergyT2
+References: <498C8988.8030103@googlemail.com> <49932E47.7050307@free.fr>
+In-Reply-To: <49932E47.7050307@free.fr>
+Content-Type: multipart/mixed;
+ boundary="------------010503020500060804040301"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir,
- 
->From the address of http://linuxtv.org/hg/v4l-dvb , I have installed my AF9015 USB TV STICK. It works perfect. Thank you very much for the drivers. But I have a small problem with the remote. When I click on volume up or volume down, it does it is job. But for example when I click on number on the remote. It repeats itself infinite in number. Is there a solution to avoid repeating it self?
- 
-Best regards,
-Kaan
+This is a multi-part message in MIME format.
+--------------010503020500060804040301
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
+Thierry Merle wrote:
+> another user has got the same problem, except that the led still lights up.
+> Can you tell us what it the firmware version in your device?
+> You can see it by doing lsusb -vvv, for the Cinergy T2 entry this is the "bcdDevice" line.
+> I have the 1.06 firmware version and it works.
+> Cheers,
+> Thierry
+>   
+Hi Thierry,
+
+thanks for your message! I just tried again and miraculously enough it
+seems to work now. In the meantime I only did a kernel upgrade to
+2.6.28.4. So maybe that was the trick. :)
+
+Nonetheless I attach the lsusb output for further reference, my firmware
+version though seems to be the same as yours: 1.06.
+
+Cheers, Johannes
+
+--------------010503020500060804040301
+Content-Type: text/plain;
+ name="lsusb.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="lsusb.txt"
+
+CkJ1cyAwMDUgRGV2aWNlIDAwMjogSUQgMGNjZDowMDM4IFRlcnJhVGVjIEVsZWN0cm9uaWMg
+R21iSCBDaW5lcmd5IFReMiBEVkItVCBSZWNlaXZlcgpEZXZpY2UgRGVzY3JpcHRvcjoKICBi
+TGVuZ3RoICAgICAgICAgICAgICAgIDE4CiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgMQog
+IGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAKICBiRGV2aWNlQ2xhc3MgICAgICAgICAgMjU1
+IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAyNTUgVmVu
+ZG9yIFNwZWNpZmljIFN1YmNsYXNzCiAgYkRldmljZVByb3RvY29sICAgICAgIDI1NSBWZW5k
+b3IgU3BlY2lmaWMgUHJvdG9jb2wKICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0CiAgaWRW
+ZW5kb3IgICAgICAgICAgIDB4MGNjZCBUZXJyYVRlYyBFbGVjdHJvbmljIEdtYkgKICBpZFBy
+b2R1Y3QgICAgICAgICAgMHgwMDM4IENpbmVyZ3kgVF4yIERWQi1UIFJlY2VpdmVyCiAgYmNk
+RGV2aWNlICAgICAgICAgICAgMS4wNgogIGlNYW51ZmFjdHVyZXIgICAgICAgICAgIDEgVGVy
+cmFUZWMgR21iSAogIGlQcm9kdWN0ICAgICAgICAgICAgICAgIDIgQ2luZXJneSBUsgogIGlT
+ZXJpYWwgICAgICAgICAgICAgICAgIDAgCiAgYk51bUNvbmZpZ3VyYXRpb25zICAgICAgMQog
+IENvbmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoKICAgIGJMZW5ndGggICAgICAgICAgICAgICAg
+IDkKICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDIKICAgIHdUb3RhbExlbmd0aCAgICAg
+ICAgICAgMzkKICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAgIDEKICAgIGJDb25maWd1cmF0
+aW9uVmFsdWUgICAgIDEKICAgIGlDb25maWd1cmF0aW9uICAgICAgICAgIDAgCiAgICBibUF0
+dHJpYnV0ZXMgICAgICAgICAweDgwCiAgICAgIChCdXMgUG93ZXJlZCkKICAgIE1heFBvd2Vy
+ICAgICAgICAgICAgICA0NzZtQQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJM
+ZW5ndGggICAgICAgICAgICAgICAgIDkKICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAg
+NAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAgICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0
+aW5nICAgICAgIDAKICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMwogICAgICBiSW50
+ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50
+ZXJmYWNlU3ViQ2xhc3MgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBTdWJjbGFzcwogICAgICBi
+SW50ZXJmYWNlUHJvdG9jb2wgICAgICAwIAogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAg
+ICAzIEhpZ2hzcGVlZCBCdWxrIFRyYW5zZmVyCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6
+CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9y
+VHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDAxICBFUCAx
+IE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5z
+ZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAg
+ICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAg
+ICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMDQwICAxeCA2NCBieXRlcwogICAgICAgIGJJ
+bnRlcnZhbCAgICAgICAgICAgICAgIDAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAg
+ICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBl
+ICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4K
+ICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAyCiAgICAgICAgICBUcmFuc2ZlciBU
+eXBlICAgICAgICAgICAgQnVsawogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAg
+IE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAg
+d01heFBhY2tldFNpemUgICAgIDB4MDA0MCAgMXggNjQgYnl0ZXMKICAgICAgICBiSW50ZXJ2
+YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAg
+Ykxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
+ICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAg
+ICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJhbnNmZXIgVHlwZSAg
+ICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25l
+CiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQ
+YWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAg
+ICAgICAgICAgICAgIDAKRGV2aWNlIFF1YWxpZmllciAoZm9yIG90aGVyIGRldmljZSBzcGVl
+ZCk6CiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxMAogIGJEZXNjcmlwdG9yVHlwZSAgICAg
+ICAgIDYKICBiY2RVU0IgICAgICAgICAgICAgICAyLjAwCiAgYkRldmljZUNsYXNzICAgICAg
+ICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAg
+MjU1IFZlbmRvciBTcGVjaWZpYyBTdWJjbGFzcwogIGJEZXZpY2VQcm90b2NvbCAgICAgICAy
+NTUgVmVuZG9yIFNwZWNpZmljIFByb3RvY29sCiAgYk1heFBhY2tldFNpemUwICAgICAgICA2
+NAogIGJOdW1Db25maWd1cmF0aW9ucyAgICAgIDEK
+--------------010503020500060804040301--
