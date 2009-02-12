@@ -1,31 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp128.rog.mail.re2.yahoo.com ([206.190.53.33]:41881 "HELO
-	smtp128.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752479AbZBSAqQ (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.158]:20379 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbZBLFsK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 19:46:16 -0500
-Message-ID: <499CABD0.7030607@rogers.com>
-Date: Wed, 18 Feb 2009 19:46:08 -0500
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
-CC: video4linux-list@redhat.com,
-	Linux-media <linux-media@vger.kernel.org>
-Subject: Re: New v4l2 driver for atmel boards
-References: <499BCAF9.2060101@atmel.com>
-In-Reply-To: <499BCAF9.2060101@atmel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Feb 2009 00:48:10 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so172319fgg.17
+        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2009 21:48:08 -0800 (PST)
+Subject: Re: [PATCH][RESEND 2] Added support for AVerMedia Cardbus Hybrid
+ remote control
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Oldrich Jedlicka <oldium.pro@seznam.cz>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200902111547.29976.oldium.pro@seznam.cz>
+References: <200902111547.29976.oldium.pro@seznam.cz>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 12 Feb 2009 08:48:03 +0300
+Message-Id: <1234417683.2373.19.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sedji Gaouaou wrote:
-> Hi everybody,
->
-> I am writing here to know if it is the proper place to send a driver
-> that I have written for atmel's boards.
-> I would like to know as well if there is a git tree against which I
-> should based my patch or should I based it against the latest rc?
+On Wed, 2009-02-11 at 15:47 +0100, Oldrich Jedlicka wrote:
+> Hi,
+> 
+> please have a look at the attached patch.
+> 
+> Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
+> 
+> Thanks,
+> Oldřich.
 
-Hello, here's an overview for submissions: 
-http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+Hello, Oldrich
+
+I tried to find your patch(this and from 1 Feb) on patchwork.kernel.org
+and failed :(
+Probably this tool doesn't handle attachment patches. So, there is a
+good hint - it's better to inline text in the body of the emai. It's
+easier to review them and they didn't lost cos patchwork.kernel.org
+catches them.
+You can find instructions in linux/Documentation/email-clients.txt how
+to use email-client in this way.
+
+-- 
+Best regards, Klimov Alexey
+
