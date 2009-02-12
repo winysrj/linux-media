@@ -1,53 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45387 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753499AbZBVW4J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 17:56:09 -0500
-Date: Sun, 22 Feb 2009 23:56:09 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0902222354590.21917@axis700.grange>
-References: <200902221115.01464.hverkuil@xs4all.nl>
+Received: from mail.work.de ([212.12.32.20]:48108 "EHLO mail.work.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750771AbZBLTUv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Feb 2009 14:20:51 -0500
+Message-ID: <4994768F.1010408@gmail.com>
+Date: Thu, 12 Feb 2009 23:20:47 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Bob Deblier <bob.deblier@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] 2033 not working with changeset 9143
+References: <4984E294.6020401@gmail.com> <498B7945.4060200@gmail.com>	 <498DEDA9.7010905@freenet.de> <498E00F2.5050202@gmail.com>	 <498E051B.2010105@freenet.de> <1234082077.4168.2.camel@bxl-bob.lan>
+In-Reply-To: <1234082077.4168.2.camel@bxl-bob.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 22 Feb 2009, Hans Verkuil wrote:
+Bob Deblier wrote:
+> On Sat, 2009-02-07 at 23:03 +0100, Ruediger Dohmhardt wrote:
+>> Manu Abraham schrieb:
+>>> Ruediger Dohmhardt wrote:
+>>>   
+>>>> Manu Abraham schrieb:
+>>>>     
+>>>>> Have added initial support for this card, as well as a large
+>>>>> overhaul of the driver for a couple of performance impacts.
+>>>>>
+>>>>> Please do test with the latest updates from http://jusst.de/hg/mantis.
+>>>>>   
+>>>>>       
+>>>> Hi Manu
+>>>> the versions from January and February 2009 compile fine on the
+>>>> SUSE-11.1 kernel 2.6.27.7-9-default x86_64.
+>>>> The modules for my Twinhan AD-CP300 (2033) load fine, too.
+>>>>
+>>>> However, the devices below /dev/dvb are NOT created, and hence vdr-1.7
+>>>> does not work.
+>>>> The card works with the s2-liplianin driver.
+>>>>
+>>>> I assume it is interrupt related as listed in the lines from
+>>>> /var/log/messages
+>>>>
+>>>>
+>>>> Feb  7 21:03:38 mt40 su: (to root) rudi on /dev/pts/1
+>>>> Feb  7 21:03:48 mt40 kernel: vendor=1002 device=4371
+>>>> Feb  7 21:03:48 mt40 kernel: Mantis 0000:02:01.0: PCI INT A -> GSI 21
+>>>> (level, low) -> IRQ 21
+>>>> Feb  7 21:03:48 mt40 kernel: DVB: registering new adapter (Mantis DVB
+>>>> adapter)
+>>>> Feb  7 21:03:48 mt40 kernel: vendor=1002 device=4371
+>>>> Feb  7 21:03:48 mt40 kernel: Mantis 0000:02:01.0: PCI INT A disabled
+>>>> Feb  7 21:03:48 mt40 kernel: Mantis: probe of 0000:02:01.0 failed with
+>>>> error -1
+>>>> Feb  7 21:05:03 mt40 vdr: [4320] cTimeMs: using monotonic clock
+>>>> (resolution is 1 ns)
+>>>> Feb  7 21:05:03 mt40 vdr: [4320] VDR version 1.7.0 started
+>>>> Feb  7 21:05:03 mt40 vdr: [4320] codeset is 'UTF-8' - known
+>>>> Feb  7 21:05:03 mt40 vdr: [4320] ERROR: ./locale: Datei oder Verzeichnis
+>>>> nicht gefunden
+>>>> Feb  7 21:05:03 mt40 vdr: [4320] no locale for language code 'deu,ger'
+>>>> Feb  7 21:05:03 mt40 vdr: [4320] no locale for language code 'slv,slo'
+>>>> Feb  7 21:05:03 mt40 vdr: [4320] no locale for language code 'ita'
+>>>> Feb  7 21:05:05 mt40 vdr: [4320] no DVB device found
+>>>>
+>>>> I wonder whether I can check something more to get your driver back to work
+>>>>     
+>>> Can you please load the mantis module with the verbose=5 module
+>>> parameter and try again ? At least it will show what's failing.
+>>>
+>>> Regards,
+>>> Manu
+>>>
+>>>   
+>> Yupp,
+>>
+>> here is /var/log/messages with the line "options mantis verbose=5" in
+>> /etc/modprobe.conf.local
+>>
+>> Feb  7 22:56:41 mt40 kernel: found a VP-2033 PCI DVB-C device on (02:01.0),
+>> Feb  7 22:56:41 mt40 kernel: vendor=1002 device=4371
+>> Feb  7 22:56:41 mt40 kernel: Mantis 0000:02:01.0: PCI INT A -> GSI 21
+>> (level, low) -> IRQ 21
+>> Feb  7 22:56:41 mt40 kernel:     Mantis Rev 1 [1822:0008], irq: 21,
+>> latency: 64
+>> Feb  7 22:56:41 mt40 kernel:     memory: 0x0, mmio: 0xffffc20000366000
+>> Feb  7 22:56:41 mt40 kernel: mantis_stream_control (0): Set stream to HIF
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_init (0): Initializing I2C ..
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_init (0): Disabling I2C interrupt
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
+>> Feb  7 22:56:41 mt40 kernel:         mantis_i2c_write: Address=[0x50]
+>> <W>[ 08 ]
+>> Feb  7 22:56:41 mt40 kernel:         mantis_i2c_read:  Address=[0x50]
+>> <R>[ 00 08 ca 19 e9 b6 ]
+>> Feb  7 22:56:41 mt40 kernel:     MAC Address=[00:08:ca:19:e9:b6]
+>> Feb  7 22:56:41 mt40 kernel: mantis_dma_init (0): Mantis DMA init
+>> Feb  7 22:56:41 mt40 kernel: mantis_alloc_buffers (0): DMA=0x60df0000
+>> cpu=0xffff880060df0000 size=65536
+>> Feb  7 22:56:41 mt40 kernel: mantis_alloc_buffers (0): RISC=0x60dba000
+>> cpu=0xffff880060dba000 size=1000
+>> Feb  7 22:56:41 mt40 kernel: mantis_calc_lines (0): Mantis RISC block
+>> bytes=[4096], line bytes=[2048], line count=[32]
+>> Feb  7 22:56:41 mt40 kernel: mantis_dvb_init (0): dvb_register_adapter
+>> Feb  7 22:56:41 mt40 kernel: DVB: registering new adapter (Mantis DVB
+>> adapter)
+>> Feb  7 22:56:41 mt40 kernel: mantis_dvb_init (0): dvb_dmx_init
+>> Feb  7 22:56:41 mt40 kernel: mantis_dvb_init (0): dvb_dmxdev_init
+>> Feb  7 22:56:41 mt40 kernel: vp2033_frontend_init (0): Probing for
+>> CU1216 (DVB-C)
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
+>> Feb  7 22:56:41 mt40 kernel:         Byte MODE:
+>> Feb  7 22:56:41 mt40 kernel:         Byte <0> RXD=0xa1ff2280  [22]
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
+>> Feb  7 22:56:41 mt40 kernel:         Byte MODE:
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0):         I/O error,
+>> LINE:155
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
+>> Feb  7 22:56:41 mt40 kernel:         Byte MODE:
+>> Feb  7 22:56:41 mt40 kernel:         Byte <0> RXD=0xa1ff2280  [22]
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:1
+>> Feb  7 22:56:41 mt40 kernel:         mantis_i2c_write: Address=[0x0c]
+>> <W>[ 00 33 ]
+>> Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
+>> Feb  7 22:56:42 mt40 kernel:         Byte MODE:
+>> Feb  7 22:56:42 mt40 kernel: mantis_i2c_xfer (0):         I/O error,
+>> LINE:155
+>> Feb  7 22:56:42 mt40 kernel: mantis_dvb_init (0): !!! NO Frontends found !!!
+>> Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis DVB
+>> initialization failed <-1>
+>> Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis DMA
+>> exit! <-1>
+>> Feb  7 22:56:42 mt40 kernel: mantis_dma_exit (0): DMA=0x60df0000
+>> cpu=0xffff880060df0000 size=65536
+>> Feb  7 22:56:42 mt40 kernel: mantis_dma_exit (0): RISC=0x60dba000
+>> cpu=0xffff880060dba000 size=1000
+>> Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis I2C
+>> exit! <-1>
+>> Feb  7 22:56:42 mt40 kernel: mantis_i2c_exit (0): Disabling I2C interrupt
+>> Feb  7 22:56:42 mt40 kernel: mantis_i2c_exit (0): Removing I2C adapter
+>> Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis PCI
+>> exit! <-1>
+>> Feb  7 22:56:42 mt40 kernel: mantis_pci_exit (0):  mem: 0xffffc20000366000
+>> Feb  7 22:56:42 mt40 kernel: vendor=1002 device=4371
+>> Feb  7 22:56:42 mt40 kernel: Mantis 0000:02:01.0: PCI INT A disabled
+>> Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis free! <-1>
+>> Feb  7 22:56:42 mt40 kernel: Mantis: probe of 0000:02:01.0 failed with
+>> error -1
+> 
+> Identical problem for me, so it's not a single case. I'll see if I can
+> also produce a verbose=5 report later today.
+> 
 
-> Hi all,
-> 
-> There are lot's of discussions, but it can be hard sometimes to actually 
-> determine someone's opinion.
-> 
-> So here is a quick poll, please reply either to the list or directly to me 
-> with your yes/no answer and (optional but welcome) a short explanation to 
-> your standpoint. It doesn't matter if you are a user or developer, I'd like 
-> to see your opinion regardless.
-> 
-> Please DO NOT reply to the replies, I'll summarize the results in a week's 
-> time and then we can discuss it further.
-> 
-> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
-> 
-> _: Yes
-> _: No
 
-Yes
+It should be fixed by now. Please try again with the latest changes.
 
-> 
-> Optional question:
-> 
-> Why:
-
-This shall free human resources necessary for performing the switch to the 
-full-kernel development model.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Regards,
+Manu
