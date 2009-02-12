@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mout1.freenet.de ([195.4.92.91])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ruediger.dohmhardt@freenet.de>) id 1LVvHj-00033B-6e
-	for linux-dvb@linuxtv.org; Sat, 07 Feb 2009 23:04:24 +0100
-Message-ID: <498E051B.2010105@freenet.de>
-Date: Sat, 07 Feb 2009 23:03:07 +0100
-From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <4984E294.6020401@gmail.com> <498B7945.4060200@gmail.com>
-	<498DEDA9.7010905@freenet.de> <498E00F2.5050202@gmail.com>
-In-Reply-To: <498E00F2.5050202@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] 2033 not working with changeset 9143
+Received: from static.88-198-47-201.clients.your-server.de ([88.198.47.201]
+	helo=butterbrot.org) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <floe@butterbrot.org>) id 1LXXN3-0006vU-NX
+	for linux-dvb@linuxtv.org; Thu, 12 Feb 2009 09:56:34 +0100
+Received: from [192.168.178.34] (unknown [82.135.95.20])
+	(using SSLv3 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by butterbrot.org (Postfix) with ESMTPSA id EE1C6154100
+	for <linux-dvb@linuxtv.org>; Thu, 12 Feb 2009 09:57:44 +0100 (CET)
+From: Florian Echtler <floe@butterbrot.org>
+To: linux-dvb@linuxtv.org
+Date: Thu, 12 Feb 2009 09:55:55 +0100
+Message-Id: <1234428955.5072.7.camel@bernd>
+Mime-Version: 1.0
+Subject: [linux-dvb] Looking for external DVB-C device..
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,146 +22,68 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1711989408=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Manu Abraham schrieb:
-> Ruediger Dohmhardt wrote:
->   
->> Manu Abraham schrieb:
->>     
->>> Have added initial support for this card, as well as a large
->>> overhaul of the driver for a couple of performance impacts.
->>>
->>> Please do test with the latest updates from http://jusst.de/hg/mantis.
->>>   
->>>       
->> Hi Manu
->> the versions from January and February 2009 compile fine on the
->> SUSE-11.1 kernel 2.6.27.7-9-default x86_64.
->> The modules for my Twinhan AD-CP300 (2033) load fine, too.
->>
->> However, the devices below /dev/dvb are NOT created, and hence vdr-1.7
->> does not work.
->> The card works with the s2-liplianin driver.
->>
->> I assume it is interrupt related as listed in the lines from
->> /var/log/messages
->>
->>
->> Feb  7 21:03:38 mt40 su: (to root) rudi on /dev/pts/1
->> Feb  7 21:03:48 mt40 kernel: vendor=1002 device=4371
->> Feb  7 21:03:48 mt40 kernel: Mantis 0000:02:01.0: PCI INT A -> GSI 21
->> (level, low) -> IRQ 21
->> Feb  7 21:03:48 mt40 kernel: DVB: registering new adapter (Mantis DVB
->> adapter)
->> Feb  7 21:03:48 mt40 kernel: vendor=1002 device=4371
->> Feb  7 21:03:48 mt40 kernel: Mantis 0000:02:01.0: PCI INT A disabled
->> Feb  7 21:03:48 mt40 kernel: Mantis: probe of 0000:02:01.0 failed with
->> error -1
->> Feb  7 21:05:03 mt40 vdr: [4320] cTimeMs: using monotonic clock
->> (resolution is 1 ns)
->> Feb  7 21:05:03 mt40 vdr: [4320] VDR version 1.7.0 started
->> Feb  7 21:05:03 mt40 vdr: [4320] codeset is 'UTF-8' - known
->> Feb  7 21:05:03 mt40 vdr: [4320] ERROR: ./locale: Datei oder Verzeichnis
->> nicht gefunden
->> Feb  7 21:05:03 mt40 vdr: [4320] no locale for language code 'deu,ger'
->> Feb  7 21:05:03 mt40 vdr: [4320] no locale for language code 'slv,slo'
->> Feb  7 21:05:03 mt40 vdr: [4320] no locale for language code 'ita'
->> Feb  7 21:05:05 mt40 vdr: [4320] no DVB device found
->>
->> I wonder whether I can check something more to get your driver back to work
->>     
->
-> Can you please load the mantis module with the verbose=5 module
-> parameter and try again ? At least it will show what's failing.
->
-> Regards,
-> Manu
->
->   
-Yupp,
 
-here is /var/log/messages with the line "options mantis verbose=5" in
-/etc/modprobe.conf.local
+--===============1711989408==
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-hZpuKysA8rPLNjMvY1xd"
 
-Feb  7 22:56:41 mt40 kernel: found a VP-2033 PCI DVB-C device on (02:01.0),
-Feb  7 22:56:41 mt40 kernel: vendor=1002 device=4371
-Feb  7 22:56:41 mt40 kernel: Mantis 0000:02:01.0: PCI INT A -> GSI 21
-(level, low) -> IRQ 21
-Feb  7 22:56:41 mt40 kernel:     Mantis Rev 1 [1822:0008], irq: 21,
-latency: 64
-Feb  7 22:56:41 mt40 kernel:     memory: 0x0, mmio: 0xffffc20000366000
-Feb  7 22:56:41 mt40 kernel: mantis_stream_control (0): Set stream to HIF
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_init (0): Initializing I2C ..
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_init (0): Disabling I2C interrupt
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
-Feb  7 22:56:41 mt40 kernel:         mantis_i2c_write: Address=[0x50]
-<W>[ 08 ]
-Feb  7 22:56:41 mt40 kernel:         mantis_i2c_read:  Address=[0x50]
-<R>[ 00 08 ca 19 e9 b6 ]
-Feb  7 22:56:41 mt40 kernel:     MAC Address=[00:08:ca:19:e9:b6]
-Feb  7 22:56:41 mt40 kernel: mantis_dma_init (0): Mantis DMA init
-Feb  7 22:56:41 mt40 kernel: mantis_alloc_buffers (0): DMA=0x60df0000
-cpu=0xffff880060df0000 size=65536
-Feb  7 22:56:41 mt40 kernel: mantis_alloc_buffers (0): RISC=0x60dba000
-cpu=0xffff880060dba000 size=1000
-Feb  7 22:56:41 mt40 kernel: mantis_calc_lines (0): Mantis RISC block
-bytes=[4096], line bytes=[2048], line count=[32]
-Feb  7 22:56:41 mt40 kernel: mantis_dvb_init (0): dvb_register_adapter
-Feb  7 22:56:41 mt40 kernel: DVB: registering new adapter (Mantis DVB
-adapter)
-Feb  7 22:56:41 mt40 kernel: mantis_dvb_init (0): dvb_dmx_init
-Feb  7 22:56:41 mt40 kernel: mantis_dvb_init (0): dvb_dmxdev_init
-Feb  7 22:56:41 mt40 kernel: vp2033_frontend_init (0): Probing for
-CU1216 (DVB-C)
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
-Feb  7 22:56:41 mt40 kernel:         Byte MODE:
-Feb  7 22:56:41 mt40 kernel:         Byte <0> RXD=0xa1ff2280  [22]
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
-Feb  7 22:56:41 mt40 kernel:         Byte MODE:
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0):         I/O error,
-LINE:155
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
-Feb  7 22:56:41 mt40 kernel:         Byte MODE:
-Feb  7 22:56:41 mt40 kernel:         Byte <0> RXD=0xa1ff2280  [22]
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:1
-Feb  7 22:56:41 mt40 kernel:         mantis_i2c_write: Address=[0x0c]
-<W>[ 00 33 ]
-Feb  7 22:56:41 mt40 kernel: mantis_i2c_xfer (0): Messages:2
-Feb  7 22:56:42 mt40 kernel:         Byte MODE:
-Feb  7 22:56:42 mt40 kernel: mantis_i2c_xfer (0):         I/O error,
-LINE:155
-Feb  7 22:56:42 mt40 kernel: mantis_dvb_init (0): !!! NO Frontends found !!!
-Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis DVB
-initialization failed <-1>
-Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis DMA
-exit! <-1>
-Feb  7 22:56:42 mt40 kernel: mantis_dma_exit (0): DMA=0x60df0000
-cpu=0xffff880060df0000 size=65536
-Feb  7 22:56:42 mt40 kernel: mantis_dma_exit (0): RISC=0x60dba000
-cpu=0xffff880060dba000 size=1000
-Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis I2C
-exit! <-1>
-Feb  7 22:56:42 mt40 kernel: mantis_i2c_exit (0): Disabling I2C interrupt
-Feb  7 22:56:42 mt40 kernel: mantis_i2c_exit (0): Removing I2C adapter
-Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis PCI
-exit! <-1>
-Feb  7 22:56:42 mt40 kernel: mantis_pci_exit (0):  mem: 0xffffc20000366000
-Feb  7 22:56:42 mt40 kernel: vendor=1002 device=4371
-Feb  7 22:56:42 mt40 kernel: Mantis 0000:02:01.0: PCI INT A disabled
-Feb  7 22:56:42 mt40 kernel: mantis_pci_probe (0): ERROR: Mantis free! <-1>
-Feb  7 22:56:42 mt40 kernel: Mantis: probe of 0000:02:01.0 failed with
-error -1
+
+--=-hZpuKysA8rPLNjMvY1xd
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+
+Hello everyone,
+
+I've been browsing the wiki and the rest of the web for some time,
+looking for a device which has the following features:
+
+- DVB-C support in Germany
+- Linux support (of course)
+- external device via USB 2.0
+- ability to record raw MPEG stream
+- CI module
+
+AFAICT, the only thing which comes close is the Anysee E30C Plus,
+although the CI isn't (yet) supported. Is there any other option?
+
+And by the way, I'm curious how the communication with the CI actually
+works in Linux. Is that handled inside the driver, or does the end user
+application have to do anything about it? IIRC, once the communication
+has been set up, the decryption is done by the CAM - is that correct?
+
+Many thanks, Yours, Florian
+
+
+--=-hZpuKysA8rPLNjMvY1xd
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAkmT5BsACgkQ7CzyshGvatgdrACg8BBMVq2GrTsDoOJTJxnJbuNL
+gBgAn35pTfloSY8UwEzm1H0E3ooLCDQs
+=VPxA
+-----END PGP SIGNATURE-----
+
+--=-hZpuKysA8rPLNjMvY1xd--
 
 
 
+--===============1711989408==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1711989408==--
