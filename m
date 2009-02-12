@@ -1,66 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:38226 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753073AbZBUUEu (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4574 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758219AbZBLTXS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2009 15:04:50 -0500
-Date: Sat, 21 Feb 2009 21:04:28 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: kilgota@banach.math.auburn.edu
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, urishk@yahoo.com,
-	linux-media@vger.kernel.org
-Subject: Re: Minimum kernel version supported by v4l-dvb
-Message-ID: <20090221210428.15d96814@hyperion.delvare>
-In-Reply-To: <alpine.LNX.2.00.0902211008360.9653@banach.math.auburn.edu>
-References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
-	<20090218071041.63c09ba3@pedra.chehab.org>
-	<20090218140105.17c86bcb@hyperion.delvare>
-	<20090220212327.410a298b@pedra.chehab.org>
-	<alpine.LNX.2.00.0902201853040.9018@banach.math.auburn.edu>
-	<20090220231820.67ce2899@pedra.chehab.org>
-	<alpine.LNX.2.00.0902211008360.9653@banach.math.auburn.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Feb 2009 14:23:18 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1CJNF04058556
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 12 Feb 2009 20:23:15 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 12 Feb 2009 20:23:15 +0100 (CET)
+Message-Id: <200902121923.n1CJNF04058556@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 21 Feb 2009 10:42:17 -0600 (CST), kilgota@banach.math.auburn.edu wrote:
-> This is not exactly what I was trying to say. I'll try again.
-> 
-> 1. Anyone who would call himself a developer will run quite recent kernels 
-> without being forced to do so, voluntarily and with pleasure.
-> 
-> 2. Sometimes the kernel which just came out has a bug. The bug can 
-> interfere with current work even though it is from another kernel 
-> subsystem. I mentioned a recent example. The problem was in the basic USB 
-> area. It specifically related to devices running on alt0 and using a bulk 
-> endpoint. I was trying to support a camera that streams on alt0 over the 
-> bulk endpoint. Said bug seriously interfered with progress. Who would say 
-> that everyone should simultaneously use the same tree, suggests that 
-> everyone should simultaneously experience the same set of bugs.
-> 
-> 3. Because of (2) and for other obvious reasons, the ability to develop 
-> a kernel subsystem semi-independently of the latest git tree is a clever 
-> and good thing. Why give it up and tie oneself to just one git tree?
-> 
-> 4. If it were my decision, I probably would not tie myself in knots if 
-> something new would "break" a kernel which is more than a couple of 
-> versions behind. Right now, this would probably mean I would not care at 
-> all what happened to people running 2.6.24.x or older. Furthermore, if 
-> what was "broken" was due to a bug in the old kernel, too bad.
-> 
-> 5. So I would continue to allow flexibility but I would not become 
-> extremely concerned if a kernel more than a couple of versions behind 
-> would start to have problems. I would try to be nice and let people know, 
-> unless they started to shout at me, at which point I  would start to 
-> ignore them.
-> 
-> Probably all of the above would please nobody, and it is a good that I am 
-> not in charge of anything.
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-Actually, it would totally please me :)
+Results of the daily build of v4l-dvb:
 
--- 
-Jean Delvare
+date:        Thu Feb 12 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10526:b7d4dc653623
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc4-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc4-armv5-omap2: OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc4-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc4-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc4-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc4-x86_64: WARNINGS
+fw/apps: OK
+spec: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc4): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
