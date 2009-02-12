@@ -1,37 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp130.rog.mail.re2.yahoo.com ([206.190.53.35]:48192 "HELO
-	smtp130.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751953AbZBSDhZ (ORCPT
+Received: from ti-out-0910.google.com ([209.85.142.187]:46043 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753222AbZBLWpC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 22:37:25 -0500
-Message-ID: <499CD3F3.9010803@rogers.com>
-Date: Wed, 18 Feb 2009 22:37:23 -0500
-From: CityK <cityk@rogers.com>
+	Thu, 12 Feb 2009 17:45:02 -0500
+Received: by ti-out-0910.google.com with SMTP id d10so613394tib.23
+        for <linux-media@vger.kernel.org>; Thu, 12 Feb 2009 14:45:00 -0800 (PST)
+Message-ID: <4994A667.2000909@gmail.com>
+Date: Fri, 13 Feb 2009 09:44:55 +1100
+From: gilles <gilles.gigan@gmail.com>
 MIME-Version: 1.0
-To: Andreas <linuxdreas@dslextreme.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: PVR x50 corrupts ATSC 115 streams
-References: <200902180441.40316.linuxdreas@dslextreme.com>
-In-Reply-To: <200902180441.40316.linuxdreas@dslextreme.com>
-Content-Type: text/plain; charset=iso-8859-1
+To: linux-media@vger.kernel.org
+Subject: Comments on V4L controls
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andreas wrote:
-> Just to let you know that you're not alone:
-> I had a simiilar problem with the combination of an AverMedia A180 and 
-> two Asus Falcon (they use the ivtv drivers and firmware). Whenever one 
-> of the Falcons was recording, I got blips and dropouts on the 
-> AverMedia. I chalked it off to a flaky mainboard and seperated the 
-> Falcons and the Avermedia in two different computers. A while later I 
-> got a new mainboard and additional ATSC tuner cards. As long as I had 
-> two of the ATSC tuner cards installed, the recordings were ok, except 
-> for an occasional dropout. But when I put a third ATSC tuner in, the 
-> recordings were barely watchable. After I put two ATSC tuners (2x 
-> Avermedia A180) in a different computer, they *all* are recording 
-> almost perfectly. Even a HVR-1600 card that I had dismissed as broken, 
-> delivers very good recordings in the other computer.
+Hi everyone,
+Sorry for double posting, but I originally sent this to the old mailing
+list. Here it is:
 
-It should be noted that a common element here in the two cases is the
-Nxt2004 (demod for both the A180 and 11x cards).
+I have a couple of comments / suggestions regarding the part on controls of
+the V4L2 api:
+Some controls, such as pan relative and tilt relative are write-only, and
+reading their value makes little sense. Yet, there is no way of knowing
+about this, but to try and read a value and be greeted with EINVAL or
+similar. There is already a read-only flag (V4L2_CTRL_FLAG_READ_ONLY) in
+struct v4l2_query. Does it make sense to add another one for write-only
+controls ?
+The extended controls Pan / Tilt  reset are defined in the API as boolean
+controls. Shouldnt these be defined as buttons instead, as they dont really
+hold a state (enabled/disabled) ?
+Comments are welcome.
+Cheers,
+Gilles
+
