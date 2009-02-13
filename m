@@ -1,66 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:40771 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659AbZBSQ5F (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.238]:50621 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750913AbZBMKOh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 11:57:05 -0500
-Received: by bwz5 with SMTP id 5so1401899bwz.13
-        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2009 08:57:03 -0800 (PST)
+	Fri, 13 Feb 2009 05:14:37 -0500
+Received: by rv-out-0506.google.com with SMTP id g37so637546rvb.1
+        for <linux-media@vger.kernel.org>; Fri, 13 Feb 2009 02:14:36 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <200902191741.57767.nsoranzo@tiscali.it>
-References: <200902191741.57767.nsoranzo@tiscali.it>
-Date: Thu, 19 Feb 2009 17:57:03 +0100
-Message-ID: <d9def9db0902190857p331d7667td0900ec6e8a9c75f@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: register device to soundcard for sysfs
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Nicola Soranzo <nsoranzo@tiscali.it>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <497598ED.3050502@parrot.com>
+References: <497487F2.7070400@parrot.com>
+	 <aec7e5c30901192046j1a595day51da698181d034e5@mail.gmail.com>
+	 <497598ED.3050502@parrot.com>
+Date: Fri, 13 Feb 2009 19:14:36 +0900
+Message-ID: <aec7e5c30902130214k6a0fc8ck74b412f41fa63385@mail.gmail.com>
+Subject: Re: soc-camera : sh_mobile_ceu_camera race on free_buffer ?
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Content-Type: multipart/mixed; boundary=000e0cd1af8ca0d0ef0462ca1a5c
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 19, 2009 at 5:41 PM, Nicola Soranzo <nsoranzo@tiscali.it> wrote:
-> As explained in "Writing an ALSA driver" (T. Iwai),
+--000e0cd1af8ca0d0ef0462ca1a5c
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-when writing a patch write the truth about where it comes from, eg.
-the author of the patch.
+Hi Matthieu,
 
-thanks,
-Markus
+[CC Morimoto-san]
+[Changed list to linux-media]
 
-> audio drivers should
-> set the struct device for the card before registering the card instance.
-> This will add the correct /sys/class/sound/cardN/device symlink, so HAL
-> can see the device and ConsoleKit sets its ACL permissions for the
-> logged-in user.
->
-> For em28xx audio capture cards found e.g. in Hauppauge WinTV-HVR-900 (R2),
-> this patch fixes errors like:
->
-> ALSA lib pcm_hw.c:1429:(_snd_pcm_hw_open) Invalid value for card
-> Error opening audio: Permission denied
->
-> when running mplayer as a normal user.
->
-> Priority: normal
->
-> Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
-> ---
-> diff -r 80e785538796 -r ef8cc17cc048 linux/drivers/media/video/em28xx/em28xx-audio.c
-> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Feb 18 18:27:33 2009 +0100
-> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Thu Feb 19 17:36:44 2009 +0100
-> @@ -560,6 +560,8 @@
->        pcm->info_flags = 0;
->        pcm->private_data = dev;
->        strcpy(pcm->name, "Empia 28xx Capture");
-> +
-> +       snd_card_set_dev(card, &dev->udev->dev);
->        strcpy(card->driver, "Empia Em28xx Audio");
->        strcpy(card->shortname, "Em28xx Audio");
->        strcpy(card->longname, "Empia Em28xx Audio");
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On Tue, Jan 20, 2009 at 6:27 PM, Matthieu CASTET
+<matthieu.castet@parrot.com> wrote:
+> Magnus Damm a =E9crit :
+>> On Mon, Jan 19, 2009 at 11:02 PM, Matthieu CASTET
+>>> But we didn't do stop_capture, so as far I understand the controller is
+>>> still writing data in memory. What prevent us to free the buffer we are
+>>> writing.
+>>
+>> I have not looked into this in great detail, but isn't this handled by
+>> the videobuf state? The videobuf has state VIDEOBUF_ACTIVE while it is
+>> in use. I don't think such a buffer is freed.
+> Well from my understanding form videobuf_queue_cancel [1], we call
+> buf_release on all buffer.
+
+Yeah, you are correct. I guess waiting for the buffer before freeing
+is the correct way to do this. I guess vivi doesn't have to do this
+since it's not using DMA.
+
+Morimoto-san, can you check the attached patch? I've tested it on my
+Migo-R board together with mplayer and it seems to work well here. I
+don't think using mplayer triggers this error case though, so maybe we
+should try some other application.
+
+Cheers,
+
+/ magnus
+
+--000e0cd1af8ca0d0ef0462ca1a5c
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="linux-2.6.29-media-video-sh_mobile_ceu-videobuf_waiton-20090213.patch"
+Content-Disposition: attachment;
+	filename="linux-2.6.29-media-video-sh_mobile_ceu-videobuf_waiton-20090213.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fr4p4jib0
+
+LS0tIDAwMDEvZHJpdmVycy9tZWRpYS92aWRlby9zaF9tb2JpbGVfY2V1X2NhbWVyYS5jCisrKyB3
+b3JrL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2hfbW9iaWxlX2NldV9jYW1lcmEuYwkyMDA5LTAyLTEz
+IDE4OjU1OjU1LjAwMDAwMDAwMCArMDkwMApAQCAtMTUwLDYgKzE1MCw3IEBAIHN0YXRpYyB2b2lk
+IGZyZWVfYnVmZmVyKHN0cnVjdCB2aWRlb2J1Zl8KIAlpZiAoaW5faW50ZXJydXB0KCkpCiAJCUJV
+RygpOwogCisJdmlkZW9idWZfd2FpdG9uKCZidWYtPnZiLCAwLCAwKTsKIAl2aWRlb2J1Zl9kbWFf
+Y29udGlnX2ZyZWUodnEsICZidWYtPnZiKTsKIAlkZXZfZGJnKCZpY2QtPmRldiwgIiVzIGZyZWVk
+XG4iLCBfX2Z1bmNfXyk7CiAJYnVmLT52Yi5zdGF0ZSA9IFZJREVPQlVGX05FRURTX0lOSVQ7Cg==
+--000e0cd1af8ca0d0ef0462ca1a5c--
