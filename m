@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61276 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755208AbZB0QcS (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:51988 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222AbZBMUtt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 11:32:18 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: video4linux-list@redhat.com, tuukka.o.toivonen@nokia.com,
-	saaguirre@ti.com, antti.koskipaa@nokia.com, david.cohen@nokia.com,
-	Sakari Ailus <sakari.ailus@nokia.com>
-Subject: [PATCH 3/4] V4L: int device: add support for VIDIOC_QUERYMENU
-Date: Fri, 27 Feb 2009 18:31:32 +0200
-Message-Id: <1235752293-14452-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1235752293-14452-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-References: <49A81502.3090002@maxwell.research.nokia.com>
- <1235752293-14452-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1235752293-14452-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	Fri, 13 Feb 2009 15:49:49 -0500
+Date: Fri, 13 Feb 2009 18:49:21 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: v4l2_driver.c status
+Message-ID: <20090213184921.222c8823@pedra.chehab.org>
+In-Reply-To: <200902131347.11272.hverkuil@xs4all.nl>
+References: <200902131347.11272.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@nokia.com>
+On Fri, 13 Feb 2009 13:47:10 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
----
- include/media/v4l2-int-device.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+> Hi Mauro,
+> 
+> What is the status of the v4l2_driver.c in v4l2util? (formerly known as 
+> libv4l2, see my pull request).
+> 
+> While the original v4l2util just contained frequency tables (not much can go 
+> wrong there), adding the v4l2_driver.c code in that library makes me 
+> uncomfortable because: 1) it is undocumented, 2) it is unreviewed (and I 
+> certainly do not agree with several of the choices made here!).
+> 
+> I propose that v4l2_driver.c is moved to a new library (v4l2driver?) with a 
+> README clarifying that this is experimental.
+> 
+> I'm also willing to do a review of v4l2_driver.c for you.
+> 
+> When a better and documented API is made, then it can be moved to v4l2util 
+> and released officially.
+> 
+> Documentation should probably go to the V4L2 spec in a separate chapter.
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 5d254c4..81f4863 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -178,6 +178,7 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_s_fmt_cap_num,
- 	vidioc_int_try_fmt_cap_num,
- 	vidioc_int_queryctrl_num,
-+	vidioc_int_querymenu_num,
- 	vidioc_int_g_ctrl_num,
- 	vidioc_int_s_ctrl_num,
- 	vidioc_int_cropcap_num,
-@@ -282,6 +283,7 @@ V4L2_INT_WRAPPER_1(g_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(s_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(try_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
-+V4L2_INT_WRAPPER_1(querymenu, struct v4l2_querymenu, *);
- V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
--- 
-1.5.6.5
+Seems fine for me.
 
+Cheers,
+Mauro
