@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:44939 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753505AbZBVW4h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 17:56:37 -0500
-Message-ID: <49A1D7B2.5070601@redhat.com>
-Date: Sun, 22 Feb 2009 23:54:42 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4466 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138AbZBMMrS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Feb 2009 07:47:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: v4l2_driver.c status
+Date: Fri, 13 Feb 2009 13:47:10 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Trent Piepho <xyzzy@speakeasy.org>
-CC: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com> <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu> <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu> <49A1CA5B.5000407@redhat.com> <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902131347.11272.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
+What is the status of the v4l2_driver.c in v4l2util? (formerly known as 
+libv4l2, see my pull request).
 
-Trent Piepho wrote:
-> On Sun, 22 Feb 2009, Hans de Goede wrote:
->> Yes that is what we are talking about, the camera having a gravity switch
->> (usually nothing as advanced as a gyroscope). Also the bits we are talking
->> about are in a struct which communicates information one way, from the camera
->> to userspace, so there is no way to clear the bits to make the camera do something.
-> 
-> First, I'd like to say I agree with most that the installed orientation of
-> the camera sensor really is a different concept than the current value of a
-> gravity sensor.  It's not necessary, and maybe not even desirable, to
-> handle them in the same way.
-> 
-> I do not see the advantage of using reserved bits instead of controls.
-> 
-> The are a limited number of reserved bits.  In some structures there are
-> only a few left.  They will run out.  Then what?  Packing non-standard
-> sensor attributes and camera sensor meta-data into a few reserved bits is
-> not a sustainable policy.
-> 
-> Controls on the other card are not limited and won't run out.
-> 
+While the original v4l2util just contained frequency tables (not much can go 
+wrong there), adding the v4l2_driver.c code in that library makes me 
+uncomfortable because: 1) it is undocumented, 2) it is unreviewed (and I 
+certainly do not agree with several of the choices made here!).
 
-Yes but these things are *not* controls, end of discussion. The control API is 
-for controls, not to stuff all kind of cruft in.
+I propose that v4l2_driver.c is moved to a new library (v4l2driver?) with a 
+README clarifying that this is experimental.
+
+I'm also willing to do a review of v4l2_driver.c for you.
+
+When a better and documented API is made, then it can be moved to v4l2util 
+and released officially.
+
+Documentation should probably go to the V4L2 spec in a separate chapter.
 
 Regards,
 
-Hans
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
