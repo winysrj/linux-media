@@ -1,72 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:7456 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753339AbZB0JKG (ORCPT
+Received: from bay0-omc3-s12.bay0.hotmail.com ([65.54.246.212]:54666 "EHLO
+	bay0-omc3-s12.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751406AbZBMVR6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 04:10:06 -0500
-Date: Fri, 27 Feb 2009 10:09:47 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Old Video ML <video4linux-list@redhat.com>
-Subject: Re: Conversion of vino driver for SGI to not use the legacy decoder
- API
-Message-ID: <20090227100947.160abd0b@hyperion.delvare>
-In-Reply-To: <200902270819.17862.hverkuil@xs4all.nl>
-References: <20090226214742.6576f30b@pedra.chehab.org>
-	<200902270819.17862.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 13 Feb 2009 16:17:58 -0500
+Message-ID: <BAY102-W60982390A2077BACBC536CFB80@phx.gbl>
+From: Thomas Nicolai <nickotym@hotmail.com>
+To: <devin.heitmueller@gmail.com>, <linux-media@vger.kernel.org>
+Subject: =?windows-1256?Q?RE:_HVR-1500_tuner_seems_to_be_recognized=2C_but_wont_tu?=
+ =?windows-1256?Q?rn_on.=FE?=
+Date: Fri, 13 Feb 2009 15:17:57 -0600
+In-Reply-To: <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
+References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
+ <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Fri, 27 Feb 2009 08:19:17 +0100, Hans Verkuil wrote:
-> On Friday 27 February 2009 01:47:42 Mauro Carvalho Chehab wrote:
-> > After the conversion of Zoran driver to V4L2, now almost all drivers are
-> > using the new API. However, there are is one remaining driver using the
-> > video_decoder.h API (based on V4L1 API) for message exchange between the
-> > bridge driver and the i2c sensor: the vino driver.
-> >
-> > This driver adds support for the Indy webcam and for a capture hardware
-> > on SGI. Does someone have those hardware? If so, are you interested on
-> > helping to convert those drivers to fully use V4L2 API?
-> >
-> > The SGI driver is located at:
-> > 	drivers/media/video/vino.c
-> >
-> > Due to vino, those two drivers are also using the old API:
-> > 	drivers/media/video/indycam.c
-> > 	drivers/media/video/saa7191.c
-> >
-> > It shouldn't be hard to convert those files to use the proper APIs, but
-> > AFAIK none of the current active developers has any hardware for testing
-> > it.
+I will try to post the dmesg this evening some time.  Maybe over the weekend.  
+
+Thanks,
+
+Nick
+
+> Date: Fri, 13 Feb 2009 16:09:22 -0500
+> Subject: Re: HVR-1500 tuner seems to be recognized, but wont turn on.þ
+> From: devin.heitmueller@gmail.com
+> To: nickotym@hotmail.com
+> CC: linux-media@vger.kernel.org
 > 
-> The conversion has already been done in my v4l-dvb-vino tree. I'm trying to 
-> convince the original vino author to boot up his Indy and test it, but he 
-> is not very interested in doing that. I'll ask him a few more times, but we 
-> may have to just merge my code untested. Or perhaps just drop it.
+> 2009/2/13 Thomas Nicolai :
+>>
+>> Third time is  the charm, had tried posting before, but was in HTML.  Hope it doesn't double post for anyone.
+>>
+>>
+>> I am hoping this problem has already been solved, but I couldn't find anything mentioned in the archives going back a while.
+>>
+>> I am running Kubuntu 8.10 with 2.6.27-11-generic on a Toshiba laptop with dual AMD 64 processors.
+>>
+>> I
+>> installed the drivers from the non-experimental ones at www.linuxtv.org
+>> using mercurial and that helped with some problems.  However, the tuner
+>> is now recognized, but can't seem to turn on when called for by MythTV
+>> or dvbscan.
+>>
+>>  Partial Results of dmesg follow:
+>>
+>> [ 2627.107174] firmware: requesting xc3028-v27.fw
+>> [ 2627.147757] xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+>> [ 2627.347546] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 2627.870877] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
+>> [ 2627.870886] xc2028 2-0061: -5 returned from send
+>> [ 2627.870890] xc2028 2-0061: Error -22 while loading base firmware
+>> [ 2628.122478] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 2628.645956] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
+>> [ 2628.645962] xc2028 2-0061: -5 returned from send
+>> [ 2628.645965] xc2028 2-0061: Error -22 while loading base firmware
+>> [ 2629.845869] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 2630.368229] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
+>> [ 2630.368235] xc2028 2-0061: -5 returned from send
+>> [ 2630.368239] xc2028 2-0061: Error -22 while loading base firmware
+>> [ 2630.622469] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 2631.144810] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
+>> [ 2631.144818] xc2028 2-0061: -5 returned from send
+>> [ 2631.144820] xc2028 2-0061: Error -22 while loading base firmware
+>> [ 2632.150462] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 2632.679257] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
+>> [ 2632.679266] xc2028 2-0061: -5 returned from send
+>> [ 2632.679270] xc2028 2-0061: Error -22 while loading base firmware
+>> [ 2632.930465] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 2634.086084] xc2028 2-0061: Loading firmware for type=D2633 DTV6 ATSC (10030), id 0000000000000000.
+>>
+>>
+>> lspci -vnn results (partial):
+>>
+>> 01:05.0
+>> VGA compatible controller [0300]: ATI Technologies Inc RS690M [Radeon
+>> X1200 Series]
+>> [1002:791f]
+>>        Subsystem: Toshiba America Info Systems Device [1179:ff00]
+>>        Flags: bus master, fast devsel, latency 64, IRQ 18
+>>        Memory at f0000000 (64-bit, prefetchable) [size=128M]
+>>        Memory at f8300000 (64-bit, non-prefetchable) [size=64K]
+>>        I/O ports at 9000 [size=256]
+>>        Memory at f8200000 (32-bit, non-prefetchable) [size=1M]
+>>        Capabilities:
+>>
+>> 0b:00.0
+>> Multimedia video controller [0400]: Conexant Systems, Inc. CX23885 PCI
+>> Video and Audio Decoder [14f1:8852] (rev
+>> 02)
+>>        Subsystem: Hauppauge computer works Inc. Device [0070:7717]
+>>        Flags: bus master, fast devsel, latency 0, IRQ 17
+>>        Memory at f8000000 (64-bit, non-prefetchable) [size=2M]
+>>        Capabilities:
+>>        Kernel driver in use: cx23885
+>>        Kernel modules: cx23885
+>>
+>> Please let me know what else might be needed to solve this.
+>>
+>> Saw a link that recommended using v4l-dvb-experimental  drivers but wasn't sure if that was wise.
+>>
+>>
+>> Thanks,
+>>
+>> Nick
 > 
-> Jean, I remember you mentioning that you wouldn't mind if the i2c-algo-sgi 
-> code could be dropped which is only used by vino. How important is that to 
-> you? Perhaps we are flogging a dead horse here and we should just let this 
-> driver die.
+> That looks really suspicious.  Perhaps the xc3028 tuner is being put
+> to sleep and not being woken up properly.
+> 
+> Could you please post the full dmesg output showing the initialization
+> of the device?
+> 
+> Devin
+> 
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-My rant was based on the fact that i2c-algo-sgi is totally SGI-specific
-while i2c-algo-* modules are supposed to be generic abstractions that
-can be reused by a variety of hardware. So i2c-algo-sgi should really be
-merged into drivers/media/video/vino.c. But as it takes a SGI system to
-build-test such a change, and I don't have one, I am reluctant to do
-it. If we can find a tester for your V4L2 conversion then maybe the
-same tester will be able to test my own changes.
-
-But i2c-algo-sgi isn't a big problem per se, it doesn't block further
-evolutions or anything like that, so if we can't find a tester and it
-has to stay for a few more years, this really isn't a problem for me.
-
--- 
-Jean Delvare
+_________________________________________________________________
+Windows Live™: E-mail. Chat. Share. Get more ways to connect. 
+http://windowslive.com/online/hotmail?ocid=TXT_TAGLM_WL_HM_AE_Faster_022009
