@@ -1,143 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.190]:35494 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760AbZBMJbq (ORCPT
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:64479 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750989AbZBMU2Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 04:31:46 -0500
+	Fri, 13 Feb 2009 15:28:16 -0500
+Date: Fri, 13 Feb 2009 14:28:11 -0600
+From: David Engel <david@istwok.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jonathan Isom <jeisom@gmail.com>,
+	V4L <video4linux-list@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
+	CityK <cityk@rogers.com>, linux-media@vger.kernel.org
+Subject: Re: KWorld ATSC 115 all static
+Message-ID: <20090213202811.GB3810@opus.istwok.net>
+References: <1234237395.2682.22.camel@pc10.localdom.local> <20090210041512.6d684be3@pedra.chehab.org> <1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com> <20090210102732.5421a296@pedra.chehab.org> <20090211035016.GA3258@opus.istwok.net> <20090211054329.6c54d4ad@pedra.chehab.org> <20090211232149.GA28415@opus.istwok.net> <20090213030750.GA3721@opus.istwok.net> <20090213090446.2d77435a@pedra.chehab.org> <20090213092845.0ebfe97a@pedra.chehab.org>
 MIME-Version: 1.0
-In-Reply-To: <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
-References: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-	 <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
-	 <4993CB1F.603@maxwell.research.nokia.com>
-	 <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
-Date: Fri, 13 Feb 2009 15:01:43 +0530
-Message-ID: <dfeb90390902130131r7743af98ge8c9baf4856f835e@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-From: Arun KS <getarunks@gmail.com>
-To: DongSoo Kim <dongsoo.kim@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090213092845.0ebfe97a@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 12, 2009 at 1:22 PM, DongSoo Kim <dongsoo.kim@gmail.com> wrote:
-> Thank you for your comment.
->
-> BTW, what should I do if I would rather use external ISP device than
-> OMAP3 internal ISP feature?
->
-> You said that you just have raw sensors by now, so you mean this patch
-> is not verified working with some ISP modules?
+On Fri, Feb 13, 2009 at 09:28:45AM -0200, Mauro Carvalho Chehab wrote:
+> On Fri, 13 Feb 2009 09:04:46 -0200
+> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> 
+> > It seems that some parts of saa7134 (or frontend) is overriding the i2c
+> > address,to write at the demod, causing a mess. Another alternative would be
+> > some bug at v4l subdev interface.
+> > 
+> > I'll seek at saa7134 code to see who is causing this error.
+> 
+> Ok, I found the bug. It is inside tuner-simple code. It is caused due to a hack for TUV1236.
+> 
+> I've just committed a fix for it:
+> 	http://linuxtv.org/hg/v4l-dvb/rev/34ec729ed1a7
+> 
+> Please test.
 
-Hi DongSoo,
+In limited, remote testing -- it works!  It also works on my
+production MythTV backend with 2 ATSC 115s.  This is the first time
+analog has ever worked on both of those cards at the same time.  I'll
+do more testing over the weekend.  Thanks very much, Mauro, Hans and
+everyone else involved.
 
-          The driver is tested and working with sensors which have
-inbuilt ISP modules.
-
-Thanks,
-Arun
-
->
-> I'm testing your patch on my own omap3 target board with NEC ISP...but
-> unfortunately not working yet ;(
->
-> I should try more harder. more research is needed :)
->
-> Cheers,
->
->
-> On Thu, Feb 12, 2009 at 4:09 PM, Sakari Ailus
-> <sakari.ailus@maxwell.research.nokia.com> wrote:
->> DongSoo Kim wrote:
->>>
->>> Hello.
->>
->> Hi, and thanks for the comments!
->>
->>> +static int omap34xxcam_open(struct inode *inode, struct file *file)
->>> +{
->>>
->>> <snip>
->>>
->>> +       if (atomic_inc_return(&vdev->users) == 1) {
->>> +               isp_get();
->>> +               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
->>> +
->>> OMAP34XXCAM_SLAVE_POWER_ALL))
->>> +                       goto out_slave_power_set_standby;
->>> +               omap34xxcam_slave_power_set(
->>> +                       vdev, V4L2_POWER_STANDBY,
->>> +                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
->>> +               omap34xxcam_slave_power_suggest(
->>> +                       vdev, V4L2_POWER_STANDBY,
->>> +                       OMAP34XXCAM_SLAVE_POWER_LENS);
->>> +       }
->>>
->>>
->>> I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
->>> device is really necessary.
->>>
->>> Because if that makes sensor device in standby mode, we do S_FMT and
->>> bunch of V4L2 APIs while the camera module is in standby mode.
->>>
->>> In most cases of "sensor + ISP" SOC camera modules, I2C command is not
->>> working while the camera module is in standby mode.
->>
->> I guess that applies to most sensors.
->>
->>> Following the camera interface source code, sensor goes down to
->>> standby mode until VIDIOC_STREAMON is called.
->>>
->>> If this power up timing depends on sensor device, then I think we need
->>> a conditional power on sequence.
->>
->> You're right, there's something wrong with the slave power handling. :)
->>
->> We were thinking that the sensor (or any slave) power management (current
->> on, off and standby) could be replaced by four commands: open, close,
->> streamon and streamoff. The slave could decide by itself what its real power
->> state is. IMO direct power management doesn't belong to the camera driver
->> which doesn't drive any hardware anyway.
->>
->>> As you defined slave devices as SENSOR, LENS, FLASH, then how about
->>> making a new slave category like "ISP" for "sensor+ISP" SOC modules?
->>
->> I currently have just raw sensors. It'd be nice to keep the interface for
->> smart sensors the same, though. You still need for a receiver for the image
->> data, sometimes called the camera controller. That would be the same than
->> the ISP but without fancy features.
->>
->> Cheers,
->>
->> --
->> Sakari Ailus
->> sakari.ailus@maxwell.research.nokia.com
->>
->
->
->
-> --
-> ========================================================
-> Dong Soo, Kim
-> Engineer
-> Mobile S/W Platform Lab. S/W centre
-> Telecommunication R&D Centre
-> Samsung Electronics CO., LTD.
-> e-mail : dongsoo.kim@gmail.com
->           dongsoo45.kim@samsung.com
-> ========================================================
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+David
+-- 
+David Engel
+david@istwok.net
