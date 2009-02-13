@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1PJR9Wx006243
-	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 14:27:09 -0500
-Received: from smtp103.biz.mail.re2.yahoo.com (smtp103.biz.mail.re2.yahoo.com
-	[68.142.229.217])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n1PJQl9C017320
-	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 14:26:47 -0500
-Message-ID: <49A59B31.9080407@embeddedalley.com>
-Date: Wed, 25 Feb 2009 22:25:37 +0300
-From: Vitaly Wool <vital@embeddedalley.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1D3HSYr028101
+	for <video4linux-list@redhat.com>; Thu, 12 Feb 2009 22:17:28 -0500
+Received: from web35303.mail.mud.yahoo.com (web35303.mail.mud.yahoo.com
+	[66.163.179.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n1D3HB3M002432
+	for <video4linux-list@redhat.com>; Thu, 12 Feb 2009 22:17:11 -0500
+References: <163227.41578.qm@web35306.mail.mud.yahoo.com>
+	<20090207090703.329785f2@free.fr>
+Date: Thu, 12 Feb 2009 19:10:30 -0800 (PST)
+From: Curtis Schroeder <cstarjewel@yahoo.com>
+To: Jean-Francois Moine <moinejf@free.fr>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <49A3A61F.30509@embeddedalley.com>	<20090224234205.7a5ca4ca@pedra.chehab.org>	<49A53CB9.1040109@embeddedalley.com>	<20090225090728.7f2b0673@caramujo.chehab.org>	<49A567D9.80805@embeddedalley.com>	<20090225101812.212fabbe@caramujo.chehab.org>	<49A57BD4.6040209@embeddedalley.com>
-	<20090225153323.66778ad2@caramujo.chehab.org>
-In-Reply-To: <20090225153323.66778ad2@caramujo.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, em28xx@mcentral.de
-Subject: Re: em28xx: Compro VideoMate For You sound problems
+Message-ID: <102986.42782.qm@web35303.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: Philips SPC 600 NCP
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,34 +27,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro,
+OK, after adding the following symbolic link in /usr/lib I was able to compile svv.c:
+ln -s libv4lconvert.so.0 libv4lconvert.so
 
-Mauro Carvalho Chehab wrote:
->   
->> diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
->> index 100f90a..f300e74 100644
->> --- a/drivers/media/video/em28xx/em28xx-cards.c
->> +++ b/drivers/media/video/em28xx/em28xx-cards.c
->> @@ -1245,14 +1245,17 @@ struct em28xx_board em28xx_boards[] = {
->>  		.tda9887_conf = TDA9887_PRESENT,
->>  		.decoder      = EM28XX_TVP5150,
->>  		.adecoder     = EM28XX_TVAUDIO,
->> +		.tuner_gpio   = default_tuner_gpio,
->>     
->
-> You don't need a tuner gpio. This is used basically by xc3028 based devices, in
-> order to reset it during software upload.
->
-> Instead, we should add another gpio here, for mute. This should be called in a
-> place where we can remove the unwanted noise (e. g. at the beginning of the
-> device setup logic), and when mute is selected by the audio functions.
->   
-I'm not quite sure I understood. Do I need to add another field to the 
-board structure and use it where appropriate?
+dmesg output:
 
-Thanks,
-   Vitaly
+[ 9802.740030] usb 3-2: new full speed USB device using uhci_hcd and address 2
+[ 9802.907910] usb 3-2: configuration #1 chosen from 1 choice
+[ 9803.551890] Linux video capture interface: v2.00
+[ 9803.664328] sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers v1:1.47pre49
+[ 9803.674162] usb 3-2: SN9C105 PC Camera Controller detected (vid:pid 0x0471:0x0327)
+[ 9803.841084] usb 3-2: No supported image sensor detected for this bridge
+[ 9803.842270] usbcore: registered new interface driver snd-usb-audio
+[ 9803.847120] usbcore: registered new interface driver sn9c102
 
+svv -rg output:
+
+Cannot identify '/dev/video0': 2, No such file or directory
+
+I am using the AMD64 version of Ubuntu 8.10.
+
+lsusb output:
+Bus 005 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 002: ID 0471:0327 Philips WebCam SPC 6000 NC (WebCam w/ mic)
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 001 Device 008: ID 046d:c225 Logitech, Inc. 
+Bus 001 Device 007: ID 046d:c221 Logitech, Inc. G15 Keyboard / Keyboard
+Bus 001 Device 006: ID 04f3:0212 Elan Microelectronics Corp. 
+Bus 001 Device 005: ID 046d:c223 Logitech, Inc. G15 Keyboard / USB Hub
+Bus 001 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+
+Please provide me with more information on how I should disable the sn9c102 driver.
+
+Thank you for your help,
+
+Curt
+
+
+
+
+________________________________
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Curtis Schroeder <cstarjewel@yahoo.com>
+Cc: video4linux-list@redhat.com
+Sent: Saturday, February 7, 2009 3:07:03 AM
+Subject: Re: Philips SPC 600 NCP
+
+On Fri, 6 Feb 2009 16:47:49 -0800 (PST)
+Curtis Schroeder <cstarjewel@yahoo.com> wrote:
+
+> I recently picked up a Philips SPC 600 NC web cam on clearance,
+> because I had read in the Ekiga documentation that most Philips web
+> cams were compatible.  Evidently the SPC 600 NC currently is not
+> compatible with Linux.  I've downloaded and installed
+> gspca-4d0827823ebc in my 64-bit Ubuntu 8.10 installation, but it
+> reports in dmesg that it does not recognize the sensor.  Is there a
+> utility I can run and report the results back to this list that would
+> help get this situation corrected?
+
+Hello Curt,
+
+I don't know which driver you used. If it is the sn9c102, please,
+regenerate, removing this driver from the config.
+
+Also, as this webcam has not be tested yet, I'd be glad to know if it
+works. If it does not, may you send me the last kernel messages after
+pluging the webcam (do a grep on 'gspca' and 'sonixj'), and the
+image.dat generated by my program svv (if any - do 'svv -rg').
+
+Regards.
+
+-- 
+Ken ar c'hentan    |          ** Breizh ha Linux atav! **
+Jef        |        http://moinejf.free.fr/
+
+
+
+      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
