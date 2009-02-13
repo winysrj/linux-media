@@ -1,35 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.ammma.de ([213.83.39.131] helo=ammma.de)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jan@horde.org>) id 1LTlDC-0000VC-SR
-	for linux-dvb@linuxtv.org; Sun, 01 Feb 2009 23:54:48 +0100
-Received: from ammma.net (hydra.ammma.mil [192.168.110.1])
-	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id n11MuCI05358
-	for <linux-dvb@linuxtv.org>; Sun, 1 Feb 2009 23:56:12 +0100
-Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
-	by ammma.net (8.12.11.20060308/8.12.11/AMMMa AG) with ESMTP id
-	n11Msfc0002955
-	for <linux-dvb@linuxtv.org>; Sun, 1 Feb 2009 23:54:42 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id 8A7003F72F4
-	for <linux-dvb@linuxtv.org>; Sun,  1 Feb 2009 23:54:41 +0100 (CET)
-Received: from neo.wg.de ([127.0.0.1])
-	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id RU08tnqyOxRH for <linux-dvb@linuxtv.org>;
-	Sun,  1 Feb 2009 23:54:35 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id 2AFD63FB511
-	for <linux-dvb@linuxtv.org>; Sun,  1 Feb 2009 23:54:35 +0100 (CET)
-Message-ID: <20090201235434.2795793if603bysc@neo.wg.de>
-Date: Sun, 01 Feb 2009 23:54:34 +0100
-From: Jan Schneider <jan@horde.org>
+Received: from web27706.mail.ukl.yahoo.com ([217.146.177.240])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <andi.kurz@yahoo.de>) id 1LXyck-0002Xx-60
+	for linux-dvb@linuxtv.org; Fri, 13 Feb 2009 15:02:34 +0100
+Date: Fri, 13 Feb 2009 14:02:00 +0000 (GMT)
+From: Andreas Kurz <andi.kurz@yahoo.de>
 To: linux-dvb@linuxtv.org
-References: <20090131124351.169513hbsz3js5fk@neo.wg.de>
-	<002d01c984b1$ab3820f0$217da8c0@tdrpc>
-In-Reply-To: <002d01c984b1$ab3820f0$217da8c0@tdrpc>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: Re: [linux-dvb] Technotrend C-2300 and CAM
+Message-ID: <676873.84869.qm@web27706.mail.ukl.yahoo.com>
+Subject: [linux-dvb] TechnoTrend 3650 CI
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -38,49 +17,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0301426863=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Zitat von Tomas Drajsajtl <linux-dvb@drajsajtl.cz>:
+--===============0301426863==
+Content-Type: multipart/alternative; boundary="0-1476474932-1234533720=:84869"
 
->> Hi,
->>
->> for some reason, my CAM (Alphacrypt Classic) doesn't seem to be
->> detected by my Technotrend C-2300/CI combination. There is nothing in
->> the kernel log/syslog when inserting or removing the card. I updated
->> the card to the latest firmware (3.18) to no avail.
->> I don't even know where to start debugging. No windows here, so I
->> can't really tell whether this is a hardware problem.
->> Any hints on where to start looking would help. The combination seems
->> to work fine for almost everybody, beside one single thread on this
->> list in 2007 that didn't come to a conclusion either.
->>
->> Jan.
->
-> Hi Jan, I have the same problem with my C-2300 card and TechniCrypt CX
-> (CAM). After several days of testing different kernels and drivers I tried
-> it somewhere in Windows and found that it's not working there as well. Maybe
-> some HW incompatibility... The CAM I have is the only one provided and
-> supported by my cable operator so I had to get another card. C-1501 is
-> functional for me and even cheaper.
+--0-1476474932-1234533720=:84869
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for the feedback. The Alphacrypt CAM seems to be known as  
-working fine with that card, and I would hate to have to install  
-Windows just to rule out a hardware issue. But I guess I'd give it a  
-try if no-one else has some idea.
+(I've already sended this post, but not by using the registrated e-mailadre=
+ss. Due to the reason that I don't know, if it will be blocked I will send =
+it from the registrated email-adress)=0A=0AHi...=0A=0AI've run crazy instal=
+ling the mentioned DVB-Card... so if you read something weird, just read ov=
+er it.    ;)=0A=0AI tried the how-to mentioned here: http://linuxtv.org/wik=
+i/index.php/TechnoTrend_TT-connect_S2-3650_CI (for my SUSE 11.1)=0A=0ABy us=
+ing the patch I get errors during make. If I get the latest driver by using=
+ "hg clone http://mercurial.intuxication.org/hg/s2-liplianin" instead of "h=
+g clone -r 9263 http://mercurial.intuxication.org/hg/s2-liplianin" make end=
+s without any errors. =0A =0ABut after insmod the card won't be recognized =
+by Yast. Up to now I haven't used make install because I was warned, that  =
+the complexity of the driver could break my kernel.=0A=0AAny tips? What cou=
+ld i do, for get the card to its duty (=3D working  ;)   ) in Yast?   =0A=
+=0AAndy=0A=0A=0A      
+--0-1476474932-1234533720=:84869
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Jan.
+<html><head><style type=3D"text/css"><!-- DIV {margin:0px;} --></style></he=
+ad><body><div style=3D"font-family:times new roman,new york,times,serif;fon=
+t-size:12pt"><div>(I've already sended this post, but not by using the regi=
+strated e-mailadress. Due to the reason that I don't know, if it will be bl=
+ocked I will send it from the registrated email-adress)<br><br>Hi...<br><br=
+>I've run crazy installing the mentioned DVB-Card... so if you read somethi=
+ng weird, just read over it.&nbsp;&nbsp;&nbsp; ;)<br><br>I tried the how-to=
+ mentioned here: http://linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S=
+2-3650_CI (for my SUSE 11.1)<br><br>By using the patch I get errors during =
+make. If I get the latest driver by using "hg clone http://mercurial.intuxi=
+cation.org/hg/s2-liplianin" instead of "hg clone -r 9263 http://mercurial.i=
+ntuxication.org/hg/s2-liplianin" make ends without any errors. <br>&nbsp;<b=
+r>But after insmod the card won't be recognized by Yast. Up to now I
+ haven't used make install because I was warned, that&nbsp; the complexity =
+of the driver could break my kernel.<br><br>Any tips? What could i do, for =
+get the card to its duty (=3D working&nbsp; ;)&nbsp;&nbsp; ) in Yast?&nbsp;=
+&nbsp; <br><br>Andy<br><br></div></div><br>=0A=0A=0A      </body></html>
+--0-1476474932-1234533720=:84869--
 
--- 
-Do you need professional PHP or Horde consulting?
-http://horde.org/consulting/
 
+--===============0301426863==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0301426863==--
