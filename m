@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.185])
+Received: from ug-out-1314.google.com ([66.249.92.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vivichrist@gmail.com>) id 1LdPDj-0007xt-2W
-	for linux-dvb@linuxtv.org; Sat, 28 Feb 2009 14:27:13 +0100
-Received: by ti-out-0910.google.com with SMTP id j2so2134156tid.13
-	for <linux-dvb@linuxtv.org>; Sat, 28 Feb 2009 05:27:04 -0800 (PST)
-Message-ID: <49A93B9E.4010401@gmail.com>
-Date: Sun, 01 Mar 2009 02:26:54 +1300
-From: vivian stewart <vivichrist@gmail.com>
+	(envelope-from <matt.keyra@gmail.com>) id 1LXwK3-0003fc-9E
+	for linux-dvb@linuxtv.org; Fri, 13 Feb 2009 12:35:08 +0100
+Received: by ug-out-1314.google.com with SMTP id 30so60512ugs.16
+	for <linux-dvb@linuxtv.org>; Fri, 13 Feb 2009 03:35:03 -0800 (PST)
 MIME-Version: 1.0
+Date: Fri, 13 Feb 2009 12:35:03 +0100
+Message-ID: <acde52650902130335h5e747b96q2228731a8893f5a5@mail.gmail.com>
+From: Mathieu Seguy <matt.keyra@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <mailman.1.1235732401.7326.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.1.1235732401.7326.linux-dvb@linuxtv.org>
-Subject: [linux-dvb] HVR3000 v4l no longer compiles with any branch and/or
-	patch in 64bitOS
-Reply-To: linux-media@vger.kernel.org, vivichrist@gmail.com
+Subject: [linux-dvb] DSMCC : How to add descriptors for PMT Generation into
+	"psi-config.py" file ?
+Reply-To: linux-media@vger.kernel.org, mathieu.seguy@telecom-bretagne.eu
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,101 +20,72 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2092114403=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============2092114403==
-Content-Type: multipart/alternative;
- boundary="------------090903060806090609060800"
+Hello,
+I would know how can I include a new descriptor into the PMT
+declaration, in order to respect the French configuration.
 
-This is a multi-part message in MIME format.
---------------090903060806090609060800
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+That's is a piece (which is concerned by the modification) of the PMT :
 
-I get this error when compiling v4l-dvb 7285 and 7879 (can't find patch 
-via the links, their in the tmp directory?) under ubuntu hardy 
-2.6.24-23-rt amd64:
+ data_broadcast_id_descriptor(
+        data_broadcast_ID =3D 10, # System Software Update
+        ID_selector_bytes =3D '',
+        ),
 
-/home/vivy/v4l-dvb/v4l/saa7134-video.c: In function 'saa7134_s_fmt_overlay':
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1674: error: size of array 'type 
-name' is negative
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1674: warning: comparison of 
-distinct pointer types lacks a cast
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1677: error: size of array 'type 
-name' is negative
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1677: warning: comparison of 
-distinct pointer types lacks a cast
-make[3]: *** [/home/vivy/v4l-dvb/v4l/saa7134-video.o] Error 1
-make[2]: *** [_module_/home/vivy/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-23-rt'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/vivy/v4l-dvb/v4l'
-make: *** [all] Error 2
+To respect French configuration, I need to add this descriptor into
+the data_broadcast_id_descriptor :
 
-which compiled and worked before I had to reinstall (from 32bit to 
-64bit)ubuntu from scratch. think I mite be missing some installed source 
-code somewhere or is not amd64 compatible code.
-as for 8894 I think I remember it compiling but just no dvb-s even 
-though its mfe. dvb-s is really what I want
-
---------------090903060806090609060800
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-<font face="snap.se">I get this error when compiling v4l-dvb 7285</font><font
- face="snap.se"> and 7879</font><font face="snap.se"> (</font><font
- face="snap.se">can't find patch via the links, their in the tmp
-directory?) under ubuntu hardy 2.6.24-23-rt amd64:</font><br>
-<br>
-/home/vivy/v4l-dvb/v4l/saa7134-video.c: In function
-'saa7134_s_fmt_overlay':<br>
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1674: error: size of array 'type
-name' is negative<br>
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1674: warning: comparison of
-distinct pointer types lacks a cast<br>
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1677: error: size of array 'type
-name' is negative<br>
-/home/vivy/v4l-dvb/v4l/saa7134-video.c:1677: warning: comparison of
-distinct pointer types lacks a cast<br>
-make[3]: *** [/home/vivy/v4l-dvb/v4l/saa7134-video.o] Error 1<br>
-make[2]: *** [_module_/home/vivy/v4l-dvb/v4l] Error 2<br>
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-23-rt'<br>
-make[1]: *** [default] Error 2<br>
-make[1]: Leaving directory `/home/vivy/v4l-dvb/v4l'<br>
-make: *** [all] Error 2<br>
-<br>
-which compiled and worked before I had to reinstall (from 32bit to
-64bit)ubuntu from scratch. think I mite be missing some installed
-source code somewhere or is not amd64 compatible code.<br>
-as for 8894 I think I remember it compiling but just no dvb-s even
-though its mfe. dvb-s is really what I want<br>
-</body>
-</html>
-
---------------090903060806090609060800--
+System_software_update_info(){
+     OUI_data_length
+     for (i=3D0; i<N; i++){
+       OUI
+       reserved
+       update_typeprofil =E9tendu)
+       reserved
+       update_versioning_flag
+       update_version
+       selector_length
+     }
+}
 
 
---===============2092114403==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+But if I choose to modify the PMT like that :
+
+data_broadcast_id_descriptor(
+		data_broadcast_ID =3D 10, # System Software Update
+		ID_selector_bytes =3D '',
+		system_software_update_info =3D [
+		    OUI =3D 0x00e064, # <<<<<<<<<<<<
+		    update_type =3D 1,
+		]
+	    ),
+
+I have the following error message:
+File "./psi-config.py", line 261, in <module>    OUI_data_length( :
+NameError: name 'OUI_data_length' is not defined
+
+Or :
+File "./psi-config.py", line 262    OUI =3D 0x00e064, # <<<<<<<<<<<<
+    ^ SyntaxError: invalid syntax
+
+
+How can I define my descriptor so ?
+
+Thanks for any answer
+
+Best regards
+
+----------
+Mathieu
+Network Apprentice Engineer
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2092114403==--
