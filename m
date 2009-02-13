@@ -1,66 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3487 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001AbZBNVEw (ORCPT
+Received: from ti-out-0910.google.com ([209.85.142.190]:35494 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbZBMJbq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2009 16:04:52 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Adam Baker <linux@baker-net.org.uk>
-Subject: Re: Adding a control for Sensor Orientation
-Date: Sat, 14 Feb 2009 22:04:33 +0100
-Cc: linux-media@vger.kernel.org,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	kilgota@banach.math.auburn.edu,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Hans de Goede <hdegoede@redhat.com>
-References: <200902142048.51863.linux@baker-net.org.uk>
-In-Reply-To: <200902142048.51863.linux@baker-net.org.uk>
+	Fri, 13 Feb 2009 04:31:46 -0500
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+In-Reply-To: <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
+References: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
+	 <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
+	 <4993CB1F.603@maxwell.research.nokia.com>
+	 <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
+Date: Fri, 13 Feb 2009 15:01:43 +0530
+Message-ID: <dfeb90390902130131r7743af98ge8c9baf4856f835e@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+From: Arun KS <getarunks@gmail.com>
+To: DongSoo Kim <dongsoo.kim@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902142204.33805.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 14 February 2009 21:48:51 Adam Baker wrote:
-> Hi all,
+On Thu, Feb 12, 2009 at 1:22 PM, DongSoo Kim <dongsoo.kim@gmail.com> wrote:
+> Thank you for your comment.
 >
-> Hans Verkuil put forward a convincing argument that sensor orientation
-> shouldn't be part of the buffer flags as then it would be unavailable to
-> clients that use read() so it looks like implementing a read only control
-> is the only appropriate option.
+> BTW, what should I do if I would rather use external ISP device than
+> OMAP3 internal ISP feature?
 >
-> It seems that Sensor Orientation is an attribute that many cameras may
-> want to expose so it shouldn't be a private control. Olivier Lorin's
-> example patch created a new CAMERA_PROPERTIES class. I'm not sure that a
-> new class is really justified so would like to hear other views on where
-> the control should live (and also if everyone is happy with Hans
-> Verkuil's suggested name of SENSOR_ORIENTATION which I prefer to Olivier
-> Lorin's SENSOR_UPSIDE_DOWN as we want to represent HFLIP and VFLIP as
-> well as upside down (which as currently implemented means 180 degree
-> rotation.))
+> You said that you just have raw sensors by now, so you mean this patch
+> is not verified working with some ISP modules?
+
+Hi DongSoo,
+
+          The driver is tested and working with sensors which have
+inbuilt ISP modules.
+
+Thanks,
+Arun
+
 >
-> Assuming that it is considered inappropriate to add a new control as
-> an "Old-style 'user' control" then it is also, I presume, necessary to
-> extend gspca to support VIDIOC_G_EXT_CTRLS as at the moment it requires
-> all control access to use VIDIOC_G_CTRL. Would doing this conflict with
-> anything anyone else may be working on such as conversion to use
-> v4l2_device.
+> I'm testing your patch on my own omap3 target board with NEC ISP...but
+> unfortunately not working yet ;(
 >
-> Thoughts please.
-
-This is definitely a camera control, so I guess you need to add this new 
-camera control and the g_ext_ctrls ioctl. It's a bit overkill, and I have 
-lots of ideas on how to drastically improve control handling in drivers, 
-but that's a few months in the future once all drivers are converted to 
-v4l2_device. Hmm, if you are working in gspca anyway, are you interested in 
-adding v4l2_device to it? It's trivial for that driver.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> I should try more harder. more research is needed :)
+>
+> Cheers,
+>
+>
+> On Thu, Feb 12, 2009 at 4:09 PM, Sakari Ailus
+> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>> DongSoo Kim wrote:
+>>>
+>>> Hello.
+>>
+>> Hi, and thanks for the comments!
+>>
+>>> +static int omap34xxcam_open(struct inode *inode, struct file *file)
+>>> +{
+>>>
+>>> <snip>
+>>>
+>>> +       if (atomic_inc_return(&vdev->users) == 1) {
+>>> +               isp_get();
+>>> +               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
+>>> +
+>>> OMAP34XXCAM_SLAVE_POWER_ALL))
+>>> +                       goto out_slave_power_set_standby;
+>>> +               omap34xxcam_slave_power_set(
+>>> +                       vdev, V4L2_POWER_STANDBY,
+>>> +                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
+>>> +               omap34xxcam_slave_power_suggest(
+>>> +                       vdev, V4L2_POWER_STANDBY,
+>>> +                       OMAP34XXCAM_SLAVE_POWER_LENS);
+>>> +       }
+>>>
+>>>
+>>> I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
+>>> device is really necessary.
+>>>
+>>> Because if that makes sensor device in standby mode, we do S_FMT and
+>>> bunch of V4L2 APIs while the camera module is in standby mode.
+>>>
+>>> In most cases of "sensor + ISP" SOC camera modules, I2C command is not
+>>> working while the camera module is in standby mode.
+>>
+>> I guess that applies to most sensors.
+>>
+>>> Following the camera interface source code, sensor goes down to
+>>> standby mode until VIDIOC_STREAMON is called.
+>>>
+>>> If this power up timing depends on sensor device, then I think we need
+>>> a conditional power on sequence.
+>>
+>> You're right, there's something wrong with the slave power handling. :)
+>>
+>> We were thinking that the sensor (or any slave) power management (current
+>> on, off and standby) could be replaced by four commands: open, close,
+>> streamon and streamoff. The slave could decide by itself what its real power
+>> state is. IMO direct power management doesn't belong to the camera driver
+>> which doesn't drive any hardware anyway.
+>>
+>>> As you defined slave devices as SENSOR, LENS, FLASH, then how about
+>>> making a new slave category like "ISP" for "sensor+ISP" SOC modules?
+>>
+>> I currently have just raw sensors. It'd be nice to keep the interface for
+>> smart sensors the same, though. You still need for a receiver for the image
+>> data, sometimes called the camera controller. That would be the same than
+>> the ISP but without fancy features.
+>>
+>> Cheers,
+>>
+>> --
+>> Sakari Ailus
+>> sakari.ailus@maxwell.research.nokia.com
+>>
+>
+>
+>
+> --
+> ========================================================
+> Dong Soo, Kim
+> Engineer
+> Mobile S/W Platform Lab. S/W centre
+> Telecommunication R&D Centre
+> Samsung Electronics CO., LTD.
+> e-mail : dongsoo.kim@gmail.com
+>           dongsoo45.kim@samsung.com
+> ========================================================
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
