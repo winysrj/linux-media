@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:43092 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754103AbZBBDif (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 22:38:35 -0500
-Subject: Re: [BUG] changeset 9029
- (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
-From: Andy Walls <awalls@radix.net>
-To: e9hack <e9hack@googlemail.com>
-Cc: linux-media@vger.kernel.org, obi@linuxtv.org, mchehab@redhat.com
-In-Reply-To: <4986507C.1050609@googlemail.com>
-References: <4986507C.1050609@googlemail.com>
-Content-Type: text/plain
-Date: Sun, 01 Feb 2009 22:38:05 -0500
-Message-Id: <1233545885.3091.77.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2001 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755743AbZBNXWS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Feb 2009 18:22:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: libv4l2 library problem
+Date: Sun, 15 Feb 2009 00:22:20 +0100
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <200902131357.46279.hverkuil@xs4all.nl>
+In-Reply-To: <200902131357.46279.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902150022.20486.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-02-02 at 02:46 +0100, e9hack wrote:
-> Hi,
-> 
-> this change set is wrong. The affected functions cannot be called from an interrupt
-> context, because they may process large buffers. In this case, interrupts are disabled for
-> a long time. Functions, like dvb_dmx_swfilter_packets(), could be called only from a
-> tasklet. 
+Hi Hans,
 
-I agree with Hartmut that these functions should not be called from an
-interrupt context.
+On Friday 13 February 2009 13:57:45 Hans Verkuil wrote:
+> Hi Hans,
+>
+> I've developed a converter for the HM12 format (produced by Conexant MPEG
+> encoders as used in the ivtv and cx18 drivers).
+>
+> But libv4l2 has a problem in its implementation of v4l2_read: it assumes
+> that the driver can always do streaming. However, that is not the case
+> for some drivers, including cx18 and ivtv. These drivers only implement
+> read() functionality and no streaming.
+>
+> Can you as a minimum modify libv4l2 so that it will check for this case?
+> The best solution would be that libv4l2 can read HM12 from the driver and
+> convert it on the fly. But currently it tries to convert HM12 by starting
+> to stream, and that produces an error.
+>
+> This bug needs to be fixed first before I can contribute my HM12
+> converter.
 
-Although for deferrable work, I thought tasklets were deprecated and
-that work handlers were the preferred mechanism:
-http://lwn.net/Articles/23634/
+My sincere apologies: I looked at the libv4l2 code again and it was clear 
+that it did in fact test for this case. I retested my own code and 
+everything seems to work as it should. So libv4l2 is fine, and I will 
+prepare a tree tomorrow containing the hm12 support for libv4lconvert.
 
+Sorry about this,
 
-> This change set does hide some strong design bugs in dm1105.c and au0828-dvb.c.
-> 
-> Please revert this change set and do fix the bugs in dm1105.c and au0828-dvb.c (and other
-> files).
+	Hans
 
-BTW dm1105.c does use a tasklet for IR keypresses.  However, since it is
-only imlemented with one "struct infrared", and hence only one
-"ir_command", per device and not a queue, it is possible to lose button
-presses that happen very close together.  That probably doesn't matter
-practically for IR button presses, but the same strategy cannot be used
-for TS packets.
-
-Regards,
-Andy
-
-
-> Regards,
-> Hartmut
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
