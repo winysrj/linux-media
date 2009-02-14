@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n19H3CFQ007501
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 12:03:12 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.29])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n19H2ss6026895
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 12:02:54 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so27955yxm.81
-	for <video4linux-list@redhat.com>; Mon, 09 Feb 2009 09:02:54 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1EDhZ5H025506
+	for <video4linux-list@redhat.com>; Sat, 14 Feb 2009 08:43:35 -0500
+Received: from huda.ljudmila.org (www.ljudmila.org [193.2.132.73])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1EDhFuv010620
+	for <video4linux-list@redhat.com>; Sat, 14 Feb 2009 08:43:16 -0500
+Date: Sat, 14 Feb 2009 14:43:08 +0100
+From: Julian Oliver <julian@julianoliver.com>
+To: video4linux-list@redhat.com
+Message-ID: <20090214134308.GL7554@mail.ljudmila.org>
+References: <20090213153047.GC7554@mail.ljudmila.org>
+	<200902141425.19626.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-In-Reply-To: <b24e53350902090859h6a714b2fh8cfaf8d487cecc44@mail.gmail.com>
-References: <509279.77236.qm@web31601.mail.mud.yahoo.com>
-	<4990525D.5020205@linuxtv.org>
-	<b24e53350902090859h6a714b2fh8cfaf8d487cecc44@mail.gmail.com>
-Date: Mon, 9 Feb 2009 12:02:53 -0500
-Message-ID: <412bdbff0902090902l72409c75n7724062ae87b5ade@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Robert Krakora <rob.krakora@messagenetsystems.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: HVR-950Q status
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200902141425.19626.laurent.pinchart@skynet.be>
+Subject: Re: // live capture from camcorder over USB bus //
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,44 +27,77 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Feb 9, 2009 at 11:59 AM, Robert Krakora
-<rob.krakora@messagenetsystems.com> wrote:
-> Jon:
->
-> I too ran into this problem when purchasing what I thought was an
-> HVR950.  I bought several of what I thought were HVR950 and I ended up
-> getting both HVR950 and HVR950Q parts in the same packaging.  After
-> further investigation, the folks at Hauppauge explained the reason
-> behind packaging the HVR950Q as an HVR950.  I do not want to
-> miss-quote them, so please call them if you want the explanation.
-> They are very "up-front".  HVR950Q analog works quite well on Windows
-> machines though I do prefer and almost exclusively only build Linux
-> machines.  With all due respect to Hauppauge, KWorld makes a part call
-> the KWorld 330U that is basically an HVR950 with a slightly different
-> front end.  However, it cannot do QAM256 (Clear QAM) but it works very
-> well for 8VSB (ATSC) and NTSC.
->
-> New Egg has them for only $50.  Ignore the reviews, this is a good
-> part.  It is not listed as supported yet only because we have not
-> fully tested the analog video and audio inputs.  Please get the latest
-> V4L code from the tree at www.linuxtv.org.
->
-> http://www.newegg.com/Product/Product.aspx?Item=N82E16815260006&nm_mc=OTC-Froogle&cm_mmc=OTC-Froogle-_-Video+Devices+++TV+Tuners-_-Kworld+Computer+Co.+Ltd-_-15260006
->
-> Best Regards,
+..on Sat, Feb 14, 2009 at 02:25:19PM +0100, Laurent Pinchart wrote:
+> Hi Julian,
+> 
+> On Friday 13 February 2009 16:30:47 Julian Oliver wrote:
+> > hola,
+> >
+> > i work a lot with computer vision and would very much like to use a
+> > camcorder as a V4L2 device - ie as a high-quality 'webcam' - over the USB
+> > bus.
+> >
+> > i am looking at a variety of camcorders but have found very little reliable
+> > information as to which, if any, allow for stream playback at native
+> > capture sizes, let alone as raw frames. instead i see complaints of high
+> > quality camcorders yielding only 320x240.
+> >
+> > is there a site, or any advice/experience, someone on this list could
+> > provide me to these ends?
+> >
+> > i do not have a FireWire port on my laptops but would consider a PCI
+> > express adaptor to allow for capture in this manner as a second option.
+> 
+> I've heard of a few Panasonic camcorders (GS-37, GS-180, GS-320 and GS-500) 
+> that are UVC compliant and can stream both recorded video (in DV format) or 
+> live video (in MJPEG format). Unfortunately, live video streaming is limited 
+> to 320x240.
 
-Robert,
+right, i wondered if that would be the case.
 
-Just to be clear, the user is also looking for ClearQAM, for which the
-KWorld 330U does not support.
+> 
+> Camcorders aren't really designed for live video streaming, so I'm not 
+> surprised that Panasonic didn't bother supporting higher resolutions in MJPEG.
+> 
 
-Devin
+fair enough. Firewire stream is perhaps my only option in that case, which means
+looking at buying a DV camera and connecting it via a Firewire Express Card
+adaptor (laptop).  
 
+> I'm curious as to why you want to use a camcorder instead of a high-quality 
+> USB video camera.
+
+i have a QuickCam Pro 9000 which is certainly a good camera for indoor computer
+vision work. outdoors however, where much of my new natural feature tracking
+work is based now, it performs poorly. 
+
+with this in mind i'm looking at camcorders as they come with manual controls
+that will aid me in getting the best possible image. furthermore camcorders
+often allow for the use of wide-angle lenses which increase the area in focus
+relative to the captured frame overall.
+
+that said, i am looking at industrial proof USB cameras like this:
+
+	http://www.theimagingsource.com/en_US/products/cameras/usb-cmos-color/dfk21buc03/
+
+.. which is apparently supported by the Unicap driver interface.
+
+however as there is so little information about their relative performance on
+Linux i'm reluctant to take the leap of faith and buy one.
+
+if there is a better USB2.0 UVC friendly camera than the camera above or the
+Logitech QuickCam Pro 9000 in the areas of colour accuracy, frame rate and
+manual control - while allowing for use of additional lenses - i would be happy
+to hear about it! price is not a concern at this stage.
+
+thanks for your reply,
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Julian Oliver
+home: New Zealand
+based: Madrid, Spain
+currently: Madrid, Spain
+about: http://julianoliver.com
 
 --
 video4linux-list mailing list
