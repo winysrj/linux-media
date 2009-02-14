@@ -1,73 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:44357 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754271AbZBXKEg (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2902 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752046AbZBNT6I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 05:04:36 -0500
-Date: Tue, 24 Feb 2009 11:04:02 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: Updated patch for firedtv: dvb_frontend_info for FireDTV S2, fix
- "frequency limits undefined" error
-To: Beat Michel Liechti <bml303@gmail.com>
-cc: linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	Ben Backx <ben@bbackx.com>, Henrik Kurelid <henrik@kurelid.se>
-In-Reply-To: <3e03d4060902231447r1df9f8d0pe65a50773af7fa67@mail.gmail.com>
-Message-ID: <tkrat.8a312fdd39ad20b6@s5r6.in-berlin.de>
-References: <3e03d4060902231447r1df9f8d0pe65a50773af7fa67@mail.gmail.com>
+	Sat, 14 Feb 2009 14:58:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: libv4l2 library problem
+Date: Sat, 14 Feb 2009 20:57:57 +0100
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <200902131357.46279.hverkuil@xs4all.nl> <200902141511.13334.hverkuil@xs4all.nl> <20090214165808.2a54e048@pedra.chehab.org>
+In-Reply-To: <20090214165808.2a54e048@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902142057.57622.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 Feb, Beat Michel Liechti wrote at linux1394-devel:
-> --- linux-2.6.28.5-firebranch/drivers/media/dvb/firewire/firedtv-fe.c.orig	2009-02-23 22:25:53.000000000 +0100
-> +++ linux-2.6.28.5-firebranch/drivers/media/dvb/firewire/firedtv-fe.c	2009-02-23 22:29:10.000000000 +0100
-> @@ -203,6 +203,24 @@ void fdtv_frontend_init(struct firedtv *
->  					  FE_CAN_QPSK;
->  		break;
->  
-> +	case FIREDTV_DVB_S2:
-> +		fi->type		= FE_QPSK;
-> +
-> +		fi->frequency_min	= 950000;
-> +		fi->frequency_max	= 2150000;
-> +		fi->frequency_stepsize	= 125;
-> +		fi->symbol_rate_min	= 1000000;
-> +		fi->symbol_rate_max	= 40000000;
-> +
-> +		fi->caps 		= FE_CAN_INVERSION_AUTO	|
-> +					  FE_CAN_FEC_1_2	|
-> +					  FE_CAN_FEC_2_3	|
-> +					  FE_CAN_FEC_3_4	|
-> +					  FE_CAN_FEC_5_6	|
-> +					  FE_CAN_FEC_7_8	|					  
-> +					  FE_CAN_QPSK;
-> +		break;
-> +
->  	case FIREDTV_DVB_C:
->  		fi->type		= FE_QAM;
->  
+On Saturday 14 February 2009 19:58:08 Mauro Carvalho Chehab wrote:
+>
+> Hans and Andy,
+>
+> I understand that this have low priority. The only practical usage is if
+> someone wants to do a better encoding for some video above the limits
+> that cx2341x provides (for example, encoding with the same rate, but with
+> MPEG 4, to have a higher quality).
+>
+> What I'm trying to say is that I don't see much value to change libv4l2
+> to support read() method and HM12, since using read() method for a stream
+> without a metadata doesn't work very well (sync issues, etc), but this is
+> just my 2 cents.
 
-I would prefer to make case FIREDTV_DVB_S2 the same as case
-FIREDTV_DVB_S --- i.e. switch FE_CAN_FEC_AUTO on too since the S2
-firmwares are said to support it for standard definition channels.
-We can revisit this issue when S2API is going to be implemented in the
-driver.
+The core issue is that libv4l2 shouldn't attempt to use mmap() with read() 
+if the driver doesn't support mmap(). If that's fixed, then I'm happy. I 
+think it's a simple thing for Hans to fix. If he doesn't have the time for 
+that, then I can take a look as well since I'd like to get the HM12 
+converter merged. It's handy for testing with qv4l2.
 
-Or does leaving this flag off make an actual difference for you?
+> With respect with ivtv-alsa and cx18-alsa, I think that, once having the
+> driver ported to videobuf, it shouldn't be hard to use cx88-alsa as a
+> reference for writing those drivers.
+>
+> About the efforts to port it, only you can evaluate it. In the case of
+> em28xx, once having a videobuf driver for usb, it weren't hard to port it
+> to videobuf (almost all troubles we had were related to the usage of a
+> new videobuf module - videobuf-vmalloc). The resulting code worked a way
+> better than the original driver and it is now easier to understand what
+> it is doing at the videobuffers than what it used to be.
 
-*If* it really does something, then we can still combine the two case
-blocks into one, remove the flag from fi->caps = ..., and add
+Just to be clear, if I would start out now creating the driver I would base 
+it around videobuf. Or if we had problems with the DMA and buffering, I 
+would probably choose to move to videobuf as well. But we have two stable 
+drivers and no user demand to implement videobuf/alsa. Everyone uses the 
+MPEG stream, and using streaming I/O to get the MPEG stream just makes no 
+sense. The read() call is the natural way to access MPEG data.
 
-		if (fdtv->type =  FIREDTV_DVB_S)
-			fi->caps |= FE_CAN_FEC_AUTO;
+Given a choice between working on the v4l2_device/v4l2_subdev conversion and 
+upgrading V4L1 drivers to V4L2, or implementing videobuf/alsa in cx18/ivtv, 
+then it is clear that the first is a much more important use of my time.
 
-before the break.  But only if there really is a necessity for having
-the flag off for FireDTV-S2 boxes in DVB-S usage.
+Regards,
+
+	Hans
+
 -- 
-Stefan Richter
--=====-==--= --=- ==---
-http://arcgraph.de/sr/
-
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
