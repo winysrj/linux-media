@@ -1,106 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34035 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753802AbZBJSsS convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3487 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001AbZBNVEw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 13:48:18 -0500
-Date: Tue, 10 Feb 2009 16:47:40 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: cx8802.ko module not being built with current HG tree
-Message-ID: <20090210164740.36bab2ee@pedra.chehab.org>
-In-Reply-To: <Pine.LNX.4.58.0902101018260.24268@shell2.speakeasy.net>
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
-	<617be8890902050759x74c08498o355be1d34d7735fe@mail.gmail.com>
-	<20090210093753.69b21572@pedra.chehab.org>
-	<617be8890902100349r39c49edfr4c3373669d698b72@mail.gmail.com>
-	<Pine.LNX.4.58.0902101018260.24268@shell2.speakeasy.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 14 Feb 2009 16:04:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Adam Baker <linux@baker-net.org.uk>
+Subject: Re: Adding a control for Sensor Orientation
+Date: Sat, 14 Feb 2009 22:04:33 +0100
+Cc: linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	kilgota@banach.math.auburn.edu,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Hans de Goede <hdegoede@redhat.com>
+References: <200902142048.51863.linux@baker-net.org.uk>
+In-Reply-To: <200902142048.51863.linux@baker-net.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902142204.33805.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Feb 2009 10:25:26 -0800 (PST)
-Trent Piepho <xyzzy@speakeasy.org> wrote:
+On Saturday 14 February 2009 21:48:51 Adam Baker wrote:
+> Hi all,
+>
+> Hans Verkuil put forward a convincing argument that sensor orientation
+> shouldn't be part of the buffer flags as then it would be unavailable to
+> clients that use read() so it looks like implementing a read only control
+> is the only appropriate option.
+>
+> It seems that Sensor Orientation is an attribute that many cameras may
+> want to expose so it shouldn't be a private control. Olivier Lorin's
+> example patch created a new CAMERA_PROPERTIES class. I'm not sure that a
+> new class is really justified so would like to hear other views on where
+> the control should live (and also if everyone is happy with Hans
+> Verkuil's suggested name of SENSOR_ORIENTATION which I prefer to Olivier
+> Lorin's SENSOR_UPSIDE_DOWN as we want to represent HFLIP and VFLIP as
+> well as upside down (which as currently implemented means 180 degree
+> rotation.))
+>
+> Assuming that it is considered inappropriate to add a new control as
+> an "Old-style 'user' control" then it is also, I presume, necessary to
+> extend gspca to support VIDIOC_G_EXT_CTRLS as at the moment it requires
+> all control access to use VIDIOC_G_CTRL. Would doing this conflict with
+> anything anyone else may be working on such as conversion to use
+> v4l2_device.
+>
+> Thoughts please.
 
-> On Tue, 10 Feb 2009, Eduard Huguet wrote:
-> >     I don't have yet the buggy config, but the steps I was following
-> > when I encounter the problem were the following:
-> >         · hg clone http://linuxtv.org/hg/v4l-dvb
-> >         · cd v4l-dvb
-> >         · make menuconfig
-> 
-> This is what I did too.  Just use the menuconfig or xconfig targets.  Maybe
-> the kernel kconfig behavior has changed?
+This is definitely a camera control, so I guess you need to add this new 
+camera control and the g_ext_ctrls ioctl. It's a bit overkill, and I have 
+lots of ideas on how to drastically improve control handling in drivers, 
+but that's a few months in the future once all drivers are converted to 
+v4l2_device. Hmm, if you are working in gspca anyway, are you interested in 
+adding v4l2_device to it? It's trivial for that driver.
 
-Hmm... I did a test here with RHEL 2.6.18 kernel:
+Regards,
 
-$ make menuconfig
-make -C /home/v4l/master/v4l menuconfig
-make[1]: Entrando no diretório `/home/v4l/master/v4l'
-/usr/src/kernels/2.6.18-125.el5-x86_64//scripts/kconfig/mconf ./Kconfig
-#
-# configuration written to .config
-#
+	Hans
 
-
-*** End of Linux kernel configuration.
-*** Execute 'make' to build the kernel or try 'make help'.
-
-$ grep CX88 v4l/.config
-CONFIG_VIDEO_CX88=m
-CONFIG_VIDEO_CX88_ALSA=m
-CONFIG_VIDEO_CX88_BLACKBIRD=m
-CONFIG_VIDEO_CX88_DVB=m
-CONFIG_VIDEO_CX88_MPEG=y
-CONFIG_VIDEO_CX88_VP3054=m
-
-So, I got the buggy .config
-
-Another test with 2.6.27:
-
-$ make menuconfig
-make -C /home/v4l/master/v4l menuconfig
-make[1]: Entrando no diretório `/home/v4l/master/v4l'
-./scripts/make_kconfig.pl /usr/src/kernels/v2.6.27.4/ /usr/src/kernels/v2.6.27.4/
-Preparing to compile for kernel version 2.6.27
-VIDEO_PXA27x: Requires at least kernel 2.6.29
-USB_STV06XX: Requires at least kernel 2.6.28
-/usr/src/kernels/v2.6.27.4.i5400//scripts/kconfig/mconf ./Kconfig
-#
-# configuration written to .config
-#
-
-
-*** End of Linux kernel configuration.
-*** Execute 'make' to build the kernel or try 'make help'.
-
-make[1]: Saindo do diretório `/home/v4l/master/v4l'
-[v4l@pedra master]$ grep CX88 v4l/.config
-CONFIG_VIDEO_CX88=m
-CONFIG_VIDEO_CX88_ALSA=m
-CONFIG_VIDEO_CX88_BLACKBIRD=m
-CONFIG_VIDEO_CX88_DVB=m
-CONFIG_VIDEO_CX88_MPEG=m
-CONFIG_VIDEO_CX88_VP3054=m
-
-With 2.6.27, everything is OK.
-
-So, it seems that a fix at some kernel between 2.6.22 and 2.6.27 changed (or
-fixed) the Kconfig behaviour.
-
-I suspect that the better fix for this would be to run something like:
-
-cat .config|sed s,'=y','=m'
-
-For kernels older than 2.6.27.
-
-Maybe Hans can give us a hint on what kernel this issue were solved, with his
-build environment.
-
-
-Cheers,
-Mauro
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
