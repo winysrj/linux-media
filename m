@@ -1,48 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.123]:49510 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095AbZBRPeY (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1269 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808AbZBNTZA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 10:34:24 -0500
-Date: Wed, 18 Feb 2009 09:34:22 -0600
-From: David Engel <david@istwok.net>
-To: Steven Toth <stoth@linuxtv.org>
-Cc: linux-media@vger.kernel.org, V4L <video4linux-list@redhat.com>
-Subject: Re: PVR x50 corrupts ATSC 115 streams
-Message-ID: <20090218153422.GC15359@opus.istwok.net>
-References: <20090217155335.GB6196@opus.istwok.net> <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net> <499B1E19.80302@linuxtv.org> <20090218051945.GA12934@opus.istwok.net> <499C218D.7050406@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <499C218D.7050406@linuxtv.org>
+	Sat, 14 Feb 2009 14:25:00 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1EJOvjl036784
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 14 Feb 2009 20:24:58 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 14 Feb 2009 20:24:57 +0100 (CET)
+Message-Id: <200902141924.n1EJOvjl036784@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 18, 2009 at 09:56:13AM -0500, Steven Toth wrote:
->> I then removed the 250 from slot 4 leaving the 115s in slots 1 and 2.
->> The ber was through the roof and the recorded strams were filled with
->> errors and were barely playable at best.
->
-> This ^^^^ is bad, you have something wrong with your feeds. They're 
-> probably over amp'd and your leaking RF like crazy.
->
-> Go back to basics, put the single unsplit and unamped feed into a single 
-> 115 and get that working reliably. Then, split (or amp) and try the 
-> second 115.
->
-> Try to work out what's causing BER to be > 0 and fix that first.
->
-> Personally, I wouldn't add the 250/350 back into the system until I had 
-> both 115's running flawlessly with 0 BER and 0 UNC.
->
-> Chances are, the 250/350 will work correctly after this - unless the 
-> drivers really do have a DMA issue. It's too early to say given the 
-> BER/UNC issues you're seeing though.
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-OK.  I've got another window this evening where I can do some testing
-without disupting things too much.
+Results of the daily build of v4l-dvb:
 
-David
--- 
-David Engel
-david@istwok.net
+date:        Sat Feb 14 19:00:08 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10571:12a10f808bfd
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc5-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc5-x86_64: WARNINGS
+fw/apps: OK
+spec: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
