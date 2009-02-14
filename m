@@ -1,39 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:42075 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582AbZBRP3Z (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:55786 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940AbZBNWd5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 10:29:25 -0500
-Date: Wed, 18 Feb 2009 09:29:23 -0600
-From: David Engel <david@istwok.net>
-To: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
-Cc: V4L <video4linux-list@redhat.com>, linux-media@vger.kernel.org
-Subject: Re: PVR x50 corrupts ATSC 115 streams
-Message-ID: <20090218152923.GB15359@opus.istwok.net>
-References: <20090217155335.GB6196@opus.istwok.net> <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net> <499B1E19.80302@linuxtv.org> <20090218051945.GA12934@opus.istwok.net> <1234945507.3870.204.camel@belgarion.romunt.nl>
+	Sat, 14 Feb 2009 17:33:57 -0500
+Date: Sat, 14 Feb 2009 16:44:52 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Hans de Goede <hdegoede@redhat.com>,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>
+Subject: Re: Adding a control for Sensor Orientation
+In-Reply-To: <200902142259.44431.hverkuil@xs4all.nl>
+Message-ID: <alpine.LNX.2.00.0902141624410.315@banach.math.auburn.edu>
+References: <200902142048.51863.linux@baker-net.org.uk> <49973DDB.7000109@redhat.com> <200902142259.44431.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1234945507.3870.204.camel@belgarion.romunt.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 18, 2009 at 09:25:07AM +0100, Rudy Zijlstra wrote:
-> > It then dawned on my why the 115-only results were so bad.  I had left
-> > the 4-way splitter output used for the x50s unterminated.  Sure
-> > enough, if I disconnected the x50s, I reproduced the severe errors.  I
-> > didn't tear everything back apart to verify it, but I believe the 115s
-> > would work fine by themselves if I terminated the cables properly.
-> > 
-> 
-> Have you ever checked signal levels? May sound strange, but too high
-> signal levels also cause this type of problems.
 
-No.  On multiple occasions, though, I have tried adjusting the
-amplification on the splitter from min to max and multiple settings in
-between.  It never made any difference as far as I could see.
 
-David
--- 
-David Engel
-david@istwok.net
+On Sat, 14 Feb 2009, Hans Verkuil wrote:
+
+> On Saturday 14 February 2009 22:55:39 Hans de Goede wrote:
+>> Adam Baker wrote:
+>>> Hi all,
+>>>
+>>> Hans Verkuil put forward a convincing argument that sensor orientation
+>>> shouldn't be part of the buffer flags as then it would be unavailable
+>>> to clients that use read()
+>>
+>> Yes and this is a bogus argument, clients using read also do not get
+>> things like timestamps, and vital information like which field is in the
+>> read buffer when dealing with interleaved sources. read() is a simple
+>> interface for simple applications. Given that the only user of these
+>> flags will likely be libv4l I *strongly* object to having this info in
+>> some control, it is not a control, it is a per frame (on some cams)
+>> information about how to interpret that frame, the buffer flags is a very
+>> logical place, *the* logical place even for this!
+>>
+>> The fact that there is no way to transport metadata about a frame like
+>> flags, but also timestamp and field! Is a problem with the read interface
+>> in general, iow read() is broken wrt to this. If people care add some
+>> ioctl or something which users of read() can use to get the buffer
+>> metadata from the last read() buffer, stuffing buffer metadata in a
+>> control (barf), because of read() brokenness is a very *bad* idea, and
+>> won't work in general due to synchronization problems.
+>>
+>> Doing this as a control will be a pain to implement both at the driver
+>> level, see the discussion this is causing, and in libv4l. For libv4l this
+>> will basicly mean polling the control. And hello polling is lame and
+>> something from the 1980-ies.
+>>
+>> Please just make this a buffer flag.
+>
+> OK, make it a buffer flag. I've got to agree that it makes more sense to do
+> it that way.
+>
+> Regards,
+>
+> 	Hans
+>
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
+
+Let me take a moment to remind everyone what the problem is that brought 
+this discussion up. Adam Baker and I are working on a driver for a certain 
+camera. Or, better stated, for a set of various cameras, which all have 
+the same USB Vendor:Product number. Various cameras which all have this ID 
+have different capabilities and need different treatment of the frame 
+data.
+
+The most particular problem is that some of the cameras require byte 
+reversal of the frame data string, which would rotate the image 180 
+degrees around its center. Others of these cameras require reversal of the 
+horizontal lines in the image (vertical 180 degree rotation of the image 
+across a horizontal axis).
+
+The point is, one can not tell from the Vendor:Product number which of 
+these actions is required. However, one *is* able to tell immediately 
+after the camera is initialized, which of these actions is required. 
+Namely, one reads and parses the response to the first USB command sent to 
+the camera.
+
+So, for us (Adam and me) the question is simply to know how everyone will 
+agree that the information about the image orientation can be sent from 
+the module to V4L. When this issue is resolved, we can finish writing the 
+sq905 camera driver. From this rather narrow point of view, the issue is 
+not which method ought to be adopted. Rather, the issue is that no method 
+has been adopted. It is rather difficult to write module code which will 
+obey a non-existent standard.
+
+Theodore Kilgore
+
