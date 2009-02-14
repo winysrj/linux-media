@@ -1,142 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:61018 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202AbZBTAwW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 19:52:22 -0500
-Message-ID: <499DFEBF.9020601@kaiser-linux.li>
-Date: Fri, 20 Feb 2009 01:52:15 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
-MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: MR97310A and other image formats
-References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu> <499DB030.7010206@kaiser-linux.li> <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu> <499DE107.80502@kaiser-linux.li> <alpine.LNX.2.00.0902191723380.7472@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0902191723380.7472@banach.math.auburn.edu>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail1.radix.net ([207.192.128.31]:56807 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751810AbZBNOEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Feb 2009 09:04:45 -0500
+Subject: Re: libv4l2 library problem
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>
+In-Reply-To: <200902141206.28036.hverkuil@xs4all.nl>
+References: <200902131357.46279.hverkuil@xs4all.nl>
+	 <200902141008.31748.hverkuil@xs4all.nl>
+	 <20090214083206.665561f6@pedra.chehab.org>
+	 <200902141206.28036.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 14 Feb 2009 09:05:14 -0500
+Message-Id: <1234620314.3073.28.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kilgota@banach.math.auburn.edu wrote:
+On Sat, 2009-02-14 at 12:06 +0100, Hans Verkuil wrote:
+> On Saturday 14 February 2009 11:32:06 Mauro Carvalho Chehab wrote:
+> > On Sat, 14 Feb 2009 10:08:31 +0100
+> >
+> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > > On Saturday 14 February 2009 09:52:06 Mauro Carvalho Chehab wrote:
+> > > > On Fri, 13 Feb 2009 13:57:45 +0100
+> > > >
+> > > > Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > > > > Hi Hans,
+> > > > >
+> > > > > I've developed a converter for the HM12 format (produced by
+> > > > > Conexant MPEG encoders as used in the ivtv and cx18 drivers).
+> > > > >
+> > > > > But libv4l2 has a problem in its implementation of v4l2_read: it
+> > > > > assumes that the driver can always do streaming. However, that is
+> > > > > not the case for some drivers, including cx18 and ivtv. These
+> > > > > drivers only implement read() functionality and no streaming.
+> > > > >
+
+> > I suspect that the only two drivers that don't support mmap() are ivtv
+> > and cx18. All other drivers support it, including other drivers that also
+> > provides compressed data (like jpeg webcams). In a matter of fact, most
+> > applications work only with mmap() interface (being mythtv and mplayer
+> > capable of supporting both read() and mmap()). So, by providing mmap(),
+> > other applications will benefit of it.
+> >
+> > Also, there is a sort of chicken and egg trouble: almost nobody uses raw
+> > formats, since it uses a non-standard format that it is not supported by
+> > userspace apps. The libv4l2 is the proper way for handling it, but only
+> > works with mmap().
 > 
+> I'd be happy if libv4l2 would just check whether mmap is supported, and if 
+> not then disable adding the extra pixelformats. That's easy to do there, 
+> and would make it possible to add hm12 for use with libv4lconvert. While it 
+> would be nice from my point of view if libv4l2's read() could convert 
+> without using mmap, I have to agree that that is probably overkill.
 > 
-> On Thu, 19 Feb 2009, Thomas Kaiser wrote:
+> And nobody really cares about raw video with ivtv and cx18. Really. I've had 
+> perhaps 3-4 queries about this in all the years that I've been maintaining 
+> ivtv. Anyway, it will only be useful if we also add a proper alsa driver 
+> for the audio.
 > 
->> kilgota@banach.math.auburn.edu wrote:
->>> Yes, what you quote is the SOF marker for all of these cameras. The 
->>> total header length, including the SOF marker ought to be 12 bytes. 
->>> On all of the mr97310 cameras that I have dealt with, the last 5 
->>> bytes are obviously related somehow to the image (contrast, color 
->>> balance, gamma, whatever).  I have no idea how to interpret those 
->>> values, but we can hope
->>> that someone will figure out how.
->>
->> Two of them are luminance values (middle and edge) for the PAC207.
+> Bottom line is: no time on my side and no pressure whatsoever from the users 
+> of cx18 and ivtv. There are also additional complications with respect to 
+> splicing the sliced VBI data into the MPEG stream that will make a videobuf 
+> conversion much more complicated than you think. It will mean a substantial 
+> and risky overhaul of the driver that requires probably weeks of work.
 > 
-> Which two, and how do those numbers translate into anything relevant?
+> Yes, I do want to do this, but unless someone else steps in it won't be 
+> anytime soon.
 
-Looks like I had some off list (private) email conversation about the 
-frame header of PAC207 with Michel Xhaard. I just paste the whole thing 
-in here:
+I can convert cx18 if someone really cares, but *no one* has ever
+directly enquired about the YUV (HM12) data from cx18.  (I think there
+was quite a long time when it actually may not have been wokring -
+nobody cared.)  When someone has paid the extra money for the encoder
+hardware, raw formats are really just a nice to have.  There is cheaper
+hardware for raw formats.
 
-michel Xhaard wrote:
- > Le Samedi 18 Fe'vrier 2006 12:16, vous avez e'crit :
- >
- >> michel Xhaard wrote:
- >>
- >>> Le Samedi 18 Fe'vrier 2006 10:10, vous avez e'crit :
- >>>
- >>>> Hello Michel
- >>>>
- >>>> michel Xhaard wrote:
- >>>>
- >>>>> Le Mercredi 15 Fe'vrier 2006 12:43, vous avez e'crit :
- >>>>> Just relook the snoop, the header is always 16 bytes long 
-starting with:
- >>>>> ff ff 00 ff 96 64 follow
- >>>>> xx 00 xx xx xx xx  64 xx 00 00
- >>>>> let try to play poker with the asumption the R mean G0 mean B mean G1
- >>>>> mean is encoded here.
- >>>>> Not sure about the 64 can you look at your snoop?
- >>>>
- >>>> I never thought about that. So, you see I have not experience with
- >>>> webcams.
- >>>>
- >>>> Anyway, here are my observations about the header:
- >>>> In the snoop, it looks a bit different then yours
- >>>>
- >>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
- >>>> 1. xx: looks like random value
- >>>> 2. xx: changed from 0x03 to 0x0b
- >>>> 3. xx: changed from 0x06 to 0x49
- >>>> 4. xx: changed from 0x07 to 0x55
- >>>> 5. xx: static 0x96
- >>>> 6. xx: static 0x80
- >>>> 7. xx: static 0xa0
- >>>>
- >>>> And I did play in Linux and could identify some fields :-) .
- >>>> In Linux the header looks like this:
- >>>>
- >>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
- >>>> 1. xx: don't know but value is changing between 0x00 to 0x07
- >>>> 2. xx: this is the actual pixel clock
- >>>> 3. xx: this is changing according light conditions from 0x03 (dark) to
- >>>> 0xfc (bright)
- >>>> 4. xx: this is changing according light conditions from 0x03 (dark) to
- >>>> 0xfc (bright)
- >>>> 5. xx: set value "Digital Gain of Red"
- >>>> 6. xx: set value "Digital Gain of Green"
- >>>> 7. xx: set value "Digital Gain of Blue"
- >>>>
- >>>> Regards, Thomas
- >>>
- >>> Thomas,
- >>> Cool good works :) so 3 and 4 are good candidate . To get good picture
- >>> result there are 2 windows where the chips measure the ligth condition.
- >>> Generally one is set to the center of the image the other are set 
-to get
- >>> the background light. At the moment my autobrightness setting used 
-simple
- >>> code and only one windows of measurement (the center one) .
- >>
- >> Some more info, 3 is the center one.
- >
- > :)
- >
- >>> Did you want i try to implement these feature ? or maybe you can have a
- >>> try :) the only problem i see is between interrupt() context and 
-process
- >>> context. I have set up a spinlock for that look at the code how to 
-use it
- >>> ( spca5xx_move_data() )
- >>
- >> Yes, please. Because I have no idea how to do this :-(
- >> I am good in investigating :-)
- >
- > I know, but can be very good in code to, as you know the hardware :) 
-now let try to look at 1
-                          ^^ What does this mean?
- > is there the black luma level ?
-I don't get it. What is the black luma level?
+Anyway, such a conversion to mmap and/or videobuf is very far down on my
+TODO list.  Whatever I do for cx18 may not translate directly to usable
+code for ivtv, the buffer handling is slightly different and simpler
+since there's no MPEG decoder to worry about.
 
-Regards, Thomas
+Again, it's not impossible, just a matter of time and demand.  I have
+little time and I have no demand, aside from Hans Verkuil's desire to
+get an HM12 converter into the library.
 
+I haven't done any research, but I'm surprised that no other supported
+chip offers this format.  I guess maybe that has something to do with
+the CX23415's origins from Internext Compression Inc.
 
--- 
-http://www.kaiser-linux.li
-
-
-> By any chance, you do not have a JL2005B or JL2005C or JL2005D camera 
-> among them, do you? AFAICT they all use the same compression algorithm 
-> (in stillcam mode), and it appears to me to be a really nasty one. Any 
-> help I could get with that algorithm is welcome indeed.
-
-I have to check. Please send me the USB ID.
-
-Thomas
-
-PS: Now we have the 5. season in Liechtenstein, Fasnacht (means 
-carnival). So, you can guess what I am doing the next couple of days :-)
+Regards,
+Andy
 
