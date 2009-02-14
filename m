@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nef2.ens.fr ([129.199.96.40])
+Received: from ey-out-2122.google.com ([74.125.78.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <george@phare.normalesup.org>) id 1LadAJ-0000Jj-8g
-	for linux-dvb@linuxtv.org; Fri, 20 Feb 2009 22:44:12 +0100
-Received: from phare.normalesup.org (phare.normalesup.org [129.199.129.80])
-	by nef2.ens.fr (8.13.6/1.01.28121999) with ESMTP id n1KLhTL4072922
-	for <linux-dvb@linuxtv.org>; Fri, 20 Feb 2009 22:43:29 +0100 (CET)
-Date: Fri, 20 Feb 2009 22:43:29 +0100
-From: Nicolas George <nicolas.george@normalesup.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090220214329.GA8551@phare.normalesup.org>
+	(envelope-from <oscarmax3@gmail.com>) id 1LYG3y-0000Fy-2F
+	for linux-dvb@linuxtv.org; Sat, 14 Feb 2009 09:39:50 +0100
+Received: by ey-out-2122.google.com with SMTP id d26so106152eyd.17
+	for <linux-dvb@linuxtv.org>; Sat, 14 Feb 2009 00:39:46 -0800 (PST)
+Message-ID: <49968351.50703@gmail.com>
+Date: Sat, 14 Feb 2009 09:39:45 +0100
+From: Carl Oscar Ejwertz <oscarmax3@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Terratec Cinergy T USB XXS: remote does not work with
-	1.20 firmware
+To: linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
+References: <4984E294.6020401@gmail.com>
+	<498B7945.4060200@gmail.com>	<498F0667.50000@gmail.com>
+	<49947655.5040904@gmail.com>
+In-Reply-To: <49947655.5040904@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Mantis Update was Re: Twinhan DTV Ter-CI (3030
+ Mantis) ???
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,60 +25,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0071151246=="
+Content-Type: multipart/mixed; boundary="===============1560891849=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1560891849==
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
---===============0071151246==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
-Content-Disposition: inline
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Sad to say that I still get the same error after a fresh clone and
+compile. Is there any info that I can supply that can help getting this
+card working?<br>
+<br>
+Den 2009-02-12 20:19, Manu Abraham skrev:
+<blockquote cite="mid:49947655.5040904@gmail.com" type="cite">
+  <pre wrap="">Carl Oscar Ejwertz wrote:
 
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Hi Manu!
 
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Tried the new drivers but it doesn't work.. I get errors in dmesg.
 
-Hi.
+[ 1304.254458] Mantis 0000:01:06.0: PCI INT A -&gt; Link[APC1] -&gt; GSI 16 (level, 
+low) -&gt; IRQ 16
+[ 1304.258997] DVB: registering new adapter (Mantis DVB adapter)
+[ 1304.676816] Mantis 0000:01:06.0: PCI INT A disabled
+[ 1304.678509] Mantis: probe of 0000:01:06.0 failed with error -1
 
-I am trying to get the remote controller with a Terratec Cinergy T USB XXS.
-With the firmware dvb-usb-dib0700-1.10.fw, the remote sends codes (not
-perfectly, but I can see where I am going).
-
-On the other hand, with dvb-usb-dib0700-1.20.fw, the remote does not detect
-anything. After some tracking, I found that in dib0700_rc_query_v1_20 (from
-dib0700_devices.c), the status from usb_bulk_msg is always -110
-(-ETIMEDOUT).
-
-Is there some way I can help fixing things? I do not mind using the old
-firmware, but I would like to help improving things.
+Is it something easy to fix?
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+Please try again with a fresh clone/update.
 
 Regards,
-
---=20
-  Nicolas George
-
---+HP7ph2BbKc20aGI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkmfJAEACgkQsGPZlzblTJP5fACfXNH9WfkNUnspa4hMhz6nIQCv
-l3gAn0Y/sKhSbopD8WbGvXJrtzGG9ZKQ
-=jP++
------END PGP SIGNATURE-----
-
---+HP7ph2BbKc20aGI--
+Manu
 
 
---===============0071151246==
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead <a class="moz-txt-link-abbreviated" href="mailto:linux-media@vger.kernel.org">linux-media@vger.kernel.org</a>
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a>
+
+  </pre>
+</blockquote>
+</body>
+</html>
+
+
+--===============1560891849==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -85,4 +95,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0071151246==--
+--===============1560891849==--
