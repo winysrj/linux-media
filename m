@@ -1,117 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34980 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752183AbZBFRcn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 12:32:43 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 6 Feb 2009 23:02:11 +0530
-Subject: RE: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
- v2
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B22F@dbde02.ent.ti.com>
-In-Reply-To: <498C513E.6080501@maxwell.research.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1228 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647AbZBNV76 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Feb 2009 16:59:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Adding a control for Sensor Orientation
+Date: Sat, 14 Feb 2009 22:59:44 +0100
+Cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
+	Jean-Francois Moine <moinejf@free.fr>,
+	kilgota@banach.math.auburn.edu, Olivier Lorin <o.lorin@laposte.net>
+References: <200902142048.51863.linux@baker-net.org.uk> <49973DDB.7000109@redhat.com>
+In-Reply-To: <49973DDB.7000109@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902142259.44431.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@maxwell.research.nokia.com]
-> Sent: Friday, February 06, 2009 8:33 PM
-> To: Hiremath, Vaibhav
-> Cc: Ailus Sakari (Nokia-D/Helsinki); Aguirre Rodriguez, Sergio
-> Alberto; Nagalla, Hari; video4linux-list@redhat.com; linux-
-> omap@vger.kernel.org; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
-> media@vger.kernel.org
-> Subject: Re: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012
-> sensor driver v2
-> 
-> Hiremath, Vaibhav wrote:
-> > [Hiremath, Vaibhav] Sakari, Can you share your version of code
-> > (either in form of patches or source) here onto the mailing list,
-> so
-> > that everybody those who are interested will be aware of changes?
-> 
-> I will synchronise soon with Sergio (as he noted). After that we'll
-> send
-> a new patchset. I was thinking of separating the ISP and camera
-> driver
-> patches from other hardware dependent patches. The resulting
-> patchset
-> wouldn't be that huge anymore but on the other hand it wouldn't be
-> very
-> usable as such.
-> 
-[Hiremath, Vaibhav] How much change can we expect as compared to the patches posted by Sergio on 14th Jan?
-
-> > Atleast for me I would get prior view of changes which might
-> affect
-> > BT656 support (posted on top of Sergio's patch).
+On Saturday 14 February 2009 22:55:39 Hans de Goede wrote:
+> Adam Baker wrote:
+> > Hi all,
 > >
-> > Again one more thing I would like to bring to your notice is about
-> > sub-device framework. Also we need to plan for the migration from
-> > V4L2-int to sub-device framework, which is of equal important. I
-> feel
-> > the more time we spend in merging and aligning offline, more we
-> are
-> > carrying risk.
-> 
-> I agree that we should be moving to v4l2 sub-device at some point,
-> preferrably sooner than later, but I think the ISP driver should get
-> a
-> much much better interface than it currently has. So that should be
-> part
-> of the task.
-> 
-> > According to me as I mentioned before, the plan should be to push
-> > ISP-Camera with V4L2-int interface as early as possible with
-> whatever
-> > minimal sensor/decoder support we have today, which will make sure
-> > that our underneath ISP-library is in place. Once that is placed
-> in,
-> > we can have additional patches on top of it to add more features.
-> 
-> I agree. But I'd say that fixing the bugs and cleaning up the code
-> is as
-> least as important than adding new features.
-> 
-[Hiremath, Vaibhav] It would be really great if you could share your plan of action for ISP-Camera driver that would really help to plan our milestone accordingly.
+> > Hans Verkuil put forward a convincing argument that sensor orientation
+> > shouldn't be part of the buffer flags as then it would be unavailable
+> > to clients that use read()
+>
+> Yes and this is a bogus argument, clients using read also do not get
+> things like timestamps, and vital information like which field is in the
+> read buffer when dealing with interleaved sources. read() is a simple
+> interface for simple applications. Given that the only user of these
+> flags will likely be libv4l I *strongly* object to having this info in
+> some control, it is not a control, it is a per frame (on some cams)
+> information about how to interpret that frame, the buffer flags is a very
+> logical place, *the* logical place even for this!
+>
+> The fact that there is no way to transport metadata about a frame like
+> flags, but also timestamp and field! Is a problem with the read interface
+> in general, iow read() is broken wrt to this. If people care add some
+> ioctl or something which users of read() can use to get the buffer
+> metadata from the last read() buffer, stuffing buffer metadata in a
+> control (barf), because of read() brokenness is a very *bad* idea, and
+> won't work in general due to synchronization problems.
+>
+> Doing this as a control will be a pain to implement both at the driver
+> level, see the discussion this is causing, and in libv4l. For libv4l this
+> will basicly mean polling the control. And hello polling is lame and
+> something from the 1980-ies.
+>
+> Please just make this a buffer flag.
 
-> > In this way, we can plan for migration to sub-device framework and
-> > also be easier and simpler. Even if any customers are interested,
-> > they can pick it up the ISP library and start development on top
-> of
-> > it.
-> 
-> There's still a long way to get there --- the ISP driver's current
-> interface and internals don't mix well with either v4l2 sub-device
-> or
-> v4l2-int-if. For example, there's no ISP object, just function calls
-> and
-> then output frame size / frame interval enumeration doesn't work
-> properly for YUV (maybe not even for RAW10). Enumerating frame size
-> has
-> side effects. The ISP driver doesn't have a standard interface, it's
-> now
-> specific to OMAP 3. And this is just an example...
-> 
-> Regards,
-> 
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
+OK, make it a buffer flag. I've got to agree that it makes more sense to do 
+it that way.
 
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
