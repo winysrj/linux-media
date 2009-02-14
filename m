@@ -1,40 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:55338 "EHLO
-	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765AbZBTVwj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 16:52:39 -0500
-Date: Fri, 20 Feb 2009 13:52:35 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean-Francois Moine <moinejf@free.fr>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: Questions about VIDIOC_G_JPEGCOMP / VIDIOC_S_JPEGCOMP
-In-Reply-To: <20090220120400.3d797cc4@free.fr>
-Message-ID: <Pine.LNX.4.58.0902201335020.24268@shell2.speakeasy.net>
-References: <14759.62.70.2.252.1235052151.squirrel@webmail.xs4all.nl>
- <200902200929.36974.hverkuil@xs4all.nl> <20090220120400.3d797cc4@free.fr>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail1.radix.net ([207.192.128.31]:54323 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751417AbZBNU0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Feb 2009 15:26:32 -0500
+Subject: Re: libv4l2 library problem
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>
+In-Reply-To: <200902141511.13334.hverkuil@xs4all.nl>
+References: <200902131357.46279.hverkuil@xs4all.nl>
+	 <200902141206.28036.hverkuil@xs4all.nl>
+	 <1234620314.3073.28.camel@palomino.walls.org>
+	 <200902141511.13334.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 14 Feb 2009 15:26:28 -0500
+Message-Id: <1234643188.12473.11.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 20 Feb 2009, Jean-Francois Moine wrote:
-> So, I propose to remove these ioctls, and to add two controls: one to
-> set the JPEG quality (range 15..95 %) and the other to set a webcam
-> quality which might be a boolean or any value depending on some
-> associated webcam parameter.
+On Sat, 2009-02-14 at 15:11 +0100, Hans Verkuil wrote:
+> On Saturday 14 February 2009 15:05:14 Andy Walls wrote:
+> > On Sat, 2009-02-14 at 12:06 +0100, Hans Verkuil wrote:
+> > > On Saturday 14 February 2009 11:32:06 Mauro Carvalho Chehab wrote:
+> > > > On Sat, 14 Feb 2009 10:08:31 +0100
+> > > >
+> > > > Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > > > > On Saturday 14 February 2009 09:52:06 Mauro Carvalho Chehab wrote:
 
-A control can have any min, max and step size the driver wants to give it.
-So their could easily be a "quality" control that's 15 to 95 on one driver
-and 0 to 1 on another.
+> 
+> It's a macroblock format where all Y and UV bytes are organized in 8x8 
+> blocks. I believe it is a by-product of the MPEG encoding process that is 
+> made available by the firmware as a bonus feature. It is clearly meant as 
+> the source format for the actual MPEG encoder. Pretty much specific to the 
+> cx2341x devices.
 
-For zoran, I wonder if it would a good idea to support the existing
-V4L2_CID_MPEG_VIDEO_BITRATE_MODE and V4L2_CID_MPEG_VIDEO_BITRATE controls.
-Yeah, zoran is MJPEG and not MPEG, but what does one letter in the control
-name matter?  IIRC, the zr36060 chip supports both VBR and CBR.  The
-hardware is programmed with a bit rate in CBR mode.  The "quality" setting
-is just an artificial construct created by the driver for user convenience.
+That's interesting.  I guess,it's a useful thing to have, if I were
+working on a software implementation of an MPEG (not MPEG-2) or MJPEG
+encoder, or something else that did DCT or Wavelet Transforms on
+macroblocks.
 
-A generic "quality" control would still be useful for hardware that doesn't
-support bitrate setting and just as some nebulous quality setting.
+I was also musing that the "raw VBI" capture of the chip's API could be
+abused to extract the entire active raster of UYVY samples for each
+frame (first field followed by second field).  It even sends a per frame
+PTS with this raw raster data.  But there's lot of pain with that:
+wasted bus bandwidth, stripping out all the SAV sequences, and, not
+surprisingly, the cx18 driver is not structured top provide a video
+capture stream via the VBI streams. ;)
+
+Regards,
+Andy
+
+> Regards,
+> 
+> 	Hans
+
+
