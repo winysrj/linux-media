@@ -1,62 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:50306 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339AbZBRAI4 (ORCPT
+Received: from smtp106.rog.mail.re2.yahoo.com ([68.142.225.204]:36641 "HELO
+	smtp106.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752013AbZBOUid (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 19:08:56 -0500
-Date: Tue, 17 Feb 2009 21:08:23 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Minimum kernel version supported by v4l-dvb
-Message-ID: <20090217210823.379579e1@pedra.chehab.org>
-In-Reply-To: <20090217142327.1678c1a6@hyperion.delvare>
-References: <20090217142327.1678c1a6@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sun, 15 Feb 2009 15:38:33 -0500
+Message-ID: <49987D43.2000805@rogers.com>
+Date: Sun, 15 Feb 2009 15:38:27 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: Michele <aspeltami@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: firmware
+References: <200902152115.58993.aspeltami@gmail.com>
+In-Reply-To: <200902152115.58993.aspeltami@gmail.com>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 17 Feb 2009 14:23:27 +0100
-Jean Delvare <khali@linux-fr.org> wrote:
+Michele wrote:
+> Hi,
+> I'm new here and i'm trying TM6061 driver from your repo. Actually I'm now 
+> able to make the module tm6000 and I find my card (wintv-hvr-900h) as card 9.
+> But when today for the first time my gentoo system recognize it I discovered 
+> that I need a firmware called "xc3028L-v36.fw".
+>  I searched a while over the net and it seems to be in vendor CD but it isn't, 
+> even downloading drivers from webpage I find a sys file but it is not 
+> tridvid.sys, it is called hcw66xxx.sys (and also it seems to be a 64bit 
+> version called  hcw66x64.sys). I tried both of them but nothing happend, I 
+> also try to find that file over internet but everytime file checks fail. 
+> Someone have some suggestion about where to find it?
+>   
 
-> Hi Mauro,
-> 
-> These days I am helping Hans Verkuil convert the last users of the
-> legacy i2c device driver binding model to the new, standard binding
-> model. It turns out to be a very complex task because the v4l-dvb
-> repository is supposed to still support kernels as old as 2.6.16, while
-> the initial support for the new i2c binding model was added in kernel
-> 2.6.22 (and even that is somewhat different from what is upstream now.)
-> This forces us to add quirks all around the place, which will surely
-> result in bugs because the code becomes hard to read, understand and
-> maintain.
-> 
-> In fact, without this need for backwards compatibility, I would
-> probably have been able to convert most of the drivers myself, without
-> Hans' help, and this would already be all done. But as things stand
-> today, he has to do most of the work, and our progress is slow.
-> 
-> So I would like you to consider changing the minimum kernel version
-> supported by the v4l-dvb repository from 2.6.16 to at least 2.6.22.
-> Ideal for us would even be 2.6.26, but I would understand that this is
-> too recent for you. Kernel 2.6.22 is one year and a half old, I
-> honestly doubt that people fighting to get their brand new TV adapter
-> to work are using anything older. As a matter of fact, kernel 2.6.22 is
-> what openSUSE 10.3 has, and this is the oldest openSUSE product that is
-> still maintained.
-> 
-> I understand and respect your will to let a large range of users build
-> the v4l-dvb repository, but at some point the cost for developers seems
-> to be too high, so there's a balance to be found between users and
-> developers. At the moment the balance isn't right IMHO.
-
-In my case, I use RHEL 5.3 that comes with 2.6.18. I need at least to have
-compatibility until this version, otherwise it will be harder to me to test
-things, since most of the time I need to run RHEL 5 kernel.
-
-I know that other developers also use RHEL 5 on their environments.
-
-Cheers,
-Mauro
+Follow the rabbit: http://www.linuxtv.org/wiki/index.php/Firmware
