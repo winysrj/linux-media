@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n18L1Avw018449
-	for <video4linux-list@redhat.com>; Sun, 8 Feb 2009 16:01:10 -0500
-Received: from indigo.eng.wayne.edu (coemail.eng.wayne.edu [141.217.43.45])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n18L0LdV029092
-	for <video4linux-list@redhat.com>; Sun, 8 Feb 2009 16:00:21 -0500
-Received: from [172.21.8.203] ([141.217.200.220]) (authenticated bits=0)
-	by indigo.eng.wayne.edu (8.13.8/8.13.4) with ESMTP id n18L0JZj000904
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Sun, 8 Feb 2009 16:00:20 -0500 (EST)
-Message-ID: <498F47E3.5070007@eng.wayne.edu>
-Date: Sun, 08 Feb 2009 16:00:19 -0500
-From: Brian Thompson <brian@eng.wayne.edu>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1FLRxpw026823
+	for <video4linux-list@redhat.com>; Sun, 15 Feb 2009 16:27:59 -0500
+Received: from smtp130.rog.mail.re2.yahoo.com (smtp130.rog.mail.re2.yahoo.com
+	[206.190.53.35])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n1FLRi53017107
+	for <video4linux-list@redhat.com>; Sun, 15 Feb 2009 16:27:44 -0500
+Message-ID: <499888D0.2040409@rogers.com>
+Date: Sun, 15 Feb 2009 16:27:44 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Michael Holmes <aerospaced@gmail.com>
+References: <cd058ff00902112128w799078fft52f2070320fdcb86@mail.gmail.com>
+In-Reply-To: <cd058ff00902112128w799078fft52f2070320fdcb86@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: looking for card source
+Cc: video4linux-list@redhat.com
+Subject: Re: help with nvidia combo 5x
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,23 +28,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Michael Holmes wrote:
+> I installed mythbuntu and I cannot for the love of money.  I get confused on
+> the back end (capture page) I have read on the several post and have found
+> out that it is a MPEG card.  Please help. I cannot get passt th management
+> page on the list.
+>   
 
-Hello all,
-
-I'm looking for a source to purchase one or more of the following
-cards, new or used:
-
-Beholder BeholdTV M63
-KNC1 TV Station DVR
-BMK MPEX (with or without the built-in tuner)
-
-Just looking to do some tests with the card in order to compare its
-Philips encoder chip against a similar Conexant chip. If you have one
-you're willing to part with or know of a source that will ship to the
-USA, please let me know.
-
-Thanks,
-Brian
+Huh?  Your message is entirely unclear -- you are going to have to
+provide some clarity in order for anyone to help you with your problem; 
+although this is not really a bug report, see here for a few starters:
+http://www.linuxtv.org/wiki/index.php/Bug_Report
 
 --
 video4linux-list mailing list
