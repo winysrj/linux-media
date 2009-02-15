@@ -1,50 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from el-out-1112.google.com ([209.85.162.178]:23927 "EHLO
-	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053AbZB0Su6 (ORCPT
+Received: from mail-gx0-f222.google.com ([209.85.217.222]:49032 "EHLO
+	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752902AbZBOWdd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 13:50:58 -0500
-Received: by el-out-1112.google.com with SMTP id b25so1113423elf.1
-        for <linux-media@vger.kernel.org>; Fri, 27 Feb 2009 10:50:55 -0800 (PST)
+	Sun, 15 Feb 2009 17:33:33 -0500
+Received: by gxk22 with SMTP id 22so2518572gxk.13
+        for <linux-media@vger.kernel.org>; Sun, 15 Feb 2009 14:33:31 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <387ee2020902271038v3ca7434dw25780937e64673e1@mail.gmail.com>
-References: <499E381D.4070607@linuxtv.org>
-	 <387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
-	 <e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
-	 <387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
-	 <49A81DCE.6060201@linuxtv.org>
-	 <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
-	 <49A820B9.7000004@linuxtv.org>
-	 <e816454e0902271027k295aa341r384752829687b7e8@mail.gmail.com>
-	 <412bdbff0902271034qd762d8pc2254ed14e930b72@mail.gmail.com>
-	 <387ee2020902271038v3ca7434dw25780937e64673e1@mail.gmail.com>
-Date: Fri, 27 Feb 2009 13:50:55 -0500
-Message-ID: <412bdbff0902271050r4c53a655na8cd0f404a83895e@mail.gmail.com>
-Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
+In-Reply-To: <4998938B.6000702@rogers.com>
+References: <200902152115.58993.aspeltami@gmail.com>
+	 <49987D43.2000805@rogers.com>
+	 <412bdbff0902151254u14474393id1d7c9bee98515df@mail.gmail.com>
+	 <4998938B.6000702@rogers.com>
+Date: Sun, 15 Feb 2009 17:33:31 -0500
+Message-ID: <412bdbff0902151433q44b65b02p898c5ecd7ef28297@mail.gmail.com>
+Subject: Re: firmware
 From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb <linux-dvb@linuxtv.org>
+To: CityK <cityk@rogers.com>
+Cc: Michele <aspeltami@gmail.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 27, 2009 at 1:38 PM, John Drescher <drescherjm@gmail.com> wrote:
-> So now (with my donation) we have him working at $1/hour assuming that
-> it takes only 100 hours..
+On Sun, Feb 15, 2009 at 5:13 PM, CityK <cityk@rogers.com> wrote:
+>
+> Devin Heitmueller wrote:
+>> CityK,
+>>
+>> That actually wasn't a very helpful link you sent ... the page on the XC3028 and XC2028 pointed to on
+>> that page makes no reference to getting the firmware for the low power version of the chip.
+>>
+>> Michele,
+>>
+>> You can get the firmware here:
+>>
+>> http://steventoth.net/linux/hvr1400/xc3028L-v36.fw
+>>
+>
+> My apologies, I first off, didn't notice the low power chip, and, in any
+> regard, even if I had, I was under the impression that it was documented
+> there.  I will amend that shortly.
+>
+> Devin Heitmueller wrote:
+>> On Sun, Feb 15, 2009 at 3:38 PM, CityK <cityk@rogers.com> wrote:
+>>>> Michele wrote:
+>>>>
+>>>>> my gentoo system ... I need a firmware called "xc3028L-v36.fw"
+>>>> Follow the rabbit: http://www.linuxtv.org/wiki/index.php/Firmware
+>>>>
+>>>>
+>> CityK,
+>> That actually wasn't a very helpful link you sent ... The user would
+>> have to know he has a Xceive 3028L tuner, and even if he had been able
+>> to figure that out,
+>>
+>
+> I would hope that someone using Gentoo (hardly a hands off distro) would
+> be sharp enough to know how to follow the rabbit down the hole  ...
+> although I'd advise that they avoid sipping from any vessel labelled
+> with the words "Drink Me"
+>
 
-Well, this assumes that it would only take 100 hours, of which given
-the complexity of the device, it will probably take more than twice
-that (since it's a PCI device and the estimates I gave are for USB
-devices).
+CityK,
 
-If nothing else, it offers some insight as to how valuable the work of
-people like Steven is (he has written a whole bunch of different
-drivers).  It also demonstrates one reason there are so few developers
-willing to do this sort of work.  Getting a developer to donate a
-couple of evening's worth of time is pretty easy.  Getting them to
-make a commitment of every day for the next two to three months is
-quite harder.
+Thanks for taking the time to update the docs.  Your efforts are appreciated.
+
+Regards,
 
 Devin
 
