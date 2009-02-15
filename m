@@ -1,85 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxf1.bahnhof.se ([213.80.101.25]:51899 "EHLO mxf1.bahnhof.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750880AbZBPWKa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 17:10:30 -0500
-Received: from localhost (mxf1.local [127.0.0.1])
-	by mxf1-reinject (Postfix) with ESMTP id 901E55C79
-	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 22:46:22 +0100 (CET)
-Received: from mxf1.bahnhof.se ([127.0.0.1])
-	by localhost (mxf1.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id IGZEt+kHtf3T for <linux-media@vger.kernel.org>;
-	Mon, 16 Feb 2009 22:46:16 +0100 (CET)
-Received: from webmail.bahnhof.se (webmail.bahnhof.se [195.178.160.55])
-	by mxf1.bahnhof.se (Postfix) with ESMTP id 3EAC25C3F
-	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 22:46:16 +0100 (CET)
-Message-ID: <59463.79.136.92.202.1234820777.squirrel@webmail.bahnhof.se>
-Date: Mon, 16 Feb 2009 22:46:17 +0100 (CET)
-Subject: Tevii S650 DVB-S2 diseqc problem
-From: svankan@bahnhof.se
-To: linux-media@vger.kernel.org
+Received: from smtp115.rog.mail.re2.yahoo.com ([68.142.225.231]:36751 "HELO
+	smtp115.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752430AbZBOX32 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Feb 2009 18:29:28 -0500
+Message-ID: <4998A557.1080104@rogers.com>
+Date: Sun, 15 Feb 2009 18:29:27 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+To: Eric Schwartz <schwa@csail.mit.edu>
+CC: video4linux-list@redhat.com,
+	Linux-media <linux-media@vger.kernel.org>
+Subject: Re: ImpactVCB 64405 low-profile PCI problem
+References: <4995DCE7.2000207@csail.mit.edu>
+In-Reply-To: <4995DCE7.2000207@csail.mit.edu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+Eric Schwartz wrote:
+> Hi all,
+>
+> I'm having a frustrating problem with getting a brand new Hauppauge card
+> to work with v4l, of the ImpactVCB 64405 low-profile PCI variety. I have
+> a basic NTSC camera that I want to hook up to one of the composite
+> inputs. And yes, during my troubleshooting efforts I succumbed to the
+> temptation of plugging it into an XP box (gasp!) and verified that the
+> hardware works perfectly fine.
+>
+> Vanilla kernel versions 2.6.21, 2.6.24, and 2.6.28 all detect the
+> presence of the card and painlessly load the bttv module. According to
+> dmesg, it audodetects the type of card and even reads the exact model
+> string off the eeprom. (see dmesg output pasted below)
+>
+> So far so good, eh? When I plug the camera into each of the inputs, I
+> get nothing on /dev/video0. Not exactly all zeroes, to be precise, but
+> close. A hexdump shows that there are occasional "c0"s mixed in with the
+> "00"s. Using "dov4l -i" lets me change the inputs as expected -- no
+> errors when the input number is in range, error when it's > 3.
+>
+> Searching Google, I found that some people extracted firmware from a
+> Windows driver for a similar card and passed the "firm_altera=fwfile"
+> parameter to modprobe. I got the firmware file in question (from another
+> driver disk; it wasn't on the one that came with the card) but the
+> module balks at accepting that parameter at all. (bttv: Unknown
+> parameter firm_altera)
+>
+> Anyone have experience with getting this card to work? What I thought
+> was going to be an easy project has quickly turned into a nightmare. Any
+> help will be appreciated.
+>
+> Thanks,
+> Eric Schwartz
+>
+> --
+>
+> sunset:~# dmesg | grep bttv
+> bttv: driver version 0.9.17 loaded
+> bttv: using 8 buffers with 2080k (520 pages) each for capture
+> bttv: Bt8xx card found (0).
+> bttv 0000:02:0a.0: PCI INT A -> Link[LNKD] -> GSI 11 (level, low) -> IRQ 11
+> bttv0: Bt878 (rev 17) at 0000:02:0a.0, irq: 11, latency: 64, mmio:
+> 0xf6001000
+> bttv0: detected: Hauppauge WinTV [card=10], PCI subsystem ID is 0070:13eb
+> bttv0: using: Hauppauge (bt878) [card=10,autodetected]
+> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+> bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+> bttv0: Hauppauge eeprom indicates model#64405
+> bttv0: tuner absent
+> bttv0: i2c: checking for MSP34xx @ 0x80... not found
+> bttv0: i2c: checking for TDA9875 @ 0xb0... not found
+> bttv0: i2c: checking for TDA7432 @ 0x8a... not found
+> bttv0: registered device video0
+> bttv0: registered device vbi0
+> bttv0: PLL: 28636363 => 35468950 .. ok
+>
+> --
 
-I just bought a Tevii S650 DVB-S2 card and I have a few questions.
+I don't know the device, but I don't think it requires a firmware -- from the pic on Hauppauge's website, it looks to be a plain jane bt878 card (http://www.hauppauge.com/site/products/data_impactvcb.html).
 
-My server have Ubuntu 8.10 amd64 with a custom kernel and drivers and tools
-compiled from these sources.
-http://mercurial.intuxication.org/hg/szap-s2
-http://mercurial.intuxication.org/hg/s2-liplianin/
+I do notice that there are two entries in the bttv cardlist (http://linuxtv.org/hg/v4l-dvb/file/tip/linux/Documentation/video4linux/CARDLIST.bttv) for that particular subsystem ID, a rather generic Hauppauge entry for card 10 (which your device is apparently being autodetected as) and what looks to be the actual specific entry for your device, card 143.    
 
-The scan-s2 utility only find channels from latest used transponder in VDR
-and diseqc does not work. It took me many hours to have VDR working with
-Tevii S650 because my old diseqc.conf did not work with this card.
+Try using the later card number (in your relevant modprobe config file or via command line loading) and see if that has any impact.
 
-When I have a skystar2 or a Hauppauge FF rev 2.1 I can use this config.
-
-Old diseqc.conf
-#
-S1W 11700 V 9750 t v W15 A W15 t
-S1W 99999 V 10600 t v W15 A W15 T
-S1W 11700 H 9750 t V W15 A W15 t
-S1W 99999 H 10600 t V W15 A W15 T
-#
-S5E 11700 V 9750 t v W15 B W15 t
-S5E 99999 V 10600 t v W15 B W15 T
-S5E 11700 H 9750 t V W15 B W15 t
-S5E 99999 H 10600 t V W15 B W15 T
-
-
-New diseqc.conf (working with Tevii S650)
-#
-S1W 11700 V 9750 t v W15 [E0 10 38 F0] W15 t
-S1W 99999 V 10600 t v W15 [E0 10 38 F1] W15 T
-S1W 11700 H 9750 t V W15 [E0 10 38 F2] W15 t
-S1W 99999 H 10600 t V W15 [E0 10 38 F3] W15 T
-#
-S5E 11700 V 9750 t v W15 [E0 10 38 F4] W15 t
-S5E 99999 V 10600 t v W15 [E0 10 38 F5] W15 T
-S5E 11700 H 9750 t V W15 [E0 10 38 F6] W15 t
-S5E 99999 H 10600 t V W15 [E0 10 38 F7] W15 T
-
-Can this diseqc “problem” cause the scan-s2 tool to fail too?
-Why do I need to change the diseqc.conf in VDR?
-
-Because of this problem I have to manually include all HD-channels to
-channels.conf. I have tried to follow the README for scan-s2 and tried
-different options. My old cards work with scan-s2 and diseqc. To be sure I
-downloaded the latest drivers from www.tevii.com and extracted the
-firmware from windows drivers but with the same result.
-Linux driver is from 2008-08-15
-Windows driver is released 2009-01-22
-
-similar problem?
-http://www.dvbnetwork.de/viewtopic.php?f=59&t=169
-
-VDR 1.7.4 works very good with the new diseqc.conf so the card is NOT broken.
-Any suggestions?
-
-/Svankan
 
