@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n19G6IPg030386
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 11:06:18 -0500
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n19G60uC019609
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 11:06:00 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so368791ywe.81
-	for <video4linux-list@redhat.com>; Mon, 09 Feb 2009 08:06:00 -0800 (PST)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1FLEXfI022361
+	for <video4linux-list@redhat.com>; Sun, 15 Feb 2009 16:14:33 -0500
+Received: from smtp127.rog.mail.re2.yahoo.com (smtp127.rog.mail.re2.yahoo.com
+	[206.190.53.32])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n1FLEIEZ012980
+	for <video4linux-list@redhat.com>; Sun, 15 Feb 2009 16:14:18 -0500
+Message-ID: <499885A9.2040905@rogers.com>
+Date: Sun, 15 Feb 2009 16:14:17 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-In-Reply-To: <4990525D.5020205@linuxtv.org>
-References: <509279.77236.qm@web31601.mail.mud.yahoo.com>
-	<4990525D.5020205@linuxtv.org>
-Date: Mon, 9 Feb 2009 11:06:00 -0500
-Message-ID: <412bdbff0902090806o7e0493avaa125876837a6804@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
+To: Jacek Pawlowski <jacek@myecho.ca>
+References: <4993B1C4.8080607@myecho.ca>
+In-Reply-To: <4993B1C4.8080607@myecho.ca>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: HVR-950Q status
+Subject: Re: HVR-950A (HVR-850)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,52 +28,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Feb 9, 2009 at 10:57 AM, Steven Toth <stoth@linuxtv.org> wrote:
->
->> This is where the fun ended.  I banged my head on VLC, MythTV, me-tv,
->> tvtime, vdr and others to no avail.  A little digging in the lists seemed to
->> suggest I might be able to bring in over the air stations.  But my hope is
->> to bring in analog NTSC cable channels and (gasp), possibly even Clear QAM
->> HD channels.  Is there any hope or current effort to get analog NTSC working
->> on this dongle?  Also, are there any USB dongles which support HD Clear QAM?
->>  While I am primarily interested in analog NTSC (yeah, I hear ya, shoulda
->> bought an HVR-950), getting analog and Clear QAM HD would be great.  While I
->> would love to get my HVR-950Q working, I would settle for another well
->> supported USB dongle with at least analog cable support that in known to
->> work well with MythTV.
->>
->> Thanks in advance for any feedback you can provide.
->>
->> Regards,
->> Jon
->
-> NTSC is not supported.
->
-> The 950Q works well with MythTV for ATSC and ClearQAM. I suggest you google
-> or read the wikis at linuxtv.org. You might also want to check on linux
-> support for any new product before purchasing and 'banging your head'.
->
-> - Steve
+Jacek Pawlowski wrote:
+> Any news about analog support for HVR-950Q and HVR-850 (model model
+> 72301, 2040:7240 basically the same as 950Q)?
+> cheers
+> -- jacek
 
-To expand on Steven's comments, the following page has the list of
-supported USB devices:
+Yes, it came 3 days before your own message: 
+http://marc.info/?l=linux-video&m=123419514523631&w=2
 
-http://linuxtv.org/wiki/index.php/ATSC_USB_Devices#Supported_ATSC_USB_Devices
+Previous to that, Robert had expressed interest, as read here:
+http://marc.info/?l=linux-video&m=122459807631633&w=2  . But if you
+continue reading through the first thread, you will see that he has
+evidently pursued a different route.
 
-Pay particular attention to the entries with footnote #1, which are
-devices such as the 950Q where the hardware supports analog but the
-driver does not.  This is actually a pretty common problem with the
-newer class of devices that support ClearQAM.
-
-Regards,
-
-Devin
-
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+So, it would rather appear that unless someone is quietly (i.e. hasn't
+announced and/or prefers not to announce) working on analog support for
+the au0828 IC, I wouldn't count on anything forthcoming.   Being that
+case, I would encourage anyone who is really interested in such support
+to consider leading the pursuit to that end.
 
 --
 video4linux-list mailing list
