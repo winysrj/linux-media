@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n16HCaTt018311
-	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 12:12:36 -0500
-Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.176])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n16HBuo9029936
-	for <video4linux-list@redhat.com>; Fri, 6 Feb 2009 12:11:56 -0500
-Received: by wa-out-1112.google.com with SMTP id n4so442577wag.19
-	for <video4linux-list@redhat.com>; Fri, 06 Feb 2009 09:11:55 -0800 (PST)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1FKlIV3016320
+	for <video4linux-list@redhat.com>; Sun, 15 Feb 2009 15:47:18 -0500
+Received: from smtp108.rog.mail.re2.yahoo.com (smtp108.rog.mail.re2.yahoo.com
+	[68.142.225.206])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n1FKl2H3005743
+	for <video4linux-list@redhat.com>; Sun, 15 Feb 2009 15:47:02 -0500
+Message-ID: <49987F46.6030608@rogers.com>
+Date: Sun, 15 Feb 2009 15:47:02 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Date: Fri, 6 Feb 2009 22:41:55 +0530
-Message-ID: <1249fb080902060911g4b8f68abuefa13ee4497e779b@mail.gmail.com>
-From: Akhila Madhukumar <akhilapisces@gmail.com>
-To: video4linux-list@redhat.com
+To: jono <jp@day-one.com>
+References: <4994BBC8.2090608@day-one.com>
+In-Reply-To: <4994BBC8.2090608@day-one.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Debug
+Cc: video4linux-list@redhat.com
+Subject: Re: Not logged in
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,7 +28,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-How to debug the v4l2 source code?
+jono wrote:
+> hi,
+>
+> i'm trying to read linuxtv.org/v4lwiki or www.linuxtv.org/wiki but i
+> keep getting this!
+>
+> ===================================
+> Not logged in
+> From LinuxTVWiki
+> Jump to: navigation, search
+>
+> You must be logged in to upload files.
+>
+> Return to Main Page.
+> ===================================
+>
+> ...i wasn't trying to upload a file, just trying to view a diagram.
+
+I have no idea why you would be getting that.  Everything is working
+fine.  Perhaps it was a brief glich.
+>
+> how do i get a username? 
+
+Top right of screen > Log in / create account .... but you certainly
+don't need an account just to view pics and information.
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
