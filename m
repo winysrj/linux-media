@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f222.google.com ([209.85.217.222]:55314 "EHLO
-	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123AbZBPTd3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 14:33:29 -0500
-Received: by gxk22 with SMTP id 22so3352126gxk.13
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 11:33:28 -0800 (PST)
+Received: from mail.gmx.net ([213.165.64.20]:38292 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752540AbZBOMgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Feb 2009 07:36:50 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Subject: Re: [BUG] changeset 9029 (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
+Date: Sun, 15 Feb 2009 13:36:16 +0100
+Cc: e9hack <e9hack@googlemail.com>, obi@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-dvb@linuxtv.org
+References: <4986507C.1050609@googlemail.com>
+In-Reply-To: <4986507C.1050609@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <a3ef07920902161037nf02b51dl2b411e33ddc76933@mail.gmail.com>
-References: <4999A6DD.7030707@gmx.de> <200902161908.15698.hverkuil@xs4all.nl>
-	 <a3ef07920902161037nf02b51dl2b411e33ddc76933@mail.gmail.com>
-Date: Mon, 16 Feb 2009 14:33:28 -0500
-Message-ID: <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
-Subject: Re: DVB-API v5 questions and no dvb developer answering ?
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, wk <handygewinnspiel@gmx.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902151336.17202@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 16, 2009 at 1:37 PM, VDR User <user.vdr@gmail.com> wrote:
-> I couldn't agree more with the last sentence in the above quote.  It's
-> ridiculous at best that after months now there is _still_ no proper
-> documentation, yet there was plenty of time when the task-at-hand was
-> making up s2api and pushing it into the kernel as fast as possible.
-> I'd love to hear a good reason why this documentation doesn't exist,
-> or why the people politely asking for help are being completely
-> ignored since the  "I've been busy" excuse is laughable.
->
-> Sorry, I've seen many people expressing frustration over this and many
-> other things from recent times.
+e9hack wrote:
+> Hi,
+> 
+> this change set is wrong. The affected functions cannot be called from an interrupt
+> context, because they may process large buffers. In this case, interrupts are disabled for
+> a long time. Functions, like dvb_dmx_swfilter_packets(), could be called only from a
+> tasklet. This change set does hide some strong design bugs in dm1105.c and au0828-dvb.c.
+> 
+> Please revert this change set and do fix the bugs in dm1105.c and au0828-dvb.c (and other
+> files).
 
-As always we continue to welcome patches, including for the
-documentation.  Instead of bitching and moaning, how about you roll up
-your sleeves and actually help out?
+@Mauro:
 
-Let's try to remember that pretty much all the developers here are
-volunteers, so berating them for not doing things fast enough for your
-personal taste is not really very productive.
+This changeset _must_ be reverted! It breaks all kernels since 2.6.27
+for applications which use DVB and require a low interrupt latency.
 
-Regards,
+It is a very bad idea to call the demuxer to process data buffers with
+interrupts disabled!
 
-Devin
+FYI, a LIRC problem was reported here:
+  http://vdrportal.de/board/thread.php?postid=786366#post786366
+
+and it has been verified that changeset
+  http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833
+causes the problem:
+  http://vdrportal.de/board/thread.php?postid=791813#post791813
+
+Please revert this changeset immediately and submit a fix to the stable
+kernels >= 2.6.27.
+
+CU
+Oliver
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
