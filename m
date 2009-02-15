@@ -1,78 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45479 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751660AbZBRCFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 21:05:09 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] [BUG] changeset 9029 (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
-Date: Wed, 18 Feb 2009 03:04:27 +0100
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-References: <4986507C.1050609@googlemail.com> <200902170140.53617@orion.escape-edv.de> <499A36CD.4070209@linuxtv.org>
-In-Reply-To: <499A36CD.4070209@linuxtv.org>
+Received: from mx2.redhat.com ([66.187.237.31]:38247 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750758AbZBOJYv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Feb 2009 04:24:51 -0500
+Message-ID: <4997E05F.9080509@redhat.com>
+Date: Sun, 15 Feb 2009 10:29:03 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: kilgota@banach.math.auburn.edu,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>
+Subject: Re: Adding a control for Sensor Orientation
+References: <200902142048.51863.linux@baker-net.org.uk> <alpine.LNX.2.00.0902141624410.315@banach.math.auburn.edu> <4997DB74.6000108@redhat.com> <200902151019.35555.hverkuil@xs4all.nl>
+In-Reply-To: <200902151019.35555.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902180304.28615@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andreas Oberritter wrote:
-> Oliver Endriss wrote:
-> > ...
-> > @Andreas:
-> > Could you please explain in more detail what bad things might happen?
+
+
+Hans Verkuil wrote:
+> On Sunday 15 February 2009 10:08:04 Hans de Goede wrote:
+>> kilgota@banach.math.auburn.edu wrote:
+>>> On Sat, 14 Feb 2009, Hans Verkuil wrote:
+>>>> On Saturday 14 February 2009 22:55:39 Hans de Goede wrote:
+>>>>> Adam Baker wrote:
+>>>>>> Hi all,
+>>>>>>
+>>>>>> Hans Verkuil put forward a convincing argument that sensor
+>>>>>> orientation shouldn't be part of the buffer flags as then it would
+>>>>>> be unavailable to clients that use read()
+>>>>> Yes and this is a bogus argument, clients using read also do not get
+>>>>> things like timestamps, and vital information like which field is in
+>>>>> the read buffer when dealing with interleaved sources. read() is a
+>>>>> simple interface for simple applications. Given that the only user of
+>>>>> these flags will likely be libv4l I *strongly* object to having this
+>>>>> info in some control, it is not a control, it is a per frame (on some
+>>>>> cams) information about how to interpret that frame, the buffer flags
+>>>>> is a very
+>>>>> logical place, *the* logical place even for this!
+>>>>>
+>>>>> The fact that there is no way to transport metadata about a frame
+>>>>> like flags, but also timestamp and field! Is a problem with the read
+>>>>> interface
+>>>>> in general, iow read() is broken wrt to this. If people care add some
+>>>>> ioctl or something which users of read() can use to get the buffer
+>>>>> metadata from the last read() buffer, stuffing buffer metadata in a
+>>>>> control (barf), because of read() brokenness is a very *bad* idea,
+>>>>> and won't work in general due to synchronization problems.
+>>>>>
+>>>>> Doing this as a control will be a pain to implement both at the
+>>>>> driver level, see the discussion this is causing, and in libv4l. For
+>>>>> libv4l this
+>>>>> will basicly mean polling the control. And hello polling is lame and
+>>>>> something from the 1980-ies.
+>>>>>
+>>>>> Please just make this a buffer flag.
+>>>> OK, make it a buffer flag. I've got to agree that it makes more sense
+>>>> to do
+>>>> it that way.
+>>>>
+>>>> Regards,
+>>>>
+>>>>     Hans
+>>>>
+>>>> --
+>>>> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>>> Let me take a moment to remind everyone what the problem is that
+>>> brought this discussion up. Adam Baker and I are working on a driver
+>>> for a certain camera. Or, better stated, for a set of various cameras,
+>>> which all have the same USB Vendor:Product number. Various cameras
+>>> which all have this ID have different capabilities and need different
+>>> treatment of the frame data.
+>>>
+>>> The most particular problem is that some of the cameras require byte
+>>> reversal of the frame data string, which would rotate the image 180
+>>> degrees around its center. Others of these cameras require reversal of
+>>> the horizontal lines in the image (vertical 180 degree rotation of the
+>>> image across a horizontal axis).
+>>>
+>>> The point is, one can not tell from the Vendor:Product number which of
+>>> these actions is required. However, one *is* able to tell immediately
+>>> after the camera is initialized, which of these actions is required.
+>>> Namely, one reads and parses the response to the first USB command sent
+>>> to the camera.
+>>>
+>>> So, for us (Adam and me) the question is simply to know how everyone
+>>> will agree that the information about the image orientation can be sent
+>>> from the module to V4L. When this issue is resolved, we can finish
+>>> writing the sq905 camera driver. From this rather narrow point of view,
+>>> the issue is not which method ought to be adopted. Rather, the issue is
+>>> that no method has been adopted. It is rather difficult to write module
+>>> code which will obey a non-existent standard.
+>> Ack, but the problem later was extended by the fact that it turns out
+>> some cams have a rotation detection (gravity direction) switch, which
+>> means you can flip the cam on its socket while streaming, and then the
+>> cam will tell you its rotation has changed, that makes this a per frame
+>> property rather then a static property of the cam. Which lead to this
+>> discussion, but we (the 2 Hans 's) agree now that using the flags field
+>> in the buffer struct is the best way forward. So there is a standard now,
+>> simply add 2 buffer flags to videodev2.h, one for content is h-flipped
+>> and one for content is v-flipped and you are done.
+>>
+>> Regards,
+>>
+>> Hans
 > 
-> To quote myself from the changelog: This fixes a deadlock discovered
-> by lockdep.
-
-I re-read the commit message, but it still does not ring any bells.
-Could you please post the lockdep output?
-
-> The lock is used in process context (e.g. DMX_START) and might also be
-> used from interrupt context (e.g. dvb_dmx_swfilter).
-
-Correct:
-- dvb_dmx_swfilter uses spin_lock (called from irq, tasklet, whatever)
-- DMX_START uses spin_lock_irq (called from process)
--> ok (see below).
-
-> >From http://osdir.com/ml/kernel.janitors/2002-08/msg00022.html:
+> I think we should also be able to detect 90 and 270 degree rotations. Or at 
+> the very least prepare for it. It's a safe bet to assume that webcams will 
+> arrive that can detect portrait vs landscape orientation.
 > 
-> "spin_lock_irq disables local interrupts and then takes the spin_lock.
-> If you know you're in process context and other users may be in
-> interrupt context, this is the correct call to make.
-> 
-> spin_lock_irqsave saves local interrupt state into the flags variable,
-> disables interrupts, then takes the spin_lock.  spin_unlock_irqrestore
-> restores the local state saved in the flags.  Use this variant if you
-> don't know whether you're in interrupt or process context."
-> 
-> So, if the assumtions above are correct, then spin_lock_irq must be
-> used by all functions called from process context and
-> spin_lock_irqsave must be used by all functions called from an unknown
-> context.
 
-Correct.
+Handling those (esp on the fly) will be rather hard as width and height then 
+get swapped. So lets worry about those when we need to. We will need an 
+additional flag for those cases anyways.
 
-[1] If you want to lock a process against an interrupt handler,
-- the process must use spin_lock_irq()
-- the interrupt can use spin_lock()
+Regards,
 
-A routine has to use spin_lock_irqsave if (and only if) process and irq
-call the routine concurrently. I do not see yet how this might happen.
-
-(Basically, the same happens when locking between tasklet and process
-context, except that it is sufficient to use spin_lock_bh instead of
-spin_lock_irq.)
-
-Regards
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+Hans
