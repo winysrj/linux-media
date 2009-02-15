@@ -1,80 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.187]:15792 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096AbZBHTA3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Feb 2009 14:00:29 -0500
-Received: by rn-out-0910.google.com with SMTP id k40so1121975rnd.17
-        for <linux-media@vger.kernel.org>; Sun, 08 Feb 2009 11:00:28 -0800 (PST)
+Received: from yw-out-2324.google.com ([74.125.46.31]:6343 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660AbZBOUyW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Feb 2009 15:54:22 -0500
+Received: by yw-out-2324.google.com with SMTP id 5so871638ywh.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Feb 2009 12:54:21 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <B7621984-DEB8-4F0C-B5EF-733CD30E7441@alice-dsl.net>
-References: <B7621984-DEB8-4F0C-B5EF-733CD30E7441@alice-dsl.net>
-Date: Sun, 8 Feb 2009 14:00:28 -0500
-Message-ID: <412bdbff0902081100q4e625a59p42cba55d942010bc@mail.gmail.com>
-Subject: Re: [PATCH] Add Elgato EyeTV Diversity to dibcom driver
+In-Reply-To: <49987D43.2000805@rogers.com>
+References: <200902152115.58993.aspeltami@gmail.com>
+	 <49987D43.2000805@rogers.com>
+Date: Sun, 15 Feb 2009 15:54:20 -0500
+Message-ID: <412bdbff0902151254u14474393id1d7c9bee98515df@mail.gmail.com>
+Subject: Re: firmware
 From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: =?ISO-8859-1?Q?Michael_M=FCller?= <mueller_michael@alice-dsl.net>
-Cc: Patrick Boettcher <patrick.boettcher@desy.de>,
-	pboettcher@dibcom.fr, linux-dvb@linuxtv.org,
-	linux-media@vger.kernel.org
+To: CityK <cityk@rogers.com>
+Cc: Michele <aspeltami@gmail.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 8, 2009 at 1:51 PM, Michael Müller
-<mueller_michael@alice-dsl.net> wrote:
-> This patch introduces support for DVB-T for the following dibcom based card:
->        Elgato EyeTV Diversity (USB-ID: 0fd9:0011)
+On Sun, Feb 15, 2009 at 3:38 PM, CityK <cityk@rogers.com> wrote:
+> Michele wrote:
+>> Hi,
+>> I'm new here and i'm trying TM6061 driver from your repo. Actually I'm now
+>> able to make the module tm6000 and I find my card (wintv-hvr-900h) as card 9.
+>> But when today for the first time my gentoo system recognize it I discovered
+>> that I need a firmware called "xc3028L-v36.fw".
+>>  I searched a while over the net and it seems to be in vendor CD but it isn't,
+>> even downloading drivers from webpage I find a sys file but it is not
+>> tridvid.sys, it is called hcw66xxx.sys (and also it seems to be a 64bit
+>> version called  hcw66x64.sys). I tried both of them but nothing happend, I
+>> also try to find that file over internet but everytime file checks fail.
+>> Someone have some suggestion about where to find it?
+>>
 >
-> Support for the Elgato silver IR remote is added too (set parameter
-> dvb_usb_dib0700_ir_proto=0)
+> Follow the rabbit: http://www.linuxtv.org/wiki/index.php/Firmware
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
-> Signed-off-by: Michael Müller <mueller_michael@alice-dsl.net>
->
->
->
->
-> Hi Patrick,
->
-> several months ago I sent you a patch for the Elgato USB stick. At this time
-> I was not happy with the problem of the repeated remote keys. Since this was
-> fixed by Devin here it is again. The patch is against v4l-dvb from 7th Feb.
-> 2009. So compared to the last time I only adjusted the index in the USB id
-> table.
->
-> As written in the patch text you need to set parameter
-> dvb_usb_dib0700_ir_proto=0 (default=1). Is there a way to overwrite the
-> default for a specific device as mine? Or does this make no sense since the
-> needed protocol is not driven by the USB stick IR receiver but the remote
-> control?
->
-> BTW: In the meantime I needed to change my email adress.
->
-> Devin,
->
-> first I want tell you that after your changes the repeated IR keys are gone.
-> Thanks.
->
-> In December you wrote that you 'should work on getting the dib0700 driver
-> integrated with ir_keymaps.c so that the it is consistent with other
-> drivers.' Did you already started to work on this? Should I change my patch
-> to use the ir_keymaps.c way? Which driver is a good example how to use it?
->
-> Regards
->
-> Michael
 
-Hello Michael,
+CityK,
 
-While I am indeed strongly in favor of integrating dib0700 with
-ir_keymaps.c so it is consistent with the other drivers, I have been
-tied up in another project and haven't had any cycles to do the work
-required.
+That actually wasn't a very helpful link you sent.  The user would
+have to know he has a Xceive 3028L tuner, and even if he had been able
+to figure that out, the page on the XC3028 and XC2028 pointed to on
+that page makes no reference to getting the firmware for the low power
+version of the chip.
 
-By all means, if you want to propose a patch, I would be happy to
-offer feedback/comments.
+Michele,
 
-Thanks,
+You can get the firmware here:
+
+http://steventoth.net/linux/hvr1400/xc3028L-v36.fw
 
 Devin
 
