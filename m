@@ -1,72 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:53329 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981AbZBDDAl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 22:00:41 -0500
-Date: Tue, 3 Feb 2009 21:12:35 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Alan Stern <stern@rowland.harvard.edu>
-cc: Jean-Francois Moine <moinejf@free.fr>,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
-In-Reply-To: <Pine.LNX.4.44L0.0902032059120.18064-100000@netrider.rowland.org>
-Message-ID: <alpine.LNX.2.00.0902032110390.2641@banach.math.auburn.edu>
-References: <Pine.LNX.4.44L0.0902032059120.18064-100000@netrider.rowland.org>
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:2603 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754340AbZBPIeA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 03:34:00 -0500
+Message-ID: <59373.62.70.2.252.1234773218.squirrel@webmail.xs4all.nl>
+Date: Mon, 16 Feb 2009 09:33:38 +0100 (CET)
+Subject: Re: Adding a control for Sensor Orientation
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hans de Goede" <hdegoede@redhat.com>
+Cc: kilgota@banach.math.auburn.edu,
+	"Trent Piepho" <xyzzy@speakeasy.org>,
+	"Adam Baker" <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Olivier Lorin" <o.lorin@laposte.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-
-On Tue, 3 Feb 2009, Alan Stern wrote:
-
-> On Tue, 3 Feb 2009 kilgota@banach.math.auburn.edu wrote:
 >
->>> Nonsense.  It's simply a matter of how you create your workqueue.  In
->>> the code you sent me, you call create_workqueue().  Instead, just call
->>> create_singlethread_workqueue().  Or maybe even
->>> create_freezeable_workqueue().
->>>
->>> Alan Stern
->>>
+>
+> kilgota@banach.math.auburn.edu wrote:
 >>
->> OK, seems one way out, might even work. I will definitely try that.
+>
+> <huge snip>
+>
+>> Therefore,
 >>
->> Update. I did try it.
+>> 1. Everyone seems to agree that the kernel module itself is not going to
+>> do things like rotate or flip data even if a given supported device
+>> always needs that done.
 >>
->> No it does not work, sorry. :/
->
-> Again, nonsense.  Of course it works.  It causes the kernel to create
-> only one workqueue thread instead of two.
-
-OK, yes, it did do that.
-
-That's what it's supposed to
-> do -- it was never intended to fix your oops.
-
-OK.
-
->
->> While you have this matter on your mind, I am curious about the following:
+>> However, this decision has a consequence:
 >>
->> As the code for the sq905 module evolved through various stages, the
->> only occasion on which any real trouble arose was at the end, when we put
->> in the mutex locks which you can see in the code now. Before they were put
->> in, these problems which we are discussing now did not occur.
->> Specifically, there was not any such problem about an oops caused by
->> camera removal until the mutex locks were put in the code. And I strongly
->> suspect -- nay, I am almost certain -- that with that the same code you
->> are looking at now, the oops would go away if all those mutex locks were
->> simply commented out and the code re-compiled and reinstalled. Can you
->> explain this? I am just curious about why.
+>> 2. Therefore, the module must send the information about what is needed
+>> out of the module, to whatever place is going to deal with it.
+>> Information which is known to the module but unknown anywere else must
+>> be transmitted somehow.
+>>
+>> Now there is a further consequence:
+>>
+>> 3. In view of (1) and (2) there has to be a way agreed upon for the
+>> module to pass the relevant information onward.
+>>
+>> It is precisely on item 3 that we are stuck right now. There is an
+>> immediate need, not a theoretical need but an immediate need. However,
+>> there is no agreed-upon method or convention for communication.
+>>
 >
-> You're wrong, the oops would not go away.  It would just become a lot
-> less likely to occur -- and thereby all the more insidious.
+> We are no longer stuck here, the general agreement is adding 2 new buffer
+> flags, one to indicate the driver knows the data in the buffer is
+> vflipped and one for hflip. Then we can handle v-flipped, h-flipped and
+> 180
+> degrees cameras
+>
+> This is agreed up on, Trent is arguing we may need more flags in the
+> future,
+> but that is something for the future, all we need know is these 2 flags
+> and
+> Hans Verkuil who AFAIK was the only one objecting to doing this with
+> buffer
+> flags has agreed this is the best solution.
 
-How nice. Thanks for explaining.
+Well, I just posted an alternative solution this morning (Hans probably
+hadn't read it yet) which I want to see discussed first. I think it is a
+better solution than this. Basically combining the best of two worlds
+IMHO.
 
+We are talking about a core change, so some careful thought should go into
+this.
+
+> So Adam, kilgota, please ignore the rest of this thread and move forward
+> with
+> the driver, just add the necessary buffer flags to videodev2.h as part of
+> your
+> patch (It is usually to submit new API stuff with the same patch which
+> introduces the first users of this API.
+
+Don't ignore it yet :-)
+
+Regards,
+
+       Hans
+
+> I welcome libv4l patches to use these flags.
 >
-> Alan Stern
+> Regards,
 >
+> Hans
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
