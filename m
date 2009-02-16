@@ -1,89 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46339 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541AbZB0Pk1 (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.28]:2404 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751355AbZBPSYe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 10:40:27 -0500
-Date: Fri, 27 Feb 2009 12:39:56 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: schollsky@arcor.de, linux-media@vger.kernel.org
-Subject: Re: W.: v4l-dvb won't compile with new version
-Message-ID: <20090227123956.0a2fe29a@pedra.chehab.org>
-In-Reply-To: <200902271441.20856.hverkuil@xs4all.nl>
-References: <12645682.1235740797539.JavaMail.ngmail@webmail10.arcor-online.net>
-	<32779969.1235740935861.JavaMail.ngmail@webmail14.arcor-online.net>
-	<200902271441.20856.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Mon, 16 Feb 2009 13:24:34 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so986623yxm.1
+        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 10:24:32 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4999A9A6.2080809@rogers.com>
+References: <200902152115.58993.aspeltami@gmail.com>
+	 <412bdbff0902151254u14474393id1d7c9bee98515df@mail.gmail.com>
+	 <4998938B.6000702@rogers.com> <200902161025.53632.zzam@gentoo.org>
+	 <4999A9A6.2080809@rogers.com>
+Date: Mon, 16 Feb 2009 12:24:32 -0600
+Message-ID: <1767e6740902161024y2820036dhcd461c40edf30e82@mail.gmail.com>
+Subject: Re: firmware
+From: Jonathan Isom <jeisom@gmail.com>
+To: CityK <cityk@rogers.com>
+Cc: Matthias Schwarzott <zzam@gentoo.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Michele <aspeltami@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Feb 2009 14:41:20 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+--------------------------------------------------------------------
+ASUS m3a78 mothorboard
+AMD Athlon64 X2 Dual Core Processor 6000+ 3.1Ghz
+Gigabyte NVidia 9400gt  Graphics adapter
+Kworld ATSC 110 TV Capture Card
+Kworld ATSC 115 TV Capture Card
+--------------------------------------------------------------------
 
-> On Friday 27 February 2009 14:22:15 schollsky@arcor.de wrote:
-> > Hi there,
-> >
-> > this I get when trying to compile latest mercurial .tar.gz:
-> >
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c: In function
-> > 'tvmixer_ioctl':
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:78: error: storage
-> > size of 'va' isn't known
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:114: error:
-> > 'VIDIOCGAUDIO' undeclared (first use in this function)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:114: error: (Each
-> > undeclared identifier is reported only once
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:114: error: for
-> > each function it appears in.)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:129: error:
-> > 'VIDEO_AUDIO_BASS' undeclared (first use in this function)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:131: error:
-> > 'VIDEO_AUDIO_TREBLE' undeclared (first use in this function)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:142: error:
-> > 'VIDEO_AUDIO_MUTE' undeclared (first use in this function)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:143: error:
-> > 'VIDIOCSAUDIO' undeclared (first use in this function)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:147: warning: type
-> > defaults to 'int' in declaration of '_min1'
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:149: warning: type
-> > defaults to 'int' in declaration of '_min1'
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:149: warning:
-> > comparison of distinct pointer types lacks a cast
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:78: warning: unused
-> > variable 'va' /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c: In
-> > function 'tvmixer_clients':
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:254: error: storage
-> > size of 'va' isn't known
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:286: error:
-> > 'VIDIOCGAUDIO' undeclared (first use in this function)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:288: error:
-> > 'VIDEO_AUDIO_VOLUME' undeclared (first use in this function)
-> > /home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.c:254: warning:
-> > unused variable 'va' make[3]: ***
-> > [/home/stefan/Linux/v4l-dvb-60389ff5e931/v4l/tvmixer.o] Error 1 make[2]:
-> > *** [_module_/home/stefan/Linux/v4l-dvb-60389ff5e931/v4l] Error 2
-> > make[2]: Leaving directory `/usr/src/linux-2.6.29-desktop-0.rc6.1.1mnb'
-> > make[1]: *** [default] Fehler 2
-> > make[1]: Leaving directory `/home/stefan/Linux/v4l-dvb-60389ff5e931/v4l'
-> > make: *** [all] Fehler 2
-> >
-> > Any hints please?
-> 
-> Run 'make menuconfig' and disable this driver (should be in 'Audio devices 
-> for multimedia'). It's pointless for 2.6.29 anyway.
-> 
-> Mauro, I suggest we drop this driver altogether from our tree. The 
-> SOUND_TVMIXER config was removed from kernel 2.6.23 onwards (and the actual 
-> source from 2.6.25 onwards), it uses oss instead of alsa, assumes v4l1 i2c 
-> modules and it's never going to work with the new i2c API.
-> 
-> I actually thought it was removed already...
 
-Yes, we should remove it from our tree. I'll write the patch removing the
-legacy OSS drivers from our tree.
 
-Cheers,
-Mauro
+On Mon, Feb 16, 2009 at 12:00 PM, CityK <cityk@rogers.com> wrote:
+> Matthias Schwarzott  wrote:
+>> I don't get you.
+>
+> I was having a little fun.  My remarks contained references to Lewis
+> Carroll's "Alice's Adventures in Wonderland".
+>
+> Nowadays, the expression "follow the rabbit" (which, stemming from
+> Alice's Adventures, is actually  abbreviated from the act of following
+> the rabbit down the hole) implies that one will discover something by
+> following the metaphorical rabbit (which, in this case, was the link to
+> wiki article on firmware, which itself  contained links to the xc3028 IC
+> family article).
+>
+> Though perhaps not a particularly common expression, I'm sure that most
+> are familiar with it or have come across it in other forms and
+> presentations.  Pop culture, for example, has many such references --
+> take the movie "The Matrix", for example, in which, IIRC, the character
+> Morphieus invites Neo to "follow the rabbit"
+>
+>
+>> What do you want for Gentoo? checking the wiki content about firmware?
+>
+> Gentoo is, typically, not associated as a beginners distro.  It,
+> generally speaking, requires or, at the very least,  affords the user
+> the opportunity to become more familiar with the underlining
+> architecture and mechanics of the OS.  One might be tempted to call that
+> a discovery process.
+
+There is an ebuild "media-tv/linuxtv-dvb-firmware" that may have the required
+firmware.
+
+
+> Hence, when a Gentoo user like Michele states that they require a
+> firmware entitled "xc3028L-v36.fw", I'm (rightly or wrongly) making an
+> implicit assumption that they would be perceptive enough to make the
+> relevant connection(s) and press forth when presented with a
+> metaphorical rabbit.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
