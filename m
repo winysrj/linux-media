@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47600 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbZBNIwe (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.230]:41637 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755304AbZBPCHk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2009 03:52:34 -0500
-Date: Sat, 14 Feb 2009 06:52:06 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: libv4l2 library problem
-Message-ID: <20090214065206.1a9494d9@pedra.chehab.org>
-In-Reply-To: <200902131357.46279.hverkuil@xs4all.nl>
-References: <200902131357.46279.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sun, 15 Feb 2009 21:07:40 -0500
+Received: by rv-out-0506.google.com with SMTP id g37so1357324rvb.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Feb 2009 18:07:40 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 16 Feb 2009 11:07:39 +0900
+Message-ID: <5e9665e10902151807m69ef02a1gf261b0af83fde9bd@mail.gmail.com>
+Subject: Some issues while using v4l2 int device
+From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+To: "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: =?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 13 Feb 2009 13:57:45 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hello Sakari.
 
-> Hi Hans,
-> 
-> I've developed a converter for the HM12 format (produced by Conexant MPEG 
-> encoders as used in the ivtv and cx18 drivers).
-> 
-> But libv4l2 has a problem in its implementation of v4l2_read: it assumes 
-> that the driver can always do streaming. However, that is not the case for 
-> some drivers, including cx18 and ivtv. These drivers only implement read() 
-> functionality and no streaming.
-> 
-> Can you as a minimum modify libv4l2 so that it will check for this case? The 
-> best solution would be that libv4l2 can read HM12 from the driver and 
-> convert it on the fly. But currently it tries to convert HM12 by starting 
-> to stream, and that produces an error.
-> 
-> This bug needs to be fixed first before I can contribute my HM12 converter.
+Since I was working on my target board with OMAP3 camera interface, It
+seems to take a little much time for boot up.
 
-Hans Verkuil,
+I found that it was about v4l2 int device register routine. (while
+probing camera interface)
 
-I think it would be valuable if you could convert the drivers to use videobuf.
-There's currently a videobuf variation for devices that don't support
-scatter/gather dma transfers. By using videobuf, the mmap() methods (and also
-overlay, if you want) will be supported.
+It turns on int devices and checks their version information through
+I2C command.
 
+It usually seems to be proper, but in some cases it should be an
+overhead in booting time.
+
+Let me give an example.
+
+Lately I was working on CE131 ISP from NEC.
+
+The ARM processor inside of this ISP needs booting time itself at
+least 600ms (depending on firmware version I guess..not fancy at all
+:( )
+
+So if we check firmware version or something while v4l2 int device
+registering, it should take "at least" 600ms to attach this device as
+an int device.
+
+I'm trying to figure out what else could alter version checking for
+int device detection, but unfortunately nothing pops up yet :(
+
+Of course I can make it not to check version information for CE131 and
+just return true while v4l2 int device registering, but doesn't seem
+to be a neat way.
+
+How about taking the similar way with i2c_board_info ?
+
+Please let me know your opinion.
 
 Cheers,
-Mauro
+
+Nate
+
+-- 
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab. S/W centre
+Telecommunication R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
