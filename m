@@ -1,224 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:2787 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752182AbZBMV7O (ORCPT
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:53654 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751465AbZBPXWA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 16:59:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: RFC: Finalizing the V4L2 RDS interface
-Date: Fri, 13 Feb 2009 22:59:07 +0100
-Cc: linux-media@vger.kernel.org, Michael Schimek <mschimek@gmx.at>,
-	hjkoch@users.berlios.de, tobias.lorenz@gmx.net,
-	belavenuto@gmail.com
-References: <200902130955.19995.hverkuil@xs4all.nl> <20090213191545.3d92e121@pedra.chehab.org>
-In-Reply-To: <20090213191545.3d92e121@pedra.chehab.org>
+	Mon, 16 Feb 2009 18:22:00 -0500
+Received: by bwz5 with SMTP id 5so3506657bwz.13
+        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 15:21:58 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+In-Reply-To: <59463.79.136.92.202.1234820777.squirrel@webmail.bahnhof.se>
+References: <59463.79.136.92.202.1234820777.squirrel@webmail.bahnhof.se>
+Date: Tue, 17 Feb 2009 00:21:56 +0100
+Message-ID: <854d46170902161521g1ad03be0s1114799fe296df14@mail.gmail.com>
+Subject: Re: Tevii S650 DVB-S2 diseqc problem
+From: Faruk A <fa@elwak.com>
+To: svankan@bahnhof.se
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902132259.07618.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 13 February 2009 22:15:45 Mauro Carvalho Chehab wrote:
-> On Fri, 13 Feb 2009 09:55:19 +0100
+On Mon, Feb 16, 2009 at 10:46 PM,  <svankan@bahnhof.se> wrote:
+> Hello!
 >
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > RFC: Completing the V4L2 RDS API
-> > ================================
-> >
-> > Introduction
-> > ------------
-> >
-> > There are several drivers that implement RDS support: bttv (through
-> > saa6588), radio-si470x and radio-cadet. radio-tea5764 wants to support
-> > this in the future as well.
-> >
-> > The saa6588 is used in different cards, but is currently only enabled
-> > in bttv, but I have it working with a saa7134 as well.
-> >
-> > I expect this to become more important with the increased use of linux
-> > and v4l2 in embedded devices. What is holding it back at the moment is
-> > the fact that this interface has not been defined properly. It's 90%
-> > there, but it is poorly documented and is still not officially part of
-> > V4L2.
-> >
-> > This RFC is intended to fill in the final gaps and make it official.
-> >
-> > Current API
-> > -----------
-> >
-> > The V4L2 spec says this about the RDS Interface:
-> >
-> > 4.11. RDS Interface
-> >
-> > The Radio Data System transmits supplementary information in binary
-> > format, for example the station name or travel information, on a
-> > inaudible audio subcarrier of a radio program. This interface aims at
-> > devices capable of receiving and decoding RDS information.
-> >
-> > The V4L API defines its RDS API as follows.
-> >
-> > From radio devices supporting it, RDS data can be read with the read()
-> > function. The data is packed in groups of three, as follows:
-> >
-> > First Octet: Least Significant Byte of RDS Block
-> > Second Octet: Most Significant Byte of RDS Block
-> > Third Octet:
-> > 	Bit 7: Error bit. Indicates that an uncorrectable error occurred
-> > 	       during reception of this block.
-> > 	Bit 6: Corrected bit. Indicates that an error was corrected for
-> > 	       this data block.
-> > 	Bits 5-3: Received Offset. Indicates the offset received by the
-> > 		  sync system.
-> > 	Bits 2-0: Offset Name. Indicates the offset applied to this data.
-> >
-> > It was argued the RDS API should be extended before integration into
-> > V4L2, no new API has been devised yet. Please write to the linux-media
-> > mailing list for discussion: http://www.linuxtv.org/lists.php.
-> > Meanwhile no V4L2 driver should set the V4L2_CAP_RDS_CAPTURE capability
-> > flag.
-> >
-> > Problems with this API
-> > ----------------------
-> >
-> > As I said before, it is 90% complete, there are just a few things
-> > missing. The Offset Name refers to six possible offsets as defined by
-> > the RDS and RBDS standard (that is the US variant of RDS). Possible
-> > offsets are: A, B, C, C', D and E (RBDS specific).
-> >
-> > The mapping of the values 0-7 to offsets is as follows:
-> >
-> > 0: A
-> > 1: B
-> > 2: C
-> > 3: D
-> > 4: C'
-> > 5: E (RBDS specific)
-> > 6: invalid block E (RDS mode)
-> > 7: invalid block
-> >
-> > This mapping comes from the saa6588 RDS decoder, but it makes sense and
-> > I see no reason to change this. As long as we document it and add a
-> > public RDS header with this information. The original mapping was from
-> > the radio-cadet.c driver. Unfortunately, it was never documented and I
-> > cannot find any details on what the mapping between number and offset
-> > code looks like. Since the cadet is an ISA card I am not too worried
-> > about this and I'm following the newer devices.
-> >
-> > After a lot of googling I found this ancient radio-cadet posting:
-> > http://lkml.indiana.edu/hypermail/linux/kernel/9904.0/0609.html
-> >
-> > This finally explained what the difference between the Received Offset
-> > and the Offset Name is:
-> >
-> > "Bits 5-3: Received Offset. Indicates the block offset received by the
-> > decoder hardware (used to determine the location of the block in a RDS
-> > group).
-> >
-> > Bits 2-0: Offset Name. Indicates the block offset applied by the
-> > decoder. (In some cases, the hardware may try to second-guess the
-> > received values to try to overcome poor reception conditions)."
-> >
-> > Currently all other RDS implementations just make a copy of bits 2-0
-> > and the rdsd daemon (http://rdsd.berlios.de/) uses only bits 2-0.
-> >
-> > I would like to change the definition of these bits, setting bits 5-3
-> > to 0. This way we have three bits available for future enhancements. I
-> > see no advantage in having two offsets. Just pick the one the decoder
-> > gives you.
+> I just bought a Tevii S650 DVB-S2 card and I have a few questions.
 >
-> This would be an userspace API breakage. I can't see any gain on doing
-> this. Are you needing those bytes for some usage?
+> My server have Ubuntu 8.10 amd64 with a custom kernel and drivers and tools
+> compiled from these sources.
+> http://mercurial.intuxication.org/hg/szap-s2
+> http://mercurial.intuxication.org/hg/s2-liplianin/
+>
+> The scan-s2 utility only find channels from latest used transponder in VDR
+> and diseqc does not work. It took me many hours to have VDR working with
+> Tevii S650 because my old diseqc.conf did not work with this card.
+>
+> When I have a skystar2 or a Hauppauge FF rev 2.1 I can use this config.
+>
+> Old diseqc.conf
+> #
+> S1W 11700 V 9750 t v W15 A W15 t
+> S1W 99999 V 10600 t v W15 A W15 T
+> S1W 11700 H 9750 t V W15 A W15 t
+> S1W 99999 H 10600 t V W15 A W15 T
+> #
+> S5E 11700 V 9750 t v W15 B W15 t
+> S5E 99999 V 10600 t v W15 B W15 T
+> S5E 11700 H 9750 t V W15 B W15 t
+> S5E 99999 H 10600 t V W15 B W15 T
 >
 >
-> IMO, I would describe those bits at the API, marking it with a flag
-> stating that this its usage is deprecated, recommending to not use. Let's
-> see if someone will complain. We can keep this as-is until we need, but,
-> in this case, we need to properly document that it will be removed in
-> some future.
-
-I can live with that.
-
-> > Another problem is that there is no good method of selecting RDS vs
-> > RBDS, or checking which of these two (or both) are available.
-> >
-> > I propose to use the v4l2_tuner struct for this. It is an obvious match
-> > since the ability to read RDS is tuner related (no tuner, no RDS :-) ).
-> >
-> > The v4l2_tuner capability field needs two additional caps:
-> >
-> > V4L2_TUNER_CAP_RDS
-> > V4L2_TUNER_CAP_RBDS
-> >
-> > And we can add support to select RDS/RDBS by using one of the reserved
-> > fields:
-> >
-> > __u8 	rds_type;
-> > __u8 	rds_signal;	/* RDS signal strength quality, 0-255 */
-> > __u8 	rds_reserved[2];
-> > __u32   reserved[3];
-> >
-> > And rds_type is:
-> >
-> > V4L2_TUNER_RDS_TYPE_RDS   0x00
-> > V4L2_TUNER_RDS_TYPE_RBDS  0x01
-> >
-> > We can also add new subband flags V4L2_TUNER_SUB_RDS and
-> > V4L2_TUNER_SUB_RBSD so we can report if RDS/RBDS is present.
-> >
-> > I do not think there is any need to introduce an additional
-> > V4L2_CAP_RDS_CAPTURE capability, since it is taken care of in
-> > v4l2_tuner.
-> >
-> > Finally I would prefer to have the requirement that the driver will
-> > buffer at least 10 seconds worth of data (comes to 1200 bytes).
+> New diseqc.conf (working with Tevii S650)
+> #
+> S1W 11700 V 9750 t v W15 [E0 10 38 F0] W15 t
+> S1W 99999 V 10600 t v W15 [E0 10 38 F1] W15 T
+> S1W 11700 H 9750 t V W15 [E0 10 38 F2] W15 t
+> S1W 99999 H 10600 t V W15 [E0 10 38 F3] W15 T
+> #
+> S5E 11700 V 9750 t v W15 [E0 10 38 F4] W15 t
+> S5E 99999 V 10600 t v W15 [E0 10 38 F5] W15 T
+> S5E 11700 H 9750 t V W15 [E0 10 38 F6] W15 t
+> S5E 99999 H 10600 t V W15 [E0 10 38 F7] W15 T
 >
-> Why? IMO, this seems to be something that should be a requirement at user
-> side, not at kernel side: After changing from one station to another, and
-> start receiving RDS/RBDS, wait for some time before output the data.
+> Can this diseqc "problem" cause the scan-s2 tool to fail too?
+> Why do I need to change the diseqc.conf in VDR?
 >
-> > Or perhaps we should add a field that reports the maximum number of
-> > buffered packets? E.g. __u16 rds_buf_size. This might be more generic
-> > and you can even allow this to be set with VIDIOC_S_TUNER (although
-> > drivers can ignore it).
+> Because of this problem I have to manually include all HD-channels to
+> channels.conf. I have tried to follow the README for scan-s2 and tried
+> different options. My old cards work with scan-s2 and diseqc. To be sure I
+> downloaded the latest drivers from www.tevii.com and extracted the
+> firmware from windows drivers but with the same result.
+> Linux driver is from 2008-08-15
+> Windows driver is released 2009-01-22
 >
-> Why to spend 16 bits for it? It seems easier to check for for the amount
-> of received packets on userspace. I think we should avoid to waste those
-> reserved bytes.
-
-Hmm, I'm too creative here, I agree. Let's keep it simple.
-
-I realized that we also need to make a note that no RDS *encoder* interface 
-has yet been designed, and that anyone interested should contact 
-linux-media. Any encoder interface would probably be very similar, except 
-using write() instead of read().
-
-BTW, do you think that drivers that can do RDS should set 
-V4L2_CAP_RDS_CAPTURE in addition to the v4l2_tuner caps? I'm leaning 
-towards a 'yes' here. It's already defined, so there might be some apps 
-that already use this define, and it might be a useful high-level 
-capability anyway.
-
-Thanks for the comments!
-
-Regards,
-
-	Hans
-
-> > With these small changes I think the RDS API is pretty complete and can
-> > become an official V4L2 API.
-> >
-> > Comments?
-> >
-> > 	Hans Verkuil
+> similar problem?
+> http://www.dvbnetwork.de/viewtopic.php?f=59&t=169
 >
-> Cheers,
-> Mauro
+> VDR 1.7.4 works very good with the new diseqc.conf so the card is NOT broken.
+> Any suggestions?
+>
+> /Svankan
 
+Hi!
 
+I don't have any diseqc problem with this card.
+Tested with vdr 1.7.0, scan-s2, szap-s2 (myTeVii and ProgDVB)
+ArchLinux 32-bit, kernel26 2.6.28.4
+here is my vdr disecq.conf
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+# Input 1 - Eutelsat
+
+S16.0E  11700 V  9750  t v W15 [E0 10 38 F0] W15 t
+S16.0E  99999 V 10600  t v W15 [E0 10 38 F0] W15 T
+S16.0E  11700 H  9750  t V W15 [E0 10 38 F0] W15 t
+S16.0E  99999 H 10600  t V W15 [E0 10 38 F0] W15 T
+
+# Input 2 - Sirius
+
+S5E  11700 V  9750  t v W15 [E0 10 38 F4] W15 t
+S5E  99999 V 10600  t v W15 [E0 10 38 F4] W15 T
+S5E  11700 H  9750  t V W15 [E0 10 38 F4] W15 t
+S5E  99999 H 10600  t V W15 [E0 10 38 F4] W15 T
+
+# Input 3 - Hotbird
+
+S13.0E   11700 V  9750  t v W15 [E0 10 38 F8] W15 t
+S13.0E   99999 V 10600  t v W15 [E0 10 38 F8] W15 T
+S13.0E   11700 H  9750  t V W15 [E0 10 38 F8] W15 t
+S13.0E   99999 H 10600  t V W15 [E0 10 38 F8] W15 T
+
+# Input 4 Astra 1 19.2E
+
+S19.2E   11700 V  9750  t v W15 [E0 10 38 FC] W15 t
+S19.2E   99999 V 10600  t v W15 [E0 10 38 FC] W15 T
+S19.2E   11700 H  9750  t V W15 [E0 10 38 FC] W15 t
+S19.2E   99999 H 10600  t V W15 [E0 10 38 FC] W15 T
