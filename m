@@ -1,110 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:36602 "EHLO mx2.redhat.com"
+Received: from smtp6-g21.free.fr ([212.27.42.6]:40147 "EHLO smtp6-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752100AbZBYATx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 19:19:53 -0500
-Date: Tue, 24 Feb 2009 21:19:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: moinejf@free.fr
-Cc: Auke Kok <auke@foo-projects.org>, rossi.f@inwind.it,
-	linux-media@vger.kernel.org
-Subject: Re: zc3xx: "Creative Webcam Live!" never worked with in-tree driver
-Message-ID: <20090224211916.249e15cf@pedra.chehab.org>
-In-Reply-To: <49A48A3B.4090509@foo-projects.org>
-References: <49A4616A.10207@foo-projects.org>
-	<49A48A3B.4090509@foo-projects.org>
+	id S1752736AbZBPLc5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 06:32:57 -0500
+Date: Mon, 16 Feb 2009 12:12:58 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+	"Trent Piepho" <xyzzy@speakeasy.org>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	kilgota@banach.math.auburn.edu,
+	"Adam Baker" <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
+	"Olivier Lorin" <o.lorin@laposte.net>
+Subject: Re: Adding a control for Sensor Orientation
+Message-ID: <20090216121258.3645bf4f@free.fr>
+In-Reply-To: <44220.62.70.2.252.1234782074.squirrel@webmail.xs4all.nl>
+References: <44220.62.70.2.252.1234782074.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 16 Feb 2009 12:01:14 +0100 (CET)
+"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
 
-On Tue, 24 Feb 2009 16:00:59 -0800
-Auke Kok <auke@foo-projects.org> wrote:
-
-> Auke Kok wrote:
-> > 
-> > All,
-> > 
-> > I have a "Creative Technology, Ltd Webcam Live!/Live! Pro" that until 
-> > recently worked fine with the out-of-tree gspcav1 driver 
-> > (gspcav1-20071224.tar.gz is the latest version I used unti 2.6.26).
-> > 
-> > Since this driver (basically) got merged in the kernel I got my hopes up 
-> > that the in-kernel gspca_zc3xx drivers would work. However, that does 
-> > not provide a usable video0 device - mplayer tv:// crashes with 'No 
-> > stream found.' for instance:
-> > 
-> > Playing tv://.
-> > Cache fill:  0.00% (0 bytes)
-> > TV file format detected.
-> > Selected driver: v4l2
-> >  name: Video 4 Linux 2 input
-> >  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
-> >  comment: first try, more to come ;-)
-> > Selected device: WebCam Live!
-> >  Capabilites:  video capture  read/write  streaming
-> >  supported norms:
-> >  inputs: 0 = zc3xx;
-> >  Current input: 0
-> >  Current format: unknown (0x4745504a)
-> > tv.c: norm_from_string(pal): Bogus norm parameter, setting default.
-> > v4l2: ioctl enum norm failed: Invalid argument
-> > Error: Cannot set norm!
-> > Selected input hasn't got a tuner!
-> > v4l2: ioctl set mute failed: Invalid argument
-> > v4l2: ioctl query control failed: Invalid argument
-> > v4l2: ioctl query control failed: Invalid argument
-> > FPS not specified in the header or invalid, use the -fps option.
-> > No stream found.
-> > 
-> > v4l2: ioctl set mute failed: Invalid argument
-> > v4l2: 0 frames successfully processed, 0 frames dropped.
-> > 
-> > Exiting... (End of file)
-> > 
-> > 
-> > I've regressed back to the original import of the spca driver in the 
-> > kernel tree and this doesn't fix it, so I'm assuming that the driver 
-> > were not merged correctly for my particular device.
-> > 
-> > Basically the driver probes and load fine as is right now, no unusual 
-> > message in dmesg as far as I can see:
-> > 
-> > zc0301: V4L2 driver for ZC0301[P] Image Processor and Control Chip v1:1.10
-> > usbcore: registered new interface driver zc0301
-> > usbcore: deregistering interface driver zc0301
-> > gspca: probing 041e:4036
-> > zc3xx: probe 2wr ov vga 0x0000
-> > zc3xx: probe sensor -> 11
-> > zc3xx: Find Sensor HV7131R(c)
-> > gspca: probe ok
-> > usbcore: registered new interface driver zc3xx
-> > zc3xx: registered
-> > 
-> > 
-> > I can post the output of the gspcav1 module with debug=5 for the 
-> > register writes/reads if that is interesting, or anything else for that 
-> > matter - I'd really like to keep this webcam working and staying at 
-> > kernel 2.6.25 is not an option.
-> > 
-> > is there a way to get the gspca_zc3xx driver dump register read/writes? 
-> > this would be a quick way to compare the two drivers and look at the 
-> > differences.
-> > 
-> > Cheers,
-> > 
-> > Auke
-> > 
-> > 
+> Anyone can add an API in 5 seconds. It's modifying or removing a bad
+> API that worries me as that can take years. If you want to add two
+> bits with mount information, feel free. But don't abuse them for
+> pivot information. If you want that, then add another two bits for
+> the rotation:
 > 
+> #define V4L2_BUF_FLAG_VFLIP     0x0400
+> #define V4L2_BUF_FLAG_HFLIP     0x0800
 > 
-> seems I just found the v4lcompat.so stuff, which (apart from being a 
-> pain in the rear) makes the webcam work again...
+> #define V4L2_BUF_FLAG_PIVOT_0   0x0000
+> #define V4L2_BUF_FLAG_PIVOT_90  0x1000
+> #define V4L2_BUF_FLAG_PIVOT_180 0x2000
+> #define V4L2_BUF_FLAG_PIVOT_270 0x3000
+> #define V4L2_BUF_FLAG_PIVOT_MSK 0x3000
 
-This seems to be a very common error. IMO, we should write message when loading
-a gspca that would require libv4l in order to work.
+Hi,
 
-Cheers,
-Mauro
+HFLIP + VFLIP = PIVOT_180
+
+then
+
+#define V4L2_BUF_FLAG_PIVOT_180 0x0c00
+
+Cheers.
+
+-- 
+Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
