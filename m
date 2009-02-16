@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from static.88-198-47-201.clients.your-server.de ([88.198.47.201]
-	helo=butterbrot.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <floe@butterbrot.org>) id 1LXXN3-0006vU-NX
-	for linux-dvb@linuxtv.org; Thu, 12 Feb 2009 09:56:34 +0100
-Received: from [192.168.178.34] (unknown [82.135.95.20])
-	(using SSLv3 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	by butterbrot.org (Postfix) with ESMTPSA id EE1C6154100
-	for <linux-dvb@linuxtv.org>; Thu, 12 Feb 2009 09:57:44 +0100 (CET)
-From: Florian Echtler <floe@butterbrot.org>
+Received: from fetzig.org
+	([88.198.59.52] helo=mercury.fetzig.org ident=postfix)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <felix@fetzig.org>) id 1LZBF9-0001NM-Eo
+	for linux-dvb@linuxtv.org; Mon, 16 Feb 2009 22:43:12 +0100
+Received: from polaris.warp.lan (static-87-78-98-150.netcologne.de
+	[87.78.98.150])
+	by mercury.fetzig.org (Postfix) with ESMTPSA id 3C1DE500EE101
+	for <linux-dvb@linuxtv.org>; Mon, 16 Feb 2009 22:43:04 +0100 (CET)
+Message-ID: <4999DDE4.8040404@fetzig.org>
+Date: Mon, 16 Feb 2009 22:43:00 +0100
+From: Felix Kaechele <felix@fetzig.org>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Date: Thu, 12 Feb 2009 09:55:55 +0100
-Message-Id: <1234428955.5072.7.camel@bernd>
-Mime-Version: 1.0
-Subject: [linux-dvb] Looking for external DVB-C device..
+Subject: [linux-dvb] SkyStar2 not able to tune in 2.6.29 (2.6.27.12 works)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,68 +22,28 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1711989408=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi there!
 
---===============1711989408==
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-hZpuKysA8rPLNjMvY1xd"
+I've recently installed Fedora 11 (Rawhide) on my VDR machine. However 
+my SkyStar2 (Rev 2.6B) is unable to sucessfully gain lock on any of the 
+channels I choose. When I start the machine with the stock Fedora 10 
+2.6.27.12 kernel everything works out as expected.
 
+Is this a known bug?
+Please help me by telling me which information you need to further 
+investigate.
 
---=-hZpuKysA8rPLNjMvY1xd
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Hello everyone,
-
-I've been browsing the wiki and the rest of the web for some time,
-looking for a device which has the following features:
-
-- DVB-C support in Germany
-- Linux support (of course)
-- external device via USB 2.0
-- ability to record raw MPEG stream
-- CI module
-
-AFAICT, the only thing which comes close is the Anysee E30C Plus,
-although the CI isn't (yet) supported. Is there any other option?
-
-And by the way, I'm curious how the communication with the CI actually
-works in Linux. Is that handled inside the driver, or does the end user
-application have to do anything about it? IIRC, once the communication
-has been set up, the decryption is done by the CAM - is that correct?
-
-Many thanks, Yours, Florian
-
-
---=-hZpuKysA8rPLNjMvY1xd
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAkmT5BsACgkQ7CzyshGvatgdrACg8BBMVq2GrTsDoOJTJxnJbuNL
-gBgAn35pTfloSY8UwEzm1H0E3ooLCDQs
-=VPxA
------END PGP SIGNATURE-----
-
---=-hZpuKysA8rPLNjMvY1xd--
-
-
-
---===============1711989408==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thank you,
+Felix
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1711989408==--
