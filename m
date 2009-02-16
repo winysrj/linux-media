@@ -1,16 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.180])
+Received: from mailout07.t-online.de ([194.25.134.83])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nandviv@gmail.com>) id 1LWBXK-0007PS-5z
-	for linux-dvb@linuxtv.org; Sun, 08 Feb 2009 16:25:34 +0100
-Received: by wa-out-1112.google.com with SMTP id k17so1239538waf.1
-	for <linux-dvb@linuxtv.org>; Sun, 08 Feb 2009 07:25:28 -0800 (PST)
+	(envelope-from <andreaz@t-online.de>) id 1LZAzj-0008S1-7s
+	for linux-dvb@linuxtv.org; Mon, 16 Feb 2009 22:27:16 +0100
+From: "Andreas Witte" <andreaz@t-online.de>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 16 Feb 2009 22:26:47 +0100
+Message-ID: <013201c9907d$45cc2bd0$d1648370$@de>
 MIME-Version: 1.0
-Date: Sun, 8 Feb 2009 20:55:28 +0530
-Message-ID: <6b0fc64b0902080725u6897462eg5a98a1eff2390b68@mail.gmail.com>
-From: vivekanand kumar <nandviv@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem in accessing EN50221 card registers
+Content-Language: de
+Subject: [linux-dvb] Sometimes no lock on digivox miniII (Ver3.0)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,94 +18,182 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2098766672=="
+Content-Type: multipart/mixed; boundary="===============1447534774=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2098766672==
-Content-Type: multipart/alternative; boundary=001636418009297f70046269ddaf
+Dies ist eine mehrteilige Nachricht im MIME-Format.
 
---001636418009297f70046269ddaf
-Content-Type: text/plain; charset=ISO-8859-1
+--===============1447534774==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0133_01C99085.A79093D0"
+Content-Language: de
+
+Dies ist eine mehrteilige Nachricht im MIME-Format.
+
+------=_NextPart_000_0133_01C99085.A79093D0
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
 
-Good hello,
-   I have a PCMCIA CAM card on EN50221 standard.
-   The card is interfaced to BCM7324 on EBI lines.
-    Board detects the card,and it has to get initialised through proper
-sequence .The sequence follows :set Reset bit and Poll for Ready bit in
-command Register
-The offset of Command Register is 0x1
-   the processor address pins and    CAM address pins  are interfaced as
-follows
-  Processor                 CAM Card
-   A3<------------------------>A2_CAM
-   A2<-------------------------->A1_CAM
-   A1<-------------------------->A0_CAM
-   ........
-  processor does not show A0 .I suppose this is for even address alignement.
-CAM memory map for command Register is
-A0_CAM=1
-A1_CAM=0
+Hello List,
 
-   Hence to configure 0x1 offset(Command Register) i do
-  CHIP_SELECT=0x1A000000
-   *(ioremap(CHIP_SELECT+2,0x4) =value.
+ 
 
-  I think CHIP_SELECT+2 should select A0_CAM=1 ;
-  Am I right on this?
+after changing my system to newer hardware (and use the latest driver for
+af9015), it
 
-  But when i read the command register value i don,t get correct value.
+seems the device didnt get a lock sometimes (mostly in the case the system
+is started up).
 
-  Can someone please tell me if i select the registers properly as
-  written above ? Or please suggest me something else to be done .
+I use the stick together with mythtv. If i get the partial lock, i restart
+mythbackend - then 
 
-Warm Regards,
- Vivian
+i get the lock. If i get it just the first time the stick is working fine
+for the whole day. Only
 
---001636418009297f70046269ddaf
-Content-Type: text/html; charset=ISO-8859-1
+the first channelpick after system start seems to be the problem.
+
+ 
+
+ I cant reproduce this at all. Sometimes it works, sometimes not. Anybody
+else seeing this? 
+
+Im on gentoo with 2.6.28 kernel.
+
+ 
+
+Any Ideas?
+
+ 
+
+Regards,
+
+Andreas
+
+ 
+
+
+------=_NextPart_000_0133_01C99085.A79093D0
+Content-Type: text/html;
+	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 
-Good hello,<br>&nbsp;&nbsp; I have a PCMCIA CAM card on EN50221 standard.<b=
-r>&nbsp;&nbsp; The card is interfaced to BCM7324 on EBI lines.<br>&nbsp; &n=
-bsp; Board detects the card,and it has to get initialised through proper se=
-quence .The sequence follows :set Reset bit and Poll for Ready bit in comma=
-nd Register <br>
-The offset of Command Register is 0x1<br>&nbsp;&nbsp; the processor address=
- pins and&nbsp;&nbsp;&nbsp; CAM address pins&nbsp; are interfaced as follow=
-s<br>&nbsp; Processor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; CAM Card<br>&nbsp;&nbsp; A3&lt;-=
------------------------&gt;A2_CAM<br>&nbsp;&nbsp; A2&lt;-------------------=
--------&gt;A1_CAM<br>
-&nbsp;&nbsp; A1&lt;--------------------------&gt;A0_CAM<br>&nbsp;&nbsp; ...=
-.....<br>&nbsp; processor does not show A0 .I suppose this is for even addr=
-ess alignement.<br>CAM memory map for command Register is <br>A0_CAM=3D1<br=
->A1_CAM=3D0<br><br>&nbsp;&nbsp; Hence to configure 0x1 offset(Command Regis=
-ter) i do<br>
-&nbsp; CHIP_SELECT=3D0x1A000000<br>&nbsp;&nbsp; *(ioremap(CHIP_SELECT+2,0x4=
-) =3Dvalue.<br><br>&nbsp; I think CHIP_SELECT+2 should select A0_CAM=3D1 ;<=
-br>&nbsp; Am I right on this?<br><br>&nbsp; But when i read the command reg=
-ister value i don,t get correct value.<br>
-<br>&nbsp; Can someone please tell me if i select the registers properly as=
- <br>&nbsp; written above ? Or please suggest me something else to be done =
-.<br><br>Warm Regards,<br>&nbsp;Vivian<br><br><br>&nbsp;&nbsp; <br>&nbsp; <=
-br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>
-&nbsp;&nbsp; <br><br>&nbsp;&nbsp; <br>&nbsp;&nbsp;&nbsp; <br>&nbsp;<br>&nbs=
-p;&nbsp; <br>
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
 
---001636418009297f70046269ddaf--
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.E-MailFormatvorlage17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;}
+@page Section1
+	{size:612.0pt 792.0pt;
+	margin:70.85pt 70.85pt 2.0cm 70.85pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext=3D"edit">
+  <o:idmap v:ext=3D"edit" data=3D"1" />
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body lang=3DDE link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal>Hello List,<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>after changing my system to newer hardware (and use =
+the
+latest driver for af9015), it<o:p></o:p></p>
+
+<p class=3DMsoNormal>seems the device didnt get a lock sometimes (mostly =
+in the
+case the system is started up).<o:p></o:p></p>
+
+<p class=3DMsoNormal>I use the stick together with mythtv. If i get the =
+partial
+lock, i restart mythbackend - then <o:p></o:p></p>
+
+<p class=3DMsoNormal>i get the lock. If i get it just the first time the =
+stick is
+working fine for the whole day. Only<o:p></o:p></p>
+
+<p class=3DMsoNormal>the first channelpick after system start seems to =
+be the
+problem.<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>&nbsp;I cant reproduce this at all. Sometimes it =
+works,
+sometimes not. Anybody else seeing this? <o:p></o:p></p>
+
+<p class=3DMsoNormal>Im on gentoo with 2.6.28 kernel.<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>Any Ideas?<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoNormal>Regards,<o:p></o:p></p>
+
+<p class=3DMsoNormal>Andreas<o:p></o:p></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0133_01C99085.A79093D0--
 
 
---===============2098766672==
+
+--===============1447534774==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -117,4 +204,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2098766672==--
+--===============1447534774==--
