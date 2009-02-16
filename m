@@ -1,96 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:50320 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887AbZBJMaE convert rfc822-to-8bit (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:53515 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518AbZBPQTH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 07:30:04 -0500
-Date: Tue, 10 Feb 2009 10:29:36 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: cx8802.ko module not being built with current HG tree
-Message-ID: <20090210102936.7782b1ec@pedra.chehab.org>
-In-Reply-To: <20090210100955.715770d0@pedra.chehab.org>
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
-	<617be8890902050759x74c08498o355be1d34d7735fe@mail.gmail.com>
-	<20090210093753.69b21572@pedra.chehab.org>
-	<617be8890902100357s7a56776av3475db0cfd486b9@mail.gmail.com>
-	<20090210100955.715770d0@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 16 Feb 2009 11:19:07 -0500
+Received: from shell2.sea5.speakeasy.net ([69.17.116.3])
+          (envelope-sender <xyzzy@speakeasy.org>)
+          by mail3.sea5.speakeasy.net (qmail-ldap-1.03) with AES256-SHA encrypted SMTP
+          for <linux-media@vger.kernel.org>; 16 Feb 2009 16:19:06 -0000
+Date: Mon, 16 Feb 2009 08:19:06 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: linux-media@vger.kernel.org
+cc: e9hack <e9hack@googlemail.com>, obi@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-dvb@linuxtv.org
+Subject: Re: [BUG] changeset 9029 (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
+In-Reply-To: <200902151336.17202@orion.escape-edv.de>
+Message-ID: <Pine.LNX.4.58.0902160811340.24268@shell2.speakeasy.net>
+References: <4986507C.1050609@googlemail.com> <200902151336.17202@orion.escape-edv.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Feb 2009 10:09:55 -0200
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+On Sun, 15 Feb 2009, Oliver Endriss wrote:
+> e9hack wrote:
+> > this change set is wrong. The affected functions cannot be called from an interrupt
+> > context, because they may process large buffers. In this case, interrupts are disabled for
+> > a long time. Functions, like dvb_dmx_swfilter_packets(), could be called only from a
+> > tasklet. This change set does hide some strong design bugs in dm1105.c and au0828-dvb.c.
+> >
+> > Please revert this change set and do fix the bugs in dm1105.c and au0828-dvb.c (and other
+> > files).
+>
+> @Mauro:
+>
+> This changeset _must_ be reverted! It breaks all kernels since 2.6.27
+> for applications which use DVB and require a low interrupt latency.
+>
+> It is a very bad idea to call the demuxer to process data buffers with
+> interrupts disabled!
 
-> On Tue, 10 Feb 2009 12:57:47 +0100
-> Eduard Huguet <eduardhc@gmail.com> wrote:
-> 
-> > Hi,
-> >     Just tried it right now, with these simple steps:
-> > 
-> >       · hg clone http://linuxtv.org/hg/v4l-dvb
-> >       · cd v4l-dvb
-> >       · make menuconfig & exit from it without touching anything
-> > 
-> > I attach the resulting v4l/.config file generated. As you can see,
-> > CX88_MPEG is being marked as 'Y' instead that 'M':
-> > 
-> > $ grep CX88 v4l/.config
-> > CONFIG_VIDEO_CX88=m
-> > CONFIG_VIDEO_CX88_ALSA=m
-> > CONFIG_VIDEO_CX88_BLACKBIRD=m
-> > CONFIG_VIDEO_CX88_DVB=m
-> > CONFIG_VIDEO_CX88_MPEG=y
-> > CONFIG_VIDEO_CX88_VP3054=m
-> 
-> Weird. I 've applied your changeset and copied it at v4l/.config. Then, a make
-> menuconfig and exit, just to be sure that kernel build would touch on it.
-> Everything worked fine.
-> 
-> > I'm compiling against Ubuntu kernel 2.6.22, which I know it's pretty
-> > old. Can this make any difference?
-> 
-> I'm using here kernel 2.6.28.2. Maybe this is some bug on the Ubuntu's kernel
-> kbuild, since make *config options at the out-of-tree kernel is a wrapper to
-> the kernel kbuild.
-> 
-> Could you please try the same procedure with a newer kernel? There's no need to
-> install the kernel on your machine. All you need to do is something like:
-> 
-> wget <newer kernel like 2.6.28.4>
-> tar -xvfoj <kernel>
-> cd linux
-
-Hmm.. you'll need to provide some .config to the downloaded kernel. You may do it my
-running "make allyesconfig" or "make allmodconfig". Another approach would be
-to run "make oldconfig", but, in the latter case, you would need to answer to
-several questions (it is probably ok to just press enter to all questions).
-
-> make init
-> 
-> cd ~/v4l-dvb
-> make release DIR=<newer kernel patch>
-> make menuconfig
-> 
-> The "make release" will allow you to use the Kbuild of the newer kernel.
-> 
-> > 
-> > Best regards,
-> >   Eduard
-> > 
-> > PS: by the way, this works fine when using revision 10189,  just
-> > before CX88 dependencies got altered.
-> 
-> The problem is that the old Kconfig were causing breakages upstream.
-> 
-> Cheers,
-> Mauro
-
-
-
-
-Cheers,
-Mauro
+I agree, this is bad.  The demuxer is far too much work to be done with
+IRQs off.  IMHO, even doing it under a spin-lock is excessive.  It should
+be a mutex.  Drivers should use a work-queue to feed the demuxer.
