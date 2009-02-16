@@ -1,138 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:46159 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbZBQBtS (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4093 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751237AbZBPLBR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 20:49:18 -0500
-Date: Mon, 16 Feb 2009 20:00:34 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Adam Baker <linux@baker-net.org.uk>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+	Mon, 16 Feb 2009 06:01:17 -0500
+Message-ID: <44220.62.70.2.252.1234782074.squirrel@webmail.xs4all.nl>
+Date: Mon, 16 Feb 2009 12:01:14 +0100 (CET)
 Subject: Re: Adding a control for Sensor Orientation
-In-Reply-To: <200902162236.23516.linux@baker-net.org.uk>
-Message-ID: <alpine.LNX.2.00.0902161817430.3019@banach.math.auburn.edu>
-References: <59373.62.70.2.252.1234773218.squirrel@webmail.xs4all.nl> <200902162236.23516.linux@baker-net.org.uk>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hans de Goede" <hdegoede@redhat.com>
+Cc: "Trent Piepho" <xyzzy@speakeasy.org>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	kilgota@banach.math.auburn.edu,
+	"Adam Baker" <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Olivier Lorin" <o.lorin@laposte.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-
-On Mon, 16 Feb 2009, Adam Baker wrote:
-
-> Lots of snipping below so I hope I get the attributions correct.
+> Agreed, and that is not what we are doing, we are only talking mount
+> information here.
 >
-> On Monday 16 February 2009, Hans Verkuil wrote:
->>
->> We are talking about a core change, so some careful thought should go into
->> this.
+> Lets please keep pivot out of the discussion entirely. Esp the whole
+> handheld
+> case, notice that the handheld case will have to be handled at the
+> application
+> level anyways, as the portrait versus landscape detection sensor will not
+> be
+> part of the cam, but will be handled by the kernel input subsystem.
 >
-> Agreed, a few days or even weeks spent getting the right solution is far
-> better than having to update lots of drivers and apps if we get it wrong.
-
-Also agreed. But please permit me to express surprise that such a problem
-never came up before, and does not seem to have been envisioned.
-
+> The problems we are *currently* trying to deal with are 3 things:
 >
->>
->>> So Adam, kilgota, please ignore the rest of this thread and move forward
->>> with the driver, just add the necessary buffer flags to videodev2.h as
->>> part of  your patch (It is usually to submit new API stuff with the same
->>> patch which introduces the first users of this API.
->>
->> Don't ignore it yet :-)
->>
-
-Yeah ...
-
-
-> I've tried twice to write some code when I thought the discussion had died
-> down
-
-I didn't. And now one sees why.
-
-- I'll wait a while before attempting version 3.
-
-Indeed.
-
 >
->> Hans de Goede <hdegoede@redhat.com> wrote:
->>> I welcome libv4l patches to use these flags.
+> 1) Some (web)cams have their sensors mounted upside down and some laptops
+> have
+>     their webcam module entirely mounted upside down
 >
-> Olivier Lorin submitted a patch to use the flags to support the 180 degree
-> rotation - it was pretty trivial but
+> This is a known and solved problem. These webcams have well known usb-ID's
+> and
+> in the laptop case this get complemented by DMI info as one module type
+> (so one
+> USB-id) may be mounted correctly in one laptop model and upside down in
+> another.
 >
-> a) didn't allow v4lconvert_flags to over-ride it to support kernels that don't
-> specify behaviour for those cameras
-
-Eeps. So all those legacy kernels out there need to be supported, too.
-
-> b) only coped with HFLIP and VFLIP both being set
-
-Won't fit the present case.
-
+> I've discussed this with Laurent Pinchart (and other webcam driver
+> authors) and
+> the conclusion was that having a table of USB-ID's + DMI strings in the
+> driver,
+> and design an API to tell userspace to sensor is upside down and have code
+> for
+> all this both in the driver and in userspace makes no sense. Esp since
+> such a
+> table will probably be more easy to update in userspace too. So the
+> conclusion
+> was to just put the entire table of cams with known upside down mounted
+> sensors
+> in userspace. This is currently in libv4l and making many philips webcam
+> users
+> happy (philips has a tendency to mount the sensor upside down).
 >
-> Given an agreed solution I intend to fix both of those problems.
+> A special case here is if the driver can do flipping in hardware, in this
+> case
+> (which is rarer then we would like), the driver keeps the table itself and
+> simply inverts the meaning of the v and h flip controls so userspace will
+> never
+> notice anything, this is what the m5602 driver does.
 
-[...]
+Very nice. I agree completely.
 
-> I certainly agree that re-using the existing controls doesn't seem like a good
-> idea - it seems to combine the case of "the user made a creative decision to
-> produce flipped video" with "this hardware always creates flipped video so
-> please fix it" [...]
+> 2) The new sq905X driver being worked on has the problem that all devices
+> have
+> the same USB-ID, and some model string or id is read in a sq905 specific
+> way
+> over usb and the sensor orientation differs from model.
+>
+> So we need an API to relay this information to userspace, and specifically
+> to
+> libv4l, so it can correct the orientation in software.
+>
+> If you look at the amount of code needed here to relay this information
+> using a
+> control at both the kernel and userspace side this is ridiculous we are
+> talking
+> about a shitload of code to transport 2 bits from kernel space to
+> userspace.
+> Adding a new ioctl just for this would be less code.
+>
+> Also read-only versions of existing controls are definitively not the
+> answer
+> here. read-only already has a well defined meaning, lets not overload that
+> and
+> add all kind of vagueness to our API. API's need to be clear, well and
+> precisely defined!
 
-Well put.
+OK.
 
-> Where does all of that leave us?
+> The discussion on solving the sq905X case was wide open until 3 came
+> along:
+>
+>
+> 3) There is a cam which can be clicked on for example the top of a
+> notebook
+> screen, and then can be flipped over the screen to film someone who is not
+> behind the keyboard, but on the other (back) side of the notebook screen.
+> This
+> flipping happens over the X axis, causing the image to be upside down,
+> this cam
+> has a built-in sensor to detect this (and only this, its a 1 bit sensor).
+>
+> Since we want to be able to correct this in software (in libv4l) on the
+> fly,
+> the idea was born to add vflip and hflip flags to the v4l buffer flags, as
+> polling some control for this is too ugly for words. This also gave us a
+> nice
+> simple KISS solution for problem 2.
 
-Immobilized, apparently.
+OK, I'm fine with using two hflip/vflip bits to tell the mount position.
 
+> So all this has nothing to do with pivotting, case 3 could be seen as a
+> very
+> special case of pivotting, but it is really just a case of the becoming
+> mounted
+> upside down on the fly. and there certainly is no 90 degrees rotation (or
+> any
+> rotation other then 180 degrees) involved in this anywhere. That is a
+> different
+>   (much harder) problem, which needs to be solved at the application level
+> as
+> width and height will change.
 
-Sorry, I would be more patient and less flippant if only everything said 
-had addressed the point instead of flying off on tangents and discussing 
-things which will not solve the problem, no matter how they are decided. 
-As an egregious example, it was brought up that there is/is not/should 
-be/should not be a table of devices which behave this way or that way, 
-according to USB Vendor:Product number. Now, perhaps it is possible to 
-construct an ontological argument for the existence of the Perfect Table, 
-or one could argue in some neo-Platonist sense that the Perfect Table 
-already exists, in the Realm of Ideals, and we mere mortals only need to 
-decide where to keep our imperfect copy. But after seeing that discussion 
-I feel forced to point out -- again -- right here and right now there sure 
-as hell is a device that can't fit in that table, even if said table 
-exists and is Perfect, and no matter where it is kept.
+Case 3 *is* pivoting. That's a separate piece of information from the
+mount position. All I want is that that is administrated in separate bits.
+And if we do this, do it right and support the reporting of 0, 90, 180 and
+270 degrees. No one expects libv4l to handle the portrait modes, and apps
+that can handle this will probably not use libv4l at all.
 
-Again, the problem is that here is a set of devices all of which have the 
-same USB Vendor:Product number, namely 0x2770:0x9120, and some of them 
-require that one does A with the output and others require B. How do you 
-tell by the Vendor:Product number whether A is required. or B? You don't. 
-What you have to do is to ask the device, and it will answer your 
-question. Since nothing else in the kernel or in userspace can do that 
-asking other than code internal to the module, the only entity which can 
-put the question to the device is the module itself. So, I ask everybody, 
-please, this is the actual situation. Deal with it.
+> Now can we please stop this color of the bikeshed discussion, add the 2
+> damn
+> flags and move forward?
 
-I am also quite puzzled that no one seems to have anticipated such a 
-situation. I am a bit new to the business of writing a kernel module. But 
-I have, in recent years, dealt with a lot of the shit hardware that comes 
-our way over at Gphoto, the really cheap $10 to $20 cameras which 
-sometimes are even used as prizes in boxes of breakfast cereal The SQ905 
-cameras are but one example of these. One thing I have definitely learned 
-is that hardware can destroy all "reasonable" expectations. One has to 
-adjust. We still have to support the hardware.
+Anyone can add an API in 5 seconds. It's modifying or removing a bad API
+that worries me as that can take years. If you want to add two bits with
+mount information, feel free. But don't abuse them for pivot information.
+If you want that, then add another two bits for the rotation:
 
-Returning to the present discussion, what is wrong with a manufacturer 
-producing several devices with minor variations and putting the same 
-Vendor:Product number on all of them, and providing a way to query the 
-specific capabilities and needs of each of them? Nothing, actually. So why 
-does it create such a tailspin? Why do I get the impression that nobody 
-else here has ever confronted, envisioned, or anticipated such a scenario?
-I confess that I am surprised.
+#define V4L2_BUF_FLAG_VFLIP     0x0400
+#define V4L2_BUF_FLAG_HFLIP     0x0800
 
-Theodore Kilgore
+#define V4L2_BUF_FLAG_PIVOT_0   0x0000
+#define V4L2_BUF_FLAG_PIVOT_90  0x1000
+#define V4L2_BUF_FLAG_PIVOT_180 0x2000
+#define V4L2_BUF_FLAG_PIVOT_270 0x3000
+#define V4L2_BUF_FLAG_PIVOT_MSK 0x3000
+
+Regards,
+
+        Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
