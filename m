@@ -1,56 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate03.web.de ([217.72.192.234]:47529 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756512AbZBRTRN (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3196 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866AbZBPTXW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 14:17:13 -0500
-Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
-	by fmmailgate03.web.de (Postfix) with ESMTP id 9430AF843A27
-	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 20:17:11 +0100 (CET)
-Received: from [91.5.30.216] (helo=tom-nb)
-	by smtp08.web.de with esmtp (WEB.DE 4.110 #277)
-	id 1LZruw-0000IB-00
-	for linux-media@vger.kernel.org; Wed, 18 Feb 2009 20:17:10 +0100
-From: "t-erdmann@web.de" <t-erdmann@web.de>
+	Mon, 16 Feb 2009 14:23:22 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1GJNFdD026102
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 20:23:19 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 16 Feb 2009 20:23:15 +0100 (CET)
+Message-Id: <200902161923.n1GJNFdD026102@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: DVB-S(2) USB Adapter Problems
-Date: Wed, 18 Feb 2009 21:16:59 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902182116.59583.t-erdmann@web.de>
+Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello List,
-i switched to MSI Media Center Platform which can only hold one PCI Card about 
-a year ago. The built in card is a PCI TT3200 and i added an USB DVB-S2 
-TT3600 externaly. 
-I used multiproto and multiproto_plus but got no stable data stream for TT3600 
-USB adapter. 
-Always distortions and broken TS data stream messages out of VDR. 
-I switched cables between PCI and USB adapters and saw that the problem is 
-always in the USB, PCI card always functions properly.
-I switched to S2 API on the Liplianin tree. 
-The data stream corruptions continued.
-So i bought a TeeVi 650 USB DVB-S2 adapter. 
-It uses a different driver and different firmware but same problems with data 
-stream corruptions. 
-At least i tested the newest 2.6.29-rc5 kernel with built in S2 drivers - with 
-the same result, only USB adapter delivers corrupted data.
-So i want to ask if anyone uses a USB DVB-S(2) adapter without problems and 
-what software configuration is used.
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-My setup: 
-Athlon X2 5000+
-4GB DDR2
-750GB + 1TB SATA
-TT3200 PCI DVB-S2
-TeeVi 650 USB DVB-S2
+Results of the daily build of v4l-dvb:
 
-VDR 1.7.0 with xine plugin patched similar to VDR -Wiki
-liplianin DVB-S2 repository
-ffmpeg out of CVS
-xine-lib 1.2
+date:        Mon Feb 16 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10571:12a10f808bfd
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc5-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc5-x86_64: WARNINGS
+fw/apps: OK
+spec: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
