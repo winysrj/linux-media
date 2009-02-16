@@ -1,49 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:40977 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752617AbZBFTDk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 14:03:40 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so591396fgg.17
-        for <linux-media@vger.kernel.org>; Fri, 06 Feb 2009 11:03:38 -0800 (PST)
-Message-ID: <498C8988.8030103@googlemail.com>
-Date: Fri, 06 Feb 2009 20:03:36 +0100
-From: Johannes Engel <jcnengel@googlemail.com>
+Received: from ns01.unsolicited.net ([69.10.132.115]:60642 "EHLO
+	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751697AbZBPUDx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 15:03:53 -0500
+Message-ID: <4999C068.6060400@unsolicited.net>
+Date: Mon, 16 Feb 2009 19:37:12 +0000
+From: David <david@unsolicited.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dvb-usb-cinergyT2
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Technotrend TT-connect S-2400 - worked in only one kernel release
+ (2.6.26)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+There is a bug report in bugzilla about this one, but I'm wondering if
+anyone else is seeing problems with this (USB) device. I see the
+following timeout in kernel versions beyond 2.6.26
 
-Switching to the new kernel 2.6.28 including the new driver for my Terratec Cinergy T² made the thing almost unusable.
-Neither mplayer nor scan resp. w_scan is able to tune the card anymore, not even the led lights up anymore. Sometimes tzap manages to get out a proper signal, but not reliably.
-
-The kernel logs says the following:
-
-dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+[ 3086.636035] usb 3-10: new high speed USB device using ehci_hcd and
+address 7
+[ 3086.769507] usb 3-10: configuration #1 chosen from 1 choice
+[ 3087.066065] dvb-usb: found a 'Technotrend TT-connect S-2400' in cold
+state, will try to load a firmware
+[ 3087.066073] usb 3-10: firmware: requesting dvb-usb-tt-s2400-01.fw
+[ 3087.102717] dvb-usb: downloading firmware from file
+'dvb-usb-tt-s2400-01.fw'
+[ 3087.165343] usbcore: registered new interface driver dvb_usb_ttusb2
+[ 3087.166071] usb 3-10: USB disconnect, address 7
+[ 3087.169039] dvb-usb: generic DVB-USB module successfully
 deinitialized and disconnected.
-usbcore: deregistering interface driver cinergyT2
-usb 5-1: new high speed USB device using ehci_hcd and address 13
-usb 5-1: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid maxpacket 64
-usb 5-1: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 64
-usb 5-1: configuration #1 chosen from 1 choice
-usb 5-1: New USB device found, idVendor=0ccd, idProduct=0038
-usb 5-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 5-1: Product: Cinergy T�
-usb 5-1: Manufacturer: TerraTec GmbH
-dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
-DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)...
-input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb5/5-1/input/input17
-dvb-usb: schedule remote query interval to 50 msecs.
-dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully initialized and connected.
-usbcore: registered new interface driver cinergyT2
+[ 3088.928027] usb 3-10: new high speed USB device using ehci_hcd and
+address 8
+[ 3089.061927] usb 3-10: configuration #1 chosen from 1 choice
+[ 3089.062504] dvb-usb: found a 'Technotrend TT-connect S-2400' in warm
+state.
+[ 3089.063148] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[ 3089.063404] DVB: registering new adapter (Technotrend TT-connect S-2400)
+[ 3089.074375] DVB: registering adapter 0 frontend 0 (Philips TDA10086
+DVB-S)...
+[ 3091.076106] dvb-usb: recv bulk message failed: -110
+[ 3091.076113] ttusb2: there might have been an error during control
+message transfer. (rlen = 0, was 0)
+[ 3091.076349] dvb-usb: Technotrend TT-connect S-2400 successfully
+initialized and connected.
 
-Do you need any further information? Please CC me, since I am not subscribed to the list.
 
-Cheers, Johannes
+the 2.6.26 trace looks normal.
 
+usb 1-3: new high speed USB device using ehci_hcd and address 14
+usb 1-3: configuration #1 chosen from 1 choice
+dvb-usb: found a 'Technotrend TT-connect S-2400' in cold state, will try
+to load a firmware
+firmware: requesting dvb-usb-tt-s2400-01.fw
+dvb-usb: downloading firmware from file 'dvb-usb-tt-s2400-01.fw'
+usb 1-3: USB disconnect, address 14
+dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+usb 1-3: new high speed USB device using ehci_hcd and address 15
+usb 1-3: configuration #1 chosen from 1 choice
+dvb-usb: found a 'Technotrend TT-connect S-2400' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software
+demuxer.
+DVB: registering new adapter (Technotrend TT-connect S-2400)
+DVB: registering frontend 3 (Philips TDA10086 DVB-S)...
+dvb-usb: Technotrend TT-connect S-2400 successfully initialized and
+connected.
+
+
+Cheers
+David
