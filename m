@@ -1,152 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2675 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755277AbZBJVVt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 16:21:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: cx8802.ko module not being built with current HG tree
-Date: Tue, 10 Feb 2009 22:21:39 +0100
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com> <200902102132.00114.hverkuil@xs4all.nl> <20090210184147.61d4655e@pedra.chehab.org>
-In-Reply-To: <20090210184147.61d4655e@pedra.chehab.org>
+Received: from ns1.suse.de ([195.135.220.2]:41202 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756946AbZBPMx2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 07:53:28 -0500
+Date: Mon, 16 Feb 2009 13:53:24 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Tobias Klauser <tklauser@distanz.ch>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com, kernel-janitors@vger.kernel.org,
+	trivial@kernel.org
+Subject: Re: [PATCH] V4L: Storage class should be before const qualifier
+In-Reply-To: <20090209210649.GA7378@xenon.distanz.ch>
+Message-ID: <alpine.LNX.1.10.0902161353150.18110@jikos.suse.cz>
+References: <20090209210649.GA7378@xenon.distanz.ch>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200902102221.40067.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 10 February 2009 21:41:47 Mauro Carvalho Chehab wrote:
-> On Tue, 10 Feb 2009 21:31:59 +0100
->
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Tuesday 10 February 2009 19:47:40 Mauro Carvalho Chehab wrote:
-> > > On Tue, 10 Feb 2009 10:25:26 -0800 (PST)
-> > >
-> > > Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > > > On Tue, 10 Feb 2009, Eduard Huguet wrote:
-> > > > >     I don't have yet the buggy config, but the steps I was
-> > > > > following when I encounter the problem were the following:
-> > > > >         · hg clone http://linuxtv.org/hg/v4l-dvb
-> > > > >         · cd v4l-dvb
-> > > > >         · make menuconfig
-> > > >
-> > > > This is what I did too.  Just use the menuconfig or xconfig
-> > > > targets. Maybe the kernel kconfig behavior has changed?
-> > >
-> > > Hmm... I did a test here with RHEL 2.6.18 kernel:
-> > >
-> > > $ make menuconfig
-> > > make -C /home/v4l/master/v4l menuconfig
-> > > make[1]: Entrando no diretório `/home/v4l/master/v4l'
-> > > /usr/src/kernels/2.6.18-125.el5-x86_64//scripts/kconfig/mconf
-> > > ./Kconfig #
-> > > # configuration written to .config
-> > > #
-> > >
-> > >
-> > > *** End of Linux kernel configuration.
-> > > *** Execute 'make' to build the kernel or try 'make help'.
-> > >
-> > > $ grep CX88 v4l/.config
-> > > CONFIG_VIDEO_CX88=m
-> > > CONFIG_VIDEO_CX88_ALSA=m
-> > > CONFIG_VIDEO_CX88_BLACKBIRD=m
-> > > CONFIG_VIDEO_CX88_DVB=m
-> > > CONFIG_VIDEO_CX88_MPEG=y
-> > > CONFIG_VIDEO_CX88_VP3054=m
-> > >
-> > > So, I got the buggy .config
-> > >
-> > > Another test with 2.6.27:
-> > >
-> > > $ make menuconfig
-> > > make -C /home/v4l/master/v4l menuconfig
-> > > make[1]: Entrando no diretório `/home/v4l/master/v4l'
-> > > ./scripts/make_kconfig.pl /usr/src/kernels/v2.6.27.4/
-> > > /usr/src/kernels/v2.6.27.4/ Preparing to compile for kernel version
-> > > 2.6.27
-> > > VIDEO_PXA27x: Requires at least kernel 2.6.29
-> > > USB_STV06XX: Requires at least kernel 2.6.28
-> > > /usr/src/kernels/v2.6.27.4.i5400//scripts/kconfig/mconf ./Kconfig
-> > > #
-> > > # configuration written to .config
-> > > #
-> > >
-> > >
-> > > *** End of Linux kernel configuration.
-> > > *** Execute 'make' to build the kernel or try 'make help'.
-> > >
-> > > make[1]: Saindo do diretório `/home/v4l/master/v4l'
-> > > [v4l@pedra master]$ grep CX88 v4l/.config
-> > > CONFIG_VIDEO_CX88=m
-> > > CONFIG_VIDEO_CX88_ALSA=m
-> > > CONFIG_VIDEO_CX88_BLACKBIRD=m
-> > > CONFIG_VIDEO_CX88_DVB=m
-> > > CONFIG_VIDEO_CX88_MPEG=m
-> > > CONFIG_VIDEO_CX88_VP3054=m
-> > >
-> > > With 2.6.27, everything is OK.
-> > >
-> > > So, it seems that a fix at some kernel between 2.6.22 and 2.6.27
-> > > changed (or fixed) the Kconfig behaviour.
-> > >
-> > > I suspect that the better fix for this would be to run something
-> > > like:
-> > >
-> > > cat .config|sed s,'=y','=m'
-> > >
-> > > For kernels older than 2.6.27.
-> > >
-> > > Maybe Hans can give us a hint on what kernel this issue were solved,
-> > > with his build environment.
-> >
-> > 2.6.21 is wrong, 2.6.22 is right. Cause: dependency on VIDEOBUF_DMA_SG,
-> > which has a dependency on CONFIG_HAS_DMA, which was apparently
-> > introduced in 2.6.22 and didn't exist in 2.6.21.
-> >
-> > This is fixed by the attached diff.
->
-> No, it didn't fix. I'm still getting this issue with 2.6.18.
->
-> Btw, on RHEL5 2.6.18 kernel, HAS_DMA does exist:
->
-> $ grep CONFIG_HAS_DMA /usr/src/kernels/2.6.18-125.el5-x86_64/.config
-> CONFIG_HAS_DMA=y
+On Mon, 9 Feb 2009, Tobias Klauser wrote:
 
-Oops, this fixes a different bug. It is still a bug fix, though, since it 
-prevents CX88 from being build at all on any vanilla kernels < 2.6.22. Can 
-you apply it?
+> The C99 specification states in section 6.11.5:
+> 
+> The placement of a storage-class specifier other than at the beginning
+> of the declaration specifiers in a declaration is an obsolescent
+> feature.
+> 
+> Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+> ---
+>  drivers/media/video/gspca/t613.c |    2 +-
+>  drivers/media/video/tcm825x.c    |   22 +++++++++++-----------
+>  drivers/media/video/tcm825x.h    |    2 +-
+>  3 files changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/video/gspca/t613.c b/drivers/media/video/gspca/t613.c
+> index 6ee111a..8b8c029 100644
+> --- a/drivers/media/video/gspca/t613.c
+> +++ b/drivers/media/video/gspca/t613.c
+> @@ -271,7 +271,7 @@ struct additional_sensor_data {
+>  	const __u8 stream[4];
+>  };
+>  
+> -const static struct additional_sensor_data sensor_data[] = {
+> +static const struct additional_sensor_data sensor_data[] = {
+>      {				/* TAS5130A */
+>  	.data1 =
+>  		{0xd0, 0xbb, 0xd1, 0x28, 0xd2, 0x10, 0xd3, 0x10,
+> diff --git a/drivers/media/video/tcm825x.c b/drivers/media/video/tcm825x.c
+> index 29991d1..b30c492 100644
+> --- a/drivers/media/video/tcm825x.c
+> +++ b/drivers/media/video/tcm825x.c
+> @@ -50,7 +50,7 @@ struct tcm825x_sensor {
+>  };
+>  
+>  /* list of image formats supported by TCM825X sensor */
+> -const static struct v4l2_fmtdesc tcm825x_formats[] = {
+> +static const struct v4l2_fmtdesc tcm825x_formats[] = {
+>  	{
+>  		.description = "YUYV (YUV 4:2:2), packed",
+>  		.pixelformat = V4L2_PIX_FMT_UYVY,
+> @@ -76,15 +76,15 @@ const static struct v4l2_fmtdesc tcm825x_formats[] = {
+>   * TCM825X register configuration for all combinations of pixel format and
+>   * image size
+>   */
+> -const static struct tcm825x_reg subqcif	=	{ 0x20, TCM825X_PICSIZ };
+> -const static struct tcm825x_reg qcif	=	{ 0x18, TCM825X_PICSIZ };
+> -const static struct tcm825x_reg cif	=	{ 0x14, TCM825X_PICSIZ };
+> -const static struct tcm825x_reg qqvga	=	{ 0x0c, TCM825X_PICSIZ };
+> -const static struct tcm825x_reg qvga	=	{ 0x04, TCM825X_PICSIZ };
+> -const static struct tcm825x_reg vga	=	{ 0x00, TCM825X_PICSIZ };
+> +static const struct tcm825x_reg subqcif	=	{ 0x20, TCM825X_PICSIZ };
+> +static const struct tcm825x_reg qcif	=	{ 0x18, TCM825X_PICSIZ };
+> +static const struct tcm825x_reg cif	=	{ 0x14, TCM825X_PICSIZ };
+> +static const struct tcm825x_reg qqvga	=	{ 0x0c, TCM825X_PICSIZ };
+> +static const struct tcm825x_reg qvga	=	{ 0x04, TCM825X_PICSIZ };
+> +static const struct tcm825x_reg vga	=	{ 0x00, TCM825X_PICSIZ };
+>  
+> -const static struct tcm825x_reg yuv422	=	{ 0x00, TCM825X_PICFMT };
+> -const static struct tcm825x_reg rgb565	=	{ 0x02, TCM825X_PICFMT };
+> +static const struct tcm825x_reg yuv422	=	{ 0x00, TCM825X_PICFMT };
+> +static const struct tcm825x_reg rgb565	=	{ 0x02, TCM825X_PICFMT };
+>  
+>  /* Our own specific controls */
+>  #define V4L2_CID_ALC				V4L2_CID_PRIVATE_BASE
+> @@ -248,10 +248,10 @@ static struct vcontrol {
+>  };
+>  
+>  
+> -const static struct tcm825x_reg *tcm825x_siz_reg[NUM_IMAGE_SIZES] =
+> +static const struct tcm825x_reg *tcm825x_siz_reg[NUM_IMAGE_SIZES] =
+>  { &subqcif, &qqvga, &qcif, &qvga, &cif, &vga };
+>  
+> -const static struct tcm825x_reg *tcm825x_fmt_reg[NUM_PIXEL_FORMATS] =
+> +static const struct tcm825x_reg *tcm825x_fmt_reg[NUM_PIXEL_FORMATS] =
+>  { &yuv422, &rgb565 };
+>  
+>  /*
+> diff --git a/drivers/media/video/tcm825x.h b/drivers/media/video/tcm825x.h
+> index 770ebac..5b7e696 100644
+> --- a/drivers/media/video/tcm825x.h
+> +++ b/drivers/media/video/tcm825x.h
+> @@ -188,7 +188,7 @@ struct tcm825x_platform_data {
+>  /* Array of image sizes supported by TCM825X.  These must be ordered from
+>   * smallest image size to largest.
+>   */
+> -const static struct capture_size tcm825x_sizes[] = {
+> +static const struct capture_size tcm825x_sizes[] = {
+>  	{ 128,  96 }, /* subQCIF */
+>  	{ 160, 120 }, /* QQVGA */
+>  	{ 176, 144 }, /* QCIF */
 
-> Also, the original reporter were for an Ubuntu kernel 2.6.22.
-
-I did some more testing and the bug disappears in kernel 2.6.25. Also, if I 
-just run 'make', then the .config file it produces is fine. I wonder if it 
-isn't a bug in menuconfig itself.
-
-Regards,
-
-	Hans
-
->
-> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> >
-> > BTW, all the scripts I use to setup and run the build environment are
-> > available here: http://www.xs4all.nl/%7Ehverkuil/logs/scripts.tar.bz2
-> >
-> > Regards,
-> >
-> > 	Hans
->
-> Cheers,
-> Mauro
-
-
+This doesn't seem to be picked by anyone for current -next/-mmotm, I have
+applied it to trivial tree. Thanks,
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Jiri Kosina
+SUSE Labs
