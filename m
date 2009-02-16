@@ -1,58 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:49712 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753385AbZBMW1Y (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.234]:58026 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732AbZBPUvY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 17:27:24 -0500
-Date: Fri, 13 Feb 2009 20:26:55 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Michael Schimek <mschimek@gmx.at>,
-	hjkoch@users.berlios.de, tobias.lorenz@gmx.net,
-	belavenuto@gmail.com
-Subject: Re: RFC: Finalizing the V4L2 RDS interface
-Message-ID: <20090213202655.66d6923c@pedra.chehab.org>
-In-Reply-To: <200902132259.07618.hverkuil@xs4all.nl>
-References: <200902130955.19995.hverkuil@xs4all.nl>
-	<20090213191545.3d92e121@pedra.chehab.org>
-	<200902132259.07618.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Mon, 16 Feb 2009 15:51:24 -0500
+Received: by rv-out-0506.google.com with SMTP id g37so1702223rvb.1
+        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 12:51:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
+References: <4999A6DD.7030707@gmx.de> <200902161908.15698.hverkuil@xs4all.nl>
+	 <a3ef07920902161037nf02b51dl2b411e33ddc76933@mail.gmail.com>
+	 <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
+Date: Mon, 16 Feb 2009 12:51:22 -0800
+Message-ID: <a3ef07920902161251g29074109i5d446534572fab57@mail.gmail.com>
+Subject: Re: DVB-API v5 questions and no dvb developer answering ?
+From: VDR User <user.vdr@gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, wk <handygewinnspiel@gmx.de>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 13 Feb 2009 22:59:07 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Mon, Feb 16, 2009 at 11:33 AM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> As always we continue to welcome patches, including for the
+> documentation.  Instead of bitching and moaning, how about you roll up
+> your sleeves and actually help out?
 
-> > > Or perhaps we should add a field that reports the maximum number of
-> > > buffered packets? E.g. __u16 rds_buf_size. This might be more generic
-> > > and you can even allow this to be set with VIDIOC_S_TUNER (although
-> > > drivers can ignore it).
-> >
-> > Why to spend 16 bits for it? It seems easier to check for for the amount
-> > of received packets on userspace. I think we should avoid to waste those
-> > reserved bytes.
-> 
-> Hmm, I'm too creative here, I agree. Let's keep it simple.
+Interesting you would suggest people who did not develop s2api be the
+ones to write the documentation for it.
 
-Ok.
+> Let's try to remember that pretty much all the developers here are
+> volunteers, so berating them for not doing things fast enough for your
+> personal taste is not really very productive.
 
-> I realized that we also need to make a note that no RDS *encoder* interface 
-> has yet been designed, and that anyone interested should contact 
-> linux-media. Any encoder interface would probably be very similar, except 
-> using write() instead of read().
+Ahh yes, because everyone is a volunteer nobody is entitled to
+opinions that aren't akin to sending flowers.  Sorry, it slipped my
+mind that only 'approved' opinions are welcome.
 
-There are some interests on RDS encoder also. Someone contacted me about that
-sometime ago. I suspect that a few more is needed than just write().
+I would say that neglecting something as important as proper
+documentation for several months extends beyond "personal taste" and
+into the realm of common sense.  Especially when people trying to
+actively develop software have requested such information on many
+occasions, only to be ignored.  Call me crazy but that is what I
+consider to be 'not really very productive'.  Certainly far more then
+my measly little ol' opinion on the matter.
 
-> BTW, do you think that drivers that can do RDS should set 
-> V4L2_CAP_RDS_CAPTURE in addition to the v4l2_tuner caps? I'm leaning 
-> towards a 'yes' here. It's already defined, so there might be some apps 
-> that already use this define, and it might be a useful high-level 
-> capability anyway.
-
-I think so.
-
-Cheers,
-Mauro
+I guess we'll agree to disagree on some key points.  Thanks for
+sharing none-the-less.  And hopefully those who have been so patiently
+and politely asking for help will finally get it.  Unless, of course,
+you think that's a bad idea?
