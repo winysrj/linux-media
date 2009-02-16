@@ -1,84 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2931 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbZBPSIL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 13:08:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: wk <handygewinnspiel@gmx.de>
-Subject: Re: DVB-API v5 questions and no dvb developer answering ?
-Date: Mon, 16 Feb 2009 19:08:15 +0100
-Cc: linux-media@vger.kernel.org
-References: <4999A6DD.7030707@gmx.de>
-In-Reply-To: <4999A6DD.7030707@gmx.de>
+Received: from mx2.redhat.com ([66.187.237.31]:38601 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754447AbZBPO1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 09:27:08 -0500
+Message-ID: <4999774E.9000600@redhat.com>
+Date: Mon, 16 Feb 2009 15:25:18 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Trent Piepho <xyzzy@speakeasy.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kilgota@banach.math.auburn.edu,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>
+Subject: Re: Adding a control for Sensor Orientation
+References: <42583.62.70.2.252.1234792848.squirrel@webmail.xs4all.nl>
+In-Reply-To: <42583.62.70.2.252.1234792848.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902161908.15698.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 16 February 2009 18:48:13 wk wrote:
-> The last week two guys were kindly asking here on the list where to find
-> a written DVB-API v5 documentation,
-> but nobody of the dvb driver community was answering.
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg01350.html
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg01300.html
->
-> Does that mean that:
-> - dvb developers are currently not interested in application developers
-> integrating new DVB-API v5? or..
-> - no dvb developer reading that list knows something about
-> documentation? or..
-> - does it simply not exist, so who is working on that api documentation
-> stuff?
 
-I do know that the main dvb devs involved in this api are very busy lately, 
-but that's no excuse for not providing a document in the Documentation/dvb 
-directory.
 
-Steve, Mike, spend a few hours in a weekend to document this API!
+Hans Verkuil wrote:
+>>> If you want to add two bits with
+>>> mount information, feel free. But don't abuse them for pivot
+>>> information.
+>>> If you want that, then add another two bits for the rotation:
+>>>
+>>> #define V4L2_BUF_FLAG_VFLIP     0x0400
+>>> #define V4L2_BUF_FLAG_HFLIP     0x0800
+>>>
+>>> #define V4L2_BUF_FLAG_PIVOT_0   0x0000
+>>> #define V4L2_BUF_FLAG_PIVOT_90  0x1000
+>>> #define V4L2_BUF_FLAG_PIVOT_180 0x2000
+>>> #define V4L2_BUF_FLAG_PIVOT_270 0x3000
+>>> #define V4L2_BUF_FLAG_PIVOT_MSK 0x3000
+>>>
+>> Ok, this seems good. But if we want to distinguish between static sensor
+>> mount
+>> information, and dynamic sensor orientation changing due to pivotting,
+>> then I
+>> think we should only put the pivot flags in the buffer flags, and the
+>> static
+>> flags should be in the VIDIOC_QUERYCAP capabilities flag, what do you
+>> think of
+>> that?
+> 
+> That's for driver global information. This type of information is
+> input-specific (e.g. input 1 might be from an S-Video input and does not
+> require v/hflip, and input 2 is from a sensor and does require v/hflip).
+> So struct v4l2_input seems a good place for it.
+> 
+> Looking at v4l2_input there is a status field, but the status information
+> is valid for the current input only. We can:
+> 
+> 1) add flags here and only set the mounting information for the current
+> input,
+> 
+> 2) add flags here and document that these flags are valid for any input,
+> not just the current, or:
+> 
+> 3) take one of the reserved fields and turn that into a 'flags' field that
+> can be used for static info about the input.
+> 
+> To be honest, I prefer 3.
+> 
+> The same can be done for v4l2_output should it become necessary in the
+> future.
+> 
+> Actually, pivot information could be stored here as well. Doing that makes
+> it possible to obtain the orientation without needing to start a capture,
+> and makes it possible to be used (although awkwardly) with the read()
+> interface.
+> 
+> You still want to report this information in v4l2_buffer as well since it
+> can change on the fly.
+> 
 
-Proper documentation should be a hard requirement before allowing new APIs 
-in the kernel IMHO.
+Sounds good to me.
 
 Regards,
 
-	Hans
+Hans
 
->
->
-> The offical documentation found on linuxtv.org is outdated and already 5
-> years old, and describes only api v3.
-> See http://www.linuxtv.org/downloads/linux-dvb-api-1.0.0.pdf
->
-> Please read also the announcements on linuxtv:
-> http://www.linuxtv.org/news.php?entry=2008-09-23.mchehab
-> [quote]
-> Some improvements were proposed by the LinuxTV developers, in order to
-> improve the S2API, including:
-> ...
-> * Update DVB API documentation to reflect the API changes;"
-> [/quote]
->
-> But also this statement is already now five months old,
-> so i guess documentation should be finished meanwhile or at least
-> started and usable/redistributable..
->
-> Is it possible to get some information on that topic?
->
-> -Winfried
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
