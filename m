@@ -1,89 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:33984 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752264AbZBPDzW (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3748 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758059AbZBPOAv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 22:55:22 -0500
-Date: Sun, 15 Feb 2009 19:55:20 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: kilgota@banach.math.auburn.edu
-cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>
+	Mon, 16 Feb 2009 09:00:51 -0500
+Message-ID: <42583.62.70.2.252.1234792848.squirrel@webmail.xs4all.nl>
+Date: Mon, 16 Feb 2009 15:00:48 +0100 (CET)
 Subject: Re: Adding a control for Sensor Orientation
-In-Reply-To: <alpine.LNX.2.00.0902151844340.1496@banach.math.auburn.edu>
-Message-ID: <Pine.LNX.4.58.0902151926410.24268@shell2.speakeasy.net>
-References: <200902142048.51863.linux@baker-net.org.uk>
- <alpine.LNX.2.00.0902141624410.315@banach.math.auburn.edu> <4997DB74.6000108@redhat.com>
- <200902151019.35555.hverkuil@xs4all.nl> <4997E05F.9080509@redhat.com>
- <Pine.LNX.4.58.0902150445490.24268@shell2.speakeasy.net> <49981C9F.7000305@redhat.com>
- <Pine.LNX.4.58.0902151506220.24268@shell2.speakeasy.net>
- <alpine.LNX.2.00.0902151844340.1496@banach.math.auburn.edu>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hans de Goede" <hdegoede@redhat.com>
+Cc: "Trent Piepho" <xyzzy@speakeasy.org>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	kilgota@banach.math.auburn.edu,
+	"Adam Baker" <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Olivier Lorin" <o.lorin@laposte.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Feb 2009 kilgota@banach.math.auburn.edu wrote:
-> On Sun, 15 Feb 2009, Trent Piepho wrote:
-> > On Sun, 15 Feb 2009, Hans de Goede wrote:
-> >>>>> I think we should also be able to detect 90 and 270 degree rotations. Or at
-> >>>>> the very least prepare for it. It's a safe bet to assume that webcams will
-> >>>>> arrive that can detect portrait vs landscape orientation.
-> >>>> Handling those (esp on the fly) will be rather hard as width and height then
-> >>>> get swapped. So lets worry about those when we need to. We will need an
-> >>>> additional flag for those cases anyways.
-> >>>
-> >>> Why would you need to worry about width and height getting swapped?
-> >>> Meta-data about the frame would indicate it's now in portrait mode vs
-> >>> landscape mode, but the dimentions would be unchanged.
-> >>
-> >> Yes, unless ofcourse you want to display a proper picture and not one on its
-> >> side, when the camera is rotated 90 degrees, so somewere you need to rotate the
-> >> picture 90 degrees, and the lower down in the stack you do that, the bigger the
-> >> chance you do not need to duplicate the rotation code in every single app.
-> >> however the app will mostlikely become unhappy when you start out pushing
-> >> frames whith a changed width / height.
-> >
-> > It seems that image rotation, like format conversion, is something that is
-> > best done in userspace.  It could be done in hardware with opengl or faster
-> > software using MMX or SSE based code that can't be used in the kernel.
+>> If you want to add two bits with
+>> mount information, feel free. But don't abuse them for pivot
+>> information.
+>> If you want that, then add another two bits for the rotation:
+>>
+>> #define V4L2_BUF_FLAG_VFLIP     0x0400
+>> #define V4L2_BUF_FLAG_HFLIP     0x0800
+>>
+>> #define V4L2_BUF_FLAG_PIVOT_0   0x0000
+>> #define V4L2_BUF_FLAG_PIVOT_90  0x1000
+>> #define V4L2_BUF_FLAG_PIVOT_180 0x2000
+>> #define V4L2_BUF_FLAG_PIVOT_270 0x3000
+>> #define V4L2_BUF_FLAG_PIVOT_MSK 0x3000
+>>
 >
-> 1. Everyone seems to agree that the kernel module itself is not going to
-> do things like rotate or flip data even if a given supported device
-> always needs that done.
->
-> However, this decision has a consequence:
->
-> 2. Therefore, the module must send the information about what is needed
-> out of the module, to whatever place is going to deal with it. Information
-> which is known to the module but unknown anywere else must be transmitted
-> somehow.
->
-> Now there is a further consequence:
->
-> 3. In view of (1) and (2) there has to be a way agreed upon for the module
-> to pass the relevant information onward.
->
-> It is precisely on item 3 that we are stuck right now. There is an
-> immediate need, not a theoretical need but an immediate need. However,
-> there is no agreed-upon method or convention for communication.
+> Ok, this seems good. But if we want to distinguish between static sensor
+> mount
+> information, and dynamic sensor orientation changing due to pivotting,
+> then I
+> think we should only put the pivot flags in the buffer flags, and the
+> static
+> flags should be in the VIDIOC_QUERYCAP capabilities flag, what do you
+> think of
+> that?
 
-There are already controls being added for HFLIP, VFLIP, and rotation, so
-that's certainly one way.  They're being added as writable controls for
-someone's hardware that can do these image manipulations.  But it seems
-like a different driver could just as easily provide them as read-only
-controls to inform software that it has a non-standard image layout.
+That's for driver global information. This type of information is
+input-specific (e.g. input 1 might be from an S-Video input and does not
+require v/hflip, and input 2 is from a sensor and does require v/hflip).
+So struct v4l2_input seems a good place for it.
 
-It sounds like per frame rotation metadata would be useful for cameras that
-have an orientation sensor.
+Looking at v4l2_input there is a status field, but the status information
+is valid for the current input only. We can:
 
-> problems are not so very related at all. As I understand, it is visualized
-> that a camera could be put on a pivot, with control mechanism which would
-> permit various rotations and then the question becomes how to support a
-> camera and to make the stream come out "right" no matter which way the
+1) add flags here and only set the mounting information for the current
+input,
 
-I think we already have controls for camera motors, i.e. pan, tilt, and
-rotation.  That's totally different.
+2) add flags here and document that these flags are valid for any input,
+not just the current, or:
+
+3) take one of the reserved fields and turn that into a 'flags' field that
+can be used for static info about the input.
+
+To be honest, I prefer 3.
+
+The same can be done for v4l2_output should it become necessary in the
+future.
+
+Actually, pivot information could be stored here as well. Doing that makes
+it possible to obtain the orientation without needing to start a capture,
+and makes it possible to be used (although awkwardly) with the read()
+interface.
+
+You still want to report this information in v4l2_buffer as well since it
+can change on the fly.
+
+Regards,
+
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
