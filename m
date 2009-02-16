@@ -1,53 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:35303 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473AbZBYCDU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 21:03:20 -0500
-Date: Tue, 24 Feb 2009 23:02:00 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-media@vger.kernel.org, bugme-daemon@bugzilla.kernel.org,
-	nm127@freemail.hu
-Subject: Re: [Bugme-new] [Bug 12768] New: usb_alloc_urb() leaks memory
- together with uvcvideo driver
-Message-ID: <20090224230200.77469747@pedra.chehab.org>
-In-Reply-To: <20090224135720.9e752fee.akpm@linux-foundation.org>
-References: <bug-12768-10286@http.bugzilla.kernel.org/>
-	<20090224135720.9e752fee.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx2.redhat.com ([66.187.237.31]:40170 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755309AbZBPMDG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 07:03:06 -0500
+Message-ID: <499956FB.4040505@redhat.com>
+Date: Mon, 16 Feb 2009 13:07:23 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Trent Piepho <xyzzy@speakeasy.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kilgota@banach.math.auburn.edu,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>
+Subject: Re: Adding a control for Sensor Orientation
+References: <44220.62.70.2.252.1234782074.squirrel@webmail.xs4all.nl>
+In-Reply-To: <44220.62.70.2.252.1234782074.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 24 Feb 2009 13:57:20 -0800
-Andrew Morton <akpm@linux-foundation.org> wrote:
+Hi Hans,
 
->> > In the output of /proc/slab_allocators the number of blocks allocated by
-> > usb_alloc_urb() increases, however, the xawtv is no longer running:
-> > 
-> > size-2048: 18 usb_alloc_dev+0x1d/0x212 [usbcore]
-> > size-2048: 2280 usb_alloc_urb+0xc/0x2b [usbcore]
-> > size-1024: 100 usb_alloc_urb+0xc/0x2b [usbcore]
-> > size-128: 10 usb_alloc_urb+0xc/0x2b [usbcore]
-> > 
-> > Each time xawtv is started and stopped the value increases at the
-> > usb_alloc_urb().
-> > 
-> > Expected result: the same memory usage is reached again after xawtv exited.
-> > 
+Hans Verkuil wrote:
+> Hi Hans,
 > 
-> I assume this is a v4l bug and not a USB core bug?
 
-I guess this is a v4l bug. We've found several memory leaks on em28xx driver,
-fixed at the development -git:
+<snip>
 
-http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git
+> Case 3 *is* pivoting. That's a separate piece of information from the
+> mount position. All I want is that that is administrated in separate bits.
+> And if we do this, do it right and support the reporting of 0, 90, 180 and
+> 270 degrees. No one expects libv4l to handle the portrait modes, and apps
+> that can handle this will probably not use libv4l at all.
+> 
+>> Now can we please stop this color of the bikeshed discussion, add the 2
+>> damn
+>> flags and move forward?
+> 
+> Anyone can add an API in 5 seconds. It's modifying or removing a bad API
+> that worries me as that can take years.
 
-I'll do some tests again with the latest em28xx driver to double check if it is
-there any other memory leak. If not, then we could replicate the same approach
-into uvcvideo.
+I understand.
 
-Cheers,
-Mauro
+> If you want to add two bits with
+> mount information, feel free. But don't abuse them for pivot information.
+> If you want that, then add another two bits for the rotation:
+> 
+> #define V4L2_BUF_FLAG_VFLIP     0x0400
+> #define V4L2_BUF_FLAG_HFLIP     0x0800
+> 
+> #define V4L2_BUF_FLAG_PIVOT_0   0x0000
+> #define V4L2_BUF_FLAG_PIVOT_90  0x1000
+> #define V4L2_BUF_FLAG_PIVOT_180 0x2000
+> #define V4L2_BUF_FLAG_PIVOT_270 0x3000
+> #define V4L2_BUF_FLAG_PIVOT_MSK 0x3000
+> 
+
+Ok, this seems good. But if we want to distinguish between static sensor mount 
+information, and dynamic sensor orientation changing due to pivotting, then I 
+think we should only put the pivot flags in the buffer flags, and the static 
+flags should be in the VIDIOC_QUERYCAP capabilities flag, what do you think of 
+that?
+
+Regards,
+
+Hans
