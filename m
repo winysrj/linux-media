@@ -1,54 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:58026 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732AbZBPUvY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 15:51:24 -0500
-Received: by rv-out-0506.google.com with SMTP id g37so1702223rvb.1
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 12:51:22 -0800 (PST)
+Received: from webmail.icp-qv1-irony-out1.iinet.net.au ([203.59.1.146]:39687
+	"EHLO webmail.icp-qv1-irony-out1.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751205AbZBPWjd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 17:39:33 -0500
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-In-Reply-To: <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
-References: <4999A6DD.7030707@gmx.de> <200902161908.15698.hverkuil@xs4all.nl>
-	 <a3ef07920902161037nf02b51dl2b411e33ddc76933@mail.gmail.com>
-	 <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
-Date: Mon, 16 Feb 2009 12:51:22 -0800
-Message-ID: <a3ef07920902161251g29074109i5d446534572fab57@mail.gmail.com>
-Subject: Re: DVB-API v5 questions and no dvb developer answering ?
-From: VDR User <user.vdr@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, wk <handygewinnspiel@gmx.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
+To: linux-media@vger.kernel.org,
+	"'' sonofzev @ iinet . net . au ''" <sonofzev@iinet.net.au>,
+	"'sonofzev @ iinet . net . au'" <sonofzev@iinet.net.au>
+Subject: Re: Fwd: [linux-dvb] dvico dual express incorrect firmware version readback!!!
+Reply-To: sonofzev@iinet.net.au
+Date: Tue, 17 Feb 2009 07:39:31 +0900
+Message-Id: <32383.1234823971@iinet.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 16, 2009 at 11:33 AM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> As always we continue to welcome patches, including for the
-> documentation.  Instead of bitching and moaning, how about you roll up
-> your sleeves and actually help out?
 
-Interesting you would suggest people who did not develop s2api be the
-ones to write the documentation for it.
 
-> Let's try to remember that pretty much all the developers here are
-> volunteers, so berating them for not doing things fast enough for your
-> personal taste is not really very productive.
+On Mon Feb 16 22:51 , "sonofzev@iinet.net.au"  sent:
 
-Ahh yes, because everyone is a volunteer nobody is entitled to
-opinions that aren't akin to sending flowers.  Sorry, it slipped my
-mind that only 'approved' opinions are welcome.
+>
+>>
+>>Hi All 
+>>
+>>In december I posted a message regarding some issues with the dvico driver.
+>>
+>>http://www.linuxtv.org/pipermail/linux-dvb/2008-December/031137.html
+>>
+>>The kernel is reporting incorrect callback of the firmware. Also, if the tuner
+>>isn't being used for a few hours, I then get errors from mythtv about it not
+>>being able to contact the backend and only rebooting the system will fix the
+>>problem (restarting mythbackend and frontend does not help).
+>>
+>>I eventually reported this as fixed to do with bios settings but I was wrong.
+>>
+>>I have done alot more testing and have found that it seems to be only after
+>>mythtv has accessed the device where this problem beings begins... 
+>>
+>>I will try the latest hg version and see what happens. I will also try another tv
+>>application and see if that makes a difference (but I really would like to
+>>continue using mythtv as I have 2 other frontends). 
+>>
+>>More information.. (and questions). 
+>>I know I definitely didn't have this problem with earlier versions of the driver
+>>(roughly pre September.. Chris Pascoe's original version actually seemed more
+>>stable although didn't report correct signal strength) 
+>>The cpu is a an opteron 170 
+>>2GB of OCZ DDR500 RAM (clocked at standard 400 of course, not overclocking this
+>>thing actually unless watching HD it is usually sitting at 1000MHZ)
+>>Nvidia 7600 GS video card (as I read horrible things about my onboard ATI
+>>chipset) using nvidia drivers not using xvmc however. 
+>>I have eliminated the motherboard as since I originally reported the issue I have
+>>changed mobo (from nvidia nforce4 chipset to ati chipset.... primarily to get a
+>>micro atx mobo for my HTPC case). 
+>>Fairly standard kernel with pre-emption (should I be using an rt patched kernel??)
+>>Are there any other kernel options I should remove or add??? 
+>>I am using the most recent unstable Gentoo release of mythtv (0.21_p19046) but
+>>saw the same problem on the most recent stable release too. 
+>>Are there any compile time options (or USE flags) I need to set or unset??
+>>The system also houses my third tuner/second card, a dvico fusion lite (older pci
+>>version rock solid stable).. Are there any modules.conf settings I need to look
+>>out for (although it worked before ...).... 
+>>
+>>As I said, I will try out the latest hg version tonight.. but any advice would be
+>>appreciated greatly!!!
+>>
+>>cheers
+>>
+>>Allan 
+>>
+>
+>Same result with the hg version updated tonight. 
+>
+>I haven't had a chance to use another tv app yet as we are currently watching TV. 
+>
+>I will send a further update later. 
 
-I would say that neglecting something as important as proper
-documentation for several months extends beyond "personal taste" and
-into the realm of common sense.  Especially when people trying to
-actively develop software have requested such information on many
-occasions, only to be ignored.  Call me crazy but that is what I
-consider to be 'not really very productive'.  Certainly far more then
-my measly little ol' opinion on the matter.
 
-I guess we'll agree to disagree on some key points.  Thanks for
-sharing none-the-less.  And hopefully those who have been so patiently
-and politely asking for help will finally get it.  Unless, of course,
-you think that's a bad idea?
+Is anyone else actually seeing this "Incorrect Firmware Version Readback" error?? 
+
+Is there something I am missing? (stupid kernel setup or something??)... 
+
+Should I  try and source the firmware again or is this unlikely to be the issue?
+
+
+
