@@ -1,58 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp113.rog.mail.re2.yahoo.com ([68.142.225.229]:39407 "HELO
-	smtp113.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751767AbZBVU0k (ORCPT
+Received: from mx2.bahnhof.se ([213.80.101.12]:56819 "EHLO mx2.bahnhof.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756093AbZBPVyZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 15:26:40 -0500
-Message-ID: <49A1B4FF.10407@rogers.com>
-Date: Sun, 22 Feb 2009 15:26:39 -0500
-From: CityK <cityk@rogers.com>
+	Mon, 16 Feb 2009 16:54:25 -0500
+From: Magnus Andersson <maan@svankan2.mine.nu>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Tevii S650 DVB-S2 diseqc problem
+Date: Mon, 16 Feb 2009 22:34:32 +0100
 MIME-Version: 1.0
-To: schollsky@arcor.de
-CC: linux-media@vger.kernel.org
-Subject: Re: Aw: Re: firmware
-References: <200902170944.37882.zzam@gentoo.org> <200902152115.58993.aspeltami@gmail.com> <4999A9A6.2080809@rogers.com> <1767e6740902161024y2820036dhcd461c40edf30e82@mail.gmail.com> <15146183.1234881570532.JavaMail.ngmail@webmail09.arcor-online.net>
-In-Reply-To: <15146183.1234881570532.JavaMail.ngmail@webmail09.arcor-online.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200902162234.32309.maan@svankan2.mine.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-schollsky@arcor.de wrote:
->  
->
->
-> ----- Original Nachricht ----
-> Matthias Schwarzott wrote:
->
->   
->> Yes this ebuild is there. But it is in some respect outdated, due to lack of
->>
->> maintaining. This ebuild fetches the original files get_dvb_firmware also 
->> fetches and the runs get_firmware to unpack them. (All this due to 
->> license/re-distribution issues as you all know).
->>
->> But: These URLs tend to no longer work after some time, as manufacturers 
->> update their drivers or web-pages :(
->>
->> So there should either be someone continuously updating them (in 
->> get_dvb_firmware and also here in copy).
->> Or: We find someone ignoring the licenses and hosting the extracted files 
->> somewhere.
->>     
->
-> The script "get_dvb_firmware" itself needs to be updated. I'm willing to work on this
-> and update necessary links and test the script for some time here on Mandriva - as long
-> as you're willing to help me with other distros and in the process.
->
-> Any tips how to begin please?
->
-> Kind regards,
->
-> schollsky
->   
+Hello!
 
-Hi schollsky,  that would definitely be welcomed.  You can submit
-patches against get_dvb_firmware; follow instructions here:
-http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+I just bought a Tevii S650 DVB-S2 card and I have a few questions.
 
+My server have Ubuntu 8.10 amd64 with a custom kernel and drivers and tools 
+compiled from these sources. 
+http://mercurial.intuxication.org/hg/szap-s2
+http://mercurial.intuxication.org/hg/s2-liplianin/
+
+The scan-s2 utility only find channels from latest used transponder in vdr. It 
+took me many hours to have vdr working with Tevii S650 because my old 
+diseqc.conf did not work with this card.
+
+When I have a skystar2 or a Hauppauge FF rev 2.1 I can use this config.
+
+Old diseqc.conf
+#
+S1W 11700 V 9750 t v W15 A W15 t
+S1W 99999 V 10600 t v W15 A W15 T
+S1W 11700 H 9750 t V W15 A W15 t
+S1W 99999 H 10600 t V W15 A W15 T
+#
+S5E 11700 V 9750 t v W15 B W15 t
+S5E 99999 V 10600 t v W15 B W15 T
+S5E 11700 H 9750 t V W15 B W15 t
+S5E 99999 H 10600 t V W15 B W15 T
+
+
+New diseqc.conf
+#
+S1W 11700 V 9750 t v W15 [E0 10 38 F0] W15 t
+S1W 99999 V 10600 t v W15 [E0 10 38 F1] W15 T
+S1W 11700 H 9750 t V W15 [E0 10 38 F2] W15 t
+S1W 99999 H 10600 t V W15 [E0 10 38 F3] W15 T
+#
+S5E 11700 V 9750 t v W15 [E0 10 38 F4] W15 t
+S5E 99999 V 10600 t v W15 [E0 10 38 F5] W15 T
+S5E 11700 H 9750 t V W15 [E0 10 38 F6] W15 t
+S5E 99999 H 10600 t V W15 [E0 10 38 F7] W15 T
+
+Can this diseqc “problem” cause the scan-s2 tool to fail too?
+Why do I need to change the diseqc.conf in vdr? 
+
+Because of this problem I have to manually include all HD-channels to 
+channels.conf.
+ I have tried to follow the README for scan-s2 and tried different options. My 
+old cards work with scan and diseqc. To be sure I downloaded the latest 
+drivers from www.tevii.com and extracted the firmware from windows drivers but 
+with the same result.
+Linux driver is from 2008-08-15
+Windows driver is released 2009-01-22
+
+similar problem?
+http://www.dvbnetwork.de/viewtopic.php?f=59&t=169
+Any suggestions?
+
+VDR 1.7.4 works very good with the new diseqc.conf so the card is NOT broken.
+
+/Svankan
