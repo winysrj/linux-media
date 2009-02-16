@@ -1,80 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:63810 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754358AbZBSWpb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 17:45:31 -0500
-Message-ID: <499DE107.80502@kaiser-linux.li>
-Date: Thu, 19 Feb 2009 23:45:27 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+Received: from webmail.icp-qv1-irony-out4.iinet.net.au ([203.59.1.152]:56721
+	"EHLO webmail.icp-qv1-irony-out4.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750938AbZBPFcH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 00:32:07 -0500
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: MR97310A and other image formats
-References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu> <499DB030.7010206@kaiser-linux.li> <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
+To: linux-media@vger.kernel.org
+Subject: Fwd: [linux-dvb] dvico dual express continuuing issues.
+Reply-To: sonofzev@iinet.net.au
+Date: Mon, 16 Feb 2009 14:21:57 +0900
+Message-Id: <48942.1234761717@iinet.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kilgota@banach.math.auburn.edu wrote:
-> Yes, what you quote is the SOF marker for all of these cameras. The 
-> total header length, including the SOF marker ought to be 12 bytes. On 
-> all of the mr97310 cameras that I have dealt with, the last 5 bytes are 
-> obviously related somehow to the image (contrast, color balance, gamma, 
-> whatever).  I have no idea how to interpret those values, but we can hope
-> that someone will figure out how.
 
-Two of them are luminance values (middle and edge) for the PAC207.
+I got a deprecated list message (so how do I unsubscribe from linux-dvb????) 
 
-> Thus, it is not a good idea to throw 
-> them away as the driver is currently doing. If they have to be tossed, 
-> then toss them over in libv4lconvert, I would say, instead of shaving 
-> them off in the driver. It makes for much simpler driver code when one 
-> does not try to work around them, too.
+----- Original Message ----- 
+From: 'sonofzev@iinet.net.au' <sonofzev@iinet.net.au>
+To: linux-dvb@linuxtv.org
+Sent: Mon Feb 16 15:56
+Subject: Fwd: [linux-dvb] dvico dual express continuuing issues.
 
-Yes, there are always some additional Bytes in the SOF header for a good 
-reason.
 
-> FF FF 00 FF 96 64 00     uncompressed
-> FF FF 00 FF 96 64 50    "standard compression" supported here and in 
-> libgphoto2/camlibs/mars. Supports all cameras in stillcam mode except 
-> for the next one listed
-> FF FF 00 FF 96 64 20    another compression, used by one stillcam, not 
-> resolved
-> FF FF 00 FF 96 64 D0    new compression algorithm used by all the 
-> 0x093a:0x010e cameras that I own (several of them), when running in 
-> streaming mode.
+Hi All 
 
-So, you found the meaning of an other Byte in the SOF header. I have to 
-check whats in there for the PAC207 and PAC7311.
+In december I posted a message regarding some issues with the dvico driver.
 
-> Incidentally, I did have something to do with solving the the 0x50 
-> decompression. Bertrik Sikkens figured out the basics. It is a 
-> differential Huffman encoding, as I said. One computes a "predictor" for 
-> the next pixel to be decompressed by taking a weighted average of some 
-> previously decompressed pixel data. Then one applies a "corrector" which 
-> is the next piece of decoded data. Bertrik figured out the Huffman 
-> scheme, as I said. What I did was to figure out the right pixels to 
-> average for the predictor part and what weights they get assigned in the 
-> weighted average.
+http://www.linuxtv.org/pipermail/linux-dvb/2008-December/031137.html
 
-That is a similar compression like on the PAC207 the first 2 pixels of 
-the line have the real value and for the other pixels, only the diff to 
-these two pixels are stored in Huffman codes.
-Now you can guess who found out how to decompress -> Bertrik Sikkens
+The kernel is reporting incorrect callback of the firmware. Also, if the tuner
+isn't being used for a few hours, I then get errors from mythtv about it not
+being able to contact the backend and only rebooting the system will fix the
+problem (restarting mythbackend and frontend does not help).
 
-> 
-> But it seems that you know something about this kind of thing and 
-> probably have the right tools or clues to be able to handle them. I have 
-> a couple of other unsolved formats lying around, too. You might be the 
-> person I have been trying to meet. Interested?
+I eventually reported this as fixed to do with bios settings but I was wrong.
 
-Always interested, but my free time is very limited :-(
+I have done alot more testing and have found that it seems to be only after
+mythtv has accessed the device where this problem beings begins... 
 
-It looks like I have 22 webcams on my desk and 3 or 4 of them are _not_ 
-working in Linux. Thus, I have a lot of homework to do.....
+I will try the latest hg version and see what happens. I will also try another tv
+application and see if that makes a difference (but I really would like to
+continue using mythtv as I have 2 other frontends). 
 
-Thomas
+More information.. (and questions). 
+I know I definitely didn't have this problem with earlier versions of the driver
+(roughly pre September.. Chris Pascoe's original version actually seemed more
+stable although didn't report correct signal strength) 
+The cpu is a an opteron 170 
+2GB of OCZ DDR500 RAM (clocked at standard 400 of course, not overclocking this
+thing actually unless watching HD it is usually sitting at 1000MHZ)
+Nvidia 7600 GS video card (as I read horrible things about my onboard ATI
+chipset) using nvidia drivers not using xvmc however. 
+I have eliminated the motherboard as since I originally reported the issue I have
+changed mobo (from nvidia nforce4 chipset to ati chipset.... primarily to get a
+micro atx mobo for my HTPC case). 
+Fairly standard kernel with pre-emption (should I be using an rt patched kernel??)
+Are there any other kernel options I should remove or add??? 
+I am using the most recent unstable Gentoo release of mythtv (0.21_p19046) but
+saw the same problem on the most recent stable release too. 
+Are there any compile time options (or USE flags) I need to set or unset??
+The system also houses my third tuner/second card, a dvico fusion lite (older pci
+version rock solid stable).. Are there any modules.conf settings I need to look
+out for (although it worked before ...).... 
+
+As I said, I will try out the latest hg version tonight.. but any advice would be
+appreciated greatly!!!
+
+cheers
+
+Allan 
+
+
+
+
+
+
+
+
+
+
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+)
+
+
