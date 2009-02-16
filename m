@@ -1,57 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:1729 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869AbZBJEj4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 23:39:56 -0500
-Message-ID: <49910509.1080407@linuxtv.org>
-Date: Mon, 09 Feb 2009 23:39:37 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20]:37053 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750814AbZBPRsW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 12:48:22 -0500
+Message-ID: <4999A6DD.7030707@gmx.de>
+Date: Mon, 16 Feb 2009 18:48:13 +0100
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: urishk@yahoo.com, linux-media@vger.kernel.org,
-	linuxtv-commits@linuxtv.org, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: Siano's patches
-References: <393674.19439.qm@web110814.mail.gq1.yahoo.com>	<49736FE6.9080309@linuxtv.org> <20090209192437.55ee6737@pedra.chehab.org>
-In-Reply-To: <20090209192437.55ee6737@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: DVB-API v5 questions and no dvb developer answering ?
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Michael,
->
-> On Sun, 18 Jan 2009 13:07:34 -0500
-> Michael Krufky <mkrufky@linuxtv.org> wrote:
->
->  
->   
->> Once I have reviewed & merged your changes and after I can restore the 
->> proper functionality to the hauppauge devices, then I will post a new 
->> mercurial tree for testing against all siano-based devices.
->>
->> Please be patient -- this takes time.
->>     
->
-> Any news?
+The last week two guys were kindly asking here on the list where to find 
+a written DVB-API v5 documentation,
+but nobody of the dvb driver community was answering.
 
-I haven't had time to fix the breakage that these changes caused on the 
-Hauppauge devices.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg01350.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg01300.html
 
-This is what I will do -- I will gather all the patches up and push them 
-all into one tree, regardless of any codingstyle issues or breakages, 
-just so that we at least have track of everything.
+Does that mean that:
+- dvb developers are currently not interested in application developers 
+integrating new DVB-API v5? or..
+- no dvb developer reading that list knows something about 
+documentation? or..
+- does it simply not exist, so who is working on that api documentation 
+stuff?
 
-Once it's all in one repository, I can just move the gpio function that 
-the hauppauge devices depend on into the sms-cards.c file -- this way, 
-they will not be used by other devices and the siano code can go in as 
-desired by Uri.
 
-The first tree that gets pushed up will likely need some cleanup, but 
-we'll deal with that afterwards.
+The offical documentation found on linuxtv.org is outdated and already 5 
+years old, and describes only api v3.
+See http://www.linuxtv.org/downloads/linux-dvb-api-1.0.0.pdf
 
-I saw some other interesting patches that Uri's been posting on the 
-lists that I'd definitely like to merge along with these as soon as 
-possible.
+Please read also the announcements on linuxtv:
+http://www.linuxtv.org/news.php?entry=2008-09-23.mchehab
+[quote]
+Some improvements were proposed by the LinuxTV developers, in order to 
+improve the S2API, including:
+...
+* Update DVB API documentation to reflect the API changes;"
+[/quote]
 
--Mike
+But also this statement is already now five months old,
+so i guess documentation should be finished meanwhile or at least 
+started and usable/redistributable..
+
+Is it possible to get some information on that topic?
+
+-Winfried
+
+
