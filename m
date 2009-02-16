@@ -1,144 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.185]:2445 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754240AbZBQRZm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 12:25:42 -0500
-Received: by fk-out-0910.google.com with SMTP id f33so1409140fkf.5
-        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 09:25:40 -0800 (PST)
+Received: from mx2.redhat.com ([66.187.237.31]:44275 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750738AbZBPMP3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 07:15:29 -0500
+Message-ID: <499959E3.3030903@redhat.com>
+Date: Mon, 16 Feb 2009 13:19:47 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <59052.79.136.92.202.1234853938.squirrel@webmail.bahnhof.se>
-References: <59052.79.136.92.202.1234853938.squirrel@webmail.bahnhof.se>
-Date: Tue, 17 Feb 2009 18:25:38 +0100
-Message-ID: <854d46170902170925x6a1c8d3x6d953d1d9472a81b@mail.gmail.com>
-Subject: Re: Tevii S650 DVB-S2 diseqc problem
-From: Faruk A <fa@elwak.com>
-To: svankan@bahnhof.se
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Trent Piepho <xyzzy@speakeasy.org>,
+	kilgota@banach.math.auburn.edu,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>
+Subject: Re: Adding a control for Sensor Orientation
+References: <53216.62.70.2.252.1234775259.squirrel@webmail.xs4all.nl>	<49993563.80607@redhat.com> <20090216081143.05dafb14@pedra.chehab.org>
+In-Reply-To: <20090216081143.05dafb14@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 17, 2009 at 7:58 AM,  <svankan@bahnhof.se> wrote:
->>Hi!
->>
->>I don't have any diseqc problem with this card.
->>Tested with vdr 1.7.0, scan-s2, szap-s2 (myTeVii and ProgDVB)
->>ArchLinux 32-bit, kernel26 2.6.28.4
->
-> Thank you for the answer Frank!
->
-> Can you please provide an example when you use scan-s2? I have a dual boot
-> for Windows and as far as I remember there were some problems with diseqc
-> in dvbviewer also. My dish is 25 meters away from the computer but signal
-> is very good.
->
-> /Svankan
 
-Windows softwares are like that with new cards but they usually get
-supported when the card becomes
-popular. My dish is even farther that yours, i live in six floor
-apartment building with over 100 apartments we all
-share four dishes so every apartment is satellite ready.
 
-One thing that i hate about this card is scanning for channels, i
-think it doesn't support AUTO scanning
-for initial transponders.
-For that we have to use scan-s2 with -X option and you need
-transponder files from
-http://joshyfun.peque.org/transponders/kaffeine.html
-before you start scanning edit you transponder files and remove
-transponders that you don't need, stuff like feeds, beams that you
-can't receive
-because it takes allot of time. Every transponders that wont lock it
-scan as dvb-s and then it will rescan as dvb-s2.
+Mauro Carvalho Chehab wrote:
+> On Mon, 16 Feb 2009 10:44:03 +0100
+> Hans de Goede <hdegoede@redhat.com> wrote:
+> 
+>> I've discussed this with Laurent Pinchart (and other webcam driver authors) and 
+>> the conclusion was that having a table of USB-ID's + DMI strings in the driver, 
+>> and design an API to tell userspace to sensor is upside down and have code for 
+>> all this both in the driver and in userspace makes no sense. Esp since such a 
+>> table will probably be more easy to update in userspace too. So the conclusion 
+>> was to just put the entire table of cams with known upside down mounted sensors 
+>> in userspace. This is currently in libv4l and making many philips webcam users 
+>> happy (philips has a tendency to mount the sensor upside down).
+> 
+> Are you saying that you have a table at libv4l for what cameras have sensors
+> flipped? 
 
-scan-s2 -a 1 -s 3 -t 1 -p -X ../ini/astra > test.conf
--a 1= adaptern 1
--s 3 = diseqc input 4 (Astra 19E)
--t 1 = Service TV only
--p   = for vdr output format: dump provider name
--X  = Disable AUTOs for initial transponders (esp. for hardware which
-        not support it). Instead try each value of any free parameters.
-Log:
-initial transponder DVB-S2 12090000 V 27500000 3/4 20 8PSK
-initial transponder DVB-S  12110000 H 27500000 3/4 35 QPSK
-initial transponder DVB-S2 12110000 H 27500000 3/4 35 QPSK
-initial transponder DVB-S2 12110000 H 27500000 3/4 35 8PSK
-initial transponder DVB-S2 12110000 H 27500000 3/4 25 QPSK
-...
-----------------------------------> Using DVB-S
->>> tune to: 10744:hC56M2O35S0:S0.0W:22000:
-DVB-S IF freq is 994000
->>> parse_section, section number 0 out of 0...!
-0x041B 0x7031: pmt_pid 0x0000 ARD -- EinsExtra (running)
-0x041B 0x7032: pmt_pid 0x0000 ARD -- EinsFestival (running)
-0x041B 0x7033: pmt_pid 0x0000 ARD -- EinsPlus (running)
-0x041B 0x7034: pmt_pid 0x0000 ARD -- arte (running)
-0x041B 0x7035: pmt_pid 0x0000 ARD -- Phoenix (running)
-0x041B 0x7036: pmt_pid 0x0000 ARD -- Test-R (running)
->>> parse_section, section number 0 out of 0...!
-service_id = 0x0
-service_id = 0x7031
-pmt_pid = 0x64
-service_id = 0x7032
-pmt_pid = 0xC8
-service_id = 0x7033
-pmt_pid = 0x12C
-service_id = 0x7034
-pmt_pid = 0x190
-service_id = 0x7035
-pmt_pid = 0x1F4
-service_id = 0x7036
-pmt_pid = 0x258
->>> parse_section, section number 0 out of 0...!
-  VIDEO     : PID 0x012D
-  AUDIO     : PID 0x012E
-  TELETEXT  : PID 0x0130
-  OTHER     : PID 0x0172 TYPE 0x05
-  OTHER     : PID 0x0173 TYPE 0x0B
-  OTHER     : PID 0x0818 TYPE 0x0B
->>> parse_section, section number 0 out of 0...!
-  VIDEO     : PID 0x00C9
-  AUDIO     : PID 0x00CA
-  TELETEXT  : PID 0x00CC
-  OTHER     : PID 0x010E TYPE 0x05
-  OTHER     : PID 0x0818 TYPE 0x0B
->>> parse_section, section number 0 out of 0...!
-  VIDEO     : PID 0x0065
-  AUDIO     : PID 0x0066
-  OTHER     : PID 0x00AA TYPE 0x05
-  OTHER     : PID 0x00AB TYPE 0x0B
-  OTHER     : PID 0x00AC TYPE 0x05
-  OTHER     : PID 0x00AD TYPE 0x0B
-  OTHER     : PID 0x00B0 TYPE 0x0C
-  OTHER     : PID 0x0818 TYPE 0x0B
->>> parse_section, section number 0 out of 0...!
-  VIDEO     : PID 0x01F5
-  AUDIO     : PID 0x01F6
-  TELETEXT  : PID 0x01F8
-  OTHER     : PID 0x0816 TYPE 0x05
-  OTHER     : PID 0x0818 TYPE 0x0B
->>> parse_section, section number 0 out of 0...!
-  VIDEO     : PID 0x0191
-  AUDIO     : PID 0x0192
-  AUDIO     : PID 0x0193
-  TELETEXT  : PID 0x0194
-  OTHER     : PID 0x0816 TYPE 0x05
-  OTHER     : PID 0x0818 TYPE 0x0B
->>> parse_section, section number 0 out of 0...!
-  VIDEO     : PID 0x0191
-  AUDIO     : PID 0x0192
-^CERROR: interrupted by SIGINT, dumping partial result...
-dumping lists (6 services)
-Done.
-..........................................
-cat test.conf
+Yes.
 
-ARD - EinsExtra;ARD:10744:hC56M2O35S0:S0.0W:22000:101:102=ger:0:0:28721:1:1051:0
-ARD - EinsFestival;ARD:10744:hC56M2O35S0:S0.0W:22000:201:202=ger:204:0:28722:1:1051:0
-ARD - EinsPlus;ARD:10744:hC56M2O35S0:S0.0W:22000:301:302=ger:304:0:28723:1:1051:0
-ARD - arte;ARD:10744:hC56M2O35S0:S0.0W:22000:401:402=ger,403=fra:404:0:28724:1:1051:0
-ARD - Phoenix;ARD:10744:hC56M2O35S0:S0.0W:22000:501:502=ger:504:0:28725:1:1051:0
-ARD - Test-R;ARD:10744:hC56M2O35S0:S0.0W:22000:401:402=ger:0:0:28726:1:1051:0
+> This is really ugly and proofs that the api is broken. No userspace
+> application or library should need to do any special hack based on usb id,
+> driver name or querycap names.
+
+Well libv4l is already pretty full of cam specific knowledge in the form of 
+decompression algorithm's etc.
+
+Quirk tables like this are best kept in userspace, esp. when userspace is the 
+only consumer of the information, why store information in the kernel if the 
+kernel never uses it at all? Take a look at HAL quirks for suspend resume, 
+wireless on/off buttons, etc. for example.
+
+> In the case of flipping, kernel should provide this info for userspace, at
+> least for the cameras it knows it is flipped (based on USB ID or any other
+> method). In the case of DMI, it seems ok to let userspace to use the kernel DMI
+> support to read this info and detect if the sensor were mounted flipped on a
+> notebook, but for those cams where such info is known based on USB ID, we need
+> to have an interface to read this information. I can see some ways for doing it:
+> 
+> 1) via VIDIOC_QUERYCAP capabilities flag;
+> 2) via VIDIOC_*CNTL read-only interfaces;
+> 3) another ioctl for querying the webcam capabilities;
+> 4) some info via sysfs interface;
+> 
+> IMO, the easier and more adequate way for this case is creating an enumbered
+> control. Something like:
+> 
+> #define V4L2_CID_MOUNTED_ANGLE    (V4L2_CID_CAMERA_CLASS_BASE+17)
+> 
+> enum v4l2_mounted_angle {
+> 	V4L2_CID_MOUNTED_ANGLE_0_DEGREES = 0,
+> 	V4L2_CID_MOUNTED_ANGLE_90_DEGREES = 1,
+> 	V4L2_CID_MOUNTED_ANGLE_180_DEGREES = 2,
+> 	V4L2_CID_MOUNTED_ANGLE_270_DEGREES = 3,
+> 	V4L2_CID_MOUNTED_ANGLE_VIA_DMI = 4,
+> };
+> 
+
+Here you are making things nice and inconsistent, so the information is in the 
+kernel, except where it is not (the DMI case). If we move this in to the 
+kernel, we should move it *completely* in to the kernel.
+
+I've discussed this with Laurent Pinchart, and it really makes the most sense 
+to do this in userspace.
+
+Userspace approach:
+1 table is in userspace, libv4l reads it directly, done.
+
+Kernelspace approach:
+1 add a (smaller) table to *each* driver (which the driver has 0 use for)
+2 add code to *each* driver to export this info
+3 add code to libv4l to read this
+
+You've just created a kernel round trip for no good reason at all, and added a 
+significant amount of code to the kernel, which can live in userspace just as 
+well. The userspace approach is the KISS way. Also it is far easier for people 
+to upgrade libv4l, then it is to upgrade a kernel. Given that this table will 
+most likely change regulary the ease of updating is another argument for doing 
+this in userspace.
+
+Also can we please STOP with coming up of new and novel ways of abusing the 
+control API, the control API's purpose is for userspace to control v4l device 
+settings. It is way overkill for things like communicating a few simple flags 
+to userspace (and is a pain to use for things like that both on the kernel and 
+the userspace side).
+
+Regards,
+
+Hans
