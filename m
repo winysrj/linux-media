@@ -1,51 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40463 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998AbZB1AdP (ORCPT
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.123]:49757 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499AbZBQPxi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 19:33:15 -0500
-Date: Fri, 27 Feb 2009 21:32:42 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips
- powerpc64 x86_64 v4l-dvb build
-Message-ID: <20090227213242.722e0257@pedra.chehab.org>
-In-Reply-To: <200902271849.n1RInuKh050681@smtp-vbr14.xs4all.nl>
-References: <200902271849.n1RInuKh050681@smtp-vbr14.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 17 Feb 2009 10:53:38 -0500
+Date: Tue, 17 Feb 2009 09:53:35 -0600
+From: David Engel <david@istwok.net>
+To: linux-media@vger.kernel.org, V4L <video4linux-list@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: PVR x50 corrupts ATSC 115 streams
+Message-ID: <20090217155335.GB6196@opus.istwok.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Feb 2009 19:49:56 +0100 (CET)
-"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+Hi,
 
-> (This message is generated daily by a cron job that builds v4l-dvb for
-> the kernels and architectures in the list below.)
-> 
-> Results of the daily build of v4l-dvb:
-> 
-> linux-2.6.16.61-i686: ERRORS
-> linux-2.6.17.14-i686: ERRORS
-> linux-2.6.18.8-i686: ERRORS
-> linux-2.6.19.5-i686: ERRORS
-> linux-2.6.20.21-i686: ERRORS
-> linux-2.6.21.7-i686: ERRORS
-> linux-2.6.22.19-i686: ERRORS
-> linux-2.6.23.12-i686: ERRORS
-> linux-2.6.24.7-i686: ERRORS
-> linux-2.6.25.11-i686: ERRORS
-> linux-2.6.26-i686: ERRORS
-> linux-2.6.27-i686: ERRORS
-> linux-2.6.28-i686: ERRORS
-> linux-2.6.29-rc5-i686: ERRORS
+My old, MythTV, master backend finally gave up the ghost this past
+weekend.  The power supply or motherboard got bad enough there wa no
+stability.  No big deal.  I was planning to replace that system soon
+and had all of the parts ready anyway.
 
-Wow! Lots of errors!
+I moved the disks and tuner cards (2 Kworld ATSC 115s, 1 Hauppauge PVR
+250 and 1 Hauppauge PVR 350) to the new system (AMD X2 3600 CPU and
+Biostar TForce 550 motherboard).  Things went fairly smoothly and I
+seemed to have full stability again for the first time in several
+weeks.
 
-Ok, I've removed tvmixer and marked the minimal version for firedtv. This
-should fix the issues.
+Then, I started noticing frequent corruption in some of my claar QAM
+recordings from the ATSC 115 cards.  When the corruption is present,
+it occurs every few seconds -- a splotch of garbage in the picture
+here, a stutter and a skipped frame there.  Sure enough, MythTV and
+mplayer both report CRC, damage, splice and other errors when playing
+the streams.
 
-Cheers,
-Mauro
+I finally determined the stream corruption happens if and only if one
+of the PVR x50 cards is being used at the same time.  If only the ATSC
+115s are used, there is no corruption.  As soon as either of the PVr
+X50 is used with an ATSC 115, there is corruption.  I tested with the
+stock drivers from the 2.6.27.17 kernel and from current Hg.  The
+corruption happens with both sets of drivers.  FWIW, I haven't noticed
+any corruption with the analog recordings from the PVR x50s.
+
+Does anyone know what might be going on?  These very same tuner cards
+worked fine in the old system (Intel P4 3.0GHz CPU and Abit IC7
+motherboard) for close to two years.
+
+David
+-- 
+David Engel
+david@istwok.net
