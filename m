@@ -1,66 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f222.google.com ([209.85.217.222]:33227 "EHLO
-	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750773AbZBQFzO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 00:55:14 -0500
-Received: by gxk22 with SMTP id 22so3826666gxk.13
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 21:55:12 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <d2f7e03e0902162146m17e0683ew84aab45c17665d27@mail.gmail.com>
-References: <4999DDE4.8040404@fetzig.org>
-	 <d2f7e03e0902162146m17e0683ew84aab45c17665d27@mail.gmail.com>
-Date: Tue, 17 Feb 2009 09:25:12 +0330
-Message-ID: <d2f7e03e0902162155g49e05f33xd37d1982c8ee13cc@mail.gmail.com>
-Subject: Fwd: [linux-dvb] SkyStar2 not able to tune in 2.6.29 (2.6.27.12
-	works)
-From: Seyyed Mohammad mohammadzadeh <softnhard.es@gmail.com>
+Received: from mx6.bahnhof.se ([213.80.101.16]:59447 "EHLO mx6.bahnhof.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750981AbZBQG7E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 01:59:04 -0500
+Received: from localhost (mx6.local [127.0.0.1])
+	by mx6-reinject (Postfix) with ESMTP id D71FB2110A5
+	for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 07:59:00 +0100 (CET)
+Received: from mx6.bahnhof.se ([127.0.0.1])
+ by localhost (mx6.bahnhof.se [127.0.0.1]) (amavisd-new, port 10024)
+ with ESMTP id 48049-05 for <linux-media@vger.kernel.org>;
+ Tue, 17 Feb 2009 07:58:58 +0100 (CET)
+Received: from webmail.bahnhof.se (webmail.bahnhof.se [195.178.160.55])
+	by mx6.bahnhof.se (Postfix) with ESMTP id 11995211069
+	for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 07:58:56 +0100 (CET)
+Message-ID: <59052.79.136.92.202.1234853938.squirrel@webmail.bahnhof.se>
+Date: Tue, 17 Feb 2009 07:58:58 +0100 (CET)
+Subject: Re: Tevii S650 DVB-S2 diseqc problem
+From: svankan@bahnhof.se
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Felix Kaechele
-
-I'm usinf SkyStar2 Revisions 2.3, 2.6 and 2.8 all togheter on SuSE
-11.1 and no problem found. please send me your kernel mesages. (kernel
-messages can be obtained using dmesg command)
-
-2009/2/17 Felix Kaechele <felix@fetzig.org>
+>Hi!
 >
-> Hi there!
->
-> I've recently installed Fedora 11 (Rawhide) on my VDR machine. However
-> my SkyStar2 (Rev 2.6B) is unable to sucessfully gain lock on any of the
-> channels I choose. When I start the machine with the stock Fedora 10
-> 2.6.27.12 kernel everything works out as expected.
->
-> Is this a known bug?
-> Please help me by telling me which information you need to further
-> investigate.
->
-> Thank you,
-> Felix
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>I don't have any diseqc problem with this card.
+>Tested with vdr 1.7.0, scan-s2, szap-s2 (myTeVii and ProgDVB)
+>ArchLinux 32-bit, kernel26 2.6.28.4
 
+Thank you for the answer Frank!
 
+Can you please provide an example when you use scan-s2? I have a dual boot
+for Windows and as far as I remember there were some problems with diseqc
+in dvbviewer also. My dish is 25 meters away from the computer but signal
+is very good.
 
---
-Best Regards
-Mehran
+/Svankan
 
-Softnhard = Software & Hardware expert
-
-
-
--- 
-Best Regards
-Mehran
-
-Softnhard = Software & Hardware expert
