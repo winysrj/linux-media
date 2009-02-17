@@ -1,139 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web23207.mail.ird.yahoo.com ([217.146.189.62]:33124 "HELO
-	web23207.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756365AbZBEJnh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Feb 2009 04:43:37 -0500
-Date: Thu, 5 Feb 2009 09:43:35 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-Reply-To: newspaperman_germany@yahoo.com
-Subject: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts on HDchannels
-To: linux-media@vger.kernel.org
+Received: from mx2.suse.de ([195.135.220.15]:50645 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377AbZBQLV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 06:21:57 -0500
+Date: Tue, 17 Feb 2009 12:21:53 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: =?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Trivial Patch Monkey <trivial@kernel.org>
+Subject: Re: [PATCH] DAB: fix typo
+In-Reply-To: <20090217081917.568af731@pedra.chehab.org>
+Message-ID: <alpine.LNX.1.10.0902171220370.18110@jikos.suse.cz>
+References: <498622DA.9080106@freemail.hu> <alpine.LNX.1.10.0902111400540.31014@jikos.suse.cz> <20090217081917.568af731@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Message-ID: <582762.49889.qm@web23207.mail.ird.yahoo.com>
+Content-Type: MULTIPART/MIXED; BOUNDARY="336216065-165693548-1234869713=:18110"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-it's really disappointing that this error exists for long time and everybody ran out of idea how to fix it :(
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
+--336216065-165693548-1234869713=:18110
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 
-regards
+On Tue, 17 Feb 2009, Mauro Carvalho Chehab wrote:
 
-Newsy
+> > > From: Márton Németh <nm127@freemail.hu>
+> > > 
+> > > Fix typo in "DAB adapters" section in Kconfig.
+> > > 
+> > > Signed-off-by: Márton Németh <nm127@freemail.hu>
+> > > ---
+> > > --- linux-2.6.29-rc3/drivers/media/Kconfig.orig	2008-12-25 00:26:37.000000000 +0100
+> > > +++ linux-2.6.29-rc3/drivers/media/Kconfig	2009-02-01 13:30:54.000000000 +0100
+> > > @@ -117,7 +117,7 @@ source "drivers/media/dvb/Kconfig"
+> > >  config DAB
+> > >  	boolean "DAB adapters"
+> > >  	---help---
+> > > -	  Allow selecting support for for Digital Audio Broadcasting (DAB)
+> > > +	  Allow selecting support for Digital Audio Broadcasting (DAB)
+> > >  	  Receiver adapters.
+> > 
+> > Didn't find this in today's linux-next, so I have applied it to trivial 
+> > tree.
+> I was just applying it on my tree right now. Anyway, it is OK for me if you
+> apply it at trivial.
 
---- Jonas Kvinge <linuxtv@night-light.net> schrieb am Di, 3.2.2009:
+No problem, if you take it through your tree I am fine with that, it will 
+be easier that way to avoid conflicts in -next.
 
-> Von: Jonas Kvinge <linuxtv@night-light.net>
-> Betreff: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts on HDchannels]
-> An: linux-dvb@linuxtv.org
-> Datum: Dienstag, 3. Februar 2009, 20:00
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
->
-> Manu Abraham wrote:
-> > Alex Betis wrote:
-> >> On Tue, Jan 27, 2009 at 9:56 PM, Manu Abraham
-> <abraham.manu@gmail.com>wrote:
-> >>
-> >>>> Hmm OK, but is there by any chance a fix
-> for those issues somewhere or
-> >>>> in the pipe at least? I am willing to test
-> (as I already offered), I
-> >>>> can compile the drivers, spread printk or
-> whatever else is needed to
-> >>>> get useful reports. Let me know if I can
-> help sort this problem. BTW in
-> >>>> my case it is DVB-S2 30000 SR and FEC 5/6.
-> >>> It was quite not appreciable on my part to
-> provide a fix or reply in
-> >>> time nor spend much time on it earlier, but
-> that said i was quite
-> >>> stuck up with some other things.
-> >>>
-> >>> Can you please pull a copy of the multiproto
-> tree
-> >>> http://jusst.de/hg/multiproto or the v4l-dvb
-> tree from
-> >>> http://jusst.de/hg/v4l-dvb
-> >>>
-> >>> and apply the following patch and comment what
-> your result is ?
-> >>> Before applying please do check whether you
-> still have the issues.
-> >> Manu,
-> >> I've tried to increase those timers long ago
-> when played around with my card
-> >> (Twinhan 1041) and scan utility.
-> >> I must say that I've concentrated mostly on
-> DVB-S channels that wasn't
-> >> always locking.
-> >> I didn't notice much improvements. The thing
-> that did help was increasing
-> >> the resolution of scan zigzags.
-> >
-> > With regards to the zig-zag, one bug is fixed in the
-> v4l-dvb tree.
-> > Most likely you haven't tried that change.
-> >
-> >> I've sent a patch on that ML and people were
-> happy with the results.
-> >
-> > I did look at your patch, but that was completely
-> against the tuning
-> > algorithm.
-> >
-> > [..]
-> >
-> >> I believe DVB-S2 lock suffer from the same
-> problem, but in that case the
-> >> zigzag is done in the chip and not in the driver.
-> >
-> > Along with the patch i sent, does the attached patch
-> help you in
-> > anyway (This works out for DVB-S2 only)?
-> >
-> >
-> >
->
-> - From what I understand the driver still has some issues.
-> Got feedback
-> from another guy with Canal Digital in Norway that he has
-> the same
-> issues as me.
->
-> Not sure if the diff was an attempt to fix the digital
-> artefacts but I
-> tried applying the diff manually on the source I grabbed
-> from
-> http://jusst.de/hg/v4l-dvb/ but did not notice any
-> improvements or
-> difference with the artefacts. Would any logs be helpful?
->
-> If there is anything else I could try I'm willing to
-> try it out. I
-> appreciate your effort. Thanks.
->
->
-> Jonas
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v2.0.9 (GNU/Linux)
-> Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
->
-> iEYEARECAAYFAkmIlGoACgkQpvOo+MDrK1H4yACdHPoej4cSsfPvp7m4NUGsAjAz
-> 36EAn3cz9MffjPWztzyMEOcs0VcxhQdD
-> =h9tA
-> -----END PGP SIGNATURE-----
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead
-> linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+I am dropping the patch from trivial tree.
 
+Thanks,
 
-
-      
+-- 
+Jiri Kosina
+SUSE Labs
+--336216065-165693548-1234869713=:18110--
