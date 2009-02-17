@@ -1,94 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55009 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750915AbZBEXV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Feb 2009 18:21:29 -0500
-Date: Fri, 6 Feb 2009 00:21:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] sh_mobile_ceu_camera: NV12/21/16/61 are added only once.
-In-Reply-To: <aec7e5c30901222024k3600b6b6t718998b945461a40@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0902060012000.12903@axis700.grange>
-References: <ur62u4qh5.wl%morimoto.kuninori@renesas.com>
- <aec7e5c30901222024k3600b6b6t718998b945461a40@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1984 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752571AbZBQTWJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 14:22:09 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1HJM7NN093432
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 20:22:07 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 17 Feb 2009 20:22:07 +0100 (CET)
+Message-Id: <200902171922.n1HJM7NN093432@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-On Fri, 23 Jan 2009, Magnus Damm wrote:
+Results of the daily build of v4l-dvb:
 
-> On Fri, Jan 23, 2009 at 9:28 AM, Kuninori Morimoto
-> <morimoto.kuninori@renesas.com> wrote:
-> > NV12/21/16/61 had been added every time
-> > UYVY/VYUY/YUYV/YVYU appears on get_formats.
-> > This patch modify this problem.
-> 
-> That's one way to do it. Every similar driver has to do the same thing. Yuck.
-> 
-> Or we could have a better translation framework that does OR for us,
-> using for instance bitmaps.
+date:        Tue Feb 17 19:00:08 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10634:b6a05e457df3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-This has been on my list for a while now, but I'm quite busy these days, 
-but I think I now have an idea how to fix this problem in a less 
-destructive way, withoug undermining the soc-camera algorithms:-) Please, 
-have a look at the patch below. Does it fix the problem for you? If not - 
-how can we modify it to work for you? Notice - not even completely compile 
-tested:-)
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: WARNINGS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc5-powerpc64: OK
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc5-x86_64: OK
+fw/apps: OK
+spec: ERRORS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Fix multiple inclusion of NV* formats into the available format list.
+Full logs are available here:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index a53f5bb..b8234c7 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -585,11 +585,29 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
- 	if (ret < 0)
- 		return 0;
- 
-+	/* Beginning of a pass */
-+	if (!idx)
-+		icd->host_priv = NULL;
-+
- 	switch (icd->formats[idx].fourcc) {
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_VYUY:
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_YVYU:
-+		if (icd->host_priv)
-+			goto add_single_format;
-+
-+		/*
-+		 * Our case is simple so far: for any of the above four camera
-+		 * formats we add all our four synthesized NV* formats, so,
-+		 * just marking the device with a single flag suffices. If
-+		 * the format generation rules are more complex, you would have
-+		 * to actually hang your already added / counted formats onto
-+		 * the host_priv pointer and check whether the format you're
-+		 * going to add now is already there.
-+		 */
-+		icd->host_priv = (void *)sh_mobile_ceu_formats;
-+
- 		n = ARRAY_SIZE(sh_mobile_ceu_formats);
- 		formats += n;
- 		for (k = 0; xlate && k < n; k++) {
-@@ -602,6 +620,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
- 				icd->formats[idx].name);
- 		}
- 	default:
-+add_single_format:
- 		/* Generic pass-through */
- 		formats++;
- 		if (xlate) {
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
