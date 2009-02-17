@@ -1,169 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2531 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753176AbZBMIzY convert rfc822-to-8bit (ORCPT
+Received: from el-out-1112.google.com ([209.85.162.178]:16426 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753166AbZBQUyW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 03:55:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: RFC: Finalizing the V4L2 RDS interface
-Date: Fri, 13 Feb 2009 09:55:19 +0100
-Cc: Michael Schimek <mschimek@gmx.at>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	hjkoch@users.berlios.de, tobias.lorenz@gmx.net,
-	belavenuto@gmail.com
+	Tue, 17 Feb 2009 15:54:22 -0500
+Received: by el-out-1112.google.com with SMTP id b25so1493556elf.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 12:54:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200902130955.19995.hverkuil@xs4all.nl>
+In-Reply-To: <S95672AbZBQUntw3OD4/20090217204349Z+4425@nic.funet.fi>
+References: <S95672AbZBQUntw3OD4/20090217204349Z+4425@nic.funet.fi>
+Date: Tue, 17 Feb 2009 15:54:20 -0500
+Message-ID: <412bdbff0902171254j41b71159k7561b28418120dab@mail.gmail.com>
+Subject: Re: [linux-dvb] Klear?
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RFC: Completing the V4L2 RDS API
-================================
+On Tue, Feb 17, 2009 at 3:43 PM, Juhana Sadeharju <kouhia@nic.funet.fi> wrote:
+>
+> Hello.
+> Ubuntu has Klear DVB viewer/recorder. I like the GUI:
+> Video image appears at one GUI drawing area, making
+> switches between 4:3 and 16:9 modes transparent.
+> Non-fullscreen and arbitrarily resizeable window is
+> very practical.
+> http://www.klear.org
+>
+> However, Klear has last update 2006, and it does not
+> support subtitles which are very important here in Finland.
+>
+> I already wrote 50+ item feedback list which I posted to
+> developers but because it is a freezed project, perhaps
+> my list finds use here. What would be equivalent active
+> DVB viewer/recorder project? I will contact them with my list
+> if they are not here.
+>
+> Juhana
+>
+>  == Klear feedback follows ==
+<snip>
 
-Introduction
-------------
+Juhana,
 
-There are several drivers that implement RDS support: bttv (through 
-saa6588), radio-si470x and radio-cadet. radio-tea5764 wants to support this 
-in the future as well.
+I do not believe there is any shortage of people willing to suggest
+features for the various applications.  We *do* however need people
+who can actually implement those features.  Demanding that certain
+things that you think are important "should be solved immediately" is
+probably not the best way to get open source developers to help you
+out.
 
-The saa6588 is used in different cards, but is currently only enabled in 
-bttv, but I have it working with a saa7134 as well.
+Regarding the DVB subtitle support, I believe Kaffeine supports them.
 
-I expect this to become more important with the increased use of linux and 
-v4l2 in embedded devices. What is holding it back at the moment is the fact 
-that this interface has not been defined properly. It's 90% there, but it 
-is poorly documented and is still not officially part of V4L2.
-
-This RFC is intended to fill in the final gaps and make it official.
-
-Current API
------------
-
-The V4L2 spec says this about the RDS Interface:
-
-4.11. RDS Interface
-
-The Radio Data System transmits supplementary information in binary format, 
-for example the station name or travel information, on a inaudible audio 
-subcarrier of a radio program. This interface aims at devices capable of 
-receiving and decoding RDS information.
-
-The V4L API defines its RDS API as follows.
-
->From radio devices supporting it, RDS data can be read with the read() 
-function. The data is packed in groups of three, as follows:
-
-First Octet: Least Significant Byte of RDS Block
-Second Octet: Most Significant Byte of RDS Block
-Third Octet:
-	Bit 7: Error bit. Indicates that an uncorrectable error occurred
-	       during reception of this block.
-	Bit 6: Corrected bit. Indicates that an error was corrected for
-	       this data block.
-	Bits 5-3: Received Offset. Indicates the offset received by the
-		  sync system.
-	Bits 2-0: Offset Name. Indicates the offset applied to this data.
-
-It was argued the RDS API should be extended before integration into V4L2, 
-no new API has been devised yet. Please write to the linux-media mailing 
-list for discussion: http://www.linuxtv.org/lists.php. Meanwhile no V4L2 
-driver should set the V4L2_CAP_RDS_CAPTURE capability flag.
-
-Problems with this API
-----------------------
-
-As I said before, it is 90% complete, there are just a few things missing. 
-The Offset Name refers to six possible offsets as defined by the RDS and 
-RBDS standard (that is the US variant of RDS). Possible offsets are: A, B, 
-C, C', D and E (RBDS specific).
-
-The mapping of the values 0-7 to offsets is as follows:
-
-0: A
-1: B
-2: C
-3: D
-4: C'
-5: E (RBDS specific)
-6: invalid block E (RDS mode)
-7: invalid block
-
-This mapping comes from the saa6588 RDS decoder, but it makes sense and I 
-see no reason to change this. As long as we document it and add a public 
-RDS header with this information. The original mapping was from the 
-radio-cadet.c driver. Unfortunately, it was never documented and I cannot 
-find any details on what the mapping between number and offset code looks 
-like. Since the cadet is an ISA card I am not too worried about this and 
-I'm following the newer devices.
-
-After a lot of googling I found this ancient radio-cadet posting: 
-http://lkml.indiana.edu/hypermail/linux/kernel/9904.0/0609.html
-
-This finally explained what the difference between the Received Offset and 
-the Offset Name is:
-
-"Bits 5-3: Received Offset. Indicates the block offset received by the 
-decoder hardware (used to determine the location of the block in a RDS 
-group).
-
-Bits 2-0: Offset Name. Indicates the block offset applied by the decoder. 
-(In some cases, the hardware may try to second-guess the received values to 
-try to overcome poor reception conditions)."
-
-Currently all other RDS implementations just make a copy of bits 2-0 and the 
-rdsd daemon (http://rdsd.berlios.de/) uses only bits 2-0.
-
-I would like to change the definition of these bits, setting bits 5-3 to 0. 
-This way we have three bits available for future enhancements. I see no 
-advantage in having two offsets. Just pick the one the decoder gives you.
-
-Another problem is that there is no good method of selecting RDS vs RBDS, or 
-checking which of these two (or both) are available.
-
-I propose to use the v4l2_tuner struct for this. It is an obvious match 
-since the ability to read RDS is tuner related (no tuner, no RDS :-) ).
-
-The v4l2_tuner capability field needs two additional caps:
-
-V4L2_TUNER_CAP_RDS
-V4L2_TUNER_CAP_RBDS
-
-And we can add support to select RDS/RDBS by using one of the reserved 
-fields:
-
-__u8 	rds_type;
-__u8 	rds_signal;	/* RDS signal strength quality, 0-255 */
-__u8 	rds_reserved[2];
-__u32   reserved[3];
-
-And rds_type is:
-
-V4L2_TUNER_RDS_TYPE_RDS   0x00
-V4L2_TUNER_RDS_TYPE_RBDS  0x01
-
-We can also add new subband flags V4L2_TUNER_SUB_RDS and V4L2_TUNER_SUB_RBSD 
-so we can report if RDS/RBDS is present.
-
-I do not think there is any need to introduce an additional 
-V4L2_CAP_RDS_CAPTURE capability, since it is taken care of in v4l2_tuner.
-
-Finally I would prefer to have the requirement that the driver will buffer 
-at least 10 seconds worth of data (comes to 1200 bytes). Or perhaps we 
-should add a field that reports the maximum number of buffered packets? 
-E.g. __u16 rds_buf_size. This might be more generic and you can even allow 
-this to be set with VIDIOC_S_TUNER (although drivers can ignore it).
-
-With these small changes I think the RDS API is pretty complete and can 
-become an official V4L2 API.
-
-Comments?
-
-	Hans Verkuil
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
