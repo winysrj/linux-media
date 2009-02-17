@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:53734 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116AbZBJCqG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 21:46:06 -0500
-Received: by bwz5 with SMTP id 5so2136844bwz.13
-        for <linux-media@vger.kernel.org>; Mon, 09 Feb 2009 18:46:02 -0800 (PST)
-Date: Tue, 10 Feb 2009 03:45:51 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-cc: linux-media@vger.kernel.org,
-	DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: DAB SFN (was: Re: [linux-dvb] dib0700 "buggy sfn workaround" or
- equivalent)
-In-Reply-To: <alpine.LRH.1.10.0902091442500.21232@pub2.ifh.de>
-Message-ID: <alpine.DEB.2.01.0902100329540.1147@ybpnyubfg.ybpnyqbznva>
-References: <e021c7c00902090411j4df14a69me568a6022a5bc4d2@mail.gmail.com> <e021c7c00902090413l12af9229t8a4db36f7c4ce160@mail.gmail.com> <alpine.LRH.1.10.0902091442500.21232@pub2.ifh.de>
+Received: from smtp0.epfl.ch ([128.178.224.219]:33216 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751019AbZBQLOS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 06:14:18 -0500
+Message-ID: <499A9C09.8070004@epfl.ch>
+Date: Tue, 17 Feb 2009 12:14:17 +0100
+From: Valentin Longchamp <valentin.longchamp@epfl.ch>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: i.MX31 Camera Sensor Interface support
+References: <Pine.LNX.4.64.0901240218400.8371@axis700.grange> <4995BA71.6090801@epfl.ch>
+In-Reply-To: <4995BA71.6090801@epfl.ch>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 9 Feb 2009, Patrick Boettcher wrote:
+Hi Guennadi,
 
-> It has nothing to with the channel bandwidth. In Australia, and maybe in 
-> other places too, the DVB-T radio-channels (not to mix up with a radio 
-> service) which are used in single-frequency-networks (SFNs) are 
-> transmitted buggy: different transmitters are not using the same tps-data 
-> (cellid IIRC). The dibcom-demods are using this information to improve the 
-> reception robustness. This leads to synchronization losses, when the SFN 
-> is not set up correctly...
+Valentin Longchamp wrote:
+> Hi Guennadi,
+> 
+> Guennadi Liakhovetski wrote:
+>> I uploaded my current patch-stack for the i.MX31 Camera Sensor Interface 
+>> to http://gross-embedded.homelinux.org/~lyakh/i.MX31-20090124/ (to be 
+>> submitted later, hopefully for 2.6.30). As stated in 0000-base-unknown, 
+>> these patches shall be used on top of the 
+>> git://git.kernel.org/pub/scm/linux/kernel/git/djbw/async_tx.git tree 
+>> "upstream" branch.
+>>
+> 
+> I have tested your patchset on our mx31moboard system. However, I would
+> like some precisions on how things should be registered.
+> 
 
-Hijacking this bit of information...
+I am now able to register a camera device on the soc_camera bus with
+mx3_camera, I had not initialized well the bus_id for my platform
+device. After struggling with a few minor hardware bugs, I am now able
+to register a MT9T031 camera (actually we have a MT9T001 for testing,
+but they are very similar).
 
-Is it in theory possible that this may be the source of some
-problems I experience receiving DAB radio, using a multi-
-element directional antenna, regardless of orientation, in
-a location with reception from at least two and possibly more
-than four senders within eyesight, or close to that?
+So things seem to be working fine. I am testing it with the capture.c
+example from v4linux. But the mt9t031 only supports bayer format atm (I
+could try to work on it, but first I need to validate our hardware
+design by grabbing real images), could someone point me to an easy way
+of converting this bayer format to something readable (maybe a raw image
+for gimp, that's what I am trying to do now) ?
 
-It's a completely different manufacturer (Siano) and the
-problem disappears when I simply use a short indoor whip
-antenna with adequate S/N ratio.
+By the way, Guennadi, if you want me to test something more extensively,
+don't hesitate to ask me about it.
 
-Note that so far, I haven't been able to extract more than
-a subset of the metainformation which accompanies the
-different audio streams, and I've had other hardware
-problems, but I've been puzzled why I had not been able
-to overcome the regular periodic mangling of the audio.
+Thanks again for your patch.
 
+Val
 
-My knowledge of DAB is dismal, to start with, anyway.
-So be gentle.  Unless you don't feel like it, or need
-to let off steam.  Or whatever, treat me like a dog...
-
-thanks,
-barry bouwsma
+-- 
+Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
+valentin.longchamp@epfl.ch, Phone: +41216937827
+http://people.epfl.ch/valentin.longchamp
+MEA3485, Station 9, CH-1015 Lausanne
