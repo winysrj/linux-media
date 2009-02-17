@@ -1,168 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:54188 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753527AbZBVLTz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 06:19:55 -0500
-Message-ID: <49A13466.5080605@redhat.com>
-Date: Sun, 22 Feb 2009 12:17:58 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	Jean-Francois Moine <moinejf@free.fr>,
-	kilgota@banach.math.auburn.edu,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl>
-In-Reply-To: <200902211253.58061.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from dd18532.kasserver.com ([85.13.139.13]:43581 "EHLO
+	dd18532.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123AbZBQMC6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 07:02:58 -0500
+Date: Tue, 17 Feb 2009 13:02:55 +0100
+From: Carsten Meier <cm@trexity.de>
+To: kilgota@banach.math.auburn.edu
+Cc: Andreas Witte <andreaz@t-online.de>, linux-media@vger.kernel.org
+Subject: Re: Sometimes no lock on digivox miniII (Ver3.0)
+Message-ID: <20090217130255.64262ff0@tuvok>
+In-Reply-To: <alpine.LNX.2.00.0902162139510.3194@banach.math.auburn.edu>
+References: <016001c99099$11476f20$33d64d60$@de>
+	<alpine.LNX.2.00.0902162139510.3194@banach.math.auburn.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am Mon, 16 Feb 2009 21:54:40 -0600 (CST)
+schrieb kilgota@banach.math.auburn.edu:
 
-
-Hans Verkuil wrote:
-> Hi Adam,
 > 
-> Sorry for the late reply, it's been very busy.
 > 
-
-Same here :)
-
-> On Wednesday 18 February 2009 01:30:52 Adam Baker wrote:
->> (linux-omap included in distribution as lots of omap systems include
->> cameras so this could be relevant there.)
->>
->> Background
->>
->> A number of the webcams now supported by v4l have sensors that are
->> mounted upside down. Up to now this has been handled by having a table in
->> libv4l of the USB IDs of affected cameras. This approach however fails to
->> address two known cases (and probably more as yet unknown ones) where the
->> USB ID is insufficient to determine the sensor orientation.
->>
->> In one of those cases (SQ-905) USB commands must be issued to the camera 
->> at probe time) to determine what sensor is fitted and in the other case
->> (Genesys gl860) the camera can be pointed towards or away from the user
->> and it swaps orientation when it is changed.
->>
->> It is possible that there are cameras that can use gravity sensors or
->> similar to report how they are being held but such user driven
->> orientation which may be intended for creative effect should probably be
->> separated from this hardware related issue.
+> On Tue, 17 Feb 2009, Andreas Witte wrote:
 > 
-> Yes, I strongly agree with this.
+> > Hello List,
+> >
+> > after changing my system to newer hardware (and use the latest
+> > driver for af9015), it
+> > seems the device didnt get a lock sometimes (mostly in the case the
+> > system is started up).
+> > I use the stick together with mythtv. If i get the partial lock, i
+> > restart mythbackend or
+> > switch channel - then i get the lock. If i get it just the first
+> > time the stick is working
+> > fine for the whole day. Only the very first channelpick after
+> > system start seems to be the
+> > problem.
+> >
+> > I cant reproduce this at all. Sometimes it works, sometimes not.
+> > Anybody else seeing this?
+> > Im on gentoo with 2.6.28 kernel.
+> >
+> > Any Ideas?
+> >
+> > Regards,
+> > Andreas
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+> > linux-media" in the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 > 
-
-+1
-
->> 3) Use an extra couple of bits in V4L2_BUF_FLAGS
->> Pros: Simple to implement. Can change per frame without needing polling.
->> Cons: Doesn't work for non libv4l apps that try to use the read()
->> interface. Can't easily identify drivers that don't support it (does 0
->> mean not rotated or just not implemented). Can only be read when
->> streaming (does that matter?)
+> I don't know anything about the af9015, what kind of device it is,
+> what it is supposed to do, or who wrote the code, except that I just
+> grepped the code for af9015, found it, and it is a USB device. So I
+> am an outside observer. Here is my suspicion of what is wrong:
 > 
-> I think that matters, yes.
+> There was a rather nasty USB bug in 2.6.28 (no suffixes). It hit a
+> lot of USB device drivers. The problem showed itself, pretty much, as
+> you describe. I experienced it, too, with a couple of Gphoto camera
+> drivers that I wrote which had been working ust fine for years and
+> worked again just fine when I patched the kernel. So by extrapolation
+> there is quite likely nothing wrong here, either. Probably, the best
+> thing to do would be either to upgrade to 2.6.28.x or to downgrade to
+> 2.6.27.x. If the problem goes away, good.
 > 
+> Theodore Kilgore
 
-I too can see it being usefull to get the orientation when not streaming.
+The bug occurs seldomly here, too. I'm using Ubuntu 8.10 with the
+Ubuntu flavour of 2.6.27, some weeks old v4l-dvb-tree, and MSI digivox
+II v3. I have to switch channels a couple of times to get a channel
+lock. Can't reproduce it, and it doesn't happend for some time.
+Possibly because of a v4l-dvb- or kernel- update.
 
->> 4) Use some reserved bits from the v4l2_capability structure
->> Pros: Less overhead than controls.
->> Cons: Would require polling to support the case of a camera being turned
->> toward / away from the user while streaming. Can't easily identify
->> drivers that don't support it.
->>
->> 5) Use some reserved bits from the v4l2_input structure (or possibly the
->> status word but that is normally only valid for current input)
->> Pros: Less overhead than controls. Could support multiple sensors in one
->> camera if such a beast exists.
-> 
-> What does exist is devices with a video input (e.g. composite) and a camera 
-> input: each input will have different flags. Since these vflip/hflip 
-> properties do not change they can be enumerated in advance and you know 
-> what each input supports.
-> 
->> Cons: Would require polling to support the case of a camera being turned
->> toward / away from the user while streaming.
-> 
-> Polling applies only to the bits that tell the orientation of the camera. 
-> See below for a discussion of this.
-> 
-
-Didn't we agree to separate orietation (as in sensor mounted upside down) and 
-the user being able to rotate the camera (which i believe we called pivotting).
-
-For the orientation case, which is the case with the sq905X, we do not need to 
-poll, as for pivotting, here is my proposal:
-
-Have both orientation and pivotting flags in the input flags. The pivotting 
-flags will indicate the pivotting state at the moment of doing the ioctl (which 
-may change later), so these indeed may need to be polled, unlike the 
-orientation flags which will never change.
-
->> Can't easily identify drivers that don't support it.
-> 
-> Not too difficult to add through the use of a capability bit. Either in 
-> v4l2_input or (perhaps) v4l2_capability.
-> 
-
-+1
-
-> Another Pro is that this approach will also work for v4l2_output in the case 
-> of, say, rotated LCD displays. Using camera orientation bits in v4l2_buffer 
-> while capturing will work, but using similar bits for output will fail 
-> since the data is going in the wrong direction.
-> 
->> The interest in detecting if a driver provides this informnation is to
->> allow libv4l to know when it should use the driver provided information
->> and when it should use its internal table (which needs to be retained for
->> backward compatibility). With no detection capability the driver provided
->> info should be ignored for USB IDs in the built in table.
->>
->> Thoughts please
-> 
-> Is polling bad in this case? It is not something that needs immediate 
-> attention IMHO.  The overhead for checking once every X seconds is quite
- > low.
-
-Agreed, but it still is something which should be avoided if possible, 
-implementing polling also means adding a lot of IMHO unneeded code on the 
-userspace side.
-
-I would prefer to make the "realtime" pivotting state available to the app by 
-adding flags containing the pivotting state at frame capture to the v4l2_buf flags.
-
-But if people dislike this, libv4l can simple poll the input now and then.
-
-> Furthermore, it is only needed on devices that cannot do v/hflipping 
-> in hardware.
-> 
-
-Erm, no, since we decided we want to differentiate between sensor orientation 
-and camera pivotting, I think the driver should not automagically do 
-v/hflipping in the pivot case, this should be left up to userspace. Maybe the 
-user actually wants to have an upside down picture ?
-
-> An alternative is to put some effort in a proper event interface. There is 
-> one implemented in include/linux/dvb/video.h and used by ivtv for video 
-> decoding. The idea is that the application registers events it wants to 
-> receive, and whenever such an event arrives the select() call will exit 
-> with a high-prio event (exception). The application then checks what 
-> happened.
-> 
-
-No not another event interface please. Once could argue that we should export 
-the pivotting info through the generic linux input system, but not a v4l 
-specific event interface please. Actually I think making the pivotting sensor 
-available through the generic input system in addition to making it available 
-through input flags would be nice to have. Just like we need to make all those 
-take a picture now buttons on webcams available through the generic input system.
-
-Regards,
-
-Hans
+Cheers,
+Carsten
