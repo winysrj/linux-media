@@ -1,117 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1620 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758786AbZBJTUt (ORCPT
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:41682 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751332AbZBQPRL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 14:20:49 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1AJKlc1005119
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:20:47 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 10 Feb 2009 20:20:47 +0100 (CET)
-Message-Id: <200902101920.n1AJKlc1005119@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] WARNINGS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+	Tue, 17 Feb 2009 10:17:11 -0500
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KF700IJXUG73711@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 17 Feb 2009 10:16:57 -0500 (EST)
+Date: Tue, 17 Feb 2009 10:16:55 -0500
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: [linux-dvb] [BUG] changeset 9029
+ (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
+In-reply-to: <Pine.LNX.4.58.0902161611300.24268@shell2.speakeasy.net>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: linux-media@vger.kernel.org, e9hack <e9hack@googlemail.com>,
+	linux-dvb@linuxtv.org
+Message-id: <499AD4E7.1030306@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4986507C.1050609@googlemail.com>
+ <200902151336.17202@orion.escape-edv.de>
+ <Pine.LNX.4.58.0902160811340.24268@shell2.speakeasy.net>
+ <20090216153148.6f2aa408@pedra.chehab.org> <4999BADF.6070106@linuxtv.org>
+ <Pine.LNX.4.58.0902161611300.24268@shell2.speakeasy.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+Trent Piepho wrote:
+> On Mon, 16 Feb 2009, Steven Toth wrote:
+>>> Hartmut, Oliver and Trent: Thanks for helping with this issue. I've just
+>>> reverted the changeset. We still need a fix at dm1105, au0828-dvb and maybe
+>>> other drivers that call the filtering routines inside IRQ's.
+>> Fix the demux, add a worker thread and allow drivers to call it directly.
+>>
+>> I'm not a big fan of videobuf_dvb or having each driver do it's own thing as an
+>> alternative.
+>>
+>> Fixing the demux... Would this require and extra buffer copy? probably, but it's
+>> a trade-off between  the amount of spent during code management on a driver by
+>> driver basis vs wrestling with videobuf_dvb and all of problems highlighted on
+>> the ML over the last 2 years.
+> 
+> Have the driver copy the data into the demuxer from the interrupt handler
+> with irqs disabled?  That's still too much.
+> 
+> The right way to do it is to have a queue of DMA buffers.  In the interrupt
+> handler the driver takes the completed DMA buffer off the "to DMA" queue
+> and puts it in the "to process" queue.  The driver should not copy and
+> cetainly not demux the data from the interrupt handler.
 
-Results of the daily build of v4l-dvb:
+I know what the right way is Trent (see cx23885) although thank you for 
+reminding me. videobuf_dvb hasn't convinced people like me to bury myself in its 
+mess or complexity during retro fits cases. Retro fitting videobuf_dvb into cx18 
+(at the time) was way too much effort.
 
-date:        Tue Feb 10 19:00:05 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10503:9cb19f080660
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Retro fitting it into existing drivers can be painful and I haven't seen any 
+volunteers stand up over the last 24 months to get this done.
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc4-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc4-armv5-omap2: OK
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc4-i686: WARNINGS
-linux-2.6.16.61-m32r: OK
-linux-2.6.17.14-m32r: OK
-linux-2.6.18.8-m32r: OK
-linux-2.6.19.5-m32r: OK
-linux-2.6.20.21-m32r: OK
-linux-2.6.21.7-m32r: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc4-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc4-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc4-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc4-x86_64: WARNINGS
-fw/apps: OK
-spec: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc4): ERRORS
+My suggestion? For the most part we're talking about very low data rates for 
+DVB, coupled with fast memory buses for memcpy's. If the group doesn't want 
+calls to the sw_filter methods then implement a half-way-house replacement for 
+those drivers - as I mentioned above - with the memcpy. Either this approach, or 
+make videobuf_dvb mandatory and deprecate sw_filter_...n() to intensionally 
+break drivers and force maintainers to comply. This will upset people.
 
-Detailed results are available here:
+Realistically, this thread will probably go on for a couple of days then trail 
+off into nothing. The subject will rear it's head again in a few months, like 
+it's done in the past.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+A general question to the group: Who wants to volunteer to retro fit 
+videobuf_dvb into the current drivers so we can avoid calls to sw_filter_...n() 
+directly?
 
-Full logs are available here:
+I'm willing to loan any hardware I have to the volunteer assuming we can work 
+out something on shipping.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+- Steve
 
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
