@@ -1,244 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:46615 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751131AbZBTD4l (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.30]:7652 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752841AbZBQUpy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 22:56:41 -0500
-Subject: Re: Minimum kernel version supported by v4l-dvb
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, urishk@yahoo.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <20090218140105.17c86bcb@hyperion.delvare>
-References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
-	 <20090218071041.63c09ba3@pedra.chehab.org>
-	 <20090218140105.17c86bcb@hyperion.delvare>
-Content-Type: text/plain
-Date: Fri, 20 Feb 2009 04:57:11 +0100
-Message-Id: <1235102231.2708.19.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 17 Feb 2009 15:45:54 -0500
+Received: by yw-out-2324.google.com with SMTP id 5so1176452ywh.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 12:45:53 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <BAY102-W289218AB686D66E1F3BD4ACFB40@phx.gbl>
+References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
+	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
+	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
+	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
+	 <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
+	 <BAY102-W54F614817092361870868DCFB40@phx.gbl>
+	 <412bdbff0902162148k398db187ma6510d0903741e73@mail.gmail.com>
+	 <BAY102-W41AFA57978CB8940FABF84CFB40@phx.gbl>
+	 <412bdbff0902171021l6bcfc1f4o6d4903949da70b0d@mail.gmail.com>
+	 <BAY102-W289218AB686D66E1F3BD4ACFB40@phx.gbl>
+Date: Tue, 17 Feb 2009 15:45:53 -0500
+Message-ID: <412bdbff0902171245m5e6a8deerfcd14a340f65fa4f@mail.gmail.com>
+Subject: =?windows-1256?Q?Re=3A_HVR=2D1500_tuner_seems_to_be_recognized=2C_but_wont_?=
+	=?windows-1256?Q?turn_on=2E=FE?=
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Thomas Nicolai <nickotym@hotmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2009/2/17 Thomas Nicolai <nickotym@hotmail.com>:
+>
+> I didn't post it last night, but I don't remember seeing anything different in it after I looked at it.  I haven't seen much on the mailing lists about it not working.  I found a few threads on Kubuntu and Ubuntu forums about people having problems a few months ago, but they were all able to get the card to tune, some had issues with sound that were later resolved.  Noone said they couldn't get it to tune.
+>
+> You mentioned that the card causing the computer to freeze may indicate other problems, could hotplug not working right affect this?
+>
+> I will try some more tonight.
 
-Am Mittwoch, den 18.02.2009, 14:01 +0100 schrieb Jean Delvare:
-> Hi Mauro,
-> 
-> On Wed, 18 Feb 2009 07:10:41 -0300, Mauro Carvalho Chehab wrote:
-> > On Wed, 18 Feb 2009 09:55:53 +0100 (CET)
-> > "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
-> > 
-> > > Not at all. I work with embedded systems and what happens is that you
-> > > effectively take a kernel snapshot for your device and stick to that.
-> > > You're not using v4l-dvb, but you might backport important fixes on
-> > > occasion.
-> > > 
-> > > Again, it's not our job. The linux model is to get your drivers into the
-> > > kernel, then let distros take care of the rest, which includes backporting
-> > > if needed to older kernels. We are doing the work that distros should be
-> > > doing. A few years ago I moved ivtv to v4l-dvb and the kernel with the
-> > > express purpose to be finally free of keeping it backwards compatible with
-> > > older kernels. Now I find myself doing the same AGAIN.
-> > > 
-> > > And you are talking about that mythical user that needs it. I've yet to
-> > > SEE that user here and telling me that it is essential to their product.
-> > > 
-> > > PROVE to me that it is really necessary and really our job, and esp. my
-> > > job, since *I'm* the one keeping the backwards compatibility for i2c
-> > > modules alive. All I hear is 'there might be', 'I know some company', 'I
-> > > heard'.
-> > > 
-> > > Right now there is crappy code in the kernel whose only purpose is to
-> > > facilitate support for old kernels. That's actually against the kernel
-> > > policy.
-> > > 
-> > > One alternative is it create a separate repository just before the compat
-> > > code is removed, and merge important fixes for drivers in there. That
-> > > should tide us over until RHEL 6 is released.
-> > > 
-> > > Which also raises the other question: what criterium is there anyway to
-> > > decide what is the oldest kernel to support? RHEL 5 will no doubt be used
-> > > for 1-2 years after RHEL 6 is release, do we still keep support for that?
-> > > Old kernels will be used for a long time in embedded systems, do we still
-> > > keep support for that too?
-> > 
-> > Hans, I'm doing backport since 2005. So, you are not the only one that are
-> > doing backports. On V4L, this started ever since. In the case of DVB, we
-> > started backport on 2006. Before that, they use to support only the latest
-> > kernel version.
-> > 
-> > If you get a snapshot of our tree of about 6 months to one year ago, we had
-> > even support for linux-2.4 I2C (and yes, this works - I have a tree here for
-> > vivi and bttv drivers based on that i2c support, working with 2.4).
-> 
-> Not necessarily something to be proud about. This only shows how slowly
-> v4l has evolved in the past few years. Big changes that should have
-> happen have been constantly postponed in the name of compatibility.
-> 
-> > In the past, our criteria were simply to support all 2.6 versions and the
-> > latest 2.4 versions. Sometime after having the last 2.4 distro moving their
-> > stable repo to 2.6, we decided to drop 2.4, because we got no complains to keep
-> > 2.4 on that time.
-> > 
-> > Maybe the current solution for i2c backport is not the better one, and we
-> > need to use another approach. If the current i2c backport is interfering on the
-> > development, then maybe we need to re-think about the backport implementation.
-> > The backport shouldn't affect the upstream. It were never affected until the
-> > recent i2c backport. Even the 2.4 i2c backport didn't interfere upstream, even
-> > having a completely different implementation on 2.4.
-> 
-> Actually, 2.6 kernels up to 2.6.13 had an i2c API very similar to what
-> 2.4 had. The binding model changes we are undergoing now are way more
-> intrusive than the migration from 2.4 to early 2.6.
-> 
-> > > The only reasonable criterium I see is technical: when you start to
-> > > introduce cruft into the kernel just to support older kernels, then it is
-> > > time to cut off support to those kernels.
-> > 
-> > The criteria for backport is not technical.
-> 
-> That technical isn't the only criteria, I agree with. But claiming that
-> technical isn't a criteria at all is plain wrong. This is equivalent to
-> claiming that development time doesn't cost anything.
-> 
-> >                                       (...) It is all about offering a version
-> > that testers with standard distros can use it, without needing to use the
-> > latest -rc kernel.
-> > 
-> > I'm fine to drop support to unused kernels, but the hole idea to have backport
-> > is to allow an easy usage of the newer drivers by users with their environment.
-> > If we start removing such code, due to any other criteria different than having
-> > support for kernels that people are still using on their desktop and enterprise
-> > environments, 
-> 
-> You're aiming at the wrong target, I am afraid. "Enterprise
-> environments" have _nothing_ to do with upstream development, by
-> definition. More on that below.
-> 
-> >         (...) then it is time to forget about -hg and use -git instead,
-> > supporting only the latest tip kernel, just like almost all other maintainers
-> > do.
-> > 
-> > While we are stick on have backport, we need at least to support the latest
-> > desktop and enterprise kernel versions of the major distros.
-> > 
-> > So, it is a matter of deciding what we want:
-> > 	keep our current criteria of offering backport kernels that include
-> > 	at least the kernel version used on the major desktop and enterprise
-> > 	kernel distros
-> 
-> No, not enterprise kernels!
-> 
-> > OR
-> > 	just use -git and drop all backport code.
-> > 
-> > Both solutions work for me, although I prefer to keep backport, even having more trouble[1]. 
-> > 
-> > Anything else and we will enter of a grey area that will likely go nowhere.
-> 
-> I am sorry but I don't follow you here. You are basically claiming that
-> allowing enterprise users (who typically run RHEL or SLED) to build
-> bleeding-edge drivers off the v4l-dvb repository is very important, but
-> allowing non-enterprise users and kernel developers (who typically run
-> Fedora or openSUSE) isn't that important? I believe this is exactly the
-> other way around.
-> 
-> I am working on L3 support for SLE products, so I know very well what
-> enterprise customers want, and what they don't. I doubt that RHEL
-> customers are any different from SLE ones. Enterprise customers don't
-> give a damn to the v4l-dvb repository. All they know about and want are
-> packages provided by the vendor, which change as little as possible
-> (that is, bug fixes only.) Running bleeding-edge, untrusted and
-> unmaintained drivers is the last thing they want. If they need a driver
-> for a recent piece of hardware, they open a feature request for the
-> next service pack, and leave it to the OS vendor to backport the
-> driver and maintain it for the next 5 years or so.
-> 
-> As a side note, I doubt that the v4l-dvb repository would always work
-> that well for enterprise distribution kernels anyway. All the tests are
-> based on the kernel version, but the enterprise kernels diverge a lot
-> over time from the upstream version they were originally based on, so I
-> wouldn't be surprised if things broke from times to times.
-> 
-> The actual audience for the v4l-dvb repository is users who do NOT have
-> a support contract with the OS vendor. That is, home users. These do
-> not run RHEL and SLE, especially if they have recent hardware, given
-> how bad hardware support is in enterprise distributions. Home users
-> will want their hard disk controller, graphics adapter and sound chip
-> to work before they even consider getting support for their TV adapter
-> from the v4l-dvb repository. Which means that they will be running a
-> recent version of Fedora, openSUSE or equivalent.
-> 
-> Now, if you look at the support policy of Fedora and openSUSE, you'll
-> see that they are maintained for 13 [1] to 24 [2] months. In practice,
-> the oldest supported Fedora is Fedora 9, featuring kernel 2.6.25, and
-> the oldest supported openSUSE is openSUSE 10.3, featuring kernel
-> 2.6.22. Which is why I claim that there is no point in supporting
-> anything older than that. When openSUSE 10.3 goes out of maintenance
-> (end of 2009), we can even drop support for kernels < 2.6.25.
-> 
-> [1] http://fedoraproject.org/wiki/LifeCycle
-> [2] http://en.opensuse.org/SUSE_Linux_Lifetime
-> 
-> There is a reason why the Linux market has been segmented into
-> enterprise distributions and community distributions. Ignoring that
-> reason and trying to support all distributions with the same upstream
-> repository simply doesn't work.
-> 
-> So, I don't buy your claim that we should either support old enterprise
-> kernels or not support any old kernel at all. Just like I don't buy
-> your claim that the technical aspect shouldn't be taken into account
-> when deciding what kernels you want to support. I think we have to be
-> pragmatic here. We want to support kernels which users really care
-> about (and these are the ones in maintained popular non-enterprise
-> distributions) and which don't cost too much to support from a
-> technical point of view.
+Thomas,
 
----
+I spoke to Steven Toth about this issue, and he suggested also running
+the following commands prior to plugging in the device:
 
-> Now, if you think that giving up the hg tree and only supporting Linus'
-> latest kernel is the way to go, I'm not going to prevent you from going
-> down that road. As a kernel developer, that would make me very happy.
-> But I remember that the hg tree is there to help users test the newest
-> developments without running a bleeding-edge kernel, and that certainly
+sudo modprobe cx23885 i2c_scan=1
+md5sum /lib/firmware/*/xc*
+md5sum /lib/firmware/xc*
 
----
+And include the output from dmesg, as well as the output of running
+the two md5sum commands.
 
-I don't want to come up with old stories about what happened in the
-past, there are some.
+Regards,
 
-It looks like Jean tries to find a good compromise.
-
-So, I don't deny, that recent Fedora stuff is not as stable as it was
-for long and on certain hardware, at least, a pain. You are forced to
-use something you don't want, giving the test monkey.
-
-We, from our side, should try best, that it does not slip further
-away ...
-
-Hans decided deliberately to extend backward compat even down to 2.6.16,
-now seeing the bill.
-
-We had back then already requests to prepare compat down to v4l2
-revision one, if someone remembers and I did strongly deny such
-assaults. Our head developers were set on wrong paths and wasted there
-time. Result in best case was some binary only.
-
-So, if Hans wants to get out of this hell now, seems down to 2.6.22 he
-would be willing to help to care for, the rest is as it was.
-
-Mauro, Trent, Mike and hopefully some more for the rest or let it.
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
+Devin
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
