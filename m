@@ -1,41 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from faui03.informatik.uni-erlangen.de ([131.188.30.103]:35678 "EHLO
-	faui03.informatik.uni-erlangen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751635AbZBPJZ4 (ORCPT
+Received: from mail-gx0-f222.google.com ([209.85.217.222]:50318 "EHLO
+	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631AbZBQWii (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 04:25:56 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: CityK <cityk@rogers.com>
-Subject: Re: firmware
-Date: Mon, 16 Feb 2009 10:25:50 +0100
-Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Michele <aspeltami@gmail.com>, linux-media@vger.kernel.org
-References: <200902152115.58993.aspeltami@gmail.com> <412bdbff0902151254u14474393id1d7c9bee98515df@mail.gmail.com> <4998938B.6000702@rogers.com>
-In-Reply-To: <4998938B.6000702@rogers.com>
+	Tue, 17 Feb 2009 17:38:38 -0500
+Received: by gxk22 with SMTP id 22so4730486gxk.13
+        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 14:38:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+In-Reply-To: <499B3A60.90306@linuxtv.org>
+References: <20090217155335.GB6196@opus.istwok.net>
+	 <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net>
+	 <499B1E19.80302@linuxtv.org> <20090217205629.GA9722@opus.istwok.net>
+	 <412bdbff0902171305j26827e3fp2852f3774a788a67@mail.gmail.com>
+	 <499B3A60.90306@linuxtv.org>
+Date: Tue, 17 Feb 2009 17:38:37 -0500
+Message-ID: <412bdbff0902171438u7c2ab531y62bb6c717647e917@mail.gmail.com>
+Subject: Re: PVR x50 corrupts ATSC 115 streams
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
+Cc: David Engel <david@istwok.net>, linux-media@vger.kernel.org,
+	V4L <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902161025.53632.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 15 February 2009 23:13, CityK wrote:
-> Devin Heitmueller wrote:
-> >
-> > CityK,
-> > That actually wasn't a very helpful link you sent ... The user would
-> > have to know he has a Xceive 3028L tuner, and even if he had been able
-> > to figure that out,
+On Tue, Feb 17, 2009 at 5:29 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> The driver is probably buggy. Either its really reporting pre-viterbi errors
+> OR it's reporting real post-viterbi errors - but in which case why aren't we
+> also measuring uncorrected blocks?
 >
-> I would hope that someone using Gentoo (hardly a hands off distro) would
-> be sharp enough to know how to follow the rabbit down the hole  ...
-> although I'd advise that they avoid sipping from any vessel labelled
-> with the words "Drink Me"
+> Regardless of Davids actual current problem, this sounds like a secondary
+> unrelated issue.
+>
+> - Steve
 
-I don't get you. What do you want for Gentoo? checking the wiki content about 
-firmware?
+Sorry, I didn't intend to suggest that the BER code isn't buggy - just
+that I doubt it has any bearing on his actual problem since they occur
+regardless of whether the other cards are running.
 
-Regards
-Matthias
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
