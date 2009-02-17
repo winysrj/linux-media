@@ -1,93 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:58048 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241AbZBWIZj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2009 03:25:39 -0500
-Message-ID: <49A25D12.4040302@redhat.com>
-Date: Mon, 23 Feb 2009 09:23:46 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from bay0-omc3-s2.bay0.hotmail.com ([65.54.246.202]:30655 "EHLO
+	bay0-omc3-s2.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751024AbZBQFs1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 00:48:27 -0500
+Message-ID: <BAY102-W227ECD869066F0AAFAC94DCFB40@phx.gbl>
+From: Thomas Nicolai <nickotym@hotmail.com>
+To: <devin.heitmueller@gmail.com>
+CC: <linux-media@vger.kernel.org>
+Subject: =?windows-1256?Q?RE:_HVR-1500_tuner_seems_to_be_recognized=2C_but_wont_tu?=
+ =?windows-1256?Q?rn_on.=FE?=
+Date: Mon, 16 Feb 2009 23:48:26 -0600
+In-Reply-To: <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
+References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
+	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
+ 	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
+ 	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
+ <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: 8bit
 MIME-Version: 1.0
-To: Trent Piepho <xyzzy@speakeasy.org>
-CC: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com> <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu> <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu> <49A1CA5B.5000407@redhat.com> <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net> <49A1D7B2.5070601@redhat.com> <Pine.LNX.4.58.0902221504410.24268@shell2.speakeasy.net> <49A1DF50.1080903@redhat.com> <Pine.LNX.4.58.0902221603410.24268@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0902221603410.24268@shell2.speakeasy.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+Unplugging the card makes the computer freeze.  I tried putting the line about tuner-xc2038 in /etc/modules, but that didn't make a difference.  Would it help to reinstall i2c and how do I go about doing so?
 
-Trent Piepho wrote:
-> On Mon, 23 Feb 2009, Hans de Goede wrote:
->> Trent Piepho wrote:
->>> On Sun, 22 Feb 2009, Hans de Goede wrote:
->>>> Trent Piepho wrote:
->>>>> On Sun, 22 Feb 2009, Hans de Goede wrote:
->>>>>> Yes that is what we are talking about, the camera having a gravity switch
->>>>>> (usually nothing as advanced as a gyroscope). Also the bits we are talking
->>>>>> about are in a struct which communicates information one way, from the camera
->>>>>> to userspace, so there is no way to clear the bits to make the camera do something.
->>>>> First, I'd like to say I agree with most that the installed orientation of
->>>>> the camera sensor really is a different concept than the current value of a
->>>>> gravity sensor.  It's not necessary, and maybe not even desirable, to
->>>>> handle them in the same way.
->>>>>
->>>>> I do not see the advantage of using reserved bits instead of controls.
->>>>>
->>>>> The are a limited number of reserved bits.  In some structures there are
->>>>> only a few left.  They will run out.  Then what?  Packing non-standard
->>>>> sensor attributes and camera sensor meta-data into a few reserved bits is
->>>>> not a sustainable policy.
->>>>>
->>>>> Controls on the other card are not limited and won't run out.
->>>>>
->>>> Yes but these things are *not* controls, end of discussion. The control API is
->>>> for controls, not to stuff all kind of cruft in.
->>> All kind of cruft belongs in the reserved bits of whatever field it can be
->>> stuffed in?
->> Not whatever field, these are input properties which happen to also be pretty
->> binary so putting them in the input flags field makes plenty of sense.
+Thanks,
+
+Tom
+----------------------------------------
+> Date: Tue, 17 Feb 2009 00:14:56 -0500
+> Subject: Re: HVR-1500 tuner seems to be recognized, but wont turn on.þ
+> From: devin.heitmueller@gmail.com
+> To: nickotym@hotmail.com
+> CC: linux-media@vger.kernel.org
+>
+> 2009/2/17 Thomas Nicolai :
 >>
->>> What is the difference?  Why does it matter?  Performance?  Maintenance?
->>> Is there something that's not possible?  I do not find "end of discussion"
->>> to be a very convincing argument.
->> Well they are not controls, that is the difference, the control interface is
->> for controls (and only for controls, end of discussion if you ask me). These
->> are not controls but properties, they do not have a default min and max value,
+>> Here is the pertinent part of the dmesg I got tonight:
+>>
+>> dmesg
+>>
+>> 407.155095] firmware: requesting xc3028-v27.fw
+>> [ 407.248329] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+>> [ 407.447731] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 407.970376] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
+>> [ 407.970385] xc2028 1-0061: -5 returned from send
+>> [ 407.970390] xc2028 1-0061: Error -22 while loading base firmware
+>> [ 408.222453] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 408.744786] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
+>> [ 408.744791] xc2028 1-0061: -5 returned from send
+>> [ 408.744793] xc2028 1-0061: Error -22 while loading base firmware
+>> [ 409.945750] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+>> [ 411.102083] xc2028 1-0061: Loading firmware for type=D2633 DTV6 ATSC (10030), id 0000000000000000.
+>>
+>>
+>> ----------------------------------------
+>>> From: nickotym@hotmail.com
+>>> To: devin.heitmueller@gmail.com
+>>> CC: linux-media@vger.kernel.org
+>>> Subject: RE: HVR-1500 tuner seems to be recognized, but wont turn on.þ
+>>> Date: Sat, 14 Feb 2009 12:05:09 -0600
+>>>
+>>>
+>>>
+>>>
+>>>
+>>>> That looks really suspicious. Perhaps the xc3028 tuner is being put
+>>>> to sleep and not being woken up properly.
+>>>>
+>>>> Could you please post the full dmesg output showing the initialization
+>>>> of the device?
+>>>>
+>>>> Devin
+>>>
+>>>
+>>> I turned kubuntu on, shut off the backend for mythtv and then did a scan using dvbscan.
+>>>
+>>> Here is the full dmesg output, sorry it is long I wanted to include it all in case i missed anything.:
+>>>
+>>>
+>>> dmesg
+>>>
+>>
+>>
+>> _________________________________________________________________
+>> Windows Live™: Keep your life in sync.
+>> http://windowslive.com/howitworks?ocid=TXT_TAGLM_WL_t1_allup_howitworks_022009
+>>
+>
+> Sorry for not getting back to you sooner.
+>
+> I don't claim to know much about this card, but there was a relatively
+> recent change where the tuner gets put to sleep, which might explain
+> why you are having i2c communication failures.
+>
+> Try the following:
+>
 > 
-> Camera pivot sensor ranges from 0 to 270.  How is that not a min and max?
+> make unload
+> modprobe tuner-xc2028 no_poweroff=1 debug=1
 > 
->> they have only one *unchanging* value, there  is nothing the application can
 > 
-> Camera sensors don't have an unchanging value.
-> 
-> And who says scan order can't change?  Suppose the camera returns raw bayer
-> format data top to bottom, but if you request yuv then an image processing
-> section needs to kick in and that returns the data bottom to top.
-> 
+>
+> If that doesn't work, send the dmesg output.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
-Yes, because hardware designers like throwing away lots of transistors to 
-memory so they are going to put memory in the controller to buffer an entire 
-frame and then scan out the memory buffer in different order then the sensor 
-gave them the data, so they cannot do FIFO, so they will actually need 2 frames 
-of memory.
-
-If the sensor is soldered upside down on the PCB that is a very much unchanging 
-value, and an input property if you ask me.
-
-So new proposal: use 2 bits in the input flags to indicate if the input is 
-hardwired vflipped and/or hflipped.
-
-Create a new class of controls for querying possible changing camera properties 
-like pivoting and aperture.
-
-Regards,
-
-Hans
+_________________________________________________________________
+Windows Live™: E-mail. Chat. Share. Get more ways to connect. 
+http://windowslive.com/explore?ocid=TXT_TAGLM_WL_t2_allup_explore_022009
