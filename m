@@ -1,108 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:33473 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752069AbZBCSKD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 13:10:03 -0500
-Date: Tue, 3 Feb 2009 12:21:55 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Jean-Francois Moine <moinejf@free.fr>
-cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
-In-Reply-To: <alpine.LNX.2.00.0902031115190.1706@banach.math.auburn.edu>
-Message-ID: <alpine.LNX.2.00.0902031210320.1792@banach.math.auburn.edu>
-References: <200901192322.33362.linux@baker-net.org.uk> <200901272101.27451.linux@baker-net.org.uk> <alpine.LNX.2.00.0901271543560.21122@banach.math.auburn.edu> <200901272228.42610.linux@baker-net.org.uk> <20090128113540.25536301@free.fr>
- <alpine.LNX.2.00.0901281554500.22748@banach.math.auburn.edu> <20090131203650.36369153@free.fr> <alpine.LNX.2.00.0902022032230.1080@banach.math.auburn.edu> <20090203103925.25703074@free.fr> <alpine.LNX.2.00.0902031115190.1706@banach.math.auburn.edu>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:54657 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751585AbZBQCen (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 21:34:43 -0500
+Subject: Re: [linux-dvb] Philips saa7131e chip on Asus
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Kevin <vallhaus71@bluebottle.com>, linux-media@vger.kernel.org
+In-Reply-To: <1234793989.499976055d740@mail.bluebottle.com>
+References: <1234696814.4997fa6ea906c@mail.bluebottle.com>
+	 <1234740354.13023.11.camel@pc10.localdom.local>
+	 <1234793989.499976055d740@mail.bluebottle.com>
+Content-Type: text/plain
+Date: Tue, 17 Feb 2009 03:35:39 +0100
+Message-Id: <1234838139.2703.19.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello again,
+
+Am Montag, den 16.02.2009, 14:19 +0000 schrieb Kevin:
+> Hi Hermann,
+> thanks for the clarification.  I was afraid of such a reply however I wanted a confirm from the experts.  Will keep monitoring the fora just in case someday a solution is found.
+> 
+
+Kevin, sorry for the bad news so far.
+
+That device came in very early during the first analog support for the
+global tda8275a, but all involved tried their best.
+
+So, we don't have the gpio settings it uses with the other driver yet
+and there might be a slight chance to come something further with that.
+
+Unfortunately this one comes only with some Asus OEM mobos, which
+decreases the user base hacking on it, and another eventually related
+problem is the WIFI wireless stuff on it.
+
+These days we have multiple chip configurations, where likely every
+single one can do substantially needed switching for another one later
+in the row.
+
+Asus in common keeps tracks quite well, but we have also some very
+different devices with the same PCI subsystem ID already we must come
+over by eeprom detection, not that easy if you don't know what is
+encoded exactly where, the chip vendor is ignored with his suggestions,
+even this is not public and a puzzle, and all are having fun ;)
+
+Some seem to think right now it is only bad history these days ...
+
+Cheers,
+Hermann
 
 
-On Tue, 3 Feb 2009, kilgota@banach.math.auburn.edu wrote:
 
->
->
-> On Tue, 3 Feb 2009, Jean-Francois Moine wrote:
->
->> On Mon, 2 Feb 2009 20:36:31 -0600 (CST)
->> kilgota@banach.math.auburn.edu wrote:
->>> Just now when I logged in, a fortune came up which says:
->>> 
->>> "A little experience often upsets a lot of theory."
->>> 
->>> It struck me funny after our recent experiences, so I thought I would
->>> share it with both of you.
->> 
->> Hello,
->> 
->> May be this message made me to look again at the gspca code. Well, it's
->> my fault: I did not check the previous patch. Sorry for all trouble.
->> 
->> The patch is simply:
->> 
->> diff -r 3f4a7bc53d8e linux/drivers/media/video/gspca/gspca.c
->> --- a/linux/drivers/media/video/gspca/gspca.c	Mon Feb 02 20:25:38 2009 
->> +0100
->> +++ b/linux/drivers/media/video/gspca/gspca.c	Tue Feb 03 10:37:51 2009 
->> +0100
->> @@ -435,7 +435,7 @@
->> 			break;
->>
->> 		gspca_dev->urb[i] = NULL;
->> -		if (!gspca_dev->present)
->> +		if (gspca_dev->present)
->> 			usb_kill_urb(urb);
->> 		if (urb->transfer_buffer != NULL)
->> 			usb_buffer_free(gspca_dev->dev,
->> 
->
-> Well, OK. But this will solve the problem which comes from disconnect while 
-> streaming? Sure, I will try this and see if it does the job or not. But 
-> whatever the outcome of that might be, I do not follow the logic.
->
-> Theodore Kilgore
 
-I should add to the above that now I have tested, and indeed this change 
-does not solve the problem of kernel oops after disconnect while 
-streaming. It does make one change. The xterm does not go wild with error 
-messages. But it is still not possible to close the svv window. Moreover, 
-ps ax reveals that [svv] is running as an unkillable process, with 
-[sq905/0] and [sq905/1], equally unkillable, in supporting roles. And 
-dmesg reveals an oops. The problem is after all notorious by now, so I do 
-not see much need for yet another log of debug output unless specifically 
-asked for such.
 
-Perhaps we also need to do what Adam suggested yesterday, and add a call 
-to destroy_urbs() in gspca_disconnect()? That really did appear to cure 
-the problem. But the way I did it is
+> 
+> 
+> Quoting hermann pitton <hermann-pitton@arcor.de>:
+> 
+> > Hi Kevin,
+> > 
+> > Am Sonntag, den 15.02.2009, 11:20 +0000 schrieb Kevin:
+> > > Hi, is there anyone who can please give me a hand, after months
+> > reading and trying things out, I still cannot make this work.
+> > > I have an Asus Wifi tv card which came with my P5WD2 board. This
+> > card is shown as 'Asus Tiger Analog Tv Card' in xp and works well
+> > in that os.  Looking at the physical card I can see these writings
+> > on the chips and tuners (looks like it has 2)
+> > > Philips saa7131E
+> > > D33005   CE4403
+> > > TN05211   SB0780 (don't know if these might help)
+> > > I am trying to make it work on Ubuntu 8.10 (32 bit) (also tried
+> > on 64 bit---nothing)
+> > > After  a brand new installation and updates to the kernel source
+> > and headers, my Kernel is 2.6.27.
+> > > I also installed the latest Mercurial and also copied firmware
+> > drivers (tda10046)  to the /lib/firmware folder. 
+> > > 
+> > > lspci shows this;
+> > > 01:01.0 Multimedia controller: Philips Semiconductors
+> > SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
+> > > 
+> > > sudo lspci -v shows this
+> > > 01:01.0 Multimedia controller: Philips Semiconductors
+> > SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d0)
+> > > 	Subsystem: ASUSTeK Computer Inc. Device 818c
+> > > 	Flags: bus master, medium devsel, latency 64, IRQ 22
+> > > 	Memory at e7edb800 (32-bit, non-prefetchable) [size=2K]
+> > > 	Capabilities: [40] Power Management version 2
+> > > 	Kernel driver in use: saa7134
+> > > 	Kernel modules: saa7134
+> > > 
+> > > The device being shown as 818c is not like any other Asus dual
+> > card I have read about.
+> > > Looks like the card is being found but it is not being
+> > autodetected, dmesg is showing it as card=0.  I am manually forcing
+> > card numbers in /etc/modprobe.d/options file.  I have tried all the
+> > Asus card numbers there are in the cardlist but still did not
+> > manage to scan any channel.
+> > > I have only one connection to the card and it;s from cable tv.
+> > > 
+> > > Sorry if I took too long, tried to give as much info as possible,
+> > and please excuse me if this is the wrong place were to put this
+> > request, if it is can you kindly guide me where I may ask for help.
+> >  TIA
+> > > 
+> > 
+> > unfortunately I can only confirm your observations.
+> > 
+> > We tried on this one already during the very beginning of the
+> > analog TV
+> > support for the tda8275a in October 2005, but without success.
+> > 
+> > As far I remember, the tuner finally did take all initialization
+> > sequences and should be ready for analog TV, but we never saw a
+> > "lock"
+> > on a signal reported with tuner debug=1.
+> > 
+> > My last idea on it was, that there must me at least some
+> > undiscovered
+> > antenna RF input switching, but might be wrong and even more
+> > complicated.
+> > 
+> > Should be on archives like marcs under ASUS WIFI-TV in the
+> > subject.
+> > 
+> > Can't tell, if for example regspy.exe from DScaler
+> > (deinterlace.sf.net)
+> > for gpio settings can lead any further in this case.
+> > 
+> > Cheers,
+> > Hermann
+> > 
 
-void gspca_disconnect(struct usb_interface *intf)
-{
-         struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
-
-         gspca_dev->present = 0;
-         destroy_urbs(gspca_dev);
-
-         usb_set_intfdata(intf, NULL);
-
-         /* release the device */
-         /* (this will call gspca_release() immediatly or on last close) */
-         video_unregister_device(&gspca_dev->vdev);
-
-         PDEBUG(D_PROBE, "disconnect complete");
-}
-
-and it would appear that with your changes above it would work better to 
-do here first
-
-         destroy_urbs(gspca_dev);
-
-and then only after that
-
-         gspca_dev->present = 0;
-
-Or?
-
-Theodore Kilgore
