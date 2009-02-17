@@ -1,70 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:50745 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800AbZBLUGv convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:33365 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035AbZBQBYI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:06:51 -0500
-Received: by bwz5 with SMTP id 5so1267047bwz.13
-        for <linux-media@vger.kernel.org>; Thu, 12 Feb 2009 12:06:49 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20090212194242.17ae6abb@free.fr>
-References: <36c518800902111042j2fd8db53q58d7e3960d26120c@mail.gmail.com>
-	 <20090212194242.17ae6abb@free.fr>
-Date: Thu, 12 Feb 2009 22:06:48 +0200
-Message-ID: <36c518800902121206u26b57e8r3b80741718bbb34b@mail.gmail.com>
-Subject: Re: v4l2 and skype
-From: vasaka@gmail.com
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 16 Feb 2009 20:24:08 -0500
+Date: Mon, 16 Feb 2009 22:23:39 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: DVB v3 API question
+Message-ID: <20090216222339.5ebad80d@pedra.chehab.org>
+In-Reply-To: <200902162350.50319.hverkuil@xs4all.nl>
+References: <200902162350.50319.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 12, 2009 at 8:42 PM, Jean-Francois Moine <moinejf@free.fr> wrote:
-> On Wed, 11 Feb 2009 20:42:07 +0200
-> vasaka@gmail.com wrote:
->
->> hello, I am writing v4l2 loopback driver and now it is at working
->> stage. for now it can feed mplayer and luvcview, but silently fails
->> with skype it just shows green screen while buffer rotation is going
->> on. can you help me with debug? I think I missing small and obvious
->> detail. Is there something special about skype way of working with
->> v4l2?
->
-> Hello Vasily,
->
-> I think skype is not v4l2. Also, I don't know about the frames you send
-> to it, but I know it does not understand JPEG.
+On Mon, 16 Feb 2009 23:50:50 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-I started writing this driver just because Skype does not understand
-existing v4l loopback drivers and understands uvcvideo, which is pure
-v4l2 driver. I am sending to Skype raw yuv frames, also tryed just
-random generated Images and skype is just shows green rectangle.
->
->> loopback is here:
->> http://code.google.com/p/v4l2loopback/source/checkout
->> I am feeding it with this app
->> http://code.google.com/p/v4lsink/source/checkout
->> this is the simple gstreamer app which takes data from /dev/video0 and
->> puts it to /dev/video1 which should be my loopback device.
->
-> I did not look at your code, but it may be interesting for usermode
-> drivers...
->
-> BTW, don't use the video4linux-list@redhat.com mailing list. The new
-> list is in the Cc: field.
->
-> Regards.
->
-> --
-> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+> Hi all,
+> 
+> I've made a v4l-dvb tree containing the old DVB API sources as found here: 
+> http://www.linuxtv.org/cgi-bin/viewcvs.cgi/DVB/doc/dvbapi/.
+> 
+> This tree is here: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-api
 
-Vasily Levin
+It seems that we did suplicate work, except that, on your tree, you just
+dropped all CVS history.
+
+Anyway, the DVB API were just added to the repository with all the CVS history.
+
+> Run 'make spec' to build both the v4l2-spec and the dvb-spec, or 
+> run 'make -C dvb-spec' to build only the latter. You'll need the transfig 
+> package to get the dvb-spec to compile.
+
+I didn't touch at the Makefiles. Feel free to submit this as a patch for the
+current tip.
+
+> My question is if this is indeed the most recent version that we have? There 
+> is a dvb-api-v4 pdf document, but it is my understanding that v4 was 
+> actually never implemented and never got beyond the proposal stage. Is that 
+> correct? Or are there bits and pieces that were actually used?
+
+> The original documentation for v4 is here: 
+> http://www.linuxtv.org/cgi-bin/viewcvs.cgi/dvb-kernel-v4/linux/Documentation/dvb/
+
+V4 is a proposal that were never finished.
+
+We're currently using V3 + S2API. This is named as V5.
+
+We need, of course, to update the docs to rename it to Version 5 and add S2API
+specs there. We should also review if the current DVB core and drivers match
+the V3. I suspect that maybe there are other changes that aren't applied yet at
+the docs.
+
+> If someone can tell me the best version to use, then I'll merge it in 
+> v4l-dvb and people can start to update this document. I can actually do the 
+> updates for the audio.tex and video.tex part myself.
+
+Seems fine to me.
+
+Cheers,
+Mauro
