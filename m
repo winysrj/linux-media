@@ -1,44 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:54563 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755761AbZBIUKt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Feb 2009 15:10:49 -0500
-Message-ID: <49908DE3.5000606@free.fr>
-Date: Mon, 09 Feb 2009 21:11:15 +0100
-From: Thierry Merle <thierry.merle@free.fr>
+Received: from yw-out-2324.google.com ([74.125.46.30]:5078 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754512AbZBQFO5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 00:14:57 -0500
+Received: by yw-out-2324.google.com with SMTP id 5so1060636ywh.1
+        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 21:14:56 -0800 (PST)
 MIME-Version: 1.0
-To: Jason Harvey <softdevice@jasonline.co.uk>
-CC: linux-media@vger.kernel.org
-Subject: Re: CinergyT2 not working with newer alternative driver
-References: <4984E50D.8000506@jasonline.co.uk> <49857A09.9020302@free.fr> <49859A71.70701@jasonline.co.uk> <4986925A.9040800@free.fr> <498697B5.10200@jasonline.co.uk> <498F50AE.4080004@free.fr> <499071FC.7080005@jasonline.co.uk>
-In-Reply-To: <499071FC.7080005@jasonline.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
+References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
+	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
+	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
+	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
+Date: Tue, 17 Feb 2009 00:14:56 -0500
+Message-ID: <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
+Subject: =?windows-1256?Q?Re=3A_HVR=2D1500_tuner_seems_to_be_recognized=2C_but_wont_?=
+	=?windows-1256?Q?turn_on=2E=FE?=
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Thomas Nicolai <nickotym@hotmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=windows-1256
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jason Harvey wrote:
-> Thierry Merle wrote:
->> Another thing, do you know the firmware version of your tuner?
->> I have the 1.06 version.
->>   
-> Both are running on firmware 1.08
-> Wonder if I can downgrade them... will look into that.
-Yes, and I will try to find time to upgrade mine.
->> Look at lsusb -vvv, this is the "bcdDevice" line for the CinergyT2
->> device.
->> Sorry but I have no idea of the origin of the problem.
->> If I had time I would compare USB dumps between the old driver and the
->> new one for the same tuning operation.
->>   
-> I'll try and get the USB dumps and a comparison done myself within the
-> next week or two.
-OK thanks; I will be able to help you by doing some perl scripts.
-> Think I have a spare PC around with an older Fedora on it with a kernel
-> that worked.
-> I did see another posting to this mail list from someone with the same
-> problem which I'll take as confirmation that it is not just me :)
-> 
-Yes I know, but the user did not answer the last time so we committed the redesign and we expect to find another user with the problem :)
-Regards,
-Thierry
+2009/2/17 Thomas Nicolai <nickotym@hotmail.com>:
+>
+> Here is the pertinent part of the dmesg I got tonight:
+>
+> dmesg
+>
+>  407.155095] firmware: requesting xc3028-v27.fw
+> [  407.248329] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+> [  407.447731] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+> [  407.970376] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
+> [  407.970385] xc2028 1-0061: -5 returned from send
+> [  407.970390] xc2028 1-0061: Error -22 while loading base firmware
+> [  408.222453] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+> [  408.744786] xc2028 1-0061: i2c output error: rc = -5 (should be 4)
+> [  408.744791] xc2028 1-0061: -5 returned from send
+> [  408.744793] xc2028 1-0061: Error -22 while loading base firmware
+> [  409.945750] xc2028 1-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+> [  411.102083] xc2028 1-0061: Loading firmware for type=D2633 DTV6 ATSC (10030), id 0000000000000000.
+>
+>
+> ----------------------------------------
+>> From: nickotym@hotmail.com
+>> To: devin.heitmueller@gmail.com
+>> CC: linux-media@vger.kernel.org
+>> Subject: RE: HVR-1500 tuner seems to be recognized, but wont turn on.þ
+>> Date: Sat, 14 Feb 2009 12:05:09 -0600
+>>
+>>
+>>
+>>
+>>
+>>> That looks really suspicious. Perhaps the xc3028 tuner is being put
+>>> to sleep and not being woken up properly.
+>>>
+>>> Could you please post the full dmesg output showing the initialization
+>>> of the device?
+>>>
+>>> Devin
+>>
+>>
+>> I turned kubuntu on, shut off the backend for mythtv and then did a scan using dvbscan.
+>>
+>> Here is the full dmesg output, sorry it is long I wanted to include it all in case i missed anything.:
+>>
+>>
+>> dmesg
+>>
+>
+>
+> _________________________________________________________________
+> Windows Live™: Keep your life in sync.
+> http://windowslive.com/howitworks?ocid=TXT_TAGLM_WL_t1_allup_howitworks_022009
+>
+
+Sorry for not getting back to you sooner.
+
+I don't claim to know much about this card, but there was a relatively
+recent change where the tuner gets put to sleep, which might explain
+why you are having i2c communication failures.
+
+Try the following:
+
+<unplug the card>
+make unload
+modprobe tuner-xc2028 no_poweroff=1 debug=1
+<plug in the card>
+<see if it starts working>
+
+If that doesn't work, send the dmesg output.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
