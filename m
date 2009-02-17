@@ -1,69 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:33781 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbZBUMGy (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:47993 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327AbZBQNaW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Feb 2009 07:06:54 -0500
-Date: Sat, 21 Feb 2009 04:06:53 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>, urishk@yahoo.com,
-	linux-media@vger.kernel.org
-Subject: Re: Minimum kernel version supported by v4l-dvb
-In-Reply-To: <20090220231350.5467116a@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.58.0902210343520.24268@shell2.speakeasy.net>
-References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
- <20090218140105.17c86bcb@hyperion.delvare> <20090220212327.410a298b@pedra.chehab.org>
- <200902210212.53245.hverkuil@xs4all.nl> <20090220231350.5467116a@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 17 Feb 2009 08:30:22 -0500
+Date: Tue, 17 Feb 2009 10:29:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net,
+	Christian Dolzer <c.dolzer@digital-everywhere.com>,
+	Andreas Monitzer <andy@monitzer.com>,
+	Manu Abraham <manu@linuxtv.org>,
+	Fabio De Lorenzo <delorenzo.fabio@gmail.com>,
+	Robert Berger <robert.berger@reliableembeddedsystems.com>,
+	Ben Backx <ben@bbackx.com>, Henrik Kurelid <henrik@kurelid.se>,
+	Rambaldi <Rambaldi@xs4all.nl>
+Subject: Re: [review patch 0/1] add firedtv driver for FireWire-attached DVB
+ receivers
+Message-ID: <20090217102951.21dab08c@pedra.chehab.org>
+In-Reply-To: <tkrat.63c8bdca2465364b@s5r6.in-berlin.de>
+References: <tkrat.265ed076d414bd49@s5r6.in-berlin.de>
+	<tkrat.63c8bdca2465364b@s5r6.in-berlin.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 20 Feb 2009, Mauro Carvalho Chehab wrote:
-> On Sat, 21 Feb 2009 02:12:53 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > I think that maybe we'll need some legacy-like support for bttv and cx88,
-> > > since there are some boards that relies on the old i2c method to work. On
-> > > those boards (like cx88 Pixelview), the same board model (and PCB
-> > > revision) may or may not have a separate audio decoder. On those devices
-> > > that have an audio decoder, the widely used solution is to load tvaudio
-> > > module and let it bind at the i2c bus, on such cases.
-> >
-> > That's what the i2c_new_probed_device() call is for (called through
-> > v4l2_i2c_new_probed_subdev). You pass a list of i2c addresses that the i2c
-> > core will probe for you: but this comes from the adapter driver, not from
-> > the i2c module.
->
-> This is a problem. The current procedure used by end users will stop working.
-> It is a little worse: as the adapter driver has no means to know that some
-> device could need tvaudio or other similar devices, we would need some hacking
-> to allow the user to pass a parameter to the driver in order to test/load such
-> drivers, since there's no documentation of when such things are needed.
+On Mon, 16 Feb 2009 20:33:17 +0100 (CET)
+Stefan Richter <stefanr@s5r6.in-berlin.de> wrote:
 
-The new i2c driver interface also supports a ->detect() method and a list
-of address_data to use it with.  This is much more like the legacy model
-than using i2c_new_probed_device().
+> firedtv is a driver for FireWire-attached DVB receivers from Digital
+> Everywhere GmbH.  The devices are known as FireDTV (external boxes) and
+> FloppyDTV (internal cards, also connected through FireWire).  The driver
+> supports
+>   - the DVB-C, DVB-S/S2, and DVB-T range of FireDTV and FloppyDTV
+>     models,
+>   - control and reception through Linux' common DVB userspace ABI,
+>   - standard definition video reception (MPEG2-TS, to be decoded
+>     by userspace client software),
+>   - Common Interface for Conditional Access Modules,
+>   - input from infrared remote control.
+> 
+> High definition support has yet to be added.  Also, firedtv still
+> requires the ieee1394 kernel API but alternative support of the new
+> firewire kernel API is in progress.
+> 
+> The driver, formerly known as firesat, was originally written by Andreas
+> Monitzer.  Manu Abraham, Ben Backx, and Henrik Kurelid updated and
+> extended the driver; I did trivial cleanups, refactoring and small
+> fixes.
+> 
+> Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 
-I think a compatability layer than implements attach_adapter,
-detach_adapter, and detach_client using a new-style driver's detect, probe,
-remove, and address_data should not be that hard.
+The driver looks sane to my eyes. I found just one minor issue (see bellow).
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-> > But v4l2-i2c-drv.h is bad enough, and even worse is what it looks like in
-> > the kernel when the compat code has been stripped from it: it's turned into
-> > a completely pointless header. And all the v4l2 i2c modules look peculiar
-> > as well due to that header include.
+> +
+> +		/*
+> +		 * AV/C specs say that answers should be sent within 150 ms.
+> +		 * Time out after 200 ms.
+> +		 */
+> +		if (wait_event_timeout(fdtv->avc_wait,
+> +				       fdtv->avc_reply_received,
+> +				       HZ / 5) != 0) {
 
-As I've said before, the v4l2-i2c headers are lot more complicated than
-they need to be.  I have a tree that's shrunk them greatly.  I don't think
-it's fair to give the current headers as an example of how complicated i2c
-backward compat _must_ be.
+Instead of using HZ, it would be better to use:
+	msecs_to_jiffies(200)
 
-> This way, the development code won't have any #if's or compat code. I'm afraid
-> that just using patches may also bring another range of troubles of needing to
-> periodically maintain the backports. On the other hand, a syntax/semantic
-> parser would be much more complex to develop.
 
-IMHO, the ALSA method of providing a backward compatability package is much
-inferior to the way v4l-dvb is doings thing.
+Cheers,
+Mauro
