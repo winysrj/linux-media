@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f176.google.com ([209.85.218.176])
+Received: from bay0-omc2-s13.bay0.hotmail.com ([65.54.246.149])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <henrik.list@gmail.com>) id 1LbWVa-0006Dq-7A
-	for linux-dvb@linuxtv.org; Mon, 23 Feb 2009 09:49:51 +0100
-Received: by bwz24 with SMTP id 24so4485997bwz.17
-	for <linux-dvb@linuxtv.org>; Mon, 23 Feb 2009 00:49:16 -0800 (PST)
+	(envelope-from <takispadaz@hotmail.com>) id 1LZU9r-0000UT-Jz
+	for linux-dvb@linuxtv.org; Tue, 17 Feb 2009 18:55:01 +0100
+Message-ID: <BAY111-W598DBD904310E159C109CC5B40@phx.gbl>
+From: panagiotis takis_rs <takispadaz@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 17 Feb 2009 19:54:24 +0200
 MIME-Version: 1.0
-In-Reply-To: <af2e95fa0902221140ha93378j5b6d36e654e9ee8a@mail.gmail.com>
-References: <af2e95fa0902221140ha93378j5b6d36e654e9ee8a@mail.gmail.com>
-Date: Mon, 23 Feb 2009 09:49:16 +0100
-Message-ID: <af2e95fa0902230049r45268845o6f589b9ef153465b@mail.gmail.com>
-From: Henrik Beckman <henrik.list@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Twinhan mantis, any CAM support in progress
+Subject: [linux-dvb] Problem with TV card's sound (SAA7134)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,47 +17,121 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0189259475=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Any work in progress for CAM support on the 2033?
+--===============0189259475==
+Content-Type: multipart/alternative;
+	boundary="_a3a33f23-12e1-43e1-a6c9-081b63d67683_"
 
-Currently using, http://mercurial.intuxication.org/hg/s2-liplianin but
-I=B4ll switch to whatever has or will have CAM.
-
-Card info,
- 25.180805] Mantis 0000:00:07.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-[   25.180843] Mantis 0000:00:07.0: setting latency timer to 64
-[   25.180856] irq: 18, latency: 64
-[   25.180858]  memory: 0xfdffd000, mmio: 0xf8840000
-[   25.180865] found a VP-2033 PCI DVB-C device on (00:07.0),
-[   25.180870]     Mantis Rev 1 [1822:0008], irq: 18, latency: 64
-[   25.180876]     memory: 0xfdffd000, mmio: 0xf8840000
-[   25.184211]     MAC Address=3D[00:08:ca:1a:f0:60]
-<snip>
-[   25.704672] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-[   25.706090] TDA10021: i2c-addr =3D 0x0c, id =3D 0x7c
-[   25.706107] mantis_frontend_init (0): found Philips CU1216 DVB-C
-frontend (TDA10021) @ 0x0c
-[   25.706117] mantis_frontend_init (0): Mantis DVB-C Philips CU1216
-frontend attach success
-[   25.710822] DVB: registering adapter 0 frontend 0 (Philips TDA10021 DVB-=
-C)...
-[   25.712780] mantis_ca_init (0): Registering EN50221 device
-[   25.714818] mantis_ca_init (0): Registered EN50221 device
-[   25.714844] mantis_hif_init (0): Adapter(0) Initializing Mantis
-Host Interface
+--_a3a33f23-12e1-43e1-a6c9-081b63d67683_
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
 
 
+Hey!!
+=20
+I have a problem with my tv card(pinnacle pctv 310i)
+I can see image but i have no sound.
+I have tried both tvtime and kdetv.
+=20
+I have found this http://ubuntuforums.org/showthread.php?t=3D568528 . Is it=
+ related with my problem?
+=20
+My tv card give audio output with this way: direct cable connection from
+tv card to sound card ( same cable witch connect cdrom and soundcard )
+=20
+=20
+lspci -v
+00:09.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA71=
+35 Video Broadcast Decoder (rev d1)
+        Subsystem: Pinnacle Systems Inc. Device 002f                       =
+                                  =20
+        Flags: bus master=2C medium devsel=2C latency 32=2C IRQ 11         =
+                                        =20
+        Memory at dffff800 (32-bit=2C non-prefetchable) [size=3D2K]        =
+                                      =20
+        Capabilities: [40] Power Management version 2                      =
+                                  =20
+        Kernel driver in use: saa7134                                      =
+                                  =20
+        Kernel modules: saa7134
+=20
+lspci -nn
+00:09.0
+Multimedia controller [0480]: Philips Semiconductors
+SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+=20
+dmesg
+http://pastebin.com/m2b8c172f
+=20
+Sorry for my bad english. Please help...
+_________________________________________________________________
+More than messages=96check out the rest of the Windows Live=99.
+http://www.microsoft.com/windows/windowslive/=
+
+--_a3a33f23-12e1-43e1-a6c9-081b63d67683_
+Content-Type: text/html; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Verdana
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+<pre>Hey!!<br> <br>I have a problem with my tv card(pinnacle pctv 310i)<br>=
+I can see image but i have no sound.<br>I have tried both tvtime and kdetv.=
+<br> <br>I have found this <a href=3D"http://ubuntuforums.org/showthread.ph=
+p?t=3D568528" target=3D"_blank">http://ubuntuforums.org/showthread.php?t=3D=
+568528</a> . Is it related with my problem?<br> <br>My tv card give audio o=
+utput with this way: direct cable connection from<br>tv card to sound card =
+( same cable witch connect cdrom and soundcard )<br> <br> <br>lspci -v<br>0=
+0:09.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA713=
+5 Video Broadcast Decoder (rev d1)<br>        Subsystem: Pinnacle Systems I=
+nc. Device 002f                                                          <b=
+r>        Flags: bus master=2C medium devsel=2C latency 32=2C IRQ 11       =
+                                           <br>        Memory at dffff800 (=
+32-bit=2C non-prefetchable) [size=3D2K]                                    =
+           <br>        Capabilities: [40] Power Management version 2       =
+                                                  <br>        Kernel driver=
+ in use: saa7134                                                           =
+              <br>        Kernel modules: saa7134<br> <br>lspci -nn<br>00:0=
+9.0<br>Multimedia controller [0480]: Philips Semiconductors<br>SAA7131/SAA7=
+133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)<br> <br>dmesg<br><=
+a href=3D"http://pastebin.com/m2b8c172f" target=3D"_blank">http://pastebin.=
+com/m2b8c172f</a><br> <br>Sorry for my bad english. Please help...</pre><br=
+ /><hr />check out the rest of the Windows Live=99.
+More than mail=96Windows Live=99 goes way beyond your inbox.
+ <a href=3D'http://www.microsoft.com/windows/windowslive/' target=3D'_new'>=
+More than messages</a></body>
+</html>=
+
+--_a3a33f23-12e1-43e1-a6c9-081b63d67683_--
 
 
-/Henrik
+--===============0189259475==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0189259475==--
