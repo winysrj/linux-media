@@ -1,38 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw3a.lmco.com ([192.35.35.7]:52043 "EHLO mailgw3a.lmco.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751786AbZBJAO7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Feb 2009 19:14:59 -0500
-Received: from emss04g01.ems.lmco.com (relay4.ems.lmco.com [166.17.13.122])by mailgw3a.lmco.com  (LM-6) with ESMTP id n1A0EwDG010619for <linux-media@vger.kernel.org>; Mon, 9 Feb 2009 19:14:58 -0500 (EST)
-Received: from CONVERSION2-DAEMON.lmco.com by lmco.com (PMDF V6.3-x14 #31428)
- id <0KET00E01Q0YQR@lmco.com> for linux-media@vger.kernel.org; Mon, 09 Feb 2009 19:14:58 -0500 (EST)
-Received: from EMSS01I00.us.lmco.com ([137.249.139.145]) by lmco.com (PMDF V6.3-x14 #31428)
- with ESMTP id <0KET00A85Q0SIO@lmco.com> for linux-media@vger.kernel.org; Mon, 09 Feb 2009 19:14:53 -0500 (EST)
-Date: Mon, 09 Feb 2009 16:14:50 -0800
-From: "Williams, Phil A" <phil.a.williams@lmco.com>
-Subject: Re: cx18, HVR-1600 Clear qam tuning
-To: linux-media@vger.kernel.org
-Message-id: <CCB65A8C741893429D41536D8B5F6D921CCFF080@emss01m15.us.lmco.com>
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:33044 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209AbZBQU3a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 15:29:30 -0500
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KF8007IR8WQXDA1@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 17 Feb 2009 15:29:17 -0500 (EST)
+Date: Tue, 17 Feb 2009 15:29:13 -0500
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: PVR x50 corrupts ATSC 115 streams
+In-reply-to: <20090217201740.GA9385@opus.istwok.net>
+To: David Engel <david@istwok.net>
+Cc: linux-media@vger.kernel.org, V4L <video4linux-list@redhat.com>
+Message-id: <499B1E19.80302@linuxtv.org>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
 Content-transfer-encoding: 7BIT
-Content-class: urn:content-classes:message
+References: <20090217155335.GB6196@opus.istwok.net>
+ <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm using an HVR-1600, having a heck of a time, and wanted to give this
-patch a try. Can someone point me to a good wiki or howto on how to
-incorporate this patch?
+David Engel wrote:
+> On Tue, Feb 17, 2009 at 11:05:40AM -0500, Steven Toth wrote:
+>>> Does anyone know what might be going on?  These very same tuner cards
+>>> worked fine in the old system (Intel P4 3.0GHz CPU and Abit IC7
+>>> motherboard) for close to two years.
+>> Determine whether this is an RF issue, or a DMA corruption issue:
+> 
+> Ahh, I didn't even think of RF.  I didn't have any RF problems in the
+> old system (that I know of) so that didn't even cross my mind.  I
+> actually was, and still am, more afraid of DMA issues, though.
+> 
+>> 1. Check the RF SNR of the digital cards using femon, anything odd going 
+>> on when the PVR250 is running? Does it fall out of lock or SNR dip 
+>> dangerously low, bursts of BER's?
+> 
+> Here are some 10 second captures from femon.  Card1 and Card2 are ATSC
+> 115s.  Card4 and Card5 are PVR x50s.
+> 
+> Card1 recording by itself:
+> 
+> status SCVYL | signal fe90 | snr e4dc | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e682 | ber 00000038 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe60 | snr e682 | ber 00000078 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe80 | snr e624 | ber 000000a0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e682 | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe70 | snr e598 | ber 00000140 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe90 | snr e654 | ber 00000078 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e6b2 | ber 00000090 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe70 | snr e654 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe60 | snr e654 | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
+> 
+> Card1 and Card4 recording:
+> 
+> status SCVYL | signal fe80 | snr e5c6 | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe90 | snr e682 | ber 00000100 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e53a | ber 000000c8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e568 | ber 00000130 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e624 | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe80 | snr e654 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe20 | snr e6b2 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e682 | ber 00000028 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe60 | snr e654 | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe90 | snr e624 | ber 000000c8 | unc 00000000 | FE_HAS_LOCK
+> 
+> Card1 and Card5 recording:
+> 
+> status SCVYL | signal fe40 | snr e624 | ber 00000120 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe80 | snr e654 | ber 000000d0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e598 | ber 00000238 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe90 | snr e682 | ber 000000c8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal feb0 | snr e654 | ber 00000068 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe90 | snr e654 | ber 00000118 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal feb0 | snr e6e0 | ber 00000038 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe50 | snr e4dc | ber 00000060 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe50 | snr e44e | ber 00000058 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fea0 | snr e5c6 | ber 000000d0 | unc 00000000 | FE_HAS_LOCK
+> 
+> Card2 recording by itself:
+> 
+> status SCVYL | signal fe20 | snr e53a | ber 00000130 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe20 | snr e53a | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe30 | snr e3c0 | ber 00000128 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe20 | snr e3c0 | ber 000000a8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe40 | snr e568 | ber 00000060 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe00 | snr e4dc | ber 00000058 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe10 | snr e53a | ber 00000098 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fde0 | snr e4dc | ber 00000118 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe10 | snr e568 | ber 00000168 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fdf0 | snr e53a | ber 000001a0 | unc 00000000 | FE_HAS_LOCK
+> 
+> Card2 and Card4 recording:
+> 
+> status SCVYL | signal fe40 | snr e4ac | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe50 | snr e624 | ber 000001b8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe70 | snr e598 | ber 000000a8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe40 | snr e5c6 | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe40 | snr e53a | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe50 | snr e50a | ber 00000098 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe10 | snr e50a | ber 000000a0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe10 | snr e598 | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe30 | snr e5f6 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe60 | snr e568 | ber 00000180 | unc 00000000 | FE_HAS_LOCK
+> 
+> Card2 and Card5 recording
+> 
+> status SCVYL | signal fe70 | snr e4ac | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe50 | snr e598 | ber 00000190 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe40 | snr e598 | ber 00000118 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe80 | snr e5c6 | ber 00000008 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe50 | snr e568 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe70 | snr e5c6 | ber 00000178 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe40 | snr e53a | ber 00000120 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe70 | snr e50a | ber 00000168 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe60 | snr e598 | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
+> status SCVYL | signal fe40 | snr e5c6 | ber 000000f8 | unc 00000000 | FE_HAS_LOCK
+> 
+> I don't see anything significant there.
 
->Devin just commited a patch to improve the lock time of the
->cx24227/s5h1409 demodulator:
->
->http://linuxtv.org/hg/~dheitmueller/v4l-dvb-s5h1409/rev/6bb4e117a614
->
->I've tested it with my HVR-1600 and it improved things for me when
->tuning ATSC OTA.  You may wish to give it a try.
+The BER looks buggy in this driver, assuming these readings are false.
 
-Thanks,
+Me neither, other than the dvb cards are reporting bit-errors. This feels like a 
+driver bug not a generic card problem. If these ber's area real then this will 
+account for your video issues, but that would be unrelated to the PVR250.
 
-Phil/TW
+It'd personally remove the PVR250's and get your DVB statistics to report 0 for 
+BER before continuing.
+
+> 
+>> 2. Move the two cards as far apart as possible in the slots in the system 
+>> and repeat the test above, any better?
+>>
+>> What happens?
+> 
+> This will require rmoving cards.  The old system had 5 PCI slots and I
+> had a small ethernet NIC between the pair of 115s and x50s.  The new
+> system only has 4 PCI slots so both pairs are in adjacent slots.  I'll
+> try pulling the x50s one at a time this evening when I get home.
+
+Fold some thick cardboard and place it in between the PVR and the DVB boards, 
+this will block some RF which may be coming from the encoder directly into your 
+demod.
+
+Does this help?
+
+- Steve
 
