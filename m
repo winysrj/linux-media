@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1A46o75020756
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 23:06:50 -0500
-Received: from web35306.mail.mud.yahoo.com (web35306.mail.mud.yahoo.com
-	[66.163.179.100])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n1A46WIh010796
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 23:06:32 -0500
-Date: Mon, 9 Feb 2009 20:06:31 -0800 (PST)
-From: Curtis Schroeder <cstarjewel@yahoo.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-MIME-Version: 1.0
-Message-ID: <542627.18212.qm@web35306.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=us-ascii
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1HAT8xQ017176
+	for <video4linux-list@redhat.com>; Tue, 17 Feb 2009 05:29:08 -0500
+Received: from smtp-out25.alice.it (smtp-out25.alice.it [85.33.2.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1HASrrC027846
+	for <video4linux-list@redhat.com>; Tue, 17 Feb 2009 05:28:54 -0500
+Date: Tue, 17 Feb 2009 11:28:33 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-Id: <20090217112833.73bc9a13.ospite@studenti.unina.it>
+In-Reply-To: <Pine.LNX.4.64.0812012148060.3915@axis700.grange>
+References: <20081107125919.ddf028a6.ospite@studenti.unina.it>
+	<874p2jbegl.fsf@free.fr>
+	<Pine.LNX.4.64.0811082119280.8956@axis700.grange>
+	<20081109235940.4c009a68.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0811101946200.8315@axis700.grange>
+	<878wrr9z9h.fsf@free.fr>
+	<20081112192746.f59ee94d.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0812012148060.3915@axis700.grange>
+Mime-Version: 1.0
 Cc: video4linux-list@redhat.com
-Subject: Re: Philips SPC 600 NCP
-Reply-To: Curtis Schroeder <cstarjewel@yahoo.com>
+Subject: Re: [PATCH, RFC] mt9m111: allow data to be received on pixelclock
+ falling edge?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,83 +29,114 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0034508157=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Although I am an experienced Solaris middle-ware programmer and have some limited driver experience on VxWorks, I am new to the world of Linux drivers.  I'll likely need a bit of hand-holding on this one.
+--===============0034508157==
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+	micalg="PGP-SHA1";
+	boundary="Signature=_Tue__17_Feb_2009_11_28_33_+0100_xAP9xVrL4rZZRwEz"
 
-First, here is the command stream I got from the Ubuntu forums in trying to get my new web cam working.  At this point it is well known that web cam support in 8.10 is broken, hence the need to compile an install a new copy of gspca.
+--Signature=_Tue__17_Feb_2009_11_28_33_+0100_xAP9xVrL4rZZRwEz
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 1 Dec 2008 21:54:17 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+
+> Hi Antonio,
+>=20
+> On Wed, 12 Nov 2008, Antonio Ospite wrote:
+>=20
+> > On Mon, 10 Nov 2008 20:06:34 +0100
+> > Robert Jarzmik <robert.jarzmik@free.fr> wrote:
+> >=20
+> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> > >=20
+> > > > I would prefer not to disregard camera flags. If we don't find a be=
+tter=20
+> > > > solution, I would introduce platform inverter flags, and, I think, =
+we=20
+> > > > better put them in camera platform data - not host platform data, t=
+o=20
+> > > > provide a finer granularity. In the end, inverters can also be loca=
+ted on=20
+> > > > camera boards, then you plug-in a different camera and, if your=20
+> > > > inverter-flags were in host platform data, it doesn't work again.
+> > >
+> > > I'm of the same opinion.
+> > >=20
+> > > I was thinking of another case : imagine the host needs to be configu=
+red on
+> > > rising edge, and camera on falling edge. Your patch wouldn't cover th=
+at devious
+> > > case.
+> > >=20
+> > > I can't think of a better solution than an inverter flag as well. As =
+this would
+> > > be very board specific, let it go in something board code sets up.
+> > >=20
+> > > That's how it's already done for inverted gpio Vbus sensing in the US=
+B stack for
+> > > the pxa for example.
+> > >=20
+> >=20
+> > Ok, I hope you'll find time to add the proper solution some day, since I
+> > don't think I can do it correctly with my current knowledge.
+>=20
+> Could you test the patch below? It applies on top of all my patches I=20
+> pushed today plus a couple more that are still to be pushed... But maybe=
+=20
+> you can apply it to linux-next manually. You just need the parts for=20
+> soc_camera.h and for mt9m111. And then you need to add to your struct=20
+> soc_camera_link in platform data:
+>=20
+> 	.flags =3D SOCAM_SENSOR_INVERT_PCLK,
+>=20
+> Thanks
+> Guennadi
+
+Sorry for the absurdly late reply :)
+
+I had the chanche to test this today and it works OK.
+
+Thanks once again,
+   Antonio Ospite
+
+--=20
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+  Web site: http://www.studenti.unina.it/~ospite
+Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
+
+--Signature=_Tue__17_Feb_2009_11_28_33_+0100_xAP9xVrL4rZZRwEz
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkmakVEACgkQ5xr2akVTsAGN8ACdGhLO5XxpmVvxoIT8FLUFVX0y
+oI0AoKi9NeWy3JwoAXW5C+pMaDUagCAK
+=V+7Y
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__17_Feb_2009_11_28_33_+0100_xAP9xVrL4rZZRwEz--
 
 
-sudo apt-get install subversion build-essential linux-headers-$(uname -r) &&
-wget http://linuxtv.org/hg/~jfrancois/gspca/archive/tip.tar.bz2 &&
-tar xf tip.tar.bz2 &&
-cd gspca-* &&
-make &&
-sudo make install &&
-sudo depmod -ae $(uname -r)
+--===============0034508157==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Here is the output from dmesg:
-[22620.920030] usb 3-2: new full speed USB device using uhci_hcd and address 2
-[22621.111879] usb 3-2: configuration #1 chosen from 1 choice
-[22621.620524] Linux video capture interface: v2.00
-[22621.645354] usbcore: registered new interface driver snd-usb-audio
-[22621.667744] sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers v1:1.47pre49
-[22621.670466] usb 3-2: SN9C105 PC Camera Controller detected (vid:pid 0x0471:0x0327)
-[22621.851468] usb 3-2: No supported image sensor detected for this bridge
-[22621.852729] usbcore: registered new interface driver sn9c102
-
-So, you are correct that it is trying to use the sn9c102 driver.  Could you provide me with a little more information on how to remove this driver from the gspca config before rebuilding it?  Do I comment it out in the v4l/.config file or change the "=m" to something else?
-
-I've downloaded svv.c, but I'm having trouble linking it.  It appears to need library /usr/lib/libv4l/v4l2convert.so, but the -l directive prepends "lib" onto the lib name, so the linker doesn't find it.  What is the appropriate gcc syntax to link svv.c with this lib?  Or is there a bug in the make install such that the lib was not named correctly?
-
-Thanks for your help,
-
-Curt
-
-
-
-
-________________________________
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Curtis Schroeder <cstarjewel@yahoo.com>
-Cc: video4linux-list@redhat.com
-Sent: Saturday, February 7, 2009 3:07:03 AM
-Subject: Re: Philips SPC 600 NCP
-
-On Fri, 6 Feb 2009 16:47:49 -0800 (PST)
-Curtis Schroeder <cstarjewel@yahoo.com> wrote:
-
-> I recently picked up a Philips SPC 600 NC web cam on clearance,
-> because I had read in the Ekiga documentation that most Philips web
-> cams were compatible.  Evidently the SPC 600 NC currently is not
-> compatible with Linux.  I've downloaded and installed
-> gspca-4d0827823ebc in my 64-bit Ubuntu 8.10 installation, but it
-> reports in dmesg that it does not recognize the sensor.  Is there a
-> utility I can run and report the results back to this list that would
-> help get this situation corrected?
-
-Hello Curt,
-
-I don't know which driver you used. If it is the sn9c102, please,
-regenerate, removing this driver from the config.
-
-Also, as this webcam has not be tested yet, I'd be glad to know if it
-works. If it does not, may you send me the last kernel messages after
-pluging the webcam (do a grep on 'gspca' and 'sonixj'), and the
-image.dat generated by my program svv (if any - do 'svv -rg').
-
-Regards.
-
--- 
-Ken ar c'hentan    |          ** Breizh ha Linux atav! **
-Jef        |        http://moinejf.free.fr/
-
-
-
-      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--===============0034508157==--
