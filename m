@@ -1,125 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2007 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752884AbZBWQVH (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:46159 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293AbZBQBtS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2009 11:21:07 -0500
-Message-ID: <13434.62.70.2.252.1235406040.squirrel@webmail.xs4all.nl>
-Date: Mon, 23 Feb 2009 17:20:40 +0100 (CET)
-Subject: Re: Question regarding detail in dropping support for kernels <
-     2.6.22 (related to Re: POLL: for/against dropping support for
-     kernels < 2.6.22)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: tobi@to-st.de
-Cc: linux-media@vger.kernel.org
+	Mon, 16 Feb 2009 20:49:18 -0500
+Date: Mon, 16 Feb 2009 20:00:34 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Trent Piepho <xyzzy@speakeasy.org>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Adding a control for Sensor Orientation
+In-Reply-To: <200902162236.23516.linux@baker-net.org.uk>
+Message-ID: <alpine.LNX.2.00.0902161817430.3019@banach.math.auburn.edu>
+References: <59373.62.70.2.252.1234773218.squirrel@webmail.xs4all.nl> <200902162236.23516.linux@baker-net.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-> Hello Hans,
+
+On Mon, 16 Feb 2009, Adam Baker wrote:
+
+> Lots of snipping below so I hope I get the attributions correct.
 >
-> Hans Verkuil schrieb:
->> We still need to support kernels from 2.6.22 onwards. Although I think
->> the
->> minimum supported kernel is something that needs a regular sanity check,
->> right now there are no technical reasons that I am aware of to go to
->> something newer than 2.6.22.
+> On Monday 16 February 2009, Hans Verkuil wrote:
 >>
->> Whether we keep our current system or not is a separate discussion:
->> whatever development system you choose there will be work involved in
->> keeping up the backwards compatibility.
+>> We are talking about a core change, so some careful thought should go into
+>> this.
 >
-> Just out of deep interesst:
+> Agreed, a few days or even weeks spent getting the right solution is far
+> better than having to update lots of drivers and apps if we get it wrong.
+
+Also agreed. But please permit me to express surprise that such a problem
+never came up before, and does not seem to have been envisioned.
+
 >
-> Could you, Hans (or anyone else) just explain, what is / are the reason
-> to draw the line between kernels 2.6.21 and 2.6.22?
+>>
+>>> So Adam, kilgota, please ignore the rest of this thread and move forward
+>>> with the driver, just add the necessary buffer flags to videodev2.h as
+>>> part of  your patch (It is usually to submit new API stuff with the same
+>>> patch which introduces the first users of this API.
+>>
+>> Don't ignore it yet :-)
+>>
+
+Yeah ...
+
+
+> I've tried twice to write some code when I thought the discussion had died
+> down
+
+I didn't. And now one sees why.
+
+- I'll wait a while before attempting version 3.
+
+Indeed.
+
 >
-> What was the fundamental change there and do these changes as such apply
-> to every supported device / driver?
+>> Hans de Goede <hdegoede@redhat.com> wrote:
+>>> I welcome libv4l patches to use these flags.
 >
-> As I understand you, although you drop backport efforts for kernels
-> below 2.6.22, you are going to adopt an policy to - in a sense - waste
-> development efforts / time on seven instead of 12 kernels?
+> Olivier Lorin submitted a patch to use the flags to support the 180 degree
+> rotation - it was pretty trivial but
 >
-> Wouldn't it then not be more logical to support only the recent kernel
-> and the kernel before, becaus in some month time 2.6.30 might include a
-> major change which would force you to drop support for < 2.6.29
-> altogether?
+> a) didn't allow v4lconvert_flags to over-ride it to support kernels that don't
+> specify behaviour for those cameras
+
+Eeps. So all those legacy kernels out there need to be supported, too.
+
+> b) only coped with HFLIP and VFLIP both being set
+
+Won't fit the present case.
+
 >
-> Thanks for your patience and reply,
+> Given an agreed solution I intend to fix both of those problems.
 
-Hi Tobias,
+[...]
 
-No problem, I'd be happy to explain.
+> I certainly agree that re-using the existing controls doesn't seem like a good
+> idea - it seems to combine the case of "the user made a creative decision to
+> produce flipped video" with "this hardware always creates flipped video so
+> please fix it" [...]
 
-For a long time whenever you loaded an i2c module the kernel i2c core
-would probe all i2c adapters to see if a chip supported by the i2c module
-was present. This is very, very bad since the act of probing can corrupt
-eeproms and worse. In addition, since many i2c devices cannot be properly
-identified, you often get misdetections where the driver thinks it found a
-match, when in reality it was a different device altogether.
+Well put.
 
-In kernel 2.6.22 a new i2c API was created that allowed the adapter driver
-such as bttv or ivtv to tell the i2c core what i2c devices are on which
-address. So a driver that supported the new i2c API would prevent i2c
-modules from autoprobing its i2c adapters, and it has to explicitly tell
-the i2c code what device is where. It's a bit simplified since there are
-still some probing methods available, but in all cases it is the adapter
-driver that initiates them. This is a huge improvement and solves many
-problems that were previously unsolvable. But it is a totally different
-approach where the i2c module no longer initiates probes, but instead it
-is done by the adapter driver.
+> Where does all of that leave us?
 
-However, it is a big task to convert drivers from the old to the new API.
-It requires modifying the i2c modules to support the new API, but as long
-as such modules are also still in use by unconverted adapter drivers they
-have to support the old API as well. And before you can convert an adapter
-driver *all* i2c modules it uses need to be converted to support the new
-API.
+Immobilized, apparently.
 
-In addition, since kernels older than 2.6.22 do not support the new API at
-all, we need to keep support for the old API around under #if
-KERNEL_VERSION as well.
 
-To make all this possible without creating i2c modules riddled with #if's
-I created two headers that hide most of this complexity. However, these
-headers are exposed in the upstream kernel where they look really weird
-when they are stripped from all #ifs.
+Sorry, I would be more patient and less flippant if only everything said 
+had addressed the point instead of flying off on tangents and discussing 
+things which will not solve the problem, no matter how they are decided. 
+As an egregious example, it was brought up that there is/is not/should 
+be/should not be a table of devices which behave this way or that way, 
+according to USB Vendor:Product number. Now, perhaps it is possible to 
+construct an ontological argument for the existence of the Perfect Table, 
+or one could argue in some neo-Platonist sense that the Perfect Table 
+already exists, in the Realm of Ideals, and we mere mortals only need to 
+decide where to keep our imperfect copy. But after seeing that discussion 
+I feel forced to point out -- again -- right here and right now there sure 
+as hell is a device that can't fit in that table, even if said table 
+exists and is Perfect, and no matter where it is kept.
 
-Now all this is fine as long as adapter drivers exist that are not yet
-converted, since that means we need to keep the compat stuff around
-anyway. But I'm now attempting to finally convert the last drivers,
-hopefully before the 2.6.30 merge window will close. Once that is done,
-the only reason left to keep the compat code around is to support
-pre-2.6.22 kernels.
+Again, the problem is that here is a set of devices all of which have the 
+same USB Vendor:Product number, namely 0x2770:0x9120, and some of them 
+require that one does A with the output and others require B. How do you 
+tell by the Vendor:Product number whether A is required. or B? You don't. 
+What you have to do is to ask the device, and it will answer your 
+question. Since nothing else in the kernel or in userspace can do that 
+asking other than code internal to the module, the only entity which can 
+put the question to the device is the module itself. So, I ask everybody, 
+please, this is the actual situation. Deal with it.
 
-It's a lot of tricky code meant primarily to support the transition from
-the old to new i2c API. Now that we have almost finished this transition I
-think it is time to say goodbye to all the code needed to keep the old i2c
-API alive. And that means effectively dropping support for kernels older
-than 2.6.22.
+I am also quite puzzled that no one seems to have anticipated such a 
+situation. I am a bit new to the business of writing a kernel module. But 
+I have, in recent years, dealt with a lot of the shit hardware that comes 
+our way over at Gphoto, the really cheap $10 to $20 cameras which 
+sometimes are even used as prizes in boxes of breakfast cereal The SQ905 
+cameras are but one example of these. One thing I have definitely learned 
+is that hardware can destroy all "reasonable" expectations. One has to 
+adjust. We still have to support the hardware.
 
-Of course, I might not be able to finish the conversion in time for
-2.6.30, in which case the compat code needs to stay around for another
-kernel cycle.
+Returning to the present discussion, what is wrong with a manufacturer 
+producing several devices with minor variations and putting the same 
+Vendor:Product number on all of them, and providing a way to query the 
+specific capabilities and needs of each of them? Nothing, actually. So why 
+does it create such a tailspin? Why do I get the impression that nobody 
+else here has ever confronted, envisioned, or anticipated such a scenario?
+I confess that I am surprised.
 
-Luckily, such major API redesigns are rare. And normally the effort needed
-to keep compatibility is fairly limited and the additional test exposure
-is very welcome. So there are good reasons for having backwards
-compatibility. I didn't create the daily build system to verify that it
-still compiles on older kernels for nothing. But there are limits to the
-amount of effort that I am willing to spend on it. And in this case I
-think it's time to drop the compatibility with the old i2c API entirely.
-
-A long and technical story, but I hope it helps explain the background.
-
-Regards,
-
-          Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Theodore Kilgore
