@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:56142 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757023AbZBYTxW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2009 14:53:22 -0500
-Received: from mail-in-10-z2.arcor-online.net (mail-in-10-z2.arcor-online.net [151.189.8.27])
-	by mx.arcor.de (Postfix) with ESMTP id F2A5F2AF213
-	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 20:53:19 +0100 (CET)
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net [151.189.21.56])
-	by mail-in-10-z2.arcor-online.net (Postfix) with ESMTP id DC9DE23D2EB
-	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 20:53:19 +0100 (CET)
-Received: from webmail09.arcor-online.net (webmail09.arcor-online.net [151.189.8.45])
-	by mail-in-16.arcor-online.net (Postfix) with ESMTP id C435D257421
-	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 20:53:19 +0100 (CET)
-Message-ID: <10076348.1235591599750.JavaMail.ngmail@webmail09.arcor-online.net>
-Date: Wed, 25 Feb 2009 20:53:19 +0100 (CET)
-From: schollsky@arcor.de
-To: linux-media@vger.kernel.org
-Subject: Old firmware - again af9013 4.65.0 ?!?
+Received: from mail.gmx.net ([213.165.64.20]:42905 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754036AbZBQAl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Feb 2009 19:41:59 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [BUG] changeset 9029 (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
+Date: Tue, 17 Feb 2009 01:40:52 +0100
+Cc: linux-media@vger.kernel.org, e9hack <e9hack@googlemail.com>,
+	obi@linuxtv.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-dvb@linuxtv.org
+References: <4986507C.1050609@googlemail.com> <200902151336.17202@orion.escape-edv.de> <Pine.LNX.4.58.0902160811340.24268@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0902160811340.24268@shell2.speakeasy.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902170140.53617@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+Trent Piepho wrote:
+> On Sun, 15 Feb 2009, Oliver Endriss wrote:
+> > e9hack wrote:
+> > > this change set is wrong. The affected functions cannot be called from an interrupt
+> > > context, because they may process large buffers. In this case, interrupts are disabled for
+> > > a long time. Functions, like dvb_dmx_swfilter_packets(), could be called only from a
+> > > tasklet. This change set does hide some strong design bugs in dm1105.c and au0828-dvb.c.
+> > >
+> > > Please revert this change set and do fix the bugs in dm1105.c and au0828-dvb.c (and other
+> > > files).
+> >
+> > @Mauro:
+> >
+> > This changeset _must_ be reverted! It breaks all kernels since 2.6.27
+> > for applications which use DVB and require a low interrupt latency.
+> >
+> > It is a very bad idea to call the demuxer to process data buffers with
+> > interrupts disabled!
+> 
+> I agree, this is bad.  The demuxer is far too much work to be done with
+> IRQs off.  IMHO, even doing it under a spin-lock is excessive.  It should
+> be a mutex.  Drivers should use a work-queue to feed the demuxer.
 
-in the meantime I've switched over to Arch Linux - you probably appreciate the choice. I did this because of the lean system and a more recent kernel (now 2.6.28 series). After compiling the latest v4l-dvb version, an
+Agreed, this would be the best solution.
 
-$ lsmod | grep af
+On the other hand, a workqueue handler would be scheduled later, so you
+need larger buffers in the driver. Some chipsets have very small
+buffers...
 
-results to the following:
+Anway, this would be a major change. All drivers must be carefully
+modified and tested for an extended period.
 
-af9013                 21636  1 
-dvb_usb_af9015         26400  0 
-dvb_usb                20492  1 dvb_usb_af9015
-i2c_core               22804  6 mc44s803,af9013,dvb_usb_af9015,dvb_usb,i2c_nforce2,nvidia
-usbcore               136848  5 dvb_usb_af9015,dvb_usb,ohci_hcd,ehci_hcd
+Meanwhile I had a look at the changeset, and I do not understand why
+spin_lock_irq... should be required everywhere.
 
-The correct tuner module seems to be loaded. So far, so good. But dmesg | grep af shows it all:
+Afaics a driver may safely call dvb_dmx_swfilter_packets,
+dvb_dmx_swfilter_204 or dvb_dmx_swfilter from process context, tasklet
+or interrupt handler 'as is'.
 
-[..]
-af9013: firmware version:4.65.0
-usbcore: registered new interface driver dvb_usb_af9015
+@Andreas:
+Could you please explain in more detail what bad things might happen?
 
-This is the same when installing no firmware, or installing the file from
+CU
+Oliver
 
-http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/
-
-into /lib/firmware, which should load 4.95.0 firmware. 
-
-What's going wrong?
-
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
