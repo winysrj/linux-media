@@ -1,79 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37]:28727
-	"EHLO mk-outboundfilter-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752664AbZBCWJv (ORCPT
+Received: from bay0-omc3-s23.bay0.hotmail.com ([65.54.246.223]:27580 "EHLO
+	bay0-omc3-s23.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752755AbZBQSrJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2009 17:09:51 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
-Date: Tue, 3 Feb 2009 22:09:43 +0000
-Cc: kilgota@banach.math.auburn.edu, linux-media@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>
-References: <200901192322.33362.linux@baker-net.org.uk> <alpine.LNX.2.00.0902031302060.1882@banach.math.auburn.edu> <20090203202307.0ae074ec@free.fr>
-In-Reply-To: <20090203202307.0ae074ec@free.fr>
+	Tue, 17 Feb 2009 13:47:09 -0500
+Message-ID: <BAY102-W289218AB686D66E1F3BD4ACFB40@phx.gbl>
+From: Thomas Nicolai <nickotym@hotmail.com>
+To: <devin.heitmueller@gmail.com>
+CC: <linux-media@vger.kernel.org>
+Subject: =?windows-1256?Q?RE:_HVR-1500_tuner_seems_to_be_recognized=2C_but_wont_tu?=
+ =?windows-1256?Q?rn_on.=FE?=
+Date: Tue, 17 Feb 2009 12:47:08 -0600
+In-Reply-To: <412bdbff0902171021l6bcfc1f4o6d4903949da70b0d@mail.gmail.com>
+References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
+	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
+ 	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
+ 	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
+ 	 <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
+ 	 <BAY102-W54F614817092361870868DCFB40@phx.gbl>
+ 	 <412bdbff0902162148k398db187ma6510d0903741e73@mail.gmail.com>
+ 	 <BAY102-W41AFA57978CB8940FABF84CFB40@phx.gbl>
+ <412bdbff0902171021l6bcfc1f4o6d4903949da70b0d@mail.gmail.com>
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: 8bit
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902032209.44133.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 03 February 2009, Jean-Francois Moine wrote:
-> Indeed, the problem is there! You must have only one process reading the
-> webcam! I do not see how this can work with these 2 processes...
 
-Although 2 processes are created only one ever gets used. 
-create_singlethread_workqueue would therefore be less wasteful but make no 
-other difference. Google searches for create_freezeable_workqueue bring up 
-suggestions to avoid it so I think I will although I guess we ought to check 
-at some point how well the camera copes with suspend while streaming.
+I didn't post it last night, but I don't remember seeing anything different in it after I looked at it.  I haven't seen much on the mailing lists about it not working.  I found a few threads on Kubuntu and Ubuntu forums about people having problems a few months ago, but they were all able to get the card to tune, some had issues with sound that were later resolved.  Noone said they couldn't get it to tune.  
 
-At 19:53:31 Alan Stern wrote
-> If a camera is unplugged while it is in use then 
-> waiting until close() is no good -- it will cause destroy_urbs() to 
-> pass a stale pointer to usb_buffer_free().  That's the reason for the 
-> oops.
+You mentioned that the card causing the computer to freeze may indicate other problems, could hotplug not working right affect this?
 
-I'd go further and suggest that gspca_disconnect should, after calling 
-destroy_urbs() do gspca_dev->dev = NULL; Any use of that pointer past that 
-point is a bug (the downside is that doing so would have turned the current 
-bug into a hard to spot memory leak).
+I will try some more tonight.
 
-At 03:37:35 Alan Stern wrote
-> On Mon, 2 Feb 2009, Adam Baker wrote:
->> This shouldn't be a problem for sq905 (which doesn't use these URBs) or 
->> isochronous cameras (which don't need to resubmit URBs) but the finepix 
->> driver (the other supported bulk device) will need some careful
->> consideration  to avoid a race between killing the URB and resubmitting it.
+----------------------------------------
+> Date: Tue, 17 Feb 2009 13:21:05 -0500
+> Subject: Re: HVR-1500 tuner seems to be recognized, but wont turn on.þ
+> From: devin.heitmueller@gmail.com
+> To: nickotym@hotmail.com
+> CC: linux-media@vger.kernel.org
 >
-> You shouldn't need to take any special action.  usb_kill_urb() solves 
-> these races for you; it guarantees not to return until the URB has been 
-> unlinked and the completion handler has finished, and it guarantees 
-> that attempts by the completion handler to resubmit the URB will fail.
+> 2009/2/17 Thomas Nicolai :
+>> After trying your fix a few times last night I gave up. I was really hoping
+>> that would do it. I think this evening I will try reinstalling the drivers
+>> and see if maybe something got corrupted or maybe a change has been made in
+>> my favor. Otherwise I may try reinstalling the i2c core.
+>>
+>> thanks,
+>>
+>> Tom
+>
+> Just to be clear, the v4l-dvb codebase doesn't contain the i2c core.
+> That ships as a standard part of your kernel. You're not really going
+> to be able to "reinstall the i2c core" unless you mean reinstalling
+> the latest kernel package that came with your distro or recompiling
+> the kernel.
+>
+> Hmm... Could also be an issue with the i2c gate preventing
+> communications from reaching the tuner.
+>
+> Is anyone else reporting success with this card in the current v4l-dvb
+> build? I'm wondering if this is some issue specific to your
+> environment, or whether the card is just broken in the latest build in
+> general.
+>
+> Did you post the dmesg output after adding "debug=1" to the
+> tuner-xc2028 modprobe option and trying to tune to a station?
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
-The sq905 driver doesn't use the URBs provided by gspca, it uses 
-usb_control_msg and usb_bulk_msg which I presume do the right thing 
-internally. There would be a tiny window in between when it checks the 
-dev->streaming flag and when it sends a new USB msg for the disconnect to 
-occur and invalidate the dev pointer. That could be fixed by holding 
-gspca_dev->usb_lock in gspca_disconnect when it sets gspca_dev->present = 0.
-
-That would also address the race between open and disconnect.
-
-Unfortunately the finepix driver sometimes uses calls to schedule_delayed_work 
-in the completion handler which then makes the call to usb_submit_urb. Fixing 
-that will require someone with access to a suitable camera to test it 
-otherwise there is a significant risk of adding deadlocks. It already suffers 
-from this bug so we aren't making it worse.
-
-Calling destroy_urbs from dev_close rather than gspca_disconnect could also 
-trigger the same bug on isochronous cameras. I haven't looked at them closely 
-but they probably also have the race between open and disconnect which taking 
-the lock in disconnect is likely to fix.
-
-I'll do some testing and post a patch if it looks promising.
-
-Adam
+_________________________________________________________________
+Windows Live™: Keep your life in sync. 
+http://windowslive.com/howitworks?ocid=TXT_TAGLM_WL_t1_allup_howitworks_022009
