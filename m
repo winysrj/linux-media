@@ -1,139 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web23205.mail.ird.yahoo.com ([217.146.189.60]:26764 "HELO
-	web23205.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751978AbZBEJ0w convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Feb 2009 04:26:52 -0500
-Date: Thu, 5 Feb 2009 09:26:50 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-Reply-To: newspaperman_germany@yahoo.com
-Subject: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts on HDchannels]
-To: linux-media@vger.kernel.org
-In-Reply-To: <4988946A.9030502@night-light.net>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1867 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008AbZBRI4A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 03:56:00 -0500
+Message-ID: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
+Date: Wed, 18 Feb 2009 09:55:53 +0100 (CET)
+Subject: Re: Minimum kernel version supported by v4l-dvb
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: urishk@yahoo.com
+Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Jean Delvare" <khali@linux-fr.org>, linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Message-ID: <809525.38476.qm@web23205.mail.ird.yahoo.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-it's really disappointing that this error exists for long time and everybody ran out of idea how to fix it :(
 
+>
+>
+>
+> --- On Wed, 2/18/09, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> From: Hans Verkuil <hverkuil@xs4all.nl>
+>> Subject: Re: Minimum kernel version supported by v4l-dvb
+>> To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+>> Cc: "Jean Delvare" <khali@linux-fr.org>, linux-media@vger.kernel.org
+>> Date: Wednesday, February 18, 2009, 9:36 AM
+>> On Wednesday 18 February 2009 03:08:15 Mauro Carvalho Chehab
+>> wrote:
+>> > On Wed, 18 Feb 2009 01:18:37 +0100
+>> >
+>> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > > On Wednesday 18 February 2009 01:08:23 Mauro
+>> Carvalho Chehab wrote:
+>> > > > On Tue, 17 Feb 2009 14:23:27 +0100
+>> > > >
+>> > > > Jean Delvare <khali@linux-fr.org>
+>> wrote:
+>> > > > > Hi Mauro,
+>> > > > >
+>> > > > > These days I am helping Hans Verkuil
+>> convert the last users of the
+>> > > > > legacy i2c device driver binding model
+>> to the new, standard binding
+>> > > > > model. It turns out to be a very
+>> complex task because the v4l-dvb
+>> > > > > repository is supposed to still support
+>> kernels as old as 2.6.16,
+>> > > > > while the initial support for the new
+>> i2c binding model was added
+>> > > > > in kernel 2.6.22 (and even that is
+>> somewhat different from what is
+>> > > > > upstream now.) This forces us to add
+>> quirks all around the place,
+>> > > > > which will surely result in bugs
+>> because the code becomes hard to
+>> > > > > read, understand and maintain.
+>> > > > >
+>> > > > > In fact, without this need for
+>> backwards compatibility, I would
+>> > > > > probably have been able to convert most
+>> of the drivers myself,
+>> > > > > without Hans' help, and this would
+>> already be all done. But as
+>> > > > > things stand today, he has to do most
+>> of the work, and our progress
+>> > > > > is slow.
+>> > > > >
+>> > > > > So I would like you to consider
+>> changing the minimum kernel version
+>> > > > > supported by the v4l-dvb repository
+>> from 2.6.16 to at least 2.6.22.
+>> > > > > Ideal for us would even be 2.6.26, but
+>> I would understand that this
+>> > > > > is too recent for you. Kernel 2.6.22 is
+>> one year and a half old, I
+>> > > > > honestly doubt that people fighting to
+>> get their brand new TV
+>> > > > > adapter to work are using anything
+>> older. As a matter of fact,
+>> > > > > kernel 2.6.22 is what openSUSE 10.3
+>> has, and this is the oldest
+>> > > > > openSUSE product that is still
+>> maintained.
+>> > > > >
+>> > > > > I understand and respect your will to
+>> let a large range of users
+>> > > > > build the v4l-dvb repository, but at
+>> some point the cost for
+>> > > > > developers seems to be too high, so
+>> there's a balance to be found
+>> > > > > between users and developers. At the
+>> moment the balance isn't right
+>> > > > > IMHO.
+>> > > >
+>> > > > In my case, I use RHEL 5.3 that comes with
+>> 2.6.18. I need at least to
+>> > > > have compatibility until this version,
+>> otherwise it will be harder to
+>> > > > me to test things, since most of the time I
+>> need to run RHEL 5
+>> > > > kernel.
+>> > > >
+>> > > > I know that other developers also use RHEL 5
+>> on their environments.
+>> > >
+>> > > Why should we have ugly and time consuming
+>> workarounds in our
+>> > > repository that hamper progress just to allow you
+>> to run RHEL 5? I'm
+>> > > sorry, that's no reason at all. I very much
+>> doubt other subsystem
+>> > > maintainers are stuck on 2.6.18.
+>> >
+>> > The role idea of having compatibility code is to allow
+>> people to test
+>> > with distro kernels. If we decide do exclude one of
+>> the major distro, I
+>> > don't see why not dropping support for the other
+>> distros and older
+>> > kernels. For sure removing all backports will make
+>> developers happy, but
+>> > this will reduce the amount of users that can help
+>> with the development,
+>> > testing the drivers and providing us patches.
+>>
+>> 99% (if not 100%) of that comes from the desktop area. We
+>> are bending over
+>> backwards for the mythical enterprise user who cannot
+>> upgrade, must have
+>> the latest drivers and wants it all for free. In the
+>> meantime we have
+>> crummy code in the kernel only to support this mythical
+>> user, and new
+>> developers starting to work with v4l are confused by the
+>> weird way i2c
+>> drivers are setup.
+>>
+>> > It would be much more easy to me to just drop all -hg
+>> trees with all
+>> > backport and out-of-tree compilation and stuck with my
+>> -git trees, just
+>> > like other sybsystem maintainers do, but I _do_ think
+>> that our community
+>> > will suffer a lot with this. So, let's keep
+>> supporting at least the
+>> > latest kernel version used by the major distros. So,
+>> for now, we should
+>> > still keep support for 2.6.18.
+>>
+>> It's not our job. It's the job of the distro
+>> companies to maintain their
+>> code and drivers and backport newer ones if needed.
+>> That's what they are
+>> paid for. I'm not paid for that, yet I still have to
+>> spend valuable time
+>> doing this shit (excuse the language).
+>>
+>> If people are so keen on it, then let them pay me.
+>>
+>> > > And anyway, there is no way you can do proper
+>> testing against the new
+>> > > i2c API on that old kernel. The loading and
+>> probing of i2c modules is
+>> > > quite different, so that's never
+>> representative of what kernels >=
+>> > > 2.6.22 do.
+>> >
+>> > I can assure you that I2C with v4l/dvb drivers work
+>> fine with 2.6.18. I
+>> > use here with several drivers (uvc, bttv, saa7134,
+>> em28xx, ...).
+>> >
+>> > As a normal user, I use skype regularly the latest uvc
+>> driver + 2.6.18 on
+>> > RHEL5.
+>> >
+>> > Of course, while developing, we should always test the
+>> drivers against
+>> > the latest upstream tree, but this don't reduce
+>> the value of allowing
+>> > normal users to use the latest drivers with their
+>> systems.
+>>
+>> Normal v4l users use a desktop PC and can easily upgrade.
+>> Enterprise users
+>> locked to an ancient kernel AND using v4l-dvb are NOT
+>> normal users. I've
+>> just looked it up and apparently RHEL 6 isn't planned
+>> for another year. By
+>> that time we're on 2.6.32/33 and maintaining
+>> compatibility for a whopping
+>> 15 kernels. Doesn't that strike you as ridiculous?
+>>
+>> I might be wrong, but aren't you using RHEL 5 because
+>> you work for redhat
+>> these days? Not a typical user at all.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> --
+>> Hans Verkuil - video4linux developer - sponsored by
+>> TANDBERG
+>
+>
+> Hi,
+>
+> I strongly oppose the idea to suppress old kernel versions' support.
+> People here discuss Linux as "This (PC) distro" and other "Desktop"
+> flavor.
+> But, you must look at the global Linux market. Multiple embedded devices
+> use Linux OS. The embedded Linux "market share" is something to argue
+> about, some say that it about 25%, while other say its about 40%. The true
+> numbers are unknown, since those devices can not be counted easily (like
+> when access to any web-server), and the commercial companies that
+> manufacture those devices neglect to publish numbers (anything between 5
+> to 7 digits number per device type are legit as any other).
+> The problem is, that the BSPs (board support package to all PC guys here)
+> for those devices are frozen, and hence the kernel version too.
+> I know devices that still use 2.6.10 (MontaVista) and other old version...
+>
+> So, older version support is essential for those devices.
 
-regards
+Not at all. I work with embedded systems and what happens is that you
+effectively take a kernel snapshot for your device and stick to that.
+You're not using v4l-dvb, but you might backport important fixes on
+occasion.
 
-Newsy
+Again, it's not our job. The linux model is to get your drivers into the
+kernel, then let distros take care of the rest, which includes backporting
+if needed to older kernels. We are doing the work that distros should be
+doing. A few years ago I moved ivtv to v4l-dvb and the kernel with the
+express purpose to be finally free of keeping it backwards compatible with
+older kernels. Now I find myself doing the same AGAIN.
 
---- Jonas Kvinge <linuxtv@night-light.net> schrieb am Di, 3.2.2009:
+And you are talking about that mythical user that needs it. I've yet to
+SEE that user here and telling me that it is essential to their product.
 
-> Von: Jonas Kvinge <linuxtv@night-light.net>
-> Betreff: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts on HDchannels]
-> An: linux-dvb@linuxtv.org
-> Datum: Dienstag, 3. Februar 2009, 20:00
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> 
-> Manu Abraham wrote:
-> > Alex Betis wrote:
-> >> On Tue, Jan 27, 2009 at 9:56 PM, Manu Abraham
-> <abraham.manu@gmail.com>wrote:
-> >>
-> >>>> Hmm OK, but is there by any chance a fix
-> for those issues somewhere or
-> >>>> in the pipe at least? I am willing to test
-> (as I already offered), I
-> >>>> can compile the drivers, spread printk or
-> whatever else is needed to
-> >>>> get useful reports. Let me know if I can
-> help sort this problem. BTW in
-> >>>> my case it is DVB-S2 30000 SR and FEC 5/6.
-> >>> It was quite not appreciable on my part to
-> provide a fix or reply in
-> >>> time nor spend much time on it earlier, but
-> that said i was quite
-> >>> stuck up with some other things.
-> >>>
-> >>> Can you please pull a copy of the multiproto
-> tree
-> >>> http://jusst.de/hg/multiproto or the v4l-dvb
-> tree from
-> >>> http://jusst.de/hg/v4l-dvb
-> >>>
-> >>> and apply the following patch and comment what
-> your result is ?
-> >>> Before applying please do check whether you
-> still have the issues.
-> >> Manu,
-> >> I've tried to increase those timers long ago
-> when played around with my card
-> >> (Twinhan 1041) and scan utility.
-> >> I must say that I've concentrated mostly on
-> DVB-S channels that wasn't
-> >> always locking.
-> >> I didn't notice much improvements. The thing
-> that did help was increasing
-> >> the resolution of scan zigzags.
-> >
-> > With regards to the zig-zag, one bug is fixed in the
-> v4l-dvb tree.
-> > Most likely you haven't tried that change.
-> >
-> >> I've sent a patch on that ML and people were
-> happy with the results.
-> >
-> > I did look at your patch, but that was completely
-> against the tuning
-> > algorithm.
-> >
-> > [..]
-> >
-> >> I believe DVB-S2 lock suffer from the same
-> problem, but in that case the
-> >> zigzag is done in the chip and not in the driver.
-> >
-> > Along with the patch i sent, does the attached patch
-> help you in
-> > anyway (This works out for DVB-S2 only)?
-> >
-> >
-> >
-> 
-> - From what I understand the driver still has some issues.
-> Got feedback
-> from another guy with Canal Digital in Norway that he has
-> the same
-> issues as me.
-> 
-> Not sure if the diff was an attempt to fix the digital
-> artefacts but I
-> tried applying the diff manually on the source I grabbed
-> from
-> http://jusst.de/hg/v4l-dvb/ but did not notice any
-> improvements or
-> difference with the artefacts. Would any logs be helpful?
-> 
-> If there is anything else I could try I'm willing to
-> try it out. I
-> appreciate your effort. Thanks.
-> 
-> 
-> Jonas
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v2.0.9 (GNU/Linux)
-> Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
-> 
-> iEYEARECAAYFAkmIlGoACgkQpvOo+MDrK1H4yACdHPoej4cSsfPvp7m4NUGsAjAz
-> 36EAn3cz9MffjPWztzyMEOcs0VcxhQdD
-> =h9tA
-> -----END PGP SIGNATURE-----
-> 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead
-> linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+PROVE to me that it is really necessary and really our job, and esp. my
+job, since *I'm* the one keeping the backwards compatibility for i2c
+modules alive. All I hear is 'there might be', 'I know some company', 'I
+heard'.
 
+Right now there is crappy code in the kernel whose only purpose is to
+facilitate support for old kernels. That's actually against the kernel
+policy.
 
-      
+One alternative is it create a separate repository just before the compat
+code is removed, and merge important fixes for drivers in there. That
+should tide us over until RHEL 6 is released.
+
+Which also raises the other question: what criterium is there anyway to
+decide what is the oldest kernel to support? RHEL 5 will no doubt be used
+for 1-2 years after RHEL 6 is release, do we still keep support for that?
+Old kernels will be used for a long time in embedded systems, do we still
+keep support for that too?
+
+The only reasonable criterium I see is technical: when you start to
+introduce cruft into the kernel just to support older kernels, then it is
+time to cut off support to those kernels.
+
+Regards,
+
+          Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
