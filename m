@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n11ERoAX009370
-	for <video4linux-list@redhat.com>; Sun, 1 Feb 2009 09:27:50 -0500
-Received: from smtp4-g21.free.fr (smtp4-g21.free.fr [212.27.42.4])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n11ERVRE032140
-	for <video4linux-list@redhat.com>; Sun, 1 Feb 2009 09:27:33 -0500
-Date: Sun, 1 Feb 2009 15:24:35 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Message-ID: <20090201152435.0e06e42e@free.fr>
-In-Reply-To: <49856A54.1020105@freemail.hu>
-References: <49856A54.1020105@freemail.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: Linux 2.6.28 + Trust 610 LCD PowerC@m Zoom, webcam mode?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1IAbUpN025457
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 05:37:30 -0500
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de
+	[92.198.50.35])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1IAbGAu015685
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 05:37:16 -0500
+Date: Wed, 18 Feb 2009 10:13:40 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Agustin <gatoguan-os@yahoo.com>
+Message-ID: <20090218091340.GB7213@pengutronix.de>
+References: <50561.11594.qm@web32108.mail.mud.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50561.11594.qm@web32108.mail.mud.yahoo.com>
+Cc: video4linux list <video4linux-list@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Arm Kernel <linux-arm-kernel@lists.arm.linux.org.uk>
+Subject: Re: Rv: mx3-camera on current mxc kernel tree
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,40 +30,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 01 Feb 2009 10:24:36 +0100
-Németh Márton <nm127@freemail.hu> wrote:
-> Hello Jean-Francois,
+Hi,
 
-Hello Márton,
-
-> I have a Trust 610 LCD PowerC@m Zoom camera which can operate in
-> webcam mode also (USB ID=06d6:0031). I tried to use it together with
-> Linux 2.6.28 and with xawtv-3.95.dfsg.1 and with gqcam 0.9.1.
-> The /dev/video0 appeared, but no usable picture was visible.
+On Tue, Feb 17, 2009 at 10:36:01AM -0800, Agustin wrote:
+> Hi Guennadi,
 > 
-> However, I downloaded
-> http://mxhaard.free.fr/spca50x/Download/gspcav1-20071224.tar.gz and
-	[snip]
-> Do you have any idea why the gspcav1 diver is working and the one
-> which is included in Linux 2.6.28 not?
+> I am trying to integrate your "mx3_camera" (soc-camera) driver into latest
+> MXC kernel tree in order to be able to use it along with other drivers I need
+> (specially USB and SDHC storage).
+> 
+> I am using branch "mxc-devel" from git://git.pengutronix.de/git/imx/linux-2.6
 
-The gspcav1 is not maintained anymore.
+Please don't. Please use the mxc-master or mxc-master-flat branch instead. See
+my mail recently posted here. Guennadis camera patches will probably fit better
+on this tree.
 
-It seems that your webcam has not been tested with gspcav2.
-
-First, did you use the v4l library and its wrapper when running xawtv
-and gqcam?
-
-Then, have you tried my program svv?
-
-If nothing works, please, send me the kernel traces and the image.dat as
-indicated in the gspca_README.txt of my page.
-
-Best regards.
+Sascha
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
 --
 video4linux-list mailing list
