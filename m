@@ -1,46 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from as-10.de ([212.112.241.2]:37235 "EHLO mail.as-10.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751142AbZBRLP2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 06:15:28 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.as-10.de (Postfix) with ESMTP id 133E133A892
-	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 12:06:52 +0100 (CET)
-Received: from mail.as-10.de ([127.0.0.1])
-	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id kINhqpO4hiVM for <linux-media@vger.kernel.org>;
-	Wed, 18 Feb 2009 12:06:51 +0100 (CET)
-Received: from halim.local (pD9E3FEB2.dip.t-dialin.net [217.227.254.178])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: web11p28)
-	by mail.as-10.de (Postfix) with ESMTPSA id D570533A87E
-	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 12:06:51 +0100 (CET)
-Date: Wed, 18 Feb 2009 12:07:15 +0100
-From: Halim Sahin <halim.sahin@t-online.de>
-To: linux-media@vger.kernel.org
-Subject: Re: TT 3650
-Message-ID: <20090218110715.GA7658@halim.local>
-References: <20090218092217.232120@gmx.net> <20090218103353.64bf6400@free.fr> <27360.194.48.84.1.1234949910.squirrel@webmail.dark-green.com>
+Received: from mail.gmx.net ([213.165.64.20]:40311 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752030AbZBRS4o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 13:56:44 -0500
+Date: Wed, 18 Feb 2009 19:56:57 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+cc: Matthieu CASTET <matthieu.castet@parrot.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Subject: Re: soc-camera : sh_mobile_ceu_camera race on free_buffer ?
+In-Reply-To: <aec7e5c30902130214k6a0fc8ck74b412f41fa63385@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0902181955460.6371@axis700.grange>
+References: <497487F2.7070400@parrot.com>  <aec7e5c30901192046j1a595day51da698181d034e5@mail.gmail.com>
+  <497598ED.3050502@parrot.com> <aec7e5c30902130214k6a0fc8ck74b412f41fa63385@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <27360.194.48.84.1.1234949910.squirrel@webmail.dark-green.com>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-On Mi, Feb 18, 2009 at 10:38:30 +0100, gimli wrote:
-> Thats the Problem, you only can get the driver for your card from another
-> repo, but not the main one.
-> After the first rusch pusching s2api out, no one is intrested anymore to
-> get more s2 cards working in the mainline development tree.
+On Fri, 13 Feb 2009, Magnus Damm wrote:
 
-FULLACK.
-What's the problem to merge these drivers into mainline repo?
-It's not easy for new users to find the drivers.
-it will be more userfriendly to have them in main linux kernel!!!
+> Hi Matthieu,
+> 
+> [CC Morimoto-san]
+> [Changed list to linux-media]
+> 
+> On Tue, Jan 20, 2009 at 6:27 PM, Matthieu CASTET
+> <matthieu.castet@parrot.com> wrote:
+> > Magnus Damm a écrit :
+> >> On Mon, Jan 19, 2009 at 11:02 PM, Matthieu CASTET
+> >>> But we didn't do stop_capture, so as far I understand the controller is
+> >>> still writing data in memory. What prevent us to free the buffer we are
+> >>> writing.
+> >>
+> >> I have not looked into this in great detail, but isn't this handled by
+> >> the videobuf state? The videobuf has state VIDEOBUF_ACTIVE while it is
+> >> in use. I don't think such a buffer is freed.
+> > Well from my understanding form videobuf_queue_cancel [1], we call
+> > buf_release on all buffer.
+> 
+> Yeah, you are correct. I guess waiting for the buffer before freeing
+> is the correct way to do this. I guess vivi doesn't have to do this
+> since it's not using DMA.
+> 
+> Morimoto-san, can you check the attached patch? I've tested it on my
+> Migo-R board together with mplayer and it seems to work well here. I
+> don't think using mplayer triggers this error case though, so maybe we
+> should try some other application.
 
-BR.
-Halim
+Magnus, can you, please, submit it with an Sob, after Morimoto-san has 
+tested it with capture.c?
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
