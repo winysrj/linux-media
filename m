@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1QNQ3kH011150
-	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 18:26:03 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.28])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1QNPjQ9024859
-	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 18:25:45 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so541790yxm.81
-	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 15:25:45 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <b24e53350902261307x7ea7e172na47dc479ac9d25cf@mail.gmail.com>
-References: <b24e53350902261307x7ea7e172na47dc479ac9d25cf@mail.gmail.com>
-Date: Thu, 26 Feb 2009 18:25:45 -0500
-Message-ID: <b24e53350902261525j5e7cd63dkdba6163f6ca56cae@mail.gmail.com>
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: V4L <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Jerry Geis <geisj@messagenetsystems.com>,
-	Kevin Brown <kbrown@messagenetsystems.com>
-Subject: Re: v4l2: ioctl queue buffer failed: No space left on device
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1IAnmsX030250
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 05:49:48 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1IAnJBl009379
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 05:49:19 -0500
+Date: Wed, 18 Feb 2009 07:48:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Roel Kluin <roel.kluin@gmail.com>
+Message-ID: <20090218074849.70209e5d@pedra.chehab.org>
+In-Reply-To: <499BD0AE.8000603@gmail.com>
+References: <499BD0AE.8000603@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [PATCH] V4L: missing parentheses?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,53 +27,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Feb 26, 2009 at 4:07 PM, Robert Krakora
-<rob.krakora@messagenetsystems.com> wrote:
-> All:
->
-> I have vlc running a v4l2 supported web cam (runs great for both audio
-> and video).  However, when I start up my em28xx based device in analog
-> mode via mplayer I see this message:
->
-> v4l2: ioctl queue buffer failed: No space left on device
->
-> I have to take down vlc to start up my em28xx based device in analog
-> mode via mplayer.  I assume there is probably no kmalloc memory
-> available, but I am not for sure as I have not looked at the source
-> yet.
->
-> Best Regards,
->
-> --
-> Rob Krakora
-> Senior Software Engineer
-> MessageNet Systems
-> 101 East Carmel Dr. Suite 105
-> Carmel, IN 46032
-> (317)566-1677 Ext. 206
-> (317)663-0808 Fax
->
+On Wed, 18 Feb 2009 10:11:10 +0100
+Roel Kluin <roel.kluin@gmail.com> wrote:
 
-All:
+> From: Roel Kluin <roel.kluin@gmail.com>
+> To: Michael Krufky <mkrufky@linuxtv.org>
+> CC: Mauro Carvalho Chehab <mchehab@infradead.org>,  video4linux-list@redhat.com, Andrew Morton <akpm@linux-foundation.org>
+> Subject: [PATCH] V4L: missing parentheses?
+> Date: Wed, 18 Feb 2009 10:11:10 +0100
+> User-Agent: Thunderbird 2.0.0.18 (X11/20081105)
 
-It appears as though Markus identified this problem three years ago as
-possibly a bug in the USB stack (see below).  The other device that
-shares the USB bus with the KWorld 330U em28xx device is a VF0560
-Live! Cam Optia AF webcam.  Any suggestions or comments are welcome.
-;-)
+Hi Roel,
 
-http://lkml.org/lkml/2006/2/3/5
+Please use linux-media@vger.kernel.org, instead of v4l-list, for all patches
+for drivers/media, otherwise your patch will likely be lost.
 
-Best Regards,
+We are currently using patchwork.kernel.org as our patch repository. It only
+handles patches sent to the new ML.
 
--- 
-Rob Krakora
-Senior Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
