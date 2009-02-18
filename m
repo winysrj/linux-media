@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:48002 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751571AbZB0CZ0 (ORCPT
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:42386 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752368AbZBRO4Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2009 21:25:26 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so653853yxm.1
-        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 18:25:24 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
-References: <200902221115.01464.hverkuil@xs4all.nl>
-Date: Fri, 27 Feb 2009 11:25:23 +0900
-Message-ID: <aec7e5c30902261825x3ea7ba5g1e7f11d9a4114693@mail.gmail.com>
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 18 Feb 2009 09:56:25 -0500
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KF900758O5PCBV0@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Wed, 18 Feb 2009 09:56:14 -0500 (EST)
+Date: Wed, 18 Feb 2009 09:56:13 -0500
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: PVR x50 corrupts ATSC 115 streams
+In-reply-to: <20090218051945.GA12934@opus.istwok.net>
+To: David Engel <david@istwok.net>
+Cc: linux-media@vger.kernel.org, V4L <video4linux-list@redhat.com>
+Message-id: <499C218D.7050406@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <20090217155335.GB6196@opus.istwok.net>
+ <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net>
+ <499B1E19.80302@linuxtv.org> <20090218051945.GA12934@opus.istwok.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 22, 2009 at 7:15 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
->
-> _: Yes
-> _: No
+> I then removed the 250 from slot 4 leaving the 115s in slots 1 and 2.
+> The ber was through the roof and the recorded strams were filled with
+> errors and were barely playable at best.
 
-Yes.
+This ^^^^ is bad, you have something wrong with your feeds. They're probably 
+over amp'd and your leaking RF like crazy.
 
-> Optional question:
->
-> Why:
+Go back to basics, put the single unsplit and unamped feed into a single 115 and 
+get that working reliably. Then, split (or amp) and try the second 115.
 
-Focus on moving forward instead of looking backwards. Keeping user
-space compatibilty is of course a good idea, but I see no reason why
-V4L needs to be special compared to the rest of the kernel.
+Try to work out what's causing BER to be > 0 and fix that first.
 
-I don't have the full picture though and I'm not the one who spend
-energy and time on keeping backwards compatibility. If the cost is
-small enough then it may of course be worth it. But my gut feeling is
-that there is no point in being special with these things, just do
-like the rest of the kernel subsystems and you will be fine.
+Personally, I wouldn't add the 250/350 back into the system until I had both 
+115's running flawlessly with 0 BER and 0 UNC.
 
-/ magnus
+Chances are, the 250/350 will work correctly after this - unless the drivers 
+really do have a DMA issue. It's too early to say given the BER/UNC issues 
+you're seeing though.
+
+- Steve
+
