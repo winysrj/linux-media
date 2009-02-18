@@ -1,20 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n14CbYwS025357
-	for <video4linux-list@redhat.com>; Wed, 4 Feb 2009 07:37:34 -0500
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n14CbI6w029489
-	for <video4linux-list@redhat.com>; Wed, 4 Feb 2009 07:37:18 -0500
-Received: by yw-out-2324.google.com with SMTP id 5so815454ywb.81
-	for <video4linux-list@redhat.com>; Wed, 04 Feb 2009 04:37:18 -0800 (PST)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1I6TgV3011204
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 01:29:42 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.229])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1I6TTUJ015178
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 01:29:30 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so2775382rvb.51
+	for <video4linux-list@redhat.com>; Tue, 17 Feb 2009 22:29:29 -0800 (PST)
 MIME-Version: 1.0
-Date: Wed, 4 Feb 2009 18:07:18 +0530
-Message-ID: <ca6476860902040437h710ab4echd5e837502ce796d3@mail.gmail.com>
-From: halli manjunatha <hallimanju@gmail.com>
-To: video4linux-list@redhat.com
+In-Reply-To: <c785bba30902172225q449adf12v6bc2dea2bb79a43d@mail.gmail.com>
+References: <83b2c1480902172112p6fb23235w53d9bb750e8bc8cb@mail.gmail.com>
+	<c785bba30902172120v26c20484r233ff4bdf98b430b@mail.gmail.com>
+	<83b2c1480902172158s51d8f2bbke3476a14bf9b5779@mail.gmail.com>
+	<c785bba30902172207ge34c267o996e9afadfd9094e@mail.gmail.com>
+	<83b2c1480902172221t39628473lda565f03b288a1a0@mail.gmail.com>
+	<c785bba30902172225q449adf12v6bc2dea2bb79a43d@mail.gmail.com>
+Date: Tue, 17 Feb 2009 23:29:28 -0700
+Message-ID: <c785bba30902172229s5c361bc7ub5fe440e51be3493@mail.gmail.com>
+From: Paul Thomas <pthomas8589@gmail.com>
+To: Sumanth V <sumanth.v@allaboutif.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Missing first 4 frames
+Cc: video4linux-list@redhat.com
+Subject: Re: setting up dvb-s card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,66 +34,128 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi ,
-       I am working on omap3 custom board and using the TI's camera patches
-on 2.6.28 kernel  and the problem is that first 4 frames are coming 1/4 of
-HVGA but i am capturing HVGA  images. after 4 frames everything is normal.
+On Tue, Feb 17, 2009 at 11:25 PM, Paul Thomas <pthomas8589@gmail.com> wrote:
+> On Tue, Feb 17, 2009 at 11:21 PM, Sumanth V <sumanth.v@allaboutif.com> wrote:
+>> Thanks Paul, i am usind Debian. The kernel default version was
+>> "2.6.18-6-686".  How do i build v4l-dvb tree ?? should i recomplie my
+>> default kernel again??
+>> When i do " dmesg | grep dvb " it displays
+>> saa7146: register extension 'dvb'.
+>>
+>> Thanks.
+>>
+>> On Wed, Feb 18, 2009 at 6:07 AM, Paul Thomas <pthomas8589@gmail.com> wrote:
+>>>
+>>> On Tue, Feb 17, 2009 at 10:58 PM, Sumanth V <sumanth.v@allaboutif.com>
+>>> wrote:
+>>> > Thanks Paul, But i dont see any drivers associated to this card. But the
+>>> > modules are present in
+>>> >
+>>> > /lib/modules/2.6.28/kernel/drivers/media/common/
+>>> > saa7146.ko     saa7146_vv.ko
+>>> >
+>>> > but they dont show up when i do "lsmod", so i used "insmod" to inseret
+>>> > them
+>>> > and i was able to insert saa7146.ko , but for saa7146_vv.ko it gave me
+>>> > following error
+>>> > insmod: error inserting 'saa7146_vv.ko': -1 Unknown symbol in module
+>>> >
+>>> > When i do "dmesg" it gives the following error for this module
+>>> >
+>>> > saa7146_vv: Unknown symbol videobuf_streamoff
+>>> > saa7146_vv: Unknown symbol videobuf_poll_stream
+>>> > saa7146_vv: Unknown symbol saa7146_devices_lock
+>>> > saa7146_vv: Unknown symbol videobuf_dma_free
+>>> > saa7146_vv: Unknown symbol videobuf_reqbufs
+>>> > saa7146_vv: Unknown symbol videobuf_waiton
+>>> > saa7146_vv: Unknown symbol videobuf_dqbuf
+>>> > saa7146_vv: Unknown symbol saa7146_debug
+>>> > saa7146_vv: Unknown symbol saa7146_devices
+>>> > saa7146_vv: Unknown symbol videobuf_stop
+>>> > saa7146_vv: Unknown symbol videobuf_queue_sg_init
+>>> > saa7146_vv: Unknown symbol videobuf_dma_unmap
+>>> > saa7146_vv: Unknown symbol videobuf_read_stream
+>>> > saa7146_vv: Unknown symbol videobuf_querybuf
+>>> > saa7146_vv: Unknown symbol saa7146_pgtable_build_single
+>>> > saa7146_vv: Unknown symbol videobuf_qbuf
+>>> > saa7146_vv: Unknown symbol videobuf_read_one
+>>> > saa7146_vv: Unknown symbol saa7146_pgtable_alloc
+>>> > saa7146_vv: Unknown symbol saa7146_pgtable_free
+>>> > saa7146_vv: Unknown symbol videobuf_iolock
+>>> > saa7146_vv: Unknown symbol videobuf_streamon
+>>> > saa7146_vv: Unknown symbol videobuf_queue_cancel
+>>> > saa7146_vv: Unknown symbol videobuf_mmap_setup
+>>> > saa7146_vv: Unknown symbol videobuf_mmap_mapper
+>>> > saa7146_vv: Unknown symbol videobuf_to_dma
+>>> >
+>>> > i am going wrong some where while compiling the kernel for this dvb
+>>> > card??
+>>> > can some one guide me getting this card up??
+>>> >
+>>> >
+>>> > Thanks.
+>>> >
+>>> >
+>>> >
+>>> >
+>>> > On Wed, Feb 18, 2009 at 5:20 AM, Paul Thomas <pthomas8589@gmail.com>
+>>> > wrote:
+>>> >>
+>>> >> It might already be set up. You can see if there is a driver
+>>> >> associated with it by doing "tree /sys/bus/pci".
+>>> >>
+>>> >> thanks,
+>>> >> Paul
+>>> >>
+>>> >> On Tue, Feb 17, 2009 at 10:12 PM, Sumanth V <sumanth.v@allaboutif.com>
+>>> >> wrote:
+>>> >> > Hi All,
+>>> >> >
+>>> >> >      i am trying to set up a dvb-s card on my system. when i do lspci
+>>> >> > -v
+>>> >> > i
+>>> >> > get this.
+>>> >> >
+>>> >> >  00:0b.0 Multimedia controller: Philips Semiconductors SAA7146 (rev
+>>> >> > 01)
+>>> >> >        Subsystem: KNC One Unknown device 0019
+>>> >> >        Flags: bus master, medium devsel, latency 32, IRQ 5
+>>> >> >        Memory at ea000000 (32-bit, non-prefetchable) [size=512]
+>>> >> >
+>>> >> > i am using the kernel version 2.6.28.
+>>> >> >
+>>> >> > How do i set up this card??
+>>> >> >
+>>> >> > Thanks
+>>> >> > --
+>>> >> > video4linux-list mailing list
+>>> >> > Unsubscribe
+>>> >> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>> >> > https://www.redhat.com/mailman/listinfo/video4linux-list
+>>> >> >
+>>> >
+>>> >
+>>>
+>>> What distro are you using? I would stick with the kernel that comes
+>>> with your distro it probably has the right modules, but if not you can
+>>> build the v4l-dvb tree against your distros kernel.
+>>>
+>>> thanks,
+>>> Paul
+>>
+>>
+> No, you shouldn't need to recompile the default kernel you just need
+> to make sure that the kernel headers are installed and then it is very
+> easy. Just download v4l-dvb
+> (http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2) extract it and
+> then run "make" and then (as root) "make install"
+>
+> thanks,
+> Paul
+>
 
-      I don't wether it is the right list to say this problem, please guid
-me where to look, following is my register dump
+then reboot
 
-
-###CM_FCLKEN_CAM=0x3
-###CM_ICLKEN_CAM=0x1
-###CM_CLKSEL_CAM=0x4
-###CM_AUTOIDLE_CAM=0x1
-###CM_CLKEN_PLL[18:16] should be 0x7, = 0x90371037
-###CM_CLKSEL2_PLL[18:8] should be 0x2D, [6:0] should be 1 = 0x1b00c
-###CTRL_PADCONF_CAM_HS=0x1080108
-###CTRL_PADCONF_CAM_XCLKA=0x1080108
-###CTRL_PADCONF_CAM_D1=0x1000100
-###CTRL_PADCONF_CAM_D3=0x1080100
-###CTRL_PADCONF_CAM_D5=0x1080108
-###CTRL_PADCONF_CAM_D7=0x1080108
-###CTRL_PADCONF_CAM_D9=0x1080108
-###CTRL_PADCONF_CAM_D11=0x108
-###ISP_CTRL=0x3bf188
-###ISP_TCTRL_CTRL=0x9
-###ISP_SYSCONFIG=0x2000
-###ISP_SYSSTATUS=0x1
-###ISP_IRQ0ENABLE=0x90000300
-###ISP_IRQ0STATUS=0x0
-###CCDC PCR=0x1
-ISP_CTRL =0x3bf188
-###ISP_CTRL in ccdc =0x3bf188
-###ISP_IRQ0ENABLE in ccdc =0x90000300
-###ISP_IRQ0STATUS in ccdc =0x0
-###CCDC SYN_MODE=0x31700
-###CCDC HORZ_INFO=0x13f
-###CCDC VERT_START=0x0
-###CCDC VERT_LINES=0x1df
-###CCDC CULLING=0xffff00ff
-###CCDC HSIZE_OFF=0x280
-###CCDC SDOFST=0x0
-###CCDC SDR_ADDR=0x4000000
-###CCDC CLAMP=0x10
-###CCDC COLPTN=0x0
-###CCDC CFG=0x8000
-###CCDC VP_OUT=0x0
-###CCDC_SDR_ADDR= 0x4000000
-###CCDC FMTCFG=0x4000
-###CCDC FMT_HORZ=0x0
-###CCDC FMT_VERT=0x0
-###CCDC LSC_CONFIG=0x6600
-###CCDC LSC_INIT=0x0
-###CCDC LSC_TABLE BASE=0x0
-###CCDC LSC TABLE OFFSET=0x0
-
-Thanks in advance
--- 
-Regards
-
-Hall
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
