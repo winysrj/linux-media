@@ -1,36 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx5.orcon.net.nz ([219.88.242.55]:39141 "EHLO mx5.orcon.net.nz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752324AbZBHK0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Feb 2009 05:26:12 -0500
-Received: from Debian-exim by mx5.orcon.net.nz with local (Exim 4.67)
-	(envelope-from <mail_lists@stevencherie.net>)
-	id 1LW6SL-0004Dq-9k
-	for linux-media@vger.kernel.org; Sun, 08 Feb 2009 23:00:05 +1300
-Received: from [121.98.196.30] (helo=penguin.home.stevencherie.net)
-	by mx5.orcon.net.nz with esmtp (Exim 4.67)
-	(envelope-from <mail_lists@stevencherie.net>)
-	id 1LW6SK-0004DS-SK
-	for linux-media@vger.kernel.org; Sun, 08 Feb 2009 23:00:05 +1300
-Received: from [10.84.0.18] (vpnmacbuntu [10.84.0.18])
-	by penguin.home.stevencherie.net (Postfix) with ESMTP id 72ECF2BD94
-	for <linux-media@vger.kernel.org>; Sun,  8 Feb 2009 23:00:00 +1300 (NZDT)
-Message-ID: <498EAD1F.8040300@stevencherie.net>
-Date: Sun, 08 Feb 2009 22:59:59 +1300
-From: Steven Ellis <mail_lists@stevencherie.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Any supported Dual DVB-S cards?
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36406 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566AbZBRUM6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 15:12:58 -0500
+Date: Wed, 18 Feb 2009 20:07:39 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Agustin <gatoguan-os@yahoo.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Valentin Longchamp <valentin.longchamp@epfl.ch>,
+	Linux Arm Kernel <linux-arm-kernel@lists.arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH/RFC 1/4] ipu_idmac: code clean-up and robustness improvements
+Message-ID: <20090218200739.GC11757@n2100.arm.linux.org.uk>
+References: <50561.11594.qm@web32108.mail.mud.yahoo.com> <499B2A60.9080009@epfl.ch> <alpine.DEB.2.00.0902180044120.6986@axis700.grange> <alpine.DEB.2.00.0902180049580.6986@axis700.grange> <951330.963.qm@web32108.mail.mud.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <951330.963.qm@web32108.mail.mud.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Noticed that Pinnacle now do a dual tuner PCI based DVB-S card
+On Wed, Feb 18, 2009 at 07:09:55AM -0800, Agustin wrote:
+> Guennadi,
+> > Guennadi Liakhovetski wrote:
+> > diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+> > index 1f154d0..91e6e4e 100644
+> > --- a/drivers/dma/ipu/ipu_idmac.c
+> > +++ b/drivers/dma/ipu/ipu_idmac.c
+> > @@ -28,6 +28,9 @@
+> > #define FS_VF_IN_VALID    0x00000002
+> > #define FS_ENC_IN_VALID    0x00000001
+> > 
+> > +static int ipu_disable_channel(struct idmac *idmac, struct idmac_channel 
+> > *ichan,
+> > +                   bool wait_for_stop);
+> > +
+> > /*
+> > ...
+>...
+> $ patch -p1 --dry-run < p1
+> patching file drivers/dma/ipu/ipu_idmac.c
+> patch: **** malformed patch at line 29: /*
+> 
+> Looks like your patches lost their format while on their way,
+> specially every single line with a starting space has had it
+> removed. Or is it my e-mail reader? I am trying to fix it manually,
+> no luck.
 
-http://www.pinnaclesys.com/PublicSite/uk/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+(DVB-S_DVB-T)/PCTV+Dual+Sat+Pro+PCI.htm
-
-And that development is underway. Has anyone found a dual tuner card
-that works?
-
-Steve
+I think it's your mail reader - the version I have here is fine.
+What you could do is look up the message in the mailing list archive
+on lists.arm.linux.org.uk, and use the '(text/plain)' link to download
+an unmangled copy of it.
