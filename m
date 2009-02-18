@@ -1,111 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3192 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756147AbZBYTOb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2009 14:14:31 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1PJEOGx021167
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 20:14:28 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 25 Feb 2009 20:14:24 +0100 (CET)
-Message-Id: <200902251914.n1PJEOGx021167@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from mx2.redhat.com ([66.187.237.31]:34263 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751732AbZBROih (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 09:38:37 -0500
+Message-ID: <499C1CEC.5030705@redhat.com>
+Date: Wed, 18 Feb 2009 15:36:28 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+CC: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	kilgota@banach.math.auburn.edu,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+References: <200902180030.52729.linux@baker-net.org.uk> <5e9665e10902171810v45d0f454ucad4c1c10deca8c4@mail.gmail.com>
+In-Reply-To: <5e9665e10902171810v45d0f454ucad4c1c10deca8c4@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
 
-Results of the daily build of v4l-dvb:
 
-date:        Wed Feb 25 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10654:a1e426060311
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+DongSoo(Nathaniel) Kim wrote:
+> Hello Adam,
+> 
+> I've been thinking exactly the same issue not usb but SoC based camera.
+> I have no idea about how usb cameras work but I am quite curious about
+> is it really possible to make proper orientation with only querying
+> camera driver.
+> Because in case of SoC based camera device, many of camera ISPs are
+> supporting VFLIP, HFLIP register on their own, and we can read current
+> orientation by reading those registers.
+> 
+> But the problem is ISP's registers are set as not flipped at all but
+> it physically mounted upside down, because the H/W  vendor has packed
+> the camera module upside down. (it sounds ridiculous but happens
+> sometimes)
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc5-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc5-x86_64: WARNINGS
-fw/apps: OK
-spec: ERRORS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
+That happens a lot with webcams too. Given that these SoC systems will come 
+with some board specific config anyways, all that is needed is to pass some 
+boardconfig in to the camera driver (through platform data for example) which 
+tells the camera driver that on this board the sensor is mounted upside down.
 
-Detailed results are available here:
+> So in that case when we query orientation of camera, it returns not
+> flipped vertically or horizontally at all but actually it turns out to
+> be upside down. Actually we are setting camera device to be flipped
+> for default in that case.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Ack, but the right thing to do is not to set the vflip and hflip video4linux2 
+controls on by default, but to invert their meaning, so when the sensor is 
+upside down, the hflip and vflip controls as seen by the application through 
+the v4l2 API will report not flipping, but the hwcontrols will actually be set 
+to flipping, and when an app enables flipping at the v4l2 API level it will 
+actually gets disables at the HW level, this way the upside downness is 100% 
+hidden from userspace. So your problem does not need any of the new API we are 
+working on. The new API is for when the hardware cannot flip and we need to 
+tell userspace to correct for this in software.
 
-Full logs are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Hans
