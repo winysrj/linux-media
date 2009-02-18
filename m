@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49955 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753189AbZBAWhy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 17:37:54 -0500
-Date: Sun, 1 Feb 2009 23:37:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Magnus <magnus.damm@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] sh_mobile_ceu: SOCAM flags are prepared at itself.
-In-Reply-To: <Pine.LNX.4.64.0902012017230.17985@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0902012335150.17985@axis700.grange>
-References: <uvdrxm9sd.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.0902012017230.17985@axis700.grange>
+Received: from mailrelay005.isp.belgacom.be ([195.238.6.171]:26455 "EHLO
+	mailrelay005.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751142AbZBROr5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 09:47:57 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: gilles <gilles.gigan@gmail.com>
+Subject: Re: Comments on V4L controls
+Date: Wed, 18 Feb 2009 15:51:32 +0100
+Cc: linux-media@vger.kernel.org
+References: <4994A667.2000909@gmail.com>
+In-Reply-To: <4994A667.2000909@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902181551.32623.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 1 Feb 2009, Guennadi Liakhovetski wrote:
+Hi Gilles,
 
-> On Fri, 30 Jan 2009, Kuninori Morimoto wrote:
-> 
-> > 
-> > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> > Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> > ---
-> >  drivers/media/video/sh_mobile_ceu_camera.c |   27 +++++++++++++++++++++++++--
-> >  include/media/sh_mobile_ceu.h              |    5 +++--
-> >  2 files changed, 28 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-> > index 9cde91a..07b7b4c 100644
-> > --- a/drivers/media/video/sh_mobile_ceu_camera.c
-> > +++ b/drivers/media/video/sh_mobile_ceu_camera.c
-> > @@ -101,6 +101,29 @@ struct sh_mobile_ceu_dev {
-> >  	const struct soc_camera_data_format *camera_fmt;
-> >  };
-> >  
-> > +static unsigned long make_bus_param(struct sh_mobile_ceu_dev *pcdev)
-> > +{
-> > +	unsigned long flags;
-> > +
-> > +	flags = SOCAM_SLAVE |
-> 
-> Guys, are you both sure this should be SLAVE, not MASTER? Have you tested 
-> it? Both tw9910 and ov772x register themselves as MASTER and from the 
-> datasheet the interface seems to be a typical master parallel to me... I 
-> think with this patch you would neither be able to use your driver with 
-> tw9910 nor with ov772x...
+On Thursday 12 February 2009 23:44:55 gilles wrote:
+> Hi everyone,
+> Sorry for double posting, but I originally sent this to the old mailing
+> list. Here it is:
+>
+> I have a couple of comments / suggestions regarding the part on controls of
+> the V4L2 api:
+> Some controls, such as pan relative and tilt relative are write-only, and
+> reading their value makes little sense. Yet, there is no way of knowing
+> about this, but to try and read a value and be greeted with EINVAL or
+> similar. There is already a read-only flag (V4L2_CTRL_FLAG_READ_ONLY) in
+> struct v4l2_query. Does it make sense to add another one for write-only
+> controls ?
 
-Ok, sorry, you, probably, did test it and it worked, but just because the 
-SLAVE / MASTER flag is not tested in soc_camera_bus_param_compatible(), 
-which I should fix with the next pull, but this does look wrong. Please, 
-fix.
+Yes it does. Martin Rubli from Logitech sent a mail in April 2008 to the 
+video4linux mailing list. Search the list archives for "[PATCH] Support for 
+write-only controls". Feel free to submit a patch.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+> The extended controls Pan / Tilt  reset are defined in the API as boolean
+> controls. Shouldnt these be defined as buttons instead, as they dont really
+> hold a state (enabled/disabled) ?
+
+Agreed. As no driver seem to be using those controls yet, it should be safe to 
+update the spec. Could you submit a patch ?
+
+Best regards,
+
+Laurent Pinchart
+
