@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:34945 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752192AbZBBA5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 19:57:15 -0500
-Subject: Re: [linux-dvb] general protection fault: 0000 [1] SMP with 2.6.27
- and	2.6.28
-From: Andy Walls <awalls@radix.net>
+Received: from ey-out-2122.google.com ([74.125.78.25]:15808 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751626AbZBRXaq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 18:30:46 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so15597eya.37
+        for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 15:30:44 -0800 (PST)
+Date: Wed, 18 Feb 2009 19:30:37 -0400
+From: Manu <eallaud@gmail.com>
+Subject: Re : Re : TT 3650
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <200902012338.49861@orion.escape-edv.de>
-References: <49565ABD.7030209@clara.co.uk> <498467E3.4010403@clara.co.uk>
-	 <1233524352.3091.51.camel@palomino.walls.org>
-	 <200902012338.49861@orion.escape-edv.de>
-Content-Type: text/plain
-Date: Sun, 01 Feb 2009 19:57:09 -0500
-Message-Id: <1233536229.3091.58.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+References: <20090218092217.232120@gmx.net>
+	<20090218103353.64bf6400@free.fr> <1234961317.5755.0@manu-laptop>
+	<20090218204455.19b867a0@free.fr>
+In-Reply-To: <20090218204455.19b867a0@free.fr> (from moinejf@free.fr on Wed
+	Feb 18 15:44:55 2009)
+Message-Id: <1234999838.7508.0@manu-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-02-01 at 23:38 +0100, Oliver Endriss wrote:
-> Andy Walls wrote:
-> > On Sat, 2009-01-31 at 15:01 +0000, Chris Mayo wrote:
-
-> > So tuner_addr is non-NULL and is not a valid pointer either.
-> > 
-> > It looks like linux/drivers/media/dvb/ttpci/budget.c:frontend_init() is
-> > setting the pointer up properly.  So something else is trashing the
-> > struct dvb_frontend structure pointed to by the variable fe.  Finding
-> > what's doing that will be difficult.
-> > 
-> > Without a device nor steps to reliably reproduce, that's about all I can
-> > help with.
-> > 
-> > Regards,
-> > Andy
+Le 18.02.2009 15:44:55, Jean-Francois Moine a écrit :
+> On Wed, 18 Feb 2009 08:48:37 -0400
+> Manu <eallaud@gmail.com> wrote:
 > 
-> Afaik this bug was fixed in changeset
-> http://linuxtv.org/hg/v4l-dvb/rev/f4d7d0b84940
->
-> CU
-> Oliver
+> > > I have such a USB device. It works fine without any patch with 
+> the
+> > > last
+> > > version of Igor M. Liplianin's repository:
+> > > 
+> > > 	http://mercurial.intuxication.org/hg/s2-liplianin/  
+> > 
+> > Hmm do you mean that you can lock any DVB-S2 transponder with it?
+> 
+> Yes. I use it to look at FTA channels on AB3 5°W:
+> 
+> - France 24 (12674.00 H - DVB-S2 - QPSK) is good.
+> 
+> - I can also get the transponder 11636.00 V (DVB Newtec - QPSK), but
+> not
+>   the transponder 11139.00 V (DVB Newtec - 8PSK turbo) 
+> 
+> - For some time, there were clear channels (M6 and W9) in the
+>   transponder 11471.00 V (DVB-S2 - 8PSK). Both were fine.
 
-Thanks.  I didn't realize the initialization to NULL was a recent fix.
-I was looking at very recent v4l-dvb source code with that change in
-place (which is why I thought tracking down the problem would be hard).
-
-I agree that that change likely fixes the problem, if Chris doesn't have
-it in place.
-
-Regards,
-Andy
-
+Just to make things clear, can you prodvide symbol rate and FEC for all 
+these transponders.
+Thx a lot,
+Emmanuel
