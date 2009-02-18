@@ -1,98 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:56807 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751810AbZBNOEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2009 09:04:45 -0500
-Subject: Re: libv4l2 library problem
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>
-In-Reply-To: <200902141206.28036.hverkuil@xs4all.nl>
-References: <200902131357.46279.hverkuil@xs4all.nl>
-	 <200902141008.31748.hverkuil@xs4all.nl>
-	 <20090214083206.665561f6@pedra.chehab.org>
-	 <200902141206.28036.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 14 Feb 2009 09:05:14 -0500
-Message-Id: <1234620314.3073.28.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from web35806.mail.mud.yahoo.com ([66.163.179.175]:42041 "HELO
+	web35806.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754028AbZBRSFo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 13:05:44 -0500
+Date: Wed, 18 Feb 2009 09:58:59 -0800 (PST)
+From: Amy Overmyer <aovermy@yahoo.com>
+Subject: vbox cat's eye 3560 usb device
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Message-ID: <538926.88491.qm@web35806.mail.mud.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-02-14 at 12:06 +0100, Hans Verkuil wrote:
-> On Saturday 14 February 2009 11:32:06 Mauro Carvalho Chehab wrote:
-> > On Sat, 14 Feb 2009 10:08:31 +0100
-> >
-> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > On Saturday 14 February 2009 09:52:06 Mauro Carvalho Chehab wrote:
-> > > > On Fri, 13 Feb 2009 13:57:45 +0100
-> > > >
-> > > > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > > > Hi Hans,
-> > > > >
-> > > > > I've developed a converter for the HM12 format (produced by
-> > > > > Conexant MPEG encoders as used in the ivtv and cx18 drivers).
-> > > > >
-> > > > > But libv4l2 has a problem in its implementation of v4l2_read: it
-> > > > > assumes that the driver can always do streaming. However, that is
-> > > > > not the case for some drivers, including cx18 and ivtv. These
-> > > > > drivers only implement read() functionality and no streaming.
-> > > > >
+I’m trying to write a driver for the 
+device, just as a learning exercise. So far, I’ve got the firmware in intel hex 
+format (from usbsnoop on windows, then a couple perl scripts to mutate it) and 
+am able to use fxload to load it with –t fx2 and there are 2 separate files, a 
+short one (the loader) and the firmware proper; so in fxload I have a –s and a 
+–I. 
+ 
+I’m able to take it from cold to 
+warm that way solely within Linux. 
+ 
+The device itself has a cypress CY7C68013A fx2 chip and a large tin can tuner/demod stamped with 
+Thomson that has a sticker on it identifying it as 8601A. Helpfully, the 3560 
+opens up easily with the removal of two screws on the shell.
+ 
+It’s cold boot usb id is 14f3:3560 and its warm boot is 
+14f3:a560.
+ 
+I have taken that hex file and 
+created a binary file out of the 2nd file (-I in fxload speak). I 
+think, correct me if I’m wrong, there is already a fx2 loader available, thus I 
+will not need the loader file.
+ 
+One of the stranger things I saw in 
+the usbsnoop trace in windows was when it came to reset of the CPUCS, the driver 
+sent down both a poke at x0e600 and a poke at 0x7f92. One is the fx CPUCS 
+register, I believe the other is a fx2 CPUCS register. 
+ 
+Currently I am mutating dibusb-mc 
+just to see if I can get it to the point of going from cold to warm in the 
+driver. 
+ 
+I have taken usb sniffs from windows 
+of doing things such as scanning for channels, watching a channel, etc. so I can 
+try to figure out if anything else in the v4l-dvb collection behaves 
+similarly.
+ 
+I guess what I’m looking for is any 
+hints that might be useful to figuring this out. 
+ 
+Like I said, it’s a learning 
+exercise, I already have enough tuners, and anyway, the cost of buying a 
+supported tuner is far cheaper than the time needed to develop 
+this!
+ 
+Thanks for any info! I’ve pretty 
+much devoured everything available on the wiki.
+ 
+Amy
 
-> > I suspect that the only two drivers that don't support mmap() are ivtv
-> > and cx18. All other drivers support it, including other drivers that also
-> > provides compressed data (like jpeg webcams). In a matter of fact, most
-> > applications work only with mmap() interface (being mythtv and mplayer
-> > capable of supporting both read() and mmap()). So, by providing mmap(),
-> > other applications will benefit of it.
-> >
-> > Also, there is a sort of chicken and egg trouble: almost nobody uses raw
-> > formats, since it uses a non-standard format that it is not supported by
-> > userspace apps. The libv4l2 is the proper way for handling it, but only
-> > works with mmap().
-> 
-> I'd be happy if libv4l2 would just check whether mmap is supported, and if 
-> not then disable adding the extra pixelformats. That's easy to do there, 
-> and would make it possible to add hm12 for use with libv4lconvert. While it 
-> would be nice from my point of view if libv4l2's read() could convert 
-> without using mmap, I have to agree that that is probably overkill.
-> 
-> And nobody really cares about raw video with ivtv and cx18. Really. I've had 
-> perhaps 3-4 queries about this in all the years that I've been maintaining 
-> ivtv. Anyway, it will only be useful if we also add a proper alsa driver 
-> for the audio.
-> 
-> Bottom line is: no time on my side and no pressure whatsoever from the users 
-> of cx18 and ivtv. There are also additional complications with respect to 
-> splicing the sliced VBI data into the MPEG stream that will make a videobuf 
-> conversion much more complicated than you think. It will mean a substantial 
-> and risky overhaul of the driver that requires probably weeks of work.
-> 
-> Yes, I do want to do this, but unless someone else steps in it won't be 
-> anytime soon.
 
-I can convert cx18 if someone really cares, but *no one* has ever
-directly enquired about the YUV (HM12) data from cx18.  (I think there
-was quite a long time when it actually may not have been wokring -
-nobody cared.)  When someone has paid the extra money for the encoder
-hardware, raw formats are really just a nice to have.  There is cheaper
-hardware for raw formats.
-
-Anyway, such a conversion to mmap and/or videobuf is very far down on my
-TODO list.  Whatever I do for cx18 may not translate directly to usable
-code for ivtv, the buffer handling is slightly different and simpler
-since there's no MPEG decoder to worry about.
-
-Again, it's not impossible, just a matter of time and demand.  I have
-little time and I have no demand, aside from Hans Verkuil's desire to
-get an HM12 converter into the library.
-
-I haven't done any research, but I'm surprised that no other supported
-chip offers this format.  I guess maybe that has something to do with
-the CX23415's origins from Internext Compression Inc.
-
-Regards,
-Andy
-
+      
