@@ -1,127 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:57939 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190AbZBCATY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 19:19:24 -0500
-Date: Mon, 2 Feb 2009 18:31:17 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Adam Baker <linux@baker-net.org.uk>
-cc: Alan Stern <stern@rowland.harvard.edu>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-Subject: Re: Bug in gspca USB webcam driver
-In-Reply-To: <200902022328.44386.linux@baker-net.org.uk>
-Message-ID: <alpine.LNX.2.00.0902021808350.872@banach.math.auburn.edu>
-References: <Pine.LNX.4.44L0.0902021651460.13005-100000@iolanthe.rowland.org> <200902022328.44386.linux@baker-net.org.uk>
+Received: from mail.gmx.net ([213.165.64.20]:41983 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750970AbZBRAEL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Feb 2009 19:04:11 -0500
+Date: Wed, 18 Feb 2009 01:04:13 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Valentin Longchamp <valentin.longchamp@epfl.ch>
+cc: Agustin <gatoguan-os@yahoo.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 4/4] mt9t031: fix gain and hflip controls, register update,
+ and scaling
+In-Reply-To: <alpine.DEB.2.00.0902180044120.6986@axis700.grange>
+Message-ID: <alpine.DEB.2.00.0902180054010.6986@axis700.grange>
+References: <50561.11594.qm@web32108.mail.mud.yahoo.com> <499B2A60.9080009@epfl.ch> <alpine.DEB.2.00.0902180044120.6986@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Guennadi Liakhovetski <lg@denx.de>
 
+Multiple fixes:
+1. allow register update by setting the Output Control register to 2 and not 3
+2. fix scaling factor calculations
+3. recover lost HFLIP control
+4. fix Global Gain calculation
 
-On Mon, 2 Feb 2009, Adam Baker wrote:
+Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
+---
 
-> On Monday 02 February 2009, Alan Stern wrote:
->> On Mon, 2 Feb 2009, Adam Baker wrote:
-> <snip>
->>>> To summarize: Unplugging the camera while it is in use by a program
->>>> causes an oops (particularly on an SMP machine).
->>>>
->>>> The problem is that gspca_stream_off() calls destroy_urbs(), which in
->>>> turn calls usb_buffer_free() -- but this happens too late, after
->>>> gspca_disconnect() has returned.  By that time gspca_dev->dev is a
->>>> stale pointer, so it shouldn't be passed to usb_buffer_free().
->>>
->>> By my reading it should be OK for gspca_disconnect to have returned as
->>> long as video_unregister_device waits for the last close to complete
->>> before calling gspca_release. I know that there were some patches a while
->>> back that attempted to ensure that was the case so I suspect there is
->>> still a hole there.
->>
->> gspca_disconnect() should _not_ wait for the last close.  It should do
->> what it needs to do and return as quickly as possible.  This means
->> there must be two paths for releasing USB resources: release upon last
->> close and release upon disconnect.
->>
->
-> I was being slightly imprecise in saying it waits, it uses the
-> device_register / unregister mechanism so it does effectively set a flag that
-> results in the release being called on last close. video_unregister_device
-> does use a mutex while updating some internal flags but as far as I can tell
-> the USB subsystem won't call gspca_disconnect in interrupt context so that
-> should be OK.
->
-> What I hadn't noticed before is that usb_buffer_free needs the usb device
-> pointer and as you say that is no longer valid after gspca_disconnect returns
-> even if gspca_release hasn't freed the rest of the gspca struct. If that is
-> the problem then I presume the correct behaviour is for gspca_disconnect to
-> ensure that all URBs are killed and freed before gspca_disconnect returns.
-> This shouldn't be a problem for sq905 (which doesn't use these URBs) or
-> isochronous cameras (which don't need to resubmit URBs) but the finepix
-> driver (the other supported bulk device) will need some careful consideration
-> to avoid a race between killing the URB and resubmitting it.
->
-> Theodore, could you check if adding a call to destroy_urbs() in
-> gspca_disconnect fixes the crash. (destroy_urbs only frees non NULL urb
-> pointers so should be safe to call from both disconnect and stream_off,
-> whichever occurs first).
+This one might need an update.
 
-Yes, this seems to help a great deal. I have tried it at this point on 
-both machines. Now we have
+ drivers/media/video/mt9t031.c |  127 +++++++++++++++++++++++++++--------------
+ 1 files changed, 84 insertions(+), 43 deletions(-)
 
-void gspca_disconnect(struct usb_interface *intf)
-{
-         struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index 1a9d539..ffcdd21 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -150,7 +150,7 @@ static int mt9t031_init(struct soc_camera_device *icd)
+ 	if (ret >= 0)
+ 		ret = reg_write(icd, MT9T031_RESET, 0);
+ 	if (ret >= 0)
+-		ret = reg_clear(icd, MT9T031_OUTPUT_CONTROL, 3);
++		ret = reg_clear(icd, MT9T031_OUTPUT_CONTROL, 2);
+ 
+ 	return ret >= 0 ? 0 : -EIO;
+ }
+@@ -158,14 +158,14 @@ static int mt9t031_init(struct soc_camera_device *icd)
+ static int mt9t031_release(struct soc_camera_device *icd)
+ {
+ 	/* Disable the chip */
+-	reg_clear(icd, MT9T031_OUTPUT_CONTROL, 3);
++	reg_clear(icd, MT9T031_OUTPUT_CONTROL, 2);
+ 	return 0;
+ }
+ 
+ static int mt9t031_start_capture(struct soc_camera_device *icd)
+ {
+ 	/* Switch to master "normal" mode */
+-	if (reg_set(icd, MT9T031_OUTPUT_CONTROL, 3) < 0)
++	if (reg_set(icd, MT9T031_OUTPUT_CONTROL, 2) < 0)
+ 		return -EIO;
+ 	return 0;
+ }
+@@ -173,7 +173,7 @@ static int mt9t031_start_capture(struct soc_camera_device *icd)
+ static int mt9t031_stop_capture(struct soc_camera_device *icd)
+ {
+ 	/* Stop sensor readout */
+-	if (reg_clear(icd, MT9T031_OUTPUT_CONTROL, 3) < 0)
++	if (reg_clear(icd, MT9T031_OUTPUT_CONTROL, 2) < 0)
+ 		return -EIO;
+ 	return 0;
+ }
+@@ -201,6 +201,18 @@ static unsigned long mt9t031_query_bus_param(struct soc_camera_device *icd)
+ 	return soc_camera_apply_sensor_flags(icl, MT9T031_BUS_PARAM);
+ }
+ 
++/* Round up minima and round down maxima */
++static void recalculate_limits(struct soc_camera_device *icd,
++			       u16 xskip, u16 yskip)
++{
++	icd->x_min = (MT9T031_COLUMN_SKIP + xskip - 1) / xskip;
++	icd->y_min = (MT9T031_ROW_SKIP + yskip - 1) / yskip;
++	icd->width_min = (MT9T031_MIN_WIDTH + xskip - 1) / xskip;
++	icd->height_min = (MT9T031_MIN_HEIGHT + yskip - 1) / yskip;
++	icd->width_max = MT9T031_MAX_WIDTH / xskip;
++	icd->height_max = MT9T031_MAX_HEIGHT / yskip;
++}
++
+ static int mt9t031_set_fmt(struct soc_camera_device *icd,
+ 			   __u32 pixfmt, struct v4l2_rect *rect)
+ {
+@@ -208,54 +220,70 @@ static int mt9t031_set_fmt(struct soc_camera_device *icd,
+ 	int ret;
+ 	const u16 hblank = MT9T031_HORIZONTAL_BLANK,
+ 		vblank = MT9T031_VERTICAL_BLANK;
+-	u16 xbin, xskip = mt9t031->xskip, ybin, yskip = mt9t031->yskip,
+-		width = rect->width * xskip, height = rect->height * yskip;
++	u16 xbin, xskip, ybin, yskip, width, height, left, top;
+ 
+ 	if (pixfmt) {
+-		/* S_FMT - use binning and skipping for scaling, recalculate */
++		/*
++		 * try_fmt has put rectangle within limits.
++		 * S_FMT - use binning and skipping for scaling, recalculate
++		 * limits, used for cropping
++		 */
+ 		/* Is this more optimal than just a division? */
+ 		for (xskip = 8; xskip > 1; xskip--)
+-			if (rect->width * xskip <= icd->width_max)
++			if (rect->width * xskip <= MT9T031_MAX_WIDTH)
+ 				break;
+ 
+ 		for (yskip = 8; yskip > 1; yskip--)
+-			if (rect->height * yskip <= icd->height_max)
++			if (rect->height * yskip <= MT9T031_MAX_HEIGHT)
+ 				break;
+ 
+-		width = rect->width * xskip;
+-		height = rect->height * yskip;
+-
+-		dev_dbg(&icd->dev, "xskip %u, width %u, yskip %u, height %u\n",
+-			xskip, width, yskip, height);
++		recalculate_limits(icd, xskip, yskip);
++	} else {
++		/* CROP - no change in scaling, or in limits */
++		xskip = mt9t031->xskip;
++		yskip = mt9t031->yskip;
+ 	}
+ 
++	/* Make sure we don't exceed sensor limits */
++	if (rect->left + rect->width > icd->width_max)
++		rect->left = (icd->width_max - rect->width) / 2 + icd->x_min;
++
++	if (rect->top + rect->height > icd->height_max)
++		rect->top = (icd->height_max - rect->height) / 2 + icd->y_min;
++
++	width = rect->width * xskip;
++	height = rect->height * yskip;
++	left = rect->left * xskip;
++	top = rect->top * yskip;
++
+ 	xbin = min(xskip, (u16)3);
+ 	ybin = min(yskip, (u16)3);
+ 
+-	/* Make sure we don't exceed frame limits */
+-	if (rect->left + width > icd->width_max)
+-		rect->left = (icd->width_max - width) / 2;
++	dev_dbg(&icd->dev, "xskip %u, width %u/%u, yskip %u, height %u/%u\n",
++		xskip, width, rect->width, yskip, height, rect->height);
+ 
+-	if (rect->top + height > icd->height_max)
+-		rect->top = (icd->height_max - height) / 2;
+-
+-	/* Could just do roundup(rect->left, [xy]bin); but this is cheaper */
++	/* Could just do roundup(rect->left, [xy]bin * 2); but this is cheaper */
+ 	switch (xbin) {
+ 	case 2:
+-		rect->left = (rect->left + 1) & ~1;
++		left = (left + 3) & ~3;
+ 		break;
+ 	case 3:
+-		rect->left = roundup(rect->left, 3);
++		left = roundup(left, 6);
+ 	}
+ 
+ 	switch (ybin) {
+ 	case 2:
+-		rect->top = (rect->top + 1) & ~1;
++		top = (top + 3) & ~3;
+ 		break;
+ 	case 3:
+-		rect->top = roundup(rect->top, 3);
++		top = roundup(top, 6);
+ 	}
+ 
++	/* Disable register update, reconfigure atomically */
++	ret = reg_set(icd, MT9T031_OUTPUT_CONTROL, 1);
++	if (ret < 0)
++		return ret;
++
+ 	/* Blanking and start values - default... */
+ 	ret = reg_write(icd, MT9T031_HORIZONTAL_BLANKING, hblank);
+ 	if (ret >= 0)
+@@ -270,14 +298,14 @@ static int mt9t031_set_fmt(struct soc_camera_device *icd,
+ 			ret = reg_write(icd, MT9T031_ROW_ADDRESS_MODE,
+ 					((ybin - 1) << 4) | (yskip - 1));
+ 	}
+-	dev_dbg(&icd->dev, "new left %u, top %u\n", rect->left, rect->top);
++	dev_dbg(&icd->dev, "new physical left %u, top %u\n", left, top);
+ 
+ 	/* The caller provides a supported format, as guaranteed by
+ 	 * icd->try_fmt_cap(), soc_camera_s_crop() and soc_camera_cropcap() */
+ 	if (ret >= 0)
+-		ret = reg_write(icd, MT9T031_COLUMN_START, rect->left);
++		ret = reg_write(icd, MT9T031_COLUMN_START, left);
+ 	if (ret >= 0)
+-		ret = reg_write(icd, MT9T031_ROW_START, rect->top);
++		ret = reg_write(icd, MT9T031_ROW_START, top);
+ 	if (ret >= 0)
+ 		ret = reg_write(icd, MT9T031_WINDOW_WIDTH, width - 1);
+ 	if (ret >= 0)
+@@ -302,6 +330,9 @@ static int mt9t031_set_fmt(struct soc_camera_device *icd,
+ 		mt9t031->yskip = yskip;
+ 	}
+ 
++	/* Re-enable register update, commit all changes */
++	reg_clear(icd, MT9T031_OUTPUT_CONTROL, 1);
++
+ 	return ret < 0 ? ret : 0;
+ }
+ 
+@@ -310,14 +341,14 @@ static int mt9t031_try_fmt(struct soc_camera_device *icd,
+ {
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 
+-	if (pix->height < icd->height_min)
+-		pix->height = icd->height_min;
+-	if (pix->height > icd->height_max)
+-		pix->height = icd->height_max;
+-	if (pix->width < icd->width_min)
+-		pix->width = icd->width_min;
+-	if (pix->width > icd->width_max)
+-		pix->width = icd->width_max;
++	if (pix->height < MT9T031_MIN_HEIGHT)
++		pix->height = MT9T031_MIN_HEIGHT;
++	if (pix->height > MT9T031_MAX_HEIGHT)
++		pix->height = MT9T031_MAX_HEIGHT;
++	if (pix->width < MT9T031_MIN_WIDTH)
++		pix->width = MT9T031_MIN_WIDTH;
++	if (pix->width > MT9T031_MAX_WIDTH)
++		pix->width = MT9T031_MAX_WIDTH;
+ 
+ 	pix->width &= ~0x01; /* has to be even */
+ 	pix->height &= ~0x01; /* has to be even */
+@@ -390,6 +421,14 @@ static const struct v4l2_queryctrl mt9t031_controls[] = {
+ 		.step		= 1,
+ 		.default_value	= 0,
+ 	}, {
++		.id		= V4L2_CID_HFLIP,
++		.type		= V4L2_CTRL_TYPE_BOOLEAN,
++		.name		= "Flip Horizontally",
++		.minimum	= 0,
++		.maximum	= 1,
++		.step		= 1,
++		.default_value	= 0,
++	}, {
+ 		.id		= V4L2_CID_GAIN,
+ 		.type		= V4L2_CTRL_TYPE_INTEGER,
+ 		.name		= "Gain",
+@@ -513,21 +552,23 @@ static int mt9t031_set_control(struct soc_camera_device *icd, struct v4l2_contro
+ 			if (data < 0)
+ 				return -EIO;
+ 		} else {
+-			/* Pack it into 1.125..15 variable step, register values 9..67 */
++			/* Pack it into 1.125..128 variable step, register values 9..0x7860 */
+ 			/* We assume qctrl->maximum - qctrl->default_value - 1 > 0 */
+ 			unsigned long range = qctrl->maximum - qctrl->default_value - 1;
++			/* calculated gain: map 65..127 to 9..1024 step 0.125 */
+ 			unsigned long gain = ((ctrl->value - qctrl->default_value - 1) *
+-					       111 + range / 2) / range + 9;
++					       1015 + range / 2) / range + 9;
+ 
+-			if (gain <= 32)
++			if (gain <= 32)		/* calculated gain 9..32 -> 9..32 */
+ 				data = gain;
+-			else if (gain <= 64)
++			else if (gain <= 64)	/* calculated gain 33..64 -> 0x51..0x60 */
+ 				data = ((gain - 32) * 16 + 16) / 32 + 80;
+ 			else
+-				data = ((gain - 64) * 7 + 28) / 56 + 96;
++				/* calculated gain 65..1024 -> (1..120) << 8 + 0x60 */
++				data = (((gain - 64 + 7) * 32) & 0xff00) | 0x60;
+ 
+-			dev_dbg(&icd->dev, "Setting gain from %d to %d\n",
+-				 reg_read(icd, MT9T031_GLOBAL_GAIN), data);
++			dev_dbg(&icd->dev, "Setting gain from 0x%x to 0x%x\n",
++				reg_read(icd, MT9T031_GLOBAL_GAIN), data);
+ 			data = reg_write(icd, MT9T031_GLOBAL_GAIN, data);
+ 			if (data < 0)
+ 				return -EIO;
+-- 
+1.5.4
 
-         gspca_dev->present = 0;
-         destroy_urbs(gspca_dev);
-
-         usb_set_intfdata(intf, NULL);
-
-         /* release the device */
-         /* (this will call gspca_release() immediatly or on last close) */
-         video_unregister_device(&gspca_dev->vdev);
-
-         PDEBUG(D_PROBE, "disconnect complete");
-}
-
-and the results are as follows:
-
-The Pentium 4 Dual Core:
- 	No visible problems, no error messages. I pulled the cord and then 
-in a very leisurely way killed the window. New on this machine and the 
-other one, too, is the very desirable side effect that svv can be killed 
-by clicking the x on the window which used not to work! Then dmesg 
-(with gspca_main in debug mode, too) has many times gspca:dqbuf (obvious: 
-I had not yet closed the window). After that come, in the order that they 
-are listed,
-
-kill transfer
-stream off OK
-svv close
-frame free
-close done
-device released
-
-(all of these preceded by "gspca:")
-
-So this all looks very nice.
-
-The Athlon K8 dual core:
-
-Not so excellent, but still not bad. The experiment has been simiilarly 
-conducted, as before. The output of dmesg says pretty much the same thing. 
-The difference is, lots of repetitions of an error message in the 
-xterm which says
-
-libv4l2: error dequeuing buf: Resource temporarily unavailable
-
-This could of course result from libv4l2 and not from the modules. I feel 
-pretty sure that I am not running the same version on both machines. The 
-one on the Pentium 4 is quite likely to be newer than what is on the 
-Athlon box.
-
-It seems to me that with this we are much better on the way.
-
-Theodore Kilgore
