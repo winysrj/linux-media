@@ -1,172 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46419 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:49079 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755711AbZBKARl (ORCPT
+	with ESMTP id S1750802AbZBRCIw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 19:17:41 -0500
-Date: Tue, 10 Feb 2009 22:17:10 -0200
+	Tue, 17 Feb 2009 21:08:52 -0500
+Date: Tue, 17 Feb 2009 23:08:15 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: cx8802.ko module not being built with current HG tree
-Message-ID: <20090210221710.389c264e@pedra.chehab.org>
-In-Reply-To: <200902102221.40067.hverkuil@xs4all.nl>
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
-	<200902102132.00114.hverkuil@xs4all.nl>
-	<20090210184147.61d4655e@pedra.chehab.org>
-	<200902102221.40067.hverkuil@xs4all.nl>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org
+Subject: Re: Minimum kernel version supported by v4l-dvb
+Message-ID: <20090217230815.70c81815@pedra.chehab.org>
+In-Reply-To: <200902180118.37354.hverkuil@xs4all.nl>
+References: <20090217142327.1678c1a6@hyperion.delvare>
+	<20090217210823.379579e1@pedra.chehab.org>
+	<200902180118.37354.hverkuil@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Feb 2009 22:21:39 +0100
+On Wed, 18 Feb 2009 01:18:37 +0100
 Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-
-> > $ grep CONFIG_HAS_DMA /usr/src/kernels/2.6.18-125.el5-x86_64/.config
-> > CONFIG_HAS_DMA=y
+> On Wednesday 18 February 2009 01:08:23 Mauro Carvalho Chehab wrote:
+> > On Tue, 17 Feb 2009 14:23:27 +0100
+> >
+> > Jean Delvare <khali@linux-fr.org> wrote:
+> > > Hi Mauro,
+> > >
+> > > These days I am helping Hans Verkuil convert the last users of the
+> > > legacy i2c device driver binding model to the new, standard binding
+> > > model. It turns out to be a very complex task because the v4l-dvb
+> > > repository is supposed to still support kernels as old as 2.6.16, while
+> > > the initial support for the new i2c binding model was added in kernel
+> > > 2.6.22 (and even that is somewhat different from what is upstream now.)
+> > > This forces us to add quirks all around the place, which will surely
+> > > result in bugs because the code becomes hard to read, understand and
+> > > maintain.
+> > >
+> > > In fact, without this need for backwards compatibility, I would
+> > > probably have been able to convert most of the drivers myself, without
+> > > Hans' help, and this would already be all done. But as things stand
+> > > today, he has to do most of the work, and our progress is slow.
+> > >
+> > > So I would like you to consider changing the minimum kernel version
+> > > supported by the v4l-dvb repository from 2.6.16 to at least 2.6.22.
+> > > Ideal for us would even be 2.6.26, but I would understand that this is
+> > > too recent for you. Kernel 2.6.22 is one year and a half old, I
+> > > honestly doubt that people fighting to get their brand new TV adapter
+> > > to work are using anything older. As a matter of fact, kernel 2.6.22 is
+> > > what openSUSE 10.3 has, and this is the oldest openSUSE product that is
+> > > still maintained.
+> > >
+> > > I understand and respect your will to let a large range of users build
+> > > the v4l-dvb repository, but at some point the cost for developers seems
+> > > to be too high, so there's a balance to be found between users and
+> > > developers. At the moment the balance isn't right IMHO.
+> >
+> > In my case, I use RHEL 5.3 that comes with 2.6.18. I need at least to
+> > have compatibility until this version, otherwise it will be harder to me
+> > to test things, since most of the time I need to run RHEL 5 kernel.
+> >
+> > I know that other developers also use RHEL 5 on their environments.
 > 
-> Oops, this fixes a different bug. It is still a bug fix, though, since it 
-> prevents CX88 from being build at all on any vanilla kernels < 2.6.22. Can 
-> you apply it?
+> Why should we have ugly and time consuming workarounds in our repository 
+> that hamper progress just to allow you to run RHEL 5? I'm sorry, that's no 
+> reason at all. I very much doubt other subsystem maintainers are stuck on 
+> 2.6.18.
 
-Applied, thanks.
+The role idea of having compatibility code is to allow people to test with
+distro kernels. If we decide do exclude one of the major distro, I don't see
+why not dropping support for the other distros and older kernels. For
+sure removing all backports will make developers happy, but this will reduce the
+amount of users that can help with the development, testing the drivers and
+providing us patches.
 
-> > Also, the original reporter were for an Ubuntu kernel 2.6.22.
-> 
-> I did some more testing and the bug disappears in kernel 2.6.25. Also, if I 
-> just run 'make', then the .config file it produces is fine. I wonder if it 
-> isn't a bug in menuconfig itself.
+It would be much more easy to me to just drop all -hg trees with all backport
+and out-of-tree compilation and stuck with my -git trees, just like other
+sybsystem maintainers do, but I _do_ think that our community will suffer a lot
+with this. So, let's keep supporting at least the latest kernel version used by
+the major distros. So, for now, we should still keep support for 2.6.18.
 
-It seems to be a bug at the Kbuild, fixed on Feb, 2008, on this changeset: 
-commit 587c90616a5b44e6ccfac38e64d4fecee51d588c (attached).
+> And anyway, there is no way you can do proper testing against the new i2c 
+> API on that old kernel. The loading and probing of i2c modules is quite 
+> different, so that's never representative of what kernels >= 2.6.22 do.
 
-As explained, after the patch description, the value for the Kconfig var, after
-the patch, uses this formula:
+I can assure you that I2C with v4l/dvb drivers work fine with 2.6.18. I use here
+with several drivers (uvc, bttv, saa7134, em28xx, ...).
 
-    	(value && dependency) || select
+As a normal user, I use skype regularly the latest uvc driver + 2.6.18 on RHEL5.
 
-where value is the default value.
-
-Since CONFIG_CX88_MPEG is defined as:
-
-config VIDEO_CX88_MPEG
-        tristate
-        depends on VIDEO_CX88_DVB || VIDEO_CX88_BLACKBIRD
-        default y
-
-And there there's no select, the value of CONFIG_CX88_MPEG is determined by:
-	('y' && dependency)
-
-The most complex case is when we have CX88 defined as:
-	CX88 = 'y'
-
-if both CX88_DVB and CX88_BLACKBIRD are defined as 'm' (or one of them is 'n'
-and the other is 'm'), then CX88_MPEG is defined as:
-	CX88_MPEG = 'm'
-
-If one of CX88_DVB or CX88_BLACKBIRD is defined as 'y'; then we have:
-	CX88_MPEG = 'y'
-
-If both are 'n', we have:
-	CX88_MPEG = 'n'
-
-So, it seems that, after commit 587c90616a5b44e6ccfac38e64d4fecee51d588c,
-everything is working as expected. We just need to provide a hack at the
-out-of-tree build system for kernels that don't have this commit applied.
+Of course, while developing, we should always test the drivers against the
+latest upstream tree, but this don't reduce the value of allowing normal users
+to use the latest drivers with their systems.
 
 Cheers,
 Mauro
-
-commit 587c90616a5b44e6ccfac38e64d4fecee51d588c
-Author: Roman Zippel <zippel@linux-m68k.org>
-Date:   Mon Feb 11 21:13:47 2008 +0100
-
-    kconfig: fix select in combination with default
-    
-    > The attached .config (with current -git) results in a compile
-    > error since it contains:
-    >
-    > CONFIG_X86=y
-    > # CONFIG_EMBEDDED is not set
-    > CONFIG_SERIO=m
-    > CONFIG_SERIO_I8042=y
-    >
-    > Looking at drivers/input/serio/Kconfig I simply don't get how this
-    > can happen.
-    
-    You've hit the rather subtle rules of select vs default. What happened is
-    that SERIO is selected to m, but SERIO_I8042 isn't selected so the default
-    of y is used instead.
-    We already had the problem in the past that select and default don't work
-    well together, so this patch cleans this up and makes the rule hopefully
-    more straightforward. Basically now the value is calculated like this:
-    
-    	(value && dependency) || select
-    
-    where the value is the user choice (if available and the symbol is
-    visible) or default.
-    
-    In this case it means SERIO and SERIO_I8042 are both set to y due to their
-    default and if SERIO didn't had the default, then the SERIO_I8042 value
-    would be limited to m due to the dependency.
-    
-    I tested this patch with more 10000 random configs and above case is the
-    only the difference that showed up, so I hope there is nothing that
-    depended on the old more complex and subtle rules.
-    
-    Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-    Tested-by: Adrian Bunk <bunk@kernel.org>
-    Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-
-diff --git a/scripts/kconfig/symbol.c b/scripts/kconfig/symbol.c
-index 3929e5b..4a03191 100644
---- a/scripts/kconfig/symbol.c
-+++ b/scripts/kconfig/symbol.c
-@@ -298,22 +298,30 @@ void sym_calc_value(struct symbol *sym)
- 		if (sym_is_choice_value(sym) && sym->visible == yes) {
- 			prop = sym_get_choice_prop(sym);
- 			newval.tri = (prop_get_symbol(prop)->curr.val == sym) ? yes : no;
--		} else if (EXPR_OR(sym->visible, sym->rev_dep.tri) != no) {
--			sym->flags |= SYMBOL_WRITE;
--			if (sym_has_value(sym))
--				newval.tri = sym->def[S_DEF_USER].tri;
--			else if (!sym_is_choice(sym)) {
--				prop = sym_get_default_prop(sym);
--				if (prop)
--					newval.tri = expr_calc_value(prop->expr);
-+		} else {
-+			if (sym->visible != no) {
-+				/* if the symbol is visible use the user value
-+				 * if available, otherwise try the default value
-+				 */
-+				sym->flags |= SYMBOL_WRITE;
-+				if (sym_has_value(sym)) {
-+					newval.tri = EXPR_AND(sym->def[S_DEF_USER].tri,
-+							      sym->visible);
-+					goto calc_newval;
-+				}
- 			}
--			newval.tri = EXPR_OR(EXPR_AND(newval.tri, sym->visible), sym->rev_dep.tri);
--		} else if (!sym_is_choice(sym)) {
--			prop = sym_get_default_prop(sym);
--			if (prop) {
-+			if (sym->rev_dep.tri != no)
- 				sym->flags |= SYMBOL_WRITE;
--				newval.tri = expr_calc_value(prop->expr);
-+			if (!sym_is_choice(sym)) {
-+				prop = sym_get_default_prop(sym);
-+				if (prop) {
-+					sym->flags |= SYMBOL_WRITE;
-+					newval.tri = EXPR_AND(expr_calc_value(prop->expr),
-+							      prop->visible.tri);
-+				}
- 			}
-+		calc_newval:
-+			newval.tri = EXPR_OR(newval.tri, sym->rev_dep.tri);
- 		}
- 		if (newval.tri == mod && sym_get_type(sym) == S_BOOLEAN)
- 			newval.tri = yes;
