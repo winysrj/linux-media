@@ -1,141 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3485 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388AbZBNLGa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Feb 2009 06:06:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: libv4l2 library problem
-Date: Sat, 14 Feb 2009 12:06:27 +0100
-Cc: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>
-References: <200902131357.46279.hverkuil@xs4all.nl> <200902141008.31748.hverkuil@xs4all.nl> <20090214083206.665561f6@pedra.chehab.org>
-In-Reply-To: <20090214083206.665561f6@pedra.chehab.org>
+Received: from smtp.sissa.it ([147.122.11.135]:37521 "EHLO smtp.sissa.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752246AbZBRRrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 12:47:41 -0500
+Received: from ozzy.localnet (dhpc-2-02.sissa.it [147.122.2.182])
+	by smtp.sissa.it (Postfix) with ESMTP id 34E5F1B4808C
+	for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 18:47:39 +0100 (CET)
+From: Nicola Soranzo <nsoranzo@tiscali.it>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2] Trivial fixes for README.patches
+Date: Wed, 18 Feb 2009 18:47:38 +0100
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200902141206.28036.hverkuil@xs4all.nl>
+Message-Id: <200902181847.39441.nsoranzo@tiscali.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 14 February 2009 11:32:06 Mauro Carvalho Chehab wrote:
-> On Sat, 14 Feb 2009 10:08:31 +0100
->
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Saturday 14 February 2009 09:52:06 Mauro Carvalho Chehab wrote:
-> > > On Fri, 13 Feb 2009 13:57:45 +0100
-> > >
-> > > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > > Hi Hans,
-> > > >
-> > > > I've developed a converter for the HM12 format (produced by
-> > > > Conexant MPEG encoders as used in the ivtv and cx18 drivers).
-> > > >
-> > > > But libv4l2 has a problem in its implementation of v4l2_read: it
-> > > > assumes that the driver can always do streaming. However, that is
-> > > > not the case for some drivers, including cx18 and ivtv. These
-> > > > drivers only implement read() functionality and no streaming.
-> > > >
-> > > > Can you as a minimum modify libv4l2 so that it will check for this
-> > > > case? The best solution would be that libv4l2 can read HM12 from
-> > > > the driver and convert it on the fly. But currently it tries to
-> > > > convert HM12 by starting to stream, and that produces an error.
-> > > >
-> > > > This bug needs to be fixed first before I can contribute my HM12
-> > > > converter.
-> > >
-> > > Hans Verkuil,
-> > >
-> > > I think it would be valuable if you could convert the drivers to use
-> > > videobuf. There's currently a videobuf variation for devices that
-> > > don't support scatter/gather dma transfers. By using videobuf, the
-> > > mmap() methods (and also overlay, if you want) will be supported.
-> >
-> > It's been on my todo list for ages, but I don't see it happening
-> > anytime soon. It will be difficult to do and the simple fact of the
-> > matter is that the read() interface is much more suitable for MPEG
-> > streams than mmap, and almost nobody is using the raw video streams
-> > where mmap would make sense.
-> >
-> > The only reason for doing this would be to make the driver consistent
-> > with the other drivers in V4L2. Which is a valid argument, but as long
-> > as we still have V4L1 drivers to convert I'd argue that this is
-> > definitely a low prio task.
->
-> I suspect that the only two drivers that don't support mmap() are ivtv
-> and cx18. All other drivers support it, including other drivers that also
-> provides compressed data (like jpeg webcams). In a matter of fact, most
-> applications work only with mmap() interface (being mythtv and mplayer
-> capable of supporting both read() and mmap()). So, by providing mmap(),
-> other applications will benefit of it.
->
-> Also, there is a sort of chicken and egg trouble: almost nobody uses raw
-> formats, since it uses a non-standard format that it is not supported by
-> userspace apps. The libv4l2 is the proper way for handling it, but only
-> works with mmap().
+Uniform capitals, add trailing slash to some URLs and other typo corrections.
 
-I'd be happy if libv4l2 would just check whether mmap is supported, and if 
-not then disable adding the extra pixelformats. That's easy to do there, 
-and would make it possible to add hm12 for use with libv4lconvert. While it 
-would be nice from my point of view if libv4l2's read() could convert 
-without using mmap, I have to agree that that is probably overkill.
+Priority: low
 
-And nobody really cares about raw video with ivtv and cx18. Really. I've had 
-perhaps 3-4 queries about this in all the years that I've been maintaining 
-ivtv. Anyway, it will only be useful if we also add a proper alsa driver 
-for the audio.
+Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
+---
+v2: - drop "Kernel" lowercasing when not in combination with "Linux" per
+      review comment from Mauro Carvalho Chehab
+    - s/Alsa/ALSA
 
-Bottom line is: no time on my side and no pressure whatsoever from the users 
-of cx18 and ivtv. There are also additional complications with respect to 
-splicing the sliced VBI data into the MPEG stream that will make a videobuf 
-conversion much more complicated than you think. It will mean a substantial 
-and risky overhaul of the driver that requires probably weeks of work.
-
-Yes, I do want to do this, but unless someone else steps in it won't be 
-anytime soon.
-
-Regards,
-
-	Hans
-
-> The usage of read() for raw formats is possible, but, read() method
-> doesn't provide any meta-data info. For example, there's no timestamp
-> that would be useful for syncing audio and video and detect frame losses.
-> Also, if, for some reason, you loose a half frame, the result would be a
-> disaster if you're using the read() method.
->
-> So, IMO, adding read() support to libv4l2 would be just a hack and will
-> likely cause more troubles than benefits. This is just my 2 cents.
->
-> > BTW, it would help if someone would actually document videobuf.
-> > Documentation should be much more important than it currently is.
->
-> Videobuf usage is not that complicate. You just need to provide ops for
-> four handlers:
->
-> q->ops->buf_setup   - calculates the size of the video buffers and avoid
-> they to waste more than some maximum limit of RAM;
-> q->ops->buf_prepare - fills the video buffer structs and calls
-> 		      videobuf_iolock() to alloc and prepare mmaped memory;
-> q->ops->buf_queue   - advices the driver that another buffer were
-> 		      requested (by read() or by QBUF);
-> q->ops->buf_release - frees any buffer that were allocated.
->
-> In order to use it, the driver need to have a code (generally called at
-> interrupt context) that will properly handle the buffer request lists,
-> announcing that a new buffer were filled.
->
-> There are a number of videobuf methods that practically matches the video
-> buffer ioctls. for example videobuf_streamon() should be called for
-> streaming the video on (VIDIOC_STREAMON).
->
-> The better way to understand it is to take a look at vivi driver.
->
-> Anyway, I just documented it, from the driver authors POV:
-> 	http://linuxtv.org/hg/v4l-dvb/rev/6f4cff0e7f16
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+diff -r 359d95e1d541 -r 5ff77c4177ee README.patches
+--- a/README.patches	Wed Feb 18 09:49:37 2009 -0300
++++ b/README.patches	Wed Feb 18 03:26:30 2009 +0100
+@@ -7,13 +7,13 @@
+ (*) This is just an aka for the main developers involved in V4L/DVB
+ drivers. They are a volunteer and unremunerated group of people that
+ have the common interest of providing a good support on Linux for
+-receiving and capturing video streams from Web cams, Analog TV, Digital
++receiving and capturing video streams from webcams, analog TV, digital
+ TV and radio broadcast AM/FM.
+ 
+    CONTENTS
+    ========
+ 
+-	1. A Brief introduction about patch management
++	1. A brief introduction about patch management
+ 	2. Git trees' relationships with v4l/dvb development
+ 	3. Mercurial trees used for v4l/dvb development
+ 	4. Community best practices
+@@ -23,7 +23,7 @@
+ 	8. Identifying regressions with Mercurial
+ 	9. Creating a newer driver
+ 
+-1. A Brief introduction about patch management
++1. A brief introduction about patch management
+    ==========================================
+ 
+ Current V4L/DVB development is based on a modern SCM system that
+@@ -35,7 +35,7 @@
+ development.
+ 
+ There are some tutorials, FAQs and other valuable information at
+-http://selenic.com/mercurial about hg usage.
++http://selenic.com/mercurial/ about hg usage.
+ 
+ Mercurial is a distributed SCM, which means every developer gets his
+ own full copy of the repository (including the complete revision
+@@ -44,7 +44,7 @@
+ finally merged into a common repository on linuxtv.org.
+ 
+ A list of current available repositories is available at:
+-	http://linuxtv.org/hg
++	http://linuxtv.org/hg/
+ 
+ 2. Git and Mercurial trees' relationships with v4l/dvb development
+    ===============================================================
+@@ -58,12 +58,13 @@
+ The subsystem master tree is owned by the subsystem maintainer (Mauro
+ Carvalho Chehab) being located at:
+ 	http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-2.6.git
++
+ A tree with development patches that aren't ready yet for upstream is
+ handled at:
+ 	http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git
+ 
+-There's also an experimental tree, that contains all experimental patches
+-from subsystem trees. It is called linux-next. Its purpose is to check in
++There is also an experimental tree, that contains all experimental patches
++from subsystem trees, called linux-next. Its purpose is to check in
+ advance if patches from different trees would conflict. The main tree for
+ linux-next is owned by Stephen Rothwell and it is located at:
+ 	http://git.kernel.org/?p=linux/kernel/git/sfr/linux-next.git
+@@ -79,7 +80,7 @@
+ Before committing into the master -git tree, the finished patches from
+ each maintainers tree are added on a staging tree, owned by the
+ subsystem maintainer, at:
+-	http://linuxtv.org/hg/v4l-dvb
++	http://linuxtv.org/hg/v4l-dvb/
+ 
+ The main function of this tree is to merge patches from other
+ repositories and to test the entire subsystem with the finished patches.
+@@ -87,7 +88,7 @@
+ patches and drivers.
+ 
+ Users are welcome to use, test and report any issues via the mailing
+-lists or via the Kernel's bugzilla, available at:
++lists or via the Kernel Bug Tracker, available at:
+ 	http://bugzilla.kernel.org
+ 
+ Michael Krufky maintains a backport tree, containing a subset of the
+@@ -95,7 +96,7 @@
+ -stable team, at:
+ 	http://git.kernel.org/http://git.kernel.org/?p=linux/kernel/git/mkrufky/v4l-dvb-2.6.x.y.git
+ 
+-3. Other mercurial trees used for v4l/dvb development
++3. Other Mercurial trees used for v4l/dvb development
+    ==================================================
+ 
+ V4L/DVB driver development is hosted at http://linuxtv.org. There are a
+@@ -132,7 +133,7 @@
+ 	Documentation/SubmitChecklist
+ 	Documentation/CodingStyle
+ 
+-b) All commits at mercurial trees should have a consistent message,
++b) All commits at Mercurial trees should have a consistent message,
+    describing the patch. This is done by using:
+ 
+ 	make commit
+@@ -157,7 +158,7 @@
+ 	   Signed-off-by: nowhere <nowhere@noplace.org>
+ 
+    All lines starting with # and all lines starting with HG: will be
+-   removed from the mercurial commit log.
++   removed from the Mercurial commit log.
+ 
+    *WARNING* Be careful not to leave the first line blank, otherwise hg
+    will leave subject blank.
+@@ -212,9 +213,9 @@
+ 
+    It is strongly recommended to have those lines in .bashrc or .profile.
+ 
+-e) All patches shall have a Developers Certificate of Origin
++e) All patches shall have a Developer's Certificate of Origin
+    version 1.1 in the commit log or the email description, signed by the
+-   patch authors, as postulated in the Linux Kernel source at:
++   patch authors, as postulated in the Linux kernel source at:
+ 
+ 	Documentation/SubmittingPatches
+ 
+@@ -255,19 +256,19 @@
+ 	Reviewed-by: My Name <myemail@mysite.com>
+    This is particularly important for Kernel to userspace ABI changes.
+ 
+-h) If the patch also affects other parts of kernel (like Alsa
++h) If the patch also affects other parts of kernel (like ALSA
+    or i2c), it is required that, when submitting upstream, the patch
+    also goes to the maintainers of that subsystem. To do this, the
+    developer shall copy the interested parties.
+ 
+-   At mercurial tree, this can be handled automatically by the LinuxTV
++   At Mercurial tree, this can be handled automatically by the LinuxTV
+    scripts, by using the cc: meta tag, together with the Signed-off-by
+    lines. Something like:
+ 
+ 	CC: someotherkerneldeveloper@someplace
+ 	Signed-off-by: nowhere <nowhere@noplace.org>
+ 
+-   This way, when a patch arrives mercurial hg tree, a mailbomb script
++   This way, when a patch arrives Mercurial hg tree, a mailbomb script
+    will copy the proper interested parties.
+ 
+    When submitting a patch via e-mail, it is better to copy all interested
+@@ -283,8 +284,8 @@
+    document still builds. Of course, any changes you make to the public
+    V4L2 API must be documented anyway.
+ 
+-j) Sometimes, mainstream changes affect the v4l-dvb tree, and mast be
+-   backported to the v4l-dvb tree. This kind of commit to the mercurial
++j) Sometimes, mainstream changes affect the v4l-dvb tree, and must be
++   backported to the v4l-dvb tree. This kind of commit to the Mercurial
+    tree should follow the rules above and should also have the line:
+ 
+ 	kernel-sync:
+@@ -352,7 +353,7 @@
+     machine, since git has a gitimport script that is used by mailimport.
+ 
+     There's also a helper script to make easier to retrieve patches from
+-    other mercurial repositories. The syntax is:
++    other Mercurial repositories. The syntax is:
+ 	./hgimport <URL>
+ 
+     Also, hg has a feature, called mqueue, that allows having several patches
+@@ -437,7 +438,7 @@
+ better to avoid those circumstances.
+ 
+ During the procedure of generating kernel patches, the maintainer uses
+-to do a diff between the kernel tree and v4l-dvb mercurial tree
++to do a diff between the kernel tree and v4l-dvb Mercurial tree
+ (without any backport code there). If there are discrepancies, a
+ backport patch from mainstream to v4l-dvb is generally applied by the
+ maintainer.
+@@ -498,9 +499,9 @@
+ 	   This is just a sample commit comment, just for reference purposes.
+ 	   This does nothing.
+ 
+-	   Signed-off-by nowhere <nowere@noplace.org>
++	   Signed-off-by: nowhere <nowere@noplace.org>
+ 
+-d. Every patch shall have a Developers Certificate of Origin and should
++d. Every patch shall have a Developer's Certificate of Origin and should
+    be submitted by one of its authors. All the patch authors should sign
+    it.
+ 
+@@ -522,7 +523,7 @@
+ 
+    The better way for you to identify regressions with Mercurial is to
+    use hg bisect. This is an extension provided with the current
+-   mercurial versions. For it to work, you need to have the proper setup
++   Mercurial versions. For it to work, you need to have the proper setup
+    at an hgrc file. To test if bisect is working, you can do:
+ 	hg bisect help
+ 
