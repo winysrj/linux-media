@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54145 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751992AbZBPVjs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 16:39:48 -0500
-Message-ID: <4999DD20.5080801@gmx.de>
-Date: Mon, 16 Feb 2009 22:39:44 +0100
-From: wk <handygewinnspiel@gmx.de>
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:48351 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390AbZBRMsp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 07:48:45 -0500
+Received: by ewy14 with SMTP id 14so2683470ewy.13
+        for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 04:48:43 -0800 (PST)
+Date: Wed, 18 Feb 2009 08:48:37 -0400
+From: Manu <eallaud@gmail.com>
+Subject: Re : TT 3650
+To: linux-media@vger.kernel.org
+References: <20090218092217.232120@gmx.net>
+	<20090218103353.64bf6400@free.fr>
+In-Reply-To: <20090218103353.64bf6400@free.fr> (from moinejf@free.fr on Wed
+	Feb 18 05:33:53 2009)
+Message-Id: <1234961317.5755.0@manu-laptop>
 MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-CC: VDR User <user.vdr@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org
-Subject: Re: DVB-API v5 questions and no dvb developer answering ?
-References: <4999A6DD.7030707@gmx.de> <200902161908.15698.hverkuil@xs4all.nl>	 <a3ef07920902161037nf02b51dl2b411e33ddc76933@mail.gmail.com> <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
-In-Reply-To: <412bdbff0902161133u22febbc7v9ca9173bb547bb99@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> As always we continue to welcome patches, including for the
-> documentation.  Instead of bitching and moaning, how about you roll up
-> your sleeves and actually help out?
->
-> Let's try to remember that pretty much all the developers here are
-> volunteers, so berating them for not doing things fast enough for your
-> personal taste is not really very productive.
->
-> Regards,
->
-> Devin
->
->   
-Devin,
+Le 18.02.2009 05:33:53, Jean-Francois Moine a écrit :
+> On Wed, 18 Feb 2009 10:22:17 +0100
+> "Andreas Kurz" <kurz.andi@gmx.at> wrote:
+> 
+> > Few days ago I was asking for help: I have bought the TT 3650 CI 
+> but
+> > even after installing the drivers (as suggested in the WIKI-How-To)
+> > no card shows up in Yast. Does that mean, the card is not 
+> supported?
+> > Should I do something else? Is there another How-To around? 
+> 
+> Hello Andreas,
+> 
+> I have such a USB device. It works fine without any patch with the
+> last
+> version of Igor M. Liplianin's repository:
+> 
+> 	http://mercurial.intuxication.org/hg/s2-liplianin/
 
-can you please explain, how others should contribute to an dvb api if
-- the only DVB API file to be found is a pdf file, and therefore not 
-editable. Which files exactly to be edited you are writing of?
-- one doesn't know which ioctls exist for what function, which return 
-codes and arguments, how to understand and to use..?
-
-What you suggest is almost impossible to someone not perfectly familiar 
-with the drivers, only for dvb experts who have written at least a bunch 
-of drivers.
-Its something different than sending patches for one single driver where 
-some bug/improvement was found.
-
-On the other hand, in principle a driver without existing api doc is 
-useless. Nobody can use it, the same for drivers with undocumented new 
-features.
-
-Regards,
-Winfried
-
+Hmm do you mean that you can lock any DVB-S2 transponder with it?
+Thx
+Bye
+Emmanuel
