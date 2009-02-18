@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1OC9jcF003515
-	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 07:09:45 -0500
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1OC9Glj023424
-	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 07:09:17 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <20090224160642.2200eb25@glory.loctelecom.ru>
-References: <20090224160642.2200eb25@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Tue, 24 Feb 2009 13:10:24 +0100
-Message-Id: <1235477424.3334.15.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: new tuner
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1IIVTX7032259
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 13:31:29 -0500
+Received: from bay0-omc1-s23.bay0.hotmail.com (bay0-omc1-s23.bay0.hotmail.com
+	[65.54.246.95])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1IITqiS009772
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 13:30:38 -0500
+Message-ID: <BAY102-W394CB63AC1084D230D1DD3E5B50@phx.gbl>
+From: Jim Goddard <monkeys_typing@hotmail.com>
+To: <video4linux-list@redhat.com>
+Date: Wed, 18 Feb 2009 10:29:51 -0800
+MIME-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Subject: Hauppauge 2250 (saa7164 chip)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,78 +26,22 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 
-Hi Dmitry,
+I haven't seen anything in about a month=2C and I am curious as to whether =
+anyone is or even can be working on a driver for this card?
 
-on a first look.
+I would be very interested in even alpha drivers that I could work on/test.=
+  It is my understanding that Steven Toth was working on this=2C but he see=
+ms to be focusing on the excellent HDPVR1212 Mac OS X project right now.
 
-Am Dienstag, den 24.02.2009, 16:06 +0900 schrieb Dmitri Belimov:
-> Hi All.
-> 
-> How I can add new type of tuner to video4linux??
-> 
-> I add new definition into  linux/include/media/tuner.h
-> #define TUNER_PHILIPS_FM1216MK5		79
-> 
-> add some data to
-> /linux/drivers/media/common/tuners/tuner-types.c
-> 
-> /* ------------ TUNER_PHILIPS_FM1216MK5 - Philips PAL ------------ */
-> 
-> static struct tuner_range tuner_fm1216mk5_pal_ranges[] = {
-> 	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
-> 	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
-> 	{ 16 * 999.99        , 0x8e, 0x04, },
-> };
+Thanks a lot=2C and keep up the good work.
 
-This is wrong, since you only duplicate fm1216me_mk3_pal_ranges which
-you should just use instead.
+Jim
 
-> static struct tuner_params tuner_fm1216mk5_params[] = {
-> 	{
-> 		.type   = TUNER_PARAM_TYPE_PAL,
-> 		.ranges = tuner_fm1216mk5_pal_ranges,
-> 		.count  = ARRAY_SIZE(tuner_fm1216mk5_pal_ranges),
->  		.cb_first_if_lower_freq = 1,
->  		.has_tda9887 = 1,
->  		.port1_active = 1,
->  		.initdata = tua603x_agc112,
->  		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
->  	},
-
-Since you do not send a diff, I assume you are not in struct tunertype
-tuners[] here. Also initdata and sleepdata should be there
-
-> 		[TUNER_PHILIPS_FM1216MK5] = { /* Philips PAL */
-> 		.name   = "Philips PAL/SECAM multi (FM1216 MK5)",
-> 		.params = tuner_fm1216mk5_params,
-> 		.count  = ARRAY_SIZE(tuner_fm1216mk5_params),
-> 	},
-> 
-> But when I change type of tuner to new model build exit with error. Incorrect tuner name.
-> 
-> What is wrong??
-> 
-> With my best regards, Dmitry.
-> 
-
-You also miss to set it up for the radio mode switch in tuner-simple
-and did not look into tveeprom.c, where you can see that we use the 
-TUNER_PHILIPS_FM1216ME_MK3 for it since long without complaints. MK4 is
-also the same.
-
-If you don't have the detailed programming tables for every supported TV
-standard and detailed instructions for radio mode, I would assume that
-you reduce the quality of support for that tuner a lot with your current
-attempt.
-
-For example SECAM-L would not work without port2=0 and radio without
-high sensitivity set is also very poor.
-
-Cheers,
-Hermann
-
-
-
+_________________________________________________________________
+Want to do more with Windows Live? Learn =9310 hidden secrets=94 from Jamie=
+.
+http://windowslive.com/connect/post/jamiethomson.spaces.live.com-Blog-cns!5=
+50F681DAD532637!5295.entry?ocid=3DTXT_TAGLM_WL_domore_092008=
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
