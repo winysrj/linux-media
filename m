@@ -1,23 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1S4oqWs031002
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 23:50:52 -0500
-Received: from smtp105.biz.mail.re2.yahoo.com (smtp105.biz.mail.re2.yahoo.com
-	[206.190.52.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n1S4oasn029876
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 23:50:36 -0500
-Message-ID: <49A8C254.9080909@embeddedalley.com>
-Date: Sat, 28 Feb 2009 07:49:24 +0300
-From: Vitaly Wool <vital@embeddedalley.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1I7KvUS031940
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 02:20:57 -0500
+Received: from qb-out-0506.google.com (qb-out-0506.google.com [72.14.204.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1I7KkQd009751
+	for <video4linux-list@redhat.com>; Wed, 18 Feb 2009 02:20:46 -0500
+Received: by qb-out-0506.google.com with SMTP id o21so2802392qba.7
+	for <video4linux-list@redhat.com>; Tue, 17 Feb 2009 23:20:45 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <49A3A61F.30509@embeddedalley.com>	<20090224234205.7a5ca4ca@pedra.chehab.org>	<49A53CB9.1040109@embeddedalley.com>	<20090225090728.7f2b0673@caramujo.chehab.org>	<49A567D9.80805@embeddedalley.com>	<20090225101812.212fabbe@caramujo.chehab.org>	<49A57BD4.6040209@embeddedalley.com>	<20090225153323.66778ad2@caramujo.chehab.org>	<49A59B31.9080407@embeddedalley.com>	<20090225204023.16b96fe5@pedra.chehab.org>	<49A802ED.2060200@embeddedalley.com>	<49A80A0B.6080602@embeddedalley.com>
-	<20090227214005.1ae21704@pedra.chehab.org>
-In-Reply-To: <20090227214005.1ae21704@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <83b2c1480902172253uea20d37mfd54dcf8667f3c55@mail.gmail.com>
+References: <83b2c1480902172112p6fb23235w53d9bb750e8bc8cb@mail.gmail.com>
+	<c785bba30902172120v26c20484r233ff4bdf98b430b@mail.gmail.com>
+	<83b2c1480902172158s51d8f2bbke3476a14bf9b5779@mail.gmail.com>
+	<c785bba30902172207ge34c267o996e9afadfd9094e@mail.gmail.com>
+	<83b2c1480902172221t39628473lda565f03b288a1a0@mail.gmail.com>
+	<c785bba30902172225q449adf12v6bc2dea2bb79a43d@mail.gmail.com>
+	<c785bba30902172229s5c361bc7ub5fe440e51be3493@mail.gmail.com>
+	<83b2c1480902172253uea20d37mfd54dcf8667f3c55@mail.gmail.com>
+Date: Wed, 18 Feb 2009 07:20:45 +0000
+Message-ID: <83b2c1480902172320x136fe5f8m7ccc796e3fa85783@mail.gmail.com>
+From: Sumanth V <sumanth.v@allaboutif.com>
+To: Paul Thomas <pthomas8589@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: em28xx: Compro VideoMate For You sound problems
+Subject: Re: setting up dvb-s card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,61 +36,182 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro Carvalho Chehab wrote:
-> On Fri, 27 Feb 2009 18:43:07 +0300
-> Vitaly Wool <vital@embeddedalley.com> wrote:
+Thanks Paul.
+i installed v4l-dvb  and rebooted the system.Now when i do "lsmod" i get the
+following related to dvb.
+budget_core             8932  0
+dvb_core               73960  1 budget_core
+saa7146                15656  1 budget_core
+ttpci_eeprom            2176  1 budget_core
+
+for  "dmesg | grep dvb" i get the following.
+
+dvb_ttpci: Unknown symbol saa7146_vv_init
+dvb_ttpci: Unknown symbol saa7146_vv_release
+dvb_ttpci: Unknown symbol saa7146_start_preview
+dvb_ttpci: Unknown symbol saa7146_unregister_device
+dvb_ttpci: Unknown symbol saa7146_register_device
+dvb_ttpci: Unknown symbol saa7146_set_hps_source_and_sync
+dvb_ttpci: Unknown symbol saa7146_stop_preview
+
+
+thanks
+
+On Wed, Feb 18, 2009 at 6:53 AM, Sumanth V <sumanth.v@allaboutif.com> wrote:
+
+> Thanks Paul. I tried to run "make" has user but it gave me following error
 >
->   
->> Vitaly Wool wrote:
->>
->>     
->>> Ok, I'm working on that. The problem as of now is that it works fine on 
->>> 2.6.26 and doesn't work with 2.6.29-rc5.
->>> I'll get back to you when I find out the reason.
->>>       
->> And here's the patch that solves the problem:
->>
->> diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
->> index 5aeccb3..ae4b231 100644
->> --- a/drivers/media/video/tvaudio.c
->> +++ b/drivers/media/video/tvaudio.c
->> @@ -169,12 +169,14 @@ static int chip_write(struct CHIPSTATE *chip, int subaddr, int val)
->>  			return -1;
->>  		}
->>  	} else {
->> +#if 0
->>  		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
->>  			v4l2_info(sd,
->>  				"Tried to access a non-existent register: %d\n",
->>  				subaddr);
->>  			return -EINVAL;
->>  		}
->> +#endif
->>  
->>  		v4l2_dbg(1, debug, sd, "chip_write: reg%d=0x%x\n",
->>  			subaddr, val);
->>
->>
->>
->> Apparently this check is bogus. The patch for em28xx stuff will follow, after some cleanups.
->>     
+> make -C /usr/src/v4l-dvb-e471b963bef6/v4l
+> make[1]: Entering directory `/usr/src/v4l-dvb-e471b963bef6/v4l'
+> perl scripts/make_config_compat.pl /lib/modules/2.6.28/source ./.myconfig
+> ./config-compat.h
+> Unable to write $outfile at scripts/make_config_compat.pl line 298.
+> make[1]: *** [config-compat.h] Error 13
+> make[1]: Leaving directory `/usr/src/v4l-dvb-e471b963bef6/v4l'
+> make: *** [all] Error 2
 >
-> Hmm... the check is to avoid accessing an out of range registrer cache. Could you
-> please send me the errors generated by the v4l2_info msg?
->   
-The ARRAY_SIZE actually is 65 in this situation. I've no idea yet where 
-that is derived from.
-The "false erroneous" access is to register 255, for quick configuration:
-
-#define TDA9874A_ESP            0xFF    /* easy standard progr. 
-(tda9874a) */
-
-So either the bytes array is set up incorrectly, or the check is bogus, 
-IMHO.
-
-Thanks,
-   Vitaly
-
+>
+> But when i tried has a root user it and it dint give any error....so i am
+> continuing it has a root user....is it fine??? actually i am new to linux..
+>
+>
+> On Wed, Feb 18, 2009 at 6:29 AM, Paul Thomas <pthomas8589@gmail.com>wrote:
+>
+>> On Tue, Feb 17, 2009 at 11:25 PM, Paul Thomas <pthomas8589@gmail.com>
+>> wrote:
+>> > On Tue, Feb 17, 2009 at 11:21 PM, Sumanth V <sumanth.v@allaboutif.com>
+>> wrote:
+>> >> Thanks Paul, i am usind Debian. The kernel default version was
+>> >> "2.6.18-6-686".  How do i build v4l-dvb tree ?? should i recomplie my
+>> >> default kernel again??
+>> >> When i do " dmesg | grep dvb " it displays
+>> >> saa7146: register extension 'dvb'.
+>> >>
+>> >> Thanks.
+>> >>
+>> >> On Wed, Feb 18, 2009 at 6:07 AM, Paul Thomas <pthomas8589@gmail.com>
+>> wrote:
+>> >>>
+>> >>> On Tue, Feb 17, 2009 at 10:58 PM, Sumanth V <sumanth.v@allaboutif.com
+>> >
+>> >>> wrote:
+>> >>> > Thanks Paul, But i dont see any drivers associated to this card. But
+>> the
+>> >>> > modules are present in
+>> >>> >
+>> >>> > /lib/modules/2.6.28/kernel/drivers/media/common/
+>> >>> > saa7146.ko     saa7146_vv.ko
+>> >>> >
+>> >>> > but they dont show up when i do "lsmod", so i used "insmod" to
+>> inseret
+>> >>> > them
+>> >>> > and i was able to insert saa7146.ko , but for saa7146_vv.ko it gave
+>> me
+>> >>> > following error
+>> >>> > insmod: error inserting 'saa7146_vv.ko': -1 Unknown symbol in module
+>> >>> >
+>> >>> > When i do "dmesg" it gives the following error for this module
+>> >>> >
+>> >>> > saa7146_vv: Unknown symbol videobuf_streamoff
+>> >>> > saa7146_vv: Unknown symbol videobuf_poll_stream
+>> >>> > saa7146_vv: Unknown symbol saa7146_devices_lock
+>> >>> > saa7146_vv: Unknown symbol videobuf_dma_free
+>> >>> > saa7146_vv: Unknown symbol videobuf_reqbufs
+>> >>> > saa7146_vv: Unknown symbol videobuf_waiton
+>> >>> > saa7146_vv: Unknown symbol videobuf_dqbuf
+>> >>> > saa7146_vv: Unknown symbol saa7146_debug
+>> >>> > saa7146_vv: Unknown symbol saa7146_devices
+>> >>> > saa7146_vv: Unknown symbol videobuf_stop
+>> >>> > saa7146_vv: Unknown symbol videobuf_queue_sg_init
+>> >>> > saa7146_vv: Unknown symbol videobuf_dma_unmap
+>> >>> > saa7146_vv: Unknown symbol videobuf_read_stream
+>> >>> > saa7146_vv: Unknown symbol videobuf_querybuf
+>> >>> > saa7146_vv: Unknown symbol saa7146_pgtable_build_single
+>> >>> > saa7146_vv: Unknown symbol videobuf_qbuf
+>> >>> > saa7146_vv: Unknown symbol videobuf_read_one
+>> >>> > saa7146_vv: Unknown symbol saa7146_pgtable_alloc
+>> >>> > saa7146_vv: Unknown symbol saa7146_pgtable_free
+>> >>> > saa7146_vv: Unknown symbol videobuf_iolock
+>> >>> > saa7146_vv: Unknown symbol videobuf_streamon
+>> >>> > saa7146_vv: Unknown symbol videobuf_queue_cancel
+>> >>> > saa7146_vv: Unknown symbol videobuf_mmap_setup
+>> >>> > saa7146_vv: Unknown symbol videobuf_mmap_mapper
+>> >>> > saa7146_vv: Unknown symbol videobuf_to_dma
+>> >>> >
+>> >>> > i am going wrong some where while compiling the kernel for this dvb
+>> >>> > card??
+>> >>> > can some one guide me getting this card up??
+>> >>> >
+>> >>> >
+>> >>> > Thanks.
+>> >>> >
+>> >>> >
+>> >>> >
+>> >>> >
+>> >>> > On Wed, Feb 18, 2009 at 5:20 AM, Paul Thomas <pthomas8589@gmail.com
+>> >
+>> >>> > wrote:
+>> >>> >>
+>> >>> >> It might already be set up. You can see if there is a driver
+>> >>> >> associated with it by doing "tree /sys/bus/pci".
+>> >>> >>
+>> >>> >> thanks,
+>> >>> >> Paul
+>> >>> >>
+>> >>> >> On Tue, Feb 17, 2009 at 10:12 PM, Sumanth V <
+>> sumanth.v@allaboutif.com>
+>> >>> >> wrote:
+>> >>> >> > Hi All,
+>> >>> >> >
+>> >>> >> >      i am trying to set up a dvb-s card on my system. when i do
+>> lspci
+>> >>> >> > -v
+>> >>> >> > i
+>> >>> >> > get this.
+>> >>> >> >
+>> >>> >> >  00:0b.0 Multimedia controller: Philips Semiconductors SAA7146
+>> (rev
+>> >>> >> > 01)
+>> >>> >> >        Subsystem: KNC One Unknown device 0019
+>> >>> >> >        Flags: bus master, medium devsel, latency 32, IRQ 5
+>> >>> >> >        Memory at ea000000 (32-bit, non-prefetchable) [size=512]
+>> >>> >> >
+>> >>> >> > i am using the kernel version 2.6.28.
+>> >>> >> >
+>> >>> >> > How do i set up this card??
+>> >>> >> >
+>> >>> >> > Thanks
+>> >>> >> > --
+>> >>> >> > video4linux-list mailing list
+>> >>> >> > Unsubscribe
+>> >>> >> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> >>> >> > https://www.redhat.com/mailman/listinfo/video4linux-list
+>> >>> >> >
+>> >>> >
+>> >>> >
+>> >>>
+>> >>> What distro are you using? I would stick with the kernel that comes
+>> >>> with your distro it probably has the right modules, but if not you can
+>> >>> build the v4l-dvb tree against your distros kernel.
+>> >>>
+>> >>> thanks,
+>> >>> Paul
+>> >>
+>> >>
+>> > No, you shouldn't need to recompile the default kernel you just need
+>> > to make sure that the kernel headers are installed and then it is very
+>> > easy. Just download v4l-dvb
+>> > (http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2) extract it and
+>> > then run "make" and then (as root) "make install"
+>> >
+>> > thanks,
+>> > Paul
+>> >
+>>
+>> then reboot
+>>
+>
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
