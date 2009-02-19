@@ -1,86 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:35452 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753377AbZBTXVB (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:43907 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbZBSSFb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 18:21:01 -0500
-Received: from mail-in-01-z2.arcor-online.net (mail-in-01-z2.arcor-online.net [151.189.8.13])
-	by mx.arcor.de (Postfix) with ESMTP id 9AF723CA79B
-	for <linux-media@vger.kernel.org>; Sat, 21 Feb 2009 00:20:59 +0100 (CET)
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net [151.189.21.57])
-	by mail-in-01-z2.arcor-online.net (Postfix) with ESMTP id 8A4B12BF432
-	for <linux-media@vger.kernel.org>; Sat, 21 Feb 2009 00:20:59 +0100 (CET)
-Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
-	(Authenticated sender: hermann-pitton@arcor.de)
-	by mail-in-17.arcor-online.net (Postfix) with ESMTPSA id 268303B2A16
-	for <linux-media@vger.kernel.org>; Sat, 21 Feb 2009 00:20:59 +0100 (CET)
-Subject: Re: mantis build error on vanilla kernel 2.6.28.6 [Re: Terratec
-	Cinergy C  HD (PCI, DVB-C): how to make it work?]
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Linux Media <linux-media@vger.kernel.org>
-In-Reply-To: <bcb3ef430902201229l2ece1a88k50d15e3886c29e01@mail.gmail.com>
-References: <bcb3ef430902201229l2ece1a88k50d15e3886c29e01@mail.gmail.com>
-Content-Type: text/plain
-Date: Sat, 21 Feb 2009 00:22:15 +0100
-Message-Id: <1235172135.6647.4.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 19 Feb 2009 13:05:31 -0500
+Date: Thu, 19 Feb 2009 12:17:45 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Jean-Francois Moine <moinejf@free.fr>
+cc: Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: MR97310A and other image formats
+In-Reply-To: <20090217200928.1ae74819@free.fr>
+Message-ID: <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-2105537084-1235021443=:6388"
+Content-ID: <alpine.LNX.2.00.0902190000060.6436@banach.math.auburn.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Am Freitag, den 20.02.2009, 21:29 +0100 schrieb MartinG:
-> Ok, I was told at #linuxtv on freenode to use a vanilla kernel, so I did:
-> 
-> $ wget http://kernel.org/pub/linux/kernel/v2.6/linux-2.6.28.6.tar.bz2
-> $ tar xjf linux-2.6.28.6.tar.bz2
-> $ cd linux-2.6.28.6/
-> $ make menuconfig
-> $ sudo make modules_install install
-> (reboot)
-> 
-> $ wget -c http://jusst.de/hg/mantis/archive/tip.tar.bz2
-> $ tar xjf tip.tar.bz2
-> $ cd mantis-5292a47772ad/
-> $ make
-> ...
-> /home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.c: In
-> function 'snd_card_saa7134_hw_params':
-> /home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.c:496:
-> error: implicit declaration of function 'snd_assert'
-> /home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.c:497:
-> error: expected expression before 'return'
-> /home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.c:498:
-> error: expected expression before 'return'
-> /home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.c:499:
-> error: expected expression before 'return'
-> /home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.c: In
-> function 'snd_card_saa7134_new_mixer':
-> /home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.c:950:
-> error: expected expression before 'return'
-> make[3]: *** [/home/gronslet/Download/mantis-5292a47772ad/v4l/saa7134-alsa.o]
-> Error 1
-> make[2]: *** [_module_/home/gronslet/Download/mantis-5292a47772ad/v4l] Error 2
-> make[2]: Leaving directory `/mythmedia/buffer/linux-2.6.28.6'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/gronslet/Download/mantis-5292a47772ad/v4l'
-> make: *** [all] Error 2
-> 
-> 
-> What did I miss here?
-> 
-> -MartinG
-
-you can see changes on saa7134-alsa here.
-
-http://linuxtv.org/hg/v4l-dvb/log/359d95e1d541/linux/drivers/media/video/saa7134/saa7134-alsa.c
-
-Likely this kernel backport is missing.
-
-http://linuxtv.org/hg/v4l-dvb/rev/b4d664a2592a
-
-Cheers,
-Hermann
+---863829203-2105537084-1235021443=:6388
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8BIT
+Content-ID: <alpine.LNX.2.00.0902190000061.6436@banach.math.auburn.edu>
 
 
+
+On Tue, 17 Feb 2009, Jean-Francois Moine wrote:
+
+> Hi Kyle,
+>
+> Looking at the v4l library from Hans de Goede, I did not find the
+> decoding of the MR97310A images. May you send him a patch for that?
+>
+> BTW, I am coding the subdriver of a new webcam, and I could not find
+> how to decompress the images. It tried many decompression functions,
+> those from the v4l library and most from libgphoto2 without any
+> success. Does anyone know how to find the compression algorithm?
+>
+> Cheers.
+>
+> -- 
+> Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+> Jef		|		http://moinejf.free.fr/
+
+
+How ironic that we mention a problem with a webcam's compression and we 
+also mention the MR97310 chip. I posted earlier today that I have several 
+cameras with MR97310 chip, in addition to the single one which is 
+supported by the current module. I mentioned that none of those with ID 
+0x093a:0x010e are working, because the image does not come out. Well, 
+further investigation reveals that they very likely are using a different 
+compression algorithm while running in webcam mode. I modified the code in 
+the module to save the SOF marker (which contains the info about which 
+compression algorithm is used) and the rest of the header. The rest of the 
+header has information in it relating to the image which ought to be kept, 
+too.  I also modified the decoding in libv4l to jump past these 12 bytes 
+before starting to decode.
+
+What I found:
+
+After shooting a raw frame, I get
+
+FF FF 00 FF 96 64 D0 01 27 00 06 2D
+
+The byte D0 is a new one. I have never seen it before. What I have 
+previously seen is written up in camlibs/mars/README.mars. If this byte is 
+0, it signifies "no compression." If it is 0x20, the camera is using the 
+unknown compression used by only one camera that I have ever seen. If it 
+is 0x50 it is the "standard" mr97310 compression which is used in 
+camlibs/mars and also here.
+
+My conclusion is that the 0xD0 signifies a new, previously unknown 
+compression algorithm. In a way, this is remarkable because the same 
+cameras are using the "standard" compression when running in still camera 
+mode.
+
+I also looked through my collection of cheap cameras for other 
+0x093a:0x010f cameras. I found one that I had missed. It streams. 
+Therefore, I would tentatively recommend to add the USB ID 0x093a:0x010f 
+to the list of supported cameras in the mr97310a module.
+
+Reasoning for the above:
+
+The two 0x093a:0x010f cameras which do stream also do it perfectly well, 
+with not a single problem. The two which do not stream do not stream at 
+all. Why does the streaming fail? I don't know right now, but it is clear 
+from running in debug mode and from trying to capture one raw image that 
+no data comes at all from those two cameras. They go thorough all the 
+initial motions just fine, but no data comes out. In any event, one of 
+those which do not work is also the one camera discovered years ago 
+which also uses still another compression algorithm in stillcam mode and 
+is therefore currently useless in stillcam mode, too.
+
+So perhaps it is the right thing to do to include the USB ID 0x093a:0x010f 
+but to provide documentation that the streaming works for some of these 
+but not all? Is there any policy about things like this?
+
+
+Theodore Kilgore
+---863829203-2105537084-1235021443=:6388--
