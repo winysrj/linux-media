@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KHJYer032592
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:19:34 -0500
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1KHIfCo008981
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:18:42 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so369139ywe.81
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 09:18:41 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <b24e53350902200913h3760ccbdqc9f14217afe5fdb1@mail.gmail.com>
-References: <412bdbff0902200317h26f4d42fh4327b3ff08c79d5c@mail.gmail.com>
-	<499EC9CC.3040703@linuxtv.org>
-	<b24e53350902200910p1f5745b6s864490400f50b9@mail.gmail.com>
-	<b24e53350902200911udfb9717t5429dd2b9fc81355@mail.gmail.com>
-	<b24e53350902200913h3760ccbdqc9f14217afe5fdb1@mail.gmail.com>
-Date: Fri, 20 Feb 2009 12:18:40 -0500
-Message-ID: <412bdbff0902200918g328b8541v5414ad98ead688a2@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Robert Krakora <rob.krakora@messagenetsystems.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1JN97WG001457
+	for <video4linux-list@redhat.com>; Thu, 19 Feb 2009 18:09:07 -0500
+Received: from mail-in-15.arcor-online.net (mail-in-15.arcor-online.net
+	[151.189.21.55])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1JN8stw008082
+	for <video4linux-list@redhat.com>; Thu, 19 Feb 2009 18:08:54 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: John Pilkington <J.Pilk@tesco.net>
+In-Reply-To: <499D5D4C.8070803@tesco.net>
+References: <498C3AD4.1070907@tesco.net>
+	<1233958764.2466.72.camel@pc10.localdom.local>
+	<4990B315.8000309@tesco.net>
+	<1234228256.3932.15.camel@pc10.localdom.local>
+	<499C0E76.9000907@tesco.net>
+	<1235000333.2486.35.camel@pc10.localdom.local>
+	<499D4FD2.6010503@tesco.net> <499D5D4C.8070803@tesco.net>
+Content-Type: text/plain
+Date: Fri, 20 Feb 2009 00:09:56 +0100
+Message-Id: <1235084996.3514.8.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: HVR-950q analog support - testers wanted
+Cc: v4l_list <video4linux-list@redhat.com>
+Subject: Re: Hauppauge HVR-1110 analog audio problem - success
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,36 +34,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Feb 20, 2009 at 12:13 PM, Robert Krakora
-<rob.krakora@messagenetsystems.com> wrote:
-> I have three Linux-based media-ports here and I will put an HR950Q on
-> each and let them run with my tester that changes channels and that
-> opens and closes the device...
+Hi John,
 
-Robert,
+Am Donnerstag, den 19.02.2009, 13:23 +0000 schrieb John Pilkington:
+> John Pilkington wrote:
+> > hermann pitton wrote:
+> >> Am Mittwoch, den 18.02.2009, 13:34 +0000 schrieb John Pilkington:
+> >>> < older stuff deleted>
+> > 
+> >>
+> >> tvtime -v --device=/dev/video2 and then
+> >> "sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp3 -t ossdsp -w -r 32000 
+> >> /dev/dsp"
+> > 
+> > [John@gateway ~]$ sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp3 -t ossdsp 
+> > -w -r 32000 /dev/dsp
+> > sox: invalid option -- 'w'
+> > sox: SoX v14.2.0
+> > 
+> > Failed: invalid option
+> > 
+> > 
+> > Hi Hermann, and thanks again. My card shows up as /dev/video0, but the 
+> > sox produces this. I got it before and wonder why?  I can't find a 
+> > sensible-looking instance of -w in my docs or on the sox site.  Is it a 
+> > switch to pcm, is it tied to oss?
 
-Thank you for offering to take the time to test.  I am definitely
-interested in the results.
+sorry, I forgot that the -w option is deprecated with recent sox
+versions like shipped with Fedora 10. It forces 16bit (2byte, one word
+-w) sample size, default is 8bit only. The -2 option does the same and
+should still be valid.
 
-One thing worth noting is that Michael Krufky pointed out a couple of
-cases this morning where I missed a mutex, so if you connect multiple
-950q's to the same system you might hit a race condition at system
-bootup.  I'll nail it down this weekend but I wanted to warn you in
-advance since you said you had multiple 950q devices.
+> > Cheers, John
+> 
+> It works in tvtime, antenna and composite, with
+> 
+> > sox -c 2 -s -u -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -u -r 32000 /dev/dsp
+> 
+> Maybe the alsa-plugins-oss helped.  More experiments still to do, but it 
+> does work.
 
-Of course, I would be *very* interested in finding some way to get you
-to do some testing of multiple devices connected at the same time once
-that fix is in.  I only have one unit to test with so I haven't really
-exercised that use case.
+Uff ;) 
 
-Regards,
+If you get some time for it you might test on the Avermedia Super 007
+and report if we can remove the FIXME.
 
-Devin
+Cheers,
+Hermann
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 --
 video4linux-list mailing list
