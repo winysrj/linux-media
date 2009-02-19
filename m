@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:37598 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838AbZBPO5T (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.224]:51263 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753716AbZBSPIQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 09:57:19 -0500
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KF500942YVFMGK0@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 16 Feb 2009 09:57:15 -0500 (EST)
-Date: Mon, 16 Feb 2009 09:57:14 -0500
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: [linux-dvb] DViCO FusionHDTV7 Dual Express
-In-reply-to: <1234772447.26272.0.camel@novak.chem.klte.hu>
-To: linux-media@vger.kernel.org
-Cc: CityK <cityk@rogers.com>, linux-dvb@linuxtv.org
-Message-id: <49997ECA.9020106@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 8BIT
-References: <e32e0e5d0902051548x3023851cua78424304a09cb7e@mail.gmail.com>
- <49989D42.8040008@rogers.com> <1234772447.26272.0.camel@novak.chem.klte.hu>
+	Thu, 19 Feb 2009 10:08:16 -0500
+Received: by rv-out-0506.google.com with SMTP id g37so451530rvb.1
+        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2009 07:08:14 -0800 (PST)
+From: Andreas <linuxdreas@dslextreme.com>
+To: CityK <cityk@rogers.com>
+Subject: Re: PVR x50 corrupts ATSC 115 streams
+Date: Thu, 19 Feb 2009 05:30:08 -0800
+Cc: linux-media@vger.kernel.org
+References: <200902180441.40316.linuxdreas@dslextreme.com> <499CD3F3.9010803@rogers.com>
+In-Reply-To: <499CD3F3.9010803@rogers.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200902190530.08328.linuxdreas@dslextreme.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Levente Novák wrote:
-> 2009. 02. 15, vasárnap keltezéssel 17.54-kor CityK ezt írta:
->> Tim Lucas wrote:
->>> My cable system was recently updated to time warner so I thought I
->>> would try to get the mythbuntu box working again.  
->>> I have the DViCO FusionHDTV7 Dual Express card which seems to be
->>> recognized by my system but I still cannot tune channels. I tried
->>> using tvtime and got the following error
->>>
->>> I/O error : Permission denied
->>> Cannot change owner of /home/lucas/.tvtime/tvtime.xml: Permission denied.
->>> videoinput: Cannot open capture device /dev/video0: No such file or
->>> directory.
->> Analog is currently not supported by the cx23885 driver
-> 
-> Only for the DViCO FusionHDTV7 Dual Express or for all cx23885-based
-> cards?
+Am Mittwoch, 18. Februar 2009 19:37:23 schrieb CityK:
+>
+> It should be noted that a common element here in the two cases is the
+> Nxt2004 (demod for both the A180 and 11x cards).
 
-We support analog on some cx23885 boards, not the dvico.
+Yes, that's right. After testing different configurations, I believe 
+that the problem with corrupted QAM recordings has more than one 
+source:
+* A driver problem (ivtv, maybe also nxt2004)
+* Mainboards which are "dma-challenged" (one of mine definitely has 
+probs in that department) 
+* RF interference / general reception problems.
 
-- Steve
+At the end of the day, it comes down to lots of testing and a bit of 
+luck to find a combination of cards & mainboards which work nicely 
+together.
+
+-- 
+Gru�
+Andreas
