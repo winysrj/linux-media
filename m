@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:40147 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752736AbZBPLc5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 06:32:57 -0500
-Date: Mon, 16 Feb 2009 12:12:58 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: "Hans de Goede" <hdegoede@redhat.com>,
-	"Trent Piepho" <xyzzy@speakeasy.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	kilgota@banach.math.auburn.edu,
-	"Adam Baker" <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	"Olivier Lorin" <o.lorin@laposte.net>
-Subject: Re: Adding a control for Sensor Orientation
-Message-ID: <20090216121258.3645bf4f@free.fr>
-In-Reply-To: <44220.62.70.2.252.1234782074.squirrel@webmail.xs4all.nl>
-References: <44220.62.70.2.252.1234782074.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
+Received: from smtp115.rog.mail.re2.yahoo.com ([68.142.225.231]:30306 "HELO
+	smtp115.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755335AbZBSAwq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 19:52:46 -0500
+Message-ID: <499CAD5B.9010106@rogers.com>
+Date: Wed, 18 Feb 2009 19:52:43 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: Jiri Kosina <jkosina@suse.cz>
+CC: Tobias Klauser <tklauser@distanz.ch>, mchehab@infradead.org,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	kernel-janitors@vger.kernel.org, trivial@kernel.org
+Subject: Re: [PATCH] V4L: Storage class should be before const qualifier
+References: <20090209210649.GA7378@xenon.distanz.ch> <alpine.LNX.1.10.0902161353150.18110@jikos.suse.cz> <4999AAB6.4090904@rogers.com> <alpine.LNX.1.10.0902170313310.18110@jikos.suse.cz>
+In-Reply-To: <alpine.LNX.1.10.0902170313310.18110@jikos.suse.cz>
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 16 Feb 2009 12:01:14 +0100 (CET)
-"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+Jiri Kosina wrote:
+> On Mon, 16 Feb 2009, CityK wrote:
+>
+>   
+>>>> .... [inline patch] ....
+>>>>         
+>>> This doesn't seem to be picked by anyone for current -next/-mmotm, I have
+>>> applied it to trivial tree. Thanks,
+>>>       
+>> Will this create any complication? As it is indeed queued in our
+>> patchwork: http://patchwork.kernel.org/project/linux-media/list/
+>>     
+>
+> Hmm, patchwork ... did this land in any actual code tree? It has been 
+> submitted by Tobias on 9th Feb and I was not able to find it in any tree 
+> today, so I applied to to trivial tree (to which the patch has been 
+> originally CCed).
+>
+> If you guys actually have queued in some tree, please let me know and I 
+> will drop it.
 
-> Anyone can add an API in 5 seconds. It's modifying or removing a bad
-> API that worries me as that can take years. If you want to add two
-> bits with mount information, feel free. But don't abuse them for
-> pivot information. If you want that, then add another two bits for
-> the rotation:
-> 
-> #define V4L2_BUF_FLAG_VFLIP     0x0400
-> #define V4L2_BUF_FLAG_HFLIP     0x0800
-> 
-> #define V4L2_BUF_FLAG_PIVOT_0   0x0000
-> #define V4L2_BUF_FLAG_PIVOT_90  0x1000
-> #define V4L2_BUF_FLAG_PIVOT_180 0x2000
-> #define V4L2_BUF_FLAG_PIVOT_270 0x3000
-> #define V4L2_BUF_FLAG_PIVOT_MSK 0x3000
-
-Hi,
-
-HFLIP + VFLIP = PIVOT_180
-
-then
-
-#define V4L2_BUF_FLAG_PIVOT_180 0x0c00
-
-Cheers.
-
--- 
-Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+I'll defer to Mauro for the absolutes, but it looks like it got applied
+to V4L-DVB mainline Hg yesterday and is in Mauro's Linux-next git.
