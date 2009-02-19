@@ -1,67 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.217.174]:47157 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190AbZBTXUV (ORCPT
+Received: from smtp100.rog.mail.re2.yahoo.com ([206.190.36.78]:46984 "HELO
+	smtp100.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751318AbZBSCLY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 18:20:21 -0500
-Received: by gxk22 with SMTP id 22so3121026gxk.13
-        for <linux-media@vger.kernel.org>; Fri, 20 Feb 2009 15:20:19 -0800 (PST)
+	Wed, 18 Feb 2009 21:11:24 -0500
+Message-ID: <499CBFCA.6040108@rogers.com>
+Date: Wed, 18 Feb 2009 21:11:22 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-In-Reply-To: <20090220225042.GA19663@phare.normalesup.org>
-References: <20090220225042.GA19663@phare.normalesup.org>
-Date: Fri, 20 Feb 2009 18:20:19 -0500
-Message-ID: <412bdbff0902201520p6fbe68d0oaf53d76744184487@mail.gmail.com>
-Subject: Re: Terratec Cinergy T USB XXS: remote does not work with 1.20
-	firmware
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Nicolas George <nicolas.george@normalesup.org>
-Cc: linux-media@vger.kernel.org
+To: Steven Toth <stoth@linuxtv.org>
+CC: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	V4L <video4linux-list@redhat.com>,
+	David Engel <david@istwok.net>, linux-media@vger.kernel.org
+Subject: Re: PVR x50 corrupts ATSC 115 streams
+References: <20090217155335.GB6196@opus.istwok.net>	<499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net>	<499B1E19.80302@linuxtv.org> <20090217205629.GA9722@opus.istwok.net>	<412bdbff0902171305j26827e3fp2852f3774a788a67@mail.gmail.com>	<499B3A60.90306@linuxtv.org>	<412bdbff0902171438u7c2ab531y62bb6c717647e917@mail.gmail.com> <499C265B.9010309@linuxtv.org>
+In-Reply-To: <499C265B.9010309@linuxtv.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 20, 2009 at 5:50 PM, Nicolas George
-<nicolas.george@normalesup.org> wrote:
-> [This is a repost of a message sent to the obsolete linux-dvb@linuxtv.org list.]
+Steven Toth wrote:
+> Agreed, probably a secondary issue - which probably needs some
+> attention regardless.
 >
-> Hi.
->
-> I am trying to get the remote controller with a Terratec Cinergy T USB XXS.
-> With the firmware dvb-usb-dib0700-1.10.fw, the remote sends codes (not
-> perfectly, but I can see where I am going).
->
-> On the other hand, with dvb-usb-dib0700-1.20.fw, the remote does not detect
-> anything. After some tracking, I found that in dib0700_rc_query_v1_20 (from
-> dib0700_devices.c), the status from usb_bulk_msg is always -110
-> (-ETIMEDOUT).
->
-> Is there some way I can help fixing things? I do not mind using the old
-> firmware, but I would like to help improving things.
->
-> Regards,
->
-> --
->  Nicolas George
+> I don't follow kworld products so I don't pretend to know which demod
+> they're using. I guess my question to the wider audience is, do people
+> with this same demod on other cards experience similar BER issues.
 
-That's code I wrote, based on information provided by Patrick over at Dibcom.
-
-I would have to look at the code, but if I recall, the code is
-designed to return -ETIMEDOUT during normal operation when no key
-press is detected.  That said, seeing that return condition should not
-be perceived as a problem.
-
-Are there any cases where it returns something *other* than
--ETIMEDOUT?  Because if so, then the keypress is probably being
-received but not processed properly.
-
-I would recommend you add a line of code to printk() any return
-condition other than -ETIMEDOUT, and see if something shows up in the
-log when you try to use the remote control.
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+The KWorld 11x uses the Nxt2004 demod ... and "Zoinks!", upon checking,
+I find that my single 11x card is now exhibiting BER too !   This is
+something new to me, as previous femon output was always free of such
+errors.
