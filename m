@@ -1,143 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:53748 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753341AbZBKHoK (ORCPT
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:63810 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754358AbZBSWpb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2009 02:44:10 -0500
-Date: Wed, 11 Feb 2009 05:43:29 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: David Engel <david@istwok.net>
-Cc: Jonathan Isom <jeisom@gmail.com>,
-	V4L <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
-	CityK <cityk@rogers.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-Message-ID: <20090211054329.6c54d4ad@pedra.chehab.org>
-In-Reply-To: <20090211035016.GA3258@opus.istwok.net>
-References: <20090209004343.5533e7c4@caramujo.chehab.org>
-	<1234226235.2790.27.camel@pc10.localdom.local>
-	<1234227277.3932.4.camel@pc10.localdom.local>
-	<1234229460.3932.27.camel@pc10.localdom.local>
-	<20090210003520.14426415@pedra.chehab.org>
-	<1234235643.2682.16.camel@pc10.localdom.local>
-	<1234237395.2682.22.camel@pc10.localdom.local>
-	<20090210041512.6d684be3@pedra.chehab.org>
-	<1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com>
-	<20090210102732.5421a296@pedra.chehab.org>
-	<20090211035016.GA3258@opus.istwok.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Thu, 19 Feb 2009 17:45:31 -0500
+Message-ID: <499DE107.80502@kaiser-linux.li>
+Date: Thu, 19 Feb 2009 23:45:27 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
+MIME-Version: 1.0
+To: kilgota@banach.math.auburn.edu
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: MR97310A and other image formats
+References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu> <499DB030.7010206@kaiser-linux.li> <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Feb 2009 21:50:16 -0600
-David Engel <david@istwok.net> wrote:
+kilgota@banach.math.auburn.edu wrote:
+> Yes, what you quote is the SOF marker for all of these cameras. The 
+> total header length, including the SOF marker ought to be 12 bytes. On 
+> all of the mr97310 cameras that I have dealt with, the last 5 bytes are 
+> obviously related somehow to the image (contrast, color balance, gamma, 
+> whatever).  I have no idea how to interpret those values, but we can hope
+> that someone will figure out how.
 
-> On Tue, Feb 10, 2009 at 10:27:32AM -0200, Mauro Carvalho Chehab wrote:
-> > On Tue, 10 Feb 2009 06:07:51 -0600
-> > Jonathan Isom <jeisom@gmail.com> wrote:
-> > > On Tue, Feb 10, 2009 at 12:15 AM, Mauro Carvalho Chehab
-> > > > Ah, ok. So, now, we just need CityK (or someone else with ATSC 115) to confirm
-> > > > that everything is fine on their side. This patch may also fix other similar
-> > > > troubles on a few devices that seem to need some i2c magic before probing the
-> > > > tuner.
-> > > 
-> > > Just tried the latest hg and I can confirm that both an ATSC 110 and
-> > > 115 work with tvtime
-> > > and ATSC.
-> > > 
-> > Jonathan,
-> > 
-> > You tried the latest tree at http://linuxtv.org/hg/v4l-dvb or my saa7134 tree
-> > (http://linuxtv.org/hg/~mchehab/saa7134)?
-> > 
-> > In the first case, could you please confirm that it works fine also with the saa7134 tree?
+Two of them are luminance values (middle and edge) for the PAC207.
+
+> Thus, it is not a good idea to throw 
+> them away as the driver is currently doing. If they have to be tossed, 
+> then toss them over in libv4lconvert, I would say, instead of shaving 
+> them off in the driver. It makes for much simpler driver code when one 
+> does not try to work around them, too.
+
+Yes, there are always some additional Bytes in the SOF header for a good 
+reason.
+
+> FF FF 00 FF 96 64 00     uncompressed
+> FF FF 00 FF 96 64 50    "standard compression" supported here and in 
+> libgphoto2/camlibs/mars. Supports all cameras in stillcam mode except 
+> for the next one listed
+> FF FF 00 FF 96 64 20    another compression, used by one stillcam, not 
+> resolved
+> FF FF 00 FF 96 64 D0    new compression algorithm used by all the 
+> 0x093a:0x010e cameras that I own (several of them), when running in 
+> streaming mode.
+
+So, you found the meaning of an other Byte in the SOF header. I have to 
+check whats in there for the PAC207 and PAC7311.
+
+> Incidentally, I did have something to do with solving the the 0x50 
+> decompression. Bertrik Sikkens figured out the basics. It is a 
+> differential Huffman encoding, as I said. One computes a "predictor" for 
+> the next pixel to be decompressed by taking a weighted average of some 
+> previously decompressed pixel data. Then one applies a "corrector" which 
+> is the next piece of decoded data. Bertrik figured out the Huffman 
+> scheme, as I said. What I did was to figure out the right pixels to 
+> average for the predictor part and what weights they get assigned in the 
+> weighted average.
+
+That is a similar compression like on the PAC207 the first 2 pixels of 
+the line have the real value and for the other pixels, only the diff to 
+these two pixels are stored in Huffman codes.
+Now you can guess who found out how to decompress -> Bertrik Sikkens
+
 > 
-> I tried both trees with my ATSC 115.  
-> 
-> The v4l-dvb did not work.  tvtime showed only a blue screen,
-> presumably due to lack of a signal.  The last commit in the tree was
-> as follows:
-> 
->     changeset:   10503:9cb19f080660
->     tag:         tip
->     parent:      10495:d76f0c9b75fd
->     parent:      10502:b1d0225eeec4
->     user:        Mauro Carvalho Chehab <mchehab@redhat.com>
->     date:        Tue Feb 10 05:26:05 2009 -0200
->     summary:     merge: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-saa7146
-> 
-> The saa7134 worked.
+> But it seems that you know something about this kind of thing and 
+> probably have the right tools or clues to be able to handle them. I have 
+> a couple of other unsolved formats lying around, too. You might be the 
+> person I have been trying to meet. Interested?
 
-Ok. I've merged from saa7134 tree. This is the patch that changed the open gate
-for ATSC115 (and other saa7134 devices whose i2c gate open sequences are known):
+Always interested, but my free time is very limited :-(
 
-changeset:   10507:ec84c420abdd
-user:        Mauro Carvalho Chehab <mchehab@redhat.com>
-date:        Sun Feb 08 10:33:15 2009 -0200
-summary:     saa7134: Fix analog mode on devices that need to open an i2c gate
+It looks like I have 22 webcams on my desk and 3 or 4 of them are _not_ 
+working in Linux. Thus, I have a lot of homework to do.....
 
-> MythTV eventually worked too, but I had to do the
-> "unload/reload modules and run tvtime" procedure I reported earlier
-> when I tried Hans' kworld tree.
-
-Maybe this is a race condition I have here with tda1004x. With tda1004x, the i2c
-bus shouldn't be used by any other device during the firmware transfers,
-otherwise the firmware load will fail, and tda1004x goes into an unstable
-state. With this device, it even affects all subsequent i2c acesses. The only
-alternative to recover tda1004x is to reboot the card (e. g. with my cardbus
-device, I have to physically remove it and re-insert).
-
-What happens is that some softwares (including udev) open the device, and send
-some VIDIOC_G_TUNER in order to check some tuner characteristics. However, this
-command generates some i2c transfers, to retrieve signal strength. If this
-happens while the firmware is being loaded, the bug occurs.
-
-In order to fix, a careful review of all locks on the driver is needed. We will
-likely need to change the demod interface for the boards that have this
-trouble, in order to be aware of when a firmware transfer started.
-
-This lock review is currently on my TODO list.
-
-To be sure that this is the case, could you please add this on
-your /etc/modprobe (or at a file inside /etc/modprobe.d):
-
-	options nxt200x debug=1
-	options tuner-simple debug=1
-	options tuner debug=1
-	options dvb-core frontend_debug=1
-
-And test again, sending us the produced logs when the device works and when it
-breaks. I guess we'll discover some tuner dmesg's in the middle of the firmware
-load sequence.
-
-As a reference, this is the logs for the race condition with tda1004x:
-
-DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision ff -- invalid
-tda1004x: trying to boot from eeprom
-tda829x 1-004b: tda8290 is locked, AGC: 241
-tda829x 1-004b: adjust gain, step 1. Agc: 241, ADC stat: 108, lock: 128
-tda829x 1-004b: setting tda829x to system B
-tda827x: setting tda827x to system B
-tda827x: AGC2 gain is: 1
-tda829x 1-004b: tda8290 not locked, no signal?
-tda829x 1-004b: tda8290 not locked, no signal?
-tda829x 1-004b: tda8290 not locked, no signal?
-tda829x 1-004b: adjust gain, step 1. Agc: 236, ADC stat: 0, lock: 0
-tda829x 1-004b: adjust gain, step 2. Agc: 128, lock: 0
-tda829x 1-004b: adjust gain, step 3. Agc: 128
-tda829x 1-004b: setting tda829x to system B
-tda829x 1-004b: setting tda829x to system B
-tda1004x: found firmware revision ff -- invalid
-
-The firmware load stops at the last message. Notice that, during the firmware
-transfer, the tuner status were checked. This generated a breakage at the i2c
-transfer. Maybe we'll need a sort of locking between tuner and demod i2c access
-to avoid such troubles.
-
-Cheers,
-Mauro
+Thomas
