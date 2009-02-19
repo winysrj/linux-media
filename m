@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42525 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751934AbZBRSvg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 13:51:36 -0500
-Date: Wed, 18 Feb 2009 19:51:46 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-cc: Magnus Damm <magnus.damm@gmail.com>,
-	Matthieu CASTET <matthieu.castet@parrot.com>,
+Received: from web32107.mail.mud.yahoo.com ([68.142.207.121]:31860 "HELO
+	web32107.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751473AbZBSL5R convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2009 06:57:17 -0500
+Date: Thu, 19 Feb 2009 03:57:15 -0800 (PST)
+From: Agustin <gatoguan-os@yahoo.com>
+Reply-To: gatoguan-os@yahoo.com
+Subject: Re: [PATCH 2/4] soc-camera: camera host driver for i.MX3x SoCs
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Arm Kernel <linux-arm-kernel@lists.arm.linux.org.uk>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc-camera : sh_mobile_ceu_camera race on free_buffer ?
-In-Reply-To: <u7i3rgpeo.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0902181938311.6371@axis700.grange>
-References: <497487F2.7070400@parrot.com> <aec7e5c30901192046j1a595day51da698181d034e5@mail.gmail.com>
- <497598ED.3050502@parrot.com> <aec7e5c30902130214k6a0fc8ck74b412f41fa63385@mail.gmail.com>
- <u7i3rgpeo.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Message-ID: <900217.19195.qm@web32107.mail.mud.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Morimoto-san
-
-On Mon, 16 Feb 2009, morimoto.kuninori@renesas.com wrote:
-
+Hi Guennadi,
+---- Mensaje original ----
+> De: Sascha Hauer <s.hauer@pengutronix.de>
+> On Wed, Feb 18, 2009 at 01:03:38AM +0100, Guennadi Liakhovetski wrote:
+> > From: Guennadi Liakhovetski 
+> > 
+> > Tested with 8 bit Bayer and 8 bit monochrome video.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski 
+> > ---
 > 
-> Hi Magnus
+> Acked-by: Sascha Hauer 
+> for the platform part. I can't say much to the driver itself.
 > 
-> > Morimoto-san, can you check the attached patch? I've tested it on my
-> > Migo-R board together with mplayer and it seems to work well here. I
-> > don't think using mplayer triggers this error case though, so maybe we
-> > should try some other application.
+> Sascha
 > 
-> I checked this patch with following case.
-> 
-> Migo-R + ov772x + mplayer
-> Migo-R + tw9910 + mplayer
-> AP325  + ov772x + mplayer
-> 
-> It works well on all cases.
+> > 
+> > This is how I expect this driver to appear in my pull request. So, please, 
+> > review, test heavily :-)
 
-So I can add your "Tested-by:"?
+I want to test it but while applying to mxc-master branch I observed that you use it on top of, at least, framebuffer stuff: #include <mach/mx3fb.h>.
 
-> And I can agree with your opinion
-> "so maybe we should try some other application."
+Should I apply fb patchset in order to make this one work? (Otherwise, I can proceed with a minor merging effort.)
 
-You can try to trigger the race with the capture.c example. Reduce the 
-"count" variable in mainloop() and run capture.c in a loop for a while... 
-Try without this patch and then with this patch. But I think this is a 
-correct fix, so, unless you say, it crashes without it and with it, I'll 
-apply it.
+I am already using your drivers in their original version, I can get some new pictures with this one pretty soon.
 
-Thanks
-Guennadi
-
-> 
-> Best regards
-> --
-> Kuninori Morimoto
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+--Agustín.
