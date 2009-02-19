@@ -1,31 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:26414 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178AbZBTFZQ (ORCPT
+Received: from qmta06.westchester.pa.mail.comcast.net ([76.96.62.56]:46423
+	"EHLO QMTA06.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751824AbZBSWcO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 00:25:16 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so952340wfa.4
-        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2009 21:25:15 -0800 (PST)
+	Thu, 19 Feb 2009 17:32:14 -0500
+Message-ID: <499DDDEC.5080504@comcast.net>
+Date: Thu, 19 Feb 2009 17:32:12 -0500
+From: Jacob Tennant <k8jwt@comcast.net>
 MIME-Version: 1.0
-In-Reply-To: <499E381D.4070607@linuxtv.org>
-References: <499E381D.4070607@linuxtv.org>
-Date: Fri, 20 Feb 2009 00:25:14 -0500
-Message-ID: <387ee2020902192125w47916ebr7c633f7a6c092120@mail.gmail.com>
-Subject: Re: [linux-dvb] HVR2250 Status - Where am I?
-From: John Drescher <drescherjm@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux Media <linux-media@vger.kernel.org>
+Subject: Which driver for a WinTV USB model 604?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 19, 2009 at 11:57 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> It's best to explain it here:
->
-> http://steventoth.net/blog/hvr-2250
->
+Which driver would I use for the WinTV USB model 604? analog tv usb 
+device on a Ubuntu 8.10 linux system?
 
-Any way to get a running total on your blog?
+Yes, I am very new to linux so please be patient with me...
 
-John
+Jacob Tennant - K8JWT
