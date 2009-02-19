@@ -1,55 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:40482 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845AbZBCTmW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Feb 2009 14:42:22 -0500
-Date: Tue, 3 Feb 2009 13:54:15 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Jean-Francois Moine <moinejf@free.fr>
-cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] Add support for sq905 based cameras to gspca
-In-Reply-To: <20090203202307.0ae074ec@free.fr>
-Message-ID: <alpine.LNX.2.00.0902031343030.1944@banach.math.auburn.edu>
-References: <200901192322.33362.linux@baker-net.org.uk> <200901272101.27451.linux@baker-net.org.uk> <alpine.LNX.2.00.0901271543560.21122@banach.math.auburn.edu> <200901272228.42610.linux@baker-net.org.uk> <20090128113540.25536301@free.fr>
- <alpine.LNX.2.00.0901281554500.22748@banach.math.auburn.edu> <20090131203650.36369153@free.fr> <alpine.LNX.2.00.0902022032230.1080@banach.math.auburn.edu> <20090203103925.25703074@free.fr> <alpine.LNX.2.00.0902031115190.1706@banach.math.auburn.edu>
- <alpine.LNX.2.00.0902031210320.1792@banach.math.auburn.edu> <20090203191311.2c1695b7@free.fr> <alpine.LNX.2.00.0902031302060.1882@banach.math.auburn.edu> <20090203202307.0ae074ec@free.fr>
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:40771 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751659AbZBSQ5F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2009 11:57:05 -0500
+Received: by bwz5 with SMTP id 5so1401899bwz.13
+        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2009 08:57:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <200902191741.57767.nsoranzo@tiscali.it>
+References: <200902191741.57767.nsoranzo@tiscali.it>
+Date: Thu, 19 Feb 2009 17:57:03 +0100
+Message-ID: <d9def9db0902190857p331d7667td0900ec6e8a9c75f@mail.gmail.com>
+Subject: Re: [PATCH] em28xx: register device to soundcard for sysfs
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Nicola Soranzo <nsoranzo@tiscali.it>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Feb 19, 2009 at 5:41 PM, Nicola Soranzo <nsoranzo@tiscali.it> wrote:
+> As explained in "Writing an ALSA driver" (T. Iwai),
 
+when writing a patch write the truth about where it comes from, eg.
+the author of the patch.
 
-On Tue, 3 Feb 2009, Jean-Francois Moine wrote:
+thanks,
+Markus
 
-> On Tue, 3 Feb 2009 13:15:58 -0600 (CST)
-> kilgota@banach.math.auburn.edu wrote:
+> audio drivers should
+> set the struct device for the card before registering the card instance.
+> This will add the correct /sys/class/sound/cardN/device symlink, so HAL
+> can see the device and ConsoleKit sets its ACL permissions for the
+> logged-in user.
 >
->>> Why is there 2 sq905 processes?
->>
->> I of course do not fully understand why there are two such processes.
->> However, I would suspect that [sq905/0] is running on processor 0 and
->> [sq905/1] is running on processor 1. As I remember, there is only one
->> [sq905] process which runs on a single-core machine.
+> For em28xx audio capture cards found e.g. in Hauppauge WinTV-HVR-900 (R2),
+> this patch fixes errors like:
 >
-> Indeed, the problem is there! You must have only one process reading the
-> webcam! I do not see how this can work with these 2 processes...
-
-The problem, then, would seem to me to boil down to the question of 
-whether that is up to us. Apparently, a decision like that is not up to 
-us, but rather it is up to the compiler and to the rest of the kernel to 
-decide. Which, incidentally, appears to me to be a very logical way to 
-arrange things. Presumably, a dual- or multi-core machine gives certain 
-advantages, or it ought to, but it also requires certain accommodations.
-
-You know, Jean-Francois, in a way it is a lucky accident that I got this 
-machine for Christmas. I would never have fired up the Pentium 4, at least 
-until sometime in the unforeseeable future, because in fact I was getting 
-quite adequate performance out of the old Sempron box. Thus, I would not 
-have been aware of this problem, either. We would have gone right ahead, 
-Adam and I, blissfully ignorant, and published a module which has a flaw 
-on a dual-core machine. So, in spite of the problems I say it is better to 
-face the problems now.
-
-Theodore Kilgore
+> ALSA lib pcm_hw.c:1429:(_snd_pcm_hw_open) Invalid value for card
+> Error opening audio: Permission denied
+>
+> when running mplayer as a normal user.
+>
+> Priority: normal
+>
+> Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
+> ---
+> diff -r 80e785538796 -r ef8cc17cc048 linux/drivers/media/video/em28xx/em28xx-audio.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Wed Feb 18 18:27:33 2009 +0100
+> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Thu Feb 19 17:36:44 2009 +0100
+> @@ -560,6 +560,8 @@
+>        pcm->info_flags = 0;
+>        pcm->private_data = dev;
+>        strcpy(pcm->name, "Empia 28xx Capture");
+> +
+> +       snd_card_set_dev(card, &dev->udev->dev);
+>        strcpy(card->driver, "Empia Em28xx Audio");
+>        strcpy(card->shortname, "Em28xx Audio");
+>        strcpy(card->longname, "Empia Em28xx Audio");
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
