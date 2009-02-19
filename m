@@ -1,53 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.citynetwork.se ([62.95.110.81]:36822 "EHLO
-	smtp05.citynetwork.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752766AbZBFSZd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Feb 2009 13:25:33 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by smtp05.citynetwork.se (Postfix) with ESMTP id EB99228C1A2
-	for <linux-media@vger.kernel.org>; Fri,  6 Feb 2009 19:17:27 +0100 (CET)
-Received: from smtp05.citynetwork.se ([127.0.0.1])
-	by localhost (smtp05.citynetwork.se [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id rzz8BgiwvYiS for <linux-media@vger.kernel.org>;
-	Fri,  6 Feb 2009 19:17:27 +0100 (CET)
-Received: from xplap (c83-250-187-25.bredband.comhem.se [83.250.187.25])
-	(Authenticated sender: marten.gustafsson@holisticode.se)
-	by smtp05.citynetwork.se (Postfix) with ESMTPA id F38D628C1A1
-	for <linux-media@vger.kernel.org>; Fri,  6 Feb 2009 19:17:26 +0100 (CET)
-From: =?iso-8859-1?Q?M=E5rten_Gustafsson?=
-	<marten.gustafsson@holisticode.se>
-To: <linux-media@vger.kernel.org>
-Subject: 
-Date: Fri, 6 Feb 2009 19:16:47 +0100
-Message-ID: <720AE5B388FE4585B23F5428DB26FF5A@xplap>
+Received: from banach.math.auburn.edu ([131.204.45.3]:55962 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751678AbZBSA2N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Feb 2009 19:28:13 -0500
+Date: Wed, 18 Feb 2009 18:40:21 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Kyle Guinn <elyk03@gmail.com>
+cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Subject: Re: MR97310A and other image formats
+In-Reply-To: <200902171907.40054.elyk03@gmail.com>
+Message-ID: <alpine.LNX.2.00.0902181825210.6128@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Carl Oscar Ejwertz wrote:
-> > I was wondering if the support for this card is fixed or is
-> going to be
-> > fixed in some tree?
-> > I know that there has been support for the card in manu:s
-> Mantis tree
-> > but hasn't been working for a long time.
-> > For some reason the interface has been disabled in the sourcecode.
-> 
-> Have added initial support for this card, as well as a large overhaul 
-> of the driver for a couple of performance impacts.
-> 
-> Please do test with the latest updates from http://jusst.de/hg/mantis.
-> 
-> 
-> Regards,
-> Manu
 
-Is there by any chance support for CA ?
 
-Regards 
+On Tue, 17 Feb 2009, Kyle Guinn wrote:
 
-Mårten Gustafsson
+> On Tuesday 17 February 2009 13:09:28 Jean-Francois Moine wrote:
+>> Hi Kyle,
+>>
+>> Looking at the v4l library from Hans de Goede, I did not find the
+>> decoding of the MR97310A images. May you send him a patch for that?
+>>
+>
+> Yes, I sent this to him some time ago.  Take a look here:
+> http://linuxtv.org/hg/~hgoede/v4l-dvb/rev/a647c2dfa989
+>
+> -Kyle
+> --
 
+I have several cameras with this chipset in them; they are supported in 
+libgphoto2 under camlibs/mars. Therefore, I was very interested when I 
+found this driver, which was based upon the old Aiptek Pencam VGA+ 
+0x08ca:0x0111. I can confirm that my Aiptek Pencam VGA+ also works. I also 
+tried out some other cameras, thinking that their USB Vendor:Product IDs 
+should be added. I met only mixed success with them.
+
+1. 0x093a:0x010f cameras: I own three of them. Only one of the three will 
+stream. The other two will not. The streaming fails at a very early stage, 
+due to a USB error. Since one of them does work, should this ID be added? 
+Pro: It works quite nicely. Con: The other cameras with the same USB 
+Vendor:Product number do not work at all.
+
+2. 0x93a:0x010e cameras: All of them will emit some kind of stream, but 
+the output is not viewable, coming up instead as nonsense. I am somewhat 
+nonplussed by this, in view of the fact that all of these cameras but one
+use the same decompression algorithm as the Aiptek. The one which uses a 
+different decompression algorithm is not supported in libgphoto2, either. 
+It is one of the 0x093a:0x010f cameras.
+
+Theodore Kilgore
