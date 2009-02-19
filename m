@@ -1,66 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp119.rog.mail.re2.yahoo.com ([68.142.224.74]:31062 "HELO
-	smtp119.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752724AbZBVVuq (ORCPT
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:43413 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753249AbZBSQpK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 16:50:46 -0500
-Message-ID: <49A1C8B5.2010501@rogers.com>
-Date: Sun, 22 Feb 2009 16:50:45 -0500
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Amy Overmyer <aovermy@yahoo.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: vbox cat's eye 3560 usb device
-References: <132842.8631.qm@web35805.mail.mud.yahoo.com>
-In-Reply-To: <132842.8631.qm@web35805.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Thu, 19 Feb 2009 11:45:10 -0500
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KFB00642NUULK51@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 19 Feb 2009 11:44:57 -0500 (EST)
+Date: Thu, 19 Feb 2009 11:44:54 -0500
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: PVR x50 corrupts ATSC 115 streams
+In-reply-to: <20090219162820.GA23759@opus.istwok.net>
+To: David Engel <david@istwok.net>
+Cc: linux-media@vger.kernel.org, V4L <video4linux-list@redhat.com>
+Message-id: <499D8C86.4050501@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <20090217155335.GB6196@opus.istwok.net>
+ <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net>
+ <499B1E19.80302@linuxtv.org> <20090218051945.GA12934@opus.istwok.net>
+ <499C218D.7050406@linuxtv.org> <20090218153422.GC15359@opus.istwok.net>
+ <20090219162820.GA23759@opus.istwok.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Amy Overmyer wrote:
->> Lastly, are there any other IC components on the back or front of the
->> PCB ?  Can you provide pics (upload them to the wiki article)) ?
->>     
->
-> The back only has a couple components, probably for electrical, no ICs.
->   
-okay
+> 
+> FWIW, I used a different 115 with that same motherboard for several
+> months up until about two weeks ago and with that same graphics card
+> for most of that time.  Like I said above, I've got to be missing
+> something very stupid here.  
+> 
+> BTW, during all of the testing without the active splitter, I had it
+> unplugged to make sure it wasn't contributing any extra RF noise.  I
+> won't have an opportunity to do any more testing until this weekend.
 
-> The
-> front only has the cypress (100 pin pkg) chip and the NIM, with a
-> couple small components, that I can't read what they are. The PCB is
-> stamped osc by one of them and usbid on the other, so I'm guessing one
-> is an oscillator and the other the PROM where the cold USB id is stored.
->   
+I think CityK confirmed that the nxt2004 driver statistics are probably bogus so 
+I doubt you're going to get your 115's running with BER 0 regardless, which is 
+unfortunate.
 
-okay. I rather imagine that your guesses are correct
+Assuming your original configuration was fine, the second part of the problem 
+remains then.... is the DMA being screwed by the mix of boards.
 
-> I
-> opened up the NIM (hey, they're $30 at my local computer store right
-> now, so even if I kill it, I have an extra), and I saw my old friend
-> the BCM3510 (I have a 1rst gen air2pc pci card that works pretty well
-> for me)
-Wow, I'm kind of surprised about that one -- I would have expected the
-NIM to have been a little more contemporary (given that I believe these
-devices (150/151/3560) came out in the ~2005 time frame).
+I'm not sure I have an easy way for you to determine this, other than making 
+sure everything is on it's own interrupt, going back to basics to a single 115 
+and a single 250 and trying to isolate the changes step by step.
 
-> and a smaller chip marked tua6030 (or could be 6080, the
-> writing is faint, but infineon doesn't look like they make an 6080). 
->   
-
-Yes, that would be 6030
-
-> I have photos but need to upload them.
->   
-okay
-
-
-This device might also be close in design to the original Technisat
-Air2PC-ATSC-USB device
-(http://www.linuxtv.org/wiki/index.php/TechniSat_Air2PC-ATSC-USB) --
-though, obviously it doesn't use a Flexcop controller ... I say might
-be, as I don't know what the USB bridge is in the Technisat device, nor
-the exact tuner module employed. Patrick might recall though
+- Steve
 
 
