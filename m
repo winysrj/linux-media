@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205]:28061 "HELO
-	smtp107.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752407AbZBSDX5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 22:23:57 -0500
-Message-ID: <499CD0CC.7040007@rogers.com>
-Date: Wed, 18 Feb 2009 22:23:56 -0500
-From: CityK <cityk@rogers.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34279 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751023AbZBSUPN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2009 15:15:13 -0500
+Message-ID: <499DBDCD.20408@iki.fi>
+Date: Thu, 19 Feb 2009 22:15:09 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux-media <linux-media@vger.kernel.org>
-Subject: Regarding development for NXP saa7160/1/2 and saa7164 ICs
-References: <BAY102-W394CB63AC1084D230D1DD3E5B50@phx.gbl>
-In-Reply-To: <BAY102-W394CB63AC1084D230D1DD3E5B50@phx.gbl>
-Content-Type: text/plain; charset=Windows-1252
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Can I use AVerTV Volar Black HD (A850) with Linux
+ ?
+References: <499DB335.50807@laposte.net>
+In-Reply-To: <499DB335.50807@laposte.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Evidently someone from NXP has left a message in the wiki (Ignore the
-incorrect date, as the message was entered today; see history for
-confirmation): http://www.linuxtv.org/wiki/index.php/Talk:NXP_SAA716x
+Thomas RENARD wrote:
+> I bought this USB card : AVerTV Volar Black HD (A850) - 
+> http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=460&tab=APDriver.
+> I don't find anything relevant about using this card on linux.
+> 
+> Can I use this card on Linux ? How ?
+> 
+> Here is some information :
 
-I will invite them to join into this thread.
+Looks like AF9015 or AF9035. Could you test whether this driver will 
+tell more?
+http://linuxtv.org/hg/~anttip/af9015_aver_a850/
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/
 
-If "octavsly" is able to assist, I believe the relevant background on
-the matters are essentially:
-
-A) SAA7160/1/2
-- The current rendition of the driver that Manu has been developing 
-resides here: http://jusst.de/hg/saa716x
-- IIRC, Manu found that some particulars of the chip(s) were not clearly
-documented within the datasheets he had been provided, so development is
-still largely a WIP
-
-B) SAA7164
-- my understanding is that there was a fair amount of work towards a
-driver put in by Steve, but he has had to put this project on hold
-- a number of other people have expressed interest in pushing forth with
-this, but I would imagine that Steve may be prevented by NDA from aiding
-them in their interest
-
+regards
+Antti
+-- 
+http://palosaari.fi/
