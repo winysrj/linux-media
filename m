@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38044 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751899AbZBMUyN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 15:54:13 -0500
-From: Dominic Curran <dcurran@ti.com>
-To: "linux-omap" <linux-omap@vger.kernel.org>
-Subject: [OMAPZOOM][PATCH v2 2/3] LV8093: Add to Kconfig.
-Date: Fri, 13 Feb 2009 14:54:07 -0600
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Received: from mail-gx0-f163.google.com ([209.85.217.163]:50400 "EHLO
+	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752962AbZBSRNI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Feb 2009 12:13:08 -0500
+Received: by gxk7 with SMTP id 7so439872gxk.13
+        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2009 09:13:06 -0800 (PST)
+Date: Thu, 19 Feb 2009 14:12:52 -0300
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Nicola Soranzo <nsoranzo@tiscali.it>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: register device to soundcard for sysfs
+Message-ID: <20090219141252.3820c42b@gmail.com>
+In-Reply-To: <200902191741.57767.nsoranzo@tiscali.it>
+References: <200902191741.57767.nsoranzo@tiscali.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902131454.07202.dcurran@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 2/3] LV8093: Add to Kconfig.
+On Thu, 19 Feb 2009 17:41:56 +0100
+Nicola Soranzo <nsoranzo@tiscali.it> wrote:
 
-Add LV8093 support to Kconfig and Makefile.
+> As explained in "Writing an ALSA driver" (T. Iwai), audio drivers
+> should set the struct device for the card before registering the card
+> instance. This will add the correct /sys/class/sound/cardN/device
+> symlink, so HAL can see the device and ConsoleKit sets its ACL
+> permissions for the logged-in user.
+> 
+> For em28xx audio capture cards found e.g. in Hauppauge WinTV-HVR-900
+> (R2), this patch fixes errors like:
+> 
+> ALSA lib pcm_hw.c:1429:(_snd_pcm_hw_open) Invalid value for card
+> Error opening audio: Permission denied
+> 
+> when running mplayer as a normal user.
+> 
+> Priority: normal
+> 
+> Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
+> ---
+> diff -r 80e785538796 -r ef8cc17cc048
+> linux/drivers/media/video/em28xx/em28xx-audio.c ---
+> a/linux/drivers/media/video/em28xx/em28xx-audio.c	Wed Feb 18
+> 18:27:33 2009 +0100 +++
+> b/linux/drivers/media/video/em28xx/em28xx-audio.c	Thu Feb 19
+> 17:36:44 2009 +0100 @@ -560,6 +560,8 @@ pcm->info_flags = 0;
+> pcm->private_data = dev; strcpy(pcm->name, "Empia 28xx Capture");
+> +
+> +	snd_card_set_dev(card, &dev->udev->dev);
+>  	strcpy(card->driver, "Empia Em28xx Audio");
+>  	strcpy(card->shortname, "Em28xx Audio");
+>  	strcpy(card->longname, "Empia Em28xx Audio");
+> --
 
-Signed-off-by: Kraig Proehl <kraig.proehl@hp.com>
-Signed-off-by: Dominic Curran <dcurran@ti.com>
----
- drivers/media/video/Kconfig  |    6 ++++++
- drivers/media/video/Makefile |    1 +
- 2 files changed, 7 insertions(+)
+Applied, thanks!
 
-Index: omapzoom04/drivers/media/video/Kconfig
-===================================================================
---- omapzoom04.orig/drivers/media/video/Kconfig
-+++ omapzoom04/drivers/media/video/Kconfig
-@@ -341,6 +341,12 @@ config VIDEO_IMX046
- 	  This is a Video4Linux2 sensor-level driver for the Sony
- 	  IMX046 camera.
- 
-+config VIDEO_LV8093
-+	tristate "Piezo Actuator Lens driver for LV8093"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  This is a Video4Linux2 lens driver for the Sanyo LV8093.
-+
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L1 && I2C
-Index: omapzoom04/drivers/media/video/Makefile
-===================================================================
---- omapzoom04.orig/drivers/media/video/Makefile
-+++ omapzoom04/drivers/media/video/Makefile
-@@ -116,6 +116,7 @@ obj-$(CONFIG_VIDEO_MT9P012)	+= mt9p012.o
- obj-$(CONFIG_VIDEO_DW9710) += dw9710.o
- obj-$(CONFIG_VIDEO_OV3640)     += ov3640.o
- obj-$(CONFIG_VIDEO_IMX046)     += imx046.o
-+obj-$(CONFIG_VIDEO_LV8093)     += lv8093.o
- 
- obj-$(CONFIG_USB_DABUSB)        += dabusb.o
- obj-$(CONFIG_USB_OV511)         += ov511.o
+Cheers,
+Douglas,
