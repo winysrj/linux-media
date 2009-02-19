@@ -1,116 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:53654 "EHLO
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:46214 "EHLO
 	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465AbZBPXWA (ORCPT
+	with ESMTP id S1752851AbZBSQnT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 18:22:00 -0500
-Received: by bwz5 with SMTP id 5so3506657bwz.13
-        for <linux-media@vger.kernel.org>; Mon, 16 Feb 2009 15:21:58 -0800 (PST)
+	Thu, 19 Feb 2009 11:43:19 -0500
+Received: by bwz5 with SMTP id 5so1383984bwz.13
+        for <linux-media@vger.kernel.org>; Thu, 19 Feb 2009 08:43:16 -0800 (PST)
+Date: Thu, 19 Feb 2009 12:43:07 -0400
+From: Manu <eallaud@gmail.com>
+Subject: Re : Re : Re : Re : TT 3650
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20090218092217.232120@gmx.net>
+	<20090218103353.64bf6400@free.fr> <1234961317.5755.0@manu-laptop>
+	<20090218204455.19b867a0@free.fr> <1234999838.7508.0@manu-laptop>
+	<20090219095109.7cbe2c49@free.fr> <1235040908.5940.0@manu-laptop>
+	<854d46170902190640u3b39b5efw774be7b01e2044c6@mail.gmail.com>
+In-Reply-To: <854d46170902190640u3b39b5efw774be7b01e2044c6@mail.gmail.com>
+	(from fa@elwak.com on Thu Feb 19 10:40:42 2009)
+Message-Id: <1235061787.6548.0@manu-laptop>
 MIME-Version: 1.0
-In-Reply-To: <59463.79.136.92.202.1234820777.squirrel@webmail.bahnhof.se>
-References: <59463.79.136.92.202.1234820777.squirrel@webmail.bahnhof.se>
-Date: Tue, 17 Feb 2009 00:21:56 +0100
-Message-ID: <854d46170902161521g1ad03be0s1114799fe296df14@mail.gmail.com>
-Subject: Re: Tevii S650 DVB-S2 diseqc problem
-From: Faruk A <fa@elwak.com>
-To: svankan@bahnhof.se
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 16, 2009 at 10:46 PM,  <svankan@bahnhof.se> wrote:
-> Hello!
->
-> I just bought a Tevii S650 DVB-S2 card and I have a few questions.
->
-> My server have Ubuntu 8.10 amd64 with a custom kernel and drivers and tools
-> compiled from these sources.
-> http://mercurial.intuxication.org/hg/szap-s2
-> http://mercurial.intuxication.org/hg/s2-liplianin/
->
-> The scan-s2 utility only find channels from latest used transponder in VDR
-> and diseqc does not work. It took me many hours to have VDR working with
-> Tevii S650 because my old diseqc.conf did not work with this card.
->
-> When I have a skystar2 or a Hauppauge FF rev 2.1 I can use this config.
->
-> Old diseqc.conf
-> #
-> S1W 11700 V 9750 t v W15 A W15 t
-> S1W 99999 V 10600 t v W15 A W15 T
-> S1W 11700 H 9750 t V W15 A W15 t
-> S1W 99999 H 10600 t V W15 A W15 T
-> #
-> S5E 11700 V 9750 t v W15 B W15 t
-> S5E 99999 V 10600 t v W15 B W15 T
-> S5E 11700 H 9750 t V W15 B W15 t
-> S5E 99999 H 10600 t V W15 B W15 T
->
->
-> New diseqc.conf (working with Tevii S650)
-> #
-> S1W 11700 V 9750 t v W15 [E0 10 38 F0] W15 t
-> S1W 99999 V 10600 t v W15 [E0 10 38 F1] W15 T
-> S1W 11700 H 9750 t V W15 [E0 10 38 F2] W15 t
-> S1W 99999 H 10600 t V W15 [E0 10 38 F3] W15 T
-> #
-> S5E 11700 V 9750 t v W15 [E0 10 38 F4] W15 t
-> S5E 99999 V 10600 t v W15 [E0 10 38 F5] W15 T
-> S5E 11700 H 9750 t V W15 [E0 10 38 F6] W15 t
-> S5E 99999 H 10600 t V W15 [E0 10 38 F7] W15 T
->
-> Can this diseqc "problem" cause the scan-s2 tool to fail too?
-> Why do I need to change the diseqc.conf in VDR?
->
-> Because of this problem I have to manually include all HD-channels to
-> channels.conf. I have tried to follow the README for scan-s2 and tried
-> different options. My old cards work with scan-s2 and diseqc. To be sure I
-> downloaded the latest drivers from www.tevii.com and extracted the
-> firmware from windows drivers but with the same result.
-> Linux driver is from 2008-08-15
-> Windows driver is released 2009-01-22
->
-> similar problem?
-> http://www.dvbnetwork.de/viewtopic.php?f=59&t=169
->
-> VDR 1.7.4 works very good with the new diseqc.conf so the card is NOT broken.
-> Any suggestions?
->
-> /Svankan
+Le 19.02.2009 10:40:42, Faruk A a écrit :
+> On Thu, Feb 19, 2009 at 11:55 AM, Manu <eallaud@gmail.com> wrote:
+> > Le 19.02.2009 04:51:09, Jean-Francois Moine a écrit :
+> >> On Wed, 18 Feb 2009 19:30:37 -0400
+> >> Manu <eallaud@gmail.com> wrote:
+> >>
+> >> > Le 18.02.2009 15:44:55, Jean-Francois Moine a écrit :
+> >> > > Yes. I use it to look at FTA channels on AB3 5°W:
+> >> > >
+> >> > > - France 24 (12674.00 H - DVB-S2 - QPSK) is good.
+> >> > >
+> >> > > - I can also get the transponder 11636.00 V (DVB Newtec -
+> QPSK),
+> >> but
+> >> > > not
+> >> > >   the transponder 11139.00 V (DVB Newtec - 8PSK turbo)
+> >> > >
+> >> > > - For some time, there were clear channels (M6 and W9) in the
+> >> > >   transponder 11471.00 V (DVB-S2 - 8PSK). Both were fine.
+> >> >
+> >> > Just to make things clear, can you prodvide symbol rate and FEC
+> for
+> >> > all these transponders.
+> >>
+> >> I don't understand the question!
+> >>
+> >> I think the symbol rate is mandatory, but the FEC may found
+> >> automatically. For example, I use vlc for the 2 different
+> >> transponders:
+> >>
+> >> #EXTINF:0,orange
+> >> #EXTVLCOPT:dvb-frequency=11512000
+> >> #EXTVLCOPT:dvb-srate=29947000
+> >> #EXTVLCOPT:dvb-voltage=13
+> >> dvb://
+> >> #EXTINF:0,france
+> >> #EXTVLCOPT:dvb-frequency=11590000
+> >> #EXTVLCOPT:dvb-srate=20000000
+> >> #EXTVLCOPT:dvb-voltage=13
+> >> dvb://
+> >>
+> >> The first transponder is FEC 7/8, and the second 2/3.
+> >>
+> >> For the other transponders (DVB-S2 / 8PSK), if use szap-s2 +
+> >> dvbstream.
+> >
+> > OK great thx, that's what I was asking for! Indeed I have some
+> troubles
+> > locking on S2 transponders which all have 30 MS/s rate. I see that
+> > yours are lower, well with one very close to that.
+> > Bye
+> > Emmanuel
+> 
+> Hi Manu!
+> 
+> I use to own this card until it broke and replaced with TeVii S650.
+> It used to lock just fine on this Transponders. Although i can't
+> receive from this satellite
+> anymore my dish has been realigned to 16E instead.
+> 
+> Thor 1W
+> 12015 H 30000-3/4
+> 12130 H 30000-3/4
 
-Hi!
-
-I don't have any diseqc problem with this card.
-Tested with vdr 1.7.0, scan-s2, szap-s2 (myTeVii and ProgDVB)
-ArchLinux 32-bit, kernel26 2.6.28.4
-here is my vdr disecq.conf
-
-# Input 1 - Eutelsat
-
-S16.0E  11700 V  9750  t v W15 [E0 10 38 F0] W15 t
-S16.0E  99999 V 10600  t v W15 [E0 10 38 F0] W15 T
-S16.0E  11700 H  9750  t V W15 [E0 10 38 F0] W15 t
-S16.0E  99999 H 10600  t V W15 [E0 10 38 F0] W15 T
-
-# Input 2 - Sirius
-
-S5E  11700 V  9750  t v W15 [E0 10 38 F4] W15 t
-S5E  99999 V 10600  t v W15 [E0 10 38 F4] W15 T
-S5E  11700 H  9750  t V W15 [E0 10 38 F4] W15 t
-S5E  99999 H 10600  t V W15 [E0 10 38 F4] W15 T
-
-# Input 3 - Hotbird
-
-S13.0E   11700 V  9750  t v W15 [E0 10 38 F8] W15 t
-S13.0E   99999 V 10600  t v W15 [E0 10 38 F8] W15 T
-S13.0E   11700 H  9750  t V W15 [E0 10 38 F8] W15 t
-S13.0E   99999 H 10600  t V W15 [E0 10 38 F8] W15 T
-
-# Input 4 Astra 1 19.2E
-
-S19.2E   11700 V  9750  t v W15 [E0 10 38 FC] W15 t
-S19.2E   99999 V 10600  t v W15 [E0 10 38 FC] W15 T
-S19.2E   11700 H  9750  t V W15 [E0 10 38 FC] W15 t
-S19.2E   99999 H 10600  t V W15 [E0 10 38 FC] W15 T
+OK, thx!
+Bye
+Emmanuel
