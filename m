@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:43567 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754449AbZBJSi1 (ORCPT
+Received: from web35805.mail.mud.yahoo.com ([66.163.179.174]:27863 "HELO
+	web35805.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752894AbZBTQQa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 13:38:27 -0500
-Date: Tue, 10 Feb 2009 16:37:49 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Arjan van de Ven <arjan@infradead.org>,
-	linux-kernel@vger.kernel.org, jkosina@suse.cz,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] use the new request_module_nowait() in
- drivers/media
-Message-ID: <20090210163749.5ed916ec@pedra.chehab.org>
-In-Reply-To: <200902110002.16840.rusty@rustcorp.com.au>
-References: <20090208104201.6124ab6a@infradead.org>
-	<20090208110052.6f3deafc@infradead.org>
-	<20090209143456.1c5d7f0b@pedra.chehab.org>
-	<200902110002.16840.rusty@rustcorp.com.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 20 Feb 2009 11:16:30 -0500
+Date: Fri, 20 Feb 2009 08:16:29 -0800 (PST)
+From: Amy Overmyer <aovermy@yahoo.com>
+Subject: Re: vbox cat's eye 3560 usb device
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <132842.8631.qm@web35805.mail.mud.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Feb 2009 00:02:15 +1030
-Rusty Russell <rusty@rustcorp.com.au> wrote:
+> Lastly, are there any other IC components on the back or front of the
+> PCB ?  Can you provide pics (upload them to the wiki article)) ?
 
-> On Tuesday 10 February 2009 03:04:56 Mauro Carvalho Chehab wrote:
-> > On Sun, 8 Feb 2009 11:00:52 -0800
-> > Arjan van de Ven <arjan@infradead.org> wrote:
-> > > From: Arjan van de Ven <arjan@linux.intel.com>
-> > > Subject: [PATCH] use the new request_module_nowait() in drivers/media
-> ...
-> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > Cheers,
-> > Mauro
-> 
-> Thanks Mauro.  Since I have the prereq, I've taken this into my tree too.
+The back only has a couple components, probably for electrical, no ICs.
+The
+front only has the cypress (100 pin pkg) chip and the NIM, with a
+couple small components, that I can't read what they are. The PCB is
+stamped osc by one of them and usbid on the other, so I'm guessing one
+is an oscillator and the other the PROM where the cold USB id is stored.
 
-OK.
+I
+opened up the NIM (hey, they're $30 at my local computer store right
+now, so even if I kill it, I have an extra), and I saw my old friend
+the BCM3510 (I have a 1rst gen air2pc pci card that works pretty well
+for me) and a smaller chip marked tua6030 (or could be 6080, the
+writing is faint, but infineon doesn't look like they make an 6080). 
 
-Cheers,
-Mauro
+I have photos but need to upload them.
+
+> have a look at the cxusb, its likely closer to what you want:
+> http://linuxtv.org/hg/v4l-dvb/file/tip/linux/drivers/media/dvb/dvb-usb/
+
+OK, I'll take a look there. Thank you.
+
+
+      
