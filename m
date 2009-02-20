@@ -1,26 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.bredband2.com ([83.219.192.165])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <magnus@upcore.net>) id 1LcRm0-0002LW-PP
-	for linux-dvb@linuxtv.org; Wed, 25 Feb 2009 22:58:37 +0100
-Received: from yoshi.upcore.net (c-83-233-110-59.cust.bredband2.com
-	[83.233.110.59])
-	by mx1.bredband2.com (Postfix) with ESMTPA id F235936EF8
-	for <linux-dvb@linuxtv.org>; Wed, 25 Feb 2009 22:57:52 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by yoshi.upcore.net (Postfix) with ESMTP id 93718C000109
-	for <linux-dvb@linuxtv.org>; Wed, 25 Feb 2009 22:57:52 +0100 (CET)
-Received: from yoshi.upcore.net ([127.0.0.1])
-	by localhost (mail.upcore.net [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id cORIvsUdUp8O for <linux-dvb@linuxtv.org>;
-	Wed, 25 Feb 2009 22:57:50 +0100 (CET)
-Date: Wed, 25 Feb 2009 22:57:50 +0100
-From: Magnus Nilsson <magnus@upcore.net>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090225215749.GA4385@upcore.net>
+Received: from 84.122.64.124.dyn.user.ono.com ([84.122.64.124]
+	helo=mail.xiterrex.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <terrex@xiterrex.net>) id 1LchVz-0002qt-4f
+	for linux-dvb@linuxtv.org; Thu, 26 Feb 2009 15:47:07 +0100
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Compiling mantis-5292a47772ad
+Message-Id: <078bd274de0d26a92ccf.1235153417@localhost>
+Date: Fri, 20 Feb 2009 19:10:17 +0100
+From: xiterrex@gmail.com
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH] New frequency table for Cadiz (Andalusia, Spain)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -35,39 +23,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+# HG changeset patch
+# User terrex@xiterrex.net
+# Date 1235153250 -3600
+# Node ID 078bd274de0d26a92ccff6c7da050edbc299f0b7
+# Parent  f83a2a650df2bcf2ce659012f011ee5dcd7b1d74
+New frequency table for Cadiz (Andalusia, Spain)
 
-Hello,
+diff -r f83a2a650df2 -r 078bd274de0d util/scan/dvb-t/es-Cadiz
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/es-Cadiz	Fri Feb 20 19:07:30 2009 +0100
+@@ -0,0 +1,8 @@
++# DVB-T Cadiz (Andalucia)                      by terrex  Feb 2009
++# T freq bw fec_hi fec_lo mod transm-mode guard-interval hierarchy
++T 778000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C59
++T 818000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C64
++T 834000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C66
++T 842000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C67
++T 850000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C68
++T 858000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C69
 
-I'm trying to compile mantis-5292a47772ad under 2.6.28.7 (have tried
-this under 2.6.28.5 and 2.6.24 (which I'm currently running) with same
-results).
 
-The error I'm getting is:
-
-[root@mythbox /usr/local/src/mantis-5292a47772ad]# make all
-*snip*
-  CC [M]  /usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.o
-/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c: In function 'snd_card_saa7134_hw_params':
-/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:496: error: implicit declaration of function 'snd_assert'
-/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:497: error: expected expression before 'return'
-/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:498: error: expected expression before 'return'
-/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:499: error: expected expression before 'return'
-/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c: In function 'snd_card_saa7134_new_mixer':
-/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:950: error: expected expression before 'return'
-make[3]: *** [/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.o] Error 1
-make[2]: *** [_module_/usr/local/src/mantis-5292a47772ad/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-2.6.28.7'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/local/src/mantis-5292a47772ad/v4l'
-make: *** [all] Error 2
-*snip*
-
-I'm not quite sure which version of the mantis driver I'm using now, but
-it's at least from september 2008. I'm running this under Debian lenny,
-with a VP-2040 and a Terratec Cinergy 1200C.
-
-Thanks,
-Magnus
 
 _______________________________________________
 linux-dvb users mailing list
