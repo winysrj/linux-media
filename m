@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1RKiinc026929
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 15:44:45 -0500
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1RKiRr5004861
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 15:44:27 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so864522ywe.81
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 12:44:27 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KHQ0Zm004140
+	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:26:00 -0500
+Received: from unifiedpaging.messagenetsystems.com
+	(www.digitalsignage.messagenetsystems.com [24.123.23.170] (may
+	be forged))
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1KHPqSP012685
+	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:25:53 -0500
+Message-ID: <499EE795.6030404@messagenetsystems.com>
+Date: Fri, 20 Feb 2009 12:25:41 -0500
+From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
 MIME-Version: 1.0
-In-Reply-To: <6b3e6cdb0902271207k77e41cabo11fb3263ef39fe5d@mail.gmail.com>
-References: <6b3e6cdb0902271139w176708c9t67b32dca960aa6c4@mail.gmail.com>
-	<412bdbff0902271142i5c7157cetd28124007224b890@mail.gmail.com>
-	<6b3e6cdb0902271207k77e41cabo11fb3263ef39fe5d@mail.gmail.com>
-Date: Fri, 27 Feb 2009 15:44:26 -0500
-Message-ID: <412bdbff0902271244s55ae9fa3g575e7134a446109@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: "U. Artie Eoff" <uartie@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: ASUS My Cinema-PHC3-100/NAQ/FM/AV/RC Support?
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <412bdbff0902200317h26f4d42fh4327b3ff08c79d5c@mail.gmail.com>	
+	<499EC9CC.3040703@linuxtv.org>	
+	<b24e53350902200910p1f5745b6s864490400f50b9@mail.gmail.com>	
+	<b24e53350902200911udfb9717t5429dd2b9fc81355@mail.gmail.com>	
+	<b24e53350902200913h3760ccbdqc9f14217afe5fdb1@mail.gmail.com>
+	<412bdbff0902200918g328b8541v5414ad98ead688a2@mail.gmail.com>
+In-Reply-To: <412bdbff0902200918g328b8541v5414ad98ead688a2@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: HVR-950q analog support - testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,28 +34,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Feb 27, 2009 at 3:07 PM, U. Artie Eoff <uartie@gmail.com> wrote:
-> Thanks for the quick reply...
+Devin Heitmueller wrote:
+> On Fri, Feb 20, 2009 at 12:13 PM, Robert Krakora
+> <rob.krakora@messagenetsystems.com> wrote:
+>   
+>> I have three Linux-based media-ports here and I will put an HR950Q on
+>> each and let them run with my tester that changes channels and that
+>> opens and closes the device...
+>>     
 >
-> The only difference that I'm aware of so far is that the 3100 is a USB
-> dongle tuner and the PHC3-100 is a PCI internal.  I'm not sure if the
-> PHC3-100 has the Micronas DRX-J... can I find this info on the card?  If so,
-> I'll have to look when I get home later.
+> Robert,
 >
-> Anyway, here is the product link for my card:
-> http://www.asus.com/products.aspx?l1=18&l2=83&l3=794
-> ...and product image:
-> http://www.asus.com/prog_content/middle_enlargement.aspx?model=2524
+> Thank you for offering to take the time to test.  I am definitely
+> interested in the results.
+>
+> One thing worth noting is that Michael Krufky pointed out a couple of
+> cases this morning where I missed a mutex, so if you connect multiple
+> 950q's to the same system you might hit a race condition at system
+> bootup.  I'll nail it down this weekend but I wanted to warn you in
+> advance since you said you had multiple 950q devices.
+>
+> Of course, I would be *very* interested in finding some way to get you
+> to do some testing of multiple devices connected at the same time once
+> that fix is in.  I only have one unit to test with so I haven't really
+> exercised that use case.
+>
+> Regards,
+>
+> Devin
+>
+>   
+Devin:
 
-Oh, if it's PCI then I have no idea if it uses the drx-j.  I only know
-about the USB hardware design.
+I will test one per machine for now and I can put two on one of the 
+machines once your mutex fix is in place.
 
-Devin
-
+Best Regards,
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
