@@ -1,16 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f20.google.com ([209.85.219.20])
+Received: from auth-2.ukservers.net ([217.10.138.132])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lucastim@gmail.com>) id 1LVDxc-0007i8-Dp
-	for linux-dvb@linuxtv.org; Fri, 06 Feb 2009 00:48:44 +0100
-Received: by ewy13 with SMTP id 13so969320ewy.17
-	for <linux-dvb@linuxtv.org>; Thu, 05 Feb 2009 15:48:10 -0800 (PST)
-MIME-Version: 1.0
-Date: Thu, 5 Feb 2009 15:48:10 -0800
-Message-ID: <e32e0e5d0902051548x3023851cua78424304a09cb7e@mail.gmail.com>
-From: Tim Lucas <lucastim@gmail.com>
+	(envelope-from <stephen@rowles.org.uk>) id 1LaXAz-0006Gy-Uc
+	for linux-dvb@linuxtv.org; Fri, 20 Feb 2009 16:20:30 +0100
+Received: from auth-2.ukservers.net (auth-2.ukservers.net [10.0.17.132])
+	by auth-2.ukservers.net (Postfix smtp) with ESMTP id 441272CD4C89
+	for <linux-dvb@linuxtv.org>; Fri, 20 Feb 2009 15:19:56 +0000 (GMT)
+Received: from miner.localdomain (unknown [78.149.114.29])
+	by auth-2.ukservers.net (Postfix smtp) with ESMTP id 163342CD4B0D
+	for <linux-dvb@linuxtv.org>; Fri, 20 Feb 2009 15:19:56 +0000 (GMT)
+Received: from manicminer.homeip.net (miner [127.0.0.1])
+	by miner.localdomain (Postfix) with ESMTP id 43A48198A9
+	for <linux-dvb@linuxtv.org>; Fri, 20 Feb 2009 15:19:55 +0000 (GMT)
+Message-ID: <2090.81.144.130.125.1235143195.squirrel@manicminer.homeip.net>
+In-Reply-To: <S77529AbZBTN5eFbE-k/20090220135734Z+5776@nic.funet.fi>
+References: <S95672AbZBQUntw3OD4/20090217204349Z+4425@nic.funet.fi>
+	<412bdbff0902171254j41b71159k7561b28418120dab@mail.gmail.com>
+	<S77529AbZBTN5eFbE-k/20090220135734Z+5776@nic.funet.fi>
+Date: Fri, 20 Feb 2009 15:19:55 -0000 (UTC)
+From: "Stephen Rowles" <stephen@rowles.org.uk>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DViCO FusionHDTV7 Dual Express
+MIME-Version: 1.0
+Subject: [linux-dvb] Giving Feedback (was Re:  Klear?)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,138 +30,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1390765531=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1390765531==
-Content-Type: multipart/alternative; boundary=0015174bdf2e739db80462348934
+>
+> I write open source software elsewhere, you write here.
+> Feedback like I sent has value too. Commercial closed
+> source software gets part of their ideas from users, and
+> no user need to implement them. I hope the open source
+> coding attitude changes, and much.
+>
+> I will pick up Kaffeine, but Ubuntu is missing the package.
+> I try compile it.
+>
+> Kaffeine authors could check my list in detail. Please do.
+>
+> Me-TV seems to only record the flag that subtitles exists,
+> not the subtitles itself. At least, xine cannot play them.
+>
 
---0015174bdf2e739db80462348934
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Only sending this to linux-dvb as I'm not signed up to the media list, and
+I'll probably get myself blacklisted from any future help by saying this
+;) but...
 
-My cable system was recently updated to time warner so I thought I would try
-to get the mythbuntu box working again.
-I have the DViCO FusionHDTV7 Dual Express card which seems to be recognized
-by my system but I still cannot tune channels. I tried using tvtime and got
-the following error
+The thing is (and I know because I too am a developer, not an open source
+one but still a developer) most developers don't want unsolicited feedback
+on their code, in my experience especially not open source developers.
 
-I/O error : Permission denied
-Cannot change owner of /home/lucas/.tvtime/tvtime.xml: Permission denied.
-videoinput: Cannot open capture device /dev/video0: No such file or
-directory.
+They write code that they consider to fill their needs with, in their
+view, the perfect design / interface for what they wanted to write.
 
-dmesg says:
-[ 9.489376] Linux video capture interface: v2.00 [ 9.528296] cx23885 driver
-version 0.0.1 loaded [ 9.528684] ACPI: PCI Interrupt Link [APC6] enabled at
-IRQ 16 [ 9.528688] cx23885 0000:08:00.0: PCI INT A -> Link[APC6] -> GSI 16
-(level, low) -> IRQ 16 [ 9.528751] CORE cx23885[0]: subsystem: 18ac:d618,
-board: DViCO FusionHDTV7 Dual Express [card=10,autod etected] [ 9.716984]
-cx23885[0]: i2c bus 0 registered [ 9.717002] cx23885[0]: i2c bus 1
-registered [ 9.717016] cx23885[0]: i2c bus 2 registered [ 9.743438]
-cx23885[0]: cx23885 based dvb card [ 9.880184] xc5000: Successfully
-identified at address 0x64 [ 9.880186] xc5000: Firmware has not been loaded
-previously [ 9.880190] DVB: registering new adapter (cx23885[0]) [ 9.880192]
-DVB: registering frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)... [
-9.880482] cx23885[0]: cx23885 based dvb card [ 9.926399] xc5000:
-Successfully identified at address 0x64 [ 9.926401] xc5000: Firmware has not
-been loaded previously [ 9.926403] DVB: registering new adapter (cx23885[0])
-[ 9.926406] DVB: registering frontend 1 (Samsung S5H1411 QAM/8VSB
-Frontend)... [ 9.926642] cx23885_dev_checkrevision() Hardware revision =
-0xb0 [ 9.926648] cx23885[0]/0: found at 0000:08:00.0, rev: 2, irq: 16,
-latency: 0, mmio: 0xfd800000 [ 9.926654] cx23885 0000:08:00.0: setting
-latency timer to 64
+Nobody likes to have their baby criticized, especially when they didn't
+ask for the feedback. They just opened sourced their code because it might
+be useful to someone else.
 
-I have the latest version of the v4l-dvb code from the mercurial repos. Any
-ideas what the problem is?
+In my experience providing constructive information about how a piece of
+software might be improved is very very difficult to do, usually you will
+get just flamed / ignored. And quite often the usual: "if it doesn't do
+what you want, code it yourself" response. Which in a lot of ways I can
+understand as a big list can end up taking the software in a direction
+that the developer has no interest in.
 
--- 
-    --Tim
+Personally I try to be open to feedback and I try listen to external
+comments about things I write, but often I am not interested in providing
+a piece of software that is ideal for user X, I have my requirements and
+if it doesn't match their - well tough ;). It is not easy listening to
+requirements when they don't match your own.
 
---0015174bdf2e739db80462348934
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+In future you might have more luck opening with an email asking if people
+want feedback, if they say yes then you will have more luck with your list
+being read / accepted. If they say no then you often just have to accept
+that a move on.
 
-<div>My cable system was recently updated to time warner so I thought I wou=
-ld try to get the mythbuntu box working again. &nbsp;</div><div>I have the&=
-nbsp;<span class=3D"Apple-style-span" style=3D"border-collapse: collapse; w=
-hite-space: pre; -webkit-border-horizontal-spacing: 2px; -webkit-border-ver=
-tical-spacing: 2px; ">DViCO FusionHDTV7 Dual Express card which seems to be=
- recognized by my system but I still cannot tune channels. I tried using tv=
-time and got the following error</span></div>
-<div><span class=3D"Apple-style-span" style=3D"border-collapse: collapse; w=
-hite-space: pre; -webkit-border-horizontal-spacing: 2px; -webkit-border-ver=
-tical-spacing: 2px;"><br></span></div><div><span class=3D"Apple-style-span"=
- style=3D"border-collapse: collapse; white-space: pre; -webkit-border-horiz=
-ontal-spacing: 2px; -webkit-border-vertical-spacing: 2px;">I/O error : Perm=
-ission denied</span></div>
-<div><span class=3D"Apple-style-span" style=3D"border-collapse: collapse; w=
-hite-space: pre; -webkit-border-horizontal-spacing: 2px; -webkit-border-ver=
-tical-spacing: 2px;">Cannot change owner of /home/lucas/.tvtime/tvtime.xml:=
- Permission denied.</span></div>
-<div><span class=3D"Apple-style-span" style=3D"border-collapse: collapse; w=
-hite-space: pre; -webkit-border-horizontal-spacing: 2px; -webkit-border-ver=
-tical-spacing: 2px;">videoinput: Cannot open capture device /dev/video0: No=
- such file or directory.</span></div>
-<div><span class=3D"Apple-style-span" style=3D"border-collapse: collapse; w=
-hite-space: pre; -webkit-border-horizontal-spacing: 2px; -webkit-border-ver=
-tical-spacing: 2px;"><br></span></div><div><span class=3D"Apple-style-span"=
- style=3D"border-collapse: collapse; white-space: pre; -webkit-border-horiz=
-ontal-spacing: 2px; -webkit-border-vertical-spacing: 2px;">dmesg says:</spa=
-n></div>
-<div><span class=3D"Apple-style-span" style=3D"border-collapse: collapse; w=
-hite-space: pre; -webkit-border-horizontal-spacing: 2px; -webkit-border-ver=
-tical-spacing: 2px;">[    9.489376] Linux video capture interface: v2.00
-[    9.528296] cx23885 driver version 0.0.1 loaded
-[    9.528684] ACPI: PCI Interrupt Link [APC6] enabled at IRQ 16
-[    9.528688] cx23885 0000:08:00.0: PCI INT A -&gt; Link[APC6] -&gt; GSI 1=
-6 (level, low) -&gt; IRQ 16
-[    9.528751] CORE cx23885[0]: subsystem: 18ac:d618, board: DViCO FusionHD=
-TV7 Dual Express [card=3D10,autod
-etected]
-[    9.716984] cx23885[0]: i2c bus 0 registered
-[    9.717002] cx23885[0]: i2c bus 1 registered
-[    9.717016] cx23885[0]: i2c bus 2 registered
-[    9.743438] cx23885[0]: cx23885 based dvb card
-[    9.880184] xc5000: Successfully identified at address 0x64
-[    9.880186] xc5000: Firmware has not been loaded previously
-[    9.880190] DVB: registering new adapter (cx23885[0])
-[    9.880192] DVB: registering frontend 0 (Samsung S5H1411 QAM/8VSB Fronte=
-nd)...
-[    9.880482] cx23885[0]: cx23885 based dvb card
-[    9.926399] xc5000: Successfully identified at address 0x64
-[    9.926401] xc5000: Firmware has not been loaded previously
-[    9.926403] DVB: registering new adapter (cx23885[0])
-[    9.926406] DVB: registering frontend 1 (Samsung S5H1411 QAM/8VSB Fronte=
-nd)...
-[    9.926642] cx23885_dev_checkrevision() Hardware revision =3D 0xb0
-[    9.926648] cx23885[0]/0: found at 0000:08:00.0, rev: 2, irq: 16, latenc=
-y: 0, mmio: 0xfd800000
-[    9.926654] cx23885 0000:08:00.0: setting latency timer to 64<br></span>=
-</div><div><span class=3D"Apple-style-span" style=3D"border-collapse: colla=
-pse; white-space: pre; -webkit-border-horizontal-spacing: 2px; -webkit-bord=
-er-vertical-spacing: 2px;"><br>
-</span></div><div><span class=3D"Apple-style-span" style=3D"border-collapse=
-: collapse; white-space: pre; -webkit-border-horizontal-spacing: 2px; -webk=
-it-border-vertical-spacing: 2px;">I have the latest version of the v4l-dvb =
-code from the mercurial repos.  Any ideas what the problem is?</span></div>
-<br>-- <br> &nbsp; &nbsp; --Tim<br>
+In my line of work half the battle is getting to a point in the
+relationship with the "customer" (not always a real external customer)
+that they will accept suggestions. That is usually after spending a long
+time developing the relationship first, you cannot go in to the first
+meeting with a list saying: "here is where your existing stuff sucks" as
+nobody will listen.
 
---0015174bdf2e739db80462348934--
+Hope this helps / prompts discussion - it isn't meant to annoy anyone, if
+I have upset you (e.g. anyone reading this email) then that wasn't my
+intention, please accept my apologies.
 
-
---===============1390765531==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1390765531==--
