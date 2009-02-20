@@ -1,135 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:47579 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812AbZBJLtw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 06:49:52 -0500
-Received: by mail-bw0-f161.google.com with SMTP id 5so2548097bwz.13
-        for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 03:49:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20090210093753.69b21572@pedra.chehab.org>
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com>
-	 <617be8890902050759x74c08498o355be1d34d7735fe@mail.gmail.com>
-	 <20090210093753.69b21572@pedra.chehab.org>
-Date: Tue, 10 Feb 2009 12:49:50 +0100
-Message-ID: <617be8890902100349r39c49edfr4c3373669d698b72@mail.gmail.com>
-Subject: Re: cx8802.ko module not being built with current HG tree
-From: Eduard Huguet <eduardhc@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
+Received: from smtp6-g21.free.fr ([212.27.42.6]:55097 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751389AbZBTLHv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Feb 2009 06:07:51 -0500
+Date: Fri, 20 Feb 2009 12:04:00 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Linux Media" <linux-media@vger.kernel.org>
+Subject: Re: Questions about VIDIOC_G_JPEGCOMP / VIDIOC_S_JPEGCOMP
+Message-ID: <20090220120400.3d797cc4@free.fr>
+In-Reply-To: <200902200929.36974.hverkuil@xs4all.nl>
+References: <14759.62.70.2.252.1235052151.squirrel@webmail.xs4all.nl>
+	<200902200929.36974.hverkuil@xs4all.nl>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-    I don't have yet the buggy config, but the steps I was following
-when I encounter the problem were the following:
-        · hg clone http://linuxtv.org/hg/v4l-dvb
-        · cd v4l-dvb
-        · make menuconfig
-          (I mostly uncheck here most of the modules, as I really was
-needing only to compile the support for Nova-T 500 and an HVR-3000. I
-just leave "as is" (checked as M by default) all the SAA7134 and
-derived options).
-        · make && make install
+On Fri, 20 Feb 2009 09:29:36 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Best regards,
-  Eduard
+> > Support for these ioctls should be added to v4l2-ctl.cpp. It's the
+> > right place for that.
+> >
+> > But more important is to document these ioctls in the v4l2 spec. As
+> > far as I can tell these ioctls came from the zoran driver where
+> > basically a private ioctl was elevated to a public ioctl, but with
+> > little or no review.
+> >
+> > Do you know enough about these ioctls to update the v4l2 spec? That
+> > would be a great help. 
+> 
+> I'm working on the zoran driver anyway, so I'll document this and add 
+> support to v4l2-ctl. I now understand what this is about. The COM and
+> APP markers are either obsolete or are meant as a read-only property.
+> And while it is possible theoretically to set multiple APP segments,
+> it is impossible with the current API to ever read more than one
+> back. Sigh.
 
-PS: I suspect that "make allmodconfig" (which I didn't even  know it
-existed...) makes a difference here, because it will mark CX88_MPEG as
-'M', if I understand it well. I wasn't using it, so maybe this
-explains why the option was hiddenly marked as 'Y' instead of 'M'.
+Hi Hans,
 
+I see three parts in these ioctls:
+- quality,
+- definition of the APP and COM markers,
+- presence / absence of some JPEG fields (quantization, Huffman..)
 
+Looking at the video tree, the quality is treated by 5 drivers:
+- in cpia2, the quality is not settable and defaults to 80 (%),
+- in zc0301, the quality may be only set to 0,
+- in et61x251 and sn9c102, the quality may be set to 0 or 1,
+- in zoran, the quality may be set from 5% to 100%, but it is used only
+  to compute the max size of the images!
 
+I don't see the usage of APP or COM markers. Such fields may be added
+by the applications. Actually, only the zoran and cpia2 drivers treat
+them.
 
+About the presence / absence of the JPEG fields, it is simpler to have
+all the required fields in the JPEG image. If some field is lacking, it
+should be added at conversion time by the v4l library or added by the
+driver if video output. The fact the ioctl permits the control of these
+fields obliges the drivers (input) or the applications (output) to know
+how to add (or remove) the fields. It seems a complex treatment for a
+small benefit: reduce the size of images by 100 or 200 bytes. Actually,
+only the zoran and cpia2 drivers treat these controls.
 
-2009/2/10 Mauro Carvalho Chehab <mchehab@infradead.org>:
-> On Thu, 5 Feb 2009 16:59:16 +0100
-> Eduard Huguet <eduardhc@gmail.com> wrote:
->
->> Hi,
->>   Maybe I'm wrong, but I think there is something wrong in current
->> Kconfig file for cx88 drivers. I've been struggling for some hours
->> trying to find why, after compiling a fresh copy of the LinuxTV HG
->> drivers, I wasn't unable to modprobe cx88-dvb module, which I need for
->> HVR-3000.
->>
->> The module was not being load because kernel was failing to find
->> cx8802_get_driver, etc... entry points, which are exported by
->> cx88-mpeg.c.
->>
->> The strange part is that, according to the cx88/Kconfig file this file
->> should be automatically added as dependency if either CX88_DVB or
->> CX88_BLACKBIRD were selected,
->> but for some strange reason it wasn't.
->>
->> After a 'make menuconfig' in HG tree the kernel configuration
->> contained these lines (this was using the default config, without
->> adding / removing anything):
->> CONFIG_VIDEO_CX88=m
->> CONFIG_VIDEO_CX88_ALSA=m
->> CONFIG_VIDEO_CX88_BLACKBIRD=m
->> CONFIG_VIDEO_CX88_DVB=m
->> CONFIG_VIDEO_CX88_MPEG=y
->> CONFIG_VIDEO_CX88_VP3054=m
->>
->> Notice that they are all marked as 'm' excepting
->> CONFIG_VIDEO_CX88_MPEG, which is marked as 'y'. I don't know if it's
->> relevant or not, but the fact is that the module was not being
->> compiled at all. The option was not visible inside menuconfig, by the
->> way.
->>
->> I've done some changes inside Kconfig to make it visible in
->> menuconfig, and by doing this I've been able to set it to 'm' and
->> rebuild, which has just worked apparently.
->>
->> This Kconfig file was edited in revisions 10190 & 10191, precisely for
->> reasons related to cx8802 dependencies, so I'm not sure the solution
->> taken there was the right one.
->>
->> Best regards,
->>  Eduard Huguet
->
-> Eduard,
->
-> I suspect that this is some bug on the out-of-tree build. In order to test it,
-> I've tried to reproduce what I think you did.
->
-> So, I ran the following procedures over the devel branch on my -git tree:
->
-> make allmodconfig (to select everything as 'm')
-> I manually unselect all drivers at the tree, keeping only CX88 and submodules.
-> All CX88 submodules as "M".
->
-> I've repeated the procedure, this time starting with make allyesconfig.
->
-> On both cases, I got those configs:
->
-> CONFIG_VIDEO_CX88=m
-> CONFIG_VIDEO_CX88_ALSA=m
-> CONFIG_VIDEO_CX88_BLACKBIRD=m
-> CONFIG_VIDEO_CX88_DVB=m
-> CONFIG_VIDEO_CX88_MPEG=m
-> CONFIG_VIDEO_CX88_VP3054=m
->
-> My -git tree were updated up to this changeset:
->
-> commit 67e70baf043cfdcdaf5972bc94be82632071536b
-> Author: Devin Heitmueller <dheitmueller@linuxtv.org>
-> Date:   Mon Jan 26 03:07:59 2009 -0300
->
->    V4L/DVB (10411): s5h1409: Perform s5h1409 soft reset after tuning
->
->
-> I tried also reproduce the bug you've mentioned at the v4l-dvb tree, but
-> unfortunately, I couldn't (the .config file is attached). I got exactly the
-> same result as compiling in-kernel.
->
-> Could you please send us your buggy .config?
->
-> Cheers,
-> Mauro
->
+So, I propose to remove these ioctls, and to add two controls: one to
+set the JPEG quality (range 15..95 %) and the other to set a webcam
+quality which might be a boolean or any value depending on some
+associated webcam parameter.
+
+What do you think of it?
+
+Regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
