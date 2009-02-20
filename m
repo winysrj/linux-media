@@ -1,150 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4471 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754977AbZBJUcN (ORCPT
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:60982 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858AbZBTTFM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 15:32:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: cx8802.ko module not being built with current HG tree
-Date: Tue, 10 Feb 2009 21:31:59 +0100
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Eduard Huguet <eduardhc@gmail.com>, linux-media@vger.kernel.org
-References: <617be8890902050754p4b8828c9o14b43b6879633cd7@mail.gmail.com> <Pine.LNX.4.58.0902101018260.24268@shell2.speakeasy.net> <20090210164740.36bab2ee@pedra.chehab.org>
-In-Reply-To: <20090210164740.36bab2ee@pedra.chehab.org>
+	Fri, 20 Feb 2009 14:05:12 -0500
+Message-ID: <499EFEE4.50306@kaiser-linux.li>
+Date: Fri, 20 Feb 2009 20:05:08 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_ARekJR2bUcu5VEW"
-Message-Id: <200902102132.00114.hverkuil@xs4all.nl>
+To: kilgota@banach.math.auburn.edu
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: MR97310A and other image formats
+References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu> <499DB030.7010206@kaiser-linux.li> <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu> <499DE107.80502@kaiser-linux.li> <alpine.LNX.2.00.0902191723380.7472@banach.math.auburn.edu> <499DFEBF.9020601@kaiser-linux.li> <alpine.LNX.2.00.0902191913320.7602@banach.math.auburn.edu> <499E6305.7020707@kaiser-linux.li> <alpine.LNX.2.00.0902201234090.8350@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0902201234090.8350@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_ARekJR2bUcu5VEW
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+kilgota@banach.math.auburn.edu wrote:
+> 
+> 
+> On Fri, 20 Feb 2009, Thomas Kaiser wrote:
+> 
+>> kilgota@banach.math.auburn.edu wrote:
+>>>
+>>>
+>>> On Fri, 20 Feb 2009, Thomas Kaiser wrote:
+>>>
+>>>> kilgota@banach.math.auburn.edu wrote:
+>>>>>
+>>>>>
+>>>>> On Thu, 19 Feb 2009, Thomas Kaiser wrote:
+>>>>>
+>>>>>> kilgota@banach.math.auburn.edu wrote:
+>>>>>>> Yes, what you quote is the SOF marker for all of these cameras. 
+>>>>>>> The total header length, including the SOF marker ought to be 12 
+>>>>>>> bytes. On all of the mr97310 cameras that I have dealt with, the 
+>>>>>>> last 5 bytes are obviously related somehow to the image 
+>>>>>>> (contrast, color balance, gamma, whatever).  I have no idea how 
+>>>>>>> to interpret those values, but we can hope
+>>>>>>> that someone will figure out how.
+>>>>>>
+>>>>>> Two of them are luminance values (middle and edge) for the PAC207.
+>>>>>
+>>>>> Which two, and how do those numbers translate into anything relevant?
+>>>>
+>>>> Looks like I had some off list (private) email conversation about 
+>>>> the frame header of PAC207 with Michel Xhaard. I just paste the 
+>>>> whole thing in here:
+>>>>
+>>>> michel Xhaard wrote:
+>>>>> Le Samedi 18 Fe'vrier 2006 12:16, vous avez e'crit :
+>>>>>
+>>>>>> michel Xhaard wrote:
+>>>>>>
+>>>>>>> Le Samedi 18 Fe'vrier 2006 10:10, vous avez e'crit :
+>>>>>>>
+>>>>>>>> Hello Michel
+>>>>>>>>
+>>>>>>>> michel Xhaard wrote:
+>>>>>>>>
+>>>>>>>>> Le Mercredi 15 Fe'vrier 2006 12:43, vous avez e'crit :
+>>>>>>>>> Just relook the snoop, the header is always 16 bytes long starting 
+>>>> with:
+>>>>>>>>> ff ff 00 ff 96 64 follow
+>>>>>>>>> xx 00 xx xx xx xx  64 xx 00 00
+>>>>>>>>> let try to play poker with the asumption the R mean G0 mean B 
+>>>>>>>>> mean G1
+>>>>>>>>> mean is encoded here.
+>>>>>>>>> Not sure about the 64 can you look at your snoop?
+>>>>>>>>
+>>>>>>>> I never thought about that. So, you see I have not experience with
+>>>>>>>> webcams.
+>>>>>>>>
+>>>>>>>> Anyway, here are my observations about the header:
+>>>>>>>> In the snoop, it looks a bit different then yours
+>>>>>>>>
+>>>>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
+>>>>>>>> 1. xx: looks like random value
+>>>>>>>> 2. xx: changed from 0x03 to 0x0b
+>>>>>>>> 3. xx: changed from 0x06 to 0x49
+>>>>>>>> 4. xx: changed from 0x07 to 0x55
+>>>>>>>> 5. xx: static 0x96
+>>>>>>>> 6. xx: static 0x80
+>>>>>>>> 7. xx: static 0xa0
+>>>>>>>>
+>>>>>>>> And I did play in Linux and could identify some fields :-) .
+>>>>>>>> In Linux the header looks like this:
+>>>>>>>>
+>>>>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+>>>>>>>> 1. xx: don't know but value is changing between 0x00 to 0x07
+>>>>>>>> 2. xx: this is the actual pixel clock
+>>>>>>>> 3. xx: this is changing according light conditions from 0x03 
+>>>>>>>> (dark) to
+>>>>>>>> 0xfc (bright)
+>>>>>>>> 4. xx: this is changing according light conditions from 0x03 
+>>>>>>>> (dark) to
+>>>>>>>> 0xfc (bright)
+>>>>>>>> 5. xx: set value "Digital Gain of Red"
+>>>>>>>> 6. xx: set value "Digital Gain of Green"
+>>>>>>>> 7. xx: set value "Digital Gain of Blue"
+>>>>>>>>
+>>>>>>>> Regards, Thomas
+>>>>>>>
+>>>>>>> Thomas,
+>>>>>>> Cool good works :) so 3 and 4 are good candidate . To get good 
+>>>>>>> picture
+>>>>>>> result there are 2 windows where the chips measure the ligth 
+>>>>>>> condition.
+>>>>>>> Generally one is set to the center of the image the other are set 
+>>>>>>> to get
+>>>>>>> the background light. At the moment my autobrightness setting 
+>>>>>>> used simple
+>>>>>>> code and only one windows of measurement (the center one) .
+>>>>>>
+>>>>>> Some more info, 3 is the center one.
+>>>>>
+>>>>> :)
+>>>>>
+>>>>>>> Did you want i try to implement these feature ? or maybe you can 
+>>>>>>> have a
+>>>>>>> try :) the only problem i see is between interrupt() context and 
+>>>>>>> process
+>>>>>>> context. I have set up a spinlock for that look at the code how 
+>>>>>>> to use it
+>>>>>>> ( spca5xx_move_data() )
+>>>>>>
+>>>>>> Yes, please. Because I have no idea how to do this :-(
+>>>>>> I am good in investigating :-)
+>>>>>
+>>>>> I know, but can be very good in code to, as you know the hardware 
+>>>>> :) now 
+>>>> let try to look at 1
+>>>>                         ^^ What does this mean?
+>>>>> is there the black luma level ?
+>>>> I don't get it. What is the black luma level?
+>>>>
+>>>> Regards, Thomas
+>>>>
+>>>>
+>>>> -- 
+>>>> http://www.kaiser-linux.li
+>>>>
+>>>>
+>>>>> By any chance, you do not have a JL2005B or JL2005C or JL2005D 
+>>>>> camera among them, do you? AFAICT they all use the same compression 
+>>>>> algorithm (in stillcam mode), and it appears to me to be a really 
+>>>>> nasty one. Any help I could get with that algorithm is welcome indeed.
+>>>>
+>>>> I have to check. Please send me the USB ID.
+>>>
+>>>     0x0979 is the Vendor ID from Jeilin.
+>>>     0x0227 is the Product ID of the JL2005B/C/D cameras
+>>>     (yes, all three of them have the same ID)
+>>>>
+>>>> Thomas
+>>>
+>>> Thanks for the information. But this is an old letter. What is 
+>>> happening with Michel Xhaard these days? Do you know? I miss him.
+>>
+>> Yes, I know it is an old letter, but these info are still valid for 
+>> the PAC207 chipset!
+>>
+>> I don't know what happened to Michel. I didn't exchange mails with him 
+>> for a long time.
+> 
+> I believe you that the information is valid. The comment about the age 
+> of the letter related to the fact that I have not heard from Michel for 
+> approximately that long, myself. As to the information, though, what I 
+> would really like to see is a collection started which lists the known 
+> compression algorithms for the PAC family and, at least, their code 
+> bytes. So far, we have 0x00 (no compression) and 0x20, 0x50, 0xd0, and 
+> what else? For example, what is the next byte after the FF FF 00 FF 96 
+> for the PAC207? That would probably be good to know, but if anyone has 
+> recorded that information I have missed it.
+> 
+> Theodore Kilgore
 
-On Tuesday 10 February 2009 19:47:40 Mauro Carvalho Chehab wrote:
-> On Tue, 10 Feb 2009 10:25:26 -0800 (PST)
->
-> Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > On Tue, 10 Feb 2009, Eduard Huguet wrote:
-> > >     I don't have yet the buggy config, but the steps I was following
-> > > when I encounter the problem were the following:
-> > >         =B7 hg clone http://linuxtv.org/hg/v4l-dvb
-> > >         =B7 cd v4l-dvb
-> > >         =B7 make menuconfig
-> >
-> > This is what I did too.  Just use the menuconfig or xconfig targets.=20
-> > Maybe the kernel kconfig behavior has changed?
->
-> Hmm... I did a test here with RHEL 2.6.18 kernel:
->
-> $ make menuconfig
-> make -C /home/v4l/master/v4l menuconfig
-> make[1]: Entrando no diret=F3rio `/home/v4l/master/v4l'
-> /usr/src/kernels/2.6.18-125.el5-x86_64//scripts/kconfig/mconf ./Kconfig
-> #
-> # configuration written to .config
-> #
->
->
-> *** End of Linux kernel configuration.
-> *** Execute 'make' to build the kernel or try 'make help'.
->
-> $ grep CX88 v4l/.config
-> CONFIG_VIDEO_CX88=3Dm
-> CONFIG_VIDEO_CX88_ALSA=3Dm
-> CONFIG_VIDEO_CX88_BLACKBIRD=3Dm
-> CONFIG_VIDEO_CX88_DVB=3Dm
-> CONFIG_VIDEO_CX88_MPEG=3Dy
-> CONFIG_VIDEO_CX88_VP3054=3Dm
->
-> So, I got the buggy .config
->
-> Another test with 2.6.27:
->
-> $ make menuconfig
-> make -C /home/v4l/master/v4l menuconfig
-> make[1]: Entrando no diret=F3rio `/home/v4l/master/v4l'
-> ./scripts/make_kconfig.pl /usr/src/kernels/v2.6.27.4/
-> /usr/src/kernels/v2.6.27.4/ Preparing to compile for kernel version
-> 2.6.27
-> VIDEO_PXA27x: Requires at least kernel 2.6.29
-> USB_STV06XX: Requires at least kernel 2.6.28
-> /usr/src/kernels/v2.6.27.4.i5400//scripts/kconfig/mconf ./Kconfig
-> #
-> # configuration written to .config
-> #
->
->
-> *** End of Linux kernel configuration.
-> *** Execute 'make' to build the kernel or try 'make help'.
->
-> make[1]: Saindo do diret=F3rio `/home/v4l/master/v4l'
-> [v4l@pedra master]$ grep CX88 v4l/.config
-> CONFIG_VIDEO_CX88=3Dm
-> CONFIG_VIDEO_CX88_ALSA=3Dm
-> CONFIG_VIDEO_CX88_BLACKBIRD=3Dm
-> CONFIG_VIDEO_CX88_DVB=3Dm
-> CONFIG_VIDEO_CX88_MPEG=3Dm
-> CONFIG_VIDEO_CX88_VP3054=3Dm
->
-> With 2.6.27, everything is OK.
->
-> So, it seems that a fix at some kernel between 2.6.22 and 2.6.27 changed
-> (or fixed) the Kconfig behaviour.
->
-> I suspect that the better fix for this would be to run something like:
->
-> cat .config|sed s,'=3Dy','=3Dm'
->
-> For kernels older than 2.6.27.
->
-> Maybe Hans can give us a hint on what kernel this issue were solved, with
-> his build environment.
+Hello Theodore
 
-2.6.21 is wrong, 2.6.22 is right. Cause: dependency on VIDEOBUF_DMA_SG,=20
-which has a dependency on CONFIG_HAS_DMA, which was apparently introduced=20
-in 2.6.22 and didn't exist in 2.6.21.
+At this time I wrote this letter, I had a lot of email conversation with 
+  Michel. I got a cam with PAC207 chip and he got an other some weeks 
+later. Together, we could implement the PAC207 into spca5xx -> gspca.
 
-This is fixed by the attached diff.
+For the next byte after FF FF 00 FF 96:
+FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+1. xx: don't know but value is changing between 0x00 to 0x07
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+As far as I can remember (at the time I did this), the cam did 
+compresses sometimes and sometimes not during streaming.
 
-BTW, all the scripts I use to setup and run the build environment are=20
-available here: http://www.xs4all.nl/%7Ehverkuil/logs/scripts.tar.bz2
+So, I guess 0x07 means a compressed PAC207 frame!?
 
-Regards,
+Actually, I got some frames where some lines were compressed and the 
+rest was raw. The line marker tells you if the line is compressed or 
+not. So, it doesn't make a lot of sense to send this information in the 
+frame header. But may be 0x07 means "you can get compressed lines"?
 
-	Hans
-
-=2D-=20
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
---Boundary-00=_ARekJR2bUcu5VEW
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="dma.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="dma.diff"
-
-diff -r 9cb19f080660 v4l/scripts/make_kconfig.pl
---- a/v4l/scripts/make_kconfig.pl	Tue Feb 10 05:26:05 2009 -0200
-+++ b/v4l/scripts/make_kconfig.pl	Tue Feb 10 21:28:50 2009 +0100
-@@ -537,6 +537,11 @@
-     $kernopts{HAS_IOMEM} = 2;
- }
- 
-+# Kernel < 2.6.22 is missing the HAS_DMA option
-+if (!defined $kernopts{HAS_DMA} && cmp_ver($kernver, '2.6.22') < 0) {
-+    $kernopts{HAS_DMA} = 2;
-+}
-+
- # Kernel < 2.6.23 is missing the VIRT_TO_BUS option
- if (!defined $kernopts{VIRT_TO_BUS} && cmp_ver($kernver, '2.6.23') < 0) {
- 	# VIRT_TO_BUS -> !PPC64
-
---Boundary-00=_ARekJR2bUcu5VEW--
+Thomas
