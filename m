@@ -1,67 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:4080 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752773AbZBCDZo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 22:25:44 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so777701fgg.17
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 19:25:42 -0800 (PST)
-Subject: [PATCH] radio-si470x Documentation: add note about mplayer
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Tobias Lorenz <tobias.lorenz@gmx.net>,
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:60938 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754753AbZBTKiI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Feb 2009 05:38:08 -0500
+Subject: Re: Minimum kernel version supported by v4l-dvb
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: linux-media@vger.kernel.org
+	urishk@yahoo.com, linux-media@vger.kernel.org
+In-Reply-To: <20090220104935.0c516a57@hyperion.delvare>
+References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
+	 <20090218140105.17c86bcb@hyperion.delvare>
+	 <1235102231.2708.19.camel@pc10.localdom.local>
+	 <200902200753.16856.hverkuil@xs4all.nl>
+	 <20090220104935.0c516a57@hyperion.delvare>
 Content-Type: text/plain
-Date: Tue, 03 Feb 2009 06:25:35 +0300
-Message-Id: <1233631535.5730.12.camel@tux.localhost>
+Date: Fri, 20 Feb 2009 11:39:10 +0100
+Message-Id: <1235126350.3321.18.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, all
 
-This small patch adds information about si470x radio listening.
-Probably, it's useful to add such notes in doc file, right ?
-Feel free to change words in the right way due to my possible bad
-english.
+Am Freitag, den 20.02.2009, 10:49 +0100 schrieb Jean Delvare:
+> On Fri, 20 Feb 2009 07:53:16 +0100, Hans Verkuil wrote:
+> > On Friday 20 February 2009 04:57:11 hermann pitton wrote:
+> > > Hans decided deliberately to extend backward compat even down to 2.6.16,
+> > > now seeing the bill.
+> > 
+> > I didn't extend it, instead I reduced the backward compat to 2.6.16 at the 
+> > time. It supported older kernels as well back then, however since nobody 
+> > ever compiled for those older kernels quite a few drivers were broken.
+> > 
+> > Creating the daily build system at least ensures that we know v4l-dvb can 
+> > compile for those kernels we support officially. In the past this was more 
+> > based on hope and a prayer :-)
+> 
+> That's better than before, but just because it builds doesn't mean it
+> works...
+> 
 
----
-Patch adds information in si470x doc file about mplayer using to
-listening to the radio with this radio device.
+Given the restricted testing (!) capabilities in both directions, I
+don't even know how many and different devices we support currently and
+that it works is not always guaranteed on a released kernel either :)
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+Does Linus know it better ;)
 
---
-diff -r aba639a17195 linux/Documentation/video4linux/si470x.txt
---- a/linux/Documentation/video4linux/si470x.txt	Mon Feb 02 21:09:06 2009 +0300
-+++ b/linux/Documentation/video4linux/si470x.txt	Tue Feb 03 06:20:29 2009 +0300
-@@ -52,6 +52,8 @@
- - gradio - GTK FM radio tuner
- - kradio - Comfortable Radio Application for KDE
- - radio - ncurses-based radio application
-+- mplayer - media player for Linux http://www.mplayerhq.hu/
-+(see Audio Listening section below)
- 
- There is also a library libv4l, which can be used. It's going to have a function
- for frequency seeking, either by using hardware functionality as in radio-si470x
-@@ -80,6 +82,12 @@
- If you use arts try:
- arecord -D hw:1,0 -r96000 -c2 -f S16_LE | artsdsp aplay -B -
- 
-+You can also try mplayer:
-+mplayer radio://95.23/capture -radio adevice=hw=1.0:arate=96000 -rawaudio rate=96000
-+Of course, you should place right "adevice=hw=x.x" option, and you can read
-+man mplayer to know more about others parameters. Mplayer handles both v4l2-radio
-+control and sound redirecting, that's why this method is interesting.
-+
- 
- Module Parameters
- =================
+Cheers,
+Hermann
 
-
-
-
--- 
-Best regards, Klimov Alexey
 
