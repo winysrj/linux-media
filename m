@@ -1,27 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.240])
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <admin@monolithmc.com>) id 1Ld7RL-0000GE-QE
-	for linux-dvb@linuxtv.org; Fri, 27 Feb 2009 19:28:04 +0100
-Received: by an-out-0708.google.com with SMTP id c2so904219anc.41
-	for <linux-dvb@linuxtv.org>; Fri, 27 Feb 2009 10:27:58 -0800 (PST)
+	(envelope-from <eyal@eyal.emu.id.au>) id 1LaRz5-0008GB-1L
+	for linux-dvb@linuxtv.org; Fri, 20 Feb 2009 10:47:54 +0100
+Received: from e4.eyal.emu.id.au (really [192.168.3.4]) by eyal.emu.id.au
+	via in.smtpd with esmtp
+	id <m1LaRxr-001IKIC@eyal.emu.id.au> (Debian Smail3.2.0.115)
+	for <linux-dvb@linuxtv.org>; Fri, 20 Feb 2009 20:46:35 +1100 (EST)
+Message-ID: <499E7BF9.3060200@eyal.emu.id.au>
+Date: Fri, 20 Feb 2009 20:46:33 +1100
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
 MIME-Version: 1.0
-In-Reply-To: <49A820B9.7000004@linuxtv.org>
-References: <499E381D.4070607@linuxtv.org>
-	<387ee2020902192125w47916ebr7c633f7a6c092120@mail.gmail.com>
-	<499EC549.7090909@linuxtv.org>
-	<387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
-	<e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
-	<387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
-	<49A81DCE.6060201@linuxtv.org>
-	<387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
-	<49A820B9.7000004@linuxtv.org>
-Date: Fri, 27 Feb 2009 13:27:58 -0500
-Message-ID: <e816454e0902271027k295aa341r384752829687b7e8@mail.gmail.com>
-From: Andrew Barbaccia <andrew@monolithmc.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
+To: list linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] AverTV Duo Hybrid PCI-E
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -30,89 +21,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1836659998=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1836659998==
-Content-Type: multipart/alternative; boundary=0016e644d6eed2f03f0463eaa063
+I have this card and want to use the two DVB-T tuners. The machine runs F10/x86_64.
 
---0016e644d6eed2f03f0463eaa063
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Which driver(s) handle(s) this card? I understood that it uses the saa7162.
+I downloaded and built the package (work in progress) but it did not detect a thing.
 
->
-> >> I don't have anything that sophisticated to be honest. If that bothers
-> you then
-> >> I understand and respect your decision not to support the project.
->
-[snip]
+Below are some relevant details and I am game to try and get it going as the machine
+is not yet commissioned.
 
->
-> >>
-> >> I can't publish any source code until the driver is largely complete,
-> that's not
-> >> my call, that's the arrangement with NXP.
->
+TIA
 
-Sorry, maybe I phrased my request as a solution which is not what I
-intended. I was unaware of your agreements with NXP. I see you added how
-much money has been donated to your post. That's more than enough of a
-status indicator for me.
+lspci
+=====
+01:00.0 Multimedia controller: Philips Semiconductors Pinnacle PCTV 3010iX Dual Analog + DVB-T (VT8251 Ultra VLINK Controller) (rev 01)
+         Subsystem: Avermedia Technologies Inc Device 011c
+         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 0, Cache Line Size: 32 bytes
+         Interrupt: pin A routed to IRQ 11
+         Region 0: Memory at f3000000 (64-bit, non-prefetchable) [size=1M]
+         Capabilities: [40] Message Signalled Interrupts: Mask- 64bit+ Count=1/32 Enable-
+                 Address: 0000000000000000  Data: 0000
+         Capabilities: [50] Express (v1) Endpoint, MSI 00
+                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <256ns, L1 <1us
+                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                 DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
+                         MaxPayload 128 bytes, MaxReadReq 128 bytes
+                 DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr- TransPend-
+                 LnkCap: Port #1, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <4us, L1 <64us
+                         ClockPM- Suprise- LLActRep- BwNot-
+                 LnkCtl: ASPM Disabled; RCB 128 bytes Disabled- Retrain- CommClk-
+                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk- DLActive- BWMgmt- ABWMgmt-
+         Capabilities: [74] Power Management version 2
+                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot-,D3cold-)
+                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+         Capabilities: [80] Vendor Specific Information <?>
+         Capabilities: [100] Vendor Specific Information <?>
 
-Possibly could you roughly estimate how much more work is required and
-present it in the same manner?
-
-I want to you know that I do support this project and have just contributed
-- both as a thank you for your prior work and willingness to help the
-community in addition to the HVR-2250 support.
-
-Thanks,
-Andrew
-
---0016e644d6eed2f03f0463eaa063
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div><div class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"=
-margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"><div class=
-=3D"Ih2E3d">&gt;&gt; I don&#39;t have anything that sophisticated to be hon=
-est. If that bothers you then<br>
-
-&gt;&gt; I understand and respect your decision not to support the project.=
-</div></blockquote><div>[snip]</div><blockquote class=3D"gmail_quote" style=
-=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"><div cl=
-ass=3D"Ih2E3d">
-<br>
-&gt;&gt;<br>
-&gt;&gt; I can&#39;t publish any source code until the driver is largely co=
-mplete, that&#39;s not<br>
-&gt;&gt; my call, that&#39;s the arrangement with NXP.</div></blockquote><d=
-iv><br></div><div>Sorry, maybe I phrased my request as a solution which is =
-not what I intended. I was unaware of your agreements with NXP. I see you a=
-dded how much money has been donated to your post. That&#39;s more than eno=
-ugh of a status indicator for me.=A0</div>
-<div><br></div><div>Possibly could you roughly estimate how much more work =
-is required and present it in the same manner?</div><div><br></div><div>I w=
-ant to you know that I do support this project and have just contributed - =
-both as a thank you for your prior work and willingness to help the communi=
-ty in addition to the HVR-2250 support.<br>
-</div><div><br></div><div>Thanks,</div><div>Andrew</div></div></div>
-
---0016e644d6eed2f03f0463eaa063--
-
-
---===============1836659998==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+lshal
+=====
+udi = '/org/freedesktop/Hal/devices/pci_1131_7162'
+   info.parent = '/org/freedesktop/Hal/devices/pci_8086_29c1'  (string)
+   info.product = 'Unknown (0x7162)'  (string)
+   info.subsystem = 'pci'  (string)
+   info.udi = '/org/freedesktop/Hal/devices/pci_1131_7162'  (string)
+   info.vendor = 'Philips Semiconductors'  (string)
+   linux.hotplug_type = 2  (0x2)  (int)
+   linux.subsystem = 'pci'  (string)
+   linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0'  (string)
+   pci.device_class = 4  (0x4)  (int)
+   pci.device_protocol = 0  (0x0)  (int)
+   pci.device_subclass = 128  (0x80)  (int)
+   pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0'  (string)
+   pci.product_id = 29026  (0x7162)  (int)
+   pci.subsys_product_id = 284  (0x11c)  (int)
+   pci.subsys_vendor = 'Avermedia Technologies Inc'  (string)
+   pci.subsys_vendor_id = 5217  (0x1461)  (int)
+   pci.vendor = 'Philips Semiconductors'  (string)
+   pci.vendor_id = 4401  (0x1131)  (int)
+-- 
+Eyal Lebedinsky	(eyal@eyal.emu.id.au)
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1836659998==--
