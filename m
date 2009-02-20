@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n161Z7Dh008506
-	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 20:35:07 -0500
-Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
-	[151.189.21.50])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n161Yl8g021361
-	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 20:34:47 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: richard cinema <richard.cinema@gmail.com>
-In-Reply-To: <147fc4b90902050823i15baa12fjb3ac7493bc473e0@mail.gmail.com>
-References: <147fc4b90902050823i15baa12fjb3ac7493bc473e0@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 06 Feb 2009 02:35:25 +0100
-Message-Id: <1233884125.2689.11.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KFiegd002737
+	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 10:44:40 -0500
+Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
+	[209.85.217.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1KFhPJU009782
+	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 10:43:25 -0500
+Received: by gxk19 with SMTP id 19so2421968gxk.3
+	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 07:43:25 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <8617.62.70.2.252.1235144231.squirrel@webmail.xs4all.nl>
+References: <8617.62.70.2.252.1235144231.squirrel@webmail.xs4all.nl>
+Date: Fri, 20 Feb 2009 10:43:25 -0500
+Message-ID: <412bdbff0902200743h43b33222yd418a3e1083367ad@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: tv recording/preview software for saa7130 analogue PAL tv.
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: HVR-950q analog support - testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,68 +30,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, Feb 20, 2009 at 10:37 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> A good test is to play with v4l2-ctl and check the implemented ioctls. I
+> often discover that drivers forget to fill in some fields, or do not
+> handle invalid input, etc. Esp. try v4l2-ctl --all and v4l2-ctl
+> --list-ctrls-menus.
 
-Am Freitag, den 06.02.2009, 00:23 +0800 schrieb richard cinema:
-> debian, latest sid update, kernel 2.6.28, saa713X analogue tv card. amd x2
-> 3600+8500GT 512M+3G RAM
-> 
-> i should mention here, my tv card+pc can do tv recording to mpg4 in PAL SD
-> size very well in windows, so there is no
-> hardware limition, i think.
-> 
-> so, for recording tv in linux, i have tried these software:
-> 
-> 1.xawtv: can record , have audiobuffer errors when selecting some modern
-> codecs, but the big problem is there is no codec bitrate settings.
-> 
-> 2.mencoder: picture is ok, no sync issues when recording in SD resolution,
-> but can't preview at the same time.
-> 
->                    2.1.  mencoder xxx...xxx -o >( tee test.avi | mplayer -)
-> not work, it just sit there, no output, no recording.
-> 
-> 3. transcode: sometimes works, sometimes not, no preview funtion, haven't
-> tried the tee trick.
-> 
-> 4. pvr: old/new version not work,  lots of options are grey out in the
-> setting window( in root/user mode).
-> 
-> 5. mythtv: what i want is just a simple recording software with record
-> monitor function, not a big MCE like monster. have tried to installed but
-> the mysql setup is really a mess to me.
-> 
-> 6.cupid: this one looks promising, but is stopped development now. require
-> old gstream0.8, i don't know how to make it use the gstream0.10, anyone
-> knows?
-> 
-> 7. chease: maybe the same programmer as 6, this one can record, but the
-> final file is out of sync, picture is like slideshow, also no bitrate/codec
-> settings.
-> 
-> 8+9+10=vlc+ffmpeg+gst-launch? not confidient about them, will continuing my
-> trial and error.
-> 
-> besides of above 10, are there other softwares can finish this task ?
+Thanks for the suggestion.
 
-don't take it too serious,
+When I first started the work, I did play with the test tool that
+enumerates through all the calls and dumps the output, although I
+haven't tried that again in the last couple of days.
 
-but xawtv was the best attempt so far.
-In overlay-preview mode it can work for this.
+My bigger concern lies in identifying the little quirks in various
+applications, like how tvtime does a set format with UYVY first, and
+only if that call fails does it turn around and ask for YUYV (as
+opposed to enumerating the available formats and picking one from the
+list).
 
-There is mp4live using SDL for preview from mpeg4ip.sf.net as well.
+Devin
 
-If you compile it the first time, it might be still somewhat tricky, and
-it is not focused to serve all sort of linux distributions equally well
-at all times.
-
-I'm not up to date, but it is an easy task there :)
-
-Cheers,
-Hermann
-
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
