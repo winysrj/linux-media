@@ -1,648 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:21626 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752932AbZB1UN2 convert rfc822-to-8bit (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:35804 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754109AbZBTBUN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Feb 2009 15:13:28 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so1181201yxm.1
-        for <linux-media@vger.kernel.org>; Sat, 28 Feb 2009 12:13:26 -0800 (PST)
+	Thu, 19 Feb 2009 20:20:13 -0500
+Date: Thu, 19 Feb 2009 19:32:24 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: Jean-Francois Moine <moinejf@free.fr>,
+	Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: MR97310A and other image formats
+In-Reply-To: <499DFEBF.9020601@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0902191913320.7602@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu> <499DB030.7010206@kaiser-linux.li> <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu> <499DE107.80502@kaiser-linux.li>
+ <alpine.LNX.2.00.0902191723380.7472@banach.math.auburn.edu> <499DFEBF.9020601@kaiser-linux.li>
 MIME-Version: 1.0
-In-Reply-To: <f917d4dd0902281024veec9c7ay4ee9e609b16c1c2a@mail.gmail.com>
-References: <f917d4dd0902281024veec9c7ay4ee9e609b16c1c2a@mail.gmail.com>
-Date: Sat, 28 Feb 2009 17:13:25 -0300
-Message-ID: <f917d4dd0902281213n592f8166m97f8e205bc255b93@mail.gmail.com>
-Subject: Re: [PATCH] Add support for GeoVision GV-800(S)
-From: Bruno Christo <brunochristo@gmail.com>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I forgot to run make checkpatch before submitting the previous patch,
-here is the fixed patch:
-
-diff -r c770b20d15c6 linux/Documentation/video4linux/CARDLIST.bttv
---- a/linux/Documentation/video4linux/CARDLIST.bttv	Fri Feb 27
-21:29:59 2009 -0300
-+++ b/linux/Documentation/video4linux/CARDLIST.bttv	Sat Feb 28
-17:09:23 2009 -0300
-@@ -155,3 +155,5 @@
- 154 -> PHYTEC VD-012-X1 (bt878)
- 155 -> PHYTEC VD-012-X2 (bt878)
- 156 -> IVCE-8784
-[0000:f050,0001:f050,0002:f050,0003:f050]
-+157 -> Geovision GV-800(S) (master)                        [800a:763d]
-+158 -> Geovision GV-800(S) (slave)
-[800b:763d,800c:763d,800d:763d]
-diff -r c770b20d15c6 linux/drivers/media/video/bt8xx/bttv-cards.c
---- a/linux/drivers/media/video/bt8xx/bttv-cards.c	Fri Feb 27 21:29:59
-2009 -0300
-+++ b/linux/drivers/media/video/bt8xx/bttv-cards.c	Sat Feb 28 17:09:23
-2009 -0300
-@@ -75,6 +75,9 @@
- static void geovision_muxsel(struct bttv *btv, unsigned int input);
-
- static void phytec_muxsel(struct bttv *btv, unsigned int input);
-+
-+static void gv800s_muxsel(struct bttv *btv, unsigned int input);
-+static void gv800s_init(struct bttv *btv);
-
- static int terratec_active_radio_upgrade(struct bttv *btv);
- static int tea5757_read(struct bttv *btv);
-@@ -312,6 +315,10 @@
- 	{ 0xd200dbc0, BTTV_BOARD_DVICO_FUSIONHDTV_2,	"DViCO FusionHDTV 2" },
- 	{ 0x763c008a, BTTV_BOARD_GEOVISION_GV600,	"GeoVision GV-600" },
- 	{ 0x18011000, BTTV_BOARD_ENLTV_FM_2,	"Encore ENL TV-FM-2" },
-+	{ 0x763d800a, BTTV_BOARD_GEOVISION_GV800S, "GeoVision GV-800(S) (master)" },
-+	{ 0x763d800b, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
-+	{ 0x763d800c, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
-+	{ 0x763d800d, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
- 	{ 0, -1, NULL }
- };
-
-@@ -2847,7 +2854,60 @@
- 		.pll            = PLL_28,
- 		.tuner_type     = TUNER_ABSENT,
- 		.tuner_addr	= ADDR_UNSET,
--	}
-+	},
-+		[BTTV_BOARD_GEOVISION_GV800S] = {
-+		/* Bruno Christo <bchristo@inf.ufsm.br>
-+		 *
-+		 * GeoVision GV-800(S) has 4 Conexant Fusion 878A:
-+		 * 	1 audio input  per BT878A = 4 audio inputs
-+		 * 	4 video inputs per BT878A = 16 video inputs
-+		 * This is the first BT878A chip of the GV-800(S). It's the
-+		 * "master" chip and it controls the video inputs through an
-+		 * analog multiplexer (a CD22M3494) via some GPIO pins. The
-+		 * slaves should use card type 0x9e (following this one).
-+		 * There is a EEPROM on the card which is currently not handled.
-+		 * The audio input is not working yet.
-+		 */
-+		.name           = "Geovision GV-800(S) (master)",
-+		.video_inputs   = 4,
-+		/* .audio_inputs= 1, */
-+		.tuner_type	= TUNER_ABSENT,
-+		.tuner_addr	= ADDR_UNSET,
-+		.svhs           = NO_SVHS,
-+		.gpiomask	= 0xf107f,
-+		.no_gpioirq     = 1,
-+		.muxsel		= MUXSEL(2, 2, 2, 2),
-+		.pll		= PLL_28,
-+		.no_msp34xx	= 1,
-+		.no_tda7432	= 1,
-+		.no_tda9875	= 1,
-+		.muxsel_hook    = gv800s_muxsel,
-+	},
-+		[BTTV_BOARD_GEOVISION_GV800S_SL] = {
-+		/* Bruno Christo <bchristo@inf.ufsm.br>
-+		 *
-+		 * GeoVision GV-800(S) has 4 Conexant Fusion 878A:
-+		 * 	1 audio input  per BT878A = 4 audio inputs
-+		 * 	4 video inputs per BT878A = 16 video inputs
-+		 * The 3 other BT878A chips are "slave" chips of the GV-800(S)
-+		 * and should use this card type.
-+		 * The audio input is not working yet.
-+		 */
-+		.name           = "Geovision GV-800(S) (slave)",
-+		.video_inputs   = 4,
-+		/* .audio_inputs= 1, */
-+		.tuner_type	= TUNER_ABSENT,
-+		.tuner_addr	= ADDR_UNSET,
-+		.svhs           = NO_SVHS,
-+		.gpiomask	= 0x00,
-+		.no_gpioirq     = 1,
-+		.muxsel		= MUXSEL(2, 2, 2, 2),
-+		.pll		= PLL_28,
-+		.no_msp34xx	= 1,
-+		.no_tda7432	= 1,
-+		.no_tda9875	= 1,
-+		.muxsel_hook    = gv800s_muxsel,
-+	},
- };
-
- static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
-@@ -3376,6 +3436,9 @@
- 	case BTTV_BOARD_KODICOM_4400R:
- 		kodicom4400r_init(btv);
- 		break;
-+	case BTTV_BOARD_GEOVISION_GV800S:
-+		gv800s_init(btv);
-+		break;
- 	}
-
- 	/* pll configuration */
-@@ -4595,6 +4658,122 @@
- 	gpio_bits(0x3, mux);
- }
-
-+/*
-+ * GeoVision GV-800(S) functions
-+ * Bruno Christo <bchristo@inf.ufsm.br>
-+*/
-+
-+/* This is a function to control the analog switch, which determines which
-+ * camera is routed to which controller.  The switch comprises an X-address
-+ * (gpio bits 0-3, representing the camera, ranging from 0-15), and a
-+ * Y-address (gpio bits 4-6, representing the controller, ranging from 0-3).
-+ * A data value (gpio bit 18) of '1' enables the switch, and '0' disables
-+ * the switch.  A STROBE bit (gpio bit 17) latches the data value into the
-+ * specified address. There is also a chip select (gpio bit 16).
-+ * The idea is to set the address and chip select together, bring
-+ * STROBE high, write the data, and finally bring STROBE back to low.
-+ */
-+static void gv800s_write(struct bttv *btv,
-+			 unsigned char xaddr,
-+			 unsigned char yaddr,
-+			 unsigned char data) {
-+	/* On the "master" 878A:
-+	* GPIO bits 0-9 are used for the analog switch:
-+	*   00 - 03:	camera selector
-+	*   04 - 06:	878A (controller) selector
-+	*   16: 	cselect
-+	*   17:		strobe
-+	*   18: 	data (1->on, 0->off)
-+	*   19:		reset
-+	*/
-+	const u32 ADDR = ((xaddr&0xf) | (yaddr&3)<<4);
-+	const u32 CSELECT = 1<<16;
-+	const u32 STROBE = 1<<17;
-+	const u32 DATA = data<<18;
-+
-+	gpio_bits(0x1007f, ADDR | CSELECT);	/* write ADDR and CSELECT */
-+	gpio_bits(0x20000, STROBE);		/* STROBE high */
-+	gpio_bits(0x40000, DATA);		/* write DATA */
-+	gpio_bits(0x20000, ~STROBE);		/* STROBE low */
-+}
-+
-+/*
-+ * GeoVision GV-800(S) muxsel
-+ *
-+ * Each of the 4 cards (controllers) use this function.
-+ * The controller using this function selects the input through the GPIO pins
-+ * of the "master" card. A pointer to this card is stored in master[btv->c.nr].
-+ *
-+ * The parameter 'input' is the requested camera number (0-4) on the
-controller.
-+ * The map array has the address of each input. Note that the addresses in the
-+ * array are in the sequence the original GeoVision driver uses, that is, set
-+ * every controller to input 0, then to input 1, 2, 3, repeat. This means that
-+ * the physical "camera 1" connector corresponds to controller 0 input 0,
-+ * "camera 2" corresponds to controller 1 input 0, and so on.
-+ *
-+ * After getting the input address, the function then writes the appropriate
-+ * data to the analog switch, and housekeeps the local copy of the switch
-+ * information.
-+ */
-+static void gv800s_muxsel(struct bttv *btv, unsigned int input)
-+{
-+	struct bttv *mctlr;
-+	char *sw_status;
-+	int xaddr, yaddr;
-+	static unsigned int map[4][4] = { { 0x0, 0x4, 0xa, 0x6 },
-+					  { 0x1, 0x5, 0xb, 0x7 },
-+					  { 0x2, 0x8, 0xc, 0xe },
-+					  { 0x3, 0x9, 0xd, 0xf } };
-+	input = input%4;
-+	mctlr = master[btv->c.nr];
-+	if (mctlr == NULL) {
-+		/* do nothing until the "master" is detected */
-+		return;
-+	}
-+	yaddr = (btv->c.nr - mctlr->c.nr) & 3;
-+	sw_status = (char *)(&mctlr->mbox_we);
-+	xaddr = map[yaddr][input] & 0xf;
-+
-+	/* Check if the controller/camera pair has changed, ignore otherwise */
-+	if (sw_status[yaddr] != xaddr) {
-+		/* disable the old switch, enable the new one and save status */
-+		gv800s_write(mctlr, sw_status[yaddr], yaddr, 0);
-+		sw_status[yaddr] = xaddr;
-+		gv800s_write(mctlr, xaddr, yaddr, 1);
-+	}
-+}
-+
-+/* GeoVision GV-800(S) "master" chip init */
-+static void gv800s_init(struct bttv *btv)
-+{
-+	char *sw_status = (char *)(&btv->mbox_we);
-+	int ix;
-+
-+	gpio_inout(0xf107f, 0xf107f);
-+	gpio_write(1<<19); /* reset the analog MUX */
-+	gpio_write(0);
-+
-+	/* Preset camera 0 to the 4 controllers */
-+	for (ix = 0; ix < 4; ix++) {
-+		sw_status[ix] = ix;
-+		gv800s_write(btv, ix, ix, 1);
-+	}
-+
-+	/* Inputs on the "master" controller need this brightness fix */
-+	bttv_I2CWrite(btv, 0x18, 0x5, 0x90, 1);
-+
-+	if (btv->c.nr > BTTV_MAX-4)
-+	   return;
-+	/*
-+	 * Store the "master" controller pointer in the master
-+	 * array for later use in the muxsel function.
-+	 */
-+	master[btv->c.nr]   = btv;
-+	master[btv->c.nr+1] = btv;
-+	master[btv->c.nr+2] = btv;
-+	master[btv->c.nr+3] = btv;
-+}
-+
- /* ----------------------------------------------------------------------- */
- /* motherboard chipset specific stuff                                      */
-
-diff -r c770b20d15c6 linux/drivers/media/video/bt8xx/bttv.h
---- a/linux/drivers/media/video/bt8xx/bttv.h	Fri Feb 27 21:29:59 2009 -0300
-+++ b/linux/drivers/media/video/bt8xx/bttv.h	Sat Feb 28 17:09:23 2009 -0300
-@@ -182,6 +182,8 @@
- #define BTTV_BOARD_VD012_X1		   0x9a
- #define BTTV_BOARD_VD012_X2		   0x9b
- #define BTTV_BOARD_IVCE8784		   0x9c
-+#define BTTV_BOARD_GEOVISION_GV800S	   0x9d
-+#define BTTV_BOARD_GEOVISION_GV800S_SL	   0x9e
 
 
- /* more card-specific defines */
+On Fri, 20 Feb 2009, Thomas Kaiser wrote:
 
-2009/2/28 Bruno Christo <brunochristo@gmail.com>:
-> Hello all,
+> kilgota@banach.math.auburn.edu wrote:
+>> 
+>> 
+>> On Thu, 19 Feb 2009, Thomas Kaiser wrote:
+>> 
+>>> kilgota@banach.math.auburn.edu wrote:
+>>>> Yes, what you quote is the SOF marker for all of these cameras. The total 
+>>>> header length, including the SOF marker ought to be 12 bytes. On all of 
+>>>> the mr97310 cameras that I have dealt with, the last 5 bytes are 
+>>>> obviously related somehow to the image (contrast, color balance, gamma, 
+>>>> whatever).  I have no idea how to interpret those values, but we can hope
+>>>> that someone will figure out how.
+>>> 
+>>> Two of them are luminance values (middle and edge) for the PAC207.
+>> 
+>> Which two, and how do those numbers translate into anything relevant?
 >
-> I have a GeoVision GV-800(S) card, it has 4 CONEXANT BT878A chips.
-> It has 16 video inputs and 4 audio inputs, and it is almost identical
-> to the GV-800, as seen on http://bttv-gallery.de .
-> The only difference appears to be the analog mux, it has a CD22M3494
-> in place of the MT8816AP. The card has a blue PCB, as seen in this
-> picture: http://www.gsbr.com.br/imagem/kits/GeoVision%20GV%20800.jpg .
+> Looks like I had some off list (private) email conversation about the frame 
+> header of PAC207 with Michel Xhaard. I just paste the whole thing in here:
 >
-> This card wasn't originally supported, and it was detected as
-> UNKNOWN/GENERIC. The video inputs weren't working, so I tried
-> "forcing" a few cards like the GeoVision GV-600, but there was still
-> no video. So I made a patch to support this card, based on the Kodicom
-> 4400r.
+> michel Xhaard wrote:
+>> Le Samedi 18 Fe'vrier 2006 12:16, vous avez e'crit :
+>>
+>>> michel Xhaard wrote:
+>>>
+>>>> Le Samedi 18 Fe'vrier 2006 10:10, vous avez e'crit :
+>>>>
+>>>>> Hello Michel
+>>>>>
+>>>>> michel Xhaard wrote:
+>>>>>
+>>>>>> Le Mercredi 15 Fe'vrier 2006 12:43, vous avez e'crit :
+>>>>>> Just relook the snoop, the header is always 16 bytes long starting 
+> with:
+>>>>>> ff ff 00 ff 96 64 follow
+>>>>>> xx 00 xx xx xx xx  64 xx 00 00
+>>>>>> let try to play poker with the asumption the R mean G0 mean B mean G1
+>>>>>> mean is encoded here.
+>>>>>> Not sure about the 64 can you look at your snoop?
+>>>>>
+>>>>> I never thought about that. So, you see I have not experience with
+>>>>> webcams.
+>>>>>
+>>>>> Anyway, here are my observations about the header:
+>>>>> In the snoop, it looks a bit different then yours
+>>>>>
+>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
+>>>>> 1. xx: looks like random value
+>>>>> 2. xx: changed from 0x03 to 0x0b
+>>>>> 3. xx: changed from 0x06 to 0x49
+>>>>> 4. xx: changed from 0x07 to 0x55
+>>>>> 5. xx: static 0x96
+>>>>> 6. xx: static 0x80
+>>>>> 7. xx: static 0xa0
+>>>>>
+>>>>> And I did play in Linux and could identify some fields :-) .
+>>>>> In Linux the header looks like this:
+>>>>>
+>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+>>>>> 1. xx: don't know but value is changing between 0x00 to 0x07
+>>>>> 2. xx: this is the actual pixel clock
+>>>>> 3. xx: this is changing according light conditions from 0x03 (dark) to
+>>>>> 0xfc (bright)
+>>>>> 4. xx: this is changing according light conditions from 0x03 (dark) to
+>>>>> 0xfc (bright)
+>>>>> 5. xx: set value "Digital Gain of Red"
+>>>>> 6. xx: set value "Digital Gain of Green"
+>>>>> 7. xx: set value "Digital Gain of Blue"
+>>>>>
+>>>>> Regards, Thomas
+>>>>
+>>>> Thomas,
+>>>> Cool good works :) so 3 and 4 are good candidate . To get good picture
+>>>> result there are 2 windows where the chips measure the ligth condition.
+>>>> Generally one is set to the center of the image the other are set to get
+>>>> the background light. At the moment my autobrightness setting used simple
+>>>> code and only one windows of measurement (the center one) .
+>>>
+>>> Some more info, 3 is the center one.
+>>
+>> :)
+>>
+>>>> Did you want i try to implement these feature ? or maybe you can have a
+>>>> try :) the only problem i see is between interrupt() context and process
+>>>> context. I have set up a spinlock for that look at the code how to use it
+>>>> ( spca5xx_move_data() )
+>>>
+>>> Yes, please. Because I have no idea how to do this :-(
+>>> I am good in investigating :-)
+>>
+>> I know, but can be very good in code to, as you know the hardware :) now 
+> let try to look at 1
+>                         ^^ What does this mean?
+>> is there the black luma level ?
+> I don't get it. What is the black luma level?
 >
-> The GV-800(S) is identified as follows:
->
-> # lspci
-> ...
-> 02:00.0 Multimedia video controller: Brooktree Corporation Bt878 Video
-> Capture (rev 11)
-> 02:00.1 Multimedia controller: Brooktree Corporation Bt878 Audio
-> Capture (rev 11)
-> 02:04.0 Multimedia video controller: Brooktree Corporation Bt878 Video
-> Capture (rev 11)
-> 02:04.1 Multimedia controller: Brooktree Corporation Bt878 Audio
-> Capture (rev 11)
-> 02:08.0 Multimedia video controller: Brooktree Corporation Bt878 Video
-> Capture (rev 11)
-> 02:08.1 Multimedia controller: Brooktree Corporation Bt878 Audio
-> Capture (rev 11)
-> 02:0c.0 Multimedia video controller: Brooktree Corporation Bt878 Video
-> Capture (rev 11)
-> 02:0c.1 Multimedia controller: Brooktree Corporation Bt878 Audio
-> Capture (rev 11)
->
-> # lspci -nv
-> ...
-> 02:00.0 0400: 109e:036e (rev 11)
->        Subsystem: 800a:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdfff000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->        Kernel modules: bttv
->
-> 02:00.1 0480: 109e:0878 (rev 11)
->        Subsystem: 800a:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdffe000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->
-> 02:04.0 0400: 109e:036e (rev 11)
->        Subsystem: 800b:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdffd000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->        Kernel modules: bttv
->
-> 02:04.1 0480: 109e:0878 (rev 11)
->        Subsystem: 800b:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdffc000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->
-> 02:08.0 0400: 109e:036e (rev 11)
->        Subsystem: 800c:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdffb000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->        Kernel modules: bttv
->
-> 02:08.1 0480: 109e:0878 (rev 11)
->        Subsystem: 800c:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdffa000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->
-> 02:0c.0 0400: 109e:036e (rev 11)
->        Subsystem: 800d:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdff9000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->        Kernel modules: bttv
->
-> 02:0c.1 0480: 109e:0878 (rev 11)
->        Subsystem: 800d:763d
->        Flags: bus master, medium devsel, latency 32, IRQ 10
->        Memory at cdff8000 (32-bit, prefetchable) [size=4K]
->        Capabilities: [44] Vital Product Data <?>
->        Capabilities: [4c] Power Management version 2
->
-> As you can see, the GV-800(S) card is almost identical to the GV-800
-> on bttv-gallery, so this patch might also work for that card. If not,
-> only a few changes should be required on the gv800s_write() function.
->
-> After this patch, the video inputs work correctly. The input order may
-> seem a little odd, but it's the order the original software/driver
-> uses, and I decided to keep that order to get the most out of the
-> card.
->
-> I tried to get the audio working with the snd-bt87x module, but I only
-> get noise from every audio input, even after selecting a different mux
-> with alsamixer. Also, after trying to play sound from those sources, I
-> randomly get a RISC error about an invalid RISC opcode, and then that
-> output stops working. I also can't change the sampling rate when
-> recording. Any pointers to adding audio support are welcome.
->
-> Signed-off-by: Bruno Christo <bchristo@inf.ufsm.br>
->
-> diff -r c770b20d15c6 linux/Documentation/video4linux/CARDLIST.bttv
-> --- a/linux/Documentation/video4linux/CARDLIST.bttv     Fri Feb 27
-> 21:29:59 2009 -0300
-> +++ b/linux/Documentation/video4linux/CARDLIST.bttv     Fri Feb 27
-> 22:12:29 2009 -0300
-> @@ -155,3 +155,5 @@
->  154 -> PHYTEC VD-012-X1 (bt878)
->  155 -> PHYTEC VD-012-X2 (bt878)
->  156 -> IVCE-8784
-> [0000:f050,0001:f050,0002:f050,0003:f050]
-> +157 -> Geovision GV-800(S) (master)                        [800a:763d]
-> +158 -> Geovision GV-800(S) (slave)
-> [800b:763d,800c:763d,800d:763d]
-> diff -r c770b20d15c6 linux/drivers/media/video/bt8xx/bttv-cards.c
-> --- a/linux/drivers/media/video/bt8xx/bttv-cards.c      Fri Feb 27 21:29:59
-> 2009 -0300
-> +++ b/linux/drivers/media/video/bt8xx/bttv-cards.c      Fri Feb 27 22:12:29
-> 2009 -0300
-> @@ -75,6 +75,9 @@
->  static void geovision_muxsel(struct bttv *btv, unsigned int input);
->
->  static void phytec_muxsel(struct bttv *btv, unsigned int input);
-> +
-> +static void gv800s_muxsel(struct bttv *btv, unsigned int input);
-> +static void gv800s_init(struct bttv *btv);
->
->  static int terratec_active_radio_upgrade(struct bttv *btv);
->  static int tea5757_read(struct bttv *btv);
-> @@ -312,6 +315,10 @@
->        { 0xd200dbc0, BTTV_BOARD_DVICO_FUSIONHDTV_2,    "DViCO FusionHDTV 2" },
->        { 0x763c008a, BTTV_BOARD_GEOVISION_GV600,       "GeoVision GV-600" },
->        { 0x18011000, BTTV_BOARD_ENLTV_FM_2,    "Encore ENL TV-FM-2" },
-> +       { 0x763d800a, BTTV_BOARD_GEOVISION_GV800S, "GeoVision GV-800(S) (master)" },
-> +       { 0x763d800b, BTTV_BOARD_GEOVISION_GV800S_SL,   "GeoVision GV-800(S) (slave)" },
-> +       { 0x763d800c, BTTV_BOARD_GEOVISION_GV800S_SL,   "GeoVision GV-800(S) (slave)" },
-> +       { 0x763d800d, BTTV_BOARD_GEOVISION_GV800S_SL,   "GeoVision GV-800(S) (slave)" },
->        { 0, -1, NULL }
->  };
->
-> @@ -2847,7 +2854,60 @@
->                .pll            = PLL_28,
->                .tuner_type     = TUNER_ABSENT,
->                .tuner_addr     = ADDR_UNSET,
-> -       }
-> +       },
-> +               [BTTV_BOARD_GEOVISION_GV800S] = {
-> +               /* Bruno Christo <bchristo@inf.ufsm.br>
-> +                *
-> +                * GeoVision GV-800(S) has 4 Conexant Fusion 878A:
-> +                *      1 audio input  per BT878A = 4 audio inputs
-> +                *      4 video inputs per BT878A = 16 video inputs
-> +                * This is the first BT878A chip of the GV-800(S). It's the
-> +                * "master" chip and it controls the video inputs through an
-> +                * analog multiplexer (a CD22M3494) via some GPIO pins. The
-> +                * slaves should use card type 0x9e (following this one).
-> +                * There is a EEPROM on the card which is currently not handled.
-> +                * The audio input is not working yet.
-> +                */
-> +               .name           = "Geovision GV-800(S) (master)",
-> +               .video_inputs   = 4,
-> +               /* .audio_inputs= 1, */
-> +               .tuner_type     = TUNER_ABSENT,
-> +               .tuner_addr     = ADDR_UNSET,
-> +               .svhs           = NO_SVHS,
-> +               .gpiomask       = 0xf107f,
-> +               .no_gpioirq     = 1,
-> +               .muxsel         = MUXSEL(2, 2, 2, 2),
-> +               .pll            = PLL_28,
-> +               .no_msp34xx     = 1,
-> +               .no_tda7432     = 1,
-> +               .no_tda9875     = 1,
-> +               .muxsel_hook    = gv800s_muxsel,
-> +       },
-> +               [BTTV_BOARD_GEOVISION_GV800S_SL] = {
-> +               /* Bruno Christo <bchristo@inf.ufsm.br>
-> +                *
-> +                * GeoVision GV-800(S) has 4 Conexant Fusion 878A:
-> +                *      1 audio input  per BT878A = 4 audio inputs
-> +                *      4 video inputs per BT878A = 16 video inputs
-> +                * The 3 other BT878A chips are "slave" chips of the GV-800(S)
-> +                * and should use this card type.
-> +                * The audio input is not working yet.
-> +                */
-> +               .name           = "Geovision GV-800(S) (slave)",
-> +               .video_inputs   = 4,
-> +               /* .audio_inputs= 1, */
-> +               .tuner_type     = TUNER_ABSENT,
-> +               .tuner_addr     = ADDR_UNSET,
-> +               .svhs           = NO_SVHS,
-> +               .gpiomask       = 0x00,
-> +               .no_gpioirq     = 1,
-> +               .muxsel         = MUXSEL(2, 2, 2, 2),
-> +               .pll            = PLL_28,
-> +               .no_msp34xx     = 1,
-> +               .no_tda7432     = 1,
-> +               .no_tda9875     = 1,
-> +               .muxsel_hook    = gv800s_muxsel,
-> +       },
->  };
->
->  static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
-> @@ -3376,6 +3436,9 @@
->        case BTTV_BOARD_KODICOM_4400R:
->                kodicom4400r_init(btv);
->                break;
-> +       case BTTV_BOARD_GEOVISION_GV800S:
-> +               gv800s_init(btv);
-> +               break;
->        }
->
->        /* pll configuration */
-> @@ -4595,6 +4658,123 @@
->        gpio_bits(0x3, mux);
->  }
->
-> +/*
-> + * GeoVision GV-800(S) functions
-> + * Bruno Christo <bchristo@inf.ufsm.br>
-> +*/
-> +
-> +/* This is a function to control the analog switch, which determines which
-> + * camera is routed to which controller.  The switch comprises an X-address
-> + * (gpio bits 0-3, representing the camera, ranging from 0-15), and a
-> + * Y-address (gpio bits 4-6, representing the controller, ranging from 0-3).
-> + * A data value (gpio bit 18) of '1' enables the switch, and '0' disables
-> + * the switch.  A STROBE bit (gpio bit 17) latches the data value into the
-> + * specified address. There is also a chip select (gpio bit 16).
-> + * The idea is to set the address and chip select together, bring
-> + * STROBE high, write the data, and finally bring STROBE back to low.
-> + */
-> +static void gv800s_write(struct bttv *btv,
-> +                        unsigned char xaddr,
-> +                        unsigned char yaddr,
-> +                        unsigned char data) {
-> +       /* On the "master" 878A:
-> +       * GPIO bits 0-9 are used for the analog switch:
-> +       *   00 - 03:    camera selector
-> +       *   04 - 06:    878A (controller) selector
-> +       *   16:         cselect
-> +       *   17:         strobe
-> +       *   18:         data (1->on, 0->off)
-> +       *   19:         reset
-> +       */
-> +       const u32 ADDR = ((xaddr&0xf) | (yaddr&3)<<4);
-> +       const u32 CSELECT = 1<<16;
-> +       const u32 STROBE = 1<<17;
-> +       const u32 DATA = data<<18;
-> +
-> +       gpio_bits(0x1007f, ADDR | CSELECT);     /* write ADDR and CSELECT */
-> +       gpio_bits(0x20000, STROBE);             /* STROBE high */
-> +       gpio_bits(0x40000, DATA);               /* write DATA */
-> +       gpio_bits(0x20000, ~STROBE);            /* STROBE low */
-> +}
-> +
-> +/*
-> + * GeoVision GV-800(S) muxsel
-> + *
-> + * Each of the 4 cards (controllers) use this function.
-> + * The controller using this function selects the input through the GPIO pins
-> + * of the "master" card. A pointer to this card is stored in master[btv->c.nr].
-> + *
-> + * The parameter 'input' is the requested camera number (0-4) on the
-> controller.
-> + * The map array has the address of each input. Note that the addresses in the
-> + * array are in the sequence the original GeoVision driver uses, that is, set
-> + * every controller to input 0, then to input 1, 2, 3, repeat. This means that
-> + * the physical "camera 1" connector corresponds to controller 0 input 0,
-> + * "camera 2" corresponds to controller 1 input 0, and so on.
-> + *
-> + * After getting the input address, the function then writes the appropriate
-> + * data to the analog switch, and housekeeps the local copy of the switch
-> + * information.
-> + */
-> +static void gv800s_muxsel(struct bttv *btv, unsigned int input)
-> +{
-> +       struct bttv *mctlr;
-> +       char *sw_status;
-> +       int xaddr, yaddr;
-> +       static unsigned int map[4][4] = {{ 0x0, 0x4, 0xa, 0x6 },
-> +                                        { 0x1, 0x5, 0xb, 0x7 },
-> +                                        { 0x2, 0x8, 0xc, 0xe },
-> +                                        { 0x3, 0x9, 0xd, 0xf }};
-> +       input = input%4;
-> +       mctlr = master[btv->c.nr];
-> +       if (mctlr == NULL) {
-> +               // do nothing until the "master" is detected
-> +               return;
-> +       }
-> +       yaddr = (btv->c.nr - mctlr->c.nr) & 3;
-> +       sw_status = (char *)(&mctlr->mbox_we);
-> +       xaddr = map[yaddr][input] & 0xf;
-> +
-> +       // Check if the controller/camera pair has changed, ignore otherwise
-> +       if (sw_status[yaddr] != xaddr)
-> +       {
-> +               // disable the old switch, enable the new one and save status
-> +               gv800s_write(mctlr, sw_status[yaddr], yaddr, 0);
-> +               sw_status[yaddr] = xaddr;
-> +               gv800s_write(mctlr, xaddr, yaddr, 1);
-> +       }
-> +}
-> +
-> +/* GeoVision GV-800(S) "master" chip init */
-> +static void gv800s_init(struct bttv *btv)
-> +{
-> +       char *sw_status = (char *)(&btv->mbox_we);
-> +       int ix;
-> +
-> +       gpio_inout(0xf107f, 0xf107f);
-> +       gpio_write(1<<19); /* reset the analog MUX */
-> +       gpio_write(0);
-> +
-> +       /* Preset camera 0 to the 4 controllers */
-> +       for (ix = 0; ix < 4; ix++) {
-> +               sw_status[ix] = ix;
-> +               gv800s_write(btv, ix, ix, 1);
-> +       }
-> +
-> +       /* Inputs on the "master" controller need this brightness fix */
-> +       bttv_I2CWrite(btv, 0x18, 0x5, 0x90, 1);
-> +
-> +       if (btv->c.nr>BTTV_MAX-4)
-> +           return;
-> +       /*
-> +        * Store the "master" controller pointer in the master
-> +        * array for later use in the muxsel function.
-> +        */
-> +       master[btv->c.nr]   = btv;
-> +       master[btv->c.nr+1] = btv;
-> +       master[btv->c.nr+2] = btv;
-> +       master[btv->c.nr+3] = btv;
-> +}
-> +
->  /* ----------------------------------------------------------------------- */
->  /* motherboard chipset specific stuff                                      */
->
-> diff -r c770b20d15c6 linux/drivers/media/video/bt8xx/bttv.h
-> --- a/linux/drivers/media/video/bt8xx/bttv.h    Fri Feb 27 21:29:59 2009 -0300
-> +++ b/linux/drivers/media/video/bt8xx/bttv.h    Fri Feb 27 22:12:29 2009 -0300
-> @@ -182,6 +182,8 @@
->  #define BTTV_BOARD_VD012_X1               0x9a
->  #define BTTV_BOARD_VD012_X2               0x9b
->  #define BTTV_BOARD_IVCE8784               0x9c
-> +#define BTTV_BOARD_GEOVISION_GV800S       0x9d
-> +#define BTTV_BOARD_GEOVISION_GV800S_SL    0x9e
+> Regards, Thomas
 >
 >
->  /* more card-specific defines */
-> --
-> Bruno Christo
-> Bacharel em Ciência da Computação - UFSM
+> -- 
+> http://www.kaiser-linux.li
+>
+>
+>> By any chance, you do not have a JL2005B or JL2005C or JL2005D camera among 
+>> them, do you? AFAICT they all use the same compression algorithm (in 
+>> stillcam mode), and it appears to me to be a really nasty one. Any help I 
+>> could get with that algorithm is welcome indeed.
+>
+> I have to check. Please send me the USB ID.
+
+ 	0x0979 is the Vendor ID from Jeilin.
+ 	0x0227 is the Product ID of the JL2005B/C/D cameras
+ 	(yes, all three of them have the same ID)
+>
+> Thomas
+
+Thanks for the information. But this is an old letter. What is happening 
+with Michel Xhaard these days? Do you know? I miss him.
+
+>
+> PS: Now we have the 5. season in Liechtenstein, Fasnacht (means carnival). 
+> So, you can guess what I am doing the next couple of days :-)
 >
 
+I don't know. Eat too much Wienerschnitzel? Temporarily transform into 
+"ein Bierfass"? Um Verzeihung. Ich hole sofort den Hut...
 
-
--- 
-Bruno Christo
-Bacharel em Ciência da Computação - UFSM
+Theodore Kilgore
