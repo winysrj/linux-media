@@ -1,24 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1RK7Zww002836
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 15:07:35 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1RK7DAg012670
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 15:07:13 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so1256582rvb.51
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 12:07:13 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KFbTBc030762
+	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 10:37:29 -0500
+Received: from smtp-vbr15.xs4all.nl (smtp-vbr15.xs4all.nl [194.109.24.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1KFbIQi006860
+	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 10:37:19 -0500
+Message-ID: <8617.62.70.2.252.1235144231.squirrel@webmail.xs4all.nl>
+Date: Fri, 20 Feb 2009 16:37:11 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <412bdbff0902271142i5c7157cetd28124007224b890@mail.gmail.com>
-References: <6b3e6cdb0902271139w176708c9t67b32dca960aa6c4@mail.gmail.com>
-	<412bdbff0902271142i5c7157cetd28124007224b890@mail.gmail.com>
-Date: Fri, 27 Feb 2009 13:07:13 -0700
-Message-ID: <6b3e6cdb0902271207k77e41cabo11fb3263ef39fe5d@mail.gmail.com>
-From: "U. Artie Eoff" <uartie@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: ASUS My Cinema-PHC3-100/NAQ/FM/AV/RC Support?
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: HVR-950q analog support - testers wanted
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,55 +25,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thanks for the quick reply...
 
-The only difference that I'm aware of so far is that the 3100 is a USB
-dongle tuner and the PHC3-100 is a PCI internal.  I'm not sure if the
-PHC3-100 has the Micronas DRX-J... can I find this info on the card?  If so,
-I'll have to look when I get home later.
-
-Anyway, here is the product link for my card:
-http://www.asus.com/products.aspx?l1=18&l2=83&l3=794
-...and product image:
-http://www.asus.com/prog_content/middle_enlargement.aspx?model=2524
-
-Thanks,
-
-Artie
-
-
-On Fri, Feb 27, 2009 at 12:42 PM, Devin Heitmueller <
-devin.heitmueller@gmail.com> wrote:
-
-> On Fri, Feb 27, 2009 at 2:39 PM, U. Artie Eoff <uartie@gmail.com> wrote:
-> > I recently purchased a ASUS My Cinema-PHC3-100/NAQ/FM/AV/RC ATSC tv tuner
-> > card.  I've done some searching to see what kind of support is available
-> for
-> > using it under Linux.  There is nothing out there that mentions it will
-> work
-> > or how to get it to work.  And it does not appear that my Fedora OS
-> detects
-> > it installed.  Could someone start me off with some steps on getting it
-> > configured (i.e. drivers, detecting, loading, configuring, etc.).  I
-> > consider myself a somewhat advanced user of Linux, but have never done
-> any
-> > direct work with tuner cards or general low-level hardware configuration
-> > under Linux.  So, don't hesitate to explain in technical terms if it is
-> > easier.
+> On Fri, Feb 20, 2009 at 10:18 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>> Devin Heitmueller wrote:
+>>>
+>>> Hello,
+>>>
+>>> There is now a test repository that provides analog support for the
+>>> HVR-950q:
+>>>
+>>> http://linuxtv.org/hg/~dheitmueller/hvr950q-analog
+>>>
+>>> I welcome people interested in analog support for the 950q to download
+>>> the tree and provide feedback.
+>>
+>> I only have time today for a small amount of testing but QAM and ATSC
+>> are
+>> still working reliably. No obvious issues. No obvious regressions.
+>>
+>> I'll load this up on my myth box this weekend and ensure it's still
+>> reliable
+>> over the long term.
+>>
+>> I'll be in touch.
 >
-> Assuming you're referring to the same ASUS My Cinema 3100 I'm thinking
-> of, that's a device with a Micronas DRX-J, which won't see any Linux
-> support anytime soon (due to licensing issues).
+> Hello Steven,
 >
-> Regards,
+> Thank you for taking the time to test.
 >
-> Devin
+> One thing that would be useful, and I'm addressing this to everyone,
+> is when reporting feedback (positive or negative) you please indicate
+> which application(s) you tested with, as well as what kernel version
+> and CPU architecture you tested on.
 >
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+> Right now one of the big issues is while that I do not know of any
+> issues, the code has had limited exposure in terms of the applications
+> and kernels tested with.  By providing this information, that will
+> help me tremendously in evaluating whether enough *different* cases
+> are being tested or whether everybody is basically testing the same
+> thing.
+
+A good test is to play with v4l2-ctl and check the implemented ioctls. I
+often discover that drivers forget to fill in some fields, or do not
+handle invalid input, etc. Esp. try v4l2-ctl --all and v4l2-ctl
+--list-ctrls-menus.
+
+Regards,
+
+         Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
