@@ -1,73 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:46042 "EHLO mail1.radix.net"
+Received: from paja.nic.funet.fi ([193.166.3.10]:60184 "EHLO paja.nic.funet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763860AbZBNB0G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 20:26:06 -0500
-Received: from [192.168.1.2] (01-025.155.popsite.net [66.217.131.25])
-	(authenticated bits=0)
-	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id n1E1Q3OK018809
-	for <linux-media@vger.kernel.org>; Fri, 13 Feb 2009 20:26:04 -0500 (EST)
-Subject: VIDIOC_G_REGISTER question
-From: Andy Walls <awalls@radix.net>
+	id S1751159AbZBTOZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Feb 2009 09:25:26 -0500
+Received: (from localhost user: 'kouhia' uid#241 fake: STDIN
+	(kouhia@paja.nic.funet.fi)) by nic.funet.fi id S77529AbZBTN5eFbE-k
+	for <linux-media@vger.kernel.org>; Fri, 20 Feb 2009 15:57:34 +0200
+From: Juhana Sadeharju <kouhia@nic.funet.fi>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Fri, 13 Feb 2009 20:26:14 -0500
-Message-Id: <1234574774.3112.16.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+CC: linux-dvb@linuxtv.org
+In-reply-to: <412bdbff0902171254j41b71159k7561b28418120dab@mail.gmail.com>
+	(message from Devin Heitmueller on Tue, 17 Feb 2009 15:54:20 -0500)
+Subject: Re: [linux-dvb] Klear?
+References: <S95672AbZBQUntw3OD4/20090217204349Z+4425@nic.funet.fi> <412bdbff0902171254j41b71159k7561b28418120dab@mail.gmail.com>
+Message-Id: <S77529AbZBTN5eFbE-k/20090220135734Z+5776@nic.funet.fi>
+Date: Fri, 20 Feb 2009 15:57:34 +0200
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-I'm treating the CX23418 A/V Core as a non-I2C host chip.
+I write open source software elsewhere, you write here.
+Feedback like I sent has value too. Commercial closed
+source software gets part of their ideas from users, and
+no user need to implement them. I hope the open source
+coding attitude changes, and much.
 
-Am I allowed to modify the register value passed in to a
-VIDIOC_G_REGISTER ioctl() like below?  The spec doesn't say if this
-feedback is expected or not.
+I will pick up Kaffeine, but Ubuntu is missing the package.
+I try compile it.
 
+Kaffeine authors could check my list in detail. Please do.
 
-static inline int cx18_av_dbg_match(const struct v4l2_dbg_match *match)
-{
-        return match->type == V4L2_CHIP_MATCH_HOST && match->addr == 1;
-}
+Me-TV seems to only record the flag that subtitles exists,
+not the subtitles itself. At least, xine cannot play them.
 
-static int cx18_av_g_chip_ident(struct v4l2_subdev *sd,
-                                struct v4l2_dbg_chip_ident *chip)
-{
-        if (cx18_av_dbg_match(&chip->match))
-        {
-                /*
-                 * Nothing else is going to claim to be this combination,
-                 * and the real host chip revision will be returned by a host
-                 * match on address 0.
-                 */
-                chip->ident = V4L2_IDENT_CX25843;
-                chip->revision = V4L2_IDENT_CX23418; /* Why not */
-        }
-        return 0;
-}
-
-
-#ifdef CONFIG_VIDEO_ADV_DEBUG
-static int cx18_av_g_register(struct v4l2_subdev *sd,
-                              struct v4l2_dbg_register *reg)
-{
-        struct cx18 *cx = v4l2_get_subdevdata(sd);
-
-        if (!cx18_av_dbg_match(&reg->match))
-                return -EINVAL;
-        if (!capable(CAP_SYS_ADMIN))
-                return -EPERM;
-        reg->reg &= 0x00000ffc;         <============ Is this OK ????
-        reg->size = 4;
-        reg->val = cx18_av_read4(cx, reg->reg);
-        return 0;
-}
-[...]
-
-
-
-Regards,
-Andy
-
-
+Juhana
