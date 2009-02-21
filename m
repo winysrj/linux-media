@@ -1,111 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3691 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751875AbZBVTOl (ORCPT
+Received: from mk-outboundfilter-2.mail.uk.tiscali.com ([212.74.114.38]:55971
+	"EHLO mk-outboundfilter-2.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754474AbZBUXrw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 14:14:41 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1MJEZJC006232
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 22 Feb 2009 20:14:39 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 22 Feb 2009 20:14:35 +0100 (CET)
-Message-Id: <200902221914.n1MJEZJC006232@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+	Sat, 21 Feb 2009 18:47:52 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: RFCv1: v4l-dvb development models & old kernel support
+Date: Sat, 21 Feb 2009 23:47:46 +0000
+Cc: linux-media@vger.kernel.org
+References: <200902211200.45373.hverkuil@xs4all.nl>
+In-Reply-To: <200902211200.45373.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902212347.47109.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Saturday 21 February 2009, Hans Verkuil wrote:
 
-Results of the daily build of v4l-dvb:
+> The high rate of changes and new drivers means that keeping up the
+> backwards compatibility becomes an increasingly heavy burden.
+>
+> This leads to two questions:
+>
+> 1) Can we change our development model in such a way that this burden is
+> reduced?
 
-date:        Sun Feb 22 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10653:359d95e1d541
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Possibly but even just spreading the burden better (and avoiding the compat 
+code affecting the main tree in the case of i2c) would be a worthwhile 
+change.
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc5-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc5-x86_64: WARNINGS
-fw/apps: OK
-spec: ERRORS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
+> 2) How far back do we want to support older kernels anyway?
+>
 
-Detailed results are available here:
+To the point that the effort expended on the compat work is balanced by the 
+benefit of more testers.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> These questions are related, since changes in the development model has
+> implications for the answer to the second question.
+>
+>
+> 1: Alternatives to the development model
+> ----------------------------------------
+>
+> I see the following options:
+>
+> A) Keep our current model. This also keeps the way we do our backwards
+> compatibility unchanged.
+>
+> B) Switch to a git tree that tracks Linus' tree closely and we drop
+> backwards compatibility completely.
+>
+> C) Switch to the ALSA approach (http://git.alsa-project.org/).
+>
 
-Full logs are available here:
+Another example of this approach can be seen with the linux-wireless git tree. 
+There is a description of the process at 
+http://linuxwireless.org/en/users/Download#Developers
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+It might be a more relevant example as there are changes in 2.6.27 that make 
+it difficult to support older kernels. They therefore made a decision at that 
+point to restrict the automated backporting to 2.6.27 onwards and say patches 
+will be accepted to the compat tree that covers 2.6.21 to 2.6.26 if a driver 
+change is compatible but they must be manually flagged as being suitable 
+(I've no idea how many are).
 
-The V4L2 specification failed to build, but the last compiled spec is here:
+It does require one person (who isn't the main wireless maintainer) to be the 
+maintainer of the compat tree.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+> B: Switch to a git tree and drop compatibility completely
+>
+> Pros:
+>
+> - makes driver development and v4l-dvb maintenance very easy.
+> - no compatibility issues anymore, this saves a lot of time.
+> - ability to change kernel code outside the driver/media part.
+> - received patches against the latest git tree are easy to apply.
+>
+
+Ensures that driver changes get tested in the kernel they will be released in 
+so there is less chance of a change elsewhere breaking your change. Also 
+means more people are testing pre release kernels so might have stopped the 
+USB bug in 2.6.28 making it to the released kernel.
+
+> Cons:
+>
+> - no compatibility means that the initial testbase will be reduced
+> substantially since it will be too difficult for many users to install the
+> bleeding-edge kernel. So real feedback won't come in until the code is
+> released as part of the main distros kernels.
+> - the same is true for ourselves: we need to continuously upgrade our
+> kernel, which is not always an option.
+>
+
+It also means that a git pull can result in a long long rebuild if the 
+upstream has just pulled a load of changes to other subsystems.
+
+>
+> 2 How many kernels to support?
+> ------------------------------
+
+> Keeping support for older kernels should come with an expiry date as at
+> some point in time the effort involved outweighs the benefits.
+
+I think the outweighs the benefits point is critical here and indicates what 
+the break point should be.
+
+>
+> Oldest supported Ubuntu kernel is 2.6.22 (7.10):
+> https://wiki.ubuntu.com/Releases. End of life for this one will be in April
+> 2009, after that the oldest kernel for Ubuntu will be 2.6.27 (8.10).
+>
+You missed 8.04 which EOLs in April 2011 for Desktop use and uses 2.6.24
+
+
+> In my view these criteria strike a good balance between supporting our
+> users so we can good test coverage, and limiting the effort involved in
+> supporting the compatibility code. And they are also based on simple facts:
+> whenever the oldest regularly supported kernel changes, we can go in and
+> remove some of the compat code. No need for discussions, the rules are
+> clear and consistent.
+
+I don't think anyone will (or need) actively track theses dates unless the 
+code is causing them a headache but the rule is still a useful guide - if the 
+compat code is causing you a problem and the 3 most popular distros have 
+EOLed the relevant kernel it can be dropped without discussion by whoever 
+administers the compat repository, otherwise it should be discussed on the ML 
+first.
+
+The only question then would be how to choose the 3. I don't think 1 and 2 are 
+in much dispute but I suspect OpenSUSE is slugging it out for 3rd place with 
+Debian.
+
+>
+> And luckily, since the oldest kernel currently in regular use is 2.6.22
+> that makes a very good argument for dropping the i2c compatibility mess.
+>
+
+Unfortunately this all omits one important point, are there any key developers 
+for whom dropping support for old kernels will cause them a problem which 
+could reduce their productivity.  Mauro has stated that it would cause him a 
+problem but I can't tell how big a problem it would really be.
+
+Adam
