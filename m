@@ -1,131 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay0-omc3-s12.bay0.hotmail.com ([65.54.246.212]:54666 "EHLO
-	bay0-omc3-s12.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751406AbZBMVR6 (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4875 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753654AbZBUTOn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Feb 2009 16:17:58 -0500
-Message-ID: <BAY102-W60982390A2077BACBC536CFB80@phx.gbl>
-From: Thomas Nicolai <nickotym@hotmail.com>
-To: <devin.heitmueller@gmail.com>, <linux-media@vger.kernel.org>
-Subject: =?windows-1256?Q?RE:_HVR-1500_tuner_seems_to_be_recognized=2C_but_wont_tu?=
- =?windows-1256?Q?rn_on.=FE?=
-Date: Fri, 13 Feb 2009 15:17:57 -0600
-In-Reply-To: <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
-References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
- <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
-Content-Type: text/plain; charset="windows-1256"
-Content-Transfer-Encoding: 8bit
-MIME-Version: 1.0
+	Sat, 21 Feb 2009 14:14:43 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1LJEfXI042660
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 21 Feb 2009 20:14:41 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 21 Feb 2009 20:14:41 +0100 (CET)
+Message-Id: <200902211914.n1LJEfXI042660@smtp-vbr10.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-I will try to post the dmesg this evening some time.  Maybe over the weekend.  
+Results of the daily build of v4l-dvb:
 
-Thanks,
+date:        Sat Feb 21 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10653:359d95e1d541
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Nick
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc5-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc5-x86_64: WARNINGS
+fw/apps: OK
+spec: ERRORS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
 
-> Date: Fri, 13 Feb 2009 16:09:22 -0500
-> Subject: Re: HVR-1500 tuner seems to be recognized, but wont turn on.þ
-> From: devin.heitmueller@gmail.com
-> To: nickotym@hotmail.com
-> CC: linux-media@vger.kernel.org
-> 
-> 2009/2/13 Thomas Nicolai :
->>
->> Third time is  the charm, had tried posting before, but was in HTML.  Hope it doesn't double post for anyone.
->>
->>
->> I am hoping this problem has already been solved, but I couldn't find anything mentioned in the archives going back a while.
->>
->> I am running Kubuntu 8.10 with 2.6.27-11-generic on a Toshiba laptop with dual AMD 64 processors.
->>
->> I
->> installed the drivers from the non-experimental ones at www.linuxtv.org
->> using mercurial and that helped with some problems.  However, the tuner
->> is now recognized, but can't seem to turn on when called for by MythTV
->> or dvbscan.
->>
->>  Partial Results of dmesg follow:
->>
->> [ 2627.107174] firmware: requesting xc3028-v27.fw
->> [ 2627.147757] xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
->> [ 2627.347546] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 2627.870877] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
->> [ 2627.870886] xc2028 2-0061: -5 returned from send
->> [ 2627.870890] xc2028 2-0061: Error -22 while loading base firmware
->> [ 2628.122478] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 2628.645956] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
->> [ 2628.645962] xc2028 2-0061: -5 returned from send
->> [ 2628.645965] xc2028 2-0061: Error -22 while loading base firmware
->> [ 2629.845869] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 2630.368229] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
->> [ 2630.368235] xc2028 2-0061: -5 returned from send
->> [ 2630.368239] xc2028 2-0061: Error -22 while loading base firmware
->> [ 2630.622469] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 2631.144810] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
->> [ 2631.144818] xc2028 2-0061: -5 returned from send
->> [ 2631.144820] xc2028 2-0061: Error -22 while loading base firmware
->> [ 2632.150462] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 2632.679257] xc2028 2-0061: i2c output error: rc = -5 (should be 4)
->> [ 2632.679266] xc2028 2-0061: -5 returned from send
->> [ 2632.679270] xc2028 2-0061: Error -22 while loading base firmware
->> [ 2632.930465] xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
->> [ 2634.086084] xc2028 2-0061: Loading firmware for type=D2633 DTV6 ATSC (10030), id 0000000000000000.
->>
->>
->> lspci -vnn results (partial):
->>
->> 01:05.0
->> VGA compatible controller [0300]: ATI Technologies Inc RS690M [Radeon
->> X1200 Series]
->> [1002:791f]
->>        Subsystem: Toshiba America Info Systems Device [1179:ff00]
->>        Flags: bus master, fast devsel, latency 64, IRQ 18
->>        Memory at f0000000 (64-bit, prefetchable) [size=128M]
->>        Memory at f8300000 (64-bit, non-prefetchable) [size=64K]
->>        I/O ports at 9000 [size=256]
->>        Memory at f8200000 (32-bit, non-prefetchable) [size=1M]
->>        Capabilities:
->>
->> 0b:00.0
->> Multimedia video controller [0400]: Conexant Systems, Inc. CX23885 PCI
->> Video and Audio Decoder [14f1:8852] (rev
->> 02)
->>        Subsystem: Hauppauge computer works Inc. Device [0070:7717]
->>        Flags: bus master, fast devsel, latency 0, IRQ 17
->>        Memory at f8000000 (64-bit, non-prefetchable) [size=2M]
->>        Capabilities:
->>        Kernel driver in use: cx23885
->>        Kernel modules: cx23885
->>
->> Please let me know what else might be needed to solve this.
->>
->> Saw a link that recommended using v4l-dvb-experimental  drivers but wasn't sure if that was wise.
->>
->>
->> Thanks,
->>
->> Nick
-> 
-> That looks really suspicious.  Perhaps the xc3028 tuner is being put
-> to sleep and not being woken up properly.
-> 
-> Could you please post the full dmesg output showing the initialization
-> of the device?
-> 
-> Devin
-> 
-> -- 
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Detailed results are available here:
 
-_________________________________________________________________
-Windows Live™: E-mail. Chat. Share. Get more ways to connect. 
-http://windowslive.com/online/hotmail?ocid=TXT_TAGLM_WL_HM_AE_Faster_022009
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
