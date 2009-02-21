@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt2.poste.it ([62.241.5.253])
+Received: from smtp1-g21.free.fr ([212.27.42.1])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1LWUOI-00046y-Ve
-	for linux-dvb@linuxtv.org; Mon, 09 Feb 2009 12:33:31 +0100
-Received: from nico2.od.loc (93.63.225.36) by relay-pt2.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 498F727F00004898 for linux-dvb@linuxtv.org;
-	Mon, 9 Feb 2009 12:33:26 +0100
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
+	(envelope-from <djamil@djamil.net>) id 1LapF7-00037j-2P
+	for linux-dvb@linuxtv.org; Sat, 21 Feb 2009 11:37:57 +0100
+Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 28AF594015B
+	for <linux-dvb@linuxtv.org>; Sat, 21 Feb 2009 11:37:47 +0100 (CET)
+Received: from [192.168.1.109] (djamil.net [88.177.154.16])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id DE658940133
+	for <linux-dvb@linuxtv.org>; Sat, 21 Feb 2009 11:37:44 +0100 (CET)
+From: djamil <djamil@djamil.net>
 To: linux-dvb@linuxtv.org
-Date: Mon, 9 Feb 2009 12:33:26 +0100
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200902091233.26086.Nicola.Sabbi@poste.it>
-Subject: [linux-dvb] mt352 no more working after suspend to disk
+Date: Sat, 21 Feb 2009 11:37:44 +0100
+Message-Id: <1235212664.10542.0.camel@toptop>
+Mime-Version: 1.0
+Subject: [linux-dvb] hvr 1400
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,26 +23,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1828204350=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-if I suspend to disk and next resume I have to manually remove and 
-reload my mt352 driver, otherwise it complains of a lot of i2c 
-errors.
 
-My kernel is suse's 2.6.27.
+--===============1828204350==
+Content-Type: multipart/alternative; boundary="=-nyozrcBkP/T6W69PZZnR"
 
-Is this problem fixed in recent kernels or in hg?
 
-Thanks,
-	Nico
+--=-nyozrcBkP/T6W69PZZnR
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+hello
+
+still no analog for this card ?
+
+regards
+
+--=-nyozrcBkP/T6W69PZZnR
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
+  <META NAME="GENERATOR" CONTENT="GtkHTML/3.24.1.1">
+</HEAD>
+<BODY>
+hello<BR>
+<BR>
+still no analog for this card ?<BR>
+<BR>
+regards
+</BODY>
+</HTML>
+
+--=-nyozrcBkP/T6W69PZZnR--
+
+
+
+--===============1828204350==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1828204350==--
