@@ -1,67 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:52282 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbZBRM6E (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2355 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124AbZBUMBV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 07:58:04 -0500
-Message-ID: <499C05D8.10303@kaiser-linux.li>
-Date: Wed, 18 Feb 2009 13:58:00 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+	Sat, 21 Feb 2009 07:01:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Minimum kernel version supported by v4l-dvb
+Date: Sat, 21 Feb 2009 13:01:16 +0100
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org
+References: <20090217142327.1678c1a6@hyperion.delvare> <200902180006.38763.hverkuil@xs4all.nl> <20090221085046.3ebfccb3@pedra.chehab.org>
+In-Reply-To: <20090221085046.3ebfccb3@pedra.chehab.org>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: MR97310A and other image formats
-References: <20090217200928.1ae74819@free.fr>	<499B1180.6020600@kaiser-linux.li> <20090218102553.608e026c@free.fr>
-In-Reply-To: <20090218102553.608e026c@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902211301.16677.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean-Francois Moine wrote:
-> On Tue, 17 Feb 2009 20:35:28 +0100
-> Thomas Kaiser <v4l@kaiser-linux.li> wrote:
->> Jean-Francois Moine wrote:
->>> BTW, I am coding the subdriver of a new webcam, and I could not find
->>> how to decompress the images. It tried many decompression functions,
->>> those from the v4l library and most from libgphoto2 without any
->>> success. Does anyone know how to find the compression algorithm?
->> Hello Jean-Francois
->>
->> Do you have some more information about the cam and the stream?
->> Do you know the frame header?
->> Any idea what the compression should be?
->> Can you provide a raw stream from the cam?
-> 
-> Hello Thomas,
-> 
-> The cam is a Tascorp 17a1:0118. I have USB traces. Starting the webcam
-> is easy, and so is extracting the images (0x02 + 0xa0/0xa1 at start of
-> image packets and 0x5a + 0xa5 for end of image with average luminosity).
-> 
-> I attach an image I extracted by hand from the trace, removing the 2
-> bytes of the packets. If it can help, I may send you the whole USB trace
-> (3 Mb) and/or other images.
-> 
-> Cheers.
-> 
+On Saturday 21 February 2009 12:50:46 Mauro Carvalho Chehab wrote:
+> On Wed, 18 Feb 2009 00:06:38 +0100
+>
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Especially companies like Texas Instruments that
+> > are working on new v4l2 drivers for the embedded space (omap, davinci)
+> > are quite annoyed and confused by all the backwards compatibility stuff
+> > that we're dragging along. I find it much more important to cater to
+> > their needs than to support a driver on an ancient kernel for some
+> > anonymous company.
+>
+> The i2c code or any other backported code shouldn't affect any new
+> driver.
+>
+> For new drivers, they can just use 2.6.29-rc as reference and mark
+> that the minimum required version for it is 2.6.30, at v4l/versions.txt.
+>
+> If the driver is for x86/x86_64, it generally makes sense to preserve the
+> backward compat bits, to help users.
+>
+> However, in the specific case of TI development, for OMAP and similar
+> drivers that are specific to some embedded architecture, and where a
+> normal user will never need to test it for us, since the vendor is
+> responsible for the driver, it is perfectly fine to update
+> v4l/versions.txt for each new version that needs something for a newer
+> API.
 
-Hello Jean-Francois
+Not quite true, certainly not in the generic case. If you come from the 
+outside and start developing v4l i2c drivers, then it is simply confusing 
+when you look at existing drivers in the git tree to use as a model. It's 
+not clear at all why we do things the way we do. That's bad.
 
-Thanks, for the frame (or frames?). What resolution did you use while 
-recording this stream?
-Can you put your USB trace somewhere on the net where I can download it?
+Secondly, i2c modules developed for embedded systems are perfectly usable in 
+e.g. webcams which you might want to support for older kernels. It's not an 
+issue right now though, as long as soc-camera and int-dev aren't converted 
+to use v4l2_subdev as that prevents them from being used this way.
 
-When I was guessing the streams of webcams, I used to get the sensor 
-into saturation -> complete white picture. So you know how the decoded 
-picture should look like ;-)
+Regards,
 
-Actually, it is quite easy to get a webcam sensor into saturation. Just 
-remove the lens of the cam an put a light in front of it. Check in 
-Windoz if the picture is really complete white and then record a stream 
-in Linux. Now, you should get a very homogeneous stream. Look at it and ....
+	Hans
 
-I hope you got the idea?
-
-Thomas
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
