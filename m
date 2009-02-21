@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:13230
-	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753598AbZBBVfE (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:38226 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753073AbZBUUEu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 16:35:04 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Bug in gspca USB webcam driver
-Date: Mon, 2 Feb 2009 21:35:00 +0000
-Cc: kilgota@banach.math.auburn.edu,
-	"Jean-Francois Moine" <moinejf@free.fr>,
+	Sat, 21 Feb 2009 15:04:50 -0500
+Date: Sat, 21 Feb 2009 21:04:28 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: kilgota@banach.math.auburn.edu
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, urishk@yahoo.com,
 	linux-media@vger.kernel.org
-References: <Pine.LNX.4.44L0.0902021558280.10089-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.0902021558280.10089-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Subject: Re: Minimum kernel version supported by v4l-dvb
+Message-ID: <20090221210428.15d96814@hyperion.delvare>
+In-Reply-To: <alpine.LNX.2.00.0902211008360.9653@banach.math.auburn.edu>
+References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
+	<20090218071041.63c09ba3@pedra.chehab.org>
+	<20090218140105.17c86bcb@hyperion.delvare>
+	<20090220212327.410a298b@pedra.chehab.org>
+	<alpine.LNX.2.00.0902201853040.9018@banach.math.auburn.edu>
+	<20090220231820.67ce2899@pedra.chehab.org>
+	<alpine.LNX.2.00.0902211008360.9653@banach.math.auburn.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902022135.00908.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 02 February 2009, Alan Stern wrote:
-> On Mon, 2 Feb 2009 kilgota@banach.math.auburn.edu wrote:
-> > The attached file is an extract from dmesg from the Pentium4 Dual Core
-> > machine. One can see that the camera has been attached, and then an svv
-> > session has been run. The kernel is the "stock" Slackware 2.6.27.7 kernel
-> > (*). We have a situation, again, in which svv (**) can not be exited. We
-> > have an oops in the log, and we have a filesystem check on reboot, which
-> > is going on as I write this.
->
-> Well, the problem is clear enough, and it is in the gspca.c module, not
-> your sq905-3 driver.  I'm not sure what the best way is to fix it, so
-> I'm CC'ing the people responsible for the gspca driver.
->
-Thanks for confirming that Alan. I'd been looking at this too and suspected 
-this was the case but as it wouldn't fail on my uniprocessor machine I 
-couldn't prove it. (Theodore, if you can generate the log we discussed of 
-this failing it might still be helpful in tracking down the underlying 
-problem.)
+On Sat, 21 Feb 2009 10:42:17 -0600 (CST), kilgota@banach.math.auburn.edu wrote:
+> This is not exactly what I was trying to say. I'll try again.
+> 
+> 1. Anyone who would call himself a developer will run quite recent kernels 
+> without being forced to do so, voluntarily and with pleasure.
+> 
+> 2. Sometimes the kernel which just came out has a bug. The bug can 
+> interfere with current work even though it is from another kernel 
+> subsystem. I mentioned a recent example. The problem was in the basic USB 
+> area. It specifically related to devices running on alt0 and using a bulk 
+> endpoint. I was trying to support a camera that streams on alt0 over the 
+> bulk endpoint. Said bug seriously interfered with progress. Who would say 
+> that everyone should simultaneously use the same tree, suggests that 
+> everyone should simultaneously experience the same set of bugs.
+> 
+> 3. Because of (2) and for other obvious reasons, the ability to develop 
+> a kernel subsystem semi-independently of the latest git tree is a clever 
+> and good thing. Why give it up and tie oneself to just one git tree?
+> 
+> 4. If it were my decision, I probably would not tie myself in knots if 
+> something new would "break" a kernel which is more than a couple of 
+> versions behind. Right now, this would probably mean I would not care at 
+> all what happened to people running 2.6.24.x or older. Furthermore, if 
+> what was "broken" was due to a bug in the old kernel, too bad.
+> 
+> 5. So I would continue to allow flexibility but I would not become 
+> extremely concerned if a kernel more than a couple of versions behind 
+> would start to have problems. I would try to be nice and let people know, 
+> unless they started to shout at me, at which point I  would start to 
+> ignore them.
+> 
+> Probably all of the above would please nobody, and it is a good that I am 
+> not in charge of anything.
 
-> To summarize: Unplugging the camera while it is in use by a program
-> causes an oops (particularly on an SMP machine).
->
-> The problem is that gspca_stream_off() calls destroy_urbs(), which in
-> turn calls usb_buffer_free() -- but this happens too late, after
-> gspca_disconnect() has returned.  By that time gspca_dev->dev is a
-> stale pointer, so it shouldn't be passed to usb_buffer_free().
->
+Actually, it would totally please me :)
 
-By my reading it should be OK for gspca_disconnect to have returned as long as 
-video_unregister_device waits for the last close to complete before calling 
-gspca_release. I know that there were some patches a while back that 
-attempted to ensure that was the case so I suspect there is still a hole 
-there.
-
-> What should happen is that as part of disconnect processing, the
-> existing stream(s) should be put in an error state and destroy_urbs()
-> should be called immediately.  Then when gspca_stream_off() calls
-> destroy_urbs() again there would be no more work left to do.
->
-> Alan Stern
->
-
-Adam Baker
-
+-- 
+Jean Delvare
