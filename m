@@ -1,111 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4636 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754778AbZB0St7 (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:55291 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754576AbZBUBh3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 13:49:59 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1RInuKh050681
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 27 Feb 2009 19:49:56 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 27 Feb 2009 19:49:56 +0100 (CET)
-Message-Id: <200902271849.n1RInuKh050681@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+	Fri, 20 Feb 2009 20:37:29 -0500
+Subject: Re: mantis build error on vanilla kernel 2.6.28.6 [Re: Terratec
+	Cinergy C HD (PCI, DVB-C): how to make it work?]
+From: hermann pitton <hermann-pitton@arcor.de>
+To: MartinG <gronslet@gmail.com>
+Cc: Linux Media <linux-media@vger.kernel.org>
+In-Reply-To: <bcb3ef430902201606k50fe3036j8f82c3eecb6e2a47@mail.gmail.com>
+References: <bcb3ef430902201229l2ece1a88k50d15e3886c29e01@mail.gmail.com>
+	 <1235172135.6647.4.camel@pc10.localdom.local>
+	 <bcb3ef430902201606k50fe3036j8f82c3eecb6e2a47@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 21 Feb 2009 02:38:31 +0100
+Message-Id: <1235180311.6647.21.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
 
-Results of the daily build of v4l-dvb:
+Am Samstag, den 21.02.2009, 01:06 +0100 schrieb MartinG:
+> On Sat, Feb 21, 2009 at 12:22 AM, hermann pitton
+> <hermann-pitton@arcor.de> wrote:
+> > you can see changes on saa7134-alsa here.
+> > http://linuxtv.org/hg/v4l-dvb/log/359d95e1d541/linux/drivers/media/video/saa7134/saa7134-alsa.c
+> >
+> > Likely this kernel backport is missing.
+> > http://linuxtv.org/hg/v4l-dvb/rev/b4d664a2592a
+> 
+> Thank you for your reply!
+> 
+> I think I got it working, thanks to you. This is what I did (on the
+> vanilla 2.6.28.6 kernel):
+> $ cd mantis-5292a47772ad/
+> $ make distclean clean
+> $ cp v4l/saa7134-alsa.c  v4l/saa7134-alsa.c.orig
+> $ emacs -nw v4l/saa7134-alsa.c
+> Patch according to:
+> http://linuxtv.org/hg/v4l-dvb/diff/b4d664a2592a/linux/drivers/media/video/saa7134/saa7134-alsa.c
+> $ make -j2
+> (works)
+> 
+> # make install
+> 
+> remove all other (dvb) modules
+> 
+> # modprobe mantis
+> 
+> This gave me at least
+> /dev/dvb/adapter0/{demux0,dvr0,frontend0,net0}
+> 
+> But then the computer froze when I did:
+> # scandvb dvb-apps/util/scan/dvb-c/no-Oslo-Get
+> scanning dvb-apps/util/scan/dvb-c/no-Oslo-Get
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 241000000 6900000 0 5
+> initial transponder 272000000 6900000 0 5
+> initial transponder 280000000 6900000 0 5
+> initial transponder 290000000 6900000 0 5
+> initial transponder 298000000 6900000 0 5
+> initial transponder 306000000 6900000 0 5
+> initial transponder 314000000 6900000 0 5
+> initial transponder 322000000 6900000 0 5
+> initial transponder 330000000 6900000 0 5
+> initial transponder 338000000 6900000 0 5
+> initial transponder 346000000 6900000 0 5
+> initial transponder 354000000 6900000 0 5
+> initial transponder 362000000 6900000 0 5
+> initial transponder 370000000 6900000 0 5
+> initial transponder 378000000 6900000 0 5
+> initial transponder 386000000 6900000 0 5
+> initial transponder 394000000 6900000 0 5
+> initial transponder 410000000 6900000 0 5
+> initial transponder 442000000 6952000 0 5
+> initial transponder 482000000 6900000 0 5
+> initial transponder 498000000 6900000 0 5
+> >>> tune to: 241000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256
+> 
+> (total freeze here, not even ssh access to the box)
+> 
+> I think I had the scandvb tool from a binary install, maybe I'll try
+> to compile from sources.
+> And I'll try to read some more docs.
+> 
+> Thank you for helping me out on this!
+> 
+> -MartinG
 
-date:        Fri Feb 27 19:00:15 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10772:eae32c526e78
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I am sorry for that.
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29-rc5-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29-rc5-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29-rc5-powerpc64: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29-rc5-x86_64: ERRORS
-fw/apps: WARNINGS
-spec: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
+To give an example.
 
-Detailed results are available here:
+If we are seated in a chair looking to the wall in front of us or better
+to the horizon in the height of our eyes, without moving our eyes we can
+see something like 180 degrees horizontally.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+If we move our eyes we can see already a lot in our backs, if we move
+our heads we can see already almost all in our backs, to move the body
+is a further step only taken if really needed.
 
-Full logs are available here:
+Now, from the first just sitting there, the vertical reception is a
+little different, at least for me. Without moving the eyes we can see
+our feet, not that sharp, but enough to be aware of.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+In the upper direction it seems to be a little bit different, only the
+half of what is present on the bottom is visible without moving ...
 
-The V4L2 specification from this daily build is here:
+This seems to be a part of the conditio humanum we share with others :)
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+It is the same with out of kernel drivers.
+
+Await Manu's instructions what to use for testing and if a 2.6.28 is
+safe.
+
+Cheers,
+Hermann
+
+
