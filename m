@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
+Received: from rupert.bearstech.com ([193.84.18.54])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eyal@eyal.emu.id.au>) id 1LaRz5-0008GB-1L
-	for linux-dvb@linuxtv.org; Fri, 20 Feb 2009 10:47:54 +0100
-Received: from e4.eyal.emu.id.au (really [192.168.3.4]) by eyal.emu.id.au
-	via in.smtpd with esmtp
-	id <m1LaRxr-001IKIC@eyal.emu.id.au> (Debian Smail3.2.0.115)
-	for <linux-dvb@linuxtv.org>; Fri, 20 Feb 2009 20:46:35 +1100 (EST)
-Message-ID: <499E7BF9.3060200@eyal.emu.id.au>
-Date: Fri, 20 Feb 2009 20:46:33 +1100
-From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
+	(envelope-from <lhaond@bearstech.com>) id 1LagLU-0001O3-R7
+	for linux-dvb@linuxtv.org; Sat, 21 Feb 2009 02:07:58 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by rupert.bearstech.com (Postfix) with ESMTP id 64546100013
+	for <linux-dvb@linuxtv.org>; Sat, 21 Feb 2009 02:07:53 +0100 (CET)
+Received: from rupert.bearstech.com ([127.0.0.1])
+	by localhost (rupert.bearstech.com [127.0.0.1]) (amavisd-new,
+	port 10024) with LMTP id qn4v39GoSY-9 for <linux-dvb@linuxtv.org>;
+	Sat, 21 Feb 2009 02:07:53 +0100 (CET)
+Received: from [192.168.0.24] (beavis.scaryflop.com [82.67.15.220])
+	by rupert.bearstech.com (Postfix) with ESMTP id 2F4E510000A
+	for <linux-dvb@linuxtv.org>; Sat, 21 Feb 2009 02:07:53 +0100 (CET)
+Message-ID: <499F53E8.6050608@bearstech.com>
+Date: Sat, 21 Feb 2009 02:07:52 +0100
+From: Laurent Haond <lhaond@bearstech.com>
 MIME-Version: 1.0
-To: list linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] AverTV Duo Hybrid PCI-E
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Can I use AVerTV Volar Black HD (A850) with Linux ?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,68 +33,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have this card and want to use the two DVB-T tuners. The machine runs F10/x86_64.
+Hi,
+I bought an AverMedia Volar Black HD too.
+I opened it, i can confirm the device contains a AF9015N1 chip and a
+MXL5003S tuner.
 
-Which driver(s) handle(s) this card? I understood that it uses the saa7162.
-I downloaded and built the package (work in progress) but it did not detect a thing.
 
-Below are some relevant details and I am game to try and get it going as the machine
-is not yet commissioned.
+I think there was something missing your diff Antti :
+@@ -1404,7 +1405,7 @@
 
-TIA
+                .i2c_algo = &af9015_i2c_algo,
 
-lspci
-=====
-01:00.0 Multimedia controller: Philips Semiconductors Pinnacle PCTV 3010iX Dual Analog + DVB-T (VT8251 Ultra VLINK Controller) (rev 01)
-         Subsystem: Avermedia Technologies Inc Device 011c
-         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-         Latency: 0, Cache Line Size: 32 bytes
-         Interrupt: pin A routed to IRQ 11
-         Region 0: Memory at f3000000 (64-bit, non-prefetchable) [size=1M]
-         Capabilities: [40] Message Signalled Interrupts: Mask- 64bit+ Count=1/32 Enable-
-                 Address: 0000000000000000  Data: 0000
-         Capabilities: [50] Express (v1) Endpoint, MSI 00
-                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <256ns, L1 <1us
-                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                 DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
-                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
-                         MaxPayload 128 bytes, MaxReadReq 128 bytes
-                 DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr- TransPend-
-                 LnkCap: Port #1, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <4us, L1 <64us
-                         ClockPM- Suprise- LLActRep- BwNot-
-                 LnkCtl: ASPM Disabled; RCB 128 bytes Disabled- Retrain- CommClk-
-                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk- DLActive- BWMgmt- ABWMgmt-
-         Capabilities: [74] Power Management version 2
-                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot-,D3cold-)
-                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-         Capabilities: [80] Vendor Specific Information <?>
-         Capabilities: [100] Vendor Specific Information <?>
+-               .num_device_descs = 7,
++               .num_device_descs = 8,
+                .devices = {
+                        {
+                                .name = "Xtensions XD-380",
 
-lshal
-=====
-udi = '/org/freedesktop/Hal/devices/pci_1131_7162'
-   info.parent = '/org/freedesktop/Hal/devices/pci_8086_29c1'  (string)
-   info.product = 'Unknown (0x7162)'  (string)
-   info.subsystem = 'pci'  (string)
-   info.udi = '/org/freedesktop/Hal/devices/pci_1131_7162'  (string)
-   info.vendor = 'Philips Semiconductors'  (string)
-   linux.hotplug_type = 2  (0x2)  (int)
-   linux.subsystem = 'pci'  (string)
-   linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0'  (string)
-   pci.device_class = 4  (0x4)  (int)
-   pci.device_protocol = 0  (0x0)  (int)
-   pci.device_subclass = 128  (0x80)  (int)
-   pci.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0'  (string)
-   pci.product_id = 29026  (0x7162)  (int)
-   pci.subsys_product_id = 284  (0x11c)  (int)
-   pci.subsys_vendor = 'Avermedia Technologies Inc'  (string)
-   pci.subsys_vendor_id = 5217  (0x1461)  (int)
-   pci.vendor = 'Philips Semiconductors'  (string)
-   pci.vendor_id = 4401  (0x1131)  (int)
--- 
-Eyal Lebedinsky	(eyal@eyal.emu.id.au)
+After patching af9015.c file, when i plug it, modules are loading but it
+seems that the tuner did not work :
+
+Module                  Size  Used by
+mxl5005s               32388  1
+af9013                 18756  1
+dvb_usb_af9015         27184  0
+dvb_usb                19916  1 dvb_usb_af9015
+dvb_core               88676  1 dvb_usb
+
+
+$ dmesg
+usb 4-1: configuration #1 chosen from 1 choice
+dvb-usb: found a 'AVerMedia A850' in cold state, will try to load a firmware
+firmware: requesting dvb-usb-af9015.fw
+dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+dvb-usb: found a 'AVerMedia A850' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software
+demuxer.
+DVB: registering new adapter (AVerMedia A850)
+af9013: firmware version:4.95.0
+DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
+MXL5005S: Attached at address 0xc6
+dvb-usb: will pass the complete MPEG2 transport stream to the software
+demuxer.
+DVB: registering new adapter (AVerMedia A850)
+af9015: command failed:2
+af9015: firmware copy to 2nd frontend failed, will disable it
+dvb-usb: no frontend was attached by 'AVerMedia A850'
+dvb-usb: AVerMedia A850 successfully initialized and connected.
+usbcore: registered new interface driver dvb_usb_af9015
+
+$ dvbscan /usr/share/dvb/dvb-t/fr-Lyon-Fourviere
+Unable to query frontend status
+
+$ dmesg
+af9015: recv bulk message failed:-110
+af9013: I2C read failed reg:d417
+
+
+Anything else we can try Antti ?
+
+Thanks
+
 
 _______________________________________________
 linux-dvb users mailing list
