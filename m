@@ -1,81 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.189]:18206 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559AbZBRSEq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 13:04:46 -0500
-Received: by fk-out-0910.google.com with SMTP id f33so15565fkf.5
-        for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 10:04:44 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:37126 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751828AbZBUQjF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Feb 2009 11:39:05 -0500
+Message-ID: <49A02E23.9020807@iki.fi>
+Date: Sat, 21 Feb 2009 18:38:59 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <36c518800902121206u26b57e8r3b80741718bbb34b@mail.gmail.com>
-References: <36c518800902111042j2fd8db53q58d7e3960d26120c@mail.gmail.com>
-	 <20090212194242.17ae6abb@free.fr>
-	 <36c518800902121206u26b57e8r3b80741718bbb34b@mail.gmail.com>
-Date: Wed, 18 Feb 2009 20:04:43 +0200
-Message-ID: <36c518800902181004q273d9a5djb3129d0347e679b6@mail.gmail.com>
-Subject: Re: v4l2 and skype
-From: vasaka@gmail.com
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Laurent Haond <lhaond@bearstech.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Can I use AVerTV Volar Black HD (A850) with Linux
+ ?
+References: <499F5452.6050205@bearstech.com> <7a3c9e3d0902210108w77e440e2u6d688f3614ccf972@mail.gmail.com> <499FEF0A.2070001@bearstech.com>
+In-Reply-To: <499FEF0A.2070001@bearstech.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 12, 2009 at 10:06 PM,  <vasaka@gmail.com> wrote:
-> On Thu, Feb 12, 2009 at 8:42 PM, Jean-Francois Moine <moinejf@free.fr> wrote:
->> On Wed, 11 Feb 2009 20:42:07 +0200
->> vasaka@gmail.com wrote:
->>
->>> hello, I am writing v4l2 loopback driver and now it is at working
->>> stage. for now it can feed mplayer and luvcview, but silently fails
->>> with skype it just shows green screen while buffer rotation is going
->>> on. can you help me with debug? I think I missing small and obvious
->>> detail. Is there something special about skype way of working with
->>> v4l2?
->>
->> Hello Vasily,
->>
->> I think skype is not v4l2. Also, I don't know about the frames you send
->> to it, but I know it does not understand JPEG.
->
-> I started writing this driver just because Skype does not understand
-> existing v4l loopback drivers and understands uvcvideo, which is pure
-> v4l2 driver. I am sending to Skype raw yuv frames, also tryed just
-> random generated Images and skype is just shows green rectangle.
->>
->>> loopback is here:
->>> http://code.google.com/p/v4l2loopback/source/checkout
->>> I am feeding it with this app
->>> http://code.google.com/p/v4lsink/source/checkout
->>> this is the simple gstreamer app which takes data from /dev/video0 and
->>> puts it to /dev/video1 which should be my loopback device.
->>
->> I did not look at your code, but it may be interesting for usermode
->> drivers...
->>
->> BTW, don't use the video4linux-list@redhat.com mailing list. The new
->> list is in the Cc: field.
->>
->> Regards.
->>
->> --
->> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
->> Jef             |               http://moinejf.free.fr/
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->
-> Vasily Levin
->
-I maneged to make it work :-) skype seems to do some checks on sanity
-of image it gets, so testing it with just noise does not work.
+Hello and thank you for information,
 
-do you need loopback driver in kernel? I am willing to make it good
-enough to pass in.
+According to your previous post, you are correct. I did one of the most 
+typical mistake when adding new usb-id:s :) (didn't increase 
+.num_device_descs).
 
---
-Vasily Levin
+Laurent Haond wrote:
+> af9015_usb_probe: interface:0
+> af9015_read_config: IR mode:0
+
+Is there remote at all?
+
+> af9015_read_config: TS mode:1
+> af9015_read_config: [0] xtal:2 set adc_clock:28000
+> af9015_read_config: [0] IF1:36125
+
+hmmm, typical IF for many DVB-T tuners but very strange for MXL5003S. 
+Maxlinear uses normally / default 4570kHz. I think thats why it does not 
+work. Could you change .if_freq to IF_FREQ_36125000HZ and test? 
+AVerMedia seems to use many times very weird configurations that are not 
+reference nor default ones.
+
+> af9015_read_config: [0] MT2060 IF1:0
+> af9015_read_config: [0] tuner id:13
+> af9015_read_config: [1] xtal:2 set adc_clock:28000
+> af9015_read_config: [1] IF1:36125
+> af9015_read_config: [1] MT2060 IF1:1220
+> af9015_read_config: [1] tuner id:130
+> af9015_identify_state: reply:01
+
+> af9015_copy_firmware:
+> af9015: command failed:2
+> af9015: firmware copy to 2nd frontend failed, will disable it
+> dvb-usb: no frontend was attached by 'AVerMedia A850'
+> dvb-usb: AVerMedia A850 successfully initialized and connected.
+
+No knowledge why it fails. I suspect wrong GPIO, again this is AverMedia 
+device... You should take usb-sniff and look correct GPIO from there.
+
+> af9015_init:
+> af9015_init_endpoint: USB speed:3
+> af9015_download_ir_table:
+> 
+> 
+> dvbscan fails with this error : Unable to query frontend status
+> and sometimes (not everytimes) dmesg shows :
+> af9015: recv bulk message failed:-110
+> af9013: I2C read failed reg:d417
+
+regards
+Antti
+-- 
+http://palosaari.fi/
