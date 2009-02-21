@@ -1,126 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.225]:9303 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850AbZBLHwf (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:44444 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650AbZBUN6O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Feb 2009 02:52:35 -0500
+	Sat, 21 Feb 2009 08:58:14 -0500
+Date: Sat, 21 Feb 2009 05:58:10 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: Minimum kernel version supported by v4l-dvb
+In-Reply-To: <20090221141130.1c4f1265@hyperion.delvare>
+Message-ID: <Pine.LNX.4.58.0902210533480.24268@shell2.speakeasy.net>
+References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
+ <20090218140105.17c86bcb@hyperion.delvare> <20090220212327.410a298b@pedra.chehab.org>
+ <200902210212.53245.hverkuil@xs4all.nl> <20090220231350.5467116a@pedra.chehab.org>
+ <Pine.LNX.4.58.0902210343520.24268@shell2.speakeasy.net>
+ <20090221141130.1c4f1265@hyperion.delvare>
 MIME-Version: 1.0
-In-Reply-To: <4993CB1F.603@maxwell.research.nokia.com>
-References: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-	 <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
-	 <4993CB1F.603@maxwell.research.nokia.com>
-Date: Thu, 12 Feb 2009 16:52:31 +0900
-Message-ID: <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-From: DongSoo Kim <dongsoo.kim@gmail.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you for your comment.
+On Sat, 21 Feb 2009, Jean Delvare wrote:
+> On Sat, 21 Feb 2009 04:06:53 -0800 (PST), Trent Piepho wrote:
+> > The new i2c driver interface also supports a ->detect() method and a list
+> > of address_data to use it with.  This is much more like the legacy model
+> > than using i2c_new_probed_device().
+>
+> Correct.
+>
+> > I think a compatability layer than implements attach_adapter,
+> > detach_adapter, and detach_client using a new-style driver's detect, probe,
+> > remove, and address_data should not be that hard.
+>
+> Well, that's basically what Hans has been doing with
+> v4l2-i2c-drv-legacy.h for months now, isn't it? This is the easy part
+> (even though even this wasn't exactly trivial...)
 
-BTW, what should I do if I would rather use external ISP device than
-OMAP3 internal ISP feature?
-
-You said that you just have raw sensors by now, so you mean this patch
-is not verified working with some ISP modules?
-
-I'm testing your patch on my own omap3 target board with NEC ISP...but
-unfortunately not working yet ;(
-
-I should try more harder. more research is needed :)
-
-Cheers,
-
-
-On Thu, Feb 12, 2009 at 4:09 PM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> DongSoo Kim wrote:
->>
->> Hello.
->
-> Hi, and thanks for the comments!
->
->> +static int omap34xxcam_open(struct inode *inode, struct file *file)
->> +{
->>
->> <snip>
->>
->> +       if (atomic_inc_return(&vdev->users) == 1) {
->> +               isp_get();
->> +               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
->> +
->> OMAP34XXCAM_SLAVE_POWER_ALL))
->> +                       goto out_slave_power_set_standby;
->> +               omap34xxcam_slave_power_set(
->> +                       vdev, V4L2_POWER_STANDBY,
->> +                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
->> +               omap34xxcam_slave_power_suggest(
->> +                       vdev, V4L2_POWER_STANDBY,
->> +                       OMAP34XXCAM_SLAVE_POWER_LENS);
->> +       }
->>
->>
->> I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
->> device is really necessary.
->>
->> Because if that makes sensor device in standby mode, we do S_FMT and
->> bunch of V4L2 APIs while the camera module is in standby mode.
->>
->> In most cases of "sensor + ISP" SOC camera modules, I2C command is not
->> working while the camera module is in standby mode.
->
-> I guess that applies to most sensors.
->
->> Following the camera interface source code, sensor goes down to
->> standby mode until VIDIOC_STREAMON is called.
->>
->> If this power up timing depends on sensor device, then I think we need
->> a conditional power on sequence.
->
-> You're right, there's something wrong with the slave power handling. :)
->
-> We were thinking that the sensor (or any slave) power management (current
-> on, off and standby) could be replaced by four commands: open, close,
-> streamon and streamoff. The slave could decide by itself what its real power
-> state is. IMO direct power management doesn't belong to the camera driver
-> which doesn't drive any hardware anyway.
->
->> As you defined slave devices as SENSOR, LENS, FLASH, then how about
->> making a new slave category like "ISP" for "sensor+ISP" SOC modules?
->
-> I currently have just raw sensors. It'd be nice to keep the interface for
-> smart sensors the same, though. You still need for a receiver for the image
-> data, sometimes called the camera controller. That would be the same than
-> the ISP but without fancy features.
->
-> Cheers,
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
+Last time I looked they didn't do this.  They just allowed an i2c driver to
+provide both an old-style interface and a probe/remove interface (not
+detect, it wasn't around yet).  I think it should be possible for a driver
+to provide a probe/remove/detect interface and work on old kernels with a
+compat layer than translates the old inform methods into the new methods.
 
 
+> The hard part is when you want to use pure new-style i2c binding (using
+> i2c_new_device() or i2c_new_probed_device()) in the upstream kernel.
+> There is simply no equivalent in pre-2.6.22 kernels. So no matter what
 
--- 
-========================================================
-Dong Soo, Kim
-Engineer
-Mobile S/W Platform Lab. S/W centre
-Telecommunication R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-           dongsoo45.kim@samsung.com
-========================================================
+Yes, that's the part that seems most difficult.  But maybe it doesn't have
+to be such a problem?  If someone writes a new driver and only wants to use
+i2c_new_device() style attachment, then they can just use the existing
+version system to mark it as 2.6.22+ or 2.6.26+ only.  Don't provide
+backward compatibility for the driver and just avoid the problem.  Just
+because some new embedded camera doesn't work on 2.6.18 doesn't mean
+everyone has to lose 2.6.18 support.
+
+Of course there are the existing drivers like tvaudio and bttv.  In this
+case, regardless of compatibility concerns, maybe switching to entirely
+i2c_new_device() style attachment isn't the right thing to do?  After all,
+if ->detect() should never be used, why is it there and why do sensor
+drivers use it?  Don't the myriad versions of tvcards with their various i2c
+chips attached seemingly at random have a lot in common with motherboards
+and sensor chips?
