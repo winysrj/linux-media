@@ -1,166 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:58667 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752161AbZBBG1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Feb 2009 01:27:13 -0500
-Message-ID: <4986925A.9040800@free.fr>
-Date: Mon, 02 Feb 2009 07:27:38 +0100
-From: Thierry Merle <thierry.merle@free.fr>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:33781 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751356AbZBUMGy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Feb 2009 07:06:54 -0500
+Date: Sat, 21 Feb 2009 04:06:53 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>, urishk@yahoo.com,
+	linux-media@vger.kernel.org
+Subject: Re: Minimum kernel version supported by v4l-dvb
+In-Reply-To: <20090220231350.5467116a@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.58.0902210343520.24268@shell2.speakeasy.net>
+References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
+ <20090218140105.17c86bcb@hyperion.delvare> <20090220212327.410a298b@pedra.chehab.org>
+ <200902210212.53245.hverkuil@xs4all.nl> <20090220231350.5467116a@pedra.chehab.org>
 MIME-Version: 1.0
-To: Jason Harvey <softdevice@jasonline.co.uk>
-CC: linux-media@vger.kernel.org
-Subject: Re: CinergyT2 not working with newer alternative driver
-References: <4984E50D.8000506@jasonline.co.uk> <49857A09.9020302@free.fr> <49859A71.70701@jasonline.co.uk>
-In-Reply-To: <49859A71.70701@jasonline.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jason Harvey wrote:
-> Thierry Merle wrote:
->> Hi Jason,
->> Jason Harvey wrote:
->>  
->>> I have been successfully using VDR with two CinergyT2s for 18 months.
->>> After adding a Hauppage NOVA-S2-HD I updated my v4l-dvb drivers hoping
->>> to get S2 capability and test a newer VDR for HD reception.
->>>
->>> The CinergyT2s stopped working. The kernel module loads, the blue leds
->>> flash as expected but they don't lock on to a signal for long.
->>> Signal strength shown in femon is erratic and a lock only rarely
->>> achieved.
->>>
->>> I checked through the mercurial tree to see what had changed.
->>> It looks like the following change is the one that stops the CinergyT2s
->>> working on my system.
->>> http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git;a=commit;h=986bd1e58b18c09b753f797df19251804bfe3e84
->>>
->>>
->>>
->>> I deleted the newer version of the module and replace it with the
->>> previous deleted code.
->>> Make'd and installed the old version works as expected.
->>>
->>> Machine they're plugged into is running Fedora 10,
->>> 2.6.27.12-170.2.5.fc10.i686
->>> I downloaded the current v4l-dvb today (31Jan2009) and tried it all
->>> again before posting this message.
->>>
->>> Not sure where to look next, I did start to capture the USB traffic to
->>> see if I could spot the difference...
->>>
->>>     
->> Please take a look at the message logs (dmesg).
->> You can follow the instructions described here
->> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
->> and report where it fails.
->>
->> I use tzap like this: tzap -c $HOME/.tzap/channels.conf -s -t 120 -r
->> -o output.mpg "SomeChannel"
->> I am able to play with mplayer too.
->> Regards,
->> Thierry
->>   
-> Hi Thierry,
-> 
-> Thank you for the quick reply.
-> I should have looked in dmesg before...
-> Checking dmesg before I used tzap shows a problem. dvb-usb: recv bulk
-> message failed: -110
-> 
-> **** Extract of dmesg ****
-> 
-> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm
-> state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software
-> demuxer.
-> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
-> Receiver)
-> DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed
-> DVB-T Receiver)...
-> input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input8
-> dvb-usb: schedule remote query interval to 50 msecs.
-> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
-> initialized and connected.
-> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm
-> state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software
-> demuxer.
-> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
-> Receiver)
-> DVB: registering adapter 1 frontend 0 (TerraTec/qanu USB2.0 Highspeed
-> DVB-T Receiver)...
-> input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input9
-> dvb-usb: schedule remote query interval to 50 msecs.
-> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
-> initialized and connected.
-> usbcore: registered new interface driver cinergyT2
-> 
-> dvb-usb: recv bulk message failed: -110
-> dvb-usb: recv bulk message failed: -110
-> 
-> ****
-> 
-> Running tzap fails to tune/lock
-> 
-> #tzap -a 0 -c channels.conf_dvbt -s -t 120 -r -o output.mpg "BBC ONE"
-> 
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file 'channels.conf_dvbt'
-> tuning to 505833330 Hz
-> video pid 0x0258, audio pid 0x0259
-> status 01 | signal c11f | snr 0000 | ber ffffffff | unc ffffffff |
-> 
-> No more messages in dmesg.
-> 
-> I shut down the PC, removed all power, unplugged the CinergyT2s, gave it
-> twenty seconds and powered back up.
-> Once it had booted I plugged in one of the devices and the dmesg output
-> below.
-> 
-> 
-> usb 2-5: new high speed USB device using ehci_hcd and address 3
-> usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid
-> maxpacket 64
-> usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has
-> invalid maxpacket 64
-> usb 2-5: configuration #1 chosen from 1 choice
-> usb 2-5: New USB device found, idVendor=0ccd, idProduct=0038
-> usb 2-5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> usb 2-5: Product: Cinergy T?
-> usb 2-5: Manufacturer: TerraTec GmbH
-> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm
-> state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software
-> demuxer.
-> DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T
-> Receiver)
-> DVB: registering adapter 1 frontend 0 (TerraTec/qanu USB2.0 Highspeed
-> DVB-T Receiver)...
-> input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input9
-> dvb-usb: schedule remote query interval to 50 msecs.
-> dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
-> initialized and connected.
-> usbcore: registered new interface driver cinergyT2
-> dvb-usb: recv bulk message failed: -110
-> 
-> Cannot tzap or scan.
-> 
-> With the old version of the driver I don't have any trouble at all.
-> 
-I do have this bulk message error too, sometimes (this is a timeout on recv).
-I can tune channels but I think I have a particular version of the CinergyT2 (there are several).
-You can turn on the debug infos:
-modprobe dvb-core dvbdev_debug=1 debug=1
-modprobe dvb-usb-cinergyT2 debug=7
-and see again dmesg...
+On Fri, 20 Feb 2009, Mauro Carvalho Chehab wrote:
+> On Sat, 21 Feb 2009 02:12:53 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > > I think that maybe we'll need some legacy-like support for bttv and cx88,
+> > > since there are some boards that relies on the old i2c method to work. On
+> > > those boards (like cx88 Pixelview), the same board model (and PCB
+> > > revision) may or may not have a separate audio decoder. On those devices
+> > > that have an audio decoder, the widely used solution is to load tvaudio
+> > > module and let it bind at the i2c bus, on such cases.
+> >
+> > That's what the i2c_new_probed_device() call is for (called through
+> > v4l2_i2c_new_probed_subdev). You pass a list of i2c addresses that the i2c
+> > core will probe for you: but this comes from the adapter driver, not from
+> > the i2c module.
+>
+> This is a problem. The current procedure used by end users will stop working.
+> It is a little worse: as the adapter driver has no means to know that some
+> device could need tvaudio or other similar devices, we would need some hacking
+> to allow the user to pass a parameter to the driver in order to test/load such
+> drivers, since there's no documentation of when such things are needed.
 
-> Hope this helps.
-> 
-> Regards, Jason
-Hope this helps too :)
-Thierry
+The new i2c driver interface also supports a ->detect() method and a list
+of address_data to use it with.  This is much more like the legacy model
+than using i2c_new_probed_device().
+
+I think a compatability layer than implements attach_adapter,
+detach_adapter, and detach_client using a new-style driver's detect, probe,
+remove, and address_data should not be that hard.
+
+> > But v4l2-i2c-drv.h is bad enough, and even worse is what it looks like in
+> > the kernel when the compat code has been stripped from it: it's turned into
+> > a completely pointless header. And all the v4l2 i2c modules look peculiar
+> > as well due to that header include.
+
+As I've said before, the v4l2-i2c headers are lot more complicated than
+they need to be.  I have a tree that's shrunk them greatly.  I don't think
+it's fair to give the current headers as an example of how complicated i2c
+backward compat _must_ be.
+
+> This way, the development code won't have any #if's or compat code. I'm afraid
+> that just using patches may also bring another range of troubles of needing to
+> periodically maintain the backports. On the other hand, a syntax/semantic
+> parser would be much more complex to develop.
+
+IMHO, the ALSA method of providing a backward compatability package is much
+inferior to the way v4l-dvb is doings thing.
