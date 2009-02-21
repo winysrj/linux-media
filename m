@@ -1,76 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpd4.aruba.it ([62.149.128.209]:53895 "HELO smtp7.aruba.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752616AbZBJLdY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 06:33:24 -0500
-Message-ID: <499165F4.6080405@avalpa.com>
-Date: Tue, 10 Feb 2009 12:33:08 +0100
-From: Andrea Venturi <a.venturi@avalpa.com>
-MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: TS sample from freeview, anyone?
-References: <498C02BE.9010004@avalpa.com> <alpine.DEB.2.01.0902100948270.1147@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.01.0902100948270.1147@ybpnyubfg.ybpnyqbznva>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:56581 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751538AbZBUNB4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Feb 2009 08:01:56 -0500
+Date: Sat, 21 Feb 2009 10:01:23 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>, urishk@yahoo.com,
+	linux-media@vger.kernel.org
+Subject: Re: Minimum kernel version supported by v4l-dvb
+Message-ID: <20090221100123.498dc99e@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.58.0902210343520.24268@shell2.speakeasy.net>
+References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
+	<20090218140105.17c86bcb@hyperion.delvare>
+	<20090220212327.410a298b@pedra.chehab.org>
+	<200902210212.53245.hverkuil@xs4all.nl>
+	<20090220231350.5467116a@pedra.chehab.org>
+	<Pine.LNX.4.58.0902210343520.24268@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-BOUWSMA Barry wrote:
-> On Fri, 6 Feb 2009, Andrea Venturi wrote:
->
->   
->> i'm looking for a full TS sample of a freeview mheg RedButton transmission.
->>     
->
-> How much are you looking for -- in other words, do you need
-> the full service including video that a RedButton service
-> might bring up, or do you just need a sample of, well,
-> Digital Teletext?
->   
+On Sat, 21 Feb 2009 04:06:53 -0800 (PST)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-i'd like to have a couple of minute of a full TS from Freeview, to give 
-a quick glance to Red button service.
+> On Fri, 20 Feb 2009, Mauro Carvalho Chehab wrote:
+> > On Sat, 21 Feb 2009 02:12:53 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > > > I think that maybe we'll need some legacy-like support for bttv and cx88,
+> > > > since there are some boards that relies on the old i2c method to work. On
+> > > > those boards (like cx88 Pixelview), the same board model (and PCB
+> > > > revision) may or may not have a separate audio decoder. On those devices
+> > > > that have an audio decoder, the widely used solution is to load tvaudio
+> > > > module and let it bind at the i2c bus, on such cases.
+> > >
+> > > That's what the i2c_new_probed_device() call is for (called through
+> > > v4l2_i2c_new_probed_subdev). You pass a list of i2c addresses that the i2c
+> > > core will probe for you: but this comes from the adapter driver, not from
+> > > the i2c module.
+> >
+> > This is a problem. The current procedure used by end users will stop working.
+> > It is a little worse: as the adapter driver has no means to know that some
+> > device could need tvaudio or other similar devices, we would need some hacking
+> > to allow the user to pass a parameter to the driver in order to test/load such
+> > drivers, since there's no documentation of when such things are needed.
+> 
+> The new i2c driver interface also supports a ->detect() method and a list
+> of address_data to use it with.  This is much more like the legacy model
+> than using i2c_new_probed_device().
+> 
+> I think a compatability layer than implements attach_adapter,
+> detach_adapter, and detach_client using a new-style driver's detect, probe,
+> remove, and address_data should not be that hard.
+> 
+> > > But v4l2-i2c-drv.h is bad enough, and even worse is what it looks like in
+> > > the kernel when the compat code has been stripped from it: it's turned into
+> > > a completely pointless header. And all the v4l2 i2c modules look peculiar
+> > > as well due to that header include.
+> 
+> As I've said before, the v4l2-i2c headers are lot more complicated than
+> they need to be.  I have a tree that's shrunk them greatly.  I don't think
+> it's fair to give the current headers as an example of how complicated i2c
+> backward compat _must_ be.
 
-supposed it's a 24Mbps, a couple of minutes should be something like 
-350MB of dump.
+We can use your tree as a starting point to review the i2c headers. If they
+make no sense for upstream, we should get rid of them, maybe adding it for
+removal, just like we do with compat.h at gentree.pl.
 
-> I'm assuming that you're in Italia (based on your mail
-> headers).  Therefore you likely would have problems in
-> receiving television programming via satellite on Astra
-> 2D, although I've had error-free reception with a 60cm
-> dish in Zuerich long before I was aware of the spotbeam.
->   
-i know that i could try freesat albeit has a tight footprint, but i just 
-have a fixed dish toward 13 east
+Where is the tree? Is it updated to work with the current -tip? Probably, some
+merging conflicts would be required, due to Hans trees that weren't yet merged. 
 
-> However, the BBC radio services are on a pan-european beam
-> and also (since some months) include a minimal MHEG
-> application that I've been able to receive and view, like
-> the BBCi services on the TV channels -- also available
-> from the BBC (if not ITV too) via satellite/Freesat, and
-> which is likely to be pretty much identical with that
-> received via Freeview...
->   
+> > This way, the development code won't have any #if's or compat code. I'm afraid
+> > that just using patches may also bring another range of troubles of needing to
+> > periodically maintain the backports. On the other hand, a syntax/semantic
+> > parser would be much more complex to develop.
+> 
+> IMHO, the ALSA method of providing a backward compatability package is much
+> inferior to the way v4l-dvb is doings thing.
 
-is there really MHEG over the BBC radio service?
+I never carefully checked how ALSA actually implemented. The way we do in V4L
+provides very few maintainership after a backport is done, with the exception
+of i2c backport, where part of the backport code went upstream.
 
-do you mean on these BBC "World service" at 13 degree?
-
-  http://www.lyngsat.com/hotbird.html
-
-the transponder TP *50 at freq. 11727V
-
-thanx in advance
-
-Andrea
-*
->
-> So, unless you've received off-list assistance, this may
-> be a possibility to get something
->
-> barry bouwsma
->
->   
-
+Cheers,
+Mauro
