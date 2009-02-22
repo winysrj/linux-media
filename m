@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121]:43254 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550AbZBRPji (ORCPT
+Received: from smtp119.rog.mail.re2.yahoo.com ([68.142.224.74]:27673 "HELO
+	smtp119.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752752AbZBVVBp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 10:39:38 -0500
-Date: Wed, 18 Feb 2009 09:39:36 -0600
-From: David Engel <david@istwok.net>
-To: Andreas <linuxdreas@dslextreme.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: PVR x50 corrupts ATSC 115 streams
-Message-ID: <20090218153936.GD15359@opus.istwok.net>
-References: <200902180441.40316.linuxdreas@dslextreme.com>
+	Sun, 22 Feb 2009 16:01:45 -0500
+Message-ID: <49A1BD37.6010606@rogers.com>
+Date: Sun, 22 Feb 2009 16:01:43 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200902180441.40316.linuxdreas@dslextreme.com>
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [Bulk]  Problem with TV card's sound (SAA7134)
+References: <BAY111-W598DBD904310E159C109CC5B40@phx.gbl>	<499CD588.8030104@rogers.com> <BAY111-W30090D901B75228887D50BC5B20@phx.gbl>
+In-Reply-To: <BAY111-W30090D901B75228887D50BC5B20@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 18, 2009 at 04:41:40AM -0800, Andreas wrote:
-> Am Dienstag, 17. Februar 2009 21:19:45 schrieben Sie:
-> [...]
-> > So what does all of this indicate?  My original hunch was that it's a
-> > problem with the x50 hardware or driver (at least in combination with
-> > my motherboard).  I think I'm back to that conclusion.
+panagiotis takis_rs wrote:
+> > panagiotis takis_rs wrote:
+> > > Hey!!
+> > >
+> > > I have a problem with my tv card(pinnacle pctv 310i)
+> > > I can see image but i have no sound.
+> > > I have tried both tvtime and kdetv.
+> > >
+> > > I have found this http://ubuntuforums.org/showthread.php?t=568528
+> . Is it related with my problem?
+> > >
+> > > My tv card give audio output with this way: direct cable
+> connection from
+> > > tv card to sound card ( same cable witch connect cdrom and soundcard )
 > >
-> > BTW, in my testing last night, I tried changing the PCI latency timer
-> > on the x50 cards.  I thought maybe it was holding off access to the
-> > 115 cards.  Changing that had no effect.
-> 
-> Just to let you know that you're not alone:
-> I had a simiilar problem with the combination of an AverMedia A180 and 
-> two Asus Falcon (they use the ivtv drivers and firmware). Whenever one 
-> of the Falcons was recording, I got blips and dropouts on the 
-> AverMedia. I chalked it off to a flaky mainboard and seperated the 
-> Falcons and the Avermedia in two different computers. A while later I 
+> > I didn't read through the link you provided, but it appeared to be in
+> > regards to getting audio via DMA (using the card's 7134 chip to digitize
+> > the audio and send it over the PCI bus to the host system). You, on the
+> > other hand, indicate that you are attempting to use the method of
+> > running a patch cable between your TV card and sound card (meaning that
+> > the sound card will do the digitizing instead). Question: have you
+> > checked your audio mixer to make sure that any of the inputs are not
+> muted?
+>
+> Yes i have.
+> The only way i managed to get sound is these two commands:
+>
+>  tvtime | arecord -D hw:2,0 -r 32000 -c 2 -f S16_LE | aplay -  (out of
+> sync)
+>
+> tvtime | sox -r 32000 -t alsa hw:2,0 -t alsa hw:0,1 | aplay -
 
-That does sound like the same problem.
 
-> got a new mainboard and additional ATSC tuner cards. As long as I had 
-> two of the ATSC tuner cards installed, the recordings were ok, except 
-> for an occasional dropout. But when I put a third ATSC tuner in, the 
-> recordings were barely watchable. After I put two ATSC tuners (2x 
+Which, as you likely know, is essentially going the DMA route and using
+the helper apps (sox, arecord) as tvtime currently doesn't support audio
+DMA.
 
-That sounds troubling since my current plan is to eventually remove
-the PVR x50 cards altogether and use 3 ATCS 115s in the one system.
-
-David
--- 
-David Engel
-david@istwok.net
+Hmm, if everything is unmuted, I have no idea why it isn't working
+simply via your patch cable ... last stab at this --> how about the
+leads on the patch cable itself; have you tried reversing the way one of
+the ends is plugged in?
