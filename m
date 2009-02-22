@@ -1,63 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f167.google.com ([209.85.220.167]:41210 "EHLO
-	mail-fx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753102AbZBXVCl (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:57798 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753043AbZBVXPO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:02:41 -0500
-Received: by fxm11 with SMTP id 11so3160949fxm.13
-        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 13:02:38 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
-References: <200902221115.01464.hverkuil@xs4all.nl>
-Date: Tue, 24 Feb 2009 16:02:37 -0500
-Message-ID: <37219a840902241302u5b9d79bex9eb3b0e55462e3a@mail.gmail.com>
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-From: Michael Krufky <mkrufky@linuxtv.org>
+	Sun, 22 Feb 2009 18:15:14 -0500
+Date: Sun, 22 Feb 2009 17:27:35 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+cc: linux-media@vger.kernel.org
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+Message-ID: <alpine.LNX.2.00.0902221717380.10870@banach.math.auburn.edu>
+References: <200902221115.01464.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 22, 2009 at 5:15 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+
+
+On Sun, 22 Feb 2009, Hans Verkuil wrote:
+
+> Hi all,
+>
+> There are lot's of discussions, but it can be hard sometimes to actually
+> determine someone's opinion.
+>
+> So here is a quick poll, please reply either to the list or directly to me
+> with your yes/no answer and (optional but welcome) a short explanation to
+> your standpoint. It doesn't matter if you are a user or developer, I'd like
+> to see your opinion regardless.
+>
+> Please DO NOT reply to the replies, I'll summarize the results in a week's
+> time and then we can discuss it further.
+>
 > Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
 >
-> _: Yes
+X _: Yes
 > _: No
-
-
-NO.
-
-
+>
 > Optional question:
 >
 > Why:
 
+After a certain point it becomes in practical terms impossible to support 
+old versions of anything. There are too many dependencies on too many 
+things that have to be changed all at once. The resulting problems do not 
+pertain only to kernel-related development but to all development, as I 
+have tried to make clear in other posts. I do not know the gory details of 
+just what has become too difficult, as I am new to this area of kernel 
+development, but I am quite willing, based upon a general description, and 
+based upon other experience, to believe that there are problems.
 
-Dropping support for older kernels means dropping support for MOST testers.
+I think it is obvious that a version cutoff has to be made somewhere, and 
+seven minor versions behind the kernel which is about to come out does not 
+at all appear to me to be an unreasonable restriction.
 
-Sure, it's an inconvenience for the maintainers.  This does *not* have
-to cause a hindrance for new drivers.  At first, new drivers can be
-added to the repository, and set to require only the latest kernels,
-via versions.txt .  When somebody has time to fix backwards compat for
-that driver, simply update versions.txt with the new kernel version
-dependency for the driver in question.
-
-
-Additionally, we all know what upstream kernel development is like --
-new kernel does *not* mean new stability.  More likely, new kernels
-bring new bugs.  (this isnt always the case, but it's good to be
-skeptical when it comes to production systems)
-
-If I build an embedded system to use as a dedicated TV streaming box,
-I will not want to update my kernel JUST so that I can use the new
-driver required for my new TV tuner device.
-
-Being able to build the v4l-dvb development repository against a
-reasonable set of stable kernels, including kernels as old as 2.6.16,
-is a critical feature for users of the v4l-dvb driver repository.
-
-Regards,
-
-Mike Krufky
