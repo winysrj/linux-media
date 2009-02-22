@@ -1,111 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:51107 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754640AbZBIPhs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Feb 2009 10:37:48 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so1065562fgg.17
-        for <linux-media@vger.kernel.org>; Mon, 09 Feb 2009 07:37:46 -0800 (PST)
+Received: from smtp123.rog.mail.re2.yahoo.com ([206.190.53.28]:20603 "HELO
+	smtp123.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751994AbZBVTfD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 14:35:03 -0500
+Message-ID: <49A1A8E4.8030307@rogers.com>
+Date: Sun, 22 Feb 2009 14:35:00 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-In-Reply-To: <498EB8AE.7030706@agnoletti.dk>
-References: <498E031E.9040503@agnoletti.dk> <498EB8AE.7030706@agnoletti.dk>
-Date: Mon, 9 Feb 2009 16:37:46 +0100
-Message-ID: <19a3b7a80902090737r156bf86egdf791851a0b1c63d@mail.gmail.com>
-Subject: Re: channels.conf file for danish DVB-C provider AFDK (www.afdk.tv)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Klaus Agnoletti <klaus@agnoletti.dk>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: David Engel <david@istwok.net>
+CC: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
+	V4L <video4linux-list@redhat.com>
+Subject: Re: PVR x50 corrupts ATSC 115 streams
+References: <20090217155335.GB6196@opus.istwok.net> <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net> <499B1E19.80302@linuxtv.org> <20090218051945.GA12934@opus.istwok.net> <499C218D.7050406@linuxtv.org> <20090218153422.GC15359@opus.istwok.net> <20090219162820.GA23759@opus.istwok.net>
+In-Reply-To: <20090219162820.GA23759@opus.istwok.net>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/2/8 Klaus Agnoletti <klaus@agnoletti.dk>:
-> Hello again,
+David Engel wrote:
+> I'll start with what worked.
 >
-> I sent you the wrong file, it occured to me.. The right one goes here :
+> ... [test results of BER and UNC under varying configurations ] ...
+>   
 
-Added, thanks :)
+Steven Toth wrote:
+> I think CityK confirmed that the nxt2004 driver statistics are
+> probably bogus so I doubt you're going to get your 115's running with
+> BER 0 regardless, which is unfortunate. 
 
-Christoph
+FWIW:
 
+I'm not seeing any UNC, just the BER (which seems consistent to most,
+but not all, of David's results with varying configurations).
 
-> C 386000000 6875000 AUTO QAM64
-> C 394000000 6875000 AUTO QAM64
-> C 402000000 6875000 AUTO QAM64
-> C 490000000 6875000 AUTO QAM64
-> C 602000000 6875000 AUTO QAM64
-> C 610000000 6875000 AUTO QAM64
-> C 618000000 6875000 AUTO QAM64
-> C 794000000 6875000 AUTO QAM64
->
-> I hope this becomes usefule to someone :)
->
-> /klaus
->
-> Klaus Agnoletti wrote:
->>
->> Hello,
->>
->> I've managed to make a channels.conf file for danish DVB-C provider AFDK.
->> MythTV can't find any channels by scanning, so they go in the 'broken DVB-C
->> provider category.
->>
->> Please provide the channels.conf in the dvb-utils package.
->>
->> dk-Copenhagen-AFDK channels.conf:
->> ---------------------------------------------------------------
->> Animal
->> Planet:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1000:1001:407
->> BBC Prime:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:270:272:3
->> BBC World News:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:264:265:2
->> CNN
->> International:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:700:701:202
->> Das Erste:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:101:102:28106
->> Discovery :490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:111:112:412
->> Discov Science:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:286:288:5
->> Discov Trav&liv:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:278:280:4
->> Discov World:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:294:296:6
->> Disney Channel:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:258:259:1
->> DR1:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:111:121:101
->> DR2:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:211:221:102
->> DR UPDATE /
->> Tegnsprog:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:311:321:103
->> Eurosport:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:513:644:905
->> Hlm_Jtx:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1100:0:230
->> Kanal 4 DK:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:516:664:3210
->> Kanal 5 :490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1200:1201:229
->> Kanal Kbh:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:4001:4002:4099
->> MTV :602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:519:668:3205
->> Nat Geo
->> Channel:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:400:401:201
->>
->> Nature/Crime/Playboy:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:278:279:3
->> Nickelodeon:610000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:302:306:7
->> Playhouse
->> Disney:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:513:648:1544
->> ProSieben
->> Austria:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:161:84:20002
->> SBS NET:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:513:644:2406
->> SVT1
->> Sydnytt:394000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1019:1018:5880
->> SVT2
->> Sydnytt:394000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:1029:1028:5650
->> TCM_Cartoon:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:700:701:411
->> Toon Disney:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:269:270:2
->> TV 2 :386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:2111:2121:217
->> TV2 Charlie:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:515:648:2801
->> TV2 Film:602000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:109:688:2809
->> TV2 NEWS:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:290:291:5
->> TV 2 Norge:394000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:514:668:1508
->> TV 2 SPORT:794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:7061:7062:7060
->> TV2 Zulu:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:105:660:611
->> TV3 Denmark:490000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:257:260:1120
->> TV5MONDE
->> EUROPE:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:45:46:10060
->> VH1:618000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:600:601:204
->> VIVA
->> Germany:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:4061:4062:28676
->> Voice :794000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:285:286:4
->> ZDF:402000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:110:120:28006
->>
->> /klaus
+Presently (and a situation that is unlikely to change), I don't have an
+older kernel built/installed with which I can test/confirm, but from
+memory, IIRC, I believe that it must have been from around ~2.6.22 that
+I recall error free femon output.
+
