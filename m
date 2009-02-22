@@ -1,55 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vms173017pub.verizon.net ([206.46.173.17]:48708 "EHLO
-	vms173017pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754935AbZBYSjF (ORCPT
+Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:26778
+	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752362AbZBVVqi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2009 13:39:05 -0500
-Received: from [192.168.2.10] ([173.50.255.29]) by vms173017.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008; 32bit))
- with ESMTPA id <0KFM007I4X4KAK2Y@vms173017.mailsrvcs.net> for
- linux-media@vger.kernel.org; Wed, 25 Feb 2009 12:38:50 -0600 (CST)
-Message-id: <49A59034.30104@foo-projects.org>
-Date: Wed, 25 Feb 2009 10:38:44 -0800
-From: Auke Kok <auke@foo-projects.org>
-MIME-version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: moinejf@free.fr, rossi.f@inwind.it, linux-media@vger.kernel.org
-Subject: Re: zc3xx: "Creative Webcam Live!" never worked with in-tree driver
-References: <49A4616A.10207@foo-projects.org>
-	<49A48A3B.4090509@foo-projects.org> <20090224211916.249e15cf@pedra.chehab.org>
-In-reply-to: <20090224211916.249e15cf@pedra.chehab.org>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Sun, 22 Feb 2009 16:46:38 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Date: Sun, 22 Feb 2009 21:46:32 +0000
+Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+References: <200902180030.52729.linux@baker-net.org.uk> <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu> <49A1A03A.8080303@redhat.com>
+In-Reply-To: <49A1A03A.8080303@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902222146.33136.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> On Tue, 24 Feb 2009 16:00:59 -0800
-> Auke Kok <auke@foo-projects.org> wrote:
-> 
->> Auke Kok wrote:
->>> All,
->>>
->>> I have a "Creative Technology, Ltd Webcam Live!/Live! Pro" that until 
->>> recently worked fine with the out-of-tree gspcav1 driver 
->>> (gspcav1-20071224.tar.gz is the latest version I used unti 2.6.26).
->>>
->>> Since this driver (basically) got merged in the kernel I got my hopes up 
->>> that the in-kernel gspca_zc3xx drivers would work. However, that does 
->>> not provide a usable video0 device - mplayer tv:// crashes with 'No 
->>> stream found.' for instance:
-
-<snip>
-
->> seems I just found the v4lcompat.so stuff, which (apart from being a 
->> pain in the rear) makes the webcam work again...
-> 
-> This seems to be a very common error. IMO, we should write message when loading
-> a gspca that would require libv4l in order to work.
+On Sunday 22 February 2009, Hans de Goede wrote:
+> We want to be able to differentiate between a cam which has its sensor
+> mounted upside down, and a cam which can be pivotted and happens to be
+> upside down at the moment, in case of any upside down mounted sensor, we
+> will always want to compentsate, in case of a pivotting camera wether we
+> compensate or not could be a user preference.
 
 
-it would be wonderful if the v4l stack itself can warn when an 
-application uses the wrong method on the device node... would such a 
-thing be possible?
+If we take Olivier Lorin's gl-860 case though, how do we define what is the 
+normal orientation and what is pivoted, it is likely we'd just decide the 
+direction where the sensor output is the right way up is normal and the other 
+is pivoted and then what info have you got from having multiple flags.
 
-Auke
+In order to explain what I mean it is probably best to refer to rotations in 
+terms of pitch, yaw and roll (as per the definitions at 
+http://en.wikipedia.org/wiki/Flight_dynamics) where the forward direction is 
+the shooting direction.
+
+When still cameras are fitted with gravity sensors they are normally set up 
+with the intention of measuring roll and will often get confused by 90 
+degrees of pitch. If a laptop is fitted with a camera that can either record 
+the user or the view looking away from the user then the camera needs to be 
+able to either pitch or yaw but not roll. If the camera yaws then no 
+correction is needed but if it pitches then the resulting image needs 
+rotating to be the correct way up (and in that scenario it is improbable that 
+the user doesn't want the correction applied). Other than the fact that one 
+needs correcting and the other doesn't these options appear identical to the 
+user and so manufacturers provide one or the other but not both.
+
+If a video camera had a roll sensor (or even, as a believe some specialist 
+tripods can manage, a full set of roll, pitch and yaw measurements) then a 
+substantially different mechanism is needed to provide access to that data 
+but in the absence of anyone having access to such equipment I don't think we 
+can design the interface now.
+
+Adam
