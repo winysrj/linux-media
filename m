@@ -1,91 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from webmail.icp-qv1-irony-out1.iinet.net.au ([203.59.1.146]:39687
-	"EHLO webmail.icp-qv1-irony-out1.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751205AbZBPWjd convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 17:39:33 -0500
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1835 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752876AbZBVKO5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 05:14:57 -0500
+Received: from tschai.lan ([84.208.85.194])
+	(authenticated bits=0)
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1MAEpRE058613
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 22 Feb 2009 11:14:55 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: POLL: for/against dropping support for kernels < 2.6.22
+Date: Sun, 22 Feb 2009 11:15:01 +0100
 MIME-Version: 1.0
-From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
-To: linux-media@vger.kernel.org,
-	"'' sonofzev @ iinet . net . au ''" <sonofzev@iinet.net.au>,
-	"'sonofzev @ iinet . net . au'" <sonofzev@iinet.net.au>
-Subject: Re: Fwd: [linux-dvb] dvico dual express incorrect firmware version readback!!!
-Reply-To: sonofzev@iinet.net.au
-Date: Tue, 17 Feb 2009 07:39:31 +0900
-Message-Id: <32383.1234823971@iinet.net.au>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902221115.01464.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi all,
 
+There are lot's of discussions, but it can be hard sometimes to actually 
+determine someone's opinion.
 
-On Mon Feb 16 22:51 , "sonofzev@iinet.net.au"  sent:
+So here is a quick poll, please reply either to the list or directly to me 
+with your yes/no answer and (optional but welcome) a short explanation to 
+your standpoint. It doesn't matter if you are a user or developer, I'd like 
+to see your opinion regardless.
 
->
->>
->>Hi All 
->>
->>In december I posted a message regarding some issues with the dvico driver.
->>
->>http://www.linuxtv.org/pipermail/linux-dvb/2008-December/031137.html
->>
->>The kernel is reporting incorrect callback of the firmware. Also, if the tuner
->>isn't being used for a few hours, I then get errors from mythtv about it not
->>being able to contact the backend and only rebooting the system will fix the
->>problem (restarting mythbackend and frontend does not help).
->>
->>I eventually reported this as fixed to do with bios settings but I was wrong.
->>
->>I have done alot more testing and have found that it seems to be only after
->>mythtv has accessed the device where this problem beings begins... 
->>
->>I will try the latest hg version and see what happens. I will also try another tv
->>application and see if that makes a difference (but I really would like to
->>continue using mythtv as I have 2 other frontends). 
->>
->>More information.. (and questions). 
->>I know I definitely didn't have this problem with earlier versions of the driver
->>(roughly pre September.. Chris Pascoe's original version actually seemed more
->>stable although didn't report correct signal strength) 
->>The cpu is a an opteron 170 
->>2GB of OCZ DDR500 RAM (clocked at standard 400 of course, not overclocking this
->>thing actually unless watching HD it is usually sitting at 1000MHZ)
->>Nvidia 7600 GS video card (as I read horrible things about my onboard ATI
->>chipset) using nvidia drivers not using xvmc however. 
->>I have eliminated the motherboard as since I originally reported the issue I have
->>changed mobo (from nvidia nforce4 chipset to ati chipset.... primarily to get a
->>micro atx mobo for my HTPC case). 
->>Fairly standard kernel with pre-emption (should I be using an rt patched kernel??)
->>Are there any other kernel options I should remove or add??? 
->>I am using the most recent unstable Gentoo release of mythtv (0.21_p19046) but
->>saw the same problem on the most recent stable release too. 
->>Are there any compile time options (or USE flags) I need to set or unset??
->>The system also houses my third tuner/second card, a dvico fusion lite (older pci
->>version rock solid stable).. Are there any modules.conf settings I need to look
->>out for (although it worked before ...).... 
->>
->>As I said, I will try out the latest hg version tonight.. but any advice would be
->>appreciated greatly!!!
->>
->>cheers
->>
->>Allan 
->>
->
->Same result with the hg version updated tonight. 
->
->I haven't had a chance to use another tv app yet as we are currently watching TV. 
->
->I will send a further update later. 
+Please DO NOT reply to the replies, I'll summarize the results in a week's 
+time and then we can discuss it further.
 
+Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
 
-Is anyone else actually seeing this "Incorrect Firmware Version Readback" error?? 
+_: Yes
+_: No
 
-Is there something I am missing? (stupid kernel setup or something??)... 
+Optional question:
 
-Should I  try and source the firmware again or is this unlikely to be the issue?
+Why:
 
 
 
+Thanks,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
