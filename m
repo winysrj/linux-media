@@ -1,83 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rn-out-0910.google.com ([64.233.170.184]:14703 "EHLO
-	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbZBJMHw (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4723 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbZBVJ5O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 07:07:52 -0500
-Received: by rn-out-0910.google.com with SMTP id k40so1738272rnd.17
-        for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 04:07:51 -0800 (PST)
+	Sun, 22 Feb 2009 04:57:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: kilgota@banach.math.auburn.edu
+Subject: Re: RFCv1: v4l-dvb development models & old kernel support
+Date: Sun, 22 Feb 2009 10:57:16 +0100
+Cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org
+References: <200902211200.45373.hverkuil@xs4all.nl> <200902212347.47109.linux@baker-net.org.uk> <alpine.LNX.2.00.0902211811500.10147@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0902211811500.10147@banach.math.auburn.edu>
 MIME-Version: 1.0
-In-Reply-To: <20090210041512.6d684be3@pedra.chehab.org>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-	 <4987DE4E.2090902@rogers.com>
-	 <20090209004343.5533e7c4@caramujo.chehab.org>
-	 <1234226235.2790.27.camel@pc10.localdom.local>
-	 <1234227277.3932.4.camel@pc10.localdom.local>
-	 <1234229460.3932.27.camel@pc10.localdom.local>
-	 <20090210003520.14426415@pedra.chehab.org>
-	 <1234235643.2682.16.camel@pc10.localdom.local>
-	 <1234237395.2682.22.camel@pc10.localdom.local>
-	 <20090210041512.6d684be3@pedra.chehab.org>
-Date: Tue, 10 Feb 2009 06:07:51 -0600
-Message-ID: <1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com>
-Subject: Re: KWorld ATSC 115 all static
-From: Jonathan Isom <jeisom@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: hermann pitton <hermann-pitton@arcor.de>, CityK <cityk@rogers.com>,
-	V4L <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
-	David Engel <david@istwok.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902221057.17050.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 10, 2009 at 12:15 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> On Tue, 10 Feb 2009 04:43:15 +0100
-> hermann pitton <hermann-pitton@arcor.de> wrote:
+On Sunday 22 February 2009 02:15:51 kilgota@banach.math.auburn.edu wrote:
+> >> Oldest supported Ubuntu kernel is 2.6.22 (7.10):
 >
->>
->> Am Dienstag, den 10.02.2009, 04:14 +0100 schrieb hermann pitton:
->> > Am Dienstag, den 10.02.2009, 00:35 -0200 schrieb Mauro Carvalho Chehab:
->> > > On Tue, 10 Feb 2009 02:31:00 +0100
->> > > hermann pitton <hermann-pitton@arcor.de> wrote:
->>
->> > > > >
->> > > > > BTW, just to remember.
->> > > > >
->> > > > > Tvtime with signal detection on shows a blue screen without signal.
->> > > > > With signal detection off, just good old snow.
->> > >
->> > > So, the tda9887 or the PLL are configured wrongly.
->> > >
->>
->> Urgh, not to add more confusion here at least.
->>
->> Good old snow means the analog signal is perfect.
->>
->> I stopped since long to connect a real signal to it surfing the grounds
->> on my stomach, but it is for sure working then and the pll is always
->> fine.
+> This is a bit optimistic.
 >
-> Ah, ok. So, now, we just need CityK (or someone else with ATSC 115) to confirm
-> that everything is fine on their side. This patch may also fix other similar
-> troubles on a few devices that seem to need some i2c magic before probing the
-> tuner.
-
-Just tried the latest hg and I can confirm that both an ATSC 110 and
-115 work with tvtime
-and ATSC.
-
-Later
-
-Jonathan
-
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Matter of fact, I just bought a brand new eeePC in January, on which Asus
+> chose to install Xandros. The response to uname -r is (I put this on a
+> separate line in order to highlight it)
 >
+> 2.6.21.4-eeepc
+>
+> Now, some might not think of Xandros as a leading distro. It certainly
+> would not have been my first choice. The choice of such an old kernel
+> confirms that impression. But the netbook hardware platform, I would say,
+> is a rather important one. The point is, if one is going to start looking
+> for kernels that are obviously too old to mess with but are in common use
+> then one has to go back even beyond 2.6.22. If it were my choice, I
+> wouldn't.
+
+I don't think these netbooks are relevant for us for the simple fact that 
+the main use case of v4l-dvb on devices like this is the webcam, and that 
+will obviously be supported by whatever linux version the manufactorer has 
+installed.
+
+But it does raise the point that if we decide to drop support for kernels < 
+2.6.22 then it is probably a good idea to make a snapshot first so people 
+can still have the option to upgrade their v4l-dvb, even though that 
+version isn't maintained anymore by us.
+
+Thank you for your feedback!
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
