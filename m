@@ -1,89 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52816 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751863AbZBXV6E (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3691 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875AbZBVTOl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 16:58:04 -0500
-Date: Tue, 24 Feb 2009 13:57:20 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
+	Sun, 22 Feb 2009 14:14:41 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1MJEZJC006232
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 22 Feb 2009 20:14:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 22 Feb 2009 20:14:35 +0100 (CET)
+Message-Id: <200902221914.n1MJEZJC006232@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: bugme-daemon@bugzilla.kernel.org, nm127@freemail.hu
-Subject: Re: [Bugme-new] [Bug 12768] New: usb_alloc_urb() leaks memory
- together with uvcvideo driver
-Message-Id: <20090224135720.9e752fee.akpm@linux-foundation.org>
-In-Reply-To: <bug-12768-10286@http.bugzilla.kernel.org/>
-References: <bug-12768-10286@http.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
+Results of the daily build of v4l-dvb:
 
-On Mon, 23 Feb 2009 22:08:37 -0800 (PST)
-bugme-daemon@bugzilla.kernel.org wrote:
+date:        Sun Feb 22 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10653:359d95e1d541
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=12768
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc5-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc5-x86_64: WARNINGS
+fw/apps: OK
+spec: ERRORS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
 
-There's additional info at the link.
+Detailed results are available here:
 
->            Summary: usb_alloc_urb() leaks memory together with uvcvideo
->                     driver
->            Product: Drivers
->            Version: 2.5
->      KernelVersion: 2.6.28
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: USB
->         AssignedTo: greg@kroah.com
->         ReportedBy: nm127@freemail.hu
-> 
-> 
-> Latest working kernel version:
-> Earliest failing kernel version:
-> Distribution:
-> Hardware Environment: EeePC 901
-> Software Environment: Debian 5.0
-> Problem Description:
-> 
-> Steps to reproduce:
-> 1. Boot the system
-> 2. start an xterm window and execute the following command:
-> 
-> $ while true; do clear; cat /proc/slab_allocators |grep usb_alloc; sleep 1;
-> done
-> 
-> This will print out similar lines each second:
-> 
-> size-2048: 18 usb_alloc_dev+0x1d/0x212 [usbcore]
-> size-2048: 2280 usb_alloc_urb+0xc/0x2b [usbcore]
-> size-1024: 85 usb_alloc_urb+0xc/0x2b [usbcore]
-> size-128: 10 usb_alloc_urb+0xc/0x2b [usbcore]
-> 
-> 3. Start xawtv, this will show the picture of the webcam
-> 4. Exit xawtv
-> 
-> Current result:
-> In the output of /proc/slab_allocators the number of blocks allocated by
-> usb_alloc_urb() increases, however, the xawtv is no longer running:
-> 
-> size-2048: 18 usb_alloc_dev+0x1d/0x212 [usbcore]
-> size-2048: 2280 usb_alloc_urb+0xc/0x2b [usbcore]
-> size-1024: 100 usb_alloc_urb+0xc/0x2b [usbcore]
-> size-128: 10 usb_alloc_urb+0xc/0x2b [usbcore]
-> 
-> Each time xawtv is started and stopped the value increases at the
-> usb_alloc_urb().
-> 
-> Expected result: the same memory usage is reached again after xawtv exited.
-> 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-I assume this is a v4l bug and not a USB core bug?
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
