@@ -1,84 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:44976 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752700AbZBKJx7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2009 04:53:59 -0500
-Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n1B9bqhG016561
-	for <linux-media@vger.kernel.org>; Wed, 11 Feb 2009 09:37:52 GMT
-Message-ID: <49929D6D.1000507@koala.ie>
-Date: Wed, 11 Feb 2009 09:42:05 +0000
-From: Simon Kenyon <simon@koala.ie>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4424 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755883AbZBVXYr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 18:24:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Date: Mon, 23 Feb 2009 00:24:16 +0100
+Cc: Trent Piepho <xyzzy@speakeasy.org>, kilgota@banach.math.auburn.edu,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-omap@vger.kernel.org
+References: <200902180030.52729.linux@baker-net.org.uk> <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net> <49A1D7B2.5070601@redhat.com>
+In-Reply-To: <49A1D7B2.5070601@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: failure of Cinergy Hybrid T USB XS on amd64
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902230024.16709.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-does anyone know what is going on here?
+On Sunday 22 February 2009 23:54:42 Hans de Goede wrote:
+> Trent Piepho wrote:
+> > On Sun, 22 Feb 2009, Hans de Goede wrote:
+> >> Yes that is what we are talking about, the camera having a gravity
+> >> switch (usually nothing as advanced as a gyroscope). Also the bits we
+> >> are talking about are in a struct which communicates information one
+> >> way, from the camera to userspace, so there is no way to clear the
+> >> bits to make the camera do something.
+> >
+> > First, I'd like to say I agree with most that the installed orientation
+> > of the camera sensor really is a different concept than the current
+> > value of a gravity sensor.  It's not necessary, and maybe not even
+> > desirable, to handle them in the same way.
+> >
+> > I do not see the advantage of using reserved bits instead of controls.
+> >
+> > The are a limited number of reserved bits.  In some structures there
+> > are only a few left.  They will run out.  Then what?  Packing
+> > non-standard sensor attributes and camera sensor meta-data into a few
+> > reserved bits is not a sustainable policy.
+> >
+> > Controls on the other card are not limited and won't run out.
+>
+> Yes but these things are *not* controls, end of discussion. The control
+> API is for controls, not to stuff all kind of cruft in.
 
-i know the device works because i can use it on my eee 900 running gentoo
+I agree, these are not controls.
 
-however i get a failure to load the driver (hg pull as of yesterday) on 
-two different linux boxes. they are both running gentoo on an amd64
+There is an option to use the current status field. There are enough bits 
+free, that's not the problem. But the spec is explicit about the fact that 
+these bits apply to the current input only, and that's not true for these 
+new bits. We can change the spec in this regard of course, but then you 
+have to document each bit of the status field whether it is valid for the 
+current input only, or also if this isn't the current input. It's all a bit 
+messy.
 
-uname -a gives:
+In addition, there are 4 reserved fields here and it is the first time in a 
+very long time that we actually need one. And after all, that's why they 
+are there in the first place.
 
-Linux newyork 2.6.27-gentoo-r8 #1 SMP PREEMPT Wed Feb 11 00:10:13 GMT 
-2009 x86_64 AMD Athlon(tm) 64 X2 Dual Core Processor 6000+ AuthenticAMD 
-GNU/Linux
+I see three options:
 
-and this is the output from the driver load:
+1) stuff them into the status field after all.
+2) take one of the reserved fields and make it a single 'flags' field.
+3) take one of the reserved fields and make it a u16 capabilities and u16 
+flags field.
 
-usb 2-1: new high speed USB device using ehci_hcd and address 4
-usb 2-1: configuration #1 chosen from 1 choice
-em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS @ 
-480 Mbps (0ccd:0042, interface 0, class 0)
-em28xx #0: Identified as Terratec Hybrid XS (card=11)
-em28xx #0: chip ID is em2882/em2883
-tvp5150' 2-005c: chip found @ 0xb8 (em28xx #0)
-tuner' 2-0061: chip found @ 0xc2 (em28xx #0)
-em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 42 00 50 12 5c 03 6a 32 9c 34
-em28xx #0: i2c eeprom 10: 00 00 06 57 46 07 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 00 00 00
-em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
-em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 32 03 43 00 69 00
-em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 48 00 79 00
-em28xx #0: i2c eeprom 80: 62 00 72 00 69 00 64 00 20 00 54 00 20 00 55 00
-em28xx #0: i2c eeprom 90: 53 00 42 00 20 00 58 00 53 00 00 00 34 03 54 00
-em28xx #0: i2c eeprom a0: 65 00 72 00 72 00 61 00 54 00 65 00 63 00 20 00
-em28xx #0: i2c eeprom b0: 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00
-em28xx #0: i2c eeprom c0: 69 00 63 00 20 00 47 00 6d 00 62 00 48 00 00 00
-em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x41d0bf96
-em28xx #0: EEPROM info:
-em28xx #0:      AC97 audio (5 sample rates)
-em28xx #0:      500mA max power
-em28xx #0:      Table at 0x06, strings=0x326a, 0x349c, 0x0000
-xc2028 2-0061: creating new instance
-xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-firmware: requesting xc3028-v27.fw
-xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: 
-xc2028 firmware, ver 2.7
-xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-xc2028 2-0061: Loading firmware for type=(0), id 000000000000b700.
-SCODE (20000000), id 000000000000b700:
-xc2028 2-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), 
-id 0000000000008000.
-em28xx #0: Config register raw data: 0x50
-em28xx #0: AC97 vendor ID = 0x83847652
-em28xx #0: AC97 features = 0x6a90
-em28xx #0: Sigmatel audio processor detected(stac 9752)
-tvp5150' 2-005c: tvp5150am1 detected.
-em28xx #0: v4l2 driver version 0.1.1
-em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi1
-zl10353_read_register: readreg error (reg=127, ret==-19)
-em28xx #0/2: dvb frontend not attached. Can't attach xc3028
+Trent does have a point that we need to be careful not to add fields without 
+a good reason. Choosing option 1 fits the bill, and the orientation also 
+fits the 'status' name. Only the sensor mount orientation is not really a 
+status. Although with some creative naming we might come close :-)
 
+Hmm, let's see:
+
+V4L2_IN_ST_HAS_SENSOR_INFO 	0x00000010
+V4L2_IN_ST_SENSOR_HFLIPPED 	0x00000020
+V4L2_IN_ST_SENSOR_VFLIPPED 	0x00000040
+
+V4L2_IN_ST_HAS_PIVOT_INFO	0x00001000
+V4L2_IN_ST_PIVOT_0 		0x00000000
+V4L2_IN_ST_PIVOT_90 		0x00002000
+V4L2_IN_ST_PIVOT_180 		0x00004000
+V4L2_IN_ST_PIVOT_270 		0x00006000
+V4L2_IN_ST_PIVOT_MSK 		0x00006000
+
+Actually, that's not too bad.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
