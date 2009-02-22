@@ -1,46 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:43132 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752166AbZBBVPD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 16:15:03 -0500
-Date: Mon, 2 Feb 2009 16:15:00 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: kilgota@banach.math.auburn.edu
-cc: Jean-Francois Moine <moinejf@free.fr>,
-	<linux-media@vger.kernel.org>
-Subject: Bug in gspca USB webcam driver
-In-Reply-To: <alpine.LNX.2.00.0902021207550.32604@banach.math.auburn.edu>
-Message-ID: <Pine.LNX.4.44L0.0902021558280.10089-100000@iolanthe.rowland.org>
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:44570 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026AbZBVTkP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 14:40:15 -0500
+Received: by bwz5 with SMTP id 5so4155436bwz.13
+        for <linux-media@vger.kernel.org>; Sun, 22 Feb 2009 11:40:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Sun, 22 Feb 2009 20:40:12 +0100
+Message-ID: <af2e95fa0902221140ha93378j5b6d36e654e9ee8a@mail.gmail.com>
+Subject: Twinhan mantis, any CAM support in progress
+From: Henrik Beckman <henrik.list@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2 Feb 2009 kilgota@banach.math.auburn.edu wrote:
+Any work in progress for CAM support on the 2033?
 
-> The attached file is an extract from dmesg from the Pentium4 Dual Core
-> machine. One can see that the camera has been attached, and then an svv
-> session has been run. The kernel is the "stock" Slackware 2.6.27.7 kernel
-> (*). We have a situation, again, in which svv (**) can not be exited. We 
-> have an oops in the log, and we have a filesystem check on reboot, which 
-> is going on as I write this.
+Currently using, http://mercurial.intuxication.org/hg/s2-liplianin but
+I´ll switch to whatever has or will have CAM.
 
-Well, the problem is clear enough, and it is in the gspca.c module, not 
-your sq905-3 driver.  I'm not sure what the best way is to fix it, so 
-I'm CC'ing the people responsible for the gspca driver.
+Card info,
+ 25.180805] Mantis 0000:00:07.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+[   25.180843] Mantis 0000:00:07.0: setting latency timer to 64
+[   25.180856] irq: 18, latency: 64
+[   25.180858]  memory: 0xfdffd000, mmio: 0xf8840000
+[   25.180865] found a VP-2033 PCI DVB-C device on (00:07.0),
+[   25.180870]     Mantis Rev 1 [1822:0008], irq: 18, latency: 64
+[   25.180876]     memory: 0xfdffd000, mmio: 0xf8840000
+[   25.184211]     MAC Address=[00:08:ca:1a:f0:60]
+<snip>
+[   25.704672] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
+[   25.706090] TDA10021: i2c-addr = 0x0c, id = 0x7c
+[   25.706107] mantis_frontend_init (0): found Philips CU1216 DVB-C
+frontend (TDA10021) @ 0x0c
+[   25.706117] mantis_frontend_init (0): Mantis DVB-C Philips CU1216
+frontend attach success
+[   25.710822] DVB: registering adapter 0 frontend 0 (Philips TDA10021 DVB-C)...
+[   25.712780] mantis_ca_init (0): Registering EN50221 device
+[   25.714818] mantis_ca_init (0): Registered EN50221 device
+[   25.714844] mantis_hif_init (0): Adapter(0) Initializing Mantis
+Host Interface
 
-To summarize: Unplugging the camera while it is in use by a program 
-causes an oops (particularly on an SMP machine).
 
-The problem is that gspca_stream_off() calls destroy_urbs(), which in
-turn calls usb_buffer_free() -- but this happens too late, after
-gspca_disconnect() has returned.  By that time gspca_dev->dev is a
-stale pointer, so it shouldn't be passed to usb_buffer_free().
 
-What should happen is that as part of disconnect processing, the 
-existing stream(s) should be put in an error state and destroy_urbs() 
-should be called immediately.  Then when gspca_stream_off() calls 
-destroy_urbs() again there would be no more work left to do.
 
-Alan Stern
-
+/Henrik
