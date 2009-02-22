@@ -1,106 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:52808 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758173AbZBKWuy (ORCPT
+Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:52913 "EHLO
+	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753267AbZBVWvn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2009 17:50:54 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so143067fgg.17
-        for <linux-media@vger.kernel.org>; Wed, 11 Feb 2009 14:50:50 -0800 (PST)
-Message-ID: <4993564D.1060903@googlemail.com>
-Date: Wed, 11 Feb 2009 23:50:53 +0100
-From: Johannes Engel <jcnengel@googlemail.com>
+	Sun, 22 Feb 2009 17:51:43 -0500
+Date: Sun, 22 Feb 2009 14:51:42 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-omap@vger.kernel.org
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+In-Reply-To: <49A1CA5B.5000407@redhat.com>
+Message-ID: <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
+References: <200902180030.52729.linux@baker-net.org.uk>
+ <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com>
+ <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu>
+ <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
+ <49A1CA5B.5000407@redhat.com>
 MIME-Version: 1.0
-To: Thierry Merle <thierry.merle@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb-usb-cinergyT2
-References: <498C8988.8030103@googlemail.com> <49932E47.7050307@free.fr>
-In-Reply-To: <49932E47.7050307@free.fr>
-Content-Type: multipart/mixed;
- boundary="------------010503020500060804040301"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010503020500060804040301
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+On Sun, 22 Feb 2009, Hans de Goede wrote:
+> Yes that is what we are talking about, the camera having a gravity switch
+> (usually nothing as advanced as a gyroscope). Also the bits we are talking
+> about are in a struct which communicates information one way, from the camera
+> to userspace, so there is no way to clear the bits to make the camera do something.
 
-Thierry Merle wrote:
-> another user has got the same problem, except that the led still lights up.
-> Can you tell us what it the firmware version in your device?
-> You can see it by doing lsusb -vvv, for the Cinergy T2 entry this is the "bcdDevice" line.
-> I have the 1.06 firmware version and it works.
-> Cheers,
-> Thierry
->   
-Hi Thierry,
+First, I'd like to say I agree with most that the installed orientation of
+the camera sensor really is a different concept than the current value of a
+gravity sensor.  It's not necessary, and maybe not even desirable, to
+handle them in the same way.
 
-thanks for your message! I just tried again and miraculously enough it
-seems to work now. In the meantime I only did a kernel upgrade to
-2.6.28.4. So maybe that was the trick. :)
+I do not see the advantage of using reserved bits instead of controls.
 
-Nonetheless I attach the lsusb output for further reference, my firmware
-version though seems to be the same as yours: 1.06.
+The are a limited number of reserved bits.  In some structures there are
+only a few left.  They will run out.  Then what?  Packing non-standard
+sensor attributes and camera sensor meta-data into a few reserved bits is
+not a sustainable policy.
 
-Cheers, Johannes
+Controls on the other card are not limited and won't run out.
 
---------------010503020500060804040301
-Content-Type: text/plain;
- name="lsusb.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="lsusb.txt"
+Currently reserved bits and previously reserved but now in use bits
+look exactly the same.  How does an app know if the bits are valid
+or not?  More reserved bits?
 
-CkJ1cyAwMDUgRGV2aWNlIDAwMjogSUQgMGNjZDowMDM4IFRlcnJhVGVjIEVsZWN0cm9uaWMg
-R21iSCBDaW5lcmd5IFReMiBEVkItVCBSZWNlaXZlcgpEZXZpY2UgRGVzY3JpcHRvcjoKICBi
-TGVuZ3RoICAgICAgICAgICAgICAgIDE4CiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgMQog
-IGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAKICBiRGV2aWNlQ2xhc3MgICAgICAgICAgMjU1
-IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAyNTUgVmVu
-ZG9yIFNwZWNpZmljIFN1YmNsYXNzCiAgYkRldmljZVByb3RvY29sICAgICAgIDI1NSBWZW5k
-b3IgU3BlY2lmaWMgUHJvdG9jb2wKICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0CiAgaWRW
-ZW5kb3IgICAgICAgICAgIDB4MGNjZCBUZXJyYVRlYyBFbGVjdHJvbmljIEdtYkgKICBpZFBy
-b2R1Y3QgICAgICAgICAgMHgwMDM4IENpbmVyZ3kgVF4yIERWQi1UIFJlY2VpdmVyCiAgYmNk
-RGV2aWNlICAgICAgICAgICAgMS4wNgogIGlNYW51ZmFjdHVyZXIgICAgICAgICAgIDEgVGVy
-cmFUZWMgR21iSAogIGlQcm9kdWN0ICAgICAgICAgICAgICAgIDIgQ2luZXJneSBUsgogIGlT
-ZXJpYWwgICAgICAgICAgICAgICAgIDAgCiAgYk51bUNvbmZpZ3VyYXRpb25zICAgICAgMQog
-IENvbmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoKICAgIGJMZW5ndGggICAgICAgICAgICAgICAg
-IDkKICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDIKICAgIHdUb3RhbExlbmd0aCAgICAg
-ICAgICAgMzkKICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAgIDEKICAgIGJDb25maWd1cmF0
-aW9uVmFsdWUgICAgIDEKICAgIGlDb25maWd1cmF0aW9uICAgICAgICAgIDAgCiAgICBibUF0
-dHJpYnV0ZXMgICAgICAgICAweDgwCiAgICAgIChCdXMgUG93ZXJlZCkKICAgIE1heFBvd2Vy
-ICAgICAgICAgICAgICA0NzZtQQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJM
-ZW5ndGggICAgICAgICAgICAgICAgIDkKICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAg
-NAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAgICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0
-aW5nICAgICAgIDAKICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMwogICAgICBiSW50
-ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50
-ZXJmYWNlU3ViQ2xhc3MgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBTdWJjbGFzcwogICAgICBi
-SW50ZXJmYWNlUHJvdG9jb2wgICAgICAwIAogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAg
-ICAzIEhpZ2hzcGVlZCBCdWxrIFRyYW5zZmVyCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6
-CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9y
-VHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDAxICBFUCAx
-IE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5z
-ZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAg
-ICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAg
-ICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMDQwICAxeCA2NCBieXRlcwogICAgICAgIGJJ
-bnRlcnZhbCAgICAgICAgICAgICAgIDAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAg
-ICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBl
-ICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4K
-ICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAyCiAgICAgICAgICBUcmFuc2ZlciBU
-eXBlICAgICAgICAgICAgQnVsawogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAg
-IE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAg
-d01heFBhY2tldFNpemUgICAgIDB4MDA0MCAgMXggNjQgYnl0ZXMKICAgICAgICBiSW50ZXJ2
-YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAg
-Ykxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAg
-ICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJhbnNmZXIgVHlwZSAg
-ICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25l
-CiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQ
-YWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAg
-ICAgICAgICAgICAgIDAKRGV2aWNlIFF1YWxpZmllciAoZm9yIG90aGVyIGRldmljZSBzcGVl
-ZCk6CiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxMAogIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDYKICBiY2RVU0IgICAgICAgICAgICAgICAyLjAwCiAgYkRldmljZUNsYXNzICAgICAg
-ICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAg
-MjU1IFZlbmRvciBTcGVjaWZpYyBTdWJjbGFzcwogIGJEZXZpY2VQcm90b2NvbCAgICAgICAy
-NTUgVmVuZG9yIFNwZWNpZmljIFByb3RvY29sCiAgYk1heFBhY2tldFNpemUwICAgICAgICA2
-NAogIGJOdW1Db25maWd1cmF0aW9ucyAgICAgIDEK
---------------010503020500060804040301--
+The control API is already designed to allow for enumeration of controls.
+
+Reserved bits have no meta-data to document them.  An app sees that some
+bits in the input struct which were reserved when it was written are now
+set.  What does this tell the app?  Nothing.  What can the app tell the
+user?  Nothing.
+
+The control API provides for control meta-data.  We have a means of
+enumeration, name, min, max, step size, and various flags to tell us about
+a control that wasn't already handled.  Does this new gravity sensor have
+45 degree resolution?  The control's step size can show this even if only
+90 degree rotations had been considered when gravity sensor support was
+first added to some other driver.  At the very least, the app (and various
+existing utilities) can provide information about the controls to the user.
