@@ -1,45 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp115.rog.mail.re2.yahoo.com ([68.142.225.231]:30306 "HELO
-	smtp115.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755335AbZBSAwq (ORCPT
+Received: from smtp110.rog.mail.re2.yahoo.com ([206.190.37.120]:31766 "HELO
+	smtp110.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751124AbZBVSFn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 19:52:46 -0500
-Message-ID: <499CAD5B.9010106@rogers.com>
-Date: Wed, 18 Feb 2009 19:52:43 -0500
+	Sun, 22 Feb 2009 13:05:43 -0500
+Message-ID: <49A193F5.8010400@rogers.com>
+Date: Sun, 22 Feb 2009 13:05:41 -0500
 From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-To: Jiri Kosina <jkosina@suse.cz>
-CC: Tobias Klauser <tklauser@distanz.ch>, mchehab@infradead.org,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	kernel-janitors@vger.kernel.org, trivial@kernel.org
-Subject: Re: [PATCH] V4L: Storage class should be before const qualifier
-References: <20090209210649.GA7378@xenon.distanz.ch> <alpine.LNX.1.10.0902161353150.18110@jikos.suse.cz> <4999AAB6.4090904@rogers.com> <alpine.LNX.1.10.0902170313310.18110@jikos.suse.cz>
-In-Reply-To: <alpine.LNX.1.10.0902170313310.18110@jikos.suse.cz>
-Content-Type: text/plain; charset=US-ASCII
+To: Laurent Haond <lhaond@bearstech.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Can I use AVerTV Volar Black HD (A850) with Linux
+ ?
+References: <499F5452.6050205@bearstech.com> <7a3c9e3d0902210108w77e440e2u6d688f3614ccf972@mail.gmail.com> <499FEF0A.2070001@bearstech.com>
+In-Reply-To: <499FEF0A.2070001@bearstech.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jiri Kosina wrote:
-> On Mon, 16 Feb 2009, CityK wrote:
+Laurent Haond wrote:
+> af9015_copy_firmware:
+> af9015: command failed:2
+> af9015: firmware copy to 2nd frontend failed, will disable it
+> dvb-usb: no frontend was attached by 'AVerMedia A850'
 >
+> ........
+>
+> dvbscan fails with this error : Unable to query frontend status
+> and sometimes (not everytimes) dmesg shows :
+> af9015: recv bulk message failed:-110
+> af9013: I2C read failed reg:d417
+>
+>
+> Tried Kaffeine, did not work either...
 >   
->>>> .... [inline patch] ....
->>>>         
->>> This doesn't seem to be picked by anyone for current -next/-mmotm, I have
->>> applied it to trivial tree. Thanks,
+
+Just as a FYI, if you haven't already realised it yourself (though I
+suspect you have),  don't bother proceeding with testing with dvbscan or
+kaffeine until you get the frontend to initialize (as they are doomed to
+fail otherwise).
+
+
+Laurent Haond wrote:
+>>> af9015_copy_firmware:
+>>> af9015: command failed:2
+>>> af9015: firmware copy to 2nd frontend failed, will disable it
+>>> dvb-usb: no frontend was attached by 'AVerMedia A850'
+>>> dvb-usb: AVerMedia A850 successfully initialized and connected.
 >>>       
->> Will this create any complication? As it is indeed queued in our
->> patchwork: http://patchwork.kernel.org/project/linux-media/list/
+>> No knowledge why it fails. I suspect wrong GPIO, again this is AverMedia
+>> device... You should take usb-sniff and look correct GPIO from there.
 >>     
 >
-> Hmm, patchwork ... did this land in any actual code tree? It has been 
-> submitted by Tobias on 9th Feb and I was not able to find it in any tree 
-> today, so I applied to to trivial tree (to which the patch has been 
-> originally CCed).
+> I trying to do that, but i'm not able  to find a recent and working
+> repository for usbreplay and parser.pl
 >
-> If you guys actually have queued in some tree, please let me know and I 
-> will drop it.
+> Seems that http://mcentral.de/wiki/index.php5/Usbreplay is out of date,
+> and that http://mcentral.de/hg/~mrec/usbreplay is no more available.
+>
+> Can you point me to a working repository where i can get them ?
+>   
 
-I'll defer to Mauro for the absolutes, but it looks like it got applied
-to V4L-DVB mainline Hg yesterday and is in Mauro's Linux-next git.
+You can find a parser in the /v4l2-apps/test directory of the v4l-dvb
+source .... (I'm not sure why it is in the /test directory and not the
+/util , hence my  concurrent message on the list, douglas' pull request,
+regarding this).
+
