@@ -1,125 +1,452 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4204 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318AbZBOJT7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 04:19:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Adding a control for Sensor Orientation
-Date: Sun, 15 Feb 2009 10:19:35 +0100
-Cc: kilgota@banach.math.auburn.edu,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>
-References: <200902142048.51863.linux@baker-net.org.uk> <alpine.LNX.2.00.0902141624410.315@banach.math.auburn.edu> <4997DB74.6000108@redhat.com>
-In-Reply-To: <4997DB74.6000108@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:41478 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751197AbZBVRjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 12:39:37 -0500
+Message-ID: <49A18DD5.40206@gmx.de>
+Date: Sun, 22 Feb 2009 18:39:33 +0100
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902151019.35555.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] dvb-api: update documentation, chapter1
+Content-Type: multipart/mixed;
+ boundary="------------040606020909080605000305"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 15 February 2009 10:08:04 Hans de Goede wrote:
-> kilgota@banach.math.auburn.edu wrote:
-> > On Sat, 14 Feb 2009, Hans Verkuil wrote:
-> >> On Saturday 14 February 2009 22:55:39 Hans de Goede wrote:
-> >>> Adam Baker wrote:
-> >>>> Hi all,
-> >>>>
-> >>>> Hans Verkuil put forward a convincing argument that sensor
-> >>>> orientation shouldn't be part of the buffer flags as then it would
-> >>>> be unavailable to clients that use read()
-> >>>
-> >>> Yes and this is a bogus argument, clients using read also do not get
-> >>> things like timestamps, and vital information like which field is in
-> >>> the read buffer when dealing with interleaved sources. read() is a
-> >>> simple interface for simple applications. Given that the only user of
-> >>> these flags will likely be libv4l I *strongly* object to having this
-> >>> info in some control, it is not a control, it is a per frame (on some
-> >>> cams) information about how to interpret that frame, the buffer flags
-> >>> is a very
-> >>> logical place, *the* logical place even for this!
-> >>>
-> >>> The fact that there is no way to transport metadata about a frame
-> >>> like flags, but also timestamp and field! Is a problem with the read
-> >>> interface
-> >>> in general, iow read() is broken wrt to this. If people care add some
-> >>> ioctl or something which users of read() can use to get the buffer
-> >>> metadata from the last read() buffer, stuffing buffer metadata in a
-> >>> control (barf), because of read() brokenness is a very *bad* idea,
-> >>> and won't work in general due to synchronization problems.
-> >>>
-> >>> Doing this as a control will be a pain to implement both at the
-> >>> driver level, see the discussion this is causing, and in libv4l. For
-> >>> libv4l this
-> >>> will basicly mean polling the control. And hello polling is lame and
-> >>> something from the 1980-ies.
-> >>>
-> >>> Please just make this a buffer flag.
-> >>
-> >> OK, make it a buffer flag. I've got to agree that it makes more sense
-> >> to do
-> >> it that way.
-> >>
-> >> Regards,
-> >>
-> >>     Hans
-> >>
-> >> --
-> >> Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> >
-> > Let me take a moment to remind everyone what the problem is that
-> > brought this discussion up. Adam Baker and I are working on a driver
-> > for a certain camera. Or, better stated, for a set of various cameras,
-> > which all have the same USB Vendor:Product number. Various cameras
-> > which all have this ID have different capabilities and need different
-> > treatment of the frame data.
-> >
-> > The most particular problem is that some of the cameras require byte
-> > reversal of the frame data string, which would rotate the image 180
-> > degrees around its center. Others of these cameras require reversal of
-> > the horizontal lines in the image (vertical 180 degree rotation of the
-> > image across a horizontal axis).
-> >
-> > The point is, one can not tell from the Vendor:Product number which of
-> > these actions is required. However, one *is* able to tell immediately
-> > after the camera is initialized, which of these actions is required.
-> > Namely, one reads and parses the response to the first USB command sent
-> > to the camera.
-> >
-> > So, for us (Adam and me) the question is simply to know how everyone
-> > will agree that the information about the image orientation can be sent
-> > from the module to V4L. When this issue is resolved, we can finish
-> > writing the sq905 camera driver. From this rather narrow point of view,
-> > the issue is not which method ought to be adopted. Rather, the issue is
-> > that no method has been adopted. It is rather difficult to write module
-> > code which will obey a non-existent standard.
->
-> Ack, but the problem later was extended by the fact that it turns out
-> some cams have a rotation detection (gravity direction) switch, which
-> means you can flip the cam on its socket while streaming, and then the
-> cam will tell you its rotation has changed, that makes this a per frame
-> property rather then a static property of the cam. Which lead to this
-> discussion, but we (the 2 Hans 's) agree now that using the flags field
-> in the buffer struct is the best way forward. So there is a standard now,
-> simply add 2 buffer flags to videodev2.h, one for content is h-flipped
-> and one for content is v-flipped and you are done.
->
-> Regards,
->
-> Hans
+This is a multi-part message in MIME format.
+--------------040606020909080605000305
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I think we should also be able to detect 90 and 270 degree rotations. Or at 
-the very least prepare for it. It's a safe bet to assume that webcams will 
-arrive that can detect portrait vs landscape orientation.
+Since dvb-api doc is still outdated by six years...
 
-Regards,
 
-	Hans
+The following patch changes dvbapi.pdf as following:
+_______________________________________________________________________________
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+- change from twosided book format to singlesided book format.
+  * By doing so, the readability is improved and on the right-hand side
+    is more space on every second page.
+
+- change copyright notice on first page by adding "2008, 2009 
+www.linuxtv.org"
+
+- add "The Linux DVB Developers http://www.linuxtv.org" to 'written by'
+
+- increase API Version number to 5
+
+- change Version Number and date
+  -- 24/07/2003    V 1.0.0
+  ++ 22/02/2009    Version 1.1.0 <- unstable version now, every time api 
+is changed version should be increased now
+
+- chapter 1 - What you need to know
+   * added goal: "consistent abstraction layer for
+     different digital TV hardware, allowing software applications to be
+     developed without hardware details as well as serving as driver 
+developers reference"
+   * added comment: odd api version numbers = unstable -> not to be used 
+for driver/app development
+
+- chapter 1 - history
+  * add History of DVB API v 4
+  * add comment LinuxTV project beeing an independend and non-profit 
+community
+  * add reasons for DVB API v 5 and decision on Plumbers Conference 2008 
+towards S2API
+
+- chapter 1 - Overview
+  * changed "DVB PCI card" wherever found, since API doesnt depend on 
+PCI bus
+  * changed "MPEG picture and sound decoding" to "MPEG video and audio 
+decoding",
+    since mpeg picture is misleading
+
+- fix some typos inside chapter 1
+- fix "Overfull \hbox" warnings from chapter 1 (*only* chapter 1 for now..)
+
+Signed-off-by: Winfried Koehler <handygewinnspiel@gmx.de>
+_______________________________________________________________________________
+
+Please response, comment, improve, review, apply. Do not ignore silently,
+having a new API doc should be hard requirement for next kernel versions.
+
+Regards, Winfried
+
+
+
+
+
+
+
+diff -Nrup v4l-dvb-359d95e1d541/dvb-spec/dvbapi/dvbapi.tex 
+v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/dvbapi.tex
+--- v4l-dvb-359d95e1d541/dvb-spec/dvbapi/dvbapi.tex    2009-02-22 
+17:07:48.123742503 +0100
++++ v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/dvbapi.tex    2009-02-21 
+17:33:29.557033066 +0100
+@@ -1,4 +1,4 @@
+-\documentclass[a4paper,10pt]{book}
++\documentclass[a4paper,10pt,oneside]{book}
+ \usepackage[dvips,colorlinks=true]{hyperref}
+ 
+ \usepackage{times}
+diff -Nrup v4l-dvb-359d95e1d541/dvb-spec/dvbapi/intro.tex 
+v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/intro.tex
+--- v4l-dvb-359d95e1d541/dvb-spec/dvbapi/intro.tex    2009-02-18 
+13:49:37.000000000 +0100
++++ v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/intro.tex    2009-02-22 
+16:03:12.610230293 +0100
+@@ -7,36 +7,73 @@
+ The reader of this document is required to have some knowledge in the
+ area of digital video broadcasting (DVB) and should be familiar with
+ part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222),
+-i.e you should know what a program/transport stream (PS/TS) is and what is
+-meant by a packetized elementary stream (PES) or an I-frame.
+-
+-Various DVB standards documents are available from
+-\texttt{http://www.dvb.org/} and/or \texttt{http://www.etsi.org/}.
++i.e you should know what a program stream or transport stream (PS/TS) is
++and what is meant by a packetized elementary stream (PES) or an I-frame.
++Various DVB standards documents are available from 
+\texttt{http://www.dvb.org/}
++and/or \texttt{http://www.etsi.org/}.
+ 
+ It is also necessary to know how to access unix/linux devices and how
+ to use ioctl calls. This also includes the knowledge of C or C++.
+ 
++The goal of this API is to provide a consistent abstraction layer for
++different digital TV hardware, allowing software applications to be
++developed without hardware details as well as serving as driver
++developers reference.
++
++For this API documentation applies an even/odd versioning scheme, stating
++unstable or stable versions of that API. Only stable API versions should
++be used for developing drivers and applications.
++\newpage
+ \section{History}
+ 
+-The first API for DVB cards we used at Convergence in late 1999
+-was an extension of the Video4Linux API which was primarily
++The first API for DVB cards was used at Convergence in late 1999
++as an extension of the Video4Linux API which was primarily
+ developed for frame grabber cards.
++
++
+ As such it was not really well suited to be used for DVB cards and
+ their new features like recording MPEG streams and filtering several
+ section and PES data streams at the same time.
+ 
+-In early 2000, we were approached by Nokia with a proposal for a new
++
++In early 2000, Convergence was approached by Nokia with a proposal for 
+a new
+ standard Linux DVB API.
+ As a commitment to the development of terminals based on open standards,
+ Nokia and Convergence made it available to all Linux developers and
+ published it on \texttt{http://www.linuxtv.org/} in September 2000.
+-Convergence is the maintainer of the Linux DVB API.
+-Together with the LinuxTV community (i.e. you, the reader of this 
+document),
+-the Linux DVB API will be constantly reviewed and improved.
+-With the Linux driver for the Siemens/Hauppauge DVB PCI card Convergence
+-provides a first implementation of the Linux DVB API.
+ 
+ 
++In 2003 Convergence and Toshiba Electronics Europe GmbH started the 
+development
++of
++\href 
+{http://www.linuxtv.org/downloads/linux-dvb-api-v4/linux-dvb-api-v4-0-3.pdf}{DVB 
+API Version 4}
++with public discussion on the linux-dvb mailing list. The goal was a 
+complete
++new API, reflecting that PCs and embedded platforms are diverging. On a PC
++usually a budget card provides the full raw transport stream and decoding
++and processing is main CPU's task. On embedded platforms, however, data is
++multiplexed by specialized hardware or firmware for direct application use
++which relieves the main CPU from these tasks. Therefore, Linux DVB
++API Version 4 was suggested, but unfortunally never completed.
++
++
++Today, the LinuxTV project is an independend and non-profit community 
+project
++by DVB/V4L enthusiasts and developers interested in Digital TV and 
+Analog TV,
++sharing the same hg tree.
++
++However, this document describes only the digital TV part.
++
++
++With the further development of newer DTV standards, the existing version
++3 of the Linux DVB API was no longer able to support all DTV standards and
++newer hardware. Two concurrent approaches to overcome the problem where
++proposed, \texttt{Multiproto} and \texttt{S2API}.
++
++At
++\href {http://www.linuxtv.org/news.php?entry=2008-09-19.mchehab}{Linux 
+Plumbers Conference 2008}
++the decision was made towards to S2API, basically an extension to
++\texttt{DVB API Version 3} called \texttt{DVB API Version 5}.
++
++
++This Linux DVB API documentation will be extended to reflect these 
+additions.
+ \newpage
+ \section{Overview}
+ 
+@@ -49,7 +86,7 @@ provides a first implementation of the L
+ \end{figure}
+ 
+ 
+-A DVB PCI card or DVB set-top-box (STB) usually consists of the following
++A DVB device or DVB set-top-box (STB) usually consists of the following
+ main hardware components:
+ \begin{itemize}
+ \item Frontend consisting of tuner and DVB demodulator
+@@ -85,10 +122,10 @@ a TV set.
+ Figure \ref{fig:dvbstb} shows a crude schematic of the control and data 
+flow
+ between those components.
+ 
+-On a DVB PCI card not all of these have to be present since some
+-functionality can be provided by the main CPU of the PC (e.g. MPEG picture
+-and sound decoding) or is not needed (e.g. for data-only uses like
+-``internet over satellite'').
++On a DVB card not all of these have to be present since some
++functionality can be provided by the main CPU of the PC (e.g. MPEG video
++and audio decoding) or is not needed (e.g. for data-only uses like
++``internet over satellite''). In fact, almost all new DTV devices use 
+the CPU for MPEG decoding.
+ Also not every card or STB provides conditional access hardware.
+ 
+ \section{Linux DVB Devices}
+@@ -117,12 +154,11 @@ All devices can be found in the \texttt{
+ \item \texttt{/dev/dvb/adapterN/demuxM},
+ \item \texttt{/dev/dvb/adapterN/caM},
+ \end{itemize}
+-where N enumerates the DVB PCI cards in a system starting from~0,
++where N enumerates the DVB adapters (pci cards, usb devices, ..) in a 
+system starting from~0,
+ and M enumerates the devices of each type within each adapter, starting
+ from~0, too.
+ We will omit the ``\texttt{/dev/dvb/adapterN/}'' in the further 
+dicussion of
+-these devices.  The naming scheme for the devices is the same wheter devfs
+-is used or not.
++these devices.
+ 
+ More details about the data structures and function calls of
+ all the devices are described in the following chapters.
+@@ -137,10 +173,13 @@ in application sources with a partial pa
+ #include <linux/dvb/frontend.h>
+ \end{verbatim}
+ 
+-To enable applications to support different API version, an additional
++To enable applications to support different API versions, an additional
+ include file \texttt{linux/dvb/version.h} exists, which defines the
+ constant \texttt{DVB\_API\_VERSION}. This document describes
+-\texttt{DVB\_API\_VERSION~3}.
++\texttt{DVB\_API\_VERSION~5}.
++
++Since API version 5 an API command for quering API version also exists,
++allowing user space applications to detect API version during runtime.
+ 
+ %%% Local Variables:
+
+ 
+
+
+--------------040606020909080605000305
+Content-Type: text/plain;
+ name="api_chapter1.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="api_chapter1.diff"
+
+diff -Nrup v4l-dvb-359d95e1d541/dvb-spec/dvbapi/dvbapi.tex v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/dvbapi.tex
+--- v4l-dvb-359d95e1d541/dvb-spec/dvbapi/dvbapi.tex	2009-02-22 17:07:48.123742503 +0100
++++ v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/dvbapi.tex	2009-02-21 17:33:29.557033066 +0100
+@@ -1,4 +1,4 @@
+-\documentclass[a4paper,10pt]{book}
++\documentclass[a4paper,10pt,oneside]{book}
+ \usepackage[dvips,colorlinks=true]{hyperref}
+ 
+ \usepackage{times}
+diff -Nrup v4l-dvb-359d95e1d541/dvb-spec/dvbapi/intro.tex v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/intro.tex
+--- v4l-dvb-359d95e1d541/dvb-spec/dvbapi/intro.tex	2009-02-18 13:49:37.000000000 +0100
++++ v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/intro.tex	2009-02-22 16:03:12.610230293 +0100
+@@ -7,36 +7,73 @@
+ The reader of this document is required to have some knowledge in the
+ area of digital video broadcasting (DVB) and should be familiar with
+ part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222),
+-i.e you should know what a program/transport stream (PS/TS) is and what is
+-meant by a packetized elementary stream (PES) or an I-frame.
+-
+-Various DVB standards documents are available from
+-\texttt{http://www.dvb.org/} and/or \texttt{http://www.etsi.org/}.
++i.e you should know what a program stream or transport stream (PS/TS) is
++and what is meant by a packetized elementary stream (PES) or an I-frame.
++Various DVB standards documents are available from \texttt{http://www.dvb.org/}
++and/or \texttt{http://www.etsi.org/}.
+ 
+ It is also necessary to know how to access unix/linux devices and how
+ to use ioctl calls. This also includes the knowledge of C or C++.
+ 
++The goal of this API is to provide a consistent abstraction layer for 
++different digital TV hardware, allowing software applications to be
++developed without hardware details as well as serving as driver
++developers reference.
++
++For this API documentation applies an even/odd versioning scheme, stating
++unstable or stable versions of that API. Only stable API versions should
++be used for developing drivers and applications.
++\newpage
+ \section{History}
+ 
+-The first API for DVB cards we used at Convergence in late 1999
+-was an extension of the Video4Linux API which was primarily 
++The first API for DVB cards was used at Convergence in late 1999
++as an extension of the Video4Linux API which was primarily 
+ developed for frame grabber cards.
++
++
+ As such it was not really well suited to be used for DVB cards and 
+ their new features like recording MPEG streams and filtering several 
+ section and PES data streams at the same time.
+ 
+-In early 2000, we were approached by Nokia with a proposal for a new
++
++In early 2000, Convergence was approached by Nokia with a proposal for a new
+ standard Linux DVB API.
+ As a commitment to the development of terminals based on open standards, 
+ Nokia and Convergence made it available to all Linux developers and
+ published it on \texttt{http://www.linuxtv.org/} in September 2000.
+-Convergence is the maintainer of the Linux DVB API.
+-Together with the LinuxTV community (i.e. you, the reader of this document), 
+-the Linux DVB API will be constantly reviewed and improved. 
+-With the Linux driver for the Siemens/Hauppauge DVB PCI card Convergence 
+-provides a first implementation of the Linux DVB API.
+ 
+ 
++In 2003 Convergence and Toshiba Electronics Europe GmbH started the development
++of 
++\href {http://www.linuxtv.org/downloads/linux-dvb-api-v4/linux-dvb-api-v4-0-3.pdf}{DVB API Version 4} 
++with public discussion on the linux-dvb mailing list. The goal was a complete 
++new API, reflecting that PCs and embedded platforms are diverging. On a PC 
++usually a budget card provides the full raw transport stream and decoding 
++and processing is main CPU's task. On embedded platforms, however, data is
++multiplexed by specialized hardware or firmware for direct application use 
++which relieves the main CPU from these tasks. Therefore, Linux DVB
++API Version 4 was suggested, but unfortunally never completed.
++
++
++Today, the LinuxTV project is an independend and non-profit community project
++by DVB/V4L enthusiasts and developers interested in Digital TV and Analog TV,
++sharing the same hg tree.
++
++However, this document describes only the digital TV part.
++
++
++With the further development of newer DTV standards, the existing version
++3 of the Linux DVB API was no longer able to support all DTV standards and
++newer hardware. Two concurrent approaches to overcome the problem where
++proposed, \texttt{Multiproto} and \texttt{S2API}.
++
++At 
++\href {http://www.linuxtv.org/news.php?entry=2008-09-19.mchehab}{Linux Plumbers Conference 2008} 
++the decision was made towards to S2API, basically an extension to
++\texttt{DVB API Version 3} called \texttt{DVB API Version 5}.
++
++
++This Linux DVB API documentation will be extended to reflect these additions.
+ \newpage
+ \section{Overview}
+ 
+@@ -49,7 +86,7 @@ provides a first implementation of the L
+ \end{figure}
+ 
+ 
+-A DVB PCI card or DVB set-top-box (STB) usually consists of the following
++A DVB device or DVB set-top-box (STB) usually consists of the following
+ main hardware components:
+ \begin{itemize}
+ \item Frontend consisting of tuner and DVB demodulator
+@@ -85,10 +122,10 @@ a TV set.
+ Figure \ref{fig:dvbstb} shows a crude schematic of the control and data flow 
+ between those components.
+ 
+-On a DVB PCI card not all of these have to be present since some 
+-functionality can be provided by the main CPU of the PC (e.g. MPEG picture
+-and sound decoding) or is not needed (e.g. for data-only uses like 
+-``internet over satellite'').
++On a DVB card not all of these have to be present since some 
++functionality can be provided by the main CPU of the PC (e.g. MPEG video
++and audio decoding) or is not needed (e.g. for data-only uses like 
++``internet over satellite''). In fact, almost all new DTV devices use the CPU for MPEG decoding.
+ Also not every card or STB provides conditional access hardware.
+ 
+ \section{Linux DVB Devices}
+@@ -117,12 +154,11 @@ All devices can be found in the \texttt{
+ \item \texttt{/dev/dvb/adapterN/demuxM},
+ \item \texttt{/dev/dvb/adapterN/caM},
+ \end{itemize}
+-where N enumerates the DVB PCI cards in a system starting from~0,
++where N enumerates the DVB adapters (pci cards, usb devices, ..) in a system starting from~0,
+ and M enumerates the devices of each type within each adapter, starting
+ from~0, too.
+ We will omit the ``\texttt{/dev/dvb/adapterN/}'' in the further dicussion of 
+-these devices.  The naming scheme for the devices is the same wheter devfs
+-is used or not.
++these devices.
+ 
+ More details about the data structures and function calls of 
+ all the devices are described in the following chapters.
+@@ -137,10 +173,13 @@ in application sources with a partial pa
+ #include <linux/dvb/frontend.h>
+ \end{verbatim}
+ 
+-To enable applications to support different API version, an additional
++To enable applications to support different API versions, an additional
+ include file \texttt{linux/dvb/version.h} exists, which defines the
+ constant \texttt{DVB\_API\_VERSION}. This document describes
+-\texttt{DVB\_API\_VERSION~3}.
++\texttt{DVB\_API\_VERSION~5}.
++
++Since API version 5 an API command for quering API version also exists, 
++allowing user space applications to detect API version during runtime.
+ 
+ %%% Local Variables: 
+ %%% mode: latex
+diff -Nrup v4l-dvb-359d95e1d541/dvb-spec/dvbapi/title.tex v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/title.tex
+--- v4l-dvb-359d95e1d541/dvb-spec/dvbapi/title.tex	2009-02-18 13:49:37.000000000 +0100
++++ v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/title.tex	2009-02-22 09:33:54.766093761 +0100
+@@ -1,16 +1,20 @@
+ \pagenumbering{arabic}
+ \pagestyle{empty}
+-\title{\huge\textbf{LINUX DVB API Version 3}}
++\title{\huge\textbf{LINUX DVB API Version 5}}
+ 
+ \author{
+ \includegraphics{cimlogo.psi}\\
+-  Copyright 2002, 2003 Convergence GmbH\\\\
++  Copyright:\\
++  2002, 2003 Convergence GmbH,\\
++  2008, 2009 www.linuxtv.org\\\\
+   Written by Dr. Ralph J.K. Metzler\\
+-  \texttt{<rjkm@metzlerbros.de>}\\\\
++  \texttt{<rjkm@metzlerbros.de>}\\
+   and Dr. Marcus O.C. Metzler\\
+-  \texttt{<mocm@metzlerbros.de>}\\
++  \texttt{<mocm@metzlerbros.de>},\\
++  and The Linux DVB developers\\
++  \texttt{http://www.linuxtv.org}\\\\
+ }
+-\date{24/07/2003\\V 1.0.0}
++\date{22/02/2009\\Version 1.1.0}
+ 
+ \maketitle
+ 
+
+--------------040606020909080605000305--
