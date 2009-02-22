@@ -1,124 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:36270 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754425AbZBWP0p (ORCPT
+Received: from smtp119.rog.mail.re2.yahoo.com ([68.142.224.74]:31062 "HELO
+	smtp119.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752724AbZBVVuq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2009 10:26:45 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] remove redundant memset after kzalloc
-Date: Mon, 23 Feb 2009 16:26:38 +0100
-Cc: Markus Rechberger <mrechberger@sundtek.de>,
-	Patrick Boettcher <pb@linuxtv.org>,
-	Steven Toth <stoth@hauppauge.com>
+	Sun, 22 Feb 2009 16:50:46 -0500
+Message-ID: <49A1C8B5.2010501@rogers.com>
+Date: Sun, 22 Feb 2009 16:50:45 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_uAsoJa7rXeeqpXY"
-Message-Id: <200902231626.38940.zzam@gentoo.org>
+To: Amy Overmyer <aovermy@yahoo.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: vbox cat's eye 3560 usb device
+References: <132842.8631.qm@web35805.mail.mud.yahoo.com>
+In-Reply-To: <132842.8631.qm@web35805.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_uAsoJa7rXeeqpXY
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Amy Overmyer wrote:
+>> Lastly, are there any other IC components on the back or front of the
+>> PCB ?  Can you provide pics (upload them to the wiki article)) ?
+>>     
+>
+> The back only has a couple components, probably for electrical, no ICs.
+>   
+okay
 
-Hi there!
+> The
+> front only has the cypress (100 pin pkg) chip and the NIM, with a
+> couple small components, that I can't read what they are. The PCB is
+> stamped osc by one of them and usbid on the other, so I'm guessing one
+> is an oscillator and the other the PROM where the cold USB id is stored.
+>   
 
-While having a look at the allocation of struct dvb_frontend in *_attach 
-functions, I found some cases calling memset after kzalloc. This is 
-redundant, and the attached patch removes these calls.
-I also changed one case calling kmalloc and memset to kzalloc.
+okay. I rather imagine that your guesses are correct
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+> I
+> opened up the NIM (hey, they're $30 at my local computer store right
+> now, so even if I kill it, I have an extra), and I saw my old friend
+> the BCM3510 (I have a 1rst gen air2pc pci card that works pretty well
+> for me)
+Wow, I'm kind of surprised about that one -- I would have expected the
+NIM to have been a little more contemporary (given that I believe these
+devices (150/151/3560) came out in the ~2005 time frame).
 
-Regards
-Matthias
+> and a smaller chip marked tua6030 (or could be 6080, the
+> writing is faint, but infineon doesn't look like they make an 6080). 
+>   
 
---Boundary-00=_uAsoJa7rXeeqpXY
-Content-Type: text/x-diff;
-  charset="utf-8";
-  name="kzalloc_no_memset.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="kzalloc_no_memset.diff"
+Yes, that would be 6030
 
-Index: v4l-dvb/linux/drivers/media/dvb/frontends/cx24113.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/cx24113.c
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/cx24113.c
-@@ -559,7 +559,7 @@ struct dvb_frontend *cx24113_attach(stru
- 		kzalloc(sizeof(struct cx24113_state), GFP_KERNEL);
- 	int rc;
- 	if (state == NULL) {
--		err("Unable to kmalloc\n");
-+		err("Unable to kzalloc\n");
- 		goto error;
- 	}
- 
-Index: v4l-dvb/linux/drivers/media/dvb/frontends/cx24116.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/cx24116.c
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/cx24116.c
-@@ -1112,13 +1112,10 @@ struct dvb_frontend *cx24116_attach(cons
- 	dprintk("%s\n", __func__);
- 
- 	/* allocate memory for the internal state */
--	state = kmalloc(sizeof(struct cx24116_state), GFP_KERNEL);
-+	state = kzalloc(sizeof(struct cx24116_state), GFP_KERNEL);
- 	if (state == NULL)
- 		goto error1;
- 
--	/* setup the state */
--	memset(state, 0, sizeof(struct cx24116_state));
--
- 	state->config = config;
- 	state->i2c = i2c;
- 
-Index: v4l-dvb/linux/drivers/media/dvb/frontends/cx24123.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/cx24123.c
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/cx24123.c
-@@ -1084,13 +1084,13 @@ static struct dvb_frontend_ops cx24123_o
- struct dvb_frontend *cx24123_attach(const struct cx24123_config *config,
- 				    struct i2c_adapter *i2c)
- {
-+	/* allocate memory for the internal state */
- 	struct cx24123_state *state =
- 		kzalloc(sizeof(struct cx24123_state), GFP_KERNEL);
- 
- 	dprintk("\n");
--	/* allocate memory for the internal state */
- 	if (state == NULL) {
--		err("Unable to kmalloc\n");
-+		err("Unable to kzalloc\n");
- 		goto error;
- 	}
- 
-Index: v4l-dvb/linux/drivers/media/dvb/frontends/lgdt3304.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/lgdt3304.c
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/lgdt3304.c
-@@ -383,7 +383,6 @@ struct dvb_frontend* lgdt3304_attach(con
- 
- 	struct lgdt3304_state *state;
- 	state = kzalloc(sizeof(struct lgdt3304_state), GFP_KERNEL);
--	memset(state, 0x0, sizeof(struct lgdt3304_state));
- 	state->addr = config->i2c_address;
- 	state->i2c = i2c;
- 
-Index: v4l-dvb/linux/drivers/media/dvb/frontends/s921_module.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/s921_module.c
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/s921_module.c
-@@ -233,7 +233,6 @@ struct dvb_frontend* s921_attach(const s
- 
- 	struct s921_state *state;
- 	state = kzalloc(sizeof(struct s921_state), GFP_KERNEL);
--	memset(state, 0x0, sizeof(struct s921_state));
- 
- 	state->addr = config->i2c_address;
- 	state->i2c = i2c;
+> I have photos but need to upload them.
+>   
+okay
 
---Boundary-00=_uAsoJa7rXeeqpXY--
+
+This device might also be close in design to the original Technisat
+Air2PC-ATSC-USB device
+(http://www.linuxtv.org/wiki/index.php/TechniSat_Air2PC-ATSC-USB) --
+though, obviously it doesn't use a Flexcop controller ... I say might
+be, as I don't know what the USB bridge is in the Technisat device, nor
+the exact tuner module employed. Patrick might recall though
+
+
