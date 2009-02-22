@@ -1,123 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:38247 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750758AbZBOJYv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 04:24:51 -0500
-Message-ID: <4997E05F.9080509@redhat.com>
-Date: Sun, 15 Feb 2009 10:29:03 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82]:33876 "HELO
+	smtp104.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752112AbZBVTMv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 14:12:51 -0500
+Message-ID: <49A1A3B2.5090609@rogers.com>
+Date: Sun, 22 Feb 2009 14:12:50 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: kilgota@banach.math.auburn.edu,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>
-Subject: Re: Adding a control for Sensor Orientation
-References: <200902142048.51863.linux@baker-net.org.uk> <alpine.LNX.2.00.0902141624410.315@banach.math.auburn.edu> <4997DB74.6000108@redhat.com> <200902151019.35555.hverkuil@xs4all.nl>
-In-Reply-To: <200902151019.35555.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+CC: linux-media@vger.kernel.org
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+References: <200902221115.01464.hverkuil@xs4all.nl>
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
 Hans Verkuil wrote:
-> On Sunday 15 February 2009 10:08:04 Hans de Goede wrote:
->> kilgota@banach.math.auburn.edu wrote:
->>> On Sat, 14 Feb 2009, Hans Verkuil wrote:
->>>> On Saturday 14 February 2009 22:55:39 Hans de Goede wrote:
->>>>> Adam Baker wrote:
->>>>>> Hi all,
->>>>>>
->>>>>> Hans Verkuil put forward a convincing argument that sensor
->>>>>> orientation shouldn't be part of the buffer flags as then it would
->>>>>> be unavailable to clients that use read()
->>>>> Yes and this is a bogus argument, clients using read also do not get
->>>>> things like timestamps, and vital information like which field is in
->>>>> the read buffer when dealing with interleaved sources. read() is a
->>>>> simple interface for simple applications. Given that the only user of
->>>>> these flags will likely be libv4l I *strongly* object to having this
->>>>> info in some control, it is not a control, it is a per frame (on some
->>>>> cams) information about how to interpret that frame, the buffer flags
->>>>> is a very
->>>>> logical place, *the* logical place even for this!
->>>>>
->>>>> The fact that there is no way to transport metadata about a frame
->>>>> like flags, but also timestamp and field! Is a problem with the read
->>>>> interface
->>>>> in general, iow read() is broken wrt to this. If people care add some
->>>>> ioctl or something which users of read() can use to get the buffer
->>>>> metadata from the last read() buffer, stuffing buffer metadata in a
->>>>> control (barf), because of read() brokenness is a very *bad* idea,
->>>>> and won't work in general due to synchronization problems.
->>>>>
->>>>> Doing this as a control will be a pain to implement both at the
->>>>> driver level, see the discussion this is causing, and in libv4l. For
->>>>> libv4l this
->>>>> will basicly mean polling the control. And hello polling is lame and
->>>>> something from the 1980-ies.
->>>>>
->>>>> Please just make this a buffer flag.
->>>> OK, make it a buffer flag. I've got to agree that it makes more sense
->>>> to do
->>>> it that way.
->>>>
->>>> Regards,
->>>>
->>>>     Hans
->>>>
->>>> --
->>>> Hans Verkuil - video4linux developer - sponsored by TANDBERG
->>> Let me take a moment to remind everyone what the problem is that
->>> brought this discussion up. Adam Baker and I are working on a driver
->>> for a certain camera. Or, better stated, for a set of various cameras,
->>> which all have the same USB Vendor:Product number. Various cameras
->>> which all have this ID have different capabilities and need different
->>> treatment of the frame data.
->>>
->>> The most particular problem is that some of the cameras require byte
->>> reversal of the frame data string, which would rotate the image 180
->>> degrees around its center. Others of these cameras require reversal of
->>> the horizontal lines in the image (vertical 180 degree rotation of the
->>> image across a horizontal axis).
->>>
->>> The point is, one can not tell from the Vendor:Product number which of
->>> these actions is required. However, one *is* able to tell immediately
->>> after the camera is initialized, which of these actions is required.
->>> Namely, one reads and parses the response to the first USB command sent
->>> to the camera.
->>>
->>> So, for us (Adam and me) the question is simply to know how everyone
->>> will agree that the information about the image orientation can be sent
->>> from the module to V4L. When this issue is resolved, we can finish
->>> writing the sq905 camera driver. From this rather narrow point of view,
->>> the issue is not which method ought to be adopted. Rather, the issue is
->>> that no method has been adopted. It is rather difficult to write module
->>> code which will obey a non-existent standard.
->> Ack, but the problem later was extended by the fact that it turns out
->> some cams have a rotation detection (gravity direction) switch, which
->> means you can flip the cam on its socket while streaming, and then the
->> cam will tell you its rotation has changed, that makes this a per frame
->> property rather then a static property of the cam. Which lead to this
->> discussion, but we (the 2 Hans 's) agree now that using the flags field
->> in the buffer struct is the best way forward. So there is a standard now,
->> simply add 2 buffer flags to videodev2.h, one for content is h-flipped
->> and one for content is v-flipped and you are done.
->>
->> Regards,
->>
->> Hans
-> 
-> I think we should also be able to detect 90 and 270 degree rotations. Or at 
-> the very least prepare for it. It's a safe bet to assume that webcams will 
-> arrive that can detect portrait vs landscape orientation.
-> 
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>   
 
-Handling those (esp on the fly) will be rather hard as width and height then 
-get swapped. So lets worry about those when we need to. We will need an 
-additional flag for those cases anyways.
+Yes
 
-Regards,
 
-Hans
+> Optional question:
+>
+> Why:
+>   
+
+Its causing skilled developers to waste time that would be better served
+in other areas.  Because of that, these skilled volunteers are becoming
+frustrated and losing their interest in pressing forth.  
+
+It causes unnecessary complexity.  The golden rule is to keep things as
+simple as possible.
+
+It presents a hurdle to attracting new development talent (both
+corporate and individual).
+
+When upstream technical changes (such as i2c subsystem changes) have
+made backporting downstream a nightmare, it is time to seriously
+evaluate why you are even bothering doing such.  The salient point is
+that it is absolutely illogical for volunteers to be catering to narrow
+commercial interests. 
+- Arguments about appeasing the needs of Enterprise distro's are moot.  
+V4L-DVB owes them nothing.  Enterprise distro's are specifically that --
+an enterprise's  work; if they crave support, then they can put Hans (or
+whomever) on the payroll to backport for their specific needs.
+- Arguments about appeasing the needs of embedded distros/platforms are
+moot.   V4L-DVB owes them nothing.  Let those groups figure out and/or
+support such device needs on their own; else they can put Hans (or
+whomever) on the payroll.   Those manufactures releasing products within
+this space will adapt to whatever V4L-DVB does.    This space will not
+suddenly fall apart because of our decision.   These entrepreneurs have
+entered this space specifically to exploit a market opportunity.  If
+they exit, someone else will move in.  Its simple free market
+dynamics.   (As it is, they are getting a free lunch ... seriously, I
+think that when the embedded space looks at how bent over accommodating
+we currently are, they must be rubbing their hands together and
+gleefully repeating Flounders statement: Oh boy, is this great!
+(http://www.acmewebpages.com/midi/great.wav))
+
+The V4L-DVB is lacking in strategic direction.  Yesterday was the time
+to adopt one; so lets pick up one today!
+
+I believe the plan to currently backport to 2.6.22 but to bump/narrow
+the kernel support window to the ideal/easier_to_maintain 2.6.25, once
+express support from the big 3 desktop distos ends, is the most logical
+choice and the one which will have the most beneficial impact on the
+project's future.
+
+
+
