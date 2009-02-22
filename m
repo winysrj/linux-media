@@ -1,69 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47130 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920AbZBJGQM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 01:16:12 -0500
-Date: Tue, 10 Feb 2009 04:15:12 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: CityK <cityk@rogers.com>, V4L <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
-	David Engel <david@istwok.net>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-Message-ID: <20090210041512.6d684be3@pedra.chehab.org>
-In-Reply-To: <1234237395.2682.22.camel@pc10.localdom.local>
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl>
-	<496FE555.7090405@rogers.com>
-	<496FFCE2.8010902@rogers.com>
-	<200901171720.03890.hverkuil@xs4all.nl>
-	<49737088.7060800@rogers.com>
-	<20090202235820.GA9781@opus.istwok.net>
-	<4987DE4E.2090902@rogers.com>
-	<20090209004343.5533e7c4@caramujo.chehab.org>
-	<1234226235.2790.27.camel@pc10.localdom.local>
-	<1234227277.3932.4.camel@pc10.localdom.local>
-	<1234229460.3932.27.camel@pc10.localdom.local>
-	<20090210003520.14426415@pedra.chehab.org>
-	<1234235643.2682.16.camel@pc10.localdom.local>
-	<1234237395.2682.22.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtpd4.aruba.it ([62.149.128.209]:54277 "HELO smtp3.aruba.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753444AbZBVL3e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 06:29:34 -0500
+Message-ID: <49A13718.9050504@avalpa.com>
+Date: Sun, 22 Feb 2009 12:29:28 +0100
+From: Andrea Venturi <a.venturi@avalpa.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: RFCv1: v4l-dvb development models & old kernel support
+References: <200902211200.45373.hverkuil@xs4all.nl> <200902212347.47109.linux@baker-net.org.uk> <200902221105.26785.hverkuil@xs4all.nl>
+In-Reply-To: <200902221105.26785.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Feb 2009 04:43:15 +0100
-hermann pitton <hermann-pitton@arcor.de> wrote:
+Hans Verkuil wrote:
+> ...
+> This would basically mean making a snapshot of the v4l-dvb repository, 
+> calling it v4l-dvb-old and relying on people to update it with fixes. I did 
+> think about this myself but I thought it unlikely that the old tree would 
+> see much work, if at all. It's what they are admitting to on the wireless 
+> site as well. This could be an option if we are faced with an incompatible 
+> kernel change, but in this particular case it is my gut-feeling that 2.6.22 
+> is old enough that people can just upgrade to that release.
+>   
 
-> 
-> Am Dienstag, den 10.02.2009, 04:14 +0100 schrieb hermann pitton:
-> > Am Dienstag, den 10.02.2009, 00:35 -0200 schrieb Mauro Carvalho Chehab:
-> > > On Tue, 10 Feb 2009 02:31:00 +0100
-> > > hermann pitton <hermann-pitton@arcor.de> wrote:
-> 
-> > > > > 
-> > > > > BTW, just to remember.
-> > > > > 
-> > > > > Tvtime with signal detection on shows a blue screen without signal.
-> > > > > With signal detection off, just good old snow.
-> > > 
-> > > So, the tda9887 or the PLL are configured wrongly.
-> > > 
-> 
-> Urgh, not to add more confusion here at least.
-> 
-> Good old snow means the analog signal is perfect.
-> 
-> I stopped since long to connect a real signal to it surfing the grounds
-> on my stomach, but it is for sure working then and the pll is always
-> fine.
+hi,
+i know of some platforms where the linux kernel is stuck on a way older 
+release as the HW producer is a bit picky (to say the least..).
 
-Ah, ok. So, now, we just need CityK (or someone else with ATSC 115) to confirm
-that everything is fine on their side. This patch may also fix other similar
-troubles on a few devices that seem to need some i2c magic before probing the
-tuner.
+i think about the embedded multimedia SOCs where linux is already 
+winning hands down with regard to coverage and support BUT the industry 
+still doesn't get really the idea behind the free software environment 
+[*] and still gives away lots of binary blobs for the "proprietary HW" 
+(so end users can tweak something but not really move over to modern 
+kernels..).
 
-Cheers,
-Mauro
+here there are three examples i know of quite a bit:
+
+- ST Microelectronics STi710x, DVB SOC, SH4 CPU based stuck on kernel 
+2.6.17..
+
+- Sigma Design SMP8634,  MIPS  based stuck on 2.6.15
+
+- IBM Stb25xx  DVB SOC  PowerPc based stuck on 2.6.17
+
+i'm sure there are really more like these and as they are targeting the 
+multimedia environment (media center?), the large part of end users 
+would like to add some gadget running on v4l-dvb drivers..
+
+this is in my point of view at least a good reason to keep a snapshot of 
+the latest v4l-dvb tree who has a bit of support for older kernel 
+versions; the so called v4l-dvb-old idea already written about.
+
+of course, the newer development should focus only on newer kernel to 
+keep as low as possible the compatibility burden.
+
+just my 2 cents. bye
+
+Andrea Venturi
+
+
+
+[*] it's of course the slow and painful path to consciousness of the 
+limits of closed development model  when the open source and free (as 
+freedom) scenario starts to reveal all the win-win convenience for all 
+the parties involved, but it's same ol story and we are all well 
+involved here in this kind of mindset, so don't want to repeat..
+
