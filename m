@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1RFlfm0014699
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 10:47:41 -0500
-Received: from smtp102.biz.mail.re2.yahoo.com (smtp102.biz.mail.re2.yahoo.com
-	[68.142.229.216])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n1RFlMX0025571
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 10:47:22 -0500
-Message-ID: <49A80A0B.6080602@embeddedalley.com>
-Date: Fri, 27 Feb 2009 18:43:07 +0300
-From: Vitaly Wool <vital@embeddedalley.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1MHGpuk010345
+	for <video4linux-list@redhat.com>; Sun, 22 Feb 2009 12:16:51 -0500
+Received: from ns1.tacitlabs.com (support.team.at.shellium.org
+	[207.192.71.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1MHGdi5007957
+	for <video4linux-list@redhat.com>; Sun, 22 Feb 2009 12:16:39 -0500
+Date: Sun, 22 Feb 2009 12:16:38 -0500
+To: video4linux-list@redhat.com
+Message-ID: <20090222171638.GA19029@shellium.org>
 MIME-Version: 1.0
-To: Vitaly Wool <vital@embeddedalley.com>
-References: <49A3A61F.30509@embeddedalley.com>	<20090224234205.7a5ca4ca@pedra.chehab.org>	<49A53CB9.1040109@embeddedalley.com>	<20090225090728.7f2b0673@caramujo.chehab.org>	<49A567D9.80805@embeddedalley.com>	<20090225101812.212fabbe@caramujo.chehab.org>	<49A57BD4.6040209@embeddedalley.com>	<20090225153323.66778ad2@caramujo.chehab.org>	<49A59B31.9080407@embeddedalley.com>	<20090225204023.16b96fe5@pedra.chehab.org>
-	<49A802ED.2060200@embeddedalley.com>
-In-Reply-To: <49A802ED.2060200@embeddedalley.com>
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: em28xx: Compro VideoMate For You sound problems
+Content-Type: text/plain; charset=unknown-8bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+From: dkremer@shellium.org
+Subject: PROBLEM: gspca driver with a logitech quickcam express and a USB hub
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,39 +26,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Vitaly Wool wrote:
+Hello,
 
-> Ok, I'm working on that. The problem as of now is that it works fine on 
-> 2.6.26 and doesn't work with 2.6.29-rc5.
-> I'll get back to you when I find out the reason.
-And here's the patch that solves the problem:
+My webcam doesn't work when it is plugged with a hub to my computer.
 
-diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
-index 5aeccb3..ae4b231 100644
---- a/drivers/media/video/tvaudio.c
-+++ b/drivers/media/video/tvaudio.c
-@@ -169,12 +169,14 @@ static int chip_write(struct CHIPSTATE *chip, int subaddr, int val)
- 			return -1;
- 		}
- 	} else {
-+#if 0
- 		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
- 			v4l2_info(sd,
- 				"Tried to access a non-existent register: %d\n",
- 				subaddr);
- 			return -EINVAL;
- 		}
-+#endif
+When my webcam is used with a hub, I have the following error log :
+
+//loading of the device by gspca
+usb 1-4.4: new full speed USB device using ehci_hcd and address 12
+usb 1-4.4: configuration #1 chosen from 1 choice
+gspca: probing 046d:0928
+gspca: probe ok
+
+//I'm launching svv, the soft shipped by Jean François Moine
+gspca: usb_submit_urb [0] err -28
+gspca: usb_submit_urb [0] err -28
+gspca: usb_submit_urb [0] err -28
+gspca: usb_submit_urb [0] err -28
+gspca: usb_submit_urb [0] err -28
+gspca: usb_submit_urb [0] err -28
+
+When I use a direct acces to a USB port of my computer, without a hub
+between the host and the camera, the camera is working perfectly, and I
+have not this problem.
+
+The complete lsusb map is :
  
- 		v4l2_dbg(1, debug, sd, "chip_write: reg%d=0x%x\n",
- 			subaddr, val);
+Bus 001 Device 012: ID 046d:0928 Logitech, Inc. QuickCam Express
+Bus 001 Device 011: ID 152d:2336 JMicron Technology Corp. / JMicron USA
+Technology Corp.
+Bus 001 Device 004: ID 046d:c404 Logitech, Inc. TrackMan Wheel
+Bus 001 Device 003: ID 0603:00f2 Novatek Microelectronics Corp.
+Bus 001 Device 002: ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
 
+The usb string id for my webcam is :
+ID 046d:0928 Logitech, Inc. QuickCam Express
 
+The usb string id for my HUB is :
+ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
 
-Apparently this check is bogus. The patch for em28xx stuff will follow, after some cleanups.
+I'm currently using archlinux, with a 2.6.28.6 kernel. I'm using the
+gspca_main and gspca_spca561 modules.
 
-Thanks,
-   Vitaly
+cat /proc/version :
+Linux version 2.6.28-ARCH (root@T-POWA-LX) (gcc version 4.3.3 (GCC) ) #1
+SMP PREEMPT Wed Feb 18 21:27:38 UTC 2009
+
+I just wanted help maybe for the gspca driver if it could be. Thank you
+to Jean François Moine for gspca.
+
+-- 
+
+David Kremer
 
 --
 video4linux-list mailing list
