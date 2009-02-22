@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n162A5JI024072
-	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 21:10:05 -0500
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1629nKW020291
-	for <video4linux-list@redhat.com>; Thu, 5 Feb 2009 21:09:50 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Yves Le Feuvre <yves.lefeuvre@inserm.fr>
-In-Reply-To: <1233885291.2689.22.camel@pc10.localdom.local>
-References: <497979FF.5090600@inserm.fr>
-	<1232755686.5451.7.camel@pc10.localdom.local>	<497D71BB.4050306@inserm.fr>
-	<1233179327.4396.42.camel@pc10.localdom.local>
-	<4982B64C.3010608@inserm.fr> <4989A883.8050305@inserm.fr>
-	<1233885291.2689.22.camel@pc10.localdom.local>
-Content-Type: text/plain
-Date: Fri, 06 Feb 2009 03:10:29 +0100
-Message-Id: <1233886229.2689.33.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: asus Europa2 OEM regression ?
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1MI6uD6022298
+	for <video4linux-list@redhat.com>; Sun, 22 Feb 2009 13:06:56 -0500
+Received: from mk-outboundfilter-6.mail.uk.tiscali.com
+	(mk-outboundfilter-6.mail.uk.tiscali.com [212.74.114.14])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1MI6UX1009903
+	for <video4linux-list@redhat.com>; Sun, 22 Feb 2009 13:06:30 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: video4linux-list@redhat.com
+Date: Sun, 22 Feb 2009 18:06:28 +0000
+References: <20090222171638.GA19029@shellium.org>
+In-Reply-To: <20090222171638.GA19029@shellium.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Disposition: inline
+Message-Id: <200902221806.28268.linux@baker-net.org.uk>
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: PROBLEM: gspca driver with a logitech quickcam express and a
+	USB hub
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,39 +31,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Sunday 22 February 2009, dkremer@shellium.org wrote:
+> Hello,
+>
+> My webcam doesn't work when it is plugged with a hub to my computer.
+>
+> When my webcam is used with a hub, I have the following error log :
+>
+> //loading of the device by gspca
+> usb 1-4.4: new full speed USB device using ehci_hcd and address 12
+> usb 1-4.4: configuration #1 chosen from 1 choice
+> gspca: probing 046d:0928
+> gspca: probe ok
+>
+> //I'm launching svv, the soft shipped by Jean François Moine
+> gspca: usb_submit_urb [0] err -28
+> gspca: usb_submit_urb [0] err -28
+> gspca: usb_submit_urb [0] err -28
+> gspca: usb_submit_urb [0] err -28
+> gspca: usb_submit_urb [0] err -28
+> gspca: usb_submit_urb [0] err -28
+>
 
-Am Freitag, den 06.02.2009, 02:54 +0100 schrieb hermann pitton:
-> Hi,
-> 
-> Am Mittwoch, den 04.02.2009, 15:38 +0100 schrieb Yves Le Feuvre:
-> > Hi,
-> > 
-> > What should I try next ? I'll try to hack the driver source code, but my 
-> > knowledge in linux drivers and v4l is very limited...
-> > If you have some ideas where to start, they will be welcome.
-> > 
-> > yves
-> 
-> I don't understand it at this point for now.
-> 
-> The tuner in digital mode takes the instructions.
-> 
-> There is another clash between digital and analog again.
-> 
+error -28 is ENOSPC which means that there isn't enough bandwidth available on 
+the USB bus to do what you are attempting. 
 
-Forgot to mention, the card specific tda9887 settings seem to not work
-anymore after we fixed the tuner eeprom detection.
+> When I use a direct acces to a USB port of my computer, without a hub
+> between the host and the camera, the camera is working perfectly, and I
+> have not this problem.
+>
+> The complete lsusb map is :
+>
+> Bus 001 Device 012: ID 046d:0928 Logitech, Inc. QuickCam Express
+> Bus 001 Device 011: ID 152d:2336 JMicron Technology Corp. / JMicron USA
+> Technology Corp.
+> Bus 001 Device 004: ID 046d:c404 Logitech, Inc. TrackMan Wheel
+> Bus 001 Device 003: ID 0603:00f2 Novatek Microelectronics Corp.
+> Bus 001 Device 002: ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+> Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+>
+> The usb string id for my webcam is :
+> ID 046d:0928 Logitech, Inc. QuickCam Express
+>
 
-Do we fail here already with the need of the i2c_gate enabled to the
-tuner by the tda10046 for this one?
+Looking at the above it seems the camera is usb 1.1
 
-We need some clean up here, the plan was to have the tda9887 config on
-tuner-types, or even in user space ...
+> The usb string id for my HUB is :
+> ID 05e3:0608 Genesys Logic, Inc. USB-2.0 4-Port HUB
+>
 
-Cheers,
-Hermann
+and the hub is 2.0. That means it needs to use a transaction translator in the 
+hub to convert the usb 1.1 camera to usb 2.0 and it is failing to reserve 
+enough bandwidth to do so. If the camera is near the limit for a full speed 
+device then there are a number of possibilities.
 
+1) something else on the hub has reserved some bandwidth so there is not 
+enough left for the camera.
 
+2) The hub only has one transaction translator and bus scheduling issues mean 
+that not all of the capacity is usable.
+
+3) There's a bug in the USB subsystem leading to it miscalculating the 
+required / available bandwidth (as there appear to be such errors in the USB 
+spec this wouldn't be too surprising).
+
+> I'm currently using archlinux, with a 2.6.28.6 kernel. I'm using the
+> gspca_main and gspca_spca561 modules.
+>
+> cat /proc/version :
+> Linux version 2.6.28-ARCH (root@T-POWA-LX) (gcc version 4.3.3 (GCC) ) #1
+> SMP PREEMPT Wed Feb 18 21:27:38 UTC 2009
+>
+> I just wanted help maybe for the gspca driver if it could be. Thank you
+> to Jean François Moine for gspca.
+
+Adam
 
 
 --
