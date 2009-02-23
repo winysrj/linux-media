@@ -1,153 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:35804 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109AbZBTBUN (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.174]:57390 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979AbZBWGlP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 20:20:13 -0500
-Date: Thu, 19 Feb 2009 19:32:24 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-cc: Jean-Francois Moine <moinejf@free.fr>,
-	Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: MR97310A and other image formats
-In-Reply-To: <499DFEBF.9020601@kaiser-linux.li>
-Message-ID: <alpine.LNX.2.00.0902191913320.7602@banach.math.auburn.edu>
-References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu> <499DB030.7010206@kaiser-linux.li> <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu> <499DE107.80502@kaiser-linux.li>
- <alpine.LNX.2.00.0902191723380.7472@banach.math.auburn.edu> <499DFEBF.9020601@kaiser-linux.li>
+	Mon, 23 Feb 2009 01:41:15 -0500
+Received: by wf-out-1314.google.com with SMTP id 28so2350842wfa.4
+        for <linux-media@vger.kernel.org>; Sun, 22 Feb 2009 22:41:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+References: <200902221115.01464.hverkuil@xs4all.nl>
+Date: Mon, 23 Feb 2009 17:11:13 +1030
+Message-ID: <ae5231870902222241i3ea4cd10j4dfa6d6a2fed14e5@mail.gmail.com>
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+From: Robert Golding <robert.golding@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On Fri, 20 Feb 2009, Thomas Kaiser wrote:
-
-> kilgota@banach.math.auburn.edu wrote:
->> 
->> 
->> On Thu, 19 Feb 2009, Thomas Kaiser wrote:
->> 
->>> kilgota@banach.math.auburn.edu wrote:
->>>> Yes, what you quote is the SOF marker for all of these cameras. The total 
->>>> header length, including the SOF marker ought to be 12 bytes. On all of 
->>>> the mr97310 cameras that I have dealt with, the last 5 bytes are 
->>>> obviously related somehow to the image (contrast, color balance, gamma, 
->>>> whatever).  I have no idea how to interpret those values, but we can hope
->>>> that someone will figure out how.
->>> 
->>> Two of them are luminance values (middle and edge) for the PAC207.
->> 
->> Which two, and how do those numbers translate into anything relevant?
+2009/2/22 Hans Verkuil <hverkuil@xs4all.nl>:
+> Hi all,
 >
-> Looks like I had some off list (private) email conversation about the frame 
-> header of PAC207 with Michel Xhaard. I just paste the whole thing in here:
+> There are lot's of discussions, but it can be hard sometimes to actually
+> determine someone's opinion.
 >
-> michel Xhaard wrote:
->> Le Samedi 18 Fe'vrier 2006 12:16, vous avez e'crit :
->>
->>> michel Xhaard wrote:
->>>
->>>> Le Samedi 18 Fe'vrier 2006 10:10, vous avez e'crit :
->>>>
->>>>> Hello Michel
->>>>>
->>>>> michel Xhaard wrote:
->>>>>
->>>>>> Le Mercredi 15 Fe'vrier 2006 12:43, vous avez e'crit :
->>>>>> Just relook the snoop, the header is always 16 bytes long starting 
-> with:
->>>>>> ff ff 00 ff 96 64 follow
->>>>>> xx 00 xx xx xx xx  64 xx 00 00
->>>>>> let try to play poker with the asumption the R mean G0 mean B mean G1
->>>>>> mean is encoded here.
->>>>>> Not sure about the 64 can you look at your snoop?
->>>>>
->>>>> I never thought about that. So, you see I have not experience with
->>>>> webcams.
->>>>>
->>>>> Anyway, here are my observations about the header:
->>>>> In the snoop, it looks a bit different then yours
->>>>>
->>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
->>>>> 1. xx: looks like random value
->>>>> 2. xx: changed from 0x03 to 0x0b
->>>>> 3. xx: changed from 0x06 to 0x49
->>>>> 4. xx: changed from 0x07 to 0x55
->>>>> 5. xx: static 0x96
->>>>> 6. xx: static 0x80
->>>>> 7. xx: static 0xa0
->>>>>
->>>>> And I did play in Linux and could identify some fields :-) .
->>>>> In Linux the header looks like this:
->>>>>
->>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
->>>>> 1. xx: don't know but value is changing between 0x00 to 0x07
->>>>> 2. xx: this is the actual pixel clock
->>>>> 3. xx: this is changing according light conditions from 0x03 (dark) to
->>>>> 0xfc (bright)
->>>>> 4. xx: this is changing according light conditions from 0x03 (dark) to
->>>>> 0xfc (bright)
->>>>> 5. xx: set value "Digital Gain of Red"
->>>>> 6. xx: set value "Digital Gain of Green"
->>>>> 7. xx: set value "Digital Gain of Blue"
->>>>>
->>>>> Regards, Thomas
->>>>
->>>> Thomas,
->>>> Cool good works :) so 3 and 4 are good candidate . To get good picture
->>>> result there are 2 windows where the chips measure the ligth condition.
->>>> Generally one is set to the center of the image the other are set to get
->>>> the background light. At the moment my autobrightness setting used simple
->>>> code and only one windows of measurement (the center one) .
->>>
->>> Some more info, 3 is the center one.
->>
->> :)
->>
->>>> Did you want i try to implement these feature ? or maybe you can have a
->>>> try :) the only problem i see is between interrupt() context and process
->>>> context. I have set up a spinlock for that look at the code how to use it
->>>> ( spca5xx_move_data() )
->>>
->>> Yes, please. Because I have no idea how to do this :-(
->>> I am good in investigating :-)
->>
->> I know, but can be very good in code to, as you know the hardware :) now 
-> let try to look at 1
->                         ^^ What does this mean?
->> is there the black luma level ?
-> I don't get it. What is the black luma level?
+> So here is a quick poll, please reply either to the list or directly to me
+> with your yes/no answer and (optional but welcome) a short explanation to
+> your standpoint. It doesn't matter if you are a user or developer, I'd like
+> to see your opinion regardless.
 >
-> Regards, Thomas
+> Please DO NOT reply to the replies, I'll summarize the results in a week's
+> time and then we can discuss it further.
 >
->
-> -- 
-> http://www.kaiser-linux.li
->
->
->> By any chance, you do not have a JL2005B or JL2005C or JL2005D camera among 
->> them, do you? AFAICT they all use the same compression algorithm (in 
->> stillcam mode), and it appears to me to be a really nasty one. Any help I 
->> could get with that algorithm is welcome indeed.
->
-> I have to check. Please send me the USB ID.
-
- 	0x0979 is the Vendor ID from Jeilin.
- 	0x0227 is the Product ID of the JL2005B/C/D cameras
- 	(yes, all three of them have the same ID)
->
-> Thomas
-
-Thanks for the information. But this is an old letter. What is happening 
-with Michel Xhaard these days? Do you know? I miss him.
-
->
-> PS: Now we have the 5. season in Liechtenstein, Fasnacht (means carnival). 
-> So, you can guess what I am doing the next couple of days :-)
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
 >
 
-I don't know. Eat too much Wienerschnitzel? Temporarily transform into 
-"ein Bierfass"? Um Verzeihung. Ich hole sofort den Hut...
+ ** Yes **
 
-Theodore Kilgore
+
+> _: No
+>
+> Optional question:
+>
+> Why: (from a non-coder, I have failed miserably to learn how to code in anything other than shell scripting)
+
+I think the development of later drivers suffers because of the work
+needed for backwards kernel compatibility.
+
+In any case, I think most home users (like me) will usually be very up
+to date with their kernels (we so like to tinker where we can) so the
+drivers for older kernels would only be of any use to those using
+enterprise kernels, and I think those should be addressed by the
+people being paid!  Isn't that what they're being paid for?
+
+>
+> Thanks,
+>
+>        Hans
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+Regards,	Robert
+
+..... Some people can tell what time it is by looking at the sun, but
+I have never been able to make out the numbers.
+---
+Errata: Spelling mistakes are not intentional, however, I don't use
+spell checkers because it's too easy to allow the spell checker to
+make the decisions and use words that are out of context for that
+being written, i.e. their/there, your/you're, threw/through and even
+accept/except, not to mention foreign (I'm Australian) English
+spelling, i.e. colour/color, socks/sox, etc,.
