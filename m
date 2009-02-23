@@ -1,47 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:54051 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360AbZBZT0m convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.158]:32226 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753693AbZBWW5x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2009 14:26:42 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so778974wfa.4
-        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 11:26:39 -0800 (PST)
+	Mon, 23 Feb 2009 17:57:53 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so24394fgg.17
+        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2009 14:57:50 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <a3ef07920902260835n25faa130y401e2f4814172b4c@mail.gmail.com>
-References: <49A18DD5.40206@gmx.de>
-	 <20090226121445.74ed3202@caramujo.chehab.org>
-	 <a3ef07920902260835n25faa130y401e2f4814172b4c@mail.gmail.com>
-Date: Thu, 26 Feb 2009 11:26:39 -0800
-Message-ID: <a3ef07920902261126y76c512f1xf4d5d5e1780e23cc@mail.gmail.com>
-Subject: Re: [PATCH] dvb-api: update documentation, chapter1
-From: VDR User <user.vdr@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: wk <handygewinnspiel@gmx.de>, linux-media@vger.kernel.org
+In-Reply-To: <37843.1235429340@iinet.net.au>
+References: <37843.1235429340@iinet.net.au>
+Date: Mon, 23 Feb 2009 17:57:50 -0500
+Message-ID: <37219a840902231457k20895709j7b9416a48128547e@mail.gmail.com>
+Subject: Re: running multiple DVB cards successfully.. what do I need to
+	know?? (major and minor numbers??)
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: sonofzev@iinet.net.au
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 26, 2009 at 8:35 AM, VDR User <user.vdr@gmail.com> wrote:
->> It seems better to say, instead, that "Version 4 was suggested, but it weren't completed nor implemented".
+On Mon, Feb 23, 2009 at 5:49 PM, sonofzev@iinet.net.au
+<sonofzev@iinet.net.au> wrote:
+> Some of you may have read some of my posts about an "incorrect firmware readback"
+> message appearing in my dmesg, shortly after a tuner was engaged.
 >
-> That's improper.  I think you mean, "Version 4 was suggested but
-> neither completed, nor implemented".
+> I have isolated this problem, but the workaround so far has not been pretty.
+> On a hunch I removed my Dvico Fusion HDTV lite card from the system, running now
+> only with the Dvico Fusion Dual Express.
 >
-> Why do I have a feeling even the updated doc will be full of spelling
-> & grammatical errors?  ;)
-
-See below for the irony.
-
->>> +This Linux DVB API documentation will be extended to reflect these
->>> additions.
->>
->> While we don't finish adding the S2API parts, maybe we should say instead:
->>
->> This document is currently under review to reflect the S2API additions.
+> The issue has gone, I am not getting the kdvb process hogging cpu cycles and this
+> message has stopped.
 >
-> Maybe you should say, "This documentation is a work-in-progress and
-> doesn't contain the full scope of newer additions year, such as
-> S2API".
+> I had tried both letting the kernel (or is it udev) assign the major and minor
+> numbers and I had tried to manually set them via modprobe.conf (formerly
+> modules.conf, I don't know if this is a global change or specific to Gentoo)....
+>
+> I had the major number the same for both cards, with a separate minor number for
+> each of the three tuners, this seems to be the same.
+>
+> Is this how I should be setting up for 2 cards or should I be using some other
+> type of configuration.
 
-Err...  s/yet/year in that last line.  Oops! ;)
+Allan,
+
+I recommend to use the 'adapter_nr' module option.  You can specify
+this option in modprobe.conf -- the name of this file is
+distro-specific.
+
+For instance, to make the dual card appear before the lite card:
+
+options cx23885 adapter_nr=0,1
+options dvb-bt8xx adapter_nr=2
+
+to make the lite card appear before the dual card:
+
+options cx23885 adapter_nr=0
+options dvb-bt8xx adapter_nr=1,2
+
+I hope you find this helpful.
+
+Regards,
+
+Mike
