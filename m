@@ -1,67 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:63436 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752048AbZBRRCl (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:40960 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753387AbZBWLlf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 12:02:41 -0500
-Received: by bwz5 with SMTP id 5so5701038bwz.13
-        for <linux-media@vger.kernel.org>; Wed, 18 Feb 2009 09:02:39 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 18 Feb 2009 18:02:25 +0100
-Message-ID: <19a3b7a80902180902o2263f257s5d4da9f6f9fb8448@mail.gmail.com>
-Subject: scan files for fr-Montbeliard and pl-Warszawa
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary=0016363b845022278e046334638d
+	Mon, 23 Feb 2009 06:41:35 -0500
+Date: Mon, 23 Feb 2009 08:41:08 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mercurial problems?
+Message-ID: <20090223084108.1ce47193@pedra.chehab.org>
+In-Reply-To: <200902221158.13783.hverkuil@xs4all.nl>
+References: <200902221158.13783.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016363b845022278e046334638d
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+On Sun, 22 Feb 2009 11:58:13 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Sent to my linuxtv account.
+> Hi,
+> 
+> When I try to push changes to my tree I get these errors:
+> 
+> pushing to ssh://hverkuil@linuxtv.org/hg/~hverkuil/v4l-dvb-ng-ctrls
+> searching for changes
+> remote: ** unknown exception encountered, details follow
+> remote: ** report bug details to http://www.selenic.com/mercurial/bts
+> remote: ** or mercurial@selenic.com
+> remote: ** Mercurial Distributed SCM (version 0.9.3)
+> remote: Traceback (most recent call last):
+> remote:   File "/usr/bin/hg.real", line 12, in ?
+> remote:     commands.run()
+> remote:   File "/usr/lib/python2.4/site-packages/mercurial/commands.py", 
+> line 3000, in run
+> remote:     sys.exit(dispatch(sys.argv[1:]))
+> remote:   File "/usr/lib/python2.4/site-packages/mercurial/commands.py", 
+> line 3223, in dispatch
+> remote:     return d()
+> remote:   File "/usr/lib/python2.4/site-packages/mercurial/commands.py", 
+> line 3182, in <lambda>
+> remote:     d = lambda: func(u, repo, *args, **cmdoptions)
+> remote:   File "/usr/lib/python2.4/site-packages/mercurial/commands.py", 
+> line 2291, in serve
+> remote:     s.serve_forever()
+> remote:   File "/usr/lib/python2.4/site-packages/mercurial/sshserver.py", 
+> line 40, in serve_forever
+> remote:     while self.serve_one(): pass
+> remote:   File "/usr/lib/python2.4/site-packages/mercurial/sshserver.py", 
+> line 47, in serve_one
+> remote:     if impl: impl()
+> remote:   File "/usr/lib/python2.4/site-packages/mercurial/sshserver.py", 
+> line 201, in do_unbundle
+> remote:     fp.close()
+> remote: UnboundLocalError: local variable 'fp' referenced before assignment
+> abort: unexpected response: empty string
+> 
+> And running hg-menu will result in this:
+> 
+> hg-menu
+> /usr/local/bin/hg-menu: line 185: /tmp/dialog21904: Read-only file system
+> Connection to linuxtv.org closed.
 
-Christoph
+hg-menu is working here. Could you please check again?
 
---0016363b845022278e046334638d
-Content-Type: application/octet-stream; name=fr-Montbeliard
-Content-Disposition: attachment; filename=fr-Montbeliard
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_frc94pvo0
-
-IyBNb250YsOpbGlhcmQgLSBGcmFuY2UgKERWQi1UIHRyYW5zbWl0dGVyIG9mIE1vbnRiw6lsaWFy
-ZCAiRm9ydCBMYWNoYXV4IiApCiMgTW9udGLDqWxpYXJkIC0gRnJhbmNlIChzaWduYWwgRFZCLVQg
-dHJhbnNtaXMgZGVwdWlzIGwnw6ltZXR0ZXVyIGRlIEZvcnQgTGFjaGF1eCApCiMKIyBUIGZyZXEg
-YncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGll
-cmFyY2h5CiMgbXVsdGlwbGV4IFIxIChHUjEpLCBjYW5hbCAyOVYgKyBvZmZzZXQgMTY3MDAwIDog
-RlJBTkNFIDIgU0QgLCBGUkFOQ0UgNSAsIEFSVEUgU0QgLCBMYSBDaGHDrm5lIFBhcmxlbWVudGFp
-cmUvUHVibGljIFPDqW5hdCAsIEZSQU5DRSAzICwgRlJBTkNFIDMgRnJhbmNoZS1Db210w6kKVCA1
-MzgxNjcwMDAgOE1IeiBBVVRPIE5PTkUgUUFNNjQgOGsgQVVUTyBOT05FCiMgbXVsdGlwbGV4IFIz
-IChDTkgpLCBjYW5hbCA0M1YgKyBvZmZzZXQgMTY3MDAwIDogQ0FOQUwrICwgQ0FOQUwrSEQgLCBD
-QU5BTCsgQ0lORU1BICwgQ0FOQUwrIFNQT1JUICwgUExBTkVURSAsIENBTkFMIEogZXQgVFBTIFNU
-QVIKVCA2NTAxNjcwMDAgOE1IeiBBVVRPIE5PTkUgUUFNNjQgOGsgQVVUTyBOT05FCiMgbXVsdGlw
-bGV4IFIyIChOVE4pLCBjYW5hbCA1NVYgKyBvZmZzZXQgMTY3MDAwIDogRElSRUNUIDggLCBCRk0g
-VFYgLCBJPlRFTEUgLCBGUkFOQ0UgNCAsIFZJUkdJTiAxNyAsIEdVTExJIGV0IEZyYW5jZSA0ClQg
-NzQ2MTY3MDAwIDhNSHogQVVUTyBOT05FIFFBTTY0IDhrIEFVVE8gTk9ORQojIG11bHRpcGxleCBS
-NiAoU01SNiksIGNhbmFsIDMyViArIG9mZnNldCAxNjcwMDAgOiBURjEgU0QgLCBOUkogMTIgLCBU
-TUMgLCBFVVJPU1BPUlQgLCBMQ0kgZXQgVEY2ClQgNTYyMTY3MDAwIDhNSHogQVVUTyBOT05FIFFB
-TTY0IDhrIEFVVE8gTk9ORQojIFTDqWzDqXZpc2lvbiBTdWlzc2UsIGNhbmFsIDU2ViArIG9mZnNl
-dCAwMDAwMDAgOiBUU1IxICwgVFNSMiAsIFRTSTEgZXQgU0YgMQpUIDc1NDAwMDAwMCA4TUh6IEFV
-VE8gTk9ORSBRQU02NCA4ayBBVVRPIE5PTkUKIyBtdWx0aXBsZXggUjQgKE1VTFRJNCksIGNhbmFs
-IDU4ViArIG9mZnNldCAxNjcwMDAgOiBBUlRFIEhEICwgUEFSSVMgUFJFTUlFUkUsIE02IFNEICwg
-VzkgLCBOVDEKVCA3NzAxNjcwMDAgOE1IeiBBVVRPIE5PTkUgUUFNNjQgOGsgQVVUTyBOT05FCiMg
-bXVsdGlwbGV4IFI1ICg/Pz8pLCBjYW5hbCA/Pz8gOiBURjEgSEQgLCBGUkFOQ0UgMiBIRCwgTTYg
-SEQKIyBjYW5hbCBkJ8OpbWlzc2lvbiBwYXMgZW5jb3JlIGTDqWZpbmkgKGbDqXZyaWVyIDIwMDkp
-Cg==
---0016363b845022278e046334638d
-Content-Type: application/octet-stream; name=pl-Warszawa
-Content-Disposition: attachment; filename=pl-Warszawa
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_frc94uz51
-
-IyBXYXJzYXcgLyBQS2lOLCBDZW50cmFsIFBvbGFuZAojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xv
-IG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKVCA2OTAwMDAw
-MDAgOE1IeiA1LzYgTk9ORSBRQU0xNiA4ayAxLzQgTk9ORQpUIDc0NjAwMDAwMCA4TUh6IDUvNiBO
-T05FIFFBTTE2IDhrIDEvNCBOT05FCg==
---0016363b845022278e046334638d--
+Cheers,
+Mauro
