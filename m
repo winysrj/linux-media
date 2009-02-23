@@ -1,38 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34279 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023AbZBSUPN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Feb 2009 15:15:13 -0500
-Message-ID: <499DBDCD.20408@iki.fi>
-Date: Thu, 19 Feb 2009 22:15:09 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:52088 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754027AbZBWOxL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2009 09:53:11 -0500
+Received: by qyk4 with SMTP id 4so2827468qyk.13
+        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2009 06:53:09 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Can I use AVerTV Volar Black HD (A850) with Linux
- ?
-References: <499DB335.50807@laposte.net>
-In-Reply-To: <499DB335.50807@laposte.net>
-Content-Type: text/plain; charset=us-ascii; format=flowed
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+References: <200902221115.01464.hverkuil@xs4all.nl>
+Date: Mon, 23 Feb 2009 09:53:09 -0500
+Message-ID: <30353c3d0902230653w419e10c4u73b7f70f135d6663@mail.gmail.com>
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thomas RENARD wrote:
-> I bought this USB card : AVerTV Volar Black HD (A850) - 
-> http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=460&tab=APDriver.
-> I don't find anything relevant about using this card on linux.
-> 
-> Can I use this card on Linux ? How ?
-> 
-> Here is some information :
+On Sun, Feb 22, 2009 at 5:15 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi all,
+>
+> There are lot's of discussions, but it can be hard sometimes to actually
+> determine someone's opinion.
+>
+> So here is a quick poll, please reply either to the list or directly to me
+> with your yes/no answer and (optional but welcome) a short explanation to
+> your standpoint. It doesn't matter if you are a user or developer, I'd like
+> to see your opinion regardless.
+>
+> Please DO NOT reply to the replies, I'll summarize the results in a week's
+> time and then we can discuss it further.
+>
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>
+> _: Yes
+> _: No
 
-Looks like AF9015 or AF9035. Could you test whether this driver will 
-tell more?
-http://linuxtv.org/hg/~anttip/af9015_aver_a850/
-http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/
+YES
 
-regards
-Antti
--- 
-http://palosaari.fi/
+>
+> Optional question:
+
+Why can't we drop support for all but the latest kernel?
+
+>
+> Why:
+
+As others have already pointed out, it is a waste of time for
+developers who volunteer their time to work on supporting prior kernel
+revisions for use by enterprise distributions. The task of
+back-porting driver modifications to earlier kernels lessens the
+amount of time developers can focus on improving the quality and
+stability of new and existing drivers. Furthermore, it deters driver
+development since  there an expectation that they will back-port their
+driver to earlier kernel versions. Finally, as a developer, I have
+have little interest in what was new yesterday. I usually run the
+latest kernel whenever possible and for a number of different reasons.
+Some of those reasons include better hardware support, bug detection,
+and stability testing. All services greatly valued by other kernel
+developers.
+
+Regards,
+
+David Ellingsworth
