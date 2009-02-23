@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp125.rog.mail.re2.yahoo.com ([206.190.53.30]:38083 "HELO
-	smtp125.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751761AbZBDEH7 (ORCPT
+Received: from fk-out-0910.google.com ([209.85.128.188]:48526 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173AbZBWOfD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Feb 2009 23:07:59 -0500
-Message-ID: <4989149C.3080802@rogers.com>
-Date: Tue, 03 Feb 2009 23:07:56 -0500
-From: CityK <cityk@rogers.com>
+	Mon, 23 Feb 2009 09:35:03 -0500
+Received: by fk-out-0910.google.com with SMTP id f33so1503055fkf.5
+        for <linux-media@vger.kernel.org>; Mon, 23 Feb 2009 06:35:01 -0800 (PST)
 MIME-Version: 1.0
-To: David Engel <david@istwok.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	V4L <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Josh Borke <joshborke@gmail.com>,
-	David Lonie <loniedavid@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-References: <7994.62.70.2.252.1232028088.squirrel@webmail.xs4all.nl> <496FE555.7090405@rogers.com> <496FFCE2.8010902@rogers.com> <200901171720.03890.hverkuil@xs4all.nl> <49737088.7060800@rogers.com> <20090202235820.GA9781@opus.istwok.net> <4987DE4E.2090902@rogers.com> <20090203172225.GA16385@opus.istwok.net>
-In-Reply-To: <20090203172225.GA16385@opus.istwok.net>
-Content-Type: text/plain; charset=us-ascii
+Date: Mon, 23 Feb 2009 15:35:01 +0100
+Message-ID: <af2e95fa0902230635o6c5246v494201653c1b6c9f@mail.gmail.com>
+Subject: Twinhan 2033, Mantis
+From: Henrik Beckman <henrik.list@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Engel wrote:
-> I never received received anythin after Jan. 18 and couldn't find
-> anything in the archives.  Strange.
->   
+Any CAM support on this board today or planned ?
+Are willing to try bleeding edge code and provide feedback.
 
-hermann pitton wrote:
-> Am Dienstag, den 03.02.2009, 01:03 -0500 schrieb CityK:
->> - On Sunday Jan 25th I sent a lengthy message to the list... I went to the mailing list archive to
->> find a link for my message...only to discover it was NEVER achieved/recorded....grrrrr. So I'm at a complete loss as to who actually saw the Jan 25th message and who didn't.
->>     
->
-> On Jan. 18 the copy to the video4linux-list was dropped.
-> Some mailers by default have a limit there and the number of recipients
-> must be increased manually, i don't think it was intentionally.
->
-> However, all on linux-media should have received your postings and they
-> are in the archives.
-> http://www.spinics.net/lists/linux-media/msg00817.html
->   
 
-LOL -- that's hilarious; I had checked both
-http://www.mail-archive.com/linux-media@vger.kernel.org/thrd5.html#01125
-and
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/203/focus=42489
-and couldn't find it, so I didn't bother looking for it on spinics.
-(Personally, I prefer neither of the 3 above archives, rather, I like
-Marc, which I don't believe we've contacted yet ... I will bug Mauro
-about this in a minute). I had figured that it might have been a
-limitation with the message size. Anyway, good to know that the Jan 25th
-message made its way to at least one archive.
+Card info,
+ 25.180805] Mantis 0000:00:07.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+[   25.180843] Mantis 0000:00:07.0: setting latency timer to 64
+[   25.180856] irq: 18, latency: 64
+[   25.180858]  memory: 0xfdffd000, mmio: 0xf8840000
+[   25.180865] found a VP-2033 PCI DVB-C device on (00:07.0),
+[   25.180870]     Mantis Rev 1 [1822:0008], irq: 18, latency: 64
+[   25.180876]     memory: 0xfdffd000, mmio: 0xf8840000
+[   25.184211]     MAC Address=[00:08:ca:1a:f0:60]
+<snip>
+[   25.704672] mantis_frontend_init (0): Probing for CU1216 (DVB-C)
+[   25.706090] TDA10021: i2c-addr = 0x0c, id = 0x7c
+[   25.706107] mantis_frontend_init (0): found Philips CU1216 DVB-C
+frontend (TDA10021) @ 0x0c
+[   25.706117] mantis_frontend_init (0): Mantis DVB-C Philips CU1216
+frontend attach success
+[   25.710822] DVB: registering adapter 0 frontend 0 (Philips TDA10021 DVB-C)...
+[   25.712780] mantis_ca_init (0): Registering EN50221 device
+[   25.714818] mantis_ca_init (0): Registered EN50221 device
+[   25.714844] mantis_hif_init (0): Adapter(0) Initializing Mantis
+Host Interface
 
->> - Further, somewhat concurrently, I discovered that (with Hans' kworld
->> test repo) analog TV was ONLY working with tvtime ... xawtv/motv and
->> kdetv were borked (I don't use Myth, so I have no idea what its status
->> would be ... though, I'd suspect that it works like tvtime).
->>     
->
-> I will try it with MythTV.
-
-Thanks David.
-
+/Henrik
