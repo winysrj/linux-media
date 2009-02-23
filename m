@@ -1,63 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:26778
-	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752362AbZBVVqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 16:46:38 -0500
-From: Adam Baker <linux@baker-net.org.uk>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-Date: Sun, 22 Feb 2009 21:46:32 +0000
-Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
-References: <200902180030.52729.linux@baker-net.org.uk> <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu> <49A1A03A.8080303@redhat.com>
-In-Reply-To: <49A1A03A.8080303@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902222146.33136.linux@baker-net.org.uk>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:48218 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752515AbZBWMZZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2009 07:25:25 -0500
+Date: Mon, 23 Feb 2009 13:19:09 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: "Andreas Kurz" <kurz.andi@gmx.at>
+Cc: linux-media@vger.kernel.org
+Subject: Re: TT 3650
+Message-ID: <20090223131909.126d0d8c@free.fr>
+In-Reply-To: <20090223113439.90620@gmx.net>
+References: <20090218092217.232120@gmx.net>
+	<20090218103353.64bf6400@free.fr>
+	<20090223113439.90620@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 22 February 2009, Hans de Goede wrote:
-> We want to be able to differentiate between a cam which has its sensor
-> mounted upside down, and a cam which can be pivotted and happens to be
-> upside down at the moment, in case of any upside down mounted sensor, we
-> will always want to compentsate, in case of a pivotting camera wether we
-> compensate or not could be a user preference.
+On Mon, 23 Feb 2009 12:34:39 +0100
+"Andreas Kurz" <kurz.andi@gmx.at> wrote:
 
+> Concerning this card (TT 3650 CI) in combination with the
+> non-repo-driver (suggested below): which tuner should I use? Is there
+> a special one needed?
 
-If we take Olivier Lorin's gl-860 case though, how do we define what is the 
-normal orientation and what is pivoted, it is likely we'd just decide the 
-direction where the sensor output is the right way up is normal and the other 
-is pivoted and then what info have you got from having multiple flags.
+Hi Andreas,
 
-In order to explain what I mean it is probably best to refer to rotations in 
-terms of pitch, yaw and roll (as per the definitions at 
-http://en.wikipedia.org/wiki/Flight_dynamics) where the forward direction is 
-the shooting direction.
+By tuner, do you mean the program to watch TV?
 
-When still cameras are fitted with gravity sensors they are normally set up 
-with the intention of measuring roll and will often get confused by 90 
-degrees of pitch. If a laptop is fitted with a camera that can either record 
-the user or the view looking away from the user then the camera needs to be 
-able to either pitch or yaw but not roll. If the camera yaws then no 
-correction is needed but if it pitches then the resulting image needs 
-rotating to be the correct way up (and in that scenario it is improbable that 
-the user doesn't want the correction applied). Other than the fact that one 
-needs correcting and the other doesn't these options appear identical to the 
-user and so manufacturers provide one or the other but not both.
+I use 'vlc' with a playing list for DVB-S. For DVB-S2, I must use
+'szap-s2' to select the transponder and 'dvbstream' + 'vlc':
+	dvbstream -o 8192 | vlc -
 
-If a video camera had a roll sensor (or even, as a believe some specialist 
-tripods can manage, a full set of roll, pitch and yaw measurements) then a 
-substantially different mechanism is needed to provide access to that data 
-but in the absence of anyone having access to such equipment I don't think we 
-can design the interface now.
-
-Adam
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
