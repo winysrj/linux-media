@@ -1,64 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.constalant.com ([195.138.135.178]:18120 "EHLO
-	mail.constalant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298AbZBBQq0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 11:46:26 -0500
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
-Message-Id: <A2649F37-D1A0-4F7A-AEF0-4AF86AD2F9FA@constalant.com>
-From: Getcho Getchev <ggetchev@constalant.com>
-To: Matthias Schwarzott <zzam@gentoo.org>
-In-Reply-To: <200902021245.45185.zzam@gentoo.org>
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Subject: Re: PV143N watchdog
-Date: Mon, 2 Feb 2009 18:12:41 +0200
-References: <C528BDC8-8F63-4ED6-AED9-56F0F27C702F@constalant.com> <200902021245.45185.zzam@gentoo.org>
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:33742 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753721AbZBWAT6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Feb 2009 19:19:58 -0500
+Date: Sun, 22 Feb 2009 16:19:57 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>,
+	Adam Baker <linux@baker-net.org.uk>,
+	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-omap@vger.kernel.org
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+In-Reply-To: <49A1DF50.1080903@redhat.com>
+Message-ID: <Pine.LNX.4.58.0902221603410.24268@shell2.speakeasy.net>
+References: <200902180030.52729.linux@baker-net.org.uk>
+ <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com>
+ <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu>
+ <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
+ <49A1CA5B.5000407@redhat.com> <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
+ <49A1D7B2.5070601@redhat.com> <Pine.LNX.4.58.0902221504410.24268@shell2.speakeasy.net>
+ <49A1DF50.1080903@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again,
-Yes, indeed the correct address is 0x2B. I2C bus is 7 bit so the  
-address 0x56 must be shifted 1 position right before passed to  
-i2c_master_send() or i2c_transfer() functions.
-Now it works.
-Thank you very much.
-By the way it will be good if such useful functions are implemented by  
-the V4L driver. There are many tv-cards with additional features on  
-them (like watchdog, motion detection, etc).
-
-On Feb 2, 2009, at 1:45 PM, Matthias Schwarzott wrote:
-
-> On Monday 02 February 2009 10:34, Getcho Getchev wrote:
->> Greetings,
->> I am trying to control the PV143N watchdog via bttv driver under  
->> linux
->> kernel 2.6.24.3.
->> According to the specification the watchdog is located at address
->> 0x56, subaddress 0x01.
->> However when I try to write something (a value of 0, 1 or 2) on that
->> address I get NACK result.
->> I am using i2c_master_send() function and software bitbanging
->> algorithm, implemented in bttv-i2c.c
->> At the beginning I suspected the SCL line (the clock for the
->> communication must be set at 100 KHz) but when I saw the delay time  
->> is
->> 5 microseconds I realized the period is 10 microseconds which makes
->> 100 KHz. I tried to write the same data on address 0x2B and I
->> succeeded (although I do not know what is there on that address) so  
->> it
+On Mon, 23 Feb 2009, Hans de Goede wrote:
+> Trent Piepho wrote:
+> > On Sun, 22 Feb 2009, Hans de Goede wrote:
+> >> Trent Piepho wrote:
+> >>> On Sun, 22 Feb 2009, Hans de Goede wrote:
+> >>>> Yes that is what we are talking about, the camera having a gravity switch
+> >>>> (usually nothing as advanced as a gyroscope). Also the bits we are talking
+> >>>> about are in a struct which communicates information one way, from the camera
+> >>>> to userspace, so there is no way to clear the bits to make the camera do something.
+> >>> First, I'd like to say I agree with most that the installed orientation of
+> >>> the camera sensor really is a different concept than the current value of a
+> >>> gravity sensor.  It's not necessary, and maybe not even desirable, to
+> >>> handle them in the same way.
+> >>>
+> >>> I do not see the advantage of using reserved bits instead of controls.
+> >>>
+> >>> The are a limited number of reserved bits.  In some structures there are
+> >>> only a few left.  They will run out.  Then what?  Packing non-standard
+> >>> sensor attributes and camera sensor meta-data into a few reserved bits is
+> >>> not a sustainable policy.
+> >>>
+> >>> Controls on the other card are not limited and won't run out.
+> >>>
+> >> Yes but these things are *not* controls, end of discussion. The control API is
+> >> for controls, not to stuff all kind of cruft in.
+> >
+> > All kind of cruft belongs in the reserved bits of whatever field it can be
+> > stuffed in?
 >
-> That really sounds like a common i2c miss-understanding.
-> Linux kernel i2c functions use only the 7bit address part of the i2c  
-> address.
-> So it sounds like your device has address 0x56 for writing and 0x57  
-> for
-> reading. (is this correct?)
-> Now you give i2c_master_send or i2c_transfer the 7bit part, 0x56 >>  
-> 1, and
-> that is 0x2B.
+> Not whatever field, these are input properties which happen to also be pretty
+> binary so putting them in the input flags field makes plenty of sense.
 >
-> Regards
-> Matthias
+> > What is the difference?  Why does it matter?  Performance?  Maintenance?
+> > Is there something that's not possible?  I do not find "end of discussion"
+> > to be a very convincing argument.
 >
+> Well they are not controls, that is the difference, the control interface is
+> for controls (and only for controls, end of discussion if you ask me). These
+> are not controls but properties, they do not have a default min and max value,
 
+Camera pivot sensor ranges from 0 to 270.  How is that not a min and max?
+
+> they have only one *unchanging* value, there  is nothing the application can
+
+Camera sensors don't have an unchanging value.
+
+And who says scan order can't change?  Suppose the camera returns raw bayer
+format data top to bottom, but if you request yuv then an image processing
+section needs to kick in and that returns the data bottom to top.
+
+> control / change. It has been suggested to make them readonly, but that does
+> not fix the ugliness. A proper written v4l2 application will enumerate all the
+> controls, and then the user will see a grayed out control saying: "your cam is
+> upside down" what is there to control ? will this be a grayed out slider? or a
+> grayed out checkbox "your cam is upside down", or maybe a not grayed out
+> dropdown: where the user can select: "my sensor is upside down", "I deny my
+> sensor is upside down", "I don't care my sensor is upside down", "WTF is this
+> doing in my webcam control panel?", "nwod edispu si rosnes yM"
+
+Why is there a read-only flag for controls if the concept is so mind
+blowing to users?  Have there been complaints about it?
+
+> Do you know I have an idea, lets get rid of the S2 API for DVB and put all that
+> in controls too. Oh, and think like standards for video formats, surely that
+> can be a control too, and ... and, ...
+
+Good point.  The S2 API is much more like the control interface than the
+previous API.  Enumerated attributes which can be set one at a time or in
+groups.  More can be added.  There is some meta data about them.  The old
+API used the a limited number of fixed structs, a few reserved bits, no
+meta-data, and a query/set everything at once API.
+
+I think the camera meta-data and camera sensor API should look more like
+S2.
