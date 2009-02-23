@@ -1,62 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay-pt1.poste.it ([62.241.4.164]:57649 "EHLO
-	relay-pt1.poste.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754214AbZBJOcO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 09:32:14 -0500
-Received: from nico2.od.loc (93.63.225.36) by relay-pt1.poste.it (7.3.122) (authenticated as Nicola.Sabbi@poste.it)
-        id 4990D21200005F60 for linux-media@vger.kernel.org; Tue, 10 Feb 2009 15:11:39 +0100
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] mt352 no more working after suspend to disk
-Date: Tue, 10 Feb 2009 15:11:39 +0100
-References: <200902091233.26086.Nicola.Sabbi@poste.it> <1234217761.2790.15.camel@pc10.localdom.local> <c74595dc0902100439j66981bd7tc68b4a3d177abbe3@mail.gmail.com>
-In-Reply-To: <c74595dc0902100439j66981bd7tc68b4a3d177abbe3@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from webmail.icp-qv1-irony-out2.iinet.net.au ([203.59.1.151]:41387
+	"EHLO webmail.icp-qv1-irony-out2.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754102AbZBWXDK convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Feb 2009 18:03:10 -0500
 Content-Disposition: inline
-Message-Id: <200902101511.39175.Nicola.Sabbi@poste.it>
+Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
+To: sonofzev@iinet.net.au, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: running multiple DVB cards successfully.. what do I need to  	know?? (major and minor numbers??)
+Reply-To: sonofzev@iinet.net.au
+Date: Tue, 24 Feb 2009 08:03:04 +0900
+Cc: linux-media@vger.kernel.org
+Message-Id: <40915.1235430184@iinet.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 10 February 2009 13:39:09 Alex Betis wrote:
-> On Tue, Feb 10, 2009 at 12:16 AM, hermann pitton 
-<hermann-pitton@arcor.de>wrote:
-> > Hi Nico,
-> >
-> > Am Montag, den 09.02.2009, 12:33 +0100 schrieb Nico Sabbi:
-> > > Hi,
-> > > if I suspend to disk and next resume I have to manually remove
-> > > and reload my mt352 driver, otherwise it complains of a lot of
-> > > i2c errors.
-> > >
-> > > My kernel is suse's 2.6.27.
-> > >
-> > > Is this problem fixed in recent kernels or in hg?
-> > >
-> > > Thanks,
-> > >       Nico
-> >
-> > don't know on what driver you report it, but since I know you
-> > also have saa7134 driver devices, nobody claimed so far that dvb
-> > is suspend/resume safe.
-> >
-> > I recently reported that people have to stay aware after resume,
-> > that even without using any dvb app actually during suspend,
-> > analog needs to be re-initialized first after that to get the
-> > tda10046 in a proper state for DVB-T again, at least on hybrid
-> > devices. Unshared DVB-S tuners and demods do stand this already.
-> > (medion 8800quad, CTX948, Asus 3in1)
-> >
-> > You can suspend to RAM on analog for example with a running
-> > tvtime and resume, but dma sound on saa7134-alsa is also not
-> > handled yet. Analog sound works.
-> >
-> > That is the status as far I have it.
-> >
+Thanks Mike
 
-Hi Hermann,
-the only card that gave me problems so was is my Airstar2 PCI card,
-while my Lifeview Trio worked perfectly after resume
+Is this likely to stop the "Incorrect Readback of kernel version issue as well?" 
+
+cheers
+
+Allan 
+
+On Mon Feb 23 17:57 , Michael Krufky  sent:
+
+>On Mon, Feb 23, 2009 at 5:49 PM, sonofzev@iinet.net.au
+>sonofzev@iinet.net.au> wrote:
+>> Some of you may have read some of my posts about an "incorrect firmware readback"
+>> message appearing in my dmesg, shortly after a tuner was engaged.
+>>
+>> I have isolated this problem, but the workaround so far has not been pretty.
+>> On a hunch I removed my Dvico Fusion HDTV lite card from the system, running now
+>> only with the Dvico Fusion Dual Express.
+>>
+>> The issue has gone, I am not getting the kdvb process hogging cpu cycles and this
+>> message has stopped.
+>>
+>> I had tried both letting the kernel (or is it udev) assign the major and minor
+>> numbers and I had tried to manually set them via modprobe.conf (formerly
+>> modules.conf, I don't know if this is a global change or specific to Gentoo)....
+>>
+>> I had the major number the same for both cards, with a separate minor number for
+>> each of the three tuners, this seems to be the same.
+>>
+>> Is this how I should be setting up for 2 cards or should I be using some other
+>> type of configuration.
+>
+>Allan,
+>
+>I recommend to use the 'adapter_nr' module option.  You can specify
+>this option in modprobe.conf -- the name of this file is
+>distro-specific.
+>
+>For instance, to make the dual card appear before the lite card:
+>
+>options cx23885 adapter_nr=0,1
+>options dvb-bt8xx adapter_nr=2
+>
+>to make the lite card appear before the dual card:
+>
+>options cx23885 adapter_nr=0
+>options dvb-bt8xx adapter_nr=1,2
+>
+>I hope you find this helpful.
+>
+>Regards,
+>
+>Mike
+>)
+
+
