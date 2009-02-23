@@ -1,28 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1JN97WG001457
-	for <video4linux-list@redhat.com>; Thu, 19 Feb 2009 18:09:07 -0500
-Received: from mail-in-15.arcor-online.net (mail-in-15.arcor-online.net
-	[151.189.21.55])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1JN8stw008082
-	for <video4linux-list@redhat.com>; Thu, 19 Feb 2009 18:08:54 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: John Pilkington <J.Pilk@tesco.net>
-In-Reply-To: <499D5D4C.8070803@tesco.net>
-References: <498C3AD4.1070907@tesco.net>
-	<1233958764.2466.72.camel@pc10.localdom.local>
-	<4990B315.8000309@tesco.net>
-	<1234228256.3932.15.camel@pc10.localdom.local>
-	<499C0E76.9000907@tesco.net>
-	<1235000333.2486.35.camel@pc10.localdom.local>
-	<499D4FD2.6010503@tesco.net> <499D5D4C.8070803@tesco.net>
-Content-Type: text/plain
-Date: Fri, 20 Feb 2009 00:09:56 +0100
-Message-Id: <1235084996.3514.8.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1N8r6dc019236
+	for <video4linux-list@redhat.com>; Mon, 23 Feb 2009 03:53:06 -0500
+Received: from yourtal3.yourtal.com (yourtal3.yourtal.com [209.172.44.134])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1N8qoIl025758
+	for <video4linux-list@redhat.com>; Mon, 23 Feb 2009 03:52:50 -0500
+Message-ID: <45D5B97D758F44558CCD49387F0221A0@W1>
+From: "Sergei Antonov" <sa@sa.pp.ru>
+To: "CityK" <cityk@rogers.com>
+References: <F13ADD43ECED4C45A8BE7A74E5B02BFE@W1> <49A1BA50.4090201@rogers.com>
+In-Reply-To: <49A1BA50.4090201@rogers.com>
+Date: Mon, 23 Feb 2009 11:52:36 +0300
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: v4l_list <video4linux-list@redhat.com>
-Subject: Re: Hauppauge HVR-1110 analog audio problem - success
+Cc: video4linux-list@redhat.com
+Subject: Re: Genius Look 317
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,54 +28,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi John,
-
-Am Donnerstag, den 19.02.2009, 13:23 +0000 schrieb John Pilkington:
-> John Pilkington wrote:
-> > hermann pitton wrote:
-> >> Am Mittwoch, den 18.02.2009, 13:34 +0000 schrieb John Pilkington:
-> >>> < older stuff deleted>
-> > 
-> >>
-> >> tvtime -v --device=/dev/video2 and then
-> >> "sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp3 -t ossdsp -w -r 32000 
-> >> /dev/dsp"
-> > 
-> > [John@gateway ~]$ sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp3 -t ossdsp 
-> > -w -r 32000 /dev/dsp
-> > sox: invalid option -- 'w'
-> > sox: SoX v14.2.0
-> > 
-> > Failed: invalid option
-> > 
-> > 
-> > Hi Hermann, and thanks again. My card shows up as /dev/video0, but the 
-> > sox produces this. I got it before and wonder why?  I can't find a 
-> > sensible-looking instance of -w in my docs or on the sox site.  Is it a 
-> > switch to pcm, is it tied to oss?
-
-sorry, I forgot that the -w option is deprecated with recent sox
-versions like shipped with Fedora 10. It forces 16bit (2byte, one word
--w) sample size, default is 8bit only. The -2 option does the same and
-should still be valid.
-
-> > Cheers, John
+> Sergei Antonov wrote:
+>> Hi!
+>> I'm trying to make 'Genius Look 317' (0c45:60b0, gspca recognizes it)
+>> webcam work.
+>>
+>> v4lgrab.c (from linux-2.6.28.5\Documentation\video4linux) loops
+>> infinitely in this code:
+>>
+>>  do {
+>>    int newbright;
+>>    read(fd, buffer, win.width * win.height * bpp);
+>>    f = get_brightness_adj(buffer, win.width * win.height, &newbright);
+>>    if (f) {
+>>      vpic.brightness += (newbright << 8);
+>>      if(ioctl(fd, VIDIOCSPICT, &vpic)==-1) {
+>>        perror("VIDIOSPICT");
+>>        break;
+>>      }
+>>    }
+>>  } while (f);
+>>
+>> because variable 'f' is always non-zero.
+>> If I write 'while(0);' the resulting .ppm contains some random pixels
+>> in the top and the rest of the picture is black.
+>> Need help.
 > 
-> It works in tvtime, antenna and composite, with
-> 
-> > sox -c 2 -s -u -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -u -r 32000 /dev/dsp
-> 
-> Maybe the alsa-plugins-oss helped.  More experiments still to do, but it 
-> does work.
+> Hi, I'd re-title your message to include the fact that its a gspca based
+> webcam (to attract those developers attention) and send it off to the
+> linux-media mailing list (which is where discussion is transitioning to:
+> http://www.linuxtv.org/news.php?entry=2009-01-06.mchehab)
 
-Uff ;) 
-
-If you get some time for it you might test on the Avermedia Super 007
-and report if we can remove the FIXME.
-
-Cheers,
-Hermann
-
+Thank you for the advice. But I've already found a solution. V4L2 API works for this webcam.
 
 --
 video4linux-list mailing list
