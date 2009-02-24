@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n19H2Fgd006747
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 12:02:15 -0500
-Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.188])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n19H1xke026406
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 12:01:59 -0500
-Received: by rn-out-0910.google.com with SMTP id k50so1487926rnd.7
-	for <video4linux-list@redhat.com>; Mon, 09 Feb 2009 09:01:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <b24e53350902090859h6a714b2fh8cfaf8d487cecc44@mail.gmail.com>
-References: <509279.77236.qm@web31601.mail.mud.yahoo.com>
-	<4990525D.5020205@linuxtv.org>
-	<b24e53350902090859h6a714b2fh8cfaf8d487cecc44@mail.gmail.com>
-Date: Mon, 9 Feb 2009 12:01:58 -0500
-Message-ID: <b24e53350902090901t75c88111o8f2309350eb72666@mail.gmail.com>
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: Steven Toth <stoth@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1OC9jcF003515
+	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 07:09:45 -0500
+Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
+	[151.189.21.56])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1OC9Glj023424
+	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 07:09:17 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20090224160642.2200eb25@glory.loctelecom.ru>
+References: <20090224160642.2200eb25@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Tue, 24 Feb 2009 13:10:24 +0100
+Message-Id: <1235477424.3334.15.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: HVR-950Q status
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: new tuner
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,87 +28,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Feb 9, 2009 at 11:59 AM, Robert Krakora
-<rob.krakora@messagenetsystems.com> wrote:
-> On Mon, Feb 9, 2009 at 10:57 AM, Steven Toth <stoth@linuxtv.org> wrote:
->>
->>> This is where the fun ended.  I banged my head on VLC, MythTV, me-tv,
->>> tvtime, vdr and others to no avail.  A little digging in the lists seemed to
->>> suggest I might be able to bring in over the air stations.  But my hope is
->>> to bring in analog NTSC cable channels and (gasp), possibly even Clear QAM
->>> HD channels.  Is there any hope or current effort to get analog NTSC working
->>> on this dongle?  Also, are there any USB dongles which support HD Clear QAM?
->>>  While I am primarily interested in analog NTSC (yeah, I hear ya, shoulda
->>> bought an HVR-950), getting analog and Clear QAM HD would be great.  While I
->>> would love to get my HVR-950Q working, I would settle for another well
->>> supported USB dongle with at least analog cable support that in known to
->>> work well with MythTV.
->>>
->>> Thanks in advance for any feedback you can provide.
->>>
->>> Regards,
->>> Jon
->>
->> NTSC is not supported.
->>
->> The 950Q works well with MythTV for ATSC and ClearQAM. I suggest you google
->> or read the wikis at linuxtv.org. You might also want to check on linux
->> support for any new product before purchasing and 'banging your head'.
->>
->> - Steve
->>
->>
->>
->>
->> --> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->>
->
-> Jon:
->
-> I too ran into this problem when purchasing what I thought was an
-> HVR950.  I bought several of what I thought were HVR950 and I ended up
-> getting both HVR950 and HVR950Q parts in the same packaging.  After
-> further investigation, the folks at Hauppauge explained the reason
-> behind packaging the HVR950Q as an HVR950.  I do not want to
-> miss-quote them, so please call them if you want the explanation.
-> They are very "up-front".  HVR950Q analog works quite well on Windows
-> machines though I do prefer and almost exclusively only build Linux
-> machines.  With all due respect to Hauppauge, KWorld makes a part call
-> the KWorld 330U that is basically an HVR950 with a slightly different
-> front end.  However, it cannot do QAM256 (Clear QAM) but it works very
-> well for 8VSB (ATSC) and NTSC.
->
-> New Egg has them for only $50.  Ignore the reviews, this is a good
-> part.  It is not listed as supported yet only because we have not
-> fully tested the analog video and audio inputs.  Please get the latest
-> V4L code from the tree at www.linuxtv.org.
->
-> http://www.newegg.com/Product/Product.aspx?Item=N82E16815260006&nm_mc=OTC-Froogle&cm_mmc=OTC-Froogle-_-Video+Devices+++TV+Tuners-_-Kworld+Computer+Co.+Ltd-_-15260006
->
-> Best Regards,
->
-> Software Engineer
-> MessageNet Systems
-> 101 East Carmel Dr. Suite 105
-> Carmel, IN 46032
-> (317)566-1677 Ext. 206
-> (317)663-0808 Fax
->
 
-Sorry for the poor grammar...I am a bit "under the weather" and it is
-hard for me to type on the couch...:-(
+Hi Dmitry,
 
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+on a first look.
+
+Am Dienstag, den 24.02.2009, 16:06 +0900 schrieb Dmitri Belimov:
+> Hi All.
+> 
+> How I can add new type of tuner to video4linux??
+> 
+> I add new definition into  linux/include/media/tuner.h
+> #define TUNER_PHILIPS_FM1216MK5		79
+> 
+> add some data to
+> /linux/drivers/media/common/tuners/tuner-types.c
+> 
+> /* ------------ TUNER_PHILIPS_FM1216MK5 - Philips PAL ------------ */
+> 
+> static struct tuner_range tuner_fm1216mk5_pal_ranges[] = {
+> 	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
+> 	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
+> 	{ 16 * 999.99        , 0x8e, 0x04, },
+> };
+
+This is wrong, since you only duplicate fm1216me_mk3_pal_ranges which
+you should just use instead.
+
+> static struct tuner_params tuner_fm1216mk5_params[] = {
+> 	{
+> 		.type   = TUNER_PARAM_TYPE_PAL,
+> 		.ranges = tuner_fm1216mk5_pal_ranges,
+> 		.count  = ARRAY_SIZE(tuner_fm1216mk5_pal_ranges),
+>  		.cb_first_if_lower_freq = 1,
+>  		.has_tda9887 = 1,
+>  		.port1_active = 1,
+>  		.initdata = tua603x_agc112,
+>  		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
+>  	},
+
+Since you do not send a diff, I assume you are not in struct tunertype
+tuners[] here. Also initdata and sleepdata should be there
+
+> 		[TUNER_PHILIPS_FM1216MK5] = { /* Philips PAL */
+> 		.name   = "Philips PAL/SECAM multi (FM1216 MK5)",
+> 		.params = tuner_fm1216mk5_params,
+> 		.count  = ARRAY_SIZE(tuner_fm1216mk5_params),
+> 	},
+> 
+> But when I change type of tuner to new model build exit with error. Incorrect tuner name.
+> 
+> What is wrong??
+> 
+> With my best regards, Dmitry.
+> 
+
+You also miss to set it up for the radio mode switch in tuner-simple
+and did not look into tveeprom.c, where you can see that we use the 
+TUNER_PHILIPS_FM1216ME_MK3 for it since long without complaints. MK4 is
+also the same.
+
+If you don't have the detailed programming tables for every supported TV
+standard and detailed instructions for radio mode, I would assume that
+you reduce the quality of support for that tuner a lot with your current
+attempt.
+
+For example SECAM-L would not work without port2=0 and radio without
+high sensitivity set is also very poor.
+
+Cheers,
+Hermann
+
+
 
 --
 video4linux-list mailing list
