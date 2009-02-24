@@ -1,33 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp111.rog.mail.re2.yahoo.com ([206.190.37.1]:38471 "HELO
-	smtp111.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752443AbZBOWzA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 17:55:00 -0500
-Message-ID: <49989D42.8040008@rogers.com>
-Date: Sun, 15 Feb 2009 17:54:58 -0500
-From: CityK <cityk@rogers.com>
+Received: from smtp-out1.iol.cz ([194.228.2.86]:44774 "EHLO smtp-out1.iol.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754436AbZBXNW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2009 08:22:29 -0500
+From: Ales Jurik <ajurik@quick.cz>
+Reply-To: ajurik@quick.cz
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+Date: Tue, 24 Feb 2009 14:12:32 +0100
+Cc: linux-media@vger.kernel.org
+References: <200902221115.01464.hverkuil@xs4all.nl>
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DViCO FusionHDTV7 Dual Express
-References: <e32e0e5d0902051548x3023851cua78424304a09cb7e@mail.gmail.com>
-In-Reply-To: <e32e0e5d0902051548x3023851cua78424304a09cb7e@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902241412.32682.ajurik@quick.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tim Lucas wrote:
-> My cable system was recently updated to time warner so I thought I
-> would try to get the mythbuntu box working again.  
-> I have the DViCO FusionHDTV7 Dual Express card which seems to be
-> recognized by my system but I still cannot tune channels. I tried
-> using tvtime and got the following error
+On Sunday 22 of February 2009, Hans Verkuil wrote:
+> Hi all,
 >
-> I/O error : Permission denied
-> Cannot change owner of /home/lucas/.tvtime/tvtime.xml: Permission denied.
-> videoinput: Cannot open capture device /dev/video0: No such file or
-> directory.
+> There are lot's of discussions, but it can be hard sometimes to actually
+> determine someone's opinion.
+>
+> So here is a quick poll, please reply either to the list or directly to me
+> with your yes/no answer and (optional but welcome) a short explanation to
+> your standpoint. It doesn't matter if you are a user or developer, I'd like
+> to see your opinion regardless.
+>
+> Please DO NOT reply to the replies, I'll summarize the results in a week's
+> time and then we can discuss it further.
+>
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>
+> _: Yes
+> _: No
+>
+Yes
 
-Analog is currently not supported by the cx23885 driver
+> Optional question:
+>
+> Why:
+>
+>
+>
+> Thanks,
+>
+> 	Hans
+
+
