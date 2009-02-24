@@ -1,122 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:55291 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754576AbZBUBh3 (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1230 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757032AbZBXUyf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 20:37:29 -0500
-Subject: Re: mantis build error on vanilla kernel 2.6.28.6 [Re: Terratec
-	Cinergy C HD (PCI, DVB-C): how to make it work?]
-From: hermann pitton <hermann-pitton@arcor.de>
-To: MartinG <gronslet@gmail.com>
-Cc: Linux Media <linux-media@vger.kernel.org>
-In-Reply-To: <bcb3ef430902201606k50fe3036j8f82c3eecb6e2a47@mail.gmail.com>
-References: <bcb3ef430902201229l2ece1a88k50d15e3886c29e01@mail.gmail.com>
-	 <1235172135.6647.4.camel@pc10.localdom.local>
-	 <bcb3ef430902201606k50fe3036j8f82c3eecb6e2a47@mail.gmail.com>
-Content-Type: text/plain
-Date: Sat, 21 Feb 2009 02:38:31 +0100
-Message-Id: <1235180311.6647.21.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	Tue, 24 Feb 2009 15:54:35 -0500
+Received: from oortje-fw.romunt.nl (sdroesen.demon.nl [83.160.1.25])
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1OKsR3F028789
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 21:54:32 +0100 (CET)
+	(envelope-from rudy@grumpydevil.homelinux.org)
+Received: from hermes.romunt.nl (hermes.romunt.nl [192.168.1.35])
+	by oortje-fw.romunt.nl (8.14.1/8.14.1) with ESMTP id n1OKsRxv027058
+	for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 21:54:27 +0100
+Received: from [192.168.1.98] (IDENT:506@kheldar.romunt.nl [192.168.1.98])
+	by hermes.romunt.nl (8.14.1/8.14.1) with ESMTP id n1OKsOkH008638
+	for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 21:54:24 +0100
+Message-ID: <49A45E80.6090301@grumpydevil.homelinux.org>
+Date: Tue, 24 Feb 2009 21:54:24 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: recording problems with CAM
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-Am Samstag, den 21.02.2009, 01:06 +0100 schrieb MartinG:
-> On Sat, Feb 21, 2009 at 12:22 AM, hermann pitton
-> <hermann-pitton@arcor.de> wrote:
-> > you can see changes on saa7134-alsa here.
-> > http://linuxtv.org/hg/v4l-dvb/log/359d95e1d541/linux/drivers/media/video/saa7134/saa7134-alsa.c
-> >
-> > Likely this kernel backport is missing.
-> > http://linuxtv.org/hg/v4l-dvb/rev/b4d664a2592a
-> 
-> Thank you for your reply!
-> 
-> I think I got it working, thanks to you. This is what I did (on the
-> vanilla 2.6.28.6 kernel):
-> $ cd mantis-5292a47772ad/
-> $ make distclean clean
-> $ cp v4l/saa7134-alsa.c  v4l/saa7134-alsa.c.orig
-> $ emacs -nw v4l/saa7134-alsa.c
-> Patch according to:
-> http://linuxtv.org/hg/v4l-dvb/diff/b4d664a2592a/linux/drivers/media/video/saa7134/saa7134-alsa.c
-> $ make -j2
-> (works)
-> 
-> # make install
-> 
-> remove all other (dvb) modules
-> 
-> # modprobe mantis
-> 
-> This gave me at least
-> /dev/dvb/adapter0/{demux0,dvr0,frontend0,net0}
-> 
-> But then the computer froze when I did:
-> # scandvb dvb-apps/util/scan/dvb-c/no-Oslo-Get
-> scanning dvb-apps/util/scan/dvb-c/no-Oslo-Get
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 241000000 6900000 0 5
-> initial transponder 272000000 6900000 0 5
-> initial transponder 280000000 6900000 0 5
-> initial transponder 290000000 6900000 0 5
-> initial transponder 298000000 6900000 0 5
-> initial transponder 306000000 6900000 0 5
-> initial transponder 314000000 6900000 0 5
-> initial transponder 322000000 6900000 0 5
-> initial transponder 330000000 6900000 0 5
-> initial transponder 338000000 6900000 0 5
-> initial transponder 346000000 6900000 0 5
-> initial transponder 354000000 6900000 0 5
-> initial transponder 362000000 6900000 0 5
-> initial transponder 370000000 6900000 0 5
-> initial transponder 378000000 6900000 0 5
-> initial transponder 386000000 6900000 0 5
-> initial transponder 394000000 6900000 0 5
-> initial transponder 410000000 6900000 0 5
-> initial transponder 442000000 6952000 0 5
-> initial transponder 482000000 6900000 0 5
-> initial transponder 498000000 6900000 0 5
-> >>> tune to: 241000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256
-> 
-> (total freeze here, not even ssh access to the box)
-> 
-> I think I had the scandvb tool from a binary install, maybe I'll try
-> to compile from sources.
-> And I'll try to read some more docs.
-> 
-> Thank you for helping me out on this!
-> 
-> -MartinG
+I'm having some issues. Bad recordings, and always accompanied with the 
+following:
 
-I am sorry for that.
+[10968.525453] saa7146 (1) saa7146_i2c_writeout [irq]: timed out waiting 
+for end of xfer
+[10975.963186] saa7146 (2) vpeirq: used 55 times >80% of buffer (163372 
+bytes now)
+[10977.657955] saa7146 (1) vpeirq: used 50 times >80% of buffer (65612 
+bytes now)
+[11007.664262] saa7146 (1) vpeirq: used 53 times >80% of buffer (61476 
+bytes now)
+[11027.255507] mythbackend used greatest stack depth: 4632 bytes left
+[11031.825410] saa7146 (2) saa7146_i2c_writeout [irq]: timed out waiting 
+for end of xfer
+[11031.856008] saa7146 (2) saa7146_i2c_writeout [irq]: timed out waiting 
+for end of xfer
+[11046.460153] saa7146 (2) vpeirq: used 15 times >80% of buffer (65424 
+bytes now)
+[11062.372011] saa7146 (2) saa7146_i2c_writeout [irq]: timed out waiting 
+for end of xfer
+[11062.404008] saa7146 (2) saa7146_i2c_writeout [irq]: timed out waiting 
+for end of xfer
+[11069.971794] saa7146 (2) saa7146_i2c_writeout [irq]: timed out waiting 
+for end of xfer
+[11076.466498] saa7146 (2) vpeirq: used 13 times >80% of buffer (61476 
+bytes now)
+[11088.314244] saa7146 (1) vpeirq: used 37 times >80% of buffer (65424 
+bytes now)
+[11106.473733] saa7146 (2) vpeirq: used 6 times >80% of buffer (65612 
+bytes now)
+[11118.320611] saa7146 (1) vpeirq: used 4 times >80% of buffer (61476 
+bytes now)
+[11136.480108] saa7146 (2) vpeirq: used 2 times >80% of buffer (65424 
+bytes now)
+[11148.327846] saa7146 (1) vpeirq: used 1 times >80% of buffer (65612 
+bytes now)
+[11166.486493] saa7146 (2) vpeirq: used 3 times >80% of buffer (61476 
+bytes now)
 
-To give an example.
 
-If we are seated in a chair looking to the wall in front of us or better
-to the horizon in the height of our eyes, without moving our eyes we can
-see something like 180 degrees horizontally.
+System info:
 
-If we move our eyes we can see already a lot in our backs, if we move
-our heads we can see already almost all in our backs, to move the body
-is a further step only taken if really needed.
+C2D system, with lspci output as follows:
 
-Now, from the first just sitting there, the vertical reception is a
-little different, at least for me. Without moving the eyes we can see
-our feet, not that sharp, but enough to be aware of.
+root@repeater:~# lspci
+00:00.0 Host bridge: Intel Corporation E7230/3000/3010 Memory Controller 
+Hub (rev c0)
+00:01.0 PCI bridge: Intel Corporation E7230/3000/3010 PCI Express Root 
+Port (rev c0)
+00:1c.0 PCI bridge: Intel Corporation 82801G (ICH7 Family) PCI Express 
+Port 1 (rev 01)
+00:1c.4 PCI bridge: Intel Corporation 82801GR/GH/GHM (ICH7 Family) PCI 
+Express Port 5 (rev 01)
+00:1c.5 PCI bridge: Intel Corporation 82801GR/GH/GHM (ICH7 Family) PCI 
+Express Port 6 (rev 01)
+00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+Controller #1 (rev 01)
+00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+Controller #2 (rev 01)
+00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+Controller #3 (rev 01)
+00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+Controller #4 (rev 01)
+00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 EHCI 
+Controller (rev 01)
+00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev e1)
+00:1f.0 ISA bridge: Intel Corporation 82801GB/GR (ICH7 Family) LPC 
+Interface Bridge (rev 01)
+00:1f.1 IDE interface: Intel Corporation 82801G (ICH7 Family) IDE 
+Controller (rev 01)
+00:1f.2 SATA controller: Intel Corporation 82801GR/GH (ICH7 Family) SATA 
+AHCI Controller (rev 01)
+00:1f.3 SMBus: Intel Corporation 82801G (ICH7 Family) SMBus Controller 
+(rev 01)
+01:00.0 PCI bridge: Intel Corporation 80333 Segment-A PCI Express-to-PCI 
+Express Bridge
+01:00.2 PCI bridge: Intel Corporation 80333 Segment-B PCI Express-to-PCI 
+Express Bridge
+02:0e.0 RAID bus controller: LSI Logic / Symbios Logic MegaRAID SAS
+09:00.0 PCI bridge: Intel Corporation 6702PXH PCI Express-to-PCI Bridge 
+A (rev 09)
+09:00.1 PIC: Intel Corporation 6700/6702PXH I/OxAPIC Interrupt 
+Controller A (rev 09)
+0a:01.0 SCSI storage controller: Marvell Technology Group Ltd. 
+MV88SX6081 8-port SATA II PCI-X Controller (rev 09)
+0d:00.0 Ethernet controller: Intel Corporation 82573E Gigabit Ethernet 
+Controller (Copper) (rev 03)
+0e:00.0 Ethernet controller: Intel Corporation 82573L Gigabit Ethernet 
+Controller
+0f:00.0 VGA compatible controller: XGI Technology Inc. (eXtreme Graphics 
+Innovation) Volari Z7/Z9/Z9s
+0f:02.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+0f:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+0f:06.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
 
-In the upper direction it seems to be a little bit different, only the
-half of what is present on the bottom is visible without moving ...
+Currently thinking to disable USB and see whether that helps (based on 
+assumption i have interupt problems).
 
-This seems to be a part of the conditio humanum we share with others :)
-
-It is the same with out of kernel drivers.
-
-Await Manu's instructions what to use for testing and if a 2.6.28 is
-safe.
+Any ideas are welcome.
 
 Cheers,
-Hermann
 
-
+Rudy
