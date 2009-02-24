@@ -1,111 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1984 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752571AbZBQTWJ (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.235]:55436 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754781AbZBXNXy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 14:22:09 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1HJM7NN093432
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 20:22:07 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 17 Feb 2009 20:22:07 +0100 (CET)
-Message-Id: <200902171922.n1HJM7NN093432@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+	Tue, 24 Feb 2009 08:23:54 -0500
+Received: by rv-out-0506.google.com with SMTP id g37so2478608rvb.1
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 05:23:52 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.0902241416080.4494@axis700.grange>
+References: <ur61pd8h5.wl%morimoto.kuninori@renesas.com>
+	 <Pine.LNX.4.64.0902241416080.4494@axis700.grange>
+Date: Tue, 24 Feb 2009 22:23:52 +0900
+Message-ID: <aec7e5c30902240523u6416bd9fo5470cdb1218e63f9@mail.gmail.com>
+Subject: Re: About the specific setting for lens
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: morimoto.kuninori@renesas.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Tue, Feb 24, 2009 at 10:17 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Mon, 23 Feb 2009, morimoto.kuninori@renesas.com wrote:
+>
+>>
+>> Dear Guennadi.
+>>
+>> Now MigoR and AP325 board have ov772x camera.
+>> However, the lens used is different.
+>>
+>> And I have a specific good setting value
+>> for the lens of AP325.
+>>
+>> So, I would like to add new function for
+>> specific lens value.
+>> meybe like this.
+>> Can I add it ?
+>>
+>> -- board-ap325 ---------------
+>> static const struct regval_list ov772x_lens[] = {
+>>        { 0xAA, 0xBB }, { 0xCC, 0xDD }, { 0xEE, 0xFF },
+>>        ...
+>>        ENDMARKER,
+>> }
+>>
+>> static struct ov772x_camera_info ov772x_info = {
+>>        ...
+>>        .lenssetting = ov772x_lens,
+>> }
+>
+> Hm, lenses can be replaced in principle, right? Does it really make sense
+> to hard-code them in platform code? Maybe better as module parameter? Or
+> are these parameters really board-specific?
 
-Results of the daily build of v4l-dvb:
+I'd say that having such information with the platform data is as good
+as it gets. =) In theory it's possible to replace the lens - it's
+actually possible to remove the ap325 camera module as well. Using a
+module parameter doesn't really make it any better since the same
+driver may be used by multiple instances with different lens setups.
+At least platform data makes the configuration per-camera instead of
+per-driver.
 
-date:        Tue Feb 17 19:00:08 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10634:b6a05e457df3
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Cheers,
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: WARNINGS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc5-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc5-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc5-powerpc64: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc5-x86_64: OK
-fw/apps: OK
-spec: ERRORS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+/ magnus
