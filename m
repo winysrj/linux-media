@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1RAMKRr005231
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 05:22:20 -0500
-Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1RALv7d018107
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 05:21:58 -0500
-Date: Fri, 27 Feb 2009 11:12:51 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: amol verule <amol.debian@gmail.com>
-Message-ID: <20090227111251.049baf84@free.fr>
-In-Reply-To: <77ca8eab0902270147s1644dda1gab1024ceafe8263b@mail.gmail.com>
-References: <77ca8eab0902270147s1644dda1gab1024ceafe8263b@mail.gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1O76D3T013565
+	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 02:06:13 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1O75w0f023691
+	for <video4linux-list@redhat.com>; Tue, 24 Feb 2009 02:05:59 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so50221fgg.7
+	for <video4linux-list@redhat.com>; Mon, 23 Feb 2009 23:05:58 -0800 (PST)
+Date: Tue, 24 Feb 2009 16:06:42 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: V4L <video4linux-list@redhat.com>
+Message-ID: <20090224160642.2200eb25@glory.loctelecom.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Bus 005 Device 002: ID 0c45:6270 Microdia U-CAM PC Camera NE878
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Subject: new tuner
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,29 +26,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 27 Feb 2009 15:17:22 +0530
-amol verule <amol.debian@gmail.com> wrote:
+Hi All.
 
-> hi to all,
->              i am having microdia webcam device details are as follow,
-> Bus 005 Device 002: ID 0c45:6270 Microdia U-CAM PC Camera NE878
-> 
-> can you tell me from where can i get a source code of sn9c2X driver to
-> compile on my system .
-> i tried with sn9c102.ko but it is not working with application like
-> camorama,xawtv.
+How I can add new type of tuner to video4linux??
 
-Hi Amol,
+I add new definition into  linux/include/media/tuner.h
+#define TUNER_PHILIPS_FM1216MK5		79
 
-There is a driver for your webcam at:
+add some data to
+/linux/drivers/media/common/tuners/tuner-types.c
 
-	http://groups.google.com/group/microdia
+/* ------------ TUNER_PHILIPS_FM1216MK5 - Philips PAL ------------ */
 
-Cheers.
+static struct tuner_range tuner_fm1216mk5_pal_ranges[] = {
+	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
+	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
+	{ 16 * 999.99        , 0x8e, 0x04, },
+};
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+static struct tuner_params tuner_fm1216mk5_params[] = {
+	{
+		.type   = TUNER_PARAM_TYPE_PAL,
+		.ranges = tuner_fm1216mk5_pal_ranges,
+		.count  = ARRAY_SIZE(tuner_fm1216mk5_pal_ranges),
+ 		.cb_first_if_lower_freq = 1,
+ 		.has_tda9887 = 1,
+ 		.port1_active = 1,
+ 		.initdata = tua603x_agc112,
+ 		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
+ 	},
+		[TUNER_PHILIPS_FM1216MK5] = { /* Philips PAL */
+		.name   = "Philips PAL/SECAM multi (FM1216 MK5)",
+		.params = tuner_fm1216mk5_params,
+		.count  = ARRAY_SIZE(tuner_fm1216mk5_params),
+	},
+
+But when I change type of tuner to new model build exit with error. Incorrect tuner name.
+
+What is wrong??
+
+With my best regards, Dmitry.
 
 --
 video4linux-list mailing list
