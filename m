@@ -1,30 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr3.bezeqint.net ([192.115.104.13]:52925 "EHLO
-	omr3.bezeqint.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751594AbZBQKWQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 05:22:16 -0500
-From: Siemens News Center <info@lily.co.uk>
-Subject: **winning Notification**
-Reply-To: delloffice1@onlineclaimsdept.co.uk
+Received: from [195.7.61.12] ([195.7.61.12]:56202 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1753797AbZBXUlf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2009 15:41:35 -0500
+Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n1OKfWOn010167
+	for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 20:41:32 GMT
+Message-ID: <49A45B7C.3040609@koala.ie>
+Date: Tue, 24 Feb 2009 20:41:32 +0000
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Message-Id: <20090217122228.FFU56220@mas25.bezeqint.net>
-Date: Tue, 17 Feb 2009 12:22:28 +0200 (IST)
-To: undisclosed-recipients:;
+To: linux-media@vger.kernel.org
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+References: <20090223144917.257a8f65@hyperion.delvare> <49A3E07E.6020701@tesco.net>
+In-Reply-To: <49A3E07E.6020701@tesco.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Your email ID has been awarded £750,000,00 GBP in our 
-SIEMENS AWARD,Reply us with your info: 
-(delloffice1@onlineclaimsdept.co.uk)
-
-Name:....................
-Country:.................   
-Sex:.....................
-Age: .....................   
-Addres:...................
-
-Mrs Stella Bll
-(Information Officer)
+John Pilkington wrote:
+> Jean Delvare wrote:
+>
+>> * Enterprise-class distributions (RHEL, SLED) are not the right target
+>>   for the v4l-dvb repository, so we don't care which kernels these are
+>>   running.
+>
+>
+> I think you should be aware that the mythtv and ATrpms communities 
+> include a significant number of people who have chosen to use the 
+> CentOS_5 series in the hope of getting systems that do not need to be 
+> reinstalled every few months.  I hope you won't disappoint them.
+>
+> John P
+just had a quick look at mythtv-users
+there are a handful using centos
+--
+simon
