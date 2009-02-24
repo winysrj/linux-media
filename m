@@ -1,144 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:52090 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760664AbZBXAjo (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:41395 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756030AbZBXXgw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2009 19:39:44 -0500
-Date: Mon, 23 Feb 2009 18:51:36 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Adam Baker <linux@baker-net.org.uk>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-In-Reply-To: <200902232237.32362.linux@baker-net.org.uk>
-Message-ID: <alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <20090223080715.0c97774e@pedra.chehab.org> <200902232237.32362.linux@baker-net.org.uk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	Tue, 24 Feb 2009 18:36:52 -0500
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+In-Reply-To: <37219a840902241302u5b9d79bex9eb3b0e55462e3a@mail.gmail.com>
+References: <200902221115.01464.hverkuil@xs4all.nl>
+	 <37219a840902241302u5b9d79bex9eb3b0e55462e3a@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 25 Feb 2009 00:37:58 +0100
+Message-Id: <1235518678.2701.15.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
+
+Am Dienstag, den 24.02.2009, 16:02 -0500 schrieb Michael Krufky:
+> On Sun, Feb 22, 2009 at 5:15 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+> >
+> > _: Yes
+> > _: No
+> 
+> 
+> NO.
+> 
+
+this is an unwanted reply to Hans' polling, but I also stated previously
+that I would leave it in the end to those who contributed and might
+further do so. So this polling, for me, only means that neither Hans nor
+Jean have to take care for how difficult backward compat would be for <
+2.6.22.
+
+Any common sense here?
+
+> > Optional question:
+> >
+> > Why:
+> 
+> 
+> Dropping support for older kernels means dropping support for MOST testers.
+
+I seriously doubt this, I think I can count every single one reporting
+issues below 2.6.22 and 2.6.18 during the last year, but it does not
+even matter.
+
+> Sure, it's an inconvenience for the maintainers.  This does *not* have
+> to cause a hindrance for new drivers.  At first, new drivers can be
+> added to the repository, and set to require only the latest kernels,
+> via versions.txt .  When somebody has time to fix backwards compat for
+> that driver, simply update versions.txt with the new kernel version
+> dependency for the driver in question.
+
+All agreed.
+
+> Additionally, we all know what upstream kernel development is like --
+> new kernel does *not* mean new stability.  More likely, new kernels
+> bring new bugs.  (this isnt always the case, but it's good to be
+> skeptical when it comes to production systems)
+
+That is all true. But we start lacking testers on the recent rcx kernels
+and unfortunately this includes me after years ...
+
+> If I build an embedded system to use as a dedicated TV streaming box,
+> I will not want to update my kernel JUST so that I can use the new
+> driver required for my new TV tuner device.
+
+Yes.
+
+> Being able to build the v4l-dvb development repository against a
+> reasonable set of stable kernels, including kernels as old as 2.6.16,
+> is a critical feature for users of the v4l-dvb driver repository.
+
+It is at least fun for them and we are great in that :)
+
+Question is only, if Hans or Jean do to have to care for any of that
+below 2.6.22 and I say no. Or?
+
+> Regards,
+> 
+> Mike Krufky
+
+Cheers,
+Hermann
 
 
-On Mon, 23 Feb 2009, Adam Baker wrote:
 
-> On Monday 23 February 2009, Mauro Carvalho Chehab wrote:
->> On Sat, 21 Feb 2009 12:53:57 +0100
->>
->> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> Hi Adam,
->>>
->>> Sorry for the late reply, it's been very busy.
->>
->> Me too.
-
-<big snip>
-
->>>> The interest in detecting if a driver provides this informnation is to
->>>> allow libv4l to know when it should use the driver provided information
->>>> and when it should use its internal table (which needs to be retained
->>>> for backward compatibility). With no detection capability the driver
->>>> provided info should be ignored for USB IDs in the built in table.
->>>>
-
-<snip>
-
->
->>
->> Ok, this is nothing that kernel needs to handle, but, at userspace, we need
->> to have a file where the user could edit and store the camera position, to
->> override whatever we have in kernel.
->
-> Unfortunately what that doesn't address is the problem that first started this
-> discussion. A camera where the orientation information is contained in the
-> USB messages from the camera so the driver is the only thing that can
-> reasonably access it.
-
-Alas, this is so true. What started the entire discussion about passing 
-the info about sensor orientation is a set of cameras all of which have 
-the same Vendor:Product ID but require different handling of the data 
-(vflip and hflip, or just vflip) depending upon information which can only 
-be obtained by communication with the camera, *not* by just knowing its 
-Vendor:Product ID.
-
-Therefore, it is a little bit disheartening to see discussions -- again -- 
-which come back to some kind of "internal table" in V4L, or which come 
-back to things like "have a file where the user could edit and store the 
-camera position, to override whatever we have in kernel."
-
-Repeating the obvious, which apparently still needs to be repeated because 
-not all of the participants in the discussion "get it":
-
-1. The "internal table" in V4L could not handle this problem, because the 
-internal table would be based upon what information? The USB 
-Vendor:Product number? For that matter, no other table could work, 
-either. Well, actually, a table could work. It would have to be inside the 
-module supporting the camera, and the matter of which table entry 
-corresponds to what camera would have to be settled by passing a USB 
-command to the camera and then parsing the camera's response. So now the 
-question is how to get the information out of the module, which can only 
-be collected and analysed inside the module.
-
-2. The "have a file where the user could edit" idea may seem attractive to 
-some, because it shoves the whole problem of agreeing on the appropriate 
-way to get needed information out of a kernel module and into userspace 
-onto someone not present during the current discussion, the user. However, 
-this is not a solution, and thinking about it just a little bit ought to 
-make that totally obvious. This is a strongly worded statement, so I will 
-proceed to explain why the matter is so obvious.
-
-Let us assume the very best, and assume that every app which is V4L 
-conformant has a "one time" initialization step and creates a directory 
-$HOME/.app containing stored settings. So we might have a file called 
-$HOME/.app/sq905. This file gets automatically written when the hapless 
-user hooks up his sq905 camera the first time, and has to go through a 
-choice routine to decide which side of the frame is up and which side is 
-to the left and to the right. One could even take serious steps to make 
-this otherwise unnecessary and silly sequence to be as really nice and 
-"user friendly" as it could possibly be, and set this all up to be done 
-with a sequence of mouse clicks and then the file, very kindly, gets 
-written automatically. Those of you who are thinking that this "file a 
-user could edit" is the way to go are, presumably, thinking along these 
-lines. Well there are at least four things which are obviously wrong with 
-this "solution":
-
-2.1. The user is forced to deal with something which the user should not 
-even have to confront. The user is called upon to remedy an omission and a 
-deficiency which was ignored at a lower level, because a bunch of 
-developers could not come together on a reasonable course of action. Well, 
-some don't like to see this one, so there are three more reasons.
-
-2.2 Every camera is going to require a file for itself in $HOME/.app even 
-if there is nothing that the user needs to do. Many of the supported 
-cameras need nothing of the kind, so this would be kind of silly.
-
-2.3 The user has two apps for dealing with webcams. So now the user needs 
-to have another directory called $HOME/.app2 with similar files in it?
-
-2.4 (and this one is the worst of all) The user has two cameras which are 
-both powered by the same kernel module, and the two cameras need two 
-different things done. Now what??? Both cameras can not simultaneously 
-have a valid entry in $HOME/.app/sq905 which tells what to do with the 
-data out of the camera. Because what is right for one of them is wrong for 
-the other. Further to add to this, one of the tests which was run on this 
-very module was to see if it will run two of the same kind of camera 
-simultaneously. It passed the test. Now someone wants the data to be 
-right-side up from both cameras, and correctly oriented left-to 
-right. Is that an unreasonable desire on the part of a user? Of 
-course not. Again, now what????
-
-There is no way out of this series of dilemmas and absurdities with the 
-"file a user could edit" approach. None.
-
-So, please, could we get serious and actually come up with a reasonable 
-solution? To put the matter completely in perspective, the support for the 
-affected set of devices is otherwise quite complete, and the only thing 
-remaining is to come up with a reasonable solution, which would provide a 
-pleasing experience to users.
-
-
-Theodore Kilgore
