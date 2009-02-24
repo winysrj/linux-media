@@ -1,129 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1257 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbZBRHgS (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1145 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751803AbZBXH1A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 02:36:18 -0500
+	Tue, 24 Feb 2009 02:27:00 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Minimum kernel version supported by v4l-dvb
-Date: Wed, 18 Feb 2009 08:36:13 +0100
-Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org
-References: <20090217142327.1678c1a6@hyperion.delvare> <200902180118.37354.hverkuil@xs4all.nl> <20090217230815.70c81815@pedra.chehab.org>
-In-Reply-To: <20090217230815.70c81815@pedra.chehab.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+Date: Tue, 24 Feb 2009 08:25:57 +0100
+Cc: David Ellingsworth <david@identd.dyndns.org>,
+	linux-media@vger.kernel.org
+References: <200902221115.01464.hverkuil@xs4all.nl> <30353c3d0902230653w419e10c4u73b7f70f135d6663@mail.gmail.com> <Pine.LNX.4.58.0902231842300.24268@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0902231842300.24268@shell2.speakeasy.net>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200902180836.13345.hverkuil@xs4all.nl>
+Message-Id: <200902240825.57694.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 February 2009 03:08:15 Mauro Carvalho Chehab wrote:
-> On Wed, 18 Feb 2009 01:18:37 +0100
->
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Wednesday 18 February 2009 01:08:23 Mauro Carvalho Chehab wrote:
-> > > On Tue, 17 Feb 2009 14:23:27 +0100
-> > >
-> > > Jean Delvare <khali@linux-fr.org> wrote:
-> > > > Hi Mauro,
-> > > >
-> > > > These days I am helping Hans Verkuil convert the last users of the
-> > > > legacy i2c device driver binding model to the new, standard binding
-> > > > model. It turns out to be a very complex task because the v4l-dvb
-> > > > repository is supposed to still support kernels as old as 2.6.16,
-> > > > while the initial support for the new i2c binding model was added
-> > > > in kernel 2.6.22 (and even that is somewhat different from what is
-> > > > upstream now.) This forces us to add quirks all around the place,
-> > > > which will surely result in bugs because the code becomes hard to
-> > > > read, understand and maintain.
-> > > >
-> > > > In fact, without this need for backwards compatibility, I would
-> > > > probably have been able to convert most of the drivers myself,
-> > > > without Hans' help, and this would already be all done. But as
-> > > > things stand today, he has to do most of the work, and our progress
-> > > > is slow.
-> > > >
-> > > > So I would like you to consider changing the minimum kernel version
-> > > > supported by the v4l-dvb repository from 2.6.16 to at least 2.6.22.
-> > > > Ideal for us would even be 2.6.26, but I would understand that this
-> > > > is too recent for you. Kernel 2.6.22 is one year and a half old, I
-> > > > honestly doubt that people fighting to get their brand new TV
-> > > > adapter to work are using anything older. As a matter of fact,
-> > > > kernel 2.6.22 is what openSUSE 10.3 has, and this is the oldest
-> > > > openSUSE product that is still maintained.
-> > > >
-> > > > I understand and respect your will to let a large range of users
-> > > > build the v4l-dvb repository, but at some point the cost for
-> > > > developers seems to be too high, so there's a balance to be found
-> > > > between users and developers. At the moment the balance isn't right
-> > > > IMHO.
-> > >
-> > > In my case, I use RHEL 5.3 that comes with 2.6.18. I need at least to
-> > > have compatibility until this version, otherwise it will be harder to
-> > > me to test things, since most of the time I need to run RHEL 5
-> > > kernel.
-> > >
-> > > I know that other developers also use RHEL 5 on their environments.
+On Tuesday 24 February 2009 06:04:48 Trent Piepho wrote:
+> On Mon, 23 Feb 2009, David Ellingsworth wrote:
+> > On Sun, Feb 22, 2009 at 5:15 AM, Hans Verkuil <hverkuil@xs4all.nl> 
+wrote:
+> > > Optional question:
 > >
-> > Why should we have ugly and time consuming workarounds in our
-> > repository that hamper progress just to allow you to run RHEL 5? I'm
-> > sorry, that's no reason at all. I very much doubt other subsystem
-> > maintainers are stuck on 2.6.18.
+> > Why can't we drop support for all but the latest kernel?
+> >
+> > > Why:
+> >
+> > As others have already pointed out, it is a waste of time for
+> > developers who volunteer their time to work on supporting prior kernel
+> > revisions for use by enterprise distributions. The task of
+> > back-porting driver modifications to earlier kernels lessens the
+> > amount of time developers can focus on improving the quality and
+> > stability of new and existing drivers. Furthermore, it deters driver
+> > development since  there an expectation that they will back-port their
+> > driver to earlier kernel versions. Finally, as a developer, I have
 >
-> The role idea of having compatibility code is to allow people to test
-> with distro kernels. If we decide do exclude one of the major distro, I
-> don't see why not dropping support for the other distros and older
-> kernels. For sure removing all backports will make developers happy, but
-> this will reduce the amount of users that can help with the development,
-> testing the drivers and providing us patches.
-
-99% (if not 100%) of that comes from the desktop area. We are bending over 
-backwards for the mythical enterprise user who cannot upgrade, must have 
-the latest drivers and wants it all for free. In the meantime we have 
-crummy code in the kernel only to support this mythical user, and new 
-developers starting to work with v4l are confused by the weird way i2c 
-drivers are setup.
-
-> It would be much more easy to me to just drop all -hg trees with all
-> backport and out-of-tree compilation and stuck with my -git trees, just
-> like other sybsystem maintainers do, but I _do_ think that our community
-> will suffer a lot with this. So, let's keep supporting at least the
-> latest kernel version used by the major distros. So, for now, we should
-> still keep support for 2.6.18.
-
-It's not our job. It's the job of the distro companies to maintain their 
-code and drivers and backport newer ones if needed. That's what they are 
-paid for. I'm not paid for that, yet I still have to spend valuable time 
-doing this shit (excuse the language).
-
-If people are so keen on it, then let them pay me.
-
-> > And anyway, there is no way you can do proper testing against the new
-> > i2c API on that old kernel. The loading and probing of i2c modules is
-> > quite different, so that's never representative of what kernels >=
-> > 2.6.22 do.
+> We don't backport the drivers to older kernels.  That's what drivers kept
+> in a full kernel tree end up doing.
 >
-> I can assure you that I2C with v4l/dvb drivers work fine with 2.6.18. I
-> use here with several drivers (uvc, bttv, saa7134, em28xx, ...).
+> Generally there is just the code for the newest kernel to think about.
+> Most of the driver code doesn't have backward compatibility ifdefs.  Most
+> of the compat issues are handled transparently by compat.h and only those
+> developers who patch compat.h ever need to know they exist.
 >
-> As a normal user, I use skype regularly the latest uvc driver + 2.6.18 on
-> RHEL5.
+> When a developer does need to deal with some compat ifdef in a driver,
+> almost all the time it's something trivial and obvious.  Change the
+> variable name in both branches.  Copy in a couple lines of boilerplate.
 >
-> Of course, while developing, we should always test the drivers against
-> the latest upstream tree, but this don't reduce the value of allowing
-> normal users to use the latest drivers with their systems.
+> Sometimes a bigger issue comes up.  IIRC, around 2.6.16 there was a major
+> class_device change in the kernel and backward compat code for it ended
+> up being a nightmare.  So we didn't do it.  We stopped supporting back to
+> ~2.6.11 and moved up the target past the problem change.
 
-Normal v4l users use a desktop PC and can easily upgrade. Enterprise users 
-locked to an ancient kernel AND using v4l-dvb are NOT normal users. I've 
-just looked it up and apparently RHEL 6 isn't planned for another year. By 
-that time we're on 2.6.32/33 and maintaining compatibility for a whopping 
-15 kernels. Doesn't that strike you as ridiculous?
+Actually that was in 2.6.19. The class_device #ifs are still in e.g. 
+v4l2-dev.c. It would be a nice bonus when we can drop that as well. It 
+could be that there were additional changes as well in pre-2.6.16 kernels. 
+If so, then we definitely implemented the backwards compat for it at the 
+time.
 
-I might be wrong, but aren't you using RHEL 5 because you work for redhat 
-these days? Not a typical user at all.
+> Maybe this has happened again with the changes to i2c?  I don't think
+> it's that hard, but I've yet to do it myself, so maybe it is.
+
+I've been working on this since around 2.6.24 (and been involved with i2c in 
+one way or another for quite a bit longer) and I say it's hard. Jean 
+Delvare made the i2c core changes in 2.6.22 and he says it's hard. So 
+perhaps if the two people who know most about the topic say it's hard and 
+not solvable with a compat.h change, or the occasional #if, or a regexp as 
+Mauro seems to be attempting now, then it really IS hard.
 
 Regards,
 
