@@ -1,38 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx27.mail.ru ([94.100.176.41]:51663 "EHLO mx27.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752928AbZBQTzf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 14:55:35 -0500
-Received: from [95.53.180.84] (port=25966 helo=localhost.localdomain)
-	by mx27.mail.ru with asmtp
-	id 1LZW2W-0005VC-00
-	for linux-media@vger.kernel.org; Tue, 17 Feb 2009 22:55:32 +0300
-Date: Tue, 17 Feb 2009 23:06:40 +0300
-From: Goga777 <goga777@bk.ru>
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:45726 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757013AbZBXMV5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2009 07:21:57 -0500
+Received: from aamtaout01-winn.ispmail.ntl.com ([81.103.221.35])
+          by mtaout01-winn.ispmail.ntl.com
+          (InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP
+          id <20090224115649.PFRG2989.mtaout01-winn.ispmail.ntl.com@aamtaout01-winn.ispmail.ntl.com>
+          for <linux-media@vger.kernel.org>;
+          Tue, 24 Feb 2009 11:56:49 +0000
+Received: from gateway.localdomain ([86.10.71.240])
+          by aamtaout01-winn.ispmail.ntl.com
+          (InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP
+          id <20090224115649.GVQU19264.aamtaout01-winn.ispmail.ntl.com@gateway.localdomain>
+          for <linux-media@vger.kernel.org>;
+          Tue, 24 Feb 2009 11:56:49 +0000
+Message-ID: <49A3E07E.6020701@tesco.net>
+Date: Tue, 24 Feb 2009 11:56:46 +0000
+From: John Pilkington <J.Pilk@tesco.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: Re: Tevii S650 DVB-S2 diseqc problem
-Message-ID: <20090217230640.617a6cba@bk.ru>
-In-Reply-To: <854d46170902161521g1ad03be0s1114799fe296df14@mail.gmail.com>
-References: <59463.79.136.92.202.1234820777.squirrel@webmail.bahnhof.se>
-	<854d46170902161521g1ad03be0s1114799fe296df14@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+References: <20090223144917.257a8f65@hyperion.delvare>
+In-Reply-To: <20090223144917.257a8f65@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > My server have Ubuntu 8.10 amd64 with a custom kernel and drivers and tools
-> > compiled from these sources.
-> > http://mercurial.intuxication.org/hg/szap-s2
-> > http://mercurial.intuxication.org/hg/s2-liplianin/
-> >
-> > The scan-s2 utility only find channels from latest used transponder in VDR
+Jean Delvare wrote:
 
-you should indicate in ini file the rolloff = 35 because cx24116 doesn't support rolloff = auto 
-fresh correct ini files for scan-s2 with rolloff = 35 you can download from here
-http://www.vdr-settings.com/download/channels/CLyngsatSP.tar.bz2
+> * Enterprise-class distributions (RHEL, SLED) are not the right target
+>   for the v4l-dvb repository, so we don't care which kernels these are
+>   running.
 
 
+I think you should be aware that the mythtv and ATrpms communities 
+include a significant number of people who have chosen to use the 
+CentOS_5 series in the hope of getting systems that do not need to be 
+reinstalled every few months.  I hope you won't disappoint them.
 
+John P
 
-Goga
