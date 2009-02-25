@@ -1,63 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:53253 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756730AbZBRTTL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 14:19:11 -0500
-Date: Wed, 18 Feb 2009 20:17:15 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Thomas Kaiser <v4l@kaiser-linux.li>, stefano.laspina@virgilio.it
-Cc: linux-media@vger.kernel.org
-Subject: Re: MR97310A and other image formats
-Message-ID: <20090218201715.27531333@free.fr>
-In-Reply-To: <499C05D8.10303@kaiser-linux.li>
-References: <20090217200928.1ae74819@free.fr>
-	<499B1180.6020600@kaiser-linux.li>
-	<20090218102553.608e026c@free.fr>
-	<499C05D8.10303@kaiser-linux.li>
+Received: from bombadil.infradead.org ([18.85.46.34]:35303 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473AbZBYCDU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2009 21:03:20 -0500
+Date: Tue, 24 Feb 2009 23:02:00 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-media@vger.kernel.org, bugme-daemon@bugzilla.kernel.org,
+	nm127@freemail.hu
+Subject: Re: [Bugme-new] [Bug 12768] New: usb_alloc_urb() leaks memory
+ together with uvcvideo driver
+Message-ID: <20090224230200.77469747@pedra.chehab.org>
+In-Reply-To: <20090224135720.9e752fee.akpm@linux-foundation.org>
+References: <bug-12768-10286@http.bugzilla.kernel.org/>
+	<20090224135720.9e752fee.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 18 Feb 2009 13:58:00 +0100
-Thomas Kaiser <v4l@kaiser-linux.li> wrote:
+On Tue, 24 Feb 2009 13:57:20 -0800
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-> Hello Jean-Francois
-
-Hello Thomas and Steve,
-
-> Thanks, for the frame (or frames?).
-
-It is a full image. It is compressed: the images have different sizes,
-about 25 Kb.
-
-> What resolution did you use while recording this stream?
-
-I have not the webcam, it is Steve's. Looking at the image size, I think
-the resolution should be 640x480, but it maybe 352x288. Steve?
-
-> Can you put your USB trace somewhere on the net where I can download
-> it?
-
-	http://moinejf.free.fr/UsbSnoop.zip
-
-> When I was guessing the streams of webcams, I used to get the sensor 
-> into saturation -> complete white picture. So you know how the
-> decoded picture should look like ;-)
+>> > In the output of /proc/slab_allocators the number of blocks allocated by
+> > usb_alloc_urb() increases, however, the xawtv is no longer running:
+> > 
+> > size-2048: 18 usb_alloc_dev+0x1d/0x212 [usbcore]
+> > size-2048: 2280 usb_alloc_urb+0xc/0x2b [usbcore]
+> > size-1024: 100 usb_alloc_urb+0xc/0x2b [usbcore]
+> > size-128: 10 usb_alloc_urb+0xc/0x2b [usbcore]
+> > 
+> > Each time xawtv is started and stopped the value increases at the
+> > usb_alloc_urb().
+> > 
+> > Expected result: the same memory usage is reached again after xawtv exited.
+> > 
 > 
-> Actually, it is quite easy to get a webcam sensor into saturation.
-> Just remove the lens of the cam an put a light in front of it. Check
-> in Windoz if the picture is really complete white and then record a
-> stream in Linux. Now, you should get a very homogeneous stream. Look
-> at it and ....
-> 
-> I hope you got the idea?
+> I assume this is a v4l bug and not a USB core bug?
 
-Very good idea. Steve, may you do such a trace?
+I guess this is a v4l bug. We've found several memory leaks on em28xx driver,
+fixed at the development -git:
 
-Cheers.
+http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git
 
--- 
-Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+I'll do some tests again with the latest em28xx driver to double check if it is
+there any other memory leak. If not, then we could replicate the same approach
+into uvcvideo.
+
+Cheers,
+Mauro
