@@ -1,64 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45865 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752855AbZBASHj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 13:07:39 -0500
-Date: Sun, 1 Feb 2009 19:07:48 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] tw9910: color format check is added on set_fmt
-In-Reply-To: <uwscdm9t7.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0902011907020.17985@axis700.grange>
-References: <uwscdm9t7.wl%morimoto.kuninori@renesas.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3192 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756147AbZBYTOb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2009 14:14:31 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1PJEOGx021167
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 20:14:28 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 25 Feb 2009 20:14:24 +0100 (CET)
+Message-Id: <200902251914.n1PJEOGx021167@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 27 Jan 2009, Kuninori Morimoto wrote:
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-> 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Results of the daily build of v4l-dvb:
 
-Why is this needed? Do you see any possibility for tw9910 to be called 
-with an unsupported format?
+date:        Wed Feb 25 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10654:a1e426060311
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Thanks
-Guennadi
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc5-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc5-x86_64: WARNINGS
+fw/apps: OK
+spec: ERRORS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
 
-> ---
->  drivers/media/video/tw9910.c |   13 +++++++++++++
->  1 files changed, 13 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
-> index 1a9c6fd..57027c0 100644
-> --- a/drivers/media/video/tw9910.c
-> +++ b/drivers/media/video/tw9910.c
-> @@ -647,6 +647,19 @@ static int tw9910_set_fmt(struct soc_camera_device *icd, __u32 pixfmt,
->  	struct tw9910_priv *priv = container_of(icd, struct tw9910_priv, icd);
->  	int                 ret  = -EINVAL;
->  	u8                  val;
-> +	int                 i;
-> +
-> +	/*
-> +	 * check color format
-> +	 */
-> +	for (i = 0 ; i < ARRAY_SIZE(tw9910_color_fmt) ; i++) {
-> +		if (pixfmt == tw9910_color_fmt[i].fourcc) {
-> +			ret = 0;
-> +			break;
-> +		}
-> +	}
-> +	if (ret < 0)
-> +		goto tw9910_set_fmt_error;
->  
->  	/*
->  	 * select suitable norm
-> -- 
-> 1.5.6.3
-> 
+Detailed results are available here:
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
