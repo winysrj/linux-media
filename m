@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ayden.softclick-it.de ([217.160.202.102]:33406 "EHLO
-	ayden.softclick-it.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754604AbZBWPa2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2009 10:30:28 -0500
-Message-ID: <49A2C0C2.4030703@to-st.de>
-Date: Mon, 23 Feb 2009 16:29:06 +0100
-From: Tobias Stoeber <tobi@to-st.de>
-Reply-To: tobi@to-st.de
+Received: from [195.7.61.12] ([195.7.61.12]:48864 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750828AbZBYMbf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2009 07:31:35 -0500
+Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n1PCVW8p011535
+	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 12:31:32 GMT
+Message-ID: <49A53A24.5000304@koala.ie>
+Date: Wed, 25 Feb 2009 12:31:32 +0000
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
 CC: linux-media@vger.kernel.org
-Subject: Question regarding detail in dropping support for kernels < 2.6.22
- (related to Re: POLL: for/against dropping support for kernels < 2.6.22)
-References: <48380.62.70.2.252.1235398197.squirrel@webmail.xs4all.nl>
-In-Reply-To: <48380.62.70.2.252.1235398197.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+References: <200902221115.01464.hverkuil@xs4all.nl> <49A50018.40708@koala.ie>
+In-Reply-To: <49A50018.40708@koala.ie>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Simon Kenyon wrote:
+> Hans Verkuil wrote:
+>> Hi all,
+>>
+>> There are lot's of discussions, but it can be hard sometimes to 
+>> actually determine someone's opinion.
+>>
+>> So here is a quick poll, please reply either to the list or directly 
+>> to me with your yes/no answer and (optional but welcome) a short 
+>> explanation to your standpoint. It doesn't matter if you are a user 
+>> or developer, I'd like to see your opinion regardless.
+>>
+>> Please DO NOT reply to the replies, I'll summarize the results in a 
+>> week's time and then we can discuss it further.
+>>
+>> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>>
+>> _: Yes
+>> _: No
+>>   
+> No
+i am an idiot - i read the question backwards
 
-Hans Verkuil schrieb:
-> We still need to support kernels from 2.6.22 onwards. Although I think the
-> minimum supported kernel is something that needs a regular sanity check,
-> right now there are no technical reasons that I am aware of to go to
-> something newer than 2.6.22.
-> 
-> Whether we keep our current system or not is a separate discussion:
-> whatever development system you choose there will be work involved in
-> keeping up the backwards compatibility.
+that really should be "YES"
+i don't think old kernels should be maintained within the v4l-dvb tree
 
-Just out of deep interesst:
+that is the job of the distributions - for which people pay money
+let the distribution vendors pick that one up
 
-Could you, Hans (or anyone else) just explain, what is / are the reason 
-to draw the line between kernels 2.6.21 and 2.6.22?
-
-What was the fundamental change there and do these changes as such apply 
-to every supported device / driver?
-
-As I understand you, although you drop backport efforts for kernels 
-below 2.6.22, you are going to adopt an policy to - in a sense - waste 
-development efforts / time on seven instead of 12 kernels?
-
-Wouldn't it then not be more logical to support only the recent kernel 
-and the kernel before, becaus in some month time 2.6.30 might include a 
-major change which would force you to drop support for < 2.6.29 altogether?
-
-Thanks for your patience and reply,
-
-best regards, Tobias
+>> Optional question:
+>>
+>> Why:
+>>
+>>   
+> i don't have a vote as i'm only a user and not a developer
+>
+> but i thought i would just make one point
+>
+> as far as i can see, the v4l-dvb tree exists to create support for a 
+> particular class of hardware within the linux kernel
+> the separate tree is very useful to lots of people (i include myself 
+> in that) - but it is a byproduct of the development methodology
+>
+> so if you think this group's mission is to provide support for 
+> distributions then you should vote no
+> and if you think this group's mission is to provide support for the 
+> linux kernel then you should vote yes
+>
+>>
+>> Thanks,
+>>
+>>     Hans
+>>
+>>   
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
