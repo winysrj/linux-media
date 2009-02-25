@@ -1,78 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4606 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751131AbZBRASg (ORCPT
+Received: from ppp250-191.static.internode.on.net ([203.122.250.191]:44792
+	"EHLO wiggum.skunkworks.net.au" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752782AbZBYBVO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 19:18:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Minimum kernel version supported by v4l-dvb
-Date: Wed, 18 Feb 2009 01:18:37 +0100
-Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org
-References: <20090217142327.1678c1a6@hyperion.delvare> <20090217210823.379579e1@pedra.chehab.org>
-In-Reply-To: <20090217210823.379579e1@pedra.chehab.org>
+	Tue, 24 Feb 2009 20:21:14 -0500
+Message-ID: <49A49646.6000105@symons.net.au>
+Date: Wed, 25 Feb 2009 11:22:22 +1030
+From: Ant <ant@symons.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+References: <200902221115.01464.hverkuil@xs4all.nl>
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902180118.37354.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 February 2009 01:08:23 Mauro Carvalho Chehab wrote:
-> On Tue, 17 Feb 2009 14:23:27 +0100
+Hans Verkuil wrote:
+> Hi all,
 >
-> Jean Delvare <khali@linux-fr.org> wrote:
-> > Hi Mauro,
-> >
-> > These days I am helping Hans Verkuil convert the last users of the
-> > legacy i2c device driver binding model to the new, standard binding
-> > model. It turns out to be a very complex task because the v4l-dvb
-> > repository is supposed to still support kernels as old as 2.6.16, while
-> > the initial support for the new i2c binding model was added in kernel
-> > 2.6.22 (and even that is somewhat different from what is upstream now.)
-> > This forces us to add quirks all around the place, which will surely
-> > result in bugs because the code becomes hard to read, understand and
-> > maintain.
-> >
-> > In fact, without this need for backwards compatibility, I would
-> > probably have been able to convert most of the drivers myself, without
-> > Hans' help, and this would already be all done. But as things stand
-> > today, he has to do most of the work, and our progress is slow.
-> >
-> > So I would like you to consider changing the minimum kernel version
-> > supported by the v4l-dvb repository from 2.6.16 to at least 2.6.22.
-> > Ideal for us would even be 2.6.26, but I would understand that this is
-> > too recent for you. Kernel 2.6.22 is one year and a half old, I
-> > honestly doubt that people fighting to get their brand new TV adapter
-> > to work are using anything older. As a matter of fact, kernel 2.6.22 is
-> > what openSUSE 10.3 has, and this is the oldest openSUSE product that is
-> > still maintained.
-> >
-> > I understand and respect your will to let a large range of users build
-> > the v4l-dvb repository, but at some point the cost for developers seems
-> > to be too high, so there's a balance to be found between users and
-> > developers. At the moment the balance isn't right IMHO.
+> There are lot's of discussions, but it can be hard sometimes to actually 
+> determine someone's opinion.
 >
-> In my case, I use RHEL 5.3 that comes with 2.6.18. I need at least to
-> have compatibility until this version, otherwise it will be harder to me
-> to test things, since most of the time I need to run RHEL 5 kernel.
+> So here is a quick poll, please reply either to the list or directly to me 
+> with your yes/no answer and (optional but welcome) a short explanation to 
+> your standpoint. It doesn't matter if you are a user or developer, I'd like 
+> to see your opinion regardless.
 >
-> I know that other developers also use RHEL 5 on their environments.
+> Please DO NOT reply to the replies, I'll summarize the results in a week's 
+> time and then we can discuss it further.
+>
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>
+> _: Yes
+>   
+Yes
+> _: No
+>
+> Optional question:
+>
+> Why:
+Firstly let me state that I am not a v4l developer. I have been lurking 
+on this list and its predecessor for about 3 years as I find low level 
+hardware programming very interesting. The main concern for the no camp 
+seemed to be support for EL5. I use EL 3, 4 and 5 for different purposes 
+to this day, and I would like to add my viewpoint. I know the older 
+releases have inferior hardware support compared to the newer ones, but 
+to me this is not a problem, just a consideration when selecting the 
+hardware I wish to use. If v4l stops supporting kernels < 2.6.22 then it 
+is not like EL5 based on 2.6.18 will instantly be useless. It just means 
+that you will need to find a camera or dvr card that is already 
+supported. I dont see that this is a problem, and think that this trade 
+off is worth it so as to not complicate life for future development more 
+than it needs to be.
 
-Why should we have ugly and time consuming workarounds in our repository 
-that hamper progress just to allow you to run RHEL 5? I'm sorry, that's no 
-reason at all. I very much doubt other subsystem maintainers are stuck on 
-2.6.18.
-
-And anyway, there is no way you can do proper testing against the new i2c 
-API on that old kernel. The loading and probing of i2c modules is quite 
-different, so that's never representative of what kernels >= 2.6.22 do.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Ant
