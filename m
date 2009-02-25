@@ -1,69 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:55436 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754781AbZBXNXy convert rfc822-to-8bit (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:43885 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216AbZBYGHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 08:23:54 -0500
-Received: by rv-out-0506.google.com with SMTP id g37so2478608rvb.1
-        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 05:23:52 -0800 (PST)
+	Wed, 25 Feb 2009 01:07:47 -0500
+Date: Wed, 25 Feb 2009 00:19:35 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Adam Baker <linux@baker-net.org.uk>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+In-Reply-To: <49A4B4FC.9030209@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0902242341070.15857@banach.math.auburn.edu>
+References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <20090223080715.0c97774e@pedra.chehab.org> <200902232237.32362.linux@baker-net.org.uk> <alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
+ <alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org> <alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu> <alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org> <49A4B4FC.9030209@kaiser-linux.li>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0902241416080.4494@axis700.grange>
-References: <ur61pd8h5.wl%morimoto.kuninori@renesas.com>
-	 <Pine.LNX.4.64.0902241416080.4494@axis700.grange>
-Date: Tue, 24 Feb 2009 22:23:52 +0900
-Message-ID: <aec7e5c30902240523u6416bd9fo5470cdb1218e63f9@mail.gmail.com>
-Subject: Re: About the specific setting for lens
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: morimoto.kuninori@renesas.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 24, 2009 at 10:17 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Mon, 23 Feb 2009, morimoto.kuninori@renesas.com wrote:
+
+
+On Wed, 25 Feb 2009, Thomas Kaiser wrote:
+
+>>> Also an overview is often very helpful. Also trying to visualize what 
+>>> might be needed in the future is helpful. All of this can be extremely 
+>>> helpful. But not everyone can see or imagine every possible thing. For 
+>>> example, it seems that some of the best minds in the business are stunned 
+>>> when confronted with the fact that some manufacturer of cheap electronics 
+>>> in Taiwan has produced a lot of mass-market cameras with the sensors 
+>>> turned upside down, along with some other cameras having the same USB ID 
+>>> with different sensors, which act a bit differently. Clearly, if such a 
+>>> thing happened once it can happen again. So how to deal with such a
+>>> problem?
 >
->>
->> Dear Guennadi.
->>
->> Now MigoR and AP325 board have ov772x camera.
->> However, the lens used is different.
->>
->> And I have a specific good setting value
->> for the lens of AP325.
->>
->> So, I would like to add new function for
->> specific lens value.
->> meybe like this.
->> Can I add it ?
->>
->> -- board-ap325 ---------------
->> static const struct regval_list ov772x_lens[] = {
->>        { 0xAA, 0xBB }, { 0xCC, 0xDD }, { 0xEE, 0xFF },
->>        ...
->>        ENDMARKER,
->> }
->>
->> static struct ov772x_camera_info ov772x_info = {
->>        ...
->>        .lenssetting = ov772x_lens,
->> }
+> Actually, this happens and is happening!
 >
-> Hm, lenses can be replaced in principle, right? Does it really make sense
-> to hard-code them in platform code? Maybe better as module parameter? Or
-> are these parameters really board-specific?
+> Just step back a get an other view.
 
-I'd say that having such information with the platform data is as good
-as it gets. =) In theory it's possible to replace the lens - it's
-actually possible to remove the ap325 camera module as well. Using a
-module parameter doesn't really make it any better since the same
-driver may be used by multiple instances with different lens setups.
-At least platform data makes the configuration per-camera instead of
-per-driver.
+I had plenty of other views. SQ905, SQ905C, MR97310, SN9C2028, and one or 
+two more. And, oh yes, the GT8290 chip on which Grandtech went broke, 
+which was intended for mass storage still cameras but had a 32-bit CBW 
+instead of a 31-bit CBW (off by one error and nobody caught it).
 
-Cheers,
+>
+> These consumer products are manly produced for the Windoz audience.
 
-/ magnus
+
+Very true. Usually, it even says on the package that it will not work on 
+Mac. But since Linux is unmentionable they did not say anything about it. 
+So we make it work anyway.
+
+>
+> After introduction of Win XP the consumer where told that USB device will run 
+> out of the box in Win XP,
+
+Not all devices. Perhaps what they really meant is now you don't need to 
+install two drivers if you have two Mass Storage Transparent Scsi Bulk 
+Transport flash drives. To that extent, it seems that they were truthful. 
+There are lots of proprietary devices out there for which AFAICT the 
+drivers are still not included in Windows. Some of these are unfinished 
+projects of mine, too, such as the JL2005C cameras. The big bugbear with 
+those is the compression algorithm. It is a horror.
+
+> which is sometimes true, but .....
+>
+> But on all (Windowz) Webcams (are Linux Webcams available?) I buy, I find a 
+> sticker which tells me to first insert the driver CD before connecting the 
+> cam to the PC. When you do, like instructed, your cam works like you 
+> expected!
+
+Of course. Hardware will not work without a driver.
+
+>
+> Evan the USB ID is the same like the other webcam from the other vendor, you 
+> are (more or less) forced to install the driver from this particular vendor, 
+> you get a new driver!
+
+Not true. Windows, even back in the days of Windows 98, searched for the 
+Vendor:Product number to look for the driver. There were several places to 
+search for the number. For example, the INF files. And I have a box full 
+of SQ905 cameras for which I will personally guarantee that every one of 
+them will work on Windows 98 with the Windows driver from the CD that came 
+with any other one. Now, if the picture is always facing in the right 
+direction, that is another question, naturally.
+
+Doesn't matter if the sensor is mounted upside down, 
+> the "new" driver takes care about this. So, it looks like the cam in the 
+> Windowz World just works because you were forced to install the driver from 
+> the CD.
+
+And while we are on that topic, I could definitely assert that not always 
+did the "manufacturer" get this right, either. I, recall, developed the 
+original SQ905 stillcam driver for Linux. I got letters from users and 
+sample photos, too, where the photos came out of the camera and lettering 
+on a sign visible in the photo was bass ackwards. They were cheap cameras, 
+and the people who sold some of them were just a little bit sloppy. Their 
+virtue, as cheap cameras go, was comparatively good optics in some of 
+them. I have seen lots of cameras about the same price, which had much 
+more features and much worse pictures.
+
+>
+> So I guess the Windoz diver just knows more then the USB ID.
+
+No, not really. See above.
+
+>
+> In the Linux World most of the drive are re-engineered, we don't know how to 
+> detect how the sensor is mounted, do we?
+
+
+Well, yes, we do. And that is what this discussion was about. How to use 
+that knowledge constructively while writing a kernel driver.
+
+>
+> Actually, what I try to say, is that only the cam can know how the sensor is 
+> mounted. Thus, the kernel module has to provide this information to user 
+> space (by query the hardware).
+
+Well, that is more like it. Yes, one does have to ask the camera. But the 
+camera will tell its answer truthfully. And this is before any streaming 
+and image processing has started, too. What a deal.
+
+>
+> The "pivot" is an other thing.
+
+Very true. And worth paying attention to. But it is not the same issue.
+
+>
+> Thomas
+>
+
+Theodore Kilgore
