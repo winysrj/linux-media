@@ -1,94 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp801.mail.ird.yahoo.com ([217.146.188.61]:23558 "HELO
-	smtp801.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750914AbZBAMWN (ORCPT
+Received: from mail-fx0-f167.google.com ([209.85.220.167]:41852 "EHLO
+	mail-fx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592AbZBYAGL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 07:22:13 -0500
-Subject: LinuxTv issue with Hauppauge WinTV-NOVA-TD-Stick - very near (but
-	not quite ) working]
-From: Colin Thomas <ColinThomas@olneybucks.freeserve.co.uk>
-Reply-To: ColinThomas@dunelm.org.uk
-To: linux-media@vger.kernel.org
-Cc: ColinThomas@dunelm.org.uk
-Content-Type: text/plain
-Date: Sun, 01 Feb 2009 12:19:24 +0000
-Message-Id: <1233490764.3355.25.camel@gallifrey>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 24 Feb 2009 19:06:11 -0500
+Received: by fxm11 with SMTP id 11so3283326fxm.13
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 16:06:08 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <49A407B0.8C56.0056.0@matc.edu>
+References: <200902221115.01464.hverkuil@xs4all.nl>
+	 <200902242119.17436.hverkuil@xs4all.nl>
+	 <49A407B0.8C56.0056.0@matc.edu>
+Date: Wed, 25 Feb 2009 01:06:08 +0100
+Message-ID: <d9def9db0902241606i763a4c21o2a180c5e2dcbb778@mail.gmail.com>
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Jonathan Johnson <johnsonn@matc.edu>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Feb 24, 2009 at 9:43 PM, Jonathan Johnson <johnsonn@matc.edu> wrote:
+> Hello all,
+>
+> My vote is YES, why haven't we done this already??
+>
+> My understanding is that we are just drop old kernel support and retaining the vast majority of the drivers.
+> If anyone tallied the total number CVE listed vulernabilites and other problems fixed since then they would probably be shocked.
+> Unless for some reason your hardware is so old that it does support 2.6.28.7, this is the version you should run.
+>
+> Later,
+> Jonathan
+>
+>>>> Hans Verkuil <hverkuil@xs4all.nl> 2/24/2009 2:19 PM >>>
+> Please reply to this poll if you haven't done so yet. I only count clear
+> yes/no answers, so if you replied earlier to this in order to discuss a
+> point then I haven't counted that.
+>
+> Currently it's 16 yes and 2 no votes, but I'd really like to see some more
+> input. I want to post the final results on Sunday.
+>
+> Regards,
+>
+>        Hans
+>
+> On Sunday 22 February 2009 11:15:01 you wrote:
+>> Hi all,
+>>
+>> There are lot's of discussions, but it can be hard sometimes to actually
+>> determine someone's opinion.
+>>
+>> So here is a quick poll, please reply either to the list or directly to
+>> me with your yes/no answer and (optional but welcome) a short explanation
+>> to your standpoint. It doesn't matter if you are a user or developer, I'd
+>> like to see your opinion regardless.
+>>
+>> Please DO NOT reply to the replies, I'll summarize the results in a
+>> week's time and then we can discuss it further.
+>>
+>> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>>
+>> _: Yes
+>> _: No
+>>
 
-I have been following the good instructions for getting the above work
-with my fedora 9 64bit machine from :
+don't care
 
-        http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-TD-Stick#Firmware
+>> Optional question:
+>>
+>> Why:
+>>
 
-It is very nearly working, and I seem to have a bug which is manifesting
-itself in 2 ways.
+analog TV didn't work for me anyway < 2.6.18 not sure if it got fixed up
+timers are horribly modified within 2.6.18 - now, something that
+worked back then might not work properly anymore now.
+remote control support has a horrible bug, I reported something a half
+year ago..
+although the solution I use to provide is to move the frontend and
+configuration layer to userland and only having the data transfer API
+in the kernel (this includes v4l2 - latest API and the entire dvb core
+API).
+http://mcentral.de/wiki/index.php5/DVBConfigFramework it's infront of
+the API access and the applications make use of it using LD_PRELOAD.
+Customers mostly use to compile the em28xx driver from mcentral.de
+against the currently installed drivers which come with the native
+kernel, or I use to deliver binaries. Now the DVB config framework
+makes use of usbfs (similar like libusbfs) in my case and also works
+on OSX with exactly the same drivers.
 
-1. If I try :
-        scandvb /usr/share/doc/dvb-apps-1.1.1/channels.conf-dvbt-sandy_heath
-  
-I get the following ERROR which I can not locate on the web:
+Markus
 
-        scanning /usr/share/doc/dvb-apps-1.1.1/channels.conf-dvbt-sandy_heath
-        using '/dev/dvb/adapter0/frontend0' and
-        '/dev/dvb/adapter0/demux0'
-        ERROR: cannot
-        parse'BBC-Choice:641833334:INVERSION_OFF:BANDWIDTH_8_MHZ:FEC_2_3:FEC_NONE:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:620:621
-        '
-2. When I enter kaffeine, I can scan the dvb device and all of the
-channels appear in the menu. But I can not get any to display (audio or
-video) , when selected.
-
-If I run Kaffeine from the command line, I get:
-
-        kaffeine
-        /dev/dvb/adapter0/frontend0 : opened ( DiBcom 7000PC )
-        /dev/dvb/adapter1/frontend0 : opened ( DiBcom 7000PC )
-        0 EPG plugins loaded for device 0:0.
-        0 EPG plugins loaded for device 1:0.
-        Loaded epg data : 0 events (0 msecs)
-
-The when I select a channel from the kaffeine menu I get on the command
-line
-
-        Tuning to: BBC ONE / autocount: 0
-        Using DVB device 0:0 "DiBcom 7000PC"
-        tuning DVB-T to 642000000 Hz
-        inv:2 bw:3 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
-        ...............
-        
-        Not able to lock to the signal on the given frequency
-        Frontend closed
-        Tuning delay: 2688 ms
-The dvb-app have been installed, along with the firmaware and the
-modprobe.d/options file have been created with the LNA option as
-required.
-
-If I run
-        dmesg | grep dvb
-I am getting
-        dvb-usb: found a 'Hauppauge Nova-TD Stick/Elgato Eye-TV
-        Diversity' in warm state.
-        dvb-usb: will pass the complete MPEG2 transport stream to the
-        software demuxer.
-        dvb-usb: will pass the complete MPEG2 transport stream to the
-        software demuxer.
-        dvb-usb: Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity
-        successfully initialized and connected.
-        usbcore: registered new interface driver dvb_usb_dib0700
-
-I amn running the NOVA device with an external aerial cable: with good
-signal and S/N ratios, so am not using their mini aerial
-
-Any thoughts to the missing piece of the jigsaw would be most welcome.
-
-Best regards
-
-Colin Thomas
-
-
-
+>>
+>>
+>> Thanks,
+>>
+>>       Hans
+>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
