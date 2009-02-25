@@ -1,68 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web35806.mail.mud.yahoo.com ([66.163.179.175]:42041 "HELO
-	web35806.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754028AbZBRSFo convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 13:05:44 -0500
-Date: Wed, 18 Feb 2009 09:58:59 -0800 (PST)
-From: Amy Overmyer <aovermy@yahoo.com>
-Subject: vbox cat's eye 3560 usb device
-To: linux-media@vger.kernel.org
+Received: from fk-out-0910.google.com ([209.85.128.185]:43339 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340AbZBYCPi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2009 21:15:38 -0500
+Received: by fk-out-0910.google.com with SMTP id f33so1885959fkf.5
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 18:15:35 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20090224230200.77469747@pedra.chehab.org>
+References: <bug-12768-10286@http.bugzilla.kernel.org/>
+	 <20090224135720.9e752fee.akpm@linux-foundation.org>
+	 <20090224230200.77469747@pedra.chehab.org>
+Date: Wed, 25 Feb 2009 03:15:35 +0100
+Message-ID: <d9def9db0902241815i7e0d8e90k59824c5a83534e2c@mail.gmail.com>
+Subject: Re: [Bugme-new] [Bug 12768] New: usb_alloc_urb() leaks memory
+	together with uvcvideo driver
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, bugme-daemon@bugzilla.kernel.org,
+	nm127@freemail.hu
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-ID: <538926.88491.qm@web35806.mail.mud.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I’m trying to write a driver for the 
-device, just as a learning exercise. So far, I’ve got the firmware in intel hex 
-format (from usbsnoop on windows, then a couple perl scripts to mutate it) and 
-am able to use fxload to load it with –t fx2 and there are 2 separate files, a 
-short one (the loader) and the firmware proper; so in fxload I have a –s and a 
-–I. 
- 
-I’m able to take it from cold to 
-warm that way solely within Linux. 
- 
-The device itself has a cypress CY7C68013A fx2 chip and a large tin can tuner/demod stamped with 
-Thomson that has a sticker on it identifying it as 8601A. Helpfully, the 3560 
-opens up easily with the removal of two screws on the shell.
- 
-It’s cold boot usb id is 14f3:3560 and its warm boot is 
-14f3:a560.
- 
-I have taken that hex file and 
-created a binary file out of the 2nd file (-I in fxload speak). I 
-think, correct me if I’m wrong, there is already a fx2 loader available, thus I 
-will not need the loader file.
- 
-One of the stranger things I saw in 
-the usbsnoop trace in windows was when it came to reset of the CPUCS, the driver 
-sent down both a poke at x0e600 and a poke at 0x7f92. One is the fx CPUCS 
-register, I believe the other is a fx2 CPUCS register. 
- 
-Currently I am mutating dibusb-mc 
-just to see if I can get it to the point of going from cold to warm in the 
-driver. 
- 
-I have taken usb sniffs from windows 
-of doing things such as scanning for channels, watching a channel, etc. so I can 
-try to figure out if anything else in the v4l-dvb collection behaves 
-similarly.
- 
-I guess what I’m looking for is any 
-hints that might be useful to figuring this out. 
- 
-Like I said, it’s a learning 
-exercise, I already have enough tuners, and anyway, the cost of buying a 
-supported tuner is far cheaper than the time needed to develop 
-this!
- 
-Thanks for any info! I’ve pretty 
-much devoured everything available on the wiki.
- 
-Amy
+On Wed, Feb 25, 2009 at 3:02 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On Tue, 24 Feb 2009 13:57:20 -0800
+> Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+>>> > In the output of /proc/slab_allocators the number of blocks allocated by
+>> > usb_alloc_urb() increases, however, the xawtv is no longer running:
+>> >
+>> > size-2048: 18 usb_alloc_dev+0x1d/0x212 [usbcore]
+>> > size-2048: 2280 usb_alloc_urb+0xc/0x2b [usbcore]
+>> > size-1024: 100 usb_alloc_urb+0xc/0x2b [usbcore]
+>> > size-128: 10 usb_alloc_urb+0xc/0x2b [usbcore]
+>> >
+>> > Each time xawtv is started and stopped the value increases at the
+>> > usb_alloc_urb().
+>> >
+>> > Expected result: the same memory usage is reached again after xawtv exited.
+>> >
+>>
+>> I assume this is a v4l bug and not a USB core bug?
+>
+> I guess this is a v4l bug. We've found several memory leaks on em28xx driver,
+> fixed at the development -git:
+>
+> http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git
+>
+> I'll do some tests again with the latest em28xx driver to double check if it is
+> there any other memory leak. If not, then we could replicate the same approach
+> into uvcvideo.
+>
 
+haha you never even had a look at the issue itself.
 
-      
+Markus
+
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at �http://vger.kernel.org/majordomo-info.html
+>
