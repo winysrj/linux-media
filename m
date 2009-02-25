@@ -1,51 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52538 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756445AbZBRVNY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Feb 2009 16:13:24 -0500
-Date: Wed, 18 Feb 2009 22:13:19 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: New v4l2 driver for atmel boards
-In-Reply-To: <499BCAF9.2060101@atmel.com>
-Message-ID: <Pine.LNX.4.64.0902182202090.6371@axis700.grange>
-References: <499BCAF9.2060101@atmel.com>
+Received: from mxweblb01fl.versatel.de ([89.246.255.251]:55849 "EHLO
+	mxweblb01fl.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756855AbZBYTqx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2009 14:46:53 -0500
+Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
+	by mxweblb01fl.versatel.de (8.13.1/8.13.1) with ESMTP id n1PJWxJE024107
+	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 20:32:59 +0100
+Received: from cinnamon-sage.de (i577A2196.versanet.de [87.122.33.150])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id n1PJWxnv001286
+	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 20:32:59 +0100
+Received: from 192.168.23.2:50880 by cinnamon-sage.de for <hverkuil@xs4all.nl>,<linux-media@vger.kernel.org> ; 25.02.2009 20:32:59
+Message-ID: <49A59CCF.1050301@cinnamon-sage.de>
+Date: Wed, 25 Feb 2009 20:32:31 +0100
+From: Lars Hanisch <dvb@cinnamon-sage.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+References: <200902221115.01464.hverkuil@xs4all.nl>
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(moved to the new v4l list)
-
-On Wed, 18 Feb 2009, Sedji Gaouaou wrote:
-
-> Hi everybody,
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
 > 
-> I am writing here to know if it is the proper place to send a driver that I
-> have written for atmel's boards.
-> I would like to know as well if there is a git tree against which I should
-> based my patch or should I based it against the latest rc?
+> _: Yes
+> _: No
 
-Hi Sedji,
+  Yes.
 
-what hardware is it for? avr32 or at91 (ARM)? And what API are you using 
-to communicate with sensors? Currently there are two APIs in the kernel - 
-int-device and soc-camera, and they both should at some point (soon) 
-converge to the new "V4L2 driver framework." They all have (one of) the 
-goal(s) to reuse sensor (or whatever subdevice) drivers with various 
-hosts. Which of them are you using?
+> Why:
 
-I've recently got test hardware from Atmel for an AP7000 board (NGW100), 
-and was planning to convert the existing external ISI driver from Atmel to 
-the soc-camera API, but I have no idea when I find time for that.
+  I'm a v4l-user, I use my VDR for a couple of years now. These were the 
+steps I took, before I assembled my box:
 
-As for against which tree to submit patches, I think, 
-git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git should 
-be a good starting point.
+- I have analog cable, so what hardware does exist, that is capable to 
+record video on an old PC (even my desktop had only a 400MHz Celeron)?
+- Which of these pieces are supported by Linux?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+  For me it ended up with a PVR150 and an DXR3, later replaced by a 
+PVR350. I started with kernel 2.6.9, that time ivtv wasn't part of the 
+kernel, it was even outside v4l-dvb (am I correct?). Without a large 
+amount of help from the ivtv-lists and VDR forum, that would have been a 
+disaster for me. I can't say how glad I was, when I read the news, that 
+ivtv was integrated in the kernel.
+  What I'm trying to say is: when you need support for hardware, you 
+have to upgrade your kernel and there are many other people beside the 
+main driver developer which can help you. In the "hot" time of 
+integrating ivtv in the kernel, I back off asking Hans for supporting an 
+older kernel, since all I wanted was a working driver. And if that means 
+I have to upgrade the kernel, I just have to do it.
+
+  I get paid for developing and maintaining some specialized desktop 
+applications since ~15 years now (~200 users), and from that point of 
+view, sometimes you have to drop support for older installations 
+respectively have to upgrade those to some level, because it's just a 
+pain. I can remember what a relief it was, to be able to drop support 
+for Windows 98 and base my company's (rather complex and large) ERP-app 
+on some "real" Windows (>= 2000). (right now we're right in the middle 
+of porting from Win32/C++ to .Net3.5/C#, guess who will make a jig when 
+it's done...)
+
+  Reading the diverse postings and from my point of knowledge and 
+experience, I think it's best to swap the development model to an "in 
+kernel"-tree, that feeds a compat-tree, which supports kernel-versions 
+that are reasonable. And if someone has fun backporting (i2c-related) 
+drivers below 2.6.22, than let him do it. But let the main developer do 
+their work in keeping uptodate with new hardware and new kernels. They 
+get old soon enough. (the kernel, not the developers...) ;-)
+
+Lars.
