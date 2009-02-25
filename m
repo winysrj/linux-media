@@ -1,18 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from legolas.aeondesign.ch ([80.74.144.38] ident=postfix)
+Received: from mx1.bredband2.com ([83.219.192.165])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pallemann@aeondesign.ch>) id 1LUp12-0000pJ-UH
-	for linux-dvb@linuxtv.org; Wed, 04 Feb 2009 22:10:40 +0100
-Received: from webmail.aeondesign.ch (localhost.localdomain [127.0.0.1])
-	by legolas.aeondesign.ch (Postfix) with ESMTP id 03EF45FD9F
-	for <linux-dvb@linuxtv.org>; Wed,  4 Feb 2009 22:10:38 +0100 (CET)
-Message-ID: <4824.84.72.53.66.1233781838.squirrel@webmail.aeondesign.ch>
-Date: Wed, 4 Feb 2009 22:10:38 +0100 (CET)
-From: "Patrick Allemann" <pallemann@aeondesign.ch>
+	(envelope-from <magnus@upcore.net>) id 1LcRm0-0002LW-PP
+	for linux-dvb@linuxtv.org; Wed, 25 Feb 2009 22:58:37 +0100
+Received: from yoshi.upcore.net (c-83-233-110-59.cust.bredband2.com
+	[83.233.110.59])
+	by mx1.bredband2.com (Postfix) with ESMTPA id F235936EF8
+	for <linux-dvb@linuxtv.org>; Wed, 25 Feb 2009 22:57:52 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by yoshi.upcore.net (Postfix) with ESMTP id 93718C000109
+	for <linux-dvb@linuxtv.org>; Wed, 25 Feb 2009 22:57:52 +0100 (CET)
+Received: from yoshi.upcore.net ([127.0.0.1])
+	by localhost (mail.upcore.net [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id cORIvsUdUp8O for <linux-dvb@linuxtv.org>;
+	Wed, 25 Feb 2009 22:57:50 +0100 (CET)
+Date: Wed, 25 Feb 2009 22:57:50 +0100
+From: Magnus Nilsson <magnus@upcore.net>
 To: linux-dvb@linuxtv.org
+Message-ID: <20090225215749.GA4385@upcore.net>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] HVR2250 / HVR2200 / SAA7164 status
-Reply-To: linux-media@vger.kernel.org, pallemann@aeondesign.ch
+Content-Disposition: inline
+Subject: [linux-dvb] Compiling mantis-5292a47772ad
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,40 +35,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I would also be more than interested in a working driver for the HRV2200
-and would gladly contribute to a revival of this project. As I my C skills
-are not worth mentioning all I can offer is some testing and reporting.
-(fetching coffe and beer while you guys are busy)
 
-Date: Wed, 4 Feb 2009 18:34:47 +1100
-From: Davin McCall <davmac@davmac.org>
-Subject: [linux-dvb] HVR2250 / HVR2200 / SAA7164 status
-To: linux-dvb@linuxtv.org
-Message-ID: <20090204183447.26c0903b.davmac@davmac.org>
-Content-Type: text/plain; charset=US-ASCII
+Hello,
 
-Steven Toth wrote:
+I'm trying to compile mantis-5292a47772ad under 2.6.28.7 (have tried
+this under 2.6.28.5 and 2.6.24 (which I'm currently running) with same
+results).
 
-> Feel free to ping me through this mailing list every few weeks.
->
+The error I'm getting is:
 
-So, ping...
+[root@mythbox /usr/local/src/mantis-5292a47772ad]# make all
+*snip*
+  CC [M]  /usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.o
+/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c: In function 'snd_card_saa7134_hw_params':
+/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:496: error: implicit declaration of function 'snd_assert'
+/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:497: error: expected expression before 'return'
+/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:498: error: expected expression before 'return'
+/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:499: error: expected expression before 'return'
+/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c: In function 'snd_card_saa7134_new_mixer':
+/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.c:950: error: expected expression before 'return'
+make[3]: *** [/usr/local/src/mantis-5292a47772ad/v4l/saa7134-alsa.o] Error 1
+make[2]: *** [_module_/usr/local/src/mantis-5292a47772ad/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.28.7'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/usr/local/src/mantis-5292a47772ad/v4l'
+make: *** [all] Error 2
+*snip*
 
-The HVR2200 would be perfect for my mythtv box - if it had a working
-driver.
+I'm not quite sure which version of the mantis driver I'm using now, but
+it's at least from september 2008. I'm running this under Debian lenny,
+with a VP-2040 and a Terratec Cinergy 1200C.
 
-If possible I'd like to know:
-- current status of DVB
-- Analogue?
-- remote control?
-- Is there a repository somewhere?
-- Can I help? I'm perfectly fluent in C and have done a little hardware
-stuff before.
-
-
-
-
-
+Thanks,
+Magnus
 
 _______________________________________________
 linux-dvb users mailing list
