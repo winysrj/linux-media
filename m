@@ -1,299 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40226 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753086AbZBUAYB (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:40784 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754968AbZBYA05 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 19:24:01 -0500
-Date: Fri, 20 Feb 2009 21:23:27 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "Hans Verkuil" <hverkuil@xs4all.nl>, urishk@yahoo.com,
-	linux-media@vger.kernel.org
-Subject: Re: Minimum kernel version supported by v4l-dvb
-Message-ID: <20090220212327.410a298b@pedra.chehab.org>
-In-Reply-To: <20090218140105.17c86bcb@hyperion.delvare>
-References: <43235.62.70.2.252.1234947353.squirrel@webmail.xs4all.nl>
-	<20090218071041.63c09ba3@pedra.chehab.org>
-	<20090218140105.17c86bcb@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 24 Feb 2009 19:26:57 -0500
+Date: Tue, 24 Feb 2009 18:38:54 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Adam Baker <linux@baker-net.org.uk>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+In-Reply-To: <alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org>
+Message-ID: <alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu>
+References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <20090223080715.0c97774e@pedra.chehab.org> <200902232237.32362.linux@baker-net.org.uk> <alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
+ <alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 18 Feb 2009 14:01:05 +0100
-Jean Delvare <khali@linux-fr.org> wrote:
 
-> Hi Mauro,
-> 
-> On Wed, 18 Feb 2009 07:10:41 -0300, Mauro Carvalho Chehab wrote:
-> > On Wed, 18 Feb 2009 09:55:53 +0100 (CET)
-> > "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
-> > 
-> > > Not at all. I work with embedded systems and what happens is that you
-> > > effectively take a kernel snapshot for your device and stick to that.
-> > > You're not using v4l-dvb, but you might backport important fixes on
-> > > occasion.
-> > > 
-> > > Again, it's not our job. The linux model is to get your drivers into the
-> > > kernel, then let distros take care of the rest, which includes backporting
-> > > if needed to older kernels. We are doing the work that distros should be
-> > > doing. A few years ago I moved ivtv to v4l-dvb and the kernel with the
-> > > express purpose to be finally free of keeping it backwards compatible with
-> > > older kernels. Now I find myself doing the same AGAIN.
-> > > 
-> > > And you are talking about that mythical user that needs it. I've yet to
-> > > SEE that user here and telling me that it is essential to their product.
-> > > 
-> > > PROVE to me that it is really necessary and really our job, and esp. my
-> > > job, since *I'm* the one keeping the backwards compatibility for i2c
-> > > modules alive. All I hear is 'there might be', 'I know some company', 'I
-> > > heard'.
-> > > 
-> > > Right now there is crappy code in the kernel whose only purpose is to
-> > > facilitate support for old kernels. That's actually against the kernel
-> > > policy.
-> > > 
-> > > One alternative is it create a separate repository just before the compat
-> > > code is removed, and merge important fixes for drivers in there. That
-> > > should tide us over until RHEL 6 is released.
-> > > 
-> > > Which also raises the other question: what criterium is there anyway to
-> > > decide what is the oldest kernel to support? RHEL 5 will no doubt be used
-> > > for 1-2 years after RHEL 6 is release, do we still keep support for that?
-> > > Old kernels will be used for a long time in embedded systems, do we still
-> > > keep support for that too?
-> > 
-> > Hans, I'm doing backport since 2005. So, you are not the only one that are
-> > doing backports. On V4L, this started ever since. In the case of DVB, we
-> > started backport on 2006. Before that, they use to support only the latest
-> > kernel version.
-> > 
-> > If you get a snapshot of our tree of about 6 months to one year ago, we had
-> > even support for linux-2.4 I2C (and yes, this works - I have a tree here for
-> > vivi and bttv drivers based on that i2c support, working with 2.4).
-> 
-> Not necessarily something to be proud about. This only shows how slowly
-> v4l has evolved in the past few years. Big changes that should have
-> happen have been constantly postponed in the name of compatibility.
 
-No change I'm aware of were postponed due to previous kernel compatibility.
- 
-> > In the past, our criteria were simply to support all 2.6 versions and the
-> > latest 2.4 versions. Sometime after having the last 2.4 distro moving their
-> > stable repo to 2.6, we decided to drop 2.4, because we got no complains to keep
-> > 2.4 on that time.
-> > 
-> > Maybe the current solution for i2c backport is not the better one, and we
-> > need to use another approach. If the current i2c backport is interfering on the
-> > development, then maybe we need to re-think about the backport implementation.
-> > The backport shouldn't affect the upstream. It were never affected until the
-> > recent i2c backport. Even the 2.4 i2c backport didn't interfere upstream, even
-> > having a completely different implementation on 2.4.
-> 
-> Actually, 2.6 kernels up to 2.6.13 had an i2c API very similar to what
-> 2.4 had. The binding model changes we are undergoing now are way more
-> intrusive than the migration from 2.4 to early 2.6.
+On Tue, 24 Feb 2009, Mauro Carvalho Chehab wrote:
 
-This is true for the drivers that are using the newer model. However, there are
-still several drivers that use the old model (bttv, em28xx, cx88 - maybe
-others). 
+> On Mon, 23 Feb 2009, kilgota@banach.math.auburn.edu wrote:
 
-I think that maybe we'll need some legacy-like support for bttv and cx88, since
-there are some boards that relies on the old i2c method to work. On those
-boards (like cx88 Pixelview), the same board model (and PCB revision) may or
-may not have a separate audio decoder. On those devices that have an audio
-decoder, the widely used solution is to load tvaudio module and let it bind at
-the i2c bus, on such cases.
 
-> > > The only reasonable criterium I see is technical: when you start to
-> > > introduce cruft into the kernel just to support older kernels, then it is
-> > > time to cut off support to those kernels.
-> > 
-> > The criteria for backport is not technical.
-> 
-> That technical isn't the only criteria, I agree with. But claiming that
-> technical isn't a criteria at all is plain wrong. This is equivalent to
-> claiming that development time doesn't cost anything.
+<big snip>
 
-Well, what's the technical criteria? I don't see much #if's inside the i2c part
-of the drivers.
 
-> >                                       (...) It is all about offering a version
-> > that testers with standard distros can use it, without needing to use the
-> > latest -rc kernel.
-> > 
-> > I'm fine to drop support to unused kernels, but the hole idea to have backport
-> > is to allow an easy usage of the newer drivers by users with their environment.
-> > If we start removing such code, due to any other criteria different than having
-> > support for kernels that people are still using on their desktop and enterprise
-> > environments, 
-> 
-> You're aiming at the wrong target, I am afraid. "Enterprise
-> environments" have _nothing_ to do with upstream development, by
-> definition. More on that below.
-> 
-> >         (...) then it is time to forget about -hg and use -git instead,
-> > supporting only the latest tip kernel, just like almost all other maintainers
-> > do.
-> > 
-> > While we are stick on have backport, we need at least to support the latest
-> > desktop and enterprise kernel versions of the major distros.
-> > 
-> > So, it is a matter of deciding what we want:
-> > 	keep our current criteria of offering backport kernels that include
-> > 	at least the kernel version used on the major desktop and enterprise
-> > 	kernel distros
-> 
-> No, not enterprise kernels!
-> 
-> > OR
-> > 	just use -git and drop all backport code.
-> > 
-> > Both solutions work for me, although I prefer to keep backport, even having more trouble[1]. 
-> > 
-> > Anything else and we will enter of a grey area that will likely go nowhere.
-> 
-> I am sorry but I don't follow you here. You are basically claiming that
-> allowing enterprise users (who typically run RHEL or SLED) to build
-> bleeding-edge drivers off the v4l-dvb repository is very important, but
-> allowing non-enterprise users and kernel developers (who typically run
-> Fedora or openSUSE) isn't that important? I believe this is exactly the
-> other way around.
+> Theodore,
+>
+> You're considering just one subset of the V4L usages: notebook webcams.
 
-No. I'm saying that we should not exclude an user just because it uses a RHEL
-kernel (btw, there are some versions at RHEL aimed for desktop and notebooks
-also using 2.6.18).
+Actually, the sq905 cameras are not "notebook webcams." They are cheap, 
+consumer entry level dual-mode cameras. They can be used as hand-held 
+still cameras, to shoot still photos, and they can also be used as 
+webcams. When sold, they usually came with some kind of mounting device 
+that could hold them rigidly for webcam use. There are lots of similar 
+cameras. Mercifully, not all of those others have the problems of the 
+sq905, which have led to the present impasse.
 
-> I am working on L3 support for SLE products, so I know very well what
-> enterprise customers want, and what they don't. I doubt that RHEL
-> customers are any different from SLE ones. Enterprise customers don't
-> give a damn to the v4l-dvb repository. All they know about and want are
-> packages provided by the vendor, which change as little as possible
-> (that is, bug fixes only.) Running bleeding-edge, untrusted and
-> unmaintained drivers is the last thing they want. If they need a driver
-> for a recent piece of hardware, they open a feature request for the
-> next service pack, and leave it to the OS vendor to backport the
-> driver and maintain it for the next 5 years or so.
 
-True. But it is also true that there are some free versions based on those
-enterprise kernels that also use the same base system.
+If 
+> you think about non-notebook webcams [1] or about security cams, you'll see 
+> that the only way for you to have the flipping information is inside some 
+> userspace file.
 
-I'm not trying to defend any particular distro here. The point is: there are a
-large amount of different V4L/DVB devices. I doubt that the developers will
-ever have all boards in the market. That's basically the reason why we support
-backport. We should really try to have the largest base of testers that it is
-possible. If we are excluding people from the community because of the
-diversity of their environments, we will likely loose some important feedbacks.
+However, there are obvious differences. For those cameras the question 
+might well come up about how to control the movement of the camera, or, at 
+least, to be aware of which way the camera is pointing. For these, the 
+topic is an inherent property of the particular model of the camera -- or 
+a defect, if someone wants to say so. Since the property is not determined 
+by USB number, it is inherently impossible outside of the module to create 
+a table which contains the needed information.
 
-> As a side note, I doubt that the v4l-dvb repository would always work
-> that well for enterprise distribution kernels anyway. All the tests are
-> based on the kernel version, but the enterprise kernels diverge a lot
-> over time from the upstream version they were originally based on, so I
-> wouldn't be surprised if things broke from times to times.
+My intention here was to re-focus attention on the original problem which 
+brought up the current discussion, and to that end the problem must be 
+clearly understood. To have the flipping information inside some userspace 
+file might solve some other problem and may be a generally very good idea. 
+But it will not, can not, and never will be able to solve this problem.
 
-True, but, when something breaks, people complain and the support is added. The
-better way of adding a backport is by adding a small search string at
-v4l/scripts/make_config_compat.pl and adding the backport code at compat. This
-solves the issues with the distro kernels much better than just checking for a
-specific kernel version.
+>
+> For example, I have here one video input bttv board with 16 cameras,
+> connected on 4 bttv chips. I have also a Pelco camera, that has just one 
+> support socket. Depending on the place you mount it, the camera has to be 
+> rotated by 180 degrees. It can also be useful to mount it rotated by 90 
+> degrees.
 
-> The actual audience for the v4l-dvb repository is users who do NOT have
-> a support contract with the OS vendor. That is, home users. These do
-> not run RHEL and SLE, especially if they have recent hardware, given
-> how bad hardware support is in enterprise distributions. Home users
-> will want their hard disk controller, graphics adapter and sound chip
-> to work before they even consider getting support for their TV adapter
-> from the v4l-dvb repository. Which means that they will be running a
-> recent version of Fedora, openSUSE or equivalent.
-> 
-> Now, if you look at the support policy of Fedora and openSUSE, you'll
-> see that they are maintained for 13 [1] to 24 [2] months. In practice,
-> the oldest supported Fedora is Fedora 9, featuring kernel 2.6.25, and
-> the oldest supported openSUSE is openSUSE 10.3, featuring kernel
-> 2.6.22. Which is why I claim that there is no point in supporting
-> anything older than that. When openSUSE 10.3 goes out of maintenance
-> (end of 2009), we can even drop support for kernels < 2.6.25.
-> 
-> [1] http://fedoraproject.org/wiki/LifeCycle
-> [2] http://en.opensuse.org/SUSE_Linux_Lifetime
-> 
-> There is a reason why the Linux market has been segmented into
-> enterprise distributions and community distributions. Ignoring that
-> reason and trying to support all distributions with the same upstream
-> repository simply doesn't work.
-> 
-> So, I don't buy your claim that we should either support old enterprise
-> kernels or not support any old kernel at all. Just like I don't buy
-> your claim that the technical aspect shouldn't be taken into account
-> when deciding what kernels you want to support. I think we have to be
-> pragmatic here. We want to support kernels which users really care
-> about (and these are the ones in maintained popular non-enterprise
-> distributions) and which don't cost too much to support from a
-> technical point of view.
+Good. So one needs external controls and userspace tools. Did I ever say 
+that such things should never be done? No. All I said was that there is a 
+problem, presently on the table, and those kinds of things are not, can 
+not be, never were, and never will be solutions for _this_ problem.
 
-Now, the issue is of a different nature. Since I do most of the backports on
-v4l-dvb, I can say that the big effort happens when an API changes upstream.
-Let's take, for example, the last dvbnet changes: They moved some data from a
-priv struct into a net core struct. This happened sometime during 2.6.29-rc
-cycle.
+>
+> After mounting the cameras, no matter what apps you are using (a streaming 
+> video app to broadcast it via internet, a security app, etc), the rotation
+> information for that input, on that particular PCI, bus won't change.
+>
+> As we've standardized the VIDIOC_QUERYCAP bus_info, now, the information for 
+> the camera at input 3 of bttv hardware at PCI addres 03:00.3 is unique. It is 
+> also unique the same information for a notebook mounted webcam (since the USB 
+> bus ID won't change for that devices).
 
-The trivial solution, done by most maintainers, is to just use 2.6.29-rc
-kernel as the basis for development. No backport efforts are needed. They can
-focus their work looking ahead.
+Errrm... Again, the cameras in question here are not notebook mounted 
+webcams.
 
-In our case, if we want the same code to work with 2.6.28 and 2.6.29-rc, we
-need to find a creative way to backport the patch without adding much #ifs
-(using for example compat.h), or to add those #ifs at the code.
+>
+> So, if we standardize where this information is stored, for example, at 
+> /etc/libv4l and/or at ~/.libv4lrc, and let libv4l handle such info, this will 
+> be something consistent for all applications using libv4l. Other apps that 
+> might not want to trust on libv4l can also read the info at the same file.
 
-Either way, after the backport patch, there's no need to maintain the
-backport, especially if we use the v4l/scripts/make_config_compat.pl script.
+Sorry, this will not work here. It may solve some other problem, but not 
+this problem. Or, if one wants to "store" the information there, I don't 
+care, really, but then there needs to be a way to get the information from 
+the module, where it is, and get written into said table, which is where 
+you want it, and this needs to happen every time an sq905 camera gets 
+plugged in -- without pestering the user about the matter every time that 
+such a camera gets hooked up.
 
-The backported code inside the #ifs don't need to be changed.
+Comparison: I have tossed a coin. Is it going to come up heads? Or tails? 
+It is possible to know which, because the coin has been tossed. It would 
+not even be cheating to look at it, or allow someone who did look at it, 
+to pass to us the information. But we are not going to look, and if 
+someone tells us we will not listen because we have not agreed on what 
+language to use for communication. Instead, we will put a guess about the 
+outcome into a table. We will make it a nice table, which can be revised 
+using nice GUI tools, so it is easy for the user. So if our guess is wrong 
+let the user fix it. Then next time we toss the coin the table entry will 
+be right because either it was right before, or now someone fixed it???
 
-Ok, having lots of #if's inside the code looks ugly, but those if's and the
-compat code are removed upstream, so, developers can see the upstream code
-without any backport [1].
+>
+> So, I really think that this should be part of the approach.
 
-So, the issue here is not preserving the backport patches forever, but,
-instead, the need for someone to do the backports. This is time consuming and
-requires a developer that could be doing drivers improvements instead of
-loosing time with backports.
+I was not even addressing what should or should not be part of the 
+approach to some other problems. My point was that such discussion is not 
+germane to the problem of how to pass on the correct orientation of the 
+sensor, for the sq905 cameras. There are lots of other problems out there 
+to solve. No denying that.
 
-In fact, Hans is not the only one developer asking for dropping -hg and use
--git instead. Several others already asked this publicly or in priv. Using a
-different model from the rest of the subsystems is not scaling well anymore. We
-have almost 300 different drivers, and the current number of commits per day is
-very high.
+Also an overview is often very helpful. Also trying to visualize what 
+might be needed in the future is helpful. All of this can be extremely 
+helpful. But not everyone can see or imagine every possible thing. For 
+example, it seems that some of the best minds in the business are stunned 
+when confronted with the fact that some manufacturer of cheap electronics 
+in Taiwan has produced a lot of mass-market cameras with the sensors 
+turned upside down, along with some other cameras having the same USB ID 
+with different sensors, which act a bit differently. Clearly, if such a 
+thing happened once it can happen again. So how to deal with such a
+problem? Something similar or worse will surely come up again.
 
-I think we should really consider some alternatives to use -git (with the
-standard kernel tree there), instead of our current model.
+>
+> I agree that we should have a way to get a hint about a camera rotation,
+> if this is somehow provided by reading at the hardware.
+>
+> [1] Normal webcams can be mounted on some hardware and have some orientations 
+> that would be different than expected. I've seen this before on some PC-based 
+> harware where the camera is enclosed inside the clause, like on Automatic 
+> Transfer Machines. Also, the user may want to use the camera on an inverted 
+> position, to make easy to fix it somewhere.
 
-Maybe we should have some sort of scripts to auto-generate tarballs with
-backport patches inside (alsa has a model like this). They are now using -git
-for development, and stopped using -hg. The issue here is that we should take
-some time to think on how this will work, and design a set of scripts to
-generate the backport tree.
+Again, these are in fact separate issues. The fundamental issue required 
+for supporting the sq905 cameras is that an agreed-upon method must exist 
+by which precisely two pieces of information can be passed along by the 
+module. Which of the two pieces of information is relevant and needs to be 
+sent along is, alas, only known from within the module. That is the 
+backdrop for the entire discussion. As far as I know, this thread 
+would not exist if that need had not come up. These two pieces 
+of information are, precisely, "frame data requires flipping across a 
+horizontal axis unless camera is upside down" and "frame data requires 
+flipping across a vertical axis unless camera is held up to a mirror"
 
-[1] In the very specific case of i2c, Hans adopted a different solution, due to
-the need to emulate the old i2c behaviour for drivers that weren't ported to
-the new i2c. In order to cleanup the code, we need first to port all drivers to
-the new i2c model. Then, we can implement the i2c backport on the same way as
-all the other drivers.
+So, what do these two deep questions, which confound the assembled wisdom 
+of an entire list of Linux video developers, have to do with tables in 
+userspace? None that I can see, unless someone wants to provide a 
+mechanism for the information, having been collected in the 
+module, to be available to the table in userspace.
 
-> Now, if you think that giving up the hg tree and only supporting Linus'
-> latest kernel is the way to go, I'm not going to prevent you from going
-> down that road. As a kernel developer, that would make me very happy.
-> But I remember that the hg tree is there to help users test the newest
-> developments without running a bleeding-edge kernel, and that certainly
-> makes some sense.
-
-I agree that we shouldn't just use -git and forget about all the users of
-v4l-dvb hg tree. That's why I've asked Hans to open a separate thread: in order
-to remove -hg, in favor of -git, we need to have some solutions to keep
-allowing the users to compile and test with their environments, without asking
-they to upgrade to the latest kernel version. So, we'll need good ideas and
-volunteers to implement.
-
-Cheers,
-Mauro
+Theodore Kilgore
