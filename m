@@ -1,156 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:49341 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178AbZBCBHa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 20:07:30 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so763350fgg.17
-        for <linux-media@vger.kernel.org>; Mon, 02 Feb 2009 17:07:28 -0800 (PST)
-Subject: [patch review 1/8] radio-mr800: codingstyle cleanups
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Tue, 03 Feb 2009 03:17:12 +0300
-Message-Id: <1233620232.17456.7.camel@tux.localhost>
-Mime-Version: 1.0
+Received: from [195.7.61.12] ([195.7.61.12]:58396 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754548AbZBYIXz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2009 03:23:55 -0500
+Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n1P8Nq0h006542
+	for <linux-media@vger.kernel.org>; Wed, 25 Feb 2009 08:23:52 GMT
+Message-ID: <49A50018.40708@koala.ie>
+Date: Wed, 25 Feb 2009 08:23:52 +0000
+From: Simon Kenyon <simon@koala.ie>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+References: <200902221115.01464.hverkuil@xs4all.nl>
+In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cleanups of many if-check constructions.
+Hans Verkuil wrote:
+> Hi all,
+>
+> There are lot's of discussions, but it can be hard sometimes to actually 
+> determine someone's opinion.
+>
+> So here is a quick poll, please reply either to the list or directly to me 
+> with your yes/no answer and (optional but welcome) a short explanation to 
+> your standpoint. It doesn't matter if you are a user or developer, I'd like 
+> to see your opinion regardless.
+>
+> Please DO NOT reply to the replies, I'll summarize the results in a week's 
+> time and then we can discuss it further.
+>
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>
+> _: Yes
+> _: No
+>   
+No
+> Optional question:
+>
+> Why:
+>
+>   
+i don't have a vote as i'm only a user and not a developer
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+but i thought i would just make one point
 
---
-diff -r 1dce9d4e2179 linux/drivers/media/radio/radio-mr800.c
---- a/linux/drivers/media/radio/radio-mr800.c	Sun Feb 01 11:40:27 2009 -0200
-+++ b/linux/drivers/media/radio/radio-mr800.c	Mon Feb 02 02:22:56 2009 +0300
-@@ -378,13 +378,15 @@
- 				struct v4l2_frequency *f)
- {
- 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	int retval;
- 
- 	/* safety check */
- 	if (radio->removed)
- 		return -EIO;
- 
- 	radio->curfreq = f->frequency;
--	if (amradio_setfreq(radio, radio->curfreq) < 0)
-+	retval = amradio_setfreq(radio, radio->curfreq);
-+	if (retval < 0)
- 		amradio_dev_warn(&radio->videodev->dev,
- 			"set frequency failed\n");
- 	return 0;
-@@ -443,6 +445,7 @@
- 				struct v4l2_control *ctrl)
- {
- 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	int retval;
- 
- 	/* safety check */
- 	if (radio->removed)
-@@ -451,13 +454,15 @@
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
- 		if (ctrl->value) {
--			if (amradio_stop(radio) < 0) {
-+			retval = amradio_stop(radio);
-+			if (retval < 0) {
- 				amradio_dev_warn(&radio->videodev->dev,
- 					"amradio_stop failed\n");
- 				return -1;
- 			}
- 		} else {
--			if (amradio_start(radio) < 0) {
-+			retval = amradio_start(radio);
-+			if (retval < 0) {
- 				amradio_dev_warn(&radio->videodev->dev,
- 					"amradio_start failed\n");
- 				return -1;
-@@ -508,20 +513,24 @@
- static int usb_amradio_open(struct file *file)
- {
- 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
-+	int retval;
- 
- 	lock_kernel();
- 
- 	radio->users = 1;
- 	radio->muted = 1;
- 
--	if (amradio_start(radio) < 0) {
-+	retval = amradio_start(radio);
-+	if (retval < 0) {
- 		amradio_dev_warn(&radio->videodev->dev,
- 			"radio did not start up properly\n");
- 		radio->users = 0;
- 		unlock_kernel();
- 		return -EIO;
- 	}
--	if (amradio_setfreq(radio, radio->curfreq) < 0)
-+
-+	retval = amradio_setfreq(radio, radio->curfreq);
-+	if (retval < 0)
- 		amradio_dev_warn(&radio->videodev->dev,
- 			"set frequency failed\n");
- 
-@@ -554,8 +563,10 @@
- static int usb_amradio_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct amradio_device *radio = usb_get_intfdata(intf);
-+	int retval;
- 
--	if (amradio_stop(radio) < 0)
-+	retval = amradio_stop(radio);
-+	if (retval < 0)
- 		dev_warn(&intf->dev, "amradio_stop failed\n");
- 
- 	dev_info(&intf->dev, "going into suspend..\n");
-@@ -567,8 +578,10 @@
- static int usb_amradio_resume(struct usb_interface *intf)
- {
- 	struct amradio_device *radio = usb_get_intfdata(intf);
-+	int retval;
- 
--	if (amradio_start(radio) < 0)
-+	retval = amradio_start(radio);
-+	if (retval < 0)
- 		dev_warn(&intf->dev, "amradio_start failed\n");
- 
- 	dev_info(&intf->dev, "coming out of suspend..\n");
-@@ -619,16 +632,16 @@
- 	.release	= usb_amradio_device_release,
- };
- 
--/* check if the device is present and register with v4l and
--usb if it is */
-+/* check if the device is present and register with v4l and usb if it is */
- static int usb_amradio_probe(struct usb_interface *intf,
- 				const struct usb_device_id *id)
- {
- 	struct amradio_device *radio;
-+	int retval;
- 
- 	radio = kmalloc(sizeof(struct amradio_device), GFP_KERNEL);
- 
--	if (!(radio))
-+	if (!radio)
- 		return -ENOMEM;
- 
- 	radio->buffer = kmalloc(BUFFER_LENGTH, GFP_KERNEL);
-@@ -657,7 +670,8 @@
- 	mutex_init(&radio->lock);
- 
- 	video_set_drvdata(radio->videodev, radio);
--	if (video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr)) {
-+	retval = video_register_device(radio->videodev,	VFL_TYPE_RADIO,	radio_nr);
-+	if (retval < 0) {
- 		dev_warn(&intf->dev, "could not register video device\n");
- 		video_device_release(radio->videodev);
- 		kfree(radio->buffer);
+as far as i can see, the v4l-dvb tree exists to create support for a 
+particular class of hardware within the linux kernel
+the separate tree is very useful to lots of people (i include myself in 
+that) - but it is a byproduct of the development methodology
 
+so if you think this group's mission is to provide support for 
+distributions then you should vote no
+and if you think this group's mission is to provide support for the 
+linux kernel then you should vote yes
 
--- 
-Best regards, Klimov Alexey
+>
+> Thanks,
+>
+> 	Hans
+>
+>   
 
