@@ -1,152 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:33044 "EHLO
-	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209AbZBQU3a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 15:29:30 -0500
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta4.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KF8007IR8WQXDA1@mta4.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 17 Feb 2009 15:29:17 -0500 (EST)
-Date: Tue, 17 Feb 2009 15:29:13 -0500
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: PVR x50 corrupts ATSC 115 streams
-In-reply-to: <20090217201740.GA9385@opus.istwok.net>
-To: David Engel <david@istwok.net>
-Cc: linux-media@vger.kernel.org, V4L <video4linux-list@redhat.com>
-Message-id: <499B1E19.80302@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <20090217155335.GB6196@opus.istwok.net>
- <499AE054.6020608@linuxtv.org> <20090217201740.GA9385@opus.istwok.net>
+Received: from mail.gmx.net ([213.165.64.20]:52463 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755662AbZBYTKK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2009 14:10:10 -0500
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Wed, 25 Feb 2009 20:10:01 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <49A586CE.7030600@gmx.de>
+Message-ID: <20090225191001.50400@gmx.net>
+MIME-Version: 1.0
+References: <200902221115.01464.hverkuil@xs4all.nl> <49A586CE.7030600@gmx.de>
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+To: hverkuil@xs4all.nl
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Engel wrote:
-> On Tue, Feb 17, 2009 at 11:05:40AM -0500, Steven Toth wrote:
->>> Does anyone know what might be going on?  These very same tuner cards
->>> worked fine in the old system (Intel P4 3.0GHz CPU and Abit IC7
->>> motherboard) for close to two years.
->> Determine whether this is an RF issue, or a DMA corruption issue:
-> 
-> Ahh, I didn't even think of RF.  I didn't have any RF problems in the
-> old system (that I know of) so that didn't even cross my mind.  I
-> actually was, and still am, more afraid of DMA issues, though.
-> 
->> 1. Check the RF SNR of the digital cards using femon, anything odd going 
->> on when the PVR250 is running? Does it fall out of lock or SNR dip 
->> dangerously low, bursts of BER's?
-> 
-> Here are some 10 second captures from femon.  Card1 and Card2 are ATSC
-> 115s.  Card4 and Card5 are PVR x50s.
-> 
-> Card1 recording by itself:
-> 
-> status SCVYL | signal fe90 | snr e4dc | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e682 | ber 00000038 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe60 | snr e682 | ber 00000078 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe80 | snr e624 | ber 000000a0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e682 | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe70 | snr e598 | ber 00000140 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe90 | snr e654 | ber 00000078 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e6b2 | ber 00000090 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe70 | snr e654 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe60 | snr e654 | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
-> 
-> Card1 and Card4 recording:
-> 
-> status SCVYL | signal fe80 | snr e5c6 | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe90 | snr e682 | ber 00000100 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e53a | ber 000000c8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e568 | ber 00000130 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e624 | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe80 | snr e654 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe20 | snr e6b2 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e682 | ber 00000028 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe60 | snr e654 | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe90 | snr e624 | ber 000000c8 | unc 00000000 | FE_HAS_LOCK
-> 
-> Card1 and Card5 recording:
-> 
-> status SCVYL | signal fe40 | snr e624 | ber 00000120 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe80 | snr e654 | ber 000000d0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e598 | ber 00000238 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe90 | snr e682 | ber 000000c8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal feb0 | snr e654 | ber 00000068 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe90 | snr e654 | ber 00000118 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal feb0 | snr e6e0 | ber 00000038 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe50 | snr e4dc | ber 00000060 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe50 | snr e44e | ber 00000058 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fea0 | snr e5c6 | ber 000000d0 | unc 00000000 | FE_HAS_LOCK
-> 
-> Card2 recording by itself:
-> 
-> status SCVYL | signal fe20 | snr e53a | ber 00000130 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe20 | snr e53a | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe30 | snr e3c0 | ber 00000128 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe20 | snr e3c0 | ber 000000a8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe40 | snr e568 | ber 00000060 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe00 | snr e4dc | ber 00000058 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe10 | snr e53a | ber 00000098 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fde0 | snr e4dc | ber 00000118 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe10 | snr e568 | ber 00000168 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fdf0 | snr e53a | ber 000001a0 | unc 00000000 | FE_HAS_LOCK
-> 
-> Card2 and Card4 recording:
-> 
-> status SCVYL | signal fe40 | snr e4ac | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe50 | snr e624 | ber 000001b8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe70 | snr e598 | ber 000000a8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe40 | snr e5c6 | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe40 | snr e53a | ber 000000d8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe50 | snr e50a | ber 00000098 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe10 | snr e50a | ber 000000a0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe10 | snr e598 | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe30 | snr e5f6 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe60 | snr e568 | ber 00000180 | unc 00000000 | FE_HAS_LOCK
-> 
-> Card2 and Card5 recording
-> 
-> status SCVYL | signal fe70 | snr e4ac | ber 000000b8 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe50 | snr e598 | ber 00000190 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe40 | snr e598 | ber 00000118 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe80 | snr e5c6 | ber 00000008 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe50 | snr e568 | ber 000000c0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe70 | snr e5c6 | ber 00000178 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe40 | snr e53a | ber 00000120 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe70 | snr e50a | ber 00000168 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe60 | snr e598 | ber 000000b0 | unc 00000000 | FE_HAS_LOCK
-> status SCVYL | signal fe40 | snr e5c6 | ber 000000f8 | unc 00000000 | FE_HAS_LOCK
-> 
-> I don't see anything significant there.
+ 
+> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>
+> _: Yes
+> _: No
+>
+>   
 
-The BER looks buggy in this driver, assuming these readings are false.
-
-Me neither, other than the dvb cards are reporting bit-errors. This feels like a 
-driver bug not a generic card problem. If these ber's area real then this will 
-account for your video issues, but that would be unrelated to the PVR250.
-
-It'd personally remove the PVR250's and get your DVB statistics to report 0 for 
-BER before continuing.
+YES (but I would go even further)
 
 > 
->> 2. Move the two cards as far apart as possible in the slots in the system 
->> and repeat the test above, any better?
->>
->> What happens?
-> 
-> This will require rmoving cards.  The old system had 5 PCI slots and I
-> had a small ethernet NIC between the pair of 115s and x50s.  The new
-> system only has 4 PCI slots so both pairs are in adjacent slots.  I'll
-> try pulling the x50s one at a time this evening when I get home.
+> Optional question:
+>
+> Why:
+>   
 
-Fold some thick cardboard and place it in between the PVR and the DVB boards, 
-this will block some RF which may be coming from the encoder directly into your 
-demod.
+The aim should be to bring improvements to the released Linux kernel.
 
-Does this help?
+The *only* point relevant for both development and testing is the current
+latest development kernel, currently 2.6.29-rc6.
 
-- Steve
+So I would go further : development should be moved to git and support
+for all previous kernels should be dropped allowing concentration of
+development resources on making patches which will be applied to the head 
+of the git tree.
 
+I think it is completely wrong-headed to have "v4l-dvb" as a thing which 
+can be installed on top of old kernels to add new driver support to old
+kernels. It is a waste of time to create such a thing, and a drain on 
+resources to support.
+
+As for users/testers, the message should be made crystal clear: if you
+want to try running bleeding-edge code to get the latest support your
+hardware the first thing to do is upgrade to the latest kernel. It will
+be easier to communicate with developers who are (or should be!) working
+on improving the latest development kernel.
+
+This is better for everyone : time wasted on backporting and talking
+about/debugging old kernel issues will be eliminated and drivers will 
+released in the mainline kernels faster.
+
+It will also clarify to distros and users where the "coal face" is:
+new hardware support comes from new kernels, not v4l-dvb or (usually) 
+backports or anything else.
+
+Fixes for bugs in last stable kernel (currently 2.6.28.7) should be
+pushed in if known, but never new features.
+
+Distros or those with special commercial reasons can work on backports
+if they really feel they can justify the use of their time, money and
+other resources. They are also the only ones who can properly take account
+of all the userland consequences of making a backport because they see
+the whole system.
+
+Regards,
+Hans
+-- 
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger gehört? Der kann`s mit allen: http://www.gmx.net/de/go/multimessenger01
