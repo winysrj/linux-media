@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.175])
+Received: from mail-fx0-f168.google.com ([209.85.220.168])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1LWrtT-00009f-3O
-	for linux-dvb@linuxtv.org; Tue, 10 Feb 2009 13:39:15 +0100
-Received: by wf-out-1314.google.com with SMTP id 28so2819387wfc.17
-	for <linux-dvb@linuxtv.org>; Tue, 10 Feb 2009 04:39:09 -0800 (PST)
+	(envelope-from <froil.persson@gmail.com>) id 1LcIeZ-0003FT-MP
+	for linux-dvb@linuxtv.org; Wed, 25 Feb 2009 13:14:20 +0100
+Received: by fxm12 with SMTP id 12so3856493fxm.17
+	for <linux-dvb@linuxtv.org>; Wed, 25 Feb 2009 04:13:46 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1234217761.2790.15.camel@pc10.localdom.local>
-References: <200902091233.26086.Nicola.Sabbi@poste.it>
-	<1234217761.2790.15.camel@pc10.localdom.local>
-Date: Tue, 10 Feb 2009 14:39:09 +0200
-Message-ID: <c74595dc0902100439j66981bd7tc68b4a3d177abbe3@mail.gmail.com>
-From: Alex Betis <alex.betis@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] mt352 no more working after suspend to disk
+Date: Wed, 25 Feb 2009 13:13:46 +0100
+Message-ID: <f6ae13650902250413k4b3e4feag296b4270327fd944@mail.gmail.com>
+From: Fredrik Persson <froil.persson@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Pinnacle PCTV 310i
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,157 +19,169 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0972737128=="
+Content-Type: multipart/mixed; boundary="===============0389918910=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0972737128==
-Content-Type: multipart/alternative; boundary=001636e1fcd912f75504628fc624
+--===============0389918910==
+Content-Type: multipart/alternative; boundary=001636c5b422defc5f0463bd2a84
 
---001636e1fcd912f75504628fc624
+--001636c5b422defc5f0463bd2a84
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-I've tried to configure my system for suspends and here are my conclusions,
-maybe it will be helpful:
+Hi
 
-Make sure no applications are using drivers that generally make problems
-after suspend, that means you have to stop/kill them before suspending. I
-use pm-utils script to stop application before suspend and start
-applications after that.
-Make sure you reload the drivers after resume. pm-utils has a feature to
-unload modules before suspend and reload them after resume automatically,
-check the SUSPEND_MODULES configuration. That method works fine for my DVB-S
-drivers, but don't work for my WiFi card, so I had to reload the driver
-after resume in my script.
+I have a Pinnacle PCTV Hybrid Pro310i card which I use on a MythBuntu 8.10
+installation with a 2.6.27-11 Kernel. The installation works great out of
+the box except for one thing.
 
-Hope it helps.
+It often happens that I can't use the dvb part of the card. When this
+happens i get this from dmesg:
 
-On Tue, Feb 10, 2009 at 12:16 AM, hermann pitton <hermann-pitton@arcor.de>wrote:
+Feb 19 06:56:51 mythtv kernel: [  828.597021] tda1004x: setting up plls for
+48MHz sampling clock
+Feb 19 06:56:53 mythtv kernel: [  830.841022] tda1004x: timeout waiting for
+DSP ready
+Feb 19 06:56:53 mythtv kernel: [  830.880022] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 06:56:53 mythtv kernel: [  830.880026] tda1004x: trying to boot from
+eeprom
+Feb 19 06:56:56 mythtv kernel: [  833.209021] tda1004x: timeout waiting for
+DSP ready
+Feb 19 06:56:56 mythtv kernel: [  833.248022] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 06:56:56 mythtv kernel: [  833.248025] tda1004x: waiting for firmware
+upload...
+Feb 19 06:56:56 mythtv kernel: [  833.248029] firmware: requesting
+dvb-fe-tda10046.fw
+Feb 19 06:57:10 mythtv kernel: [  847.772029] tda1004x: timeout waiting for
+DSP ready
+Feb 19 06:57:10 mythtv kernel: [  847.812019] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 06:57:10 mythtv kernel: [  847.812024] tda1004x: firmware upload
+failed
+Feb 19 06:57:42 mythtv kernel: [  879.832020] tda1004x: setting up plls for
+48MHz sampling clock
+Feb 19 06:57:45 mythtv kernel: [  882.076020] tda1004x: timeout waiting for
+DSP ready
+Feb 19 06:57:45 mythtv kernel: [  882.116016] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 06:57:45 mythtv kernel: [  882.116021] tda1004x: trying to boot from
+eeprom
+Feb 19 06:57:47 mythtv kernel: [  884.444022] tda1004x: timeout waiting for
+DSP ready
+Feb 19 06:57:47 mythtv kernel: [  884.484019] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 06:57:47 mythtv kernel: [  884.484024] tda1004x: waiting for firmware
+upload...
+Feb 19 06:57:47 mythtv kernel: [  884.484027] firmware: requesting
+dvb-fe-tda10046.fw
+Feb 19 06:58:02 mythtv kernel: [  899.164015] tda1004x: timeout waiting for
+DSP ready
+Feb 19 06:58:02 mythtv kernel: [  899.204168] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 06:58:02 mythtv kernel: [  899.204175] tda1004x: firmware upload
+failed
+Feb 19 07:14:31 mythtv kernel: [ 1888.392018] tda1004x: setting up plls for
+48MHz sampling clock
+Feb 19 07:14:33 mythtv kernel: [ 1890.636018] tda1004x: timeout waiting for
+DSP ready
+Feb 19 07:14:33 mythtv kernel: [ 1890.676016] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 07:14:33 mythtv kernel: [ 1890.676020] tda1004x: trying to boot from
+eeprom
+Feb 19 07:14:36 mythtv kernel: [ 1893.005014] tda1004x: timeout waiting for
+DSP ready
+Feb 19 07:14:36 mythtv kernel: [ 1893.045014] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 07:14:36 mythtv kernel: [ 1893.045017] tda1004x: waiting for firmware
+upload...
+Feb 19 07:14:36 mythtv kernel: [ 1893.045021] firmware: requesting
+dvb-fe-tda10046.fw
+Feb 19 07:14:50 mythtv kernel: [ 1907.516019] tda1004x: timeout waiting for
+DSP ready
+Feb 19 07:14:50 mythtv kernel: [ 1907.556021] tda1004x: found firmware
+revision 0 -- invalid
+Feb 19 07:14:50 mythtv kernel: [ 1907.556029] tda1004x: firmware upload
+failed
 
-> Hi Nico,
->
-> Am Montag, den 09.02.2009, 12:33 +0100 schrieb Nico Sabbi:
-> > Hi,
-> > if I suspend to disk and next resume I have to manually remove and
-> > reload my mt352 driver, otherwise it complains of a lot of i2c
-> > errors.
-> >
-> > My kernel is suse's 2.6.27.
-> >
-> > Is this problem fixed in recent kernels or in hg?
-> >
-> > Thanks,
-> >       Nico
-> >
->
-> don't know on what driver you report it, but since I know you also have
-> saa7134 driver devices, nobody claimed so far that dvb is suspend/resume
-> safe.
->
-> I recently reported that people have to stay aware after resume, that
-> even without using any dvb app actually during suspend, analog needs to
-> be re-initialized first after that to get the tda10046 in a proper state
-> for DVB-T again, at least on hybrid devices. Unshared DVB-S tuners and
-> demods do stand this already. (medion 8800quad, CTX948, Asus 3in1)
->
-> You can suspend to RAM on analog for example with a running tvtime and
-> resume, but dma sound on saa7134-alsa is also not handled yet. Analog
-> sound works.
->
-> That is the status as far I have it.
->
-> Cheers,
-> Hermann
->
->
->
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
 
---001636e1fcd912f75504628fc624
+It does however not happen every time. I can't make out a clear pattern for
+when this occurs. When i diff the output from dmesg from when everything
+works with the output when i fails I can't find any significant difference.
+I hope someone recognizes this problem and can help me.
+
+
+Best regards
+
+/Fredrik
+
+--001636c5b422defc5f0463bd2a84
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-<div dir=3D"ltr">I&#39;ve tried to configure my system for suspends and her=
-e are my conclusions, maybe it will be helpful:<br><br>Make sure no applica=
-tions are using drivers that generally make problems after suspend, that me=
-ans you have to stop/kill them before suspending. I use pm-utils script to =
-stop application before suspend and start applications after that.<br>
-Make sure you reload the drivers after resume. pm-utils has a feature to un=
-load modules before suspend and reload them after resume automatically, che=
-ck the SUSPEND_MODULES configuration. That method works fine for my DVB-S d=
-rivers, but don&#39;t work for my WiFi card, so I had to reload the driver =
-after resume in my script.<br>
-<br>Hope it helps.<br><br><div class=3D"gmail_quote">On Tue, Feb 10, 2009 a=
-t 12:16 AM, hermann pitton <span dir=3D"ltr">&lt;<a href=3D"mailto:hermann-=
-pitton@arcor.de">hermann-pitton@arcor.de</a>&gt;</span> wrote:<br><blockquo=
-te class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204)=
-; margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi Nico,<br>
+Hi<br><br>I have a Pinnacle PCTV Hybrid Pro310i card which I use on a MythB=
+untu 8.10 installation with a 2.6.27-11 Kernel. The installation works grea=
+t out of the box except for one thing.<br><br>It often happens that I can&#=
+39;t use the dvb part of the card. When this happens i get this from dmesg:=
 <br>
-Am Montag, den 09.02.2009, 12:33 +0100 schrieb Nico Sabbi:<br>
-&gt; Hi,<br>
-&gt; if I suspend to disk and next resume I have to manually remove and<br>
-&gt; reload my mt352 driver, otherwise it complains of a lot of i2c<br>
-&gt; errors.<br>
-&gt;<br>
-&gt; My kernel is suse&#39;s 2.6.27.<br>
-&gt;<br>
-&gt; Is this problem fixed in recent kernels or in hg?<br>
-&gt;<br>
-&gt; Thanks,<br>
-&gt; &nbsp; &nbsp; &nbsp; Nico<br>
-&gt;<br>
-<br>
-don&#39;t know on what driver you report it, but since I know you also have=
-<br>
-saa7134 driver devices, nobody claimed so far that dvb is suspend/resume<br=
->
-safe.<br>
-<br>
-I recently reported that people have to stay aware after resume, that<br>
-even without using any dvb app actually during suspend, analog needs to<br>
-be re-initialized first after that to get the tda10046 in a proper state<br=
->
-for DVB-T again, at least on hybrid devices. Unshared DVB-S tuners and<br>
-demods do stand this already. (medion 8800quad, CTX948, Asus 3in1)<br>
-<br>
-You can suspend to RAM on analog for example with a running tvtime and<br>
-resume, but dma sound on saa7134-alsa is also not handled yet. Analog<br>
-sound works.<br>
-<br>
-That is the status as far I have it.<br>
-<br>
-Cheers,<br>
-Hermann<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb users mailing list<br>
-For V4L/DVB development, please use instead <a href=3D"mailto:linux-media@v=
-ger.kernel.org">linux-media@vger.kernel.org</a><br>
-<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
-t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
-br>
-</blockquote></div><br></div>
+<br>Feb 19 06:56:51 mythtv kernel: [=A0 828.597021] tda1004x: setting up pl=
+ls for 48MHz sampling clock<br>Feb 19 06:56:53 mythtv kernel: [=A0 830.8410=
+22] tda1004x: timeout waiting for DSP ready<br>Feb 19 06:56:53 mythtv kerne=
+l: [=A0 830.880022] tda1004x: found firmware revision 0 -- invalid<br>
+Feb 19 06:56:53 mythtv kernel: [=A0 830.880026] tda1004x: trying to boot fr=
+om eeprom<br>Feb 19 06:56:56 mythtv kernel: [=A0 833.209021] tda1004x: time=
+out waiting for DSP ready<br>Feb 19 06:56:56 mythtv kernel: [=A0 833.248022=
+] tda1004x: found firmware revision 0 -- invalid<br>
+Feb 19 06:56:56 mythtv kernel: [=A0 833.248025] tda1004x: waiting for firmw=
+are upload...<br>Feb 19 06:56:56 mythtv kernel: [=A0 833.248029] firmware: =
+requesting dvb-fe-tda10046.fw<br>Feb 19 06:57:10 mythtv kernel: [=A0 847.77=
+2029] tda1004x: timeout waiting for DSP ready<br>
+Feb 19 06:57:10 mythtv kernel: [=A0 847.812019] tda1004x: found firmware re=
+vision 0 -- invalid<br>Feb 19 06:57:10 mythtv kernel: [=A0 847.812024] tda1=
+004x: firmware upload failed<br>Feb 19 06:57:42 mythtv kernel: [=A0 879.832=
+020] tda1004x: setting up plls for 48MHz sampling clock<br>
+Feb 19 06:57:45 mythtv kernel: [=A0 882.076020] tda1004x: timeout waiting f=
+or DSP ready<br>Feb 19 06:57:45 mythtv kernel: [=A0 882.116016] tda1004x: f=
+ound firmware revision 0 -- invalid<br>Feb 19 06:57:45 mythtv kernel: [=A0 =
+882.116021] tda1004x: trying to boot from eeprom<br>
+Feb 19 06:57:47 mythtv kernel: [=A0 884.444022] tda1004x: timeout waiting f=
+or DSP ready<br>Feb 19 06:57:47 mythtv kernel: [=A0 884.484019] tda1004x: f=
+ound firmware revision 0 -- invalid<br>Feb 19 06:57:47 mythtv kernel: [=A0 =
+884.484024] tda1004x: waiting for firmware upload...<br>
+Feb 19 06:57:47 mythtv kernel: [=A0 884.484027] firmware: requesting dvb-fe=
+-tda10046.fw<br>Feb 19 06:58:02 mythtv kernel: [=A0 899.164015] tda1004x: t=
+imeout waiting for DSP ready<br>Feb 19 06:58:02 mythtv kernel: [=A0 899.204=
+168] tda1004x: found firmware revision 0 -- invalid<br>
+Feb 19 06:58:02 mythtv kernel: [=A0 899.204175] tda1004x: firmware upload f=
+ailed<br>Feb 19 07:14:31 mythtv kernel: [ 1888.392018] tda1004x: setting up=
+ plls for 48MHz sampling clock<br>Feb 19 07:14:33 mythtv kernel: [ 1890.636=
+018] tda1004x: timeout waiting for DSP ready<br>
+Feb 19 07:14:33 mythtv kernel: [ 1890.676016] tda1004x: found firmware revi=
+sion 0 -- invalid<br>Feb 19 07:14:33 mythtv kernel: [ 1890.676020] tda1004x=
+: trying to boot from eeprom<br>Feb 19 07:14:36 mythtv kernel: [ 1893.00501=
+4] tda1004x: timeout waiting for DSP ready<br>
+Feb 19 07:14:36 mythtv kernel: [ 1893.045014] tda1004x: found firmware revi=
+sion 0 -- invalid<br>Feb 19 07:14:36 mythtv kernel: [ 1893.045017] tda1004x=
+: waiting for firmware upload...<br>Feb 19 07:14:36 mythtv kernel: [ 1893.0=
+45021] firmware: requesting dvb-fe-tda10046.fw<br>
+Feb 19 07:14:50 mythtv kernel: [ 1907.516019] tda1004x: timeout waiting for=
+ DSP ready<br>Feb 19 07:14:50 mythtv kernel: [ 1907.556021] tda1004x: found=
+ firmware revision 0 -- invalid<br>Feb 19 07:14:50 mythtv kernel: [ 1907.55=
+6029] tda1004x: firmware upload failed<br>
+<br><br>It does however not happen every time. I can&#39;t make out a clear=
+ pattern for when this occurs. When i diff the output from dmesg from when =
+everything works with the output when i fails I can&#39;t find any signific=
+ant difference. I hope someone recognizes this problem and can help me.<br>
+<br><br>Best regards<br><br>/Fredrik<br>
 
---001636e1fcd912f75504628fc624--
+--001636c5b422defc5f0463bd2a84--
 
 
---===============0972737128==
+--===============0389918910==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -184,4 +192,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0972737128==--
+--===============0389918910==--
