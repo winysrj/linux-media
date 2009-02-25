@@ -1,52 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55369 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753188AbZBATHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Feb 2009 14:07:34 -0500
-Date: Sun, 1 Feb 2009 20:07:42 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Magnus <magnus.damm@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] soc_camera: Add FLDPOL flags
-In-Reply-To: <utz7hm9r1.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0902012003030.17985@axis700.grange>
-References: <utz7hm9r1.wl%morimoto.kuninori@renesas.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:47589 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754005AbZBYDRb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Feb 2009 22:17:31 -0500
+Date: Wed, 25 Feb 2009 00:16:35 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: kilgota@banach.math.auburn.edu
+Cc: Adam Baker <linux@baker-net.org.uk>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Olivier Lorin <o.lorin@laposte.net>,
+	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Message-ID: <20090225001635.0543a2dc@pedra.chehab.org>
+In-Reply-To: <alpine.LNX.2.00.0902241914530.15651@banach.math.auburn.edu>
+References: <200902180030.52729.linux@baker-net.org.uk>
+	<200902211253.58061.hverkuil@xs4all.nl>
+	<20090223080715.0c97774e@pedra.chehab.org>
+	<200902232237.32362.linux@baker-net.org.uk>
+	<alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
+	<alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org>
+	<alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu>
+	<alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org>
+	<alpine.LNX.2.00.0902241914530.15651@banach.math.auburn.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Jan 2009, Kuninori Morimoto wrote:
+On Tue, 24 Feb 2009 20:12:00 -0600 (CST)
+kilgota@banach.math.auburn.edu wrote:
 
+> > For sure we need to have a way for retrieving this information for devices 
+> > like the sq905 cameras, where the information can't be currently be 
+> > determined by userspace.  
 > 
-> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> ---
->  include/media/soc_camera.h |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+> Yes, indeed. Except for just one word, "currently." It does not fit here. 
+
+Yes, it fits, since, after implementing the API, the userspace will have this
+information by using the agreed API.
+
+> > If so, IMO, the 
+> > better approach is to use a flag at the v4l2_input, as already discussed in 
+> > this thread.  
 > 
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index 7440d92..2c7ecdf 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -231,6 +231,8 @@ static inline struct v4l2_queryctrl const *soc_camera_find_qctrl(
->  #define SOCAM_PCLK_SAMPLE_FALLING	(1 << 13)
->  #define SOCAM_DATA_ACTIVE_HIGH		(1 << 14)
->  #define SOCAM_DATA_ACTIVE_LOW		(1 << 15)
-> +#define SOCAM_FLDPOL_ACTIVE_HIGH	(1 << 16)
-> +#define SOCAM_FLDPOL_ACTIVE_LOW		(1 << 17)
->  
->  #define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_4 | SOCAM_DATAWIDTH_8 | \
->  			      SOCAM_DATAWIDTH_9 | SOCAM_DATAWIDTH_10 | \
+> OK.
 
-"FLDPOL" is the name of a field in the register, and it means "field ID 
-polarity," i.e., the polarity of the field ID signal. Hence the name 
-you're proposing reads: "field ID polarity active {low,high}," which seems 
-redundant to me. What about SOCAM_FIELD_ID_ACTIVE_{HIGH,LOW}? Following 
-the scheme "SOCAM_<signal name>_ACTIVE_*."
+As it seems to be a consensus that the better is to use a flag inside
+v4l2_input, could you please provide us an RFC patch to implement it and update
+the V4L2 spec?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Cheers,
+Mauro
