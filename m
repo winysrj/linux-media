@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1A0phlx029940
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 19:51:43 -0500
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.30])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1A0p4Go015694
-	for <video4linux-list@redhat.com>; Mon, 9 Feb 2009 19:51:04 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so476618ywe.81
-	for <video4linux-list@redhat.com>; Mon, 09 Feb 2009 16:51:04 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <3148792E84E9450D9E2AF67899BF7D00@lynxwebdesign>
-References: <3148792E84E9450D9E2AF67899BF7D00@lynxwebdesign>
-Date: Mon, 9 Feb 2009 19:51:03 -0500
-Message-ID: <b24e53350902091651u48a3d921k574e0fdab21a1f7e@mail.gmail.com>
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: Wayne Bragg <wlbragg@cox.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1PGJ4nB005638
+	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 11:19:04 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1PGImDw012744
+	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 11:18:48 -0500
+Date: Wed, 25 Feb 2009 10:18:12 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Vitaly Wool <vital@embeddedalley.com>
+Message-ID: <20090225101812.212fabbe@caramujo.chehab.org>
+In-Reply-To: <49A567D9.80805@embeddedalley.com>
+References: <49A3A61F.30509@embeddedalley.com>
+	<20090224234205.7a5ca4ca@pedra.chehab.org>
+	<49A53CB9.1040109@embeddedalley.com>
+	<20090225090728.7f2b0673@caramujo.chehab.org>
+	<49A567D9.80805@embeddedalley.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Fw: compiling and installing driver
+Cc: video4linux-list@redhat.com, em28xx@mcentral.de
+Subject: Re: em28xx: Compro VideoMate For You sound problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,524 +31,138 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Feb 9, 2009 at 6:51 PM, Wayne Bragg <wlbragg@cox.net> wrote:
-> I found this out there on the web
-> http://n2.nabble.com/Kworld-315U-help--td2110595.html#a2110682
-> and wondered if you were still on this list Douglas Landgraf or Franklin
-> Meng? If so did you get this device working and can you help me do the same?
->
-> -----Original Message ----- From: "Wayne Bragg" <wlbragg@cox.net>
-> To: <video4linux-list@redhat.com>
-> Sent: Sunday, February 08, 2009 12:02 AM
-> Subject: Re: compiling and installing driver
->
->
-> On Fri, Feb 6, 2009 at 2:25 PM, Wayne Bragg <wlbragg@cox.net> wrote:
->>
->> Can someone point me to docs on compiling and installing the v4l drivers
->> in Ubuntu. I
->> am a total dweeb newbe and need a good tutorial.
->
-> http://linuxtv.org/repo/
->
-> Devin
->
-> --------------------------
->
->
-> Thank's Devin,
->
-> I am trying to get Kworld ATSC USB 315U TV device working in linux (Ubuntu)
-> I think I needed the v4l-dvb drivers so I followed the proceedures at
->
-> http://linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
->
-> but hit a snag right off the bat and don't know what to do next.
-> Specifically the line about
->
->> "Provided that the drivers were loaded, you should now have a non-empty
->> /dev/dvb directory"
->
-> which I didn't have. So I tried the rest of the instructions and installed
-> the v4l-dvb drivers, rebooted and still no /dev/dvb directories.
-> Linux is not seeing the usb device at all except with
-> lsusb
-> I get the same output as
-> http://linuxtv.org/wiki/index.php/KWorld_ATSC_315U
-> which is
-> Bus 001 Device 002: ID eb1a:a313 eMPIA Technology, Inc.
-> Device Descriptor:
-> bLength                18
-> bDescriptorType         1
-> bcdUSB               2.00
-> bDeviceClass            0 (Defined at Interface level)
-> bDeviceSubClass         0
-> bDeviceProtocol         0
-> bMaxPacketSize0        64
-> idVendor           0xeb1a eMPIA Technology, Inc.
-> idProduct          0xa313
-> bcdDevice            1.10
-> iManufacturer           0
-> iProduct                1
-> iSerial                 0
-> bNumConfigurations      1
-> Configuration Descriptor:
->  bLength                 9
->  bDescriptorType         2
->  wTotalLength          305
->  bNumInterfaces          1
->  bConfigurationValue     1
->  iConfiguration          0
->  bmAttributes         0x80
->    (Bus Powered)
->  MaxPower              500mA
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       0
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0000  1x 0 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0000  1x 0 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0000  1x 0 bytes
->      bInterval               1
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       1
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0000  1x 0 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x00c4  1x 196 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x02f0  1x 752 bytes
->      bInterval               1
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       2
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0ad4  2x 724 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x00c4  1x 196 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x02f0  1x 752 bytes
->      bInterval               1
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       3
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0c00  2x 0 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x00c4  1x 196 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x02f0  1x 752 bytes
->      bInterval               1
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       4
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x1300  3x 768 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x00c4  1x 196 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x02f0  1x 752 bytes
->      bInterval               1
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       5
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x135c  3x 860 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x00c4  1x 196 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x02f0  1x 752 bytes
->      bInterval               1
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       6
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x13c4  3x 964 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x00c4  1x 196 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x02f0  1x 752 bytes
->      bInterval               1
->  Interface Descriptor:
->    bLength                 9
->    bDescriptorType         4
->    bInterfaceNumber        0
->    bAlternateSetting       7
->    bNumEndpoints           4
->    bInterfaceClass       255 Vendor Specific Class
->    bInterfaceSubClass      0
->    bInterfaceProtocol    255
->    iInterface              0
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x81  EP 1 IN
->      bmAttributes            3
->        Transfer Type            Interrupt
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x0001  1x 1 bytes
->      bInterval              11
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x82  EP 2 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x1400  3x 0 bytes
->      bInterval               1
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x83  EP 3 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x00c4  1x 196 bytes
->      bInterval               4
->    Endpoint Descriptor:
->      bLength                 7
->      bDescriptorType         5
->      bEndpointAddress     0x84  EP 4 IN
->      bmAttributes            1
->        Transfer Type            Isochronous
->        Synch Type               None
->        Usage Type               Data
->      wMaxPacketSize     0x02f0  1x 752 bytes
->      bInterval               1
-> I have no idea where to go from here. Can anyone steer me in the right
-> direction?Thanks
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=subscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
-> --------------------------------------------------------------------------------
->
->
->
-> No virus found in this incoming message.
-> Checked by AVG - www.avg.com
-> Version: 8.0.233 / Virus Database: 270.10.19/1939 - Release Date: 02/06/09
-> 17:28:00
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
+On Wed, 25 Feb 2009 18:46:33 +0300
+Vitaly Wool <vital@embeddedalley.com> wrote:
 
-Wayne:
+> Mauro,
+> 
+> Mauro Carvalho Chehab wrote:
+> 
+> > Ok, so if everything else is properly configured on em28xx, you should have
+> > audio working. 
+> >
+> > I've just committed a patch that should automatically load tvaudio for your
+> > board. Could you please test it?
+> it looks like I've got the sound coming out of the board with the following piece of hackery:
+> 
+> diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+> index eee8d01..55bcf42 100644
+> --- a/drivers/media/video/em28xx/em28xx-core.c
+> +++ b/drivers/media/video/em28xx/em28xx-core.c
+> @@ -406,6 +406,24 @@ int em28xx_audio_analog_set(struct em28xx *dev)
+>  	int ret, i;
+>  	u8 xclk;
+>  
+> +	if (dev->i2c_tvaudio_client) {
+> +		char c;
+> +		switch (dev->ctl_ainput) {
+> +		case 0:
+> +			c = 0xfd;
+> +			break;
+> +		case 1:
+> +			c = 0xfc;
+> +			break;
+> +		default:
+> +			c = 0xfe;
+> +			break;
+> +		}
+> +		if (dev->mute)
+> +			c = 0xfe;
+> +		return em28xx_write_regs(dev, 0x08, &c, 1);
+> +	}
 
->From the command line do 'lsmod | grep em28xx'.  You should see
-several modules with em28xx as the prefix.  You should see one called
-em28xx-dvb.  When I build v4l I do 'make clean; make distclean; make;
-make unload; make install; make load' from the command line.  I assume
-that you followed the same steps.  When you build and install v4l it
-is a good idea to remove and re-insert usb devices and better yet
-reboot to insure that the device is detected and the proper modules
-loaded.  The 'make load' step will force all v4l driver modules to
-load but I am not sure if v4l will scan the PCI bid and USB bus to try
-to detect v4l devices after a fresh install but before a restart.
+Ah, so, it needs gpio setups per input. This is supported by the driver. You
+just need to add a .gpio entry just like what he have for
+EM2882_BOARD_TERRATEC_HYBRID_XS.
 
-Best Regards,
+> diff --git a/drivers/media/video/em28xx/em28xx-i2c.c b/drivers/media/video/em28xx/em28xx-i2c.c
+> index 2dab43d..55e5a2e 100644
+> --- a/drivers/media/video/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/video/em28xx/em28xx-i2c.c
+> @@ -510,12 +510,21 @@ static int attach_inform(struct i2c_client *client)
+>  		dprintk1(1, "attach_inform: tvp5150 detected.\n");
+>  		break;
+>  
+> +	case 0xb0:
+> +		dprintk1(1, "attach_inform: tda9874 detected\n");
+> +		dprintk1(1, "driver id %d\n", client->driver->id);
+> +		dev->i2c_tvaudio_client = client;
+> +		if (!dev->tuner_addr)
+> +			dev->tuner_addr = client->addr;
+> +		break;
+> +
 
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+The above is not needed, and it is wrong to touch at tuner_addr. It would ok to
+just add a printk there to inform that tvaudio were connected.
+
+> @@ -554,6 +563,7 @@ static char *i2c_devs[128] = {
+>  	[0x80 >> 1] = "msp34xx",
+>  	[0x88 >> 1] = "msp34xx",
+>  	[0xa0 >> 1] = "eeprom",
+> +	[0xb0 >> 1] = "tvaudio",
+>  	[0xb8 >> 1] = "tvp5150a",
+>  	[0xba >> 1] = "tvp5150a",
+>  	[0xc0 >> 1] = "tuner (analog)",
+
+instead of tvaudio, please use tda9874. there are other audio devices on 0xb0 address.
+
+> diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+> index efd6415..5f7f4da 100644
+> --- a/drivers/media/video/em28xx/em28xx-video.c
+> +++ b/drivers/media/video/em28xx/em28xx-video.c
+> @@ -540,6 +540,13 @@ static void video_mux(struct em28xx *dev, int index)
+>  			&route);
+>  	}
+>  
+> +	if (dev->i2c_tvaudio_client) {
+> +		route.input = dev->ctl_ainput;
+> +		route.output = 0;
+> +		em28xx_i2c_call_clients(dev, VIDIOC_INT_S_AUDIO_ROUTING,
+> +			&route);
+> +	}
+> +
+>  	em28xx_audio_analog_set(dev);
+>  }
+
+Ok, this is needed. After my patch, the test should be:
+	if (dev->board.adecoder != EM28XX_NOADECODER)
+
+This will be generic enough to work with other devices with audio decoders. We
+are currently working with another em28xx that has a yet unsupported audio
+chip. I suspect that the list of audio chips will need to be increased. So, it
+is better to have a more generic support to allow loading other audio decoders.
+
+> diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+> index 100f90a..c263f5d 100644
+> --- a/drivers/media/video/em28xx/em28xx-cards.c
+> +++ b/drivers/media/video/em28xx/em28xx-cards.c
+> @@ -1248,7 +1248,7 @@ struct em28xx_board em28xx_boards[] = {
+>  		.input        = { {
+>  			.type     = EM28XX_VMUX_TELEVISION,
+>  			.vmux     = TVP5150_COMPOSITE0,
+> -			.amux     = EM28XX_AMUX_LINE_IN,
+> +			.amux     = EM28XX_AMUX_VIDEO,
+>  		}, {
+>  			.type     = EM28XX_VMUX_SVIDEO,
+>  			.vmux     = TVP5150_SVIDEO,
+
+The actual value for amux will depend on your mixer chip, if there is any.
+Could you provide your full em28xx log? Let's see if it will detect EM202 or
+another AC97 chip.
+
+> Please note the .amux change; my bad it wasn't right from the bery beginning. However, just changing it
+> doesn't make things work, either with your latest patch or without it. Changes in em28xx_audio_analog_set are 
+> apparently what matter. but I'm not sure.
+> 
+> The other thing is that even with this patch, I'm getting more noise than TV sound. That might be related to
+> some TDA9874 programming needed and not done, but I'm not sure here either.
+
+It may be due to that wrong change on em28xx-i2c.
+
+IMO, it would be better if you could do a patch with the remaining changes. 
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
