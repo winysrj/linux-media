@@ -1,151 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 78-86-168-217.zone2.bethere.co.uk ([78.86.168.217]:53709 "EHLO
-	homer.jasonline.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752064AbZBAMt6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Feb 2009 07:49:58 -0500
-Message-ID: <49859A71.70701@jasonline.co.uk>
-Date: Sun, 01 Feb 2009 12:49:53 +0000
-From: Jason Harvey <softdevice@jasonline.co.uk>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1436 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753937AbZBYIfn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2009 03:35:43 -0500
+Message-ID: <56153.62.70.2.252.1235550939.squirrel@webmail.xs4all.nl>
+Date: Wed, 25 Feb 2009 09:35:39 +0100 (CET)
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Simon Kenyon" <simon@koala.ie>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Thierry Merle <thierry.merle@free.fr>
-Subject: Re: CinergyT2 not working with newer alternative driver
-References: <4984E50D.8000506@jasonline.co.uk> <49857A09.9020302@free.fr>
-In-Reply-To: <49857A09.9020302@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thierry Merle wrote:
-> Hi Jason,
-> Jason Harvey wrote:
->   
->> I have been successfully using VDR with two CinergyT2s for 18 months.
->> After adding a Hauppage NOVA-S2-HD I updated my v4l-dvb drivers hoping
->> to get S2 capability and test a newer VDR for HD reception.
+
+> Hans Verkuil wrote:
+>> Hi all,
 >>
->> The CinergyT2s stopped working. The kernel module loads, the blue leds
->> flash as expected but they don't lock on to a signal for long.
->> Signal strength shown in femon is erratic and a lock only rarely achieved.
+>> There are lot's of discussions, but it can be hard sometimes to actually
+>> determine someone's opinion.
 >>
->> I checked through the mercurial tree to see what had changed.
->> It looks like the following change is the one that stops the CinergyT2s
->> working on my system.
->> http://git.kernel.org/?p=linux/kernel/git/mchehab/devel.git;a=commit;h=986bd1e58b18c09b753f797df19251804bfe3e84
+>> So here is a quick poll, please reply either to the list or directly to
+>> me
+>> with your yes/no answer and (optional but welcome) a short explanation
+>> to
+>> your standpoint. It doesn't matter if you are a user or developer, I'd
+>> like
+>> to see your opinion regardless.
+>>
+>> Please DO NOT reply to the replies, I'll summarize the results in a
+>> week's
+>> time and then we can discuss it further.
+>>
+>> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>>
+>> _: Yes
+>> _: No
+>>
+> No
+>> Optional question:
+>>
+>> Why:
 >>
 >>
->> I deleted the newer version of the module and replace it with the
->> previous deleted code.
->> Make'd and installed the old version works as expected.
->>
->> Machine they're plugged into is running Fedora 10,
->> 2.6.27.12-170.2.5.fc10.i686
->> I downloaded the current v4l-dvb today (31Jan2009) and tried it all
->> again before posting this message.
->>
->> Not sure where to look next, I did start to capture the USB traffic to
->> see if I could spot the difference...
->>
->>     
-> Please take a look at the message logs (dmesg).
-> You can follow the instructions described here http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
-> and report where it fails.
+> i don't have a vote as i'm only a user and not a developer
+
+Users *especially* have a vote. This poll is among others meant to get a
+feeling for how important people think the backwards compat is. I think it
+is of limited importance, but I've no way of knowing that for certain
+unless I get feedback. So I invite anyone, developer or user, to give
+their opinion!
+
+And it's not a case of 'most votes count'. It's not that type of a poll.
+It's really a survey. (Hmm, that would have been a better name for this
+anyway. So sue me :-) ).
+
+Regards,
+
+         Hans
+
+> but i thought i would just make one point
 >
-> I use tzap like this: tzap -c $HOME/.tzap/channels.conf -s -t 120 -r -o output.mpg "SomeChannel"
-> I am able to play with mplayer too.
-> Regards,
-> Thierry
->   
-Hi Thierry,
-
-Thank you for the quick reply.
-I should have looked in dmesg before...
-Checking dmesg before I used tzap shows a problem. dvb-usb: recv bulk 
-message failed: -110
-
-**** Extract of dmesg ****
-
-dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm 
-state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T 
-Receiver)
-DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed 
-DVB-T Receiver)...
-input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input8
-dvb-usb: schedule remote query interval to 50 msecs.
-dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully 
-initialized and connected.
-dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm 
-state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T 
-Receiver)
-DVB: registering adapter 1 frontend 0 (TerraTec/qanu USB2.0 Highspeed 
-DVB-T Receiver)...
-input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input9
-dvb-usb: schedule remote query interval to 50 msecs.
-dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully 
-initialized and connected.
-usbcore: registered new interface driver cinergyT2
-
-dvb-usb: recv bulk message failed: -110
-dvb-usb: recv bulk message failed: -110
-
-****
-
-Running tzap fails to tune/lock
-
-#tzap -a 0 -c channels.conf_dvbt -s -t 120 -r -o output.mpg "BBC ONE"
-
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file 'channels.conf_dvbt'
-tuning to 505833330 Hz
-video pid 0x0258, audio pid 0x0259
-status 01 | signal c11f | snr 0000 | ber ffffffff | unc ffffffff |
-
-No more messages in dmesg.
-
-I shut down the PC, removed all power, unplugged the CinergyT2s, gave it 
-twenty seconds and powered back up.
-Once it had booted I plugged in one of the devices and the dmesg output 
-below.
+> as far as i can see, the v4l-dvb tree exists to create support for a
+> particular class of hardware within the linux kernel
+> the separate tree is very useful to lots of people (i include myself in
+> that) - but it is a byproduct of the development methodology
+>
+> so if you think this group's mission is to provide support for
+> distributions then you should vote no
+> and if you think this group's mission is to provide support for the
+> linux kernel then you should vote yes
+>
+>>
+>> Thanks,
+>>
+>> 	Hans
+>>
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
-usb 2-5: new high speed USB device using ehci_hcd and address 3
-usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has invalid 
-maxpacket 64
-usb 2-5: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has 
-invalid maxpacket 64
-usb 2-5: configuration #1 chosen from 1 choice
-usb 2-5: New USB device found, idVendor=0ccd, idProduct=0038
-usb 2-5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 2-5: Product: Cinergy T?
-usb 2-5: Manufacturer: TerraTec GmbH
-dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm 
-state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
-DVB: registering adapter 1 frontend 0 (TerraTec/qanu USB2.0 Highspeed 
-DVB-T Receiver)...
-input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1d.7/usb2/2-5/input/input9
-dvb-usb: schedule remote query interval to 50 msecs.
-dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully 
-initialized and connected.
-usbcore: registered new interface driver cinergyT2
-dvb-usb: recv bulk message failed: -110
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-Cannot tzap or scan.
-
-With the old version of the driver I don't have any trouble at all.
-
-Hope this helps.
-
-Regards, Jason
