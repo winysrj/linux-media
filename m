@@ -1,29 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:58289 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbZBPTgl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 14:36:41 -0500
-Date: Mon, 16 Feb 2009 20:36:29 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: [review patch 0/1] add firedtv driver for FireWire-attached DVB
- receivers
-To: linux-kernel@vger.kernel.org
-cc: linux-media@vger.kernel.org, linux1394-devel@lists.sourceforge.net
-In-Reply-To: <tkrat.63c8bdca2465364b@s5r6.in-berlin.de>
-Message-ID: <tkrat.1097aaf563c0d0bd@s5r6.in-berlin.de>
-References: <tkrat.265ed076d414bd49@s5r6.in-berlin.de>
- <tkrat.63c8bdca2465364b@s5r6.in-berlin.de>
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.106]:60368
+	"EHLO outbound.icp-qv1-irony-out1.iinet.net.au"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755676AbZBYVlX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Feb 2009 16:41:23 -0500
+Received: from e4.eyal.emu.id.au (really [192.168.3.4]) by eyal.emu.id.au
+	via in.smtpd with esmtp
+	id <m1LcRLH-001ILHC@eyal.emu.id.au> (Debian Smail3.2.0.115)
+	for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 08:30:59 +1100 (EST)
+Message-ID: <49A5B891.5050409@eyal.emu.id.au>
+Date: Thu, 26 Feb 2009 08:30:57 +1100
+From: Eyal Lebedinsky <eyal@eyal.emu.id.au>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+To: list linux-dvb <linux-media@vger.kernel.org>
+Subject: saa716x: fedora 10 missing spi in kernels?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The subject of <tkrat.63c8bdca2465364b@s5r6.in-berlin.de> was meant to
-become [review patch 1/1]...
--- 
-Stefan Richter
--=====-==--= --=- =----
-http://arcgraph.de/sr/
+I find that the latest drivers for the saa716x require spi but the necessary symbols
+are unresolved. My f10 kernel .config shows CONFIG_SPI=n.
 
+Is this correct? How can I load the saa driver?
+
+-- 
+Eyal Lebedinsky	(eyal@eyal.emu.id.au)
