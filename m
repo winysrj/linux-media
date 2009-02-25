@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KHBbrf027966
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:11:38 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.28])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1KHAeTM004645
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:11:06 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so367417yxm.81
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 09:10:40 -0800 (PST)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1PFrFE5016903
+	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 10:53:15 -0500
+Received: from smtp105.biz.mail.re2.yahoo.com (smtp105.biz.mail.re2.yahoo.com
+	[206.190.52.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n1PFp5ME029753
+	for <video4linux-list@redhat.com>; Wed, 25 Feb 2009 10:51:39 -0500
+Message-ID: <49A567D9.80805@embeddedalley.com>
+Date: Wed, 25 Feb 2009 18:46:33 +0300
+From: Vitaly Wool <vital@embeddedalley.com>
 MIME-Version: 1.0
-In-Reply-To: <499EC9CC.3040703@linuxtv.org>
-References: <412bdbff0902200317h26f4d42fh4327b3ff08c79d5c@mail.gmail.com>
-	<499EC9CC.3040703@linuxtv.org>
-Date: Fri, 20 Feb 2009 12:10:40 -0500
-Message-ID: <b24e53350902200910p1f5745b6s864490400f50b9@mail.gmail.com>
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: Steven Toth <stoth@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <49A3A61F.30509@embeddedalley.com>	<20090224234205.7a5ca4ca@pedra.chehab.org>	<49A53CB9.1040109@embeddedalley.com>
+	<20090225090728.7f2b0673@caramujo.chehab.org>
+In-Reply-To: <20090225090728.7f2b0673@caramujo.chehab.org>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: HVR-950q analog support - testers wanted
+Cc: video4linux-list@redhat.com, em28xx@mcentral.de
+Subject: Re: em28xx: Compro VideoMate For You sound problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,46 +29,135 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Feb 20, 2009 at 10:18 AM, Steven Toth <stoth@linuxtv.org> wrote:
-> Devin Heitmueller wrote:
->>
->> Hello,
->>
->> There is now a test repository that provides analog support for the
->> HVR-950q:
->>
->> http://linuxtv.org/hg/~dheitmueller/hvr950q-analog
->>
->> I welcome people interested in analog support for the 950q to download
->> the tree and provide feedback.
->
-> I only have time today for a small amount of testing but QAM and ATSC are
-> still working reliably. No obvious issues. No obvious regressions.
->
-> I'll load this up on my myth box this weekend and ensure it's still reliable
-> over the long term.
->
-> I'll be in touch.
->
-> - Steve
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
+Mauro,
 
-I will test it today!!!  Thanks Steve...
+Mauro Carvalho Chehab wrote:
 
--- 
-Rob Krakora
-Senior Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+> Ok, so if everything else is properly configured on em28xx, you should have
+> audio working. 
+>
+> I've just committed a patch that should automatically load tvaudio for your
+> board. Could you please test it?
+it looks like I've got the sound coming out of the board with the following piece of hackery:
+
+diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+index eee8d01..55bcf42 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -406,6 +406,24 @@ int em28xx_audio_analog_set(struct em28xx *dev)
+ 	int ret, i;
+ 	u8 xclk;
+ 
++	if (dev->i2c_tvaudio_client) {
++		char c;
++		switch (dev->ctl_ainput) {
++		case 0:
++			c = 0xfd;
++			break;
++		case 1:
++			c = 0xfc;
++			break;
++		default:
++			c = 0xfe;
++			break;
++		}
++		if (dev->mute)
++			c = 0xfe;
++		return em28xx_write_regs(dev, 0x08, &c, 1);
++	}
++
+ 	if (!dev->audio_mode.has_audio)
+ 		return 0;
+ 
+diff --git a/drivers/media/video/em28xx/em28xx-i2c.c b/drivers/media/video/em28xx/em28xx-i2c.c
+index 2dab43d..55e5a2e 100644
+--- a/drivers/media/video/em28xx/em28xx-i2c.c
++++ b/drivers/media/video/em28xx/em28xx-i2c.c
+@@ -510,12 +510,21 @@ static int attach_inform(struct i2c_client *client)
+ 		dprintk1(1, "attach_inform: tvp5150 detected.\n");
+ 		break;
+ 
++	case 0xb0:
++		dprintk1(1, "attach_inform: tda9874 detected\n");
++		dprintk1(1, "driver id %d\n", client->driver->id);
++		dev->i2c_tvaudio_client = client;
++		if (!dev->tuner_addr)
++			dev->tuner_addr = client->addr;
++		break;
++
+ 	default:
+ 		if (!dev->tuner_addr)
+ 			dev->tuner_addr = client->addr;
+ 
+ 		dprintk1(1, "attach inform: detected I2C address %x\n",
+ 				client->addr << 1);
++		dprintk1(1, "driver id %d\n", client->driver->id);
+ 
+ 	}
+ 
+@@ -554,6 +563,7 @@ static char *i2c_devs[128] = {
+ 	[0x80 >> 1] = "msp34xx",
+ 	[0x88 >> 1] = "msp34xx",
+ 	[0xa0 >> 1] = "eeprom",
++	[0xb0 >> 1] = "tvaudio",
+ 	[0xb8 >> 1] = "tvp5150a",
+ 	[0xba >> 1] = "tvp5150a",
+ 	[0xc0 >> 1] = "tuner (analog)",
+diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+index efd6415..5f7f4da 100644
+--- a/drivers/media/video/em28xx/em28xx-video.c
++++ b/drivers/media/video/em28xx/em28xx-video.c
+@@ -540,6 +540,13 @@ static void video_mux(struct em28xx *dev, int index)
+ 			&route);
+ 	}
+ 
++	if (dev->i2c_tvaudio_client) {
++		route.input = dev->ctl_ainput;
++		route.output = 0;
++		em28xx_i2c_call_clients(dev, VIDIOC_INT_S_AUDIO_ROUTING,
++			&route);
++	}
++
+ 	em28xx_audio_analog_set(dev);
+ }
+ 
+diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+index 3e82d81..67c00af 100644
+--- a/drivers/media/video/em28xx/em28xx.h
++++ b/drivers/media/video/em28xx/em28xx.h
+@@ -479,6 +479,7 @@ struct em28xx {
+ 	/* i2c i/o */
+ 	struct i2c_adapter i2c_adap;
+ 	struct i2c_client i2c_client;
++	struct i2c_client *i2c_tvaudio_client;
+ 	/* video for linux */
+ 	int users;		/* user count for exclusive use */
+ 	struct video_device *vdev;	/* video for linux device struct */
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 100f90a..c263f5d 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1248,7 +1248,7 @@ struct em28xx_board em28xx_boards[] = {
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_TELEVISION,
+ 			.vmux     = TVP5150_COMPOSITE0,
+-			.amux     = EM28XX_AMUX_LINE_IN,
++			.amux     = EM28XX_AMUX_VIDEO,
+ 		}, {
+ 			.type     = EM28XX_VMUX_SVIDEO,
+ 			.vmux     = TVP5150_SVIDEO,
+
+
+
+Please note the .amux change; my bad it wasn't right from the bery beginning. However, just changing it
+doesn't make things work, either with your latest patch or without it. Changes in em28xx_audio_analog_set are 
+apparently what matter. but I'm not sure.
+
+The other thing is that even with this patch, I'm getting more noise than TV sound. That might be related to
+some TDA9874 programming needed and not done, but I'm not sure here either.
+
+Thanks,
+   Vitaly
 
 --
 video4linux-list mailing list
