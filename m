@@ -1,151 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:64793 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbZBJLGX (ORCPT
+Received: from mail-fx0-f167.google.com ([209.85.220.167]:56397 "EHLO
+	mail-fx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754037AbZBYDYi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 06:06:23 -0500
-Received: by bwz5 with SMTP id 5so2499241bwz.13
-        for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 03:06:20 -0800 (PST)
-Date: Tue, 10 Feb 2009 12:06:09 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Christoph Pfister <christophpfister@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Upcoming DVB-T channel changes for HH (Hamburg)
-In-Reply-To: <19a3b7a80902071053j2a428517vca07611cf16b882c@mail.gmail.com>
-Message-ID: <alpine.DEB.2.01.0902100404350.1147@ybpnyubfg.ybpnyqbznva>
-References: <alpine.DEB.2.00.0901231745330.15516@ybpnyubfg.ybpnyqbznva> <alpine.DEB.2.00.0901232241530.15738@ybpnyubfg.ybpnyqbznva> <19a3b7a80901261228v393f5fcbv7559b573c0ca1539@mail.gmail.com> <alpine.DEB.2.00.0901262214200.15738@ybpnyubfg.ybpnyqbznva>
- <497EC855.7050301@to-st.de> <19a3b7a80901270237n761240bbn2627f782ddbffa29@mail.gmail.com> <497EF972.6090207@to-st.de> <alpine.DEB.2.00.0901271748160.15738@ybpnyubfg.ybpnyqbznva> <19a3b7a80901290232p3b2dd1a1y42f7276dedfebf43@mail.gmail.com>
- <alpine.DEB.2.00.0901291222020.11385@ybpnyubfg.ybpnyqbznva> <19a3b7a80902071053j2a428517vca07611cf16b882c@mail.gmail.com>
+	Tue, 24 Feb 2009 22:24:38 -0500
+Received: by fxm11 with SMTP id 11so3389620fxm.13
+        for <linux-media@vger.kernel.org>; Tue, 24 Feb 2009 19:24:35 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <d9def9db0902241606i763a4c21o2a180c5e2dcbb778@mail.gmail.com>
+References: <200902221115.01464.hverkuil@xs4all.nl>
+	 <200902242119.17436.hverkuil@xs4all.nl>
+	 <49A407B0.8C56.0056.0@matc.edu>
+	 <d9def9db0902241606i763a4c21o2a180c5e2dcbb778@mail.gmail.com>
+Date: Wed, 25 Feb 2009 04:24:34 +0100
+Message-ID: <d9def9db0902241924ic0916a1x21438e7fef56ad9d@mail.gmail.com>
+Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Jonathan Johnson <johnsonn@matc.edu>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 7 Feb 2009, Christoph Pfister wrote:
+On Wed, Feb 25, 2009 at 1:06 AM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> On Tue, Feb 24, 2009 at 9:43 PM, Jonathan Johnson <johnsonn@matc.edu> wrote:
+>> Hello all,
+>>
+>> My vote is YES, why haven't we done this already??
+>>
+>> My understanding is that we are just drop old kernel support and retaining the vast majority of the drivers.
+>> If anyone tallied the total number CVE listed vulernabilites and other problems fixed since then they would probably be shocked.
+>> Unless for some reason your hardware is so old that it does support 2.6.28.7, this is the version you should run.
+>>
+>> Later,
+>> Jonathan
+>>
+>>>>> Hans Verkuil <hverkuil@xs4all.nl> 2/24/2009 2:19 PM >>>
+>> Please reply to this poll if you haven't done so yet. I only count clear
+>> yes/no answers, so if you replied earlier to this in order to discuss a
+>> point then I haven't counted that.
+>>
+>> Currently it's 16 yes and 2 no votes, but I'd really like to see some more
+>> input. I want to post the final results on Sunday.
+>>
+>> Regards,
+>>
+>>        Hans
+>>
+>> On Sunday 22 February 2009 11:15:01 you wrote:
+>>> Hi all,
+>>>
+>>> There are lot's of discussions, but it can be hard sometimes to actually
+>>> determine someone's opinion.
+>>>
+>>> So here is a quick poll, please reply either to the list or directly to
+>>> me with your yes/no answer and (optional but welcome) a short explanation
+>>> to your standpoint. It doesn't matter if you are a user or developer, I'd
+>>> like to see your opinion regardless.
+>>>
+>>> Please DO NOT reply to the replies, I'll summarize the results in a
+>>> week's time and then we can discuss it further.
+>>>
+>>> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>>>
+>>> _: Yes
+>>> _: No
+>>>
+>
+> don't care
+>
+>>> Optional question:
+>>>
+>>> Why:
+>>>
+>
+> analog TV didn't work for me anyway < 2.6.18 not sure if it got fixed up
+> timers are horribly modified within 2.6.18 - now, something that
+> worked back then might not work properly anymore now.
+> remote control support has a horrible bug, I reported something a half
+> year ago..
+> although the solution I use to provide is to move the frontend and
+> configuration layer to userland and only having the data transfer API
+> in the kernel (this includes v4l2 - latest API and the entire dvb core
+> API).
+> http://mcentral.de/wiki/index.php5/DVBConfigFramework it's infront of
+> the API access and the applications make use of it using LD_PRELOAD.
+> Customers mostly use to compile the em28xx driver from mcentral.de
+> against the currently installed drivers which come with the native
+> kernel, or I use to deliver binaries. Now the DVB config framework
+> makes use of usbfs (similar like libusbfs) in my case and also works
+> on OSX with exactly the same drivers.
+>
 
-> Sorry for the late answer,
+one more thing to add here,
 
-No worries, I've been keeping busy by discovering yet more
-info.  Discovering a site where not only does everyone know
-more than me and where all the info I could possibly want
-is there for the taking, but where I feel more unworthy
-than usual.
+the usb devices always have the same USB transfer, but different
+configuration block.
+there's libv4l2 which I think of inheriting within the userland daemon
+since it also intercepts the calls.
+A good interface would more or less be to add custom vendor ids and
+custom product ids including custom
+capabilities eg. enable transfer for analog TV, DVB-T, DVB-C, ATSC,
+DMB-TH, ISDB-T...
 
-So, while I still have yet to mangle the machine-generated
-output, I did observe the following:
+Since I now have that framework which can more or less also work with
+the existing em28xx kernel driver it might be an interesting question.
+And since it's in userland the compatibility is also pretty good
+(basically everything that supports dumping the data to userland for
+v4l and the same for DVB) hybrid or non hybrid doesn't really matter
+the daemon and lib will take care about this.
 
-It seems that the info for Hansestadt Bremen (Radio Bremen)
-can be merged into that for Niedersachsen, as the presence
-of an RB multiplex in the latter disturbed me, until I
-noted that apparently all the (Bundesland) Bremen frequencies
-are also used in Bremerhaven.  So, one less file to maintain.
+We also have libv4l2 in userland which knows about device specific
+decoding algorithms, so there's already a kernel-userland dependency
+here.
 
+http://mcentral.de/wiki/index.php5/Terratec_HTC_XS
 
-Not only is Hansestadt Hamburg migrating away from the VHF
-Band III allocation which kicked off this too-long-running
-thread, but at some yet unspecified time this year (2009),
-most if not all of the remaining Band III DVB-T transmitters
-will also relocate.  This affects primarily Bayern, but also
-a few other sites (FFM, Berlin...)
+this is the first device which only relies on the data dump capability
+of the em28xx driver, and overrides all the configuration issues (and
+again there's no extra kernel module needed to override all this).
+Basic dump capability of data exists since a very long time in the
+v4l-dvb API - this is the main reason why backward compatibility is no
+issue for me anymore.
 
-I don't know if the frequencies I've read are confirmed, or
-mere speculation; further, I know no fixed planned dates.
-But more importantly, I don't know if it's worth it for me
-to bother to announce known and confirmed changes, or if I
-should relax and let the official channels publish the info
-to be massaged into scanfiles.
+http://mcentral.de/wiki/index.php5/DVBConfigFramework
 
-Any residents who might happen to read the info I post are
-almost certain to have already been made aware of any such
-changes through other media...
+interested people currently have access to the core userland API
+already feel free to drop me a line if you want to know more about it.
 
-
-My claim that the information for each Bundesland was not
-likely to change, could be an untruth.  I've seen mention
-of additional frequency changes that were unknown to me,
-in addition to vacating VHF DVB-T frequencies to make
-available more DAB/DMB/DVB-T2 multiplexes nationally and
-regionally.
-
-
-Apparently Bundesland B-W will not only start two more
-ARD/SWR multiplexes in Bad Mergentheim at a lower power
-than the other transmitter sites, but will also start a
-handful of other lower power sort-of-filler sites,
-apparently not coordinated with ZDF.  (May be R-P; my
-geography is poor).  And there should also be some sort
-of pilot or comparable introduction of a Private MUX in
-Stuttgart, quite possibly incompatible with existing
-practice throughout Germany (may be use of MPEG-4 video,
-or perhaps DVB-T2, or maybe encryption)...
-
-
-
-> case you need to mark the individual transmitters). Actually I don't
-> care about the arrangement, as long as there are machine-implementable
-> rules for the update.
-
-Of course, first of all, I need to get off my lazy butt
-and actually start sorting the info you've compiled into
-something that will help me get an overview.  Say, for
-Bayern, which, from the Bayerischer Rundfunk perspective,
-is divided into North (Franken) and South (also with good
-beer); to which are added a few Privates in scattered
-areas, partly using the same frequencies, though widely
-spaced...
-
-As a tradeoff, it could possibly be that some Bundesland
-files could be merged into a super-region -- notably the
-NDR and mdr regions, though this is pure speculation as I
-haven't rearranged any files to imbed them in my brain,
-and is only suggested at by the Bremen/Bremerhaven union.
-Talk is cheap.
-
-
-> >> They shouldn't be too excessive,
-> 
-> I meant the number of transmitters, not the size of the file.
-
-Ah, fine, fine.  As a comparison, I'll offer Helvetia.
-The last list of DVB-T transmitters in service I bothered
-to download includes some 25 pages, each with around 20
-or so listed sites, for that small land.  No way would
-I consider attempting to list these -- or even those
-for a particular language region or SFN part thereof, in
-a scanfile.
-
-
-> > I just updated overnight, and de-Leipzig no longer exists!
-> > Aieee!@  Good thing I made a backup copy of that directory
-> > before I updated
-> 
-> hg has a good memory as well :)
-
-At my age, it's hard to unlearn the convenience of such
-advanced tools as `grep' and `less' on simple foo,v text
-files (and Attic directories) to trace a file through
-time.  However, you're right -- I do believe that I had
-problems with `git' on renamed or obsolete files, and
-subversion appears hopeless for anything but remaining
-up-to-date offline, though I have enough SOCKS and https
-problems with that, so that I'm no longer bothered...
-
-Like they say, I learn something new every day.  Pity
-that most days it's the same thing I learned on several
-previous occasions, when not each day the past week...
-
-
-
-Anyway, let this be a fore-warning that you will be
-likely to need to update the files for various Laender
-a few times this year to keep up-to-date -- and that is
-not to include changes to MUX contents (renaming one
-ZDF digital channel, or changes in Private Muxen).
-
-So I'm off to the Bundesnetzagentur to see if I can
-get accurate info about upcoming changes and allocations,
-though I believe this source will be more suitable for
-planning, than to generate up-to-the-minute scanfiles.
-
-
-barry bouwsma
+regards,
+Markus
