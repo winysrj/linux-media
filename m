@@ -1,139 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:43885 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216AbZBYGHr (ORCPT
+Received: from mail.tut.by ([195.137.160.40]:44872 "EHLO
+	cluster-ldap.tutby.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755766AbZBZQNM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Feb 2009 01:07:47 -0500
-Date: Wed, 25 Feb 2009 00:19:35 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Adam Baker <linux@baker-net.org.uk>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Olivier Lorin <o.lorin@laposte.net>,
-	Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-In-Reply-To: <49A4B4FC.9030209@kaiser-linux.li>
-Message-ID: <alpine.LNX.2.00.0902242341070.15857@banach.math.auburn.edu>
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <20090223080715.0c97774e@pedra.chehab.org> <200902232237.32362.linux@baker-net.org.uk> <alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
- <alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org> <alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu> <alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org> <49A4B4FC.9030209@kaiser-linux.li>
+	Thu, 26 Feb 2009 11:13:12 -0500
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: dm1105: not demuxing from interrupt context
+Date: Thu, 26 Feb 2009 18:13:26 +0200
+References: <200902190718.47890.liplianin@tut.by> <20090226111236.470cf9a0@caramujo.chehab.org>
+In-Reply-To: <20090226111236.470cf9a0@caramujo.chehab.org>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+Message-Id: <200902261813.26172.liplianin@tut.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On Wed, 25 Feb 2009, Thomas Kaiser wrote:
-
->>> Also an overview is often very helpful. Also trying to visualize what 
->>> might be needed in the future is helpful. All of this can be extremely 
->>> helpful. But not everyone can see or imagine every possible thing. For 
->>> example, it seems that some of the best minds in the business are stunned 
->>> when confronted with the fact that some manufacturer of cheap electronics 
->>> in Taiwan has produced a lot of mass-market cameras with the sensors 
->>> turned upside down, along with some other cameras having the same USB ID 
->>> with different sensors, which act a bit differently. Clearly, if such a 
->>> thing happened once it can happen again. So how to deal with such a
->>> problem?
->
-> Actually, this happens and is happening!
->
-> Just step back a get an other view.
-
-I had plenty of other views. SQ905, SQ905C, MR97310, SN9C2028, and one or 
-two more. And, oh yes, the GT8290 chip on which Grandtech went broke, 
-which was intended for mass storage still cameras but had a 32-bit CBW 
-instead of a 31-bit CBW (off by one error and nobody caught it).
-
->
-> These consumer products are manly produced for the Windoz audience.
-
-
-Very true. Usually, it even says on the package that it will not work on 
-Mac. But since Linux is unmentionable they did not say anything about it. 
-So we make it work anyway.
-
->
-> After introduction of Win XP the consumer where told that USB device will run 
-> out of the box in Win XP,
-
-Not all devices. Perhaps what they really meant is now you don't need to 
-install two drivers if you have two Mass Storage Transparent Scsi Bulk 
-Transport flash drives. To that extent, it seems that they were truthful. 
-There are lots of proprietary devices out there for which AFAICT the 
-drivers are still not included in Windows. Some of these are unfinished 
-projects of mine, too, such as the JL2005C cameras. The big bugbear with 
-those is the compression algorithm. It is a horror.
-
-> which is sometimes true, but .....
->
-> But on all (Windowz) Webcams (are Linux Webcams available?) I buy, I find a 
-> sticker which tells me to first insert the driver CD before connecting the 
-> cam to the PC. When you do, like instructed, your cam works like you 
-> expected!
-
-Of course. Hardware will not work without a driver.
-
->
-> Evan the USB ID is the same like the other webcam from the other vendor, you 
-> are (more or less) forced to install the driver from this particular vendor, 
-> you get a new driver!
-
-Not true. Windows, even back in the days of Windows 98, searched for the 
-Vendor:Product number to look for the driver. There were several places to 
-search for the number. For example, the INF files. And I have a box full 
-of SQ905 cameras for which I will personally guarantee that every one of 
-them will work on Windows 98 with the Windows driver from the CD that came 
-with any other one. Now, if the picture is always facing in the right 
-direction, that is another question, naturally.
-
-Doesn't matter if the sensor is mounted upside down, 
-> the "new" driver takes care about this. So, it looks like the cam in the 
-> Windowz World just works because you were forced to install the driver from 
-> the CD.
-
-And while we are on that topic, I could definitely assert that not always 
-did the "manufacturer" get this right, either. I, recall, developed the 
-original SQ905 stillcam driver for Linux. I got letters from users and 
-sample photos, too, where the photos came out of the camera and lettering 
-on a sign visible in the photo was bass ackwards. They were cheap cameras, 
-and the people who sold some of them were just a little bit sloppy. Their 
-virtue, as cheap cameras go, was comparatively good optics in some of 
-them. I have seen lots of cameras about the same price, which had much 
-more features and much worse pictures.
-
->
-> So I guess the Windoz diver just knows more then the USB ID.
-
-No, not really. See above.
-
->
-> In the Linux World most of the drive are re-engineered, we don't know how to 
-> detect how the sensor is mounted, do we?
-
-
-Well, yes, we do. And that is what this discussion was about. How to use 
-that knowledge constructively while writing a kernel driver.
-
->
-> Actually, what I try to say, is that only the cam can know how the sensor is 
-> mounted. Thus, the kernel module has to provide this information to user 
-> space (by query the hardware).
-
-Well, that is more like it. Yes, one does have to ask the camera. But the 
-camera will tell its answer truthfully. And this is before any streaming 
-and image processing has started, too. What a deal.
-
->
-> The "pivot" is an other thing.
-
-Very true. And worth paying attention to. But it is not the same issue.
-
->
-> Thomas
->
-
-Theodore Kilgore
+T24gMjYgxsXX0sHM0SAyMDA5LCAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0LmJ5
+PiB3cm90ZToKPiBPbiBUaHUsIDE5IEZlYiAyMDA5IDA3OjE4OjQ3ICswMjAwCj4KPiAiSWdvciBN
+LiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0LmJ5PiB3cm90ZToKPiA+IEkgcmVhZCBpbiBtYWls
+aW5nIGxpc3QgYWJvdXQgZGVzaWduIGVycm9yIGluIGRtMTEwNS4KPiA+IFNvIEkgYW0gZGVzaWdu
+ZXIuCj4gPiBETUEgYnVmZmVyIGluIHRoZSBkcml2ZXIgaXRzZWxmIG9yZ2FuaXplZCBsaWtlIHJp
+bmdidWZmZXIKPiA+IGFuZCBub3QgZGlmZmljdWx0IHRvIGJpbmQgaXQgdG8gdGFza2xldCBvciB3
+b3JrIHF1ZXVlLgo+ID4gSSBjaG9vc2Ugd29yayBxdWV1ZSwgYmVjYXVzZSBpdCBpcyBsaWtlIHRy
+ZW5kIDopCj4gPiBUaGUgY29kZSB0ZXN0ZWQgYnkgbWUgb24gcXVpdGUgZmFzdCBjb21wdXRlciBh
+bmQgaXQgd29ya3MgYXMgdXN1YWwuCj4gPiBJIHRoaW5rLCBvbiBzbG93IGNvbXB1dGVyIGRpZmZl
+cmVuY2UgbXVzdCBiZSBub3RpY2VhYmxlLgo+ID4gVGhlIHBhdGNoIGlzIHByZWxpbWluYXJ5Lgo+
+ID4gQW55b25lIGNhbiBjcml0aWNpemUuCj4KPiBUaGUgcGF0Y2ggbG9va3MgZmluZSBmb3IgbWUs
+IGJ1dCwgYXMgeW91IHNhaWQgdGhpcyBpIHByZWxpbWluYXJ5LCBJJ20KPiBtYXJraW5nIGl0IGFz
+IFJGQyBvbiBwYXRjaHdvcmsuIFBsZWFzZSBzZW5kIG1lIHRoZSBmaW5hbCByZXZpc2lvbiBvZiBp
+dCwKPiBhZnRlciBoYXZpbmcgYSBmaW5hbCB2ZXJzaW9uLgo+Cj4gQ2hlZXJzLAo+IE1hdXJvLgo+
+Cj4gPiBkaWZmIC1yIDM1OWQ5NWUxZDU0MSAtciBmMjJkYThkNmE4M2MKPiA+IGxpbnV4L2RyaXZl
+cnMvbWVkaWEvZHZiL2RtMTEwNS9kbTExMDUuYyAtLS0KPiA+IGEvbGludXgvZHJpdmVycy9tZWRp
+YS9kdmIvZG0xMTA1L2RtMTEwNS5jwqDCoMKgV2VkIEZlYiAxOCAwOTo0OTozNyAyMDA5Cj4gPiAt
+MDMwMCArKysgYi9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kbTExMDUvZG0xMTA1LmPCoMKgwqBU
+aHUgRmViIDE5Cj4gPiAwNDozODozMiAyMDA5ICswMjAwIEBAIC0yMjAsMTAgKzIyMCwxNCBAQAo+
+ID4gwqDCoMKgwqDCoMKgwqDCoC8qIGkyYyAqLwo+ID4gwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCBp
+MmNfYWRhcHRlciBpMmNfYWRhcDsKPiA+IMKgCj4gPiArwqDCoMKgwqDCoMKgwqAvKiBpcnEgKi8K
+PiA+ICvCoMKgwqDCoMKgwqDCoHN0cnVjdCB3b3JrX3N0cnVjdCB3b3JrOwo+ID4gKwo+ID4gwqDC
+oMKgwqDCoMKgwqDCoC8qIGRtYSAqLwo+ID4gwqDCoMKgwqDCoMKgwqDCoGRtYV9hZGRyX3QgZG1h
+X2FkZHI7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgdW5zaWduZWQgY2hhciAqdHNfYnVmOwo+ID4gwqDC
+oMKgwqDCoMKgwqDCoHUzMiB3cnA7Cj4gPiArwqDCoMKgwqDCoMKgwqB1MzIgbmV4dHdycDsKPiA+
+IMKgwqDCoMKgwqDCoMKgwqB1MzIgYnVmZmVyX3NpemU7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgdW5z
+aWduZWQgaW50wqDCoMKgwqBQYWNrZXRFcnJvckNvdW50Owo+ID4gwqDCoMKgwqDCoMKgwqDCoHVu
+c2lnbmVkIGludCBkbWFyc3Q7Cj4gPiBAQCAtNDE4LDYgKzQyMiw5IEBACj4gPiDCoMKgwqDCoMKg
+wqDCoMKgdTggZGF0YTsKPiA+IMKgwqDCoMKgwqDCoMKgwqB1MTYga2V5Y29kZTsKPiA+IMKgCj4g
+PiArwqDCoMKgwqDCoMKgwqBpZiAoaXJfZGVidWcpCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgcHJpbnRrKEtFUk5fSU5GTyAiJXM6IHJlY2VpdmVkIGJ5dGUKPiA+IDB4JTA0eFxu
+IiwgX19mdW5jX18sIGlyY29tKTsgKwo+ID4gwqDCoMKgwqDCoMKgwqDCoGRhdGEgPSAoaXJjb20g
+Pj4gOCkgJiAweDdmOwo+ID4gwqAKPiA+IMKgwqDCoMKgwqDCoMKgwqBpbnB1dF9ldmVudChpci0+
+aW5wdXRfZGV2LCBFVl9NU0MsIE1TQ19SQVcsICgweDAwMDBmOCA8PAo+ID4gMTYpIHwgZGF0YSk7
+IEBAIC00MzQsNiArNDQxLDUwIEBACj4gPiDCoAo+ID4gwqB9Cj4gPiDCoAo+ID4gKy8qIHdvcmsg
+aGFuZGxlciAqLwo+ID4gKyNpZiBMSU5VWF9WRVJTSU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigy
+LCA2LCAyMCkKPiA+ICtzdGF0aWMgdm9pZCBkbTExMDVfZG14X2J1ZmZlcih2b2lkICpfZG0xMTA1
+ZHZiKQo+ID4gKyNlbHNlCj4gPiArc3RhdGljIHZvaWQgZG0xMTA1X2RteF9idWZmZXIoc3RydWN0
+IHdvcmtfc3RydWN0ICp3b3JrKQo+ID4gKyNlbmRpZgo+ID4gK3sKPiA+ICsjaWYgTElOVVhfVkVS
+U0lPTl9DT0RFIDwgS0VSTkVMX1ZFUlNJT04oMiwgNiwgMjApCj4gPiArwqDCoMKgwqDCoMKgwqBz
+dHJ1Y3QgZG0xMTA1ZHZiICpkbTExMDVkdmIgPSBfZG0xMTA1ZHZiOwo+ID4gKyNlbHNlCj4gPiAr
+wqDCoMKgwqDCoMKgwqBzdHJ1Y3QgZG0xMTA1ZHZiICpkbTExMDVkdmIgPQo+ID4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY29u
+dGFpbmVyXwo+ID5vZih3b3JrLCBzdHJ1Y3QgZG0xMTA1ZHZiLCB3b3JrKTsgKyNlbmRpZgo+ID4g
+K8KgwqDCoMKgwqDCoMKgdW5zaWduZWQgaW50IG5icGFja2V0czsKPiA+ICvCoMKgwqDCoMKgwqDC
+oHUzMiBvbGR3cnAgPSBkbTExMDVkdmItPndycDsKPiA+ICvCoMKgwqDCoMKgwqDCoHUzMiBuZXh0
+d3JwID0gZG0xMTA1ZHZiLT5uZXh0d3JwOwo+ID4gKwo+ID4gK8KgwqDCoMKgwqDCoMKgaWYgKCEo
+KGRtMTEwNWR2Yi0+dHNfYnVmW29sZHdycF0gPT0gMHg0NykgJiYKPiA+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgKGRtMTEwNWR2Yi0+dHNfYnVmW29sZHdy
+cAo+ID4gKyAxODhdID09IDB4NDcpICYmCj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoChkbTExMDVkdmItPnRzX2J1ZltvbGR3cnAKPiA+ICsgMTg4ICog
+Ml0gPT0gMHg0NykpKSB7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZG0xMTA1
+ZHZiLT5QYWNrZXRFcnJvckNvdW50Kys7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgLyogYmFkIHBhY2tldCBmb3VuZCAqLwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoGlmICgoZG0xMTA1ZHZiLT5QYWNrZXRFcnJvckNvdW50ID49IDIpICYmCj4gPiArwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAo
+ZG0xMTA1ZHZiCj4gPi0+ZG1hcnN0ID09IDApKSB7ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgb3V0YigxLAo+ID4gZG1faW9fbWVtKERNMTEwNV9SU1QpKTsK
+PiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZG0xMTA1
+ZHZiLT53cnAgPSAwOwo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqBkbTExMDVkdmItPlBhY2tldEVycm9yQ291bgo+ID50ID0gMDsgK8KgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkbTExMDVkdmItPmRtYXJzdCA9Cj4g
+PiAwOyArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVy
+bjsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB9Cj4gPiArwqDCoMKgwqDCoMKg
+wqB9Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKgwqBpZiAobmV4dHdycCA8IG9sZHdycCkgewo+ID4g
+K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG1lbWNweShkbTExMDVkdmItPnRzX2J1ZiAr
+Cj4gPiBkbTExMDVkdmItPmJ1ZmZlcl9zaXplLAo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoAo+ID7CoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgZG0xMTA1ZHZiLT50c19idWYsIG5leHR3cnApOwo+ID4gK8KgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5icGFja2V0cyA9ICgoZG0xMTA1ZHZiLT5idWZmZXJf
+c2l6ZSAtCj4gPiBvbGR3cnApICsgbmV4dHdycCkgLyAxODg7ICvCoMKgwqDCoMKgwqDCoH0gZWxz
+ZQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5icGFja2V0cyA9IChuZXh0d3Jw
+IC0gb2xkd3JwKSAvIDE4ODsKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoGRtMTEwNWR2Yi0+d3Jw
+ID0gbmV4dHdycDsKPiA+ICvCoMKgwqDCoMKgwqDCoGR2Yl9kbXhfc3dmaWx0ZXJfcGFja2V0cygm
+ZG0xMTA1ZHZiLT5kZW11eCwKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAKPiA+wqDCoMKgJmRtMTEwNWR2
+Yi0+dHNfYnVmW29sZHdycF0sIG5icGFja2V0cyk7ICt9Cj4gPiArCj4gPiDCoCNpZiBMSU5VWF9W
+RVJTSU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigyLCA2LCAxOSkKPiA+IMKgc3RhdGljIGlycXJl
+dHVybl90IGRtMTEwNWR2Yl9pcnEoaW50IGlycSwgdm9pZCAqZGV2X2lkLCBzdHJ1Y3QgcHRfcmVn
+cwo+ID4gKnJlZ3MpIMKgI2Vsc2UKPiA+IEBAIC00NDEsMTEgKzQ5Miw2IEBACj4gPiDCoCNlbmRp
+Zgo+ID4gwqB7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IGRtMTEwNWR2YiAqZG0xMTA1ZHZi
+ID0gZGV2X2lkOwo+ID4gLcKgwqDCoMKgwqDCoMKgdW5zaWduZWQgaW50IHBpZWNlOwo+ID4gLcKg
+wqDCoMKgwqDCoMKgdW5zaWduZWQgaW50IG5icGFja2V0czsKPiA+IC3CoMKgwqDCoMKgwqDCoHUz
+MiBjb21tYW5kOwo+ID4gLcKgwqDCoMKgwqDCoMKgdTMyIG5leHR3cnA7Cj4gPiAtwqDCoMKgwqDC
+oMKgwqB1MzIgb2xkd3JwOwo+ID4gwqAKPiA+IMKgwqDCoMKgwqDCoMKgwqAvKiBSZWFkLVdyaXRl
+IElOU1RTIEFjaydzIEludGVycnVwdCBmb3IgRE0xMTA1IGNoaXAKPiA+IDE2LjAzLjIwMDggKi8g
+wqDCoMKgwqDCoMKgwqDCoHVuc2lnbmVkIGludCBpbnRzdHMgPQo+ID4gaW5iKGRtX2lvX21lbShE
+TTExMDVfSU5UU1RTKSk7IEBAIC00NTQsNDggKzUwMCwxNyBAQAo+ID4gwqDCoMKgwqDCoMKgwqDC
+oHN3aXRjaCAoaW50c3RzKSB7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgY2FzZSBJTlRTVFNfVFNJUlE6
+Cj4gPiDCoMKgwqDCoMKgwqDCoMKgY2FzZSAoSU5UU1RTX1RTSVJRIHwgSU5UU1RTX0lSKToKPiA+
+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBuZXh0d3JwID0gaW5sKGRtX2lvX21lbShE
+TTExMDVfV1JQKSkgLQo+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqBpbmwoZG1faW9fbWVtKERNMTEwNV9TVEFEUgo+ID4pKSA7IC3CoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqBvbGR3cnAgPSBkbTExMDVkdmItPndycDsKPiA+IC3CoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqBzcGluX2xvY2soJmRtMTEwNWR2Yi0+bG9jayk7Cj4gPiAtwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKCEoKGRtMTEwNWR2Yi0+dHNfYnVmW29sZHdy
+cF0gPT0gMHg0NykKPiA+ICYmCj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAoZG0xMTA1ZHZiCj4gPi0+dHNfYnVmW29sZHdy
+cCArIDE4OF0gPT0gMHg0NykgJiYKPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoChkbTExMDVkdmIKPiA+LT50c19idWZbb2xk
+d3JwICsgMTg4ICogMl0gPT0gMHg0NykpKSB7Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRtMTEwNWR2Yi0+UGFja2V0RXJyb3JDb3VuCj4gPnQrKzsg
+LcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAvKiBiYWQgcGFj
+a2V0IGZvdW5kICovCj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoGlmCj4gPiAoKGRtMTEwNWR2Yi0+UGFja2V0RXJyb3JDb3VudCA+PSAyKSAmJgo+ID4g
+LcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoAo+ID7CoMKgwqAoZG0xMTA1ZHZiLT5kbWFyc3QgPT0gMCkpIHsKPiA+
+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoG91dGIoMSwKPiA+IGRtX2lvX21lbShETTExMDVfUlNUKSk7Cj4gPiAtwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkbTEx
+MDVkdmItCj4gPj53cnAgPSAwOwo+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZG0xMTA1ZHZiLQo+ID4+UGFja2V0RXJyb3JD
+b3VudCA9IDA7Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqBkbTExMDVkdmItCj4gPj5kbWFyc3QgPSAwOwo+ID4gLcKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+c3Bpbl91bmxvYwo+ID5rKCZkbTExMDVkdmItPmxvY2spOwo+ID4gLcKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuCj4gPiBJ
+UlFfSEFORExFRDsgLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqB9Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfQo+ID4gLcKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoGlmIChuZXh0d3JwIDwgb2xkd3JwKSB7Cj4gPiAtwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHBpZWNlID0KPiA+IGRtMTEwNWR2
+Yi0+YnVmZmVyX3NpemUgLSBvbGR3cnA7Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoG1lbWNweShkbTExMDVkdmItPnRzX2J1ZiArCj4gPiBkbTExMDVk
+dmItPmJ1ZmZlcl9zaXplLCBkbTExMDVkdmItPnRzX2J1ZiwgbmV4dHdycCk7Cj4gPiAtwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG5icGFja2V0cyA9IChwaWVj
+ZSArCj4gPiBuZXh0d3JwKS8xODg7IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB9IGVs
+c2XCoMKgewo+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqBuYnBhY2tldHMgPSAobmV4dHdycCAtCj4gPiBvbGR3cnApLzE4ODsgLcKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoH0KPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkdmJf
+ZG14X3N3ZmlsdGVyX3BhY2tldHMoJmRtMTEwNWR2Yi0+ZGVtdXgKPiA+LCAmZG0xMTA1ZHZiLT50
+c19idWZbb2xkd3JwXSwgbmJwYWNrZXRzKTsKPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqBkbTExMDVkdmItPndycCA9IG5leHR3cnA7Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgc3Bpbl91bmxvY2soJmRtMTEwNWR2Yi0+bG9jayk7Cj4gPiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgZG0xMTA1ZHZiLT5uZXh0d3JwID0KPiA+IGlubChkbV9pb19tZW0o
+RE0xMTA1X1dSUCkpIC0KPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAKPiA+wqDCoMKgaW5sKGRtX2lvX21l
+bShETTExMDVfU1RBRFIpKTsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzY2hl
+ZHVsZV93b3JrKCZkbTExMDVkdmItPndvcmspOwo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqBicmVhazsKPiA+IMKgwqDCoMKgwqDCoMKgwqBjYXNlIElOVFNUU19JUjoKPiA+IC3C
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBjb21tYW5kID0gaW5sKGRtX2lvX21lbShETTEx
+MDVfSVJDT0RFKSk7Cj4gPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKGlyX2Rl
+YnVnKQo+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBw
+cmludGsoImRtMTEwNTogcmVjZWl2ZWQKPiA+IGJ5dGUgMHglMDR4XG4iLCBjb21tYW5kKTsgLQo+
+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRtMTEwNWR2Yi0+aXIuaXJfY29tbWFu
+ZCA9IGNvbW1hbmQ7Cj4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZG0xMTA1ZHZi
+LT5pci5pcl9jb21tYW5kID0KPiA+IGlubChkbV9pb19tZW0oRE0xMTA1X0lSQ09ERSkpOwo+ID4g
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB0YXNrbGV0X3NjaGVkdWxlKCZkbTExMDVk
+dmItPmlyLmlyX3Rhc2tsZQo+ID50KTsgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBi
+cmVhazsKPiA+IMKgwqDCoMKgwqDCoMKgwqB9Cj4gPiArCj4gPiDCoMKgwqDCoMKgwqDCoMKgcmV0
+dXJuIElSUV9IQU5ETEVEOwo+ID4gLQo+ID4gLQo+ID4gwqB9Cj4gPiDCoAo+ID4gwqAvKiByZWdp
+c3RlciB3aXRoIGlucHV0IGxheWVyICovCj4gPiBAQCAtNzE3LDcgKzczMiw3IEBACj4gPiDCoAo+
+ID4gwqDCoMKgwqDCoMKgwqDCoGRtMTEwNWR2YiA9IGt6YWxsb2Moc2l6ZW9mKHN0cnVjdCBkbTEx
+MDVkdmIpLAo+ID4gR0ZQX0tFUk5FTCk7IMKgwqDCoMKgwqDCoMKgwqBpZiAoIWRtMTEwNWR2YikK
+PiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBnb3RvIG91dDsKPiA+ICvCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gLUVOT01FTTsKPiA+IMKgCj4gPiDCoMKgwqDC
+oMKgwqDCoMKgZG0xMTA1ZHZiLT5wZGV2ID0gcGRldjsKPiA+IMKgwqDCoMKgwqDCoMKgwqBkbTEx
+MDVkdmItPmJ1ZmZlcl9zaXplID0gNSAqIERNMTEwNV9ETUFfQllURVM7Cj4gPiBAQCAtNzQ3LDEz
+ICs3NjIsOSBAQAo+ID4gwqDCoMKgwqDCoMKgwqDCoHNwaW5fbG9ja19pbml0KCZkbTExMDVkdmIt
+PmxvY2spOwo+ID4gwqDCoMKgwqDCoMKgwqDCoHBjaV9zZXRfZHJ2ZGF0YShwZGV2LCBkbTExMDVk
+dmIpOwo+ID4gwqAKPiA+IC3CoMKgwqDCoMKgwqDCoHJldCA9IHJlcXVlc3RfaXJxKHBkZXYtPmly
+cSwgZG0xMTA1ZHZiX2lycSwgSVJRRl9TSEFSRUQsCj4gPiBEUklWRVJfTkFNRSwgZG0xMTA1ZHZi
+KTsgK8KgwqDCoMKgwqDCoMKgcmV0ID0KPiA+IGRtMTEwNWR2Yl9od19pbml0KGRtMTEwNWR2Yik7
+Cj4gPiDCoMKgwqDCoMKgwqDCoMKgaWYgKHJldCA8IDApCj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoGdvdG8gZXJyX3BjaV9pb3VubWFwOwo+ID4gLQo+ID4gLcKgwqDCoMKgwqDC
+oMKgcmV0ID0gZG0xMTA1ZHZiX2h3X2luaXQoZG0xMTA1ZHZiKTsKPiA+IC3CoMKgwqDCoMKgwqDC
+oGlmIChyZXQgPCAwKQo+ID4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8gZXJy
+X2ZyZWVfaXJxOwo+ID4gwqAKPiA+IMKgwqDCoMKgwqDCoMKgwqAvKiBpMmMgKi8KPiA+IMKgwqDC
+oMKgwqDCoMKgwqBpMmNfc2V0X2FkYXBkYXRhKCZkbTExMDVkdmItPmkyY19hZGFwLCBkbTExMDVk
+dmIpOwo+ID4gQEAgLTgyMCw4ICs4MzEsMTkgQEAKPiA+IMKgCj4gPiDCoMKgwqDCoMKgwqDCoMKg
+ZHZiX25ldF9pbml0KGR2Yl9hZGFwdGVyLCAmZG0xMTA1ZHZiLT5kdmJuZXQsIGRteCk7Cj4gPiDC
+oMKgwqDCoMKgwqDCoMKgZG0xMTA1X2lyX2luaXQoZG0xMTA1ZHZiKTsKPiA+IC1vdXQ6Cj4gPiAt
+wqDCoMKgwqDCoMKgwqByZXR1cm4gcmV0Owo+ID4gKwo+ID4gKyNpZiBMSU5VWF9WRVJTSU9OX0NP
+REUgPCBLRVJORUxfVkVSU0lPTigyLCA2LCAyMCkKPiA+ICvCoMKgwqDCoMKgwqDCoElOSVRfV09S
+SygmZG0xMTA1ZHZiLT53b3JrLCBkbTExMDVfZG14X2J1ZmZlciwgZG0xMTA1ZHZiKTsKPiA+ICsj
+ZWxzZQo+ID4gK8KgwqDCoMKgwqDCoMKgSU5JVF9XT1JLKCZkbTExMDVkdmItPndvcmssIGRtMTEw
+NV9kbXhfYnVmZmVyKTsKPiA+ICsjZW5kaWYKPiA+ICsKPiA+ICvCoMKgwqDCoMKgwqDCoHJldCA9
+IHJlcXVlc3RfaXJxKHBkZXYtPmlycSwgZG0xMTA1ZHZiX2lycSwgSVJRRl9TSEFSRUQsCj4gPiAr
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgCj4gPsKgwqDCoMKgwqDCoMKgwqDCoMKgwqBEUklWRVJfTkFNRSwgZG0x
+MTA1ZHZiKTsgK8KgwqDCoMKgwqDCoMKgaWYgKHJldCA8IDApCj4gPiArwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgZ290byBlcnJfZnJlZV9pcnE7Cj4gPiArCj4gPiArwqDCoMKgwqDCoMKg
+wqByZXR1cm4gMDsKPiA+IMKgCj4gPiDCoGVycl9kaXNjb25uZWN0X2Zyb250ZW5kOgo+ID4gwqDC
+oMKgwqDCoMKgwqDCoGRteC0+ZGlzY29ubmVjdF9mcm9udGVuZChkbXgpOwo+ID4gQEAgLTg1MCw3
+ICs4NzIsNyBAQAo+ID4gwqBlcnJfa2ZyZWU6Cj4gPiDCoMKgwqDCoMKgwqDCoMKgcGNpX3NldF9k
+cnZkYXRhKHBkZXYsIE5VTEwpOwo+ID4gwqDCoMKgwqDCoMKgwqDCoGtmcmVlKGRtMTEwNWR2Yik7
+Cj4gPiAtwqDCoMKgwqDCoMKgwqBnb3RvIG91dDsKPiA+ICvCoMKgwqDCoMKgwqDCoHJldHVybiBy
+ZXQ7Cj4gPiDCoH0KPiA+IMKgCj4gPiDCoHN0YXRpYyB2b2lkIF9fZGV2ZXhpdCBkbTExMDVfcmVt
+b3ZlKHN0cnVjdCBwY2lfZGV2ICpwZGV2KQo+ID4gW0Vycm8gYW8gZGVjb2RpZmljYXIgQkFTRTY0
+XQo+Cj4gQ2hlZXJzLAo+IE1hdXJvCj4gLS0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
+dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj4gdGhlIGJvZHkg
+b2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPiBNb3JlIG1ham9yZG9t
+byBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKVG9k
+YXkgbW9ybmluZyBJIHNlbnQgcHVsbCByZXF1ZXN0IGZvciB0aGF0IHBhdGNoIHRvZ2V0aGVyIHdp
+dGggcGF0Y2ggZm9yIGluZnJhcmVkIHJlbW90ZS4KSSBhbSB0ZXN0aW5nIElSIHN1cHBvcnQgZm9y
+IGEgZmV3IG1vcmUgY2FyZHMuIFRoZXkgd2lsbCBzaGFyZSBJUiBjb2Rlcywgc28gdGhhdCBwYXRj
+aCBpcyBuZWVkZWQuCgoKQmVzdCBSZWdhcmRzCklnb3IK
