@@ -1,77 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59031 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:50075 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754433AbZBXNRr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 08:17:47 -0500
-Date: Tue, 24 Feb 2009 14:17:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: About the specific setting for lens
-In-Reply-To: <ur61pd8h5.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0902241416080.4494@axis700.grange>
-References: <ur61pd8h5.wl%morimoto.kuninori@renesas.com>
+	id S1752269AbZBZT17 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2009 14:27:59 -0500
+Message-ID: <49A6ED3B.2050209@gmx.de>
+Date: Thu, 26 Feb 2009 20:27:55 +0100
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: VDR User <user.vdr@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] dvb-api: update documentation, chapter1
+References: <49A18DD5.40206@gmx.de>	 <20090226121445.74ed3202@caramujo.chehab.org> <a3ef07920902260835n25faa130y401e2f4814172b4c@mail.gmail.com>
+In-Reply-To: <a3ef07920902260835n25faa130y401e2f4814172b4c@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Feb 2009, morimoto.kuninori@renesas.com wrote:
 
-> 
-> Dear Guennadi.
-> 
-> Now MigoR and AP325 board have ov772x camera.
-> However, the lens used is different.
-> 
-> And I have a specific good setting value
-> for the lens of AP325.
-> 
-> So, I would like to add new function for
-> specific lens value.
-> meybe like this.
-> Can I add it ?
-> 
-> -- board-ap325 ---------------
-> static const struct regval_list ov772x_lens[] = {
->        { 0xAA, 0xBB }, { 0xCC, 0xDD }, { 0xEE, 0xFF },
->        ...
->        ENDMARKER,
-> }
-> 
-> static struct ov772x_camera_info ov772x_info = {
->        ...
->        .lenssetting = ov772x_lens,
-> }
+> Why do I have a feeling even the updated doc will be full of spelling
+> & grammatical errors?  ;)
+>
+>   
 
-Hm, lenses can be replaced in principle, right? Does it really make sense 
-to hard-code them in platform code? Maybe better as module parameter? Or 
-are these parameters really board-specific?
+Probably, because none of the writers so far where native English.
+Therefore i'am really happy that *you* now took over all the 
+responsibility to find all that spelling and grammatical errors.
+;-)
 
-Thanks
-Guennadi
+> Also, you might want to consider changing "DVB cards" to "DVB
+> devices".  For example, I don't know anybody who refers to USB DVB
+> devices as 'DVB cards'.
+>
+>   
 
-> -----------------
-> --- ov772x.c ----
-> static int ov772x_start_capture(xxx)
-> {
->         ...
->         if (priv->info->lenssetting) {
->            ret = ov772x_write_array(priv->client,
->                                     priv->info->lenssetting);
->            if (ret < 0)
->                goto error;
->         }
->         ...           
-> }
-> -----------------
-> 
-> Best regards
-> --
-> Kuninori Morimoto
->  
-> 
+Yes, makes sense. But at the writing time of that API- more then 6 years 
+ago - most probably nobody was thinking of USB for a DVB device.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+--Winfried
