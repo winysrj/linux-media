@@ -1,61 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:58762 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751037AbZBWKCk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Feb 2009 05:02:40 -0500
-From: Janne Grunau <j@jannau.net>
-To: linux-media@vger.kernel.org
-Subject: Haupauge Nova-T 500 2.6.28 regression dib0700
-Date: Mon, 23 Feb 2009 10:52:25 +0100
-Cc: dheitmueller@linuxtv.org, pb@linuxtv.org
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:45152 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047AbZBZN5h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2009 08:57:37 -0500
+Received: by fxm24 with SMTP id 24so524805fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 05:57:34 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+In-Reply-To: <49A69363.9070605@gmail.com>
+References: <617be8890902260101y68ef8b3am8823a7972fa49a7b@mail.gmail.com>
+	 <go5s7i$no6$1@ger.gmane.org>
+	 <617be8890902260306l64c20bf9qc3a0b2979f05aea3@mail.gmail.com>
+	 <49A67F37.7020405@gmail.com>
+	 <617be8890902260341j73337b02y27b86d2ce91de5c7@mail.gmail.com>
+	 <49A69363.9070605@gmail.com>
+Date: Thu, 26 Feb 2009 14:57:34 +0100
+Message-ID: <617be8890902260557n7cca999u37754a05b7988e2@mail.gmail.com>
+Subject: Re: Is there a way to get linux-media daily digests?
+From: Eduard Huguet <eduardhc@gmail.com>
+To: Pierre Gronlier <ticapix@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902231052.25875.j@jannau.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Ok, thanks. I'll give it a try. Thanks for your help.
+Regards,
+  Eduard
 
-I have some difficulties with the Hauppauge Nova-T 500 and 2.6.28 kernels.
 
-Following USB errors appear with 2.6.28.4 every 100ms:
-
-Feb 15 02:46:03 golem [ 7720.876132] usb 2-1: events/3 timed out on ep1in len=0/6
-Feb 15 02:46:03 golem [ 7720.976039] usb 2-1: events/3 timed out on ep1in len=0/6
-Feb 15 02:46:03 golem [ 7721.076068] usb 2-1: events/3 timed out on ep1in len=0/6
-
-The device is still useable but occasionally I see the same error
- with additional usb errors (iirc same kernel and config)
-
-Feb 17 20:33:17 golem [   14.733031] ehci_hcd 0000:01:06.2: reused qh ffff8800bf80d140 schedule
-Feb 17 20:33:17 golem [   14.733040] usb 2-1: link qh64-0001/ffff8800bf80d140 start 63 [2/0 us]
-Feb 17 20:33:17 golem [   14.783035] usb 2-1: unlink qh64-0001/ffff8800bf80d140 start 63 [2/0 us]
-Feb 17 20:33:17 golem [   14.783107] usb 2-1: events/3 timed out on ep1in len=0/6
-...
-Feb 17 20:34:12 golem [  128.130059] ehci_hcd 0000:01:06.2: reused qh ffff8800bf80d140 schedule
-Feb 17 20:34:12 golem [  128.130069] usb 2-1: link qh64-0001/ffff8800bf80d140 start 63 [2/0 us]
-Feb 17 20:34:12 golem [  128.131007] ehci_hcd 0000:01:06.2: force halt; handhake ffffc20000050014 00 
-004000 00000000 -> -110
-
-ehci gives up and the device is unuseabe.
-
-This is still the case with 2.6.28.7.
-
-git bisect blames following change:
-
-| commit 99afb989b05b9fb1c7b3831ce4b7a000b214acdb
-| Author: Devin Heitmueller <devin.heitmueller@gmail.com>
-| Date:   Sat Nov 15 07:13:07 2008 -0300
-|
-|     V4L/DVB (9639): Make dib0700 remote control support work with firmware v1.20
-
-2.6.28.x with DVB drivers from v4l-dvb hg works as expected bu I fail
-to see which changeset fixed it. If you have an idea I'll test it.
-Otherwise I'll bisect v4l-dvb hg.
-
-This should be fixed in 2.6.28-stable.
-
-Janne
+2009/2/26 Pierre Gronlier <ticapix@gmail.com>:
+> Eduard Huguet wrote:
+>> Sounds interesting... What client do you use to read the news, may I ask?
+>> Regards,
+>
+> thunderbird, but any news client is fine.
+>
+> --
+> pierre
+>
+>>   Eduard
+>>
+>>
+>> 2009/2/26 Pierre Gronlier <ticapix@gmail.com>:
+>>> Eduard Huguet wrote:
+>>>> Yes, but this way implies using a feed reader or similar. I'm aware of
+>>>> this way, but this would mean unsubscribing from the list to stop
+>>>> receiving the mails and just read them through an external program /
+>>>> webpage. What also means that, if I want to post a new message or just
+>>>> answering one I'd need to re-subscribe again just for doing so.
+>>>>
+>>>
+>>> not at all. I just disabled the reception of email through the mailing
+>>> interface and I can reply to the mailing list directly from my news
+>>> reader as gname does the bridge between the ml and news.
+>>>
+>>>
+>>>> I really preferred the other way (it's what I also use for other mail
+>>>> lists such as mythtv-users and mythtv-dev), and I found it very
+>>>> convenient...
+>>>>
+>>>> Regards
+>>>>   Eduard
+>>>>
+>>>>
+>>>>
+>>>> 2009/2/26 Pierre Gronlier <ticapix@gmail.com>:
+>>>>> Eduard Huguet wrote:
+>>>>>> Hi,
+>>>>>>     Well, title says old... In previously linux-dvb list I was
+>>>>>> subscribed to the daily digest modality of the list, so I was getting
+>>>>>> only 2 or 3 digest messages per day. This is something I really miss
+>>>>>> now, as I really prefer this way of subscribing to a mail list,
+>>>>>> instead of just receiving every mail sent (I'm just scared thinking
+>>>>>> what I will find in my mailbox when I come back from holidays...).
+>>>>>>
+>>>>>> Is there a way to use such a modality for linux-media?
+>>>>>>
+>>>>>> Best regards,
+>>>>>>   Eduard
+>>>>>>
+>>>>>> PS: if I've just missed something and the possibility exists but I'm
+>>>>>> just too dumb to find it, please send me the link with a big RTFM in
+>>>>>> it, I'll take no offense...
+>>>>> You can subscribe to a newsgroup via gmane:
+>>>>> http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
+>>>>>
+>>>>> this way your mailbox will not be overloaded.
+>>>>>
+>>>>> --
+>>>>> pierre
+>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
