@@ -1,63 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f222.google.com ([209.85.217.222]:62332 "EHLO
-	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754290AbZBQSVG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 13:21:06 -0500
-Received: by mail-gx0-f222.google.com with SMTP id 22so4409433gxk.13
-        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 10:21:05 -0800 (PST)
+Received: from mta2.integra.fr ([217.115.161.167]:35587 "EHLO mta2.integra.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753838AbZBZLik (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2009 06:38:40 -0500
+Message-ID: <49A67F37.7020405@gmail.com>
+Date: Thu, 26 Feb 2009 12:38:31 +0100
+From: Pierre Gronlier <ticapix@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <BAY102-W41AFA57978CB8940FABF84CFB40@phx.gbl>
-References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
-	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
-	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
-	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
-	 <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
-	 <BAY102-W54F614817092361870868DCFB40@phx.gbl>
-	 <412bdbff0902162148k398db187ma6510d0903741e73@mail.gmail.com>
-	 <BAY102-W41AFA57978CB8940FABF84CFB40@phx.gbl>
-Date: Tue, 17 Feb 2009 13:21:05 -0500
-Message-ID: <412bdbff0902171021l6bcfc1f4o6d4903949da70b0d@mail.gmail.com>
-Subject: =?windows-1256?Q?Re=3A_HVR=2D1500_tuner_seems_to_be_recognized=2C_but_wont_?=
-	=?windows-1256?Q?turn_on=2E=FE?=
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Thomas Nicolai <nickotym@hotmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Eduard Huguet <eduardhc@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Is there a way to get linux-media daily digests?
+References: <617be8890902260101y68ef8b3am8823a7972fa49a7b@mail.gmail.com>	 <go5s7i$no6$1@ger.gmane.org> <617be8890902260306l64c20bf9qc3a0b2979f05aea3@mail.gmail.com>
+In-Reply-To: <617be8890902260306l64c20bf9qc3a0b2979f05aea3@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/2/17 Thomas Nicolai <nickotym@hotmail.com>:
-> After trying your fix a few times last night I gave up.  I was really hoping
-> that would do it.  I think this evening I will try reinstalling the drivers
-> and see if maybe something got corrupted or maybe a change has been made in
-> my favor.  Otherwise I may try reinstalling the i2c core.
->
-> thanks,
->
-> Tom
+Eduard Huguet wrote:
+> Yes, but this way implies using a feed reader or similar. I'm aware of
+> this way, but this would mean unsubscribing from the list to stop
+> receiving the mails and just read them through an external program /
+> webpage. What also means that, if I want to post a new message or just
+> answering one I'd need to re-subscribe again just for doing so.
+> 
 
-Just to be clear, the v4l-dvb codebase doesn't contain the i2c core.
-That ships as a standard part of your kernel.  You're not really going
-to be able to "reinstall the i2c core" unless you mean reinstalling
-the latest kernel package that came with your distro or recompiling
-the kernel.
 
-Hmm...  Could also be an issue with the i2c gate preventing
-communications from reaching the tuner.
+not at all. I just disabled the reception of email through the mailing
+interface and I can reply to the mailing list directly from my news
+reader as gname does the bridge between the ml and news.
 
-Is anyone else reporting success with this card in the current v4l-dvb
-build?  I'm wondering if this is some issue specific to your
-environment, or whether the card is just broken in the latest build in
-general.
 
-Did you post the dmesg output after adding "debug=1" to the
-tuner-xc2028 modprobe option and trying to tune to a station?
+> I really preferred the other way (it's what I also use for other mail
+> lists such as mythtv-users and mythtv-dev), and I found it very
+> convenient...
+> 
+> Regards
+>   Eduard
+> 
+> 
+> 
+> 2009/2/26 Pierre Gronlier <ticapix@gmail.com>:
+>> Eduard Huguet wrote:
+>>> Hi,
+>>>     Well, title says old... In previously linux-dvb list I was
+>>> subscribed to the daily digest modality of the list, so I was getting
+>>> only 2 or 3 digest messages per day. This is something I really miss
+>>> now, as I really prefer this way of subscribing to a mail list,
+>>> instead of just receiving every mail sent (I'm just scared thinking
+>>> what I will find in my mailbox when I come back from holidays...).
+>>>
+>>> Is there a way to use such a modality for linux-media?
+>>>
+>>> Best regards,
+>>>   Eduard
+>>>
+>>> PS: if I've just missed something and the possibility exists but I'm
+>>> just too dumb to find it, please send me the link with a big RTFM in
+>>> it, I'll take no offense...
+>> You can subscribe to a newsgroup via gmane:
+>> http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
+>>
+>> this way your mailbox will not be overloaded.
+>>
+>> --
+>> pierre
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
