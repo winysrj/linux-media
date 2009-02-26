@@ -1,67 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:64727 "EHLO
-	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755134AbZB0RT4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Feb 2009 12:19:56 -0500
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta4.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KFQ00BWXIT5SM21@mta4.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Fri, 27 Feb 2009 12:19:54 -0500 (EST)
-Date: Fri, 27 Feb 2009 12:19:53 -0500
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
-In-reply-to: <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <49A820B9.7000004@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <499E381D.4070607@linuxtv.org>
- <387ee2020902192125w47916ebr7c633f7a6c092120@mail.gmail.com>
- <499EC549.7090909@linuxtv.org>
- <387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
- <e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
- <387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
- <49A81DCE.6060201@linuxtv.org>
- <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
+Received: from mta2.integra.fr ([217.115.161.167]:40735 "EHLO mta2.integra.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753325AbZBZNEm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2009 08:04:42 -0500
+Message-ID: <49A69363.9070605@gmail.com>
+Date: Thu, 26 Feb 2009 14:04:35 +0100
+From: Pierre Gronlier <ticapix@gmail.com>
+MIME-Version: 1.0
+To: Eduard Huguet <eduardhc@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Is there a way to get linux-media daily digests?
+References: <617be8890902260101y68ef8b3am8823a7972fa49a7b@mail.gmail.com>	 <go5s7i$no6$1@ger.gmane.org>	 <617be8890902260306l64c20bf9qc3a0b2979f05aea3@mail.gmail.com>	 <49A67F37.7020405@gmail.com> <617be8890902260341j73337b02y27b86d2ce91de5c7@mail.gmail.com>
+In-Reply-To: <617be8890902260341j73337b02y27b86d2ce91de5c7@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-John Drescher wrote:
->>>>>> Any way to get a running total on your blog?
->>> I'm not against donating for hardware support but I would like to see
->>> the total (and it increase after I donate) and also the code tree
->>> published so others can contribute and track changes.
->> I don't have anything that sophisticated to be honest. If that bothers you then
->> I understand and respect your decision not to support the project.
->>
->> I can't publish any source code until the driver is largely complete, that's not
->> my call, that's the arrangement with NXP.
->>
->>
->>> PS. Thanks for all your hard work on all the drivers - not just this
->>> one. It's greatly appreciated by the MythTV community among others and
->>> myself.
->> I had specifically decided NOT to look at any HVR-2250 web stats for a week. I
->> ran the numbers today and this is where I am:
->>
->> http://www.steventoth.net/blog/hvr-2250/
->>
-> Well I just made that 5. Being a software developer myself, I know
-> this will not go far but hopefully more people will see find the page
-> and help out.
+Eduard Huguet wrote:
+> Sounds interesting... What client do you use to read the news, may I ask?
+> Regards,
 
-Thanks John.
+thunderbird, but any news client is fine.
 
+-- 
+pierre
+
+>   Eduard
 > 
-> Also BTW the other message was from Andrew Barbaccia who replied to me
-> instead of the list so I just forwarded it..
+> 
+> 2009/2/26 Pierre Gronlier <ticapix@gmail.com>:
+>> Eduard Huguet wrote:
+>>> Yes, but this way implies using a feed reader or similar. I'm aware of
+>>> this way, but this would mean unsubscribing from the list to stop
+>>> receiving the mails and just read them through an external program /
+>>> webpage. What also means that, if I want to post a new message or just
+>>> answering one I'd need to re-subscribe again just for doing so.
+>>>
+>>
+>> not at all. I just disabled the reception of email through the mailing
+>> interface and I can reply to the mailing list directly from my news
+>> reader as gname does the bridge between the ml and news.
+>>
+>>
+>>> I really preferred the other way (it's what I also use for other mail
+>>> lists such as mythtv-users and mythtv-dev), and I found it very
+>>> convenient...
+>>>
+>>> Regards
+>>>   Eduard
+>>>
+>>>
+>>>
+>>> 2009/2/26 Pierre Gronlier <ticapix@gmail.com>:
+>>>> Eduard Huguet wrote:
+>>>>> Hi,
+>>>>>     Well, title says old... In previously linux-dvb list I was
+>>>>> subscribed to the daily digest modality of the list, so I was getting
+>>>>> only 2 or 3 digest messages per day. This is something I really miss
+>>>>> now, as I really prefer this way of subscribing to a mail list,
+>>>>> instead of just receiving every mail sent (I'm just scared thinking
+>>>>> what I will find in my mailbox when I come back from holidays...).
+>>>>>
+>>>>> Is there a way to use such a modality for linux-media?
+>>>>>
+>>>>> Best regards,
+>>>>>   Eduard
+>>>>>
+>>>>> PS: if I've just missed something and the possibility exists but I'm
+>>>>> just too dumb to find it, please send me the link with a big RTFM in
+>>>>> it, I'll take no offense...
+>>>> You can subscribe to a newsgroup via gmane:
+>>>> http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
+>>>>
+>>>> this way your mailbox will not be overloaded.
+>>>>
+>>>> --
+>>>> pierre
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Ahh, fair enough.
-
-Thanks again,
-
-Steve
