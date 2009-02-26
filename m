@@ -1,80 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:55097 "EHLO smtp6-g21.free.fr"
+Received: from main.gmane.org ([80.91.229.2]:54723 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751389AbZBTLHv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 06:07:51 -0500
-Date: Fri, 20 Feb 2009 12:04:00 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Linux Media" <linux-media@vger.kernel.org>
-Subject: Re: Questions about VIDIOC_G_JPEGCOMP / VIDIOC_S_JPEGCOMP
-Message-ID: <20090220120400.3d797cc4@free.fr>
-In-Reply-To: <200902200929.36974.hverkuil@xs4all.nl>
-References: <14759.62.70.2.252.1235052151.squirrel@webmail.xs4all.nl>
-	<200902200929.36974.hverkuil@xs4all.nl>
+	id S1752314AbZBZKvm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Feb 2009 05:51:42 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Lcdq8-0000rz-K0
+	for linux-media@vger.kernel.org; Thu, 26 Feb 2009 10:51:40 +0000
+Received: from actimag014716-2.clients.easynet.fr ([212.11.28.50])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 10:51:40 +0000
+Received: from ticapix by actimag014716-2.clients.easynet.fr with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 10:51:40 +0000
+To: linux-media@vger.kernel.org
+From: Pierre Gronlier <ticapix@gmail.com>
+Subject: Re: Is there a way to get linux-media daily digests?
+Date: Thu, 26 Feb 2009 11:51:29 +0100
+Message-ID: <go5s7i$no6$1@ger.gmane.org>
+References: <617be8890902260101y68ef8b3am8823a7972fa49a7b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <617be8890902260101y68ef8b3am8823a7972fa49a7b@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 20 Feb 2009 09:29:36 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> > Support for these ioctls should be added to v4l2-ctl.cpp. It's the
-> > right place for that.
-> >
-> > But more important is to document these ioctls in the v4l2 spec. As
-> > far as I can tell these ioctls came from the zoran driver where
-> > basically a private ioctl was elevated to a public ioctl, but with
-> > little or no review.
-> >
-> > Do you know enough about these ioctls to update the v4l2 spec? That
-> > would be a great help. 
+Eduard Huguet wrote:
+> Hi,
+>     Well, title says old... In previously linux-dvb list I was
+> subscribed to the daily digest modality of the list, so I was getting
+> only 2 or 3 digest messages per day. This is something I really miss
+> now, as I really prefer this way of subscribing to a mail list,
+> instead of just receiving every mail sent (I'm just scared thinking
+> what I will find in my mailbox when I come back from holidays...).
 > 
-> I'm working on the zoran driver anyway, so I'll document this and add 
-> support to v4l2-ctl. I now understand what this is about. The COM and
-> APP markers are either obsolete or are meant as a read-only property.
-> And while it is possible theoretically to set multiple APP segments,
-> it is impossible with the current API to ever read more than one
-> back. Sigh.
+> Is there a way to use such a modality for linux-media?
+> 
+> Best regards,
+>   Eduard
+> 
+> PS: if I've just missed something and the possibility exists but I'm
+> just too dumb to find it, please send me the link with a big RTFM in
+> it, I'll take no offense...
 
-Hi Hans,
+You can subscribe to a newsgroup via gmane:
+http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
 
-I see three parts in these ioctls:
-- quality,
-- definition of the APP and COM markers,
-- presence / absence of some JPEG fields (quantization, Huffman..)
-
-Looking at the video tree, the quality is treated by 5 drivers:
-- in cpia2, the quality is not settable and defaults to 80 (%),
-- in zc0301, the quality may be only set to 0,
-- in et61x251 and sn9c102, the quality may be set to 0 or 1,
-- in zoran, the quality may be set from 5% to 100%, but it is used only
-  to compute the max size of the images!
-
-I don't see the usage of APP or COM markers. Such fields may be added
-by the applications. Actually, only the zoran and cpia2 drivers treat
-them.
-
-About the presence / absence of the JPEG fields, it is simpler to have
-all the required fields in the JPEG image. If some field is lacking, it
-should be added at conversion time by the v4l library or added by the
-driver if video output. The fact the ioctl permits the control of these
-fields obliges the drivers (input) or the applications (output) to know
-how to add (or remove) the fields. It seems a complex treatment for a
-small benefit: reduce the size of images by 100 or 200 bytes. Actually,
-only the zoran and cpia2 drivers treat these controls.
-
-So, I propose to remove these ioctls, and to add two controls: one to
-set the JPEG quality (range 15..95 %) and the other to set a webcam
-quality which might be a boolean or any value depending on some
-associated webcam parameter.
-
-What do you think of it?
-
-Regards.
+this way your mailbox will not be overloaded.
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+pierre
+
