@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1RJiY2U019646
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 14:44:34 -0500
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1RJgav8032454
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 14:42:36 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so845354yxm.81
-	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 11:42:36 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1QK9JZa020008
+	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 15:09:19 -0500
+Received: from mk-filter-1-a-1.mail.uk.tiscali.com
+	(mk-filter-1-a-1.mail.uk.tiscali.com [212.74.100.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n1QK8vvO019756
+	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 15:08:58 -0500
+From: "Mark Burton" <mj.burton@tiscali.co.uk>
+To: <video4linux-list@redhat.com>
+References: <20090226170042.A1E4C61CBC5@hormel.redhat.com>
+Date: Thu, 26 Feb 2009 20:08:51 -0000
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAALR6HK1gY7tAkFD4nHyXL9zCgAAAEAAAANm8fLLecxRCiEdsYLdu2LgBAAAAAA==@tiscali.co.uk>
 MIME-Version: 1.0
-In-Reply-To: <6b3e6cdb0902271139w176708c9t67b32dca960aa6c4@mail.gmail.com>
-References: <6b3e6cdb0902271139w176708c9t67b32dca960aa6c4@mail.gmail.com>
-Date: Fri, 27 Feb 2009 14:42:36 -0500
-Message-ID: <412bdbff0902271142i5c7157cetd28124007224b890@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: "U. Artie Eoff" <uartie@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: ASUS My Cinema-PHC3-100/NAQ/FM/AV/RC Support?
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20090226170042.A1E4C61CBC5@hormel.redhat.com>
+Subject: Peak DVB-T USB device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,30 +28,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Feb 27, 2009 at 2:39 PM, U. Artie Eoff <uartie@gmail.com> wrote:
-> I recently purchased a ASUS My Cinema-PHC3-100/NAQ/FM/AV/RC ATSC tv tuner
-> card.  I've done some searching to see what kind of support is available for
-> using it under Linux.  There is nothing out there that mentions it will work
-> or how to get it to work.  And it does not appear that my Fedora OS detects
-> it installed.  Could someone start me off with some steps on getting it
-> configured (i.e. drivers, detecting, loading, configuring, etc.).  I
-> consider myself a somewhat advanced user of Linux, but have never done any
-> direct work with tuner cards or general low-level hardware configuration
-> under Linux.  So, don't hesitate to explain in technical terms if it is
-> easier.
+Hi,
 
-Assuming you're referring to the same ASUS My Cinema 3100 I'm thinking
-of, that's a device with a Micronas DRX-J, which won't see any Linux
-support anytime soon (due to licensing issues).
+I have just recently acquired a new DVB stick device PEAK 202344AGPK (See
+http://www.amazon.co.uk/PEAK-DVB-T-DIGITAL-STICK-Electronics/dp/B0010KI5SI).
 
-Regards,
+This device is an Afatech based device, and marked on the PCB it has DVB-T
+395U Rev D. This device seems to have the same PCB as the K-World DVB-T 395U
+which is a supported device, but it has a different USB ID (1b80:e395) to
+the K-World device.
 
-Devin
+By modifying the value of USB_PID_KWORLD_399U to 0xe395 in the file
+dvb-usb-ids.h the device seems to work well with MythTV, although the remote
+control does not seem to be recognised.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Would it be possible for somebody to add in to the code support for this
+device ? I'd be happy to do some testing and confirm operation.
+
+Thanks
+
+Mark
 
 --
 video4linux-list mailing list
