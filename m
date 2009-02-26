@@ -1,81 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1145 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbZBXH1A (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.224]:15057 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755461AbZBZKzx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 02:27:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-Date: Tue, 24 Feb 2009 08:25:57 +0100
-Cc: David Ellingsworth <david@identd.dyndns.org>,
-	linux-media@vger.kernel.org
-References: <200902221115.01464.hverkuil@xs4all.nl> <30353c3d0902230653w419e10c4u73b7f70f135d6663@mail.gmail.com> <Pine.LNX.4.58.0902231842300.24268@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0902231842300.24268@shell2.speakeasy.net>
+	Thu, 26 Feb 2009 05:55:53 -0500
+Received: by rv-out-0506.google.com with SMTP id g37so492827rvb.1
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 02:55:51 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902240825.57694.hverkuil@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.0902050846080.5553@axis700.grange>
+References: <ubpthwd06.wl%morimoto.kuninori@renesas.com>
+	 <Pine.LNX.4.64.0902050846080.5553@axis700.grange>
+Date: Thu, 26 Feb 2009 19:55:51 +0900
+Message-ID: <aec7e5c30902260255h71e483cbgcc1af6beb9fd4409@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] sh_mobile_ceu: Add field signal operation
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 24 February 2009 06:04:48 Trent Piepho wrote:
-> On Mon, 23 Feb 2009, David Ellingsworth wrote:
-> > On Sun, Feb 22, 2009 at 5:15 AM, Hans Verkuil <hverkuil@xs4all.nl> 
-wrote:
-> > > Optional question:
-> >
-> > Why can't we drop support for all but the latest kernel?
-> >
-> > > Why:
-> >
-> > As others have already pointed out, it is a waste of time for
-> > developers who volunteer their time to work on supporting prior kernel
-> > revisions for use by enterprise distributions. The task of
-> > back-porting driver modifications to earlier kernels lessens the
-> > amount of time developers can focus on improving the quality and
-> > stability of new and existing drivers. Furthermore, it deters driver
-> > development since  there an expectation that they will back-port their
-> > driver to earlier kernel versions. Finally, as a developer, I have
+On Thu, Feb 5, 2009 at 5:04 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Tue, 3 Feb 2009, Kuninori Morimoto wrote:
 >
-> We don't backport the drivers to older kernels.  That's what drivers kept
-> in a full kernel tree end up doing.
+>> sh_mobile_ceu can support "field signal" from external module.
+>> To support this operation, SH_CEU_FLAG_USE_FLDID_{HIGH, LOW}
+>> are added to header.
 >
-> Generally there is just the code for the newest kernel to think about.
-> Most of the driver code doesn't have backward compatibility ifdefs.  Most
-> of the compat issues are handled transparently by compat.h and only those
-> developers who patch compat.h ever need to know they exist.
+> I never dealt with interlaced video, so, I probably just don't understand
+> something, please explain. I understand the Field ID signal is optional,
+> and, if used, it can be either active high or low. But who gets to decide
+> which polarity is applicable in a specific case? The platform? Is it not
+> like with other control signals, where if both partners are freely
+> configurable, then any polarity can be used; if one is configurable and
+> another is hard-wired, only one polarity can be used. And as long as the
+> signal is available (connected), the platform has no further influence on
+> its use? Ok, there can be an inverter there, but that we can handle too.
+
+I believe you are correct. It is just yet another signal.
+
+> So, wouldn't something like
 >
-> When a developer does need to deal with some compat ifdef in a driver,
-> almost all the time it's something trivial and obvious.  Change the
-> variable name in both branches.  Copy in a couple lines of boilerplate.
+> +       if (pcdev->pdata->flags & SH_CEU_FLAG_USE_FLDID)
+> +               flags |= SOCAM_FIELD_ID_ACTIVE_HIGH | SOCAM_FIELD_ID_ACTIVE_LOW;
+> +
 >
-> Sometimes a bigger issue comes up.  IIRC, around 2.6.16 there was a major
-> class_device change in the kernel and backward compat code for it ended
-> up being a nightmare.  So we didn't do it.  We stopped supporting back to
-> ~2.6.11 and moved up the target past the problem change.
+> ...
+>
+> +       if (common_flags & (SOCAM_FIELD_ID_ACTIVE_HIGH | SOCAM_FIELD_ID_ACTIVE_LOW) ==
+> +           SOCAM_FIELD_ID_ACTIVE_LOW)
+> +               /* The client only supports active low field ID */
+> +               value |= 1 << 16;
+> +       /* Otherwise we are free to choose, leave default active high */
+>
+> Or does Field ID work differently?
 
-Actually that was in 2.6.19. The class_device #ifs are still in e.g. 
-v4l2-dev.c. It would be a nice bonus when we can drop that as well. It 
-could be that there were additional changes as well in pre-2.6.16 kernels. 
-If so, then we definitely implemented the backwards compat for it at the 
-time.
+Nope, it works just like that. I guess what makes this confusing is
+that we have some boards that don't have the FLD signal. So far the
+CEU driver has had it's configuration passed as platform data, but
+making it more generic and fit better to the soc-camera framework is
+of course a good idea. But we may need a way to specify the actual
+configuration of our board.
 
-> Maybe this has happened again with the changes to i2c?  I don't think
-> it's that hard, but I've yet to do it myself, so maybe it is.
+So the TV decoder chip has a field signal. So does the CEU. But not
+early versions of the board.
 
-I've been working on this since around 2.6.24 (and been involved with i2c in 
-one way or another for quite a bit longer) and I say it's hard. Jean 
-Delvare made the i2c core changes in 2.6.22 and he says it's hard. So 
-perhaps if the two people who know most about the topic say it's hard and 
-not solvable with a compat.h change, or the occasional #if, or a regexp as 
-Mauro seems to be attempting now, then it really IS hard.
+> And what do you do, if the platform doesn't specify SH_CEU_FLAG_USE_FLDID,
+> i.e., it is not connected, but the client does? Or the other way round? In
+> other words, is it a working configuration, when one of the partners
+> provides this signal and the other one doesn't? I guess it is, because,
+> you say, it is optional. So we shouldn't test it in
+> soc_camera_bus_param_compatible()?
 
-Regards,
+I made a hack half a year ago that worked around the interlaced
+640x480 video with missing field signal to 640x240 progressive.
+Basically exactly the same as interlace for the TV decoder but the CEU
+is configured in 640x240 progressive mode and gets the double amount
+of frames per second.
 
-	Hans
+Not sure if we want such a feature upstream though, so maybe this may
+be a non-issue. =)
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Cheers,
+
+/ magnus
