@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:2862 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbZBQNXm (ORCPT
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:63969 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755159AbZBZQlt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 08:23:42 -0500
-Date: Tue, 17 Feb 2009 14:23:27 +0100
-From: Jean Delvare <khali@linux-fr.org>
+	Thu, 26 Feb 2009 11:41:49 -0500
+Received: by ewy25 with SMTP id 25so701307ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 26 Feb 2009 08:41:46 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20090226121445.74ed3202@caramujo.chehab.org>
+References: <49A18DD5.40206@gmx.de>
+	 <20090226121445.74ed3202@caramujo.chehab.org>
+Date: Thu, 26 Feb 2009 08:35:06 -0800
+Message-ID: <a3ef07920902260835n25faa130y401e2f4814172b4c@mail.gmail.com>
+Subject: Re: [PATCH] dvb-api: update documentation, chapter1
+From: VDR User <user.vdr@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Minimum kernel version supported by v4l-dvb
-Message-ID: <20090217142327.1678c1a6@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Cc: wk <handygewinnspiel@gmx.de>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, Feb 26, 2009 at 7:14 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> It seems better to say, instead, that "Version 4 was suggested, but it weren't completed nor implemented".
 
-These days I am helping Hans Verkuil convert the last users of the
-legacy i2c device driver binding model to the new, standard binding
-model. It turns out to be a very complex task because the v4l-dvb
-repository is supposed to still support kernels as old as 2.6.16, while
-the initial support for the new i2c binding model was added in kernel
-2.6.22 (and even that is somewhat different from what is upstream now.)
-This forces us to add quirks all around the place, which will surely
-result in bugs because the code becomes hard to read, understand and
-maintain.
+That's improper.  I think you mean, "Version 4 was suggested but
+neither completed, nor implemented".
 
-In fact, without this need for backwards compatibility, I would
-probably have been able to convert most of the drivers myself, without
-Hans' help, and this would already be all done. But as things stand
-today, he has to do most of the work, and our progress is slow.
+Why do I have a feeling even the updated doc will be full of spelling
+& grammatical errors?  ;)
 
-So I would like you to consider changing the minimum kernel version
-supported by the v4l-dvb repository from 2.6.16 to at least 2.6.22.
-Ideal for us would even be 2.6.26, but I would understand that this is
-too recent for you. Kernel 2.6.22 is one year and a half old, I
-honestly doubt that people fighting to get their brand new TV adapter
-to work are using anything older. As a matter of fact, kernel 2.6.22 is
-what openSUSE 10.3 has, and this is the oldest openSUSE product that is
-still maintained.
+>> +This Linux DVB API documentation will be extended to reflect these
+>> additions.
+>
+> While we don't finish adding the S2API parts, maybe we should say instead:
+>
+> This document is currently under review to reflect the S2API additions.
 
-I understand and respect your will to let a large range of users build
-the v4l-dvb repository, but at some point the cost for developers seems
-to be too high, so there's a balance to be found between users and
-developers. At the moment the balance isn't right IMHO.
+Maybe you should say, "This documentation is a work-in-progress and
+doesn't contain the full scope of newer additions year, such as
+S2API".
 
-Thanks,
--- 
-Jean Delvare
+Also, you might want to consider changing "DVB cards" to "DVB
+devices".  For example, I don't know anybody who refers to USB DVB
+devices as 'DVB cards'.
+
+Cheers,
+-Derek
