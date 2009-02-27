@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:39794 "EHLO
-	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750911AbZBQAWb (ORCPT
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:52547 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756760AbZB0T3m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Feb 2009 19:22:31 -0500
-Date: Mon, 16 Feb 2009 16:22:27 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Steven Toth <stoth@linuxtv.org>
-cc: linux-media@vger.kernel.org, e9hack <e9hack@googlemail.com>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [BUG] changeset 9029 (http://linuxtv.org/hg/v4l-dvb/rev/aa3e5cc1d833)
-In-Reply-To: <4999BADF.6070106@linuxtv.org>
-Message-ID: <Pine.LNX.4.58.0902161611300.24268@shell2.speakeasy.net>
-References: <4986507C.1050609@googlemail.com> <200902151336.17202@orion.escape-edv.de>
- <Pine.LNX.4.58.0902160811340.24268@shell2.speakeasy.net>
- <20090216153148.6f2aa408@pedra.chehab.org> <4999BADF.6070106@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Fri, 27 Feb 2009 14:29:42 -0500
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KFQ003HHOSVED00@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Fri, 27 Feb 2009 14:29:20 -0500 (EST)
+Date: Fri, 27 Feb 2009 14:29:18 -0500
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
+In-reply-to: <412bdbff0902271050r4c53a655na8cd0f404a83895e@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Message-id: <49A83F0E.5070402@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <499E381D.4070607@linuxtv.org>
+ <387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
+ <e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
+ <387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
+ <49A81DCE.6060201@linuxtv.org>
+ <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
+ <49A820B9.7000004@linuxtv.org>
+ <e816454e0902271027k295aa341r384752829687b7e8@mail.gmail.com>
+ <412bdbff0902271034qd762d8pc2254ed14e930b72@mail.gmail.com>
+ <387ee2020902271038v3ca7434dw25780937e64673e1@mail.gmail.com>
+ <412bdbff0902271050r4c53a655na8cd0f404a83895e@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 16 Feb 2009, Steven Toth wrote:
-> > Hartmut, Oliver and Trent: Thanks for helping with this issue. I've just
-> > reverted the changeset. We still need a fix at dm1105, au0828-dvb and maybe
-> > other drivers that call the filtering routines inside IRQ's.
->
-> Fix the demux, add a worker thread and allow drivers to call it directly.
->
-> I'm not a big fan of videobuf_dvb or having each driver do it's own thing as an
-> alternative.
->
-> Fixing the demux... Would this require and extra buffer copy? probably, but it's
-> a trade-off between  the amount of spent during code management on a driver by
-> driver basis vs wrestling with videobuf_dvb and all of problems highlighted on
-> the ML over the last 2 years.
+Devin Heitmueller wrote:
+> On Fri, Feb 27, 2009 at 1:38 PM, John Drescher <drescherjm@gmail.com> wrote:
+>> So now (with my donation) we have him working at $1/hour assuming that
+>> it takes only 100 hours..
+> 
+> Well, this assumes that it would only take 100 hours, of which given
+> the complexity of the device, it will probably take more than twice
+> that (since it's a PCI device and the estimates I gave are for USB
+> devices).
+> 
+> If nothing else, it offers some insight as to how valuable the work of
+> people like Steven is (he has written a whole bunch of different
+> drivers).  It also demonstrates one reason there are so few developers
+> willing to do this sort of work.  Getting a developer to donate a
+> couple of evening's worth of time is pretty easy.  Getting them to
+> make a commitment of every day for the next two to three months is
+> quite harder.
 
-Have the driver copy the data into the demuxer from the interrupt handler
-with irqs disabled?  That's still too much.
+It takes a massive amount of time from all of the core developers to keep the 
+v4l-dvb tree up to date and to add new functionality.
 
-The right way to do it is to have a queue of DMA buffers.  In the interrupt
-handler the driver takes the completed DMA buffer off the "to DMA" queue
-and puts it in the "to process" queue.  The driver should not copy and
-cetainly not demux the data from the interrupt handler.
+Adding a new style of board to an existing driver can take a couple of hours 
+with testing. It's bread a butter maintenance task.
+
+However, adding a brand new bridge driver to the kernel can take 6 months just 
+for the first release, and is then slowly improved over the next 12-24 months.
+
+It's a large task.
+
+- Steve
+
+
