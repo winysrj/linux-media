@@ -1,68 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:46868 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752616AbZBKXVy (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.189]:44862 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755198AbZB0SiV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Feb 2009 18:21:54 -0500
-Date: Wed, 11 Feb 2009 17:21:49 -0600
-From: David Engel <david@istwok.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jonathan Isom <jeisom@gmail.com>,
-	V4L <video4linux-list@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Borke <joshborke@gmail.com>, David Lonie <loniedavid@gmail.com>,
-	CityK <cityk@rogers.com>, linux-media@vger.kernel.org
-Subject: Re: KWorld ATSC 115 all static
-Message-ID: <20090211232149.GA28415@opus.istwok.net>
-References: <1234227277.3932.4.camel@pc10.localdom.local> <1234229460.3932.27.camel@pc10.localdom.local> <20090210003520.14426415@pedra.chehab.org> <1234235643.2682.16.camel@pc10.localdom.local> <1234237395.2682.22.camel@pc10.localdom.local> <20090210041512.6d684be3@pedra.chehab.org> <1767e6740902100407t6737d9f4j5d9edefef8801e27@mail.gmail.com> <20090210102732.5421a296@pedra.chehab.org> <20090211035016.GA3258@opus.istwok.net> <20090211054329.6c54d4ad@pedra.chehab.org>
+	Fri, 27 Feb 2009 13:38:21 -0500
+Received: by nf-out-0910.google.com with SMTP id d21so370205nfb.21
+        for <linux-media@vger.kernel.org>; Fri, 27 Feb 2009 10:38:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090211054329.6c54d4ad@pedra.chehab.org>
+In-Reply-To: <412bdbff0902271034qd762d8pc2254ed14e930b72@mail.gmail.com>
+References: <499E381D.4070607@linuxtv.org> <499EC549.7090909@linuxtv.org>
+	 <387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
+	 <e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
+	 <387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
+	 <49A81DCE.6060201@linuxtv.org>
+	 <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
+	 <49A820B9.7000004@linuxtv.org>
+	 <e816454e0902271027k295aa341r384752829687b7e8@mail.gmail.com>
+	 <412bdbff0902271034qd762d8pc2254ed14e930b72@mail.gmail.com>
+Date: Fri, 27 Feb 2009 13:38:16 -0500
+Message-ID: <387ee2020902271038v3ca7434dw25780937e64673e1@mail.gmail.com>
+Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
+From: John Drescher <drescherjm@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 11, 2009 at 05:43:29AM -0200, Mauro Carvalho Chehab wrote:
-> On Tue, 10 Feb 2009 21:50:16 -0600
-> David Engel <david@istwok.net> wrote:
-> > MythTV eventually worked too, but I had to do the
-> > "unload/reload modules and run tvtime" procedure I reported earlier
-> > when I tried Hans' kworld tree.
-> 
-> Maybe this is a race condition I have here with tda1004x. With tda1004x, the i2c
-> bus shouldn't be used by any other device during the firmware transfers,
-> otherwise the firmware load will fail, and tda1004x goes into an unstable
-> state. With this device, it even affects all subsequent i2c acesses. The only
-> alternative to recover tda1004x is to reboot the card (e. g. with my cardbus
-> device, I have to physically remove it and re-insert).
-> 
-> What happens is that some softwares (including udev) open the device, and send
-> some VIDIOC_G_TUNER in order to check some tuner characteristics. However, this
-> command generates some i2c transfers, to retrieve signal strength. If this
-> happens while the firmware is being loaded, the bug occurs.
-> 
-> In order to fix, a careful review of all locks on the driver is needed. We will
-> likely need to change the demod interface for the boards that have this
-> trouble, in order to be aware of when a firmware transfer started.
-> 
-> This lock review is currently on my TODO list.
-> 
-> To be sure that this is the case, could you please add this on
-> your /etc/modprobe (or at a file inside /etc/modprobe.d):
-> 
-> 	options nxt200x debug=1
-> 	options tuner-simple debug=1
-> 	options tuner debug=1
-> 	options dvb-core frontend_debug=1
-> 
-> And test again, sending us the produced logs when the device works and when it
-> breaks. I guess we'll discover some tuner dmesg's in the middle of the firmware
-> load sequence.
+On Fri, Feb 27, 2009 at 1:34 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Fri, Feb 27, 2009 at 1:27 PM, Andrew Barbaccia
+>> Sorry, maybe I phrased my request as a solution which is not what I
+>> intended. I was unaware of your agreements with NXP. I see you added how
+>> much money has been donated to your post. That's more than enough of a
+>> status indicator for me.
+>> Possibly could you roughly estimate how much more work is required and
+>> present it in the same manner?
+>> I want to you know that I do support this project and have just contributed
+>> - both as a thank you for your prior work and willingness to help the
+>> community in addition to the HVR-2250 support.
+>
+> Andrew,
+>
+> I cannot speak to the saa7164, but to give you an order of magnitude,
+> I spent over a month working on the saa7136 support, working every
+> night and weekend for 4-6 hours.  The analog support I did for the
+> au0828/au8522 took about 100 hours.
+>
+> So, while not necessarily an apples-to-apples comparison, these
+> drivers tend to take tens or sometimes hundreds of hours of
+> development.  They are definitely a non-trivial amount of work to do.
+>
+> Bear in mind that the saa7164 is a much more complicated chip than the saa7136.
+>
 
-I will do this, but it will be tomorrow evening before I can get to
-it.
+So now (with my donation) we have him working at $1/hour assuming that
+it takes only 100 hours..
 
-David
--- 
-David Engel
-david@istwok.net
+John
