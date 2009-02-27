@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KHDpAh029444
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:13:51 -0500
-Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.177])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1KHDexW006215
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 12:13:40 -0500
-Received: by el-out-1112.google.com with SMTP id r23so434047elf.9
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 09:13:40 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1R2p6uF008769
+	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 21:51:06 -0500
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.245])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1R2oqq6017640
+	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 21:50:52 -0500
+Received: by an-out-0708.google.com with SMTP id b2so647560ana.36
+	for <video4linux-list@redhat.com>; Thu, 26 Feb 2009 18:50:52 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <b24e53350902200911udfb9717t5429dd2b9fc81355@mail.gmail.com>
-References: <412bdbff0902200317h26f4d42fh4327b3ff08c79d5c@mail.gmail.com>
-	<499EC9CC.3040703@linuxtv.org>
-	<b24e53350902200910p1f5745b6s864490400f50b9@mail.gmail.com>
-	<b24e53350902200911udfb9717t5429dd2b9fc81355@mail.gmail.com>
-Date: Fri, 20 Feb 2009 12:13:40 -0500
-Message-ID: <b24e53350902200913h3760ccbdqc9f14217afe5fdb1@mail.gmail.com>
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: Steven Toth <stoth@linuxtv.org>
+In-Reply-To: <495E33BB.7070301@wp.pl>
+References: <495DE5A6.8000404@wp.pl>
+	<412bdbff0901020642n7ef93c7ajff2ffe5e784a2940@mail.gmail.com>
+	<495E33BB.7070301@wp.pl>
+Date: Thu, 26 Feb 2009 18:50:51 -0800
+Message-ID: <fbab3e0d0902261850y1e03fdfdma31b1ea468b656f3@mail.gmail.com>
+From: Erik Tollerud <erik.tollerud@gmail.com>
+To: Kuba Irzabek <vega01@wp.pl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: HVR-950q analog support - testers wanted
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Pinnacle HDTV Ultimate USB and SAA7136
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,76 +31,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Feb 20, 2009 at 12:11 PM, Robert Krakora
-<rob.krakora@messagenetsystems.com> wrote:
-> On Fri, Feb 20, 2009 at 12:10 PM, Robert Krakora
-> <rob.krakora@messagenetsystems.com> wrote:
->> On Fri, Feb 20, 2009 at 10:18 AM, Steven Toth <stoth@linuxtv.org> wrote:
->>> Devin Heitmueller wrote:
->>>>
->>>> Hello,
->>>>
->>>> There is now a test repository that provides analog support for the
->>>> HVR-950q:
->>>>
->>>> http://linuxtv.org/hg/~dheitmueller/hvr950q-analog
->>>>
->>>> I welcome people interested in analog support for the 950q to download
->>>> the tree and provide feedback.
+Has there been any progress in the last couple months on this particular driver?
+
+On Fri, Jan 2, 2009 at 7:33 AM, Kuba Irzabek <vega01@wp.pl> wrote:
+> Devin Heitmueller wrote:
 >>>
->>> I only have time today for a small amount of testing but QAM and ATSC are
->>> still working reliably. No obvious issues. No obvious regressions.
+>>> Hello Kuba,
 >>>
->>> I'll load this up on my myth box this weekend and ensure it's still reliable
->>> over the long term.
+>>> I have the full documentation for the saa7136 and have been actively
+>>> working on the driver for the last couple of weeks.  I have the
+>>> S-Video and CVBS working, and am now working on the audio support and
+>>> the digital IF support required for the tuner.
 >>>
->>> I'll be in touch.
+>>> I hope to release something in the next couple of weeks.
 >>>
->>> - Steve
+>>> Cheers,
 >>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>> Devin
 >>>
 >>>
->>
->> I will test it today!!!  Thanks Steve...
->>
->> --
->> Rob Krakora
->> Senior Software Engineer
->> MessageNet Systems
->> 101 East Carmel Dr. Suite 105
->> Carmel, IN 46032
->> (317)566-1677 Ext. 206
->> (317)663-0808 Fax
->>
 >
-> Thanks Devin!!!
+> Great! Waiting for the first release then. :-)
+>
+> Regards,
+> Kuba
 >
 > --
-> Rob Krakora
-> Senior Software Engineer
-> MessageNet Systems
-> 101 East Carmel Dr. Suite 105
-> Carmel, IN 46032
-> (317)566-1677 Ext. 206
-> (317)663-0808 Fax
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 >
 
-I have three Linux-based media-ports here and I will put an HR950Q on
-each and let them run with my tester that changes channels and that
-opens and closes the device...
+
 
 -- 
-Rob Krakora
-Senior Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+Erik Tollerud
+Graduate Student
+Center For Cosmology
+Department of Physics and Astronomy
+2142 Frederick Reines Hall
+University of California, Irvine
+Office Phone: (949)824-2587
+Cell: (651)307-9409
+etolleru@uci.edu
 
 --
 video4linux-list mailing list
