@@ -1,21 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from echoes.night-light.net ([84.49.14.38] ident=root)
+Received: from an-out-0708.google.com ([209.85.132.240])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@night-light.net>) id 1LUQW7-0002Qt-AQ
-	for linux-dvb@linuxtv.org; Tue, 03 Feb 2009 20:01:04 +0100
-Received: from [192.168.1.22] (mediastation.night-light.localnet
-	[192.168.1.22])
-	by echoes.night-light.net (8.14.3/8.14.3/SuSE Linux 0.8) with ESMTP id
-	n13J0wR9023538
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Tue, 3 Feb 2009 20:00:58 +0100
-Message-ID: <4988946A.9030502@night-light.net>
-Date: Tue, 03 Feb 2009 20:00:58 +0100
-From: Jonas Kvinge <linuxtv@night-light.net>
+	(envelope-from <admin@monolithmc.com>) id 1Ld7RL-0000GE-QE
+	for linux-dvb@linuxtv.org; Fri, 27 Feb 2009 19:28:04 +0100
+Received: by an-out-0708.google.com with SMTP id c2so904219anc.41
+	for <linux-dvb@linuxtv.org>; Fri, 27 Feb 2009 10:27:58 -0800 (PST)
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts
- on HDchannels]
+In-Reply-To: <49A820B9.7000004@linuxtv.org>
+References: <499E381D.4070607@linuxtv.org>
+	<387ee2020902192125w47916ebr7c633f7a6c092120@mail.gmail.com>
+	<499EC549.7090909@linuxtv.org>
+	<387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
+	<e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
+	<387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
+	<49A81DCE.6060201@linuxtv.org>
+	<387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
+	<49A820B9.7000004@linuxtv.org>
+Date: Fri, 27 Feb 2009 13:27:58 -0500
+Message-ID: <e816454e0902271027k295aa341r384752829687b7e8@mail.gmail.com>
+From: Andrew Barbaccia <andrew@monolithmc.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,87 +30,89 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1836659998=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+--===============1836659998==
+Content-Type: multipart/alternative; boundary=0016e644d6eed2f03f0463eaa063
 
+--0016e644d6eed2f03f0463eaa063
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Manu Abraham wrote:
-> Alex Betis wrote:
->> On Tue, Jan 27, 2009 at 9:56 PM, Manu Abraham <abraham.manu@gmail.com>wrote:
->>
->>>> Hmm OK, but is there by any chance a fix for those issues somewhere or
->>>> in the pipe at least? I am willing to test (as I already offered), I
->>>> can compile the drivers, spread printk or whatever else is needed to
->>>> get useful reports. Let me know if I can help sort this problem. BTW in
->>>> my case it is DVB-S2 30000 SR and FEC 5/6.
->>> It was quite not appreciable on my part to provide a fix or reply in
->>> time nor spend much time on it earlier, but that said i was quite
->>> stuck up with some other things.
->>>
->>> Can you please pull a copy of the multiproto tree
->>> http://jusst.de/hg/multiproto or the v4l-dvb tree from
->>> http://jusst.de/hg/v4l-dvb
->>>
->>> and apply the following patch and comment what your result is ?
->>> Before applying please do check whether you still have the issues.
->> Manu,
->> I've tried to increase those timers long ago when played around with my card
->> (Twinhan 1041) and scan utility.
->> I must say that I've concentrated mostly on DVB-S channels that wasn't
->> always locking.
->> I didn't notice much improvements. The thing that did help was increasing
->> the resolution of scan zigzags.
 >
-> With regards to the zig-zag, one bug is fixed in the v4l-dvb tree.
-> Most likely you haven't tried that change.
+> >> I don't have anything that sophisticated to be honest. If that bothers
+> you then
+> >> I understand and respect your decision not to support the project.
 >
->> I've sent a patch on that ML and people were happy with the results.
+[snip]
+
 >
-> I did look at your patch, but that was completely against the tuning
-> algorithm.
->
-> [..]
->
->> I believe DVB-S2 lock suffer from the same problem, but in that case the
->> zigzag is done in the chip and not in the driver.
->
-> Along with the patch i sent, does the attached patch help you in
-> anyway (This works out for DVB-S2 only)?
->
->
+> >>
+> >> I can't publish any source code until the driver is largely complete,
+> that's not
+> >> my call, that's the arrangement with NXP.
 >
 
-- From what I understand the driver still has some issues. Got feedback
-from another guy with Canal Digital in Norway that he has the same
-issues as me.
+Sorry, maybe I phrased my request as a solution which is not what I
+intended. I was unaware of your agreements with NXP. I see you added how
+much money has been donated to your post. That's more than enough of a
+status indicator for me.
 
-Not sure if the diff was an attempt to fix the digital artefacts but I
-tried applying the diff manually on the source I grabbed from
-http://jusst.de/hg/v4l-dvb/ but did not notice any improvements or
-difference with the artefacts. Would any logs be helpful?
+Possibly could you roughly estimate how much more work is required and
+present it in the same manner?
 
-If there is anything else I could try I'm willing to try it out. I
-appreciate your effort. Thanks.
+I want to you know that I do support this project and have just contributed
+- both as a thank you for your prior work and willingness to help the
+community in addition to the HVR-2250 support.
+
+Thanks,
+Andrew
+
+--0016e644d6eed2f03f0463eaa063
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div><div class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"=
+margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"><div class=
+=3D"Ih2E3d">&gt;&gt; I don&#39;t have anything that sophisticated to be hon=
+est. If that bothers you then<br>
+
+&gt;&gt; I understand and respect your decision not to support the project.=
+</div></blockquote><div>[snip]</div><blockquote class=3D"gmail_quote" style=
+=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"><div cl=
+ass=3D"Ih2E3d">
+<br>
+&gt;&gt;<br>
+&gt;&gt; I can&#39;t publish any source code until the driver is largely co=
+mplete, that&#39;s not<br>
+&gt;&gt; my call, that&#39;s the arrangement with NXP.</div></blockquote><d=
+iv><br></div><div>Sorry, maybe I phrased my request as a solution which is =
+not what I intended. I was unaware of your agreements with NXP. I see you a=
+dded how much money has been donated to your post. That&#39;s more than eno=
+ugh of a status indicator for me.=A0</div>
+<div><br></div><div>Possibly could you roughly estimate how much more work =
+is required and present it in the same manner?</div><div><br></div><div>I w=
+ant to you know that I do support this project and have just contributed - =
+both as a thank you for your prior work and willingness to help the communi=
+ty in addition to the HVR-2250 support.<br>
+</div><div><br></div><div>Thanks,</div><div>Andrew</div></div></div>
+
+--0016e644d6eed2f03f0463eaa063--
 
 
-Jonas
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkmIlGoACgkQpvOo+MDrK1H4yACdHPoej4cSsfPvp7m4NUGsAjAz
-36EAn3cz9MffjPWztzyMEOcs0VcxhQdD
-=h9tA
------END PGP SIGNATURE-----
+--===============1836659998==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1836659998==--
