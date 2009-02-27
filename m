@@ -1,168 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58719 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756569AbZBXXKc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 18:10:32 -0500
-Date: Wed, 25 Feb 2009 00:10:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	morimoto.kuninori@renesas.com
-Subject: [PATCH 2/2 v3] soc-camera: configure drivers with a default format
- on open
-In-Reply-To: <aec7e5c30902232247x4a3e57celc82d4148fd7f045d@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0902240851100.4494@axis700.grange>
-References: <Pine.LNX.4.64.0902191615000.5156@axis700.grange>
- <Pine.LNX.4.64.0902191616340.5156@axis700.grange>
- <aec7e5c30902232247x4a3e57celc82d4148fd7f045d@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:64727 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755134AbZB0RT4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Feb 2009 12:19:56 -0500
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KFQ00BWXIT5SM21@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Fri, 27 Feb 2009 12:19:54 -0500 (EST)
+Date: Fri, 27 Feb 2009 12:19:53 -0500
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
+In-reply-to: <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Message-id: <49A820B9.7000004@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <499E381D.4070607@linuxtv.org>
+ <387ee2020902192125w47916ebr7c633f7a6c092120@mail.gmail.com>
+ <499EC549.7090909@linuxtv.org>
+ <387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
+ <e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
+ <387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
+ <49A81DCE.6060201@linuxtv.org>
+ <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently soc-camera doesn't set up any image format without an explicit 
-S_FMT. According to the API this should be supported, for example, 
-capture-example.c from v4l2-apps by default doesn't issue an S_FMT. This 
-patch moves negotiating of available host-camera format translations to 
-probe() time, and restores the state from the last close() on the next 
-open(). This is needed for some drivers, which power down or reset 
-hardware after the last user closes the interface. This patch also has a 
-nice side-effect of avoiding multiple allocation anf freeing of format 
-translation tables.
+John Drescher wrote:
+>>>>>> Any way to get a running total on your blog?
+>>> I'm not against donating for hardware support but I would like to see
+>>> the total (and it increase after I donate) and also the code tree
+>>> published so others can contribute and track changes.
+>> I don't have anything that sophisticated to be honest. If that bothers you then
+>> I understand and respect your decision not to support the project.
+>>
+>> I can't publish any source code until the driver is largely complete, that's not
+>> my call, that's the arrangement with NXP.
+>>
+>>
+>>> PS. Thanks for all your hard work on all the drivers - not just this
+>>> one. It's greatly appreciated by the MythTV community among others and
+>>> myself.
+>> I had specifically decided NOT to look at any HVR-2250 web stats for a week. I
+>> ran the numbers today and this is where I am:
+>>
+>> http://www.steventoth.net/blog/hvr-2250/
+>>
+> Well I just made that 5. Being a software developer myself, I know
+> this will not go far but hopefully more people will see find the page
+> and help out.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-On Tue, 24 Feb 2009, Magnus Damm wrote:
+Thanks John.
 
-> I like the idea behind this patch, but I wonder if it is compatible
-> with standard V4L2 behaviour. Please double check against the  open()
-> comment in section "4.1.3. Image Format Negotiation" below:
 > 
-> http://v4l2spec.bytesex.org/spec/c6488.htm#AEN6520
+> Also BTW the other message was from Andrew Barbaccia who replied to me
+> instead of the list so I just forwarded it..
 
-Hm, until now I was interpreting it in a way "as long as a video device is 
-kept open, subsequent open() calls shouldn't change its state," but as 
-soon as a device is released by all users, its state is lost. But now I 
-see also here http://v4l2spec.bytesex.org/spec/r14090.htm:
+Ahh, fair enough.
 
-<quote>
-At the first open() call after loading the driver they will be reset to 
-default values, drivers are never in an undefined state.
-</quote>
+Thanks again,
 
-With this patch I still issue a S_FMT on "every first open," i.e., every 
-time the use count goes from 0 to 1, but I don't use default parameters 
-any more, but those from the previous session, which should make us 
-sufficiently compliant with the standard:-)
-
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index fcd6b2c..078d4b1 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -286,7 +286,9 @@ static int soc_camera_set_fmt(struct soc_camera_file *icf,
- 
- 	icd->width		= pix->width;
- 	icd->height		= pix->height;
--	icf->vb_vidq.field	= pix->field;
-+	icf->vb_vidq.field	=
-+		icd->field	= pix->field;
-+
- 	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		dev_warn(&icd->dev, "Attention! Wrong buf-type %d\n",
- 			 f->type);
-@@ -339,26 +341,24 @@ static int soc_camera_open(struct file *file)
- 
- 	/* Now we really have to activate the camera */
- 	if (icd->use_count == 1) {
-+		/* Restore parameters before the last close() per V4L2 API */
- 		struct v4l2_format f = {
- 			.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 			.fmt.pix = {
--				.width		= DEFAULT_WIDTH,
--				.height		= DEFAULT_HEIGHT,
--				.field		= V4L2_FIELD_ANY,
-+				.width		= icd->width,
-+				.height		= icd->height,
-+				.field		= icd->field,
-+				.pixelformat	= icd->current_fmt->fourcc,
-+				.colorspace	= icd->current_fmt->colorspace,
- 			},
- 		};
- 
--		ret = soc_camera_init_user_formats(icd);
--		if (ret < 0)
--			goto eiufmt;
- 		ret = ici->ops->add(icd);
- 		if (ret < 0) {
- 			dev_err(&icd->dev, "Couldn't activate the camera: %d\n", ret);
- 			goto eiciadd;
- 		}
- 
--		f.fmt.pix.pixelformat	= icd->current_fmt->fourcc;
--		f.fmt.pix.colorspace	= icd->current_fmt->colorspace;
- 
- 		/* Try to configure with default parameters */
- 		ret = soc_camera_set_fmt(icf, &f);
-@@ -382,8 +382,6 @@ static int soc_camera_open(struct file *file)
- esfmt:
- 	ici->ops->remove(icd);
- eiciadd:
--	soc_camera_free_user_formats(icd);
--eiufmt:
- 	icd->use_count--;
- 	mutex_unlock(&icd->video_lock);
- 	module_put(ici->ops->owner);
-@@ -403,10 +401,9 @@ static int soc_camera_close(struct file *file)
- 
- 	mutex_lock(&icd->video_lock);
- 	icd->use_count--;
--	if (!icd->use_count) {
-+	if (!icd->use_count)
- 		ici->ops->remove(icd);
--		soc_camera_free_user_formats(icd);
--	}
-+
- 	mutex_unlock(&icd->video_lock);
- 
- 	module_put(icd->ops->owner);
-@@ -874,9 +871,18 @@ static int soc_camera_probe(struct device *dev)
- 		qctrl = soc_camera_find_qctrl(icd->ops, V4L2_CID_EXPOSURE);
- 		icd->exposure = qctrl ? qctrl->default_value :
- 			(unsigned short)~0;
-+
-+		ret = soc_camera_init_user_formats(icd);
-+		if (ret < 0)
-+			goto eiufmt;
-+
-+		icd->height	= DEFAULT_HEIGHT;
-+		icd->width	= DEFAULT_WIDTH;
-+		icd->field	= V4L2_FIELD_ANY;
- 	}
--	ici->ops->remove(icd);
- 
-+eiufmt:
-+	ici->ops->remove(icd);
- eiadd:
- 	mutex_unlock(&icd->video_lock);
- 	module_put(ici->ops->owner);
-@@ -895,6 +901,8 @@ static int soc_camera_remove(struct device *dev)
- 	if (icd->ops->remove)
- 		icd->ops->remove(icd);
- 
-+	soc_camera_free_user_formats(icd);
-+
- 	return 0;
- }
- 
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index e9eb607..013c818 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -45,6 +45,7 @@ struct soc_camera_device {
- 	int num_formats;
- 	struct soc_camera_format_xlate *user_formats;
- 	int num_user_formats;
-+	enum v4l2_field field;		/* Preserve field over close() */
- 	struct module *owner;
- 	void *host_priv;		/* Per-device host private data */
- 	/* soc_camera.c private count. Only accessed with .video_lock held */
+Steve
