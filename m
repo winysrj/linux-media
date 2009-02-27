@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ares.dnshighspeed.com ([213.92.85.196])
+Received: from angel.comcen.com.au ([203.23.236.69])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marco@absence.it>) id 1Lckp4-00020X-FS
-	for linux-dvb@linuxtv.org; Thu, 26 Feb 2009 19:19:04 +0100
-Received: from 213-140-11-132.fastres.net ([213.140.11.132] helo=[5.255.56.38])
-	by ares.dnshighspeed.com with esmtpa (Exim 4.69)
-	(envelope-from <marco@absence.it>) id 1Lckmh-0001gj-GO
-	for linux-dvb@linuxtv.org; Thu, 26 Feb 2009 19:16:35 +0100
-Message-ID: <49A6DCEA.1020606@absence.it>
-Date: Thu, 26 Feb 2009 19:18:18 +0100
-From: Marco Chiappero <marco@absence.it>
-MIME-Version: 1.0
+	(envelope-from <rock_on_the_web@comcen.com.au>) id 1Lcy8x-0004du-At
+	for linux-dvb@linuxtv.org; Fri, 27 Feb 2009 09:32:30 +0100
+Received: from [192.168.0.192] (unknown [202.172.126.254])
+	by angel.comcen.com.au (Postfix) with ESMTP id 993F45C2EC19
+	for <linux-dvb@linuxtv.org>; Fri, 27 Feb 2009 19:33:43 +1100 (EST)
+From: Da Rock <rock_on_the_web@comcen.com.au>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Strange load when using Pinnacle PCTV 73e and kernel
-	2.6.28.5
+Date: Fri, 27 Feb 2009 18:32:11 +1000
+Message-Id: <1235723531.47624.52.camel@laptop1.herveybayaustralia.com.au>
+Mime-Version: 1.0
+Subject: [linux-dvb] dvb, tzap + output, and signal strength
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,31 +26,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi everybody,
+I have to ask, I feel like I'm losing the plot here somehow. I have had
+trouble with a particular channel in Aust (7 Digital) where the signal
+was completely unwatchable and xine would give up and switch channels
+(max settings to prevent this in place). SO I bought an amp for the
+signal.
 
-I have been using this USB dongle for almost a year, but recently, 
-switching from 2.6.27 to 2.6.28.5, I noticed that my small video server 
-now runs continuosly[1] with an average load of 0.50 about. Load average 
-returns within the 0.0x range when unloading all the dvb related 
-modules, so this issue is definitely caused by the dongle stuff (can't 
-say exactely what). By the way, same behaveour with both 
-dvb-usb-dib0700-1.20.fw and dvb-usb-dib0700-1.10.fw. Any suggestions?
+I checked the tzap output to come to this conclusion:
 
+Freq 1 (226500000): sig=da00> snr=0 ber=0 unc=0
+Freq 2 (177500000): sig=ba00> snr=0 ber=3260> unc=0>
+Freq 3 (191625000): sig=cf00> snr=0 ber=0 unc=0
+Freq 4 (219500000): sig=ffff snr=0 ber=0 unc=0
+Freq 5 (585625000): sig=ffff snr=0 ber=0 unc=0
 
-Well, I'd like to ask one more question about this tiny dongle (although 
-it would probably be better to move it in a second mail): is it possible 
-to put the USB stick a low power state when not used? I'm not sure 
-whether this feature is already present or not, but I know that under 
-windows the light in the dongle turns on only when watching TV, while 
-with linux it is always on. I'm a little bit afraid this persistent full 
-power state will shorten its life. Is this nonsense?
+My setup is 2 Dvico dual 4 dvb tuners, and a leadtek 2000H hybrid tuner,
+totalling 5 tuners in the system. The idea is to have a tuner for each
+frequency and stream each channel provided. I also share the antenna
+with a split residence, with a masthead amp and my lead is around 10m+
+long which I cabled myself (I have a cabling licence).
 
+Based on these outputs I figured an amp for the lower frequencies was in
+order. Once I put it in though, several things happened:
 
-Regards,
-Marco Chiappero
+1. Signal strengths increased as planned (for eg. increase from bxxx to
+cxxx), but so did the ber and unc.
+2. Channels which worked fine before suddenly refused to (1 and 3).
+3. The second frequency- the one which started this whole fiasco-
+stopped working at all.
+4. Some tuners failed to work (they were working previously)- errors
+were that while signals were registered, fe was not locking. Status was
+<1.
 
+Perhaps I'm missing something? I'm not completely au fait with radio
+physics, but I have used amps in the past to resolve signal problems
+with success- I seem to have no idea here though.
 
-[1] I use to plot system informations.
+Any ideas here as to what I'm missing/can do?
+
 
 _______________________________________________
 linux-dvb users mailing list
