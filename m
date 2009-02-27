@@ -1,68 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:37973 "EHLO
-	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753191AbZBONDf (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2972 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752425AbZB0MMd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Feb 2009 08:03:35 -0500
-Date: Sun, 15 Feb 2009 05:03:33 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>, kilgota@banach.math.auburn.edu,
-	Adam Baker <linux@baker-net.org.uk>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Olivier Lorin <o.lorin@laposte.net>
-Subject: Re: Adding a control for Sensor Orientation
-In-Reply-To: <4997E05F.9080509@redhat.com>
-Message-ID: <Pine.LNX.4.58.0902150445490.24268@shell2.speakeasy.net>
-References: <200902142048.51863.linux@baker-net.org.uk>
- <alpine.LNX.2.00.0902141624410.315@banach.math.auburn.edu> <4997DB74.6000108@redhat.com>
- <200902151019.35555.hverkuil@xs4all.nl> <4997E05F.9080509@redhat.com>
+	Fri, 27 Feb 2009 07:12:33 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Conversion of vino driver for SGI to not use the legacy decoder API
+Date: Fri, 27 Feb 2009 13:12:10 +0100
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Old Video ML <video4linux-list@redhat.com>,
+	Douglas Landgraf <dougsland@gmail.com>
+References: <20090226214742.6576f30b@pedra.chehab.org> <20090227082216.574b42cf@pedra.chehab.org> <200902271253.28283.hverkuil@xs4all.nl>
+In-Reply-To: <200902271253.28283.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200902271312.10467.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Feb 2009, Hans de Goede wrote:
-> Hans Verkuil wrote:
-> > On Sunday 15 February 2009 10:08:04 Hans de Goede wrote:
-> >> kilgota@banach.math.auburn.edu wrote:
-> >>> On Sat, 14 Feb 2009, Hans Verkuil wrote:
-> >>>> On Saturday 14 February 2009 22:55:39 Hans de Goede wrote:
-> >>>>> Adam Baker wrote:
-> >>>> OK, make it a buffer flag. I've got to agree that it makes more sense
-> >>>> to do
-> >>>> it that way.
-> >>>>
-> >>> The most particular problem is that some of the cameras require byte
-> >>> reversal of the frame data string, which would rotate the image 180
-> >>> degrees around its center. Others of these cameras require reversal of
-> >>> the horizontal lines in the image (vertical 180 degree rotation of the
-> >>> image across a horizontal axis).
-> >>>
-> >>> The point is, one can not tell from the Vendor:Product number which of
-> >>> these actions is required. However, one *is* able to tell immediately
-> >>> after the camera is initialized, which of these actions is required.
-> >>> Namely, one reads and parses the response to the first USB command sent
-> >>> to the camera.
-
-> >> Ack, but the problem later was extended by the fact that it turns out
-> >> some cams have a rotation detection (gravity direction) switch, which
-> >> means you can flip the cam on its socket while streaming, and then the
-> >> cam will tell you its rotation has changed, that makes this a per frame
-> >> property rather then a static property of the cam. Which lead to this
-> >> discussion, but we (the 2 Hans 's) agree now that using the flags field
-> >> in the buffer struct is the best way forward. So there is a standard now,
-> >> simply add 2 buffer flags to videodev2.h, one for content is h-flipped
-> >> and one for content is v-flipped and you are done.
+On Friday 27 February 2009 12:53:28 Hans Verkuil wrote:
+> On Friday 27 February 2009 12:22:16 Mauro Carvalho Chehab wrote:
+> > Well, let's merge the code. Maybe someone at the ML could have an Indy
+> > and can test it.
 > >
-> > I think we should also be able to detect 90 and 270 degree rotations. Or at
-> > the very least prepare for it. It's a safe bet to assume that webcams will
-> > arrive that can detect portrait vs landscape orientation.
+> > I think that the risk of breaking vino is not big, since this
+> > conversion is more like a variable renaming. Also, after applying those
+> > changes at linux-next, more people can test its code. Maybe we can add
+> > some printk's asking for testers to contact us at LMML.
+> >
+> > I would love to finally remove another V4L1 header (video_decoder.h).
 >
-> Handling those (esp on the fly) will be rather hard as width and height then
-> get swapped. So lets worry about those when we need to. We will need an
-> additional flag for those cases anyways.
+> OK, I'll send the pull request.
 
-Why would you need to worry about width and height getting swapped?
-Meta-data about the frame would indicate it's now in portrait mode vs
-landscape mode, but the dimentions would be unchanged.
+This will be delayed until early next week. I think I may have forgotten to 
+push some final changes to my vino tree but I won't have access to that PC 
+until Sunday.
+
+> > > > Jean, I remember you mentioning that you wouldn't mind if the
+> > > > i2c-algo-sgi code could be dropped which is only used by vino. How
+> > > > important is that to you? Perhaps we are flogging a dead horse here
+> > > > and we should just let this driver die.
+> > >
+> > > My rant was based on the fact that i2c-algo-sgi is totally
+> > > SGI-specific while i2c-algo-* modules are supposed to be generic
+> > > abstractions that can be reused by a variety of hardware. So
+> > > i2c-algo-sgi should really be merged into drivers/media/video/vino.c.
+> > > But as it takes a SGI system to build-test such a change, and I don't
+> > > have one, I am reluctant to do it. If we can find a tester for your
+> > > V4L2 conversion then maybe the same tester will be able to test my
+> > > own changes.
+> > >
+> > > But i2c-algo-sgi isn't a big problem per se, it doesn't block further
+> > > evolutions or anything like that, so if we can't find a tester and it
+> > > has to stay for a few more years, this really isn't a problem for me.
+> >
+> > If the merger of i2c-algo-sgi is as not something complex, then we can
+> > try to merge and apply at vino. Otherwise, we can just keep as-is.
+
+Jean, if you are interested in doing this, then use my v4l-dvb-vino2 tree as 
+the starting point. It would be nice to get it all done in one go.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
