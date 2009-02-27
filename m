@@ -1,18 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.188])
+Received: from an-out-0708.google.com ([209.85.132.240])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <brett.maxfield@gmail.com>) id 1LWV1C-0006q9-QQ
-	for linux-dvb@linuxtv.org; Mon, 09 Feb 2009 13:13:43 +0100
-Received: by ti-out-0910.google.com with SMTP id j2so2069616tid.13
-	for <linux-dvb@linuxtv.org>; Mon, 09 Feb 2009 04:13:37 -0800 (PST)
+	(envelope-from <admin@monolithmc.com>) id 1Ld7ju-00027I-CE
+	for linux-dvb@linuxtv.org; Fri, 27 Feb 2009 19:47:14 +0100
+Received: by an-out-0708.google.com with SMTP id c2so910100anc.41
+	for <linux-dvb@linuxtv.org>; Fri, 27 Feb 2009 10:47:10 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <e021c7c00902090411j4df14a69me568a6022a5bc4d2@mail.gmail.com>
-References: <e021c7c00902090411j4df14a69me568a6022a5bc4d2@mail.gmail.com>
-Date: Mon, 9 Feb 2009 22:13:36 +1000
-Message-ID: <e021c7c00902090413l12af9229t8a4db36f7c4ce160@mail.gmail.com>
-From: Brett <brett.maxfield+linux-dvb@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] dib0700 "buggy sfn workaround" or equivalent
+In-Reply-To: <387ee2020902271038v3ca7434dw25780937e64673e1@mail.gmail.com>
+References: <499E381D.4070607@linuxtv.org>
+	<387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
+	<e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
+	<387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
+	<49A81DCE.6060201@linuxtv.org>
+	<387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
+	<49A820B9.7000004@linuxtv.org>
+	<e816454e0902271027k295aa341r384752829687b7e8@mail.gmail.com>
+	<412bdbff0902271034qd762d8pc2254ed14e930b72@mail.gmail.com>
+	<387ee2020902271038v3ca7434dw25780937e64673e1@mail.gmail.com>
+Date: Fri, 27 Feb 2009 13:47:10 -0500
+Message-ID: <e816454e0902271047v7a2b83cco7ad09798a3224599@mail.gmail.com>
+From: Andrew Barbaccia <andrew@monolithmc.com>
+To: John Drescher <drescherjm@gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,40 +31,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1471486282=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+--===============1471486282==
+Content-Type: multipart/alternative; boundary=0016e645b768791ba90463eae5cc
 
-I have a dvb_usb_dib0700 (Nova 500 dual) card and it shows similar
-issues to the dvb_usb_dib3000mc card, ie:
+--0016e645b768791ba90463eae5cc
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-"This card has an issue (which particularly manifests itself in
-Australia where a bandwidth of 7MHz is used) with jittery reception -
-artifacts and choppy sound throughout recordings despite having full
-signal strength. Australian users will typically see this behaviour on
-SBS and ABC channels"
+>
+> So now (with my donation) we have him working at $1/hour assuming that
+> it takes only 100 hours..
+>
 
-The fix for the dib3000mc is to enable the 'buggy sfn workaround' but
-there is no such option for the dib 0700 :
+Well, $2, with mine. ;-)
 
-The buggy sfn workaround workaround does "dib7000p_write_word(state,
-166, 0x4000);" if it is active, or "dib7000p_write_word(state, 166,
-0x0000)" if it inactive, in the dib3000mc driver. I presume this
-tweaks a bandwidth filter or something similar for the dib3000mc, is
-there  such an equivalent feature for the dib0700 chipset ?
+--0016e645b768791ba90463eae5cc
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Does anybody have specs on the dib0700 that describes registers, or
-how to set tuner bandwidth etc., during tuning ?
+<div class="gmail_quote"><blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"><div class="Ih2E3d">So now (with my donation) we have him working at $1/hour assuming that<br>
+</div>
+it takes only 100 hours..<br></blockquote><div><br></div><div>Well, $2, with mine. ;-)</div></div>
 
-Cheers
-Brett
+--0016e645b768791ba90463eae5cc--
+
+
+--===============1471486282==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1471486282==--
