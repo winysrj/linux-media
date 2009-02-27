@@ -1,282 +1,287 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37060 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754385AbZBZPPo (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:60381 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753148AbZB0XFJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Feb 2009 10:15:44 -0500
-Date: Thu, 26 Feb 2009 12:14:45 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: wk <handygewinnspiel@gmx.de>
+	Fri, 27 Feb 2009 18:05:09 -0500
+Subject: Re: [linux-dvb] GDI Black Gold [14c7:0108] cx88 based DVB-T card
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Tim Small <tim@buttersideup.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] dvb-api: update documentation, chapter1
-Message-ID: <20090226121445.74ed3202@caramujo.chehab.org>
-In-Reply-To: <49A18DD5.40206@gmx.de>
-References: <49A18DD5.40206@gmx.de>
+In-Reply-To: <49A7CE56.5040909@buttersideup.com>
+References: <737399.42093.qm@web23305.mail.ird.yahoo.com>
+	 <49A7CE56.5040909@buttersideup.com>
+Content-Type: text/plain
+Date: Sat, 28 Feb 2009 00:06:25 +0100
+Message-Id: <1235775985.2697.19.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 22 Feb 2009 18:39:33 +0100
-wk <handygewinnspiel@gmx.de> wrote:
+Hi Tim,
 
-> Since dvb-api doc is still outdated by six years...
+Am Freitag, den 27.02.2009, 11:28 +0000 schrieb Tim Small:
+> Hello,
 > 
+> I'm interested in getting this card working under Linux as well, it's
+> labelled GDI2500PCTV on the back, and has a Conexant CX23881 visible on
+> the front, with a Philips "TU1216/1 H P" RF box...  Looks like there may
+> be some more ICs under the metal box, but I'd have to desolder it to
+> check what they were (which I can do if necessary).
 > 
-> The following patch changes dvbapi.pdf as following:
-> _______________________________________________________________________________
+> According to the preliminary datasheet which I found, the TU1216
+> contains a TDA 10046 Channel Decoder, and a TDA6651 Mixer/Oscillator.
 > 
-> - change from twosided book format to singlesided book format.
->   * By doing so, the readability is improved and on the right-hand side
->     is more space on every second page.
-> 
-> - change copyright notice on first page by adding "2008, 2009 
-> www.linuxtv.org"
-> 
-> - add "The Linux DVB Developers http://www.linuxtv.org" to 'written by'
-> 
-> - increase API Version number to 5
-> 
-> - change Version Number and date
->   -- 24/07/2003    V 1.0.0
->   ++ 22/02/2009    Version 1.1.0 <- unstable version now, every time api 
-> is changed version should be increased now
-> 
-> - chapter 1 - What you need to know
->    * added goal: "consistent abstraction layer for
->      different digital TV hardware, allowing software applications to be
->      developed without hardware details as well as serving as driver 
-> developers reference"
->    * added comment: odd api version numbers = unstable -> not to be used 
-> for driver/app development
-> 
-> - chapter 1 - history
->   * add History of DVB API v 4
->   * add comment LinuxTV project beeing an independend and non-profit 
-> community
->   * add reasons for DVB API v 5 and decision on Plumbers Conference 2008 
-> towards S2API
-> 
-> - chapter 1 - Overview
->   * changed "DVB PCI card" wherever found, since API doesnt depend on 
-> PCI bus
->   * changed "MPEG picture and sound decoding" to "MPEG video and audio 
-> decoding",
->     since mpeg picture is misleading
-> 
-> - fix some typos inside chapter 1
-> - fix "Overfull \hbox" warnings from chapter 1 (*only* chapter 1 for now..)
-> 
-> Signed-off-by: Winfried Koehler <handygewinnspiel@gmx.de>
-> _______________________________________________________________________________
-> 
-> Please response, comment, improve, review, apply. Do not ignore silently,
-> having a new API doc should be hard requirement for next kernel versions.
+> There seems to be TU1216 support in both v4l/saa7134-dvb.c and
+> v4l/budget-av.c (code cut-n-paste by the look of it), but I can't see a
+> way to select this tuner with the cx88xx module (e.g. CARDLIST.tuner),
+> unless it's called something different, or is compatible with another
+> Philips tuner.
 
-It follows a few comments.
+since there is no analog TV tuning support you use TUNER_ABSENT in
+cx88-cards.c like SAA7134_BOARD_VIDEOMATE_DVBT_200 and
+SAA7134_BOARD_PHILIPS_TOUGH do in saa7134-cards.c accordingly.
 
-> 
-> diff -Nrup v4l-dvb-359d95e1d541/dvb-spec/dvbapi/dvbapi.tex 
-> v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/dvbapi.tex
-> --- v4l-dvb-359d95e1d541/dvb-spec/dvbapi/dvbapi.tex    2009-02-22 
-> 17:07:48.123742503 +0100
-> +++ v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/dvbapi.tex    2009-02-21 
-> 17:33:29.557033066 +0100
-> @@ -1,4 +1,4 @@
-> -\documentclass[a4paper,10pt]{book}
-> +\documentclass[a4paper,10pt,oneside]{book}
->  \usepackage[dvips,colorlinks=true]{hyperref}
->  
->  \usepackage{times}
-> diff -Nrup v4l-dvb-359d95e1d541/dvb-spec/dvbapi/intro.tex 
-> v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/intro.tex
-> --- v4l-dvb-359d95e1d541/dvb-spec/dvbapi/intro.tex    2009-02-18 
-> 13:49:37.000000000 +0100
-> +++ v4l-dvb-a7ea3df69673/dvb-spec/dvbapi/intro.tex    2009-02-22 
-> 16:03:12.610230293 +0100
-> @@ -7,36 +7,73 @@
->  The reader of this document is required to have some knowledge in the
->  area of digital video broadcasting (DVB) and should be familiar with
->  part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222),
-> -i.e you should know what a program/transport stream (PS/TS) is and what is
-> -meant by a packetized elementary stream (PES) or an I-frame.
-> -
-> -Various DVB standards documents are available from
-> -\texttt{http://www.dvb.org/} and/or \texttt{http://www.etsi.org/}.
-> +i.e you should know what a program stream or transport stream (PS/TS) is
-> +and what is meant by a packetized elementary stream (PES) or an I-frame.
-> +Various DVB standards documents are available from 
-> \texttt{http://www.dvb.org/}
-> +and/or \texttt{http://www.etsi.org/}.
->  
->  It is also necessary to know how to access unix/linux devices and how
->  to use ioctl calls. This also includes the knowledge of C or C++.
->  
-> +The goal of this API is to provide a consistent abstraction layer for
-> +different digital TV hardware, allowing software applications to be
-> +developed without hardware details as well as serving as driver
-> +developers reference.
-> +
-> +For this API documentation applies an even/odd versioning scheme, stating
-> +unstable or stable versions of that API. Only stable API versions should
-> +be used for developing drivers and applications.
+> So... I'm game for trying to get this working, and have a bit of kernel
+> programming experience, but is there anything else I'm likely to need to
+> know before I set out on this?
 
-Hmm... I wouldn't add the above. I don't think we should use such versioning scheme for docs.
+You then need to implement the functions they call in saa7134-dvb.c
+accordingly to cx88-dvb.c and find out if the tuner address is 0x60 or
+0x61.
 
-> +\newpage
->  \section{History}
->  
-> -The first API for DVB cards we used at Convergence in late 1999
-> -was an extension of the Video4Linux API which was primarily
-> +The first API for DVB cards was used at Convergence in late 1999
-> +as an extension of the Video4Linux API which was primarily
->  developed for frame grabber cards.
-> +
-> +
->  As such it was not really well suited to be used for DVB cards and
->  their new features like recording MPEG streams and filtering several
->  section and PES data streams at the same time.
->  
-> -In early 2000, we were approached by Nokia with a proposal for a new
-> +
-> +In early 2000, Convergence was approached by Nokia with a proposal for 
-> a new
->  standard Linux DVB API.
->  As a commitment to the development of terminals based on open standards,
->  Nokia and Convergence made it available to all Linux developers and
->  published it on \texttt{http://www.linuxtv.org/} in September 2000.
-> -Convergence is the maintainer of the Linux DVB API.
-> -Together with the LinuxTV community (i.e. you, the reader of this 
-> document),
-> -the Linux DVB API will be constantly reviewed and improved.
-> -With the Linux driver for the Siemens/Hauppauge DVB PCI card Convergence
-> -provides a first implementation of the Linux DVB API.
->  
->  
-> +In 2003 Convergence and Toshiba Electronics Europe GmbH started the 
-> development
-> +of
-> +\href 
-> {http://www.linuxtv.org/downloads/linux-dvb-api-v4/linux-dvb-api-v4-0-3.pdf}{DVB 
-> API Version 4}
-> +with public discussion on the linux-dvb mailing list. The goal was a 
-> complete
-> +new API, reflecting that PCs and embedded platforms are diverging. On a PC
-> +usually a budget card provides the full raw transport stream and decoding
-> +and processing is main CPU's task. On embedded platforms, however, data is
-> +multiplexed by specialized hardware or firmware for direct application use
-> +which relieves the main CPU from these tasks. Therefore, Linux DVB
-> +API Version 4 was suggested, but unfortunally never completed.
+	case SAA7134_BOARD_PHILIPS_TOUGH:
+		fe0->dvb.frontend = dvb_attach(tda10046_attach,
+					       &philips_tu1216_60_config,
+					       &dev->i2c_adap);
+		if (fe0->dvb.frontend) {
+			fe0->dvb.frontend->ops.tuner_ops.init = philips_tu1216_init;
+			fe0->dvb.frontend->ops.tuner_ops.set_params = philips_tda6651_pll_set;
+		}
 
-It seems better to say, instead, that "Version 4 was suggested, but it weren't completed nor implemented".
+For testing, on a first look, you need to introduce the tda10046
+including firmware upload #include "tda1004x.h" and at least adapt these
+functions to cx88-dvb.
 
-> +
-> +
-> +Today, the LinuxTV project is an independend and non-profit community 
-> project
+/* ==================================================================
+ * tda1004x based DVB-T cards, helper functions
+ */
 
-s/independend/independent/
+static int philips_tda1004x_request_firmware(struct dvb_frontend *fe,
+					   const struct firmware **fw, char *name)
+{
+	struct saa7134_dev *dev = fe->dvb->priv;
+	return request_firmware(fw, name, &dev->pci->dev);
+}
 
-> +by DVB/V4L enthusiasts and developers interested in Digital TV and 
-> Analog TV,
-> +sharing the same hg tree.
-> +
-> +However, this document describes only the digital TV part.
+/* ------------------------------------------------------------------
+ * these tuners are tu1216, td1316(a)
+ */
 
-I would replace the last paragraph by:
+static int philips_tda6651_pll_set(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
+{
+	struct saa7134_dev *dev = fe->dvb->priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
+	u8 addr = state->config->tuner_address;
+	u8 tuner_buf[4];
+	struct i2c_msg tuner_msg = {.addr = addr,.flags = 0,.buf = tuner_buf,.len =
+			sizeof(tuner_buf) };
+	int tuner_frequency = 0;
+	u8 band, cp, filter;
 
-"This document describes the digital TV API. For Analog TV and radio, please consult V4L2 API."
+	/* determine charge pump */
+	tuner_frequency = params->frequency + 36166000;
+	if (tuner_frequency < 87000000)
+		return -EINVAL;
+	else if (tuner_frequency < 130000000)
+		cp = 3;
+	else if (tuner_frequency < 160000000)
+		cp = 5;
+	else if (tuner_frequency < 200000000)
+		cp = 6;
+	else if (tuner_frequency < 290000000)
+		cp = 3;
+	else if (tuner_frequency < 420000000)
+		cp = 5;
+	else if (tuner_frequency < 480000000)
+		cp = 6;
+	else if (tuner_frequency < 620000000)
+		cp = 3;
+	else if (tuner_frequency < 830000000)
+		cp = 5;
+	else if (tuner_frequency < 895000000)
+		cp = 7;
+	else
+		return -EINVAL;
 
-IMO, we should also add such cross-reference at the V4L2 API, and point both to
-linuxtv.org website (so, adding the corresponding \href pointers), for those
-interested on getting the other API to know here both are available.
+	/* determine band */
+	if (params->frequency < 49000000)
+		return -EINVAL;
+	else if (params->frequency < 161000000)
+		band = 1;
+	else if (params->frequency < 444000000)
+		band = 2;
+	else if (params->frequency < 861000000)
+		band = 4;
+	else
+		return -EINVAL;
 
-> +
-> +
-> +With the further development of newer DTV standards, the existing version
-> +3 of the Linux DVB API was no longer able to support all DTV standards and
-> +newer hardware. Two concurrent approaches to overcome the problem where
-> +proposed, \texttt{Multiproto} and \texttt{S2API}.
-> +
-> +At
-> +\href {http://www.linuxtv.org/news.php?entry=2008-09-19.mchehab}{Linux 
-> Plumbers Conference 2008}
-> +the decision was made towards to S2API, basically an extension to
-> +\texttt{DVB API Version 3} called \texttt{DVB API Version 5}.
-> +
-> +
-> +This Linux DVB API documentation will be extended to reflect these 
-> additions.
+	/* setup PLL filter */
+	switch (params->u.ofdm.bandwidth) {
+	case BANDWIDTH_6_MHZ:
+		filter = 0;
+		break;
 
-While we don't finish adding the S2API parts, maybe we should say instead:
+	case BANDWIDTH_7_MHZ:
+		filter = 0;
+		break;
 
-This document is currently under review to reflect the S2API additions. 
+	case BANDWIDTH_8_MHZ:
+		filter = 1;
+		break;
 
->  \newpage
->  \section{Overview}
->  
-> @@ -49,7 +86,7 @@ provides a first implementation of the L
->  \end{figure}
->  
->  
-> -A DVB PCI card or DVB set-top-box (STB) usually consists of the following
-> +A DVB device or DVB set-top-box (STB) usually consists of the following
->  main hardware components:
->  \begin{itemize}
->  \item Frontend consisting of tuner and DVB demodulator
-> @@ -85,10 +122,10 @@ a TV set.
->  Figure \ref{fig:dvbstb} shows a crude schematic of the control and data 
-> flow
->  between those components.
->  
-> -On a DVB PCI card not all of these have to be present since some
-> -functionality can be provided by the main CPU of the PC (e.g. MPEG picture
-> -and sound decoding) or is not needed (e.g. for data-only uses like
-> -``internet over satellite'').
-> +On a DVB card not all of these have to be present since some
-> +functionality can be provided by the main CPU of the PC (e.g. MPEG video
-> +and audio decoding) or is not needed (e.g. for data-only uses like
-> +``internet over satellite''). In fact, almost all new DTV devices use 
-> the CPU for MPEG decoding.
->  Also not every card or STB provides conditional access hardware.
->  
->  \section{Linux DVB Devices}
-> @@ -117,12 +154,11 @@ All devices can be found in the \texttt{
->  \item \texttt{/dev/dvb/adapterN/demuxM},
->  \item \texttt{/dev/dvb/adapterN/caM},
->  \end{itemize}
-> -where N enumerates the DVB PCI cards in a system starting from~0,
-> +where N enumerates the DVB adapters (pci cards, usb devices, ..) in a 
-> system starting from~0,
->  and M enumerates the devices of each type within each adapter, starting
->  from~0, too.
->  We will omit the ``\texttt{/dev/dvb/adapterN/}'' in the further 
-> dicussion of
-> -these devices.  The naming scheme for the devices is the same wheter devfs
-> -is used or not.
-> +these devices.
->  
->  More details about the data structures and function calls of
->  all the devices are described in the following chapters.
-> @@ -137,10 +173,13 @@ in application sources with a partial pa
->  #include <linux/dvb/frontend.h>
->  \end{verbatim}
->  
-> -To enable applications to support different API version, an additional
-> +To enable applications to support different API versions, an additional
->  include file \texttt{linux/dvb/version.h} exists, which defines the
->  constant \texttt{DVB\_API\_VERSION}. This document describes
-> -\texttt{DVB\_API\_VERSION~3}.
-> +\texttt{DVB\_API\_VERSION~5}.
-> +
-> +Since API version 5 an API command for quering API version also exists,
-> +allowing user space applications to detect API version during runtime.
->  
->  %%% Local Variables:
-> 
->  
-> 
+	default:
+		return -EINVAL;
+	}
+
+	/* calculate divisor
+	 * ((36166000+((1000000/6)/2)) + Finput)/(1000000/6)
+	 */
+	tuner_frequency = (((params->frequency / 1000) * 6) + 217496) / 1000;
+
+	/* setup tuner buffer */
+	tuner_buf[0] = (tuner_frequency >> 8) & 0x7f;
+	tuner_buf[1] = tuner_frequency & 0xff;
+	tuner_buf[2] = 0xca;
+	tuner_buf[3] = (cp << 5) | (filter << 3) | band;
+
+	if (fe->ops.i2c_gate_ctrl)
+		fe->ops.i2c_gate_ctrl(fe, 1);
+	if (i2c_transfer(&dev->i2c_adap, &tuner_msg, 1) != 1) {
+		wprintk("could not write to tuner at addr: 0x%02x\n",
+			addr << 1);
+		return -EIO;
+	}
+	msleep(1);
+	return 0;
+}
+
+static int philips_tu1216_init(struct dvb_frontend *fe)
+{
+	struct saa7134_dev *dev = fe->dvb->priv;
+	struct tda1004x_state *state = fe->demodulator_priv;
+	u8 addr = state->config->tuner_address;
+	static u8 tu1216_init[] = { 0x0b, 0xf5, 0x85, 0xab };
+	struct i2c_msg tuner_msg = {.addr = addr,.flags = 0,.buf = tu1216_init,.len = sizeof(tu1216_init) };
+
+	/* setup PLL configuration */
+	if (fe->ops.i2c_gate_ctrl)
+		fe->ops.i2c_gate_ctrl(fe, 1);
+	if (i2c_transfer(&dev->i2c_adap, &tuner_msg, 1) != 1)
+		return -EIO;
+	msleep(1);
+
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */
+
+static struct tda1004x_config philips_tu1216_60_config = {
+	.demod_address = 0x8,
+	.invert        = 1,
+	.invert_oclk   = 0,
+	.xtal_freq     = TDA10046_XTAL_4M,
+	.agc_config    = TDA10046_AGC_DEFAULT,
+	.if_freq       = TDA10046_FREQ_3617,
+	.tuner_address = 0x60,
+	.request_firmware = philips_tda1004x_request_firmware
+};
+
+static struct tda1004x_config philips_tu1216_61_config = {
+
+	.demod_address = 0x8,
+	.invert        = 1,
+	.invert_oclk   = 0,
+	.xtal_freq     = TDA10046_XTAL_4M,
+	.agc_config    = TDA10046_AGC_DEFAULT,
+	.if_freq       = TDA10046_FREQ_3617,
+	.tuner_address = 0x61,
+	.request_firmware = philips_tda1004x_request_firmware
+};
+
+/* ------------------------------------------------------------------ */
+
+What could be factored out to avoid code duplication is another later
+question I guess.
 
 Cheers,
-Mauro
+Hermann
+
+> Cheers!
+> 
+> Tim.
+> 
+> 
+> Richard Runds wrote:
+> > Hi,
+> >
+> > Have a GDI Black Gold card with subsystem 14c7:0108 and I cannot make it work. Does anyone on the list have a working config for this card and/or know how to make this card work?
+> >
+> > I'm getting so far as video1 and vbi1 is created, but I don't have any entries in /dev/dvb/.
+> >
+> > cat /dev/video1 > test.mpg produces a video typical of a tv picture without signal (ant-war)... :)
+> >
+> >
+> > config
+> > ====
+> >
+> > /etc/modprobe.conf:
+> >
+> > alias char-major-81-1 cx88-dvb
+> > options cx88xx card=2 i2c_scan=1
+> >
+> > lspci -v:
+> >
+> > 02:09.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
+> >         Subsystem: Modular Technology Holdings Ltd GDI Black Gold
+> >         Flags: bus master, medium devsel, latency 64, IRQ 23
+> >         Memory at f5000000 (32-bit, non-prefetchable) [size=16M]
+> >         Capabilities: [44] Vital Product Data
+> >         Capabilities: [4c] Power Management version 2
+> >
+> > 02:09.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] (rev 05)
+> >         Subsystem: Modular Technology Holdings Ltd Unknown device 0108
+> >         Flags: bus master, medium devsel, latency 64, IRQ 5
+> >         Memory at f6000000 (32-bit, non-prefetchable) [size=16M]
+> >         Capabilities: [4c] Power Management version 2
+> >
+> > dmesg:
+> >
+> > CORE cx88[0]: subsystem: 14c7:0108, board: GDI Black Gold [card=2,insmod option]
+> > TV tuner -1 at 0x1fe, Radio tuner -1 at 0x1fe
+> > cx88[0]: Test OK
+> > cx88[0]: i2c scan: found device @ 0x10  [???]
+> > cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
+> > cx88[0]: GDI: tuner=unknown
+> > cx88[0]/2: cx2388x 8802 Driver Manager
+> > ACPI: PCI Interrupt 0000:02:09.0[A] -> GSI 21 (level, low) -> IRQ 23
+> > CORE cx88[0]: subsystem: 14c7:0108, board: GDI Black Gold [card=2,insmod option]
+> > TV tuner -1 at 0x1fe, Radio tuner -1 at 0x1fe
+> > cx88[0]: Test OK
+> > cx88[0]: i2c scan: found device @ 0x10  [???]
+> > cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
+> > cx88[0]: GDI: tuner=unknown
+> > cx88[0]/0: found at 0000:02:09.0, rev: 5, irq: 23, latency: 64, mmio: 0xf5000000
+> > cx88[0]/0: registered device video1 [v4l2]
+> > cx88[0]/0: registered device vbi1
+> >
+> >
+> >
+> > Thanks,
+> >
+> > //riru
+> >
+> >
+
+
