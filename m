@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1KBI50u017257
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 06:18:05 -0500
-Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
-	[209.85.217.171])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1KBHrYO007717
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 06:17:54 -0500
-Received: by gxk19 with SMTP id 19so2176324gxk.3
-	for <video4linux-list@redhat.com>; Fri, 20 Feb 2009 03:17:53 -0800 (PST)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1R9lcI6021072
+	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 04:47:38 -0500
+Received: from mail-fx0-f174.google.com (mail-fx0-f174.google.com
+	[209.85.220.174])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n1R9lNXo023917
+	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 04:47:24 -0500
+Received: by fxm22 with SMTP id 22so990810fxm.3
+	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 01:47:23 -0800 (PST)
 MIME-Version: 1.0
-Date: Fri, 20 Feb 2009 06:17:53 -0500
-Message-ID: <412bdbff0902200317h26f4d42fh4327b3ff08c79d5c@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: V4L <video4linux-list@redhat.com>
+Date: Fri, 27 Feb 2009 15:17:22 +0530
+Message-ID: <77ca8eab0902270147s1644dda1gab1024ceafe8263b@mail.gmail.com>
+From: amol verule <amol.debian@gmail.com>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: HVR-950q analog support - testers wanted
+Subject: Bus 005 Device 002: ID 0c45:6270 Microdia U-CAM PC Camera NE878
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,27 +27,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+hi to all,
+             i am having microdia webcam device details are as follow,
+Bus 005 Device 002: ID 0c45:6270 Microdia U-CAM PC Camera NE878
 
-There is now a test repository that provides analog support for the HVR-950q:
+can you tell me from where can i get a source code of sn9c2X driver to
+compile on my system .
+i tried with sn9c102.ko but it is not working with application like
+camorama,xawtv.
 
-http://linuxtv.org/hg/~dheitmueller/hvr950q-analog
+please give me a link from where i can get source code .
 
-I welcome people interested in analog support for the 950q to download
-the tree and provide feedback.
 
-Thanks go out to Michael Krufky and Steven Toth for providing sample
-hardware, engineering level support, and testing.
-
-Regards,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
-
+thanks n regards,
+amol
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
