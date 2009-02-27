@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out1.iol.cz ([194.228.2.86]:44774 "EHLO smtp-out1.iol.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754436AbZBXNW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Feb 2009 08:22:29 -0500
-From: Ales Jurik <ajurik@quick.cz>
-Reply-To: ajurik@quick.cz
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-Date: Tue, 24 Feb 2009 14:12:32 +0100
-Cc: linux-media@vger.kernel.org
-References: <200902221115.01464.hverkuil@xs4all.nl>
-In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
+Received: from wf-out-1314.google.com ([209.85.200.171]:49484 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757482AbZB0RSO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Feb 2009 12:18:14 -0500
+Received: by wf-out-1314.google.com with SMTP id 28so1360010wfa.4
+        for <linux-media@vger.kernel.org>; Fri, 27 Feb 2009 09:18:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+In-Reply-To: <49A81DCE.6060201@linuxtv.org>
+References: <499E381D.4070607@linuxtv.org>
+	 <387ee2020902192125w47916ebr7c633f7a6c092120@mail.gmail.com>
+	 <499EC549.7090909@linuxtv.org>
+	 <387ee2020902200707n185ec344m823a33a8fdce72e3@mail.gmail.com>
+	 <e816454e0902270833i73cd59f0t1129ab7011b0024c@mail.gmail.com>
+	 <387ee2020902270845u7700b4feuc2c8d6898947e641@mail.gmail.com>
+	 <49A81DCE.6060201@linuxtv.org>
+Date: Fri, 27 Feb 2009 12:18:11 -0500
+Message-ID: <387ee2020902270918y1f06a54evf4d14f15765e886b@mail.gmail.com>
+Subject: Re: [linux-dvb] Fwd: HVR2250 Status - Where am I?
+From: John Drescher <drescherjm@gmail.com>
+To: linux-media@vger.kernel.org, linux-dvb <linux-dvb@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200902241412.32682.ajurik@quick.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 22 of February 2009, Hans Verkuil wrote:
-> Hi all,
+>>>>> Any way to get a running total on your blog?
+>>
+>> I'm not against donating for hardware support but I would like to see
+>> the total (and it increase after I donate) and also the code tree
+>> published so others can contribute and track changes.
 >
-> There are lot's of discussions, but it can be hard sometimes to actually
-> determine someone's opinion.
+> I don't have anything that sophisticated to be honest. If that bothers you then
+> I understand and respect your decision not to support the project.
 >
-> So here is a quick poll, please reply either to the list or directly to me
-> with your yes/no answer and (optional but welcome) a short explanation to
-> your standpoint. It doesn't matter if you are a user or developer, I'd like
-> to see your opinion regardless.
+> I can't publish any source code until the driver is largely complete, that's not
+> my call, that's the arrangement with NXP.
 >
-> Please DO NOT reply to the replies, I'll summarize the results in a week's
-> time and then we can discuss it further.
 >
-> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+>> PS. Thanks for all your hard work on all the drivers - not just this
+>> one. It's greatly appreciated by the MythTV community among others and
+>> myself.
 >
-> _: Yes
-> _: No
+> I had specifically decided NOT to look at any HVR-2250 web stats for a week. I
+> ran the numbers today and this is where I am:
 >
-Yes
+> http://www.steventoth.net/blog/hvr-2250/
+>
+Well I just made that 5. Being a software developer myself, I know
+this will not go far but hopefully more people will see find the page
+and help out.
 
-> Optional question:
->
-> Why:
->
->
->
-> Thanks,
->
-> 	Hans
+Also BTW the other message was from Andrew Barbaccia who replied to me
+instead of the list so I just forwarded it..
 
-
+John
