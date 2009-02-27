@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:54719 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754644AbZBJUJW (ORCPT
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:62942 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753203AbZB0IvE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 15:09:22 -0500
-Received: from mail-in-20-z2.arcor-online.net (mail-in-20-z2.arcor-online.net [151.189.8.85])
-	by mx.arcor.de (Postfix) with ESMTP id 82AC028EED7
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 21:09:20 +0100 (CET)
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net [151.189.21.54])
-	by mail-in-20-z2.arcor-online.net (Postfix) with ESMTP id 74E49107D40
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 21:09:20 +0100 (CET)
-Received: from webmail15.arcor-online.net (webmail15.arcor-online.net [151.189.8.68])
-	by mail-in-14.arcor-online.net (Postfix) with ESMTP id 967D837E404
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 21:09:15 +0100 (CET)
-Message-ID: <28228543.1234296552867.JavaMail.ngmail@webmail15.arcor-online.net>
-Date: Tue, 10 Feb 2009 21:09:12 +0100 (CET)
-From: schollsky@arcor.de
-To: linux-media@vger.kernel.org
-Subject: Re: Driver for this DVB-T tuner?
+	Fri, 27 Feb 2009 03:51:04 -0500
+Received: by fxm24 with SMTP id 24so930104fxm.37
+        for <linux-media@vger.kernel.org>; Fri, 27 Feb 2009 00:51:02 -0800 (PST)
 MIME-Version: 1.0
+Date: Fri, 27 Feb 2009 10:51:01 +0200
+Message-ID: <45108b180902270051p35c88b05nf6ca754123b5f953@mail.gmail.com>
+Subject: DViCO FusionHDTV driver/firmware problem
+From: Serg Gulko <s.gulko@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-References: <18289095.1234295868817.JavaMail.ngmail@webmail15.arcor-online.net> <4991D629.6060100@iki.fi> <49909F83.9000607@iki.fi> <498F387A.7080606@iki.fi> <1234122710.31277.5.camel@localhost> <3986146.1234210524773.JavaMail.ngmail@webmail12.arcor-online.net> <26204941.1234293468460.JavaMail.ngmail@webmail19.arcor-online.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti wrote:
+Hello!
 
-> ?? How did you installed old 4.65.0 firmware? Just replace 4.65.0 
-> firmware file (file name is same) with 4.95.0 is enough.
-> 
+I am using DViCO FusionHDTV DVB-T Dual Express with latest drivers and
+kernel 2.6.27-7.
+After system reboot or combination rmmod/modprobe cx23885 getstream(or
+any another application) working with card do his job well. Once it
+terminated(by Ctrl+C) or even simply stopped(when job is finished,
+e.g. scan) I cant make any DVB related tools work. In
+/var/log/messages i have lots of messages like this:
 
-I'm not fully sure, if I did it at all, it was from an old, unsuccessful attempt.
-Tryed an "updatedb" as root and the only places where I could find it has the new
-version. I'm suspecting it comes with standard kernel 2.6.27.10-1 on Mandriva, which
-I'm using. Should I deactivate 9015 from standard kernel options?
+Feb 27 19:31:01 iptv-dvbt kernel: [39261.670228] xc2028 0-0061:
+Loading firmware for type=D2633 DTV7 (90), id 0000000000000000.
+Feb 27 19:31:01 iptv-dvbt kernel: [39261.685084] xc2028 0-0061:
+Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE
+HAS_IF_4760 (620003e0), id 0000000000000000.
+Feb 27 19:31:01 iptv-dvbt kernel: [39261.980032] xc2028 0-0061:
+Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
+Feb 27 19:31:03 iptv-dvbt kernel: [39263.250229] xc2028 0-0061:
+Loading firmware for type=D2633 DTV7 (90), id 0000000000000000.
+Feb 27 19:31:03 iptv-dvbt kernel: [39263.265086] xc2028 0-0061:
+Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE
+HAS_IF_4760 (620003e0), id 0000000000000000.
+I have xc3028-v27.fw placed in /lib/firmware.
+After rmmod/modprobe I can perform new try. Maybe someone here has
+same problem in the past(and more important successfully solved it:))?
 
-Anyhow - is there no default place to store firmware when compiling a kernel or modules?
-
-> What it now prints to the /var/log/messages ?
-
-This is still as before:
-
-Feb 10 20:10:44 localhost kernel: af9013: firmware version:4.65.0
-
-
-Thanks for your help,
-
-Stefan
-
+Thansk,
+Serg Gulko
