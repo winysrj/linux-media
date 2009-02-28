@@ -1,222 +1,372 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:43149 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752742AbZBTUOc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Feb 2009 15:14:32 -0500
-Date: Fri, 20 Feb 2009 14:26:44 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-cc: Jean-Francois Moine <moinejf@free.fr>,
-	Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: MR97310A and other image formats
-In-Reply-To: <499EFEE4.50306@kaiser-linux.li>
-Message-ID: <alpine.LNX.2.00.0902201415530.8671@banach.math.auburn.edu>
-References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0902182305300.6388@banach.math.auburn.edu> <499DB030.7010206@kaiser-linux.li> <alpine.LNX.2.00.0902191502380.7303@banach.math.auburn.edu> <499DE107.80502@kaiser-linux.li>
- <alpine.LNX.2.00.0902191723380.7472@banach.math.auburn.edu> <499DFEBF.9020601@kaiser-linux.li> <alpine.LNX.2.00.0902191913320.7602@banach.math.auburn.edu> <499E6305.7020707@kaiser-linux.li> <alpine.LNX.2.00.0902201234090.8350@banach.math.auburn.edu>
- <499EFEE4.50306@kaiser-linux.li>
+Received: from mail.gmx.net ([213.165.64.20]:59135 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753262AbZB1SWj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Feb 2009 13:22:39 -0500
+Content-Type: multipart/mixed; boundary="========GMX100321235845356283372"
+Date: Sat, 28 Feb 2009 19:22:36 +0100
+From: sinter.salt@gmx.de
+Message-ID: <20090228182236.100320@gmx.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Subject: Vote please: DVB developers opinion is wanted!
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+--========GMX100321235845356283372
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
+Hi,
 
-On Fri, 20 Feb 2009, Thomas Kaiser wrote:
+I would like to know if anyone of you has any objections against the following patch:
+It remove two obsolete text files in /Documentation/dvb.
 
-> kilgota@banach.math.auburn.edu wrote:
->> 
->> 
->> On Fri, 20 Feb 2009, Thomas Kaiser wrote:
->> 
->>> kilgota@banach.math.auburn.edu wrote:
->>>> 
->>>> 
->>>> On Fri, 20 Feb 2009, Thomas Kaiser wrote:
->>>> 
->>>>> kilgota@banach.math.auburn.edu wrote:
->>>>>> 
->>>>>> 
->>>>>> On Thu, 19 Feb 2009, Thomas Kaiser wrote:
->>>>>> 
->>>>>>> kilgota@banach.math.auburn.edu wrote:
->>>>>>>> Yes, what you quote is the SOF marker for all of these cameras. The 
->>>>>>>> total header length, including the SOF marker ought to be 12 bytes. 
->>>>>>>> On all of the mr97310 cameras that I have dealt with, the last 5 
->>>>>>>> bytes are obviously related somehow to the image (contrast, color 
->>>>>>>> balance, gamma, whatever).  I have no idea how to interpret those 
->>>>>>>> values, but we can hope
->>>>>>>> that someone will figure out how.
->>>>>>> 
->>>>>>> Two of them are luminance values (middle and edge) for the PAC207.
->>>>>> 
->>>>>> Which two, and how do those numbers translate into anything relevant?
->>>>> 
->>>>> Looks like I had some off list (private) email conversation about the 
->>>>> frame header of PAC207 with Michel Xhaard. I just paste the whole thing 
->>>>> in here:
->>>>> 
->>>>> michel Xhaard wrote:
->>>>>> Le Samedi 18 Fe'vrier 2006 12:16, vous avez e'crit :
->>>>>> 
->>>>>>> michel Xhaard wrote:
->>>>>>> 
->>>>>>>> Le Samedi 18 Fe'vrier 2006 10:10, vous avez e'crit :
->>>>>>>> 
->>>>>>>>> Hello Michel
->>>>>>>>> 
->>>>>>>>> michel Xhaard wrote:
->>>>>>>>> 
->>>>>>>>>> Le Mercredi 15 Fe'vrier 2006 12:43, vous avez e'crit :
->>>>>>>>>> Just relook the snoop, the header is always 16 bytes long starting 
->>>>> with:
->>>>>>>>>> ff ff 00 ff 96 64 follow
->>>>>>>>>> xx 00 xx xx xx xx  64 xx 00 00
->>>>>>>>>> let try to play poker with the asumption the R mean G0 mean B mean 
->>>>>>>>>> G1
->>>>>>>>>> mean is encoded here.
->>>>>>>>>> Not sure about the 64 can you look at your snoop?
->>>>>>>>> 
->>>>>>>>> I never thought about that. So, you see I have not experience with
->>>>>>>>> webcams.
->>>>>>>>> 
->>>>>>>>> Anyway, here are my observations about the header:
->>>>>>>>> In the snoop, it looks a bit different then yours
->>>>>>>>> 
->>>>>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
->>>>>>>>> 1. xx: looks like random value
->>>>>>>>> 2. xx: changed from 0x03 to 0x0b
->>>>>>>>> 3. xx: changed from 0x06 to 0x49
->>>>>>>>> 4. xx: changed from 0x07 to 0x55
->>>>>>>>> 5. xx: static 0x96
->>>>>>>>> 6. xx: static 0x80
->>>>>>>>> 7. xx: static 0xa0
->>>>>>>>> 
->>>>>>>>> And I did play in Linux and could identify some fields :-) .
->>>>>>>>> In Linux the header looks like this:
->>>>>>>>> 
->>>>>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
->>>>>>>>> 1. xx: don't know but value is changing between 0x00 to 0x07
->>>>>>>>> 2. xx: this is the actual pixel clock
->>>>>>>>> 3. xx: this is changing according light conditions from 0x03 (dark) 
->>>>>>>>> to
->>>>>>>>> 0xfc (bright)
->>>>>>>>> 4. xx: this is changing according light conditions from 0x03 (dark) 
->>>>>>>>> to
->>>>>>>>> 0xfc (bright)
->>>>>>>>> 5. xx: set value "Digital Gain of Red"
->>>>>>>>> 6. xx: set value "Digital Gain of Green"
->>>>>>>>> 7. xx: set value "Digital Gain of Blue"
->>>>>>>>> 
->>>>>>>>> Regards, Thomas
->>>>>>>> 
->>>>>>>> Thomas,
->>>>>>>> Cool good works :) so 3 and 4 are good candidate . To get good 
->>>>>>>> picture
->>>>>>>> result there are 2 windows where the chips measure the ligth 
->>>>>>>> condition.
->>>>>>>> Generally one is set to the center of the image the other are set to 
->>>>>>>> get
->>>>>>>> the background light. At the moment my autobrightness setting used 
->>>>>>>> simple
->>>>>>>> code and only one windows of measurement (the center one) .
->>>>>>> 
->>>>>>> Some more info, 3 is the center one.
->>>>>> 
->>>>>> :)
->>>>>> 
->>>>>>>> Did you want i try to implement these feature ? or maybe you can have 
->>>>>>>> a
->>>>>>>> try :) the only problem i see is between interrupt() context and 
->>>>>>>> process
->>>>>>>> context. I have set up a spinlock for that look at the code how to 
->>>>>>>> use it
->>>>>>>> ( spca5xx_move_data() )
->>>>>>> 
->>>>>>> Yes, please. Because I have no idea how to do this :-(
->>>>>>> I am good in investigating :-)
->>>>>> 
->>>>>> I know, but can be very good in code to, as you know the hardware :) 
->>>>>> now 
->>>>> let try to look at 1
->>>>>                         ^^ What does this mean?
->>>>>> is there the black luma level ?
->>>>> I don't get it. What is the black luma level?
->>>>> 
->>>>> Regards, Thomas
->>>>> 
->>>>> 
->>>>> -- 
->>>>> http://www.kaiser-linux.li
->>>>> 
->>>>> 
->>>>>> By any chance, you do not have a JL2005B or JL2005C or JL2005D camera 
->>>>>> among them, do you? AFAICT they all use the same compression algorithm 
->>>>>> (in stillcam mode), and it appears to me to be a really nasty one. Any 
->>>>>> help I could get with that algorithm is welcome indeed.
->>>>> 
->>>>> I have to check. Please send me the USB ID.
->>>>
->>>>     0x0979 is the Vendor ID from Jeilin.
->>>>     0x0227 is the Product ID of the JL2005B/C/D cameras
->>>>     (yes, all three of them have the same ID)
->>>>> 
->>>>> Thomas
->>>> 
->>>> Thanks for the information. But this is an old letter. What is happening 
->>>> with Michel Xhaard these days? Do you know? I miss him.
->>> 
->>> Yes, I know it is an old letter, but these info are still valid for the 
->>> PAC207 chipset!
->>> 
->>> I don't know what happened to Michel. I didn't exchange mails with him for 
->>> a long time.
->> 
->> I believe you that the information is valid. The comment about the age of 
->> the letter related to the fact that I have not heard from Michel for 
->> approximately that long, myself. As to the information, though, what I 
->> would really like to see is a collection started which lists the known 
->> compression algorithms for the PAC family and, at least, their code bytes. 
->> So far, we have 0x00 (no compression) and 0x20, 0x50, 0xd0, and what else? 
->> For example, what is the next byte after the FF FF 00 FF 96 for the PAC207? 
->> That would probably be good to know, but if anyone has recorded that 
->> information I have missed it.
->> 
->> Theodore Kilgore
->
-> Hello Theodore
->
-> At this time I wrote this letter, I had a lot of email conversation with 
-> Michel. I got a cam with PAC207 chip and he got an other some weeks later. 
-> Together, we could implement the PAC207 into spca5xx -> gspca.
->
-> For the next byte after FF FF 00 FF 96:
-> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
-> 1. xx: don't know but value is changing between 0x00 to 0x07
->
-> As far as I can remember (at the time I did this), the cam did compresses 
-> sometimes and sometimes not during streaming.
->
-> So, I guess 0x07 means a compressed PAC207 frame!?
->
-> Actually, I got some frames where some lines were compressed and the rest was 
-> raw. The line marker tells you if the line is compressed or not. So, it 
-> doesn't make a lot of sense to send this information in the frame header. But 
-> may be 0x07 means "you can get compressed lines"?
+1. They do not contain any technical information that is making sense.
+2. The correct place for mentioning a developer's or contributor's name is a file header, but not a text file in case we're talking about a driver file, not a documentation text file.
+3. These two files are NEVER administered or maintained, that is why they are not only useless but furthermore completely out of date.
 
-That seems to me to be a very likely explanation. Perhaps also the 0x07 
-indicates _what kind_ of compression will be in use for those compressed 
-lines. I am guessing, of course, but my experience with the mr97310 still 
-cameras indicates a 100% correlation between compression, or the lack 
-thereof, and the value of that byte. Now, here I experience that a new 
-compression format comes out of a camera when streaming, that I already 
-knew everything about when it is a still camera. And again this byte 
-changes to something new.
+--- a/Documentation/dvb/contributors.txt	2008-12-25 00:26:37.000000000 +0100
++++ b/Documentation/dvb/contributors.txt	1970-01-01 01:00:00.000000000 +0100
+@@ -1,96 +0,0 @@
+-Thanks go to the following people for patches and contributions:
+-
+-Michael Hunold <m.hunold@gmx.de>
+-  for the initial saa7146 driver and it's recent overhaul
+-
+-Christian Theiss
+-  for his work on the initial Linux DVB driver
+-
+-Marcus Metzler <mocm@metzlerbros.de>
+-Ralph Metzler <rjkm@metzlerbros.de>
+-  for their continuing work on the DVB driver
+-
+-Michael Holzt <kju@debian.org>
+-  for his contributions to the dvb-net driver
+-
+-Diego Picciani <d.picciani@novacomp.it>
+-  for CyberLogin for Linux which allows logging onto EON
+-  (in case you are wondering where CyberLogin is, EON changed its login
+-  procedure and CyberLogin is no longer used.)
+-
+-Martin Schaller <martin@smurf.franken.de>
+-  for patching the cable card decoder driver
+-
+-Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+-  for various fixes regarding tuning, OSD and CI stuff and his work on VDR
+-
+-Steve Brown <sbrown@cortland.com>
+-  for his AFC kernel thread
+-
+-Christoph Martin <martin@uni-mainz.de>
+-  for his LIRC infrared handler
+-
+-Andreas Oberritter <obi@linuxtv.org>
+-Dennis Noermann <dennis.noermann@noernet.de>
+-Felix Domke <tmbinc@elitedvb.net>
+-Florian Schirmer <jolt@tuxbox.org>
+-Ronny Strutz <3des@elitedvb.de>
+-Wolfram Joost <dbox2@frokaschwei.de>
+-...and all the other dbox2 people
+-  for many bugfixes in the generic DVB Core, frontend drivers and
+-  their work on the dbox2 port of the DVB driver
+-
+-Oliver Endriss <o.endriss@gmx.de>
+-  for many bugfixes
+-
+-Andrew de Quincey <adq_dvb@lidskialf.net>
+-  for the tda1004x frontend driver, and various bugfixes
+-
+-Peter Schildmann <peter.schildmann@web.de>
+-  for the driver for the Technisat SkyStar2 PCI DVB card
+-
+-Vadim Catana <skystar@moldova.cc>
+-Roberto Ragusa <r.ragusa@libero.it>
+-Augusto Cardoso <augusto@carhil.net>
+-  for all the work for the FlexCopII chipset by B2C2,Inc.
+-
+-Davor Emard <emard@softhome.net>
+-  for his work on the budget drivers, the demux code,
+-  the module unloading problems, ...
+-
+-Hans-Frieder Vogt <hfvogt@arcor.de>
+-  for his work on calculating and checking the crc's for the
+-  TechnoTrend/Hauppauge DEC driver firmware
+-
+-Michael Dreher <michael@5dot1.de>
+-Andreas 'randy' Weinberger
+-  for the support of the Fujitsu-Siemens Activy budget DVB-S
+-
+-Kenneth Aafløy <ke-aa@frisurf.no>
+-  for adding support for Typhoon DVB-S budget card
+-
+-Ernst Peinlich <e.peinlich@inode.at>
+-  for tuning/DiSEqC support for the DEC 3000-s
+-
+-Peter Beutner <p.beutner@gmx.net>
+-  for the IR code for the ttusb-dec driver
+-
+-Wilson Michaels <wilsonmichaels@earthlink.net>
+-  for the lgdt330x frontend driver, and various bugfixes
+-
+-Michael Krufky <mkrufky@m1k.net>
+-  for maintaining v4l/dvb inter-tree dependencies
+-
+-Taylor Jacob <rtjacob@earthlink.net>
+-  for the nxt2002 frontend driver
+-
+-Jean-Francois Thibert <jeanfrancois@sagetv.com>
+-  for the nxt2004 frontend driver
+-
+-Kirk Lapray <kirk.lapray@gmail.com>
+-  for the or51211 and or51132 frontend drivers, and
+-  for merging the nxt2002 and nxt2004 modules into a
+-  single nxt200x frontend driver.
+-
+-(If you think you should be in this list, but you are not, drop a
+- line to the DVB mailing list)
+--- a/Documentation/dvb/readme.txt	2008-12-25 00:26:37.000000000 +0100
++++ b/Documentation/dvb/readme.txt	1970-01-01 01:00:00.000000000 +0100
+@@ -1,62 +0,0 @@
+-Linux Digital Video Broadcast (DVB) subsystem
+-=============================================
+-
+-The main development site and CVS repository for these
+-drivers is http://linuxtv.org/.
+-
+-The developer mailing list linux-dvb is also hosted there,
+-see http://linuxtv.org/lists.php. Please check
+-the archive http://linuxtv.org/pipermail/linux-dvb/
+-and the Wiki http://linuxtv.org/wiki/
+-before asking newbie questions on the list.
+-
+-API documentation, utilities and test/example programs
+-are available as part of the old driver package for Linux 2.4
+-(linuxtv-dvb-1.0.x.tar.gz), or from CVS (module DVB).
+-We plan to split this into separate packages, but it's not
+-been done yet.
+-
+-http://linuxtv.org/downloads/
+-
+-What's inside this directory:
+-
+-"avermedia.txt"
+-contains detailed information about the
+-Avermedia DVB-T cards. See also "bt8xx.txt".
+-
+-"bt8xx.txt"
+-contains detailed information about the
+-various bt8xx based "budget" DVB cards.
+-
+-"cards.txt"
+-contains a list of supported hardware.
+-
+-"ci.txt"
+-contains detailed information about the
+-CI module as part from TwinHan cards and Clones.
+-
+-"contributors.txt"
+-is the who-is-who of DVB development.
+-
+-"faq.txt"
+-contains frequently asked questions and their answers.
+-
+-"get_dvb_firmware"
+-script to download and extract firmware for those devices
+-that require it.
+-
+-"ttusb-dec.txt"
+-contains detailed information about the
+-TT DEC2000/DEC3000 USB DVB hardware.
+-
+-"udev.txt"
+-how to get DVB and udev up and running.
+-
+-"README.dvb-usb"
+-contains detailed information about the DVB USB cards.
+-
+-"README.flexcop"
+-contains detailed information about the
+-Technisat- and Flexcop B2C2 drivers.
+-
+-Good luck and have fun!
 
-Do I recall something about one of the setup commands for Mars/PAC cameras 
-in streaming mode is believed to have something to do with turning the 
-compression mode on or off? Perhaps if that is the case, then it is 
-possible to change that command such that it prescribes a different 
-compression algorithm instead, perhaps the "0x50" algorithm?
+Best regards
 
-Theodore Kilgore
+Uwe
+
+-- 
+Computer Bild Tarifsieger! GMX FreeDSL - Telefonanschluss + DSL
+für nur 17,95 ¿/mtl.!* http://dsl.gmx.de/?ac=OM.AD.PD003K11308T4569a
+
+--========GMX100321235845356283372
+Content-Type: text/x-diff; charset="iso-8859-15"; name="docuwipe.patch"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="docuwipe.patch"
+
+--- a/Documentation/dvb/contributors.txt	2008-12-25 00:26:37.000000000 +0100
++++ b/Documentation/dvb/contributors.txt	1970-01-01 01:00:00.000000000 +0100
+@@ -1,96 +0,0 @@
+-Thanks go to the following people for patches and contributions:
+-
+-Michael Hunold <m.hunold@gmx.de>
+-  for the initial saa7146 driver and it's recent overhaul
+-
+-Christian Theiss
+-  for his work on the initial Linux DVB driver
+-
+-Marcus Metzler <mocm@metzlerbros.de>
+-Ralph Metzler <rjkm@metzlerbros.de>
+-  for their continuing work on the DVB driver
+-
+-Michael Holzt <kju@debian.org>
+-  for his contributions to the dvb-net driver
+-
+-Diego Picciani <d.picciani@novacomp.it>
+-  for CyberLogin for Linux which allows logging onto EON
+-  (in case you are wondering where CyberLogin is, EON changed its login
+-  procedure and CyberLogin is no longer used.)
+-
+-Martin Schaller <martin@smurf.franken.de>
+-  for patching the cable card decoder driver
+-
+-Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+-  for various fixes regarding tuning, OSD and CI stuff and his work on VDR
+-
+-Steve Brown <sbrown@cortland.com>
+-  for his AFC kernel thread
+-
+-Christoph Martin <martin@uni-mainz.de>
+-  for his LIRC infrared handler
+-
+-Andreas Oberritter <obi@linuxtv.org>
+-Dennis Noermann <dennis.noermann@noernet.de>
+-Felix Domke <tmbinc@elitedvb.net>
+-Florian Schirmer <jolt@tuxbox.org>
+-Ronny Strutz <3des@elitedvb.de>
+-Wolfram Joost <dbox2@frokaschwei.de>
+-...and all the other dbox2 people
+-  for many bugfixes in the generic DVB Core, frontend drivers and
+-  their work on the dbox2 port of the DVB driver
+-
+-Oliver Endriss <o.endriss@gmx.de>
+-  for many bugfixes
+-
+-Andrew de Quincey <adq_dvb@lidskialf.net>
+-  for the tda1004x frontend driver, and various bugfixes
+-
+-Peter Schildmann <peter.schildmann@web.de>
+-  for the driver for the Technisat SkyStar2 PCI DVB card
+-
+-Vadim Catana <skystar@moldova.cc>
+-Roberto Ragusa <r.ragusa@libero.it>
+-Augusto Cardoso <augusto@carhil.net>
+-  for all the work for the FlexCopII chipset by B2C2,Inc.
+-
+-Davor Emard <emard@softhome.net>
+-  for his work on the budget drivers, the demux code,
+-  the module unloading problems, ...
+-
+-Hans-Frieder Vogt <hfvogt@arcor.de>
+-  for his work on calculating and checking the crc's for the
+-  TechnoTrend/Hauppauge DEC driver firmware
+-
+-Michael Dreher <michael@5dot1.de>
+-Andreas 'randy' Weinberger
+-  for the support of the Fujitsu-Siemens Activy budget DVB-S
+-
+-Kenneth AaflÃ¸y <ke-aa@frisurf.no>
+-  for adding support for Typhoon DVB-S budget card
+-
+-Ernst Peinlich <e.peinlich@inode.at>
+-  for tuning/DiSEqC support for the DEC 3000-s
+-
+-Peter Beutner <p.beutner@gmx.net>
+-  for the IR code for the ttusb-dec driver
+-
+-Wilson Michaels <wilsonmichaels@earthlink.net>
+-  for the lgdt330x frontend driver, and various bugfixes
+-
+-Michael Krufky <mkrufky@m1k.net>
+-  for maintaining v4l/dvb inter-tree dependencies
+-
+-Taylor Jacob <rtjacob@earthlink.net>
+-  for the nxt2002 frontend driver
+-
+-Jean-Francois Thibert <jeanfrancois@sagetv.com>
+-  for the nxt2004 frontend driver
+-
+-Kirk Lapray <kirk.lapray@gmail.com>
+-  for the or51211 and or51132 frontend drivers, and
+-  for merging the nxt2002 and nxt2004 modules into a
+-  single nxt200x frontend driver.
+-
+-(If you think you should be in this list, but you are not, drop a
+- line to the DVB mailing list)
+--- a/Documentation/dvb/readme.txt	2008-12-25 00:26:37.000000000 +0100
++++ b/Documentation/dvb/readme.txt	1970-01-01 01:00:00.000000000 +0100
+@@ -1,62 +0,0 @@
+-Linux Digital Video Broadcast (DVB) subsystem
+-=============================================
+-
+-The main development site and CVS repository for these
+-drivers is http://linuxtv.org/.
+-
+-The developer mailing list linux-dvb is also hosted there,
+-see http://linuxtv.org/lists.php. Please check
+-the archive http://linuxtv.org/pipermail/linux-dvb/
+-and the Wiki http://linuxtv.org/wiki/
+-before asking newbie questions on the list.
+-
+-API documentation, utilities and test/example programs
+-are available as part of the old driver package for Linux 2.4
+-(linuxtv-dvb-1.0.x.tar.gz), or from CVS (module DVB).
+-We plan to split this into separate packages, but it's not
+-been done yet.
+-
+-http://linuxtv.org/downloads/
+-
+-What's inside this directory:
+-
+-"avermedia.txt"
+-contains detailed information about the
+-Avermedia DVB-T cards. See also "bt8xx.txt".
+-
+-"bt8xx.txt"
+-contains detailed information about the
+-various bt8xx based "budget" DVB cards.
+-
+-"cards.txt"
+-contains a list of supported hardware.
+-
+-"ci.txt"
+-contains detailed information about the
+-CI module as part from TwinHan cards and Clones.
+-
+-"contributors.txt"
+-is the who-is-who of DVB development.
+-
+-"faq.txt"
+-contains frequently asked questions and their answers.
+-
+-"get_dvb_firmware"
+-script to download and extract firmware for those devices
+-that require it.
+-
+-"ttusb-dec.txt"
+-contains detailed information about the
+-TT DEC2000/DEC3000 USB DVB hardware.
+-
+-"udev.txt"
+-how to get DVB and udev up and running.
+-
+-"README.dvb-usb"
+-contains detailed information about the DVB USB cards.
+-
+-"README.flexcop"
+-contains detailed information about the
+-Technisat- and Flexcop B2C2 drivers.
+-
+-Good luck and have fun!
+
+--========GMX100321235845356283372--
