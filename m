@@ -1,34 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46102 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022AbZBQVcW (ORCPT
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:49375 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828AbZB1LyY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 16:32:22 -0500
-Date: Tue, 17 Feb 2009 18:31:47 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Nicola Soranzo <nsoranzo@tiscali.it>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Trivial fixes for README.patches
-Message-ID: <20090217183147.482da28a@pedra.chehab.org>
-In-Reply-To: <200902171901.11613.nsoranzo@tiscali.it>
-References: <200902171901.11613.nsoranzo@tiscali.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sat, 28 Feb 2009 06:54:24 -0500
+Message-ID: <49A925EC.5050202@kaiser-linux.li>
+Date: Sat, 28 Feb 2009 12:54:20 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
+MIME-Version: 1.0
+To: Anders Blomdell <anders.blomdell@control.lth.se>
+CC: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: Topro 6800 driver
+References: <49A8661A.4090907@control.lth.se>
+In-Reply-To: <49A8661A.4090907@control.lth.se>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 17 Feb 2009 19:01:11 +0100
-Nicola Soranzo <nsoranzo@tiscali.it> wrote:
+Hello Anders
 
-> Uniform capitals, add trailing slash to some URLs and other typo corrections.
-> 
-> -lists or via the Kernel's bugzilla, available at:
-> +lists or via the kernel's bugzilla, available at:
+Anders Blomdell wrote:
+> Anybody who has a good idea of how to find a DQT/Huffman table that works with
+> this image data?
 
-In this case (and other occurrences of Kernel), the first letter should be
-capital, since we are referring to a specific kernel (the Linux Kernel), not to
-a generic one.
+You can search in the Windoz binary driver for JPEG markers (FFxx). 
+Maybe, you can find a basic DQT/Huffman table in there.
 
-Cheers,
-Mauro
+Regards, Thomas
+
