@@ -1,26 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from simmts7-qfe0.srvr.bell.ca ([206.47.199.165]:52021 "EHLO
-	simmts7-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757469AbZBLNKv convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Feb 2009 08:10:51 -0500
-From: Sarah <edge@nb.sympatico.ca>
-Reply-To: edward.brown50@btinternet.com
-To: <info@result.org>
-Subject: claims of =?iso-8859-1?B?ozEsMzUwLDAwMC4wMA==?= Pounds
-Date: Thu, 12 Feb 2009 8:10:49 -0500
+Received: from mail.gmx.net ([213.165.64.20]:58718 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754196AbZB1Rr1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Feb 2009 12:47:27 -0500
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Sat, 28 Feb 2009 18:47:24 +0100
+From: sinter.salt@gmx.de
+Message-ID: <20090228174724.65930@gmx.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Message-Id: <20090212131049.DKCO1679.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+Subject: test
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-£1,350,000.00 Pounds  has been won by you in our Irish Promo .get back to this office with your details  
-Names
-Address 
-Contry
+check
 
-Email:edward.brown50@btinternet.com
-
-
+-- 
+Psssst! Schon vom neuen GMX MultiMessenger gehört? Der kann`s mit allen: http://www.gmx.net/de/go/multimessenger01
