@@ -1,25 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1B7D1e9026008
-	for <video4linux-list@redhat.com>; Wed, 11 Feb 2009 02:13:01 -0500
-Received: from smtp-vbr17.xs4all.nl (smtp-vbr17.xs4all.nl [194.109.24.37])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n1B7CeJj010603
-	for <video4linux-list@redhat.com>; Wed, 11 Feb 2009 02:12:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Wed, 11 Feb 2009 08:10:46 +0100
-References: <8ef00f5a0812171449o19fe5656wec05889b738e7aed@mail.gmail.com>
-	<20081231081243.0cecad1d@pedra.chehab.org>
-	<495D7A51.40102@gmail.com>
-In-Reply-To: <495D7A51.40102@gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n1S4oqWs031002
+	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 23:50:52 -0500
+Received: from smtp105.biz.mail.re2.yahoo.com (smtp105.biz.mail.re2.yahoo.com
+	[206.190.52.174])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n1S4oasn029876
+	for <video4linux-list@redhat.com>; Fri, 27 Feb 2009 23:50:36 -0500
+Message-ID: <49A8C254.9080909@embeddedalley.com>
+Date: Sat, 28 Feb 2009 07:49:24 +0300
+From: Vitaly Wool <vital@embeddedalley.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Disposition: inline
-Message-Id: <200902110810.46825.hverkuil@xs4all.nl>
-Content-Transfer-Encoding: 8bit
-Cc: =?iso-8859-1?q?F=E1bio_Belavenuto?= <belavenuto@gmail.com>
-Subject: Re: [PATCH] Add TEA5764 radio driver
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <49A3A61F.30509@embeddedalley.com>	<20090224234205.7a5ca4ca@pedra.chehab.org>	<49A53CB9.1040109@embeddedalley.com>	<20090225090728.7f2b0673@caramujo.chehab.org>	<49A567D9.80805@embeddedalley.com>	<20090225101812.212fabbe@caramujo.chehab.org>	<49A57BD4.6040209@embeddedalley.com>	<20090225153323.66778ad2@caramujo.chehab.org>	<49A59B31.9080407@embeddedalley.com>	<20090225204023.16b96fe5@pedra.chehab.org>	<49A802ED.2060200@embeddedalley.com>	<49A80A0B.6080602@embeddedalley.com>
+	<20090227214005.1ae21704@pedra.chehab.org>
+In-Reply-To: <20090227214005.1ae21704@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: em28xx: Compro VideoMate For You sound problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,65 +29,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 02 January 2009 03:22:09 Fábio Belavenuto wrote:
-> Mauro Carvalho Chehab escreveu:
-> > On Wed, 31 Dec 2008 10:52:40 +0100
-> >
-> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >> Hi Mauro,
-> >>
-> >> Did you see my review of this driver?
-> >>
-> >> (http://lists-archives.org/video4linux/26062-add-tea5764-radio-driver.
-> >>html)
-> >>
-> >> IMHO this driver shouldn't be added in this form. It's up to you of
-> >> course to decide this, but I just want to make sure you read my
-> >> posting.
-> >
-> > No, I haven't seen. I'm not sure why, but patchwork didn't show me your
-> > review.
-> >
-> > My comments about the points you raised:
-> >
-> > a) Yes, the proper approach is to split it into 2 separate drivers:
-> > 	1) a Motorola i2c bridge driver;
-> > 	2) a generic tea5764 driver;
-> >
-> > I would very much appreciate if Fabio can do this work, allowing others
-> > to use tea5764 driver;
-> >
-> > b) AFAIK, tea5764 is not so close to tea5767, so probably the right
-> > decision is to have it as a separate driver;
-> >
-> > c) The same design trouble on radio-tea5764 is also present on other
-> > radio-* drivers;
-> >
-> > d) While this design doesn't allow sharing tea5764 driver, for now, we
-> > have at least something. A future patch may split it into two drivers.
-> > That's why I decided to apply it.
-> >
-> > Fábio,
-> >
-> > Could you please work on split it into two drivers? You can use cx88 or
-> > saa7134 as examples. On those drivers, the i2c stuff is at *-i2c.c, and
-> > the radio interface are at *-video.c.
-> >
-> > Cheers,
-> > Mauro
+Mauro Carvalho Chehab wrote:
+> On Fri, 27 Feb 2009 18:43:07 +0300
+> Vitaly Wool <vital@embeddedalley.com> wrote:
 >
-> Yes, I will change the driver, I will create 2 as explained, thanks.
+>   
+>> Vitaly Wool wrote:
+>>
+>>     
+>>> Ok, I'm working on that. The problem as of now is that it works fine on 
+>>> 2.6.26 and doesn't work with 2.6.29-rc5.
+>>> I'll get back to you when I find out the reason.
+>>>       
+>> And here's the patch that solves the problem:
+>>
+>> diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
+>> index 5aeccb3..ae4b231 100644
+>> --- a/drivers/media/video/tvaudio.c
+>> +++ b/drivers/media/video/tvaudio.c
+>> @@ -169,12 +169,14 @@ static int chip_write(struct CHIPSTATE *chip, int subaddr, int val)
+>>  			return -1;
+>>  		}
+>>  	} else {
+>> +#if 0
+>>  		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+>>  			v4l2_info(sd,
+>>  				"Tried to access a non-existent register: %d\n",
+>>  				subaddr);
+>>  			return -EINVAL;
+>>  		}
+>> +#endif
+>>  
+>>  		v4l2_dbg(1, debug, sd, "chip_write: reg%d=0x%x\n",
+>>  			subaddr, val);
+>>
+>>
+>>
+>> Apparently this check is bogus. The patch for em28xx stuff will follow, after some cleanups.
+>>     
+>
+> Hmm... the check is to avoid accessing an out of range registrer cache. Could you
+> please send me the errors generated by the v4l2_info msg?
+>   
+The ARRAY_SIZE actually is 65 in this situation. I've no idea yet where 
+that is derived from.
+The "false erroneous" access is to register 255, for quick configuration:
 
-Hi Fábio,
+#define TDA9874A_ESP            0xFF    /* easy standard progr. 
+(tda9874a) */
 
-Any progress on this?
+So either the bytes array is set up incorrectly, or the check is bogus, 
+IMHO.
 
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Thanks,
+   Vitaly
 
 --
 video4linux-list mailing list
