@@ -1,36 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:64264 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752816AbZBVXvO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Feb 2009 18:51:14 -0500
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-From: Andy Walls <awalls@radix.net>
-To: CityK <cityk@rogers.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-In-Reply-To: <49A1A3B2.5090609@rogers.com>
-References: <200902221115.01464.hverkuil@xs4all.nl>
-	 <49A1A3B2.5090609@rogers.com>
-Content-Type: text/plain
-Date: Sun, 22 Feb 2009 18:52:13 -0500
-Message-Id: <1235346733.3083.7.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from sperry-03.control.lth.se ([130.235.83.190]:60482 "EHLO
+	sperry-03.control.lth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750966AbZB1PZf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Feb 2009 10:25:35 -0500
+Message-ID: <49A95428.1090306@control.lth.se>
+Date: Sat, 28 Feb 2009 16:11:36 +0100
+From: Anders Blomdell <anders.blomdell@control.lth.se>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Thomas Champagne <lafeuil@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Thomas Kaiser <v4l@kaiser-linux.li>
+Subject: Re: Topro 6800 driver
+References: <49A8661A.4090907@control.lth.se> <20090228113135.4bbbc294@free.fr>
+In-Reply-To: <20090228113135.4bbbc294@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-02-22 at 14:12 -0500, CityK wrote:
+Jean-Francois Moine wrote:
+> On Fri, 27 Feb 2009 23:15:54 +0100
+> Anders Blomdell <anders.blomdell@control.lth.se> wrote:
+> 
+>> Hi,
+>>
+>> I'm trying to write a driver for a webcam based on Topro TP6801/CX0342
+>> (06a2:0003). My first attempt (needs gspca) can be found on:
+>>
+>> http://www.control.lth.se/user/andersb/tp6800.c
+>>
+>> Unfortunately the JPEG images (one example dump is in
+>> http://www.control.lth.se/user/andersb/topro_img_dump.txt), seems to
+>> be bogus, they start with (data is very similar to windows data):
+>>
+>> 00000000: 0xff,0xd8,0xff,0xfe,0x28,0x3c,0x01,0xe8,...
+>> ...
+>> 0000c340: ...,0xf4,0xc0,0xff,0xd9
+>>
+>> Anybody who has a good idea of how to find a DQT/Huffman table that
+>> works with this image data?
+> 
+> Hi Anders,
+> 
+> Thomas Champagne (See To:) was also writing a driver for this webcam.
+> Maybe you may merge your codes...
+Thomas, if you have DQT/Huffman tables for this camera, please drop me a 
+note.
 
-> The V4L-DVB is lacking in strategic direction.  Yesterday was the time
-> to adopt one; so lets pick up one today!
+> 
+> About the JPEG images, the Huffman table is always the same 
+Does this mean that it's the same for all JPEG images or only for one 
+camera?
 
-CityK,
+If it's the same for all images, it should mean that I have a way to 
+determine how much I have to chop off after the 0xfffe tag (no illegal 
+huffman codes -> possibly chop at the correct position).
 
-I see you've been reading (or channeling) my blathering:
+Comments anyone?
 
-http://www.linuxtv.org/irc/v4l/index.php?date=2009-02-20
 
-([19:42] to [20:21])
+ > and the
+> quantization tables depend on the compression quality.
+> 
+> From the USB trace I had from Thomas, I saw that:
+> 
+> - when a packet starts with '55 ff d8', it is the first part of the
+>   image. This one should start at the offset 8 of the packet.
+> 
+> - when a packet starts with 'cc', it is the next part of the image.
+This is even in the docs, and is implemented in the driver.
 
-Regards,
-Andy
+> In the function pkt_scan, when finding the image start, you must add
+> the JPEG header: 'ff d8', DQT, huffman table, SOF0 and SOS.
+OK, will see if I can find the DQT (and possibly the Huffman table) in 
+the windows driver (as suggested by Thomas Kaiser).
 
+> As we don't know the quality used by the webcam, in my test repository,
+> I added a control for that: the JPEG header is created at streamon
+> time, and the quantization tables may be modified by the control on the
+> fly (have a look at stk014.c for an example).
+> 
+> This solution is not the right one: the JPEG quality must be set by the
+> VIDIOC_S_JPEGCOMP ioctl instead of VIDIOC_S_CTRL. I think I will update
+> the concerned subdrivers next week.
+I'll look into that monday.
+
+> BTW, don't use the video4linux-list@redhat.com mailing-list anymore: all
+> the video discussions are now done in linux-media@vger.kernel.org.
+OK, so Google hit http://www.linuxtv.org/v4lwiki/index.php/Main_Page is 
+no hit then...
+
+
+Thanks
+
+Anders Blomdell
