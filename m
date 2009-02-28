@@ -1,66 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:34135 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757543AbZBJTRu (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:40463 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753998AbZB1AdP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Feb 2009 14:17:50 -0500
-Received: from mail-in-16-z2.arcor-online.net (mail-in-16-z2.arcor-online.net [151.189.8.33])
-	by mx.arcor.de (Postfix) with ESMTP id A4342259352
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:17:48 +0100 (CET)
-Received: from mail-in-15.arcor-online.net (mail-in-15.arcor-online.net [151.189.21.55])
-	by mail-in-16-z2.arcor-online.net (Postfix) with ESMTP id 9693A254703
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:17:48 +0100 (CET)
-Received: from webmail19.arcor-online.net (webmail19.arcor-online.net [151.189.8.77])
-	by mail-in-15.arcor-online.net (Postfix) with ESMTP id 7D204A3AE1
-	for <linux-media@vger.kernel.org>; Tue, 10 Feb 2009 20:17:48 +0100 (CET)
-Message-ID: <26204941.1234293468460.JavaMail.ngmail@webmail19.arcor-online.net>
-Date: Tue, 10 Feb 2009 20:17:48 +0100 (CET)
-From: schollsky@arcor.de
-To: linux-media@vger.kernel.org
-Subject: Re: Driver for this DVB-T tuner?
-In-Reply-To: <49909F83.9000607@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 27 Feb 2009 19:33:15 -0500
+Date: Fri, 27 Feb 2009 21:32:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips
+ powerpc64 x86_64 v4l-dvb build
+Message-ID: <20090227213242.722e0257@pedra.chehab.org>
+In-Reply-To: <200902271849.n1RInuKh050681@smtp-vbr14.xs4all.nl>
+References: <200902271849.n1RInuKh050681@smtp-vbr14.xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-References: <49909F83.9000607@iki.fi> <498F387A.7080606@iki.fi> <1234122710.31277.5.camel@localhost> <3986146.1234210524773.JavaMail.ngmail@webmail12.arcor-online.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
+On Fri, 27 Feb 2009 19:49:56 +0100 (CET)
+"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
 
-
------ Original Nachricht ----
-Von:     Antti Palosaari <crope@iki.fi>
-An:      schollsky@arcor.de
-Datum:   09.02.2009 22:26
-Betreff: Re: Aw: Re: Driver for this DVB-T tuner?
-
-> schollsky@arcor.de wrote:
-> > Wow that was fast! Thanks!!!
-> > 
-> >> You should use driver from
-> >> http://linuxtv.org/hg/~anttip/mc44s803/
-> > 
-> > I managed to do that.
-> > 
-> >>> af9013: firmware version:4.65.0
-> >> Use 4.95.0 instead.
-> > 
-> > How do I insert it correctly into the source tree? 
-> > A short hint (to a readme) should help. 
+> (This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.)
 > 
-> Sorry, didn't understand what you mean.
+> Results of the daily build of v4l-dvb:
+> 
+> linux-2.6.16.61-i686: ERRORS
+> linux-2.6.17.14-i686: ERRORS
+> linux-2.6.18.8-i686: ERRORS
+> linux-2.6.19.5-i686: ERRORS
+> linux-2.6.20.21-i686: ERRORS
+> linux-2.6.21.7-i686: ERRORS
+> linux-2.6.22.19-i686: ERRORS
+> linux-2.6.23.12-i686: ERRORS
+> linux-2.6.24.7-i686: ERRORS
+> linux-2.6.25.11-i686: ERRORS
+> linux-2.6.26-i686: ERRORS
+> linux-2.6.27-i686: ERRORS
+> linux-2.6.28-i686: ERRORS
+> linux-2.6.29-rc5-i686: ERRORS
 
-I've downloaded the af9015 firmware version 4.95.0 from here:
+Wow! Lots of errors!
 
-http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/
+Ok, I've removed tvmixer and marked the minimal version for firedtv. This
+should fix the issues.
 
-but simply downloading and installing into /lib/firmware seems to be not enough here (Mandriva 2009.0).
-
-> Anyhow, Mauro just committed this driver to the master, you can now use 
-
-I did so, but firmware 4.95.0 is not included?!?
-
-Thanks,
-
-Stefan
+Cheers,
+Mauro
