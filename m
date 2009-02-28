@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47292 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752349AbZBBQLm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Feb 2009 11:11:42 -0500
-Date: Mon, 2 Feb 2009 14:09:39 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: roel kluin <roel.kluin@gmail.com>
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] newport: newport_*wait() return 0 on timeout
-Message-ID: <20090202140939.2a568e79@caramujo.chehab.org>
-In-Reply-To: <25e057c00902020532p7a22f9d6pbfdc4f26c85c4dfd@mail.gmail.com>
-References: <49846E63.8070507@gmail.com>
-	<20090202100852.733c6c8e@caramujo.chehab.org>
-	<25e057c00902020532p7a22f9d6pbfdc4f26c85c4dfd@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from paja.nic.funet.fi ([193.166.3.10]:46513 "EHLO paja.nic.funet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753292AbZB1TWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Feb 2009 14:22:22 -0500
+Received: (from localhost user: 'kouhia' uid#241 fake: STDIN
+	(kouhia@paja.nic.funet.fi)) by nic.funet.fi id S80145AbZB1TWTm27e4
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Feb 2009 21:22:19 +0200
+From: Juhana Sadeharju <kouhia@nic.funet.fi>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: writing DVB recorder, questions
+Message-Id: <S80145AbZB1TWTm27e4/20090228192219Z+1791@nic.funet.fi>
+Date: Sat, 28 Feb 2009 21:22:19 +0200
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2 Feb 2009 14:32:09 +0100
-roel kluin <roel.kluin@gmail.com> wrote:
+Thanks for the suggestions.
+Because my recorder already records audio and video, I will
+continue a little more. I found the docs.
 
-> 2009/2/2 Mauro Carvalho Chehab <mchehab@infradead.org>:
-> > Hi Roel,
-> >
-> > It seems that you've sent this driver to the wrong ML. Video adapters are not handled on those ML's.
-> 
-> Any idea where it should be sent?
+My Ubuntu does not have Kaffeine and I cannot develop
+Klear, Kaffeine, etc. because Ubuntu's package manager
+tries to download non-existing packages. Missing are
+GTK2 devtools and KDE devtools. Xine-lib complains too.
 
-$ git log include/video/newport.h
-commit 3f08ff4a4dab1ebef06d154050fb80ce2c13fc9c
-Author: Adrian Bunk <bunk@stusta.de>
-Date:   Mon Jan 9 20:53:35 2006 -0800
+I tried the Windows digital-TV application which came
+with the USB DVB stick, but had to leave it. Klear
+is so far clearest DVB application I have seen.
+Check it and learn.
 
-    [PATCH] include/video/newport.h: "extern inline" -> "static inline"
-    
-    "extern inline" doesn't make much sense.
-    
-    Signed-off-by: Adrian Bunk <bunk@stusta.de>
-    Cc: "Antonino A. Daplas" <adaplas@pol.net>
-    Signed-off-by: Andrew Morton <akpm@osdl.org>
-    Signed-off-by: Linus Torvalds <torvalds@osdl.org>
+I tried Kaffeine by opening some Ubuntu package manually,
+without installing it. UI is not clear, and Kaffeine
+tried to download something via internet and refused to work.
 
-Hmm... this is the only change on this file since -git history. I would forward the patch to Andrew.
+VDR gave black fullscreen. Fullscreens are not nice.
+I'm not potato but I do write while recording or listening
+music from music channels.
 
-Cheers,
-Mauro
+Xine has its own problems (and no recorder). Various Xine
+GUIs looks like what I don't need.
+
+Due lack of luck with Ubuntu, and due incomplete DVB applications,
+I have been two weeks without recorder with subtitle support.
+In Windows, it took only 10 minutes to have a working recorder.
+Guess why I'm still using Linux...
+
+I have four days left. I try the suggested nerd-kludges
+at the last minutes.
+
+Juhana
