@@ -1,59 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:7652 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841AbZBQUpy convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1193 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752260AbZB1KEB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Feb 2009 15:45:54 -0500
-Received: by yw-out-2324.google.com with SMTP id 5so1176452ywh.1
-        for <linux-media@vger.kernel.org>; Tue, 17 Feb 2009 12:45:53 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <BAY102-W289218AB686D66E1F3BD4ACFB40@phx.gbl>
-References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
-	 <412bdbff0902131309i169884bambd1ddb8adf9f90e5@mail.gmail.com>
-	 <BAY102-W3919BC0C2532C366EEDB1FCFB90@phx.gbl>
-	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
-	 <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
-	 <BAY102-W54F614817092361870868DCFB40@phx.gbl>
-	 <412bdbff0902162148k398db187ma6510d0903741e73@mail.gmail.com>
-	 <BAY102-W41AFA57978CB8940FABF84CFB40@phx.gbl>
-	 <412bdbff0902171021l6bcfc1f4o6d4903949da70b0d@mail.gmail.com>
-	 <BAY102-W289218AB686D66E1F3BD4ACFB40@phx.gbl>
-Date: Tue, 17 Feb 2009 15:45:53 -0500
-Message-ID: <412bdbff0902171245m5e6a8deerfcd14a340f65fa4f@mail.gmail.com>
-Subject: =?windows-1256?Q?Re=3A_HVR=2D1500_tuner_seems_to_be_recognized=2C_but_wont_?=
-	=?windows-1256?Q?turn_on=2E=FE?=
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Thomas Nicolai <nickotym@hotmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sat, 28 Feb 2009 05:04:01 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n1SA3ncI078949
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 28 Feb 2009 11:03:58 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 28 Feb 2009 11:03:49 +0100 (CET)
+Message-Id: <200902281003.n1SA3ncI078949@smtp-vbr17.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/2/17 Thomas Nicolai <nickotym@hotmail.com>:
->
-> I didn't post it last night, but I don't remember seeing anything different in it after I looked at it.  I haven't seen much on the mailing lists about it not working.  I found a few threads on Kubuntu and Ubuntu forums about people having problems a few months ago, but they were all able to get the card to tune, some had issues with sound that were later resolved.  Noone said they couldn't get it to tune.
->
-> You mentioned that the card causing the computer to freeze may indicate other problems, could hotplug not working right affect this?
->
-> I will try some more tonight.
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-Thomas,
+Results of the daily build of v4l-dvb:
 
-I spoke to Steven Toth about this issue, and he suggested also running
-the following commands prior to plugging in the device:
+date:        Sat Feb 28 09:45:19 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10778:c770b20d15c6
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-sudo modprobe cx23885 i2c_scan=1
-md5sum /lib/firmware/*/xc*
-md5sum /lib/firmware/xc*
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: ERRORS
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc5-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc5-x86_64: WARNINGS
+fw/apps: WARNINGS
+spec: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
 
-And include the output from dmesg, as well as the output of running
-the two md5sum commands.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Devin
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
