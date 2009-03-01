@@ -1,50 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:47421 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751394AbZCMDdx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 23:33:53 -0400
-Date: Thu, 12 Mar 2009 20:05:10 -0700
-From: Greg KH <greg@kroah.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, stable@kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [stable] Fwd: [PATCH] 2.6.27.y: fix NULL ptr deref in cx23885
-	video_open
-Message-ID: <20090313030510.GA5543@kroah.com>
-References: <200902241700.56099.jarod@redhat.com> <37219a840903121324q7b08c8d1ma6d0d3ec4f5eb278@mail.gmail.com> <20090313025051.GA5385@kroah.com> <49B9CC3B.4060300@wilsonet.com>
+Received: from bbrack.org ([66.126.51.1]:56964 "EHLO bbrack.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753148AbZCAA1j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Feb 2009 19:27:39 -0500
+Received: from delightful.com.hk (localhost.localdomain [127.0.0.1])
+	by bbrack.org (8.14.3/8.14.2) with ESMTP id n210RbPw019699
+	for <linux-media@vger.kernel.org>; Sat, 28 Feb 2009 16:27:37 -0800
+Message-ID: <a54178087de59b2009b1c830e85b2002.squirrel@delightful.com.hk>
+In-Reply-To: <1235864596.3072.53.camel@palomino.walls.org>
+References: <be2acbfe1fc9d8501a1ec47397077168.squirrel@delightful.com.hk>
+    <200903010001.12081.hverkuil@xs4all.nl>
+    <1235864596.3072.53.camel@palomino.walls.org>
+Date: Sat, 28 Feb 2009 16:27:37 -0800 (PST)
+Subject: Re: Recommendation for good example i2c driver code
+From: "William M. Brack" <wbrack@mmm.com.hk>
+To: "Linux Media" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <49B9CC3B.4060300@wilsonet.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 12, 2009 at 11:00:11PM -0400, Jarod Wilson wrote:
-> Greg KH wrote:
->> On Thu, Mar 12, 2009 at 04:24:38PM -0400, Michael Krufky wrote:
->>> Can we have this merged into -stable?  Jarod Wilson sent this last
->>> month, but he left off the cc to stable@kernel.org
->> What is the git commit id of the patch in Linus's tree that matches up
->> with this?
->> thanks,
->> greg k-h
+Andy Walls wrote:
+> On Sun, 2009-03-01 at 00:01 +0100, Hans Verkuil wrote:
+>> On Saturday 28 February 2009 23:18:54 William M. Brack wrote:
+>> > When writing a new driver, which existing driver would be a good
+>> model
+>> > to use for handing the i2c bus?
+>>
+>> Hi Bill,
+>>
+>> I recommend reading Documents/video4linux/v4l2-framework.txt. It's
+>> not clear
+>> from your question whether you want an example driver for an i2c
+>> device, or
+>> an example for how to use i2c devices in an PCI or USB driver.
+>>
+>> A simple, but decent example source for the first would be wm8739.c
+>> and for
+>> the second we have saa7134 or cx18.
+>>
+>> It's a bit in flux at the moment since we are moving all drivers
+>> over to the
+>> v4l2_device/v4l2_subdev structure, but some still use the old model.
 >
+> Bill,
 >
-> Now that I look closer, seems there's an even more complete patch already 
-> in linus' tree, commit id:
+> Your question also did not specify if this was a driver for an analog
+> (V4L2) or DTV (DVB) capture unit.  Hans' comments regarding
+> v4l2_device/v4l2_subdev currently only apply to analog capture units
+> or
+> the analog side of hybrid capture units.  If you have a DTV-only
+> capture
+> unit, the v4l2_device/v4l2_subdevice framework doesn't apply at
+> present.
 >
-> cd8f894eacf13996d920fdd2aef1afc55156b191
+> AFAICT, the saa7134 and cx18 drivers both have code to deal with
+> hybrid
+> analog/DTV units.
 >
-> Shoulda just forwarded that along, but I was under the impression that area 
-> of code had changed significantly in 2.6.28 and the patch was no longer 
-> applicable. Maybe that was the v4l/dvb hg tree though... So I'd just grab 
-> that, and add:
+> Regards,
+> Andy
 >
-> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+>> Regards,
+>>
+>> 	Hans
 
-Ok, will do that.
+Sorry about my lack of clarity - I'm working on a driver to support
+the (analog) TW6800-series chips for v4l2.  I've got most of the video
+working, using the cx88 driver as a model, and now want to add in i2c
+and vbi before asking for overall review by list members.  I'll review
+v4l2-framework.txt, and read through applicable saa7134 and cx18 code.
 
-thanks,
+Thanks,
+Bill
 
-greg k-h
