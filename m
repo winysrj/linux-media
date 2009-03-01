@@ -1,58 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from host170-142-static.86-94-b.business.telecomitalia.it ([94.86.142.170]:50572
-	"EHLO zini-associati.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbZCIJmR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 05:42:17 -0400
-Received: from zini-associati.it (localhost.localdomain [127.0.0.1])
-	by zini-associati.it (Postfix) with ESMTP id 8B1D2D1225
-	for <linux-media@vger.kernel.org>; Mon,  9 Mar 2009 10:42:14 +0100 (CET)
-Received: from [192.168.0.10] (unknown [192.168.0.10])
-	by zini-associati.it (Postfix) with ESMTP id 58DB2D1222
-	for <linux-media@vger.kernel.org>; Mon,  9 Mar 2009 10:42:14 +0100 (CET)
-Message-ID: <49B4E472.9070401@zini-associati.it>
-Date: Mon, 09 Mar 2009 10:42:10 +0100
-From: vic <vic@zini-associati.it>
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:46362 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752451AbZCAKqo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2009 05:46:44 -0500
+Received: by fxm24 with SMTP id 24so1615135fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 01 Mar 2009 02:46:41 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <078bd274de0d26a92ccf.1235153417@localhost>
+References: <078bd274de0d26a92ccf.1235153417@localhost>
+Date: Sun, 1 Mar 2009 11:46:40 +0100
+Message-ID: <19a3b7a80903010246u28f0762pfaf992aefbe9b424@mail.gmail.com>
+Subject: Re: [linux-dvb] [PATCH] New frequency table for Cadiz (Andalusia,
+	Spain)
+From: Christoph Pfister <christophpfister@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: Re: lifeview NOT LV3H not working
-References: <49AC472B.90202@zini-associati.it>
-In-Reply-To: <49AC472B.90202@zini-associati.it>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: linux-dvb@linuxtv.org, xiterrex@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ciencio ha scritto:
-[cut]
-> So I downloaded the v4l tree from HG, compiled and installed it, but 
-> this time was the firmware that was missing. I followed the instruction 
-> to get the firmware for the xc3028  from here
-> 
->>  http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
-> 
-> and everything seemed to be perfect... but the tuner wasn't able to 
-> detect anything.
+2009/2/20  <xiterrex@gmail.com>:
+> # HG changeset patch
+> # User terrex@xiterrex.net
+> # Date 1235153250 -3600
+> # Node ID 078bd274de0d26a92ccff6c7da050edbc299f0b7
+> # Parent  f83a2a650df2bcf2ce659012f011ee5dcd7b1d74
+> New frequency table for Cadiz (Andalusia, Spain)
 
-Some news from my LV3H
+Thanks, added :)
 
-1) after rebuilding the v4l from the main tree the analog tuner seems to 
-be working, What I mean is thata tvtime is able to scan channels and to 
-find them.
-
-2) unfortunately there's no audio, in any way. If I connect the audio 
-out to the audio of my sblive! I only get noise. If I try to send the 
-output of the connexant audio device to the sblive! I always get only noise.
-
-3) no news for the zl10353 driver, which keeps on giving the same error
-
->> [ 4982.520836] zl10353: write to reg 6c failed (err = -6)!
-
-
-I don't know if anyone is interested in this report and I don't even 
-know if I'm writing to the right mailing list.
-
-Please let me know what I shoul post to get help,  if it is possible to 
-get help :-)
-
--- 
-Vic
+Christoph
