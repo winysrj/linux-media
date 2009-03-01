@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate05.web.de ([217.72.192.243])
+Received: from mail.uni-paderborn.de ([131.234.142.9])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <no_bs@web.de>) id 1LmzVg-0007cR-Lt
-	for linux-dvb@linuxtv.org; Fri, 27 Mar 2009 01:01:21 +0100
-Received: from web.de
-	by fmmailgate05.web.de (Postfix) with SMTP id 876FC5B2AB44
-	for <linux-dvb@linuxtv.org>; Thu, 26 Mar 2009 20:02:40 +0100 (CET)
-Date: Thu, 26 Mar 2009 20:02:40 +0100
-Message-Id: <1619240981@web.de>
+	(envelope-from <jarrn@campus.upb.de>) id 1Ldod0-00071L-AH
+	for linux-dvb@linuxtv.org; Sun, 01 Mar 2009 17:35:02 +0100
+Received: from [85.183.208.97] (helo=[192.168.0.124])
+	by mail.uni-paderborn.de with esmtpsa
+	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32) (Exim 4.63 chapek-ix)
+	id 1Ldocv-0004Ao-3n
+	for linux-dvb@linuxtv.org; Sun, 01 Mar 2009 17:34:54 +0100
+Message-ID: <49AAB995.8090702@campus.upb.de>
+Date: Sun, 01 Mar 2009 17:36:37 +0100
+From: David Woitkowski <jarrn@campus.upb.de>
 MIME-Version: 1.0
-From: =?iso-8859-15?Q?Bernd_Strau=DF?= <no_bs@web.de>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed;
- boundary="=-------------1238094160564059109"
-Subject: [linux-dvb] Patch: IR-support for Tevii s460
+Subject: [linux-dvb] Using tm6010 for Haupauge WinTV-HVR 900H
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,158 +22,147 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+Hi out there
 
---=-------------1238094160564059109
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+I'm in the unfortunate position of having bought a 900H instead of a 900
+and now I'm fiddling with the driver.
 
-The remote control which comes with this card doesn't work out of the box.=
+Details:
+$ lsusb | grep Hauppauge
+Bus 008 Device 004: ID 2040:6600 Hauppauge
 
-This patch changes that. Works with LIRC and /dev/input/eventX.
+My machine is running Ubuntu 8.10 with a 2.6.27-11-generic kernel. The 
+correct kernel-headers are installed.
 
-=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F=5F
-DSL zum Nulltarif + 20 Euro Extrapr=E4mie bei Online-Bestellung =FCber die
-DSL Freundschaftswerbung! http://dsl.web.de/=3Fac=3DOM.AD.AD008K15279B7069a
+As far as I've read there is (limited) support for the device with the
+tm6010 driver. Putting together some info from the web I did the following:
+
+$ hg clone http://linuxtv.org/hg/v4l-dvb
+$ cd v4l-dvb
+$ hg pull -u http://linuxtv.org/hg/~mchehab/tm6010
+
+Inserted into v4l-dvb/v4l/.config three lines:
+CONFIG_VIDEO_TM6000_ALSA=m
+CONFIG_VIDEO_TM6000=m
+CONFIG_VIDEO_TM6000_DVB=m
+
+$ hg merge
+$ make
+
+and as root:
+# make install
+
+This far everything worked without error.
+
+Then I got the Firmware the card was requesting in the dmesg-output from
+http://steventoth.net/linux/hvr1400/xc3028L-v36.fw and copied it to /lib
+/firmware
+
+Since there is no Module tm6000 I did
+# modprobe -v tm6000
+insmod 
+/lib/modules/2.6.27-11-generic/kernel/drivers/media/video/videobuf-core.ko
+insmod 
+/lib/modules/2.6.27-11-generic/kernel/drivers/media/video/videobuf-vmalloc.ko 
+
+insmod /lib/modules/2.6.27-11-generic/kernel/drivers/i2c/i2c-core.ko
+insmod 
+/lib/modules/2.6.27-11-generic/kernel/drivers/media/video/tm6000/tm6000.ko
+
+$ dmesg
+[  187.646908] tm6000 v4l2 driver version 0.0.1 loaded
+[  187.647898] usbcore: registered new interface driver tm6000
+
+(tail /var/log/messages gives the same info)
+
+Now - as I hope the module is loaded correctly - I attacht the USB-Device:
+
+$ dmesg
+[  373.881042] usb 8-1: new high speed USB device using ehci_hcd and 
+address 3
+[  374.019648] usb 8-1: configuration #1 chosen from 1 choice
+[  374.023090] tm6000: alt 0, interface 0, class 255
+[  374.023102] tm6000: alt 0, interface 0, class 255
+[  374.023107] tm6000: Bulk IN endpoint: 0x82 (max size=512 bytes)
+[  374.023111] tm6000: alt 0, interface 0, class 255
+[  374.023116] tm6000: alt 1, interface 0, class 255
+[  374.023120] tm6000: ISOC IN endpoint: 0x81 (max size=3072 bytes)
+[  374.023125] tm6000: alt 1, interface 0, class 255
+[  374.023129] tm6000: alt 1, interface 0, class 255
+[  374.023133] tm6000: alt 2, interface 0, class 255
+[  374.023137] tm6000: alt 2, interface 0, class 255
+[  374.023141] tm6000: alt 2, interface 0, class 255
+[  374.023145] tm6000: alt 3, interface 0, class 255
+[  374.023149] tm6000: alt 3, interface 0, class 255
+[  374.023153] tm6000: alt 3, interface 0, class 255
+[  374.023158] tm6000: New video device @ 480 Mbps (2040:6600, ifnum 0)
+[  374.023162] tm6000: Found Hauppauge HVR-900H
+[  374.884058] Error -32 while retrieving board version
+[  375.184050] tm6000 #0: i2c eeprom 00: 01 59 54 45 12 01 00 02 00 00 
+00 40 40 20 00 66  .YTE.......@@ .f
+[  375.380112] tm6000 #0: i2c eeprom 10: 69 00 10 20 40 01 02 03 48 00 
+79 00 62 00 72 00  i.. @...H.y.b.r.
+[  375.572058] tm6000 #0: i2c eeprom 20: ff 00 64 ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ..d.............
+[  375.764038] tm6000 #0: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  375.956103] tm6000 #0: i2c eeprom 40: 10 03 48 00 56 00 52 00 39 00 
+30 00 30 00 48 00  ..H.V.R.9.0.0.H.
+[  376.148062] tm6000 #0: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  376.344055] tm6000 #0: i2c eeprom 60: 30 ff ff ff 0f ff ff ff ff ff 
+0a 03 32 00 2e 00  0...........2...
+[  376.536039] tm6000 #0: i2c eeprom 70: 3f 00 ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ?...............
+[  376.728041] tm6000 #0: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  376.920041] tm6000 #0: i2c eeprom 90: 35 ff ff ff 16 03 34 00 30 00 
+33 00 32 00 31 00  5.....4.0.3.2.1.
+[  377.112039] tm6000 #0: i2c eeprom a0: 33 00 35 00 33 00 39 00 39 00 
+00 00 00 00 ff ff  3.5.3.9.9.......
+[  377.308054] tm6000 #0: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  377.500046] tm6000 #0: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  377.692053] tm6000 #0: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  377.885037] tm6000 #0: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  378.076042] tm6000 #0: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff 
+ff ff ff ff ff ff  ................
+[  378.260374]   ................
+[  378.260531] Trident TVMaster TM5600/TM6000 USB2 board (Load status: 0)
+[  378.320709] Hack: enabling device at addr 0xc2
+[  378.320722] tuner' 0-0061: chip found @ 0xc2 (tm6000 #0)
+[  378.362555] xc2028 0-0061: creating new instance
+[  378.362566] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+[  378.362817] Setting firmware parameters for xc2028
+[  378.362834] firmware: requesting xc3028L-v36.fw
+[  378.395756] xc2028 0-0061: Loading 81 firmware images from 
+xc3028L-v36.fw, type: xc2028 firmware, ver 3.6
+[  378.692036] xc2028 0-0061: Loading firmware for type=BASE MTS (5), id 
+0000000000000000.
 
 
---=-------------1238094160564059109
-Content-Type: text/x-patch;
- name="ir-remote-tevii-s460.patch"
-Content-Disposition: attachment;
- filename="ir-remote-tevii-s460.patch"
-Content-Transfer-Encoding: 7bit
+The device itself does not show any affection (LEDs stay dark), there is 
+no directory /dev/dvb created and MeTV tells me it's not finding any 
+reciever.
 
-diff -r -U 6 v4l-dvb/linux/drivers/media/common/ir-keymaps.c patched-v4l-dvb/linux/drivers/media/common/ir-keymaps.c
---- v4l-dvb/linux/drivers/media/common/ir-keymaps.c	2009-03-25 18:27:24.929354799 +0100
-+++ patched-v4l-dvb/linux/drivers/media/common/ir-keymaps.c	2009-03-26 19:23:12.953686930 +0100
-@@ -2797,6 +2797,60 @@
- 	[0x06] = KEY_S,		/*stop*/
- 	[0x40] = KEY_F,		/*full*/
- 	[0x1e] = KEY_W,		/*tvmode*/
- 	[0x1b] = KEY_B,		/*recall*/
- };
- EXPORT_SYMBOL_GPL(ir_codes_dm1105_nec);
-+
-+/* TeVii S460 DVB-S/S2 */
-+IR_KEYTAB_TYPE ir_codes_tevii_s460[IR_KEYTAB_SIZE] = {
-+	[0x0a] = KEY_POWER,
-+	[0x0c] = KEY_MUTE,
-+	[0x11] = KEY_1,
-+	[0x12] = KEY_2,
-+	[0x13] = KEY_3,
-+	[0x14] = KEY_4,
-+	[0x15] = KEY_5,
-+	[0x16] = KEY_6,
-+	[0x17] = KEY_7,
-+	[0x18] = KEY_8,
-+	[0x19] = KEY_9,
-+	[0x1a] = KEY_LAST,		/* 'recall' / 'event info' */
-+	[0x10] = KEY_0,
-+	[0x1b] = KEY_FAVORITES,
-+
-+	[0x09] = KEY_VOLUMEUP,
-+	[0x0f] = KEY_VOLUMEDOWN,
-+	[0x05] = KEY_TUNER,		/* 'live mode' */
-+	[0x07] = KEY_PVR,		/* 'play mode' */
-+	[0x08] = KEY_CHANNELUP,
-+	[0x06] = KEY_CHANNELDOWN,
-+	[0x00] = KEY_UP,
-+	[0x03] = KEY_LEFT,
-+	[0x1f] = KEY_OK,	
-+	[0x02] = KEY_RIGHT,
-+	[0x01] = KEY_DOWN,
-+	[0x1c] = KEY_MENU,
-+	[0x1d] = KEY_BACK,
-+
-+	[0x40] = KEY_PLAYPAUSE,
-+	[0x1e] = KEY_REWIND,		/* '<<' */
-+	[0x4d] = KEY_FASTFORWARD,	/* '>>' */
-+	[0x44] = KEY_EPG,
-+	[0x04] = KEY_RECORD,
-+	[0x0b] = KEY_TIME,		/* 'timer' */
-+	[0x0e] = KEY_OPEN,
-+	[0x4c] = KEY_INFO,
-+	[0x41] = KEY_AB,		/* 'A/B' */
-+	[0x43] = KEY_AUDIO,
-+	[0x45] = KEY_SUBTITLE,
-+	[0x4a] = KEY_LIST,
-+	[0x46] = KEY_F1,		/* 'F1' / 'satellite' */
-+	[0x47] = KEY_F2,		/* 'F2' / 'provider' */
-+	[0x5e] = KEY_F3,		/* 'F3' / 'transp' */
-+	[0x5c] = KEY_F4,		/* 'F4' / 'favorites' */
-+	[0x52] = KEY_F5,		/* 'F5' / 'all' */
-+	[0x5a] = KEY_F6,
-+	[0x56] = KEY_SWITCHVIDEOMODE,	/* 'mon' */
-+	[0x58] = KEY_ZOOM,		/* 'FS' */
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_tevii_s460);
-diff -r -U 6 v4l-dvb/linux/drivers/media/video/cx88/cx88-input.c patched-v4l-dvb/linux/drivers/media/video/cx88/cx88-input.c
---- v4l-dvb/linux/drivers/media/video/cx88/cx88-input.c	2009-03-25 18:27:33.595354385 +0100
-+++ patched-v4l-dvb/linux/drivers/media/video/cx88/cx88-input.c	2009-03-25 18:28:27.585354216 +0100
-@@ -327,12 +327,17 @@
- 	case CX88_BOARD_POWERCOLOR_REAL_ANGEL:
- 		ir_codes = ir_codes_powercolor_real_angel;
- 		ir->gpio_addr = MO_GP2_IO;
- 		ir->mask_keycode = 0x7e;
- 		ir->polling = 100; /* ms */
- 		break;
-+	case CX88_BOARD_TEVII_S460:
-+		ir_codes = ir_codes_tevii_s460;
-+		ir_type = IR_TYPE_PD;
-+		ir->sampling = 0xff00; /* address */
-+		break;
- 	}
- 
- 	if (NULL == ir_codes) {
- 		err = -ENODEV;
- 		goto err_out_free;
- 	}
-@@ -433,12 +438,13 @@
- 		ir_dump_samples(ir->samples, ir->scount);
- 
- 	/* decode it */
- 	switch (core->boardnr) {
- 	case CX88_BOARD_TERRATEC_CINERGY_1400_DVB_T1:
- 	case CX88_BOARD_DNTV_LIVE_DVB_T_PRO:
-+	case CX88_BOARD_TEVII_S460:
- 		ircode = ir_decode_pulsedistance(ir->samples, ir->scount, 1, 4);
- 
- 		if (ircode == 0xffffffff) { /* decoding error */
- 			ir_dprintk("pulse distance decoding error\n");
- 			break;
- 		}
-diff -r -U 6 v4l-dvb/linux/include/media/ir-common.h patched-v4l-dvb/linux/include/media/ir-common.h
---- v4l-dvb/linux/include/media/ir-common.h	2009-03-25 18:27:39.310350866 +0100
-+++ patched-v4l-dvb/linux/include/media/ir-common.h	2009-03-25 18:28:27.585354216 +0100
-@@ -159,12 +159,13 @@
- extern IR_KEYTAB_TYPE ir_codes_real_audio_220_32_keys[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_msi_tvanywhere_plus[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_ati_tv_wonder_hd_600[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_kworld_plus_tv_analog[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_kaiomy[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_dm1105_nec[IR_KEYTAB_SIZE];
-+extern IR_KEYTAB_TYPE ir_codes_tevii_s460[IR_KEYTAB_SIZE];
- #endif
- 
- /*
-  * Local variables:
-  * c-basic-offset: 8
-  * End:
+What am I missing? Did I oversee anything conserning the 
+driver-compilation? Or am I using the wrong firmware?
 
---=-------------1238094160564059109
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Comments appreciated,
+David
+
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---=-------------1238094160564059109--
