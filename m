@@ -1,23 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2JJBSDS008668
-	for <video4linux-list@redhat.com>; Thu, 19 Mar 2009 15:11:28 -0400
-Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2JJBBFC001599
-	for <video4linux-list@redhat.com>; Thu, 19 Mar 2009 15:11:12 -0400
-Received: from [192.168.0.201] (adsl-99-144-235-121.dsl.emhril.sbcglobal.net
-	[99.144.235.121]) (authenticated bits=0)
-	by nlpi053.prodigy.net (8.13.8 smtpauth/dk/map_regex/8.13.8) with ESMTP
-	id n2JJB34u017252
-	for <video4linux-list@redhat.com>; Thu, 19 Mar 2009 14:11:10 -0500
-Message-ID: <49C298C8.3080100@xnet.com>
-Date: Thu, 19 Mar 2009 14:11:04 -0500
-From: stuart <stuart@xnet.com>
-MIME-Version: 1.0
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n21IPMqW010432
+	for <video4linux-list@redhat.com>; Sun, 1 Mar 2009 13:25:22 -0500
+Received: from out1.smtp.messagingengine.com (out1.smtp.messagingengine.com
+	[66.111.4.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n21IP1qa012593
+	for <video4linux-list@redhat.com>; Sun, 1 Mar 2009 13:25:01 -0500
+Received: from compute2.internal (compute2.internal [10.202.2.42])
+	by out1.messagingengine.com (Postfix) with ESMTP id 672802C9C8E
+	for <video4linux-list@redhat.com>; Sun,  1 Mar 2009 13:25:01 -0500 (EST)
+Received: from localhost.localdomain (ool-457b4d55.dyn.optonline.net
+	[69.123.77.85])
+	by mail.messagingengine.com (Postfix) with ESMTPSA id 342642C362
+	for <video4linux-list@redhat.com>; Sun,  1 Mar 2009 13:25:01 -0500 (EST)
+Received: from acano by localhost.localdomain with local (Exim 4.69)
+	(envelope-from <acano@fastmail.fm>) id 1LdqJs-0004gz-ID
+	for video4linux-list@redhat.com; Sun, 01 Mar 2009 13:23:20 -0500
+Date: Sun, 1 Mar 2009 13:23:20 -0500
+From: acano@fastmail.fm
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Help w/ATSC tuner (kworld 120)
+Message-ID: <20090301182320.GA18012@localhost.localdomain>
+References: <855c2fad0902281930p12943d92wd53bc7637af615cb@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <855c2fad0902281930p12943d92wd53bc7637af615cb@mail.gmail.com>
+Subject: Re: KWorld 340U - need help.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,30 +37,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi...
+On Sat, Feb 28, 2009 at 09:30:20PM -0600, Anil Ramachandran wrote:
+> Pardon me if I am posting without enough research, but I have scoured the
+> internet a whole day and done my best.
+>
+> I have a KWorld 340U which is an em2870 device. I used the patch mentioned
+> at http://www.mail-archive.com/em28xx@mcentral.de/msg02008.html to install
+> the driver, but I am still confused on the firmware.
 
-I know the v4l support of (what I think is the newest) Kworld 120 is not 
-100 % (for instance I don't think you can switch between NTSC and ATSC 
-w/o a power cycle -or- use the remote control).  However, I had been 
-using it for months for ATSC reception w/o any problems.  Then, after a 
-Debinan (unstable) update, I lost the card.  I assume I had picked up a 
-new release of v4l.  So I tried to re-compile & install my source copy 
-of v4l I downloaded last July - but that didn't work. I then downloaded, 
-compiled & installed the most recent v4l today - but that didn't work 
-either.  Currently, the tuner acts as if the signal is weak.  The 
-picture is pixelated and breaks up.  I have swapped the antenna lead 
-with a set-top-box ATSC tuner.  The set-top-box appears to work well 
-with either it's own antenna lead or the Kworld's antenna lead.
+no firmware
 
-So, now I'm wondering - could something have happened to v4l in the last 
-9 months?  For instance, could a v4l code change effect the Kworld 120's 
-AGC feature?
+> Further, on scanning using Kaffeine or dvbscan
+> using the US-ATSC-Center-Frequencies-8VSB channel profile, (I live in St.
+> Louis, MO, US) I end up with
+>
 
-FYI: The same antenna provides signals for another Kworld 110 tuner and 
-a Happauge NTSC tuner (both in a different computer) as well as a number 
-of other appliances.   All of which appear to be working fine.
 
-...thanks
+> > ....
+> >
+> > Not able to lock to the signal on the given frequency
+> > Frontend closed
+> > dvbsi: Cant tune DVB
+> >
+>
+>
+> It seems the first tuning operation succeeds in getting a lock but then
+> times out and then all the rest fail. I am not sure what is next but I think
+> this may be related to firmware, or to me not loading all required modules.
+> If anybody has a helpful clue, I would appreciate it. I am running OpenSuse
+> 11.1 32 bit.
+
+The patch only supports qam 256.
+
+I've sent a new patch to the mcentral mailing list.  It has support
+for 8vsb and has some important fixes.
 
 --
 video4linux-list mailing list
