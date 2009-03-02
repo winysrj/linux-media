@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n29CCpmN027915
-	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 08:12:51 -0400
-Received: from sperry-03.control.lth.se (sperry-03.control.lth.se
-	[130.235.83.190])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n29CAitL007119
-	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 08:12:03 -0400
-Message-ID: <49B50740.3000902@control.lth.se>
-Date: Mon, 09 Mar 2009 13:10:40 +0100
-From: Anders Blomdell <anders.blomdell@control.lth.se>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n22F2dcQ007204
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 10:02:39 -0500
+Received: from smtp103.biz.mail.re2.yahoo.com (smtp103.biz.mail.re2.yahoo.com
+	[68.142.229.217])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n22F2MI5017946
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 10:02:23 -0500
+Message-ID: <49ABF405.9090005@embeddedalley.com>
+Date: Mon, 02 Mar 2009 17:58:13 +0300
+From: Vitaly Wool <vital@embeddedalley.com>
 MIME-Version: 1.0
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-References: <49A8661A.4090907@control.lth.se>
-	<49B194A7.4030808@kaiser-linux.li>
-In-Reply-To: <49B194A7.4030808@kaiser-linux.li>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Topro 6800 driver
+Subject: [PATCH] em28xx: enable Compro VideoMate ForYou sound
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,77 +26,156 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thomas Kaiser wrote:
-> Hello Anders
-> 
-> Anders Blomdell wrote:
->> Hi,
->>
->> I'm trying to write a driver for a webcam based on Topro TP6801/CX0342
->> (06a2:0003). My first attempt (needs gspca) can be found on:
-> 
-> I own a cam with a TP6810 USB bridge and a CX0342 sensor (this is 
-> written on the driver CD).
-> 
->> http://www.control.lth.se/user/andersb/tp6800.c
->>
->> Unfortunately the JPEG images (one example dump is in
->> http://www.control.lth.se/user/andersb/topro_img_dump.txt), seems to be bogus,
->> they start with (data is very similar to windows data):
->>
->> 00000000: 0xff,0xd8,0xff,0xfe,0x28,0x3c,0x01,0xe8,...
->> ...
->> 0000c340: ...,0xf4,0xc0,0xff,0xd9
->>
->> Anybody who has a good idea of how to find a DQT/Huffman table that works with
->> this image data?
-> 
-> I did some usbsnoops today and see some similar things in the stream as 
-> in your trace. Maybe you can comment on my observation?
-> 
-> When I stop the capturing, the las 2 Bytes are always 0xff 0xd9 which 
-> look like a valid JPEG marker (End of Image)
-> 
-> When I search for 0xffd9, I see the following sequence:
-> 
-> FF D9 5x FF D8 FF FE 14 1E xx xx xx
-Is the 5x directly following the FFD9 (in my camera, the next frame [55] is in a
-new ISO frame)?
+Hello Mauro,
 
-> - 5x is 55 or 5A
-I have only seen ISO frames starting with 55 (new frame) AA (abort frame) CC
-(frame continuation), the 5A case is not documented in the manual I have
+below is the final patch candidate for Compro VideoMate ForYou/Stereo USB TV box sound enablement.
 
-> - the 3 xx are mostly the same, but they change a lot when I cover the 
-> lens of the cam. So I think this is some image information (brightness?).
-Or perhaps JPEG encoded data.
+The tvaudio changes are put aside, as it is a separate matter.
 
-> This said, i don't think that FF D8 and FF FE are JPEG markers, just a 
-> unique Byte pattern to mark the start of a new frame.
-Since the manual states that the chip does JPEG compression, and the frames are
-significantly smaller than 640*480 and varies in size, I expect it to be in some
-compressed format, and so far I expect JPEG (but with unknown Huffman/DQT tables).
+Thanks,
+   Vitaly
 
-> I guess 5x FF D8 FF FE 14 1E xx xx xx and may be some more bytes is the 
-> frame marker.
-> 
-> Comments?
-It would be interesting to know if somebody well versed in windows programming
-could write a program to get JPEG frames out of the driver directly (provided
-this is possible of course), if the image part of such a frame matches the data
-seen on USB, we would then have the Huffman/DQT tables.
+ drivers/media/video/em28xx/em28xx-cards.c |   17 ++++++++++++++++-
+ drivers/media/video/em28xx/em28xx-core.c  |   11 +++++++++++
+ drivers/media/video/em28xx/em28xx-i2c.c   |    6 ++++++
+ drivers/media/video/em28xx/em28xx-video.c |    7 +++++++
+ drivers/media/video/em28xx/em28xx.h       |    2 ++
+ 5 files changed, 42 insertions(+), 1 deletion(-)
 
-At the moment I'm stuck, since I see no way to find out what Huffman/DQT tables
-that are used.
+Signed-off-by: Vitaly Wool <vital@embeddedalley.com>
 
-/Anders
-
--- 
-Anders Blomdell                  Email: anders.blomdell@control.lth.se
-Department of Automatic Control
-Lund University                  Phone:    +46 46 222 4625
-P.O. Box 118                     Fax:      +46 46 138118
-SE-221 00 Lund, Sweden
+Index: linux-next/drivers/media/video/em28xx/em28xx-cards.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-cards.c	2009-03-02 17:50:40.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-cards.c	2009-03-02 17:51:16.000000000 +0300
+@@ -122,6 +122,17 @@
+ 	{  -1,			-1,		-1,		-1},
+ };
+ 
++/* Mute/unmute */
++static struct em28xx_reg_seq compro_unmute_gpio[] = {
++	{EM28XX_R08_GPIO,	EM_GPIO_0,	EM_GPIO_0 | EM_GPIO_1,	10},
++	{  -1,			-1,		-1,			-1},
++};
++
++static struct em28xx_reg_seq compro_mute_gpio[] = {
++	{EM28XX_R08_GPIO,	EM_GPIO_1,	EM_GPIO_0 | EM_GPIO_1,	10},
++	{  -1,			-1,		-1,			-1},
++};
++
+ /*
+  *  Board definitions
+  */
+@@ -1225,14 +1236,18 @@
+ 		.tda9887_conf = TDA9887_PRESENT,
+ 		.decoder      = EM28XX_TVP5150,
+ 		.adecoder     = EM28XX_TVAUDIO,
++		.mute_gpio    = compro_mute_gpio,
++		.unmute_gpio  = compro_unmute_gpio,
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_TELEVISION,
+ 			.vmux     = TVP5150_COMPOSITE0,
+-			.amux     = EM28XX_AMUX_LINE_IN,
++			.amux     = EM28XX_AMUX_VIDEO,
++			.gpio     = default_analog,
+ 		}, {
+ 			.type     = EM28XX_VMUX_SVIDEO,
+ 			.vmux     = TVP5150_SVIDEO,
+ 			.amux     = EM28XX_AMUX_LINE_IN,
++			.gpio     = default_analog,
+ 		} },
+ 	},
+ 	[EM2860_BOARD_KAIOMY_TVNPC_U2] = {
+Index: linux-next/drivers/media/video/em28xx/em28xx-core.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-core.c	2009-03-02 17:50:40.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-core.c	2009-03-02 17:51:16.000000000 +0300
+@@ -353,6 +353,7 @@
+ {
+ 	int ret;
+ 	u8 input;
++	int do_mute = 0;
+ 
+ 	if (dev->board.is_em2800) {
+ 		if (dev->ctl_ainput == EM28XX_AMUX_VIDEO)
+@@ -378,6 +379,16 @@
+ 		}
+ 	}
+ 
++	if (dev->mute || input != EM28XX_AUDIO_SRC_TUNER)
++		do_mute = 1;
++
++	if (dev->board.mute_gpio && do_mute)
++		em28xx_gpio_set(dev, dev->board.mute_gpio);
++
++	if (dev->board.unmute_gpio && !do_mute)
++		em28xx_gpio_set(dev, dev->board.unmute_gpio);
++
++
+ 	ret = em28xx_write_reg_bits(dev, EM28XX_R0E_AUDIOSRC, input, 0xc0);
+ 	if (ret < 0)
+ 		return ret;
+Index: linux-next/drivers/media/video/em28xx/em28xx-i2c.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-i2c.c	2009-03-02 17:50:40.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-i2c.c	2009-03-02 17:51:16.000000000 +0300
+@@ -510,12 +510,17 @@
+ 		dprintk1(1, "attach_inform: tvp5150 detected.\n");
+ 		break;
+ 
++	case 0xb0:
++		dprintk1(1, "attach_inform: tda9874 detected\n");
++		break;
++
+ 	default:
+ 		if (!dev->tuner_addr)
+ 			dev->tuner_addr = client->addr;
+ 
+ 		dprintk1(1, "attach inform: detected I2C address %x\n",
+ 				client->addr << 1);
++		dprintk1(1, "driver id %d\n", client->driver->id);
+ 
+ 	}
+ 
+@@ -554,6 +559,7 @@
+ 	[0x80 >> 1] = "msp34xx",
+ 	[0x88 >> 1] = "msp34xx",
+ 	[0xa0 >> 1] = "eeprom",
++	[0xb0 >> 1] = "tda9874",
+ 	[0xb8 >> 1] = "tvp5150a",
+ 	[0xba >> 1] = "tvp5150a",
+ 	[0xc0 >> 1] = "tuner (analog)",
+Index: linux-next/drivers/media/video/em28xx/em28xx-video.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-video.c	2009-03-02 17:50:40.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-video.c	2009-03-02 17:51:16.000000000 +0300
+@@ -540,6 +540,13 @@
+ 			&route);
+ 	}
+ 
++	if (dev->board.adecoder != EM28XX_NOADECODER) {
++		route.input = dev->ctl_ainput;
++		route.output = dev->ctl_aoutput;
++		em28xx_i2c_call_clients(dev, VIDIOC_INT_S_AUDIO_ROUTING,
++			&route);
++	}
++
+ 	em28xx_audio_analog_set(dev);
+ }
+ 
+Index: linux-next/drivers/media/video/em28xx/em28xx.h
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx.h	2009-03-02 17:50:40.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx.h	2009-03-02 17:51:16.000000000 +0300
+@@ -374,6 +374,8 @@
+ 	struct em28xx_reg_seq *dvb_gpio;
+ 	struct em28xx_reg_seq *suspend_gpio;
+ 	struct em28xx_reg_seq *tuner_gpio;
++	struct em28xx_reg_seq *mute_gpio;
++	struct em28xx_reg_seq *unmute_gpio;
+ 
+ 	unsigned int is_em2800:1;
+ 	unsigned int has_msp34xx:1;
 
 --
 video4linux-list mailing list
