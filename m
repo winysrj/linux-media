@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-fx0-f168.google.com ([209.85.220.168])
+Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <pmcenery@gmail.com>) id 1LiE9X-0002qq-AP
-	for linux-dvb@linuxtv.org; Fri, 13 Mar 2009 21:39:13 +0100
-Received: by fxm12 with SMTP id 12so2637699fxm.17
-	for <linux-dvb@linuxtv.org>; Fri, 13 Mar 2009 13:38:13 -0700 (PDT)
+	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1LeBbg-0003gD-NY
+	for linux-dvb@linuxtv.org; Mon, 02 Mar 2009 18:07:09 +0100
+Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
+	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id n22H74Gg020776
+	for <linux-dvb@linuxtv.org>; Mon, 2 Mar 2009 18:07:04 +0100
+Message-ID: <49AC1237.9000104@cadsoft.de>
+Date: Mon, 02 Mar 2009 18:07:03 +0100
+From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
 MIME-Version: 1.0
-Date: Fri, 13 Mar 2009 20:38:13 +0000
-Message-ID: <b4892f8e0903131338k7b6978b0lfd358d7145d3cfae@mail.gmail.com>
-From: Paul McEnery <pmcenery@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TeVii S470
+Subject: [linux-dvb] Bug in DVB header files
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,12 +26,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The wiki shows support for the TeVii S470 which appears to be a PCI
-Express card (http://www.linuxtv.org/wiki/index.php/TeVii_S470).
+Reinhard Nissl made me aware of the fact that with recent versions
+of the driver from http://linuxtv.org/hg/v4l-dvb there is apparently
+someting wrong with the header files. Doing
 
-I cant find any information about this card either on the TeVii
-website, or via Google. Is this a prototype card which is yet to be
-relased? Any info on its availability would be much appreciated...
+#include <linux/videodev2.h>
+#include <linux/dvb/audio.h>
+
+results in
+
+.../linux/dvb/audio.h:79: error: 'uint16_t' does not name a type
+
+Doing the #includes in reverse order gives
+
+/usr/include/sys/select.h:78: error: conflicting declaration 'typedef struct fd_set fd_set'
+/usr/include/linux/types.h:12: error: 'fd_set' has a previous declaration as 'typedef struct __kernel_fd_set fd_set'
+
+
+The only way to compile VDR with the recent driver is to revert to
+the header files as they were before the change labeled
+
+"backport include changes on some .h files"
+
+Klaus
 
 _______________________________________________
 linux-dvb users mailing list
