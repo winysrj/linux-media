@@ -1,45 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:57291 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477AbZCOPO6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 11:14:58 -0400
-Date: Sun, 15 Mar 2009 08:14:56 -0700 (PDT)
+Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:35746 "EHLO
+	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751215AbZCBWre (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 17:47:34 -0500
+Date: Mon, 2 Mar 2009 14:47:31 -0800 (PST)
 From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean-Francois Moine <moinejf@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] LED control
-In-Reply-To: <20090315105037.6266687a@free.fr>
-Message-ID: <Pine.LNX.4.58.0903150805140.28292@shell2.speakeasy.net>
-References: <20090314125923.4229cd93@free.fr> <20090314091747.21153855@pedra.chehab.org>
- <Pine.LNX.4.58.0903141315300.28292@shell2.speakeasy.net> <20090315105037.6266687a@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+In-Reply-To: <200903022218.24259.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.58.0903021351370.24268@shell2.speakeasy.net>
+References: <200903022218.24259.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Mar 2009, Jean-Francois Moine wrote:
-> On Sat, 14 Mar 2009 13:16:11 -0700 (PDT)
-> Trent Piepho <xyzzy@speakeasy.org> wrote:
->
-> > There is already a sysfs led interface, you could just have the driver
-> > export the leds to the led subsystem and use that.
->
-> Yes, but:
-> - this asks to have a kernel generated with CONFIG_NEW_LEDS,
+On Mon, 2 Mar 2009, Hans Verkuil wrote:
+> There are good reasons as a developer for keeping backwards compatibility
+> with older kernels:
 
-So?
+Do you mean no backwards compatibility with any older kernels?  Or do you
+mean just dropping support for the oldest kernels now supported.  What
+you've said above sounds like the former.
 
-> - the user must use some new program to access /sys/class/leds/<device>,
+> 1) a larger testers base.
+> 2) that warm feeling you get when users can get their new card to work with
+> just v4l-dvb without having to upgrade their kernel.
+> 3) as a developer you do not need to update to the latest kernel as well.
+> Very useful if the latest kernel introduces a regression on your hardware
+> as happened to me in the past.
 
-echo, cat?
+It's also very useful for working on/testing multiple trees.  I can test
+your zoran tree, switch to a different tree for some cx88 work, and then
+switch back to a know good tree to record some tv shows tonight.  I can
+switch back and forth between your zoran tree and a months older one in
+*seconds* to check differences in behavior.  Without having to reboot two
+dozen times a day to a half dozen different kernels.
 
-> - he must know how the LEDs of his webcam are named in the /sys tree.
+For the most part the v4l-dvb compat system works behind the scenes very
+well.  I'm sure there have been cases where a developer who doesn't reboot
+hourly to the latest git kernel produced a patch that wouldn't have worked
+on the kernel they were themselves using if the compat system hadn't made
+it work automatically without the developer even knowing.
 
-Just give them a name like video0:power and it will be easy enough to
-associate them with the device.  I think links in sysfs would do it to,
-/sys/class/video4linux/video0/device/<ledname> or something like that.
+> 2) as time goes by the code becomes ever harder to maintain due to the
+> accumulated kernel checks.
 
-The advantage of using the led class is that you get support for triggers
-and automatic blink functions, etc.
+Unless you want to maintain backwards compat forever, the idea is to reach
+some kind of equilibrium were old compat code is removed at the same rate
+new compat code is added.
+
+> 3) the additional complication of backwards compatibility code might deter
+> new developers.
+
+But needing to run today's kernel and have your closed source video card
+driver stop working might deter developers who just want to produce a few
+small patches.
+
+> There has to be a balance here. Currently it is my opinion that I'm spending
+> too much time on the backwards compat stuff. And that once all the i2c
+> modules are converted to the new framework both the maintainability and the
+> effort required to maintain the compat code will be improved considerably
+> by dropping support for kernels <2.6.22.
+
+Will you allow drivers to use a combination of probe based and detect based
+i2c using the new i2c api?  It's my understanding that you only support the
+new i2c api for probe-only drivers.  Probe/detect or ever detect-only
+drivers for the new i2c api haven't been done?  I think much of the
+difficulty of supporting <2.6.22 will be solved once there is a way to
+allow drivers to use both probe and detect with the new api.
+
+I think I would have gone about it from the other side.  Convert bttv to
+use detect and then make that backward compatible.  That compatibility
+should be much easier and less invasive.
