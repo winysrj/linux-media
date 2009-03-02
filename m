@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2R4WZMo031608
-	for <video4linux-list@redhat.com>; Fri, 27 Mar 2009 00:32:35 -0400
-Received: from vsmtp14.tin.it (vsmtp14.tin.it [212.216.176.118])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2R4WFpi026196
-	for <video4linux-list@redhat.com>; Fri, 27 Mar 2009 00:32:15 -0400
-Received: from [79.17.5.86] (79.17.5.86) by vsmtp14.tin.it (8.0.022)
-	id 49CB8EC300091619 for video4linux-list@redhat.com;
-	Fri, 27 Mar 2009 05:32:14 +0100
-Message-ID: <49CC565B.7090204@virgilio.it>
-Date: Fri, 27 Mar 2009 05:30:19 +0100
-From: "Ra.M." <ramsoft@virgilio.it>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n22G26mw017654
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 11:02:06 -0500
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.249])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n22G1htP014342
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 11:01:43 -0500
+Received: by an-out-0708.google.com with SMTP id b2so1453327ana.36
+	for <video4linux-list@redhat.com>; Mon, 02 Mar 2009 08:01:42 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Vitaly Wool <vital@embeddedalley.com>
+In-Reply-To: <49ABF746.8000506@embeddedalley.com>
+References: <49ABF746.8000506@embeddedalley.com>
+Content-Type: text/plain
+Date: Mon, 02 Mar 2009 19:02:06 +0300
+Message-Id: <1236009726.1726.6.camel@tux.localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: SAA7133 not working with kernel 2.6.29
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [patch] tvaudio: remove bogus check
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,14 +29,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-After I have installed 2.6.29, now at boot time I get the message:
+Hello, Vitaly
 
-"IRQ 18/SAA7133: IRQF_DISABLED is not guaranteed on shared IRQs"
+Now the main development maillist of V4L is linux-media@vger.kernel.org.
+Posting to that maillist also helps patchwork.kernel.org to handle
+patches correctly.
 
-Signal strength is very low and Kaffeine is unable to tune in any channels.
-No problem with 2.6.28.x
+Mauro, what is the status of video4linux-list@redhat.com? Is that user
+maillist, or is it deprecated mail that should be disabled ? 
 
-Is this a 2.6.29 bug?
+On Mon, 2009-03-02 at 18:12 +0300, Vitaly Wool wrote:
+> Hello Mauro,
+> 
+> below is the patch that removes the subaddr check against ARRAY_SIZE(chip->shadow.bytes).
+> Regardless of anything, the 'bytes' array is 64 bytes large so this check disables 
+> easy standard programming (TDA9874A_ESP) which has a number of 255 which is hardly the
+> intended behavior.
+> 
+> As a matter of fact, we can think of separate check for this case like
+> 	if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes) ||
+> 	    subaddr != 0xFF) {
+> 		... /* weird register, refuse */
+> 	}
+> but I'm not sure if there are no other special cases so for now I suggest to just disable
+> it.
+> 
+>  drivers/media/video/tvaudio.c |   17 +----------------
+>  1 file changed, 1 insertion(+), 16 deletions(-)
+> 
+> Signed-off-by: Vitaly Wool <vital@embeddedalley.com> 
+> 
+> Index: linux-next/drivers/media/video/tvaudio.c
+> ===================================================================
+> --- linux-next.orig/drivers/media/video/tvaudio.c	2009-03-02 17:50:40.000000000 +0300
+> +++ linux-next/drivers/media/video/tvaudio.c	2009-03-02 18:08:08.000000000 +0300
+> @@ -169,13 +169,6 @@
+>  			return -1;
+>  		}
+>  	} else {
+> -		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+> -			v4l2_info(sd,
+> -				"Tried to access a non-existent register: %d\n",
+> -				subaddr);
+> -			return -EINVAL;
+> -		}
+> -
+>  		v4l2_dbg(1, debug, sd, "chip_write: reg%d=0x%x\n",
+>  			subaddr, val);
+>  		chip->shadow.bytes[subaddr+1] = val;
+> @@ -198,16 +191,8 @@
+>  	if (mask != 0) {
+>  		if (subaddr < 0) {
+>  			val = (chip->shadow.bytes[1] & ~mask) | (val & mask);
+> -		} else {
+> -			if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+> -				v4l2_info(sd,
+> -					"Tried to access a non-existent register: %d\n",
+> -					subaddr);
+> -				return -EINVAL;
+> -			}
+> -
+> +		} else
+>  			val = (chip->shadow.bytes[subaddr+1] & ~mask) | (val & mask);
+> -		}
+>  	}
+>  	return chip_write(chip, subaddr, val);
+>  }
+> 
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
