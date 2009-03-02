@@ -1,49 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:38734 "EHLO tichy.grunau.be"
+Received: from mail1.radix.net ([207.192.128.31]:62291 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755042AbZCCWaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2009 17:30:03 -0500
-From: Janne Grunau <j@jannau.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Possible omission in v4l2-common.c?
-Date: Tue, 3 Mar 2009 23:29:54 +0100
-Cc: Brandon Jenkins <bcjenkins@tvwhere.com>,
-	linux-media@vger.kernel.org
-References: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com> <200903032218.55382.hverkuil@xs4all.nl>
-In-Reply-To: <200903032218.55382.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	id S1752738AbZCBUIy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Mar 2009 15:08:54 -0500
+Subject: Re: General protection fault on rmmod cx8800
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20090302170349.18c8fd75@hyperion.delvare>
+References: <20090215214108.34f31c39@hyperion.delvare>
+	 <20090302133936.00899692@hyperion.delvare>
+	 <1236003365.3071.6.camel@palomino.walls.org>
+	 <20090302170349.18c8fd75@hyperion.delvare>
+Content-Type: text/plain
+Date: Mon, 02 Mar 2009 15:09:06 -0500
+Message-Id: <1236024546.3066.11.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903032329.54167.j@jannau.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 03 March 2009 22:18:55 Hans Verkuil wrote:
-> On Tuesday 03 March 2009 13:50:30 Brandon Jenkins wrote:
-> > Hello all,
-> >
-> > I was upgrading drivers this morning to capture the latest changes
-> > for the cx18 and I received a merge conflict in v4l2-common.c. In
-> > my system, 1 HDPVR and 3 CX18s. The HDPVR sources are 5 weeks old
-> > from their last sync up but contain:
-> >
-> > case V4L2_CID_SHARPNESS:
-> >
-> > The newer sources do not, but still have reference to sharpness at
-> > line 420: case V4L2_CID_SHARPNESS:                return
-> > "Sharpness";
-> >
-> > Because I don't know which way the code is going (is sharpness in
-> > or out) I can't submit a patch, but thought I would raise here.
-> > Diff below was pulled from clean clone of v4l-dvb tree.
->
-> Sharpness is definitely in. This is a bug, please submit this patch
-> with a Signed-off-by line and I'll get it merged.
+On Mon, 2009-03-02 at 17:03 +0100, Jean Delvare wrote:
+> Hi Andy,
+> 
+> On Mon, 02 Mar 2009 09:16:05 -0500, Andy Walls wrote:
+> > On Mon, 2009-03-02 at 13:39 +0100, Jean Delvare wrote:
+> > > On Sun, 15 Feb 2009 21:41:08 +0100, Jean Delvare wrote:
+> > > > Hi all,
+> > > > 
+> > > > Today I have hit the following general protection fault when removing
+> > > > module cx8800:
+> > > 
+> > > This has just happened to me again today, with kernel 2.6.28.7. I have
+> > > opened a bug in bugzilla:
+> > > 
+> > > http://bugzilla.kernel.org/show_bug.cgi?id=12802
+> > > 
+> > 
+> > I'll try to look at it later today.  But right off the bat, I think
+> > here's a problem:
+> 
+> Thanks for your help looking into this!
+> 
+> > void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir)
+> > {
+> > [...]
+> >         if (ir->polling) {
+> >                 del_timer_sync(&ir->timer);   <--- Wrong order?
+> >                 flush_scheduled_work();       <--- Wrong order?
+> >         }
+> > }
+> 
+> The order looks OK to me. If you flush the event workqueue before
+> deleting the timer, the timer could rearm before you delete it, and
+> you'd return before the workqueue is actually flushed. As a matter of
+> fact, both bttv-input and ir-kbd-i2c have it in the same order.
 
-It is and afaik was never handled in v4l2_ctrl_query_fill(), the hdpvr 
-tree adds that. Since I intend request the merge of the driver in a 
-couple of days a seperate patch shouldn't be needed.
+flush_scheduled_work() causes any queued work to execute.  If queued
+cx88_IR work exists, it *will* rearm the timer via mod_timer() - the
+del_timer_sync() is nullified in this case.
 
-janne
+
+
+> > static void cx88_ir_work(struct work_struct *work)
+> > {
+> >         struct cx88_IR *ir = container_of(work, struct cx88_IR, work);
+> > 
+> >         cx88_ir_handle_key(ir);
+> >         mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
+> > }
+> > 
+> > 
+> > mod_timer() acts like del_timer(); mumble; add_timer();  If there was
+> > any work flushed when stopping the IR, a new timer gets added.  That
+> > seems wrong.
+> 
+> As far as I can see the key difference between bttv-input and
+> cx88-input is that bttv-input only uses a simple self-rearming timer,
+> while cx88-input uses a timer and a separate workqueue. The timer runs
+> the workqueue, which rearms the timer, etc. When you flush the timer,
+> the separate workqueue can be still active. I presume this is what
+> happens on my system. I guess the reason for the separate workqueue is
+> that the processing may take some time and we don't want to hurt the
+> system's performance?
+
+It depends.  You use work_queus in the first place to have interrupts
+disabled for as little time as possible on a processor; increasing
+system performance.  If ordering of deferred work is important, you want
+your own single threaded work handler.  If latency of deferred work is
+important, you want your own normal (multithreaded) work handler.  If
+neither is important, you just use the default kernel eventd. 
+
+> So we need to flush both the event workqueue (with
+> flush_scheduled_work) and the separate workqueue (with
+> flush_workqueue), at the same time, otherwise the active one may rearm
+> the flushed one again. This looks tricky, as obviously we can't flush
+> both at the exact same time. Alternatively, if we could get rid of one
+> of the queues, we'd have only one that needs flushing, this would be a
+> lot easier...
+
+I still need to look into what you just mentioned (I've be out shoveling
+over 12 inches of snow off of my driveway for the past few hours).
+
+Depending on how tangled the mess is I was thinking of a few things:
+
+1. cancelling the work instead of flushing it (only good for newer
+kernels)
+
+2. a state variable that indicates we're removing the device and to not
+call mod_timer() which rearms the timer.
+
+
+But before all that, I still need to decode the oops to see exactly what
+failed.
+
+
+Regards,
+Andy
+
