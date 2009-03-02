@@ -1,103 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57925 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368AbZCLL3Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 07:29:24 -0400
-From: Sascha Hauer <s.hauer@pengutronix.de>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1223 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752855AbZCBTRU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 14:17:20 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n22JHDwF049100
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 2 Mar 2009 20:17:17 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 2 Mar 2009 20:17:13 +0100 (CET)
+Message-Id: <200903021917.n22JHDwF049100@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH 2/5] pcm990 baseboard: add camera bus width switch setting
-Date: Thu, 12 Mar 2009 12:27:16 +0100
-Message-Id: <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de>
-In-Reply-To: <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de>
-References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de>
- <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de>
+Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some Phytec cameras have a I2C GPIO expander which allows it to
-switch between different sensor bus widths. This was previously
-handled in the camera driver. Since handling of this switch
-varies on several boards the cameras are used on, the board
-support seems a better place to handle the switch
+(This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.)
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- arch/arm/mach-pxa/pcm990-baseboard.c |   49 +++++++++++++++++++++++++++------
- 1 files changed, 40 insertions(+), 9 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index 34841c7..8b01565 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -381,14 +381,45 @@ static struct pca953x_platform_data pca9536_data = {
- 	.gpio_base	= NR_BUILTIN_GPIO + 1,
- };
- 
--static struct soc_camera_link iclink[] = {
--	{
--		.bus_id	= 0, /* Must match with the camera ID above */
--		.gpio	= NR_BUILTIN_GPIO + 1,
--	}, {
--		.bus_id	= 0, /* Must match with the camera ID above */
--		.gpio	= -ENXIO,
-+static int gpio_bus_switch;
-+
-+static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
-+		unsigned long flags)
-+{
-+	if (gpio_bus_switch <= 0)
-+		return 0;
-+
-+	if (flags & SOCAM_DATAWIDTH_8)
-+		gpio_set_value(gpio_bus_switch, 1);
-+	else
-+		gpio_set_value(gpio_bus_switch, 0);
-+
-+	return 0;
-+}
-+
-+static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
-+{
-+	int ret;
-+
-+	if (!gpio_bus_switch) {
-+		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
-+		if (!ret) {
-+			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
-+			gpio_direction_output(gpio_bus_switch, 0);
-+		} else
-+			gpio_bus_switch = -EINVAL;
- 	}
-+
-+	if (gpio_bus_switch > 0)
-+		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
-+	else
-+		return SOCAM_DATAWIDTH_10;
-+}
-+
-+static struct soc_camera_link iclink = {
-+	.bus_id	= 0, /* Must match with the camera ID above */
-+	.query_bus_param = pcm990_camera_query_bus_param,
-+	.set_bus_param = pcm990_camera_set_bus_param,
- };
- 
- /* Board I2C devices. */
-@@ -399,10 +430,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
- 		.platform_data = &pca9536_data,
- 	}, {
- 		I2C_BOARD_INFO("mt9v022", 0x48),
--		.platform_data = &iclink[0], /* With extender */
-+		.platform_data = &iclink, /* With extender */
- 	}, {
- 		I2C_BOARD_INFO("mt9m001", 0x5d),
--		.platform_data = &iclink[0], /* With extender */
-+		.platform_data = &iclink, /* With extender */
- 	},
- };
- #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
--- 
-1.5.6.5
+date:        Mon Mar  2 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10785:91f9c6c451f7
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.16.61-armv5: OK
+linux-2.6.17.14-armv5: OK
+linux-2.6.18.8-armv5: OK
+linux-2.6.19.5-armv5: OK
+linux-2.6.20.21-armv5: OK
+linux-2.6.21.7-armv5: OK
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc5-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc5-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc5-armv5-omap2: OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc5-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc5-m32r: OK
+linux-2.6.16.61-mips: ERRORS
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc5-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc5-powerpc64: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc5-x86_64: WARNINGS
+fw/apps: WARNINGS
+spec: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc5): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
