@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2P91vE6011742
-	for <video4linux-list@redhat.com>; Wed, 25 Mar 2009 05:01:57 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2P91bBS018341
-	for <video4linux-list@redhat.com>; Wed, 25 Mar 2009 05:01:37 -0400
-Message-ID: <49C9F356.2010801@hhs.nl>
-Date: Wed, 25 Mar 2009 10:03:18 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n225h0Pu009950
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 00:43:00 -0500
+Received: from n21.bullet.mail.mud.yahoo.com (n21.bullet.mail.mud.yahoo.com
+	[68.142.206.160])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n225gg9g021331
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 00:42:42 -0500
+Message-ID: <702621.62683.qm@web59709.mail.ac4.yahoo.com>
+Date: Sun, 1 Mar 2009 21:42:39 -0800 (PST)
+From: Robert Lastname <semantikous@yahoo.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: Lamarque Vieira Souza <lamarque@gmail.com>
-References: <200903231708.08860.lamarque@gmail.com> <49C8AF04.7070208@hhs.nl>
-	<200903241909.59494.lamarque@gmail.com>
-In-Reply-To: <200903241909.59494.lamarque@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Skype and libv4
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Subject: linux newbie tv card help
+Reply-To: semantikous@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,40 +26,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 03/24/2009 11:09 PM, Lamarque Vieira Souza wrote:
-> 	Hi,
->
-> 	Applying this patch to libv4l makes Skype works with my webcam without
-> changing the driver. Do you think the patch is ok?
->
+Hello, I quit windows not too long ago and have no idea how to install a tv=
+ card.=A0 I searched the internet but still don't know how any of this work=
+s.=A0 Here is what I want to know:
 
-No it is not ok, luckily I've also read the rest of this thread, where you write:
+Would someone please give me a quick run down of the steps needed to instal=
+l a card.=A0 I don't need anything in detail---just the very basics of what=
+, in general, is going on.
 
- > 	I have found the problem. The vidioc_try_fmt_vid_cap function in the driver
- > return -EINVAL if the fmt.pix.field is different from V4L2_FIELD_ANY or
- > V4L2_FIELD_NONE. Skype seems to set this field as V4L2_FIELD_INTERLACED.
- > Because of that libv4l assumes that all destination formats (YUV420 included)
- > are invalid. Commenting this part of the driver makes Skype work and it is
- > showing pictures. YES!!! :-)
- >
+like
 
-What you are seeing is a bug in the driver. VIDIOC_TRY_FMT should *never*
-return -EINVAL, except, and that is the only exception when it does not
-support the passed in type, so v4l2_format.type is something which is not
-supported, note that when vidioc_try_fmt_vid_cap is called the type is
-already checked (hence the _vid_ in the function name).
+1. install card
+2. install v4l-dev, v4l-apps
+3. find chipset drivers and install.
+etc etc
 
-When any member of fmt.pix. is not supported it should set it to something
-which it does support (and the app should check what it got) so the proper
-fix is to always set fmt.pix.field to V4L2_FIELD_NONE in the driver
-(V4L2_FIELD_ANY is an input only value, a format returned by a driver
-should never have V4L2_FIELD_ANY).
+I don't know where to begin, as so far what I've read is overwhelming and I=
+ can't make out what comes first and what comes after.=A0 I want to take th=
+is one step at a time and I can't tell if I missed something important.
 
-Regards,
-
-Hans
-
-
+=0A=0A=0A      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
