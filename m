@@ -1,81 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.229]:41627 "EHLO
+Received: from rv-out-0506.google.com ([209.85.198.235]:1309 "EHLO
 	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759421AbZCaQur convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 12:50:47 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so3117619rvb.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 09:50:45 -0700 (PDT)
+	with ESMTP id S1751913AbZCBCWk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2009 21:22:40 -0500
 MIME-Version: 1.0
-In-Reply-To: <37219a840903301446o36d61b0end913c5e2c10806b6@mail.gmail.com>
-References: <3731df090903301437k49c310bbha71946ab14c0d6c9@mail.gmail.com>
-	 <37219a840903301446o36d61b0end913c5e2c10806b6@mail.gmail.com>
-Date: Tue, 31 Mar 2009 09:50:45 -0700
-Message-ID: <3731df090903310950i47882aa5xf4982218ef1f78e3@mail.gmail.com>
-Subject: Re: Correct signal strength and SNR output for DViCO FusionHDTV7 Dual
-	Express?
-From: Dave Johansen <davejohansen@gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: linux-media@vger.kernel.org
+Date: Mon, 2 Mar 2009 11:22:38 +0900
+Message-ID: <5e9665e10903011822i5afbf588x8e9fc9596d94519a@mail.gmail.com>
+Subject: [OMAPZOOM][PATCH] CAM: Make PACK8 mode on CCDC work only with
+	CCIR-656
+From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: svadivu@ti.com, p-kulkarni@ti.com, dongsoo45.kim@samsung.com,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 30, 2009 at 2:46 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Mon, Mar 30, 2009 at 5:37 PM, Dave Johansen <davejohansen@gmail.com> wrote:
->> I am trying to get a MythTV setup working with a DViCO FusionHDTV7
->> Dual Express using Mythbuntu 8.10 and I have been able to generate a
->> channels.conf file using the latest v4l-dvb source code and the scan
->> utility that comes with the dvb-utils in Mythbuntu (the dvbscan
->> utility in latest dvb-apps source code give me the error "Unable to
->> query frontend status"). I am also able to watch channels using
->> mplayer, but the the problem is that MythTV does not identify any
->> channels. I am able to watch channels using MythTV, but I have to
->> manually enter the channel data since the tuning is not working.
->>
->> The belief is that the signal strength and SNR output must be
->> incorrect and that is causing the problem with MythTV. I would like to
->> help get this fixed, so others don't have the problems that I have run
->> into, so what can I do to help get the signal strength and SNR outputs
->> working?
->>
->> If it's helpful, I have attached an example output using azap with one
->> of the channels that I can watch with mplayer:
->>
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> tuning to 503028615 Hz
->> video pid 0x0011, audio pid 0x0014
->> status 01 | signal e000 | snr e450 | ber 00000000 | unc 00000000 |
->> status 1f | signal 00ff | snr 00ff | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 00ff | snr 00ff | ber 00000ab7 | unc 00000ab7 | FE_HAS_LOCK
->> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->>
->> Thanks,
->> Dave
->
-> That is a great signal reading.  0xfa = 25.0 dB , 0xff = 25.5 dB  ...
->  so, you're teetering between 25.0 and 25.5 -- you have a great
-> signal.
->
-> SNR is reported in 0.1 dB by the driver that your device uses.
->
-> Ignore what mythtv says about signal status -- userspace cant read
-> kernelspace signal statistics properly yet.
->
-> Regards,
->
-> Mike
->
+Hello,
 
-OK, that's good to know. Is there currently work being done to make it
-so userspace has access to the signal statistics? Is there anything I
-can do to help out with that?
+Besides the patch I've posted couple of hours ago, there is one more
+thing in omap3 ispccdc.c.
+According to omap3 datasheet, PACK8 could be enabled only when
+CCDC_SYN_MODE is with CCIR-656 mode.
+If you try to use external camera module with ITU-R.601 mode without
+this patch, you could face weird data from your camera interface.
+Please find following patch, and any comments will be welcomed.
 
-Dave
+Cheers,
+
+Nate
+
+>From 23425c97233c93f9b572351d8a93a13ae3cb3188 Mon Sep 17 00:00:00 2001
+From: Dongsoo Kim <dongsoo45.kim@samsung.com>
+Date: Mon, 2 Mar 2009 11:01:14 +0900
+Subject: [PATCH 2/2] CAM: Make PACK8 mode on CCDC work only with CCIR-656
+ Signed-off-by: Dongsoo Kim <dongsoo45.kim@samsung.com>
+
+---
+ drivers/media/video/isp/ispccdc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/isp/ispccdc.c
+b/drivers/media/video/isp/ispccdc.c
+index 8f7e896..2945c6f 100644
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -762,7 +762,8 @@ void ispccdc_config_sync_if(struct ispccdc_syncif syncif)
+ 	switch (syncif.datsz) {
+ 	case DAT8:
+ 		syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_8;
+-		syn_mode |= ISPCCDC_SYN_MODE_PACK8; /* Added by MMS */
++		if (syncif.bt_r656_en)
++			syn_mode |= ISPCCDC_SYN_MODE_PACK8; /* Added by MMS */
+ 		break;
+ 	case DAT10:
+ 		syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_10;
+-- 
+1.5.4.3
+
+
+-- 
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab. S/W centre
+Telecommunication R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
