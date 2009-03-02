@@ -1,51 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:4660 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751748AbZCLXSO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 19:18:14 -0400
-Message-ID: <49B99828.3090002@linuxtv.org>
-Date: Thu, 12 Mar 2009 19:18:00 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38026 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753312AbZCBThu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 14:37:50 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	Sakari Ailus <sakari.ailus@nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 2 Mar 2009 13:37:18 -0600
+Subject: RE: [REVIEW PATCH 09/14] OMAP: CAM: Add ISP Core
+Message-ID: <A24693684029E5489D1D202277BE89442E0B5C1E@dlee02.ent.ti.com>
+In-Reply-To: <5e9665e10903020009y7fe7d0d0j356708e1c3149cac@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: stable@kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Fwd: [stable] [PATCH] 2.6.27.y: fix NULL ptr deref in cx23885
-  video_open
-References: <200902241700.56099.jarod@redhat.com>	 <37219a840903121324q7b08c8d1ma6d0d3ec4f5eb278@mail.gmail.com> <1236899033.3261.7.camel@palomino.walls.org>
-In-Reply-To: <1236899033.3261.7.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Thu, 2009-03-12 at 16:24 -0400, Michael Krufky wrote:
->   
->> Can we have this merged into -stable?  Jarod Wilson sent this last
->> month, but he left off the cc to stable@kernel.org
->>
->> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
->>     
->
-> Mike,
->
-> A version of this is already in the v4l-dvb hg development repository:
->
-> hg log -vp --limit 1 linux/drivers/media/video/cx23885/cx23885-417.c
-> hg log -vp --limit 2 linux/drivers/media/video/cx23885/cx23885-video.c 
->
-> I helped Mark work through the solution: I coded some of it, he coded
-> some of it and he also tested it.
->
-> Regards,
-> Andy
+Hi Nate,
 
-I'm aware of that, Andy -- That's why I am sending this off to the 
--stable team for 2.6.27.y
+> -----Original Message-----
+> From: DongSoo(Nathaniel) Kim [mailto:dongsoo.kim@gmail.com]
+> Sent: Monday, March 02, 2009 2:10 AM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: linux-omap@vger.kernel.org; video4linux-list@redhat.com; Nagalla,
+> Hari; Sakari Ailus; Tuukka.O Toivonen; linux-media@vger.kernel.org
+> Subject: Re: [REVIEW PATCH 09/14] OMAP: CAM: Add ISP Core
+> 
+> Hello,
+> 
+> reviewing ISP driver, I found that we've got no querymenu support in
+> ISP and also omap3 camera interface driver.
 
-Thanks & regards,
+Sakari is about to repost our latest progress on this driver, and exactly one of the changes we did is added this support for querymenu on both camera and ISP drivers.
 
-Mike
+> 
+> +/**
+> + * struct vcontrol - Video control structure.
+> + * @qc: V4L2 Query control structure.
+> + * @current_value: Current value of the control.
+> + */
+> +static struct vcontrol {
+> +       struct v4l2_queryctrl qc;
+> +       int current_value;
+> +} video_control[] = {
+> 
+> <snip>
+> 
+> +       {
+> +               {
+> +                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
+> +                       .type = V4L2_CTRL_TYPE_INTEGER,
+> +                       .name = "Color Effects",
+> +                       .minimum = PREV_DEFAULT_COLOR,
+> +                       .maximum = PREV_BW_COLOR,
+> +                       .step = 1,
+> +                       .default_value = PREV_DEFAULT_COLOR,
+> +               },
+> +               .current_value = PREV_DEFAULT_COLOR,
+> +       }
+> +};
+> 
+> I think we should make it menu type for this color FX control.
+> If that kind of control has no menu information, user has no way to
+> figure out what kind of FX supported by device.
+> BTW if we make querymenu support in omap3 camera subsystem, we should
+> make querymenu support for v4l2 int device also.
+> I think I've seen before a patch which intent to use querymenu in v4l2
+> int device, but no patch for omap3 ISP and camera interface.
+> Can I make a patch and post on linux-omap, linux-media list? of course
+> if you don't mind.
+> Or...am I digging wrong way? I mean.. querymenu for omap3 camera subsystem.
+> Please let me know :)
+
+Please hold a bit, as we expect to repost the driver again this week.
+
+This control is now substituted by V4L2_CID_COLORFX, with seems to be already accepted for merging into v4l:
+
+http://osdir.com/ml/linux-media/2009-02/msg00593.html
+
+Anyways, thanks for your intended help on this. Expect new patches very soon.
+> 
+> Cheers,
+> 
+> Nate
+> 
+> --
+> ========================================================
+> DongSoo(Nathaniel), Kim
+> Engineer
+> Mobile S/W Platform Lab.
+> Telecommunication R&D Centre
+> Samsung Electronics CO., LTD.
+> e-mail : dongsoo.kim@gmail.com
+>           dongsoo45.kim@samsung.com
+> ========================================================
+
