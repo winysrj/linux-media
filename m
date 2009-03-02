@@ -1,107 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1198 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758223AbZCXI7Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 04:59:24 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2O8xIQE063567
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 24 Mar 2009 09:59:22 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 24 Mar 2009 09:59:18 +0100 (CET)
-Message-Id: <200903240859.n2O8xIQE063567@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: OK
+Received: from zone0.gcu-squad.org ([212.85.147.21]:6721 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751792AbZCBVws (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 16:52:48 -0500
+Date: Mon, 2 Mar 2009 22:52:35 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Subject: Re: General protection fault on rmmod cx8800
+Message-ID: <20090302225235.5d6d47ce@hyperion.delvare>
+In-Reply-To: <Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
+References: <20090215214108.34f31c39@hyperion.delvare>
+	<20090302133936.00899692@hyperion.delvare>
+	<1236003365.3071.6.camel@palomino.walls.org>
+	<20090302170349.18c8fd75@hyperion.delvare>
+	<20090302200513.7fc3568e@hyperion.delvare>
+	<Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Trent,
 
-Results of the daily build of v4l-dvb:
+On Mon, 2 Mar 2009 13:12:24 -0800 (PST), Trent Piepho wrote:
+> On Mon, 2 Mar 2009, Jean Delvare wrote:
+> > On Mon, 2 Mar 2009 17:03:49 +0100, Jean Delvare wrote:
+> > > As far as I can see the key difference between bttv-input and
+> > > cx88-input is that bttv-input only uses a simple self-rearming timer,
+> > > while cx88-input uses a timer and a separate workqueue. The timer runs
+> > > the workqueue, which rearms the timer, etc. When you flush the timer,
+> > > the separate workqueue can be still active. I presume this is what
+> > > happens on my system. I guess the reason for the separate workqueue is
+> > > that the processing may take some time and we don't want to hurt the
+> > > system's performance?
+> > >
+> > > So we need to flush both the event workqueue (with
+> > > flush_scheduled_work) and the separate workqueue (with
+> > > flush_workqueue), at the same time, otherwise the active one may rearm
+> 
+> What are the two work queues are you talking about?  I don't see any actual
+> work queues created.  Just one work function that is scheduled on the
+> system work queue.  The timer is a softirq and doesn't run on a work queue.
 
-date:        Tue Mar 24 08:33:25 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11153:56cf0f1772f7
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Sorry, I misread the code. There's only one work queue involved (the
+system one). Reading the timer code again now, I admit I am curious how
+I managed to misread it to that degree...
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.29): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+The key point remains though: we'd need to delete the timer and flush
+the system workqueue at the exact same time, which is not possible, or
+to add some sort of signaling between the work and the timer. Or use
+delayed_work.
 
-Detailed results are available here:
+> > Switching to delayed_work seems to do the trick (note this is a 2.6.28
+> > patch):
+> 
+> Makes the most sense to me.  I was just about to make a patch to do the
+> same thing when I got your email.  Though I was going to patch the v4l-dvb
+> sources to avoid porting work.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+It was easier for me to test on an upstream kernel. The porting should
+be fairly easy, I can take care of it. The difficult part will be to
+handle the compatibility with kernels < 2.6.20 because delayed_work was
+introduced in 2.6.20. Probably "compatibility" here will simply mean
+that the bug I've hit will only be fixed for kernels >= 2.6.20. Which
+once again raises the question of whether we really want to keep
+supporting these old kernels.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Jean Delvare
