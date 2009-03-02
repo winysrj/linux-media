@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rouge.crans.org ([138.231.136.3]:33321 "EHLO rouge.crans.org"
+Received: from paja.nic.funet.fi ([193.166.3.10]:49956 "EHLO paja.nic.funet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751639AbZCBNcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Mar 2009 08:32:24 -0500
-Received: from localhost (localhost.crans.org [127.0.0.1])
-	by rouge.crans.org (Postfix) with ESMTP id AB9D28480
-	for <linux-media@vger.kernel.org>; Mon,  2 Mar 2009 14:32:21 +0100 (CET)
-Received: from rouge.crans.org ([10.231.136.3])
-	by localhost (rouge.crans.org [10.231.136.3]) (amavisd-new, port 10024)
-	with LMTP id t7I4JCKc7Ccr for <linux-media@vger.kernel.org>;
-	Mon,  2 Mar 2009 14:32:21 +0100 (CET)
-Received: from [10.3.3.85] (gw1.icfo.es [84.88.69.1])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by rouge.crans.org (Postfix) with ESMTP id 716E082E8
-	for <linux-media@vger.kernel.org>; Mon,  2 Mar 2009 14:32:21 +0100 (CET)
-Message-ID: <49ABDFE1.8090508@crans.org>
-Date: Mon, 02 Mar 2009 14:32:17 +0100
-From: Brice Dubost <dubost@crans.org>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Flickering
-References: <20090302123541.AFC49233F8@ws5-3.us4.outblaze.com>
-In-Reply-To: <20090302123541.AFC49233F8@ws5-3.us4.outblaze.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753904AbZCBUDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Mar 2009 15:03:15 -0500
+Received: (from localhost user: 'kouhia' uid#241 fake: STDIN
+	(kouhia@paja.nic.funet.fi)) by nic.funet.fi id S81046AbZCBUDMO4HfA
+	for <linux-media@vger.kernel.org>; Mon, 2 Mar 2009 22:03:12 +0200
+From: Juhana Sadeharju <kouhia@nic.funet.fi>
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: writing DVB recorder, questions
+Message-Id: <S81046AbZCBUDMO4HfA/20090302200312Z+2644@nic.funet.fi>
+Date: Mon, 2 Mar 2009 22:03:12 +0200
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Paul Guzowski wrote:
-> Greetings,
-> 
-> I am watching analog TV with MPlayer via a Pinnacle HDTV Pro stick connected to my cable TV set top box. It worked fine before I disconnected the computer and moved it to another room.  When I moved the computer back to my office and reconnected it, it works but the picture flickers a lot.  The only thing I can think of is that I might not have gotten it connected back to the same USB port.  Could this be causing the problem?
-> 
 
-Hello,
+Now I record by taking the complete TS (demuxing PID 8192)
+and by skipping the video and audio packets of other TV channels
+that are listed in channels.conf (only video and audio PIDs are
+listed). That seems to work.
 
-You can perhaps check in dmesg if it's an usb 1.1 or usb 2 port
+I hope the recordings are ok. There is no way to verify them now.
 
-I think if you plug this kind of stick on a usb 1.1 port it can be not
-sufficient in term of bandwidth
+Xine is able to play the recordings more or less. Video may be
+visible or not. Audio can be selected but by default I hear the
+robovoice channel. For subtitles Xine gives the "fin" option but
+it does not work (works as bad as with Me-TV recordings, perhaps
+a bug in Xine?).
 
-Best regards
+Xine people could check the issue and have Xine modified for channel
+selection when the TS-file with multiple TV channels is played.
+The complete unmodified DVB stream could be playable.
 
--- 
-Brice
+In any case, being able to record all necessary data for one
+TV channel without 70% extra data of other channels (10 GB vs. 3 GB),
+gives me more time to implement the proper recorder. If Xine
+will not be modified to play fuller TS files, I also need to write
+a post-recording filter for fixing the recordings.
+
+Bad is that, even the DVB device allows read-only access, no
+DVB application will display the TV channel while my recorder
+is running. (dvbstream/mumudvb type applications are solution.)
+
+About reliability:
+I'm unwilling to use mumudvb and dvbstream type solutions which
+use pipes. My dvbrec is based on shmrec which I wrote at 1998.
+Standard audio recorders at 1998 in Pentium 90 MHz made dropouts
+when Linux swapped or when I used other applications (as simple as
+Emacs). With shmrec, having two processes and properly tuned
+read-from-A/D and write-to-disk buffers, I achieved reliable
+recordings even when I used other applications.
+
+Because CPUs and disks are now faster, reliability issues are
+easily skipped because problems seems to not appear. But perfect
+recorder requires a reliable recorder part; other parts may be
+less reliable and must not affect the reliability of the recorder.
+
+Juhana
