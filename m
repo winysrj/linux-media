@@ -1,79 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:58233 "EHLO
-	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170AbZCMJMI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 05:12:08 -0400
-Date: Fri, 13 Mar 2009 02:12:04 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Alain Kalker <miki@dds.nl>
-cc: linux-media@vger.kernel.org
-Subject: Re: Improve DKMS build of v4l-dvb?
-In-Reply-To: <1236612894.5982.72.camel@miki-desktop>
-Message-ID: <Pine.LNX.4.58.0903130153220.28292@shell2.speakeasy.net>
-References: <1236612894.5982.72.camel@miki-desktop>
+Received: from [195.7.61.12] ([195.7.61.12]:33478 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751087AbZCBX2r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Mar 2009 18:28:47 -0500
+Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n22NSi87008850
+	for <linux-media@vger.kernel.org>; Mon, 2 Mar 2009 23:28:45 GMT
+Message-ID: <49AC6BAC.9040901@koala.ie>
+Date: Mon, 02 Mar 2009 23:28:44 +0000
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+References: <200903022218.24259.hverkuil@xs4all.nl> <alpine.LNX.2.00.0903021610280.16643@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903021610280.16643@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 9 Mar 2009, Alain Kalker wrote:
-> Martin has an older version of the drivers packaged for building with
-> DKMS on Ubuntu in his PPA[5], but it currently has some disadvantages:
+kilgota@banach.math.auburn.edu wrote:
+> Just one comment. IIRC, I was the one who mentioned the eeePC, having 
+> recently bought one. I mentioned it, not because I disagree with 
+> anything else you write here, but because, in fact, I agree. Frankly, 
+> I think the use of the 2.6.21 kernel in the eeePC is somewhat perverse 
+> and just a little bit weird.
 >
-> A. It builds all available drivers, no matter which hardware is actually
-> installed in the system. This takes a lot of time, and may not be
-> practical at all on systems with limited resources (e.g. embedded, MIDs,
-> netbooks)
-> B. It currently has no support for Jockey to detect installed hardware,
-> so individual drivers can be selected.
->
-> To address these issues, I would like to propose the following:
->
-> A. Building individual drivers (i.e. sets of modules which constitute a
-> fully-functional driver), without having to manually configure them
-> using "make menuconfig"
->
-> I see two possibilities for realizing this:
-> Firstly: generating a .config with just one config variable for the
-> requested driver set to 'm' merged with the config for the kernel being
-> built for, and then doing a "make silentoldconfig". Big disatvantage is
-> that full kernel source is required for the 'silentoldconfig' target to
-> be available.
+> Essentially, the eeePC and the other Intel-based netbooks are not some 
+> kind of exotic hardware platforms, which might provide an explanation 
+> or excuse for using some "specially crafted" but old kernel. No. In 
+> fact, the eeePC and almost all the other current netbooks are just a 
+> new (and attractive) combination of some fairly standard types of 
+> hardware. Practically every hardware component in them is better 
+> supported in more recent kernels, with the possible exception of a 
+> wireless device which may not yet be supported in any kernel, new or 
+> old. Therefore, instead of worrying about whether to support and 
+> provide indulgence for apparently inexplicable behavior, let us hope 
+> that a decision of this nature will serve as a needed message.
+just as another data point
+i have an eee 900 and i run gentoo on it
+i have 2.6.27 running just fine (wireless and all)
 
-Does that actually work?  Figuring out that needs to be turned on to enable
-some config options is a hard problem.  It's not just simple dependencies
-between modules, but complex expressions that need to be satisfied.  E.g.,
-something "depends on A || B", which do you turn on, A or B?  There are
-multiple solutions so how does the code decide which is best?
-
-> Secondly, the script v4l/scripts/analyze_build.pl generates a list of
-> modules that will get built for each Kconfig variable selected, but it
-> currently has no way of determing all the module dependencies that make
-> up a fully functional driver.
-
-I just wrote analyze_build.pl to make it easier for developers to figure
-out that source files make up a module and how to enable it.  It's not
-actually used by the build system.  It's also not perfect when it comes to
-parsing makefiles, i.e. it no where near a re-implementation of make's
-parser in perl.  It understands the typical syntax used by the kernel
-makefiles but sometimes there is some unusual bit of make code that it
-won't parse.
-
-> The script v4l/scripts/check_deps.pl tries to discover dependencies
-> between Kconfig variables, but it currently is somewhat slow, and hase a
-> few other problems.
-
-That it is!  It's not totally perfect either.  Sometimes a driver will only
-depend on another if something is turned on.  But the way check_deps.pl
-works won't know that.  There are also lots of Kconfig variables that don't
-turn on a module but instead modify what a module does or are used for
-menus.  I think a better system would be use the dependencies in the
-Kconfig files instead of trying to figure them out from the source.
-
-> B. To enable hardware autodetection before installing drivers, we need
-> to have a list of modaliases of all supported hardware. This may be the
-> hardest part, because many VendorIDs and ProductIDs are scattered
-> throughout the code. Also coldbooting/warmbooting hardware is a problem.
-
-Extract that from the compiled modules should be easy.
+i know gentoo is a little too hardcore for most people
+but living with a distro kernel forever is not a real requirement
+--
+simon
