@@ -1,34 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailbackup.inode.at ([213.229.60.24]:60906 "EHLO
-	mailbackup.inode.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330AbZCBTNW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 14:13:22 -0500
-Received: from [62.99.145.10] (port=10931 helo=mx.inode.at)
-	by mailbackup.inode.at with esmtp (Exim 4.67)
-	(envelope-from <e.peinlich@inode.at>)
-	id 1LeDZo-0005to-Fv
-	for linux-media@vger.kernel.org; Mon, 02 Mar 2009 20:13:20 +0100
-Received: from [213.47.92.12] (port=16064 helo=[10.0.2.216])
-	by smartmx-10.inode.at with esmtpa (Exim 4.69)
-	(envelope-from <e.peinlich@inode.at>)
-	id 1LeDYj-0002rz-9B
-	for linux-media@vger.kernel.org; Mon, 02 Mar 2009 20:12:13 +0100
-Message-ID: <49AC2F92.7010706@inode.at>
-Date: Mon, 02 Mar 2009 20:12:18 +0100
-From: Ernst Peinlich <e.peinlich@inode.at>
+Received: from rouge.crans.org ([138.231.136.3]:33321 "EHLO rouge.crans.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751639AbZCBNcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Mar 2009 08:32:24 -0500
+Received: from localhost (localhost.crans.org [127.0.0.1])
+	by rouge.crans.org (Postfix) with ESMTP id AB9D28480
+	for <linux-media@vger.kernel.org>; Mon,  2 Mar 2009 14:32:21 +0100 (CET)
+Received: from rouge.crans.org ([10.231.136.3])
+	by localhost (rouge.crans.org [10.231.136.3]) (amavisd-new, port 10024)
+	with LMTP id t7I4JCKc7Ccr for <linux-media@vger.kernel.org>;
+	Mon,  2 Mar 2009 14:32:21 +0100 (CET)
+Received: from [10.3.3.85] (gw1.icfo.es [84.88.69.1])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by rouge.crans.org (Postfix) with ESMTP id 716E082E8
+	for <linux-media@vger.kernel.org>; Mon,  2 Mar 2009 14:32:21 +0100 (CET)
+Message-ID: <49ABDFE1.8090508@crans.org>
+Date: Mon, 02 Mar 2009 14:32:17 +0100
+From: Brice Dubost <dubost@crans.org>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: Pinnacle PCTV Dual Sat Pro PCI 4000I
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Subject: Re: [linux-dvb] Flickering
+References: <20090302123541.AFC49233F8@ws5-3.us4.outblaze.com>
+In-Reply-To: <20090302123541.AFC49233F8@ws5-3.us4.outblaze.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Paul Guzowski wrote:
+> Greetings,
+> 
+> I am watching analog TV with MPlayer via a Pinnacle HDTV Pro stick connected to my cable TV set top box. It worked fine before I disconnected the computer and moved it to another room.  When I moved the computer back to my office and reconnected it, it works but the picture flickers a lot.  The only thing I can think of is that I might not have gotten it connected back to the same USB port.  Could this be causing the problem?
+> 
 
-Can anyone tell me if the Pinnacle PCTV Dual Sat Pro PCI 4000i is 
-supported yet ?
+Hello,
 
-http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_Dual_Sat_Pro_PCI_4000I
+You can perhaps check in dmesg if it's an usb 1.1 or usb 2 port
 
-Thanks, ernst
+I think if you plug this kind of stick on a usb 1.1 port it can be not
+sufficient in term of bandwidth
+
+Best regards
+
+-- 
+Brice
