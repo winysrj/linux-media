@@ -1,77 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34834 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755100AbZCKLsI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 07:48:08 -0400
-Date: Wed, 11 Mar 2009 08:47:43 -0300 (BRT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Alain Kalker <miki@dds.nl>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Improve DKMS build of v4l-dvb?
-In-Reply-To: <1236771396.5991.24.camel@miki-desktop>
-Message-ID: <alpine.LRH.2.00.0903110842570.1207@pedra.chehab.org>
-References: <1236612894.5982.72.camel@miki-desktop>  <20090309204308.10c9afc6@pedra.chehab.org> <1236771396.5991.24.camel@miki-desktop>
+Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:57303 "EHLO
+	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617AbZCBVM1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 16:12:27 -0500
+Date: Mon, 2 Mar 2009 13:12:24 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Subject: Re: General protection fault on rmmod cx8800
+In-Reply-To: <20090302200513.7fc3568e@hyperion.delvare>
+Message-ID: <Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
+References: <20090215214108.34f31c39@hyperion.delvare>
+ <20090302133936.00899692@hyperion.delvare> <1236003365.3071.6.camel@palomino.walls.org>
+ <20090302170349.18c8fd75@hyperion.delvare> <20090302200513.7fc3568e@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Mar 2009, Alain Kalker wrote:
+On Mon, 2 Mar 2009, Jean Delvare wrote:
+> On Mon, 2 Mar 2009 17:03:49 +0100, Jean Delvare wrote:
+> > As far as I can see the key difference between bttv-input and
+> > cx88-input is that bttv-input only uses a simple self-rearming timer,
+> > while cx88-input uses a timer and a separate workqueue. The timer runs
+> > the workqueue, which rearms the timer, etc. When you flush the timer,
+> > the separate workqueue can be still active. I presume this is what
+> > happens on my system. I guess the reason for the separate workqueue is
+> > that the processing may take some time and we don't want to hurt the
+> > system's performance?
+> >
+> > So we need to flush both the event workqueue (with
+> > flush_scheduled_work) and the separate workqueue (with
+> > flush_workqueue), at the same time, otherwise the active one may rearm
 
-> Op maandag 09-03-2009 om 20:43 uur [tijdzone -0300], schreef Mauro
-> Carvalho Chehab:
->> It is not that hard. You'll have a few vars that will always have the same values, like:
-> [snip]
->
-> Thanks for the information, I'll use this as a starting point.
->
->> Of course, you'll need to write some script to identify what devices are
->> available at the host (by USB or PCI ID), and associate it with the V4L/DVB
->> drivers.
->
-> Scanning for available hardware is already available in Jockey, and
-> parsing the output from 'lsusb'/'lspci' will do it for users without
-> it.
->
-> Associating IDs with the principal module is easy after doing a test
-> build of all modules (which needs to be done anyway, to find out which
-> drivers can actually be built with the current tree and to decide
-> whether the tree is suitable for packaging for DKMS build).
->
-> After the test build, all you have to do is run "modinfo -F alias" on
-> all the modules, add the principal module name, and you will end up with
-> a modaliases list which is directly usable with Jockey. For users
-> without it, another simple script will select the correct principal
-> module to build.
+What are the two work queues are you talking about?  I don't see any actual
+work queues created.  Just one work function that is scheduled on the
+system work queue.  The timer is a softirq and doesn't run on a work queue.
 
-IMO, a perl script searching for PCI and USB tables at the driver would do 
-a faster job than doing a module build. You don't need to do a test build 
-to know what modules compile, since v4l/versions.txt already contains the 
-minimum supported version for each module. If the module is not there, 
-then it will build since kernel 2.6.16.
+> Switching to delayed_work seems to do the trick (note this is a 2.6.28
+> patch):
 
->
-> All that remains then is to sort out the module dependencies...
->
->> Probably, the hardest part is to maintain, so, ideally, the scripts should scan
->> the source codes to check what drivers you have, and what are the driver
->> options associated with that device.
->
-> Very true. I'm quite dissatisfied with the sad state that Kbuild support
-> for building external modules is in, especially for projects that have
-> numerous drivers and module dependencies, and I believe v4l-dvb has
-> currently the most advanced out-of-tree support available.
-
-Thanks!
-
-> If you enjoy watching a horror movie, have a look at the drivers from
-> the ALSA project, they have a hideous 131615 bytes big beast hidden in
-> their aclocal.m4, whose sole purpose it is to sort out config variable
-> dependencies... Yuck!
-
-Yeah, I've seen this already.
-
-Cheers,
-Mauro
+Makes the most sense to me.  I was just about to make a patch to do the
+same thing when I got your email.  Though I was going to patch the v4l-dvb
+sources to avoid porting work.
