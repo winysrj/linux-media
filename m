@@ -1,15 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <49C93889.8030009@gmail.com>
-Date: Tue, 24 Mar 2009 20:46:17 +0100
-From: Riccardo Magliocchetti <riccardo.magliocchetti@gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n22Ddqxf011180
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 08:39:52 -0500
+Received: from mail-bw0-f160.google.com (mail-bw0-f160.google.com
+	[209.85.218.160])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n22DdbZc005486
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 08:39:38 -0500
+Received: by bwz4 with SMTP id 4so2139007bwz.3
+	for <video4linux-list@redhat.com>; Mon, 02 Mar 2009 05:39:37 -0800 (PST)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-References: <49C27C1B.10705@gmail.com> <49C7D898.3030102@redhat.com>
-In-Reply-To: <49C7D898.3030102@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Date: Mon, 2 Mar 2009 19:09:36 +0530
+Message-ID: <77ca8eab0903020539l6a5d015aucba5e222c5466088@mail.gmail.com>
+From: amol verule <amol.debian@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: webcam doesn't working with programs using libv4l
+Subject: application for microdia 0c45:6130
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,29 +27,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
-
-Hans de Goede ha scritto:
-> 
-> 
-> On 03/19/2009 06:08 PM, Riccardo Magliocchetti wrote:
->> hi,
->>
->> both cheese and ekiga does not work with my syneus (174f:5931) webcam
->> while luvcview works fine.
->>
->> linux is v2.6.29-rc8-124-g5bee17f, libv4l is 0.5.9 on debian sid.
->>
-> 
-> Both cheese and ekiga work fine for me with 0.5.9 (Fedora F11-beta 
-> candidate,
-> also 2.6.29 something).
-
-any hint on how to debug the issue more? Can libv4l be made more verbose?
-
-thanks,
-riccardo
-
+hi to all,
+            i am having device webcam of 0c45:6130 .with camorama it is
+showing blank screen as well not working with ekiga.so can please tell me
+which application should i use to use my webcam?
+             /dev/video0 is created means device is detected properly.
+thanks n regards,
+amol
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
