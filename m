@@ -1,175 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3245 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817AbZCCHgi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 02:36:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Tue, 3 Mar 2009 08:36:55 +0100
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com> <19F8576C6E063C45BE387C64729E73940427BC9B86@dbde02.ent.ti.com> <5e9665e10903022113r17e36afh7861fd00cd8ef0f7@mail.gmail.com>
-In-Reply-To: <5e9665e10903022113r17e36afh7861fd00cd8ef0f7@mail.gmail.com>
+Received: from web32107.mail.mud.yahoo.com ([68.142.207.121]:24186 "HELO
+	web32107.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752486AbZCBOuI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Mar 2009 09:50:08 -0500
+Message-ID: <26939.71342.qm@web32107.mail.mud.yahoo.com>
+Date: Mon, 2 Mar 2009 06:50:04 -0800 (PST)
+From: Agustin <gatoguan-os@yahoo.com>
+Reply-To: gatoguan-os@yahoo.com
+Subject: Re: [PATCH/RFC 1/4] ipu_idmac: code clean-up and robustness improvements
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Arm Kernel <linux-arm-kernel@lists.arm.linux.org.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>
+In-Reply-To: <Pine.LNX.4.64.0902282253210.20549@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200903030836.55692.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 03 March 2009 06:13:11 DongSoo(Nathaniel) Kim wrote:
-> Thank you for your reply.
+
+--- On 28/2/09, Guennadi Liakhovetski wrote:
+> On Sat, 28 Feb 2009, Agustin wrote:
+>> 
+>> Hi Guennadi,
+>> 
+>> I am having trouble while probing ipu idmac:
+>> 
+>> At boot:
+>> ipu-core: probe of ipu-core failed with error -22
+>> 
+>> Which is apparently happening at ipu_idmac:1706:
+>>    1695 static int __init ipu_probe(struct platform_device *pdev)
+>>    ...
+>>    1703         mem_ipu = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>    1704         mem_ic  = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+>>    1705         if (!pdata || !mem_ipu || !mem_ic)
+>>    1706                 return -EINVAL;
+>> 
+>> Later on, I get error 16, "Device or resource busy" on
+VIDIOC_S_FMT, apparently because mx3_camera can't get its dma channel.
+>> 
+>> Any clue?
 >
-> This is quite confusing because in case of mine, I wanna make
-> switchable between different cameras attached to omap camera
-> interface.
-> Which idea do I have to follow? Comparing with multiple video input
-> devices and multiple cameras attached to single camera interface is
-> giving me no answer.
+>Are you sure it is failing here, have you verified with a printk? If it is 
+>indeed this place, then you probably didn't register all required 
+>resources in your platfom code. Look at my platform-bindings patch.
 >
-> Perhaps multiple cameras with single camera interface couldn't make
-> sense at the first place because single camera interface can go with
-> only one camera module at one time.
-> But we are using like that. I mean dual cameras with single camera
-> interface. There is no choice except that when we are using dual
-> camera without stereo camera controller.
+>Thanks
+>Guennadi
 
-If you have multiple inputs (cameras in this case) that the user can choose 
-from, then you need to implement S_INPUT/G_INPUT/ENUMINPUTS. That's what 
-they are there for. Any decent V4L2 app should support these ioctls.
+Thanks, I was missing "mx3_ipu_data" struct at devices.c file. It happened because I had git-pulled Valentin's older patch from mxc-master which made your patch fail a few chunks, then the code was very similar when I checked it visually.
 
-> By the way, I cannot find any API documents about
-> VIDIOC_INT_S_VIDEO_ROUTING but it seems to be all about "how to route
-> between input device with output device".
-
-The description of this internal ioctl is in v4l2-common.h. It is used to 
-tell the i2c module how it is hooked up to the rest of the system. I.e. 
-what pin(s) is used for the input signal and what pin(s) is used for the 
-output signal.
-
-Typically the main v4l2 driver will map a user-level input (as set with 
-VIDIOC_S_INPUT) to the low-level routing information and pass that on to 
-the i2c device using VIDIOC_INT_S_VIDEO_ROUTING.
+Now let's see if I can get back on track with my new hardware design and take those pics...
 
 Regards,
+--Agustín.
 
-	Hans
-
-> What exactly I need is "how to make switchable with multiple camera as
-> an input for camera interface", which means just about an input
-> device. In my opinion, those are different issues each other..(Am I
-> right?)
-> Cheers,
->
-> Nate
->
-> On Tue, Mar 3, 2009 at 12:53 PM, Hiremath, Vaibhav <hvaibhav@ti.com> 
-wrote:
-> > Thanks,
-> > Vaibhav Hiremath
-> >
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of DongSoo(Nathaniel) Kim
-> >> Sent: Tuesday, March 03, 2009 8:18 AM
-> >> To: Tuukka.O Toivonen
-> >> Cc: Aguirre Rodriguez, Sergio Alberto; linux-omap@vger.kernel.org;
-> >> Ailus Sakari (Nokia-D/Helsinki); Nagalla, Hari
-> >> Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-> >>
-> >> Hi Tuukka,
-> >>
-> >> I understand that it is a huge thing to support VIDIOC_S_INPUT.
-> >> But without that, we don't have any proper "V4L2" api to get
-> >> information about how many devices are attached to camera interface,
-> >> and names of input devices...and so on. Because VIDIOC_ENUMINPUT and
-> >> VIDIOC_G_INPUT needs VIDIOC_S_INPUT for prior. Of course we can
-> >> refer
-> >> to sysfs, but using only single set of APIs like V4L2 looks more
-> >> decent.
-> >>
-> >> What do you think about this?
-> >> If you think that it is a big burden, can I make a patch for this?
-> >> Cheers,
-> >
-> > [Hiremath, Vaibhav] You may want to refer to the thread on this
-> > subject.
-> >
-> > http://marc.info/?l=linux-omap&m=122772175002777&w=2
-> > http://marc.info/?l=linux-omap&m=122823846806440&w=2
-> >
-> >> Nate
-> >>
-> >> On Mon, Feb 23, 2009 at 5:50 PM, Tuukka.O Toivonen
-> >>
-> >> <tuukka.o.toivonen@nokia.com> wrote:
-> >> > On Monday 23 February 2009 10:08:54 ext DongSoo(Nathaniel) Kim
-> >>
-> >> wrote:
-> >> >> So, logically it does not make sense with making device nodes of
-> >>
-> >> every
-> >>
-> >> >> single slave attached with OMAP3camera interface. Because they
-> >>
-> >> can't
-> >>
-> >> >> be opened at the same time,even if it is possible it should not
-> >>
-> >> work
-> >>
-> >> >> properly.
-> >> >>
-> >> >> So.. how about making only single device node like /dev/video0
-> >>
-> >> for
-> >>
-> >> >> OMAP3 camera interface and make it switchable through V4L2 API.
-> >>
-> >> Like
-> >>
-> >> >> VIDIOC_S_INPUT?
-> >> >
-> >> > You are right that if the OMAP3 has several camera sensors
-> >>
-> >> attached
-> >>
-> >> > to its camera interface, generally just one can be used at once.
-> >> >
-> >> > However, from user's perspective those are still distinct
-> >> > cameras. Many v4l2 applications don't support VIDIOC_S_INPUT
-> >> > or at least it will be more difficult to use than just pointing
-> >> > an app to the correct video device. Logically they are two
-> >> > independent cameras, which can't be used simultaneously
-> >> > due to HW restrictions.
-> >> >
-> >> > - Tuukka
-> >>
-> >> --
-> >> ========================================================
-> >> DongSoo(Nathaniel), Kim
-> >> Engineer
-> >> Mobile S/W Platform Lab. S/W centre
-> >> Telecommunication R&D Centre
-> >> Samsung Electronics CO., LTD.
-> >> e-mail : dongsoo.kim@gmail.com
-> >>           dongsoo45.kim@samsung.com
-> >> ========================================================
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-
-> >> omap" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
