@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n297bTv8014869
-	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 03:37:29 -0400
-Received: from mail-bw0-f160.google.com (mail-bw0-f160.google.com
-	[209.85.218.160])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n297bBce023418
-	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 03:37:11 -0400
-Received: by bwz4 with SMTP id 4so1053986bwz.3
-	for <video4linux-list@redhat.com>; Mon, 09 Mar 2009 00:37:10 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n22FGYXY017210
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 10:16:35 -0500
+Received: from smtp101.biz.mail.re2.yahoo.com (smtp101.biz.mail.re2.yahoo.com
+	[68.142.229.215])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n22FGE0i018640
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 10:16:14 -0500
+Message-ID: <49ABF746.8000506@embeddedalley.com>
+Date: Mon, 02 Mar 2009 18:12:06 +0300
+From: Vitaly Wool <vital@embeddedalley.com>
 MIME-Version: 1.0
-Date: Mon, 9 Mar 2009 13:07:10 +0530
-Message-ID: <77ca8eab0903090037x6e0e2705sfe62940141780e7e@mail.gmail.com>
-From: amol verule <amol.debian@gmail.com>
-To: amol verule <averule@gmail.com>, video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: video4linux-list@redhat.com
+Cc: video4linux-list@redhat.com
+Subject: [patch] tvaudio: remove bogus check
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,30 +26,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hi,
- i am having iball 9.0 device and getting error while opening it as
-#camorama -D
-VIDIOCGCAP  --  could not get camera capabilities, exiting.....
+Hello Mauro,
 
-#ls -l /dev/video0
-crw-rw---- 1 root video 81, 0 2009-03-09 18:16 /dev/video0
+below is the patch that removes the subaddr check against ARRAY_SIZE(chip->shadow.bytes).
+Regardless of anything, the 'bytes' array is 64 bytes large so this check disables 
+easy standard programming (TDA9874A_ESP) which has a number of 255 which is hardly the
+intended behavior.
 
- this is dmesg when i plugged in camera
-usb 1-1: new full speed USB device using uhci_hcd and address 4
-usb 1-1: configuration #1 chosen from 1 choice
-Linux video capture interface: v2.00
-sn9c102: V4L2 driver for SN9C1xx PC Camera Controllers v1:1.44
-usb 1-1: SN9C120 PC Camera Controller detected (vid:pid 0x0C45:0x6130)
-usb 1-1: MI-0360 image sensor detected
-usb 1-1: Initialization succeeded
-usb 1-1: V4L2 device registered as /dev/video0
-usb 1-1: Optional device control through 'sysfs' interface disabled
-usbcore: registered new interface driver sn9c102
-usbcore: registered new interface driver gspca
-/usr/src/modules/gspca/gspca_core.c: gspca driver 01.00.20 registered
-...
-what is actual problem even though driver is available and it created
-/dev/video0 ..i am not able to use webcam..
+As a matter of fact, we can think of separate check for this case like
+	if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes) ||
+	    subaddr != 0xFF) {
+		... /* weird register, refuse */
+	}
+but I'm not sure if there are no other special cases so for now I suggest to just disable
+it.
+
+ drivers/media/video/tvaudio.c |   17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
+
+Signed-off-by: Vitaly Wool <vital@embeddedalley.com> 
+
+Index: linux-next/drivers/media/video/tvaudio.c
+===================================================================
+--- linux-next.orig/drivers/media/video/tvaudio.c	2009-03-02 17:50:40.000000000 +0300
++++ linux-next/drivers/media/video/tvaudio.c	2009-03-02 18:08:08.000000000 +0300
+@@ -169,13 +169,6 @@
+ 			return -1;
+ 		}
+ 	} else {
+-		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+-			v4l2_info(sd,
+-				"Tried to access a non-existent register: %d\n",
+-				subaddr);
+-			return -EINVAL;
+-		}
+-
+ 		v4l2_dbg(1, debug, sd, "chip_write: reg%d=0x%x\n",
+ 			subaddr, val);
+ 		chip->shadow.bytes[subaddr+1] = val;
+@@ -198,16 +191,8 @@
+ 	if (mask != 0) {
+ 		if (subaddr < 0) {
+ 			val = (chip->shadow.bytes[1] & ~mask) | (val & mask);
+-		} else {
+-			if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
+-				v4l2_info(sd,
+-					"Tried to access a non-existent register: %d\n",
+-					subaddr);
+-				return -EINVAL;
+-			}
+-
++		} else
+ 			val = (chip->shadow.bytes[subaddr+1] & ~mask) | (val & mask);
+-		}
+ 	}
+ 	return chip_write(chip, subaddr, val);
+ }
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
