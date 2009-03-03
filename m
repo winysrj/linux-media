@@ -1,77 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:53223 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757646AbZCRVmv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 17:42:51 -0400
-Received: by bwz17 with SMTP id 17so251839bwz.37
-        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2009 14:42:48 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:58532 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307AbZCCUo0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 15:44:26 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Date: Tue, 3 Mar 2009 14:44:12 -0600
+Subject: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+Message-ID: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <49C1551E.1000700@kaiser-linux.li>
-References: <49A8661A.4090907@control.lth.se> <49B57C1D.3060600@control.lth.se>
-	 <49B57F7D.1020108@kaiser-linux.li> <49B62023.2090206@control.lth.se>
-	 <49B65BA7.6070700@kaiser-linux.li> <49B68F34.60802@control.lth.se>
-	 <49B6A495.9060204@kaiser-linux.li> <49B7D41B.4040801@control.lth.se>
-	 <49C00484.7060601@kaiser-linux.li> <49C1551E.1000700@kaiser-linux.li>
-Date: Wed, 18 Mar 2009 22:42:47 +0100
-Message-ID: <1d4c7fd50903181442n39d72924q6a01b85e55c231e4@mail.gmail.com>
-Subject: Re: Topro 6800 driver [JPEG decoding solved]
-From: Thomas Champagne <lafeuil@gmail.com>
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-Cc: Anders Blomdell <anders.blomdell@control.lth.se>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Youhhhouuu ! You are the King of the snoop ! How did you find an
-huffman table in the middle of a file ?
-But, I don't have received any file with the mail ? Have you correctly
-attached the files in the mail ?
-Thank you again for this good news !
-Thomas
+This patch series depends on the following patches:
 
-2009/3/18 Thomas Kaiser <v4l@kaiser-linux.li>:
-> Thomas Kaiser wrote:
->>
->> Hello Anders
->>
->> Good news, I could decode a frame which I extracted from the usbsnoobs I
->> did :-). See attached picture frame3-03.jpg. It uses the quality 0.
->>
->> Your black frame you sent me gets now correctly decode, too
->> (frameA-01.jpg)
->>
->> I found the Huffman table in the Windoz driver file (TP6810.sys) at offset
->> 0x2a59c. The QTable which I found in a text file on my Windoz box can be
->> found in this driver file, also.
->>
->> I attached some binary files which I used to build the 2 attached jpeg.
->>
->> For example use:
->> cat FFD8-Q0-320x240.bin huffman1.bin FFDA.bin frame3-3.bin >frame3-03.jpg
->> to make the picture frame3-03.jpg.
->>
->> This information should the cam get going in Linux ;-)
->>
->> Happy Hacking,
->>
->> Thomas
->>
->> PS: I sent this to the linux-media mail list, because somebody else is
->> interested about this information, too.
->>
->
-> Just some comments about the observation you made on the frame header:
->
-> ff d8 ff fe 28 3c 01
->
-> - Byte 6: Yes, it is the current quality setting
-> - Byte 4 & 5: I think it is related to resolution. My snoops were done with
-> 320x240 (0x141e) and Anders were made with 640x480 (0x283c), twice as big!
-> - The rest is static
->
-> Thomas
->
->
+ - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
+ - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus on
+   March 3rd. (Please follow his instructions to pull from gitorious.org server)
+
+This has been tested with:
+ - SDP3430-VG5.0.1 with OMAP3430-ES3.1 daughter board upgrade.
+ - Camkit V3.0.1 with MT9P012 and OV3640 sensors
+ - LDP with OV3640 sensor
+
+Sergio Aguirre (5):
+  MT9P012: Add driver
+  DW9710: Add driver
+  OV3640: Add driver
+  OMAP3430SDP: Add support for Camera Kit v3
+  LDP: Add support for built-in camera
+
+ arch/arm/mach-omap2/Makefile                    |    6 +-
+ arch/arm/mach-omap2/board-3430sdp-camera.c      |  490 +++++
+ arch/arm/mach-omap2/board-3430sdp.c             |   42 +-
+ arch/arm/mach-omap2/board-ldp-camera.c          |  203 +++
+ arch/arm/mach-omap2/board-ldp.c                 |   17 +
+ arch/arm/plat-omap/include/mach/board-3430sdp.h |    1 +
+ arch/arm/plat-omap/include/mach/board-ldp.h     |    1 +
+ drivers/media/video/Kconfig                     |   31 +
+ drivers/media/video/Makefile                    |    3 +
+ drivers/media/video/dw9710.c                    |  548 ++++++
+ drivers/media/video/dw9710_priv.h               |   57 +
+ drivers/media/video/mt9p012.c                   | 1890 +++++++++++++++++++
+ drivers/media/video/mt9p012_regs.h              |   74 +
+ drivers/media/video/ov3640.c                    | 2202 +++++++++++++++++++++++
+ drivers/media/video/ov3640_regs.h               |  600 ++++++
+ include/media/dw9710.h                          |   35 +
+ include/media/mt9p012.h                         |   37 +
+ include/media/ov3640.h                          |   31 +
+ 18 files changed, 6265 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-3430sdp-camera.c
+ create mode 100644 arch/arm/mach-omap2/board-ldp-camera.c
+ create mode 100644 drivers/media/video/dw9710.c
+ create mode 100644 drivers/media/video/dw9710_priv.h
+ create mode 100644 drivers/media/video/mt9p012.c
+ create mode 100644 drivers/media/video/mt9p012_regs.h
+ create mode 100644 drivers/media/video/ov3640.c
+ create mode 100644 drivers/media/video/ov3640_regs.h
+ create mode 100644 include/media/dw9710.h
+ create mode 100644 include/media/mt9p012.h
+ create mode 100644 include/media/ov3640.h
+
