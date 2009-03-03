@@ -1,16 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from mailout.assembly.state.ny.us ([204.97.104.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <poplyra@gmail.com>) id 1LlwqQ-0008Qx-Ng
-	for linux-dvb@linuxtv.org; Tue, 24 Mar 2009 03:59:10 +0100
-Received: by yx-out-2324.google.com with SMTP id 8so1732105yxm.41
-	for <linux-dvb@linuxtv.org>; Mon, 23 Mar 2009 19:58:22 -0700 (PDT)
+	(envelope-from <m+linuxdvb@mattyo.net>) id 1LeWAb-0007ox-Dt
+	for linux-dvb@linuxtv.org; Tue, 03 Mar 2009 16:04:34 +0100
+Received: from mail1.nysa.us (nysa-bh1.assembly.state.ny.us [204.97.104.30])
+	by mailout.assembly.state.ny.us (8.14.1/8.14.1) with ESMTP id
+	n23F3uAM031878
+	for <linux-dvb@linuxtv.org>; Tue, 3 Mar 2009 10:03:57 -0500
+Received: from [10.2.10.171] ([10.2.10.171])
+	by mail1.nysa.us (8.14.2/8.14.2) with ESMTP id n23F3uIU016513
+	for <linux-dvb@linuxtv.org>; Tue, 3 Mar 2009 10:03:56 -0500
+Message-ID: <49AD46DC.4080701@mattyo.net>
+Date: Tue, 03 Mar 2009 10:03:56 -0500
+From: Matt Garretson <m+linuxdvb@mattyo.net>
 MIME-Version: 1.0
-Date: Mon, 23 Mar 2009 23:58:22 -0300
-Message-ID: <ff07fffe0903231958o3a9fb617y567e7cdc13dd34df@mail.gmail.com>
-From: Christian Lyra <lyra@pop-pr.rnp.br>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] problem with KNC1 DVB-C MK3 and TPs ~300Mhz
+References: <mailman.1.1236078001.32084.linux-dvb@linuxtv.org>
+In-Reply-To: <mailman.1.1236078001.32084.linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] WinTV HVR-1800 analog Satus
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,49 +26,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi there,
+Steven Toth wrote:
+> Dustin Coates wrote:
+> > Any update on the status of analouge for this card? I really would  
+> 
+> Last I checked it worked fine for me.
 
-I=B4m playing with a satelco easywatch card (or should be... ) and it
-works very nicely with a lot of channels and transponders. But there
-are two transponders (309mhz and 321hz) where the video and sound
-skips a lot, or dont work/lock at all. Another person had reported the
-same problem on IRC today. Perhaps this issue is somewhat related to
-the thread "[linux-dvb] TechnoTrend C-1501 - Locking issues on
-388Mhz".
 
-Here is the dmesg:
 
-[    2.819472] Linux video capture interface: v2.00
-[    2.830678] saa7146: register extension 'budget_av'.
-[    2.830770] budget_av 0000:00:00.0: enabling device (0000 -> 0002)
-[    2.831231] saa7146: found saa7146 @ mem ffffc20000024000 (revision
-1, irq 16) (0x1894,0x0022).
-[    2.831244] saa7146 (0): dma buffer size 192512
-[    2.831251] DVB: registering new adapter (KNC1 DVB-C MK3)
-[    2.867975] adapter failed MAC signature check
-[    2.867986] encoded MAC from EEPROM was
-ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-[    3.071061] budget_av: saa7113_init(): saa7113 not found on KNC card
-[    3.131338] KNC1-0: MAC addr =3D 00:09:d6:6d:9f:db
-[    3.338376] DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-=
-C)...
-[    3.340258] budget-av: ci interface initialised.
+Does anyone have an HVR-1800 (digital or analog) coexisting with a 
+PVR-250?  Mythtv-setup crashes for me when scanning ATSC/QAM channels
+on the HVR-1800.  Admittedly, I haven't tried to debug it beyond that.
+But I'm just wondering if these IVTV and DVB devices can coexist at
+all.
 
-the list of good transponders are: 129, 135, 465, 525, 531, 537, 555,
-585, and 591
+Also, does the 2.6.27 kernel have recent enough v4l/dvb stuff for the 
+HVR-1800 merged in, or should I still be pulling from the linuxtv 
+repository?
 
-any hints?
-
--- =
-
-Christian Lyra
-PoP-PR/RNP
+Thanks...
+-Matt
 
 _______________________________________________
 linux-dvb users mailing list
