@@ -1,194 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33678 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750750AbZCDXal convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 18:30:41 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 4 Mar 2009 17:30:24 -0600
-Subject: RE: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Message-ID: <A24693684029E5489D1D202277BE89442E296F69@dlee02.ent.ti.com>
-In-Reply-To: <200903042344.32820.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp.nokia.com ([192.100.105.134]:46108 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752410AbZCCKGt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 05:06:49 -0500
+Message-ID: <49AD0128.5090503@maxwell.research.nokia.com>
+Date: Tue, 03 Mar 2009 12:06:32 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+CC: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	DongSoo Kim <dongsoo.kim@gmail.com>
+Subject: [RFC 0/9] OMAP3 ISP and camera drivers
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
+So here's the patchset for OMAP 3 ISP and camera drivers plus the
+associated V4L changes. Sergio Aguirre has been posting a related
+patchset earlier, containing also sensor and lens driver used on SDP. 
+This patchset is agains the linux-omap tree:
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Wednesday, March 04, 2009 4:45 PM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: sakari.ailus@maxwell.research.nokia.com; DongSoo(Nathaniel) Kim;
-> Hiremath, Vaibhav; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
-> omap@vger.kernel.org; Nagalla, Hari; linux-media@vger.kernel.org
-> Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-> 
-> On Wednesday 04 March 2009 22:46:07 Aguirre Rodriguez, Sergio Alberto
-> wrote:
-> > > -----Original Message-----
-> > > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> > > Sent: Wednesday, March 04, 2009 3:06 PM
-> > > To: sakari.ailus@maxwell.research.nokia.com
-> > > Cc: DongSoo(Nathaniel) Kim; Hiremath, Vaibhav; Toivonen Tuukka.O
-> > > (Nokia- D/Oulu); Aguirre Rodriguez, Sergio Alberto;
-> > > linux-omap@vger.kernel.org; Nagalla, Hari; linux-media@vger.kernel.org
-> > > Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-> > >
-> > > On Wednesday 04 March 2009 20:22:04 Sakari Ailus wrote:
-> > > > Hans Verkuil wrote:
-> > > > > On Wednesday 04 March 2009 01:42:13 DongSoo(Nathaniel) Kim wrote:
-> > > > >> Thank you for your kind explanation Hans.
-> > > > >>
-> > > > >> Problem is omap3 camera subsystem is making device node for every
-> > > > >> int device attached to it.
-> > > > >
-> > > > > That's wrong. Multiple devices should only be created if they can
-> > > > > all be used at the same time. Otherwise there should be just one
-> > > > > device that uses S_INPUT et al to select between the inputs.
-> > > >
-> > > > There might be situations where multiple device nodes would be
-> > > > beneficial even if they cannot be used simultaneously in all cases.
-> > > >
-> > > > Currently the omap34xxcam camera driver creates one device per
-> > > > camera. A camera in this case contains an isp (or camera controller),
-> > > > image sensor, lens and flash. The properties like maximum frame rate
-> > > > or resolution of a camera are usually (almost) completely defined by
-> > > > those of the sensor, lens and flash. This affects also cropping
-> > > > capabilities.
-> > > >
-> > > > Several programs can access video devices simultaneously. What
-> > > > happens if another program switches the input when the first one
-> > > > doesn't expect it? The original user won't notice the change,
-> instead
-> > > > of getting -EBUSY when trying to open the other video device.
-> > >
-> > > It is actually quite common to be able to switch inputs using one
-> > > program (e.g. v4l2-ctl) while another program also has the video node
-> > > open. This will typically be used for debugging or experimenting.
-> > > Depending on the hardware, switching inputs while capturing is in
-> > > progress may or may not be
-> > > allowed (the driver might just return -EBUSY in that case).
-> > >
-> > > In addition the application can also call VIDIOC_S_PRIORITY to protect
-> > > it against outside interference, provided the driver supports this
-> > > ioctl.
-> > >
-> > > As an aside: many applications don't use VIDIOC_S_PRIORITY since
-> > > whether a driver implements it is hit-and-miss. As part of the new
-> v4l2
-> > > framework I have a struct v4l2_fh planned that will integrate support
-> > > of this ioctl in the framework, thus making it generic for all drivers.
-> > > But this won't be available any time soon.
-> >
-> > As what I understand, we have 2 possible situations for multiple opens
-> > here:
-> >
-> > Situation 1
-> >  - Instance1: Select sensor 1, and Do queue/dequeue of buffers.
-> >  - Instance2: If sensor 1 is currently selected, Begin loop requesting
-> > internally collected OMAP3ISP statistics (with V4L2 private based
-> IOCTLs)
-> > for performing user-side Auto-exposure, Auto White Balance, Auto Focus
-> > algorithms. And Adjust gains (with S_CTRL) accordingly on sensor as a
-> > result.
-> 
-> Question: if you have multiple sensors, and sensor 1 is selected, can you
-> still get statistics from sensor 2? Or is all this still limited to the
-> selected sensor? Just want to make sure I understand it all.
+<URL:http://www.muru.com/linux/omap/README_OMAP_GIT>
 
-Everytime a RAW10 Bayer formatted frame is received on the OMAP3ISP, statistics are being generated and when done, stored in buffers allocated internally on the driver (last 5 frames only), marking every stats buffer with the frame number associated.
+So I and Sergio have synchronised our versions of the ISP and camera
+drivers and this is the end result. There is still a lot of work to do,
+though. You can find some comments in individual patch descriptions. If 
+the todo list for a patch is empty it doesn't mean there wouldn't be 
+anything left to do. ;)
 
-When requesting stats, the user needs to specify the frame number (since last streamon call) to the which he needs the statistics. Receives in return the associated buffer.
+There's at least one major change to Sergio Aguirre's earlier patches 
+which is that the ISP driver now uses the IOMMU from Hiroshi Doyu. 
+Hiroshi is away for some time now so there are just some hacks on top of 
+Hiroshi's older iommu patches to use with current linux-omap.
 
-So, going back to answering directly your question, the stats are related to the frame_number since last stream on call, making it impossible to request from one specific sensor.
+This patchset does not contain the resizer or preview wrappers from TI 
+but they have been left intentionally out. A proper interface (V4L) 
+should be used for those and the camera driver should be somehow 
+involved --- the wrappers are just duplicating much of the camera 
+driver's functionality.
 
-> 
-> > Situation 2
-> >  - Instance1: Select sensor1 as input. Begin streaming.
-> >  - Instance2: Select sensor2 as input. Attempt to begin streaming.
-> >
-> > So, if I understood right, on Situation 2, if you attempt to do a
-> S_INPUT
-> > to sensor2 while capturing from sensor1, it should return a -EBUSY,
-> > right?
-> 
-> That is probably what the driver should do, yes. The V4L2 spec leaves it
-> up
-> to the driver whether you can switch inputs while a capture is in progress.
-> In this case I think it is perfectly reasonably for the driver to
-> return -EBUSY.
+I don't have any sensor or lens drivers to publish at this time.
 
-Ok, makes sense.
+This patchset should work with the SDP and OMAPZoom boards although you
+need the associated sensor drivers + the board code from Sergio Aguirre 
+to use it. You'll also need the IOMMU patchset from Hiroshi Doyu. 
+Everything except the sensor / board stuff is available here:
 
-> 
-> > I mean, the app should consciously make sure the input (sensor) is
-> > the correct one before performing any adjustments.
-> 
-> Can you elaborate? I don't follow this, I'm afraid.
+<URL:http://www.gitorious.org/projects/omap3camera>
 
-Normally an app already knows what are the capabilities/limitations for /dev/video0, and that wont change in our current approach, right? (Because video0 node always points to the same sensor)
+In short, on linux-omap:
 
-But with your suggested approach, if a switching happens, the capabilities could vary between sensors, and the app should need to re request capabilities everytime it attempts to adjust something. So this is the _consciousness_ I'm talking about.. (Constantly making sure of sensor capabilities before sending S_CTRL calls)
+$ git pull http://git.gitorious.org/omap3camera/mainline.git v4l \
+   iommu omap3camera base
 
-Did I made myself clear?
+Hiroshi's original iommu tree is here (branch iommu):
 
-> 
-> > I think our current approach avoids the user to be constantly checking
-> if
-> > the input is still the same before updating gains...
-> 
-> If I understand it correctly, the normal approach would be one application
-> that might have a separate thread to do the gain adjustments, etc. Or do
-> it
-> all in the same thread, for example by doing the adjustments after every X
-> frames captured. Doing this in two separate applications seems awkward to
-> me. Usually the streaming thread and the adjustment thread need to
-> communicate with one another or be directed from some the main application.
+<URL:http://git.gitorious.org/lk/mainline.git>
 
-Hmm... Ok, got your point.
+Some of the camera and ISP driver development history is available, too. 
+See the first link.
 
-I guess we can leave all responsibility of correct
-settings<->sensor association to the user app threads then.
+Any feedback is appreciated.
 
-> 
-> > I'm not clear if this single-node idea is really helping the user to
-> have
-> > a simpler usage in Situation 1, which I feel will become pretty common
-> on
-> > this driver...
-> 
-> The spec is pretty clear about this, and existing v4l2 applications also
-> expect this behavior. Also, suppose you have two video nodes, what happens
-> when you want to use the inactive node? How can you tell it is inactive?
+Sincerely,
 
-Sorry, I think I'm not very clear on your intention...
-
-You mean that how can an app know if streaming is ongoing in a device node?
-
-If that's the case, then I think we'll need to have an IOCTL for knowing if the node is streaming or not.
-
-Please clarify.
-
-> 
-> Things might change, however, if statistics gathering can proceed on an
-> inactive input. In that case I need to look into it more closely.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
 
