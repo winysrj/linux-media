@@ -1,31 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2NElfik003887
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 10:47:41 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2NElMFx010944
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 10:47:22 -0400
-Received: by yw-out-2324.google.com with SMTP id 3so1233932ywj.81
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 07:47:21 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n23DX3Ht011639
+	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 08:33:03 -0500
+Received: from smtp107.biz.mail.re2.yahoo.com (smtp107.biz.mail.re2.yahoo.com
+	[206.190.52.176])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n23DWkMt030467
+	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 08:32:46 -0500
+Message-ID: <49AD2FBF.4000009@embeddedalley.com>
+Date: Tue, 03 Mar 2009 16:25:19 +0300
+From: Vitaly Wool <vital@embeddedalley.com>
 MIME-Version: 1.0
-In-Reply-To: <1237816050.3833.20.camel@T60p>
-References: <1237575285.26159.2.camel@T60p>
-	<412bdbff0903201228t4cb4b6c8m17763c27878434ed@mail.gmail.com>
-	<1237578912.26159.13.camel@T60p>
-	<412bdbff0903201302ib6758a8ue76a8dd235cfa4cb@mail.gmail.com>
-	<1237579738.26159.16.camel@T60p>
-	<412bdbff0903201314r5105d373ofe6614ee08431d4b@mail.gmail.com>
-	<1237816050.3833.20.camel@T60p>
-Date: Mon, 23 Mar 2009 10:47:21 -0400
-Message-ID: <412bdbff0903230747i1ebc4487x2636369e6b20ce8f@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Mikhail Jiline <misha@epiphan.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <49ABF746.8000506@embeddedalley.com>
+	<20090302164714.28d0e39f@pedra.chehab.org>
+In-Reply-To: <20090302164714.28d0e39f@pedra.chehab.org>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org
-Subject: Re: [PATCH] V4L: em28xx: add support for Digitus/Plextor PX-AV200U
-	grabbers
+Cc: video4linux-list@redhat.com
+Subject: Re: [patch] tvaudio: remove bogus check
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,26 +29,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Mar 23, 2009 at 9:47 AM, Mikhail Jiline <misha@epiphan.com> wrote:
-> Here is the output from the version with em28xx_i2c_hash hint. Update patch is below.
-<snip>
+Hello Mauro,
 
-Ok, that looks better.  You should no longer need the "card=" line
-with that patch.
 
-Did you verify that both video inputs were working as expected?  Also,
-did you confirm the audio support works?  If so, please remove the
-"valid        = EM28XX_BOARD_NOT_VALIDATED", submit a final patch, and
-I will check it in.
+Mauro Carvalho Chehab wrote:
 
-Thanks,
+> This patch is wrong, since it will allow the access of an inexistent position at the shadow array:
+>
+> 	chip->shadow.bytes[subaddr+1] = val;
+>
+> The proper fix is to increase the size of the shadow.bytes array to properly
+> handle the subaddr = 0xff. Something like:
+>
+> -#define MAXREGS 64
+> +#define MAXREGS 256
+>
+> Except for allocating a few more bytes, such patch won't have any other drawback.
+agreed. Here's the update:
 
-Devin
+ tvaudio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Signed-off-by: Vitaly Wool <vital@embeddedalley.com>
+
+Index: linux-next/drivers/media/video/tvaudio.c
+===================================================================
+--- linux-next.orig/drivers/media/video/tvaudio.c	2009-03-02 17:50:40.000000000 +0300
++++ linux-next/drivers/media/video/tvaudio.c	2009-03-03 10:35:10.000000000 +0300
+@@ -54,7 +54,7 @@
+ /* ---------------------------------------------------------------------- */
+ /* our structs                                                            */
+ 
+-#define MAXREGS 64
++#define MAXREGS 256
+ 
+ struct CHIPSTATE;
+ typedef int  (*getvalue)(int);
+
 
 --
 video4linux-list mailing list
