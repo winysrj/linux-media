@@ -1,88 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:50952 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261AbZC3QO7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 12:14:59 -0400
-Date: Mon, 30 Mar 2009 13:14:49 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: "Dean A." <dean@sensoray.com>
-Subject: Fw: patch: s2255drv driver removal problem fixed
-Message-ID: <20090330131449.319f1fbe@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from tichy.grunau.be ([85.131.189.73]:38734 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755042AbZCCWaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2009 17:30:03 -0500
+From: Janne Grunau <j@jannau.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Possible omission in v4l2-common.c?
+Date: Tue, 3 Mar 2009 23:29:54 +0100
+Cc: Brandon Jenkins <bcjenkins@tvwhere.com>,
+	linux-media@vger.kernel.org
+References: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com> <200903032218.55382.hverkuil@xs4all.nl>
+In-Reply-To: <200903032218.55382.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903032329.54167.j@jannau.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-C/C to the right mailing list, to allow Patchwork to catch this.
+On Tuesday 03 March 2009 22:18:55 Hans Verkuil wrote:
+> On Tuesday 03 March 2009 13:50:30 Brandon Jenkins wrote:
+> > Hello all,
+> >
+> > I was upgrading drivers this morning to capture the latest changes
+> > for the cx18 and I received a merge conflict in v4l2-common.c. In
+> > my system, 1 HDPVR and 3 CX18s. The HDPVR sources are 5 weeks old
+> > from their last sync up but contain:
+> >
+> > case V4L2_CID_SHARPNESS:
+> >
+> > The newer sources do not, but still have reference to sharpness at
+> > line 420: case V4L2_CID_SHARPNESS:                return
+> > "Sharpness";
+> >
+> > Because I don't know which way the code is going (is sharpness in
+> > or out) I can't submit a patch, but thought I would raise here.
+> > Diff below was pulled from clean clone of v4l-dvb tree.
+>
+> Sharpness is definitely in. This is a bug, please submit this patch
+> with a Signed-off-by line and I'll get it merged.
 
-Forwarded message:
+It is and afaik was never handled in v4l2_ctrl_query_fill(), the hdpvr 
+tree adds that. Since I intend request the merge of the driver in a 
+couple of days a seperate patch shouldn't be needed.
 
-Date: Mon, 30 Mar 2009 07:59:56 -0700 (PDT)
-From: "Dean A." <dean@sensoray.com>
-To: video4linux-list@redhat.com, mchehab@infradead.org
-Cc: eteo@redhat.com, error27@gmail.com, marcin.slusarz@gmail.com
-Subject: patch: s2255drv driver removal problem fixed
-
-
-From: Dean Anderson <dean@sensoray.com>
-
-This patch fixes kfree problem on driver removal, fixes streamoff problem
-and removes unnecessary videobuf_waiton from free_buffer function.
-
-Signed-off-by: Dean Anderson <dean@sensoray.com>
-
---- linux/drivers/media/video/s2255drv.c.orig	2009-03-30 07:30:25.000000000 -0700
-+++ linux/drivers/media/video/s2255drv.c	2009-03-30 07:44:32.000000000 -0700
-@@ -723,7 +723,6 @@
- {
- 	dprintk(4, "%s\n", __func__);
- 
--	videobuf_waiton(&buf->vb, 0, 0);
- 	videobuf_vmalloc_free(&buf->vb);
- 	buf->vb.state = VIDEOBUF_NEEDS_INIT;
- }
-@@ -1325,7 +1324,6 @@
- 
- static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- {
--	int res;
- 	struct s2255_fh *fh = priv;
- 	struct s2255_dev *dev = fh->dev;
- 
-@@ -1339,9 +1337,7 @@
- 		return -EINVAL;
- 	}
- 	s2255_stop_acquire(dev, fh->channel);
--	res = videobuf_streamoff(&fh->vb_vidq);
--	if (res < 0)
--		return res;
-+	videobuf_streamoff(&fh->vb_vidq);
- 	res_free(dev, fh);
- 	return 0;
- }
-@@ -1708,13 +1704,13 @@
- 	kfree(dev->fw_data);
- 	usb_put_dev(dev->udev);
- 	dprintk(1, "%s", __func__);
--	kfree(dev);
- 
- 	while (!list_empty(&s2255_devlist)) {
- 		list = s2255_devlist.next;
- 		list_del(list);
- 	}
- 	mutex_unlock(&dev->open_lock);
-+	kfree(dev);
- }
- 
- static int s2255_close(struct file *file)
-
-
-
-
-
-
-Cheers,
-Mauro
+janne
