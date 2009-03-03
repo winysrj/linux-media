@@ -1,558 +1,734 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4556 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933AbZCMQwK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 12:52:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: [REVIEW] Draft of V4L2 API and spec changes for V4L2_MPEG_STREAM_VBI_FMT_IVTV
-Date: Fri, 13 Mar 2009 17:50:38 +0100
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org
-References: <1236799528.3111.15.camel@palomino.walls.org>
-In-Reply-To: <1236799528.3111.15.camel@palomino.walls.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45354 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753942AbZCCUog convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 15:44:36 -0500
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Date: Tue, 3 Mar 2009 14:44:17 -0600
+Subject: [PATCH 2/5] DW9710: Add driver
+Message-ID: <A24693684029E5489D1D202277BE89442E1D9221@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903131750.38580.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 11 March 2009 20:25:28 Andy Walls wrote:
-> All,
->
-> The inline diff below has my completed draft of V4L2 API and
-> Specifcation changes to add proper definitions and documentation for the
-> MPEG stream embedded, sliced VBI data format triggered by the
-> V4L2_MPEG_STREAM_VBI_FMT_IVTV control setting.  These changes only add
-> to the V4L2 API and do modify or remove exiting elements.
->
-> Please review.  The only question remaining in my mind is whether the
-> type "__le32" can be used in the userspace API structures.  I think it
-> can, but I don't know what kernel version introduced "__le32".
->
->
-> Mauro,
->
-> When I make a pull request for this, do you want 1 request, or separate
-> requests for videodev2.h changes and v4l2-spec changes?
+This driver has been currently being tested with
+OMAP3430SDP platform, working on top of MT9P012
+sensor.
 
-He'll probably wants two since the videodev2.h change will also go to the 
-linux git tree, while the doc changes stay behind in v4l-dvb.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/Kconfig       |    8 +
+ drivers/media/video/Makefile      |    1 +
+ drivers/media/video/dw9710.c      |  548 +++++++++++++++++++++++++++++++++++++
+ drivers/media/video/dw9710_priv.h |   57 ++++
+ include/media/dw9710.h            |   35 +++
+ 5 files changed, 649 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/dw9710.c
+ create mode 100644 drivers/media/video/dw9710_priv.h
+ create mode 100644 include/media/dw9710.h
 
-Anyway, I've reviewed it and my only comment is that I suggest you hold off 
-bumping the version number of the spec. I think we should only increase the 
-version number after a kernel merge windows closes. So at that time we make 
-a release of the spec on the linuxtv.org website and bump the version 
-number in our repository.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 05e9fa1..225d9cf 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -313,6 +313,14 @@ config VIDEO_MT9P012
+          MT9P012 camera.  It is currently working with the TI OMAP3
+          camera controller.
 
-Other than this:
++config VIDEO_DW9710
++       tristate "Lens driver for DW9710"
++       depends on I2C && VIDEO_V4L2
++       ---help---
++         This is a Video4Linux2 lens driver for the Dongwoon
++         DW9710 coil.  It is currently working with the TI OMAP3
++         camera controller and micron MT9P012 sensor.
++
+ config VIDEO_SAA7110
+        tristate "Philips SAA7110 video decoder"
+        depends on VIDEO_V4L1 && I2C
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index c445099..52a34d9 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -112,6 +112,7 @@ obj-$(CONFIG_VIDEO_OMAP3) += omap34xxcam.o
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+ obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+ obj-$(CONFIG_VIDEO_MT9P012)     += mt9p012.o
++obj-$(CONFIG_VIDEO_DW9710)     += dw9710.o
 
-Regards,
+ obj-$(CONFIG_USB_DABUSB)        += dabusb.o
+ obj-$(CONFIG_USB_OV511)         += ov511.o
+diff --git a/drivers/media/video/dw9710.c b/drivers/media/video/dw9710.c
+new file mode 100644
+index 0000000..362cb0d
+--- /dev/null
++++ b/drivers/media/video/dw9710.c
+@@ -0,0 +1,548 @@
++/*
++ * drivers/media/video/dw9710.c
++ *
++ * DW9710 Coil Motor (LENS) driver
++ *
++ * Copyright (C) 2008 Texas Instruments.
++ *
++ * Contributors:
++ *     Troy Laramy <t-laramy@ti.com>
++ *     Mohit Jalori <mjalori@ti.com>
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#include <linux/mutex.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/cdev.h>
++#include <linux/device.h>
++
++#include <mach/gpio.h>
++
++#include <media/v4l2-int-device.h>
++#include <media/dw9710.h>
++
++#include "dw9710_priv.h"
++
++static struct dw9710_device dw9710 = {
++       .state = DW9710_LENS_NOT_DETECTED,
++       .current_lens_posn = DW9710_DEF_LENS_POSN,
++};
++
++static struct vcontrol {
++       struct v4l2_queryctrl qc;
++       int current_value;
++} video_control[] = {
++       {
++               {
++                       .id = V4L2_CID_FOCUS_ABSOLUTE,
++                       .type = V4L2_CTRL_TYPE_INTEGER,
++                       .name = "Focus, Absolute",
++                       .minimum = 0,
++                       .maximum = DW9710_MAX_FOCUS_POS,
++                       .step = DW9710_LENS_POSN_STEP,
++                       .default_value = DW9710_DEF_LENS_POSN,
++               },
++               .current_value = DW9710_DEF_LENS_POSN,
++       }
++};
++
++/**
++ * find_vctrl - Finds the requested ID in the video control structure array
++ * @id: ID of control to search the video control array for
++ *
++ * Returns the index of the requested ID from the control structure array
++ */
++static int find_vctrl(int id)
++{
++       int i;
++
++       if (id < V4L2_CID_BASE)
++               return -EDOM;
++
++       for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--) {
++               if (video_control[i].qc.id == id)
++                       return i;
++       }
++
++       return -EINVAL;
++}
++
++/**
++ * dw9710_reg_read - Reads a value from a register in DW9710 Coil driver device.
++ * @client: Pointer to structure of I2C client.
++ * @value: Pointer to u16 for returning value of register to read.
++ *
++ * Returns zero if successful, or non-zero otherwise.
++ **/
++static int dw9710_reg_read(struct i2c_client *client, u16 *value)
++{
++       int err;
++       struct i2c_msg msg[1];
++       unsigned char data[2];
++
++       if (!client->adapter)
++               return -ENODEV;
++
++       msg->addr = client->addr;
++       msg->flags = I2C_M_RD;
++       msg->len = 2;
++       msg->buf = data;
++
++       data[0] = 0;
++       data[1] = 0;
++
++       err = i2c_transfer(client->adapter, msg, 1);
++
++       if (err >= 0) {
++               err = ((data[0] & 0xFF) << 8) | (data[1]);
++               *value = err;
++               return 0;
++       }
++       return err;
++}
++
++/**
++ * dw9710_reg_write - Writes a value to a register in DW9710 Coil driver device.
++ * @client: Pointer to structure of I2C client.
++ * @value: Value of register to write.
++ *
++ * Returns zero if successful, or non-zero otherwise.
++ **/
++static int dw9710_reg_write(struct i2c_client *client, u16 value)
++{
++       int err;
++       struct i2c_msg msg[1];
++       unsigned char data[2];
++       int retry = 0;
++
++       if (!client->adapter)
++               return -ENODEV;
++
++again:
++       msg->addr = client->addr;
++       msg->flags = 0;
++       msg->len = 2;
++       msg->buf = data;
++
++       data[0] = (u8)(value >> 8);
++       data[1] = (u8)(value & 0xFF);
++
++       err = i2c_transfer(client->adapter, msg, 1);
++
++       if (err >= 0)
++               return 0;
++
++       if (retry <= DW9710_I2C_RETRY_COUNT) {
++               dev_dbg(&client->dev, "retry ... %d", retry);
++               retry++;
++               set_current_state(TASK_UNINTERRUPTIBLE);
++               schedule_timeout(msecs_to_jiffies(20));
++               goto again;
++       }
++       return err;
++}
++
++/**
++ * dw9710_detect - Detects DW9710 Coil driver device.
++ * @client: Pointer to structure of I2C client.
++ *
++ * Returns 0 if successful, -1 if camera is off or if test register value
++ * wasn't stored properly, or returned errors from either dw9710_reg_write or
++ * dw9710_reg_read functions.
++ **/
++static int dw9710_detect(struct i2c_client *client)
++{
++       int err = 0;
++       u16 wposn = 0, rposn = 0;
++       u16 posn = 0x05;
++
++       wposn = (DW9710_POWERDN(DW9710_ENABLE) | DW9710_DATA(posn));
++
++       err = dw9710_reg_write(client, wposn);
++       if (err) {
++               dev_err(&client->dev, "Unable to write DW9710 \n");
++               return err;
++       }
++
++       err = dw9710_reg_read(client, &rposn);
++       if (err) {
++               dev_err(&client->dev, "Unable to read DW9710 \n");
++               return err;
++       }
++
++       if (wposn != rposn) {
++               dev_err(&client->dev, "W/R MISMATCH!\n");
++               return -1;
++       }
++       posn = 0;
++       wposn = (DW9710_POWERDN(DW9710_ENABLE) | DW9710_DATA(posn));
++       err = dw9710_reg_write(client, wposn);
++
++       return err;
++}
++
++/**
++ * dw9710_af_setfocus - Sets the desired focus.
++ * @posn: Desired focus position, 0 (far) - 100 (close).
++ *
++ * Returns 0 on success, -EINVAL if camera is off or focus value is out of
++ * bounds, or returned errors from either dw9710_reg_write or dw9710_reg_read
++ * functions.
++ **/
++int dw9710_af_setfocus(u16 posn)
++{
++       struct dw9710_device *af_dev = &dw9710;
++       struct i2c_client *client = af_dev->i2c_client;
++       u16 cur_focus_value = 0;
++       int ret = -EINVAL;
++
++       if (posn > DW9710_MAX_FOCUS_POS) {
++               dev_err(&client->dev, "Bad posn params 0x%x \n", posn);
++               return ret;
++       }
++
++       if ((af_dev->power_state == V4L2_POWER_OFF) ||
++               (af_dev->power_state == V4L2_POWER_STANDBY)) {
++               af_dev->current_lens_posn = posn;
++               return 0;
++       }
++
++       ret = dw9710_reg_read(client, &cur_focus_value);
++
++       if (ret) {
++               dev_err(&client->dev, "Read of current Lens position failed\n");
++               return ret;
++       }
++
++       if (DW9710_DATA_R(cur_focus_value) == posn) {
++               dev_dbg(&client->dev, "Device already in requested focal point\n");
++               return ret;
++       }
++
++       ret = dw9710_reg_write(client, DW9710_POWERDN(DW9710_ENABLE) |
++                                               DW9710_DATA(posn));
++
++       if (ret)
++               dev_err(&client->dev, "Setfocus register write failed\n");
++       dw9710.current_lens_posn = posn;
++       return ret;
++}
++EXPORT_SYMBOL(dw9710_af_setfocus);
++
++/**
++ * dw9710_af_getfocus - Gets the focus value from device.
++ * @value: Pointer to u16 variable which will contain the focus value.
++ *
++ * Returns 0 if successful, -EINVAL if camera is off, or return value of
++ * dw9710_reg_read if fails.
++ **/
++int dw9710_af_getfocus(u16 *value)
++{
++       struct dw9710_device *af_dev = &dw9710;
++       struct i2c_client *client = af_dev->i2c_client;
++       int ret;
++       u16 posn = 0;
++
++       if ((af_dev->power_state == V4L2_POWER_OFF) ||
++          (af_dev->power_state == V4L2_POWER_STANDBY))
++               return -EINVAL;
++
++       ret = dw9710_reg_read(client, &posn);
++
++       if (ret) {
++               dev_err(&client->dev, "Read of current Lens position failed\n");
++               return ret;
++       }
++       *value = DW9710_DATA_R(posn);
++       dw9710.current_lens_posn = DW9710_DATA_R(posn);
++       return ret;
++}
++EXPORT_SYMBOL(dw9710_af_getfocus);
++
++/**
++ * ioctl_queryctrl - V4L2 lens interface handler for VIDIOC_QUERYCTRL ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @qc: standard V4L2 VIDIOC_QUERYCTRL ioctl structure
++ *
++ * If the requested control is supported, returns the control information
++ * from the video_control[] array.  Otherwise, returns -EINVAL if the
++ * control is not supported.
++ */
++static int ioctl_queryctrl(struct v4l2_int_device *s,
++                               struct v4l2_queryctrl *qc)
++{
++       int i;
++
++       i = find_vctrl(qc->id);
++       if (i == -EINVAL)
++               qc->flags = V4L2_CTRL_FLAG_DISABLED;
++
++       if (i < 0)
++               return -EINVAL;
++
++       *qc = video_control[i].qc;
++       return 0;
++}
++
++/**
++ * ioctl_g_ctrl - V4L2 DW9710 lens interface handler for VIDIOC_G_CTRL ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @vc: standard V4L2 VIDIOC_G_CTRL ioctl structure
++ *
++ * If the requested control is supported, returns the control's current
++ * value from the video_control[] array.  Otherwise, returns -EINVAL
++ * if the control is not supported.
++ */
++static int ioctl_g_ctrl(struct v4l2_int_device *s,
++                            struct v4l2_control *vc)
++{
++       struct vcontrol *lvc;
++       int i;
++       u16 curr_posn;
++
++       i = find_vctrl(vc->id);
++       if (i < 0)
++               return -EINVAL;
++       lvc = &video_control[i];
++
++       switch (vc->id) {
++       case  V4L2_CID_FOCUS_ABSOLUTE:
++               if (dw9710_af_getfocus(&curr_posn))
++                       return -EFAULT;
++               vc->value = curr_posn;
++               lvc->current_value = curr_posn;
++               break;
++       }
++
++       return 0;
++}
++
++/**
++ * ioctl_s_ctrl - V4L2 DW9710 lens interface handler for VIDIOC_S_CTRL ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @vc: standard V4L2 VIDIOC_S_CTRL ioctl structure
++ *
++ * If the requested control is supported, sets the control's current
++ * value in HW (and updates the video_control[] array).  Otherwise,
++ * returns -EINVAL if the control is not supported.
++ */
++static int ioctl_s_ctrl(struct v4l2_int_device *s,
++                            struct v4l2_control *vc)
++{
++       int retval = -EINVAL;
++       int i;
++       struct vcontrol *lvc;
++
++       i = find_vctrl(vc->id);
++       if (i < 0)
++               return -EINVAL;
++       lvc = &video_control[i];
++
++       switch (vc->id) {
++       case V4L2_CID_FOCUS_ABSOLUTE:
++               retval = dw9710_af_setfocus(vc->value);
++               if (!retval)
++                       lvc->current_value = vc->value;
++               break;
++       }
++
++       return retval;
++}
++
++/**
++ * ioctl_g_priv - V4L2 sensor interface handler for vidioc_int_g_priv_num
++ * @s: pointer to standard V4L2 device structure
++ * @p: void pointer to hold sensor's private data address
++ *
++ * Returns device's (sensor's) private data area address in p parameter
++ */
++static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
++{
++       struct dw9710_device *lens = s->priv;
++
++       return lens->pdata->priv_data_set(p);
++
++}
++
++/**
++ * ioctl_s_power - V4L2 sensor interface handler for vidioc_int_s_power_num
++ * @s: pointer to standard V4L2 device structure
++ * @on: power state to which device is to be set
++ *
++ * Sets devices power state to requrested state, if possible.
++ */
++static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power on)
++{
++       struct dw9710_device *lens = s->priv;
++       struct i2c_client *c = lens->i2c_client;
++       int rval;
++
++       rval = lens->pdata->power_set(on);
++       if (rval < 0) {
++               dev_err(&c->dev, "Unable to set the power state: " DW9710_NAME
++                                                               " lens HW\n");
++               return rval;
++       }
++
++       if ((on == V4L2_POWER_ON) &&
++                               (lens->state == DW9710_LENS_NOT_DETECTED)) {
++               rval = dw9710_detect(c);
++               if (rval < 0) {
++                       dev_err(&c->dev, "Unable to detect "
++                               DW9710_NAME " lens HW\n");
++                       lens->state = DW9710_LENS_NOT_DETECTED;
++                       return rval;
++               }
++               lens->state = DW9710_LENS_DETECTED;
++               pr_info(DW9710_NAME " lens HW detected\n");
++       }
++
++       if ((lens->power_state == V4L2_POWER_STANDBY) && (on == V4L2_POWER_ON)
++                               && (lens->state == DW9710_LENS_DETECTED))
++               dw9710_af_setfocus(lens->current_lens_posn);
++
++       lens->power_state = on;
++       return 0;
++}
++
++static struct v4l2_int_ioctl_desc dw9710_ioctl_desc[] = {
++       { .num = vidioc_int_s_power_num,
++         .func = (v4l2_int_ioctl_func *)ioctl_s_power },
++       { .num = vidioc_int_g_priv_num,
++         .func = (v4l2_int_ioctl_func *)ioctl_g_priv },
++       { .num = vidioc_int_queryctrl_num,
++         .func = (v4l2_int_ioctl_func *)ioctl_queryctrl },
++       { .num = vidioc_int_g_ctrl_num,
++         .func = (v4l2_int_ioctl_func *)ioctl_g_ctrl },
++       { .num = vidioc_int_s_ctrl_num,
++         .func = (v4l2_int_ioctl_func *)ioctl_s_ctrl },
++};
++
++static struct v4l2_int_slave dw9710_slave = {
++       .ioctls = dw9710_ioctl_desc,
++       .num_ioctls = ARRAY_SIZE(dw9710_ioctl_desc),
++};
++
++static struct v4l2_int_device dw9710_int_device = {
++       .module = THIS_MODULE,
++       .name = DW9710_NAME,
++       .priv = &dw9710,
++       .type = v4l2_int_type_slave,
++       .u = {
++               .slave = &dw9710_slave,
++       },
++};
++
++/**
++ * dw9710_probe - Probes the driver for valid I2C attachment.
++ * @client: Pointer to structure of I2C client.
++ *
++ * Returns 0 if successful, or -EBUSY if unable to get client attached data.
++ **/
++static int
++dw9710_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++       struct dw9710_device *lens = &dw9710;
++       int err;
++
++       dev_info(&client->dev, "dw9710 probe called....\n");
++
++       if (i2c_get_clientdata(client)) {
++               dev_err(&client->dev, " DTA BUSY %s\n", client->name);
++               return -EBUSY;
++       }
++
++       lens->pdata = client->dev.platform_data;
++
++       if (!lens->pdata) {
++               dev_err(&client->dev, "no platform data?\n");
++               return -ENODEV;
++       }
++
++       lens->v4l2_int_device = &dw9710_int_device;
++
++       lens->i2c_client = client;
++       i2c_set_clientdata(client, lens);
++
++       err = v4l2_int_device_register(lens->v4l2_int_device);
++       if (err) {
++               dev_err(&client->dev, "Failed to Register "
++                       DW9710_NAME " as V4L2 device.\n");
++               i2c_set_clientdata(client, NULL);
++       } else {
++               dev_err(&client->dev, "Registered "
++                       DW9710_NAME " as V4L2 device.\n");
++       }
++
++       return 0;
++}
++
++/**
++ * dw9710_remove - Routine when device its unregistered from I2C
++ * @client: Pointer to structure of I2C client.
++ *
++ * Returns 0 if successful, or -ENODEV if the client isn't attached.
++ **/
++static int __exit dw9710_remove(struct i2c_client *client)
++{
++       if (!client->adapter)
++               return -ENODEV;
++
++       i2c_set_clientdata(client, NULL);
++       return 0;
++}
++
++static const struct i2c_device_id dw9710_id[] = {
++       { DW9710_NAME, 0 },
++       { }
++};
++MODULE_DEVICE_TABLE(i2c, dw9710_id);
++
++static struct i2c_driver dw9710_i2c_driver = {
++       .driver = {
++               .name = DW9710_NAME,
++               .owner = THIS_MODULE,
++       },
++       .probe = dw9710_probe,
++       .remove = __exit_p(dw9710_remove),
++       .id_table = dw9710_id,
++};
++
++/**
++ * dw9710_init - Module initialisation.
++ *
++ * Returns 0 if successful, or -EINVAL if device couldn't be initialized, or
++ * added as a character device.
++ **/
++static int __init dw9710_init(void)
++{
++       int err = -EINVAL;
++
++       err = i2c_add_driver(&dw9710_i2c_driver);
++       if (err)
++               goto fail;
++       return err;
++fail:
++       printk(KERN_ERR "Failed to register " DW9710_NAME ".\n");
++       return err;
++}
++module_init(dw9710_init);
++
++/**
++ * dw9710_cleanup - Module cleanup.
++ **/
++static void __exit dw9710_cleanup(void)
++{
++       i2c_del_driver(&dw9710_i2c_driver);
++}
++module_exit(dw9710_cleanup);
++
++MODULE_AUTHOR("Texas Instruments");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("DW9710 LENS driver");
+diff --git a/drivers/media/video/dw9710_priv.h b/drivers/media/video/dw9710_priv.h
+new file mode 100644
+index 0000000..0eb93ad
+--- /dev/null
++++ b/drivers/media/video/dw9710_priv.h
+@@ -0,0 +1,57 @@
++/*
++ * drivers/media/video/dw9710_priv.h
++ *
++ * Private defines for Auto Focus device
++ *
++ * Copyright (C) 2008 Texas Instruments.
++ *
++ * Contributors:
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Troy Laramy
++ *     Mohit Jalori
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#ifndef DW9710_REGS_H
++#define DW9710_REGS_H
++
++#define DW9710_I2C_RETRY_COUNT         5
++#define DW9710_DISABLE                 1
++#define DW9710_ENABLE                  0
++#define DW9710_POWERDN(ARG)            (((ARG) & 0x1) << 15)
++#define DW9710_POWERDN_R(ARG)          (((ARG) >> 15) & 0x1)
++#define DW9710_DATA(ARG)               (((ARG) & 0xFF) << 6)
++#define DW9710_DATA_R(ARG)             (((ARG) >> 6) & 0xFF)
++
++/* State of lens */
++#define DW9710_LENS_DETECTED           1
++#define DW9710_LENS_NOT_DETECTED       0
++
++/* Focus control values */
++#define DW9710_DEF_LENS_POSN           0       /* 0x7F */
++#define DW9710_LENS_POSN_STEP          1
++#define DW9710_MAX_FOCUS_POS           0xFF
++
++struct dw9710_device {
++       const struct dw9710_platform_data *pdata;
++       struct v4l2_int_device *v4l2_int_device;
++       struct i2c_client *i2c_client;
++       int opened;
++       u16 current_lens_posn;
++       u16 saved_lens_posn;
++       int state;
++       int power_state;
++};
++
++/*
++ * Sets the specified focus value [0(far) - 100(near)]
++ */
++int dw9710_af_setfocus(u16 posn);
++
++int dw9710_af_getfocus(u16 *value);
++
++#endif /* End of of DW9710_REGS_H */
+diff --git a/include/media/dw9710.h b/include/media/dw9710.h
+new file mode 100644
+index 0000000..b5696e4
+--- /dev/null
++++ b/include/media/dw9710.h
+@@ -0,0 +1,35 @@
++/*
++ * include/media/dw9710.h
++ *
++ * Public defines for Auto Focus device
++ *
++ * Copyright (C) 2008 Texas Instruments.
++ *
++ * Contributors:
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Troy Laramy
++ *     Mohit Jalori
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#ifndef DW9710_H
++#define DW9710_H
++
++#define DW9710_NAME                    "dw9710"
++#define DW9710_AF_I2C_ADDR             0x0C
++
++/**
++ * struct dw9710_platform_data - platform data values and access functions
++ * @power_set: Power state access function, zero is off, non-zero is on.
++ * @priv_data_set: device private data (pointer) access function
++ */
++struct dw9710_platform_data {
++       int (*power_set)(enum v4l2_power power);
++       int (*priv_data_set)(void *);
++};
++
++#endif /* End of of DW9710_H */
+--
+1.5.6.5
 
-	Hans
-
->
->
-> Regards,
-> Andy
->
-> diff -r 5361470b10f4 linux/include/linux/ivtv.h
-> --- a/linux/include/linux/ivtv.h	Sun Mar 01 21:10:07 2009 -0500
-> +++ b/linux/include/linux/ivtv.h	Wed Mar 11 15:09:50 2009 -0400
-> @@ -60,10 +60,10 @@
->
->  #define IVTV_IOC_DMA_FRAME  _IOW ('V', BASE_VIDIOC_PRIVATE+0, struct
-> ivtv_dma_frame)
->
-> -/* These are the VBI types as they appear in the embedded VBI private
-> packets. */ -#define IVTV_SLICED_TYPE_TELETEXT_B     (1)
-> -#define IVTV_SLICED_TYPE_CAPTION_525    (4)
-> -#define IVTV_SLICED_TYPE_WSS_625        (5)
-> -#define IVTV_SLICED_TYPE_VPS            (7)
-> +/* Deprecated defines: applications should use the defines from
-> videodev2.h */ +#define IVTV_SLICED_TYPE_TELETEXT_B    
-> V4L2_MPEG_VBI_IVTV_TELETEXT_B +#define IVTV_SLICED_TYPE_CAPTION_525   
-> V4L2_MPEG_VBI_IVTV_CAPTION_525 +#define IVTV_SLICED_TYPE_WSS_625       
-> V4L2_MPEG_VBI_IVTV_WSS_625 +#define IVTV_SLICED_TYPE_VPS           
-> V4L2_MPEG_VBI_IVTV_VPS
->
->  #endif /* _LINUX_IVTV_H */
-> diff -r 5361470b10f4 linux/include/linux/videodev2.h
-> --- a/linux/include/linux/videodev2.h	Sun Mar 01 21:10:07 2009 -0500
-> +++ b/linux/include/linux/videodev2.h	Wed Mar 11 15:09:50 2009 -0400
-> @@ -1348,6 +1348,53 @@
->  };
->
->  /*
-> + * Sliced VBI data inserted into MPEG Streams
-> + */
-> +
-> +/*
-> + * V4L2_MPEG_STREAM_VBI_FMT_IVTV:
-> + *
-> + * Structure of payload contained in an MPEG 2 Private Stream 1 PES
-> Packet in an + * MPEG-2 Program Pack that contains
-> V4L2_MPEG_STREAM_VBI_FMT_IVTV Sliced VBI + * data
-> + *
-> + * Note, the MPEG-2 Program Pack and Private Stream 1 PES packet header
-> + * definitions are not included here.  See the MPEG-2 specifications for
-> details + * on these headers.
-> + */
-> +
-> +/* Line type IDs */
-> +#define V4L2_MPEG_VBI_IVTV_TELETEXT_B     (1)
-> +#define V4L2_MPEG_VBI_IVTV_CAPTION_525    (4)
-> +#define V4L2_MPEG_VBI_IVTV_WSS_625        (5)
-> +#define V4L2_MPEG_VBI_IVTV_VPS            (7)
-> +
-> +struct v4l2_mpeg_vbi_itv0_line {
-> +	__u8 id;	/* One of V4L2_MPEG_VBI_IVTV_* above */
-> +	__u8 data[42];	/* Sliced VBI data for the line */
-> +} __attribute__ ((packed));
-> +
-> +struct v4l2_mpeg_vbi_itv0 {
-> +	__le32 linemask[2]; /* Bitmasks of VBI service lines present */
-> +	struct v4l2_mpeg_vbi_itv0_line line[35];
-> +} __attribute__ ((packed));
-> +
-> +struct v4l2_mpeg_vbi_ITV0 {
-> +	struct v4l2_mpeg_vbi_itv0_line line[36];
-> +} __attribute__ ((packed));
-> +
-> +#define V4L2_MPEG_VBI_IVTV_MAGIC0	"itv0"
-> +#define V4L2_MPEG_VBI_IVTV_MAGIC1	"ITV0"
-> +
-> +struct v4l2_mpeg_vbi_fmt_ivtv {
-> +	__u8 magic[4];
-> +	union {
-> +		struct v4l2_mpeg_vbi_itv0 itv0;
-> +		struct v4l2_mpeg_vbi_ITV0 ITV0;
-> +	};
-> +} __attribute__ ((packed));
-> +
-> +/*
->   *	A G G R E G A T E   S T R U C T U R E S
->   */
->
-> diff -r 5361470b10f4 v4l2-spec/Makefile
-> --- a/v4l2-spec/Makefile	Sun Mar 01 21:10:07 2009 -0500
-> +++ b/v4l2-spec/Makefile	Wed Mar 11 15:09:50 2009 -0400
-> @@ -274,6 +274,7 @@
->  	v4l2_input \
->  	v4l2_jpegcompression \
->  	v4l2_modulator \
-> +	v4l2_mpeg_vbi_fmt_ivtv \
->  	v4l2_output \
->  	v4l2_outputparm \
->  	v4l2_pix_format \
-> diff -r 5361470b10f4 v4l2-spec/dev-sliced-vbi.sgml
-> --- a/v4l2-spec/dev-sliced-vbi.sgml	Sun Mar 01 21:10:07 2009 -0500
-> +++ b/v4l2-spec/dev-sliced-vbi.sgml	Wed Mar 11 15:09:50 2009 -0400
-> @@ -48,7 +48,7 @@
->  supported.</para>
->    </section>
->
-> -  <section>
-> +  <section id="sliced-vbi-format-negotitation">
->      <title>Sliced VBI Format Negotiation</title>
->
->      <para>To find out which data services are supported by the
-> @@ -386,6 +386,319 @@
->
->    </section>
->
-> +  <section>
-> +    <title>Sliced VBI Data in MPEG Streams</title>
-> +
-> +    <para>If a device can produce an MPEG output stream, it may be
-> +capable of providing <link
-> +linkend="sliced-vbi-format-negotitation">negotiated sliced VBI
-> +services</link> as data embedded in the MPEG stream.  Users or
-> +applications control this sliced VBI data insertion with the <link
-> +linkend="v4l2-mpeg-stream-vbi-fmt">V4L2_CID_MPEG_STREAM_VBI_FMT</link>
-> +control.</para>
-> +
-> +    <para>If the driver does not provide the <link
-> +linkend="v4l2-mpeg-stream-vbi-fmt">V4L2_CID_MPEG_STREAM_VBI_FMT</link>
-> +control, or only allows that control to be set to <link
-> +linkend="v4l2-mpeg-stream-vbi-fmt"><constant>
-> +V4L2_MPEG_STREAM_VBI_FMT_NONE</constant></link>, then the device
-> +cannot embed sliced VBI data in the MPEG stream.</para>
-> +
-> +    <para>The <link linkend="v4l2-mpeg-stream-vbi-fmt">
-> +V4L2_CID_MPEG_STREAM_VBI_FMT</link> control does not implicitly set
-> +the device driver to capture nor cease capturing sliced VBI data.  The
-> +control only indicates to embed sliced VBI data in the MPEG stream, if
-> +an application has negotiated sliced VBI service be captured.</para>
-> +
-> +    <para>It may also be the case that a device can embed sliced VBI
-> +data in only certain types of MPEG streams: for example in an MPEG-2
-> +PS but not an MPEG-2 TS.  In this situation, if sliced VBI data
-> +insertion is requested, the sliced VBI data will be embedded in MPEG
-> +stream types when supported, and silently omitted from MPEG stream
-> +types where sliced VBI data insertion is not supported by the device.
-> +</para>
-> +
-> +    <para>The following subsections specify the format of the
-> +embedded sliced VBI data.</para>
-> +
-> +  <section>
-> +    <title>MPEG Stream Embedded, Sliced VBI Data Format: NONE</title>
-> +    <para>The <link linkend="v4l2-mpeg-stream-vbi-fmt"><constant>
-> +V4L2_MPEG_STREAM_VBI_FMT_NONE</constant></link> embedded sliced VBI
-> +format shall be interpreted by drivers as a control to cease
-> +embedding sliced VBI data in MPEG streams.  Neither the device nor
-> +driver shall insert "empty" embedded sliced VBI data packets in the
-> +MPEG stream when this format is set.  No MPEG stream data structures
-> +are specified for this format.</para>
-> +  </section>
-> +
-> +  <section>
-> +    <title>MPEG Stream Embedded, Sliced VBI Data Format: IVTV</title>
-> +    <para>The <link linkend="v4l2-mpeg-stream-vbi-fmt"><constant>
-> +V4L2_MPEG_STREAM_VBI_FMT_IVTV</constant></link> embedded sliced VBI
-> +format, when supported, indicates to the driver to embed up to 36
-> +lines of sliced VBI data per frame in an MPEG-2 <emphasis>Private
-> +Stream 1 PES</emphasis> packet encapsulated in an MPEG-2 <emphasis>
-> +Program Pack</emphasis> in the MPEG stream.</para>
-> +
-> +    <para><emphasis>Historical context</emphasis>: This format
-> +specification originates from a custom, embedded, sliced VBI data
-> +format used by the <filename>ivtv</filename> driver.  This format
-> +has already been informally specified in the kernel sources in the
-> +file <filename>Documentation/video4linux/cx2341x/README.vbi</filename>
-> +.  The maximum size of the payload and other aspects of this format
-> +are driven by the CX23415 MPEG decoder's capabilities and limitations
-> +with respect to extracting, decoding, and displaying sliced VBI data
-> +embedded within an MPEG stream.</para>
-> +
-> +    <para>This format's use is <emphasis>not</emphasis> exclusive to
-> +the <filename>ivtv</filename> driver <emphasis>nor</emphasis>
-> +exclusive to CX2341x devices, as the sliced VBI data packet insertion
-> +into the MPEG stream is implemented in driver software.  At least the
-> +<filename>cx18</filename> driver provides sliced VBI data insertion
-> +into an MPEG-2 PS in this format as well.</para>
-> +
-> +    <para>The following definitions specify the payload of the
-> +MPEG-2 <emphasis>Private Stream 1 PES</emphasis> packets that contain
-> +sliced VBI data when <link linkend="v4l2-mpeg-stream-vbi-fmt">
-> +<constant>V4L2_MPEG_STREAM_VBI_FMT_IVTV</constant></link> is set.
-> +(The MPEG-2 <emphasis>Private Stream 1 PES</emphasis> packet header
-> +and encapsulating MPEG-2 <emphasis>Program Pack</emphasis> header are
-> +not detailed here.  Please refer to the MPEG-2 specifications for
-> +details on those packet headers.)</para>
-> +
-> +    <para>The payload of the MPEG-2 <emphasis>Private Stream 1 PES
-> +</emphasis> packets that contain sliced VBI data is specified by
-> +&v4l2-mpeg-vbi-fmt-ivtv;.  The payload is variable
-> +length, depending on the actual number of lines of sliced VBI data
-> +present in a video frame.  The payload may be padded at the end with
-> +unspecified fill bytes to align the end of the payload to a 4-byte
-> +boundary.  The payload shall never exceed 1552 bytes (2 fields with
-> +18 lines/field with 43 bytes of data/line and a 4 byte magic number).
-> +</para>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-mpeg-vbi-fmt-ivtv">
-> +      <title>struct <structname>v4l2_mpeg_vbi_fmt_ivtv</structname>
-> +      </title>
-> +      <tgroup cols="4">
-> +	&cs-ustr;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u8</entry>
-> +	    <entry><structfield>magic</structfield>[4]</entry>
-> +	    <entry></entry>
-> +	    <entry>A "magic" constant from <xref
-> +	    linkend="v4l2-mpeg-vbi-fmt-ivtv-magic"> that indicates
-> +this is a valid sliced VBI data payload and also indicates which
-> +member of the anonymous union, <structfield>itv0</structfield> or
-> +<structfield>ITV0</structfield>, to use for the payload data.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>union</entry>
-> +	    <entry>(anonymous)</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +            <entry>struct <link linkend="v4l2-mpeg-vbi-itv0">
-> +              <structname>v4l2_mpeg_vbi_itv0</structname></link>
-> +            </entry>
-> +	    <entry><structfield>itv0</structfield></entry>
-> +	    <entry>The primary form of the sliced VBI data payload
-> +that contains anywhere from 1 to 35 lines of sliced VBI data.
-> +Line masks are provided in this form of the payload indicating
-> +which VBI lines are provided.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +            <entry>struct <link linkend="v4l2-mpeg-vbi-ITV0-1">
-> +              <structname>v4l2_mpeg_vbi_ITV0</structname></link>
-> +            </entry>
-> +	    <entry><structfield>ITV0</structfield></entry>
-> +	    <entry>An alternate form of the sliced VBI data payload
-> +used when 36 lines of sliced VBI data are present.  No line masks are
-> +provided in this form of the payload; all valid line mask bits are
-> +implcitly set.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-mpeg-vbi-fmt-ivtv-magic">
-> +      <title>Magic Constants for &v4l2-mpeg-vbi-fmt-ivtv;
-> +        <structfield>magic</structfield> field</title>
-> +      <tgroup cols="3">
-> +	&cs-def;
-> +	<thead>
-> +	  <row>
-> +	    <entry align="left">Defined Symbol</entry>
-> +	    <entry align="left">Value</entry>
-> +	    <entry align="left">Description</entry>
-> +	  </row>
-> +	</thead>
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_MPEG_VBI_IVTV_MAGIC0</constant>
-> +	    </entry>
-> +	    <entry>"itv0"</entry>
-> +	    <entry>Indicates the <structfield>itv0</structfield>
-> +member of the union in &v4l2-mpeg-vbi-fmt-ivtv; is valid.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_MPEG_VBI_IVTV_MAGIC1</constant>
-> +	    </entry>
-> +	    <entry>"ITV0"</entry>
-> +	    <entry>Indicates the <structfield>ITV0</structfield>
-> +member of the union in &v4l2-mpeg-vbi-fmt-ivtv; is valid and
-> +that 36 lines of sliced VBI data are present.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-mpeg-vbi-itv0">
-> +      <title>struct <structname>v4l2_mpeg_vbi_itv0</structname>
-> +      </title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__le32</entry>
-> +	    <entry><structfield>linemask</structfield>[2]</entry>
-> +	    <entry><para>Bitmasks indicating the VBI service lines
-> +present.  These <structfield>linemask</structfield> values are stored
-> +in little endian byte order in the MPEG stream.  Some reference
-> +<structfield>linemask</structfield> bit positions with their
-> +corresponding VBI line number and video field are given below.
-> +b<subscript>0</subscript> indicates the least significant bit of a
-> +<structfield>linemask</structfield> value:<screen>
-> +<structfield>linemask</structfield>[0] b<subscript>0</subscript>:		line 
-> 6		first field +<structfield>linemask</structfield>[0]
-> b<subscript>17</subscript>:		line 23		first field
-> +<structfield>linemask</structfield>[0] b<subscript>18</subscript>:		line
->  6		second field +<structfield>linemask</structfield>[0]
-> b<subscript>31</subscript>:		line 19		second field
-> +<structfield>linemask</structfield>[1] b<subscript>0</subscript>:		line
-> 20		second field +<structfield>linemask</structfield>[1]
-> b<subscript>3</subscript>:		line 23		second field
-> +<structfield>linemask</structfield>[1]
-> b<subscript>4</subscript>-b<subscript>31</subscript>:	unused and set to
-> 0</screen></para></entry> +	  </row>
-> +	  <row>
-> +            <entry>struct <link linkend="v4l2-mpeg-vbi-itv0-line">
-> +              <structname>v4l2_mpeg_vbi_itv0_line</structname></link>
-> +            </entry>
-> +	    <entry><structfield>line</structfield>[35]</entry>
-> +	    <entry>This is a variable length array that holds from 1
-> +to 35 lines of sliced VBI data.  The sliced VBI data lines present
-> +correspond to the bits set in the <structfield>linemask</structfield>
-> +array, starting from b<subscript>0</subscript> of <structfield>
-> +linemask</structfield>[0] up through b<subscript>31</subscript> of
-> +<structfield>linemask</structfield>[0], and from b<subscript>0
-> +</subscript> of <structfield>linemask</structfield>[1] up through b
-> +<subscript>3</subscript> of <structfield>linemask</structfield>[1].
-> +<structfield>line</structfield>[0] corresponds to the first bit
-> +found set in the <structfield>linemask</structfield> array,
-> +<structfield>line</structfield>[1] corresponds to the second bit
-> +found set in the <structfield>linemask</structfield> array, etc.
-> +If no <structfield>linemask</structfield> array bits are set, then
-> +<structfield>line</structfield>[0] may contain one line of
-> +unspecified data that should be ignored by applications.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-mpeg-vbi-ITV0-1">
-> +      <title>struct <structname>v4l2_mpeg_vbi_ITV0</structname>
-> +      </title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +            <entry>struct <link linkend="v4l2-mpeg-vbi-itv0-line">
-> +              <structname>v4l2_mpeg_vbi_itv0_line</structname></link>
-> +            </entry>
-> +	    <entry><structfield>line</structfield>[36]</entry>
-> +	    <entry>A fixed length array of 36 lines of sliced VBI
-> +data.  <structfield>line</structfield>[0] through <structfield>line
-> +</structfield>[17] correspond to lines 6 through 23 of the
-> +first field.  <structfield>line</structfield>[18] through
-> +<structfield>line</structfield>[35] corresponds to lines 6
-> +through 23 of the second field.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-mpeg-vbi-itv0-line">
-> +      <title>struct <structname>v4l2_mpeg_vbi_itv0_line</structname>
-> +      </title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u8</entry>
-> +	    <entry><structfield>id</structfield></entry>
-> +	    <entry>A line identifier value from
-> +<xref linkend="ITV0-Line-Identifier-Constants"> that indicates
-> +the type of sliced VBI data stored on this line.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u8</entry>
-> +	    <entry><structfield>data</structfield>[42]</entry>
-> +	    <entry>The sliced VBI data for the line.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="ITV0-Line-Identifier-Constants">
-> +      <title>Line Identifiers for struct <link
-> +      linkend="v4l2-mpeg-vbi-itv0-line"><structname>
-> +v4l2_mpeg_vbi_itv0_line</structname></link> <structfield>id
-> +</structfield> field</title>
-> +      <tgroup cols="3">
-> +	&cs-def;
-> +	<thead>
-> +	  <row>
-> +	    <entry align="left">Defined Symbol</entry>
-> +	    <entry align="left">Value</entry>
-> +	    <entry align="left">Decription</entry>
-> +	  </row>
-> +	</thead>
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_MPEG_VBI_IVTV_TELETEXT_B</constant>
-> +	    </entry>
-> +	    <entry>1</entry>
-> +	    <entry>Refer to <link linkend="vbi-services2">
-> +Sliced VBI services</link> for a description of the line
-> payload.</entry> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_MPEG_VBI_IVTV_CAPTION_525</constant>
-> +	    </entry>
-> +	    <entry>4</entry>
-> +	    <entry>Refer to <link linkend="vbi-services2">
-> +Sliced VBI services</link> for a description of the line
-> payload.</entry> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_MPEG_VBI_IVTV_WSS_625</constant>
-> +	    </entry>
-> +	    <entry>5</entry>
-> +	    <entry>Refer to <link linkend="vbi-services2">
-> +Sliced VBI services</link> for a description of the line
-> payload.</entry> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_MPEG_VBI_IVTV_VPS</constant>
-> +	    </entry>
-> +	    <entry>7</entry>
-> +	    <entry>Refer to <link linkend="vbi-services2">
-> +Sliced VBI services</link> for a description of the line
-> payload.</entry> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +  </section>
-> +  </section>
-> +
-> +
->  <!--
->  Local Variables:
->  mode: sgml
-> diff -r 5361470b10f4 v4l2-spec/v4l2.sgml
-> --- a/v4l2-spec/v4l2.sgml	Sun Mar 01 21:10:07 2009 -0500
-> +++ b/v4l2-spec/v4l2.sgml	Wed Mar 11 15:09:50 2009 -0400
-> @@ -25,7 +25,7 @@
->  <book id="v4l2spec">
->    <bookinfo>
->      <title>Video for Linux Two API Specification</title>
-> -    <subtitle>Revision 0.25</subtitle>
-> +    <subtitle>Revision 0.26</subtitle>
->
->      <authorgroup>
->        <author>
-> @@ -77,6 +77,19 @@
->  	<contrib>Designed and documented the VIDIOC_ENUM_FRAMESIZES
->  and VIDIOC_ENUM_FRAMEINTERVALS ioctls.</contrib>
->        </author>
-> +
-> +      <author>
-> +	<firstname>Andy</firstname>
-> +	<surname>Walls</surname>
-> +	<contrib>Documented the fielded V4L2_MPEG_STREAM_VBI_FMT_IVTV
-> +MPEG stream embedded, sliced VBI data format in this specification.
-> +</contrib>
-> +	<affiliation>
-> +	  <address>
-> +	    <email>awalls@radix.net</email>
-> +	  </address>
-> +	</affiliation>
-> +      </author>
->      </authorgroup>
->
->      <copyright>
-> @@ -92,12 +105,12 @@
->        <year>2008</year>
->        <year>2009</year>
->        <holder>Bill Dirks, Michael H. Schimek, Hans Verkuil, Martin
-> -Rubli</holder>
-> +Rubli, Andy Walls</holder>
->      </copyright>
->
->      <legalnotice>
->        <para>This document is copyrighted &copy; 1999-2009 by Bill
-> -Dirks, Michael H. Schimek, Hans Verkuil and Martin Rubli.</para>
-> +Dirks, Michael H. Schimek, Hans Verkuil, Martin Rubli, and Andy
-> Walls.</para>
->
->        <para>Permission is granted to copy, distribute and/or modify
->  this document under the terms of the GNU Free Documentation License,
-> @@ -116,6 +129,14 @@
->  structs, ioctls) must be noted in more detail in the history chapter
->  (compat.sgml), along with the possible impact on existing drivers and
->  applications. -->
-> +
-> +      <revision>
-> +	<revnumber>0.26</revnumber>
-> +	<date>2009-03-11</date>
-> +	<authorinitials>aw</authorinitials>
-> +	<revremark>Added the fielded V4L2_MPEG_STREAM_VBI_FMT_IVTV
-> +MPEG stream embedded, sliced VBI data format.</revremark>
-> +      </revision>
->
->        <revision>
->  	<revnumber>0.25</revnumber>
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
