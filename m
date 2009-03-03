@@ -1,37 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:50629 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753797AbZCEUAH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Mar 2009 15:00:07 -0500
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1LfJjg-0003Lh-8v
-	for linux-media@vger.kernel.org; Thu, 05 Mar 2009 20:00:04 +0000
-Received: from 80-229-248-183.plus.com ([80-229-248-183.plus.com])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 20:00:02 +0000
-Received: from utar101 by 80-229-248-183.plus.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 20:00:02 +0000
-To: linux-media@vger.kernel.org
-From: utar <utar101@gmail.com>
-Subject: Re: Hauppauge NOVA-T 500 falls over after warm reboot
-Date: Thu, 5 Mar 2009 19:57:38 +0000 (UTC)
-Message-ID: <loom.20090305T195350-142@post.gmane.org>
-References: <49AD88BF.30507@gmail.com>  <617be8890903031229n79f93882k63560cb4d17c6b33@mail.gmail.com>  <49AD9C59.1050803@gmail.com> <617be8890903040026t679991bmf69b0076ff5bb64e@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:44665 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751087AbZCCHcl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2009 02:32:41 -0500
+Date: Tue, 3 Mar 2009 08:32:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Magnus <magnus.damm@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] sh_mobile_ceu: Add SOCAM_DATA_ACTIVE_{HIGH/LOW} flags
+In-Reply-To: <u7i37l9ff.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0903030828310.5059@axis700.grange>
+References: <u7i37l9ff.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 3 Mar 2009, Kuninori Morimoto wrote:
 
-> Have you tried rmmoding the module (dvb_usb_dib0700) and reloading it?
-> I think that it was in such a case where it then wrongly detected the
-> card as 'cold', attempting to reload it, which failed.
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+>  drivers/media/video/sh_mobile_ceu_camera.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> index 96cf857..bb10899 100644
+> --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> @@ -107,6 +107,8 @@ static unsigned long make_bus_param(struct sh_mobile_ceu_dev *pcdev)
+>  
+>  	flags = SOCAM_MASTER |
+>  		SOCAM_PCLK_SAMPLE_RISING |
+> +		SOCAM_DATA_ACTIVE_HIGH |
+> +		SOCAM_DATA_ACTIVE_LOW |
+>  		SOCAM_HSYNC_ACTIVE_HIGH |
+>  		SOCAM_HSYNC_ACTIVE_LOW |
+>  		SOCAM_VSYNC_ACTIVE_HIGH |
+> -- 
+> 1.5.6.3
 
-No as if I do a cold boot there isn't an issue.  I just thought I would report
-this so that the developers were aware.
+Please, have a look at the current V4L/DVB next tree at
 
-Many thanks for the suggestion though.
+git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
 
+I already added the SOCAM_DATA_ACTIVE_HIGH flag to sh-mobile-ceu flags, 
+because otherwise it would be a regression. Sorry, I should have told you, 
+that I had to extend your patch a bit. As for supporting 
+SOCAM_DATA_ACTIVE_LOW too - does, for instance, sh7722 really support 
+that? I remember I had a short look at it at that time and didn't find any 
+way to switch. If it does, and if you want to support it, you have to also 
+add support for switching between the two polarities. For now a NAK.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
