@@ -1,36 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57893 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753622AbZCLL2p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 07:28:45 -0400
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH 0/5] V2: soc-camera: setting the buswidth of camera sensors
-Date: Thu, 12 Mar 2009 12:27:14 +0100
-Message-Id: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de>
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:51750 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751491AbZCCUOJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 15:14:09 -0500
+Date: Tue, 3 Mar 2009 12:14:06 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Subject: Re: General protection fault on rmmod cx8800
+In-Reply-To: <20090303131633.52dbb472@hyperion.delvare>
+Message-ID: <Pine.LNX.4.58.0903031212550.24268@shell2.speakeasy.net>
+References: <20090215214108.34f31c39@hyperion.delvare>
+ <20090302133936.00899692@hyperion.delvare> <1236003365.3071.6.camel@palomino.walls.org>
+ <20090302170349.18c8fd75@hyperion.delvare> <20090302200513.7fc3568e@hyperion.delvare>
+ <Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
+ <20090302225235.5d6d47ce@hyperion.delvare> <Pine.LNX.4.58.0903030107110.24268@shell2.speakeasy.net>
+ <20090303131633.52dbb472@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Take 2: I hope I addressed all comments I receive in the first round.
+On Tue, 3 Mar 2009, Jean Delvare wrote:
+> On Tue, 3 Mar 2009 01:40:00 -0800 (PST), Trent Piepho wrote:
+> > On Mon, 2 Mar 2009, Jean Delvare wrote:
+> > In 2.6.20 delayed_work was split from work_struct.  The concept of delayed
+> > work was already there and schedule_delayed_work() hasn't changed.  I think
+> > this can also be handled with a compat.h change that defines delayed_work
+> > to work_struct.  That will only be a problem on pre 2.6.20 kernels if some
+> > code decides to define identifiers named work_struct and delayed_work in
+> > the same scope.  There are currently no identifier named delayed_work in
+> > any driver and one driver (sq905) has a structure member named
+> > work_struct.  So I think it'll be ok.
+>
+> Wow, I didn't expect that many different compatibility issues. This
+> goes beyond the time I am ready to spend on it, I'm afraid.
 
-The following patches change the handling of the bus width
-for camera sensors so that a board can overwrite a sensors
-native bus width
-
-Sascha Hauer (5):
-  soc-camera: add board hook to specify the buswidth for camera sensors
-  pcm990 baseboard: add camera bus width switch setting
-  mt9m001: allow setting of bus width from board code
-  mt9v022: allow setting of bus width from board code
-  soc-camera: remove now unused gpio member of struct soc_camera_link
-
- arch/arm/mach-pxa/pcm990-baseboard.c |   49 ++++++++++--
- drivers/media/video/Kconfig          |   14 ----
- drivers/media/video/mt9m001.c        |  143 ++++++++++------------------------
- drivers/media/video/mt9v022.c        |  141 ++++++++++-----------------------
- include/media/soc_camera.h           |    9 ++-
- 5 files changed, 129 insertions(+), 227 deletions(-)
-
+I already have a patch for compat.h that handles the last remaining issue.
+You don't have to do anything.
