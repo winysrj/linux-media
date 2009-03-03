@@ -1,58 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46724 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754429AbZCPUra (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 16:47:30 -0400
-Date: Mon, 16 Mar 2009 21:47:17 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 1/4] pxa_camera: Enforce YUV422P frame sizes to be 16
- multiples
-In-Reply-To: <Pine.LNX.4.58.0903161254510.28292@shell2.speakeasy.net>
-Message-ID: <Pine.LNX.4.64.0903162146020.4409@axis700.grange>
-References: <1236986240-24115-1-git-send-email-robert.jarzmik@free.fr>
- <1236986240-24115-2-git-send-email-robert.jarzmik@free.fr>
- <Pine.LNX.4.64.0903142359230.8263@axis700.grange> <8763i9fhn9.fsf@free.fr>
- <Pine.LNX.4.58.0903161254510.28292@shell2.speakeasy.net>
+Received: from n5b.bullet.sp1.yahoo.com ([69.147.64.186]:31422 "HELO
+	n5b.bullet.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754434AbZCCX6H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 18:58:07 -0500
+From: David Brownell <david-b@pacbell.net>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+Date: Tue, 3 Mar 2009 15:56:21 -0800
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+References: <A24693684029E5489D1D202277BE89442E1D92A4@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89442E1D92A4@dlee02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+Message-Id: <200903031556.22034.david-b@pacbell.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 16 Mar 2009, Trent Piepho wrote:
-
-> On Mon, 16 Mar 2009, Robert Jarzmik wrote:
-> > >> +	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
-> > >> +		if (!IS_ALIGNED(pix->width * pix->height, PIX_YUV422P_ALIGN))
-> > >> +			pix->height = ALIGN(pix->height, PIX_YUV422P_ALIGN / 2);
-> > >> +		if (!IS_ALIGNED(pix->width * pix->height, PIX_YUV422P_ALIGN))
-> > >> +			pix->width = ALIGN(pix->width, PIX_YUV422P_ALIGN / 2);
-> > >
-> > > Shouldn't this have been sqrt(PIX_YUV422P_ALIGN) (of course, not
-> > > literally) instead of PIX_YUV422P_ALIGN / 2? At least above you say,
-> > > height and width shall be 4 bytes aligned, not 8.
-> > That's a very good catch.
-> > Maybe 2 defines will fit better, as I'm not very please with log2 logic here ... :
-> >
-> > /*
-> >  * YUV422P picture size should be a multiple of 16, so the heuristic aligns
-> >  * height, width on 4 byte boundaries to reach the 16 multiple for the size.
-> >  */
-> > #define YUV422P_X_Y_ALIGN 4
-> > #define YUV422P_SIZE_ALIGN YUV422P_X_Y_ALIGN * YUV422P_X_Y_ALIGN
+On Tuesday 03 March 2009, Aguirre Rodriguez, Sergio Alberto wrote:
 > 
-> Before you spend too much time on this, maybe I could offer a patch to use
-> the generic alignment function I posted before?  I beleive the method in
-> that code will produce better results I think there are multiple drivers
-> that could make use of it.
+> > This patch series depends on the following patches:
+> > 
+> >  - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
+> 
+> http://marc.info/?l=linux-omap&m=123597520231668&w=2
 
-As Robert already replied to you: submit your patches, get them into 
-mainline, then we'll gladly switch to them if they suit our purpose.
+I'd much rather see these drivers just use the regulator
+framework to switch any sensor power rails on/off.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+As with the V4L2 interface changes, the twl4030 regulator
+support will be in mainline for the 2.6.30 kernels.
+
+- Dave
+ 
+
