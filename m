@@ -1,44 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:2317 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753656AbZCQVHa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 17:07:30 -0400
-Received: by fg-out-1718.google.com with SMTP id 13so17043fge.17
-        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 14:07:27 -0700 (PDT)
-From: Alessio Igor Bogani <abogani@texware.it>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Alessio Igor Bogani <abogani@texware.it>
-Subject: [PATCH] radio-mr800.c: Missing mutex include
-Date: Tue, 17 Mar 2009 22:00:18 +0100
-Message-Id: <1237323618-6464-1-git-send-email-abogani@texware.it>
+Received: from smtpout.eastlink.ca ([24.222.0.30]:11302 "EHLO
+	mta03.eastlink.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753376AbZCCPLz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 10:11:55 -0500
+Received: from ip01.eastlink.ca ([24.222.39.10])
+ by mta03.eastlink.ca (Sun Java System Messaging Server 6.2-3.04 (built Jul 15
+ 2005)) with ESMTP id <0KFX000TYRJSJ0U0@mta03.eastlink.ca> for
+ linux-media@vger.kernel.org; Tue, 03 Mar 2009 11:11:52 -0400 (AST)
+Date: Tue, 03 Mar 2009 11:11:52 -0400
+From: JJ <ve1jot@eastlink.ca>
+Subject: Re: [linux-dvb] WinTV HVR-1800 analog Satus
+In-reply-to: <49AD46DC.4080701@mattyo.net>
+To: linux-media@vger.kernel.org
+Message-id: <49AD48B8.8010508@eastlink.ca>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <mailman.1.1236078001.32084.linux-dvb@linuxtv.org>
+ <49AD46DC.4080701@mattyo.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-radio-mr800.c uses struct mutex, so while <linux/mutex.h> seems to be
-pulled in indirectly by one of the headers it already includes, the
-right thing is to include it directly.
-
-Signed-off-by: Alessio Igor Bogani <abogani@texware.it>
----
- drivers/media/radio/radio-mr800.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index fdfc7bf..4d91148 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -58,6 +58,7 @@
- #include <media/v4l2-ioctl.h>
- #include <linux/usb.h>
- #include <linux/version.h>	/* for KERNEL_VERSION MACRO */
-+#include <linux/mutex.h>
- 
- /* driver and module definitions */
- #define DRIVER_AUTHOR "Alexey Klimov <klimov.linux@gmail.com>"
--- 
-1.6.0.4
+Matt Garretson wrote:
+> Steven Toth wrote:
+>   
+>> Dustin Coates wrote:
+>>     
+>>> Any update on the status of analouge for this card? I really would  
+>>>       
+>> Last I checked it worked fine for me.
+>>     
+>
+>
+>
+> Does anyone have an HVR-1800 (digital or analog) coexisting with a 
+> PVR-250?  Mythtv-setup crashes for me when scanning ATSC/QAM channels
+> on the HVR-1800.  Admittedly, I haven't tried to debug it beyond that.
+> But I'm just wondering if these IVTV and DVB devices can coexist at
+> all.
+>
+> Also, does the 2.6.27 kernel have recent enough v4l/dvb stuff for the 
+> HVR-1800 merged in, or should I still be pulling from the linuxtv 
+> repository?
+>
+> Thanks...
+> -Matt
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
+QAM-Cable scans fine with my mythtv-21-fixes, co-existing with my 
+Twinhan 1020 DVB-S...just my analogue support not working...ubuntu 8.10 
+64-bit stock kernel
+JJ
 
