@@ -1,32 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35511 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752941AbZCKOHk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 10:07:40 -0400
-Message-ID: <49B7C5A9.1050906@iki.fi>
-Date: Wed, 11 Mar 2009 16:07:37 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4935 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753992AbZCCVSh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 16:18:37 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+Subject: Re: Possible omission in v4l2-common.c?
+Date: Tue, 3 Mar 2009 22:18:55 +0100
+Cc: linux-media@vger.kernel.org
+References: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com>
+In-Reply-To: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com>
 MIME-Version: 1.0
-To: bloehei <bloehei@yahoo.de>
-CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: EC168 support?!
-References: <200903111217.17846.bloehei@yahoo.de> <49B7A1DF.1080204@iki.fi> <200903111424.02606.bloehei@yahoo.de>
-In-Reply-To: <200903111424.02606.bloehei@yahoo.de>
-Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903032218.55382.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-bloehei wrote:
->> 40 00 00 00 40 08 c5 03 >>> 12 0c 93 80 06 12 0d 43 74 83 f0 e5 48 30 e3 78
-hmm, at least that last fw upload packet is wrong. It should look like
-40 00 00 00 00 18 c5 03 >>> 49 9f f5
+On Tuesday 03 March 2009 13:50:30 Brandon Jenkins wrote:
+> Hello all,
+>
+> I was upgrading drivers this morning to capture the latest changes for
+> the cx18 and I received a merge conflict in v4l2-common.c. In my
+> system, 1 HDPVR and 3 CX18s. The HDPVR sources are 5 weeks old from
+> their last sync up but contain:
+>
+> case V4L2_CID_SHARPNESS:
+>
+> The newer sources do not, but still have reference to sharpness at
+> line 420: case V4L2_CID_SHARPNESS:                return "Sharpness";
+>
+> Because I don't know which way the code is going (is sharpness in or
+> out) I can't submit a patch, but thought I would raise here. Diff
+> below was pulled from clean clone of v4l-dvb tree.
 
-I did yesterday many changes and fixed one bad bug that could be behind 
-that. Please test with latest tree at:
-http://linuxtv.org/hg/~anttip/ec168/
+Sharpness is definitely in. This is a bug, please submit this patch with a 
+Signed-off-by line and I'll get it merged.
 
-regards
-Antti
+Thanks,
+
+	Hans
+
+> Thanks,
+>
+> Brandon
+>
+> diff -r 91f9c6c451f7 linux/drivers/media/video/v4l2-common.c
+> --- a/linux/drivers/media/video/v4l2-common.c	Mon Mar 02 09:39:13 2009
+> -0300 +++ b/linux/drivers/media/video/v4l2-common.c	Tue Mar 03 07:44:58
+> 2009 -0500 @@ -567,6 +567,7 @@
+>  	case V4L2_CID_CONTRAST:
+>  	case V4L2_CID_SATURATION:
+>  	case V4L2_CID_HUE:
+> +	case V4L2_CID_SHARPNESS:
+>  	case V4L2_CID_RED_BALANCE:
+>  	case V4L2_CID_BLUE_BALANCE:
+>  	case V4L2_CID_GAMMA:
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
 -- 
-http://palosaari.fi/
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
