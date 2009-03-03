@@ -1,47 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:50124 "EHLO
-	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755212AbZCMIdf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 04:33:35 -0400
-Date: Fri, 13 Mar 2009 01:33:33 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: VDR User <user.vdr@gmail.com>, Peter Baartz <baartzy@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Kconfig changes in /hg/v4l-dvb caused dvb_usb_cxusb to stop
- building (fwd)
-In-Reply-To: <alpine.LRH.2.00.0903090746470.6607@caramujo.chehab.org>
-Message-ID: <Pine.LNX.4.58.0903130126270.28292@shell2.speakeasy.net>
-References: <alpine.LRH.2.00.0903090746470.6607@caramujo.chehab.org>
+Received: from tichy.grunau.be ([85.131.189.73]:43492 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751513AbZCCW0Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2009 17:26:24 -0500
+From: Janne Grunau <j@jannau.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+Subject: Re: Possible omission in v4l2-common.c?
+Date: Tue, 3 Mar 2009 23:26:16 +0100
+Cc: linux-media@vger.kernel.org
+References: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com>
+In-Reply-To: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903032326.16688.j@jannau.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 9 Mar 2009, Mauro Carvalho Chehab wrote:
-> Btw, if you look at DVB_FE_CUSTOMISE help, it is recommended tho unselect it,
-> if you're not sure what to do.
+Hi,
+
+On Tuesday 03 March 2009 13:50:30 Brandon Jenkins wrote:
 >
->   >
-> >  Anyways, here's what I get:
-> >
-> >  $ grep "^CONFIG" .config
-> >  [everything is 'm']
-> >  CONFIG_DVB_VES1820=m
-> >  CONFIG_DVB_STV0297=m
-> >  CONFIG_DVB_LNBP21=m
+> I was upgrading drivers this morning to capture the latest changes
+> for the cx18 and I received a merge conflict in v4l2-common.c. In my
+> system, 1 HDPVR and 3 CX18s. The HDPVR sources are 5 weeks old from
+> their last sync up but contain:
 >
-> Seems perfect to my eyes.
+> case V4L2_CID_SHARPNESS:
+>
+> The newer sources do not, but still have reference to sharpness at
+> line 420: case V4L2_CID_SHARPNESS:                return "Sharpness";
+>
+> Because I don't know which way the code is going (is sharpness in or
+> out) I can't submit a patch, but thought I would raise here. Diff
+> below was pulled from clean clone of v4l-dvb tree.
 
-I think it might be nicer if the default value for a frontend when
-customize was turned on was whatever it was selected to by the drivers that
-use it.
+That's seems to be a merge issue on your side. V4L2_CID_SHARPNESS was 
+afaik never handled in v4l2_ctrl_query_fill().
 
-When you don't use customize, all the frontends default to 'n'.  If you
-set some driver to 'm', it will set all the frontends it uses to 'm'.  Set
-the driver to 'y' and then those frontends get set to 'y'.
+I pushed a correctly merge hdpvr driver.
 
-If you turn on customize, the default for the frontends should be same as
-what they are when customize is off.  The difference is now you can see
-them and change their value.
+Janne
