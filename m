@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2DCEbaW028701
-	for <video4linux-list@redhat.com>; Fri, 13 Mar 2009 08:14:37 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2DCDkIE024587
-	for <video4linux-list@redhat.com>; Fri, 13 Mar 2009 08:13:46 -0400
-Message-ID: <49BA4E22.20209@hhs.nl>
-Date: Fri, 13 Mar 2009 13:14:26 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n231tqRD018768
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 20:55:52 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n231tah6019147
+	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 20:55:36 -0500
+Date: Mon, 2 Mar 2009 22:55:09 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Vitaly Wool <vital@embeddedalley.com>
+Message-ID: <20090302225509.4603d580@pedra.chehab.org>
+In-Reply-To: <49ABF405.9090005@embeddedalley.com>
+References: <49ABF405.9090005@embeddedalley.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: libv4l release: 0.5.9
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] em28xx: enable Compro VideoMate ForYou sound
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,26 +27,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+On Mon, 02 Mar 2009 17:58:13 +0300
+Vitaly Wool <vital@embeddedalley.com> wrote:
 
-Add support for various new formats, see the changelog entry below:
+> --- linux-next.orig/drivers/media/video/em28xx/em28xx-core.c	2009-03-02 17:50:40.000000000 +0300
+> +++ linux-next/drivers/media/video/em28xx/em28xx-core.c	2009-03-02 17:51:16.000000000 +0300
+> @@ -353,6 +353,7 @@
+>  {
+>  	int ret;
+>  	u8 input;
+> +	int do_mute = 0;
+>  
+>  	if (dev->board.is_em2800) {
+>  		if (dev->ctl_ainput == EM28XX_AMUX_VIDEO)
+> @@ -378,6 +379,16 @@
+>  		}
+>  	}
+>  
+> +	if (dev->mute || input != EM28XX_AUDIO_SRC_TUNER)
+> +		do_mute = 1;
+> +
+> +	if (dev->board.mute_gpio && do_mute)
+> +		em28xx_gpio_set(dev, dev->board.mute_gpio);
+> +
+> +	if (dev->board.unmute_gpio && !do_mute)
+> +		em28xx_gpio_set(dev, dev->board.unmute_gpio);
+> +
+> +
+>  	ret = em28xx_write_reg_bits(dev, EM28XX_R0E_AUDIOSRC, input, 0xc0);
+>  	if (ret < 0)
+>  		return ret;
 
-libv4l-0.5.9
-------------
-* Add support for MR97310A decompression by Kyle Guinn <elyk03@gmail.com>
-* Add support for sq905c decompression by Theodore Kilgore
-   <kilgota@auburn.edu>
-* Add hm12 support for the cx2341x MPEG encoder devices by Hans Verkuil
-   <hverkuil@xs4all.nl>
+This part of the patch doesn't seem correct. We should call the mute gpio only
+if dev->mute, since the mute condition has nothing to do with the selected input.
 
+So, IMO, the above logic should be something like:
 
-Get it here:
-http://people.atrpms.net/~hdegoede/libv4l-0.5.9.tar.gz
+if (dev->mute)
+	em28xx_gpio_set(dev, dev->board.mute_gpio);
+else
+	em28xx_gpio_set(dev, INPUT(dev->ctl_input)->gpio);
 
-Regards,
+Some care should be taken, since the input gpio's are currently being set by
+em28xx_set_mode().
 
-Hans
-
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
