@@ -1,73 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f178.google.com ([209.85.218.178]:39273 "EHLO
-	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753628AbZCCU3v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 15:29:51 -0500
-Received: by bwz26 with SMTP id 26so2534512bwz.37
-        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2009 12:29:48 -0800 (PST)
+Received: from smtp.nokia.com ([192.100.122.230]:50176 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752385AbZCCHig (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 02:38:36 -0500
+Message-ID: <49ACDE66.6040903@nokia.com>
+Date: Tue, 03 Mar 2009 09:38:14 +0200
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Reply-To: sakari.ailus@maxwell.research.nokia.com
 MIME-Version: 1.0
-In-Reply-To: <49AD88BF.30507@gmail.com>
-References: <49AD88BF.30507@gmail.com>
-Date: Tue, 3 Mar 2009 21:29:48 +0100
-Message-ID: <617be8890903031229n79f93882k63560cb4d17c6b33@mail.gmail.com>
-Subject: Re: Hauppauge NOVA-T 500 falls over after warm reboot
-From: Eduard Huguet <eduardhc@gmail.com>
-To: uTaR <utar101@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+References: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com>	 <19F8576C6E063C45BE387C64729E73940427BC9B86@dbde02.ent.ti.com> <5e9665e10903022113r17e36afh7861fd00cd8ef0f7@mail.gmail.com>
+In-Reply-To: <5e9665e10903022113r17e36afh7861fd00cd8ef0f7@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-    Same here. I've been observing the same behaviour in the lastest
-times. I can't say exactly since when this happens, though.
+DongSoo(Nathaniel) Kim wrote:
+> This is quite confusing because in case of mine, I wanna make
+> switchable between different cameras attached to omap camera
+> interface.
 
-I've observed that stopping mythbackend,  unloading the driver with
-'rmmod dvb_usb_dib0700' and rebooting again seems to fix the problem.
+Currently the ISP doesn't have a very neat way of controlling its use. 
+In the recent patches, there's a change that allows just one isp_get() 
+--- subsequent calls return -EBUSY.
 
-By the dmesg it seems like, on a warm reboot, it fails to detect the
-card as 'warm' state (dmesg says it's 'cold'), so it attempts to load
-the firmware again, which fails and leaves the card in an unusable
-state.
+So in practice, if you open the first device, you can't open the second 
+one before the first one is closed. That's not very elegant but at least 
+it prevents problematic concurrent access to the ISP.
 
-Best regards,
-  Eduard
+In theory (AFAIK) the ISP *can* be used to receive data from multiple 
+sources at the same time, but there are limitations.
+
+In practice, if you have a hardware mux, you can switch it to a specific 
+sensor when the camera driver tells the slave to go to some state that's 
+not V4L2_POWER_OFF.
+
+> Which idea do I have to follow? Comparing with multiple video input
+> devices and multiple cameras attached to single camera interface is
+> giving me no answer.
+> 
+> Perhaps multiple cameras with single camera interface couldn't make
+> sense at the first place because single camera interface can go with
+> only one camera module at one time.
+> But we are using like that. I mean dual cameras with single camera
+> interface. There is no choice except that when we are using dual
+> camera without stereo camera controller.
+
+Yup, I know, some mobile devices have front and back cameras. :)
+
+> By the way, I cannot find any API documents about
+> VIDIOC_INT_S_VIDEO_ROUTING but it seems to be all about "how to route
+> between input device with output device".
+
+That, I guess, is meant for video output devices.
+
+> What exactly I need is "how to make switchable with multiple camera as
+> an input for camera interface", which means just about an input
+> device. In my opinion, those are different issues each other..(Am I
+> right?)
+> Cheers,
 
 
-
-2009/3/3 uTaR <utar101@gmail.com>:
->
-> Just thought I would report some unusual behaviour I am seeing on my
-> Nova-T 500.  Basically the card works fine with a cold boot but falls
-> over rapidly after a warm reboot.
->
-> This started after I compiled the latest v4l source tree (as at 22 Feb
-> 09) due to me adding a Tevii S650 to my system.  At first I thought it
-> was the Tevii which was causing the problem but testing showed the Nova
-> falls over irrespective of if the Tevii is attached.
->
-> I'm running Ubuntu with 2.6.27-11 and I never had this issue with v4l
-> running "out of the box."
->
-> Sample of the log after the Nova falls over follows:
->
-> [  117.920002] ehci_hcd 0000:05:00.2: force halt; handhake f88f4c14
-> 00004000 00000000 -> -110
-> [  129.412342] mt2060 I2C write failed
-> [  132.412253] mt2060 I2C write failed
-> [  133.713596] mt2060 I2C write failed
-> [  136.712264] mt2060 I2C write failed
-> [  138.004603] mt2060 I2C write failed
-> [  141.004564] mt2060 I2C write failed
-> [  147.177361] mt2060 I2C write failed
-> [  150.176124] mt2060 I2C write failed
-> [  171.026988] mt2060 I2C write failed
-> [  171.041701] mt2060 I2C write failed (len=2)
-> [  171.041824] mt2060 I2C write failed (len=6)
-> [  171.041922] mt2060 I2C read failed
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
