@@ -1,109 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:17633 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750AbZCHXg3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 19:36:29 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so1629331wfa.4
-        for <linux-media@vger.kernel.org>; Sun, 08 Mar 2009 16:36:28 -0700 (PDT)
+Received: from yx-out-2324.google.com ([74.125.44.29]:64042 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367AbZCCMud (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 07:50:33 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so1802484yxm.1
+        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2009 04:50:30 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <49B141F6.6040301@maxwell.research.nokia.com>
-References: <49B141F6.6040301@maxwell.research.nokia.com>
-Date: Mon, 9 Mar 2009 08:36:28 +0900
-Message-ID: <5e9665e10903081636l3e3afda0ofc215a082631927c@mail.gmail.com>
-Subject: Re: OMAP3 ISP and camera drivers (update)
-From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"ext Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
-	=?ISO-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
-	<antti.koskipaa@nokia.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Alexey Klimov <klimov.linux@gmail.com>
+Date: Tue, 3 Mar 2009 07:50:30 -0500
+Message-ID: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com>
+Subject: Possible omission in v4l2-common.c?
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello all,
 
-I've been trying to pull your gitorious patchset into my linux-omap
-repository (which is completely clean and up-to-date), but I'm having
-some problem.
-Please find following messages. I captured my git repository messages.
+I was upgrading drivers this morning to capture the latest changes for
+the cx18 and I received a merge conflict in v4l2-common.c. In my
+system, 1 HDPVR and 3 CX18s. The HDPVR sources are 5 weeks old from
+their last sync up but contain:
 
-kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git pull
+case V4L2_CID_SHARPNESS:
 
-Already up-to-date.
+The newer sources do not, but still have reference to sharpness at
+line 420: case V4L2_CID_SHARPNESS:                return "Sharpness";
 
-kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git status
+Because I don't know which way the code is going (is sharpness in or
+out) I can't submit a patch, but thought I would raise here. Diff
+below was pulled from clean clone of v4l-dvb tree.
 
-# On branch master
+Thanks,
 
-nothing to commit (working directory clean)
+Brandon
 
-kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$
-git pull http://git.gitorious.org/omap3camera/mainline.git v4l iommu
-omap3camera base
-
-error: Could not read 5b007183d51543624bc9f582966f245a64157b57
-
-error: Could not read fa8977215db5ab6139379e95efc193e45833afa3
-
-error: Could not read 7de046a6a8446358001c38ad1d0b2b829ca0c98c
-
-error: Could not read 5b007183d51543624bc9f582966f245a64157b57
-
-Unable to find common commit with dc05ee10583dca44e0f8d4109bd1397ee3c5ffae
-
-Automatic merge failed; fix conflicts and then commit the result.
-
-
-
-
-I guess other people should also have the same issue with it. or am I
-doing wrong way?
-Please let me know
-
-
-On Sat, Mar 7, 2009 at 12:32 AM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> Hi,
->
-> I've updated the patchset in Gitorious.
->
-> <URL:http://www.gitorious.org/projects/omap3camera>
->
-> Changes include
->
-> - Power management support. ISP suspend/resume should work now.
->
-> - Reindented and cleaned up everything. There are still some warnings from
-> checkpatch.pl from the CSI2 code.
->
-> - Fix for crash in device registration, posted to list already. (Thanks,
-> Vaibhav, Alexey!)
->
-> - LSC errors should be handled properly now.
->
-> I won't post the modified patches to the list this time since I guess it
-> wouldn't be much of use, I guess. Or does someone want that? :)
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
-
-
-
--- 
-========================================================
-DongSoo(Nathaniel), Kim
-Engineer
-Mobile S/W Platform Lab. S/W Team.
-DMC
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
+diff -r 91f9c6c451f7 linux/drivers/media/video/v4l2-common.c
+--- a/linux/drivers/media/video/v4l2-common.c	Mon Mar 02 09:39:13 2009 -0300
++++ b/linux/drivers/media/video/v4l2-common.c	Tue Mar 03 07:44:58 2009 -0500
+@@ -567,6 +567,7 @@
+ 	case V4L2_CID_CONTRAST:
+ 	case V4L2_CID_SATURATION:
+ 	case V4L2_CID_HUE:
++	case V4L2_CID_SHARPNESS:
+ 	case V4L2_CID_RED_BALANCE:
+ 	case V4L2_CID_BLUE_BALANCE:
+ 	case V4L2_CID_GAMMA:
