@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2B8ON88011469
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 04:24:23 -0400
-Received: from cluster-d.mailcontrol.com (cluster-d.mailcontrol.com
-	[85.115.60.190])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2B8O3Fw006033
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 04:24:04 -0400
-Received: from mailserver.mta.int (mail.mta.it [89.96.171.250])
-	by rly12d.srv.mailcontrol.com (MailControl) with ESMTP id
-	n2B8O2XW015864
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 08:24:02 GMT
-From: Matteo Canella <matteo.canella@mta.it>
-To: <video4linux-list@redhat.com>
-Date: Wed, 11 Mar 2009 09:24:01 +0100
-Message-ID: <006401c9a222$bb5d2000$32176000$@canella@mta.it>
-MIME-Version: 1.0
-Content-Language: it
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n23EG2v9004466
+	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 09:16:02 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n23EFjCi022971
+	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 09:15:45 -0500
+Date: Tue, 3 Mar 2009 11:15:19 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Vitaly Wool <vital@embeddedalley.com>
+Message-ID: <20090303111519.2af25876@pedra.chehab.org>
+In-Reply-To: <49AD2F59.8070505@embeddedalley.com>
+References: <49ABF405.9090005@embeddedalley.com>
+	<20090302225509.4603d580@pedra.chehab.org>
+	<49AD2F59.8070505@embeddedalley.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: Init sequence
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] em28xx: enable Compro VideoMate ForYou sound
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,34 +29,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, 
+On Tue, 03 Mar 2009 16:23:37 +0300
+Vitaly Wool <vital@embeddedalley.com> wrote:
 
-I'm adding some video4linux capabilities to my fujitsu Carmine video driver,
-but I'm having some initialization problems.
+> 
+> --- linux-next.orig/drivers/media/video/em28xx/em28xx-core.c	2009-03-02 18:08:10.000000000 +0300
+> +++ linux-next/drivers/media/video/em28xx/em28xx-core.c	2009-03-03 10:33:35.000000000 +0300
+> @@ -353,6 +353,7 @@
+>  {
+>  	int ret;
+>  	u8 input;
+> +	int do_mute = 0;
+>  
+>  	if (dev->board.is_em2800) {
+>  		if (dev->ctl_ainput == EM28XX_AMUX_VIDEO)
+> @@ -378,6 +379,14 @@
+>  		}
+>  	}
+>  
+> +	if (dev->mute || input != EM28XX_AUDIO_SRC_TUNER)
+> +		do_mute = 1;
 
-I've added the v4l device registration (video_register_device) in the probe
-routine of the video driver.
 
-My problem is that, during the boot sequence, the v4l2  videodev_init is
-done after the video card probing, so the video_register_device fails,
-causing a kernel oops.
+Do you really need the above line? This will reduce a lot the value of a mute
+callback, since it will not work for EM28XX_AUDIO_SRC_TUNER.
 
-My workaround is to postpone the video_register_device in a later stage, but
-I don't like it so much.
-
-Is there a way to launch the v4l init from my video card driver probe as a
-separate task and make it do the video_register_device asynchronously when
-the video4linux is loaded?
-
-Thank you
-
- 
-
-Matteo Canella
-
- 
-
- 
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
