@@ -1,204 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41455 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbZCKKJu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 06:09:50 -0400
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH 4/4] mt9v022: allow setting of bus width from board code
-Date: Wed, 11 Mar 2009 11:06:16 +0100
-Message-Id: <1236765976-20581-5-git-send-email-s.hauer@pengutronix.de>
-In-Reply-To: <1236765976-20581-4-git-send-email-s.hauer@pengutronix.de>
-References: <1236765976-20581-1-git-send-email-s.hauer@pengutronix.de>
- <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de>
- <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de>
- <1236765976-20581-4-git-send-email-s.hauer@pengutronix.de>
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:59981 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751367AbZCCRvd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Mar 2009 12:51:33 -0500
+Message-ID: <31997377.1236102687174.JavaMail.ngmail@webmail18.arcor-online.net>
+Date: Tue, 3 Mar 2009 18:51:27 +0100 (CET)
+From: ronny.bantin@nexgo.de
+To: patrick.boettcher@desy.de
+Subject: Aw: Re: Support for SkyStar USB 2 ?
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <alpine.LRH.1.10.0903031816520.25473@pub6.ifh.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+References: <alpine.LRH.1.10.0903031816520.25473@pub6.ifh.de> <25314470.1236090890821.JavaMail.ngmail@webmail15.arcor-online.net> <26537179.1236096877826.JavaMail.ngmail@webmail13.arcor-online.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes the phytec specific setting of the bus width
-and switches to the more generic query_bus_param/set_bus_param
-hooks
+Hi Patrick,
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- drivers/media/video/Kconfig   |    7 ---
- drivers/media/video/mt9v022.c |   97 +++++------------------------------------
- 2 files changed, 11 insertions(+), 93 deletions(-)
+Im pretty sure thats the same components.
+The following microchips are on the board:
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 5fc1531..071d66f 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -747,13 +747,6 @@ config SOC_CAMERA_MT9V022
- 	help
- 	  This driver supports MT9V022 cameras from Micron
- 
--config MT9V022_PCA9536_SWITCH
--	bool "pca9536 datawidth switch for mt9v022"
--	depends on SOC_CAMERA_MT9V022 && GENERIC_GPIO
--	help
--	  Select this if your MT9V022 camera uses a PCA9536 I2C GPIO
--	  extender to switch between 8 and 10 bit datawidth modes
--
- config SOC_CAMERA_TW9910
- 	tristate "tw9910 support"
- 	depends on SOC_CAMERA && I2C
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index b04c8cb..26f97eb 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -209,66 +209,6 @@ static int mt9v022_stop_capture(struct soc_camera_device *icd)
- 	return 0;
- }
- 
--static int bus_switch_request(struct mt9v022 *mt9v022, struct soc_camera_link *icl)
--{
--#ifdef CONFIG_MT9V022_PCA9536_SWITCH
--	int ret;
--	unsigned int gpio = icl->gpio;
--
--	if (gpio_is_valid(gpio)) {
--		/* We have a data bus switch. */
--		ret = gpio_request(gpio, "mt9v022");
--		if (ret < 0) {
--			dev_err(&mt9v022->client->dev, "Cannot get GPIO %u\n", gpio);
--			return ret;
--		}
--
--		ret = gpio_direction_output(gpio, 0);
--		if (ret < 0) {
--			dev_err(&mt9v022->client->dev,
--				"Cannot set GPIO %u to output\n", gpio);
--			gpio_free(gpio);
--			return ret;
--		}
--	}
--
--	mt9v022->switch_gpio = gpio;
--#else
--	mt9v022->switch_gpio = -EINVAL;
--#endif
--	return 0;
--}
--
--static void bus_switch_release(struct mt9v022 *mt9v022)
--{
--#ifdef CONFIG_MT9V022_PCA9536_SWITCH
--	if (gpio_is_valid(mt9v022->switch_gpio))
--		gpio_free(mt9v022->switch_gpio);
--#endif
--}
--
--static int bus_switch_act(struct mt9v022 *mt9v022, int go8bit)
--{
--#ifdef CONFIG_MT9V022_PCA9536_SWITCH
--	if (!gpio_is_valid(mt9v022->switch_gpio))
--		return -ENODEV;
--
--	gpio_set_value_cansleep(mt9v022->switch_gpio, go8bit);
--	return 0;
--#else
--	return -ENODEV;
--#endif
--}
--
--static int bus_switch_possible(struct mt9v022 *mt9v022)
--{
--#ifdef CONFIG_MT9V022_PCA9536_SWITCH
--	return gpio_is_valid(mt9v022->switch_gpio);
--#else
--	return 0;
--#endif
--}
--
- static int mt9v022_set_bus_param(struct soc_camera_device *icd,
- 				 unsigned long flags)
- {
-@@ -282,19 +222,10 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
- 	if (!is_power_of_2(width_flag))
- 		return -EINVAL;
- 
--	if ((mt9v022->datawidth != 10 && (width_flag == SOCAM_DATAWIDTH_10)) ||
--	    (mt9v022->datawidth != 9  && (width_flag == SOCAM_DATAWIDTH_9)) ||
--	    (mt9v022->datawidth != 8  && (width_flag == SOCAM_DATAWIDTH_8))) {
--		/* Well, we actually only can do 10 or 8 bits... */
--		if (width_flag == SOCAM_DATAWIDTH_9)
--			return -EINVAL;
--
--		ret = bus_switch_act(mt9v022,
--				     width_flag == SOCAM_DATAWIDTH_8);
--		if (ret < 0)
-+	if (icl->set_bus_param) {
-+		ret = icl->set_bus_param(&mt9v022->client->dev, width_flag);
-+		if (ret)
- 			return ret;
--
--		mt9v022->datawidth = width_flag == SOCAM_DATAWIDTH_8 ? 8 : 10;
- 	}
- 
- 	flags = soc_camera_apply_sensor_flags(icl, flags);
-@@ -328,10 +259,14 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
- static unsigned long mt9v022_query_bus_param(struct soc_camera_device *icd)
- {
- 	struct mt9v022 *mt9v022 = container_of(icd, struct mt9v022, icd);
--	unsigned int width_flag = SOCAM_DATAWIDTH_10;
-+	struct soc_camera_link *icl = mt9v022->client->dev.platform_data;
-+	unsigned int width_flag;
- 
--	if (bus_switch_possible(mt9v022))
--		width_flag |= SOCAM_DATAWIDTH_8;
-+	if (icl->query_bus_param)
-+		width_flag = icl->query_bus_param(&mt9v022->client->dev) &
-+			SOCAM_DATAWIDTH_MASK;
-+	else
-+		width_flag = SOCAM_DATAWIDTH_10;
- 
- 	return SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
- 		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_LOW |
-@@ -729,6 +664,7 @@ static int mt9v022_video_probe(struct soc_camera_device *icd)
- 	/* Set monochrome or colour sensor type */
- 	if (sensor_type && (!strcmp("colour", sensor_type) ||
- 			    !strcmp("color", sensor_type))) {
-+	if (1) {
- 		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
- 		mt9v022->model = V4L2_IDENT_MT9V022IX7ATC;
- 		icd->formats = mt9v022_colour_formats;
-@@ -812,14 +748,6 @@ static int mt9v022_probe(struct i2c_client *client,
- 	icd->height_max	= 480;
- 	icd->y_skip_top	= 1;
- 	icd->iface	= icl->bus_id;
--	/* Default datawidth - this is the only width this camera (normally)
--	 * supports. It is only with extra logic that it can support
--	 * other widths. Therefore it seems to be a sensible default. */
--	mt9v022->datawidth = 10;
--
--	ret = bus_switch_request(mt9v022, icl);
--	if (ret)
--		goto eswinit;
- 
- 	ret = soc_camera_device_register(icd);
- 	if (ret)
-@@ -828,8 +756,6 @@ static int mt9v022_probe(struct i2c_client *client,
- 	return 0;
- 
- eisdr:
--	bus_switch_release(mt9v022);
--eswinit:
- 	kfree(mt9v022);
- 	return ret;
- }
-@@ -839,7 +765,6 @@ static int mt9v022_remove(struct i2c_client *client)
- 	struct mt9v022 *mt9v022 = i2c_get_clientdata(client);
- 
- 	soc_camera_device_unregister(&mt9v022->icd);
--	bus_switch_release(mt9v022);
- 	kfree(mt9v022);
- 
- 	return 0;
--- 
-1.5.6.5
+1x Technisat Flexcop IIB MMRY3-000 0628
+1x PLX NET2282-AB35PC (PCI-USB Bridge)
+1x ISL6421
+and some other very small chips.
+In the tuner bracket:
+1x 24113A-12Z
+1x CX24123-11Z
 
+I will send the pictures tomorrow from my work office, because I have only Light-DSL at home.
+
+Best Regards Ronny.
+
+
+----- Original Nachricht ----
+Von:     Patrick Boettcher <patrick.boettcher@desy.de>
+An:      ronny.bantin@nexgo.de
+Datum:   03.03.2009 18:18
+Betreff: Re: Support for SkyStar USB 2 ?
+
+> Hi Ronny,
+> 
+> On Tue, 3 Mar 2009, ronny.bantin@nexgo.de wrote:
+> > the current flexcop-usb driver supports only USB 1.1 devices. Is there any
+> plan to support USB
+> > 2.0 devices ? The device id is "13d0:2282". For testing I have simply
+> changed the "flexcop_usb_table"
+> > structur to this ids. But of course is does not work.
+> 
+> >
+> > The hardware components are the same of the SkyStar2 PCI (CX24113
+> tuner...).
+> 
+> Are you sure about that?
+> 
+> Can you please send hires-pictures of the innards of the USB box?
+> 
+> Patrick.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+Erwischt! Bei Arcor sehen Sie die besten Promi-Bilder riesengroß und in Top-Qualität. Hier finden Sie die schönsten Schnappschüsse auf dem roten Teppich, lernen die Frauen des Womanizers Boris Becker kennen und schauen den Royals ins Wohnzimmer. Viel Spaß auf Ihrer virtuellen Reise durch die Welt der Stars und Sternchen: http://vip.arcor.de.
