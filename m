@@ -1,40 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:51691 "EHLO
-	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbZCEBmU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 20:42:20 -0500
-Date: Wed, 4 Mar 2009 17:42:18 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 3/5] OV3640: Add driver
-In-Reply-To: <A24693684029E5489D1D202277BE89442E1D9222@dlee02.ent.ti.com>
-Message-ID: <Pine.LNX.4.58.0903041737110.24268@shell2.speakeasy.net>
-References: <A24693684029E5489D1D202277BE89442E1D9222@dlee02.ent.ti.com>
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:43408 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756735AbZCCVIq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 16:08:46 -0500
+Received: by ewy25 with SMTP id 25so2511673ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2009 13:08:43 -0800 (PST)
+Message-ID: <49AD9C59.1050803@gmail.com>
+Date: Tue, 03 Mar 2009 21:08:41 +0000
+From: uTaR <utar101@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Eduard Huguet <eduardhc@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge NOVA-T 500 falls over after warm reboot
+References: <49AD88BF.30507@gmail.com> <617be8890903031229n79f93882k63560cb4d17c6b33@mail.gmail.com>
+In-Reply-To: <617be8890903031229n79f93882k63560cb4d17c6b33@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 3 Mar 2009, Aguirre Rodriguez, Sergio Alberto wrote:
-> +       {
-> +               /* Note:  V4L2 defines RGB565 as:
-> +                *
-> +                *      Byte 0                    Byte 1
-> +                *      g2 g1 g0 r4 r3 r2 r1 r0   b4 b3 b2 b1 b0 g5 g4 g3
-> +                *
-> +                * We interpret RGB565 as:
-> +                *
-> +                *      Byte 0                    Byte 1
-> +                *      g2 g1 g0 b4 b3 b2 b1 b0   r4 r3 r2 r1 r0 g5 g4 g3
 
-The V4L2 spec was corrected to define the RGB565 the normal way.
+> Hi,
+>     Same here. I've been observing the same behaviour in the lastest
+> times. I can't say exactly since when this happens, though.
+> 
+> I've observed that stopping mythbackend,  unloading the driver with
+> 'rmmod dvb_usb_dib0700' and rebooting again seems to fix the problem.
+> 
+> By the dmesg it seems like, on a warm reboot, it fails to detect the
+> card as 'warm' state (dmesg says it's 'cold'), so it attempts to load
+> the firmware again, which fails and leaves the card in an unusable
+> state.
+> 
+> Best regards,
+>   Eduard
+
+Thanks for the reply.
+
+In my case the Nova is correctly identified as being in the "warm" state
+after a reboot, however it still falls over either before I can even
+start playing TV or within a minute or so of actually playing TV.
+
+
+
+
+
+
+
+
+
