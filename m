@@ -1,142 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3039 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756000AbZC3RLv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 13:11:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mark Lord <lkml@rtr.ca>
-Subject: Re: bttv ir patch from Mark Lord
-Date: Mon, 30 Mar 2009 19:11:40 +0200
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-References: <200903301835.55023.hverkuil@xs4all.nl> <49D0FBCE.8050408@rtr.ca> <49D0FC14.6010109@rtr.ca>
-In-Reply-To: <49D0FC14.6010109@rtr.ca>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:34540 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753968AbZCCIGp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 03:06:45 -0500
+Date: Tue, 3 Mar 2009 00:06:43 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+In-Reply-To: <200903030819.01420.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.58.0903022356380.24268@shell2.speakeasy.net>
+References: <200903022218.24259.hverkuil@xs4all.nl>
+ <Pine.LNX.4.58.0903021351370.24268@shell2.speakeasy.net>
+ <200903030819.01420.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903301911.40249.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 30 March 2009 19:06:28 Mark Lord wrote:
-> Michael Krufky wrote:
-> > Mark Lord wrote:
-> >> Michael Krufky wrote:
-> >>> Hans Verkuil wrote:
-> >>>> Hi Mike,
-> >>>>
-> >>>> The attached patch should be queued for 2.6.29.X. It corresponds to
-> >>>> changeset 11098 (v4l2-common: remove incorrect MODULE test) in our
-> >>>> v4l-dvb tree and is part of the initial set of git patches going
-> >>>> into 2.6.30.
-> >>>>
-> >>>> Without this patch loading ivtv as a module while v4l2-common is
-> >>>> compiled into the kernel will cause a delayed load of the i2c
-> >>>> modules that ivtv needs since request_module is never called
-> >>>> directly.
-> >>>>
-> >>>> While it is nice to see the delayed load in action, it is not so
-> >>>> nice in that ivtv fails to do a lot of necessary i2c initializations
-> >>>> and will oops later on with a division-by-zero.
-> >>>>
-> >>>> Thanks to Mark Lord for reporting this and helping me figure out
-> >>>> what was wrong.
-> >>>>
-> >>>> Regards,
-> >>>>
-> >>>>     Hans
-> >>>
-> >>> Got it, thanks.
-> >>>
-> >>> In the future, please point to hash codes rather than revision ID's
-> >>> -- my rev IDs are not the same as yours, but hash codes are always
-> >>> unique.
-> >>>
-> >>> I'll queue this the moment Linus merges Mauro's pending request.
-> >>
-> >> ..
-> >>
-> >> Can either of you guys figure out how to get this patch (or something
-> >> equivalent) merged?  It's been pending for some time now.
-> >>
-> >> Thanks.
-> >>
-> >> Message-ID: <49884CCB.3070309@rtr.ca>
-> >> Date: Tue, 03 Feb 2009 08:55:23 -0500
-> >> From: Mark Lord <lkml@rtr.ca>
-> >> MIME-Version: 1.0
-> >> To: video4linux-list@redhat.com, Linux Kernel
-> >> <linux-kernel@vger.kernel.org> Subject: [PATCH] ir-kbd-i2c: support
-> >> Hauppauge HVR-1600 R/C port Content-Type: text/plain; charset=UTF-8;
-> >> format=flowed
-> >> Content-Transfer-Encoding: 7bit
-> >>
-> >> (resending, with video4linux-list@redhat.com this time)
-> >>
-> >> Update the ir-kbd-i2c driver to recognize the remote-control port
-> >> on the Hauppauge HV-1600 hybrid tuner card.
-> >>
-> >> Signed-off-by: Mark Lord <mlord@pobox.com>
-> >>
-> >> --- old/drivers/media/video/ir-kbd-i2c.c    2008-12-24
-> >> 18:26:37.000000000 -0500 +++ linux/drivers/media/video/ir-kbd-i2c.c   
-> >> 2009-02-01 13:08:19.000000000 -0500 @@ -354,6 +354,11 @@
-> >>             } else {
-> >>                 ir_codes    = ir_codes_rc5_tv;
-> >>             }
-> >> +        } else if (adap->id == I2C_HW_B_CX2341X) {
-> >> +            name        = "Hauppauge";
-> >> +            ir_type     = IR_TYPE_RC5;
-> >> +            ir->get_key = get_key_haup_xvr;
-> >> +            ir_codes    = ir_codes_hauppauge_new;
-> >>         } else {
-> >>             /* Handled by saa7134-input */
-> >>             name        = "SAA713x remote";
-> >> @@ -449,7 +454,7 @@
-> >>        That's why we probe 0x1a (~0x34) first. CB
-> >>     */
-> >>
-> >> -    static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30,
-> >> -1}; +    static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64,
-> >> 0x30, 0x71, -1}; static const int probe_saa7134[] = { 0x7a, 0x47,
-> >> 0x71, 0x2d, -1 }; static const int probe_em28XX[] = { 0x30, 0x47, -1
-> >> };
-> >>     static const int probe_cx88[] = { 0x18, 0x6b, 0x71, -1 };
+On Tue, 3 Mar 2009, Hans Verkuil wrote:
+> On Monday 02 March 2009 23:47:31 Trent Piepho wrote:
+> > On Mon, 2 Mar 2009, Hans Verkuil wrote:
+> > > There are good reasons as a developer for keeping backwards
+> > > compatibility with older kernels:
 > >
-> > looks like a zilog, and you should use LIRC for that.
+> > Do you mean no backwards compatibility with any older kernels?  Or do you
+> > mean just dropping support for the oldest kernels now supported.  What
+> > you've said above sounds like the former.
 >
-> ..
->
-> It's a Hauppauge remote port, just like the one on the (supported)
-> PVR-250. And I don't want the LIRC monstrosity when there's a perfectly
-> good kernel driver to run it directly.  The patch does not prevent others
-> from using LIRC.
->
-> > PLEASE  DO NOT HIJAAK unrelated threads with unrelated emails.
->
-> ..
->
-> "Hijack", not "HIJAAK".   :)
->
-> Resending to copy linux-kernel again.
-> Please do not edit/delete lists from the email headers, thanks.
->
-> thanks.
+> This was about the advantages of having compat code at all to support
+> kernels other than the bleeding edge git kernel.
 
-It's best to wait a bit. Jean Delvare is working on this ir-kbd-i2c driver 
-right now and when he's finished it should be much easier to add this. Most 
-importantly you can add this new i2c address to the cx18 driver rather than 
-add it to the probe_bttv list, which is rather overloaded anyway.
+I thought the poll was only about dropping support for kernels older than
+2.6.22?
 
-He should be finished within 1-3 weeks I guess. Probably sooner rather than 
-later. Just watch the linux-media list for it.
+> > Will you allow drivers to use a combination of probe based and detect
+> > based i2c using the new i2c api?  It's my understanding that you only
+> > support the new i2c api for probe-only drivers.  Probe/detect or ever
+> > detect-only drivers for the new i2c api haven't been done?  I think much
+> > of the difficulty of supporting <2.6.22 will be solved once there is a
+> > way to allow drivers to use both probe and detect with the new api.
+>
+> The difficulties are not with probe or detect, but with the fact that with
+> the new API the adapter driver has to initiate the probe instead of the
+> autoprobing that happened in the past by just loading the i2c module. The
 
-Regards,
+That's not true.  Using the new API's ->probe() method works like you say,
+but using the new API's ->detect() method is much more like the autoprobing
+that happened in the past.
 
-	Hans
+> I don't think we have to use the detect() functionality at all in i2c
+> modules, although I need to look at bttv more closely to see whether that
+> is a true statement. I'm at this moment opposed to the use of detect()
+> since I fear it can lead to pretty much the same problems as autoprobing
+> does when you start to rely on it. It's meant for legacy code where proper
+> device/address information is not present. In the case of v4l-dvb the only
+> driver that might qualify is bttv.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+In some cases there is no way to identify the what hardware a card has and
+there is also new cards that are still unknown.
+
+> > I think I would have gone about it from the other side.  Convert bttv to
+> > use detect and then make that backward compatible.  That compatibility
+> > should be much easier and less invasive.
+>
+> This wouldn't have made any difference at all.
+
+But you said yourself that the difficulties are "with the fact that with
+the new API the adapter driver has to initiate the probe instead of the
+autoprobing that happened in the past." Converting the bttv driver to use
+detect with the new API would avoid those difficulties.
