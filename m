@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rolfschumacher.eu ([195.8.233.65]:52403 "EHLO august.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753195AbZCLWr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 18:47:26 -0400
-Received: from [192.168.1.2] (HSI-KBW-078-043-156-228.hsi4.kabel-badenwuerttemberg.de [78.43.156.228])
-	(Authenticated sender: rolf)
-	by august.de (Postfix) with ESMTPA id 8DC061FE22
-	for <linux-media@vger.kernel.org>; Thu, 12 Mar 2009 23:47:24 +0100 (CET)
-Message-ID: <49B990FC.20307@august.de>
-Date: Thu, 12 Mar 2009 23:47:24 +0100
-From: Rolf Schumacher <mailinglist@august.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] getting started
-References: <49B982A5.7010103@august.de> <49B98677.9030102@iki.fi>
-In-Reply-To: <49B98677.9030102@iki.fi>
-Content-Type: text/plain; charset=us-ascii
+Received: from zone0.gcu-squad.org ([212.85.147.21]:6047 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755208AbZCCMQo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 07:16:44 -0500
+Date: Tue, 3 Mar 2009 13:16:33 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Subject: Re: General protection fault on rmmod cx8800
+Message-ID: <20090303131633.52dbb472@hyperion.delvare>
+In-Reply-To: <Pine.LNX.4.58.0903030107110.24268@shell2.speakeasy.net>
+References: <20090215214108.34f31c39@hyperion.delvare>
+	<20090302133936.00899692@hyperion.delvare>
+	<1236003365.3071.6.camel@palomino.walls.org>
+	<20090302170349.18c8fd75@hyperion.delvare>
+	<20090302200513.7fc3568e@hyperion.delvare>
+	<Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
+	<20090302225235.5d6d47ce@hyperion.delvare>
+	<Pine.LNX.4.58.0903030107110.24268@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thank you, Antti, Thomas
+On Tue, 3 Mar 2009 01:40:00 -0800 (PST), Trent Piepho wrote:
+> On Mon, 2 Mar 2009, Jean Delvare wrote:
+> > > Makes the most sense to me.  I was just about to make a patch to do the
+> > > same thing when I got your email.  Though I was going to patch the v4l-dvb
+> > > sources to avoid porting work.
+> >
+> > It was easier for me to test on an upstream kernel. The porting should
+> > be fairly easy, I can take care of it. The difficult part will be to
+> > handle the compatibility with kernels < 2.6.20 because delayed_work was
+> > introduced in 2.6.20. Probably "compatibility" here will simply mean
+> > that the bug I've hit will only be fixed for kernels >= 2.6.20. Which
+> > once again raises the question of whether we really want to keep
+> > supporting these old kernels.
+> 
+> cancel_delayed_work_sync() was renamed from cancel_rearming_delayed_work()
+> in 2.6.23.  A compat.h patch can handle that one.
+> 
+> In 2.6.22, cancel_delayed_work_sync(work) was created from
+> cancel_rearming_delayed_workqueue(wq, work).  The kernel has a compat
+> function to turn cancel_rearming_delayed_workqueue() into the
+> cancel_delayed_work_sync() call.  cancel_rearming_delayed_workqueue() has
+> been around since 2.6.13.  Apparently it was un-exported for a while
+> because it had no users, see commit v2.6.12-rc2-8-g81ddef7.  Isn't it nice
+> that there a commit message other than "export
+> cancel_rearming_delayed_workqueue"?  Let me again express my dislike for
+> commit with no description.
+> 
+> In 2.6.20 delayed_work was split from work_struct.  The concept of delayed
+> work was already there and schedule_delayed_work() hasn't changed.  I think
+> this can also be handled with a compat.h change that defines delayed_work
+> to work_struct.  That will only be a problem on pre 2.6.20 kernels if some
+> code decides to define identifiers named work_struct and delayed_work in
+> the same scope.  There are currently no identifier named delayed_work in
+> any driver and one driver (sq905) has a structure member named
+> work_struct.  So I think it'll be ok.
 
-kernel-headers are installed.
-Why does make try to read the wrong file?
+Wow, I didn't expect that many different compatibility issues. This
+goes beyond the time I am ready to spend on it, I'm afraid.
 
-My kernel is named 2.6.28-7.slh.4-sidux-686, not 2.6.28-7.slh.3-sidux-686
-
----------
-rsc@rolf9:~/src/v4l-dvb$ make
-make -C /home/rsc/src/v4l-dvb/v4l
-make[1]: Entering directory `/home/rsc/src/v4l-dvb/v4l'
-Updating/Creating .config
-Preparing to compile for kernel version 2.6.28
-File not found: /lib/modules/2.6.28-7.slh.3-sidux-686/build/.config at
-./scripts/make_kconfig.pl line 32, <IN> line 4.
-make[1]: *** Keine Regel vorhanden, um das Target ?.myconfig?,
-beno"tigt von ?config-compat.h?, zu erstellen. Schluss.
-make[1]: Leaving directory `/home/rsc/src/v4l-dvb/v4l'
-make: *** [all] Fehler 2
-rsc@rolf9:~/src/v4l-dvb$
-rsc@rolf9:~/src/v4l-dvb$ ls -la
-/lib/modules/2.6.28-7.slh.3-sidux-686/build/.config
-ls: Zugriff auf /lib/modules/2.6.28-7.slh.3-sidux-686/build/.config
-nicht mo"glich: Datei oder Verzeichnis nicht gefunden
-rsc@rolf9:~/src/v4l-dvb$ ls -la
-/lib/modules/2.6.28-7.slh.4-sidux-686/build/.config
--rw-r--r-- 1 root root 95158 12. Ma"r 00:30
-/lib/modules/2.6.28-7.slh.4-sidux-686/build/.config
-rsc@rolf9:~/src/v4l-dvb$ hg update
-0 files updated, 0 files merged, 0 files removed, 0 files unresolved
-rsc@rolf9:~/src/v4l-dvb$
-
-------------
-
-Antti Palosaari wrote:
-> Rolf Schumacher wrote:
->   
->> File not found: /lib/modules/2.6.28-7.slh.3-sidux-686/build/.config at
->> ./scripts/make_kconfig.pl line 32, <IN> line 4.
->>     
->
-> kernel-devel, kernel-headers, linux-devel or linux-headers package is 
-> missing. Package name varies from distribution to distribution...
->
->
->   
+-- 
+Jean Delvare
