@@ -1,33 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.229]:3848 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753325AbZCHSiI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 14:38:08 -0400
-Received: by rv-out-0506.google.com with SMTP id g37so1303702rvb.1
-        for <linux-media@vger.kernel.org>; Sun, 08 Mar 2009 11:38:06 -0700 (PDT)
+Received: from mail-out.m-online.net ([212.18.0.10]:42285 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751892AbZCDKgc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 05:36:32 -0500
+Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
+	by mail-out.m-online.net (Postfix) with ESMTP id 208811C0209F
+	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:31 +0100 (CET)
+Received: from localhost (dynscan2.mnet-online.de [192.168.1.215])
+	by mail.m-online.net (Postfix) with ESMTP id 2CC8B90069
+	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:30 +0100 (CET)
+Received: from mail.mnet-online.de ([192.168.3.149])
+	by localhost (dynscan2.mnet-online.de [192.168.1.215]) (amavisd-new, port 10024)
+	with ESMTP id fvAWKp5pHWGh for <linux-media@vger.kernel.org>;
+	Wed,  4 Mar 2009 11:36:29 +0100 (CET)
+Received: from gauss.x.fun (ppp-88-217-126-229.dynamic.mnet-online.de [88.217.126.229])
+	by mail.nefkom.net (Postfix) with ESMTP
+	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:29 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by gauss.x.fun (Postfix) with ESMTP id B8C891D4371
+	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:28 +0100 (CET)
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Subject: Cleanup of dvb frontend driver header files
+Date: Wed, 4 Mar 2009 11:36:26 +0100
 MIME-Version: 1.0
-In-Reply-To: <20090308140304.3cf9370a@caramujo.chehab.org>
-References: <d18a06340903080108p3d06e2ajd2f4f1026f1eef40@mail.gmail.com>
-	 <20090308140304.3cf9370a@caramujo.chehab.org>
-Date: Sun, 8 Mar 2009 11:38:06 -0700
-Message-ID: <a3ef07920903081138n25f00be1k282061ed17bf406@mail.gmail.com>
-Subject: Re: Kconfig changes in /hg/v4l-dvb caused dvb_usb_cxusb to stop
-	building
-From: VDR User <user.vdr@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Peter Baartz <baartzy@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903041136.27283.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 8, 2009 at 10:03 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> This seems to be caused by a bug at the out-of-tree building system. I'm
-> currently checking what's going wrong.
+Hi there!
 
-Yesterday I grabbed a fresh clone of v4l and compiled drivers for my
-nexus-s.  Only that none of the required frontend modules were enabled
-automatically as they should be when I selected AV7110.  I had to
-manually go enable them by hand.  Luckily I knew which ones were
-needed but I'm sure a ton of users have no clue.
+While having a look at lnbp21.h I have seen it includes <linux/dvb/frontend.h> 
+without needing it. (There are only pointers referring to struct 
+dvb_frontend).
+
+So I had a look at the whole directory.
+# cd linux/drivers/media/dvb/frontends
+# grep -l linux/dvb/frontend.h *.h|wc -l
+47
+
+So 47 header files include this header and seem not to need it.
+At least removing this line still allows me to compile the full set of v4l-dvb 
+drivers.
+# sed -e '/linux\/dvb\/frontend/s-^-// -' -i *.h
+
+Some of these files use more headers the same way like dvb_frontend.h, 
+firmware.h or i2c.h
+
+Is this kind of cleanup appreciated, or should the includes be kept even if 
+they are not really needed for pointers to structs like dvb_frontend.
+
+Regards
+Matthias
