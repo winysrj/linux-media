@@ -1,49 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:45345 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750854AbZCKVV2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 17:21:28 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: mike@compulab.co.il,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/4] pxa_camera: Redesign DMA handling
-References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
-	<1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
-	<1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0903091023540.3992@axis700.grange>
-	<87sklms9ni.fsf@free.fr>
-	<Pine.LNX.4.64.0903092310510.5857@axis700.grange>
-	<87r615hwzb.fsf@free.fr>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 11 Mar 2009 22:21:16 +0100
-In-Reply-To: <87r615hwzb.fsf@free.fr> (Robert Jarzmik's message of "Tue\, 10 Mar 2009 22\:46\:48 +0100")
-Message-ID: <873adjhi2b.fsf@free.fr>
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:51527 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752401AbZCDI0r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 03:26:47 -0500
+Received: by fxm24 with SMTP id 24so2767735fxm.37
+        for <linux-media@vger.kernel.org>; Wed, 04 Mar 2009 00:26:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <49AD9C59.1050803@gmail.com>
+References: <49AD88BF.30507@gmail.com>
+	 <617be8890903031229n79f93882k63560cb4d17c6b33@mail.gmail.com>
+	 <49AD9C59.1050803@gmail.com>
+Date: Wed, 4 Mar 2009 09:26:44 +0100
+Message-ID: <617be8890903040026t679991bmf69b0076ff5bb64e@mail.gmail.com>
+Subject: Re: Hauppauge NOVA-T 500 falls over after warm reboot
+From: Eduard Huguet <eduardhc@gmail.com>
+To: uTaR <utar101@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Robert Jarzmik <robert.jarzmik@free.fr> writes:
+Have you tried rmmoding the module (dvb_usb_dib0700) and reloading it?
+I think that it was in such a case where it then wrongly detected the
+card as 'cold', attempting to reload it, which failed.
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
->  It is the result of our conversation about "hot DMA linking". I tested both
-> paths (the optimal one and the one where DMA stops while queuing =>
-> cf. pxa_camera_check_link_miss) for RGB565 format.  I'll test further for
-> YUV422P ...
 
-Well, surprise surprise with the YUV422P format. We're not done yet ...
-
-There is a little issue with overrun : buf->active_dma is cleared in dma irq
-handler (for example suppose is cleared of DMA_U which finished first). Then an
-overrun occurs, and we restart that frame ...
-
-We should have reset buf->active_dma to DMA_Y | DMA_U | DMA_V.
-I think same thing applies to the "hot chain" link miss restart.
-
-The non-regression tests are not yet finished ... exciting, isn't it ? :)
-
-Cheers.
-
---
-Robert
+2009/3/3 uTaR <utar101@gmail.com>:
+>
+>> Hi,
+>>     Same here. I've been observing the same behaviour in the lastest
+>> times. I can't say exactly since when this happens, though.
+>>
+>> I've observed that stopping mythbackend,  unloading the driver with
+>> 'rmmod dvb_usb_dib0700' and rebooting again seems to fix the problem.
+>>
+>> By the dmesg it seems like, on a warm reboot, it fails to detect the
+>> card as 'warm' state (dmesg says it's 'cold'), so it attempts to load
+>> the firmware again, which fails and leaves the card in an unusable
+>> state.
+>>
+>> Best regards,
+>>   Eduard
+>
+> Thanks for the reply.
+>
+> In my case the Nova is correctly identified as being in the "warm" state
+> after a reboot, however it still falls over either before I can even
+> start playing TV or within a minute or so of actually playing TV.
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
