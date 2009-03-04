@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zmr1.zoran.com ([67.98.202.21]:32903 "EHLO zmr1.zoran.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757753AbZCZWNR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 18:13:17 -0400
-Message-ID: <49CBF437.7030603@zoran.com>
-Date: Thu, 26 Mar 2009 17:31:35 -0400
-From: Dave Strauss <Dave.Strauss@zoran.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
-References: <49C89F00.1020402@gmail.com>	<Pine.LNX.4.64.0903261405520.5438@axis700.grange>	<49CBD53C.6060700@gmail.com> <20090326170910.6926d8de@pedra.chehab.org> <Pine.LNX.4.64.0903262116410.5438@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0903262116410.5438@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:55496 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753978AbZCDRRp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 12:17:45 -0500
+Date: Wed, 4 Mar 2009 14:17:15 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+Message-ID: <20090304141715.0a1af14d@pedra.chehab.org>
+In-Reply-To: <200903022218.24259.hverkuil@xs4all.nl>
+References: <200903022218.24259.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Thu, 26 Mar 2009, Mauro Carvalho Chehab wrote:
-> 
->>>>> +	/* common v4l buffer stuff -- must be first */
->>>>> +	struct videobuf_buffer vb;
->>>>>     
->>>> Here you have one space
->>>>
->>>>   
->>>>> +
->>>>> +	const struct soc_camera_data_format        *fmt;
->>>>>     
->>>> Here you have 8 spaces
->>>>
->>>>   
->>>>> +
->>>>> +	int			inwork;
->>>>>     
->>>> Here you have tabs. Please, unify.
->> Please always check your patches with checkpatch.pl. This will point such issues.
-> 
-> No, I did check the patch with checkpatch.pl and it didn't complain about 
-> this. It checks _indentation_ of lines, that _must_ be done with TABs, but 
-> it doesn't check what is used for alignment _inside_ lines, like
-> 
-> 	xxx     = 0;
-> 	y	= 1;
-> 	zzzzz   = 2;
-> 
-> where first and third lines have spaces before "=", and the second one has 
-> a TAB. This is not checked by checkpatch.pl.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski
-> 
+Hans,
 
-Newbie question -- where does one find checkpatch.pl?  And are there any other
-tools we should be running on patches before we submit them?
+On Mon, 2 Mar 2009 22:18:24 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Thanks.
+> In the final analysis I'm the boss of my own time. And I've decided that 
+> once the conversion of all the i2c modules is finished I'll stop spending 
+> time on the compatibility code for kernels <2.6.22 as it is simply no 
+> longer an effective use of my time. If someone else wants to spend time on 
+> that, then that's great and I will of course answer questions or help in 
+> whatever way is needed.
+> 
+> I know that Mauro thinks he can keep the backwards compat code in by doing 
+> nifty code transformations. It would be nice if he succeeds (and I have no 
+> doubt that it is possible given enough time and effort), but personally I 
+> think it is time better spent elsewhere.
 
-  - Dave Strauss
+It required just a couple of hours today, in order to add the I2C conversion
+rules on the backport tree:
+
+	http://linuxtv.org/hg/~mchehab/backport/
+
+There, I used, as example, the tea6415c.c file that you sent me, meant to be an
+example of a driver converted to use just the new I2C API. I've removed from it
+all the other #ifdefs for 2.6.26, so, the module doesn't have any compat bits
+(except for "compat.h" that can also be handled by the script). I didn't compile
+the entire tree, since several drivers will break, as they aren't ported yet
+to the new I2C style.
+
+Maybe a few adjustments on the backport.pl may be needed, after having all
+drivers converted to 2.6.22, since the final version may need some other
+patching rules.
+
+That's said, the backport tree is still an experimental work. The scripts
+require more time to be tested, and the Makefiles need some cleanups.
+
+Beside the fact that we don't need to strip support for legacy kernels, the
+advantage of using this method is that we can evolute to a new development
+model. As several developers already required, we should really use the
+standard -git tree as everybody's else. This will simplify a lot the way we
+work, and give us more agility to send patches upstream.
+
+With this backport script, plus the current v4l-dvb building systems, and after
+having all backport rules properly mapped, we can generate a "test tree"
+based on -git drivers/media, for the users to test the drivers against their
+kernels, and still use a clean tree for development.
+
+Cheers,
+Mauro
+
+--
+
+PS: the tea6415c.c fully ported to the new I2C API you sent in priv
+doesn't compile fine with 2.6.28. Since this file is just an example, I didn't
+care to fix it.
