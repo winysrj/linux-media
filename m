@@ -1,44 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:37066 "EHLO tichy.grunau.be"
+Received: from mail.windriver.com ([147.11.1.11]:37918 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753024AbZC0U7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 16:59:46 -0400
-Date: Fri, 27 Mar 2009 21:59:23 +0100
-From: Janne Grunau <j@jannau.net>
-To: David Brownell <david-b@pacbell.net>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	linux-media@vger.kernel.org,
-	Ricardo Jorge da Fonseca Marques Ferreira
-	<storm@sys49152.net>, linux-usb@vger.kernel.org
-Subject: Re: v4l parent for usb device interface or device?
-Message-ID: <20090327205923.GA6064@aniel>
-References: <20232.62.70.2.252.1237993114.squirrel@webmail.xs4all.nl> <49CB7545.2050301@redhat.com> <20090327005124.GD2349@aniel> <200903261831.55746.david-b@pacbell.net>
+	id S1750771AbZCDFch (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 00:32:37 -0500
+Message-ID: <49AE14E7.2010709@windriver.com>
+Date: Wed, 04 Mar 2009 13:43:03 +0800
+From: "stanley.miao" <stanley.miao@windriver.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200903261831.55746.david-b@pacbell.net>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+References: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 26, 2009 at 06:31:55PM -0700, David Brownell wrote:
-> On Thursday 26 March 2009, Janne Grunau wrote:
-> 
-> > I noticed a problem after 
-> > changing the hdpvr driver accordingly.
-> > 
-> > With parent set to the usb interface there is no longer easy access to
-> > the usb device properties like the serial number through sysfs. I know
-> > that a couple of user with more than one device use the serial number
-> > to set static device nodes through udev.
-> 
-> The serial number is still available, but it's coupled to the USB
-> device not its interface.  Make your udev script hop up a level or
-> two in the driver model tree, as appropriate.
+Aguirre Rodriguez, Sergio Alberto wrote:
+> This patch series depends on the following patches:
+>
+>  - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
+>  - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus on
+>    March 3rd. (Please follow his instructions to pull from gitorious.org server)
+>
+> This has been tested with:
+>  - SDP3430-VG5.0.1 with OMAP3430-ES3.1 daughter board upgrade.
+>  - Camkit V3.0.1 with MT9P012 and OV3640 sensors
+>  - LDP with OV3640 sensor
+>
+> Sergio Aguirre (5):
+>   MT9P012: Add driver
+>   DW9710: Add driver
+>   OV3640: Add driver
+>   
+Hi, Sergio,
 
-yes, ATTRS{} still matches. There are udev howtos around which suggest
-ATTRS{} just matches one level up and not the entire path. I tried it but
-had unfortunately a typo in the udev rule. Sorry for the noise.
+You forgot to send the 3rd patch, "OV3640: Add driver".
 
-Janne
+Stanley.
+
+>   OMAP3430SDP: Add support for Camera Kit v3
+>   LDP: Add support for built-in camera
+>   
+
