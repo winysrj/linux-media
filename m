@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2DCpMNY017255
-	for <video4linux-list@redhat.com>; Fri, 13 Mar 2009 08:51:22 -0400
-Received: from mail-bw0-f160.google.com (mail-bw0-f160.google.com
-	[209.85.218.160])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2DCowHL019850
-	for <video4linux-list@redhat.com>; Fri, 13 Mar 2009 08:50:59 -0400
-Received: by bwz4 with SMTP id 4so2665138bwz.3
-	for <video4linux-list@redhat.com>; Fri, 13 Mar 2009 05:50:57 -0700 (PDT)
-Message-ID: <49BA56AF.9040101@lfarkas.org>
-Date: Fri, 13 Mar 2009 13:50:55 +0100
-From: Farkas Levente <lfarkas@lfarkas.org>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n24BctY2007272
+	for <video4linux-list@redhat.com>; Wed, 4 Mar 2009 06:38:55 -0500
+Received: from smtp103.biz.mail.re2.yahoo.com (smtp103.biz.mail.re2.yahoo.com
+	[68.142.229.217])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n24BccKJ013127
+	for <video4linux-list@redhat.com>; Wed, 4 Mar 2009 06:38:38 -0500
+Message-ID: <49AE65B8.1090609@embeddedalley.com>
+Date: Wed, 04 Mar 2009 14:27:52 +0300
+From: Vitaly Wool <vital@embeddedalley.com>
 MIME-Version: 1.0
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-References: <49BA4E22.20209@hhs.nl>
-In-Reply-To: <49BA4E22.20209@hhs.nl>
-Content-Type: text/plain; charset=windows-1252
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Subject: Re: libv4l release: 0.5.9
+Cc: video4linux-list@redhat.com
+Subject: [PATCH/upd] em28xx: enable Compro VideoMate ForYou sound
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,140 +26,146 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans de Goede wrote:
-> Hi All,
-> 
-> Add support for various new formats, see the changelog entry below:
-> 
-> libv4l-0.5.9
-> ------------
-> * Add support for MR97310A decompression by Kyle Guinn <elyk03@gmail.com>
-> * Add support for sq905c decompression by Theodore Kilgore
->   <kilgota@auburn.edu>
-> * Add hm12 support for the cx2341x MPEG encoder devices by Hans Verkuil
->   <hverkuil@xs4all.nl>
-> 
-> 
-> Get it here:
-> http://people.atrpms.net/~hdegoede/libv4l-0.5.9.tar.gz
+Hello Mauro,
 
-is there any plan to be compile on epel-5 to? it's currently can't
-compile on it.
-yours.
+below is the new patch candidate for Compro VideoMate ForYou/Stereo USB TV box sound enablement.
 
-gcc -c -MMD -I../include -I../../../include -fvisibility=hidden -fPIC
--O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions
--fstack-protector --param=ssp-buffer-size=4 -m32 -march=i386
--mtune=generic -fasynchronous-unwind-tables -o sn9c20x.o sn9c20x.c
-In file included from libv4lconvert-priv.h:24,
-                 from sn9c20x.c:25:
-../include/libv4lconvert.h:77: warning: 'struct v4l2_frmsizeenum'
-declared inside parameter list
-../include/libv4lconvert.h:77: warning: its scope is only this
-definition or declaration, which is probably not what you want
-../include/libv4lconvert.h:82: warning: 'struct v4l2_frmivalenum'
-declared inside parameter list
-In file included from sn9c20x.c:25:
-libv4lconvert-priv.h:104: error: array type has incomplete element type
-sn9c20x.c: In function 'v4lconvert_sn9c20x_to_yuv420':
-sn9c20x.c:81: warning: unused variable 'height_div2'
-make[1]: *** [sn9c20x.o] Error 1
-make[1]: *** Waiting for unfinished jobs....
-In file included from libv4lconvert-priv.h:24,
-                 from sn9c10x.c:25:
-../include/libv4lconvert.h:77: warning: 'struct v4l2_frmsizeenum'
-declared inside parameter list
-../include/libv4lconvert.h:77: warning: its scope is only this
-definition or declaration, which is probably not what you want
-../include/libv4lconvert.h:82: warning: 'struct v4l2_frmivalenum'
-declared inside parameter list
-In file included from sn9c10x.c:25:
-libv4lconvert-priv.h:104: error: array type has incomplete element type
-make[1]: *** [sn9c10x.o] Error 1
-In file included from libv4lconvert.c:27:
-../include/libv4lconvert.h:77: warning: 'struct v4l2_frmsizeenum'
-declared inside parameter list
-../include/libv4lconvert.h:77: warning: its scope is only this
-definition or declaration, which is probably not what you want
-../include/libv4lconvert.h:82: warning: 'struct v4l2_frmivalenum'
-declared inside parameter list
-In file included from libv4lconvert.c:28:
-libv4lconvert-priv.h:104: error: array type has incomplete element type
-libv4lconvert.c: In function 'v4lconvert_get_framesizes':
-libv4lconvert.c:921: error: variable 'frmsize' has initializer but
-incomplete type
-libv4lconvert.c:921: error: unknown field 'pixel_format' specified in
-initializer
-libv4lconvert.c:921: warning: excess elements in struct initializer
-libv4lconvert.c:921: warning: (near initialization for 'frmsize')
-libv4lconvert.c:921: error: storage size of 'frmsize' isn't known
-libv4lconvert.c:925: error: 'VIDIOC_ENUM_FRAMESIZES' undeclared (first
-use in this function)
-libv4lconvert.c:925: error: (Each undeclared identifier is reported only
-once
-libv4lconvert.c:925: error: for each function it appears in.)
-libv4lconvert.c:935: error: 'V4L2_FRMSIZE_TYPE_DISCRETE' undeclared
-(first use in this function)
-libv4lconvert.c:940: error: 'V4L2_FRMSIZE_TYPE_CONTINUOUS' undeclared
-(first use in this function)
-libv4lconvert.c:941: error: 'V4L2_FRMSIZE_TYPE_STEPWISE' undeclared
-(first use in this function)
-libv4lconvert.c:921: warning: unused variable 'frmsize'
-libv4lconvert.c: At top level:
-libv4lconvert.c:979: error: conflicting types for
-'v4lconvert_enum_framesizes'
-../include/libv4lconvert.h:77: error: previous declaration of
-'v4lconvert_enum_framesizes' was here
-libv4lconvert.c: In function 'v4lconvert_enum_framesizes':
-libv4lconvert.c:980: error: dereferencing pointer to incomplete type
-libv4lconvert.c:981: error: 'VIDIOC_ENUM_FRAMESIZES' undeclared (first
-use in this function)
-libv4lconvert.c:983: error: dereferencing pointer to incomplete type
-libv4lconvert.c:988: error: dereferencing pointer to incomplete type
-libv4lconvert.c:988: error: dereferencing pointer to incomplete type
-libv4lconvert.c:989: error: dereferencing pointer to incomplete type
-libv4lconvert.c:990: error: 'V4L2_FRMSIZE_TYPE_DISCRETE' undeclared
-(first use in this function)
-libv4lconvert.c:991: error: dereferencing pointer to incomplete type
-libv4lconvert.c:991: error: dereferencing pointer to incomplete type
-libv4lconvert.c:993: error: 'V4L2_FRMSIZE_TYPE_CONTINUOUS' undeclared
-(first use in this function)
-libv4lconvert.c:994: error: 'V4L2_FRMSIZE_TYPE_STEPWISE' undeclared
-(first use in this function)
-libv4lconvert.c:995: error: dereferencing pointer to incomplete type
-libv4lconvert.c:995: error: dereferencing pointer to incomplete type
-libv4lconvert.c: At top level:
-libv4lconvert.c:1003: warning: 'struct v4l2_frmivalenum' declared inside
-parameter list
-libv4lconvert.c:1004: error: conflicting types for
-'v4lconvert_enum_frameintervals'
-../include/libv4lconvert.h:82: error: previous declaration of
-'v4lconvert_enum_frameintervals' was here
-libv4lconvert.c: In function 'v4lconvert_enum_frameintervals':
-libv4lconvert.c:1008: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1009: error: 'VIDIOC_ENUM_FRAMEINTERVALS' undeclared
-(first use in this function)
-libv4lconvert.c:1018: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1019: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1020: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1028: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1029: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1030: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1031: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1033: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1033: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1050: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1051: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1052: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1057: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1073: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1074: error: dereferencing pointer to incomplete type
-libv4lconvert.c:1075: error: dereferencing pointer to incomplete type
-make[1]: *** [libv4lconvert.o] Error 1
+Thanks,
+  Vitaly
 
 
--- 
-  Levente                               "Si vis pacem para bellum!"
+ em28xx-cards.c |   21 ++++++++++++++++++++-
+ em28xx-core.c  |    5 +++++
+ em28xx-i2c.c   |    6 ++++++
+ em28xx-video.c |    7 +++++++
+ em28xx.h       |    1 +
+ 5 files changed, 39 insertions(+), 1 deletion(-)
+
+Signed-off-by: Vitaly Wool <vital@embeddedalley.com>
+
+Index: linux-next/drivers/media/video/em28xx/em28xx-cards.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-cards.c	2009-03-03 10:34:48.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-cards.c	2009-03-03 10:35:16.000000000 +0300
+@@ -122,6 +122,22 @@
+ 	{  -1,			-1,		-1,		-1},
+ };
+ 
++/* Mute/unmute */
++static struct em28xx_reg_seq compro_unmute_tv_gpio[] = {
++	{EM28XX_R08_GPIO,	5,		7,		10},
++	{  -1,			-1,		-1,		-1},
++};
++
++static struct em28xx_reg_seq compro_unmute_svid_gpio[] = {
++	{EM28XX_R08_GPIO,	4,		7,		10},
++	{  -1,			-1,		-1,		-1},
++};
++
++static struct em28xx_reg_seq compro_mute_gpio[] = {
++	{EM28XX_R08_GPIO,	6,		7,		10},
++	{  -1,			-1,		-1,		-1},
++};
++
+ /*
+  *  Board definitions
+  */
+@@ -1225,14 +1241,17 @@
+ 		.tda9887_conf = TDA9887_PRESENT,
+ 		.decoder      = EM28XX_TVP5150,
+ 		.adecoder     = EM28XX_TVAUDIO,
++		.mute_gpio    = compro_mute_gpio,
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_TELEVISION,
+ 			.vmux     = TVP5150_COMPOSITE0,
+-			.amux     = EM28XX_AMUX_LINE_IN,
++			.amux     = EM28XX_AMUX_VIDEO,
++			.gpio     = compro_unmute_tv_gpio,
+ 		}, {
+ 			.type     = EM28XX_VMUX_SVIDEO,
+ 			.vmux     = TVP5150_SVIDEO,
+ 			.amux     = EM28XX_AMUX_LINE_IN,
++			.gpio     = compro_unmute_svid_gpio,
+ 		} },
+ 	},
+ 	[EM2860_BOARD_KAIOMY_TVNPC_U2] = {
+Index: linux-next/drivers/media/video/em28xx/em28xx-core.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-core.c	2009-03-03 10:34:48.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-core.c	2009-03-03 17:41:34.000000000 +0300
+@@ -378,6 +378,11 @@
+ 		}
+ 	}
+ 
++	if (dev->board.mute_gpio && dev->mute)
++		em28xx_gpio_set(dev, dev->board.mute_gpio);
++	else
++		em28xx_gpio_set(dev, INPUT(dev->ctl_input)->gpio);
++
+ 	ret = em28xx_write_reg_bits(dev, EM28XX_R0E_AUDIOSRC, input, 0xc0);
+ 	if (ret < 0)
+ 		return ret;
+Index: linux-next/drivers/media/video/em28xx/em28xx-i2c.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-i2c.c	2009-03-03 10:34:48.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-i2c.c	2009-03-03 10:35:16.000000000 +0300
+@@ -510,12 +510,17 @@
+ 		dprintk1(1, "attach_inform: tvp5150 detected.\n");
+ 		break;
+ 
++	case 0xb0:
++		dprintk1(1, "attach_inform: tda9874 detected\n");
++		break;
++
+ 	default:
+ 		if (!dev->tuner_addr)
+ 			dev->tuner_addr = client->addr;
+ 
+ 		dprintk1(1, "attach inform: detected I2C address %x\n",
+ 				client->addr << 1);
++		dprintk1(1, "driver id %d\n", client->driver->id);
+ 
+ 	}
+ 
+@@ -554,6 +559,7 @@
+ 	[0x80 >> 1] = "msp34xx",
+ 	[0x88 >> 1] = "msp34xx",
+ 	[0xa0 >> 1] = "eeprom",
++	[0xb0 >> 1] = "tda9874",
+ 	[0xb8 >> 1] = "tvp5150a",
+ 	[0xba >> 1] = "tvp5150a",
+ 	[0xc0 >> 1] = "tuner (analog)",
+Index: linux-next/drivers/media/video/em28xx/em28xx-video.c
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx-video.c	2009-03-03 10:34:48.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx-video.c	2009-03-03 10:35:16.000000000 +0300
+@@ -540,6 +540,13 @@
+ 			&route);
+ 	}
+ 
++	if (dev->board.adecoder != EM28XX_NOADECODER) {
++		route.input = dev->ctl_ainput;
++		route.output = dev->ctl_aoutput;
++		em28xx_i2c_call_clients(dev, VIDIOC_INT_S_AUDIO_ROUTING,
++			&route);
++	}
++
+ 	em28xx_audio_analog_set(dev);
+ }
+ 
+Index: linux-next/drivers/media/video/em28xx/em28xx.h
+===================================================================
+--- linux-next.orig/drivers/media/video/em28xx/em28xx.h	2009-03-03 10:34:48.000000000 +0300
++++ linux-next/drivers/media/video/em28xx/em28xx.h	2009-03-03 10:35:16.000000000 +0300
+@@ -374,6 +374,7 @@
+ 	struct em28xx_reg_seq *dvb_gpio;
+ 	struct em28xx_reg_seq *suspend_gpio;
+ 	struct em28xx_reg_seq *tuner_gpio;
++	struct em28xx_reg_seq *mute_gpio;
+ 
+ 	unsigned int is_em2800:1;
+ 	unsigned int has_msp34xx:1;
+
 
 --
 video4linux-list mailing list
