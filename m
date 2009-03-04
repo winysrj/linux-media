@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73]:39565 "EHLO
-	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757882AbZCaWrG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 18:47:06 -0400
-Date: Wed, 1 Apr 2009 00:47:02 +0200
-From: Gabriele Dini Ciacci <dark.schneider@iol.it>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Patrick Boettcher <patrick.boettcher@desy.de>
-Subject: Re: [PATCH] Drivers for Pinnacle pctv200e and pctv60e
-Message-ID: <20090401004702.539afbda@gdc1>
-In-Reply-To: <412bdbff0903311451w776c7b68t22fc3acbcd23fe64@mail.gmail.com>
-References: <20090329155608.396d2257@gdc1>
-	<20090331075610.53620db8@pedra.chehab.org>
-	<20090331212052.152d2ffc@gdc1>
-	<412bdbff0903311359i3f3883dds2d870c93e23d08f2@mail.gmail.com>
-	<20090331233524.4000cb61@gdc1>
-	<412bdbff0903311451w776c7b68t22fc3acbcd23fe64@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from fg-out-1718.google.com ([72.14.220.155]:6516 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751698AbZCDOwh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 09:52:37 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so232436fgg.17
+        for <linux-media@vger.kernel.org>; Wed, 04 Mar 2009 06:52:34 -0800 (PST)
+Date: Wed, 04 Mar 2009 10:52:23 -0400
+From: Manu <eallaud@gmail.com>
+Subject: Re : TT S2-3200 and CAMs
+To: linux-media@vger.kernel.org
+References: <49AE8BB3.3010501@nildram.co.uk>
+In-Reply-To: <49AE8BB3.3010501@nildram.co.uk> (from lotway@nildram.co.uk on
+	Wed Mar  4 10:09:55 2009)
+Message-Id: <1236178343.6048.0@manu-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 31 Mar 2009 17:51:23 -0400
-Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
-
-> On Tue, Mar 31, 2009 at 5:35 PM, Gabriele Dini Ciacci
-> <dark.schneider@iol.it> wrote:
-> > I it's so, say me how to make or where to look to create a profile
-> > for the existing driver.
-> >
-> > I am willing to do the work.
-> >
-> > (when I first wrote the driver to me it seemed that this was the
-> > simplet way.
-> >
-> > Meanwhile I will try to look at the Cypress FX2
+Le 04.03.2009 10:09:55, Lou Otway a écrit :
+> Hi,
 > 
-> As Michael Krufky pointed out to me off-list, I was not exactly
-> correct here.
+> I've been testing the TT S2-3200 card and while it performs well for
+> FTA
+> services I have been unable to get it working with encrypted services
+> using
+> the CI slot.
 > 
-> While there are indeed drivers based on the same FX2 chip in your
-> device, it may be possible to reuse an existing driver, or you may
-> need a whole new driver, depending on how much the firmware varies
-> between your product versus the others.  You may want to look at the
-> pvrusb2 and cxusb drivers, which also use the FX2 chip, and see what
-> similarities exist in terms of the API and command set.  If it is not
-> similar to any of the others, then writing a new driver is probably
-> the correct approach.
+> With VLC I am able to tune to the transponder and pick up all the
+> services
+> but they are not decrypted, unencrypted services work fine.
 > 
-> Regards,
+> Using a DVB-S card with CI I am able to tune successfully, proving 
+> the
+> CAMs
+> are valid. This leads me to believe there may be a problem with the
+> drivers
+> for the S2-3200.
 > 
-> Devin
+> Has anyone managed to get CAMs working with this card?
+> 
+> Any advice gratefully recieved.
+> 
+> Many thanks,
 > 
 
-Fine perfect, thanks,
-
-I will have a look asap and report for judge.
-
-Cheers.
-Gabriele
-
------------ 
-http://linux-wildo.sf.net
-http://www.diniciacci.org
+Yes, you can look for a few threads for this in the archives.
+HTH
+Bye
+Manu
