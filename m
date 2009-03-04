@@ -1,45 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:57303 "EHLO
-	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751617AbZCBVM1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 16:12:27 -0500
-Date: Mon, 2 Mar 2009 13:12:24 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean Delvare <khali@linux-fr.org>
-cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
-Subject: Re: General protection fault on rmmod cx8800
-In-Reply-To: <20090302200513.7fc3568e@hyperion.delvare>
-Message-ID: <Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
-References: <20090215214108.34f31c39@hyperion.delvare>
- <20090302133936.00899692@hyperion.delvare> <1236003365.3071.6.camel@palomino.walls.org>
- <20090302170349.18c8fd75@hyperion.delvare> <20090302200513.7fc3568e@hyperion.delvare>
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:46988 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751128AbZCDCuZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 21:50:25 -0500
+Received: by ewy25 with SMTP id 25so2575225ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2009 18:50:22 -0800 (PST)
+From: Kyle Guinn <elyk03@gmail.com>
+To: kilgota@banach.math.auburn.edu
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+Date: Tue, 3 Mar 2009 20:50:13 -0600
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Content-Disposition: inline
+Message-Id: <200903032050.13915.elyk03@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2 Mar 2009, Jean Delvare wrote:
-> On Mon, 2 Mar 2009 17:03:49 +0100, Jean Delvare wrote:
-> > As far as I can see the key difference between bttv-input and
-> > cx88-input is that bttv-input only uses a simple self-rearming timer,
-> > while cx88-input uses a timer and a separate workqueue. The timer runs
-> > the workqueue, which rearms the timer, etc. When you flush the timer,
-> > the separate workqueue can be still active. I presume this is what
-> > happens on my system. I guess the reason for the separate workqueue is
-> > that the processing may take some time and we don't want to hurt the
-> > system's performance?
-> >
-> > So we need to flush both the event workqueue (with
-> > flush_scheduled_work) and the separate workqueue (with
-> > flush_workqueue), at the same time, otherwise the active one may rearm
+On Tuesday 03 March 2009 18:12:33 kilgota@banach.math.auburn.edu wrote:
+> Hans, Jean-Francois, and Kyle,
+>
+> The proposed patches are not very long, so I will give each of them, with
+> my comments after each, to explain why I believe that these changes are a
+> good idea.
+>
+> First, the patch to libv4lconvert is short and sweet:
+>
+> contents of file mr97310av4l.patch follow
+> ----------------------------------------------
+> --- mr97310a.c.old	2009-03-01 15:37:38.000000000 -0600
+> +++ mr97310a.c.new	2009-02-18 22:39:48.000000000 -0600
+> @@ -102,6 +102,9 @@ void v4lconvert_decode_mr97310a(const un
+>   	if (!decoder_initialized)
+>   		init_mr97310a_decoder();
+>
+> +	/* remove the header */
+> +	inp += 12;
+> +
+>   	bitpos = 0;
+>
+>   	/* main decoding loop */
+>
+> ----------------- here ends the v4lconvert patch ------------------
+>
+> The reason I want to do this should be obvious. It is to preserve the
+> entire header of each frame over in the gspca driver, and to throw it away
+> over here. The SOF marker FF FF 00 FF 96 is also kept. The reason why all
+> of this should be kept is that it makes it possible to look at a raw
+> output and to know if it is exactly aligned or not. Furthermore, the next
+> byte after the 96 is a code for the compression algorithm used, and the
+> bytes after that in the header might be useful in the future for better
+> image processing. In other words, these headers contain information which
+> might be useful in the future and they should not be jettisoned in the
+> kernel module.
+>
 
-What are the two work queues are you talking about?  I don't see any actual
-work queues created.  Just one work function that is scheduled on the
-system work queue.  The timer is a softirq and doesn't run on a work queue.
+No complaints here.  I copied off of the pac207 driver, thinking that one 
+compression format == one pixel format and that all mr97310a cameras use the 
+same compression.  I was hesitant to say that the mr97310a pixel format can 
+correspond to multiple compression formats, especially since I only have one 
+such camera and I don't know if it's preferred to use multiple pixel formats 
+for this reason.
 
-> Switching to delayed_work seems to do the trick (note this is a 2.6.28
-> patch):
+>From what I understand, sending the frame header to userspace solves at least 
+two problems (if indeed the compression is specified in the header):
 
-Makes the most sense to me.  I was just about to make a patch to do the
-same thing when I got your email.  Though I was going to patch the v4l-dvb
-sources to avoid porting work.
+* One frame may be compressed and the next frame isn't, or the next frame uses 
+a different compression.
+
+* Two cameras with the same vendor/product ID use different compression 
+formats.  Distinguishing the two cameras in the kernel driver could be messy.
+
+Just a random thought, but maybe the pac207 driver can benefit from such a 
+change as well?
+
+-Kyle
