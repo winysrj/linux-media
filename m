@@ -1,140 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3825 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755452AbZCJNfB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 09:35:01 -0400
-Message-ID: <7153.62.70.2.252.1236692097.squirrel@webmail.xs4all.nl>
-Date: Tue, 10 Mar 2009 14:34:57 +0100 (CET)
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"DongSoo Kim" <dongsoo.kim@gmail.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Toivonen Tuukka.O" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Received: from mx2.redhat.com ([66.187.237.31]:56599 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752641AbZCDIaE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 03:30:04 -0500
+Message-ID: <49AE3D6A.70605@redhat.com>
+Date: Wed, 04 Mar 2009 09:35:54 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: kilgota@banach.math.auburn.edu
+CC: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-> Hans Verkuil wrote:
->>> Sergio has posted earlier a patchset containing a driver for using the
->>> ISP to process images from memory to memory. The ISP driver is used
->>> roughly the same way as with the omap34xxcam and real sensors. The
->>> interface towards the userspace offered by the driver, however, is
->>> different, you probably saw it (preview and resizer wrappers).
->>>
->>> My opinion has been that the memory-to-memory operation of the ISP
->>> should also offer V4L2 interface. V4L2, however, doesn't support such
->>> devices at the moment. The only differences that I can see is that
->>>
->>> 1. the input is a video buffer instead of sensor and
->>>
->>> 2. the source format needs to be specified somehow since the ISP can
->>> also do format conversion. So it's output and input at the same time.
->>>
->>> But if we had one video device per ISP, then memory-to-memory operation
->>> would be just one... input or output or what? :)
->>>
->>> Earlier we were thinking of creating one device node for it.
->>
->> This sounds like a codec interface as 'described' here:
->>
->> http://www.xs4all.nl/~hverkuil/spec/v4l2.html#CODEC
->>
->> It would be a first for V4L2 to have a driver that can do this, but I
->> agree
->> that that would be a single device that has both 'output' and 'capture'.
->
-> Ok. Although this work most probably will be left for future at this
-> point.
->
->>> Currently you can have just one device node using the ISP open.
->>> omap34xxcam_open() calls isp_get() which fails if the ISP use count was
->>> non-zero (means one).
->>>
->>> Or did I misunderstood something?
->>
->> Oh dear. Please don't use 'use counts'. It is perfectly acceptable and
->> desirable to have multiple opens on the same video node. Only one file
->
->> Use counts are really bad and totally unnecessary. Only if another file
->> handle is in streaming mode (and when using VIDIOC_S_PRIORITY) does it
->> make
->> sense to return -EBUSY for certain ioctls or read/write operations.
->> Otherwise you shouldn't limit the user from opening the same device node
->> as
->> many times as he wants and use that to query the video device.
->
-> ?
->
-> Having a use count doesn't prevent multiple file handles nor otherwise
-> artificially limit functionality. We need to be able to shut down the
-> slaves when they are no longer needed. IMO having an use count to do
-> this is fine (unless otherwise proven).
 
-Yes, it is fine for such purposes. As long as it isn't abused to restrict
-functionality on subsequent opens. Several drivers use it for that, and
-that is NOT right. But it's OK for powersaving implementations. I should
-have mentioned that.
+kilgota@banach.math.auburn.edu wrote:
+> Hans, Jean-Francois, and Kyle,
+> 
+> The proposed patches are not very long, so I will give each of them, 
+> with my comments after each, to explain why I believe that these changes 
+> are a good idea.
+> 
+> First, the patch to libv4lconvert is short and sweet:
+> 
+> contents of file mr97310av4l.patch follow
+> ----------------------------------------------
+> --- mr97310a.c.old    2009-03-01 15:37:38.000000000 -0600
+> +++ mr97310a.c.new    2009-02-18 22:39:48.000000000 -0600
+> @@ -102,6 +102,9 @@ void v4lconvert_decode_mr97310a(const un
+>      if (!decoder_initialized)
+>          init_mr97310a_decoder();
+> 
+> +    /* remove the header */
+> +    inp += 12;
+> +
+>      bitpos = 0;
+> 
+>      /* main decoding loop */
+> 
+> ----------------- here ends the v4lconvert patch ------------------
+> 
+> The reason I want to do this should be obvious. It is to preserve the 
+> entire header of each frame over in the gspca driver, and to throw it 
+> away over here. The SOF marker FF FF 00 FF 96 is also kept. The reason 
+> why all of this should be kept is that it makes it possible to look at a 
+> raw output and to know if it is exactly aligned or not. Furthermore, the 
+> next byte after the 96 is a code for the compression algorithm used, and 
+> the bytes after that in the header might be useful in the future for 
+> better image processing. In other words, these headers contain 
+> information which might be useful in the future and they should not be 
+> jettisoned in the kernel module.
+> 
 
-> Also the camera driver does try_module_get() to the slaves when it's
-> opened by the first user. module_put() is called on those when the last
-> user goes away.
++1
 
-This is to allow those modules to be unloaded?
+> Now, the kernel module ought to keep and send along the header and SOF 
+> marker instead of throwing them away. This is the topic of the next 
+> patch. It also has the virtue of simplifying and shortening the code in 
+> the module at the same time, because one is not going through 
+> contortions to skip over and throw away some data which ought to be kept 
+> anyway.
+> 
 
-> We'd also like to get rid of the current way of directly telling the
-> slaves what their power state should be. Rather we'd like to tell the
-> slaves what's expected from them. This could translate to
-> open/release/streamon/streamoff commands. To be able to do this, the use
-> count is required --- unless this task is given to the slaves
-> (v4l2_subdevs).
++1
 
-Sounds interesting. I would have to see a proposal or proof-of-concept
-code to determine how useful it is. It's however better to do this after
-the v4l2-subdev conversion.
+> contents of file mr97310a.patch follow, for gspca/mr97310a.c
+> --------------------------------------------------------
+> --- mr97310a.c.old    2009-02-23 23:59:07.000000000 -0600
+> +++ mr97310a.c.new    2009-03-03 17:19:06.000000000 -0600
+> @@ -302,21 +302,9 @@ static void sd_pkt_scan(struct gspca_dev
+>                      data, n);
+>          sd->header_read = 0;
+>          gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
+> -        len -= sof - data;
+> -        data = sof;
+> -    }
+> -    if (sd->header_read < 7) {
+> -        int needed;
+> -
+> -        /* skip the rest of the header */
+> -        needed = 7 - sd->header_read;
+> -        if (len <= needed) {
+> -            sd->header_read += len;
+> -            return;
+> -        }
+> -        data += needed;
+> -        len -= needed;
+> -        sd->header_read = 7;
+> +        /* keep the header, including sof marker, for coming frame */
+> +        len -= n;
+> +        data = sof - sizeof pac_sof_marker;;
+>      }
+> 
+>      gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
+> @@ -337,6 +325,7 @@ static const struct sd_desc sd_desc = {
+>  /* -- module initialisation -- */
+>  static const __devinitdata struct usb_device_id device_table[] = {
+>      {USB_DEVICE(0x08ca, 0x0111)},
+> +    {USB_DEVICE(0x093a, 0x010f)},
+>      {}
+>  };
+>  MODULE_DEVICE_TABLE(usb, device_table);
+> 
+> 
+> ------------ end of mr97310a.patch -------------------------
+> 
+> You will also notice that I have added a USB ID. As I have mentioned, I 
+> have four cameras with this ID. The story with them is that two of them 
+> will not work at all. The module will not initialize the camera. As far 
+> as the other two of them are concerned, the module and the accompanying 
+> change in libv4lconvert work very well. I have mentioned this 
+> previously, and I did not get any comment about what is good to do. So 
+> now I decided to submit the ID number in the patch.
+> 
 
->> BTW, I looked at omap24xxcam_open(): data like fh->pix does *not* belong
->> to
->> the filehandle struct, it should be part of the top-level data
->> structure.
->
-> That's fixed in the omap34xxcam.c. :)
+Adding the USB-ID sounds like the right thing to do.
 
-Yay!
+Regards,
 
->> You want to be able to do simple things like querying a video node for
->> the
->> currently selected format. You can't do that if the format is stored in
->> the
->> filehandle! E.g.: you are streaming and you want to run
->> v4l2-ctl --get-fmt-video to check what video format is being used.
->> Things
->> like this must be supported by a well-written v4l2 driver. Again, sadly
->> quite a few v4l2 drivers do this wrong as well :-(
->>
->> I also see that cam->users is not decreased by one if
->> omap24xxcam_sensor_enable() fails.
->>
->> Note that I'm looking at the code in the v4l-dvb repository, the
->> linux-omap
->> git tree might have fixed that already.
->
-> I'm afraid it's still there. Will fix that.
-
-OK.
-
-Thanks,
-
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Hans
