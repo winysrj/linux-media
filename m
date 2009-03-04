@@ -1,50 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4855 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561AbZC3Nm1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 09:42:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Daniel =?iso-8859-1?q?Gl=F6ckner?= <dg@emlix.com>
-Subject: Re: [patch 5/5] saa7121 driver for s6000 data port
-Date: Mon, 30 Mar 2009 15:41:52 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Chris Zankel <chris@zankel.net>, linux-media@vger.kernel.org
-References: <13003.62.70.2.252.1238080086.squirrel@webmail.xs4all.nl> <200903301450.05240.hverkuil@xs4all.nl> <49D0CAEA.1070405@emlix.com>
-In-Reply-To: <49D0CAEA.1070405@emlix.com>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:43409 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753335AbZCDSLg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 13:11:36 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: ospite@studenti.unina.it, mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pxa_camera: Redesign DMA handling
+References: <1236021422-8074-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0903030929160.5059@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 04 Mar 2009 19:11:24 +0100
+In-Reply-To: <Pine.LNX.4.64.0903030929160.5059@axis700.grange> (Guennadi Liakhovetski's message of "Tue\, 3 Mar 2009 16\:49\:51 +0100 \(CET\)")
+Message-ID: <87bpsh2m5v.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200903301541.52497.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 30 March 2009 15:36:42 Daniel Glöckner wrote:
-> On 03/30/2009 02:50 PM, Hans Verkuil wrote:
-> > On Monday 30 March 2009 14:12:10 Daniel Glöckner wrote:
-> >> - valid CRC and line number in digital blanking?
-> > 
-> > Do you really need to control these?
-> 
-> Not on this board..
-> 
-> > It's a PAL/NTSC encoder, so the standard specified with s_std_output will
-> > map to the corresponding values that you need to put in. This is knowledge
-> > that the i2c driver implements.
-> 
-> There is a micron camera connected to the controller that can output any
-> resolution up to 1600x1200 and we don't have standard ids for all those HD
-> formats supported by encoders like the ADV7197. It would be really nice to
-> have an interface that covers all this while being symmetric for input and output.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-This is a known issue. I expect to see some proposals for this in the near
-future since Texas Instruments need this as well for their davinci architecture.
+> (moved to the new v4l list)
+>
+>> The DMA transfers in pxa_camera showed some weaknesses in
+>> multiple queued buffers context :
+>>  - poll/select problem
+>>    The order between list pcdev->capture and DMA chain was
+>>    not the same. This creates a discrepancy between video
+>>    buffers marked as "done" by the IRQ handler, and the
+>>    really finished video buffer.
+>
+> Could you please describe where and how the order could get wrong?
+Sorry, I missed that point in the previous reply.
 
-Regards,
+It's still the same bit of code :
+-                       } else {
+-                               buf_dma->sg_cpu[nents].ddadr =
+-                                       DDADR(pcdev->dma_chans[i]);
 
-	Hans
+That chains the end of the queued buffer to the active buffer (probably the one
+running in DMA chain [1]). So we'll get images in the following order:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+ <queued_buffer>, then <active_buffer (head of pcdev->capture)>, then <others>.
+
+The desired order is :
+ <active_buffer (head of pcdev->capture)>, then <others>, then <queued_buffer>.
+
+>>  - multiple buffers DMA starting
+>>    When multiple buffers were queued, the DMA channels were
+>
+> You mean multiple scatter-gather elements?
+No, I mean multiple video buffers.
+Multiple scatter-gather elements form one video buffer, and multiple video
+buffers are queued to form a list of images (video stream).
+
+Cheers.
+
+--
+Robert
+
+[1] I mean _probably_, because the DMA chain can be already ahead of 1 buffer
+(we're talking in terms of PXA cycles, which is very hard to watch), while
+active pointer is not yet updated.
