@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48652 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225AbZCLOTs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 10:19:48 -0400
-Date: Thu, 12 Mar 2009 15:19:45 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] V2: soc-camera: setting the buswidth of camera
-	sensors
-Message-ID: <20090312141945.GO425@pengutronix.de>
-References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903121429530.4896@axis700.grange>
+Received: from mta2.integra.fr ([217.115.161.167]:47155 "EHLO mta2.integra.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753245AbZCDRXr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 12:23:47 -0500
+Message-ID: <49AEB91C.6010804@gmail.com>
+Date: Wed, 04 Mar 2009 18:23:40 +0100
+From: Pierre Gronlier <ticapix@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0903121429530.4896@axis700.grange>
+To: lotway@nildram.co.uk
+CC: linux-media@vger.kernel.org
+Subject: Re: TT S2-3200 and CAMs
+References: <49AE8BB3.3010501@nildram.co.uk>
+In-Reply-To: <49AE8BB3.3010501@nildram.co.uk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 12, 2009 at 02:31:17PM +0100, Guennadi Liakhovetski wrote:
-> On Thu, 12 Mar 2009, Sascha Hauer wrote:
+Lou Otway wrote:
+> Hi,
 > 
-> > Take 2: I hope I addressed all comments I receive in the first round.
-> > 
-> > The following patches change the handling of the bus width
-> > for camera sensors so that a board can overwrite a sensors
-> > native bus width
-> > 
-> > Sascha Hauer (5):
-> >   soc-camera: add board hook to specify the buswidth for camera sensors
-> >   pcm990 baseboard: add camera bus width switch setting
-> >   mt9m001: allow setting of bus width from board code
-> >   mt9v022: allow setting of bus width from board code
-> >   soc-camera: remove now unused gpio member of struct soc_camera_link
+> I've been testing the TT S2-3200 card and while it performs well for FTA
+> services I have been unable to get it working with encrypted services using
+> the CI slot.
 > 
-> Ok, the rest look good to me. So, after you fix or explain 2/5 I'll be 
-> pulling them.
+> With VLC I am able to tune to the transponder and pick up all the services
+> but they are not decrypted, unencrypted services work fine.
+> 
+> Using a DVB-S card with CI I am able to tune successfully, proving the CAMs
+> are valid. This leads me to believe there may be a problem with the drivers
+> for the S2-3200.
+> 
+> Has anyone managed to get CAMs working with this card?
+> 
 
-If by pulling you mean 'git pull' you can do it here:
+yes, I manage to decrypt a entire dvb-s transponder using a powercam and
+mumudvb for streaming channels.
 
-git://git.pengutronix.de/git/sha/linux-2.6.git soc-camera-bus-switch
+I'm using the v4l-dvb driver from the hg repository.
 
-Thanks
-  Sascha
+For mumudvb, I made a checkout of the git repository
+http://mumudvbgit.braice.net/mumudvb.git and compiled the source with
+LIBDVBEN50221=1 make (you need the dvb-apps to be installed)
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
+But using this card, I didn't manage to lock on my second lnd head, so I
+manage to lock on astra 19.2E but not on hotbird 13.0E.
+
+
+Pierre
+
+> Any advice gratefully recieved.
+> 
+> Many thanks,
+> 
+> Lou
+> -- 
+> Lou Otway
+> mailto:lotway@nildram.co.uk
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
