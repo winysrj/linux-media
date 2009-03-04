@@ -1,71 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rotring.dds.nl ([85.17.178.138]:41013 "EHLO rotring.dds.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755341AbZCKLgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 07:36:50 -0400
-Subject: Re: Improve DKMS build of v4l-dvb?
-From: Alain Kalker <miki@dds.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20090309204308.10c9afc6@pedra.chehab.org>
-References: <1236612894.5982.72.camel@miki-desktop>
-	 <20090309204308.10c9afc6@pedra.chehab.org>
-Content-Type: text/plain
-Date: Wed, 11 Mar 2009 12:36:36 +0100
-Message-Id: <1236771396.5991.24.camel@miki-desktop>
-Mime-Version: 1.0
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.123]:61672 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753267AbZCDWXv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 17:23:51 -0500
+Message-ID: <49AEB931.40501@acm.org>
+Date: Wed, 04 Mar 2009 09:24:01 -0800
+From: Bob Cunningham <rcunning@acm.org>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org
+Subject: Re: AnyTV AUTV002 USB ATSC/QAM Tuner Stick
+References: <49287DCC.9040004@gmail.com>		<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>		<4929B192.8050707@rogers.com> <4929FE90.2050008@gmail.com>		<492A328A.7090502@rogers.com> <492B9B98.5060603@gmail.com>		<492CA816.7000400@rogers.com> <492CF843.5040807@gmail.com>		<492EC6BE.6090407@rogers.com>	<37219a840811271128u2b424571of946181958788ff7@mail.gmail.com> <494B42A1.4020604@gmail.com>
+In-Reply-To: <494B42A1.4020604@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op maandag 09-03-2009 om 20:43 uur [tijdzone -0300], schreef Mauro
-Carvalho Chehab: 
-> It is not that hard. You'll have a few vars that will always have the same values, like:
-[snip]
+Hi,
 
-Thanks for the information, I'll use this as a starting point.
+I have not been able to put any serious time into this project, and I'd like to reiterate my offer to buy one of these devices (http://www.dealextreme.com/details.dx/sku.15569) for an experienced v4l developer who would like to give it a try.  I will stay in the loop for testing (FC10 on Dell SC1420).
 
-> Of course, you'll need to write some script to identify what devices are
-> available at the host (by USB or PCI ID), and associate it with the V4L/DVB
-> drivers.
+Blame my new girlfriend: My evenings are no longer my own. And I don't mind it one bit!
 
-Scanning for available hardware is already available in Jockey, and
-parsing the output from 'lsusb'/'lspci' will do it for users without
-it. 
+-BobC
 
-Associating IDs with the principal module is easy after doing a test
-build of all modules (which needs to be done anyway, to find out which
-drivers can actually be built with the current tree and to decide
-whether the tree is suitable for packaging for DKMS build).
 
-After the test build, all you have to do is run "modinfo -F alias" on
-all the modules, add the principal module name, and you will end up with
-a modaliases list which is directly usable with Jockey. For users
-without it, another simple script will select the correct principal
-module to build.
-
-All that remains then is to sort out the module dependencies...
-
-> Probably, the hardest part is to maintain, so, ideally, the scripts should scan
-> the source codes to check what drivers you have, and what are the driver
-> options associated with that device.
-
-Very true. I'm quite dissatisfied with the sad state that Kbuild support
-for building external modules is in, especially for projects that have
-numerous drivers and module dependencies, and I believe v4l-dvb has
-currently the most advanced out-of-tree support available.
-If you enjoy watching a horror movie, have a look at the drivers from
-the ALSA project, they have a hideous 131615 bytes big beast hidden in
-their aclocal.m4, whose sole purpose it is to sort out config variable
-dependencies... Yuck!
-
-> If you can write such script, then we can add it at v4l/scripts and add a
-> "make myconfig" option that would run the script and compile the minimal set of
-> drivers.
-
-That would be great!
-
-Kind regards,
-
-Alain
-
+Bob Cunningham wrote:
+> Michael Krufky wrote:
+>> On Thu, Nov 27, 2008 at 11:11 AM, CityK <cityk@rogers.com> wrote:
+>>> Bob Cunningham wrote:
+>>>> What are the next steps?
+>>>> 1. How much effort will be needed to make this driver work?
+>>>> 2. Do all of the pieces already exist?  (All the chips seem to be
+>>>> mentioned somewhere in the DVB tree.)
+>>>> 3. What new code is needed?
+>>>> 4. How much reverse-engineering needs to be done?  Will a full
+>>>> schematic be needed?
+>>>>
+>>>> Most importantly:
+>>>> 5. How can I help?
+>>>>
+>>>> I'm a real-time embedded systems programmer with 25 years experience,
+>>>> though most of what I've written runs on "bare metal", often without
+>>>> an OS.  I know nothing about Linux device drivers.  However, I am very
+>>>> good at getting local hardware to "play nice", first by poking it with
+>>>> a debugger, then generally by scripting through /dev/port.
+>>>> I've never worked with hardware across the USB bus, though I have
+>>>> brought up USB interface hardware from the CPU side, and have had to
+>>>> snoop USB traffic to diagnose problems.  Unfortunately, I don't have a
+>>>> Windows system available to use to snoop the USB traffic from the
+>>>> driver provided by the vendor, though I haven't yet tried to get
+>>>> anything to work via Wine.
+>>>>
+>>>> I'll be taking lots of time off in December, and should have some time
+>>>> to put toward this project.
+>>>>
+>>>> If anyone else is curious, or wants to help, the product is here:
+>>>> http://www.dealextreme.com/details.dx/sku.15569
+>>>>
+>>>> I also found a brief description of a reference design here:
+>>>> http://www.auvitek.com/AU8522%20MT%20USB%20TV%20Stick%20Design%20Brief_R1.0.pdf
+>>> 1 - probably not a lot
+>>> 2 - sounds like it, but I do not know how far developed the MT2131
+>>> driver is
+>>> 3 - probably just the "glue code" to tie all the pieces together
+>>> 4 - likely none (there may be a chance the the components are wired up
+>>> slightly differently, such as in the case with GPIO pins, in which case
+>>> you'd have to try to discover the true configuration....schematics would
+>>> obviously help, but probably 99.99% of cases are resolved without such
+>>> aide )
+>>> 5 - you can add the support for the device !  :P    Because of the
+>>> advanced state (component drivers already exist) you won't need any in
+>>> depth knowledge about the developing device drivers.  At this point, all
+>>> you will need to do is figure out where to insert the necessary glue
+>>> code in the existing modules - have a look in the source code of the
+>>> respective components (eg. /linux/drivers/media/video/au0828/ ;
+>>> /linux/drivers/media/dvb/frontends/ ; .... ).  Note that the AU0828 does
+>>> not currently support analog
+>>> (http://marc.info/?l=linux-video&m=122459807631633&w=2).
+>>>
+>>> I suspect that solving the EEPROM issue is just a matter of adjusting
+>>> the code so that it is not specifically expecting a Hauppauge
+>>> signature.  Getting the device to attach the correct tuner should be, I
+>>> imagine, fairly straight forward too .  It would appear that this device
+>>> is highly similar to the Woodbury  (see:
+>>> http://marc.info/?l=linux-dvb&m=122617795121243&w=2); I do not know
+>>> whether there is significant difference between the respective MT parts
+>>> -- might be trivial, then again it might not be
+>> I am hosting experimental support for these devices in the following
+>> mercurial repository:
+>>
+>> http://linuxtv.org/hg/~mkrufky/teledongle
+>>
+>> Please generate any patches, if any, against the above tree.
+>>
+>> If you read the comments that I wrote in the changesets in that tree,
+>> it explains what I know about these devices.
+>>
+>> Ignore the "syntek teledongle" name for now -- there are so many of
+>> these different devices floating around with the same USB ID that the
+>> name really doesnt matter.
+>>
+>> If this works for you, please let me know.  So far, the tda18271
+>> version works, but the mt2131 version does not.
+>>
+>> -Mike
+>>
+> 
+> Sorry for the delay!  I got, built and installed the teledongle tree, and dmesg provided the following output:
+> 
+> usb 1-2: new high speed USB device using ehci_hcd and address 7
+> usb 1-2: configuration #1 chosen from 1 choice
+> usb 1-2: New USB device found, idVendor=05e1, idProduct=0400
+> usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> usb 1-2: Product: USB 2.0 Video Capture Controller
+> usb 1-2: Manufacturer: Syntek Semiconductor
+> au0828 driver loaded
+> au0828: i2c bus registered
+> tda18271 4-0060: creating new instance
+> Unknown device detected @ 4-0060, device not supported.
+> Unknown device detected @ 4-0060, device not supported.
+> tda18271_attach: error -22 on line 1171
+> tda18271 4-0060: destroying instance
+> MT2131: successfully identified at address 0x60
+> DVB: registering new adapter (au0828)
+> DVB: registering adapter 0 frontend 0 (Auvitek AU8522 QAM/8VSB Frontend)...
+> Registered device AU0828 [Syntek Teledongle [EXPERIMENTAL]]
+> usbcore: registered new interface driver au0828
+> 
+> And dvbscan was still "Unable to query frontend status".
+> 
+> It will take me longer than expected to get into the code.  If an experineced v4l developer would like to take on this device, I'll donate one to the cause.  I'll stay in the loop for testing, and to learn how it is done.
+> 
+> 
+> Thanks,
+> 
+> -BobC
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
