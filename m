@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:32929 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752974AbZC1TM0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 15:12:26 -0400
-Message-ID: <49CE7688.2020501@gmail.com>
-Date: Sat, 28 Mar 2009 20:12:08 +0100
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:37570 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750756AbZCDAPr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 19:15:47 -0500
+Date: Tue, 3 Mar 2009 18:28:14 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Adam Baker <linux@baker-net.org.uk>
+cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support alternate resolutions for sq905
+In-Reply-To: <200903032320.48037.linux@baker-net.org.uk>
+Message-ID: <alpine.LNX.2.00.0903031820150.21483@banach.math.auburn.edu>
+References: <200903032320.48037.linux@baker-net.org.uk>
 MIME-Version: 1.0
-To: Dan Carpenter <error27@gmail.com>
-CC: LKML <linux-kernel@vger.kernel.org>, eteo@redhat.com,
-	linux-usb@vger.kernel.org, netdev@vger.kernel.org,
-	linux-media@vger.kernel.org, general@lists.openfabrics.org
-Subject: Re: Dereferencing freed memory bugs
-References: <a63d67fe0903240529v6a0e6b51pf67f8ad6dd6842c4@mail.gmail.com>
-In-Reply-To: <a63d67fe0903240529v6a0e6b51pf67f8ad6dd6842c4@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dan Carpenter wrote:
-> I added a check to smatch (http://repo.or.cz/w/smatch.git/) to check
-> for when we dereference
-> freed memory.
-> 
-> drivers/dma/dmatest.c +410 dmatest_exit(7) 'dtc'
-> drivers/dma/dmatest.c +412 dmatest_exit(9) 'dtc'
 
-Seems to be fixed by 7cbd4877e5b167b56a3d6033b926a9f925186e12:
-dmatest: fix use after free in dmatest_exit
 
-> drivers/infiniband/hw/nes/nes_cm.c +563 nes_cm_timer_tick(121) 'cm_node'
-> drivers/infiniband/hw/nes/nes_cm.c +621 nes_cm_timer_tick(179) 'cm_node'
-> (...)
-> drivers/usb/host/ehci-hcd.c +1661 itd_complete(79) 'stream'
-> drivers/usb/host/ehci-hcd.c +2036 sitd_complete(64) 'stream'
-> drivers/uwb/reset.c +193 __uwb_rc_cmd(26) 'cmd'
-> (...)
-> net/netfilter/xt_recent.c +273 recent_mt(69) 'e'
-> (...)
-> drivers/media/video/cpia_pp.c +777 cpia_pp_detach(28) 'cpia'
-> (...)
+On Tue, 3 Mar 2009, Adam Baker wrote:
 
-These are less obvious.
+> Add support for the alternate resolutions offered by SQ-905 based cameras. As
+> well as 320x240 all cameras can do 160x120 and some can do 640x480.
+>
+> Signed-off-by: Adam Baker <linux@baker-net.org.uk>
+> ---
+> The patch to detect orientation needs to follow this as that is also simplified by
+> the modified identity check that this introduces.
 
-Adding CCs.
-Please leave only one of openfabrics/linux-usb/netdev/linux-media in CCs
-when responding.
+Since you all got a copy of the patch, I don't reproduce it here, munged 
+by a
 
-ps: [s]itd_complete is in drivers/usb/host/ehci-sched.c
+>
+
+at the beginning of each line. But I would like to add a comment about the 
+640x480 resolution:
+
+It should be obvious that, since the SQ905 cameras use bulk transport and 
+since they do not do compression in streaming mode, the 640x480 streaming 
+is choppy. Nevertheless, those cameras which have big enough sensors to 
+support it can operate at 640x480 in streaming mode. Therefore, it seems 
+appropriate to support that resolution. If nothing else, it would be 
+useful for intermittent or timed frame grabbing, or such like 
+applications.
+
+Oh, and it should be needless to say, but in order to satisfy all 
+formalities
+
+Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
