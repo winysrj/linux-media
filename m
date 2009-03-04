@@ -1,642 +1,650 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2717 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752493AbZCSUYz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2009 16:24:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [REVIEWv2] bttv v4l2_subdev conversion
-Date: Thu, 19 Mar 2009 21:24:52 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from smtp.nokia.com ([192.100.122.233]:35140 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751463AbZCDLrH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 06:47:07 -0500
+Date: Wed, 4 Mar 2009 13:30:30 +0200
+From: Felipe Balbi <felipe.balbi@nokia.com>
+To: "ext Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH 1/5] MT9P012: Add driver
+Message-ID: <20090304113030.GT4640@scadufax.research.nokia.com>
+Reply-To: felipe.balbi@nokia.com
+References: <A24693684029E5489D1D202277BE89442E1D9220@dlee02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200903192124.52524.hverkuil@xs4all.nl>
+In-Reply-To: <A24693684029E5489D1D202277BE89442E1D9220@dlee02.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi,
 
-Here is the revised bttv v4l2_subdev conversion, taking into account all
-the input I received.
-
-The tree is here: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-bttv
-
-Short changelog:
-
-- tvaudio: fix mute and s/g_tuner handling
-- tvaudio: add tda9875 support.
-- tvaudio: always call init_timer to prevent rmmod crash.
-- bttv: convert to v4l2_subdev since i2c autoprobing will disappear.
-
-The tvaudio patches are the same as before, except split into two and a
-third bug fix (init_timer) was added that I found while testing.
-
-I've included the bttv patch below for easier reviewing.
-
-Please note that the somewhat awkward i2c address lists are temporary.
-When all drivers that need it are converted to v4l2_subdev I'll do a
-sweep over all of them and clean this up. I want to wait with this until
-I have a good overview of how it is used and who needs it.
-
-In addition there are a few conversions in progress as well, so changing
-APIs while that's still ongoing is something I want to avoid.
-
-Regards,
-
-	Hans
+not looking at v4l2 part since it's not my area...
 
 
+On Tue, Mar 03, 2009 at 09:44:14PM +0100, ext Aguirre Rodriguez, Sergio Alberto wrote:
+> +#define SENSOR_DETECTED                1
+> +#define SENSOR_NOT_DETECTED    0
 
-# HG changeset patch
-# User Hans Verkuil <hverkuil@xs4all.nl>
-# Date 1237493753 -3600
-# Node ID 68050e782acbe6c47e3e3c0530ed1d96f0ec651f
-# Parent  7191463177cdbf2ab1f2ade8eb3aa7dcad8cc80e
-bttv: convert to v4l2_subdev since i2c autoprobing will disappear.
+these two should be unneeded...
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+> +
+> +/**
+> + * struct mt9p012_reg - mt9p012 register format
+> + * @length: length of the register
+> + * @reg: 16-bit offset to register
+> + * @val: 8/16/32-bit register value
+> + *
+> + * Define a structure for MT9P012 register initialization values
+> + */
+> +struct mt9p012_reg {
+> +       u16     length;
+> +       u16     reg;
+> +       u32     val;
+> +};
+> +
+> +enum image_size {
+> +       BIN4XSCALE,
+> +       BIN4X,
+> +       BIN2X,
+> +       THREE_MP,
+> +       FIVE_MP
 
-Since i2c autoprobing will disappear bttv needs to be converted to use
-v4l2_subdev instead.
+you probably wanna prefix these with MT9P012_ to avoid namespace
+conflicts.
 
-Without autoprobing the autoload module option has become obsolete. A warning
-is generated if it is set, but it is otherwise ignored.
+> +};
+> +
+> +enum pixel_format {
+> +       RAWBAYER10
+> +};
+> +
+> +#define NUM_IMAGE_SIZES                5
+> +#define NUM_PIXEL_FORMATS      1
+> +#define NUM_FPS                        2       /* 2 ranges */
+> +#define FPS_LOW_RANGE          0
+> +#define FPS_HIGH_RANGE         1
+> +
+> +/**
+> + * struct capture_size - image capture size information
+> + * @width: image width in pixels
+> + * @height: image height in pixels
+> + */
+> +struct capture_size {
+> +       unsigned long width;
+> +       unsigned long height;
+> +};
+> +
+> +/**
+> + * struct mt9p012_pll_settings - struct for storage of sensor pll values
+> + * @vt_pix_clk_div: vertical pixel clock divider
+> + * @vt_sys_clk_div: veritcal system clock divider
+> + * @pre_pll_div: pre pll divider
+> + * @fine_int_tm: fine resolution interval time
+> + * @frame_lines: number of lines in frame
+> + * @line_len: number of pixels in line
+> + * @min_pll: minimum pll multiplier
+> + * @max_pll: maximum pll multiplier
+> + */
+> +struct mt9p012_pll_settings {
+> +       u16     vt_pix_clk_div;
+> +       u16     vt_sys_clk_div;
+> +       u16     pre_pll_div;
+> +
+> +       u16     fine_int_tm;
+> +       u16     frame_lines;
+> +       u16     line_len;
+> +
+> +       u16     min_pll;
+> +       u16     max_pll;
+> +};
+> +
+> +/*
+> + * Array of image sizes supported by MT9P012.  These must be ordered from
+> + * smallest image size to largest.
+> + */
+> +const static struct capture_size mt9p012_sizes[] = {
+> +       {  216, 162 },  /* 4X BINNING+SCALING */
+> +       {  648, 486 },  /* 4X BINNING */
+> +       { 1296, 972 },  /* 2X BINNING */
+> +       { 2048, 1536},  /* 3 MP */
+> +       { 2592, 1944},  /* 5 MP */
+> +};
+> +
+> +/* PLL settings for MT9P012 */
+> +enum mt9p012_pll_type {
+> +  PLL_5MP = 0,
+> +  PLL_3MP,
+> +  PLL_1296_15FPS,
+> +  PLL_1296_30FPS,
+> +  PLL_648_15FPS,
+> +  PLL_648_30FPS,
+> +  PLL_216_15FPS,
+> +  PLL_216_30FPS
+> +};
 
-Since the bttv card definitions are of questionable value three new options
-were added to allow the user to control which audio module is selected:
-msp3400, tda7432 or tvaudio.
+missing tabs, fix identation.
 
-By default bttv will use the card definitions and fallback on tvaudio as the
-last resort.
+> +
+> +/* Debug functions */
+> +static int debug;
+> +module_param(debug, bool, 0644);
+> +MODULE_PARM_DESC(debug, "Debug level (0-1)");
 
-If no audio device was found a warning is printed.
+if it's a bool it's not debug level, it's debug on/off switch :-p
 
-The saa6588 RDS device is now also explicitly probed since it is no longer
-possible to autoprobe it. A new saa6588 module option was added to override
-the card definition since I suspect more cards have this device than one
-would guess from the card definitions.
+> +static struct mt9p012_sensor mt9p012;
+> +static struct i2c_driver mt9p012sensor_i2c_driver;
 
-Priority: normal
+unneeded.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> +static unsigned long xclk_current = MT9P012_XCLK_NOM_1;
 
-diff -r 7191463177cd -r 68050e782acb linux/drivers/media/video/bt8xx/bttv-cards.c
---- a/linux/drivers/media/video/bt8xx/bttv-cards.c	Thu Mar 19 20:53:32 2009 +0100
-+++ b/linux/drivers/media/video/bt8xx/bttv-cards.c	Thu Mar 19 21:15:53 2009 +0100
-@@ -97,12 +97,12 @@
- static unsigned int tuner[BTTV_MAX]  = { [ 0 ... (BTTV_MAX-1) ] = UNSET };
- static unsigned int svhs[BTTV_MAX]   = { [ 0 ... (BTTV_MAX-1) ] = UNSET };
- static unsigned int remote[BTTV_MAX] = { [ 0 ... (BTTV_MAX-1) ] = UNSET };
-+static unsigned int msp3400[BTTV_MAX];
-+static unsigned int tda7432[BTTV_MAX];
-+static unsigned int tvaudio[BTTV_MAX];
-+static unsigned int saa6588[BTTV_MAX];
- static struct bttv  *master[BTTV_MAX] = { [ 0 ... (BTTV_MAX-1) ] = NULL };
--#ifdef MODULE
--static unsigned int autoload = 1;
--#else
--static unsigned int autoload;
--#endif
-+static unsigned int autoload = UNSET;
- static unsigned int gpiomask = UNSET;
- static unsigned int audioall = UNSET;
- static unsigned int audiomux[5] = { [ 0 ... 4 ] = UNSET };
-@@ -121,6 +121,9 @@
- module_param_array(tuner,    int, NULL, 0444);
- module_param_array(svhs,     int, NULL, 0444);
- module_param_array(remote,   int, NULL, 0444);
-+module_param_array(msp3400,  int, NULL, 0444);
-+module_param_array(tda7432,  int, NULL, 0444);
-+module_param_array(tvaudio,  int, NULL, 0444);
- module_param_array(audiomux, int, NULL, 0444);
- 
- MODULE_PARM_DESC(triton1,"set ETBF pci config bit "
-@@ -131,7 +134,11 @@
- MODULE_PARM_DESC(card,"specify TV/grabber card model, see CARDLIST file for a list");
- MODULE_PARM_DESC(pll,"specify installed crystal (0=none, 28=28 MHz, 35=35 MHz)");
- MODULE_PARM_DESC(tuner,"specify installed tuner type");
--MODULE_PARM_DESC(autoload,"automatically load i2c modules like tuner.o, default is 1 (yes)");
-+MODULE_PARM_DESC(autoload,"obsolete option, please do not use anymore");
-+MODULE_PARM_DESC(msp3400, "if 1, then load msp3400 only, default (0) is to use the card definition.");
-+MODULE_PARM_DESC(tda7432, "if 1, then load tda7432 only, default (0) is to use the card definition.");
-+MODULE_PARM_DESC(tvaudio, "if 1, then load tvaudio only, default (0) is to use the card definition.");
-+MODULE_PARM_DESC(saa6588, "if 1, then load the saa6588 RDS module, default (0) is to use the card definition.");
- MODULE_PARM_DESC(no_overlay,"allow override overlay default (0 disables, 1 enables)"
- 		" [some VIA/SIS chipsets are known to have problem with overlay]");
- 
-@@ -3332,9 +3339,21 @@
- /* initialization part two -- after registering i2c bus */
- void __devinit bttv_init_card2(struct bttv *btv)
- {
-+	static const unsigned short tvaudio_addrs[] = {
-+		I2C_ADDR_TDA8425   >> 1,
-+		I2C_ADDR_TEA6300   >> 1,
-+		I2C_ADDR_TEA6420   >> 1,
-+		I2C_ADDR_TDA9840   >> 1,
-+		I2C_ADDR_TDA985x_L >> 1,
-+		I2C_ADDR_TDA985x_H >> 1,
-+		I2C_ADDR_TDA9874   >> 1,
-+		I2C_ADDR_PIC16C54  >> 1,
-+		I2C_CLIENT_END
-+	};
- 	int addr=ADDR_UNSET;
- 
- 	btv->tuner_type = UNSET;
-+	btv->has_saa6588 = bttv_tvcards[btv->c.type].has_saa6588;
- 
- 	if (BTTV_BOARD_UNKNOWN == btv->c.type) {
- 		bttv_readee(btv,eeprom_data,0xa0);
-@@ -3495,6 +3514,12 @@
- 		printk(KERN_INFO "bttv%d: tuner type=%d\n", btv->c.nr,
- 		       btv->tuner_type);
- 
-+	if (autoload != UNSET) {
-+		printk(KERN_WARNING "bttv%d: the autoload option is obsolete.\n", btv->c.nr);
-+		printk(KERN_WARNING "bttv%d: use option msp3400, tda7432 or tvaudio to\n", btv->c.nr);
-+		printk(KERN_WARNING "bttv%d: override which audio module should be used.\n", btv->c.nr);
-+	}
-+
- 	if (UNSET == btv->tuner_type)
- 		btv->tuner_type = TUNER_ABSENT;
- 
-@@ -3502,8 +3527,13 @@
- 		struct tuner_setup tun_setup;
- 
- 		/* Load tuner module before issuing tuner config call! */
--		if (autoload)
--			request_module("tuner");
-+		if (bttv_tvcards[btv->c.type].has_radio)
-+			v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"tuner", "tuner", v4l2_i2c_tuner_addrs(ADDRS_RADIO));
-+		v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap, "tuner",
-+				"tuner", v4l2_i2c_tuner_addrs(ADDRS_DEMOD));
-+		v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap, "tuner",
-+				"tuner", v4l2_i2c_tuner_addrs(ADDRS_TV_WITH_DEMOD));
- 
- 		tun_setup.mode_mask = T_ANALOG_TV | T_DIGITAL_TV;
- 		tun_setup.type = btv->tuner_type;
-@@ -3512,7 +3542,7 @@
- 		if (bttv_tvcards[btv->c.type].has_radio)
- 			tun_setup.mode_mask |= T_RADIO;
- 
--		bttv_call_i2c_clients(btv, TUNER_SET_TYPE_ADDR, &tun_setup);
-+		bttv_call_all(btv, tuner, s_type_addr, &tun_setup);
- 	}
- 
- 	if (btv->tda9887_conf) {
-@@ -3521,7 +3551,7 @@
- 		tda9887_cfg.tuner = TUNER_TDA9887;
- 		tda9887_cfg.priv = &btv->tda9887_conf;
- 
--		bttv_call_i2c_clients(btv, TUNER_SET_CONFIG, &tda9887_cfg);
-+		bttv_call_all(btv, tuner, s_config, &tda9887_cfg);
- 	}
- 
- 	btv->dig = bttv_tvcards[btv->c.type].has_dig_in ?
-@@ -3544,31 +3574,110 @@
- 	if (bttv_tvcards[btv->c.type].audio_mode_gpio)
- 		btv->audio_mode_gpio=bttv_tvcards[btv->c.type].audio_mode_gpio;
- 
--	if (!autoload)
--		return;
--
- 	if (btv->tuner_type == TUNER_ABSENT)
- 		return;  /* no tuner or related drivers to load */
- 
-+	if (btv->has_saa6588 || saa6588[btv->c.nr]) {
-+		/* Probe for RDS receiver chip */
-+		static const unsigned short addrs[] = {
-+			0x20 >> 1,
-+			0x22 >> 1,
-+			I2C_CLIENT_END
-+		};
-+
-+		btv->sd_saa6588 = v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"saa6588", "saa6588", addrs);
-+	}
-+
- 	/* try to detect audio/fader chips */
--	if (!bttv_tvcards[btv->c.type].no_msp34xx &&
--	    bttv_I2CRead(btv, I2C_ADDR_MSP3400, "MSP34xx") >=0)
--		request_module("msp3400");
--
--	if (bttv_tvcards[btv->c.type].msp34xx_alt &&
--	    bttv_I2CRead(btv, I2C_ADDR_MSP3400_ALT, "MSP34xx (alternate address)") >=0)
--		request_module("msp3400");
--
--	if (!bttv_tvcards[btv->c.type].no_tda9875 &&
--	    bttv_I2CRead(btv, I2C_ADDR_TDA9875, "TDA9875") >=0)
--		request_module("tda9875");
--
--	if (!bttv_tvcards[btv->c.type].no_tda7432 &&
--	    bttv_I2CRead(btv, I2C_ADDR_TDA7432, "TDA7432") >=0)
--		request_module("tda7432");
--
--	if (bttv_tvcards[btv->c.type].needs_tvaudio)
--		request_module("tvaudio");
-+
-+	/* First check if the user specified the audio chip via a module
-+	   option. */
-+
-+	if (msp3400[btv->c.nr]) {
-+		/* The user specified that we should probe for msp3400 */
-+		static const unsigned short addrs[] = {
-+			I2C_ADDR_MSP3400 >> 1,
-+			I2C_ADDR_MSP3400_ALT >> 1,
-+			I2C_CLIENT_END
-+		};
-+
-+		btv->sd_msp34xx = v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"msp3400", "msp3400", addrs);
-+		if (btv->sd_msp34xx)
-+			return;
-+		goto no_audio;
-+	}
-+	if (tda7432[btv->c.nr]) {
-+		/* The user specified that we should probe for tda7432 */
-+		static const unsigned short addrs[] = {
-+			I2C_ADDR_TDA7432 >> 1,
-+			I2C_CLIENT_END
-+		};
-+
-+		if (v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"tda7432", "tda7432", addrs))
-+			return;
-+		goto no_audio;
-+	}
-+	if (tvaudio[btv->c.nr]) {
-+		/* The user specified that we should probe for tvaudio */
-+		btv->sd_tvaudio = v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"tvaudio", "tvaudio", tvaudio_addrs);
-+		if (btv->sd_tvaudio)
-+			return;
-+		goto no_audio;
-+	}
-+
-+	/* There were no overrides, sp now we try to discover this through the
-+	   card definition */
-+
-+	/* probe for msp3400 first: this driver can detect whether or not
-+	   it really is a msp3400, so it will return NULL when the device
-+	   found is really something else (e.g. a tea6300). */
-+	if (!bttv_tvcards[btv->c.type].no_msp34xx) {
-+		static const unsigned short addrs[] = {
-+			I2C_ADDR_MSP3400 >> 1,
-+			I2C_CLIENT_END
-+		};
-+
-+		btv->sd_msp34xx = v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"msp3400", "msp3400", addrs);
-+	} else if (bttv_tvcards[btv->c.type].msp34xx_alt) {
-+		static const unsigned short addrs[] = {
-+			I2C_ADDR_MSP3400_ALT >> 1,
-+			I2C_CLIENT_END
-+		};
-+
-+		btv->sd_msp34xx = v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"msp3400", "msp3400", addrs);
-+	}
-+
-+	/* If we found a msp34xx, then we're done. */
-+	if (btv->sd_msp34xx)
-+		return;
-+
-+	/* it might also be a tda7432. */
-+	if (!bttv_tvcards[btv->c.type].no_tda7432) {
-+		static const unsigned short addrs[] = {
-+			I2C_ADDR_TDA7432 >> 1,
-+			I2C_CLIENT_END
-+		};
-+
-+		if (v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+				"tda7432", "tda7432", addrs))
-+			return;
-+	}
-+
-+	/* Now see if we can find one of the tvaudio devices. */
-+	btv->sd_tvaudio = v4l2_i2c_new_probed_subdev(&btv->c.i2c_adap,
-+			"tvaudio", "tvaudio", tvaudio_addrs);
-+	if (btv->sd_tvaudio)
-+		return;
-+
-+no_audio:
-+	printk(KERN_WARNING "bttv%d: audio absent, no audio device found!\n",
-+			btv->c.nr);
- }
- 
- 
-@@ -3640,6 +3749,7 @@
- 		printk("bttv%d: Terratec Active Radio Upgrade found.\n",
- 		       btv->c.nr);
- 		btv->has_radio    = 1;
-+		btv->has_saa6588  = 1;
- 		btv->has_matchbox = 1;
- 	} else {
- 		btv->has_radio    = 0;
-diff -r 7191463177cd -r 68050e782acb linux/drivers/media/video/bt8xx/bttv-driver.c
---- a/linux/drivers/media/video/bt8xx/bttv-driver.c	Thu Mar 19 20:53:32 2009 +0100
-+++ b/linux/drivers/media/video/bt8xx/bttv-driver.c	Thu Mar 19 21:15:53 2009 +0100
-@@ -1181,7 +1181,6 @@
- {
- 	int gpio_val, signal;
- 	struct v4l2_control ctrl;
--	struct i2c_client *c;
- 
- 	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
- 		   bttv_tvcards[btv->c.type].gpiomask);
-@@ -1220,9 +1219,8 @@
- 
- 	ctrl.id = V4L2_CID_AUDIO_MUTE;
- 	ctrl.value = btv->mute;
--	bttv_call_i2c_clients(btv, VIDIOC_S_CTRL, &ctrl);
--	c = btv->i2c_msp34xx_client;
--	if (c) {
-+	bttv_call_all(btv, core, s_ctrl, &ctrl);
-+	if (btv->sd_msp34xx) {
- 		struct v4l2_routing route;
- 
- 		/* Note: the inputs tuner/radio/extern/intern are translated
-@@ -1261,15 +1259,14 @@
- 			break;
- 		}
- 		route.output = MSP_OUTPUT_DEFAULT;
--		c->driver->command(c, VIDIOC_INT_S_AUDIO_ROUTING, &route);
--	}
--	c = btv->i2c_tvaudio_client;
--	if (c) {
-+		v4l2_subdev_call(btv->sd_msp34xx, audio, s_routing, &route);
-+	}
-+	if (btv->sd_tvaudio) {
- 		struct v4l2_routing route;
- 
- 		route.input = input;
- 		route.output = 0;
--		c->driver->command(c, VIDIOC_INT_S_AUDIO_ROUTING, &route);
-+		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing, &route);
- 	}
- 	return 0;
- }
-@@ -1360,7 +1357,7 @@
- #endif
- 	}
- 	id = tvnorm->v4l2_id;
--	bttv_call_i2c_clients(btv, VIDIOC_S_STD, &id);
-+	bttv_call_all(btv, tuner, s_std, id);
- 
- 	return 0;
- }
-@@ -1504,7 +1501,7 @@
- 	case V4L2_CID_AUDIO_BALANCE:
- 	case V4L2_CID_AUDIO_BASS:
- 	case V4L2_CID_AUDIO_TREBLE:
--		bttv_call_i2c_clients(btv, VIDIOC_G_CTRL, c);
-+		bttv_call_all(btv, core, g_ctrl, c);
- 		break;
- 
- 	case V4L2_CID_PRIVATE_CHROMA_AGC:
-@@ -1578,12 +1575,12 @@
- 		if (btv->volume_gpio)
- 			btv->volume_gpio(btv, c->value);
- 
--		bttv_call_i2c_clients(btv, VIDIOC_S_CTRL, c);
-+		bttv_call_all(btv, core, s_ctrl, c);
- 		break;
- 	case V4L2_CID_AUDIO_BALANCE:
- 	case V4L2_CID_AUDIO_BASS:
- 	case V4L2_CID_AUDIO_TREBLE:
--		bttv_call_i2c_clients(btv, VIDIOC_S_CTRL, c);
-+		bttv_call_all(btv, core, s_ctrl, c);
- 		break;
- 
- 	case V4L2_CID_PRIVATE_CHROMA_AGC:
-@@ -2001,7 +1998,7 @@
- 		return -EINVAL;
- 
- 	mutex_lock(&btv->lock);
--	bttv_call_i2c_clients(btv, VIDIOC_S_TUNER, t);
-+	bttv_call_all(btv, tuner, s_tuner, t);
- 
- 	if (btv->audio_mode_gpio)
- 		btv->audio_mode_gpio(btv, t, 1);
-@@ -2046,7 +2043,7 @@
- 		return -EINVAL;
- 	mutex_lock(&btv->lock);
- 	btv->freq = f->frequency;
--	bttv_call_i2c_clients(btv, VIDIOC_S_FREQUENCY, f);
-+	bttv_call_all(btv, tuner, s_frequency, f);
- 	if (btv->has_matchbox && btv->radio_user)
- 		tea5757_set_freq(btv, btv->freq);
- 	mutex_unlock(&btv->lock);
-@@ -2060,7 +2057,7 @@
- 
- 	printk(KERN_INFO "bttv%d: ========  START STATUS CARD #%d  ========\n",
- 			btv->c.nr, btv->c.nr);
--	bttv_call_i2c_clients(btv, VIDIOC_LOG_STATUS, NULL);
-+	bttv_call_all(btv, core, log_status);
- 	printk(KERN_INFO "bttv%d: ========  END STATUS CARD   #%d  ========\n",
- 			btv->c.nr, btv->c.nr);
- 	return 0;
-@@ -2976,7 +2973,7 @@
- 
- 	mutex_lock(&btv->lock);
- 	t->rxsubchans = V4L2_TUNER_SUB_MONO;
--	bttv_call_i2c_clients(btv, VIDIOC_G_TUNER, t);
-+	bttv_call_all(btv, tuner, g_tuner, t);
- 	strcpy(t->name, "Television");
- 	t->capability = V4L2_TUNER_CAP_NORM;
- 	t->type       = V4L2_TUNER_ANALOG_TV;
-@@ -3467,7 +3464,7 @@
- 
- 	btv->radio_user++;
- 
--	bttv_call_i2c_clients(btv,AUDC_SET_RADIO,NULL);
-+	bttv_call_all(btv, tuner, s_radio);
- 	audio_input(btv,TVAUDIO_INPUT_RADIO);
- 
- 	mutex_unlock(&btv->lock);
-@@ -3487,7 +3484,7 @@
- 
- 	btv->radio_user--;
- 
--	bttv_call_i2c_clients(btv, RDS_CMD_CLOSE, &cmd);
-+	bttv_call_all(btv, core, ioctl, RDS_CMD_CLOSE, &cmd);
- 
- 	return 0;
- }
-@@ -3520,7 +3517,7 @@
- 	strcpy(t->name, "Radio");
- 	t->type = V4L2_TUNER_RADIO;
- 
--	bttv_call_i2c_clients(btv, VIDIOC_G_TUNER, t);
-+	bttv_call_all(btv, tuner, g_tuner, t);
- 
- 	if (btv->audio_mode_gpio)
- 		btv->audio_mode_gpio(btv, t, 0);
-@@ -3562,7 +3559,7 @@
- 	if (0 != t->index)
- 		return -EINVAL;
- 
--	bttv_call_i2c_clients(btv, VIDIOC_G_TUNER, t);
-+	bttv_call_all(btv, tuner, g_tuner, t);
- 	return 0;
- }
- 
-@@ -3623,7 +3620,7 @@
- 	cmd.instance = file;
- 	cmd.result = -ENODEV;
- 
--	bttv_call_i2c_clients(btv, RDS_CMD_READ, &cmd);
-+	bttv_call_all(btv, core, ioctl, RDS_CMD_READ, &cmd);
- 
- 	return cmd.result;
- }
-@@ -3636,7 +3633,7 @@
- 	cmd.instance = file;
- 	cmd.event_list = wait;
- 	cmd.result = -ENODEV;
--	bttv_call_i2c_clients(btv, RDS_CMD_POLL, &cmd);
-+	bttv_call_all(btv, core, ioctl, RDS_CMD_POLL, &cmd);
- 
- 	return cmd.result;
- }
-diff -r 7191463177cd -r 68050e782acb linux/drivers/media/video/bt8xx/bttv-i2c.c
---- a/linux/drivers/media/video/bt8xx/bttv-i2c.c	Thu Mar 19 20:53:32 2009 +0100
-+++ b/linux/drivers/media/video/bt8xx/bttv-i2c.c	Thu Mar 19 21:15:53 2009 +0100
-@@ -35,8 +35,6 @@
- #include <media/v4l2-common.h>
- #include <linux/jiffies.h>
- #include <asm/io.h>
--
--static int attach_inform(struct i2c_client *client);
- 
- static int i2c_debug;
- static int i2c_hw;
-@@ -269,51 +267,6 @@
- /* ----------------------------------------------------------------------- */
- /* I2C functions - common stuff                                            */
- 
--static int attach_inform(struct i2c_client *client)
--{
--	struct v4l2_device *v4l2_dev = i2c_get_adapdata(client->adapter);
--	struct bttv *btv = to_bttv(v4l2_dev);
--	int addr=ADDR_UNSET;
--
--
--	if (ADDR_UNSET != bttv_tvcards[btv->c.type].tuner_addr)
--		addr = bttv_tvcards[btv->c.type].tuner_addr;
--
--
--	if (bttv_debug)
--		printk(KERN_DEBUG "bttv%d: %s i2c attach [addr=0x%x,client=%s]\n",
--			btv->c.nr, client->driver->driver.name, client->addr,
--			client->name);
--	if (!client->driver->command)
--		return 0;
--
--	if (client->driver->id == I2C_DRIVERID_MSP3400)
--		btv->i2c_msp34xx_client = client;
--	if (client->driver->id == I2C_DRIVERID_TVAUDIO)
--		btv->i2c_tvaudio_client = client;
--	if (btv->tuner_type != TUNER_ABSENT) {
--		struct tuner_setup tun_setup;
--
--		if (addr == ADDR_UNSET || addr == client->addr) {
--			tun_setup.mode_mask = T_ANALOG_TV | T_DIGITAL_TV | T_RADIO;
--			tun_setup.type = btv->tuner_type;
--			tun_setup.addr = addr;
--			bttv_call_i2c_clients(btv, TUNER_SET_TYPE_ADDR, &tun_setup);
--		}
--
--	}
--
--	return 0;
--}
--
--void bttv_call_i2c_clients(struct bttv *btv, unsigned int cmd, void *arg)
--{
--	if (0 != btv->i2c_rc)
--		return;
--	i2c_clients_command(&btv->c.i2c_adap, cmd, arg);
--}
--
--
- /* read I2C */
- int bttv_I2CRead(struct bttv *btv, unsigned char addr, char *probe_for)
- {
-@@ -424,8 +377,9 @@
- 		btv->c.i2c_adap.algo_data = &btv->i2c_algo;
- 	}
- 	btv->c.i2c_adap.owner = THIS_MODULE;
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 22)
- 	btv->c.i2c_adap.class = I2C_CLASS_TV_ANALOG;
--	btv->c.i2c_adap.client_register = attach_inform;
-+#endif
- 
- 	btv->c.i2c_adap.dev.parent = &btv->c.pci->dev;
- 	snprintf(btv->c.i2c_adap.name, sizeof(btv->c.i2c_adap.name),
-@@ -435,10 +389,12 @@
- 	i2c_set_adapdata(&btv->c.i2c_adap, &btv->c.v4l2_dev);
- 	btv->i2c_client.adapter = &btv->c.i2c_adap;
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 22)
- 	if (bttv_tvcards[btv->c.type].no_video)
- 		btv->c.i2c_adap.class &= ~I2C_CLASS_TV_ANALOG;
- 	if (bttv_tvcards[btv->c.type].has_dvb)
- 		btv->c.i2c_adap.class |= I2C_CLASS_TV_DIGITAL;
-+#endif
- 
- 	if (btv->use_i2c_hw) {
- 		btv->i2c_rc = i2c_add_adapter(&btv->c.i2c_adap);
-diff -r 7191463177cd -r 68050e782acb linux/drivers/media/video/bt8xx/bttv.h
---- a/linux/drivers/media/video/bt8xx/bttv.h	Thu Mar 19 20:53:32 2009 +0100
-+++ b/linux/drivers/media/video/bt8xx/bttv.h	Thu Mar 19 21:15:53 2009 +0100
-@@ -242,6 +242,7 @@
- 	unsigned int msp34xx_alt:1;
- 
- 	unsigned int no_video:1; /* video pci function is unused */
-+	unsigned int has_saa6588:1;
- 	unsigned int has_dvb:1;
- 	unsigned int has_remote:1;
- 	unsigned int has_radio:1;
-@@ -357,7 +358,9 @@
- /* ---------------------------------------------------------- */
- /* i2c                                                        */
- 
--extern void bttv_call_i2c_clients(struct bttv *btv, unsigned int cmd, void *arg);
-+#define bttv_call_all(btv, o, f, args...) \
-+	v4l2_device_call_all(&btv->c.v4l2_dev, 0, o, f, ##args)
-+
- extern int bttv_I2CRead(struct bttv *btv, unsigned char addr, char *probe_for);
- extern int bttv_I2CWrite(struct bttv *btv, unsigned char addr, unsigned char b1,
- 			 unsigned char b2, int both);
-diff -r 7191463177cd -r 68050e782acb linux/drivers/media/video/bt8xx/bttvp.h
---- a/linux/drivers/media/video/bt8xx/bttvp.h	Thu Mar 19 20:53:32 2009 +0100
-+++ b/linux/drivers/media/video/bt8xx/bttvp.h	Thu Mar 19 21:15:53 2009 +0100
-@@ -331,6 +331,7 @@
- 	unsigned int tuner_type;  /* tuner chip type */
- 	unsigned int tda9887_conf;
- 	unsigned int svhs, dig;
-+	unsigned int has_saa6588:1;
- 	struct bttv_pll_info pll;
- 	int triton1;
- 	int gpioirq;
-@@ -354,8 +355,9 @@
- 	int                        i2c_state, i2c_rc;
- 	int                        i2c_done;
- 	wait_queue_head_t          i2c_queue;
--	struct i2c_client 	  *i2c_msp34xx_client;
--	struct i2c_client 	  *i2c_tvaudio_client;
-+	struct v4l2_subdev 	  *sd_msp34xx;
-+	struct v4l2_subdev 	  *sd_tvaudio;
-+	struct v4l2_subdev 	  *sd_saa6588;
- 
- 	/* video4linux (1) */
- 	struct video_device *video_dev;
+why ??
 
+> +static int
+> +find_vctrl(int id)
+
+I guess it fits in one line...
+
+> +static int
+> +mt9p012_read_reg(struct i2c_client *client, u16 data_length, u16 reg, u32 *val)
+> +{
+> +       int err;
+> +       struct i2c_msg msg[1];
+> +       unsigned char data[4];
+> +
+> +       if (!client->adapter)
+> +               return -ENODEV;
+> +       if (data_length != MT9P012_8BIT && data_length != MT9P012_16BIT
+> +                                       && data_length != MT9P012_32BIT)
+> +               return -EINVAL;
+> +
+> +       msg->addr = client->addr;
+> +       msg->flags = 0;
+> +       msg->len = 2;
+> +       msg->buf = data;
+> +
+> +       /* high byte goes out first */
+> +       data[0] = (u8) (reg >> 8);;
+> +       data[1] = (u8) (reg & 0xff);
+> +       err = i2c_transfer(client->adapter, msg, 1);
+> +       if (err >= 0) {
+> +               msg->len = data_length;
+> +               msg->flags = I2C_M_RD;
+> +               err = i2c_transfer(client->adapter, msg, 1);
+> +       }
+> +       if (err >= 0) {
+> +               *val = 0;
+> +               /* high byte comes first */
+> +               if (data_length == MT9P012_8BIT)
+> +                       *val = data[0];
+> +               else if (data_length == MT9P012_16BIT)
+> +                       *val = data[1] + (data[0] << 8);
+> +               else
+> +                       *val = data[3] + (data[2] << 8) +
+> +                               (data[1] << 16) + (data[0] << 24);
+> +               return 0;
+> +       }
+> +       dev_err(&client->dev, "read from offset 0x%x error %d", reg, err);
+
+doesn't this chip support smbus ?? It would be a lot simpler if it
+does... :-s
+
+> +static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power on)
+> +{
+> +       struct mt9p012_sensor *sensor = s->priv;
+> +       struct i2c_client *c = sensor->i2c_client;
+> +       int rval;
+> +
+> +       if ((on == V4L2_POWER_STANDBY) && (sensor->state == SENSOR_DETECTED))
+> +               mt9p012_write_regs(c, stream_off_list);
+> +
+> +       if (on != V4L2_POWER_ON)
+> +               sensor->pdata->set_xclk(0);
+> +       else
+> +               sensor->pdata->set_xclk(xclk_current);
+
+I guess this should be clk_enable() and clk_disabled() calls.
+
+> +
+> +       rval = sensor->pdata->power_set(on);
+> +       if (rval < 0) {
+> +               dev_err(&c->dev, "Unable to set the power state: " DRIVER_NAME
+> +                                                               " sensor\n");
+
+dev_err() should already hold the driver name. This could be changed to:
+
+dev_err(&c->dev, "Unable to set the power state, err %d\n"), rval);
+
+> +               sensor->pdata->set_xclk(0);
+> +               return rval;
+> +       }
+> +
+> +       if ((on == V4L2_POWER_ON) && (sensor->state == SENSOR_DETECTED))
+> +               mt9p012_configure(s);
+> +
+> +       if ((on == V4L2_POWER_ON) && (sensor->state == SENSOR_NOT_DETECTED)) {
+> +               rval = mt9p012_detect(c);
+
+this should be called during probe() and if it fails you bail out...
+otherwise the device will always be available, I guess...
+
+> +               if (rval < 0) {
+> +                       dev_err(&c->dev, "Unable to detect " DRIVER_NAME
+> +                                                               " sensor\n");
+> +                       sensor->state = SENSOR_NOT_DETECTED;
+> +                       return rval;
+> +               }
+> +               sensor->state = SENSOR_DETECTED;
+> +               sensor->ver = rval;
+> +               pr_info(DRIVER_NAME " chip version 0x%02x detected\n",
+> +                                                               sensor->ver);
+
+no pr_info, use dev_dbg();
+
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+> + * ioctl_init - V4L2 sensor interface handler for VIDIOC_INT_INIT
+> + * @s: pointer to standard V4L2 device structure
+> + *
+> + * Initialize the sensor device (call mt9p012_configure())
+> + */
+> +static int ioctl_init(struct v4l2_int_device *s)
+> +{
+> +       return 0;
+> +}
+> +
+> +/**
+> + * ioctl_dev_exit - V4L2 sensor interface handler for vidioc_int_dev_exit_num
+> + * @s: pointer to standard V4L2 device structure
+> + *
+> + * Delinitialise the dev. at slave detach.  The complement of ioctl_dev_init.
+> + */
+> +static int ioctl_dev_exit(struct v4l2_int_device *s)
+> +{
+> +       return 0;
+> +}
+> +
+> +/**
+> + * ioctl_dev_init - V4L2 sensor interface handler for vidioc_int_dev_init_num
+> + * @s: pointer to standard V4L2 device structure
+> + *
+> + * Initialise the device when slave attaches to the master.  Returns 0 if
+> + * mt9p012 device could be found, otherwise returns appropriate error.
+> + */
+> +static int ioctl_dev_init(struct v4l2_int_device *s)
+> +{
+> +       return 0;
+> +}
+> +/**
+> + * ioctl_enum_framesizes - V4L2 sensor if handler for vidioc_int_enum_framesizes
+> + * @s: pointer to standard V4L2 device structure
+> + * @frms: pointer to standard V4L2 framesizes enumeration structure
+> + *
+> + * Returns possible framesizes depending on choosen pixel format
+> + **/
+> +static int ioctl_enum_framesizes(struct v4l2_int_device *s,
+> +                                       struct v4l2_frmsizeenum *frms)
+> +{
+> +       int ifmt;
+> +
+> +       for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
+> +               if (frms->pixel_format == mt9p012_formats[ifmt].pixelformat)
+> +                       break;
+> +       }
+> +       /* Is requested pixelformat not found on sensor? */
+> +       if (ifmt == NUM_CAPTURE_FORMATS)
+> +               return -EINVAL;
+> +
+> +       /* Do we already reached all discrete framesizes? */
+> +       if (frms->index >= 5)
+> +               return -EINVAL;
+> +
+> +       frms->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +       frms->discrete.width = mt9p012_sizes[frms->index].width;
+> +       frms->discrete.height = mt9p012_sizes[frms->index].height;
+> +
+> +       return 0;
+> +}
+> +
+> +const struct v4l2_fract mt9p012_frameintervals[] = {
+> +       {  .numerator = 1, .denominator = 11 },
+> +       {  .numerator = 1, .denominator = 15 },
+> +       {  .numerator = 1, .denominator = 20 },
+> +       {  .numerator = 1, .denominator = 25 },
+> +       {  .numerator = 1, .denominator = 30 },
+> +};
+> +
+> +static int ioctl_enum_frameintervals(struct v4l2_int_device *s,
+> +                                       struct v4l2_frmivalenum *frmi)
+> +{
+> +       int ifmt;
+> +
+> +       for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
+> +               if (frmi->pixel_format == mt9p012_formats[ifmt].pixelformat)
+> +                       break;
+> +       }
+> +       /* Is requested pixelformat not found on sensor? */
+> +       if (ifmt == NUM_CAPTURE_FORMATS)
+> +               return -EINVAL;
+> +
+> +       /* Do we already reached all discrete framesizes? */
+> +
+> +       if (((frmi->width == mt9p012_sizes[4].width) &&
+> +                               (frmi->height == mt9p012_sizes[4].height)) ||
+> +                               ((frmi->width == mt9p012_sizes[3].width) &&
+> +                               (frmi->height == mt9p012_sizes[3].height))) {
+> +               /* FIXME: The only frameinterval supported by 5MP and 3MP
+> +                * capture sizes is 1/11 fps
+> +                */
+> +               if (frmi->index != 0)
+> +                       return -EINVAL;
+> +       } else {
+> +               if (frmi->index >= 5)
+> +                       return -EINVAL;
+> +       }
+> +
+> +       frmi->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +       frmi->discrete.numerator =
+> +                               mt9p012_frameintervals[frmi->index].numerator;
+> +       frmi->discrete.denominator =
+> +                               mt9p012_frameintervals[frmi->index].denominator;
+> +
+> +       return 0;
+> +}
+> +
+> +static struct v4l2_int_ioctl_desc mt9p012_ioctl_desc[] = {
+> +       { .num = vidioc_int_enum_framesizes_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_enum_framesizes },
+> +       { .num = vidioc_int_enum_frameintervals_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_enum_frameintervals },
+> +       { .num = vidioc_int_dev_init_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_dev_init },
+> +       { .num = vidioc_int_dev_exit_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_dev_exit },
+> +       { .num = vidioc_int_s_power_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_s_power },
+> +       { .num = vidioc_int_g_priv_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_g_priv },
+> +       { .num = vidioc_int_init_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_init },
+> +       { .num = vidioc_int_enum_fmt_cap_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_enum_fmt_cap },
+> +       { .num = vidioc_int_try_fmt_cap_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_try_fmt_cap },
+> +       { .num = vidioc_int_g_fmt_cap_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_g_fmt_cap },
+> +       { .num = vidioc_int_s_fmt_cap_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_s_fmt_cap },
+> +       { .num = vidioc_int_g_parm_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_g_parm },
+> +       { .num = vidioc_int_s_parm_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_s_parm },
+> +       { .num = vidioc_int_queryctrl_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_queryctrl },
+> +       { .num = vidioc_int_g_ctrl_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_g_ctrl },
+> +       { .num = vidioc_int_s_ctrl_num,
+> +         .func = (v4l2_int_ioctl_func *)ioctl_s_ctrl },
+> +};
+> +
+> +static struct v4l2_int_slave mt9p012_slave = {
+> +       .ioctls = mt9p012_ioctl_desc,
+> +       .num_ioctls = ARRAY_SIZE(mt9p012_ioctl_desc),
+> +};
+> +
+> +static struct v4l2_int_device mt9p012_int_device = {
+> +       .module = THIS_MODULE,
+> +       .name = DRIVER_NAME,
+> +       .priv = &mt9p012,
+> +       .type = v4l2_int_type_slave,
+> +       .u = {
+> +               .slave = &mt9p012_slave,
+> +       },
+
+please tabify this.
+
+> +};
+> +
+> +/**
+> + * mt9p012_probe - sensor driver i2c probe handler
+> + * @client: i2c driver client device structure
+> + *
+> + * Register sensor as an i2c client device and V4L2
+> + * device.
+> + */
+> +static int
+> +mt9p012_probe(struct i2c_client *client, const struct i2c_device_id *id)
+> +{
+> +       struct mt9p012_sensor *sensor = &mt9p012;
+
+you should kzalloc(sensor) during probe() and be sure to kfree() in the
+error case and on remove().
+
+> +       int err;
+> +
+> +       if (i2c_get_clientdata(client))
+> +               return -EBUSY;
+> +
+> +       sensor->pdata = client->dev.platform_data;
+
+it's not a good practice to hold the complete pdata. You should have
+something like:
+
+
+struct mt9p012_platform_data *pdata = client->dev.platorm_data;
+
+if (!pdata) {
+	dev_err(&client->dev, "no pdata\n";
+	return -EINVAL
+}
+
+sensor->power_set = pdata->power_set;
+sensor->... = pdata->...
+> +
+> +       if (!sensor->pdata) {
+> +               dev_err(&client->dev, "no platform data?\n");
+> +               return -ENODEV;
+
+why no dev ?? the device seems to exist...
+
+> +       }
+> +
+> +       sensor->v4l2_int_device = &mt9p012_int_device;
+> +       sensor->i2c_client = client;
+
+You don't wanna hold client, you just need dev. From dev you can fecth
+the i2c client pointer again by:
+
+sensor->dev = &client->dev;
+
+...
+
+client = to_i2c_client(sensor->dev);
+
+> +       i2c_set_clientdata(client, sensor);
+> +
+> +       /* Make the default capture format QCIF V4L2_PIX_FMT_SGRBG10 */
+> +       sensor->pix.width = MT9P012_VIDEO_WIDTH_4X_BINN_SCALED;
+> +       sensor->pix.height = MT9P012_VIDEO_WIDTH_4X_BINN_SCALED;
+> +       sensor->pix.pixelformat = V4L2_PIX_FMT_SGRBG10;
+> +
+> +       err = v4l2_int_device_register(sensor->v4l2_int_device);
+> +       if (err)
+> +               i2c_set_clientdata(client, NULL);
+> +
+> +       return err;
+> +}
+> +
+> +/**
+> + * mt9p012_remove - sensor driver i2c remove handler
+> + * @client: i2c driver client device structure
+> + *
+> + * Unregister sensor as an i2c client device and V4L2
+> + * device.  Complement of mt9p012_probe().
+> + */
+> +static int __exit
+> +mt9p012_remove(struct i2c_client *client)
+
+you can't do it, remove __exit from here. i2c drivers can't sit in
+__init or __exit only sections.
+
+> +{
+> +       struct mt9p012_sensor *sensor = i2c_get_clientdata(client);
+> +
+> +       if (!client->adapter)
+> +               return -ENODEV; /* our client isn't attached */
+
+this won't happen, if it does, fix your driver :-p
+
+> +
+> +       v4l2_int_device_unregister(sensor->v4l2_int_device);
+> +       i2c_set_clientdata(client, NULL);
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct i2c_device_id mt9p012_id[] = {
+> +       { DRIVER_NAME, 0 },
+> +       { },
+> +};
+> +MODULE_DEVICE_TABLE(i2c, mt9p012_id);
+> +
+> +static struct i2c_driver mt9p012sensor_i2c_driver = {
+> +       .driver = {
+> +               .name = DRIVER_NAME,
+> +               .owner = THIS_MODULE,
+> +       },
+> +       .probe = mt9p012_probe,
+> +       .remove = __exit_p(mt9p012_remove),
+
+remove __exit_p()
+
+> +       .id_table = mt9p012_id,
+> +};
+> +
+> +static struct mt9p012_sensor mt9p012 = {
+> +       .timeperframe = {
+> +               .numerator = 1,
+> +               .denominator = 15,
+> +       },
+> +       .state = SENSOR_NOT_DETECTED,
+> +};
+> +
+> +/**
+> + * mt9p012sensor_init - sensor driver module_init handler
+> + *
+> + * Registers driver as an i2c client driver.  Returns 0 on success,
+> + * error code otherwise.
+> + */
+> +static int __init mt9p012sensor_init(void)
+> +{
+> +       return i2c_add_driver(&mt9p012sensor_i2c_driver);
+> +}
+> +module_init(mt9p012sensor_init);
+> +
+> +/**
+> + * mt9p012sensor_cleanup - sensor driver module_exit handler
+> + *
+> + * Unregisters/deletes driver as an i2c client driver.
+> + * Complement of mt9p012sensor_init.
+> + */
+> +static void __exit mt9p012sensor_cleanup(void)
+> +{
+> +       i2c_del_driver(&mt9p012sensor_i2c_driver);
+> +}
+> +module_exit(mt9p012sensor_cleanup);
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_DESCRIPTION("mt9p012 camera sensor driver");
+> diff --git a/drivers/media/video/mt9p012_regs.h b/drivers/media/video/mt9p012_regs.h
+> new file mode 100644
+> index 0000000..70f6ee7
+> --- /dev/null
+> +++ b/drivers/media/video/mt9p012_regs.h
+> @@ -0,0 +1,74 @@
+> +/*
+> + * drivers/media/video/mt9p012_regs.h
+> + *
+> + * Register definitions for the MT9P012 camera sensor.
+> + *
+> + * Author:
+> + *     Sameer Venkatraman <sameerv@ti.com>
+> + *     Sergio Aguirre <saaguirre@ti.com>
+> + *     Martinez Leonides
+> + *
+> + *
+> + * Copyright (C) 2008 Texas Instruments.
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2. This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + */
+
+no reason to add this. It's only used in the sibbling C file, so move
+these there.
+
+> diff --git a/include/media/mt9p012.h b/include/media/mt9p012.h
+> new file mode 100644
+> index 0000000..13a9745
+> --- /dev/null
+> +++ b/include/media/mt9p012.h
+> @@ -0,0 +1,37 @@
+> +/*
+> + * drivers/media/video/mt9p012.h
+
+This path is wrong and nobody uses it anymore, it should be in form:
+
+mt9p012.h - Register definitions for the MT9P012 camera sensor
+
+> + *
+> + * Register definitions for the MT9P012 camera sensor.
+> + *
+> + * Author:
+> + *     Sameer Venkatraman <sameerv@ti.com>
+> + *     Martinez Leonides
+> + *
+> + *
+> + * Copyright (C) 2008 Texas Instruments.
+> + *
+> + * This file is licensed under the terms of the GNU General Public License
+> + * version 2. This program is licensed "as is" without any warranty of any
+> + * kind, whether express or implied.
+> + */
+> +
+> +#ifndef MT9P012_H
+> +#define MT9P012_H
+> +
+> +
+> +#define MT9P012_I2C_ADDR               0x10
+> +
+> +/**
+> + * struct mt9p012_platform_data - platform data values and access functions
+> + * @power_set: Power state access function, zero is off, non-zero is on.
+> + * @default_regs: Default registers written after power-on or reset.
+> + * @ifparm: Interface parameters access function
+> + * @priv_data_set: device private data (pointer) access function
+> + */
+> +struct mt9p012_platform_data {
+> +       int (*power_set)(enum v4l2_power power);
+> +       u32 (*set_xclk)(u32 xclkfreq);
+
+You shouldn't need this function, should be using clk fw.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+balbi
