@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.243]:16645 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734AbZCYGE4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 02:04:56 -0400
-Received: by an-out-0708.google.com with SMTP id d14so2233401and.1
-        for <linux-media@vger.kernel.org>; Tue, 24 Mar 2009 23:04:53 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 25 Mar 2009 03:04:53 -0300
-Message-ID: <68cac7520903242304k4082d078ve7a833ca218772c7@mail.gmail.com>
-Subject: zc3xx: Add .driver_info to DLink DSB - C320
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: moinejf@free.fr
-Cc: linux-media@vger.kernel.org,
-	"bruna@griebeler.com" <bruna@griebeler.com>
-Content-Type: multipart/mixed; boundary=000325550d62379ee80465eb47e0
+Received: from smtp5-g21.free.fr ([212.27.42.5]:59747 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753674AbZCDRsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 12:48:31 -0500
+Subject: Re: [linux-dvb] good card express for video
+From: djamil <djamil@djamil.net>
+To: Matthew Gardeski <garmat@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <b886b790903040638x11962a0ct3f891450d11fdbe6@mail.gmail.com>
+References: <1236150760.9084.2.camel@toptop>
+	 <b886b790903040638x11962a0ct3f891450d11fdbe6@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-15"
+Date: Wed, 04 Mar 2009 18:48:19 +0100
+Message-Id: <1236188899.9084.5.camel@toptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000325550d62379ee80465eb47e0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+oops i use pal-secam , not ntsc :)
 
-Hello Jean,
+but thnx! 
 
-Attached patch for the following:
 
-zc3xx: Add .driver_info to DLink DSB - C320
+Le mercredi 04 mars 2009 à 09:38 -0500, Matthew Gardeski a écrit :
+> I've been attempting to use an HVR-1500q expresscard in linux.  The
+> development of the driver looks promising.  The trouble is that I am
+> currently living in a fairly remote valley where there is no TV
+> reception, so I can't actually tell if the ATSC or NTSC tuners are
+> working.  I'll be spending next week near some larger cities so I will
+> be able to test it further.  All I can tell you now is that the card
+> is detected correctly and the firmware appears to load properly.
+> 
+> On Wed, Mar 4, 2009 at 02:12, djamil <djamil@djamil.net> wrote:
+> > Hi guys
+> >
+> > I v been waititng on analog support for HVR1400 with no luck
+> >
+> > can anyone tell me if there is a card similar working fully under linux,
+> > i mean , hybrid, hd, and analog inputs as an express card, the successor
+> > of pcmcia
+> >
+> >
+> >
+> > thnx in advance
+> >
+> >
+> > _______________________________________________
+> > linux-dvb users mailing list
+> > For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Added .driver_info = SENSOR_PAS106 to 0x0ac8, 0x0302 (D-Link DSB - C320)
-Thanks to Bruna Griebeler <bruna@griebeler.com> for reporting and test.
-
-Reported-by: Bruna Griebeler <bruna@griebeler.com>
-Tested-by: Bruna Griebeler <bruna@griebeler.com>
-Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
-
-Thanks,
-Douglas
-
---000325550d62379ee80465eb47e0
-Content-Type: application/octet-stream; name="zc3xx-add-driver-info.diff"
-Content-Disposition: attachment; filename="zc3xx-add-driver-info.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fspm0moh0
-
-ZGlmZiAtciA1NmNmMGYxNzcyZjcgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS96YzN4
-eC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2EvemMzeHguYwlNb24gTWFy
-IDIzIDE5OjE4OjM0IDIwMDkgLTAzMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9n
-c3BjYS96YzN4eC5jCVdlZCBNYXIgMjUgMDI6Mzc6NDggMjAwOSAtMDMwMApAQCAtNzY2Miw3ICs3
-NjYyLDcgQEAKIAl7VVNCX0RFVklDRSgweDA1NWYsIDB4ZDAwNCl9LAogCXtVU0JfREVWSUNFKDB4
-MDY5OCwgMHgyMDAzKX0sCiAJe1VTQl9ERVZJQ0UoMHgwYWM4LCAweDAzMDEpLCAuZHJpdmVyX2lu
-Zm8gPSBTRU5TT1JfUEFTMTA2fSwKLQl7VVNCX0RFVklDRSgweDBhYzgsIDB4MDMwMil9LAorCXtV
-U0JfREVWSUNFKDB4MGFjOCwgMHgwMzAyKSwgLmRyaXZlcl9pbmZvID0gU0VOU09SX1BBUzEwNn0s
-CiAJe1VTQl9ERVZJQ0UoMHgwYWM4LCAweDMwMWIpfSwKIAl7VVNCX0RFVklDRSgweDBhYzgsIDB4
-MzAzYil9LAogCXtVU0JfREVWSUNFKDB4MGFjOCwgMHgzMDViKSwgLmRyaXZlcl9pbmZvID0gU0VO
-U09SX1RBUzUxMzBDX1ZGMDI1MH0sCg==
---000325550d62379ee80465eb47e0--
