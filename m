@@ -1,114 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aa013msr.fastwebnet.it ([85.18.95.73]:52897 "EHLO
-	aa013msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559AbZCaTU4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 15:20:56 -0400
-Date: Tue, 31 Mar 2009 21:20:52 +0200
-From: Gabriele Dini Ciacci <dark.schneider@iol.it>
-Cc: linux-media@vger.kernel.org,
-	Patrick Boettcher <patrick.boettcher@desy.de>
-Subject: Re: [PATCH] Drivers for Pinnacle pctv200e and pctv60e
-Message-ID: <20090331212052.152d2ffc@gdc1>
-In-Reply-To: <20090331075610.53620db8@pedra.chehab.org>
-References: <20090329155608.396d2257@gdc1>
- <20090331075610.53620db8@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:54585 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751491AbZCDNoW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 08:44:22 -0500
+Received: by fxm24 with SMTP id 24so2901963fxm.37
+        for <linux-media@vger.kernel.org>; Wed, 04 Mar 2009 05:44:20 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Typo in lnbp21.c / changeset: 10800:ba740eb2348e
+Date: Wed, 4 Mar 2009 15:44:34 +0200
+Cc: "Igor M. Liplianin" <liplianin@me.by>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	linux-media@vger.kernel.org, Abylai Ospan <aospan@netup.ru>
+References: <200903041111.15083.zzam@gentoo.org> <200903041440.33687.liplianin@me.by> <20090304100244.543b8b81@caramujo.chehab.org>
+In-Reply-To: <20090304100244.543b8b81@caramujo.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903041544.34438.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 31 Mar 2009 07:56:10 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-
-> Hi Gabriele,
-> 
-> On Sun, 29 Mar 2009 15:56:08 +0200
-> Gabriele Dini Ciacci <dark.schneider@iol.it> wrote:
-> 
-> > Hello,
-> > 
-> > This is a stub patch to make the subjects card work.
-> > 
-> > I am using the driver on a pctv60e and it is very stable, I use it
-> > daily. It should work for pctv200e but not owning the device I
-> > cannot test it.
-> > 
-> > The code need to be cleaned, as I am not an experienced kernel
-> > coder. The code in mt352.c contains an hard-coded address for the
-> > device, while Pinnalce devices with that tuner uses a different
-> > address. Currently the address is "hijacked" to be the correct one.
-> > This is a hack, and i think that mt352.c should be changed to
-> > support multiple addresses, selected via params, duplicate code or
-> > something.
-> > 
-> > Remote support is missing, cause it was not working out of the box.
-> > I do not use it and so developing it for myself only was not very
-> > useful, if someone wants it or is interested I can have a look.
-> > 
-> > The patch is generally messy, I need help there. I do not know if I
-> > have to change all the functions to take as parameter an adapter_nr
-> > or change the caller to continue to pass them a struct
-> > dvb_usb_device obtained with i2c_get_adapdata(adapter_nr).
-> > 
-> > Here is the patch, as an attachment, thanks meanwhile.
-> 
-> Well, let's go by parts. 
-> 
-> It seems that you wrote your driver based on some USB sniffing. Do
-> you know what are the chipsets present on your driver? Maybe there's
-> another driver already developed or under development for the same
-> chipset.
-
-I actually did not any sniffing at all. I was ready to go for it (so I
-asked a windows guy to send me the sniff).
-Obtained that, I started to look at it, then I
-realized that v4l already had support for all the chipsets the thing
-was using. I just made the code that connects the parts and such,
-indeed the patch is only the main file, no low level chip file, or
-anything else touched. So there is no actual code for the chipsets.
-I'm using mt353 and mt2060, that are already in the main tree.
-
-As I explained above, mt353.c makes a wrong assumption about the address
-the chip has, at it also states that in a comment, explaining that on
-pinnacle hardware (like in this case) the address is different. I just
-had to hijack that and hack this. I was suggesting above to fix
-mt353.c else, no pinnacle card with mt353 can be implemented with a
-clean code.
-
-> In the case of your patch, you should first run checkpatch.pl for it
-> to show you the non-compliances of your driver and Linux Kernel
-> CodingStyle. checkpatch.pl is avaliable at kernel tree,
-> under /scripts dir. You'll also find it at v4l-dvb development tree,
-> at v4l/script/checkpatch.pl.
-> It is also a good idea to read README.patches at v4l-dvb development
-> tree.
-> 
-
-I have checked coding style manually, I'll use the script.
-I read README.patches the first time i coded the driver, reread it on
-January when I updated the driver to the new interface and decided to
-send it the first time to the ml on 01/06/2009. In January it was
-outdated in regards to the new patch system adopted, wiki was also
-outdated. I'll reread it to see if I am missing something and to check
-if it needs to be updated to explain the new system for patch.
-
-To sum up I will run checkpatch.pl and when it run fine I will resend
-the patch.
-
-But note that the problem with mt353.c stays, I do not have the
-necessary confidence to change a low level chipset driver interface to
-make it not assume an hardcoded adderss.
-
+В сообщении от 4 March 2009 15:02:44 Mauro Carvalho Chehab написал(а):
+> On Wed, 4 Mar 2009 14:40:33 +0200
+>
+> "Igor M. Liplianin" <liplianin@me.by> wrote:
+> > On 4 п╪п╟я─я┌п╟ 2009, linux-media@vger.kernel.org wrote:
+> > > Hi there!
+> > >
+> > > lnbp21 does show strange messages at depmod.
+> > >
+> > > WARNING: Loop detected: /lib/modules/2.6.28-tuxonice-r1/v4l/lnbp21.ko
+> > > which needs lnbp21.ko again!
+> > > WARNING: Module /lib/modules/2.6.28-tuxonice-r1/v4l/lnbp21.ko ignored,
+> > > due to loop
+> > >
+> > > So I had a look at latest change and noticed there was a typo in the
+> > > function name, it should be lnbh24_attach, and not lnbp24_attach I
+> > > guess. The attached patch fixes this.
+> > >
+> > > Regards
+> > > Matthias
+> >
+> > Hi Matthias
+> > Yes, You are right.
+> > What an unfortunate misprint and  lack of attention from my side :(
+> > I confirm your patch.
+> >
+> > Mauro, please apply this patch.
+>
+> You forgot to attach the patch.
+>
+> > Best Regards
+> > Igor
+>
 > Cheers,
 > Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks, see you :)
-Best Regards,
-Gabriele
+Mauro,
 
------------ 
-http://linux-wildo.sf.net
-http://www.diniciacci.org
+That was correct pull request to fix typo.
+
+Please pull from http://udev.netup.ru/hg/v4l-dvb-netup
+
+for the following changeset:
+
+01/01: Fix typo in lnbp21.c
+http://udev.netup.ru/hg/v4l-dvb-netup?cmd=changeset;node=19f5b50ab3d6
+
+
+ lnbp21.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Thanks,
+Igor
