@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2AG5eBS004405
-	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 12:05:40 -0400
-Received: from web54504.mail.re2.yahoo.com (web54504.mail.re2.yahoo.com
-	[206.190.49.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n2AG4sSr017061
-	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 12:04:54 -0400
-Message-ID: <504280.69749.qm@web54504.mail.re2.yahoo.com>
-Date: Tue, 10 Mar 2009 09:04:54 -0700 (PDT)
-From: Chris Camacho <chris_camacho@yahoo.com>
-To: video4linux-list@redhat.com
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n24043Ij004268
+	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 19:04:03 -0500
+Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
+	[75.180.132.120])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2403kh1026904
+	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 19:03:46 -0500
+Message-ID: <49ADC561.3090403@nc.rr.com>
+Date: Tue, 03 Mar 2009 19:03:45 -0500
+From: Andrew Robinson <awrobinson-ml@nc.rr.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Subject: firewire v4l2 bridge
-Reply-To: chris_camacho@yahoo.com
+To: semantikous@yahoo.com
+References: <702621.62683.qm@web59709.mail.ac4.yahoo.com>
+In-Reply-To: <702621.62683.qm@web59709.mail.ac4.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: linux newbie tv card help
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,27 +28,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Robert Lastname wrote:
+> Hello, I quit windows not too long ago and have no idea how to install a tv card.  I searched the internet but still don't know how any of this works.  Here is what I want to know:
+> 
+> Would someone please give me a quick run down of the steps needed to install a card.  I don't need anything in detail---just the very basics of what, in general, is going on.
+> 
+> like
+> 
+> 1. install card
+> 2. install v4l-dev, v4l-apps
+> 3. find chipset drivers and install.
+> etc etc
+> 
+> I don't know where to begin, as so far what I've read is overwhelming and I can't make out what comes first and what comes after.  I want to take this one step at a time and I can't tell if I missed something important.
 
-I currently use corrianda and vloopback to provide video
-to my own application and also work I do using open-cv
-(alas its v4l v1 :o )
+Start at linux-tv.org. Find a reference for the particular tuner card 
+you have. Follow those references.
 
-Using the firewire libs I've managed to make my camera unresponsive a
-number of times and this way round although not ideal is very stable
+If you are using a very recent version of Linux, chances are, the 
+drivers already exist in the kernel. You'll probably need to install 
+some ancillary software, like v4l-apps. You'll need an application to 
+view the TV. I use MythTV, which is a whole Tivo-like system. But again, 
+start at linux-tv.org.
 
-What I'd love to see is a deamon that took configuration from a file and provided a v4l2 interface. (ideally without needing vloopback)
-
-I'd be quite happy even if the deamon reported that the v4l2 device could only do the mode it was started up with
-(24bit RBG 640x480 15fps I can live with...)
-
-Has anyone seen anything like this for firewire webcams?
-
-Thanks
-Chris
-
-
-
-      
+Andrew Robinson
 
 --
 video4linux-list mailing list
