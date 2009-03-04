@@ -1,80 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33954 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751078AbZCJAyr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 20:54:47 -0400
-Date: Mon, 9 Mar 2009 21:54:15 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andy Walls <awalls@radix.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	wk <handygewinnspiel@gmx.de>, linux-media@vger.kernel.org
-Subject: Re: V4L2 spec
-Message-ID: <20090309215415.6445054d@pedra.chehab.org>
-In-Reply-To: <1236642394.3104.25.camel@palomino.walls.org>
-References: <200903061523.15766.hverkuil@xs4all.nl>
-	<49B59230.1090305@gmx.de>
-	<412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
-	<200903092344.04805.hverkuil@xs4all.nl>
-	<1236642394.3104.25.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from ns.mm-sol.com ([213.240.235.226]:44699 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752185AbZCDOpd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 09:45:33 -0500
+From: "ribrishimov" <ribrishimov@mm-sol.com>
+To: "'Tuukka.O Toivonen'" <tuukka.o.toivonen@nokia.com>
+Cc: <camera@ok.research.nokia.com>, <linux-media@vger.kernel.org>,
+	"'ext Hans Verkuil'" <hverkuil@xs4all.nl>
+References: <200903041612.54557.tuukka.o.toivonen@nokia.com>
+Subject: RE: [Camera] identifying camera sensor
+Date: Wed, 4 Mar 2009 16:43:36 +0200
+Message-ID: <011401c99cd7$9d20bd40$020014ac@ribrishimov>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <200903041612.54557.tuukka.o.toivonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 09 Mar 2009 19:46:34 -0400
-Andy Walls <awalls@radix.net> wrote:
+Hi,
 
-> > and integrating it into the existing v4l docbook,  
-> 
-> I'm not sure of the value in that.
+Some sensor ID is definitely needed at least for Camera daemon and iCapture
+to load the appropriate tuning data.
 
-The DVB conversion to docbook allows us to add it at the kernel docbook docs
-(probably, not the entire doc, but the parts that describe the internal kernel
-API).
+Ivan can comment which the preferable approach.
 
-> <opinion>
-> Implmenting something to multiple (or multi-volume) specifications is
-> indeed a pain, but it makes documentation maintenance easier as the task
-> is easily divided along areas of personnel expertise.  Assuming the rate
-> of documentation maintencance does not rapidly increase, keeping
-> documentation maintenace simple is paramount.
+Best regards,
 
-If you take a look on V4L docbooks, it is divided into multiple volume files:
+RADO
 
-biblio.sgml          pixfmt-nv16.sgml                 vidioc-enumstd.sgml
-common.sgml          pixfmt-packed-rgb.sgml           vidioc-g-audioout.sgml
-compat.sgml          pixfmt-packed-yuv.sgml           vidioc-g-audio.sgml
-controls.sgml        pixfmt-sbggr16.sgml              vidioc-g-crop.sgml
-dev-capture.sgml     pixfmt-sbggr8.sgml               vidioc-g-ctrl.sgml
-dev-codec.sgml       pixfmt-sgbrg8.sgml               vidioc-g-enc-index.sgml
-...
+-----Original Message-----
+From: camera-bounces@ok.research.nokia.com
+[mailto:camera-bounces@ok.research.nokia.com] On Behalf Of Tuukka.O Toivonen
+Sent: Wednesday, March 04, 2009 4:13 PM
+To: ext Hans Verkuil
+Cc: camera@ok.research.nokia.com; linux-media@vger.kernel.org
+Subject: [Camera] identifying camera sensor
 
-If we merge DVB there, for sure we should break it into some files, and maybe
-even having they on separate directories.
+Hi,
 
-> Also multiple specifcations (or volumes) clearly group requirements into
-> large chunks of "I don't care about that volume" and "I do care about
-> this volume".  Combining the V4L2 and DVB spec into one volume would
-> probably be a strategic error for some tactical advantage in dealing
-> with hybrid devices.
+I am writing a generic driver for SMIA-compatible sensors.
+SMIA-sensors have registers containing:
+  u16 model_id
+  u16 revision_number
+  u8 manufacturer_id
+which could be used to detect the sensor.
+However, since the driver is generic, it is not interested
+of these values.
 
-This is a good point. 
+Nevertheless, in some cases user space applications want
+to know the exact chip. For example, to get the highest
+possible image quality, user space application might capture
+an image and postprocess it using sensor-specific filtering
+algorithms (which don't belong into kernel driver).
 
-On my opinion, it seems good to merge the docs. This is just my 2 cents.
+I am planning to export the chip identification information
+to user space using VIDIOC_DBG_G_CHIP_IDENT.
+Here's a sketch:
+  #define V4L2_IDENT_SMIA_BASE	(0x53 << 24)
+then in sensor driver's VIDIOC_DBG_G_CHIP_IDENT ioctl handler:
+  struct v4l2_dbg_chip_ident id;
+  id.ident = V4L2_IDENT_SMIA_BASE | (manufacturer_id << 16) | model_id;
+  id.revision = revision_number;
 
-If we merge both, IMO, we should break the doc into two parts, being one for
-analog and another for digital, with an introductory text with the hybrid
-devices glue.
+Do you think this is acceptable?
 
-If we decide not to merge, we can at least try to follow the same model on both
-documents, and link a common sgml introductory text for hybrid devices to be
-added on both documents.
+Alternatively, VIDIOC_QUERYCAP could be used to identify the sensor.
+Would it make more sense if it would return something like
+  capability.card:  `omap3/smia-sensor-12-1234-5678//'
+where 12 would be manufacturer_id, 1234 model_id, and
+5678 revision_number?
 
+I'll start writing a patch as soon as you let me know
+which would be the best alternative. Thanks!
 
-> </opinion>
+- Tuukka
+_______________________________________________
+Camera mailing list
+Camera@ok.research.nokia.com
+http://ok.research.nokia.com/cgi-bin/mailman/listinfo/camera
 
-
-Cheers,
-Mauro
