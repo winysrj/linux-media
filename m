@@ -1,112 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:21656 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbZCBTFY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 14:05:24 -0500
-Date: Mon, 2 Mar 2009 20:05:13 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@radix.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: General protection fault on rmmod cx8800
-Message-ID: <20090302200513.7fc3568e@hyperion.delvare>
-In-Reply-To: <20090302170349.18c8fd75@hyperion.delvare>
-References: <20090215214108.34f31c39@hyperion.delvare>
-	<20090302133936.00899692@hyperion.delvare>
-	<1236003365.3071.6.camel@palomino.walls.org>
-	<20090302170349.18c8fd75@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:55726 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751127AbZCDIlK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 03:41:10 -0500
+Message-ID: <49AE3EA1.3090504@kaiser-linux.li>
+Date: Wed, 04 Mar 2009 09:41:05 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
+MIME-Version: 1.0
+To: kilgota@banach.math.auburn.edu
+CC: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2 Mar 2009 17:03:49 +0100, Jean Delvare wrote:
-> As far as I can see the key difference between bttv-input and
-> cx88-input is that bttv-input only uses a simple self-rearming timer,
-> while cx88-input uses a timer and a separate workqueue. The timer runs
-> the workqueue, which rearms the timer, etc. When you flush the timer,
-> the separate workqueue can be still active. I presume this is what
-> happens on my system. I guess the reason for the separate workqueue is
-> that the processing may take some time and we don't want to hurt the
-> system's performance?
-> 
-> So we need to flush both the event workqueue (with
-> flush_scheduled_work) and the separate workqueue (with
-> flush_workqueue), at the same time, otherwise the active one may rearm
-> the flushed one again. This looks tricky, as obviously we can't flush
-> both at the exact same time. Alternatively, if we could get rid of one
-> of the queues, we'd have only one that needs flushing, this would be a
-> lot easier...
+Hello Theodore
 
-Switching to delayed_work seems to do the trick (note this is a 2.6.28
-patch):
+kilgota@banach.math.auburn.edu wrote:
+> Also, after the byte indicator for the compression algorithm there are 
+> some more bytes, and these almost definitely contain information which 
+> could be valuable while doing image processing on the output. If they 
+> are already kept and passed out of the module over to libv4lconvert, 
+> then it would be very easy to do something with those bytes if it is 
+> ever figured out precisely what they mean. But if it is not done now it 
+> would have to be done then and would cause even more trouble.
 
----
- drivers/media/video/cx88/cx88-input.c |   26 ++++++++------------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
+I sent it already in private mail to you. Here is the observation I made 
+for the PAC207 SOF some years ago:
 
---- linux-2.6.28.orig/drivers/media/video/cx88/cx88-input.c	2009-03-02 19:11:24.000000000 +0100
-+++ linux-2.6.28/drivers/media/video/cx88/cx88-input.c	2009-03-02 19:49:31.000000000 +0100
-@@ -48,8 +48,7 @@ struct cx88_IR {
- 
- 	/* poll external decoder */
- 	int polling;
--	struct work_struct work;
--	struct timer_list timer;
-+	struct delayed_work work;
- 	u32 gpio_addr;
- 	u32 last_gpio;
- 	u32 mask_keycode;
-@@ -143,27 +142,20 @@ static void cx88_ir_handle_key(struct cx
- 	}
- }
- 
--static void ir_timer(unsigned long data)
--{
--	struct cx88_IR *ir = (struct cx88_IR *)data;
--
--	schedule_work(&ir->work);
--}
--
- static void cx88_ir_work(struct work_struct *work)
- {
--	struct cx88_IR *ir = container_of(work, struct cx88_IR, work);
-+	struct delayed_work *dwork = container_of(work, struct delayed_work, work);
-+	struct cx88_IR *ir = container_of(dwork, struct cx88_IR, work);
- 
- 	cx88_ir_handle_key(ir);
--	mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
-+	schedule_delayed_work(dwork, msecs_to_jiffies(ir->polling));
- }
- 
- void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
- {
- 	if (ir->polling) {
--		setup_timer(&ir->timer, ir_timer, (unsigned long)ir);
--		INIT_WORK(&ir->work, cx88_ir_work);
--		schedule_work(&ir->work);
-+		INIT_DELAYED_WORK(&ir->work, cx88_ir_work);
-+		schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
- 	}
- 	if (ir->sampling) {
- 		core->pci_irqmask |= PCI_INT_IR_SMPINT;
-@@ -179,10 +171,8 @@ void cx88_ir_stop(struct cx88_core *core
- 		core->pci_irqmask &= ~PCI_INT_IR_SMPINT;
- 	}
- 
--	if (ir->polling) {
--		del_timer_sync(&ir->timer);
--		flush_scheduled_work();
--	}
-+	if (ir->polling)
-+		cancel_delayed_work_sync(&ir->work);
- }
- 
- /* ---------------------------------------------------------------------- */
+ From usb snoop.
+FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
+1. xx: looks like random value
+2. xx: changed from 0x03 to 0x0b
+3. xx: changed from 0x06 to 0x49
+4. xx: changed from 0x07 to 0x55
+5. xx: static 0x96
+6. xx: static 0x80
+7. xx: static 0xa0
 
-At least I didn't have any general protection fault with this patch
-applied. Comments?
+And I did play in Linux and could identify some fields :-) .
+In Linux the header looks like this:
 
-Thanks,
--- 
-Jean Delvare
+FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+1. xx: don't know but value is changing between 0x00 to 0x07
+2. xx: this is the actual pixel clock
+3. xx: this is changing according light conditions from 0x03 (dark) to
+0xfc (bright) (center)
+4. xx: this is changing according light conditions from 0x03 (dark) to
+0xfc (bright) (edge)
+5. xx: set value "Digital Gain of Red"
+6. xx: set value "Digital Gain of Green"
+7. xx: set value "Digital Gain of Blue"
+
+Thomas
