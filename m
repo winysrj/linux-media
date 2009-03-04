@@ -1,64 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f165.google.com ([209.85.217.165]:43213 "EHLO
-	mail-gx0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753377AbZCMWbR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 18:31:17 -0400
-Received: by gxk9 with SMTP id 9so454053gxk.13
-        for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 15:31:14 -0700 (PDT)
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4468 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753220AbZCDOw1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 09:52:27 -0500
+Message-ID: <63862.62.70.2.252.1236178340.squirrel@webmail.xs4all.nl>
+Date: Wed, 4 Mar 2009 15:52:20 +0100 (CET)
+Subject: Re: identifying camera sensor
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	"camera@ok.research.nokia.com" <camera@ok.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <a3ef07920903131527x2762f6e6y18f3a0b825ff2a49@mail.gmail.com>
-References: <49B9BC93.8060906@nav6.org>
-	 <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
-	 <49B9DECC.5090102@nav6.org>
-	 <412bdbff0903130727p719b63a0u3c4779b3bec7520b@mail.gmail.com>
-	 <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>
-	 <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>
-	 <37219a840903131452mf8b7969h881a24fc2dd031e8@mail.gmail.com>
-	 <a3ef07920903131527x2762f6e6y18f3a0b825ff2a49@mail.gmail.com>
-Date: Fri, 13 Mar 2009 18:31:14 -0400
-Message-ID: <412bdbff0903131531y3dcb5382red13ac1e4d43feaf@mail.gmail.com>
-Subject: Re: The right way to interpret the content of SNR, signal strength
-	and BER from HVR 4000 Lite
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Ang Way Chuang <wcang@nav6.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 13, 2009 at 6:27 PM, VDR User <user.vdr@gmail.com> wrote:
-> Just wanted to comment that I'm glad there is a lot of interest in
-> this.  I've heard endless talk & confusion on the user end over the
-> years as to the accuracy of the values, or in some cases (as with
-> Genpix adapters for example) where you don't seem to get any useful
-> information.  Of course making it really hard for people who are
-> trying to aim dishes and the like in the case of dvb-s*.
+Hi Tuukka,
+
+> Hi,
 >
-> A quick question about implimenting this though..  What's the most
-> difficult component?
+> I am writing a generic driver for SMIA-compatible sensors.
+> SMIA-sensors have registers containing:
+>   u16 model_id
+>   u16 revision_number
+>   u8 manufacturer_id
+> which could be used to detect the sensor.
+> However, since the driver is generic, it is not interested
+> of these values.
+>
+> Nevertheless, in some cases user space applications want
+> to know the exact chip. For example, to get the highest
+> possible image quality, user space application might capture
+> an image and postprocess it using sensor-specific filtering
+> algorithms (which don't belong into kernel driver).
+>
+> I am planning to export the chip identification information
+> to user space using VIDIOC_DBG_G_CHIP_IDENT.
+> Here's a sketch:
+>   #define V4L2_IDENT_SMIA_BASE	(0x53 << 24)
+> then in sensor driver's VIDIOC_DBG_G_CHIP_IDENT ioctl handler:
+>   struct v4l2_dbg_chip_ident id;
+>   id.ident = V4L2_IDENT_SMIA_BASE | (manufacturer_id << 16) | model_id;
+>   id.revision = revision_number;
+>
+> Do you think this is acceptable?
 
-Hello,
+This ioctl is meant for debugging only. It's API can change without notice
+(hence the 'DBG' part in the name and the warnings in the v4l2 spec). In
+fact, it did change recently.
 
-There are basically two "difficult components"
+The only application using it is v4l2-dbg, which is a tool that allows you
+to read and write registers on the fly. Very useful for debugging.
 
-1.  Getting everyone to agree on a standard representation for the
-field, and how to represent certain error conditions (such as when a
-demod doesn't support SNR, or when it cannot return a valid value at a
-given time).
+It is also used internally in the kernel if the adapter driver needs to do
+different things depending on the actual chip used.
 
-2.  Converting all the drivers to the agreed-upon format.  For some
-drivers this is relatively easy as we have specs available for how the
-SNR is represented.  For others, the value displayed is entirely
-reverse engineered so the current representations are completely
-arbitrary.
+So it is *not* acceptable to use this API in a generic application (i.e.
+an app that can be used for all sorts of different hardware). However, on
+an embedded system where you control the environment I have no objection
+if someone uses it in a custom application. They should be aware though
+that this API can change in a future kernel. But since they control the
+kernel version as well that shouldn't pose a problem.
 
-Devin
+> Alternatively, VIDIOC_QUERYCAP could be used to identify the sensor.
+> Would it make more sense if it would return something like
+>   capability.card:  `omap3/smia-sensor-12-1234-5678//'
+> where 12 would be manufacturer_id, 1234 model_id, and
+> 5678 revision_number?
+
+Yuck :-)
+
+> I'll start writing a patch as soon as you let me know
+> which would be the best alternative. Thanks!
+
+G_CHIP_IDENT is probably the way to go, provided you are aware of the
+limitations of this ioctl. Should this be a problem, then we need to think
+of a better solution.
+
+Regards,
+
+        Hans
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
