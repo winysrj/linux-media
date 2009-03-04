@@ -1,76 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:35201 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752594AbZCILIq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 07:08:46 -0400
-Date: Mon, 9 Mar 2009 08:08:39 -0300 (BRT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: wk <handygewinnspiel@gmx.de>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: V4L2 spec
-In-Reply-To: <49B14D3C.3010001@gmx.de>
-Message-ID: <alpine.LRH.2.00.0903090803010.6607@caramujo.chehab.org>
-References: <200903061523.15766.hverkuil@xs4all.nl> <49B14D3C.3010001@gmx.de>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3893 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754143AbZCDVF1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 16:05:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+Date: Wed, 4 Mar 2009 22:05:45 +0100
+Cc: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com> <200903040839.48104.hverkuil@xs4all.nl> <49AED4DC.5050507@nokia.com>
+In-Reply-To: <49AED4DC.5050507@nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903042205.45486.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 6 Mar 2009, wk wrote:
-
+On Wednesday 04 March 2009 20:22:04 Sakari Ailus wrote:
 > Hans Verkuil wrote:
->>  Hi Mauro,
->>
->>  I noticed that there is an ancient V4L2 spec in our tree in the v4l/API
->>  directory. Is that spec used in any way? I don't think so, so I suggest
->>  that it is removed.
-
-OK.
-
->>  The V4L1 spec that is there should probably be moved to the v4l2-spec
->>  directory as that is where people would look for it. We can just keep it
->>  there for reference.
-
-Nah. Let's just strip and point to some place where V4L1 doc is 
-available, adding some warning that the API is outdated and will be 
-removed from kernel soon.
-
->>  The documentation on www.linuxtv.org is also out of date. How are we going
->>  to update that?
-
-Make a proposal. I'll then updade it acordingly.
-
->>  I think that a good schedule would be right after a kernel merge window
->>  closes. The spec at that moment is the spec for that new kernel and that's
->>  a good moment to update the website.
->>
->>  The current spec is really old, though, and should be updated asap.
->>
->>  Note that the specs from the daily build are always available from
->>  www.xs4all.nl/~hverkuil/spec. I've modified the build to upload the
->>  dvbapi.pdf as well.
-
-Maybe we can add a script to daily update at linuxtv.org for the specs as
-well.
-
-> Wouldn't it make sense to merge both apis, v4l2 and dvb together?
+> > On Wednesday 04 March 2009 01:42:13 DongSoo(Nathaniel) Kim wrote:
+> >> Thank you for your kind explanation Hans.
+> >>
+> >> Problem is omap3 camera subsystem is making device node for every int
+> >> device attached to it.
+> >
+> > That's wrong. Multiple devices should only be created if they can all
+> > be used at the same time. Otherwise there should be just one device
+> > that uses S_INPUT et al to select between the inputs.
 >
-> - dvb api is completely outdated, would be good to be rewritten anyway.
-> - v4l2 and dvb share the same hg
-> - v4l2 and dvb share the same wiki
-> - a lot of developers are active in both topics
-> - any person interested in video and tv could be directed to the same file
+> There might be situations where multiple device nodes would be
+> beneficial even if they cannot be used simultaneously in all cases.
 >
-> Just some thoughts to the topic..
+> Currently the omap34xxcam camera driver creates one device per camera. A
+> camera in this case contains an isp (or camera controller), image
+> sensor, lens and flash. The properties like maximum frame rate or
+> resolution of a camera are usually (almost) completely defined by those
+> of the sensor, lens and flash. This affects also cropping capabilities.
+>
+> Several programs can access video devices simultaneously. What happens
+> if another program switches the input when the first one doesn't expect
+> it? The original user won't notice the change, instead of getting -EBUSY
+> when trying to open the other video device.
 
-I think so. The better would be to convert DVB api to docbook (as used by 
-all other kernel documents), and add a developers document for the kernel 
-API for both at the kernel documentation structure).
+It is actually quite common to be able to switch inputs using one program 
+(e.g. v4l2-ctl) while another program also has the video node open. This 
+will typically be used for debugging or experimenting. Depending on the 
+hardware, switching inputs while capturing is in progress may or may not be 
+allowed (the driver might just return -EBUSY in that case).
 
-However, this is a huge task that someone should volunteer for doing, 
-otherwise, it won't happen.
+In addition the application can also call VIDIOC_S_PRIORITY to protect it 
+against outside interference, provided the driver supports this ioctl.
 
-Cheers,
-Mauro
+As an aside: many applications don't use VIDIOC_S_PRIORITY since whether a 
+driver implements it is hit-and-miss. As part of the new v4l2 framework I 
+have a struct v4l2_fh planned that will integrate support of this ioctl in 
+the framework, thus making it generic for all drivers. But this won't be 
+available any time soon.
+
+> In short, it's been just more clear to have one device per camera. There
+> may be other reasons but these come to mind this time.
+
+I very much disagree here. Having multiple devices ONLY makes sense if you 
+can capture from them in parallel. This situation is really just a 
+straightforward case of multiple inputs you have to choose from.
+
+> > BTW, do I understand correctly that e.g. lens drivers also get their
+> > own /dev/videoX node? Please tell me I'm mistaken! Since that would be
+> > so very wrong.
+>
+> Yes, you're mistaken this time. :)
+>
+> The contents of a video devices are defined in platform data.
+>
+> > I hope that the conversion to v4l2_subdev will take place soon. You are
+> > basically stuck in a technological dead-end :-(
+>
+> Making things working properly in camera and ISP drivers has taken much
+> more time than was anticipated and v4l2_subdev framework has developed a
+> lot during that time. You're right --- we'll start thinking of how and
+> when to move to v4l2_subdev.
+
+Just contact me if you have any questions, I'll be happy to help. If you 
+think there are missing bits in the framework, or find that you need to 
+workaround some limitation, please contact me first. It might well be that 
+I need to add something to support these devices, or that you should take a 
+different approach instead. The sooner such issues are resolved, the less 
+time you loose.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
