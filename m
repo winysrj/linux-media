@@ -1,68 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37588 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbZCJMku (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 08:40:50 -0400
-Date: Tue, 10 Mar 2009 09:40:19 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Antti Palosaari <crope@iki.fi>,
-	Dmitri Belimov via Mercurial <d.belimov@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
-Message-ID: <20090310094019.16ab55d7@pedra.chehab.org>
-In-Reply-To: <49B63C6C.8070709@iki.fi>
-References: <E1LHmrf-0004LH-VV@www.linuxtv.org>
-	<49A03A94.9030008@iki.fi>
-	<49B63C6C.8070709@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp.nokia.com ([192.100.122.233]:50263 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756392AbZCDON7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 09:13:59 -0500
+From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Subject: identifying camera sensor
+Date: Wed, 4 Mar 2009 16:12:54 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"camera@ok.research.nokia.com" <camera@ok.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903041612.54557.tuukka.o.toivonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Mar 2009 12:09:48 +0200
-Antti Palosaari <crope@iki.fi> wrote:
+Hi,
 
-> Mauro,
-> Could you remove this bad patch patch soon? It must not go to the final 
-> 2.6.29 as it breaks so many old devices. One of those is MSI Megasky 580 
-> which is rather popular.
+I am writing a generic driver for SMIA-compatible sensors.
+SMIA-sensors have registers containing:
+  u16 model_id
+  u16 revision_number
+  u8 manufacturer_id
+which could be used to detect the sensor.
+However, since the driver is generic, it is not interested
+of these values.
 
-> 
-> regards
-> Antti
-> 
-> Antti Palosaari wrote:
-> > Hello,
-> > This patch breaks devices using tuner behind zl10353 i2c-gate.
-> > au6610:
-> > Sigmatek DVB-110 DVB-T USB2.0
-> > 
-> > gl861:
-> > MSI Mega Sky 55801 DVB-T USB2.0
-> > A-LINK DTU DVB-T USB2.0
-> > 
-> > Probably some other too.
-> > 
-> > I think it is better to disable i2c-gate setting callback to NULL after 
-> > demod attach like dtv5100 does this.
-> > 
-> > Also .no_tuner is bad name what it does currently. My opinion is that 
-> > current .no_tuner = 1 should be set as default, because most 
-> > configuration does not this kind of slave tuner setup where tuner is 
-> > programmed by demod.
-> > Change no_tuner to slave_tuner and set slave_tuner = 1 only when needed 
-> > (not many drivers using that).
+Nevertheless, in some cases user space applications want
+to know the exact chip. For example, to get the highest
+possible image quality, user space application might capture
+an image and postprocess it using sensor-specific filtering
+algorithms (which don't belong into kernel driver).
 
-Hi Antti/Dmitri,
+I am planning to export the chip identification information
+to user space using VIDIOC_DBG_G_CHIP_IDENT.
+Here's a sketch:
+  #define V4L2_IDENT_SMIA_BASE	(0x53 << 24)
+then in sensor driver's VIDIOC_DBG_G_CHIP_IDENT ioctl handler:
+  struct v4l2_dbg_chip_ident id;
+  id.ident = V4L2_IDENT_SMIA_BASE | (manufacturer_id << 16) | model_id;
+  id.revision = revision_number;
 
-I agree that no_tuner is a bad name. The best is to rename it to something like
-"tuner_is_behind_bridge". If equal to 1, then it will use the new behaviour,
-otherwise the old one, and fix the boards where this trouble were found.
+Do you think this is acceptable?
 
-Could one of you please do such patchset?
+Alternatively, VIDIOC_QUERYCAP could be used to identify the sensor.
+Would it make more sense if it would return something like
+  capability.card:  `omap3/smia-sensor-12-1234-5678//'
+where 12 would be manufacturer_id, 1234 model_id, and
+5678 revision_number?
 
-Thanks,
-Mauro.
+I'll start writing a patch as soon as you let me know
+which would be the best alternative. Thanks!
+
+- Tuukka
