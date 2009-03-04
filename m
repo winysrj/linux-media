@@ -1,100 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:51113 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755945AbZCPWQv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 18:16:51 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 4/4] pxa_camera: Fix overrun condition on last buffer
-Date: Mon, 16 Mar 2009 23:16:37 +0100
-Message-Id: <1237241797-381-5-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1237241797-381-4-git-send-email-robert.jarzmik@free.fr>
-References: <1237241797-381-1-git-send-email-robert.jarzmik@free.fr>
- <1237241797-381-2-git-send-email-robert.jarzmik@free.fr>
- <1237241797-381-3-git-send-email-robert.jarzmik@free.fr>
- <1237241797-381-4-git-send-email-robert.jarzmik@free.fr>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:51915 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721AbZCDWYv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 17:24:51 -0500
+Date: Wed, 4 Mar 2009 14:24:50 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: "Erik S. Beiser" <erikb@bu.edu>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] cx88: Add IR support to pcHDTV HD3000 & HD5500
+In-Reply-To: <49A9E4F0.1030005@bu.edu>
+Message-ID: <Pine.LNX.4.58.0903041330510.24268@shell2.speakeasy.net>
+References: <49A9E4F0.1030005@bu.edu>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The last buffer queued will often overrun, as the DMA chain
-is finished, and the time the dma irq handler is activated,
-the QCI fifos are filled by the sensor.
+On Sat, 28 Feb 2009, Erik S. Beiser wrote:
 
-The fix is to ignore the overrun condition on the last
-queued buffer, and restart the capture only on intermediate
-buffers of the chain.
+> cx88: Add IR support to pcHDTV HD3000 & HD5500
+>
+> Signed-off-by: Erik S. Beiser <erikb@bu.edu>
+>
+> ---
+>
+> Idea originally from http://www.pchdtv.com/forum/viewtopic.php?t=1529
+> I made it into this small patch and added the HD3000 support also, which I have  I've actually
+> been using this for over a year, updating for new kernel versions.  I'm tired of doing so,
+> and would like to try and have it merged upstream -- I hope I got all the patch-mechanics
+> correct.  I just updated and tested it today on 2.6.28.7 vanilla.  Thanks.
 
-Moreover, a fix was added to the very unlikely condition
-where in YUV422P mode, one channel overruns while another
-completes at the very same time. The capture is restarted
-after the overrun as before, but the other channel
-completion is now ignored.
+You forgot a patch description.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |   25 ++++++++++++++++++++-----
- 1 files changed, 20 insertions(+), 5 deletions(-)
+Since neither the HD-3000 or HD-5500 came with a remote, and at least my
+HD-3000 didn't even come with an IR receiver.  So I have to ask why
+configuring the driver to work a remote you happened to have is any more
+correct than configuring it to work a remote someone else happens to have?
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index a6aa7de..9b81167 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -624,6 +624,7 @@ static void pxa_camera_stop_capture(struct pxa_camera_dev *pcdev)
- 	cicr0 = __raw_readl(pcdev->base + CICR0) & ~CICR0_ENB;
- 	__raw_writel(cicr0, pcdev->base + CICR0);
- 
-+	pcdev->active = NULL;
- 	dev_dbg(pcdev->dev, "%s\n", __func__);
- }
- 
-@@ -697,7 +698,6 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
- 
- 	if (list_empty(&pcdev->capture)) {
- 		pxa_camera_stop_capture(pcdev);
--		pcdev->active = NULL;
- 		for (i = 0; i < pcdev->channels; i++)
- 			pcdev->sg_tail[i] = NULL;
- 		return;
-@@ -765,10 +765,20 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
- 		goto out;
- 	}
- 
--	if (!pcdev->active) {
--		dev_err(pcdev->dev, "DMA End IRQ with no active buffer!\n");
-+	/*
-+	 * pcdev->active should not be NULL in DMA irq handler.
-+	 *
-+	 * But there is one corner case : if capture was stopped due to an
-+	 * overrun of channel 1, and at that same channel 2 was completed.
-+	 *
-+	 * When handling the overrun in DMA irq for channel 1, we'll stop the
-+	 * capture and restart it (and thus set pcdev->active to NULL). But the
-+	 * DMA irq handler will already be pending for channel 2. So on entering
-+	 * the DMA irq handler for channel 2 there will be no active buffer, yet
-+	 * that is normal.
-+	 */
-+	if (!pcdev->active)
- 		goto out;
--	}
- 
- 	vb = &pcdev->active->vb;
- 	buf = container_of(vb, struct pxa_buffer, vb);
-@@ -779,7 +789,12 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
- 		status & DCSR_ENDINTR ? "EOF " : "", vb, DDADR(channel));
- 
- 	if (status & DCSR_ENDINTR) {
--		if (camera_status & overrun) {
-+		/*
-+		 * It's normal if the last frame creates an overrun, as there
-+		 * are no more DMA descriptors to fetch from QCI fifos
-+		 */
-+		if (camera_status & overrun &&
-+		    !list_is_last(pcdev->capture.next, &pcdev->capture)) {
- 			dev_dbg(pcdev->dev, "FIFO overrun! CISR: %x\n",
- 				camera_status);
- 			pxa_camera_stop_capture(pcdev);
--- 
-1.5.6.5
-
+This patch also causes these cards to generate 101 interrupts per second
+per card, even when not in use.  That seems pretty costly for a card that
+doesn't even come with an ir sensor.
