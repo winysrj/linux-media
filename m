@@ -1,355 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59167 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48499 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751929AbZCCVky convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 16:40:54 -0500
-From: "Curran, Dominic" <dcurran@ti.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	id S1754460AbZCDP3a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 10:29:30 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+CC: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
 	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Date: Tue, 3 Mar 2009 15:40:31 -0600
-Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
-Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B5012EA393AA@dlee07.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89442E1D9224@dlee02.ent.ti.com>
+	DongSoo Kim <dongsoo.kim@gmail.com>
+Date: Wed, 4 Mar 2009 20:58:57 +0530
+Subject: RE: [RFC 0/9] OMAP3 ISP and camera drivers
+Message-ID: <19F8576C6E063C45BE387C64729E73940427BCA193@dbde02.ent.ti.com>
+In-Reply-To: <49AD0128.5090503@maxwell.research.nokia.com>
 Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+	boundary="_002_19F8576C6E063C45BE387C64729E73940427BCA193dbde02enttico_"
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+--_002_19F8576C6E063C45BE387C64729E73940427BCA193dbde02enttico_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
+
+
+Thanks,
+Vaibhav Hiremath
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> Sent: Tuesday, March 03, 2009 2:44 PM
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Sakari Ailus
+> Sent: Tuesday, March 03, 2009 3:37 PM
 > To: linux-media@vger.kernel.org; linux-omap@vger.kernel.org
-> Cc: Sakari Ailus; Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim;
-> MiaoStanley; Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
-> Subject: [PATCH 5/5] LDP: Add support for built-in camera
->
-> This patch adds support for the LDP builtin camera sensor:
->  - Primary sensor (/dev/video4): OV3640 (CSI2).
->
-> It introduces also a new file for storing all camera sensors board
-> specific related functions, like other platforms do (N800 for example).
->
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile                |    3 +-
->  arch/arm/mach-omap2/board-ldp-camera.c      |  203
-> +++++++++++++++++++++++++++
->  arch/arm/mach-omap2/board-ldp.c             |   17 +++
->  arch/arm/plat-omap/include/mach/board-ldp.h |    1 +
->  4 files changed, 223 insertions(+), 1 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-ldp-camera.c
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 8888ee6..097bc58 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -63,7 +63,8 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)             += board-
-> omap3beagle.o \
->                                          mmc-twl4030.o \
->                                          twl4030-generic-scripts.o
->  obj-$(CONFIG_MACH_OMAP_LDP)          += board-ldp.o \
-> -                                        mmc-twl4030.o
-> +                                        mmc-twl4030.o \
-> +                                        board-ldp-camera.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)              += board-apollon.o \
->                                          board-apollon-mmc.o  \
->                                          board-apollon-keys.o
-> diff --git a/arch/arm/mach-omap2/board-ldp-camera.c b/arch/arm/mach-
-> omap2/board-ldp-camera.c
-> new file mode 100644
-> index 0000000..0db085c
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-ldp-camera.c
-> @@ -0,0 +1,203 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-ldp0-camera.c
+> Cc: Aguirre Rodriguez, Sergio Alberto; Toivonen Tuukka Olli Artturi;
+> Hiroshi DOYU; DongSoo Kim
+> Subject: [RFC 0/9] OMAP3 ISP and camera drivers
+>=20
+> Hi,
+>=20
+> So here's the patchset for OMAP 3 ISP and camera drivers plus the
+> associated V4L changes. Sergio Aguirre has been posting a related
+> patchset earlier, containing also sensor and lens driver used on
+> SDP.
+> This patchset is agains the linux-omap tree:
+>=20
+> <URL:http://www.muru.com/linux/omap/README_OMAP_GIT>
+>=20
+[Hiremath, Vaibhav] Sakari, Let me ask you basic question, have you tested/=
+verified these patch-sets?
 
-Minor typo, should be:
- linux/arch/arm/mach-omap2/board-ldp-camera.c
+The reason I am asking this question is, for me it was not working. I had t=
+o debug this and found that -=20
 
+	- Changes missing in devices.c file, so isp_probe function will not be cal=
+led at all, keeping omap3isp =3D NULL. You will end up into kernel crash in=
+ omap34xxcam_device_register.
 
-> + *
-> + * Copyright (C) 2009 Texas Instruments Inc.
-> + * Sergio Aguirre <saaguirre@ti.com>
-> + *
-> + * Modified from mach-omap2/board-ldp.c
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifdef CONFIG_TWL4030_CORE
-> +
-> +#include <linux/clk.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +
-> +#include <linux/i2c/twl4030.h>
-> +
-> +#include <asm/io.h>
-> +
-> +#include <mach/gpio.h>
-> +
-> +static int cam_inited;
-> +#include <media/v4l2-int-device.h>
-> +#include <../drivers/media/video/omap34xxcam.h>
-> +#include <../drivers/media/video/isp/ispreg.h>
-> +
-> +#define LDPCAM_USE_XCLKB     1
-> +
-> +#define VAUX_1_8_V           0x05
-> +#define VAUX_DEV_GRP_P1              0x20
-> +#define VAUX_DEV_GRP_NONE    0x00
-> +
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +#define OV3640_RESET_GPIO    98
-> +#define OV3640_STANDBY_GPIO  7
-> +#include <media/ov3640.h>
-> +#include <../drivers/media/video/isp/ispcsi2.h>
-> +static       struct omap34xxcam_hw_config *hwc;
-> +#define OV3640_CSI2_CLOCK_POLARITY   0       /* +/- pin order */
-> +#define OV3640_CSI2_DATA0_POLARITY   0       /* +/- pin order */
-> +#define OV3640_CSI2_DATA1_POLARITY   0       /* +/- pin order */
-> +#define OV3640_CSI2_CLOCK_LANE               1        /* Clock lane position: 1 */
-> +#define OV3640_CSI2_DATA0_LANE               2        /* Data0 lane position: 2 */
-> +#define OV3640_CSI2_DATA1_LANE               3        /* Data1 lane position: 3 */
-> +#define OV3640_CSI2_PHY_THS_TERM     4
-> +#define OV3640_CSI2_PHY_THS_SETTLE   14
-> +#define OV3640_CSI2_PHY_TCLK_TERM    0
-> +#define OV3640_CSI2_PHY_TCLK_MISS    1
-> +#define OV3640_CSI2_PHY_TCLK_SETTLE  14
-> +
-> +static struct omap34xxcam_sensor_config ov3640_hwc = {
-> +     .sensor_isp = 0,
-> +     .xclk = OMAP34XXCAM_XCLK_B,
-> +     .capture_mem = 2592 * 1944 * 2 * 2,
+	- The patches from Hiroshi DOYU doesn't build as is, you need to add one i=
+nclude line #include <linux/hardirq.h> in iovmmu.c
+(I am using the patches submitted on 16th Jan 2009)
 
-Should this be  2048 * 1536 * 2 * 2  ?
+I have attached "git diff" output here with this mail for reference.
 
+Am I missing any patches here? I am not sure how Sergio is able to use thes=
+e patches?
+If I am not missing anything, then I think you should mention all these iss=
+ues clearly in the patch so that anybody who might want to use will not suf=
+fer.
 
-Ack-by: Dominic Curran <dcurran@ti.com>
-
-> +     .ival_default   = { 1, 15 },
-> +};
-> +
-> +static struct isp_interface_config ov3640_if_config = {
-> +     .ccdc_par_ser = ISP_CSIA,
-> +     .dataline_shift = 0x0,
-> +     .hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
-> +     .strobe = 0x0,
-> +     .prestrobe = 0x0,
-> +     .shutter = 0x0,
-> +     .prev_sph = 2,
-> +     .prev_slv = 1,
-> +     .wenlog = ISPCCDC_CFG_WENLOG_AND,
-> +     .wait_hs_vs = 2,
-> +     .u.csi.crc = 0x0,
-> +     .u.csi.mode = 0x0,
-> +     .u.csi.edge = 0x0,
-> +     .u.csi.signalling = 0x0,
-> +     .u.csi.strobe_clock_inv = 0x0,
-> +     .u.csi.vs_edge = 0x0,
-> +     .u.csi.channel = 0x1,
-> +     .u.csi.vpclk = 0x1,
-> +     .u.csi.data_start = 0x0,
-> +     .u.csi.data_size = 0x0,
-> +     .u.csi.format = V4L2_PIX_FMT_SGRBG10,
-> +};
-> +
-> +static int ov3640_sensor_set_prv_data(void *priv)
-> +{
-> +     hwc = priv;
-> +     hwc->u.sensor.xclk = ov3640_hwc.xclk;
-> +     hwc->u.sensor.sensor_isp = ov3640_hwc.sensor_isp;
-> +     hwc->dev_index = 1;
-> +     hwc->dev_minor = 4;
-> +     hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
-> +     return 0;
-> +}
-> +
-> +static int ov3640_sensor_power_set(enum v4l2_power power)
-> +{
-> +     struct isp_csi2_lanes_cfg lanecfg;
-> +     struct isp_csi2_phy_cfg phyconfig;
-> +     static enum v4l2_power previous_power = V4L2_POWER_OFF;
-> +
-> +     if (!cam_inited) {
-> +             printk(KERN_ERR "OV3640: Unable to control board GPIOs!\n");
-> +             return -EFAULT;
-> +     }
-> +
-> +     switch (power) {
-> +     case V4L2_POWER_ON:
-> +             if (previous_power == V4L2_POWER_OFF)
-> +                     isp_csi2_reset();
-> +             lanecfg.clk.pol = OV3640_CSI2_CLOCK_POLARITY;
-> +             lanecfg.clk.pos = OV3640_CSI2_CLOCK_LANE;
-> +             lanecfg.data[0].pol = OV3640_CSI2_DATA0_POLARITY;
-> +             lanecfg.data[0].pos = OV3640_CSI2_DATA0_LANE;
-> +             lanecfg.data[1].pol = OV3640_CSI2_DATA1_POLARITY;
-> +             lanecfg.data[1].pos = OV3640_CSI2_DATA1_LANE;
-> +             lanecfg.data[2].pol = 0;
-> +             lanecfg.data[2].pos = 0;
-> +             lanecfg.data[3].pol = 0;
-> +             lanecfg.data[3].pos = 0;
-> +             isp_csi2_complexio_lanes_config(&lanecfg);
-> +             isp_csi2_complexio_lanes_update(true);
-> +
-> +             phyconfig.ths_term = OV3640_CSI2_PHY_THS_TERM;
-> +             phyconfig.ths_settle = OV3640_CSI2_PHY_THS_SETTLE;
-> +             phyconfig.tclk_term = OV3640_CSI2_PHY_TCLK_TERM;
-> +             phyconfig.tclk_miss = OV3640_CSI2_PHY_TCLK_MISS;
-> +             phyconfig.tclk_settle = OV3640_CSI2_PHY_TCLK_SETTLE;
-> +             isp_csi2_phy_config(&phyconfig);
-> +             isp_csi2_phy_update(true);
-> +
-> +             isp_configure_interface(&ov3640_if_config);
-> +
-> +             if (previous_power == V4L2_POWER_OFF) {
-> +                     /* turn on analog power */
-> +                     twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                     VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
-> +                     twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                     VAUX_DEV_GRP_P1, TWL4030_VAUX4_DEV_GRP);
-> +                     udelay(100);
-> +                     /* Turn ON Omnivision sensor */
-> +                     gpio_set_value(OV3640_RESET_GPIO, 1);
-> +                     gpio_set_value(OV3640_STANDBY_GPIO, 0);
-> +                     udelay(100);
-> +
-> +                     /* RESET Omnivision sensor */
-> +                     gpio_set_value(OV3640_RESET_GPIO, 0);
-> +                     udelay(100);
-> +                     gpio_set_value(OV3640_RESET_GPIO, 1);
-> +             }
-> +             break;
-> +     case V4L2_POWER_OFF:
-> +             /* Power Down Sequence */
-> +             isp_csi2_complexio_power(ISP_CSI2_POWER_OFF);
-> +             twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                             VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
-> +             break;
-> +     case V4L2_POWER_STANDBY:
-> +             break;
-> +     }
-> +     previous_power = power;
-> +     return 0;
-> +}
-> +
-> +static u32 ov3640_sensor_set_xclk(u32 xclkfreq)
-> +{
-> +     return isp_set_xclk(xclkfreq, LDPCAM_USE_XCLKB);
-> +}
-> +
-> +struct ov3640_platform_data ldp_ov3640_platform_data = {
-> +     .power_set       = ov3640_sensor_power_set,
-> +     .priv_data_set   = ov3640_sensor_set_prv_data,
-> +     .set_xclk        = ov3640_sensor_set_xclk,
-> +};
-> +
-> +#endif
-> +
-> +void __init ldp_cam_init(void)
-> +{
-> +     cam_inited = 0;
-> +     /* Request and configure gpio pins */
-> +     if (gpio_request(OV3640_RESET_GPIO, "ov3640_reset_gpio") != 0) {
-> +             printk(KERN_ERR "Could not request GPIO %d",
-> +                                     OV3640_RESET_GPIO);
-> +             return;
-> +     }
-> +     if (gpio_request(OV3640_STANDBY_GPIO, "ov3640_standby_gpio") != 0) {
-> +             printk(KERN_ERR "Could not request GPIO %d",
-> +                                     OV3640_STANDBY_GPIO);
-> +             gpio_free(OV3640_RESET_GPIO);
-> +             return;
-> +     }
-> +     /* set to output mode */
-> +     gpio_direction_output(OV3640_RESET_GPIO, true);
-> +     gpio_direction_output(OV3640_STANDBY_GPIO, true);
-> +     cam_inited = 1;
-> +}
-> +#else
-> +void __init ldp_cam_init(void)
-> +{
-> +}
-> +#endif
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> index 1e1fd84..513aa8f 100644
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -47,6 +47,13 @@
->  #define SDP3430_SMC91X_CS    3
->  #define CONFIG_DISABLE_HFCLK 1
->
-> +#include <media/v4l2-int-device.h>
-> +
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +#include <media/ov3640.h>
-> +extern struct ov3640_platform_data ldp_ov3640_platform_data;
-> +#endif
-> +
->  #define ENABLE_VAUX1_DEDICATED       0x03
->  #define ENABLE_VAUX1_DEV_GRP 0x20
->
-> @@ -496,6 +503,15 @@ static struct i2c_board_info __initdata
-> ldp_i2c_boardinfo[] = {
->       },
->  };
->
-> +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +     {
-> +             I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
-> +             .platform_data = &ldp_ov3640_platform_data,
-> +     },
-> +#endif
-> +};
-> +
->  static int __init omap_i2c_init(void)
->  {
->       omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
-> @@ -530,6 +546,7 @@ static void __init omap_ldp_init(void)
->       omap_serial_init();
->       usb_musb_init();
->       twl4030_mmc_init(mmc);
-> +     ldp_cam_init();
->  }
->
->  static void __init omap_ldp_map_io(void)
-> diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-
-> omap/include/mach/board-ldp.h
-> index f233996..8e5d90b 100644
-> --- a/arch/arm/plat-omap/include/mach/board-ldp.h
-> +++ b/arch/arm/plat-omap/include/mach/board-ldp.h
-> @@ -30,6 +30,7 @@
->  #define __ASM_ARCH_OMAP_LDP_H
->
->  extern void twl4030_bci_battery_init(void);
-> +extern void ldp_cam_init(void);
->
->  #define TWL4030_IRQNUM               INT_34XX_SYS_NIRQ
->  #define LDP_SMC911X_CS         1
+> So I and Sergio have synchronised our versions of the ISP and camera
+> drivers and this is the end result. There is still a lot of work to
+> do,
+> though. You can find some comments in individual patch descriptions.
+> If
+> the todo list for a patch is empty it doesn't mean there wouldn't be
+> anything left to do. ;)
+>=20
+> There's at least one major change to Sergio Aguirre's earlier
+> patches
+> which is that the ISP driver now uses the IOMMU from Hiroshi Doyu.
+> Hiroshi is away for some time now so there are just some hacks on
+> top of
+> Hiroshi's older iommu patches to use with current linux-omap.
+>=20
+> This patchset does not contain the resizer or preview wrappers from
+> TI
+> but they have been left intentionally out. A proper interface (V4L)
+> should be used for those and the camera driver should be somehow
+> involved --- the wrappers are just duplicating much of the camera
+> driver's functionality.
+>=20
+> I don't have any sensor or lens drivers to publish at this time.
+>=20
+> This patchset should work with the SDP and OMAPZoom boards although
+> you
+> need the associated sensor drivers + the board code from Sergio
+> Aguirre
+> to use it. You'll also need the IOMMU patchset from Hiroshi Doyu.
+> Everything except the sensor / board stuff is available here:
+>=20
+> <URL:http://www.gitorious.org/projects/omap3camera>
+>=20
+> In short, on linux-omap:
+>=20
+> $ git pull http://git.gitorious.org/omap3camera/mainline.git v4l \
+>    iommu omap3camera base
+>=20
+> Hiroshi's original iommu tree is here (branch iommu):
+>=20
+> <URL:http://git.gitorious.org/lk/mainline.git>
+>=20
+> Some of the camera and ISP driver development history is available,
+> too.
+> See the first link.
+>=20
+> Any feedback is appreciated.
+>=20
+> Sincerely,
+>=20
 > --
-> 1.5.6.5
->
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>=20
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+
+--_002_19F8576C6E063C45BE387C64729E73940427BCA193dbde02enttico_
+Content-Type: application/octet-stream; name="isp_patch_fix.patch"
+Content-Description: isp_patch_fix.patch
+Content-Disposition: attachment; filename="isp_patch_fix.patch"; size=4377;
+	creation-date="Wed, 04 Mar 2009 20:55:16 GMT";
+	modification-date="Wed, 04 Mar 2009 20:55:16 GMT"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvZGV2aWNlcy5jIGIvYXJjaC9hcm0vbWFj
+aC1vbWFwMi9kZXZpY2VzLmMKb2xkIG1vZGUgMTAwNjQ0Cm5ldyBtb2RlIDEwMDc1NQppbmRleCBk
+YWQ0NTI4Li4yNTY4YjBjCi0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvZGV2aWNlcy5jCisrKyBi
+L2FyY2gvYXJtL21hY2gtb21hcDIvZGV2aWNlcy5jCkBAIC01NiwxMCArNTYsNjAgQEAgc3RhdGlj
+IGlubGluZSB2b2lkIG9tYXBfaW5pdF9jYW1lcmEodm9pZCkKIAogI2VsaWYgZGVmaW5lZChDT05G
+SUdfVklERU9fT01BUDMpIHx8IGRlZmluZWQoQ09ORklHX1ZJREVPX09NQVAzX01PRFVMRSkKIAot
+c3RhdGljIHN0cnVjdCByZXNvdXJjZSBjYW1fcmVzb3VyY2VzW10gPSB7CitzdGF0aWMgc3RydWN0
+IHJlc291cmNlIG9tYXAzaXNwX3Jlc291cmNlc1tdID0geworCXsKKwkJLnN0YXJ0CQk9IE9NQVAz
+NDMwX0lTUF9CQVNFLAorCQkuZW5kCQk9IE9NQVAzNDMwX0lTUF9FTkQsCisJCS5mbGFncwkJPSBJ
+T1JFU09VUkNFX01FTSwKKwl9LAorCXsKKwkJLnN0YXJ0CQk9IE9NQVAzNDMwX0lTUF9DQlVGRl9C
+QVNFLAorCQkuZW5kCQk9IE9NQVAzNDMwX0lTUF9DQlVGRl9FTkQsCisJCS5mbGFncwkJPSBJT1JF
+U09VUkNFX01FTSwKKwl9LAorCXsKKwkJLnN0YXJ0CQk9IE9NQVAzNDMwX0lTUF9DQ1AyX0JBU0Us
+CisJCS5lbmQJCT0gT01BUDM0MzBfSVNQX0NDUDJfRU5ELAorCQkuZmxhZ3MJCT0gSU9SRVNPVVJD
+RV9NRU0sCisJfSwKIAl7Ci0JCS5zdGFydAkJPSBPTUFQMzRYWF9DQU1FUkFfQkFTRSwKLQkJLmVu
+ZAkJPSBPTUFQMzRYWF9DQU1FUkFfQkFTRSArIDB4MUI3MCwKKwkJLnN0YXJ0CQk9IE9NQVAzNDMw
+X0lTUF9DQ0RDX0JBU0UsCisJCS5lbmQJCT0gT01BUDM0MzBfSVNQX0NDRENfRU5ELAorCQkuZmxh
+Z3MJCT0gSU9SRVNPVVJDRV9NRU0sCisJfSwKKwl7CisJCS5zdGFydAkJPSBPTUFQMzQzMF9JU1Bf
+SElTVF9CQVNFLAorCQkuZW5kCQk9IE9NQVAzNDMwX0lTUF9ISVNUX0VORCwKKwkJLmZsYWdzCQk9
+IElPUkVTT1VSQ0VfTUVNLAorCX0sCisJeworCQkuc3RhcnQJCT0gT01BUDM0MzBfSVNQX0gzQV9C
+QVNFLAorCQkuZW5kCQk9IE9NQVAzNDMwX0lTUF9IM0FfRU5ELAorCQkuZmxhZ3MJCT0gSU9SRVNP
+VVJDRV9NRU0sCisJfSwKKwl7CisJCS5zdGFydAkJPSBPTUFQMzQzMF9JU1BfUFJFVl9CQVNFLAor
+CQkuZW5kCQk9IE9NQVAzNDMwX0lTUF9QUkVWX0VORCwKKwkJLmZsYWdzCQk9IElPUkVTT1VSQ0Vf
+TUVNLAorCX0sCisJeworCQkuc3RhcnQJCT0gT01BUDM0MzBfSVNQX1JFU1pfQkFTRSwKKwkJLmVu
+ZAkJPSBPTUFQMzQzMF9JU1BfUkVTWl9FTkQsCisJCS5mbGFncwkJPSBJT1JFU09VUkNFX01FTSwK
+Kwl9LAorCXsKKwkJLnN0YXJ0CQk9IE9NQVAzNDMwX0lTUF9TQkxfQkFTRSwKKwkJLmVuZAkJPSBP
+TUFQMzQzMF9JU1BfU0JMX0VORCwKKwkJLmZsYWdzCQk9IElPUkVTT1VSQ0VfTUVNLAorCX0sCisJ
+eworCQkuc3RhcnQJCT0gT01BUDM0MzBfSVNQX0NTSTJBX0JBU0UsCisJCS5lbmQJCT0gT01BUDM0
+MzBfSVNQX0NTSTJBX0VORCwKKwkJLmZsYWdzCQk9IElPUkVTT1VSQ0VfTUVNLAorCX0sCisJewor
+CQkuc3RhcnQJCT0gT01BUDM0MzBfSVNQX0NTSTJQSFlfQkFTRSwKKwkJLmVuZAkJPSBPTUFQMzQz
+MF9JU1BfQ1NJMlBIWV9FTkQsCiAJCS5mbGFncwkJPSBJT1JFU09VUkNFX01FTSwKIAl9LAogCXsK
+QEAgLTY4LDE2ICsxMTgsMTYgQEAgc3RhdGljIHN0cnVjdCByZXNvdXJjZSBjYW1fcmVzb3VyY2Vz
+W10gPSB7CiAJfQogfTsKIAotc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugb21hcF9jYW1f
+ZGV2aWNlID0gewotCS5uYW1lCQk9ICJvbWFwMzR4eGNhbSIsCitzdGF0aWMgc3RydWN0IHBsYXRm
+b3JtX2RldmljZSBvbWFwM2lzcF9kZXZpY2UgPSB7CisJLm5hbWUJCT0gIm9tYXAzaXNwIiwKIAku
+aWQJCT0gLTEsCi0JLm51bV9yZXNvdXJjZXMJPSBBUlJBWV9TSVpFKGNhbV9yZXNvdXJjZXMpLAot
+CS5yZXNvdXJjZQk9IGNhbV9yZXNvdXJjZXMsCisJLm51bV9yZXNvdXJjZXMJPSBBUlJBWV9TSVpF
+KG9tYXAzaXNwX3Jlc291cmNlcyksCisJLnJlc291cmNlCT0gb21hcDNpc3BfcmVzb3VyY2VzLAog
+fTsKIAogc3RhdGljIGlubGluZSB2b2lkIG9tYXBfaW5pdF9jYW1lcmEodm9pZCkKIHsKLQlwbGF0
+Zm9ybV9kZXZpY2VfcmVnaXN0ZXIoJm9tYXBfY2FtX2RldmljZSk7CisJcGxhdGZvcm1fZGV2aWNl
+X3JlZ2lzdGVyKCZvbWFwM2lzcF9kZXZpY2UpOwogfQogI2Vsc2UKIHN0YXRpYyBpbmxpbmUgdm9p
+ZCBvbWFwX2luaXRfY2FtZXJhKHZvaWQpCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAv
+aW5jbHVkZS9tYWNoL29tYXAzNHh4LmggYi9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9tYWNo
+L29tYXAzNHh4LmgKb2xkIG1vZGUgMTAwNjQ0Cm5ldyBtb2RlIDEwMDc1NQppbmRleCAyN2ExZTQ1
+Li45YTE2Yzk2Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL21hY2gvb21hcDM0eHgu
+aAorKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9tYWNoL29tYXAzNHh4LmgKQEAgLTQ5
+LDYgKzQ5LDMzIEBACiAjZGVmaW5lIE9NQVAzNDNYX0NUUkxfQkFTRQlPTUFQMzQzWF9TQ01fQkFT
+RQogCiAjZGVmaW5lIE9NQVAzNFhYX0lDX0JBU0UJMHg0ODIwMDAwMAorCisjZGVmaW5lIE9NQVAz
+NDMwX0lTUF9CQVNFCQkoTDRfMzRYWF9CQVNFICsgMHhCQzAwMCkKKyNkZWZpbmUgT01BUDM0MzBf
+SVNQX0NCVUZGX0JBU0UJCShPTUFQMzQzMF9JU1BfQkFTRSArIDB4MDEwMCkKKyNkZWZpbmUgT01B
+UDM0MzBfSVNQX0NDUDJfQkFTRQkJKE9NQVAzNDMwX0lTUF9CQVNFICsgMHgwNDAwKQorI2RlZmlu
+ZSBPTUFQMzQzMF9JU1BfQ0NEQ19CQVNFCQkoT01BUDM0MzBfSVNQX0JBU0UgKyAweDA2MDApCisj
+ZGVmaW5lIE9NQVAzNDMwX0lTUF9ISVNUX0JBU0UJCShPTUFQMzQzMF9JU1BfQkFTRSArIDB4MEEw
+MCkKKyNkZWZpbmUgT01BUDM0MzBfSVNQX0gzQV9CQVNFCQkoT01BUDM0MzBfSVNQX0JBU0UgKyAw
+eDBDMDApCisjZGVmaW5lIE9NQVAzNDMwX0lTUF9QUkVWX0JBU0UJCShPTUFQMzQzMF9JU1BfQkFT
+RSArIDB4MEUwMCkKKyNkZWZpbmUgT01BUDM0MzBfSVNQX1JFU1pfQkFTRQkJKE9NQVAzNDMwX0lT
+UF9CQVNFICsgMHgxMDAwKQorI2RlZmluZSBPTUFQMzQzMF9JU1BfU0JMX0JBU0UJCShPTUFQMzQz
+MF9JU1BfQkFTRSArIDB4MTIwMCkKKyNkZWZpbmUgT01BUDM0MzBfSVNQX01NVV9CQVNFCQkoT01B
+UDM0MzBfSVNQX0JBU0UgKyAweDE0MDApCisjZGVmaW5lIE9NQVAzNDMwX0lTUF9DU0kyQV9CQVNF
+CQkoT01BUDM0MzBfSVNQX0JBU0UgKyAweDE4MDApCisjZGVmaW5lIE9NQVAzNDMwX0lTUF9DU0ky
+UEhZX0JBU0UJKE9NQVAzNDMwX0lTUF9CQVNFICsgMHgxOTcwKQorCisjZGVmaW5lIE9NQVAzNDMw
+X0lTUF9FTkQJCShPTUFQMzQzMF9JU1BfQkFTRSAgICAgICAgICsgMHgwNkYpCisjZGVmaW5lIE9N
+QVAzNDMwX0lTUF9DQlVGRl9FTkQJCShPTUFQMzQzMF9JU1BfQ0JVRkZfQkFTRSAgICsgMHgwNzcp
+CisjZGVmaW5lIE9NQVAzNDMwX0lTUF9DQ1AyX0VORAkJKE9NQVAzNDMwX0lTUF9DQ1AyX0JBU0Ug
+ICAgKyAweDFFRikKKyNkZWZpbmUgT01BUDM0MzBfSVNQX0NDRENfRU5ECQkoT01BUDM0MzBfSVNQ
+X0NDRENfQkFTRSAgICArIDB4MEE3KQorI2RlZmluZSBPTUFQMzQzMF9JU1BfSElTVF9FTkQJCShP
+TUFQMzQzMF9JU1BfSElTVF9CQVNFICAgICsgMHgwNDcpCisjZGVmaW5lIE9NQVAzNDMwX0lTUF9I
+M0FfRU5ECQkoT01BUDM0MzBfSVNQX0gzQV9CQVNFICAgICArIDB4MDVGKQorI2RlZmluZSBPTUFQ
+MzQzMF9JU1BfUFJFVl9FTkQJCShPTUFQMzQzMF9JU1BfUFJFVl9CQVNFICAgICsgMHgwOUYpCisj
+ZGVmaW5lIE9NQVAzNDMwX0lTUF9SRVNaX0VORAkJKE9NQVAzNDMwX0lTUF9SRVNaX0JBU0UgICAg
+KyAweDBBQikKKyNkZWZpbmUgT01BUDM0MzBfSVNQX1NCTF9FTkQJCShPTUFQMzQzMF9JU1BfU0JM
+X0JBU0UgICAgICsgMHgwRkIpCisjZGVmaW5lIE9NQVAzNDMwX0lTUF9NTVVfRU5ECQkoT01BUDM0
+MzBfSVNQX01NVV9CQVNFICAgICArIDB4MDZGKQorI2RlZmluZSBPTUFQMzQzMF9JU1BfQ1NJMkFf
+RU5ECQkoT01BUDM0MzBfSVNQX0NTSTJBX0JBU0UgICArIDB4MTZGKQorI2RlZmluZSBPTUFQMzQz
+MF9JU1BfQ1NJMlBIWV9FTkQJKE9NQVAzNDMwX0lTUF9DU0kyUEhZX0JBU0UgKyAweDAwNykKKwog
+I2RlZmluZSBPTUFQMzRYWF9JVkFfSU5UQ19CQVNFCTB4NDAwMDAwMDAKICNkZWZpbmUgT01BUDM0
+WFhfSFNVU0JfT1RHX0JBU0UJKEw0XzM0WFhfQkFTRSArIDB4QUIwMDApCiAjZGVmaW5lIE9NQVAz
+NFhYX0hTVVNCX0hPU1RfQkFTRQkoTDRfMzRYWF9CQVNFICsgMHg2NDAwMCkK
+
+--_002_19F8576C6E063C45BE387C64729E73940427BCA193dbde02enttico_--
