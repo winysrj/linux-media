@@ -1,79 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:36343 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987AbZCWXNC (ORCPT
+Received: from mk-outboundfilter-4.mail.uk.tiscali.com ([212.74.114.32]:30727
+	"EHLO mk-outboundfilter-4.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753963AbZCDOJ6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 19:13:02 -0400
-Received: by fxm2 with SMTP id 2so2034961fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 23 Mar 2009 16:12:59 -0700 (PDT)
-Subject: [question] about open/release and vidioc_g_input/vidioc_s_input
- functions
-From: Alexey Klimov <klimov.linux@gmail.com>
+	Wed, 4 Mar 2009 09:09:58 -0500
+Message-ID: <49AE8BB3.3010501@nildram.co.uk>
+Date: Wed, 04 Mar 2009 14:09:55 +0000
+From: Lou Otway <lotway@nildram.co.uk>
+Reply-To: lotway@nildram.co.uk
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain
-Date: Tue, 24 Mar 2009 02:14:07 +0300
-Message-Id: <1237850047.31041.162.camel@tux.localhost>
-Mime-Version: 1.0
+Subject: TT S2-3200 and CAMs
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, all
+Hi,
 
-After last convertion of radio drivers to use v4l2_device we have such
-code in many radio drivers:
-(it's radio-terratec.c for example)
+I've been testing the TT S2-3200 card and while it performs well for FTA
+services I have been unable to get it working with encrypted services using
+the CI slot.
 
-...
- static int terratec_open(struct file *file)
-{
-        return 0;
-}
+With VLC I am able to tune to the transponder and pick up all the services
+but they are not decrypted, unencrypted services work fine.
 
-static int terratec_release(struct file *file)
-{
-        return 0;
-}
-...
+Using a DVB-S card with CI I am able to tune successfully, proving the CAMs
+are valid. This leads me to believe there may be a problem with the drivers
+for the S2-3200.
 
-and
+Has anyone managed to get CAMs working with this card?
 
-...
-static int vidioc_g_input(struct file *filp, void *priv, unsigned int
-*i)
-{
-        *i = 0;
-        return 0;
-}
+Any advice gratefully recieved.
 
-static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
-{
-        return i ? -EINVAL : 0;
-}
-...
+Many thanks,
 
-Such code used in many radio-drivers as i understand.
-
-Is it good to place this empty and almost empty functions in:
-(here i see two variants)
-
-1) In header file that be in linux/drivers/media/radio/ directory.
-Later, we can move some generic/or repeating code in this header.
-
-2) In any v4l header. What header may contain this ? 
-
-?
-
-For what ? Well, as i understand we can decrease amount of lines and
-provide this simple generic functions. It's like
-video_device_release_empty function behaviour. Maybe not only radio
-drivers can use such vidioc_g_input and vidioc_s_input.
-
-Is it worth ?
-
--- 
-Best regards, Klimov Alexey
+Lou
+--
+Lou Otway
+mailto:lotway@nildram.co.uk
 
