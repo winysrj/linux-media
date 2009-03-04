@@ -1,171 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48622 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754305AbZCLOSW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 10:18:22 -0400
-Date: Thu, 12 Mar 2009 15:18:19 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] pcm990 baseboard: add camera bus width switch
-	setting
-Message-ID: <20090312141819.GN425@pengutronix.de>
-References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903121405150.4896@axis700.grange>
+Received: from host170-142-static.86-94-b.business.telecomitalia.it ([94.86.142.170]:44321
+	"EHLO zini-associati.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753042AbZCDI6O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 03:58:14 -0500
+Received: from zini-associati.it (localhost.localdomain [127.0.0.1])
+	by zini-associati.it (Postfix) with ESMTP id E8474D1222
+	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 09:34:33 +0100 (CET)
+Received: from [192.168.0.10] (unknown [192.168.0.10])
+	by zini-associati.it (Postfix) with ESMTP id D0411D1220
+	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 09:34:33 +0100 (CET)
+Message-ID: <49AE3D17.20401@zini-associati.it>
+Date: Wed, 04 Mar 2009 09:34:31 +0100
+From: vic <vic@zini-associati.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0903121405150.4896@axis700.grange>
+To: linux-media@vger.kernel.org
+Subject: Re: lifeview NOT LV3H not working
+References: <49AC472B.90202@zini-associati.it>
+In-Reply-To: <49AC472B.90202@zini-associati.it>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 12, 2009 at 02:12:09PM +0100, Guennadi Liakhovetski wrote:
-> On Thu, 12 Mar 2009, Sascha Hauer wrote:
+ciencio ha scritto:
+> Hello,
+> I bought the TV card in the object, it is a PCI hybrid TV-card, both 
+> analogue and DVB-T.
 > 
-> > Some Phytec cameras have a I2C GPIO expander which allows it to
-> > switch between different sensor bus widths. This was previously
-> > handled in the camera driver. Since handling of this switch
-> > varies on several boards the cameras are used on, the board
-> > support seems a better place to handle the switch
-> > 
-> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> > ---
-> >  arch/arm/mach-pxa/pcm990-baseboard.c |   49 +++++++++++++++++++++++++++------
-> >  1 files changed, 40 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > index 34841c7..8b01565 100644
-> > --- a/arch/arm/mach-pxa/pcm990-baseboard.c
-> > +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > @@ -381,14 +381,45 @@ static struct pca953x_platform_data pca9536_data = {
-> >  	.gpio_base	= NR_BUILTIN_GPIO + 1,
-> >  };
-> >  
-> > -static struct soc_camera_link iclink[] = {
-> > -	{
-> > -		.bus_id	= 0, /* Must match with the camera ID above */
-> > -		.gpio	= NR_BUILTIN_GPIO + 1,
-> > -	}, {
-> > -		.bus_id	= 0, /* Must match with the camera ID above */
-> > -		.gpio	= -ENXIO,
-> > +static int gpio_bus_switch;
-> > +
-> > +static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
-> > +		unsigned long flags)
-> > +{
-> > +	if (gpio_bus_switch <= 0)
-> > +		return 0;
+> I bought it, because on the manufacturer site they said they develop a 
+> linux driver, unfortunately when I downloaded the driver (which claims 
+> to be for fedora) I found the whole V4L tree to be compiled.
 > 
-> Are you really sure you don't want to return an error here? In 
-> query_bus_param() below, if you fail to get the GPIO, you set 
-> gpio_bus_switch to -EINVAL and return only 10 bit. Now if a buggy host 
-> driver still requests 8 bits, mt9m001 will call ->set_bus_param and you 
-> will happily return 0...
-> 
+> By the way, I tried to compiled it but it failed 'because it looked for 
+> the 2.6.19 kernel sources while I'm on Ubuntu Intrepid with a 2.6.27.
 
-Of course there are no buggy host drivers ;)
+While I was trying to make the card work, I found a peculiar note in the 
+NotOnlyTV faq that says that the driver they provide only works on 
+Fedora 6.0.
 
-Ok, changed it to support only ten bit without gpio switch and return
--EINVAL for any other width.
+Since Fedora 6.0 is an "old" distro (Fedora is now at the 10th revision) 
+and since on ubuntu intrepid, the distro I'm using, the 2.6.19 kernel 
+isn't available, I wondered if and how I could manage to apply the 
+modifications they did to the main tree to make the driver work on more 
+recent kernels and if those modifications could be imported in the main 
+tree.
 
-Sasche
+I attach the link to the V4l tree NOT provide is someone more expert 
+than me wants have a look.
 
+http://www.notonlytv.net/download/driver/lv3hlv3afedora.rar
 
->From 58485f136579273d4da41d65974ce6ed02ba877a Mon Sep 17 00:00:00 2001
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Date: Tue, 10 Mar 2009 16:45:58 +0100
-Subject: [PATCH 2/5] pcm990 baseboard: add camera bus width switch setting
+And this is their faq (not very usefull indeed)
 
-Some Phytec cameras have a I2C GPIO expander which allows it to
-switch between different sensor bus widths. This was previously
-handled in the camera driver. Since handling of this switch
-varies on several boards the cameras are used on, the board
-support seems a better place to handle the switch
+http://www.notonlytv.net/download/faq/faq_lv3h.pdf
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- arch/arm/mach-pxa/pcm990-baseboard.c |   53 ++++++++++++++++++++++++++++------
- 1 files changed, 44 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index 34841c7..fd8f786 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -381,14 +381,49 @@ static struct pca953x_platform_data pca9536_data = {
- 	.gpio_base	= NR_BUILTIN_GPIO + 1,
- };
- 
--static struct soc_camera_link iclink[] = {
--	{
--		.bus_id	= 0, /* Must match with the camera ID above */
--		.gpio	= NR_BUILTIN_GPIO + 1,
--	}, {
--		.bus_id	= 0, /* Must match with the camera ID above */
--		.gpio	= -ENXIO,
-+static int gpio_bus_switch;
-+
-+static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
-+		unsigned long flags)
-+{
-+	if (gpio_bus_switch <= 0) {
-+		if (flags == SOCAM_DATAWIDTH_10)
-+			return 0;
-+		else
-+			return -EINVAL;
-+	}
-+
-+	if (flags & SOCAM_DATAWIDTH_8)
-+		gpio_set_value(gpio_bus_switch, 1);
-+	else
-+		gpio_set_value(gpio_bus_switch, 0);
-+
-+	return 0;
-+}
-+
-+static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
-+{
-+	int ret;
-+
-+	if (!gpio_bus_switch) {
-+		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
-+		if (!ret) {
-+			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
-+			gpio_direction_output(gpio_bus_switch, 0);
-+		} else
-+			gpio_bus_switch = -EINVAL;
- 	}
-+
-+	if (gpio_bus_switch > 0)
-+		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
-+	else
-+		return SOCAM_DATAWIDTH_10;
-+}
-+
-+static struct soc_camera_link iclink = {
-+	.bus_id	= 0, /* Must match with the camera ID above */
-+	.query_bus_param = pcm990_camera_query_bus_param,
-+	.set_bus_param = pcm990_camera_set_bus_param,
- };
- 
- /* Board I2C devices. */
-@@ -399,10 +434,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
- 		.platform_data = &pca9536_data,
- 	}, {
- 		I2C_BOARD_INFO("mt9v022", 0x48),
--		.platform_data = &iclink[0], /* With extender */
-+		.platform_data = &iclink, /* With extender */
- 	}, {
- 		I2C_BOARD_INFO("mt9m001", 0x5d),
--		.platform_data = &iclink[0], /* With extender */
-+		.platform_data = &iclink, /* With extender */
- 	},
- };
- #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
--- 
-1.5.6.5
+Last thing, how can I know if someone is working on that card or on the 
+chipset that card uses?
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Vic
