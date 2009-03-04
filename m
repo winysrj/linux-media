@@ -1,38 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38871 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700AbZCSM1H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2009 08:27:07 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"psp_video@list.ti.com - Video discussion list for PSP Video team (May
-	contain non-TIers)" <psp_video@list.ti.com>
-Date: Thu, 19 Mar 2009 17:56:50 +0530
-Subject: BT656 Support and MMDC support on top of OMAP3EVM
-Message-ID: <19F8576C6E063C45BE387C64729E73940427CBFCEE@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:36295 "EHLO
+	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753488AbZCDXAO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 18:00:14 -0500
+Date: Wed, 4 Mar 2009 15:00:12 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: ribrishimov <ribrishimov@mm-sol.com>
+cc: "'Tuukka.O Toivonen'" <tuukka.o.toivonen@nokia.com>,
+	camera@ok.research.nokia.com, linux-media@vger.kernel.org,
+	'ext Hans Verkuil' <hverkuil@xs4all.nl>
+Subject: RE: [Camera] identifying camera sensor
+In-Reply-To: <011401c99cd7$9d20bd40$020014ac@ribrishimov>
+Message-ID: <Pine.LNX.4.58.0903041452180.24268@shell2.speakeasy.net>
+References: <200903041612.54557.tuukka.o.toivonen@nokia.com>
+ <011401c99cd7$9d20bd40$020014ac@ribrishimov>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 4 Mar 2009, ribrishimov wrote:
+> I am planning to export the chip identification information
+> to user space using VIDIOC_DBG_G_CHIP_IDENT.
+> Here's a sketch:
+>   #define V4L2_IDENT_SMIA_BASE	(0x53 << 24)
+> then in sensor driver's VIDIOC_DBG_G_CHIP_IDENT ioctl handler:
+>   struct v4l2_dbg_chip_ident id;
+>   id.ident = V4L2_IDENT_SMIA_BASE | (manufacturer_id << 16) | model_id;
+>   id.revision = revision_number;
+>
+> Do you think this is acceptable?
 
-I am getting some private requests for supporting BT656 and Multi-Media Daughter card on top of latest Kernel + Sakari's latest ISP-Camera patches/repository. So I am posting the patch supporting BT656 and MMDC support with all the review comments fixed (received from earlier posts).
+This is only meant for debugging and shouldn't be used by normal
+software.
 
-Please note that, hence forth I will try to avoid submitting patches on top of V4L2-int framework. The next immediate activity would be migration to sub-device framework.
+> Alternatively, VIDIOC_QUERYCAP could be used to identify the sensor.
+> Would it make more sense if it would return something like
+>   capability.card:  `omap3/smia-sensor-12-1234-5678//'
+> where 12 would be manufacturer_id, 1234 model_id, and
+> 5678 revision_number?
 
-Sakari,
-
-How about merging these patches (BT656 support patch) into your repository so that I don't have to maintain and re-submit the patches again and again. 
-
-If you feel it should be done, then please let me know if you have any review comments I will try to fix immediately and provide you a patch.
-
-The patches are following this mail.
-
-Thanks,
-Vaibhav Hiremath
-
+You could always try to decode the manufacturer name and maybe even the
+model name.  After all, pretty much every other driver does this.
