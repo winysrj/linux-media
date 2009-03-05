@@ -1,63 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outmailhost.telefonica.net ([213.4.149.242]:56185 "EHLO
-	ctsmtpout2.frontal.correo" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752673AbZCVVbR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Mar 2009 17:31:17 -0400
-Received: from jar.dominio (80.25.230.35) by ctsmtpout2.frontal.correo (7.2.056.6) (authenticated as jareguero$telefonica.net)
-        id 49B4D7130056B319 for linux-media@vger.kernel.org; Sun, 22 Mar 2009 22:31:14 +0100
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-media@vger.kernel.org
-Subject: Bug in  mxl5005s driver
-Date: Sun, 22 Mar 2009 22:31:12 +0100
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1538 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754390AbZCEQs6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 11:48:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Embedded Linux Conference
+Date: Thu, 5 Mar 2009 17:49:12 +0100
+Cc: Manjunath Hadli <mrh@ti.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200903222231.12769.jareguero@telefonica.net>
+Message-Id: <200903051749.13016.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In line 3992:
+Just FYI:
 
-        if (fe->ops.info.type == FE_ATSC) {
-                switch (params->u.vsb.modulation) {
-                case VSB_8:
-                        req_mode = MXL_ATSC; break;
-                default:
-                case QAM_64:
-                case QAM_256:
-                case QAM_AUTO:
-                        req_mode = MXL_QAM; break;
-                }
-        } else
-                req_mode = MXL_DVBT;
+I'll be attending the Embedded Linux Conference in San Francisco, April 
+6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
 
-req_mode is filled with MXL_ATSC, MXL_QAM, or MXL_DVBT
+This might be a good opportunity to discuss omap and davinci V4L2 issues 
+face-to-face. Let me know if you are interested.
 
-and in line 4007 req_mode is used like params->u.vsb.modulation
+Regards,
 
-                switch (req_mode) {
-                case VSB_8:
-                case QAM_64:
-                case QAM_256:
-                case QAM_AUTO:
-                        req_bw  = MXL5005S_BANDWIDTH_6MHZ;
-                        break;
-                default:
-                        /* Assume DVB-T */
-                        switch (params->u.ofdm.bandwidth) {
-                        case BANDWIDTH_6_MHZ:
-                                req_bw  = MXL5005S_BANDWIDTH_6MHZ;
-                                break;
-                        case BANDWIDTH_7_MHZ:
-                                req_bw  = MXL5005S_BANDWIDTH_7MHZ;
-                                break;
-                        case BANDWIDTH_AUTO:
-                        case BANDWIDTH_8_MHZ:
+	Hans
 
-
-Jose Alberto Reguero
-
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
