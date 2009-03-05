@@ -1,342 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:57086 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752995AbZCIKpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2009 06:45:05 -0400
-Date: Mon, 9 Mar 2009 11:45:08 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: mike@compulab.co.il,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] pxa_camera: Remove YUV planar formats hole
-In-Reply-To: <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.0903080115090.6783@axis700.grange>
-References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
- <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+Received: from banach.math.auburn.edu ([131.204.45.3]:37108 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754520AbZCETdy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 14:33:54 -0500
+Date: Thu, 5 Mar 2009 13:45:33 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+In-Reply-To: <49B025B2.1040309@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0903051337130.27979@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
+ <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li> <alpine.LNX.2.00.0903051221510.27780@banach.math.auburn.edu>
+ <49B025B2.1040309@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Robert Jarzmik wrote:
 
-> All planes were PAGE aligned (ie. 4096 bytes aligned). This
-> is not consistent with YUV422 format, which requires Y, U
-> and V planes glued together.  The new implementation forces
-> the alignement on 8 bytes (DMA requirement), which is almost
-> always the case (granted by width x height being a multiple
-> of 8).
-> 
-> The test cases include tests in both YUV422 and RGB565 :
->  - a picture of size 111 x 111 (cross RAM pages example)
->  - a picture of size 1023 x 4 in (under 1 RAM page)
->  - a picture of size 1024 x 4 in (exactly 1 RAM page)
->  - a picture of size 1025 x 4 in (over 1 RAM page)
->  - a picture of size 1280 x 1024 (many RAM pages)
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/video/pxa_camera.c |  165 ++++++++++++++++++++++++++------------
->  1 files changed, 114 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-> index e3e6b29..54df071 100644
-> --- a/drivers/media/video/pxa_camera.c
-> +++ b/drivers/media/video/pxa_camera.c
-> @@ -242,14 +242,13 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
->  	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
->  
->  	/* planar capture requires Y, U and V buffers to be page aligned */
-> -	if (pcdev->channels == 3) {
-> -		*size = PAGE_ALIGN(icd->width * icd->height); /* Y pages */
-> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* U pages */
-> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* V pages */
-> -	} else {
-> -		*size = icd->width * icd->height *
-> -			((icd->current_fmt->depth + 7) >> 3);
-> -	}
-> +	if (pcdev->channels == 3)
-> +		*size = roundup(icd->width * icd->height, 8) /* Y pages */
-> +			+ roundup(icd->width * icd->height / 2, 8) /* U pages */
-> +			+ roundup(icd->width * icd->height / 2, 8); /* V pages */
-> +	else
-> +		*size = roundup(icd->width * icd->height *
-> +				((icd->current_fmt->depth + 7) >> 3), 8);
->  
->  	if (0 == *count)
->  		*count = 32;
 
-Ok, this one will change I presume - new alignment calculations and 
-line-breaking. In fact, if you adjust width and height earlier in set_fmt, 
-maybe you'll just remove any rounding here completely.
+On Thu, 5 Mar 2009, Thomas Kaiser wrote:
 
-> @@ -289,19 +288,63 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
->  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
->  }
->  
-> +static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
-> +			       int sg_first_ofs, int size)
-> +{
-> +	int i, offset, dma_len, xfer_len;
-> +	struct scatterlist *sg;
-> +
-> +	offset = sg_first_ofs;
-> +	for_each_sg(sglist, sg, sglen, i) {
-> +		dma_len = sg_dma_len(sg);
-> +
-> +		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
-> +		xfer_len = roundup(min(dma_len - offset, size), 8);
+> Hello Theodore
+>
+> kilgota@banach.math.auburn.edu wrote:
+>>> For the brightness, I guess, 0 means dark and 0xff completely bright 
+>>> (sensor is in saturation)?
+>> 
+>> That of course is a guess. OTOH it could be on a scale of 0 to 0x80, or it 
+>> could be that only the digits 0 through 9 are actually used, and the basis 
+>> is then 100, or too many other variations to count. Also what is considered 
+>> a "normal" or an "average" value? The trouble with your suggestion of a 
+>> scale from 0 to 0xff is that it makes sense, and in a situation like this 
+>> one obviously can not assume that.
+>
+> I don't really understand what you try to tell with this sentence:
+> "and in a situation like this one obviously can not assume that."
 
-Ok, let's see. dma_len is PAGE_SIZE. offset is for Y-plane 0, for further 
-planes it will be aligned after we recalculate width and height. size will 
-be aligned too, so, roundup will disappear, right? You might want to just 
-just add a test for these. The calculation itself gives size >= xfer_len
+I mean, your interpretation of 0 to 0xff is a natural and sensible 
+interpretation (for us). But what one can not assume is, it made sense to 
+those who constructed the system. Perhaps those guys were setting it all 
+up differently.
 
-> +
-> +		size = max(0, size - xfer_len);
+>
+> The values changed from 0x03 (dark) to 0xfc (bright), for me does this mean 
+> that the scale goes from 0x00 to 0xff!? Or I am wrong?
 
-So, max is useless here, just "size -= xfer_len."
+Well, if you have actual data to back up your impressions about this, then 
+clearly you have evidence. So that is good, obviously.
 
-> +		offset = 0;
-> +		if (size == 0)
-> +			break;
-> +	}
-> +
-> +	BUG_ON(size != 0);
-> +	return i + 1;
-> +}
-> +
-> +/**
-> + * pxa_init_dma_channel - init dma descriptors
-> + * @pcdev: pxa camera device
-> + * @buf: pxa buffer to find pxa dma channel
-> + * @dma: dma video buffer
-> + * @channel: dma channel (0 => 'Y', 1 => 'U', 2 => 'V')
-> + * @cibr: camera read fifo
-> + * @size: bytes to transfer
-> + * @sg_first: index of first element of sg_list
-> + * @sg_first_ofs: offset in first element of sg_list
-> + *
-> + * Prepares the pxa dma descriptors to transfer one camera channel.
-> + * Beware sg_first and sg_first_ofs are both input and output parameters.
-> + *
-> + * Returns 0
-> + */
->  static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
->  				struct pxa_buffer *buf,
->  				struct videobuf_dmabuf *dma, int channel,
-> -				int sglen, int sg_start, int cibr,
-> -				unsigned int size)
-> +				int cibr, int size,
-> +				struct scatterlist **sg_first, int *sg_first_ofs)
->  {
->  	struct pxa_cam_dma *pxa_dma = &buf->dmas[channel];
-> -	int i;
-> +	struct scatterlist *sg;
-> +	int i, offset, sglen;
-> +	int dma_len = 0, xfer_len = 0;
->  
->  	if (pxa_dma->sg_cpu)
->  		dma_free_coherent(pcdev->dev, pxa_dma->sg_size,
->  				  pxa_dma->sg_cpu, pxa_dma->sg_dma);
->  
-> +	sglen = calculate_dma_sglen(*sg_first, dma->sglen,
-> +				    *sg_first_ofs, size);
-> +
->  	pxa_dma->sg_size = (sglen + 1) * sizeof(struct pxa_dma_desc);
->  	pxa_dma->sg_cpu = dma_alloc_coherent(pcdev->dev, pxa_dma->sg_size,
->  					     &pxa_dma->sg_dma, GFP_KERNEL);
-> @@ -309,27 +352,51 @@ static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
->  		return -ENOMEM;
->  
->  	pxa_dma->sglen = sglen;
-> +	offset = *sg_first_ofs;
->  
-> -	for (i = 0; i < sglen; i++) {
-> -		int sg_i = sg_start + i;
-> -		struct scatterlist *sg = dma->sglist;
-> -		unsigned int dma_len = sg_dma_len(&sg[sg_i]), xfer_len;
-> +	dev_dbg(pcdev->dev, "DMA: sg_first=%p, sglen=%d, ofs=%d, dma.desc=%x\n",
-> +		*sg_first, sglen, *sg_first_ofs, pxa_dma->sg_dma);
->  
-> -		pxa_dma->sg_cpu[i].dsadr = pcdev->res->start + cibr;
-> -		pxa_dma->sg_cpu[i].dtadr = sg_dma_address(&sg[sg_i]);
-> +
-> +	for_each_sg(*sg_first, sg, sglen, i) {
-> +		dma_len = sg_dma_len(sg);
->  
->  		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
-> -		xfer_len = (min(dma_len, size) + 7) & ~7;
-> +		xfer_len = roundup(min(dma_len - offset, size), 8);
->  
-> +		size = max(0, size - xfer_len);
+>
+>> 
+>> What I am suspecting is that these things have some kind of standard 
+>> definitions, which are not necessarily done by logic but by convention, and 
+>> there is a document out there somewhere which lays it all down. The 
+>> document could have been produced by Microsoft, for example, which 
+>> doubtless has its own problems reducing chaos to order in the industry, or 
+>> by some kind of consortium of camera manufacturers, or something like that. 
+>> I really do strongly suspect that the interpretation of all of this is 
+>> written down somewhere. But I don't know where to look.
+>
+> I believe that this documents are exists, but not available for public:-( 
+> Just company confidential.
 
-Same here for roundup() and max().
+That may be true. If so, then such documentation is indeed not available. 
+But sometimes a document is published and available, and one just is not 
+aware of the fact.
 
-> +
-> +		pxa_dma->sg_cpu[i].dsadr = pcdev->res->start + cibr;
-> +		pxa_dma->sg_cpu[i].dtadr = sg_dma_address(sg) + offset;
->  		pxa_dma->sg_cpu[i].dcmd =
->  			DCMD_FLOWSRC | DCMD_BURST8 | DCMD_INCTRGADDR | xfer_len;
-> -		size -= dma_len;
->  		pxa_dma->sg_cpu[i].ddadr =
->  			pxa_dma->sg_dma + (i + 1) * sizeof(struct pxa_dma_desc);
-> +
-> +		dev_vdbg(pcdev->dev, "DMA: desc.%08x->@phys=0x%08x, len=%d\n",
-> +			 pxa_dma->sg_dma + i * sizeof(struct pxa_dma_desc),
-> +			 sg_dma_address(sg) + offset, xfer_len);
-> +		offset = 0;
-> +
-> +		if (size == 0)
-> +			break;
->  	}
->  
-> -	pxa_dma->sg_cpu[sglen - 1].ddadr = DDADR_STOP;
-> -	pxa_dma->sg_cpu[sglen - 1].dcmd |= DCMD_ENDIRQEN;
-> +	pxa_dma->sg_cpu[sglen].ddadr = DDADR_STOP;
-> +	pxa_dma->sg_cpu[sglen].dcmd  = DCMD_FLOWSRC | DCMD_BURST8 | DCMD_ENDIRQEN;
+>
+> Anyway most of the Linux webcam drivers were done by re-engineering the 
+> Windoz driver (usbsnoop). That said, all information about the cams is "a 
+> guess".
 
-Why are you now always using the n+1'th element? Even if it is right, it 
-rather belongs to the patch "2/4," not "1/4," right? In your earlier email 
-you wrote:
+Very true. Also true about the still cameras that I supported in 
+libgphoto2. There are no secrets kept on the USB bus. But what is done 
+inside the computer does not appear on the USB bus and there is no log of 
+it.
 
->  - in the former pxa_videobuf_queue(), when a buffer was queued while another
->  was already active, a dummy descriptor was added, and then the new buffer was
->  chained with the actively running buffer. See code below :
-> 
-> -                       } else {
-> -                               buf_dma->sg_cpu[nents].ddadr =
-> -                                       DDADR(pcdev->dma_chans[i]);
-> -                       }
-> -
-> -                       /* The next descriptor is the dummy descriptor */
-> -                       DDADR(pcdev->dma_chans[i]) = buf_dma->sg_dma + nents *
-> -                               sizeof(struct pxa_dma_desc);
-> 
->    The fix is in the code refactoring, as now the buffer is always added at the
->    tail of the queue through pxa_dma_add_tail_buf().
+>
+> For the brightness thing, I just was working with a light and studied what is 
+> changing in the header of the frame. At this time I did this, I was not aware 
+> that I could remove the lens of the webcam to be more sensible to light 
+> change and get more precise results.
+>
+> During the work I did for the PAC7311 Pixart chip I found out that removing 
+> the lens and put light directly to the sensor does help a lot to figure out 
+> how the cam is working.
+>
+> And with this idea in mind, we could even get further to guess the 
+> compression algo from a cam.
+>
+> Assuming that the sensor has a Bayer pattern.
+> - remove lens.
+> - put white light on the sensor
+> - use color filter an put each spectrum (RGB) on the sensor
+> - check the stream and find out what is changing in the stream according to 
+> the different light conditions.
+>
+> Looks like I get off topic, now ;-)
 
-I don't understand, what this is fixing. It would make a nice 
-simplification, if it worked, but see my review to patch "2/4."
+But it is very interesting nevertheless.
 
-> +
-> +	*sg_first_ofs = xfer_len;
-> +	/*
-> +	 * Handle 1 special case :
-> +	 *  - if we finish the DMA transfer in the last 7 bytes of a RAM page
-> +	 *    then we return the sg element pointing on the next page
-> +	 */
-> +	if (*sg_first_ofs >= dma_len) {
-> +		*sg_first_ofs -= dma_len;
-> +		*sg_first = sg_next(sg);
-> +	} else {
-> +		*sg_first = sg;
-> +	}
+>
+> Something else comes in my mind. Would it good to document all this what we 
+> are talking bout somewhere on a webpage?
+>
+> Thomas
 
-As we will not be rounding up any more, this special case shouldn't be 
-needed either, right?
+Perhaps so. Also a good idea to try to collect some people who have 
+similar interests and are trying to work on similar problems. I have been 
+trying to do that for a while, but with mixed and limited success.
 
->  
->  	return 0;
->  }
-> @@ -342,9 +409,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
->  	struct pxa_camera_dev *pcdev = ici->priv;
->  	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
->  	int ret;
-> -	int sglen_y,  sglen_yu = 0, sglen_u = 0, sglen_v = 0;
-> -	int size_y, size_u = 0, size_v = 0;
-> -
-> +	int size_y = 0, size_u = 0, size_v = 0;
-
-Isn't size_y always initialised?
-
->  	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
->  		vb, vb->baddr, vb->bsize);
->  
-> @@ -381,53 +446,51 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
->  	}
->  
->  	if (vb->state == VIDEOBUF_NEEDS_INIT) {
-> -		unsigned int size = vb->size;
-> +		int size = vb->size;
-> +		int next_ofs = 0;
->  		struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
-> +		struct scatterlist *sg;
->  
->  		ret = videobuf_iolock(vq, vb, NULL);
->  		if (ret)
->  			goto fail;
->  
->  		if (pcdev->channels == 3) {
-> -			/* FIXME the calculations should be more precise */
-> -			sglen_y = dma->sglen / 2;
-> -			sglen_u = sglen_v = dma->sglen / 4 + 1;
-> -			sglen_yu = sglen_y + sglen_u;
->  			size_y = size / 2;
->  			size_u = size_v = size / 4;
->  		} else {
-> -			sglen_y = dma->sglen;
->  			size_y = size;
->  		}
->  
-> -		/* init DMA for Y channel */
-> -		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, sglen_y,
-> -					   0, 0x28, size_y);
-> +		sg = dma->sglist;
->  
-> +		/* init DMA for Y channel */
-> +		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0, size_y,
-> +					   &sg, &next_ofs);
->  		if (ret) {
->  			dev_err(pcdev->dev,
->  				"DMA initialization for Y/RGB failed\n");
->  			goto fail;
->  		}
->  
-> -		if (pcdev->channels == 3) {
-> -			/* init DMA for U channel */
-> -			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, sglen_u,
-> -						   sglen_y, 0x30, size_u);
-> -			if (ret) {
-> -				dev_err(pcdev->dev,
-> -					"DMA initialization for U failed\n");
-> -				goto fail_u;
-> -			}
-> +		/* init DMA for U channel */
-> +		if (size_u)
-> +			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, CIBR1,
-> +						   size_u, &sg, &next_ofs);
-> +		if (ret) {
-> +			dev_err(pcdev->dev,
-> +				"DMA initialization for U failed\n");
-> +			goto fail_u;
-> +		}
->  
-> -			/* init DMA for V channel */
-> -			ret = pxa_init_dma_channel(pcdev, buf, dma, 2, sglen_v,
-> -						   sglen_yu, 0x38, size_v);
-> -			if (ret) {
-> -				dev_err(pcdev->dev,
-> -					"DMA initialization for V failed\n");
-> -				goto fail_v;
-> -			}
-> +		/* init DMA for V channel */
-> +		if (size_v)
-> +			ret = pxa_init_dma_channel(pcdev, buf, dma, 2, CIBR2,
-> +						   size_u, &sg, &next_ofs);
-> +		if (ret) {
-> +			dev_err(pcdev->dev,
-> +				"DMA initialization for V failed\n");
-> +			goto fail_v;
->  		}
->  
->  		vb->state = VIDEOBUF_PREPARED;
-> -- 
-> 1.5.6.5
-> 
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Theodore Kilgore
