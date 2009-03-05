@@ -1,45 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:52209 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753430AbZC2Mmc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 08:42:32 -0400
-Date: Sun, 29 Mar 2009 14:42:11 +0200
-From: Janne Grunau <j@jannau.net>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@pobox.com>
-Subject: [PATCH 4 of 6] pvrusb2: use usb_interface.dev for
-	v4l2_device_register
-Message-ID: <20090329124211.GE637@aniel>
-References: <patchbomb.1238329154@aniel>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:51256 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbZCEVWg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 16:22:36 -0500
+Date: Thu, 5 Mar 2009 13:22:32 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/4] pxa_camera: Remove YUV planar formats hole
+In-Reply-To: <873adrekwj.fsf@free.fr>
+Message-ID: <Pine.LNX.4.58.0903051317010.24268@shell2.speakeasy.net>
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+ <Pine.LNX.4.64.0903052119590.4980@axis700.grange> <873adrekwj.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: inline; filename="v4l2_device_usb_interface-4.patch"
-In-Reply-To: <patchbomb.1238329154@aniel>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Janne Grunau <j@jannau.net>
-# Date 1238190885 -3600
-# Node ID 210007cef5bdef2364590755a2b7ab219534db16
-# Parent  09d6b9873181402892bb746d101b1b22b245208d
-pvrusb2: use usb_interface.dev for v4l2_device_register
+On Thu, 5 Mar 2009, Robert Jarzmik wrote:
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+>
+> > This is not a review yet - just an explanation why I was suggesting to
+> > adjust height and width - you say yourself, that YUV422P (I think, this is
+> > wat you meant, not just YUV422) requires planes to immediately follow one
+> > another. But you have to align them on 8 byte boundary for DMA, so, you
+> > violate the standard, right? If so, I would rather suggest to adjust width
+> > and height for planar formats to comply to the standard. Or have I
+> > misunderstood you?
+> No, you understand perfectly.
+>
+> And now, what do we do :
+>  - adjust height ?
+>  - adjust height ?
+>  - adjust both ?
+>
+> I couldn't decide which one, any hint ?
 
-From: Janne Grunau <j@jannau.net>
+Shame the planes have to be contiguous.  Software like ffmpeg doesn't
+require this and could handle planes with gaps between them without
+trouble.  Plans aligned on 8 bytes boundaries would probably be faster in
+fact.  Be better if v4l2_buffer gave us offsets for each plane.
 
-Priority: normal
-
-Signed-off-by: Janne Grunau <j@jannau.net>
-
-diff -r 09d6b9873181 -r 210007cef5bd linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c
---- a/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Mar 27 22:53:20 2009 +0100
-+++ b/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Fri Mar 27 22:54:45 2009 +0100
-@@ -2591,7 +2591,7 @@
- 	hdw->ctl_read_urb = usb_alloc_urb(0,GFP_KERNEL);
- 	if (!hdw->ctl_read_urb) goto fail;
- 
--	if (v4l2_device_register(&usb_dev->dev, &hdw->v4l2_dev) != 0) {
-+	if (v4l2_device_register(&intf->dev, &hdw->v4l2_dev) != 0) {
- 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
- 			   "Error registering with v4l core, giving up");
- 		goto fail;
+If you must adjust, probably better to adjust both.
