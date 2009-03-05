@@ -1,59 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:9037 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbZCIU4k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 16:56:40 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1181041ywh.1
-        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2009 13:56:37 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.105.134]:40967 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750902AbZCELfU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 06:35:20 -0500
+Message-ID: <49AFB8E3.9070909@maxwell.research.nokia.com>
+Date: Thu, 05 Mar 2009 13:34:59 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <1767e6740902221745r48506a51ne1f080d8abe7a2f0@mail.gmail.com>
-References: <1767e6740902181819i9982865u1dec75b5f337b8a4@mail.gmail.com>
-	 <49A1B90B.8080502@rogers.com>
-	 <1767e6740902221745r48506a51ne1f080d8abe7a2f0@mail.gmail.com>
-Date: Mon, 9 Mar 2009 15:56:37 -0500
-Message-ID: <1767e6740903091356u2c87b639idfd23acafb89c766@mail.gmail.com>
-Subject: Re: Kworld atsc 110 nxt2004 init
-From: Jonathan Isom <jeisom@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Alexey Klimov <klimov.linux@gmail.com>
+CC: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	saaguirre@ti.com, tuukka.o.toivonen@nokia.com,
+	dongsoo.kim@gmail.com
+Subject: Re: [PATCH 1/9] omap3isp: Add ISP main driver and register definitions
+References: <49AD0128.5090503@maxwell.research.nokia.com>	 <1236074816-30018-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1236081373.10927.15.camel@tux.localhost>
+In-Reply-To: <1236081373.10927.15.camel@tux.localhost>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 22, 2009 at 8:45 PM, Jonathan Isom <jeisom@gmail.com> wrote:
-> On Sun, Feb 22, 2009 at 2:43 PM, CityK <cityk@rogers.com> wrote:
->> Jonathan Isom wrote:
->>> Hi
->>> I was looking over my logs and I'm wondering is
->>> "nxt200x: Timeout waiting for nxt2004 to init"
->>> common
+Thanks for the comments, Alexey!
 
-HI all
-  I am not sure if this is actually related to my lockups,  however I
-think I may have
-figured out something. If I boot my system with clocksource equal to
-hpet it occurs
-right after boot(~8secs in), but if I set it to jiffies I don't see
-it(note early testing, may
-still end up occuring).  In nxt2004_microcontroller_init there is a
-msleep(10) and I'm
-wondering if 200 msec(loop)  is long enough.
+Alexey Klimov wrote:
+>> +static int isp_probe(struct platform_device *pdev)
+>> +{
+>> +	struct isp_device *isp;
+>> +	int ret_err = 0;
+>> +	int i;
+>> +
+>> +	isp = kzalloc(sizeof(*isp), GFP_KERNEL);
+>> +	if (!isp) {
+>> +		dev_err(&pdev->dev, "could not allocate memory\n");
+>> +		return -ENODEV;
+> 
+> return -ENOMEM; ?
 
-Any Thoughts?
+Done.
 
-Jonathan
+>> +	}
+>> +
+>> +	platform_set_drvdata(pdev, isp);
+>> +
+>> +	isp->dev = &pdev->dev;
+>> +
+>> +	for (i = 0; i <= OMAP3_ISP_IOMEM_CSI2PHY; i++) {
+>> +		struct resource *mem;
+>> +		/* request the mem region for the camera registers */
+>> +		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
+>> +		if (!mem) {
+>> +			dev_err(isp->dev, "no mem resource?\n");
+>> +			return -ENODEV;
+> 
+> Maybe ENODEV is not apropriate here too..
 
->> No its not common
->>
->>> or is this womething I need to worry about.  I got one shortly before a
->>> lockup(No backtrace).  Nothing was doing other than dvbstreamer sitting idle.
->>> I'll provide further logs if it should be needed.  I would think that
->>> It would need to
->>> only be initialize at module load.  Am I wrong in this thinking?
->>>
->>> in kernel  drivers 2.6.28.4
-> Hi
-> Looking at the logs I found that there was a backtrace. However I believe it
-> is related to dvbstreamer and the kworld cards.  I cycle thru the channels to
-> download epg info.  The previous crash I forgot that I was running the script
-> to cycle them and export the xmltv data.
+What else it could be? ENOENT comes to mind but I'm not sure it's 
+significantly better.
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
