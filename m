@@ -1,393 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34506 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752028AbZCMKJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 06:09:48 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2DA9eu9011215
-	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 05:09:46 -0500
-From: chaithrika@ti.com
-To: linux-media@vger.kernel.org
-Cc: Chaithrika U S <chaithrika@ti.com>
-Subject: [RFC 1/7] ARM: DaVinci: DM646x Video: Platform and board specific setup
-Date: Fri, 13 Mar 2009 14:18:27 +0530
-Message-Id: <1236934107-31157-1-git-send-email-chaithrika@ti.com>
+Received: from rv-out-0506.google.com ([209.85.198.233]:37597 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755910AbZCEEy7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 23:54:59 -0500
+MIME-Version: 1.0
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
+References: <5e9665e10903041610q31385162ib39a4bc41296bdbc@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
+Date: Thu, 5 Mar 2009 13:54:57 +0900
+Message-ID: <5e9665e10903042054n14edc5d0ke209e335cbe7ae9f@mail.gmail.com>
+Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
+From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Chaithrika U S <chaithrika@ti.com>
+Hi,
 
-Add pin mux definitions, display device setup, clock setup functions
+You are right. I checked with my JTAG debugger.
+It crashes just exactly there because of the reason you issued.
+Cheers,
 
-Add pin mux related code for the display device, also add platform device
-and resource structures. Also define a platform specific clock setup function
-that can be accessed by the driver to configure the clock and CPLD.
+Nate
 
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
----
-Applies to linux-davinci GIT tree at
-http://git.kernel.org/?p=linux/kernel/git/khilman/linux-davinci.git;a=commit;h=486afa37130356662213cc1a2199a285b4fd72af
+On Thu, Mar 5, 2009 at 12:53 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+>
+>
+> Thanks,
+> Vaibhav Hiremath
+>
+>> -----Original Message-----
+>> From: DongSoo(Nathaniel) Kim [mailto:dongsoo.kim@gmail.com]
+>> Sent: Thursday, March 05, 2009 5:41 AM
+>> To: Sakari Ailus
+>> Cc: Hiremath, Vaibhav; linux-media@vger.kernel.org; linux-
+>> omap@vger.kernel.org; Aguirre Rodriguez, Sergio Alberto; Toivonen
+>> Tuukka Olli Artturi; Hiroshi DOYU
+>> Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
+>>
+>> Hi Sakari,
+>>
+>> I'm also facing same issue with Hiremath.
+>>
+>> Here you are my kernel stack dump.
+>>
+> [Hiremath, Vaibhav] I was getting same kernel crash,  The reason is -
+>
+> Since  isp_probe doesn't get called, leaving omap3isp = NULL. So isp_get will return -EBUSY from the very beginning of function.  And the function "omap34xxcam_device_register" which calls isp_get tries to access vdev->vfd->dev where it crashes. Which is completely wrong, since the vfd gets initialize later part of function
+>
+>
+> if (hwc.dev_type == OMAP34XXCAM_SLAVE_SENSOR) {
+>    rval = isp_get();
+>    if (rval < 0) {
+>        dev_err(&vdev->vfd->dev, "can't get ISP, sensor init                                    failed\n");
+> [Vaibhav] - Here it crashes.
+>         goto err;
+>     }
+> }
+>
+> There are some instances where vdev->vfd is being accessed before initializing.
+>
+>> Cheers,
+>>
+>> Nate
+>>
+>> [    6.465606] [<c019e194>] (dev_driver_string+0x0/0x44) from
+>> [<c01cc5e0>] (omap34xxcam_device_register+0x110/0x2f8)
+>> [    6.475952] [<c01cc4d0>] (omap34xxcam_device_register+0x0/0x2f8)
+>> from [<c01b91a0>] (__v4l2_int_device_try_attach_all+0xb0/0x108)
+>> [    6.487609]  r7:00000000 r6:c03e4fcc r5:cfbbf834 r4:c03e4f94
+>> [    6.493347] [<c01b90f0>]
+>> (__v4l2_int_device_try_attach_all+0x0/0x108) from [<c01b9258>]
+>> (v4l2_int_device_register+0x60/0x7c)
+>> [    6.504638]  r7:c03e4eec r6:cf9e5020 r5:c03e4f94 r4:c03e03f8
+>> [    6.510375] [<c01b91f8>] (v4l2_int_device_register+0x0/0x7c) from
+>> [<c00182e4>] (ce131f_probe+0x88/0xa8)
+>> [    6.519836]  r5:00000000 r4:cf9e5000
+>> [    6.523437] [<c001825c>] (ce131f_probe+0x0/0xa8) from
+>> [<c01cefa4>]
+>> (i2c_device_probe+0x78/0x90)
+>> [    6.532226]  r5:cf9e5000 r4:c001825c
+>> [    6.535827] [<c01cef2c>] (i2c_device_probe+0x0/0x90) from
+>> [<c01a1634>] (driver_probe_device+0xd4/0x180)
+>> [    6.545318]  r7:c03e4eec r6:c03e4eec r5:cf9e50a8 r4:cf9e5020
+>> [    6.551025] [<c01a1560>] (driver_probe_device+0x0/0x180) from
+>> [<c01a1748>] (__driver_attach+0x68/0x8c)
+>> [    6.560394]  r7:c03e4eec r6:c03e4eec r5:cf9e50a8 r4:cf9e5020
+>> [    6.566131] [<c01a16e0>] (__driver_attach+0x0/0x8c) from
+>> [<c01a0a8c>] (bus_for_each_dev+0x4c/0x84)
+>> [    6.575164]  r7:c03e4eec r6:c01a16e0 r5:cf821cc8 r4:00000000
+>> [    6.580871] [<c01a0a40>] (bus_for_each_dev+0x0/0x84) from
+>> [<c01a1478>] (driver_attach+0x20/0x28)
+>> [    6.589721]  r7:cfb121a0 r6:c0018224 r5:c03e4eec r4:00000000
+>> [    6.595458] [<c01a1458>] (driver_attach+0x0/0x28) from
+>> [<c01a1054>]
+>> (bus_add_driver+0xa8/0x214)
+>> [    6.604217] [<c01a0fac>] (bus_add_driver+0x0/0x214) from
+>> [<c01a196c>] (driver_register+0x98/0x120)
+>> [    6.613250]  r8:00000000 r7:c03ef760 r6:c0018224 r5:c03e4eec
+>> r4:c03e4ec0
+>> [    6.620025] [<c01a18d4>] (driver_register+0x0/0x120) from
+>> [<c01cfffc>] (i2c_register_driver+0x98/0xfc)
+>> [    6.629425] [<c01cff64>] (i2c_register_driver+0x0/0xfc) from
+>> [<c001823c>] (ce131f_isp_init+0x18/0x38)
+>> [    6.638702]  r7:c03ef760 r6:c0018224 r5:c0022d78 r4:c0023128
+>> [    6.644439] [<c0018224>] (ce131f_isp_init+0x0/0x38) from
+>> [<c002a2d0>] (do_one_initcall+0x78/0x1d8)
+>> [    6.653472]  r5:c0022d78 r4:c0023128
+>> [    6.657073] [<c002a258>] (do_one_initcall+0x0/0x1d8) from
+>> [<c0008720>] (kernel_init+0x74/0xe0)
+>> [    6.665740]  r8:00000000 r7:00000000 r6:00000000 r5:c0022d78
+>> r4:c0023128
+>> [    6.672515] [<c00086ac>] (kernel_init+0x0/0xe0) from [<c005c234>]
+>> (do_exit+0x0/0x684)
+>> [    6.680419]  r5:00000000 r4:00000000
+>> [    6.684020] Code: c036e993 e1a0c00d e92dd800 e24cb004 (e5903098)
+>> [    6.690246] ---[ end trace cc13b15a4191e849 ]---
+>> [    6.694915] Kernel panic - not syncing: Attempted to kill init!
+>>
+>> On Thu, Mar 5, 2009 at 12:38 AM, Sakari Ailus
+>> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>> > Hiremath, Vaibhav wrote:
+>> >>
+>> >> [Hiremath, Vaibhav] Sakari, Let me ask you basic question, have
+>> you
+>> >> tested/verified these patch-sets?
+>> >
+>> > For the ISP and camera drivers, yes. That's actually the only
+>> thing that's
+>> > contained in the patchset.
+>> >
+>> >> The reason I am asking this question is, for me it was not
+>> working. I
+>> >> had to debug this and found that -
+>> >>
+>> >> - Changes missing in devices.c file, so isp_probe function will
+>> not
+>> >> be called at all, keeping omap3isp = NULL. You will end up into
+>> >> kernel crash in omap34xxcam_device_register.
+>> >
+>> > Anyway a crash shouldn't happen here. Could I see the kernel oops
+>> if there
+>> > was such?
+>> >
+>> >> - The patches from Hiroshi DOYU doesn't build as is, you need to
+>> add
+>> >> one include line #include <linux/hardirq.h> in iovmmu.c (I am
+>> using
+>> >> the patches submitted on 16th Jan 2009)
+>> >
+>> > Just pull the iommu branch, the Hiroshi's original patches are
+>> missing some
+>> > hacks that you need to use them now. I'd expect Hiroshi to update
+>> the
+>> > patchset when he comes back.
+>> >
+>> >> I have attached "git diff" output here with this mail for
+>> reference.
+>> >
+>> > Please pull also the "base" branch.
+>> >
+>> > --
+>> > Sakari Ailus
+>> > sakari.ailus@maxwell.research.nokia.com
+>> >
+>>
+>>
+>>
+>> --
+>> ========================================================
+>> DongSoo(Nathaniel), Kim
+>> Engineer
+>> Mobile S/W Platform Lab. S/W centre
+>> Telecommunication R&D Centre
+>> Samsung Electronics CO., LTD.
+>> e-mail : dongsoo.kim@gmail.com
+>>           dongsoo45.kim@samsung.com
+>> ========================================================
+>
+>
 
- arch/arm/mach-davinci/board-dm646x-evm.c    |  109 +++++++++++++++++++++++++++
- arch/arm/mach-davinci/dm646x.c              |  100 ++++++++++++++++++++++++
- arch/arm/mach-davinci/include/mach/dm646x.h |    9 ++
- arch/arm/mach-davinci/include/mach/mux.h    |   17 ++++
- 4 files changed, 235 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index 907f424..a6bf180 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -39,6 +39,7 @@
- #include <mach/serial.h>
- #include <mach/i2c.h>
- #include <mach/mmc.h>
-+#include <mach/mux.h>
- 
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
-@@ -46,6 +47,21 @@
- #include <linux/etherdevice.h>
- #include <mach/emac.h>
- 
-+#include <media/adv7343.h>
-+
-+#define VIDCLKCTL_OFFSET	(0x38)
-+#define VSCLKDIS_OFFSET		(0x6c)
-+
-+#define VCH2CLK_MASK		(0x07 << 8)
-+#define VCH2CLK_SYSCLK8		(0x02 << 8)
-+#define VCH2CLK_AUXCLK		(0x03 << 8)
-+#define VCH3CLK_MASK		(0x07 << 12)
-+#define VCH3CLK_SYSCLK8		(0x02 << 12)
-+#define VCH3CLK_AUXCLK		(0x03 << 12)
-+
-+#define VIDCH2CLK		(0x01 << 10)
-+#define VIDCH3CLK		(0x01 << 11)
-+
- static struct davinci_uart_config uart_config __initdata = {
- 	.enabled_uarts = (1 << 0),
- };
-@@ -95,11 +111,54 @@ int dm646xevm_eeprom_write(void *buf, off_t off, size_t count)
- }
- EXPORT_SYMBOL(dm646xevm_eeprom_write);
- 
-+static struct i2c_client *cpld_client;
-+
-+static int cpld_video_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	cpld_client = client;
-+	return 0;
-+}
-+
-+static int __devexit cpld_video_remove(struct i2c_client *client)
-+{
-+	cpld_client = NULL;
-+	return 0;
-+}
-+
-+static const struct i2c_device_id cpld_video_id[] = {
-+	{ "cpld_video", 0 },
-+	{ }
-+};
-+
-+static struct i2c_driver cpld_video_driver = {
-+	.driver = {
-+		.name	= "cpld_video",
-+	},
-+	.probe		= cpld_video_probe,
-+	.remove		= cpld_video_remove,
-+	.id_table	= cpld_video_id,
-+};
-+
-+static void evm_init_cpld(void)
-+{
-+	i2c_add_driver(&cpld_video_driver);
-+}
-+
- static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("24c256", 0x50),
- 		.platform_data  = &eeprom_info,
- 	},
-+	{
-+		I2C_BOARD_INFO("adv7343", 0x2A),
-+	},
-+	{
-+		I2C_BOARD_INFO("ths7303", 0x2C),
-+	},
-+	{
-+		I2C_BOARD_INFO("cpld_video", 0x3B),
-+	},
- };
- 
- static struct davinci_i2c_platform_data i2c_pdata = {
-@@ -107,10 +166,59 @@ static struct davinci_i2c_platform_data i2c_pdata = {
- 	.bus_delay      = 0 /* usec */,
- };
- 
-+static int set_vpif_clock(int mux_mode, int hd)
-+{
-+	int val = 0;
-+	int err = 0;
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	/* disable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value |= (VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	val = i2c_smbus_read_byte(cpld_client);
-+	if (val < 0)
-+		return val;
-+
-+	if (mux_mode == 1)
-+		val &= ~0x40;
-+	else
-+		val |= 0x40;
-+
-+	err = i2c_smbus_write_byte(cpld_client, val);
-+	if (err)
-+		return err;
-+
-+	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-+	value &= ~(VCH2CLK_MASK);
-+	value &= ~(VCH3CLK_MASK);
-+
-+	if (hd >= 1)
-+		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-+	else
-+		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-+
-+	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-+
-+	/* enable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~(VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	return 0;
-+}
-+
-+static struct dm646x_vpif_config vpif_config = {
-+	.set_clock	= set_vpif_clock,
-+};
-+
- static void __init evm_init_i2c(void)
- {
- 	davinci_init_i2c(&i2c_pdata);
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-+	evm_init_cpld();
- }
- 
- static void __init davinci_map_io(void)
-@@ -123,6 +231,7 @@ static __init void evm_init(void)
- {
- 	evm_init_i2c();
- 	davinci_serial_init(&uart_config);
-+	dm646x_setup_vpif(&vpif_config);
- }
- 
- static __init void davinci_dm646x_evm_irq_init(void)
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index af040cf..f069ab9 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -12,6 +12,7 @@
- #include <linux/init.h>
- #include <linux/clk.h>
- #include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
- 
- #include <mach/dm646x.h>
- #include <mach/clock.h>
-@@ -24,6 +25,14 @@
- #include "clock.h"
- #include "mux.h"
- 
-+#define DAVINCI_VPIF_BASE       0x01C12000
-+#define VDD3P3V_PWDN_OFFSET	(0x48)
-+#define VSCLKDIS_OFFSET		(0x6C)
-+
-+#define VDD3P3V_VID_MASK	(0x0000000F)
-+
-+#define VSCLKDIS_MASK		(0x00000F00)
-+
- /*
-  * Device specific clocks
-  */
-@@ -230,6 +239,20 @@ static struct clk timer2_clk = {
- 	.flags = ALWAYS_ENABLED, /* no LPSC, always enabled; c.f. spruep9a */
- };
- 
-+static struct clk vpif0_clk = {
-+	.name = "vpif0",
-+	.parent = &ref_clk,
-+	.lpsc = DM646X_LPSC_VPSSMSTR,
-+	.flags = ALWAYS_ENABLED,
-+};
-+
-+static struct clk vpif1_clk = {
-+	.name = "vpif1",
-+	.parent = &ref_clk,
-+	.lpsc = DM646X_LPSC_VPSSSLV,
-+	.flags = ALWAYS_ENABLED,
-+};
-+
- struct davinci_clk dm646x_clks[] = {
- 	CLK(NULL, "ref", &ref_clk),
- 	CLK(NULL, "aux", &aux_clkin),
-@@ -260,6 +283,8 @@ struct davinci_clk dm646x_clks[] = {
- 	CLK(NULL, "timer0", &timer0_clk),
- 	CLK(NULL, "timer1", &timer1_clk),
- 	CLK("watchdog", NULL, &timer2_clk),
-+	CLK(NULL, "vpif0", &vpif0_clk),
-+	CLK(NULL, "vpif1", &vpif1_clk),
- 	CLK(NULL, NULL, NULL),
- };
- 
-@@ -275,6 +300,28 @@ MUX_CFG(DM646X, ATAEN,		0,   0,     1,	  1,	 true)
- MUX_CFG(DM646X, AUDCK1,		0,   29,    1,	  0,	 false)
- 
- MUX_CFG(DM646X, AUDCK0,		0,   28,    1,	  0,	 false)
-+
-+MUX_CFG(DM646X, CRGMUX,			0,   24,    7,    5,	 true)
-+
-+MUX_CFG(DM646X, STSOMUX_DISABLE,	0,   22,    3,    0,	 true)
-+
-+MUX_CFG(DM646X, STSIMUX_DISABLE,	0,   20,    3,    0,	 true)
-+
-+MUX_CFG(DM646X, PTSOMUX_DISABLE,	0,   18,    3,    0,	 true)
-+
-+MUX_CFG(DM646X, PTSIMUX_DISABLE,	0,   16,    3,    0,	 true)
-+
-+MUX_CFG(DM646X, STSOMUX,		0,   22,    3,    2,	 true)
-+
-+MUX_CFG(DM646X, STSIMUX,		0,   20,    3,    2,	 true)
-+
-+MUX_CFG(DM646X, PTSOMUX_PARALLEL,	0,   18,    3,    2,	 true)
-+
-+MUX_CFG(DM646X, PTSIMUX_PARALLEL,	0,   16,    3,    2,	 true)
-+
-+MUX_CFG(DM646X, PTSOMUX_SERIAL,		0,   18,    3,    3,	 true)
-+
-+MUX_CFG(DM646X, PTSIMUX_SERIAL,		0,   16,    3,    3,	 true)
- };
- 
- /*----------------------------------------------------------------------*/
-@@ -345,8 +392,61 @@ static struct platform_device dm646x_edma_device = {
- 	.resource		= edma_resources,
- };
- 
-+static u64 vpif_dma_mask = DMA_32BIT_MASK;
-+
-+static struct resource vpif_resource[] = {
-+	{
-+		.start	= DAVINCI_VPIF_BASE,
-+		.end	= DAVINCI_VPIF_BASE + 0x03fff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT2,
-+		.end   = IRQ_DM646X_VP_VERTINT2,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT3,
-+		.end   = IRQ_DM646X_VP_VERTINT3,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device vpif_display_dev = {
-+	.name		= "vpif_display",
-+	.id		= -1,
-+	.dev		= {
-+			.dma_mask 		= &vpif_dma_mask,
-+			.coherent_dma_mask	= DMA_32BIT_MASK,
-+	},
-+	.resource	= vpif_resource,
-+	.num_resources	= ARRAY_SIZE(vpif_resource),
-+};
-+
- /*----------------------------------------------------------------------*/
- 
-+void dm646x_setup_vpif(struct dm646x_vpif_config *config)
-+{
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~VSCLKDIS_MASK;
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
-+	value &= ~VDD3P3V_VID_MASK;
-+	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
-+
-+	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
-+
-+	vpif_display_dev.dev.platform_data = config;
-+
-+	platform_device_register(&vpif_display_dev);
-+}
- 
- void __init dm646x_init(void)
- {
-diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-index d917939..216345c 100644
---- a/arch/arm/mach-davinci/include/mach/dm646x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-@@ -12,7 +12,16 @@
- #define __ASM_ARCH_DM646X_H
- 
- #include <mach/hardware.h>
-+#include <linux/i2c.h>
- 
- void __init dm646x_init(void);
- 
-+void dm646x_video_init(void);
-+
-+struct dm646x_vpif_config {
-+	int (*set_clock)(int, int);
-+};
-+
-+void dm646x_setup_vpif(struct dm646x_vpif_config *config);
-+
- #endif /* __ASM_ARCH_DM646X_H */
-diff --git a/arch/arm/mach-davinci/include/mach/mux.h b/arch/arm/mach-davinci/include/mach/mux.h
-index cd95629..557bebf 100644
---- a/arch/arm/mach-davinci/include/mach/mux.h
-+++ b/arch/arm/mach-davinci/include/mach/mux.h
-@@ -109,6 +109,23 @@ enum davinci_dm646x_index {
- 	/* AUDIO Clock */
- 	DM646X_AUDCK1,
- 	DM646X_AUDCK0,
-+
-+	/* CRGEN Control */
-+	DM646X_CRGMUX,
-+
-+	/* VPIF Control */
-+	DM646X_STSOMUX_DISABLE,
-+	DM646X_STSIMUX_DISABLE,
-+	DM646X_PTSOMUX_DISABLE,
-+	DM646X_PTSIMUX_DISABLE,
-+
-+	/* TSIF Control */
-+	DM646X_STSOMUX,
-+	DM646X_STSIMUX,
-+	DM646X_PTSOMUX_PARALLEL,
-+	DM646X_PTSIMUX_PARALLEL,
-+	DM646X_PTSOMUX_SERIAL,
-+	DM646X_PTSIMUX_SERIAL,
- };
- 
- enum davinci_dm355_index {
+
 -- 
-1.5.6
-
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab. S/W Team.
+DMC
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
