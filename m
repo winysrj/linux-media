@@ -1,31 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from n28.bullet.mail.ukl.yahoo.com ([87.248.110.145]:23802 "HELO
-	n28.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753364AbZCKLXF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 07:23:05 -0400
-From: bloehei <bloehei@yahoo.de>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: EC168 support?!
-Date: Wed, 11 Mar 2009 12:17:17 +0100
+Received: from mail-bw0-f178.google.com ([209.85.218.178]:41594 "EHLO
+	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721AbZCEPYZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 10:24:25 -0500
+Received: by bwz26 with SMTP id 26so3305981bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 07:24:22 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903111217.17846.bloehei@yahoo.de>
+Date: Thu, 5 Mar 2009 16:24:21 +0100
+Message-ID: <19a3b7a80903050724v2a1955a0g716beaa48983cce1@mail.gmail.com>
+Subject: scan file for au-SunshineCoast
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary=0016e6d7e045451398046460c3f8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'm reading this list because I'm - like many others I guess - waiting for my 
-EC168 based Sinovideo 3420b to be supported under linux. Now I've read this 
-(https://www.dealextreme.com/forums/Default.dx/sku.8325~threadid.278942) post 
-and was supprised that there already is some code that seems to be working 
-for some other EC168 sticks. Sadly, it doesn't work for my device.
-I want to thank Antti Palosaari for the work on the driver and suggest, that 
-it should be communicated more clearly that there already is a code base for 
-a driver.
-Regards,
-Jo
+--0016e6d7e045451398046460c3f8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
+>From a kaffeine user ...
+
+Christoph
+
+--0016e6d7e045451398046460c3f8
+Content-Type: text/plain; charset=US-ASCII; name=au-SunshineCoast
+Content-Disposition: attachment; filename=au-SunshineCoast
+Content-Transfer-Encoding: base64
+X-Attachment-Id: 0.1
+
+IyBBdXN0cmFsaWEgLyBTdW5zaGluZSBDb2FzdAojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1v
+ZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKIyBEaWdpdGFsCiMg
+U0JTMzYgU0JTICoqKgpUIDU4NTYyNTAwMCA3TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05F
+CiMgVE5RNDcgMTAgKioqClQgNjYyNjI1MDAwIDdNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5P
+TkUKIyBBQlE2MiBBQkMgKioqClQgNzY3NjI1MDAwIDdNSHogMy80IE5PTkUgUUFNNjQgOGsgMS8x
+NiBOT05FCiMgU1RRNjUgNyAqKioKVCA3ODg2MjUwMDAgN01IeiAzLzQgTk9ORSBRQU02NCA4ayAx
+LzE2IE5PTkUKIyBTVFE2OCBXSU4gKioqClQgODA5NTAwMDAwIDdNSHogMy80IE5PTkUgUUFNNjQg
+OGsgMS8xNiBOT05FCg==
+--0016e6d7e045451398046460c3f8--
