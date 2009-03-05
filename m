@@ -1,94 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44508 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752210AbZCPOYK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 10:24:10 -0400
-Date: Mon, 16 Mar 2009 11:23:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: "Trent Piepho" <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-Subject: Re: REVIEW: bttv conversion to v4l2_subdev
-Message-ID: <20090316112314.05426ba8@pedra.chehab.org>
-In-Reply-To: <45192.62.70.2.252.1237208659.squirrel@webmail.xs4all.nl>
-References: <45192.62.70.2.252.1237208659.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:64392 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756280AbZCEU3M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:29:12 -0500
+Message-ID: <49B03614.5020701@kaiser-linux.li>
+Date: Thu, 05 Mar 2009 21:29:08 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
+MIME-Version: 1.0
+To: kilgota@banach.math.auburn.edu
+CC: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu> <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li> <alpine.LNX.2.00.0903051221510.27780@banach.math.auburn.edu> <49B025B2.1040309@kaiser-linux.li> <alpine.LNX.2.00.0903051337130.27979@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903051337130.27979@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 16 Mar 2009 14:04:19 +0100 (CET)
-"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+kilgota@banach.math.auburn.edu wrote:
+>>> That of course is a guess. OTOH it could be on a scale of 0 to 0x80, 
+>>> or it could be that only the digits 0 through 9 are actually used, 
+>>> and the basis is then 100, or too many other variations to count. 
+>>> Also what is considered a "normal" or an "average" value? The trouble 
+>>> with your suggestion of a scale from 0 to 0xff is that it makes 
+>>> sense, and in a situation like this one obviously can not assume that.
+>>
+>> I don't really understand what you try to tell with this sentence:
+>> "and in a situation like this one obviously can not assume that."
+> 
+> I mean, your interpretation of 0 to 0xff is a natural and sensible 
+> interpretation (for us). But what one can not assume is, it made sense 
+> to those who constructed the system. Perhaps those guys were setting it 
+> all up differently.
+
+You are right, we don't know what the developer were thinking, 
+unfortunately,
+
+You have to turn yourself in a webcam developer and think how you would 
+do it. When you find, by observing/testing the cam, that it looks 
+similar as you thought about how to do it, the observation should be true!
 
 > 
-> >> > Based on this principle, IMO, the probing function should, by default,
-> >> > probe
-> >> > for tvaudio, if it doesn't find another audio device. You may
-> >> eventually
-> >> > ask
-> >> > for people to report, to warn us that the board entry is broken, but
-> >> we
-> >> > shouln't intentionally break a device that we're almost sure that
-> >> requires
-> >> > tvaudio or tda7432.
-> >>
-> >> OK. In other words it would be better to probe for:
-> >>
-> >> 1) msp3400
-> >> 2) msp3400_alt
-> >> 3) tda7432
-> >> 4) tvaudio
-> >>
-> >> and return as soon as we find a chip. So tvaudio is probed
-> >> unconditionally, effectively ignoring the needs_tvaudio flag and only
-> >> honoring the tvaudio module option (although I'm not sure whether that
-> >> is
-> >> still needed in that case).
-> >
-> > IMO, we should handle the needs_tvaudio with a different behaviour: using
-> > such kind of
-> > glue only when we're sure about the tv audio chips used for a certain
-> > board. If
-> > unsure, use the auto probing. Otherwise, we'll probe just that know
-> > chip(s) range.
+>>
+>> The values changed from 0x03 (dark) to 0xfc (bright), for me does this 
+>> mean that the scale goes from 0x00 to 0xff!? Or I am wrong?
 > 
-> I have to admit that I've no idea what you mean. My patch replicates the
-> original behavior of 'modprobe tvaudio' where all i2c addresses are probed
-> that tvaudio supports (from the normal_i2c array in tvaudio.c). We cannot
-> do a subset of this since it was never administrated which chip in
-> particular is on the board, just that it is one of the chips supported by
-> tvaudio.
+> Well, if you have actual data to back up your impressions about this, 
+> then clearly you have evidence. So that is good, obviously.
+
+I will do this again in the next couple of weeks (lens removed).
+
 > 
-> If you want to be able to select particular devices, then you need to
-> administrate that in the card definitions. That's out of scope of this
-> patch IMHO.
+>>
+>>>
+>>> What I am suspecting is that these things have some kind of standard 
+>>> definitions, which are not necessarily done by logic but by 
+>>> convention, and there is a document out there somewhere which lays it 
+>>> all down. The document could have been produced by Microsoft, for 
+>>> example, which doubtless has its own problems reducing chaos to order 
+>>> in the industry, or by some kind of consortium of camera 
+>>> manufacturers, or something like that. I really do strongly suspect 
+>>> that the interpretation of all of this is written down somewhere. But 
+>>> I don't know where to look.
+>>
+>> I believe that this documents are exists, but not available for 
+>> public:-( Just company confidential.
+> 
+> That may be true. If so, then such documentation is indeed not 
+> available. But sometimes a document is published and available, and one 
+> just is not aware of the fact.
+> 
+>>
+>> Anyway most of the Linux webcam drivers were done by re-engineering 
+>> the Windoz driver (usbsnoop). That said, all information about the 
+>> cams is "a guess".
+> 
+> Very true. Also true about the still cameras that I supported in 
+> libgphoto2. There are no secrets kept on the USB bus. But what is done 
+> inside the computer does not appear on the USB bus and there is no log 
+> of it.
+> 
+>>
+>> For the brightness thing, I just was working with a light and studied 
+>> what is changing in the header of the frame. At this time I did this, 
+>> I was not aware that I could remove the lens of the webcam to be more 
+>> sensible to light change and get more precise results.
+>>
+>> During the work I did for the PAC7311 Pixart chip I found out that 
+>> removing the lens and put light directly to the sensor does help a lot 
+>> to figure out how the cam is working.
+>>
+>> And with this idea in mind, we could even get further to guess the 
+>> compression algo from a cam.
+>>
+>> Assuming that the sensor has a Bayer pattern.
+>> - remove lens.
+>> - put white light on the sensor
+>> - use color filter an put each spectrum (RGB) on the sensor
+>> - check the stream and find out what is changing in the stream 
+>> according to the different light conditions.
+>>
+>> Looks like I get off topic, now ;-)
+> 
+> But it is very interesting nevertheless.
 
-You got my idea wrong. I'm just saying that maybe the better is to have the
-default probing behaviour by default.
+I think so, I didn't try with the color filter :-(
 
-However, if the board has a defined set of tv audio modules that we're sure,
-then we may override the automatic loading order.
+> 
+>>
+>> Something else comes in my mind. Would it good to document all this 
+>> what we are talking bout somewhere on a webpage?
+>>
+>> Thomas
+> 
+> Perhaps so. Also a good idea to try to collect some people who have 
+> similar interests and are trying to work on similar problems. I have 
+> been trying to do that for a while, but with mixed and limited success.
 
-So, the final implementation would be something like:
+May be, some people read this and have the same felling. Let's see what 
+happens.
 
-1) Try the modules that has explicit arguments at modprobe, or that needs_foo
-first;
-2) Try the probing way;
-3) Give up trying to load an audio driver, printing an error message.
-
-If we eventually found any bttv board without any audio driver, then we can add
-a no_audio bit field to skip the probing process.
-
-Note: since we can't really trust much on what we have (due to the non-standard
-ways of probing the drivers, that it is possible with bttv), IMO, that
-the logic you've implemented, with the adjustments I've proposed seem enough,
-but this is just my 2 cents. 
-
-We really need some feedback from the users to be sure if the bttv driver is
-properly working with the new logic, to be more certain that this approach is
-ok.
-
-
-Cheers,
-Mauro
+Thomas
