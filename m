@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:50672 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752361AbZCDQ43 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 11:56:29 -0500
-Message-ID: <49AEB2E0.1030503@oracle.com>
-Date: Wed, 04 Mar 2009 08:57:04 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Received: from ey-out-2122.google.com ([74.125.78.26]:41693 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751939AbZCEUnY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:43:24 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so20416eya.37
+        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 12:43:20 -0800 (PST)
+From: Eduard Huguet <eduardhc@gmail.com>
+To: utar <utar101@gmail.com>
+Subject: Re: Hauppauge NOVA-T 500 falls over after warm reboot
+Date: Thu, 5 Mar 2009 21:43:17 +0100
+Cc: linux-media@vger.kernel.org
+References: <49AD88BF.30507@gmail.com> <617be8890903040026t679991bmf69b0076ff5bb64e@mail.gmail.com> <loom.20090305T195350-142@post.gmane.org>
+In-Reply-To: <loom.20090305T195350-142@post.gmane.org>
 MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH -next] media/dm1105: uses ir_* functions, select VIDEO_IR
-References: <20090304180630.047dac29.sfr@canb.auug.org.au>
-In-Reply-To: <20090304180630.047dac29.sfr@canb.auug.org.au>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903052143.18265.eduardhc@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+A Dijous, 5 de març de 2009 20:57:38, utar va escriure:
+> > Have you tried rmmoding the module (dvb_usb_dib0700) and reloading it?
+> > I think that it was in such a case where it then wrongly detected the
+> > card as 'cold', attempting to reload it, which failed.
+>
+> No as if I do a cold boot there isn't an issue.  I just thought I would
+> report this so that the developers were aware.
+>
+> Many thanks for the suggestion though.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-dm1105 uses the ir_*() functions, so it needs to select VIDEO_IR
-to avoid build errors:
+Hi, 
+   I agree, the cold reboot does nothave this problem. Anyway, in a case a 
+cold reboot is not possible (I sometimes reboot my backend remotely), stopping 
+the backend and unloading the driver before rebooting seems to also work fine.
 
-dm1105.c:(.text+0x26b7ac): undefined reference to `ir_input_keydown'
-dm1105.c:(.text+0x26b7bc): undefined reference to `ir_input_nokey'
-(.devinit.text+0x29982): undefined reference to `ir_codes_dm1105_nec'
-(.devinit.text+0x2998a): undefined reference to `ir_input_init'
+This might be a clue also about what's happening, anyway.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/media/dvb/dm1105/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+Best regards
 
---- linux-next-20090304.orig/drivers/media/dvb/dm1105/Kconfig
-+++ linux-next-20090304/drivers/media/dvb/dm1105/Kconfig
-@@ -8,6 +8,7 @@ config DVB_DM1105
- 	select DVB_STB6000 if !DVB_FE_CUSTOMISE
- 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
- 	select DVB_SI21XX if !DVB_FE_CUSTOMISE
-+	select VIDEO_IR
- 	help
- 	  Support for cards based on the SDMC DM1105 PCI chip like
- 	  DvbWorld 2002
