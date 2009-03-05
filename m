@@ -1,60 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:58356 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449AbZC1Tz4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 15:55:56 -0400
-Date: Sat, 28 Mar 2009 15:08:55 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Jean-Francois Moine <moinejf@free.fr>
-cc: linux-media@vger.kernel.org
-Subject: A question about Documentation/video4linux/gspca.txt
-In-Reply-To: <20090327200106.7cae9bec@free.fr>
-Message-ID: <alpine.LNX.2.00.0903281437310.4041@banach.math.auburn.edu>
-References: <1238170102.3791.8.camel@tux.localhost> <20090327200106.7cae9bec@free.fr>
+Received: from mx2.redhat.com ([66.187.237.31]:50247 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753200AbZCETBq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Mar 2009 14:01:46 -0500
+Message-ID: <49B022FE.3050206@redhat.com>
+Date: Thu, 05 Mar 2009 20:07:42 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+To: kilgota@banach.math.auburn.edu
+CC: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+References: <20090217200928.1ae74819@free.fr> <200903042049.37829.elyk03@gmail.com> <alpine.LNX.2.00.0903042210500.23365@banach.math.auburn.edu> <200903042354.40787.elyk03@gmail.com> <49AF78A0.1030508@redhat.com> <alpine.LNX.2.00.0903051232350.27780@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903051232350.27780@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-I notice that sq905.c and sq905c.c have now been added to the gspca tree.
 
-But now a question about the documentation. None of that has been 
-addressed, as yet, neither for the sq905 nor for the sq905c cameras. The 
-code has been added to the tree, but the accompanying documentation 
-is, as yet, missing. I would be glad to provide it, but it seems to me 
-that a policy question comes up, about just what to add. There are lots of 
-cameras.
+kilgota@banach.math.auburn.edu wrote:
+> 
+> 
+> On Thu, 5 Mar 2009, Hans de Goede wrote:
+> 
+>>
+>>
+>> Kyle Guinn wrote:
+>>> On Wednesday 04 March 2009 22:34:13 kilgota@banach.math.auburn.edu 
+>>> wrote:
+>>>> On Wed, 4 Mar 2009, Kyle Guinn wrote:
+>>>>> On Tuesday 03 March 2009 18:12:33 kilgota@banach.math.auburn.edu 
+>>>>> wrote:
+>>>>>> contents of file mr97310a.patch follow, for gspca/mr97310a.c
+>>>>>> --------------------------------------------------------
+>>>>>> --- mr97310a.c.old    2009-02-23 23:59:07.000000000 -0600
+>>>>>> +++ mr97310a.c.new    2009-03-03 17:19:06.000000000 -0600
+>>>>>> @@ -302,21 +302,9 @@ static void sd_pkt_scan(struct gspca_dev
+>>>>>>                       data, n);
+>>>>>>           sd->header_read = 0;
+>>>>>>           gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
+>>>>>> -        len -= sof - data;
+>>>>>> -        data = sof;
+>>>>>> -    }
+>>>>>> -    if (sd->header_read < 7) {
+>>>>>> -        int needed;
+>>>>>> -
+>>>>>> -        /* skip the rest of the header */
+>>>>>> -        needed = 7 - sd->header_read;
+>>>>>> -        if (len <= needed) {
+>>>>>> -            sd->header_read += len;
+>>>>>> -            return;
+>>>>>> -        }
+>>>>>> -        data += needed;
+>>>>>> -        len -= needed;
+>>>>>> -        sd->header_read = 7;
+>>>>>> +        /* keep the header, including sof marker, for coming 
+>>>>>> frame */
+>>>>>> +        len -= n;
+>>>>>> +        data = sof - sizeof pac_sof_marker;;
+>>>>>>       }
+>>>>>>
+>>>>>>       gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
+>>>>> A few notes:
+>>>>>
+>>>>> 1.  There is an extra semicolon on that last added line.
+>>>> Oops. My bifocals.
+>>>>
+>>>>> 2.  sd->header_read no longer seems necessary.
+>>>> This is very likely true.
+>>>>
+>>>>> 3.  If the SOF marker is split over two transfers then everything 
+>>>>> falls
+>>>>> apart.
+>>>> Are you sure about that?
+>>>>
+>>>
+>>> Simple example:  One transfer ends with FF FF 00 and the next begins 
+>>> with FF 96 64.  pac_find_sof() returns a pointer to 64, n is set to 
+>>> 0, len stays the same, data now points at 3 bytes _before_ the 
+>>> transfer buffer, and we will most likely get undefined behavior when 
+>>> trying to copy the data out of the transfer buffer.  Not only that, 
+>>> but the FF FF 00 portion of the SOF won't get copied to the frame 
+>>> buffer.
+>>>
+>>
+>> Good point, since we will always pass frames to userspace which start 
+>> with the
+>> sof, maybe we should just only pass the variable part of the header to 
+>> userspace?
+>>
+>> That sure feels like the easiest solution to me.
+>>
+>> Regards,
+>>
+>> Hans
+>>
+> 
+> Hans, that would not solve the problem. In fact, it appears to me that 
+> this problem was already inherent in the driver code before I proposed 
+> any patches at all.
 
+Erm, if I understood correctly (haven't looked yet) the driver is working
+with the sof detection from pac_common, which does work with a SOF split
+over multiple frames.
 
-Here is the problem:
+The problem with the new code is that it takes the return value of the sof
+detection (which is a pointer into the current frame) and then
+substracts the length of the sofmarker, however if only part of the sof was
+in the current frame the resulting pointer (after substracting the sof length)
+will point to before the current frame buffer.
 
-The sq905 module supports, as far as I know, the entire list of cameras 
-which are supported by libgphoto2/camlibs/sq905, and probably more which I 
-did not list there because I got tired of adding yet another camera when, 
-in fact, functionally they were all pretty much equivalent (My bad. I 
-know that I missed a few of them, but I was more inexperienced back 
-then). In any event, the support for 24 cameras is explicitly listed 
-there.
+Hence my proposal to fix this by simple only sending the variable part of the
+header to userspace (and thus not do the substraction).
 
-The sq905c module supports, as far as I know, the entire list of cameras 
-which are supported by libgphoto2/camlibs/digigr8. The support for 16 
-cameras (or 17, if the line in libgphoto2/camlibs/digigr8/library.c 
-"Sakar 28290 and 28292  Digital Concepts Styleshot"
-which refers to two cameras differing only in the color of the case 
-is counted as referring to two cameras).
+Anyways this is just what I understood from the former discussion I have *not*
+looked at the actual code (-ENOTIME)
 
-Thus, if the documentation would be provided in 
-linux/Documentation/video4linux/gspca.txt it would amount to a total of 41 
-new entries, for these two new modules alone. Should all 41 of them be 
-added? I would think that they all ought to be listed somewhere, but 
-should the somewhere be there, or somewhere else? That is the question.
+Regards,
 
-One possibility might be to refer the curious reader to the existing list 
-in the relevant file in libgphoto2, for example, since these are all 
-dual-mode cameras. If that were done, then it would be only needed to put 
-the USB Vendor:Product number into the gspca.txt file, along with a 
-pointer to the full information.
-
-Theodore Kilgore
+Hans
