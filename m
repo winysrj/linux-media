@@ -1,165 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from powered.by.root24.eu ([91.121.20.142]:36713 "EHLO Root24.de"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:43941 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751144AbZCOBTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2009 21:19:14 -0400
-Message-ID: <49BC5788.50207@ionic.de>
-Date: Sun, 15 Mar 2009 02:19:04 +0100
-From: Ionic <ionic@ionic.de>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mateusz <m.jedrasik@gmail.com>, Jacek <wafelj@epf.pl>,
-	Kurt <kurtandre@gmail.com>, Juergen <juergenhaas@gmx.net>,
-	Obri <obri@chaostreff.ch>, Kamre <kamre@student.agh.edu.pl>,
-	=?ISO-8859-1?Q?=C1lvaro?= <aarranz@pegaso.ls.fi.upm.es>,
-	Alfred <garbagemail@web.de>, Andy <andaug@mailbolt.com>
-Subject: Re: Pinnacle PCTV Hybrid Pro Card (310c)... once again...
-References: <49BC3DEE.9050307@ionic.de>	 <d9def9db0903141641g457b9cdar317b0d8e5f132150@mail.gmail.com>	 <49BC4535.6090700@ionic.de> <d9def9db0903141725q86476e9i7fdf97d9198484ac@mail.gmail.com>
-In-Reply-To: <d9def9db0903141725q86476e9i7fdf97d9198484ac@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1754754AbZCETqH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Mar 2009 14:46:07 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, mike@compulab.co.il
+Cc: linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 3/4] pxa_camera: Coding style sweeping
+Date: Thu,  5 Mar 2009 20:45:50 +0100
+Message-Id: <1236282351-28471-4-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA512
+Transform sequences of form:
+	  foo = val1 | val2 |
+	        val3 | val4;
+into :
+	  foo = val1 | val2
+	        | val3 | val4;
 
-* On 15.03.2009 01:25, Markus Rechberger wrote:
->> Hi Markus,
->>
->> that's cool... but which tree is the one you actually do speak about?
->> v4l-dvb-experimental? As stated... I've already tried it without any
->> success. :(
->>
->
-> this tree doesn't exist anymore it's just a symlink to the split out
-> em28xx driver on mcentral.de
-> you should try your luck with the linuxtv.org/hg/v4l-dvb repository
-Okay, thank you!
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/video/pxa_camera.c |   43 ++++++++++++++++++-------------------
+ 1 files changed, 21 insertions(+), 22 deletions(-)
 
->> Other than this I am out of ideas... but you could mean
->> userspace-drivers though, is this the tree to go?  The page the README
->> file points to is outdated by the way...
->>
->
-> those things are not relevant for your device, no drivers on
-> mcentral.de are relevant for your device.
-Interesting... thought they'd be the right drivers to get the device
-working due to the (possibly outdated) information on it's wiki page...
-
-> read your first dmesg log carefully and try to obtain the xc3028
-> firmware and put it to /lib/firmwar
-Well, that seems to be some sort of problem. I found this site (and
-several others during March, 14th)
-http://lists-archives.org/video4linux/20835-extract-tool-for-xc3028-firmware.html
-which shows how to extract the firmware file in question. It doesn't
-seem to fit my card though... I've done it anyways though.
-
-No error messages printed by the drivers anymore, just the normal output:
-
-[16398.130540] Linux video capture interface: v2.00
-[16398.176622] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-[16398.177500] cx88[0]: subsystem: 12ab:1788, board: Pinnacle Hybrid
-PCTV [card=60,autodetected], frontend(s): 1
-[16398.177504] cx88[0]: TV tuner type 71, Radio tuner type 71
-[16398.185553] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-[16398.326195] tveeprom 4-0050: Huh, no eeprom present (err=-6)?
-[16398.326200] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
-[16398.326207] cx88[0]/2: cx2388x 8802 Driver Manager
-[16398.326221] cx88-mpeg driver manager 0000:07:00.2: enabling device
-(0000 -> 0002)
-[16398.326231] cx88-mpeg driver manager 0000:07:00.2: PCI INT A -> GSI
-22 (level, low) -> IRQ 22
-[16398.326240] cx88-mpeg driver manager 0000:07:00.2: setting latency
-timer to 64
-[16398.326249] cx88[0]/2: found at 0000:07:00.2, rev: 5, irq: 22,
-latency: 64, mmio: 0x8e000000
-[16398.330880] cx8800 0000:07:00.0: enabling device (0000 -> 0002)
-[16398.330890] cx8800 0000:07:00.0: PCI INT A -> GSI 22 (level, low)
-- -> IRQ 22
-[16398.330899] cx88[0]/0: found at 0000:07:00.0, rev: 5, irq: 22,
-latency: 0, mmio: 0x8c000000
-[16398.330908] cx8800 0000:07:00.0: setting latency timer to 64
-[16398.331217] cx88[0]/0: registered device video0 [v4l2]
-[16398.331249] cx88[0]/0: registered device vbi0
-[16398.331284] cx88[0]/0: registered device radio0
-[16398.353479] cx88/2: cx2388x dvb driver version 0.0.6 loaded
-[16398.353483] cx88/2: registering cx8802 driver, type: dvb access: shared
-[16398.353486] cx88[0]/2: subsystem: 12ab:1788, board: Pinnacle Hybrid
-PCTV [card=60]
-[16398.353489] cx88[0]/2: cx2388x based DVB/ATSC card
-[16398.353491] cx8802_alloc_frontends() allocating 1 frontend(s)
-[16398.362618] xc2028 4-0061: creating new instance
-[16398.362621] xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
-[16398.362624] cx88[0]/2: xc3028 attached
-[16398.362628] DVB: registering new adapter (cx88[0])
-[16398.362632] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353
-DVB-T)...
-
-Here comes the interesting part, though: radio -s is finding no
-stations (this is not critical for me, but indicates some misbehavior)
-and dvbscan does only output "Unable to query frontend status" (Exit
-code 1.)
-
-After running dvbcan, dmesg grows by following messages:
-
-[16485.369819] i2c-adapter i2c-4: firmware: requesting xc3028-v27.fw
-[16485.374523] xc2028 4-0061: Loading 80 firmware images from
-xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[16485.374629] cx88[0]: Calling XC2028/3028 callback
-[16485.374632] cx88[0]: setting GPIO to radio!
-[16487.371046] xc2028 4-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[16487.371053] cx88[0]: Calling XC2028/3028 callback
-[16487.371055] cx88[0]: setting GPIO to radio!
-[16491.995176] xc2028 4-0061: Loading firmware for type=D2633 DTV8
-(210), id 0000000000000000.
-[16492.039958] xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7
-DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[16492.080028] cx88[0]: Calling XC2028/3028 callback
-
-I've also been curious about analog TV (which is my premier "want to
-get it working" aim)... with no luck. tvtime-scanner scanned and
-scanned and scanned without finding any station.
-
-New messages after running tvtime-scanner:
-
-[16491.995176] xc2028 4-0061: Loading firmware for type=D2633 DTV8
-(210), id 0000000000000000.
-[16492.039958] xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7
-DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[16492.080028] cx88[0]: Calling XC2028/3028 callback
-
-So... I guess nothing is working sadly...
-
-I'm really not sure whether the correct firmware is used. This HVR
-firmware file is said to be "generic" (more or less), but your
-firmware package for Pinnacle devices does include a lot of other
-firmware files which seem not to include this "*-v27.fw" file either...
-
-Thank you once again for helping out.
-
-Best regards,
-
-
-Mihai
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iQIcBAEBCgAGBQJJvFeHAAoJEB/WLtluJTqHQFgP/2mDAgLz28No8YwGu5TMu3eN
-s//kEu2G3bUp3gwQ/ijz8C2GTMO8Ioei+ptwyELetet3gUK/yBs0xf5jLTldw2iz
-BkvOQ0P+nPKcHQ87eB21TmRxSZOunju9fjQc/euMOY625QCFqsw7z6pru77ATOC/
-SpJHRVJpTrycFY6Xt67edO2URcrBJQuF+MDDkZhUec4CGMCxxxM/FmJ0KoohEMuI
-re1ci/Dh0untENo9Up4i1MkcpfUFQoKcXddZQj56FPovQFbmF7Wb2CoRToXnr6mR
-cVu3CTTJ64BKpBBqzq0nZu3bmvk5eo9Z3WpfvBZJ32d6umZzix53sOsSXk22Dko6
-D2hg78va/kKBw5YJ+fvwZmlBOJingZkH78VkTgzVNvO8O6fH+jPm0w1tou3oExxg
-6tKixARkDrwF4KiFEXsEaP/e0D+A6FvfsS1CL5DxSiXe7XDLoWPZ+RGjOdoKx1jX
-Y3PoWV1plVHkiZOz22mgnQUuO7et96/gxpWUXkugYqSgvgG4D2d/j0t1WsS2yCfw
-pdJEyGvtwrMpiuokrp28TRqUaeqZAGCYyJs0xIzvs1sdz//3yX0aBZvv7DrBlGoZ
-3POk1vXjdi0ECj9SAg/cnHfyvmDijUbVTMd+aRpqz9xos2WG5FHvZj0jsCLDAreE
-oDAr1qlnvbXj78ySD/eQ
-=SQzv
------END PGP SIGNATURE-----
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 2d79ded..16bf0a3 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -158,9 +158,9 @@
+ #define CICR3_VSW_VAL(x)  (((x) << 11) & CICR3_VSW) /* Vertical sync pulse width */
+ #define CICR3_LPF_VAL(x)  (((x) << 0) & CICR3_LPF)  /* Lines per frame */
+ 
+-#define CICR0_IRQ_MASK (CICR0_TOM | CICR0_RDAVM | CICR0_FEM | CICR0_EOLM | \
+-			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
+-			CICR0_EOFM | CICR0_FOM)
++#define CICR0_IRQ_MASK (CICR0_TOM | CICR0_RDAVM | CICR0_FEM | CICR0_EOLM \
++			| CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM \
++			| CICR0_EOFM | CICR0_FOM)
+ 
+ /*
+  * Structures
+@@ -429,10 +429,10 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+ 	 * the actual buffer is yours */
+ 	buf->inwork = 1;
+ 
+-	if (buf->fmt	!= icd->current_fmt ||
+-	    vb->width	!= icd->width ||
+-	    vb->height	!= icd->height ||
+-	    vb->field	!= field) {
++	if (buf->fmt		!= icd->current_fmt
++	    || vb->width	!= icd->width
++	    || vb->height	!= icd->height
++	    || vb->field	!= field) {
+ 		buf->fmt	= icd->current_fmt;
+ 		vb->width	= icd->width;
+ 		vb->height	= icd->height;
+@@ -960,13 +960,13 @@ static int test_platform_param(struct pxa_camera_dev *pcdev,
+ 	 * quick capture interface supports both.
+ 	 */
+ 	*flags = (pcdev->platform_flags & PXA_CAMERA_MASTER ?
+-		  SOCAM_MASTER : SOCAM_SLAVE) |
+-		SOCAM_HSYNC_ACTIVE_HIGH |
+-		SOCAM_HSYNC_ACTIVE_LOW |
+-		SOCAM_VSYNC_ACTIVE_HIGH |
+-		SOCAM_VSYNC_ACTIVE_LOW |
+-		SOCAM_PCLK_SAMPLE_RISING |
+-		SOCAM_PCLK_SAMPLE_FALLING;
++		  SOCAM_MASTER : SOCAM_SLAVE)
++		| SOCAM_HSYNC_ACTIVE_HIGH
++		| SOCAM_HSYNC_ACTIVE_LOW
++		| SOCAM_VSYNC_ACTIVE_HIGH
++		| SOCAM_VSYNC_ACTIVE_LOW
++		| SOCAM_PCLK_SAMPLE_RISING
++		| SOCAM_PCLK_SAMPLE_FALLING;
+ 
+ 	/* If requested data width is supported by the platform, use it */
+ 	switch (buswidth) {
+@@ -1094,8 +1094,8 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ 		cicr1 |= CICR1_COLOR_SP_VAL(2);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555:
+-		cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2) |
+-			CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
++		cicr1 |= CICR1_RGB_BPP_VAL(1) | CICR1_RGBT_CONV_VAL(2)
++			| CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
+ 		cicr1 |= CICR1_COLOR_SP_VAL(1) | CICR1_RGB_BPP_VAL(2);
+@@ -1103,8 +1103,8 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ 	}
+ 
+ 	cicr2 = 0;
+-	cicr3 = CICR3_LPF_VAL(icd->height - 1) |
+-		CICR3_BFW_VAL(min((unsigned short)255, icd->y_skip_top));
++	cicr3 = CICR3_LPF_VAL(icd->height - 1)
++		| CICR3_BFW_VAL(min((unsigned short)255, icd->y_skip_top));
+ 	cicr4 |= pcdev->mclk_divisor;
+ 
+ 	__raw_writel(cicr1, pcdev->base + CICR1);
+@@ -1372,8 +1372,7 @@ static unsigned int pxa_camera_poll(struct file *file, poll_table *pt)
+ 
+ 	poll_wait(file, &buf->vb.done, pt);
+ 
+-	if (buf->vb.state == VIDEOBUF_DONE ||
+-	    buf->vb.state == VIDEOBUF_ERROR)
++	if (buf->vb.state == VIDEOBUF_DONE || buf->vb.state == VIDEOBUF_ERROR)
+ 		return POLLIN|POLLRDNORM;
+ 
+ 	return 0;
+@@ -1489,8 +1488,8 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 
+ 	pcdev->pdata = pdev->dev.platform_data;
+ 	pcdev->platform_flags = pcdev->pdata->flags;
+-	if (!(pcdev->platform_flags & (PXA_CAMERA_DATAWIDTH_8 |
+-			PXA_CAMERA_DATAWIDTH_9 | PXA_CAMERA_DATAWIDTH_10))) {
++	if (!(pcdev->platform_flags & (PXA_CAMERA_DATAWIDTH_8
++			| PXA_CAMERA_DATAWIDTH_9 | PXA_CAMERA_DATAWIDTH_10))) {
+ 		/* Platform hasn't set available data widths. This is bad.
+ 		 * Warn and use a default. */
+ 		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available "
+-- 
+1.5.6.5
 
