@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail00d.mail.t-online.hu ([84.2.42.5]:63461 "EHLO
-	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143AbZCSWOo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2009 18:14:44 -0400
-Message-ID: <49C2C3C8.3000300@freemail.hu>
-Date: Thu, 19 Mar 2009 23:14:32 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:54491 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713AbZCEU5T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:57:19 -0500
+Date: Thu, 5 Mar 2009 12:57:16 -0800 (PST)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean Delvare <khali@linux-fr.org>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+In-Reply-To: <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
+Message-ID: <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
+References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
+ <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
+ <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
+ <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Trent Piepho <xyzzy@speakeasy.org>,
-	David Ellingsworth <david@identd.dyndns.org>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] gspca: add missing .type field check in VIDIOC_G_PARM
-References: <49C133F6.3020202@freemail.hu> <30353c3d0903181445i409604e8r33678f7ce09d0288@mail.gmail.com> <49C1DD0C.4050500@freemail.hu> <Pine.LNX.4.58.0903190032530.28292@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0903190032530.28292@shell2.speakeasy.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
+> On Thu, 5 Mar 2009, Trent Piepho wrote:
+> > On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
+> > > On Wed, 4 Mar 2009, Mauro Carvalho Chehab wrote:
+> > > > Beside the fact that we don't need to strip support for legacy kernels, the
+> > > > advantage of using this method is that we can evolute to a new development
+> > > > model. As several developers already required, we should really use the
+> > > > standard -git tree as everybody's else. This will simplify a lot the way we
+> > > > work, and give us more agility to send patches upstream.
+> > > >
+> > > > With this backport script, plus the current v4l-dvb building systems, and after
+> > > > having all backport rules properly mapped, we can generate a "test tree"
+> > > > based on -git drivers/media, for the users to test the drivers against their
+> > > > kernels, and still use a clean tree for development.
+> > >
+> > > Sorry, switching to git is great, but just to make sure I understood you
+> > > right: by "-git drivers/media" you don't mean it is going to be a git tree
+> > > of only drivers/media, but it is going to be a normal complete Linux
+> > > kernel tree, right?
+> >
+> > So there will be no way we can test a driver without switching to a new
+> > kernel hourly?  And there is no way we can test someone else's tree without
+> > compiling an entirely new kernel and rebooting?  And every tree we want to
+> > work on requires a complete copy of the entire kernel source?
+>
+> AFAIR, Mauro wanted to provide snapshots for those who absolutely prefer
+> to work with partial trees. Although, to be honest, I don't understand
+> what makes video drivers so special. Think about audio drivers, or
+> network, including WLAN. I never heard about those subsystems working with
+> or providing subtree snapshots. If only before specific drivers or
+> subsystems are included in the mainline, but not long after that.
 
-The gspca webcam driver does not check the .type field of struct v4l2_streamparm.
-This field is an input parameter for the driver according to V4L2 API specification,
-revision 0.24 [1]. Add the missing check.
+ALSA used a partial tree, but their system was much worse than v4l-dvb's.
+I think the reason more systems don't do it is that setting up the build
+system we have with v4l-dvb was a lot of work.  They don't have that.
 
-The missing check was recognised by v4l-test 0.10 [2] together with gspca_sunplus driver
-and with "Trust 610 LCD POWERC@M ZOOM" webcam. This patch was verified also with
-v4l-test 0.10.
-
-The memset() is not necessary as V4L2 framework already have done this task when
-vidioc_g_parm() is called.
-
-References:
-[1] V4L2 API specification, revision 0.24
-    http://v4l2spec.bytesex.org/spec/r11680.htm
-
-[2] v4l-test: Test environment for Video For Linux Two API
-    http://v4l-test.sourceforge.net/
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
---- linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c.orig	2009-03-14 12:29:38.000000000 +0100
-+++ linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c	2009-03-19 20:38:22.000000000 +0100
-@@ -1320,8 +1320,9 @@ static int vidioc_g_parm(struct file *fi
- {
- 	struct gspca_dev *gspca_dev = priv;
-
--	memset(parm, 0, sizeof *parm);
--	parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
- 	parm->parm.capture.readbuffers = gspca_dev->nbufread;
-
- 	if (gspca_dev->sd_desc->get_streamparm) {
+Lots of subsystems are more tightly connected to the kernel and compiling
+the subsystem out of tree against any kernel just wouldn't work.  Some
+subsystems (like say gpio or led) mostly provide a framework to the rest of
+the kernel so working on them without the rest of the tree doesn't make
+sense either.  Or they don't get many patches and don't have many active
+maintainers so they don't really have any development SCM at all.  Just
+some patches through email that get applied by one maintainer.
