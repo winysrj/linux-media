@@ -1,54 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:54685 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753059AbZCYQvs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 12:51:48 -0400
-Message-ID: <49CA611B.5050902@freemail.hu>
-Date: Wed, 25 Mar 2009 17:51:39 +0100
-From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:61682 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbZCEMAA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 07:00:00 -0500
+Received: by fxm24 with SMTP id 24so3311851fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 03:59:56 -0800 (PST)
+Date: Thu, 5 Mar 2009 21:01:10 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Hans J. Koch" <hjk@linutronix.de>,
+	"hermann pitton" <hermann-pitton@arcor.de>,
+	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
 	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH] v4l2: fill reserved fields of VIDIOC_ENUMAUDIO also
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+Subject: Re: saa7134 and RDS
+Message-ID: <20090305210110.6c5f88e2@glory.loctelecom.ru>
+In-Reply-To: <200903041845.45469.hverkuil@xs4all.nl>
+References: <28050.62.70.2.252.1236161035.squirrel@webmail.xs4all.nl>
+	<20090304210246.75a5b602@glory.loctelecom.ru>
+	<200903041845.45469.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi Hans 
 
-When enumerating audio inputs with VIDIOC_ENUMAUDIO the gspca_sunplus driver
-does not fill the reserved fields of the struct v4l2_audio with zeros as
-required by V4L2 API revision 0.24 [1]. Add the missing initializations to
-the V4L2 framework.
+I build fresh video4linux with your patch and my config for our cards.
+In a dmesg i see : found RDS decoder.
+cat /dev/radio0 give me some slow junk data. Is this RDS data??
+Have you any tools for testing RDS?
+I try build rdsd from Hans J. Koch, but build crashed with:
 
-The patch was tested with v4l-test 0.10 [2] with gspca_sunplus driver and
-with Trust 610 LCD POWERC@M ZOOM webcam.
+rdshandler.cpp: In member function â€˜void std::RDShandler::delete_client(std::RDSclient*)â€™:
+rdshandler.cpp:363: error: no matching function for call to â€˜find(__gnu_cxx::__normal_iterator<std::RDSclient**, std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >, __gnu_cxx::__normal_iterator<std::RDSclient**, std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >, std::RDSclient*&)â€™
 
-References:
-[1] V4L2 API specification, revision 0.24
-    http://v4l2spec.bytesex.org/spec/r8242.htm
+P.S. Debian Lenny.
 
-[2] v4l-test: Test environment for Video For Linux Two API
-    http://v4l-test.sourceforge.net/
+With my best regards, Dmitry.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
---- linux-2.6.29/drivers/media/video/v4l2-ioctl.c.orig	2009-03-24 00:12:14.000000000 +0100
-+++ linux-2.6.29/drivers/media/video/v4l2-ioctl.c	2009-03-25 17:11:27.000000000 +0100
-@@ -1363,9 +1363,13 @@ static long __video_do_ioctl(struct file
- 	case VIDIOC_ENUMAUDIO:
- 	{
- 		struct v4l2_audio *p = arg;
-+		__u32 index = p->index;
-
- 		if (!ops->vidioc_enumaudio)
- 			break;
-+
-+		memset(p, 0, sizeof(*p));
-+		p->index = index;
- 		ret = ops->vidioc_enumaudio(file, fh, p);
- 		if (!ret)
- 			dbgarg(cmd, "index=%d, name=%s, capability=0x%x, "
+> On Wednesday 04 March 2009 13:02:46 Dmitri Belimov wrote:
+> > > Dmitri,
+> > >
+> > > I have a patch pending to fix this for the saa7134 driver. The i2c
+> > > problems are resolved, so this shouldn't be a problem anymore.
+> >
+> > Good news!
+> >
+> > > The one thing that is holding this back is that I first want to
+> > > finalize the RFC regarding the RDS support. I posted an RFC a few
+> > > weeks ago, but I need to make a second version and for that I
+> > > need to do a bit of research into the US version of RDS. And I
+> > > haven't found the time to do that yet.
+> >
+> > Yes, I found your discussion in linux-media mailing list. If you
+> > need any information from chip vendor I'll try find. I can get it
+> > under NDA and help you.
+> >
+> > > I'll see if I can get the patch merged anyway.
+> 
+> I've attached my patch for the saa7134. I want to wait with the final
+> pull request until I've finished the RDS RFC, but this gives you
+> something to play with.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
