@@ -1,61 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:63427 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753879AbZCTAVk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2009 20:21:40 -0400
-Subject: Re: v4l2-subdev missing video ops
-From: Andy Walls <awalls@radix.net>
-To: Pete Eberlein <pete@sensoray.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-In-Reply-To: <1237506920.5572.13.camel@pete-desktop>
-References: <1237506920.5572.13.camel@pete-desktop>
-Content-Type: text/plain
-Date: Thu, 19 Mar 2009 20:22:55 -0400
-Message-Id: <1237508575.3278.21.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3983 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150AbZCEMHh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 07:07:37 -0500
+Message-ID: <54836.62.70.2.252.1236254830.squirrel@webmail.xs4all.nl>
+Date: Thu, 5 Mar 2009 13:07:10 +0100 (CET)
+Subject: Re: saa7134 and RDS
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Dmitri Belimov" <d.belimov@gmail.com>
+Cc: "Hans J. Koch" <hjk@linutronix.de>,
+	"hermann pitton" <hermann-pitton@arcor.de>,
+	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-03-19 at 16:55 -0700, Pete Eberlein wrote:
-> Hello Hans,
-> 
-> I'm looking at converting the go7007 staging driver to use the subdev
-> API.  I don't see any v4l2_subdev_video_ops for VIDIOC_S_INPUT
 
-I believe you want
-
-v4l2_subdev_video_ops.s_routing
-and
-v4l2_subdev_audio_ops.s_routing
-
-to effect an input change.
-
-
->  nor
-> VIDIOC_S_STD. 
-
-The cx25840 module and the cx18 driver use
-
-v4l2_subdev_tuner_ops.s_std
-
-for the digitizer, whether or not it's a tuner input for which the
-standard is being set.
-
-A quick grep in linux/drivers/media/video:
-
-$ grep -R -B3  '\.s_std[^_]' *
-
-shows this is likely the case for quite a driver modules.
-
-Regards,
-Andy
-
->  Were those overlooked, or should I use the generic
-> v4l2_subdev_core_ops->ioctl?
->   (The chip in particular does not have a
-> tuner, but it does have multiple inputs (svidio, composite) and supports
-> NTSC or PAL.)
+> Hi Hans
 >
-> Thanks.
+> I build fresh video4linux with your patch and my config for our cards.
+> In a dmesg i see : found RDS decoder.
+> cat /dev/radio0 give me some slow junk data. Is this RDS data??
+> Have you any tools for testing RDS?
+> I try build rdsd from Hans J. Koch, but build crashed with:
+>
+> rdshandler.cpp: In member function ‘void
+> std::RDShandler::delete_client(std::RDSclient*)’:
+> rdshandler.cpp:363: error: no matching function for call to
+> ‘find(__gnu_cxx::__normal_iterator<std::RDSclient**,
+> std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >,
+> __gnu_cxx::__normal_iterator<std::RDSclient**,
+> std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >,
+> std::RDSclient*&)’
+
+Ah yes, that's right. I had to hack the C++ source to make this compile.
+I'll see if I can post a patch for this tonight.
+
+          Hans
+
+> P.S. Debian Lenny.
+>
+> With my best regards, Dmitry.
+>
+>> On Wednesday 04 March 2009 13:02:46 Dmitri Belimov wrote:
+>> > > Dmitri,
+>> > >
+>> > > I have a patch pending to fix this for the saa7134 driver. The i2c
+>> > > problems are resolved, so this shouldn't be a problem anymore.
+>> >
+>> > Good news!
+>> >
+>> > > The one thing that is holding this back is that I first want to
+>> > > finalize the RFC regarding the RDS support. I posted an RFC a few
+>> > > weeks ago, but I need to make a second version and for that I
+>> > > need to do a bit of research into the US version of RDS. And I
+>> > > haven't found the time to do that yet.
+>> >
+>> > Yes, I found your discussion in linux-media mailing list. If you
+>> > need any information from chip vendor I'll try find. I can get it
+>> > under NDA and help you.
+>> >
+>> > > I'll see if I can get the patch merged anyway.
+>>
+>> I've attached my patch for the saa7134. I want to wait with the final
+>> pull request until I've finished the RDS RFC, but this gives you
+>> something to play with.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> --
+>> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
