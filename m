@@ -1,48 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1891 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759429AbZC2UxN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 16:53:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: tuner-core i2c address range check: time to remove them?
-Date: Sun, 29 Mar 2009 22:53:01 +0200
-Cc: Mike Krufky <mkrufky@linuxtv.org>
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:45524 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754786AbZCESEr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 13:04:47 -0500
+Received: by fxm24 with SMTP id 24so46364fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 10:04:44 -0800 (PST)
+Date: Thu, 05 Mar 2009 14:04:31 -0400
+From: Manu <eallaud@gmail.com>
+Subject: Symbol rate limit for TT 3200
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Message-Id: <1236276271.7491.1@manu-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200903292253.01684.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-
-The tuner-core.c source contains this warning since 2.6.24:
-
-tuner_warn("Support for tuners in i2c address range 0x64 thru 0x6f\n");
-tuner_warn("will soon be dropped. This message indicates that your\n");
-tuner_warn("hardware has a %s tuner at i2c address 0x%02x.\n",
-                   t->name, t->i2c->addr);
-tuner_warn("To ensure continued support for your device, please\n");
-tuner_warn("send a copy of this message, along with full dmesg\n");
-tuner_warn("output to v4l-dvb-maintainer@linuxtv.org\n");
-tuner_warn("Please use subject line: \"obsolete tuner i2c address.\"\n");
-tuner_warn("driver: %s, addr: 0x%02x, type: %d (%s)\n",
-                   t->i2c->adapter->name, t->i2c->addr, t->type, t->name);
-
-Isn't it time to remove these i2c addresses? I don't believe we ever had a 
-real tuner at such an address.
-
-With the ongoing v4l2_subdev conversion I need to do a bit of cleanup in 
-tuner-core.c as well, so it would be a good time for me to combine it (and 
-it gets rid of an ugly cx88 hack in tuner-core.c as well).
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+	Hi all,
+I have been struggling for quite a while to lock on a DVB-S2 
+transponder. And recently I got some information that they changed the 
+symbol rate to 45MS/s which looks borderline to me. Can someone confirm 
+that the TT 3200 can do that?
+I also attach a log that I obtained when trying to lock on this 
+transponder with the following parameters:
+QPSK, FEC= 5/6, 45MS/s
+The driver I used was Igor's (very recent) one with szap-s2. The status 
+oscillates between 00 and 0b, it can take long to attain 0b which 
+suggests long and unreliable lock (never got VITERBI, just demod lock
++sync).
+Thx for any help
+Bye
+Emmanuel
