@@ -1,100 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.241]:41277 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192AbZCAJCY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2009 04:02:24 -0500
-Received: by ag-out-0708.google.com with SMTP id 26so3296629agb.10
-        for <linux-media@vger.kernel.org>; Sun, 01 Mar 2009 01:02:20 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 1 Mar 2009 20:02:19 +1100
-Message-ID: <333d4f210903010102o23a2bbf2p36b0b11fbb754a09@mail.gmail.com>
-Subject: saa716x driver for DNTV Live! Dual Hybrid PCI-Express S3
-From: Damien Whyte <purplelazy@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:42853 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751427AbZCECXz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 21:23:55 -0500
+Subject: RE: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0903041502240.24268@shell2.speakeasy.net>
+References: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com>
+	 <Pine.LNX.4.58.0903041502240.24268@shell2.speakeasy.net>
+Content-Type: text/plain
+Date: Thu, 05 Mar 2009 03:25:20 +0100
+Message-Id: <1236219920.2169.16.camel@pc09.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Am Mittwoch, den 04.03.2009, 15:42 -0800 schrieb Trent Piepho:
+> On Wed, 4 Mar 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+> > As what I understand, we have 2 possible situations for multiple opens here:
+> >
+> > Situation 1
+> >  - Instance1: Select sensor 1, and Do queue/dequeue of buffers.
+> >  - Instance2: If sensor 1 is currently selected, Begin loop requesting internally collected OMAP3ISP statistics (with V4L2 private based IOCTLs) for performing user-side Auto-exposure, Auto White Balance, Auto Focus algorithms. And Adjust gains (with S_CTRL) accordingly on sensor as a result.
+> >
+> > Situation 2
+> >  - Instance1: Select sensor1 as input. Begin streaming.
+> >  - Instance2: Select sensor2 as input. Attempt to begin streaming.
+> >
+> > So, if I understood right, on Situation 2, if you attempt to do a S_INPUT
+> > to sensor2 while capturing from sensor1, it should return a -EBUSY,
+> > right?  I mean, the app should consciously make sure the input (sensor)
+> > is the correct one before performing any adjustments.
+> 
+> It's usually perfectly legal to change inputs from one file handle while
+> another file handle is capturing.
+> 
+> If changing inputs while capturing is hard for your hardware and not
+> supported, then S_INPUT could return EBUSY while capture is in progress.
+> But in that case it doesn't matter which file descriptor is trying to
+> change inputs.
+> 
+> v4l2 is designed to allow a device to be controlled from multiple open file
+> descriptors.  Just like serial ports or audio mixers can be.
+> 
+> In general, an application should not worry about someone changing inputs
+> or frequencies while it is running.  If using v4l2-ctl while and app is
+> running leads to undesirable behavior there is a simple solution:  Don't do
+> that.
+> 
+> If you want exclusive access you can use a solution external to v4l2.  For
+> instance most apps that use serial ports (pppd, minicom, etc.) use lock
+> files in /var/lock to control access.  V4L2 also gives you
+> VIDIOC_[SG]_PRIORITY to do access control within v4l2, but it's not much
+> used.  It has little use because exclusive access just isn't something that
+> important.  In theory it seems important, but in practice no one seems to
+> care much that it's missing.
 
-  I recently purchased a pair of DNTV Live! Dual Hybrid PCI-Express S3
-cards (see http://www.digitalnow.com.au/product_pages/DNTVDualS3.html)
-without properly checking that they were supported under Linux. Silly
-me.
+Just a note.
 
-I see that Manu Abraham is currently working on a saa716x driver, so I
-have begun trying to get the driver working with my cards. I
-understand that this is still a work in progress so if I am too
-premature please tell me to rack off.
+All true, but if you fallback to a modem connection with kernel 2.6.22
+on FC6 with at least one NIC and an external router/switch, the default
+route will still be assigned to eth0 and you can configure kppp to what
+ever you want, but it does not override it, but claims to do so at the
+GUI. (OK, I'm eight years away from pppd, but ...)
 
-However if I can be any help testing the driver (or whatever) I would
-like to contribute.
+You have to use "route del default" at first like in stoneage and I
+suspect there is more of this stuff around.
 
-Currently I have managed to load the saa716x_hybrid module - although
-I'm not seeing any relevant traces in the kernel logs. Also no adapter
-devices are being created.
+To make more use of VIDIOC_S/G_PRIORITY I always did propagate :)
 
-Anyway thanks for the saa716x driver and v4l/dvb in general.
+The first use case was to capture on /dev/videoN and at once get vbi EPG
+data on /dev/vbiN.
 
-regards,
-Damien.
+Cheers,
+Hermann
 
-P.S results of lsmod and lspci.
 
-abraxas tmp # lsmod
-Module                  Size  Used by
-saa716x_hybrid         10824  0
-saa716x_core           59508  1 saa716x_hybrid
-dvb_core               87916  2 saa716x_hybrid,saa716x_core
-tda1004x               15748  1 saa716x_hybrid
-nvidia               7800392  26
 
-abraxas tmp # lspci -s 07:00.0 -vvxxx
-07:00.0 Multimedia controller: Philips Semiconductors Device 7162 (rev 01)
-	Subsystem: KWorld Computer Co. Ltd. Device 7523
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR+ FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 0, Cache Line Size: 64 bytes
-	Interrupt: pin A routed to IRQ 5
-	Region 0: Memory at fbd00000 (64-bit, non-prefetchable) [size=1M]
-	Capabilities: [40] Message Signalled Interrupts: Mask- 64bit+
-Count=1/32 Enable-
-		Address: 0000000000000000  Data: 0000
-	Capabilities: [50] Express (v1) Endpoint, MSI 00
-		DevCap:	MaxPayload 128 bytes, PhantFunc 0, Latency L0s <256ns, L1 <1us
-			ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-		DevCtl:	Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
-			RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
-			MaxPayload 128 bytes, MaxReadReq 128 bytes
-		DevSta:	CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
-		LnkCap:	Port #1, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0
-<4us, L1 <64us
-			ClockPM- Suprise- LLActRep- BwNot-
-		LnkCtl:	ASPM Disabled; RCB 128 bytes Disabled- Retrain- CommClk-
-			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-		LnkSta:	Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk- DLActive-
-BWMgmt- ABWMgmt-
-	Capabilities: [74] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-	Capabilities: [80] Vendor Specific Information <?>
-	Capabilities: [100] Vendor Specific Information <?>
-00: 31 11 62 71 07 01 10 00 01 00 80 04 10 00 00 00
-10: 04 00 d0 fb 00 00 00 00 00 00 00 00 00 00 00 00
-20: 00 00 00 00 00 00 00 00 00 00 00 00 de 17 23 75
-30: 00 00 00 00 40 00 00 00 00 00 00 00 05 01 00 00
-40: 05 50 8a 00 00 00 00 00 00 00 00 00 00 00 00 00
-50: 10 74 01 00 80 00 28 00 10 00 0a 00 11 6c 03 01
-60: 08 00 11 00 00 0a 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 01 80 02 3e 00 00 00 00 00 00 00 00
-80: 09 00 50 00 03 0c 00 00 02 02 00 00 00 00 00 00
-90: 00 07 00 00 00 00 00 08 00 00 10 00 00 00 00 00
-a0: 01 00 00 04 03 00 00 00 00 00 01 07 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 20 01 2a 00 00
-c0: 01 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+
