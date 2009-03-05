@@ -1,33 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:33110 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217AbZCBRRN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 12:17:13 -0500
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KFW000YV2OLU2W0@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 02 Mar 2009 12:17:10 -0500 (EST)
-Date: Mon, 02 Mar 2009 12:17:08 -0500
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: [linux-dvb] WinTV HVR-1800 analog Satus
-In-reply-to: <BD55C643-1E24-4315-8F9D-ACC914AEFE0C@systemoverload.net>
-To: linux-media@vger.kernel.org
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Message-id: <49AC1494.6030101@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <49AAB995.8090702@campus.upb.de>
- <BD55C643-1E24-4315-8F9D-ACC914AEFE0C@systemoverload.net>
+Received: from mail-bw0-f178.google.com ([209.85.218.178]:50831 "EHLO
+	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752370AbZCEVN1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 16:13:27 -0500
+Received: by bwz26 with SMTP id 26so118047bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 13:13:25 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 5 Mar 2009 23:13:24 +0200
+Message-ID: <36c518800903051313y184cc5e7i79deb2517fef61f7@mail.gmail.com>
+Subject: Is v4l2 loopback needed in kernel? Invitation for code review
+From: vasaka@gmail.com
+To: Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dustin Coates wrote:
-> Any update on the status of analouge for this card? I really would  
-> like to switch back to Linux as my mce solution, but last time I did,  
-> the analouge was terrible, and I was getting no answers on the list...
+Hello, my v4l2 loopback device is now at working state: it can do
+streaming and basic IO, works with Skype, luvcview and mplayer. next
+feature planned is allowing multiply readers.
+Benefits from having this driver are: video effects for video
+conferencing programms aware only about v4l, driver can serve as
+adapter between v4l1 and v4l2 and allow multiply readers for webcam.
 
-Last I checked it worked fine for me.
+Is it worth to push this driver to kernel? I have already done some
+work to comply with kernel coding style, and need a code review to
+make shure if I managed to follow common practicies.
 
-- Steve
+current version is tested only with 2.6.26 kernel, I will add 2.6.28
+support(if any work needed) soon.
+code hosted on google code
+http://code.google.com/p/v4l2loopback/
+--
+Vasily Levin
