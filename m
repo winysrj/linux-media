@@ -1,40 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:63779 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196AbZCIUnn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 16:43:43 -0400
-Message-ID: <49B57F7D.1020108@kaiser-linux.li>
-Date: Mon, 09 Mar 2009 21:43:41 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:38853 "HELO
+	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754030AbZCEA2F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Mar 2009 19:28:05 -0500
+From: David Brownell <david-b@pacbell.net>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+Date: Wed, 4 Mar 2009 16:28:00 -0800
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+References: <A24693684029E5489D1D202277BE89442E296F97@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89442E296F97@dlee02.ent.ti.com>
 MIME-Version: 1.0
-To: Anders Blomdell <anders.blomdell@control.lth.se>
-CC: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: Topro 6800 driver
-References: <49A8661A.4090907@control.lth.se>	<49B194A7.4030808@kaiser-linux.li>	<49B50740.3000902@control.lth.se>	<49B50E16.8080703@kaiser-linux.li> <49B56542.1090408@control.lth.se> <49B57799.3020504@kaiser-linux.li> <49B57C1D.3060600@control.lth.se>
-In-Reply-To: <49B57C1D.3060600@control.lth.se>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903041628.00828.david-b@pacbell.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Anders
+On Wednesday 04 March 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+> 
+> > I'd much rather see these drivers just use the regulator
+> > framework to switch any sensor power rails on/off.
+> 
+> Hi,
+> 
+> Sounds interesting.
+> 
+> Is there any documentation on how to use this?
 
-Anders Blomdell wrote:
-> Thomas Kaiser wrote:
->>  > And a 640*480 image divided in 8*8 subframes gives (640*480/(8*8)) 1200
->>  > subframes, so now the question is how much info about the Huffman 
->> table this
->>  > gives us?
->>
->> I think nothing :-( , but you found the MCUs :-) As it looks quite the 
->> same as on the PAC7311, why not just try the Huffman table from the PAC7311?
-> Which seems to be encoded in the stream and not defined in the sourcecode (but
-> I'm tired, so I might well be wrong). Do you think you could extract it somehow?
+Documentation/DocBook/regulator.tmpl
+Documentation/power/regulator/*
 
-I think it should be in the gspca source or in the v4l_library? I didn't 
-follow gspca code and v4l_library code lately. Anyway PAC7311 is working 
-AFAIK.
+I don't quite know how clear that is; the framework is still
+sorting itself out, a bit.  The 2.6.30 kernel has some updates
+to programming interfaces, few of which should matter to any
+sensor code ... sensors would be "consumers" in that framework,
+calling regulator_get() and friends.
 
-I'll check and try.
+The tricksy bits would be coupling the regulators to the
+sensor device nodes in the board-specfiic setup code.  At
+some point I expect to see some cases where that setup needs
+framework updates, but so far that hasn't happened.
 
-Thomas
+- Dave
+
+
