@@ -1,93 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:42853 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751427AbZCECXz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2009 21:23:55 -0500
-Subject: RE: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0903041502240.24268@shell2.speakeasy.net>
-References: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com>
-	 <Pine.LNX.4.58.0903041502240.24268@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Thu, 05 Mar 2009 03:25:20 +0100
-Message-Id: <1236219920.2169.16.camel@pc09.localdom.local>
-Mime-Version: 1.0
+Received: from mx2.redhat.com ([66.187.237.31]:47619 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751637AbZCFIMo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Mar 2009 03:12:44 -0500
+Message-ID: <49B0DAF4.50408@redhat.com>
+Date: Fri, 06 Mar 2009 09:12:36 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: kilgota@banach.math.auburn.edu
+CC: Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH] for the file gspca/mr97310a.c
+References: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu> <200903052258.48365.elyk03@gmail.com> <alpine.LNX.2.00.0903052317070.28734@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903052317070.28734@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 04.03.2009, 15:42 -0800 schrieb Trent Piepho:
-> On Wed, 4 Mar 2009, Aguirre Rodriguez, Sergio Alberto wrote:
-> > As what I understand, we have 2 possible situations for multiple opens here:
-> >
-> > Situation 1
-> >  - Instance1: Select sensor 1, and Do queue/dequeue of buffers.
-> >  - Instance2: If sensor 1 is currently selected, Begin loop requesting internally collected OMAP3ISP statistics (with V4L2 private based IOCTLs) for performing user-side Auto-exposure, Auto White Balance, Auto Focus algorithms. And Adjust gains (with S_CTRL) accordingly on sensor as a result.
-> >
-> > Situation 2
-> >  - Instance1: Select sensor1 as input. Begin streaming.
-> >  - Instance2: Select sensor2 as input. Attempt to begin streaming.
-> >
-> > So, if I understood right, on Situation 2, if you attempt to do a S_INPUT
-> > to sensor2 while capturing from sensor1, it should return a -EBUSY,
-> > right?  I mean, the app should consciously make sure the input (sensor)
-> > is the correct one before performing any adjustments.
+
+
+kilgota@banach.math.auburn.edu wrote:
 > 
-> It's usually perfectly legal to change inputs from one file handle while
-> another file handle is capturing.
 > 
-> If changing inputs while capturing is hard for your hardware and not
-> supported, then S_INPUT could return EBUSY while capture is in progress.
-> But in that case it doesn't matter which file descriptor is trying to
-> change inputs.
+> On Thu, 5 Mar 2009, Kyle Guinn wrote:
 > 
-> v4l2 is designed to allow a device to be controlled from multiple open file
-> descriptors.  Just like serial ports or audio mixers can be.
+>> On Thursday 05 March 2009 20:34:27 kilgota@banach.math.auburn.edu wrote:
+>>> Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
+>>> ----------------------------------------------------------------------
+>>> --- mr97310a.c.old    2009-02-23 23:59:07.000000000 -0600
+>>> +++ mr97310a.c    2009-03-05 19:14:13.000000000 -0600
+>>> @@ -29,9 +29,7 @@ MODULE_LICENSE("GPL");
+>>>   /* specific webcam descriptor */
+>>>   struct sd {
+>>>       struct gspca_dev gspca_dev;  /* !! must be the first item */
+>>> -
+>>>       u8 sof_read;
+>>> -    u8 header_read;
+>>>   };
+>>>
+>>>   /* V4L2 controls supported by the driver */
+>>> @@ -100,12 +98,9 @@ static int sd_init(struct gspca_dev *gsp
+>>>
+>>>   static int sd_start(struct gspca_dev *gspca_dev)
+>>>   {
+>>> -    struct sd *sd = (struct sd *) gspca_dev;
+>>>       __u8 *data = gspca_dev->usb_buf;
+>>>       int err_code;
+>>>
+>>> -    sd->sof_read = 0;
+>>> -
+>>
+>> Good catch, I didn't realize this was kzalloc'd.
 > 
-> In general, an application should not worry about someone changing inputs
-> or frequencies while it is running.  If using v4l2-ctl while and app is
-> running leads to undesirable behavior there is a simple solution:  Don't do
-> that.
+> Hmmm. Perhaps I cut too much and _that_ should go back in. What if one 
+> stops the streaming and then restarts it? OTOH, one only risks losing 
+> one frame. OTTH, one might really want that frame. I will put it back.
 > 
-> If you want exclusive access you can use a solution external to v4l2.  For
-> instance most apps that use serial ports (pppd, minicom, etc.) use lock
-> files in /var/lock to control access.  V4L2 also gives you
-> VIDIOC_[SG]_PRIORITY to do access control within v4l2, but it's not much
-> used.  It has little use because exclusive access just isn't something that
-> important.  In theory it seems important, but in practice no one seems to
-> care much that it's missing.
 
-Just a note.
+Ack I was about to make a comment along the same lines, please put it back in.
 
-All true, but if you fallback to a modem connection with kernel 2.6.22
-on FC6 with at least one NIC and an external router/switch, the default
-route will still be assigned to eth0 and you can configure kppp to what
-ever you want, but it does not override it, but claims to do so at the
-GUI. (OK, I'm eight years away from pppd, but ...)
+>>
+>>>       /* Note:  register descriptions guessed from MR97113A driver */
+>>>
+>>>       data[0] = 0x01;
+>>> @@ -285,40 +280,29 @@ static void sd_pkt_scan(struct gspca_dev
+>>>               __u8 *data,                   /* isoc packet */
+>>>               int len)                      /* iso packet length */
+>>>   {
+>>> -    struct sd *sd = (struct sd *) gspca_dev;
+>>>       unsigned char *sof;
+>>>
+>>>       sof = pac_find_sof(gspca_dev, data, len);
+>>>       if (sof) {
+>>>           int n;
+>>> -
+>>> +        int marker_len = sizeof pac_sof_marker;
+>>
+>> The value doesn't change; there's no need to use a variable for this.
+> 
+> True. I was just working for legibility, and trying to substitute a 
+> shorter symbol for something which is long and cumbersome and screws up 
+> 80-character lines. If it is bad to do that, then I can take it right 
+> back out, of course.
+> 
+>>
+>>>           /* finish decoding current frame */
+>>>           n = sof - data;
+>>> -        if (n > sizeof pac_sof_marker)
+>>> -            n -= sizeof pac_sof_marker;
+>>> +        if (n > marker_len)
+>>> +            n -= marker_len;
+>>>           else
+>>>               n = 0;
+>>>           frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame,
+>>>                       data, n);
+>>> -        sd->header_read = 0;
+>>> -        gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
+>>> -        len -= sof - data;
+>>> +        /* Start next frame. */
+>>> +        gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
+>>> +            pac_sof_marker, marker_len);
+>>> +        len -= n;
+>>> +        len -= marker_len;
+>>> +        if (len < 0)
+>>> +            len = 0;
+>>
+>> len -= sof - data; is a shorter way to find the remaining length.
+> 
+> Now, why did I try that and it did not work, but now it does? Weird. OK, 
+> you are right.
+> 
 
-You have to use "route del default" at first like in stoneage and I
-suspect there is more of this stuff around.
+Actually, that is the right thing to do, as in cases where the frame only contained
+the last part of a sof sequence, your code from the patch as send won't work.
 
-To make more use of VIDIOC_S/G_PRIORITY I always did propagate :)
+<snip>
 
-The first use case was to capture on /dev/videoN and at once get vbi EPG
-data on /dev/vbiN.
+Regards,
 
-Cheers,
-Hermann
-
-
-
-
+Hans
