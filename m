@@ -1,160 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4801 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141AbZCLLOn (ORCPT
+Received: from mk-outboundfilter-4.mail.uk.tiscali.com ([212.74.114.32]:57631
+	"EHLO mk-outboundfilter-4.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754800AbZCFPlS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 07:14:43 -0400
-Message-ID: <60934.62.70.2.252.1236856462.squirrel@webmail.xs4all.nl>
-Date: Thu, 12 Mar 2009 12:14:22 +0100 (CET)
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Add cx231xx USB driver
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	"Sri Deevi via Mercurial" <srinivasa.deevi@conexant.com>
+	Fri, 6 Mar 2009 10:41:18 -0500
+Message-ID: <49B1441E.7080604@nildram.co.uk>
+Date: Fri, 06 Mar 2009 15:41:18 +0000
+From: Lou Otway <lotway@nildram.co.uk>
+Reply-To: lotway@nildram.co.uk
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+Subject: Problems with Hauppauge CX88 based DVB-T cards
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
->
-> On Thu, 12 Mar 2009 08:38:59 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->> Mauro,
->>
->> What the hell??!
->>
->> Since when does a big addition like this get merged without undergoing a
->> public review?
->>
->> I've been working my ass off converting drivers to the new i2c API and
->> v4l2_subdev structures and here you merge a big driver that uses
->> old-style
->> (which will lead to 'deprecated' warnings when compiling with 2.6.29,
->> BTW),
->> where the driver writes directly to i2c modules instead of adding a
->> proper
->> i2c module for them. And what are 'colibri', 'flatrion' and 'hammerhead'
->> anyway? Are they integrated devices of the cx231xx? Can they be used
->> separately in other products as well?
->>
->> So yes, I have objections. At the minimum it should be converted first
->> to
->> use v4l2_device/v4l2_subdev and I need more information on the new i2c
->> devices so I can tell whether the code for those should be split off
->> into
->> separate i2c modules. Not to mention that I want to have the time to
->> review
->> this code more closely.
->>
->> Sorry Sri, this isn't your fault.
->
-> Hans,
->
-> I know that you're rushing to convert all drivers to the new model, but
-> you
-> should give time to time. Even with Kernel's fast development cycle, we
-> should
-> take care to not depreciate things faster than developers can track (btw,
-> lwn.net already complained that V4L subsystem changes their APIs faster
-> than
-> usual).
+Whilst testing some Hauppauge DVB-T cards I have run into this error at 
+bootup:
 
-Mauro, you did not answer the question why this driver was just merged
-without going through a public review? If I'd seen it beforehand I'd have
-worked together with Sri to get it fixed first. I don't expect him to know
-about this, but I didn't even get a chance to discuss it and help with it.
-Everyone else has to go through the normal review channels, but apparently
-this was just fast-tracked and merged. That's not the way to do it.
+---------<Start Paste>---------
+cx88/2: cx2388x dvb driver version 0.0.6 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: subsystem: 0070:9002, board: Hauppauge Nova-T DVB-T [card=18]
+BUG: unable to handle kernel NULL pointer dereference at virtual address 
+00000000
+  printing eip:
+e8adc107
+*pde = 00000000
+Oops: 0000 [#1]
+SMP
+Modules linked in: cx88_dvb cx88_vp3054_i2c snd_intel8x0 snd_ac97_codec 
+ac97_bus sg snd_seq_dummy ehci_hcd uhci_hcd floppy sr_mod cdrom cx8
+02 cx8800 cx88xx ir_common i2c_algo_bit tveeprom videobuf_dvb 
+v4l2_common dvb_core videodev v4l1_compat btcx_risc videobuf_dma_sg 
+videobuf_
+ore snd_seq_oss snd_seq_midi_event sk98lin snd_seq snd_seq_device 
+snd_pcm_oss snd_mixer_oss i2c_i801 i2c_core snd_pcm iTCO_wdt iTCO_vendor_
+upport snd_timer snd soundcore snd_page_alloc serio_raw button 
+dm_snapshot dm_zero dm_mirror dm_mod ata_generic raid1 ext3 mbcache jbd ata_
+iix libata sd_mod scsi_mod
+CPU:    0
+EIP:    0060:[<e8adc107>]    Not tainted VLI
+EFLAGS: 00010246   (2.6.23.1.tps.smp.2 #1)
+EIP is at vp3054_i2c_probe+0x17/0x120 [cx88_vp3054_i2c]
+eax: 00000000   ebx: ffffffed   ecx: 00000000   edx: dfc74a00
+esi: 00000000   edi: c1a9ea34   ebp: 00000000   esp: dfdf9e2c
+ds: 007b   es: 007b   fs: 00d8  gs: 0033  ss: 0068
+Process modprobe (pid: 1543, ti=dfdf8000 task=dfdce000 task.ti=dfdf8000)
+Stack: 00000000 c07a8872 e8afbf00 00000246 0000004c ffffffed dfd58800 
+c1a9ea34
+        00000000 e8af73da c0427171 00000246 00000033 00000000 0000000f 
+c0440b50
+        00000000 c17fcf00 00000000 00000292 e8af7150 e8afbb80 c1a9ea00 
+e8afbbb4
+Call Trace:
+  [<e8af73da>] cx8802_dvb_probe+0x5a/0x1e60 [cx88_dvb]
+  [<c0427171>] try_to_wake_up+0x41/0x380
+  [<c0440b50>] kthread_bind+0x60/0x80
+  [<e8af7150>] cx8802_dvb_remove+0x0/0x70 [cx88_dvb]
+  [<e8ad4964>] cx8802_register_driver+0x1a4/0x20e [cx8802]
+  [<c044ed3d>] sys_init_module+0x14d/0x16f0
+  [<c0510690>] copy_to_user+0x30/0x60
+  [<c04367b0>] msleep+0x0/0x20
+  [<c040525e>] sysenter_past_esp+0x5f/0x85
+  [<c043007b>] do_wait+0x94b/0xb40
+  =======================
+Code: 1e ed ff 89 d8 5b e9 b9 85 9a d7 89 f6 8d bc 27 00 00 00 00 83 ec 
+24 89 74 24 18 31 f6 89 6c 24 20 89 c5 89 5c 24 14 89 7c 24 1c <8b>
+00 89 44 24 10 83 b8 f4 03 00 00 2a 74 1a 89 f0 8b 5c 24 14
 
-Please back out this driver, put it in a separate tree and let me 1)
-review this driver first, and 2) help Sri implementing the
-v4l2_device/v4l2_subdev stuff.
+---------<End Paste>---------
 
-> First of all, except for ivtv drivers, the first conversion to the new
-> model
-> occurred just few weeks ago. The new model will bring some gains, but this
-> shouldn't stop the merge of the drivers whose development started before
-> we
-> port the drivers used as example by the developer.
->
-> This is a new model, and we should give people some time to adapt to it.
-> This
-> is the way we worked in the past and it is the way we should keep working.
+I pulled the latest changes as I noticed a similar was fixed recently 
+but I'm still seeing the problem on my system.
 
-It's not a new model. The I2C core changes went in in 2.6.22. Jean is no
-longer accepting new i2c drivers that use the old module, and neither
-should we. And definitely NOT without discussing it first. The old i2c API
-has been marked deprecated in 2.6.29, and that's for a reason. There are
-good alternatives for this and I'm available to help with the conversion.
-Not to mention that this will make Jean quite unhappy.
+Any ideas on how to solve it?
 
-And please note that the use of the old API isn't the only question I
-have, there are more oddities with the i2c handling that I'd like to have
-more information about. Writing i2c registers directly from the adapter
-driver doesn't look good to me at first sight.
+Thanks in advance.
 
-> For
-> example, video_ioctl2 were added several Kernel releases before merging
-> uvc
-> driver. Yet, we've accepted uvc driver without using the new model,
-> because its
-> development that occurred before video_ioctl2.
->
-> The second point is that there's nothing at
-> Documentation/feature-removal-schedule.txt informing that those stuff is
-> deprecated.
+Lou
 
-Yes it is, see this from the 2.6.29 kernel:
 
-What:   i2c_attach_client(), i2c_detach_client(), i2c_driver->detach_client()
-When:   2.6.29 (ideally) or 2.6.30 (more likely)
-Why:    Deprecated by the new (standard) device driver binding model. Use
-        i2c_driver->probe() and ->remove() instead.
-Who:    Jean Delvare <khali@linux-fr.org>
-
-> So, we should still accept new drivers without the conversion at least
-> until
-> the end of 2.6.30 window, and add some notice at
-> feature-removal-schedule.txt
-> on 2.6.30 clearly stating what's deprecated and when, before generating
-> penalty
-> over the developers that are using the current drivers as their model of
-> development.
->
-> In the specific case of cx231xx driver, I've explained to Sri, there are
-> still
-> some issues to be fixed at the driver. Although the driver works, It is
-> not
-> ready for 2.6.30 yet.
->
-> However, keeping this on a separate tree will just create more mess
-> (according
-> with Sri, he already had to rebase this driver 4 times during 2.6.29-rc
-> cycle,
-> due to the high speed of internal API changes).
->
-> Since his driver seems to be based on em28xx, he had no sample on how to
-> convert it to
-> v4l2_device/v4l2_subdev/new_i2c model.
-
-Again, if I'd known about it I'd be happy to help with it. Why didn't you
-put me in contact with him? You know I'm spending a lot of time on this.
-
-> After committing Devin's Austek patches (also seemed to be based on
-> em28xx), it will
-> probably be easier for Uri to convert his driver to the new approach.
-
-That depends. As I said, there are other i2c issues that need to be
-clarified, but I *never* got the chance to ask him since you just merged
-this driver without the customary public review.
-
-Regards,
-
-         Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
