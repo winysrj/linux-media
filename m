@@ -1,65 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3739 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094AbZCJI23 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 04:28:29 -0400
-Message-ID: <5974.62.70.2.252.1236673681.squirrel@webmail.xs4all.nl>
-Date: Tue, 10 Mar 2009 09:28:01 +0100 (CET)
-Subject: Re: [patch review] radio-terratec: remove unused delay.h
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Alexey Klimov" <klimov.linux@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Douglas Schilling Landgraf" <dougsland@gmail.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3653 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750967AbZCFOXG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2009 09:23:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: V4L2 spec
+Date: Fri, 6 Mar 2009 15:23:15 +0100
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903061523.15766.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-> Hello, all
->
-> I don't know if this patch okay, so it should be tested/reviewed.
-> Anyway, compilation process shows no warnings.
->
-> ---
-> Patch removes linux/delay.h which hadn't been used.
->
-> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+I noticed that there is an ancient V4L2 spec in our tree in the v4l/API 
+directory. Is that spec used in any way? I don't think so, so I suggest 
+that it is removed.
 
-Looks good.
+The V4L1 spec that is there should probably be moved to the v4l2-spec 
+directory as that is where people would look for it. We can just keep it 
+there for reference.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+The documentation on www.linuxtv.org is also out of date. How are we going 
+to update that?
 
->
-> --
-> diff -r 615fb8f01610 linux/drivers/media/radio/radio-terratec.c
-> --- a/linux/drivers/media/radio/radio-terratec.c	Tue Mar 10 02:33:02 2009
-> -0300
-> +++ b/linux/drivers/media/radio/radio-terratec.c	Tue Mar 10 09:49:36 2009
-> +0300
-> @@ -27,7 +27,6 @@
->  #include <linux/module.h>	/* Modules 			*/
->  #include <linux/init.h>		/* Initdata			*/
->  #include <linux/ioport.h>	/* request_region		*/
-> -#include <linux/delay.h>	/* udelay			*/
->  #include <linux/videodev2.h>	/* kernel radio structs		*/
->  #include <linux/mutex.h>
->  #include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
->
->
-> --
-> Best regards, Klimov Alexey
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+I think that a good schedule would be right after a kernel merge window 
+closes. The spec at that moment is the spec for that new kernel and that's 
+a good moment to update the website.
 
+The current spec is really old, though, and should be updated asap.
+
+Note that the specs from the daily build are always available from 
+www.xs4all.nl/~hverkuil/spec. I've modified the build to upload the 
+dvbapi.pdf as well.
+
+Regards,
+
+	Hans
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
