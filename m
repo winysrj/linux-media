@@ -1,46 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:13934 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750AbZCCN4U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 08:56:20 -0500
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1LeWAa-0006hL-SY
-	(TLSv1:AES256-SHA:256)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Tue, 03 Mar 2009 16:04:33 +0100
-Date: Tue, 3 Mar 2009 14:56:12 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Drop I2C_M_IGNORE_NAK compatibility bit
-Message-ID: <20090303145612.67ffdb90@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60232 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750876AbZCFFxr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2009 00:53:47 -0500
+From: "Hadli, Manjunath" <mrh@ti.com>
+To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Fri, 6 Mar 2009 11:23:34 +0530
+Subject: RE: Embedded Linux Conference
+Message-ID: <FF55437E1F14DA4BAEB721A458B67017069818FC0C@dbde02.ent.ti.com>
+References: <200903051749.13016.hverkuil@xs4all.nl>
+ <5e9665e10903052002h49b6960bj57b767b6a830a2c@mail.gmail.com>
+In-Reply-To: <5e9665e10903052002h49b6960bj57b767b6a830a2c@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C_M_IGNORE_NAK is defined since kernel 2.5.54 so we don't need to
-declare it in the compatibility header.
+That is great!
+I will let you know our plans soon.
+-Manju 
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- v4l/compat.h |    4 ----
- 1 file changed, 4 deletions(-)
+-----Original Message-----
+From: DongSoo(Nathaniel) Kim [mailto:dongsoo.kim@gmail.com] 
+Sent: Friday, March 06, 2009 9:33 AM
+To: Hans Verkuil
+Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Hadli, Manjunath; Aguirre Rodriguez, Sergio Alberto; Hiremath, Vaibhav
+Subject: Re: Embedded Linux Conference
 
---- v4l-dvb.orig/v4l/compat.h	2009-03-01 16:09:10.000000000 +0100
-+++ v4l-dvb/v4l/compat.h	2009-03-03 14:39:16.000000000 +0100
-@@ -41,10 +41,6 @@
- #  define __pure __attribute__((pure))
- #endif
- 
--#ifndef I2C_M_IGNORE_NAK
--# define I2C_M_IGNORE_NAK 0x1000
--#endif
--
- /* device_create/destroy added in 2.6.18 */
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,18)
- /* on older kernels, class_device_create will in turn be a compat macro */
+Hello,
+
+I'm attending as a speaker for one session which title is "Digital camera framework in Linux"
+
+I'm also looking forward to see many v4l2 engineers and discuss about latest issues.
+
+BTW, see you there Hans :)
+
+Nate
+
+On Fri, Mar 6, 2009 at 1:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Just FYI:
+>
+> I'll be attending the Embedded Linux Conference in San Francisco, 
+> April 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
+>
+> This might be a good opportunity to discuss omap and davinci V4L2 
+> issues face-to-face. Let me know if you are interested.
+>
+> Regards,
+>
+>        Hans
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
 
 
--- 
-Jean Delvare
+
+--
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab. S/W Team.
+DMC
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
+
