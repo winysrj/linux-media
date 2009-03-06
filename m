@@ -1,101 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rotring.dds.nl ([85.17.178.138]:56357 "EHLO rotring.dds.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754706AbZCRBM3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 21:12:29 -0400
-Subject: Re: Improve DKMS build of v4l-dvb?
-From: Alain Kalker <miki@dds.nl>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.58.0903171153230.28292@shell2.speakeasy.net>
-References: <1236612894.5982.72.camel@miki-desktop>
-	 <Pine.LNX.4.58.0903130153220.28292@shell2.speakeasy.net>
-	 <1237303798.5988.27.camel@miki-desktop>
-	 <Pine.LNX.4.58.0903171153230.28292@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Wed, 18 Mar 2009 02:12:24 +0100
-Message-Id: <1237338744.5988.176.camel@miki-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from banach.math.auburn.edu ([131.204.45.3]:58872 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595AbZCFBq0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 20:46:26 -0500
+Date: Thu, 5 Mar 2009 19:57:48 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Kyle Guinn <elyk03@gmail.com>
+cc: Hans de Goede <hdegoede@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+In-Reply-To: <200903051921.57412.elyk03@gmail.com>
+Message-ID: <alpine.LNX.2.00.0903051935500.28461@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr> <49B038D8.8060702@redhat.com> <alpine.LNX.2.00.0903051457410.27979@banach.math.auburn.edu> <200903051921.57412.elyk03@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op dinsdag 17-03-2009 om 12:50 uur [tijdzone -0700], schreef Trent
-Piepho:
-> On Tue, 17 Mar 2009, Alain Kalker wrote:
-> > Op vrijdag 13-03-2009 om 02:12 uur [tijdzone -0700], schreef Trent
-> > Piepho:
-> > > On Mon, 9 Mar 2009, Alain Kalker wrote:
-> > > > Firstly: generating a .config with just one config variable for the
-> > > > requested driver set to 'm' merged with the config for the kernel being
-> > > > built for, and then doing a "make silentoldconfig". Big disatvantage is
-> > > > that full kernel source is required for the 'silentoldconfig' target to
-> > > > be available.
-> > >
-> > > Does that actually work?  Figuring out that needs to be turned on to enable
-> > > some config options is a hard problem.  It's not just simple dependencies
-> > > between modules, but complex expressions that need to be satisfied.  E.g.,
-> > > something "depends on A || B", which do you turn on, A or B?  There are
-> > > multiple solutions so how does the code decide which is best?
-> >
-> > Well, make_kconfig.pl does quite a nice job trying to select as many
-> > drivers without causing conflicts.
-> 
-> What I did in make_kconfig.pl was just turn everything on, then recursively
-> disable anything that has a failed dependency.  There isn't any
-> intelligence when it comes to choices where you can have driver set A or
-> driver set B, but not both.  Options that we want disabled, like some
-> drivers' advanced debug controls, must be explicitly disabled in
-> make_kconfig.  Still, it ends up doing what we want in the end, which is to
-> compile all the drivers that we can compile.
-> 
-> > Anyway, you're quite right about this being a hard problem, and the
-> > fact that the Kconfig system wasn't designed to be very helpful in
-> > auto-selecting dependencies and resolving conflicts the same way modern
-> > package managers are, doesn't make it any easier.
-> 
-> >From what I can tell, solving the dependency problem is easily shown to be
-> the same as the classical satisfiability problem, which is proven to be NP
-> complete.  Now, there are heuristics that can usually solve SAT problems
-> quicker but finding the "best" solution quickly is quite a bit harder.
 
-Yet, most of us are quite content with the solutions which the
-dependency resolvers in package managers offer, even if they're possibly
-non-optimal. Package maintainers try very hard to find ways to ease the
-dependency problem by supplying acceptable defaults. And like I said
-before, when no unique solution can be found, the user should have the
-final say on which solution should be applied.
 
-Back to the problem of DKMS builds, I'm not looking for a "perfect"
-solution for a single driver (neither does make_kconfig.pl look for a
-"perfect solution for all drivers at once :-) ), I'm looking for a way
-to reduces the total number of modules that have to be rebuilt when the
-v4l-dvb source or the kernel is upgraded.
+On Thu, 5 Mar 2009, Kyle Guinn wrote:
 
-How about disabling all modules which don't affect the dependencies of
-the "target" driver? Attacking the problem from the other side, so to
-speak. Even when unneccessary modules are still left enabled in the
-.config, this is still better than building everything but the kitchen
-sink, which is what the current DKMS script does (it simply does a
-"make all").
+> On Thursday 05 March 2009 14:58:54 kilgota@banach.math.auburn.edu wrote:
+>> Well, here is the code in the function. I don't see. So can you explain?
+>> Perhaps I am dense.
+>>
+>> {
+>>          struct sd *sd = (struct sd *) gspca_dev;
+>>          int i;
+>>
+>>          /* Search for the SOF marker (fixed part) in the header */
+>>          for (i = 0; i < len; i++) {
+>>                  if (m[i] == pac_sof_marker[sd->sof_read]) {
+>>                          sd->sof_read++;
+>>                          if (sd->sof_read == sizeof(pac_sof_marker)) {
+>>                                  PDEBUG(D_FRAM,
+>>                                          "SOF found, bytes to analyze: %u."
+>>                                          " Frame starts at byte #%u",
+>>                                          len, i + 1);
+>>                                  sd->sof_read = 0;
+>>                                  return m + i + 1;
+>>                          }
+>>                  } else {
+>>                          sd->sof_read = 0;
+>>                  }
+>>          }
+>>
+>>          return NULL;
+>> }
+>
+> We send a chunk of data to this function, as pointed to by m.  It could be the
+> entire transfer buffer or only a part of it, but that doesn't matter.  If the
+> chunk of data ends with FF FF 00 then sd->sof_read will be set to 3 when the
+> function exits.  On the next call it picks up where it left off and looks for
+> byte 4 of the SOF.
 
-> You don't need write access to the kernel source.  The kernel's config
-> programs have to be built, but that can be done ahead of time.  Once they
-> are, then you can use that menu tool from v4l-dvb without write access to
-> the kernel source.
-> 
-> There is support for an alternate output directory for the kernel that can
-> work too.  In the kernel dir, run "make O=~/kernel-output-dir menuconfig".
-> That should not require write access to the kernel source dir and will put
-> the necessary config programs in ~/kernel-output-dir.  Then point v4l-dvb
-> at the kernel output dir, with "make release DIR=~/kernel-output-dir".
-> 
-> See the explanation from my changeset that added this,
-> http://linuxtv.org/hg/v4l-dvb/log/6331 Good thing I wrote this 17 months
-> ago when I did the work, instead of just using some two word patch
-> description, since I sure wouldn't remember how all that works today.
+It took me a while to see this, but, yes. So I agree that something needed 
+to be fixed. It is fixed, now. There is a revised patch.
 
-Thanks for the info, I will try this.
+>
+> Way back when, I said to copy sd->sof_read bytes from pac_sof_marker if you
+> want the portion of the SOF that was in the previous transfer.  There's no
+> need to buffer 4 bytes from the previous transfer because the SOF is
+> _constant_.
 
-Kind regards, Alain
+True. So this is the solution which is just now adopted.
 
+>
+> So, if it's constant, why do we need to copy it to userspace at all?  If we
+> do, then every frame buffer begins with a constant, useless FF FF 00 FF 96.
+> The "reassurance" doesn't matter because the frame _must_ have started with
+> FF FF 00 FF 96 to get there in the first place.
+
+Unless it was a frame from some other camera. But it could have been a 
+frame dumped from some other camera, and then potentially useful 
+information for evaluating what it is, would have been lost.
+
+I agree with Hans that it
+> isn't necessary, and by not sending it to userspace we simplify the kernel
+> driver.
+
+My experience indicates otherwise. One of the reasons for doing this is, 
+if one has _all_ of this information it is easier to recognize where it 
+came from. What kind of camera. What kind of compression. That kind of 
+thing. It then becomes possible to do things such as to look 
+at a raw file in total isolation from the streaming app, six months later, 
+and to be able to know immediately what kind of camera it came from, and 
+all other information relevant for processing it on the spot with a 
+program which converts raw data into finished frames or images. If only it 
+were possible to embed the width and height, somehow, into the header, 
+then my happiness would be total.
+
+
+>
+> But what if it's not constant?  Maybe the SOF is 4 bytes and the 5th byte is
+> some useful data that, 99.9% of the time, is set to 96?  This is the only
+> reason I see for keeping the SOF.
+
+Very good point. It could happen, couldn't it? It already occurred to me, 
+actually. We do not know that it will not happen. For, in such a situation 
+we are at the mercy of some other guys who make cameras. So why paint 
+oneself into a corner and be sorry later on?
+
+Theodore Kilgore
