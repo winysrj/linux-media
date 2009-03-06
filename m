@@ -1,100 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.227]:16268 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752210AbZCQRgK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 13:36:10 -0400
-Cc: Kevin Hilman <khilman@deeprootsystems.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Manjunath Hadli <mrh@ti.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Message-Id: <1A273197-550B-4D21-A29E-BB955D8ADF8D@gmail.com>
-From: Dongsoo Kim <dongsoo.kim@gmail.com>
-To: Tony Lindgren <tony@atomide.com>
-In-Reply-To: <20090317164525.GT19229@atomide.com>
-Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Subject: Re: Embedded Linux Conference
-Date: Wed, 18 Mar 2009 02:36:02 +0900
-References: <200903051749.13016.hverkuil@xs4all.nl> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com> <200903170809.10467.hverkuil@xs4all.nl> <49BFB8A8.3080201@deeprootsystems.com> <20090317164525.GT19229@atomide.com>
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:50305 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbZCFE6y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 23:58:54 -0500
+Received: by ewy25 with SMTP id 25so126221ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 20:58:51 -0800 (PST)
+From: Kyle Guinn <elyk03@gmail.com>
+To: kilgota@banach.math.auburn.edu
+Subject: Re: [PATCH] for the file gspca/mr97310a.c
+Date: Thu, 5 Mar 2009 22:58:47 -0600
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
+	"Jean-Francois Moine" <moinejf@free.fr>
+References: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903052258.48365.elyk03@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+On Thursday 05 March 2009 20:34:27 kilgota@banach.math.auburn.edu wrote:
+> Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
+> ----------------------------------------------------------------------
+> --- mr97310a.c.old	2009-02-23 23:59:07.000000000 -0600
+> +++ mr97310a.c	2009-03-05 19:14:13.000000000 -0600
+> @@ -29,9 +29,7 @@ MODULE_LICENSE("GPL");
+>   /* specific webcam descriptor */
+>   struct sd {
+>   	struct gspca_dev gspca_dev;  /* !! must be the first item */
+> -
+>   	u8 sof_read;
+> -	u8 header_read;
+>   };
+>
+>   /* V4L2 controls supported by the driver */
+> @@ -100,12 +98,9 @@ static int sd_init(struct gspca_dev *gsp
+>
+>   static int sd_start(struct gspca_dev *gspca_dev)
+>   {
+> -	struct sd *sd = (struct sd *) gspca_dev;
+>   	__u8 *data = gspca_dev->usb_buf;
+>   	int err_code;
+>
+> -	sd->sof_read = 0;
+> -
 
-I think I can join you. And also Kyungmin Park I guess.
-See you then.
+Good catch, I didn't realize this was kzalloc'd.
 
-Nate
+>   	/* Note:  register descriptions guessed from MR97113A driver */
+>
+>   	data[0] = 0x01;
+> @@ -285,40 +280,29 @@ static void sd_pkt_scan(struct gspca_dev
+>   			__u8 *data,                   /* isoc packet */
+>   			int len)                      /* iso packet length */
+>   {
+> -	struct sd *sd = (struct sd *) gspca_dev;
+>   	unsigned char *sof;
+>
+>   	sof = pac_find_sof(gspca_dev, data, len);
+>   	if (sof) {
+>   		int n;
+> -
+> +		int marker_len = sizeof pac_sof_marker;
 
-2009. 03. 18, 오전 1:45, Tony Lindgren 작성:
+The value doesn't change; there's no need to use a variable for this.
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [090317 07:50]:
->> Hans Verkuil wrote:
->>> On Tuesday 17 March 2009 01:14:28 Steve Sakoman wrote:
->>>> On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com>  
->>>> wrote:
->>>>> * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
->>>>>> Hans Verkuil <hverkuil@xs4all.nl> writes:
->>>>>>> Just FYI:
->>>>>>>
->>>>>>> I'll be attending the Embedded Linux Conference in San  
->>>>>>> Francisco,
->>>>>>> April 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
->>>>>>>
->>>>>>> This might be a good opportunity to discuss omap and davinci  
->>>>>>> V4L2
->>>>>>> issues face-to-face. Let me know if you are interested.
->>>>>> I will be there as well, and while not directly involved with  
->>>>>> V4L2,
->>>>>> I'm involved in various parts of getting OMAP and DaVinci devices
->>>>>> supported in mainline kernels.
->>>>> Yeah I'll be in town too and will be dropping by at the conf
->>>>> here and there.
->>>>>
->>>>> Maybe let's arrange something to get some beers one night during
->>>>> the conf?
->>>> I'll be there too.  How about Wednesday evening for beers?
->>>>
->>>> Steve
->>>
->>> On Wednesday evening there is the 'social event', which means free  
->>> food
->>> and beer :-). So I'd say that evening is covered.
->>>
->>> However, I'd welcome dinner on Sunday evening. Having arrived that  
->>> day
->>> from Europe I won't be a sparkling conversationalist but it beats
->>> having dinner by your own and gives us a chance to meet one another.
->>>
->>
->> I won't be arriving until late Sunday night, and I imagine others  
->> may be
->> arrving Monday morning.
->>
->> How about Monday night after the Dinner (ends at 7pm [1]) we meet for
->> beers.  I'll let someone local (Tony) pick the venue.
->
-> OK, let's plan for Monday night then. I'll find some place with
-> drinks easily available, and within walking distance from the
-> conference.
->
-> I've added a placeholder for the event where I'll post the details
-> later on:
->
-> http://www.muru.com/linux/omap/events/
->
-> To get a rough idea how many people we'll have, please reply to this
-> thread, or send me an email if you're planning to attend.
->
-> Cheers,
->
-> Tony
->
->
->> [1] http://www.embeddedlinuxconference.com/elc_2009/program.html
+>   		/* finish decoding current frame */
+>   		n = sof - data;
+> -		if (n > sizeof pac_sof_marker)
+> -			n -= sizeof pac_sof_marker;
+> +		if (n > marker_len)
+> +			n -= marker_len;
+>   		else
+>   			n = 0;
+>   		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame,
+>   					data, n);
+> -		sd->header_read = 0;
+> -		gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
+> -		len -= sof - data;
+> +		/* Start next frame. */
+> +		gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
+> +			pac_sof_marker, marker_len);
+> +		len -= n;
+> +		len -= marker_len;
+> +		if (len < 0)
+> +			len = 0;
 
+len -= sof - data; is a shorter way to find the remaining length.
+
+>   		data = sof;
+>   	}
+> -	if (sd->header_read < 7) {
+> -		int needed;
+> -
+> -		/* skip the rest of the header */
+> -		needed = 7 - sd->header_read;
+> -		if (len <= needed) {
+> -			sd->header_read += len;
+> -			return;
+> -		}
+> -		data += needed;
+> -		len -= needed;
+> -		sd->header_read = 7;
+> -	}
+> -
+>   	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
+>   }
+>
+> @@ -337,6 +321,7 @@ static const struct sd_desc sd_desc = {
+>   /* -- module initialisation -- */
+>   static const __devinitdata struct usb_device_id device_table[] = {
+>   	{USB_DEVICE(0x08ca, 0x0111)},
+> +	{USB_DEVICE(0x093a, 0x010f)},
+
+This change is unrelated; maybe it should be in a different patch?  Don't 
+forget to update Documentation/video4linux/gspca.txt with the new camera.
+
+-Kyle
