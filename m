@@ -1,113 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2264 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127AbZCXHTM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 03:19:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [REVIEWv2] bttv v4l2_subdev conversion
-Date: Tue, 24 Mar 2009 08:19:26 +0100
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <200903192124.52524.hverkuil@xs4all.nl> <200903210949.21924.hverkuil@xs4all.nl> <Pine.LNX.4.58.0903231724300.28292@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0903231724300.28292@shell2.speakeasy.net>
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:56513 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753AbZCFViG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2009 16:38:06 -0500
+Received: from localhost (localhost.lie-comtel.li [127.0.0.1])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id 2EAD79FEC12
+	for <linux-media@vger.kernel.org>; Fri,  6 Mar 2009 22:38:03 +0100 (GMT-1)
+Received: from [192.168.0.16] (217-173-228-198.cmts.powersurf.li [217.173.228.198])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id 101499FEC11
+	for <linux-media@vger.kernel.org>; Fri,  6 Mar 2009 22:38:02 +0100 (GMT-1)
+Message-ID: <49B197B9.8040506@kaiser-linux.li>
+Date: Fri, 06 Mar 2009 22:38:01 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Linux Media <linux-media@vger.kernel.org>
+Subject: [Fwd: Re: Topro 6800 driver]
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903240819.26398.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 24 March 2009 01:38:04 Trent Piepho wrote:
-> On Sat, 21 Mar 2009, Hans Verkuil wrote:
-> > On Saturday 21 March 2009 06:56:18 Trent Piepho wrote:
-> > > It seems like one could still disable loading modules for that bttv
-> > > might think it needs.  When you're testing modules that have not been
-> > > installed, any calls to request_module() will load the wrong version
-> > > and cause all sorts of breakage.  It should still be possible to
-> > > disable any attempts by the driver to do that.
-> >
-> > The idea is to either let the driver use the card definition info and
-> > probing to detect the audio chip, or to tell it which one to load
-> > explicitly. That's sufficient in my opinion.
->
-> I still think it should be possible to prevent the driver from calling
-> request_module().  If you're trying to test drivers then a call to
-> request_module can cause a kernel oops.
+Sorry, did not send it to linux-media@vger.kernel.org.
 
-You mean you want to be able to load the driver without loading any audio 
-module? Or do you mean something else? It must be me, but I still don't 
-understand what scenario you are trying to prevent. Note that just calling 
-request_module() doesn't do anything but load the module in memory. Without 
-autoprobing it will never attach to a i2c adapter.
+-------- Original Message --------
+Subject: Re: Topro 6800 driver
+Date: Fri, 06 Mar 2009 22:24:55 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
+To: Anders Blomdell <anders.blomdell@control.lth.se>
+CC: video4linux-list@redhat.com
+References: <49A8661A.4090907@control.lth.se>
 
-> > I'll remove it. I'll probably put it back in a future patch when I'll
-> > start working on RDS. Currently you can read from a radio device in
-> > bttv and it will allow that even when there is no rds on board. I
-> > intended to use this pointer later in the radio fops to test whether
-> > reading is allowed.
->
-> Don't you have a has_saa6588 field in the bttv core struct that would
-> allow the same thing?
+Hello Anders
 
-Yeah, that would work as well: if I can't attach the saa6588 module, then I 
-can set that field to 0 and check that field elsewhere.
+Anders Blomdell wrote:
+> Hi,
+> 
+> I'm trying to write a driver for a webcam based on Topro TP6801/CX0342
+> (06a2:0003). My first attempt (needs gspca) can be found on:
 
-> > > > --- a/linux/drivers/media/video/bt8xx/bttv.h	Thu Mar 19 20:53:32
-> > > > 2009 +0100 +++ b/linux/drivers/media/video/bt8xx/bttv.h	Thu Mar 19
-> > > > 21:15:53 2009 +0100 @@ -242,6 +242,7 @@
-> > > >  	unsigned int msp34xx_alt:1;
-> > > >
-> > > >  	unsigned int no_video:1; /* video pci function is unused */
-> > > > +	unsigned int has_saa6588:1;
-> > >
-> > > How about not adding this?  It's unused and I just removed a bunch of
-> > > unused fields from here.  Add it when someone can actually make use
-> > > of it.
-> >
-> > No. If you add a new card definition and that card has a saa6588, then
-> > this bit should be available for you. Otherwise I just know that people
-> > will just skip that chip ('Hey! I can't set it! Oh, I'll skip it
-> > then...') instead of asking for adding saa6588 support.
-> >
-> > The only reason it's not used is that the one board that can have it
-> > has to test for it dynamically as it is an add-on.
->
-> Do you really think anyone is going to add a new card defition to bttv
-> that has a saa6588?  All these years and there is only one obscure card
-> that has a saa6588 as an add on.  No one even makes bttv cards with
-> tuners anymore. The only bttv cards we've seen added in a long time are
-> multi-chip cards with no tuners.
+I own a cam with a TP6810 USB bridge and a CX0342 sensor (this is
+written on the driver CD).
 
-I wasn't thinking so much of new devices as existing devices that never 
-recorded the presence of a saa6588. We use 17 bits of the 32 available in 
-the bitfield. This will be the 18th. I see absolutely no problem with that.
+> 
+> http://www.control.lth.se/user/andersb/tp6800.c
+> 
+> Unfortunately the JPEG images (one example dump is in
+> http://www.control.lth.se/user/andersb/topro_img_dump.txt), seems to be bogus,
+> they start with (data is very similar to windows data):
+> 
+> 00000000: 0xff,0xd8,0xff,0xfe,0x28,0x3c,0x01,0xe8,...
+> ...
+> 0000c340: ...,0xf4,0xc0,0xff,0xd9
+> 
+> Anybody who has a good idea of how to find a DQT/Huffman table that works with
+> this image data?
 
-> > Looking at it I should add a comment, though.
-> >
-> > > >  	unsigned int tuner_type;  /* tuner chip type */
-> > > >  	unsigned int tda9887_conf;
-> > > >  	unsigned int svhs, dig;
-> > > > +	unsigned int has_saa6588:1;
-> > >
-> > > You're better off not using a bitfield here.  Because of padding, it
-> > > still takes 32 bits (or more, depending on the alignment of
-> > > bttv_pll_info) in the struct but takes more code to use.
-> >
-> > Mauro wants a bitfield, he gets a bitfield. I'm not going
-> > back-and-forth on this. Personally I don't care one way or the other.
->
-> So Mauro, why a bit field?  It doesn't save any space here.
+I did some usbsnoops today and see some similar things in the stream as
+in your trace. Maybe you can comment on my observation?
 
-Because this clearly shows that it is a on-off value and not an integer that 
-can have other values as well.
+When I stop the capturing, the las 2 Bytes are always 0xff 0xd9 which
+look like a valid JPEG marker (End of Image)
 
-Regards,
+When I search for 0xffd9, I see the following sequence:
 
-	Hans
+FF D9 5x FF D8 FF FE 14 1E xx xx xx
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+- 5x is 55 or 5A
+- the 3 xx are mostly the same, but they change a lot when I cover the
+lens of the cam. So I think this is some image information (brightness?).
+
+This said, i don't think that FF D8 and FF FE are JPEG markers, just a
+unique Byte pattern to mark the start of a new frame.
+
+I guess 5x FF D8 FF FE 14 1E xx xx xx and may be some more bytes is the
+frame marker.
+
+Comments?
+
+Thomas
+
+
