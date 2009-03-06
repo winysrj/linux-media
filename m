@@ -1,42 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:60135 "EHLO
-	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331AbZCCJtL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 04:49:11 -0500
-Date: Tue, 3 Mar 2009 01:49:06 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean Delvare <khali@linux-fr.org>
-cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
-Subject: Re: General protection fault on rmmod cx8800
-In-Reply-To: <Pine.LNX.4.58.0903030107110.24268@shell2.speakeasy.net>
-Message-ID: <Pine.LNX.4.58.0903030145210.24268@shell2.speakeasy.net>
-References: <20090215214108.34f31c39@hyperion.delvare>
- <20090302133936.00899692@hyperion.delvare> <1236003365.3071.6.camel@palomino.walls.org>
- <20090302170349.18c8fd75@hyperion.delvare> <20090302200513.7fc3568e@hyperion.delvare>
- <Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
- <20090302225235.5d6d47ce@hyperion.delvare> <Pine.LNX.4.58.0903030107110.24268@shell2.speakeasy.net>
+Received: from rcsinet11.oracle.com ([148.87.113.123]:52789 "EHLO
+	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753768AbZCFVYH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2009 16:24:07 -0500
+Message-ID: <49B1949E.2000300@oracle.com>
+Date: Fri, 06 Mar 2009 13:24:46 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH -next] dvb/frontends: fix duplicate 'debug' symbol
+References: <20090306191311.697e7b97.sfr@canb.auug.org.au>
+In-Reply-To: <20090306191311.697e7b97.sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 3 Mar 2009, Trent Piepho wrote:
-> On Mon, 2 Mar 2009, Jean Delvare wrote:
-> > be fairly easy, I can take care of it. The difficult part will be to
-> > handle the compatibility with kernels < 2.6.20 because delayed_work was
-> > introduced in 2.6.20. Probably "compatibility" here will simply mean
-> > that the bug I've hit will only be fixed for kernels >= 2.6.20. Which
-> > once again raises the question of whether we really want to keep
-> > supporting these old kernels.
->
-> cancel_delayed_work_sync() was renamed from cancel_rearming_delayed_work()
-> in 2.6.23.  A compat.h patch can handle that one.
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-compat.h has code to handle it froma year ago.
+Fix dvb frontend debug variable to be static, to avoid linker
+errors:
 
-> In 2.6.22, cancel_delayed_work_sync(work) was created from
-> cancel_rearming_delayed_workqueue(wq, work).  The kernel has a compat
+drivers/built-in.o:(.data+0xf4b0): multiple definition of `debug'
+arch/x86/kernel/built-in.o:(.kprobes.text+0x90): first defined here
+ld: Warning: size of symbol `debug' changed from 85 in arch/x86/kernel/built-in.o to 4 in drivers/built-in.o
 
-But cancel_rearming_delayed_work() already existed, the real change was
-that cancel_rearming_delayed_workqueue() was made obsolete by making
-cancel_rearming_delayed_work() not care what workqueue the work was in.
+It would also be Good if arch/x86/kernel/entry_32.S didn't have a
+non-static 'debug' symbol.  OTOH, it helps catch things like this one.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/media/dvb/frontends/stv0900_core.c |    4 ++--
+ drivers/media/dvb/frontends/stv0900_priv.h |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+--- linux-next-20090306.orig/drivers/media/dvb/frontends/stv0900_core.c
++++ linux-next-20090306/drivers/media/dvb/frontends/stv0900_core.c
+@@ -34,8 +34,8 @@
+ #include "stv0900_priv.h"
+ #include "stv0900_init.h"
+ 
+-int debug = 1;
+-module_param(debug, int, 0644);
++static int stvdebug = 1;
++module_param_named(debug, stvdebug, int, 0644);
+ 
+ /* internal params node */
+ struct stv0900_inode {
+--- linux-next-20090306.orig/drivers/media/dvb/frontends/stv0900_priv.h
++++ linux-next-20090306/drivers/media/dvb/frontends/stv0900_priv.h
+@@ -62,11 +62,11 @@
+ 
+ #define dmd_choose(a, b)	(demod = STV0900_DEMOD_2 ? b : a))
+ 
+-extern int debug;
++static int stvdebug;
+ 
+ #define dprintk(args...) \
+ 	do { \
+-		if (debug) \
++		if (stvdebug) \
+ 			printk(KERN_DEBUG args); \
+ 	} while (0)
+ 
