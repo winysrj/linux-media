@@ -1,180 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.231]:32312 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757028AbZCaDjf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 23:39:35 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so2784123rvb.1
-        for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 20:39:34 -0700 (PDT)
+Received: from banach.math.auburn.edu ([131.204.45.3]:58577 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539AbZCFCVy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 21:21:54 -0500
+Received: from banach.math.auburn.edu (localhost [127.0.0.1])
+	by banach.math.auburn.edu (8.14.2/8.14.2) with ESMTP id n262YRj6028575
+	for <linux-media@vger.kernel.org>; Thu, 5 Mar 2009 20:34:27 -0600
+Received: from localhost (kilgota@localhost)
+	by banach.math.auburn.edu (8.14.3/8.14.2/Submit) with ESMTP id n262YRvu028572
+	for <linux-media@vger.kernel.org>; Thu, 5 Mar 2009 20:34:27 -0600
+Date: Thu, 5 Mar 2009 20:34:27 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: linux-media@vger.kernel.org
+Subject: [PATCH] for the file gspca/mr97310a.c
+Message-ID: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu>
 MIME-Version: 1.0
-In-Reply-To: <412bdbff0903301957i77c36f10hcb9e9cb919124057@mail.gmail.com>
-References: <15ed362e0903301947rf0de73eo8edbd8cbcd5b5abd@mail.gmail.com>
-	 <412bdbff0903301957i77c36f10hcb9e9cb919124057@mail.gmail.com>
-Date: Tue, 31 Mar 2009 11:39:34 +0800
-Message-ID: <15ed362e0903302039g6d9575cnca5d9b62b566db72@mail.gmail.com>
-Subject: Re: XC5000 DVB-T/DMB-TH support
-From: David Wong <davidtlwong@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 31, 2009 at 10:57 AM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Mon, Mar 30, 2009 at 10:47 PM, David Wong <davidtlwong@gmail.com> wrote:
->> Does anyone know how to get XC5000 working for DVB-T, especially 8MHz bandwidth?
->> Current driver only supports ATSC with 6MHz bandwidth only.
->> It seems there is a trick at setting compensated RF frequency.
->>
->> DVB-T 8MHz support would probably works for DMB-TH, but DMB-TH
->> settings is very welcome.
->>
->> Regards,
->> David
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> All of my xc5000 work has been with ATSC/QAM, so I can't say
-> authoritatively what is required to make it work.
->
-> Well, at a minimum you will have to modify xc5000_set_params to
-> support setting priv->video_standard to DTV8.  Beyond that, I don't
-> think you need to do anything specific for DVB-T.
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
 
-I have tried followings in xc5000_set_params()
+First time ever that I mouse-copied an address and it gained a typo. 
+Amazing. So trying again. The patch works better than the mouse, though. 
+Guaranteed.
 
-if (fe->ops.info.type == FE_ATSC) {
-  ...
-} else if (fe->ops.info.type == FE_OFDM) {
-		switch (params->u.ofdm.bandwidth) {
-		case BANDWIDTH_6_MHZ:
-			printk("xc5000 bandwidth 6MHz\n");
-			priv->bandwidth = BANDWIDTH_6_MHZ;
-			priv->video_standard = DTV6;
-			break;
-		case BANDWIDTH_7_MHZ:
-			printk("xc5000 bandwidth 7MHz\n");
-			priv->bandwidth = BANDWIDTH_7_MHZ;
-			priv->video_standard = DTV7;
-			break;
-		case BANDWIDTH_8_MHZ:
-			printk("xc5000 bandwidth 8MHz\n");
-			priv->bandwidth = BANDWIDTH_8_MHZ;
-			priv->video_standard = DTV8;
-			break;
-		default:
-			printk("xc5000 bandwidth not set!\n");
-			return -EINVAL;
-		}
- 		priv->rf_mode = XC_RF_MODE_AIR;
-		priv->freq_hz = params->frequency - 1750000;
-}
+---------- Forwarded message ----------
+Date: Thu, 5 Mar 2009 20:09:52 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Kyle Guinn <elyk03@gmail.com>, Jean-Francois Moine <moinejf@free.fr>,
+     linux-mmedia@vger.kernel.org
+Subject: [PATCH] for the file gspca/mr97310a.c
 
 
-But no success yet.
-I am wondering the -1750000 compensation for DTV8.
+I just realized that the message below only went in one direction and did not 
+have the proper title. So I fix that, now. The purpose of the patch has been 
+extensively discussed in the thread seen in the title of the forwarded message. 
+The patch below improves on the previous patch submitted for discussion, by 
+fixing a bug in that one. The purpose of the patch is to save the header for 
+the raw frames from the MR97310a cameras, which previously was not done. The 
+patch achieves this result, and, when tested with two cameras, gives nice 
+results.
 
-BTW, The xc_debug_dump() could get more information like firmware
-build number and tuner total gain
+A parallel patch for libv4lconvert/mr97310a.c was also presented in the RFC. 
+Needless to say, it is needed simultaneously, before the output from the camera 
+can be properly decompressed.
 
-diff -r 2276e777f950 linux/drivers/media/common/tuners/xc5000.c
---- a/linux/drivers/media/common/tuners/xc5000.c	Thu Mar 26 22:17:48 2009 -0300
-+++ b/linux/drivers/media/common/tuners/xc5000.c	Mon Mar 30 16:23:11 2009 +0800
-@@ -84,6 +84,7 @@
- #define XREG_IF_OUT       0x05
- #define XREG_SEEK_MODE    0x07
- #define XREG_POWER_DOWN   0x0A
-+#define XREG_OUTPUT_AMP   0x0B
- #define XREG_SIGNALSOURCE 0x0D /* 0=Air, 1=Cable */
- #define XREG_SMOOTHEDCVBS 0x0E
- #define XREG_XTALFREQ     0x0F
-@@ -100,6 +101,8 @@
- #define XREG_VERSION      0x07
- #define XREG_PRODUCT_ID   0x08
- #define XREG_BUSY         0x09
-+#define XREG_BUILD_NUM    0x0D
-+#define XREG_TOTAL_GAIN   0x0F
+Theodore Kilgore
 
- /*
-    Basic firmware description. This will remain with
-@@ -468,7 +485,8 @@
+---------- Forwarded message ----------
+Date: Thu, 5 Mar 2009 19:27:57 -0600 (CST)
+From: kilgota@banach.math.auburn.edu
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
 
- static int xc_get_version(struct xc5000_priv *priv,
- 	u8 *hw_majorversion, u8 *hw_minorversion,
--	u8 *fw_majorversion, u8 *fw_minorversion)
-+	u8 *fw_majorversion, u8 *fw_minorversion,
-+	u16 *fw_buildnum)
- {
- 	u16 data;
- 	int result;
-@@ -481,6 +499,11 @@
- 	(*hw_minorversion) = (data >>  8) & 0x0F;
- 	(*fw_majorversion) = (data >>  4) & 0x0F;
- 	(*fw_minorversion) = data & 0x0F;
-+
-+	result = xc_read_reg(priv, XREG_BUILD_NUM, &data);
-+	if (result)
-+		return result;
-+	*fw_buildnum = data;
 
- 	return 0;
- }
-@@ -506,6 +529,11 @@
- static int xc_get_quality(struct xc5000_priv *priv, u16 *quality)
- {
- 	return xc_read_reg(priv, XREG_QUALITY, quality);
-+}
-+
-+static int xc_get_total_gain(struct xc5000_priv *priv, u16 *gain)
-+{
-+	return xc_read_reg(priv, XREG_TOTAL_GAIN, gain);
- }
 
- static u16 WaitForLock(struct xc5000_priv *priv)
-@@ -626,8 +654,10 @@
- 	u32 hsync_freq_hz = 0;
- 	u16 frame_lines;
- 	u16 quality;
-+	u16 gain;
- 	u8 hw_majorversion = 0, hw_minorversion = 0;
- 	u8 fw_majorversion = 0, fw_minorversion = 0;
-+	u16 fw_buildnum = 0;
+On Fri, 6 Mar 2009, Hans de Goede wrote:
 
- 	/* Wait for stats to stabilize.
- 	 * Frame Lines needs two frame times after initial lock
-@@ -646,10 +676,11 @@
- 		lock_status);
+> Well 2.6.29 is getting closer, so we need to be reasonable quick with the
+> kernel side changes. As we do not want to change this after a kernel
+> has been released with the current behaviour.
+> 
+> For libv4l we can take our time. But having a kernel patch ready soon
+> would be good.
 
- 	xc_get_version(priv,  &hw_majorversion, &hw_minorversion,
--		&fw_majorversion, &fw_minorversion);
--	dprintk(1, "*** HW: V%02x.%02x, FW: V%02x.%02x\n",
-+		&fw_majorversion, &fw_minorversion, &fw_buildnum);
-+	dprintk(1, "*** HW: V%02x.%02x, FW: V%02x.%02x build %d\n",
- 		hw_majorversion, hw_minorversion,
--		fw_majorversion, fw_minorversion);
-+		fw_majorversion, fw_minorversion,
-+		fw_buildnum);
+Well, it did not take as long as I thought. And, as far as the libv4lconvert 
+change, you _do_ have a patch, right?
 
- 	xc_get_hsync_freq(priv,  &hsync_freq_hz);
- 	dprintk(1, "*** Horizontal sync frequency = %d Hz\n", hsync_freq_hz);
-@@ -659,6 +690,9 @@
+So, here is a patch for one file, namely for gspca/mr97310a.c. I hope that it 
+will meet all objections.
 
- 	xc_get_quality(priv,  &quality);
- 	dprintk(1, "*** Quality (0:<8dB, 7:>56dB) = %d\n", quality);
-+
-+	xc_get_total_gain(priv,  &gain);
-+	dprintk(1, "*** Total Gain = %d mdB\n", gain * 1000 / 256);
- }
+Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
+----------------------------------------------------------------------
+--- mr97310a.c.old	2009-02-23 23:59:07.000000000 -0600
++++ mr97310a.c	2009-03-05 19:14:13.000000000 -0600
+@@ -29,9 +29,7 @@ MODULE_LICENSE("GPL");
+  /* specific webcam descriptor */
+  struct sd {
+  	struct gspca_dev gspca_dev;  /* !! must be the first item */
+-
+  	u8 sof_read;
+-	u8 header_read;
+  };
+
+  /* V4L2 controls supported by the driver */
+@@ -100,12 +98,9 @@ static int sd_init(struct gspca_dev *gsp
+
+  static int sd_start(struct gspca_dev *gspca_dev)
+  {
+-	struct sd *sd = (struct sd *) gspca_dev;
+  	__u8 *data = gspca_dev->usb_buf;
+  	int err_code;
+
+-	sd->sof_read = 0;
+-
+  	/* Note:  register descriptions guessed from MR97113A driver */
+
+  	data[0] = 0x01;
+@@ -285,40 +280,29 @@ static void sd_pkt_scan(struct gspca_dev
+  			__u8 *data,                   /* isoc packet */
+  			int len)                      /* iso packet length */
+  {
+-	struct sd *sd = (struct sd *) gspca_dev;
+  	unsigned char *sof;
+
+  	sof = pac_find_sof(gspca_dev, data, len);
+  	if (sof) {
+  		int n;
+-
++		int marker_len = sizeof pac_sof_marker;
+  		/* finish decoding current frame */
+  		n = sof - data;
+-		if (n > sizeof pac_sof_marker)
+-			n -= sizeof pac_sof_marker;
++		if (n > marker_len)
++			n -= marker_len;
+  		else
+  			n = 0;
+  		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame,
+  					data, n);
+-		sd->header_read = 0;
+-		gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
+-		len -= sof - data;
++		/* Start next frame. */
++		gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
++			pac_sof_marker, marker_len);
++		len -= n;
++		len -= marker_len;
++		if (len < 0)
++			len = 0;
+  		data = sof;
+  	}
+-	if (sd->header_read < 7) {
+-		int needed;
+-
+-		/* skip the rest of the header */
+-		needed = 7 - sd->header_read;
+-		if (len <= needed) {
+-			sd->header_read += len;
+-			return;
+-		}
+-		data += needed;
+-		len -= needed;
+-		sd->header_read = 7;
+-	}
+-
+  	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
+  }
+
+@@ -337,6 +321,7 @@ static const struct sd_desc sd_desc = {
+  /* -- module initialisation -- */
+  static const __devinitdata struct usb_device_id device_table[] = {
+  	{USB_DEVICE(0x08ca, 0x0111)},
++	{USB_DEVICE(0x093a, 0x010f)},
+  	{}
+  };
+  MODULE_DEVICE_TABLE(usb, device_table);
