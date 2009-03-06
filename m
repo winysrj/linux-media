@@ -1,56 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hamlet.nurpoint.com ([212.239.26.6]:59778 "EHLO
-	hamlet.nurpoint.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751128AbZCBSsu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 13:48:50 -0500
-Received: from dab.z1.infracom.it ([82.193.15.171] helo=[192.168.1.140])
-	by hamlet.nurpoint.com with esmtpa (Exim 4.69)
-	(envelope-from <s.danzi@hawai.it>)
-	id 1LeC5U-0004WC-PF
-	for linux-media@vger.kernel.org; Mon, 02 Mar 2009 18:37:56 +0100
-Message-ID: <49AC1972.7000804@hawai.it>
-Date: Mon, 02 Mar 2009 18:37:54 +0100
-From: Stefano Danzi <s.danzi@hawai.it>
-MIME-Version: 1.0
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:42733 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757157AbZCFANc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Mar 2009 19:13:32 -0500
+Subject: Re: [linux-dvb] (no subject) - in fact Amiga OS4 and v4l-dvb
+From: hermann pitton <hermann-pitton@arcor.de>
 To: linux-media@vger.kernel.org
-Subject: DVB-T MUX Frequency list for my city (it-Verona-Zevio)
-Content-Type: multipart/mixed;
- boundary="------------070708060303010304090001"
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <BLU137-W38DAAEF52124F0FB7ACA7082A40@phx.gbl>
+References: <BLU137-W38DAAEF52124F0FB7ACA7082A40@phx.gbl>
+Content-Type: text/plain
+Date: Fri, 06 Mar 2009 01:14:54 +0100
+Message-Id: <1236298494.16392.53.camel@pc09.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070708060303010304090001
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello,
 
-DVB-T MUX Frequency list for my city (it-Verona-Zevio)
+Am Donnerstag, den 05.03.2009, 19:04 +0100 schrieb lars ouff:
+> Hello, I am looking into the possibility of porting or writing a
+> simple driver for the DVB-T part of the SAA7135 chip. I am merely
+> doing some research for an eventual long-term hobby programming
+> project.
+> I have a little programming experience but have friends that are more
+> experienced that will help. The driver will be for the AmigaOS4
+> platform (PowerPC).
 
---------------070708060303010304090001
-Content-Type: text/plain;
- name="it-Verona-Zevio"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="it-Verona-Zevio"
+hmm, I know quite nothing about the recent Amiga OS4, but the GNU/Linux
+saa7134 driver supports saa7130/34/33/35 and saa7131e PCI brigdes
+currently. For DVB-T and DVB-S we rely on the dvb subsystem.
 
-# Italia / Verona / Zevio (it-Verona-Zevio) - 28/02/2009 
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-#
-# C26 - TIMB1
-T 514000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C34 - Mux B Rai
-T 578000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C41 - Mux  DFree
-T 634000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C54 - MBone
-T 738000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C58 - Rete All Music
-T 770000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C61 - Mux Mediaset 2
-T 794000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C64 - Mux DFree
-T 818000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C67 - Mediaset 1 
-T 842000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+For almost all current silicon tuners and demodulators you will need
+NDAs for register programming details too. (some Freescale support with
+open specs was just added)
 
---------------070708060303010304090001--
+Given that the PCI interface seems to vanish soon on recent PCs,
+depending on how long-term your efforts might be, you might end up
+without any such devices on the markets anymore. The work on Linux
+support started in 2002.
+
+> The reason I'm mailing this list is to maybe get some help with where
+> to start and what is needed. I read in the PDF for the chip that there
+> is an SDK available for 3rd parties, is this freely available online?
+
+As far I know there is still nothing freely available for the
+programming details.
+
+>  (I've mailed Gigabyte about it but don't expect swift response).
+> I also read something about an alternative API for non Win systems.
+> Amiga devs told me that writing a new driver will be the thing to do
+> and not try to port a linux driver, comments? I'm asuming there is a
+> ppc-linux driver? I've read some threads about the support for this
+> chip in the linux world and it seems good. For decoding in AmigaOS4 we
+> have ffmpeg and libfaad.
+> 
+> ______________________________________________________________________
+Why reinvent the wheel when others already did the work and it is Open
+Source? 
+
+With the hidden auto detected devices the driver currently supports
+about two hundred different PCI cards. We also support almost all tuners
+currently on the markets also vbi/cc, external analog inputs and radio
+and soon RDS. Also some cards with mpeg encoders. This was only possible
+with our active community and people willing to help to add support for
+new stuff and it is an still ongoing process.
+
+You can use Linux PPC, maybe just CD/DVD live media or boot it from some
+Flash media to have a try, if you already have some supported hardware.
+
+I suggest to use xine/kaffeine for a painless try with GUI, but you must
+take care to have the codecs distributions can't provide, but are legal
+for individual use.
+
+The Amiga devs probably have good reasons to suggest to write a new
+driver, but I don't know about any details. Unfortunately linux-dvb is
+not easy portable for Open Source m$ projects too, but our code is
+there ;)
+
+Maybe some at home in both worlds can give better pointers or you must
+raise more detailed questions. For me CP/M was still good enough during
+all that ...
+
+Cheers,
+Hermann
+
+
+
+
+
