@@ -1,66 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.185]:41717 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755104AbZCaFTi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 01:19:38 -0400
-Received: by ti-out-0910.google.com with SMTP id i7so1919291tid.23
-        for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 22:19:35 -0700 (PDT)
+Received: from rcsinet11.oracle.com ([148.87.113.123]:38541 "EHLO
+	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754469AbZCGAEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2009 19:04:23 -0500
+Message-ID: <49B1BA2E.8000406@oracle.com>
+Date: Fri, 06 Mar 2009 16:05:02 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-In-Reply-To: <412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
-References: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
-	 <412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
-Date: Tue, 31 Mar 2009 13:19:35 +0800
-Message-ID: <15ed362e0903302219o18915401w5fe9605c3028f832@mail.gmail.com>
-Subject: Re: [PATCH] Support for Legend Silicon LGS8913/LGS8GL5/LGS8GXX China
-	DMB-TH digital demodulator
-From: David Wong <davidtlwong@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Andrew Morton <akpm@linux-foundation.org>
+CC: sfr@canb.auug.org.au, linux-next@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@infradead.org, Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH -next] dvb/frontends: fix duplicate 'debug' symbol
+References: <20090306191311.697e7b97.sfr@canb.auug.org.au>	<49B1949E.2000300@oracle.com> <20090306155958.11b4a186.akpm@linux-foundation.org>
+In-Reply-To: <20090306155958.11b4a186.akpm@linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin
+Andrew Morton wrote:
+> On Fri, 06 Mar 2009 13:24:46 -0800
+> Randy Dunlap <randy.dunlap@oracle.com> wrote:
+> 
+>> It would also be Good if arch/x86/kernel/entry_32.S didn't have a
+>> non-static 'debug' symbol.  OTOH, it helps catch things like this one.
+> 
+> heh, yes, it's a feature.  We should put it in init/main.c, along with
+> 100-odd other dont-do-that-dopey symbols.
 
-The unified LGS8GXX driver surely work on some DMB-TH devices I have.
-They are:
-TECHGEAR HDTVC USB (also for MagicPro ProHDTV USB as they are the same
-hardware with same USB ID)
-ASUS U3100 Mini DMB-TH USB
+hm, I think I'll leave that patch for you or Ingo. ;)
 
-Timothy Lee tested with this unified driver for his MagicPro ProHDTV USB too.
-ASUS patch is sent to Alan Knowles, don't know his result yet.
-
-David
-
-On Tue, Mar 31, 2009 at 12:54 PM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Tue, Mar 17, 2009 at 11:55 AM, David Wong <davidtlwong@gmail.com> wrote:
->> This patch contains the unified driver for Legend Silicon LGS8913 and
->> LGS8GL5. It should replace lgs8gl5.c in media/dvb/frontends
->>
->> David T.L. Wong
->
-> David,
->
-> The questions you posed tonight on a separate thread about making the
-> xc5000 work with this device prompts the question:
->
-> Do you know that this driver you submitted actually works?  Have you
-> successfully achieved lock with this driver and been able to view the
-> stream?
->
-> It is great to see the improvements and more generic support, but if
-> you don't have it working in at least one device, then it probably
-> shouldn't be submitted upstream yet, and it definitely should not be
-> replacing an existing driver.
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+-- 
+~Randy
