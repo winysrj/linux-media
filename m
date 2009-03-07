@@ -1,61 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:55726 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127AbZCDIlK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 03:41:10 -0500
-Message-ID: <49AE3EA1.3090504@kaiser-linux.li>
-Date: Wed, 04 Mar 2009 09:41:05 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
-MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Kyle Guinn <elyk03@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Received: from zone0.gcu-squad.org ([212.85.147.21]:37605 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377AbZCGKmX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2009 05:42:23 -0500
+Date: Sat, 7 Mar 2009 11:42:12 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
+Subject: [PATCH] cx88: Prevent general protection fault on rmmod
+Message-ID: <20090307114212.1cdd70f2@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Theodore
+When unloading the cx8800 driver I sometimes get a general protection
+fault. Analysis revealed a race in cx88_ir_stop(). It can be solved by
+using a delayed work instead of a timer for infrared input polling.
 
-kilgota@banach.math.auburn.edu wrote:
-> Also, after the byte indicator for the compression algorithm there are 
-> some more bytes, and these almost definitely contain information which 
-> could be valuable while doing image processing on the output. If they 
-> are already kept and passed out of the module over to libv4lconvert, 
-> then it would be very easy to do something with those bytes if it is 
-> ever figured out precisely what they mean. But if it is not done now it 
-> would have to be done then and would cause even more trouble.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Thanks to Trent's compatibility patches, we can go without the bunch of
+#ifdef's my initial patch had.
 
-I sent it already in private mail to you. Here is the observation I made 
-for the PAC207 SOF some years ago:
+ linux/drivers/media/video/cx88/cx88-input.c |   27 ++++++++-------------------
+ 1 file changed, 8 insertions(+), 19 deletions(-)
 
- From usb snoop.
-FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
-1. xx: looks like random value
-2. xx: changed from 0x03 to 0x0b
-3. xx: changed from 0x06 to 0x49
-4. xx: changed from 0x07 to 0x55
-5. xx: static 0x96
-6. xx: static 0x80
-7. xx: static 0xa0
+--- v4l-dvb.orig/linux/drivers/media/video/cx88/cx88-input.c	2009-03-05 10:36:23.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/cx88/cx88-input.c	2009-03-06 13:59:56.000000000 +0100
+@@ -49,8 +49,7 @@ struct cx88_IR {
+ 
+ 	/* poll external decoder */
+ 	int polling;
+-	struct work_struct work;
+-	struct timer_list timer;
++	struct delayed_work work;
+ 	u32 gpio_addr;
+ 	u32 last_gpio;
+ 	u32 mask_keycode;
+@@ -144,13 +143,6 @@ static void cx88_ir_handle_key(struct cx
+ 	}
+ }
+ 
+-static void ir_timer(unsigned long data)
+-{
+-	struct cx88_IR *ir = (struct cx88_IR *)data;
+-
+-	schedule_work(&ir->work);
+-}
+-
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+ static void cx88_ir_work(void *data)
+ #else
+@@ -160,23 +152,22 @@ static void cx88_ir_work(struct work_str
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+ 	struct cx88_IR *ir = data;
+ #else
+-	struct cx88_IR *ir = container_of(work, struct cx88_IR, work);
++	struct cx88_IR *ir = container_of(work, struct cx88_IR, work.work);
+ #endif
+ 
+ 	cx88_ir_handle_key(ir);
+-	mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
++	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
+ }
+ 
+ void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
+ {
+ 	if (ir->polling) {
+-		setup_timer(&ir->timer, ir_timer, (unsigned long)ir);
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+-		INIT_WORK(&ir->work, cx88_ir_work, ir);
++		INIT_DELAYED_WORK(&ir->work, cx88_ir_work, ir);
+ #else
+-		INIT_WORK(&ir->work, cx88_ir_work);
++		INIT_DELAYED_WORK(&ir->work, cx88_ir_work);
+ #endif
+-		schedule_work(&ir->work);
++		schedule_delayed_work(&ir->work, 0);
+ 	}
+ 	if (ir->sampling) {
+ 		core->pci_irqmask |= PCI_INT_IR_SMPINT;
+@@ -192,10 +183,8 @@ void cx88_ir_stop(struct cx88_core *core
+ 		core->pci_irqmask &= ~PCI_INT_IR_SMPINT;
+ 	}
+ 
+-	if (ir->polling) {
+-		del_timer_sync(&ir->timer);
+-		flush_scheduled_work();
+-	}
++	if (ir->polling)
++		cancel_delayed_work_sync(&ir->work);
+ }
+ 
+ /* ---------------------------------------------------------------------- */
 
-And I did play in Linux and could identify some fields :-) .
-In Linux the header looks like this:
 
-FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
-1. xx: don't know but value is changing between 0x00 to 0x07
-2. xx: this is the actual pixel clock
-3. xx: this is changing according light conditions from 0x03 (dark) to
-0xfc (bright) (center)
-4. xx: this is changing according light conditions from 0x03 (dark) to
-0xfc (bright) (edge)
-5. xx: set value "Digital Gain of Red"
-6. xx: set value "Digital Gain of Green"
-7. xx: set value "Digital Gain of Blue"
-
-Thomas
+-- 
+Jean Delvare
