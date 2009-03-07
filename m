@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:35733 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933844AbZC0A4G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 20:56:06 -0400
-Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: klaas de waal <klaas.de.waal@gmail.com>,
-	Oliver Endriss <o.endriss@gmx.de>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org, linux-dvb@linuxtv.org,
-	erik_bies@hotmail.com
-In-Reply-To: <20090326210929.32235862@pedra.chehab.org>
-References: <7b41dd970903251353n46f55bbfg687c1cfa42c5b824@mail.gmail.com>
-	 <1238111503.4783.23.camel@pc07.localdom.local>
-	 <20090326210929.32235862@pedra.chehab.org>
-Content-Type: text/plain
-Date: Fri, 27 Mar 2009 01:46:50 +0100
-Message-Id: <1238114810.4783.32.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:52710 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750783AbZCGXLG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2009 18:11:06 -0500
+Date: Sun, 8 Mar 2009 00:11:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: ospite@studenti.unina.it, mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pxa_camera: Redesign DMA handling
+In-Reply-To: <87zlg2e94i.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0903080003010.6783@axis700.grange>
+References: <1236021422-8074-1-git-send-email-robert.jarzmik@free.fr>
+ <Pine.LNX.4.64.0903030929160.5059@axis700.grange> <87zlg2e94i.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 3 Mar 2009, Robert Jarzmik wrote:
 
-Am Donnerstag, den 26.03.2009, 21:09 -0300 schrieb Mauro Carvalho
-Chehab:
-> On Fri, 27 Mar 2009 00:51:43 +0100
-> hermann pitton <hermann-pitton@arcor.de> wrote:
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 > 
-> > Hi Klaas,
-> > 
-> > Am Mittwoch, den 25.03.2009, 21:53 +0100 schrieb klaas de waal:
-> > > (2nd try, this should be now  in "plain text" instead of HTML)
-> > > 
-> > > Hi Hermann,
-> > > 
-> > > Thanks for your "howto" on making a proper patch.
-> > > After a "make commit" in my local v4l-dvb tree, and filling in the
-> > > template I got the following output.
-> > > I confess I do not know if this has now ended up somewhere in
-> > > linuxtv.org or that it is just local.
-> > > However, here it is:
-> > 
-> > your patches are still local, but they are at least on the proper list
-> > now. Without starting with [PATCH] in the subject Mauro's scripts to add
-> > them to patchwork automatically likely will still not find them.
-> 
-> The patchwork scripts are the ones that came with the product. They are not
-> developed by me ;)
-> 
-> Anyway, if patchwork didn't catch is because the inlined patch is broken, or it is
-> not inlined and were attached with a wrong mime type.
-> 
+> > 	x = y
+> > 		| z;
+> >
+> > to
+> >
+> > 	x = y |
+> > 		z;
+> >
+> > just to make consistent with the rest of the driver.
+> May I do it the other way (change all other occurences) ? I was corrected on
+> other drivers to use the first form as the coding style, so can I reformat
+> pxa_camera to abide by this rule ?
 
-Oh well, I still would prefer to have comments from such closest to that
-driver and related tuners, instead serving that "product".
+Emn, no. Just looked in CodingStyle - haven't found a word about it. So, I 
+think, applies "keep consistent with the rest of the file." And, you know, 
+someone might call this a matter of taste, but a line like
 
-There is more drifting around and it can be prepared to fit in to such
-rules. My concern is that it will arrive there then without much
-problems, but outstanding discussions are only postponed.
+	x = y
 
-If I'm wrong, even better.
+in a .c file looks unfinished to me, whereas
 
-Cheers,
-Hermann
+	x = y +
 
+clearly has a continuation. That's how I learned to break lines at school, 
+at the Uni,... Ok, never mind, in any case, until this is not in 
+CodingStyle, I will nak all attempts to convert the whole driver to the 
+opposite of what it has ATM. So, I'll drop "3/4" and will request 
+amendments to other affected patches, ok?
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
