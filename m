@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:43917 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638AbZCIX4F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2009 19:56:05 -0400
-Subject: Re: V4L2 spec
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	wk <handygewinnspiel@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1236642394.3104.25.camel@palomino.walls.org>
-References: <200903061523.15766.hverkuil@xs4all.nl>
-	 <49B59230.1090305@gmx.de>
-	 <412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
-	 <200903092344.04805.hverkuil@xs4all.nl>
-	 <1236642394.3104.25.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Mon, 09 Mar 2009 19:56:56 -0400
-Message-Id: <1236643016.3104.28.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from netrider.rowland.org ([192.131.102.5]:2646 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752524AbZCGRhK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2009 12:37:10 -0500
+Date: Sat, 7 Mar 2009 12:37:07 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Brandon Philips <brandon@ifup.org>
+cc: Greg KH <gregkh@suse.de>, <laurent.pinchart@skynet.be>,
+	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
+Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
+ is probably using the wrong IRQ."
+In-Reply-To: <20090307084225.GF6869@jenkins.ifup.org>
+Message-ID: <Pine.LNX.4.44L0.0903071230190.6084-100000@netrider.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-03-09 at 19:46 -0400, Andy Walls wrote:
-> On Mon, 2009-03-09 at 23:44 +0100, Hans Verkuil wrote:
-> > On Monday 09 March 2009 23:10:56 Devin Heitmueller wrote:
-> > > On Mon, Mar 9, 2009 at 6:03 PM, wk <handygewinnspiel@gmx.de> wrote:
+On Sat, 7 Mar 2009, Brandon Philips wrote:
 
-> > Indeed. If someone could do the 'grunt' work of converting the dvb doc into 
-> > DocBook 
+> On 21:26 Fri 06 Mar 2009, Greg KH wrote:
+> > On Fri, Mar 06, 2009 at 11:11:22AM -0800, Brandon Philips wrote:
+> > > Hello-
+> > > 
+> > > When an UVC device is open and a S4 is attempted the thaw hangs (see the
+> > > stack below). I don't see what the UVC driver is doing wrong to cause
+> > > this to happen though.
+> > 
+> > I don't think this is a uvc driver issue, it looks like all you are
+> > trying to do is a usb control message when things hang.
 > 
-> The Google leads me to ask:
-> 
-> What about a LaTeX to HTML or OOo Writer convertor:
-> 
-> http://www.tug.org/utilities/texconv/textopc.html#TeX4ht
-> 
-> (maybe oolatex?)
-> 
-> Then OOo Writer saving to DocBook?
+> Indeed. When I was poking at this I tried to supress the control message coming
+> out of the uvcvideo driver after the suspend was issued to see what would
+> happen and the control messages after the resume locked up instead. Eh.
 
-Following up: apparently TeX4ht's dmlatex or dblatex command can go
-straight from LaTex to DocBook:
+Have you tried suspending just the two devices plugged into that EHCI 
+controller instead of suspending the entire system?  That would make it 
+a lot easier to carry out testing.
 
-http://www.cse.ohio-state.edu/~gurari/TeX4ht/mn-commands.html
+> > It looks like things die right after this message:
+> > 	ehci_hcd 0000:00:1d.7: Unlink after no-IRQ?  Controller is probably using the wrong IRQ.
 
-> I suspect it won't be perfect, but since existing software does the
-> heavy lifting, it beats manual conversion.
+It could be that the host controller isn't behaving correctly.  But 
+even then, a timer should keep things running.  So I don't know why the 
+system hanged.
 
-Regards,
-Andy
+BTW, all those extra debugging messages in your log made it very 
+difficult to read, and they didn't help much in pinpointing the 
+problem.  You should remove all of them before doing the next test.  
+Instead you could use usbmon to capture the USB traffic.
+
+Alan Stern
 
