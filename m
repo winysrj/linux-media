@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]:59857 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933416AbZC0Aoj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 20:44:39 -0400
-Received: from localhost.localdomain (unknown [127.0.0.1])
-	by a-sasl-fastnet.sasl.smtp.pobox.com (Postfix) with ESMTP id 834C2A5BD4
-	for <linux-media@vger.kernel.org>; Thu, 26 Mar 2009 20:44:37 -0400 (EDT)
-Received: from [192.168.1.8] (unknown [118.208.70.220]) (using TLSv1 with
- cipher AES128-SHA (128/128 bits)) (No client certificate requested) by
- a-sasl-fastnet.sasl.smtp.pobox.com (Postfix) with ESMTPSA id D7D6DA5BD3 for
- <linux-media@vger.kernel.org>; Thu, 26 Mar 2009 20:44:36 -0400 (EDT)
-Message-Id: <210E56CC-CD08-4EB0-B38B-3804D6CA082B@pobox.com>
-From: Torgeir Veimo <torgeir@pobox.com>
-To: linux-media@vger.kernel.org
-In-Reply-To: <20090326185729.GA10352@linuxtv.org>
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Subject: Re: [linux-dvb] [ADMIN] linuxtv.org is moving
-Date: Fri, 27 Mar 2009 10:44:33 +1000
-References: <20090325162541.GB22582@linuxtv.org>
- <20090326185729.GA10352@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20]:36117 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754557AbZCGAqM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Mar 2009 19:46:12 -0500
+Date: Sat, 7 Mar 2009 01:46:11 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Trent Piepho <xyzzy@speakeasy.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean Delvare <khali@linux-fr.org>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+In-Reply-To: <Pine.LNX.4.58.0903061532210.24268@shell2.speakeasy.net>
+Message-ID: <Pine.LNX.4.64.0903070144520.5665@axis700.grange>
+References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
+ <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
+ <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
+ <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
+ <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
+ <Pine.LNX.4.64.0903052315530.4980@axis700.grange>
+ <Pine.LNX.4.58.0903061532210.24268@shell2.speakeasy.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 6 Mar 2009, Trent Piepho wrote:
 
-On 27 Mar 2009, at 04:57, Johannes Stezenbach wrote:
+> On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
+> > On Thu, 5 Mar 2009, Trent Piepho wrote:
+> > > ALSA used a partial tree, but their system was much worse than v4l-dvb's.
+> > > I think the reason more systems don't do it is that setting up the build
+> > > system we have with v4l-dvb was a lot of work.  They don't have that.
+> >
+> > Right, it was a lot of work, it is still quite a bit of work (well, I'm
+> > not doing that work directly, but it affetcs me too, when I have to adjust
+> > patches, that I generated from a complete kernel tree to fit
+> > compatibility-"emhanced" versions), and it is not going to be less work.
+> 
+> Why must you generate your patches from a different tree?  One could just
+> as well say that the linux kernel indentation style is more work, since
+> they use GNU style have to translate their patch from a re-indented tree.
 
-> On Wed, Mar 25, 2009 at 05:25:41PM +0100, Johannes Stezenbach wrote:
->>
->> linuxtv.org will move to a new server machine tomorrow. Expect
->> some downtime during the move and please be patient. Everything
->> on the old machine will be rsynced to the new machine right before
->> the switch so nothing should get lost.
->
-> The move is done, but the DNS updates are not out there yet,
-> so especially mail won't work yet until the caches are updated,
-> but everything else should.
->
-> The new IP address is 217.160.6.122.
+[snip]
 
+Hans has already answered your question very well in this thread. I don't 
+think I can add anything.
 
-So how do I unsubscribe from linux-dvb? It seems that I still gets  
-some mails from this list, but information on how to unsubscribe is  
-lost from the website.
-
--- 
-Torgeir Veimo
-torgeir@pobox.com
-
-
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
