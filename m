@@ -1,76 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52312 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753593AbZCLJrH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 05:47:07 -0400
-Date: Thu, 12 Mar 2009 10:47:03 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/4] pcm990 baseboard: add camera bus width switch
-	setting
-Message-ID: <20090312094703.GK425@pengutronix.de>
-References: <1236765976-20581-1-git-send-email-s.hauer@pengutronix.de> <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de> <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903120935570.4896@axis700.grange> <20090312091221.GJ425@pengutronix.de> <Pine.LNX.4.64.0903121024010.4896@axis700.grange>
+Received: from aybabtu.com ([69.60.117.155]:40123 "EHLO aybabtu.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752877AbZCGVKM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2009 16:10:12 -0500
+Date: Sat, 7 Mar 2009 21:48:39 +0100
+From: Robert Millan <rmh@aybabtu.com>
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com
+Subject: [PATCH] Conceptronic CTVFMI2 PCI Id
+Message-ID: <20090307204839.GA16591@thorin>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="ibTvN161/egqYuK8"
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0903121024010.4896@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 12, 2009 at 10:25:35AM +0100, Guennadi Liakhovetski wrote:
-> On Thu, 12 Mar 2009, Sascha Hauer wrote:
-> 
-> > On Thu, Mar 12, 2009 at 09:40:46AM +0100, Guennadi Liakhovetski wrote:
-> > > One more thing I noticed while looking at your patch 3/4:
-> > > 
-> > > > +static int pcm990_camera_set_bus_param(struct device *dev,
-> > > > +		unsigned long flags)
-> > > > +{
-> > > > +	if (gpio_bus_switch <= 0)
-> > > > +		return 0;
-> > > > +
-> > > > +	if (flags & SOCAM_DATAWIDTH_8)
-> > > > +		gpio_set_value(NR_BUILTIN_GPIO + 1, 1);
-> > > > +	else
-> > > > +		gpio_set_value(NR_BUILTIN_GPIO + 1, 0);
-> > > 
-> > > Originally the logic here was "only if flags == SOCAM_DATAWIDTH_8, switch 
-> > > to 8 bits, otherwise do 10 bits. I.e., if flags == SOCAM_DATAWIDTH_8 | 
-> > > SOCAM_DATAWIDTH_10, it would still do the default (and wider) 10 bits. Do 
-> > > you have any reason to change that logic?
-> > 
-> > I was not aware that I changed any logic. I thought I would get here
-> > with only one of the SOCAM_DATAWIDTH_* set. Isn't it a bug when we get
-> > here with more than one width flags set?
-> > 
-> > The mt9v022 driver has this in set_bus_param:
-> > 
-> > >
-> > >	/* Only one width bit may be set */
-> > >	if (!is_power_of_2(width_flag))
-> > >		return -EINVAL;
-> > >
-> > 
-> > And I think it makes sense.
-> 
-> Ok, then, could you, please add the same test to mt9m001? And, as I 
-> mentioned in a comment to 3/4, please, return an error if switching is 
-> requested but unsupported.
 
-Ok, will do.
+--ibTvN161/egqYuK8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-It may be that we need a different approach to the bus width setting in
-the longer term. For example the mt9m001 can support any thinkable bus
-width of 1 to inf. bits. This depends on the hardware designer who wired
-up the connection and not the physical count of data lines the chip has.
-I have no idea how to implement this though.
 
-Sascha
+Hi,
+
+My BTTV_BOARD_CONCEPTRONIC_CTVFMI2 card wasn't auto-detected, here's a patch
+that adds its PCI id.
+
+lspci -nnv output:
+
+05:06.0 Multimedia video controller [0400]: Brooktree Corporation Bt878 Video Capture [109e:036e] (rev 11)
+05:06.1 Multimedia controller [0480]: Brooktree Corporation Bt878 Audio Capture [109e:0878] (rev 11)
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Robert Millan
+
+  The DRM opt-in fallacy: "Your data belongs to us. We will decide when (and
+  how) you may access your data; but nobody's threatening your freedom: we
+  still allow you to remove your data and not access it at all."
+
+--ibTvN161/egqYuK8
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="bttv_conceptronic.diff"
+
+diff --git a/drivers/media/video/bt8xx/bttv-cards.c b/drivers/media/video/bt8xx/bttv-cards.c
+index d24dcc0..2ddda54 100644
+--- a/drivers/media/video/bt8xx/bttv-cards.c
++++ b/drivers/media/video/bt8xx/bttv-cards.c
+@@ -289,6 +289,8 @@ static struct CARD {
+ 	/* Duplicate PCI ID, reconfigure for this board during the eeprom read.
+ 	* { 0x13eb0070, BTTV_BOARD_HAUPPAUGE_IMPACTVCB,  "Hauppauge ImpactVCB" }, */
+ 
++	{ 0x109e036e, BTTV_BOARD_CONCEPTRONIC_CTVFMI2,	"Conceptronic CTVFMi v2"},
++
+ 	/* DVB cards (using pci function .1 for mpeg data xfer) */
+ 	{ 0x001c11bd, BTTV_BOARD_PINNACLESAT,   "Pinnacle PCTV Sat" },
+ 	{ 0x01010071, BTTV_BOARD_NEBULA_DIGITV, "Nebula Electronics DigiTV" },
+
+--ibTvN161/egqYuK8--
