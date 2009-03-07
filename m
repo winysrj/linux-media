@@ -1,166 +1,482 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2657 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276AbZCOWIs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 18:08:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
-Date: Sun, 15 Mar 2009 23:09:05 +0100
-Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <200903151344.01730.hverkuil@xs4all.nl> <20090315181207.36d951ac@hyperion.delvare> <1237145673.3314.47.camel@palomino.walls.org>
-In-Reply-To: <1237145673.3314.47.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903152309.05803.hverkuil@xs4all.nl>
+Received: from rotring.dds.nl ([85.17.178.138]:46779 "EHLO rotring.dds.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752360AbZCGPsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2009 10:48:47 -0500
+Subject: Problem with changeset 10837: causes "make all" not to build many
+ modules
+From: Alain Kalker <miki@dds.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20090306074604.10926b03@pedra.chehab.org>
+References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
+	 <20090306074604.10926b03@pedra.chehab.org>
+Content-Type: multipart/mixed; boundary="=-EjcUob24cTHaUxKE9fHz"
+Date: Sat, 07 Mar 2009 16:27:41 +0100
+Message-Id: <1236439661.7569.132.camel@miki-desktop>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 15 March 2009 20:34:33 Andy Walls wrote:
-> On Sun, 2009-03-15 at 18:12 +0100, Jean Delvare wrote:
-> > Hi Hans,
-> >
-> > On Sun, 15 Mar 2009 13:44:01 +0100, Hans Verkuil wrote:
-> > > Hi Mauro, Jean,
-> > >
-> > > When converting the bttv driver to v4l2_subdev I found one probing
-> > > conflict between tvaudio and ir-kbd-i2c: address 0x96 (or 0x4b in
-> > > 7-bit notation).
-> > >
-> > > It turns out that this is one and the same PIC16C54 device used on
-> > > the ProVideo PV951 board. This chip is used for both audio input
-> > > selection and for IR handling.
-> > >
-> > > But the tvaudio module does the audio part and the ir-kbd-i2c module
-> > > does the IR part. I have truly no idea how this should be handled in
-> > > the new situation. For that matter, I wonder whether it ever worked
-> > > at all since my understanding is that once you called
-> > > i2c_attach_client for a particular address, you cannot do that a
-> > > second time. So depending on which module happens to register itself
-> > > first, you either have working audio or working IR, but not both.
-> >
-> > You are right.
-> >
-> >
-> > This is the typical multifunction device problem. It isn't specifically
-> > related to I2C,
->
-> But the specific problem that Hans' brings up is precisely a Linux
-> kernel I2C subsystem *software* prohibition on two i2c_clients binding
-> to the same address on the same adapter.
->
-> >From linux/drivers/i2c/i2c-core.c:
->
-> static int __i2c_check_addr(struct device *dev, void *addrp)
-> {
->         struct i2c_client       *client = i2c_verify_client(dev);
->         int                     addr = *(int *)addrp;
->
->         if (client && client->addr == addr)
->                 return -EBUSY;
->         return 0;
-> }
-> [...]
-> int i2c_attach_client(struct i2c_client *client)
-> {
->         struct i2c_adapter *adapter = client->adapter;
->         int res;
->
->         /* Check for address business */
->         res = i2c_check_addr(adapter, client->addr);
->         if (res)
->                 return res;
-> [...]
->
->
-> It seems like an artificial restriction: intended for safety, but
-> getting in the way when something like that is a valid need.
->
-> >  the exact same problem happens for other devices, for
-> > example a PCI south bridge including hardware monitoring and SMBus, or
-> > a Super-I/O chip including hardware monitoring, parallel port,
-> > infrared, watchdog, etc. Linux currently only allows one driver to bind
-> > to a given device, so it becomes very difficult to make per-function
-> > drivers for such devices.
-> >
-> >
-> > I know that there was some work in progress to allow multiple drivers
-> > to bind to the same device. However it seems to be very slow because it
-> > is fundamentally incompatible with the device driver model as it was
-> > originally designed.
->
-> The driver model outside of the I2C subsystem?
->
-> Looking at the rest of i2c_attach_client() (that I didn't paste in
-> above), I dont' see how the call to device_register(&client->dev) would
-> care, as each i2c_client has it's own dev.  Although I guess you might
-> get duplicately named sysfs directory entries like
->
-> /sys/devices/.../i2c-adapter/i2c-3/3-0096
->
-> Which could be a problem for accessing via the sysfs filesystem.  But
-> that could be fixed in i2c_attach_client?
->
-> Then there's a matter of accessing the I2C device only by the address
-> which means the wrong client might be used.  But since they both point
-> to the same address on the same device, does that really matter?
->
-> > In the meantime, one workaround is to list the multifunction device as
-> > supported by several drivers, and make the probe functions for this
-> > device fail, while still keeping a reference to the device. The
-> > reference lets you access the device, and is freed when you remove the
-> > drivers. See for example the via686a, vt8231 and i2c-viapro drivers.
-> > This approach may or may not be suitable for the ir-kbd-i2c and tvaudio
-> > drivers. One drawback is that you can't do power management on the
-> > device.
->
-> To me it would be more forward looking to add support in the I2C
-> subsystem for allowing multiple client drivers to use the same address
-> on the same adapter, instead of adding non-intuitive behavior to module
-> probe routines as a workaround.  Integration of discrete I2C chip cores
-> into multifunction devices is likely to be a continuing trend.
->
-> The PCI subsystem handles single devices with multiple functions.
-> There, of course, the function number is in the logical device address.
->
-> For an single I2C chip with multiple functions,  I've seen two types of
-> functional block separation provided: a separate I2C address per
-> functional block, and functions are separated by register address
-> ranges.  The CX25843 leaps to mind as being of the second type.  There
-> are register blocks for the basic device, the analog front end, the
-> consumer IR device, the video decoding, the broadcast audio decoding,
-> and AC97 interface functions.
->
-> > As far as the PIC16C54 is concerned, another possibility would be to
-> > move support to a dedicated driver. Depending on how much code is
-> > common between the PIC16C54 and the other supported devices, the new
-> > driver may either be standalone, or rely on functions exported by the
-> > ir-kbd-i2c and tvaudio modules.
->
-> I'll guess that solution is probably the path of least resistance for
-> the problem at hand.  It seems like a workaround for design decision
-> made in the I2C subsystem long ago though.
 
-Actually, it seems like this used to work at one time in the past. Jean, can 
-you confirm that it used to be possible to have two i2c clients at the same 
-i2c address in the past? Looking at the post (see the link in my original 
-mail) it apparently worked in 2.6.19 at least.
+--=-EjcUob24cTHaUxKE9fHz
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-I do think that the initial approach to this is to ensure that tvaudio is at 
-least working. After all, it is better to have audio and no remote than to 
-have a working remote, but no audio. Until we find a proper solution I 
-think that this should not stop us from going forward since this way we 
-remain bug-compatible with the current situation. Or even slightly better 
-since we can now ensure that audio is working at least.
+Mauro,
+
+Your latest changeset causes many modules (100 in total!) not to be
+built anymore when doing "make all", i.e. without doing any "make
+xconfig"/"make gconfig".
+
+I think this is related to the config variables for the frontend drivers
+no longer being defined when DVB_FE_CUSTOMISE=n , so the card drivers
+cannot depend on them anymore.
+
+I've attached a diff between v4l/.config from current revision and
+parent.
 
 Regards,
 
-	Hans
+Alain
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+--=-EjcUob24cTHaUxKE9fHz
+Content-Disposition: attachment; filename="dot.config.diff.6f1afb4c6fab-6bd427caa0cb"
+Content-Type: text/x-patch; name="dot.config.diff.6f1afb4c6fab-6bd427caa0cb"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+--- v4l-dvb/v4l/.config	2009-03-07 15:22:26.000000000 +0100
++++ v4l-dvb-tip/v4l/.config	2009-03-07 16:02:55.000000000 +0100
+@@ -1,28 +1,28 @@
+ CONFIG_MEDIA_TUNER_TDA18271=m
+ CONFIG_USB_DSBR=m
+-CONFIG_VIDEO_CX88_VP3054=m
++# CONFIG_VIDEO_CX88_VP3054 is not set
+ CONFIG_DAB=y
+ CONFIG_DVB_USB=m
+-CONFIG_DVB_DUMMY_FE=m
++# CONFIG_DVB_DUMMY_FE is not set
+ CONFIG_USB_GSPCA_OV534=m
+ CONFIG_USB_STKWEBCAM=m
+-CONFIG_DVB_S5H1420=m
+-CONFIG_DVB_CX22700=m
++# CONFIG_DVB_S5H1420 is not set
++# CONFIG_DVB_CX22700 is not set
+ CONFIG_SOC_CAMERA=m
+ CONFIG_VIDEO_CX88_BLACKBIRD=m
+ CONFIG_USB_VICAM=m
+ CONFIG_VIDEO_USBVISION=m
+-CONFIG_DVB_SP8870=m
+-CONFIG_DVB_BUDGET_AV=m
++# CONFIG_DVB_SP8870 is not set
++# CONFIG_DVB_BUDGET_AV is not set
+ CONFIG_MEDIA_TUNER=m
+-CONFIG_DVB_TUNER_DIB0070=m
++# CONFIG_DVB_TUNER_DIB0070 is not set
+ CONFIG_VIDEO_VPX3220=m
+ CONFIG_MEDIA_TUNER_TDA827X=m
+ CONFIG_USB_GSPCA_SPCA561=m
+ # CONFIG_USB_STV06XX is not set
+ CONFIG_VIDEO_SAA7110=m
+ CONFIG_VIDEO_ZORAN_BUZ=m
+-CONFIG_DVB_BT8XX=m
++# CONFIG_DVB_BT8XX is not set
+ CONFIG_VIDEO_SAA7127=m
+ CONFIG_DVB_USB_AF9005=m
+ CONFIG_USB_GSPCA_PAC7311=m
+@@ -30,40 +30,40 @@
+ CONFIG_VIDEO_WM8739=m
+ CONFIG_RADIO_MAESTRO=m
+ CONFIG_VIDEO_CPIA=m
+-CONFIG_DVB_CX22702=m
++# CONFIG_DVB_CX22702 is not set
+ CONFIG_VIDEOBUF_GEN=m
+-CONFIG_DVB_B2C2_FLEXCOP_PCI=m
++# CONFIG_DVB_B2C2_FLEXCOP_PCI is not set
+ CONFIG_RADIO_AZTECH=m
+ CONFIG_VIDEO_BT848=m
+ CONFIG_VIDEO_VIVI=m
+-CONFIG_DVB_USB_CXUSB=m
++# CONFIG_DVB_USB_CXUSB is not set
+ CONFIG_USB_GSPCA_FINEPIX=m
+ CONFIG_SOC_CAMERA_MT9V022=m
+ CONFIG_SND_FM801=m
+ CONFIG_RADIO_SF16FMI=m
+ # CONFIG_VIDEO_HELPER_CHIPS_AUTO is not set
+-CONFIG_DVB_ISL6405=m
++# CONFIG_DVB_ISL6405 is not set
+ CONFIG_DVB_USB_VP702X=m
+ CONFIG_DVB_USB_DEBUG=y
+ CONFIG_MEDIA_TUNER_XC2028=m
+-CONFIG_DVB_USB_ANYSEE=m
++# CONFIG_DVB_USB_ANYSEE is not set
+ CONFIG_VIDEO_BT856=m
+ CONFIG_RADIO_CADET=m
+ CONFIG_USB_M5602=m
+ CONFIG_VIDEO_PVRUSB2_DEBUGIFC=y
+ CONFIG_USB_GSPCA_SONIXJ=m
+-CONFIG_DVB_USB_DIBUSB_MB_FAULTY=y
+-CONFIG_DVB_DRX397XD=m
++# CONFIG_DVB_USB_DIBUSB_MB_FAULTY is not set
++# CONFIG_DVB_DRX397XD is not set
+ CONFIG_VIDEO_CX25840=m
+ CONFIG_VIDEO_VP27SMPX=m
+-CONFIG_DVB_B2C2_FLEXCOP_USB=m
++# CONFIG_DVB_B2C2_FLEXCOP_USB is not set
+ CONFIG_VIDEO_TVP5150=m
+ CONFIG_VIDEO_SAA5246A=m
+ CONFIG_MEDIA_TUNER_SIMPLE=m
+ CONFIG_VIDEO_TEA6415C=m
+-CONFIG_DVB_OR51211=m
++# CONFIG_DVB_OR51211 is not set
+ CONFIG_VIDEO_OVCAMCHIP=m
+-CONFIG_DVB_AV7110_OSD=y
++# CONFIG_DVB_AV7110_OSD is not set
+ CONFIG_VIDEO_ZORAN_LML33=m
+ CONFIG_USB_PWC_INPUT_EVDEV=y
+ CONFIG_SOC_CAMERA_MT9M111=m
+@@ -72,115 +72,115 @@
+ CONFIG_SOC_CAMERA_OV772X=m
+ CONFIG_VIDEO_CX88=m
+ CONFIG_VIDEO_W9966=m
+-CONFIG_DVB_S5H1411=m
++# CONFIG_DVB_S5H1411 is not set
+ CONFIG_VIDEO_TCM825X=m
+ CONFIG_USB_S2255=m
+ CONFIG_RADIO_ZOLTRIX=m
+-CONFIG_DVB_PLL=m
+-CONFIG_DVB_LGDT330X=m
++# CONFIG_DVB_PLL is not set
++# CONFIG_DVB_LGDT330X is not set
+ CONFIG_RADIO_TYPHOON_PROC_FS=y
+-CONFIG_DVB_STB0899=m
++# CONFIG_DVB_STB0899 is not set
+ CONFIG_SND_FM801_TEA575X_BOOL=y
+-CONFIG_DVB_LNBP21=m
+-CONFIG_DVB_B2C2_FLEXCOP=m
++# CONFIG_DVB_LNBP21 is not set
++# CONFIG_DVB_B2C2_FLEXCOP is not set
+ CONFIG_USB_GSPCA_SONIXB=m
+ CONFIG_USB_GSPCA_ZC3XX=m
+-CONFIG_VIDEO_BT848_DVB=y
++# CONFIG_VIDEO_BT848_DVB is not set
+ CONFIG_VIDEO_ZORAN_DC10=m
+ CONFIG_DVB_USB_CINERGY_T2=m
+ CONFIG_RADIO_TERRATEC=m
+ CONFIG_VIDEO_KS0127=m
+-CONFIG_DVB_VES1820=m
+-CONFIG_VIDEO_PVRUSB2_DVB=y
++# CONFIG_DVB_VES1820 is not set
++# CONFIG_VIDEO_PVRUSB2_DVB is not set
+ CONFIG_VIDEO_DEV=m
+ CONFIG_VIDEO_SAA717X=m
+ CONFIG_RADIO_TEA5764=m
+ CONFIG_MT9M001_PCA9536_SWITCH=y
+ CONFIG_MEDIA_TUNER_MT20XX=m
+-CONFIG_VIDEO_CX23885=m
++# CONFIG_VIDEO_CX23885 is not set
+ CONFIG_USB_DABUSB=m
+-CONFIG_DVB_BUDGET=m
+-CONFIG_DVB_VES1X93=m
++# CONFIG_DVB_BUDGET is not set
++# CONFIG_DVB_VES1X93 is not set
+ CONFIG_VIDEO_ALLOW_V4L1=y
+ CONFIG_VIDEO_CS5345=m
+ # CONFIG_RADIO_GEMTEK_PROBE is not set
+ CONFIG_USB_GSPCA_SPCA506=m
+-CONFIG_DVB_ISL6421=m
++# CONFIG_DVB_ISL6421 is not set
+ CONFIG_USB_GSPCA_PAC207=m
+-CONFIG_DVB_NXT6000=m
++# CONFIG_DVB_NXT6000 is not set
+ CONFIG_DVB_TTUSB_DEC=m
+ CONFIG_SND_FM801_TEA575X=m
+-CONFIG_DVB_USB_NOVA_T_USB2=m
++# CONFIG_DVB_USB_NOVA_T_USB2 is not set
+ CONFIG_MEDIA_TUNER_XC5000=m
+ CONFIG_RADIO_MAXIRADIO=m
+-CONFIG_DVB_TDA10048=m
++# CONFIG_DVB_TDA10048 is not set
+ CONFIG_MEDIA_TUNER_MXL5005S=m
+ CONFIG_MEDIA_TUNER_TEA5761=m
+ CONFIG_VIDEO_TDA7432=m
+ CONFIG_VIDEOBUF_DMA_SG=m
+ CONFIG_MEDIA_TUNER_MT2266=m
+-CONFIG_VIDEO_CX18=m
+-CONFIG_DVB_TDA1004X=m
++# CONFIG_VIDEO_CX18 is not set
++# CONFIG_DVB_TDA1004X is not set
+ CONFIG_VIDEO_MXB=m
+-CONFIG_DVB_STV6110=m
++# CONFIG_DVB_STV6110 is not set
+ CONFIG_VIDEO_ADV7170=m
+ CONFIG_DVB_DYNAMIC_MINORS=y
+ CONFIG_SOC_CAMERA_PLATFORM=m
+ CONFIG_VIDEO_TDA9840=m
+ # CONFIG_VIDEO_PXA27x is not set
+-CONFIG_DVB_TDA10023=m
++# CONFIG_DVB_TDA10023 is not set
+ CONFIG_VIDEO_V4L2=m
+-CONFIG_DVB_S5H1409=m
+-CONFIG_DVB_USB_DIBUSB_MB=m
++# CONFIG_DVB_S5H1409 is not set
++# CONFIG_DVB_USB_DIBUSB_MB is not set
+ CONFIG_VIDEO_SAA7134_ALSA=m
+ CONFIG_VIDEO_IR_I2C=m
+-CONFIG_DVB_USB_AF9015=m
+-CONFIG_DVB_B2C2_FLEXCOP_DEBUG=y
++# CONFIG_DVB_USB_AF9015 is not set
++# CONFIG_DVB_B2C2_FLEXCOP_DEBUG is not set
+ CONFIG_VIDEO_SAA6588=m
+ # CONFIG_VIDEO_MX3 is not set
+ CONFIG_MEDIA_TUNER_TEA5767=m
+-CONFIG_DVB_L64781=m
++# CONFIG_DVB_L64781 is not set
+ CONFIG_DVB_CAPTURE_DRIVERS=y
+ CONFIG_USB_GSPCA_TV8532=m
+-CONFIG_DVB_LGDT3304=m
++# CONFIG_DVB_LGDT3304 is not set
+ CONFIG_RADIO_ADAPTERS=y
+-CONFIG_DVB_USB_OPERA1=m
+-CONFIG_DVB_MT352=m
++# CONFIG_DVB_USB_OPERA1 is not set
++# CONFIG_DVB_MT352 is not set
+ CONFIG_RADIO_GEMTEK_PCI=m
+-CONFIG_DVB_USB_M920X=m
++# CONFIG_DVB_USB_M920X is not set
+ CONFIG_VIDEO_PVRUSB2_SYSFS=y
+-CONFIG_DVB_USB_DIGITV=m
++# CONFIG_DVB_USB_DIGITV is not set
+ CONFIG_VIDEO_MSP3400=m
+ CONFIG_VIDEO_BWQCAM=m
+-CONFIG_DVB_USB_UMT_010=m
++# CONFIG_DVB_USB_UMT_010 is not set
+ CONFIG_USB_GSPCA_SUNPLUS=m
+ CONFIG_SOC_CAMERA_TW9910=m
+ CONFIG_USB_W9968CF=m
+ CONFIG_MEDIA_TUNER_MXL5007T=m
+ CONFIG_USB_SN9C102=m
+ CONFIG_SOC_CAMERA_MT9M001=m
+-CONFIG_DVB_DIB3000MB=m
++# CONFIG_DVB_DIB3000MB is not set
+ CONFIG_RADIO_GEMTEK=m
+ CONFIG_VIDEO_CQCAM=m
+-CONFIG_DVB_LGS8GL5=m
++# CONFIG_DVB_LGS8GL5 is not set
+ CONFIG_RADIO_RTRACK2=m
+ CONFIG_VIDEO_TUNER=m
+ CONFIG_USB_GSPCA_OV519=m
+-CONFIG_DVB_USB_DIBUSB_MC=m
++# CONFIG_DVB_USB_DIBUSB_MC is not set
+ CONFIG_VIDEO_PMS=m
+ # CONFIG_DVB_FE_CUSTOMISE is not set
+ CONFIG_USB_OV511=m
+ CONFIG_MT9V022_PCA9536_SWITCH=y
+ CONFIG_VIDEO_CAPTURE_DRIVERS=y
+ CONFIG_VIDEOBUF_DMA_CONTIG=m
+-CONFIG_DVB_AF9013=m
++# CONFIG_DVB_AF9013 is not set
+ CONFIG_VIDEO_ADV_DEBUG=y
+ CONFIG_VIDEO_SAA711X=m
+-CONFIG_DVB_MT312=m
++# CONFIG_DVB_MT312 is not set
+ CONFIG_VIDEO_CX88_ALSA=m
+ # CONFIG_VIDEO_OMAP2 is not set
+-CONFIG_DVB_CX24116=m
+-CONFIG_DVB_USB_DW2102=m
++# CONFIG_DVB_CX24116 is not set
++# CONFIG_DVB_USB_DW2102 is not set
+ CONFIG_SND_BT87X=m
+ CONFIG_VIDEO_MEDIA=m
+ CONFIG_VIDEO_EM28XX=m
+@@ -192,76 +192,76 @@
+ CONFIG_VIDEO_STRADIS=m
+ CONFIG_USB_ZC0301=m
+ CONFIG_USB_SI470X=m
+-CONFIG_DVB_OR51132=m
++# CONFIG_DVB_OR51132 is not set
+ CONFIG_VIDEO_TDA9875=m
+-CONFIG_VIDEO_CX88_DVB=m
++# CONFIG_VIDEO_CX88_DVB is not set
+ CONFIG_DVB_SIANO_SMS1XXX_SMS_IDS=y
+ CONFIG_USB_GSPCA_SPCA501=m
+ CONFIG_USB_GSPCA_SPCA508=m
+ CONFIG_USB_GSPCA_SPCA505=m
+ CONFIG_MEDIA_TUNER_MT2060=m
+-CONFIG_DVB_AU8522=m
++# CONFIG_DVB_AU8522 is not set
+ CONFIG_RADIO_TYPHOON=m
+ CONFIG_VIDEO_CS53L32A=m
+-CONFIG_DVB_BUDGET_PATCH=m
++# CONFIG_DVB_BUDGET_PATCH is not set
+ CONFIG_SOC_CAMERA_MT9T031=m
+-CONFIG_DVB_ZL10353=m
+-CONFIG_DVB_CX24110=m
++# CONFIG_DVB_ZL10353 is not set
++# CONFIG_DVB_CX24110 is not set
+ # CONFIG_DVB_AV7110_FIRMWARE is not set
+ CONFIG_USB_GSPCA=m
+-CONFIG_DVB_DIB7000M=m
+-CONFIG_VIDEO_SAA7134_DVB=m
++# CONFIG_DVB_DIB7000M is not set
++# CONFIG_VIDEO_SAA7134_DVB is not set
+ CONFIG_USB_GSPCA_VC032X=m
+ CONFIG_DVB_SIANO_SMS1XXX=m
+ CONFIG_VIDEO_ADV7175=m
+ CONFIG_VIDEO_EM28XX_ALSA=m
+ CONFIG_VIDEO_USBVIDEO=m
+-CONFIG_DVB_DIB3000MC=m
++# CONFIG_DVB_DIB3000MC is not set
+ CONFIG_MEDIA_TUNER_MC44S803=m
+-CONFIG_DVB_TDA8261=m
++# CONFIG_DVB_TDA8261 is not set
+ CONFIG_VIDEO_MEYE=m
+ CONFIG_VIDEO_CX88_MPEG=m
+ CONFIG_USB_QUICKCAM_MESSENGER=m
+ CONFIG_DVB_BUDGET_CORE=m
+-CONFIG_DVB_TDA8083=m
++# CONFIG_DVB_TDA8083 is not set
+ CONFIG_VIDEO_CX2341X=m
+ # CONFIG_VIDEO_SH_MOBILE_CEU is not set
+ CONFIG_DVB_CORE=m
+ CONFIG_VIDEO_IVTV=m
+ CONFIG_USB_GSPCA_SQ905=m
+-CONFIG_DVB_TUNER_CX24113=m
+-CONFIG_DVB_STB6100=m
+-CONFIG_DVB_AV7110=m
+-CONFIG_VIDEO_EM28XX_DVB=m
+-CONFIG_DVB_STV0299=m
++# CONFIG_DVB_TUNER_CX24113 is not set
++# CONFIG_DVB_STB6100 is not set
++# CONFIG_DVB_AV7110 is not set
++# CONFIG_VIDEO_EM28XX_DVB is not set
++# CONFIG_DVB_STV0299 is not set
+ CONFIG_MEDIA_TUNER_QT1010=m
+ # CONFIG_VIDEO_M32R_AR is not set
+ CONFIG_VIDEO_CPIA2=m
+ CONFIG_VIDEO_SAA7146_VV=m
+ CONFIG_USB_KONICAWC=m
+-CONFIG_DVB_USB_DIB0700=m
++# CONFIG_DVB_USB_DIB0700 is not set
+ CONFIG_VIDEO_PVRUSB2=m
+ CONFIG_VIDEO_SAA7134=m
+ CONFIG_VIDEO_TVP514X=m
+-CONFIG_DVB_TUA6100=m
++# CONFIG_DVB_TUA6100 is not set
+ CONFIG_VIDEO_CAFE_CCIC=m
+ CONFIG_USB_PWC_DEBUG=y
+ CONFIG_USB_GSPCA_SPCA500=m
+ CONFIG_TTPCI_EEPROM=m
+-CONFIG_DVB_NXT200X=m
++# CONFIG_DVB_NXT200X is not set
+ CONFIG_VIDEO_ZORAN_ZR36060=m
+ CONFIG_MEDIA_TUNER_TDA8290=m
+ CONFIG_VIDEO_SAA7185=m
+ CONFIG_USB_STV680=m
+ CONFIG_VIDEO_TEA6420=m
+-CONFIG_DVB_STV0297=m
++# CONFIG_DVB_STV0297 is not set
+ CONFIG_RADIO_SF16FMR2=m
+ CONFIG_USB_ZR364XX=m
+ CONFIG_VIDEOBUF_VMALLOC=m
+ CONFIG_VIDEO_CPIA_USB=m
+ CONFIG_USB_PWC=m
+-CONFIG_DVB_USB_DTV5100=m
+-CONFIG_DVB_DM1105=m
++# CONFIG_DVB_USB_DTV5100 is not set
++# CONFIG_DVB_DM1105 is not set
+ # CONFIG_RADIO_TEA5764_XTAL is not set
+ CONFIG_DVB_USB_DTT200U=m
+ CONFIG_VIDEO_TVEEPROM=m
+@@ -269,31 +269,31 @@
+ CONFIG_VIDEO_HEXIUM_GEMINI=m
+ CONFIG_VIDEO_ZORAN_LML33R10=m
+ CONFIG_VIDEO_CPIA_PP=m
+-CONFIG_DVB_TDA10021=m
++# CONFIG_DVB_TDA10021 is not set
+ CONFIG_VIDEO_ZORAN_AVS6EYES=m
+ CONFIG_MEDIA_TUNER_TDA9887=m
+-CONFIG_DVB_USB_AU6610=m
++# CONFIG_DVB_USB_AU6610 is not set
+ CONFIG_VIDEO_SAA7191=m
+ CONFIG_MEDIA_ATTACH=y
+ CONFIG_RADIO_TRUST=m
+-CONFIG_DVB_USB_GL861=m
++# CONFIG_DVB_USB_GL861 is not set
+ CONFIG_USB_GSPCA_ETOMS=m
+ CONFIG_VIDEO_FB_IVTV=m
+ CONFIG_VIDEO_BT819=m
+ CONFIG_VIDEO_SAA7146=m
+-CONFIG_DVB_TUNER_ITD1000=m
++# CONFIG_DVB_TUNER_ITD1000 is not set
+ CONFIG_VIDEO_BTCX=m
+ CONFIG_VIDEO_V4L1_COMPAT=y
+ CONFIG_VIDEOBUF_DVB=m
+-CONFIG_DVB_S921=m
++# CONFIG_DVB_S921 is not set
+ # CONFIG_VIDEO_FIXED_MINOR_RANGES is not set
+ CONFIG_DVB_USB_VP7045=m
+ CONFIG_VIDEO_ZORAN=m
+-CONFIG_DVB_CX24123=m
++# CONFIG_DVB_CX24123 is not set
+ CONFIG_RADIO_RTRACK=m
+ CONFIG_USB_MR800=m
+ CONFIG_MEDIA_TUNER_MT2131=m
+-CONFIG_DVB_STV0288=m
++# CONFIG_DVB_STV0288 is not set
+ CONFIG_MEDIA_TUNER_CUSTOMIZE=y
+ CONFIG_USB_VIDEO_CLASS=m
+ CONFIG_VIDEO_HEXIUM_ORION=m
+@@ -301,34 +301,34 @@
+ CONFIG_USB_GSPCA_MR97310A=m
+ CONFIG_VIDEO_UPD64031A=m
+ CONFIG_VIDEO_TVAUDIO=m
+-CONFIG_DVB_PLUTO2=m
+-CONFIG_DVB_STB6000=m
+-CONFIG_DVB_BUDGET_CI=m
++# CONFIG_DVB_PLUTO2 is not set
++# CONFIG_DVB_STB6000 is not set
++# CONFIG_DVB_BUDGET_CI is not set
+ CONFIG_DVB_USB_GP8PSK=m
+ CONFIG_USB_IBMCAM=m
+ CONFIG_SND_BT87X_OVERCLOCK=y
+-CONFIG_DVB_USB_TTUSB2=m
+-CONFIG_DVB_TDA826X=m
+-CONFIG_DVB_TDA10086=m
+-CONFIG_DVB_TTUSB_BUDGET=m
++# CONFIG_DVB_USB_TTUSB2 is not set
++# CONFIG_DVB_TDA826X is not set
++# CONFIG_DVB_TDA10086 is not set
++# CONFIG_DVB_TTUSB_BUDGET is not set
+ CONFIG_VIDEO_TLV320AIC23B=m
+ CONFIG_VIDEO_WM8775=m
+ # CONFIG_VIDEO_VINO is not set
+-CONFIG_DVB_SP887X=m
+-CONFIG_DVB_DIB7000P=m
++# CONFIG_DVB_SP887X is not set
++# CONFIG_DVB_DIB7000P is not set
+ CONFIG_USB_GSPCA_CONEX=m
+ CONFIG_USB_ET61X251=m
+ CONFIG_VIDEO_V4L1=m
+ # CONFIG_VIDEO_M32R_AR_M64278 is not set
+ CONFIG_USB_SE401=m
+-CONFIG_DVB_SI21XX=m
+-CONFIG_DVB_ZL10036=m
+-CONFIG_DVB_BCM3510=m
+-CONFIG_DVB_STV0900=m
++# CONFIG_DVB_SI21XX is not set
++# CONFIG_DVB_ZL10036 is not set
++# CONFIG_DVB_BCM3510 is not set
++# CONFIG_DVB_STV0900 is not set
+ CONFIG_VIDEO_SAA5249=m
+ CONFIG_DVB_USB_AF9005_REMOTE=m
+-CONFIG_VIDEO_AU0828=m
++# CONFIG_VIDEO_AU0828 is not set
+ CONFIG_VIDEO_ZORAN_DC30=m
+-CONFIG_DVB_USB_A800=m
++# CONFIG_DVB_USB_A800 is not set
+ CONFIG_V4L_USB_DRIVERS=y
+ CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
+
+--=-EjcUob24cTHaUxKE9fHz--
+
