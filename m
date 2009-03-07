@@ -1,56 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-6.csi.cam.ac.uk ([131.111.8.136]:45539 "EHLO
-	ppsw-6.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760958AbZCPOnU (ORCPT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:56662 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752289AbZCGBo7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 10:43:20 -0400
-Message-ID: <49BE657E.7040109@cam.ac.uk>
-Date: Mon, 16 Mar 2009 14:43:10 +0000
-From: Jonathan Cameron <jic23@cam.ac.uk>
-MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Subject: Re: RFC: ov7670 soc-camera driver
-References: <49BD3669.1070409@cam.ac.uk> <20090315162338.3be11fec@bike.lwn.net>
-In-Reply-To: <20090315162338.3be11fec@bike.lwn.net>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 6 Mar 2009 20:44:59 -0500
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Trent Piepho <xyzzy@speakeasy.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean Delvare <khali@linux-fr.org>
+In-Reply-To: <Pine.LNX.4.64.0903070144520.5665@axis700.grange>
+References: <200903022218.24259.hverkuil@xs4all.nl>
+	 <20090304141715.0a1af14d@pedra.chehab.org>
+	 <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
+	 <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
+	 <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
+	 <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
+	 <Pine.LNX.4.64.0903052315530.4980@axis700.grange>
+	 <Pine.LNX.4.58.0903061532210.24268@shell2.speakeasy.net>
+	 <Pine.LNX.4.64.0903070144520.5665@axis700.grange>
+Content-Type: text/plain
+Date: Sat, 07 Mar 2009 02:46:22 +0100
+Message-Id: <1236390382.2259.17.camel@pc09.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jonathan Corbet wrote:
-> On Sun, 15 Mar 2009 17:10:01 +0000
-> Jonathan Cameron <jic23@cam.ac.uk> wrote:
-> 
->> The primary control on this chip related to shutter rate is actualy
->> the frame rate. There are rather complex (and largerly undocumented)
->> interactions between this setting and the auto brightness controls
->> etc. Anyone have any suggestions on a better way of specifying this?
-> 
-> Welcome to the world of the ov7670!  My conclusion, after working with
-> this sensor, is that is consists of something like 150 analog tweakers
-> disguised as digital registers.  Everything interacts with everything
-> else, many of the settings are completely undocumented, and that's not
-> to mention the weird multiplexor at 0x79.  It's hard to make this thing
-> work if you don't have a blessed set of settings from OmniVision.
-Hmm... And the grape vine / rumour says that they get most of their
-'magic' values from customers who tweak the chips enough to get something
-working.
+Hi,
 
-Thanks for all the good work you put in.  Only other useful info was
-the tinyos driver and that was a port of yours in the first place ;)
-
-I'm particularly fond of the apparently obvious registers that won't
-take a write unless something else is in a particular state.
+Am Samstag, den 07.03.2009, 01:46 +0100 schrieb Guennadi Liakhovetski:
+> On Fri, 6 Mar 2009, Trent Piepho wrote:
 > 
->> Clearly this driver shares considerable portions of code with
->> Jonathan Corbet's driver (in tree). It would be complex to combine
->> the two drivers, but perhaps people feel this would be worthwhile?
+> > On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
+> > > On Thu, 5 Mar 2009, Trent Piepho wrote:
+> > > > ALSA used a partial tree, but their system was much worse than v4l-dvb's.
+> > > > I think the reason more systems don't do it is that setting up the build
+> > > > system we have with v4l-dvb was a lot of work.  They don't have that.
+> > >
+> > > Right, it was a lot of work, it is still quite a bit of work (well, I'm
+> > > not doing that work directly, but it affetcs me too, when I have to adjust
+> > > patches, that I generated from a complete kernel tree to fit
+> > > compatibility-"emhanced" versions), and it is not going to be less work.
+> > 
+> > Why must you generate your patches from a different tree?  One could just
+> > as well say that the linux kernel indentation style is more work, since
+> > they use GNU style have to translate their patch from a re-indented tree.
 > 
-> I think it's necessary, really.  Having two drivers for the same device
-> seems like a bad idea.  As Hans noted, he's already put quite a bit of
-> work into generalizing the ov7670 driver; I think it would be best to
-> work with him to get a driver that works for everybody.
-That sounds like a good plan.  Now all we need is some time ;)
+> [snip]
+> 
+> Hans has already answered your question very well in this thread. I don't 
+> think I can add anything.
+> 
+> Thanks
+> Guennadi
 
-Jonathan
+for me Trent clearly has the better arguments, but I do have of course a
+different point of view.
+
+Let's have this embedded Linux conference and listen to the arguments we
+hopefully get some links to.
+
+There is a lot going on, but you must convince me at least to buy some
+of this stuff I call gadgets. I don't see any need so far ;)
+
+You likely can get still anybody seriously interested to build the
+always next rc1 and then one close to the final next kernel release too,
+but I seriously doubt that you can convince anybody at all to give up
+totally what we have for embedded mixed trees fun on latest git and
+break all others by will for your latest pleasure.
+
+Cheers,
+Hermann
+
+
+
+
