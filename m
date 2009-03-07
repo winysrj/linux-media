@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2AJkuGu025028
-	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 15:46:56 -0400
-Received: from pne-smtpout2-sn1.fre.skanova.net
-	(pne-smtpout2-sn1.fre.skanova.net [81.228.11.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2AJkbk0011804
-	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 15:46:37 -0400
-Message-ID: <49B6C39B.5030308@gmail.com>
-Date: Tue, 10 Mar 2009 20:46:35 +0100
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-MIME-Version: 1.0
-To: Marco Baldo <marco.baldo.ve@gmail.com>
-References: <757044da0903100159p45c69bf6k518c56eb36ad67a6@mail.gmail.com>
-In-Reply-To: <757044da0903100159p45c69bf6k518c56eb36ad67a6@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n27NRv3O021121
+	for <video4linux-list@redhat.com>; Sat, 7 Mar 2009 18:27:57 -0500
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n27NRZoc028099
+	for <video4linux-list@redhat.com>; Sat, 7 Mar 2009 18:27:36 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: rahul G <freevofc6@gmail.com>
+In-Reply-To: <ca1417c50903060547l7cedda32q8795dc5a40b896dd@mail.gmail.com>
+References: <ca1417c50903060547l7cedda32q8795dc5a40b896dd@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 08 Mar 2009 00:28:59 +0100
+Message-Id: <1236468539.2203.16.camel@pc09.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, m560x-driver-devel@sourceforge.net
-Subject: Re: About support for the ALi m5602 usb bridge
+Cc: video4linux-list@redhat.com
+Subject: Re: Problem with the TV out Sound !!!
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,43 +28,111 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
-
-
-Marco Baldo wrote:
-> Hi,
-> I have a Asus A6K notebook with the webcam sensor mounted upside down.
-> Please insert this model too, in the patch released by Erik Andren:
+Am Freitag, den 06.03.2009, 19:17 +0530 schrieb rahul G:
+>  Hi All....
+>             I am using Pinnacle 50i TV tuner card for watching TV but
+> Radio functionality is not working with the card when I used
+> "/sbin/modprobe saa7134 card=77 tuner=54".
+> TV is working fine with this on linux-2.26.23.3.But when I used
+> "/sbin/modprobe saa7134 card=65 tuner=54" my radio is working fine
+> with this tuner card and not  TV.
+> When I tried with Linux-2.26.23.1 kernel with same command
+> "/sbin/modprobe saa7134 card=77 tuner=54" radio is working fine but
+> sound coming out from the device is too small.which not audiable.Can
+> any one tell me the reason behind this.
 > 
-> +	{
-> +		.ident = "ASUS A6K",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-> +			DMI_MATCH(DMI_PRODUCT_NAME, "A6K")
-> +		}
-> +	},
+> Thanks In Advance..
 > 
-> I did it and my webcam works now.
-
-Quirk added, thanks for reporting.
-
-Best regards,
-Erik
-
+> Regards,
+> Rahul G
 > 
-> Best regards
-> Marco Baldo
-> Italy
-> 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
 
-iEYEARECAAYFAkm2w5oACgkQN7qBt+4UG0FJnQCZAf3kHt4R3OGo1sj6HjZ9JNX/
-ODAAn39NRHJ4p0CeuWJ1IfPLtK3spiHx
-=wKbf
------END PGP SIGNATURE-----
+hmm, on my 2.6.26 sources radio settings for card=65 and card=77 are
+exactly the same. Please confirm about which kernel versions you are
+talking. I know radio was not functional on card=77 and older kernels.
+
+	[SAA7134_BOARD_PINNACLE_PCTV_110i] = {
+	       .name           = "Pinnacle PCTV 40i/50i/110i (saa7133)",
+		.audio_clock    = 0x00187de7,
+		.tuner_type     = TUNER_PHILIPS_TDA8290,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.gpiomask       = 0x080200000,
+		.inputs         = { {
+			.name = name_tv,
+			.vmux = 4,
+			.amux = TV,
+			.tv   = 1,
+		}, {
+			.name = name_comp1,
+			.vmux = 1,
+			.amux = LINE2,
+		}, {
+			.name = name_comp2,
+			.vmux = 0,
+			.amux = LINE2,
+		}, {
+			.name = name_svideo,
+			.vmux = 8,
+			.amux = LINE2,
+		} },
+		.radio = {
+			.name = name_radio,
+			.amux = TV,
+			.gpio = 0x0200000,
+		},
+	},
+
+----
+
+	[SAA7134_BOARD_KWORLD_TERMINATOR] = {
+		/* Kworld V-Stream Studio TV Terminator */
+		/* "James Webb <jrwebb@qwest.net> */
+		.name           = "V-Stream Studio TV Terminator",
+		.audio_clock    = 0x00187de7,
+		.tuner_type     = TUNER_PHILIPS_TDA8290,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.gpiomask       = 1 << 21,
+		.inputs         = {{
+			.name = name_tv,
+			.vmux = 1,
+			.amux = TV,
+			.gpio = 0x0000000,
+			.tv   = 1,
+		},{
+			.name = name_comp1,     /* Composite input */
+			.vmux = 3,
+			.amux = LINE2,
+			.gpio = 0x0000000,
+		},{
+			.name = name_svideo,    /* S-Video input */
+			.vmux = 8,
+			.amux = LINE2,
+			.gpio = 0x0000000,
+		}},
+		.radio = {
+			.name = name_radio,
+			.amux = TV,
+			.gpio = 0x0200000,
+		},
+	},
+
+Ricardo only used a gpio mask extended to four bytes and the last bit
+high, what is seen regularly on the windows drivers.
+
+However, it doesn't matter, since the chip has only 28 gpio pins (0-27).
+
+Does it really makes still a difference if you use radio now on 2.6.26
+with card=65 ?
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
