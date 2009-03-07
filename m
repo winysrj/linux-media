@@ -1,67 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:42507 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752674AbZCaK4U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 06:56:20 -0400
-Date: Tue, 31 Mar 2009 07:56:10 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Gabriele Dini Ciacci <dark.schneider@iol.it>
-Cc: linux-media@vger.kernel.org,
-	Patrick Boettcher <patrick.boettcher@desy.de>
-Subject: Re: [PATCH] Drivers for Pinnacle pctv200e and pctv60e
-Message-ID: <20090331075610.53620db8@pedra.chehab.org>
-In-Reply-To: <20090329155608.396d2257@gdc1>
-References: <20090329155608.396d2257@gdc1>
+Received: from fk-out-0910.google.com ([209.85.128.190]:65248 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752397AbZCGJCm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2009 04:02:42 -0500
+Received: by fk-out-0910.google.com with SMTP id f33so284346fkf.5
+        for <linux-media@vger.kernel.org>; Sat, 07 Mar 2009 01:02:39 -0800 (PST)
+Date: Sat, 7 Mar 2009 18:02:24 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Hans J. Koch" <hjk@linutronix.de>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Subject: Re: saa7134 and RDS
+Message-ID: <20090307180224.7b65522d@glory.loctelecom.ru>
+In-Reply-To: <200903070954.08696.hverkuil@xs4all.nl>
+References: <54836.62.70.2.252.1236254830.squirrel@webmail.xs4all.nl>
+	<200903051736.44582.hverkuil@xs4all.nl>
+	<20090307015506.GC3058@local>
+	<200903070954.08696.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gabriele,
+Hi 
 
-On Sun, 29 Mar 2009 15:56:08 +0200
-Gabriele Dini Ciacci <dark.schneider@iol.it> wrote:
+I build rdsd. But can't start. See log:
 
-> Hello,
+Fri Mar  6 03:44:20 2009 RDS handler initialized.
+Fri Mar  6 03:44:20 2009 Added source definition: Beholder M6 Exra
+Fri Mar  6 03:44:20 2009 RDS sources setup OK.
+Fri Mar  6 03:44:20 2009 Unix domain socket created and listening.
+Fri Mar  6 03:44:20 2009 TCP/IP socket created and listening.
+Fri Mar  6 03:44:20 2009 Using V4L2 for Beholder M6 Exra
+Fri Mar  6 03:44:20 2009 open_sources() failed.
+Fri Mar  6 03:44:20 2009 rdsd terminating with error code 13
+
+With my best regards, Dmitry.
+
+> On Saturday 07 March 2009 02:55:06 Hans J. Koch wrote:
+> > On Thu, Mar 05, 2009 at 05:36:44PM +0100, Hans Verkuil wrote:
+> > > On Thursday 05 March 2009 13:07:10 Hans Verkuil wrote:
+> > > > > Hi Hans
+> > > > >
+> > > > > I build fresh video4linux with your patch and my config for
+> > > > > our cards. In a dmesg i see : found RDS decoder.
+> > > > > cat /dev/radio0 give me some slow junk data. Is this RDS
+> > > > > data?? Have you any tools for testing RDS?
+> > > > > I try build rdsd from Hans J. Koch, but build crashed with:
+> > > > >
+> > > > > rdshandler.cpp: In member function âvoid
+> > > > > std::RDShandler::delete_client(std::RDSclient*)â:
+> > > > > rdshandler.cpp:363: error: no matching function for call to
+> > > > > âfind(__gnu_cxx::__normal_iterator<std::RDSclient**,
+> > > > > std::vector<std::RDSclient*, std::allocator<std::RDSclient*>
+> > > > > > >, __gnu_cxx::__normal_iterator<std::RDSclient**,
+> > > > > std::vector<std::RDSclient*, std::allocator<std::RDSclient*>
+> > > > > > >, std::RDSclient*&)â
+> > > >
+> > > > Ah yes, that's right. I had to hack the C++ source to make this
+> > > > compile. I'll see if I can post a patch for this tonight.
+> > >
+> > > Attached is the diff that makes rdsd compile on my system.
+> >
+> > Great, thanks! The problem is, I really haven't got the time for RDS
+> > anymore. I simply cannot test your patch and check it in. From your
+> > previous contributions I know you as a competent and trustworthy v4l
+> > developer and would give you write access to the repository.
+> > Interested?
 > 
-> This is a stub patch to make the subjects card work.
+> Erm, not really. When the API is finalized I want to make some sort
+> of a simple reference utility/library for this and add it to v4l-dvb.
+> To be honest, I think having a daemon just complicates matters
+> unnecessarily.
 > 
-> I am using the driver on a pctv60e and it is very stable, I use it
-> daily. It should work for pctv200e but not owning the device I cannot
-> test it.
+> Regards,
 > 
-> The code need to be cleaned, as I am not an experienced kernel coder.
-> The code in mt352.c contains an hard-coded address for the device, while
-> Pinnalce devices with that tuner uses a different address. Currently
-> the address is "hijacked" to be the correct one. This is a hack, and i
-> think that mt352.c should be changed to support multiple addresses,
-> selected via params, duplicate code or something.
+> 	Hans
 > 
-> Remote support is missing, cause it was not working out of the box. I
-> do not use it and so developing it for myself only was not very useful,
-> if someone wants it or is interested I can have a look.
 > 
-> The patch is generally messy, I need help there. I do not know if I
-> have to change all the functions to take as parameter an adapter_nr or
-> change the caller to continue to pass them a struct dvb_usb_device
-> obtained with i2c_get_adapdata(adapter_nr).
-> 
-> Here is the patch, as an attachment, thanks meanwhile.
-
-Well, let's go by parts. 
-
-It seems that you wrote your driver based on some USB sniffing. Do you know
-what are the chipsets present on your driver? Maybe there's another driver
-already developed or under development for the same chipset.
-
-In the case of your patch, you should first run checkpatch.pl for it to show you
-the non-compliances of your driver and Linux Kernel CodingStyle. checkpatch.pl
-is avaliable at kernel tree, under /scripts dir. You'll also find it at v4l-dvb
-development tree, at v4l/script/checkpatch.pl.
-
-It is also a good idea to read README.patches at v4l-dvb development tree.
-
-Cheers,
-Mauro
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
