@@ -1,70 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42706 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754080AbZCZWHu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 18:07:50 -0400
-Date: Thu, 26 Mar 2009 22:07:13 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Dave Strauss <Dave.Strauss@zoran.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
-Message-ID: <20090326220713.GC32555@n2100.arm.linux.org.uk>
-References: <49C89F00.1020402@gmail.com> <Pine.LNX.4.64.0903261405520.5438@axis700.grange> <49CBD53C.6060700@gmail.com> <20090326170910.6926d8de@pedra.chehab.org> <Pine.LNX.4.64.0903262116410.5438@axis700.grange> <49CBF437.7030603@zoran.com>
+Received: from www.tglx.de ([62.245.132.106]:48997 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751039AbZCGBz3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Mar 2009 20:55:29 -0500
+Date: Sat, 7 Mar 2009 02:55:06 +0100
+From: "Hans J. Koch" <hjk@linutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dmitri Belimov <d.belimov@gmail.com>,
+	"Hans J. Koch" <hjk@linutronix.de>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Subject: Re: saa7134 and RDS
+Message-ID: <20090307015506.GC3058@local>
+References: <54836.62.70.2.252.1236254830.squirrel@webmail.xs4all.nl> <200903051736.44582.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <49CBF437.7030603@zoran.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <200903051736.44582.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 26, 2009 at 05:31:35PM -0400, Dave Strauss wrote:
-> Newbie question -- where does one find checkpatch.pl?  And are there any other
-> tools we should be running on patches before we submit them?
+On Thu, Mar 05, 2009 at 05:36:44PM +0100, Hans Verkuil wrote:
+> On Thursday 05 March 2009 13:07:10 Hans Verkuil wrote:
+> > > Hi Hans
+> > >
+> > > I build fresh video4linux with your patch and my config for our cards.
+> > > In a dmesg i see : found RDS decoder.
+> > > cat /dev/radio0 give me some slow junk data. Is this RDS data??
+> > > Have you any tools for testing RDS?
+> > > I try build rdsd from Hans J. Koch, but build crashed with:
+> > >
+> > > rdshandler.cpp: In member function âvoid
+> > > std::RDShandler::delete_client(std::RDSclient*)â:
+> > > rdshandler.cpp:363: error: no matching function for call to
+> > > âfind(__gnu_cxx::__normal_iterator<std::RDSclient**,
+> > > std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >,
+> > > __gnu_cxx::__normal_iterator<std::RDSclient**,
+> > > std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >,
+> > > std::RDSclient*&)â
+> >
+> > Ah yes, that's right. I had to hack the C++ source to make this compile.
+> > I'll see if I can post a patch for this tonight.
+> 
+> Attached is the diff that makes rdsd compile on my system.
 
-scripts/checkpatch.pl in the kernel source.
+Great, thanks! The problem is, I really haven't got the time for RDS anymore.
+I simply cannot test your patch and check it in. From your previous
+contributions I know you as a competent and trustworthy v4l developer and
+would give you write access to the repository. Interested?
 
-Sparse is another tool which can be used while building the kernel to
-increase the build time checking, but it can be quite noisy, so please
-only look at stuff which pops up for your specific area.
+Thanks,
+Hans, too :)
 
-Also, avoid using __force to shut up sparse warnings - sparse's address
-space separation via use of __user and __iomem tags are supposed to _only_
-be casted away by the final level of code (iow, the bits which really
-do the accesses.)  It's preferred to leave the warnings in place rather
-than silence them.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-In other words:
+> diff -ur rdsd-0.0.1/src/rdsclient.cpp tmp/rdsd-0.0.1/src/rdsclient.cpp
+> --- rdsd-0.0.1/src/rdsclient.cpp	2009-02-10 23:07:02.000000000 +0100
+> +++ tmp/rdsd-0.0.1/src/rdsclient.cpp	2005-12-29 18:01:12.000000000 +0100
+> @@ -18,7 +18,6 @@
+>   *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+>   ***************************************************************************/
+>  #include "rdsclient.h"
+> -#include <stdlib.h>
+>  #include <sstream>
+>  
+>  namespace std {
+> diff -ur rdsd-0.0.1/src/rdsd.cpp tmp/rdsd-0.0.1/src/rdsd.cpp
+> --- rdsd-0.0.1/src/rdsd.cpp	2009-02-10 23:05:29.000000000 +0100
+> +++ tmp/rdsd-0.0.1/src/rdsd.cpp	2005-12-29 11:51:42.000000000 +0100
+> @@ -26,8 +26,7 @@
+>  #include "rdshandler.h"
+>  #include <csignal>
+>  #include <fcntl.h>
+> -#include <string.h>
+> -#include <stdlib.h>
+> +#include <string>
+>  #include <sstream>
+>  
+>  using namespace std;
+> diff -ur rdsd-0.0.1/src/rdshandler.cpp tmp/rdsd-0.0.1/src/rdshandler.cpp
+> --- rdsd-0.0.1/src/rdshandler.cpp	2009-02-10 23:06:18.000000000 +0100
+> +++ tmp/rdsd-0.0.1/src/rdshandler.cpp	2005-12-29 11:52:40.000000000 +0100
+> @@ -25,7 +25,6 @@
+>  #include <unistd.h>
+>  #include <fcntl.h>
+>  #include <sstream>
+> -#include <algorithm>
+>  
+>  namespace std {
+>  
+> @@ -355,7 +354,7 @@
+>        FD_CLR(fd,&all_fds);
+>        cli->Close();
+>      }
+> -    RDSclientList::iterator it = std::find(clientlist.begin(),clientlist.end(),cli);
+> +    RDSclientList::iterator it = find(clientlist.begin(),clientlist.end(),cli);
+>      if (it != clientlist.end()) clientlist.erase(it);
+>      delete cli;
+>      calc_maxfd();
+> diff -ur rdsd-0.0.1/src/rdssource.cpp tmp/rdsd-0.0.1/src/rdssource.cpp
+> --- rdsd-0.0.1/src/rdssource.cpp	2009-02-10 23:06:39.000000000 +0100
+> +++ tmp/rdsd-0.0.1/src/rdssource.cpp	2005-12-29 18:03:56.000000000 +0100
+> @@ -26,7 +26,6 @@
+>  #include <linux/videodev.h>
+>  #include <linux/videodev2.h>
+>  //#include <linux/i2c.h> //lots of errors if I include this...
+> -#include <string.h>
+>  #include <sstream>
+>  
+>  namespace std {
 
-static int blah(void __iomem *ptr)
-{
-	void *foo = ptr;
-	...
-}
-
-will generate a sparse warning.  The right solution to this is:
-
-static int blah(void __iomem *ptr)
-{
-	void __iomem *foo = ptr;
-	...
-}
-
-but if that's not possible for whatever reason, leave it as is and
-definitely do *not* silence it like this:
-
-static int blah(void __iomem *ptr)
-{
-	void *foo = (void __force *)ptr;
-	...
-}
-
-The point of __iomem is to allow static checking that pointers for MMIO
-aren't dereferenced without using the correct accessors, and adding
-such __force casts negates the purpose of sparse.
