@@ -1,482 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rotring.dds.nl ([85.17.178.138]:46779 "EHLO rotring.dds.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752360AbZCGPsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2009 10:48:47 -0500
-Subject: Problem with changeset 10837: causes "make all" not to build many
- modules
-From: Alain Kalker <miki@dds.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20090306074604.10926b03@pedra.chehab.org>
-References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
-	 <20090306074604.10926b03@pedra.chehab.org>
-Content-Type: multipart/mixed; boundary="=-EjcUob24cTHaUxKE9fHz"
-Date: Sat, 07 Mar 2009 16:27:41 +0100
-Message-Id: <1236439661.7569.132.camel@miki-desktop>
-Mime-Version: 1.0
+Received: from [86.34.125.186] ([86.34.125.186]:35932 "EHLO pa-gw.localdomain"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753755AbZCGTxt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2009 14:53:49 -0500
+Received: from pa-mx-2.embit.ro (unknown [89.32.222.3])
+	by pa-gw.localdomain (Postfix) with ESMTP id 9DA2BEF14B
+	for <linux-media@vger.kernel.org>; Sat,  7 Mar 2009 21:43:17 +0200 (EET)
+Received: from localhost (pa-mx-2.embit.ro [127.0.0.1])
+	by pa-mx-2.embit.ro (Postfix) with ESMTP id 8FBA2165806E
+	for <linux-media@vger.kernel.org>; Sat,  7 Mar 2009 21:43:17 +0200 (EET)
+Received: from pa-mx-2.embit.ro ([127.0.0.1])
+	by localhost (pa-mx-1.embit.ro [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 0ft+V1U91iqf for <linux-media@vger.kernel.org>;
+	Sat,  7 Mar 2009 21:43:16 +0200 (EET)
+Received: from dromi.xdev.ro (unknown [89.32.216.194])
+	by pa-mx-2.embit.ro (Postfix) with ESMTPSA id 74C1F165805C
+	for <linux-media@vger.kernel.org>; Sat,  7 Mar 2009 21:43:16 +0200 (EET)
+Message-ID: <49B2CE51.9010002@embit.ro>
+Date: Sat, 07 Mar 2009 21:43:13 +0200
+From: Bogdan Timofte <bogdan@embit.ro>
+Reply-To: bogdan@embit.ro
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: No success with Technisat Skystar HD2 PCI
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
---=-EjcUob24cTHaUxKE9fHz
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+I am trying to install a Technisat Skystar HD2 PCI ard without succes:
 
-Mauro,
+uname -a
+Linux test 2.6.27.19-170.2.35.fc10.i686 #1 SMP Mon Feb 23 13:21:22 EST
+2009 i686 i686 i386 GNU/Linux
 
-Your latest changeset causes many modules (100 in total!) not to be
-built anymore when doing "make all", i.e. without doing any "make
-xconfig"/"make gconfig".
+hg clone http://mercurial.intuxication.org/hg/s2-liplianin
+make
+make install
 
-I think this is related to the config variables for the frontend drivers
-no longer being defined when DVB_FE_CUSTOMISE=n , so the card drivers
-cannot depend on them anymore.
+lspci -vv
+01:02.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
+Bridge Controller [Ver 1.0] (rev 01)
+        Subsystem: Device 1ae4:0003
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 12
+        Region 0: Memory at df200000 (32-bit, prefetchable) [size=4K]
+        Kernel modules: mantis
 
-I've attached a diff between v4l/.config from current revision and
-parent.
+modprobe mantis
+Segmentation fault
 
-Regards,
+dmesg output:
 
-Alain
+Mantis 0000:01:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+=== Interrupts[ffffffff/ffffffff]= [* DMA enabl ** INT IRQ-0 *<1>BUG:
+unable to handle kernel NULL pointer dereference at 00000068
+IP: [<c041b913>] __ticket_spin_lock+0x8/0x19
+*pde = 00000000
+Oops: 0002 [#1] SMP
+Modules linked in: mantis(+) lnbp21 mb86a16 stb6100 tda10021 tda10023
+stb0899 stv0299 dvb_core i2c_i801 i2c_core ppdev tg3 parport_pc
+e752x_edac parport edac_core pcspkr serio_raw iTCO_wdt
+iTCO_vendor_support i6300esb libphy floppy ata_generic pata_acpi [last
+unloaded: scsi_wait_scan]
 
---=-EjcUob24cTHaUxKE9fHz
-Content-Disposition: attachment; filename="dot.config.diff.6f1afb4c6fab-6bd427caa0cb"
-Content-Type: text/x-patch; name="dot.config.diff.6f1afb4c6fab-6bd427caa0cb"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Pid: 11058, comm:
+EIP: 0060:[<c041b913>] EFLAGS: 00010046 CPU: 1
+EIP is at __ticket_spin_lock+0x8/0x19
+EAX: 00000068 EBX: 00000068 ECX: 00000001 EDX: 00000100
+ESI: 00000082 EDI: 0000009c EBP: f61f8df8 ESP: f61f8df8
+DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process modprobe (pid: 11058, ti=f61f8000 task=f6144ce0 task.ti=f61f8000)
+Stack: f61f8e08 c06aae64 00000068 00000001 f61f8e20 c0421f53 00000003
+ffffffff
+       f60e7800 0000009c f61f8e3c f8e2b6ed 00000000 00000000 00000202
+f7803860
+       f8e2b604 f61f8e5c c0465a70 00000080 00000012 01200000 df200000
+f60e7800
+Call Trace:
+[<c06aae64>] ? _spin_lock_irqsave+0x29/0x30
+[<c0421f53>] ? __wake_up+0x15/0x3b
+[<f8e2b6ed>] ? mantis_pci_irq+0xe9/0x240 [mantis]
+[<f8e2b604>] ? mantis_pci_irq+0x0/0x240 [mantis]
+[<c0465a70>] ? request_irq+0xbb/0x10c
+[<f8e2da97>] ? mantis_pci_probe+0x1a3/0x3bf [mantis]
+[<c0594481>] ? get_device+0x13/0x18
+[<c052a4f3>] ? pci_device_probe+0x39/0x59
+[<c05969c4>] ? driver_probe_device+0xa0/0x136
+[<c0596a94>] ? __driver_attach+0x3a/0x59
+[<c05963ea>] ? bus_for_each_dev+0x3b/0x63
+[<c0596869>] ? driver_attach+0x14/0x16
+[<c0596a5a>] ? __driver_attach+0x0/0x59
+[<c0595e5e>] ? bus_add_driver+0x9d/0x1ba
+[<c0596c1b>] ? driver_register+0x81/0xe1
+[<c043ef62>] ? autoremove_wake_function+0x0/0x33
+[<c052a6b2>] ? __pci_register_driver+0x3f/0x6d
+[<f8e2dcca>] ? mantis_pci_init+0x17/0x19 [mantis]
+[<c0401125>] ? _stext+0x3d/0x115
+[<f8e2dcb3>] ? mantis_pci_init+0x0/0x19 [mantis]
+[<c044e155>] ? sys_init_module+0x87/0x178
+[<c0404c8a>] ? syscall_call+0x7/0xb
+=======================
+Code: 84 c0 0f 95 c0 0f b6 c0 c3 55 8b 10 89 e5 5d 89 d0 c1 f8 08 29 d0
+25 ff 00 00 00 48 0f 9f c0 0f b6 c0 c3 55 ba 00 01 00 00 89 e5 <f0> 66
+0f c1 10 38 f2 74 06 f3 90 8a 10 eb f6 5d c3 55 89 e5 53
+EIP: [<c041b913>] __ticket_spin_lock+0x8/0x19 SS:ESP 0068:f61f8df8
+---[ end trace bca33cf69333abb8 ]---
+lsmod output
+lsmod
+Module                  Size  Used by
+saa7115                17840  0
+v4l2_common            13440  1 saa7115
+mantis                 20488  1
+mantis_core            30208  1 mantis
+tda665x                 7040  1 mantis
+lnbp21                  5760  1 mantis
+mb86a16                21120  1 mantis
+stb6100                10372  1 mantis
+tda10021                9348  1 mantis
+tda10023                9860  1 mantis
+zl10353                10376  1 mantis
+stb0899                35588  1 mantis
+stv0299                12680  1 mantis
+dvb_core               75880  2 mantis_core,stv0299
+i2c_dev                 9480  0
+tg3                   107524  0
+iTCO_wdt               13732  0
+ppdev                  10372  0
+pcspkr                  6272  0
+iTCO_vendor_support     6916  1 iTCO_wdt
+parport_pc             25620  0
+i2c_i801               12048  0
+i6300esb                8984  0
+i2c_core               21396  15
+saa7115,v4l2_common,mantis,mantis_core,tda665x,lnbp21,mb86a16,stb6100,tda10021,tda10023,zl10353,stb0899,stv0299,i2c_dev,i2c_i801
+parport                31956  2 ppdev,parport_pc
+libphy                 18560  1 tg3
+e752x_edac             15244  0
+serio_raw               8836  0
+edac_core              36780  1 e752x_edac
+floppy                 51988  0
+ata_generic             8452  0
+pata_acpi               7680  0
 
---- v4l-dvb/v4l/.config	2009-03-07 15:22:26.000000000 +0100
-+++ v4l-dvb-tip/v4l/.config	2009-03-07 16:02:55.000000000 +0100
-@@ -1,28 +1,28 @@
- CONFIG_MEDIA_TUNER_TDA18271=m
- CONFIG_USB_DSBR=m
--CONFIG_VIDEO_CX88_VP3054=m
-+# CONFIG_VIDEO_CX88_VP3054 is not set
- CONFIG_DAB=y
- CONFIG_DVB_USB=m
--CONFIG_DVB_DUMMY_FE=m
-+# CONFIG_DVB_DUMMY_FE is not set
- CONFIG_USB_GSPCA_OV534=m
- CONFIG_USB_STKWEBCAM=m
--CONFIG_DVB_S5H1420=m
--CONFIG_DVB_CX22700=m
-+# CONFIG_DVB_S5H1420 is not set
-+# CONFIG_DVB_CX22700 is not set
- CONFIG_SOC_CAMERA=m
- CONFIG_VIDEO_CX88_BLACKBIRD=m
- CONFIG_USB_VICAM=m
- CONFIG_VIDEO_USBVISION=m
--CONFIG_DVB_SP8870=m
--CONFIG_DVB_BUDGET_AV=m
-+# CONFIG_DVB_SP8870 is not set
-+# CONFIG_DVB_BUDGET_AV is not set
- CONFIG_MEDIA_TUNER=m
--CONFIG_DVB_TUNER_DIB0070=m
-+# CONFIG_DVB_TUNER_DIB0070 is not set
- CONFIG_VIDEO_VPX3220=m
- CONFIG_MEDIA_TUNER_TDA827X=m
- CONFIG_USB_GSPCA_SPCA561=m
- # CONFIG_USB_STV06XX is not set
- CONFIG_VIDEO_SAA7110=m
- CONFIG_VIDEO_ZORAN_BUZ=m
--CONFIG_DVB_BT8XX=m
-+# CONFIG_DVB_BT8XX is not set
- CONFIG_VIDEO_SAA7127=m
- CONFIG_DVB_USB_AF9005=m
- CONFIG_USB_GSPCA_PAC7311=m
-@@ -30,40 +30,40 @@
- CONFIG_VIDEO_WM8739=m
- CONFIG_RADIO_MAESTRO=m
- CONFIG_VIDEO_CPIA=m
--CONFIG_DVB_CX22702=m
-+# CONFIG_DVB_CX22702 is not set
- CONFIG_VIDEOBUF_GEN=m
--CONFIG_DVB_B2C2_FLEXCOP_PCI=m
-+# CONFIG_DVB_B2C2_FLEXCOP_PCI is not set
- CONFIG_RADIO_AZTECH=m
- CONFIG_VIDEO_BT848=m
- CONFIG_VIDEO_VIVI=m
--CONFIG_DVB_USB_CXUSB=m
-+# CONFIG_DVB_USB_CXUSB is not set
- CONFIG_USB_GSPCA_FINEPIX=m
- CONFIG_SOC_CAMERA_MT9V022=m
- CONFIG_SND_FM801=m
- CONFIG_RADIO_SF16FMI=m
- # CONFIG_VIDEO_HELPER_CHIPS_AUTO is not set
--CONFIG_DVB_ISL6405=m
-+# CONFIG_DVB_ISL6405 is not set
- CONFIG_DVB_USB_VP702X=m
- CONFIG_DVB_USB_DEBUG=y
- CONFIG_MEDIA_TUNER_XC2028=m
--CONFIG_DVB_USB_ANYSEE=m
-+# CONFIG_DVB_USB_ANYSEE is not set
- CONFIG_VIDEO_BT856=m
- CONFIG_RADIO_CADET=m
- CONFIG_USB_M5602=m
- CONFIG_VIDEO_PVRUSB2_DEBUGIFC=y
- CONFIG_USB_GSPCA_SONIXJ=m
--CONFIG_DVB_USB_DIBUSB_MB_FAULTY=y
--CONFIG_DVB_DRX397XD=m
-+# CONFIG_DVB_USB_DIBUSB_MB_FAULTY is not set
-+# CONFIG_DVB_DRX397XD is not set
- CONFIG_VIDEO_CX25840=m
- CONFIG_VIDEO_VP27SMPX=m
--CONFIG_DVB_B2C2_FLEXCOP_USB=m
-+# CONFIG_DVB_B2C2_FLEXCOP_USB is not set
- CONFIG_VIDEO_TVP5150=m
- CONFIG_VIDEO_SAA5246A=m
- CONFIG_MEDIA_TUNER_SIMPLE=m
- CONFIG_VIDEO_TEA6415C=m
--CONFIG_DVB_OR51211=m
-+# CONFIG_DVB_OR51211 is not set
- CONFIG_VIDEO_OVCAMCHIP=m
--CONFIG_DVB_AV7110_OSD=y
-+# CONFIG_DVB_AV7110_OSD is not set
- CONFIG_VIDEO_ZORAN_LML33=m
- CONFIG_USB_PWC_INPUT_EVDEV=y
- CONFIG_SOC_CAMERA_MT9M111=m
-@@ -72,115 +72,115 @@
- CONFIG_SOC_CAMERA_OV772X=m
- CONFIG_VIDEO_CX88=m
- CONFIG_VIDEO_W9966=m
--CONFIG_DVB_S5H1411=m
-+# CONFIG_DVB_S5H1411 is not set
- CONFIG_VIDEO_TCM825X=m
- CONFIG_USB_S2255=m
- CONFIG_RADIO_ZOLTRIX=m
--CONFIG_DVB_PLL=m
--CONFIG_DVB_LGDT330X=m
-+# CONFIG_DVB_PLL is not set
-+# CONFIG_DVB_LGDT330X is not set
- CONFIG_RADIO_TYPHOON_PROC_FS=y
--CONFIG_DVB_STB0899=m
-+# CONFIG_DVB_STB0899 is not set
- CONFIG_SND_FM801_TEA575X_BOOL=y
--CONFIG_DVB_LNBP21=m
--CONFIG_DVB_B2C2_FLEXCOP=m
-+# CONFIG_DVB_LNBP21 is not set
-+# CONFIG_DVB_B2C2_FLEXCOP is not set
- CONFIG_USB_GSPCA_SONIXB=m
- CONFIG_USB_GSPCA_ZC3XX=m
--CONFIG_VIDEO_BT848_DVB=y
-+# CONFIG_VIDEO_BT848_DVB is not set
- CONFIG_VIDEO_ZORAN_DC10=m
- CONFIG_DVB_USB_CINERGY_T2=m
- CONFIG_RADIO_TERRATEC=m
- CONFIG_VIDEO_KS0127=m
--CONFIG_DVB_VES1820=m
--CONFIG_VIDEO_PVRUSB2_DVB=y
-+# CONFIG_DVB_VES1820 is not set
-+# CONFIG_VIDEO_PVRUSB2_DVB is not set
- CONFIG_VIDEO_DEV=m
- CONFIG_VIDEO_SAA717X=m
- CONFIG_RADIO_TEA5764=m
- CONFIG_MT9M001_PCA9536_SWITCH=y
- CONFIG_MEDIA_TUNER_MT20XX=m
--CONFIG_VIDEO_CX23885=m
-+# CONFIG_VIDEO_CX23885 is not set
- CONFIG_USB_DABUSB=m
--CONFIG_DVB_BUDGET=m
--CONFIG_DVB_VES1X93=m
-+# CONFIG_DVB_BUDGET is not set
-+# CONFIG_DVB_VES1X93 is not set
- CONFIG_VIDEO_ALLOW_V4L1=y
- CONFIG_VIDEO_CS5345=m
- # CONFIG_RADIO_GEMTEK_PROBE is not set
- CONFIG_USB_GSPCA_SPCA506=m
--CONFIG_DVB_ISL6421=m
-+# CONFIG_DVB_ISL6421 is not set
- CONFIG_USB_GSPCA_PAC207=m
--CONFIG_DVB_NXT6000=m
-+# CONFIG_DVB_NXT6000 is not set
- CONFIG_DVB_TTUSB_DEC=m
- CONFIG_SND_FM801_TEA575X=m
--CONFIG_DVB_USB_NOVA_T_USB2=m
-+# CONFIG_DVB_USB_NOVA_T_USB2 is not set
- CONFIG_MEDIA_TUNER_XC5000=m
- CONFIG_RADIO_MAXIRADIO=m
--CONFIG_DVB_TDA10048=m
-+# CONFIG_DVB_TDA10048 is not set
- CONFIG_MEDIA_TUNER_MXL5005S=m
- CONFIG_MEDIA_TUNER_TEA5761=m
- CONFIG_VIDEO_TDA7432=m
- CONFIG_VIDEOBUF_DMA_SG=m
- CONFIG_MEDIA_TUNER_MT2266=m
--CONFIG_VIDEO_CX18=m
--CONFIG_DVB_TDA1004X=m
-+# CONFIG_VIDEO_CX18 is not set
-+# CONFIG_DVB_TDA1004X is not set
- CONFIG_VIDEO_MXB=m
--CONFIG_DVB_STV6110=m
-+# CONFIG_DVB_STV6110 is not set
- CONFIG_VIDEO_ADV7170=m
- CONFIG_DVB_DYNAMIC_MINORS=y
- CONFIG_SOC_CAMERA_PLATFORM=m
- CONFIG_VIDEO_TDA9840=m
- # CONFIG_VIDEO_PXA27x is not set
--CONFIG_DVB_TDA10023=m
-+# CONFIG_DVB_TDA10023 is not set
- CONFIG_VIDEO_V4L2=m
--CONFIG_DVB_S5H1409=m
--CONFIG_DVB_USB_DIBUSB_MB=m
-+# CONFIG_DVB_S5H1409 is not set
-+# CONFIG_DVB_USB_DIBUSB_MB is not set
- CONFIG_VIDEO_SAA7134_ALSA=m
- CONFIG_VIDEO_IR_I2C=m
--CONFIG_DVB_USB_AF9015=m
--CONFIG_DVB_B2C2_FLEXCOP_DEBUG=y
-+# CONFIG_DVB_USB_AF9015 is not set
-+# CONFIG_DVB_B2C2_FLEXCOP_DEBUG is not set
- CONFIG_VIDEO_SAA6588=m
- # CONFIG_VIDEO_MX3 is not set
- CONFIG_MEDIA_TUNER_TEA5767=m
--CONFIG_DVB_L64781=m
-+# CONFIG_DVB_L64781 is not set
- CONFIG_DVB_CAPTURE_DRIVERS=y
- CONFIG_USB_GSPCA_TV8532=m
--CONFIG_DVB_LGDT3304=m
-+# CONFIG_DVB_LGDT3304 is not set
- CONFIG_RADIO_ADAPTERS=y
--CONFIG_DVB_USB_OPERA1=m
--CONFIG_DVB_MT352=m
-+# CONFIG_DVB_USB_OPERA1 is not set
-+# CONFIG_DVB_MT352 is not set
- CONFIG_RADIO_GEMTEK_PCI=m
--CONFIG_DVB_USB_M920X=m
-+# CONFIG_DVB_USB_M920X is not set
- CONFIG_VIDEO_PVRUSB2_SYSFS=y
--CONFIG_DVB_USB_DIGITV=m
-+# CONFIG_DVB_USB_DIGITV is not set
- CONFIG_VIDEO_MSP3400=m
- CONFIG_VIDEO_BWQCAM=m
--CONFIG_DVB_USB_UMT_010=m
-+# CONFIG_DVB_USB_UMT_010 is not set
- CONFIG_USB_GSPCA_SUNPLUS=m
- CONFIG_SOC_CAMERA_TW9910=m
- CONFIG_USB_W9968CF=m
- CONFIG_MEDIA_TUNER_MXL5007T=m
- CONFIG_USB_SN9C102=m
- CONFIG_SOC_CAMERA_MT9M001=m
--CONFIG_DVB_DIB3000MB=m
-+# CONFIG_DVB_DIB3000MB is not set
- CONFIG_RADIO_GEMTEK=m
- CONFIG_VIDEO_CQCAM=m
--CONFIG_DVB_LGS8GL5=m
-+# CONFIG_DVB_LGS8GL5 is not set
- CONFIG_RADIO_RTRACK2=m
- CONFIG_VIDEO_TUNER=m
- CONFIG_USB_GSPCA_OV519=m
--CONFIG_DVB_USB_DIBUSB_MC=m
-+# CONFIG_DVB_USB_DIBUSB_MC is not set
- CONFIG_VIDEO_PMS=m
- # CONFIG_DVB_FE_CUSTOMISE is not set
- CONFIG_USB_OV511=m
- CONFIG_MT9V022_PCA9536_SWITCH=y
- CONFIG_VIDEO_CAPTURE_DRIVERS=y
- CONFIG_VIDEOBUF_DMA_CONTIG=m
--CONFIG_DVB_AF9013=m
-+# CONFIG_DVB_AF9013 is not set
- CONFIG_VIDEO_ADV_DEBUG=y
- CONFIG_VIDEO_SAA711X=m
--CONFIG_DVB_MT312=m
-+# CONFIG_DVB_MT312 is not set
- CONFIG_VIDEO_CX88_ALSA=m
- # CONFIG_VIDEO_OMAP2 is not set
--CONFIG_DVB_CX24116=m
--CONFIG_DVB_USB_DW2102=m
-+# CONFIG_DVB_CX24116 is not set
-+# CONFIG_DVB_USB_DW2102 is not set
- CONFIG_SND_BT87X=m
- CONFIG_VIDEO_MEDIA=m
- CONFIG_VIDEO_EM28XX=m
-@@ -192,76 +192,76 @@
- CONFIG_VIDEO_STRADIS=m
- CONFIG_USB_ZC0301=m
- CONFIG_USB_SI470X=m
--CONFIG_DVB_OR51132=m
-+# CONFIG_DVB_OR51132 is not set
- CONFIG_VIDEO_TDA9875=m
--CONFIG_VIDEO_CX88_DVB=m
-+# CONFIG_VIDEO_CX88_DVB is not set
- CONFIG_DVB_SIANO_SMS1XXX_SMS_IDS=y
- CONFIG_USB_GSPCA_SPCA501=m
- CONFIG_USB_GSPCA_SPCA508=m
- CONFIG_USB_GSPCA_SPCA505=m
- CONFIG_MEDIA_TUNER_MT2060=m
--CONFIG_DVB_AU8522=m
-+# CONFIG_DVB_AU8522 is not set
- CONFIG_RADIO_TYPHOON=m
- CONFIG_VIDEO_CS53L32A=m
--CONFIG_DVB_BUDGET_PATCH=m
-+# CONFIG_DVB_BUDGET_PATCH is not set
- CONFIG_SOC_CAMERA_MT9T031=m
--CONFIG_DVB_ZL10353=m
--CONFIG_DVB_CX24110=m
-+# CONFIG_DVB_ZL10353 is not set
-+# CONFIG_DVB_CX24110 is not set
- # CONFIG_DVB_AV7110_FIRMWARE is not set
- CONFIG_USB_GSPCA=m
--CONFIG_DVB_DIB7000M=m
--CONFIG_VIDEO_SAA7134_DVB=m
-+# CONFIG_DVB_DIB7000M is not set
-+# CONFIG_VIDEO_SAA7134_DVB is not set
- CONFIG_USB_GSPCA_VC032X=m
- CONFIG_DVB_SIANO_SMS1XXX=m
- CONFIG_VIDEO_ADV7175=m
- CONFIG_VIDEO_EM28XX_ALSA=m
- CONFIG_VIDEO_USBVIDEO=m
--CONFIG_DVB_DIB3000MC=m
-+# CONFIG_DVB_DIB3000MC is not set
- CONFIG_MEDIA_TUNER_MC44S803=m
--CONFIG_DVB_TDA8261=m
-+# CONFIG_DVB_TDA8261 is not set
- CONFIG_VIDEO_MEYE=m
- CONFIG_VIDEO_CX88_MPEG=m
- CONFIG_USB_QUICKCAM_MESSENGER=m
- CONFIG_DVB_BUDGET_CORE=m
--CONFIG_DVB_TDA8083=m
-+# CONFIG_DVB_TDA8083 is not set
- CONFIG_VIDEO_CX2341X=m
- # CONFIG_VIDEO_SH_MOBILE_CEU is not set
- CONFIG_DVB_CORE=m
- CONFIG_VIDEO_IVTV=m
- CONFIG_USB_GSPCA_SQ905=m
--CONFIG_DVB_TUNER_CX24113=m
--CONFIG_DVB_STB6100=m
--CONFIG_DVB_AV7110=m
--CONFIG_VIDEO_EM28XX_DVB=m
--CONFIG_DVB_STV0299=m
-+# CONFIG_DVB_TUNER_CX24113 is not set
-+# CONFIG_DVB_STB6100 is not set
-+# CONFIG_DVB_AV7110 is not set
-+# CONFIG_VIDEO_EM28XX_DVB is not set
-+# CONFIG_DVB_STV0299 is not set
- CONFIG_MEDIA_TUNER_QT1010=m
- # CONFIG_VIDEO_M32R_AR is not set
- CONFIG_VIDEO_CPIA2=m
- CONFIG_VIDEO_SAA7146_VV=m
- CONFIG_USB_KONICAWC=m
--CONFIG_DVB_USB_DIB0700=m
-+# CONFIG_DVB_USB_DIB0700 is not set
- CONFIG_VIDEO_PVRUSB2=m
- CONFIG_VIDEO_SAA7134=m
- CONFIG_VIDEO_TVP514X=m
--CONFIG_DVB_TUA6100=m
-+# CONFIG_DVB_TUA6100 is not set
- CONFIG_VIDEO_CAFE_CCIC=m
- CONFIG_USB_PWC_DEBUG=y
- CONFIG_USB_GSPCA_SPCA500=m
- CONFIG_TTPCI_EEPROM=m
--CONFIG_DVB_NXT200X=m
-+# CONFIG_DVB_NXT200X is not set
- CONFIG_VIDEO_ZORAN_ZR36060=m
- CONFIG_MEDIA_TUNER_TDA8290=m
- CONFIG_VIDEO_SAA7185=m
- CONFIG_USB_STV680=m
- CONFIG_VIDEO_TEA6420=m
--CONFIG_DVB_STV0297=m
-+# CONFIG_DVB_STV0297 is not set
- CONFIG_RADIO_SF16FMR2=m
- CONFIG_USB_ZR364XX=m
- CONFIG_VIDEOBUF_VMALLOC=m
- CONFIG_VIDEO_CPIA_USB=m
- CONFIG_USB_PWC=m
--CONFIG_DVB_USB_DTV5100=m
--CONFIG_DVB_DM1105=m
-+# CONFIG_DVB_USB_DTV5100 is not set
-+# CONFIG_DVB_DM1105 is not set
- # CONFIG_RADIO_TEA5764_XTAL is not set
- CONFIG_DVB_USB_DTT200U=m
- CONFIG_VIDEO_TVEEPROM=m
-@@ -269,31 +269,31 @@
- CONFIG_VIDEO_HEXIUM_GEMINI=m
- CONFIG_VIDEO_ZORAN_LML33R10=m
- CONFIG_VIDEO_CPIA_PP=m
--CONFIG_DVB_TDA10021=m
-+# CONFIG_DVB_TDA10021 is not set
- CONFIG_VIDEO_ZORAN_AVS6EYES=m
- CONFIG_MEDIA_TUNER_TDA9887=m
--CONFIG_DVB_USB_AU6610=m
-+# CONFIG_DVB_USB_AU6610 is not set
- CONFIG_VIDEO_SAA7191=m
- CONFIG_MEDIA_ATTACH=y
- CONFIG_RADIO_TRUST=m
--CONFIG_DVB_USB_GL861=m
-+# CONFIG_DVB_USB_GL861 is not set
- CONFIG_USB_GSPCA_ETOMS=m
- CONFIG_VIDEO_FB_IVTV=m
- CONFIG_VIDEO_BT819=m
- CONFIG_VIDEO_SAA7146=m
--CONFIG_DVB_TUNER_ITD1000=m
-+# CONFIG_DVB_TUNER_ITD1000 is not set
- CONFIG_VIDEO_BTCX=m
- CONFIG_VIDEO_V4L1_COMPAT=y
- CONFIG_VIDEOBUF_DVB=m
--CONFIG_DVB_S921=m
-+# CONFIG_DVB_S921 is not set
- # CONFIG_VIDEO_FIXED_MINOR_RANGES is not set
- CONFIG_DVB_USB_VP7045=m
- CONFIG_VIDEO_ZORAN=m
--CONFIG_DVB_CX24123=m
-+# CONFIG_DVB_CX24123 is not set
- CONFIG_RADIO_RTRACK=m
- CONFIG_USB_MR800=m
- CONFIG_MEDIA_TUNER_MT2131=m
--CONFIG_DVB_STV0288=m
-+# CONFIG_DVB_STV0288 is not set
- CONFIG_MEDIA_TUNER_CUSTOMIZE=y
- CONFIG_USB_VIDEO_CLASS=m
- CONFIG_VIDEO_HEXIUM_ORION=m
-@@ -301,34 +301,34 @@
- CONFIG_USB_GSPCA_MR97310A=m
- CONFIG_VIDEO_UPD64031A=m
- CONFIG_VIDEO_TVAUDIO=m
--CONFIG_DVB_PLUTO2=m
--CONFIG_DVB_STB6000=m
--CONFIG_DVB_BUDGET_CI=m
-+# CONFIG_DVB_PLUTO2 is not set
-+# CONFIG_DVB_STB6000 is not set
-+# CONFIG_DVB_BUDGET_CI is not set
- CONFIG_DVB_USB_GP8PSK=m
- CONFIG_USB_IBMCAM=m
- CONFIG_SND_BT87X_OVERCLOCK=y
--CONFIG_DVB_USB_TTUSB2=m
--CONFIG_DVB_TDA826X=m
--CONFIG_DVB_TDA10086=m
--CONFIG_DVB_TTUSB_BUDGET=m
-+# CONFIG_DVB_USB_TTUSB2 is not set
-+# CONFIG_DVB_TDA826X is not set
-+# CONFIG_DVB_TDA10086 is not set
-+# CONFIG_DVB_TTUSB_BUDGET is not set
- CONFIG_VIDEO_TLV320AIC23B=m
- CONFIG_VIDEO_WM8775=m
- # CONFIG_VIDEO_VINO is not set
--CONFIG_DVB_SP887X=m
--CONFIG_DVB_DIB7000P=m
-+# CONFIG_DVB_SP887X is not set
-+# CONFIG_DVB_DIB7000P is not set
- CONFIG_USB_GSPCA_CONEX=m
- CONFIG_USB_ET61X251=m
- CONFIG_VIDEO_V4L1=m
- # CONFIG_VIDEO_M32R_AR_M64278 is not set
- CONFIG_USB_SE401=m
--CONFIG_DVB_SI21XX=m
--CONFIG_DVB_ZL10036=m
--CONFIG_DVB_BCM3510=m
--CONFIG_DVB_STV0900=m
-+# CONFIG_DVB_SI21XX is not set
-+# CONFIG_DVB_ZL10036 is not set
-+# CONFIG_DVB_BCM3510 is not set
-+# CONFIG_DVB_STV0900 is not set
- CONFIG_VIDEO_SAA5249=m
- CONFIG_DVB_USB_AF9005_REMOTE=m
--CONFIG_VIDEO_AU0828=m
-+# CONFIG_VIDEO_AU0828 is not set
- CONFIG_VIDEO_ZORAN_DC30=m
--CONFIG_DVB_USB_A800=m
-+# CONFIG_DVB_USB_A800 is not set
- CONFIG_V4L_USB_DRIVERS=y
- CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
 
---=-EjcUob24cTHaUxKE9fHz--
+Any idea about what is wrong?
+
 
