@@ -1,49 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f177.google.com ([209.85.219.177]:49412 "EHLO
-	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690AbZCIXQP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 19:16:15 -0400
-Received: by ewy25 with SMTP id 25so1053312ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2009 16:16:12 -0700 (PDT)
-Date: Tue, 10 Mar 2009 00:16:00 +0100 (CET)
-From: Martin Fuzzey <mfuzzey@gmail.com>
-Subject: [PATCH] pwc : fix LED and power setup for first open
-To: linux-media@vger.kernel.org
-Message-ID: <tkrat.98fa52cc2386a49f@gmail.com>
+Received: from mk-outboundfilter-2.mail.uk.tiscali.com ([212.74.114.38]:5061
+	"EHLO mk-outboundfilter-2.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755984AbZCGVM6 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2009 16:12:58 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+Date: Sat, 7 Mar 2009 21:12:52 +0000
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean Delvare <khali@linux-fr.org>
+References: <200903022218.24259.hverkuil@xs4all.nl> <Pine.LNX.4.64.0903052315530.4980@axis700.grange> <Pine.LNX.4.58.0903061532210.24268@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0903061532210.24268@shell2.speakeasy.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903072112.53088.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Fuzzey <mfuzzey@gmail.com>
+On Saturday 07 March 2009, Trent Piepho wrote:
+> Audio was out of tree.  If they had a better system, like v4l-dvb does,
+> they might well still be out of tree.  And aren't there some wireless
+> packages that are out of tree?
 
-Call pwc_construct before trying to talk to device to obtain vc interface so
-that LED and power setup works the first time the video device is opened.
+Wireless development is done in tree and then copied to a compat tree that 
+contains just the wireless drivers, stack and compatibility stubs. A year or 
+two back there were some drivers developed out of tree so they could be 
+tested more easily but it became too much of an overhead to work that way.
 
-Signed-off-by: Martin Fuzzey <mfuzzey@gmail.com>
-
----
-
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index 0d81018..e11f422 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -1115,6 +1115,7 @@ static int pwc_video_open(struct file *file)
- 	}
-
- 	mutex_lock(&pdev->modlock);
-+	pwc_construct(pdev); /* set min/max sizes correct */
- 	if (!pdev->usb_init) {
- 		PWC_DEBUG_OPEN("Doing first time initialization.\n");
- 		pdev->usb_init = 1;
-@@ -1139,7 +1140,6 @@ static int pwc_video_open(struct file *file)
- 	if (pwc_set_leds(pdev, led_on, led_off) < 0)
- 		PWC_DEBUG_OPEN("Failed to set LED on/off time.\n");
-
--	pwc_construct(pdev); /* set min/max sizes correct */
-
- 	/* So far, so good. Allocate memory. */
- 	i = pwc_allocate_buffers(pdev);
-
-
+Adam
