@@ -1,49 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f178.google.com ([209.85.218.178]:49981 "EHLO
-	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524AbZCDMkJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 07:40:09 -0500
-Received: by bwz26 with SMTP id 26so2799679bwz.37
-        for <linux-media@vger.kernel.org>; Wed, 04 Mar 2009 04:40:06 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: [PATCH] Typo in lnbp21.c / changeset: 10800:ba740eb2348e
-Date: Wed, 4 Mar 2009 14:40:33 +0200
-References: <200903041111.15083.zzam@gentoo.org>
-In-Reply-To: <200903041111.15083.zzam@gentoo.org>
-Cc: linux-media@vger.kernel.org, Mauro Chehab <mchehab@infradead.org>,
-	Abylai Ospan <aospan@netup.ru>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200903041440.33687.liplianin@me.by>
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2425 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755645AbZCGSyU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2009 13:54:20 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n27IsHpu019140
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 7 Mar 2009 19:54:17 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 7 Mar 2009 19:54:17 +0100 (CET)
+Message-Id: <200903071854.n27IsHpu019140@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 4 марта 2009, linux-media@vger.kernel.org wrote:
-> Hi there!
->
-> lnbp21 does show strange messages at depmod.
->
-> WARNING: Loop detected: /lib/modules/2.6.28-tuxonice-r1/v4l/lnbp21.ko which
-> needs lnbp21.ko again!
-> WARNING: Module /lib/modules/2.6.28-tuxonice-r1/v4l/lnbp21.ko ignored, due
-> to loop
->
-> So I had a look at latest change and noticed there was a typo in the
-> function name, it should be lnbh24_attach, and not lnbp24_attach I guess.
-> The attached patch fixes this.
->
-> Regards
-> Matthias
-Hi Matthias
-Yes, You are right.
-What an unfortunate misprint and  lack of attention from my side :(
-I confirm your patch.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Mauro, please apply this patch.
+Results of the daily build of v4l-dvb:
 
-Best Regards 
-Igor
+date:        Sat Mar  7 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10837:6bd427caa0cb
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc7-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc7-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc7-m32r: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc7-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc7-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc7): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
