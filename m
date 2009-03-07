@@ -1,88 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.emlix.com ([193.175.82.87]:45316 "EHLO mx1.emlix.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756863AbZCZOaB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 10:30:01 -0400
-From: =?utf-8?q?Daniel=20Gl=C3=B6ckner?= <dg@emlix.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org,
-	=?utf-8?q?Daniel=20Gl=C3=B6ckner?= <dg@emlix.com>
-Subject: [patch] allow v4l2 drivers to provide a get_unmapped_area handler
-Date: Thu, 26 Mar 2009 15:31:08 +0100
-Message-Id: <1238077868-25812-1-git-send-email-dg@emlix.com>
+Received: from nat-warsl417-02.aon.at ([195.3.96.120]:1948 "EHLO email.aon.at"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754008AbZCGSTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2009 13:19:30 -0500
+Received: from smarthub94.highway.telekom.at (HELO email.aon.at) ([172.18.5.236])
+          (envelope-sender <estellnb@yahoo.de>)
+          by fallback43.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-media@vger.kernel.org>; 7 Mar 2009 18:19:26 -0000
+Received: from 93-82-75-144.adsl.highway.telekom.at (HELO [10.0.0.7]) ([93.82.75.144])
+          (envelope-sender <estellnb@yahoo.de>)
+          by smarthub94.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-media@vger.kernel.org>; 7 Mar 2009 18:19:24 -0000
+Message-ID: <49B2BAAE.8040808@yahoo.de>
+Date: Sat, 07 Mar 2009 19:19:26 +0100
+From: Elmar Stellnberger <estellnb@yahoo.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: Technisat Skystar 2 on Suse Linux 11.1, kernel 2.6.27.19-3.2-default
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Shared memory mappings on nommu machines require a get_unmapped_area
-file operation that suggests an address for the mapping. This patch
-adds a way for v4l2 drivers to provide this callback.
+Following the instructions at
+http://www.linuxtv.org/wiki/index.php/TechniSat_SkyStar_2_TV_PCI_/_Sky2PC_PCI
+I have tried to make my Technisat Skystar 2 work.
 
-Signed-off-by: Daniel Glöckner <dg@emlix.com>
----
- drivers/media/video/v4l2-dev.c |   19 +++++++++++++++++++
- include/media/v4l2-dev.h       |    2 ++
- 2 files changed, 21 insertions(+), 0 deletions(-)
+The thing is that suse ships most of the required kernel modules out of
+the box; iter sunt
+stv0299
+mt312
+budget
+Only skystar2 is missing, so that I have no /dev/video0 and no
+/dev/dvb/adapter0/video0 as required by all these dvb players.
+> > ls /dev/dvb/adapter0/
+demux0  dvr0  frontend0  net0
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 13f87c2..8c84037 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -198,6 +198,23 @@ static long v4l2_unlocked_ioctl(struct file *filp,
- 	return vdev->fops->unlocked_ioctl(filp, cmd, arg);
- }
- 
-+#ifdef CONFIG_MMU
-+#define v4l2_get_unmapped_area NULL
-+#else
-+static unsigned long v4l2_get_unmapped_area(struct file *filp,
-+		unsigned long addr, unsigned long len, unsigned long pgoff,
-+		unsigned long flags)
-+{
-+	struct video_device *vdev = video_devdata(filp);
-+
-+	if (!vdev->fops->get_unmapped_area)
-+		return -ENOSYS;
-+	if (video_is_unregistered(vdev))
-+		return -ENODEV;
-+	return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
-+}
-+#endif
-+
- static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
- {
- 	struct video_device *vdev = video_devdata(filp);
-@@ -250,6 +267,7 @@ static const struct file_operations v4l2_unlocked_fops = {
- 	.read = v4l2_read,
- 	.write = v4l2_write,
- 	.open = v4l2_open,
-+	.get_unmapped_area = v4l2_get_unmapped_area,
- 	.mmap = v4l2_mmap,
- 	.unlocked_ioctl = v4l2_unlocked_ioctl,
- #ifdef CONFIG_COMPAT
-@@ -265,6 +283,7 @@ static const struct file_operations v4l2_fops = {
- 	.read = v4l2_read,
- 	.write = v4l2_write,
- 	.open = v4l2_open,
-+	.get_unmapped_area = v4l2_get_unmapped_area,
- 	.mmap = v4l2_mmap,
- 	.ioctl = v4l2_ioctl,
- #ifdef CONFIG_COMPAT
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index e36faab..2058dd4 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -40,6 +40,8 @@ struct v4l2_file_operations {
- 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
- 	long (*ioctl) (struct file *, unsigned int, unsigned long);
- 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
-+	unsigned long (*get_unmapped_area) (struct file *, unsigned long,
-+				unsigned long, unsigned long, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *);
- 	int (*open) (struct file *);
- 	int (*release) (struct file *);
--- 
-1.6.2.107.ge47ee
+  Now I have tried to compile the patched drivers from
+http://linuxtv.org/hg/v4l-dvb.
+If I try to make everything in v4l-dvb as described at
+http://forum.ubuntuusers.de/topic/treiber-fuer-dvb-karte-technisat-skystar2-rev/,
+
+make returns with the following error message:
+
+/home/elm/4thattempt/v4l-dvb-0276304b76b9/v4l/cxusb.c: In function
+'bluebird_patch_dvico_firmware_download':
+/home/elm/4thattempt/v4l-dvb-0276304b76b9/v4l/cxusb.c:795: error:
+assignment of read-only location '*(fw->data + ((unsigned int)id
+                                       off + 2u))'
+/home/elm/4thattempt/v4l-dvb-0276304b76b9/v4l/cxusb.c:797: error:
+assignment of read-only location '*(fw->data + ((unsigned int)id
+                                       off + 3u))'
+
+Fetching the elder sources from
+http://linuxtv.org/hg/v4l-dvb/archive/0276304b76b9.tar.bz2
+and retrying results in exactly the same error.
+
+Consequently I have tried to uncheck everything but
+Multimedia devices ->
+  DVB for Linux
+  Load and attach frontend and tuner driver modules as needes
+  DVB/ATSC adapters
+    Technisat 1.
+    Technisat 2.
+    Technisat 3.
+
+Then it compiles without any error message, but no skystar2.ko
+will be created. However this seems to be the only missing kernel module.
+
+
+
 
