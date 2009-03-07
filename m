@@ -1,36 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:47652 "EHLO
-	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207AbZCJUZK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 16:25:10 -0400
-Date: Tue, 10 Mar 2009 13:25:07 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: get rid of     
- video_decoder.h
-In-Reply-To: <29736.62.70.2.252.1236676362.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.58.0903101323540.28292@shell2.speakeasy.net>
-References: <29736.62.70.2.252.1236676362.squirrel@webmail.xs4all.nl>
+Received: from WARSL404PIP1.highway.telekom.at ([195.3.96.112]:48256 "EHLO
+	email.aon.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753516AbZCGTwX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Mar 2009 14:52:23 -0500
+Message-ID: <49B2D075.8060801@yahoo.de>
+Date: Sat, 07 Mar 2009 20:52:21 +0100
+From: Elmar Stellnberger <estellnb@yahoo.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Patrick Boettcher <patrick.boettcher@desy.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Technisat Skystar 2 on Suse Linux 11.1, kernel 2.6.27.19-3.2-default
+References: <49B2BAAE.8040808@yahoo.de> <alpine.LRH.1.10.0903071945470.27410@pub5.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0903071945470.27410@pub5.ifh.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 10 Mar 2009, Hans Verkuil wrote:
-> > On Tue, 10 Mar 2009 08:31:32 +0100
-> > I suspect that it shouldn't hard to remove the few V4L1 bits from
-> > zoran_driver, after all
-> > the conversions made. Yet, there are some Zoran specific ioctls that use
-> > this.
-> > We should probably discontinue those zoran-specific ioctls.
->
-> I didn't dare do that when I did the conversion. Someone would have to
-> analyze these BUZ ioctls, but I think they all have proper v4l2
-> equivalents.
+dvbscan -out channels channels.conf
+hangs and does not create a channels.conf file
 
-The real difficulty there will probably be converting the zoran software
-like lavplay/lavrec to use new ioctls.
+vlc dvb://
+vlc /dev/dvb/adapter0/dvr0
+vlc -> recording device -> dvb-s
+  ... does not open a video window and does not play anything
+
+kaffeine stdin:// < /dev/dvb/adapter0/dvr0
+ ... no module found to handle source
+
+mplayer /dev/dvb/adapter0/dvr0
+mplayer: could not connect to socket
+mplayer: No such file or directory
+Failed to open LIRC support. You will not be able to use your remote
+control.
+
+Playing /dev/dvb/adapter0/dvr0.
+  ...but no window opens
+
+How can I play videos?
+How can I select a channel?
+How can I stream a channel to disk?
+
+
+have modprobed all recommended kernel modules:
+
+> lsmod | egrep "budget|mt312|b2c2-flexcop"
+mt312                   7748  0
+budget                 12588  0
+budget_core             9884  1 budget
+saa7146                15980  2 budget,budget_core
+ttpci_eeprom            2020  1 budget_core
+dvb_core               73144  4 budget,budget_core,stv0299,b2c2_flexcop
+i2c_core               29916  9
+t312,budget,budget_core,ttpci_eeprom,stv0299,i2c_viapro,b2c2_flexcop,cx24123,s5h1420
+
+
+
+
+Patrick Boettcher schrieb:
+> Hi Elmar,
+> 
+> On Sat, 7 Mar 2009, Elmar Stellnberger wrote:
+> 
+>> Following the instructions at
+>> http://www.linuxtv.org/wiki/index.php/TechniSat_SkyStar_2_TV_PCI_/_Sky2PC_PCI
+>>
+>> I have tried to make my Technisat Skystar 2 work.
+> 
+> This howto seems to be out of date. The skystar2.ko was removed like 4
+> years ago. It was replaced by the b2c2-flexcop-drivers.
+> 
+> 
+>> The thing is that suse ships most of the required kernel modules out of
+>> the box; iter sunt
+>> stv0299
+>> mt312
+>> budget
+>> Only skystar2 is missing, so that I have no /dev/video0 and no
+>> /dev/dvb/adapter0/video0 as required by all these dvb players.
+>>>> ls /dev/dvb/adapter0/
+>> demux0  dvr0  frontend0  net0
+> 
+> Furthermore this is totally correct. /dev/video0 is provided by
+> analog-video-cards or by full-featured (with a overlay-chip on board)
+> devices.
+> 
+> The SkyStar2 is neither of it.
+> 
+> Did you try to use Kaffeine or mplayer or (dvb)scan?
+> 
+> regards,
+> Patrick.
+> 
+> -- 
+>   Mail: patrick.boettcher@desy.de
+>   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+> 
+
