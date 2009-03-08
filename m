@@ -1,34 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:56508 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755424AbZCZS51 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 14:57:27 -0400
-Date: Thu, 26 Mar 2009 19:57:29 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: linux-dvb@linuxtv.org, vdr@linuxtv.org,
-	v4l-dvb-maintainer@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [ADMIN] linuxtv.org is moving
-Message-ID: <20090326185729.GA10352@linuxtv.org>
-References: <20090325162541.GB22582@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090325162541.GB22582@linuxtv.org>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4145 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752804AbZCHTPd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 15:15:33 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n28JFNQr051522
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 8 Mar 2009 20:15:31 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 8 Mar 2009 20:15:23 +0100 (CET)
+Message-Id: <200903081915.n28JFNQr051522@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 25, 2009 at 05:25:41PM +0100, Johannes Stezenbach wrote:
-> 
-> linuxtv.org will move to a new server machine tomorrow. Expect
-> some downtime during the move and please be patient. Everything
-> on the old machine will be rsynced to the new machine right before
-> the switch so nothing should get lost.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The move is done, but the DNS updates are not out there yet,
-so especially mail won't work yet until the caches are updated,
-but everything else should.
+Results of the daily build of v4l-dvb:
 
-The new IP address is 217.160.6.122.
+date:        Sun Mar  8 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10845:7cfb5386b66f
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc7-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc7-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc7-m32r: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc7-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc7-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc7): ERRORS
 
-Johannes
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
