@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from os.inf.tu-dresden.de ([141.76.48.99]:37982 "EHLO
-	os.inf.tu-dresden.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754529AbZCZSqT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 14:46:19 -0400
-Date: Thu, 26 Mar 2009 19:45:53 +0100
-From: "Udo A. Steinberg" <udo@hypervisor.org>
-To: Steven Toth <stoth@linuxtv.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	Darron Broad <darron@kewl.org>,
-	"v4l-dvb-maintainer@linuxtv.org" <v4l-dvb-maintainer@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Allow the user to restrict the RC5 address
-Message-ID: <20090326194553.3903ae61@laptop.hypervisor.org>
-In-Reply-To: <49CBB11E.2030604@linuxtv.org>
-References: <20090326033453.7d90236d@laptop.hypervisor.org>
-	<200903260824.01970.hverkuil@xs4all.nl>
-	<49CBB11E.2030604@linuxtv.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/Mka7ID8Tb7CjMiIr9Gh3a7o";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+Received: from znsun1.ifh.de ([141.34.1.16]:41903 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750909AbZCHHlm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Mar 2009 03:41:42 -0400
+Date: Sun, 8 Mar 2009 08:41:30 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Elmar Stellnberger <estellnb@yahoo.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Technisat Skystar 2 on Suse Linux 11.1, kernel
+ 2.6.27.19-3.2-default
+In-Reply-To: <49B2F2E1.3090206@yahoo.de>
+Message-ID: <alpine.LRH.1.10.0903080837330.27410@pub5.ifh.de>
+References: <49B2BAAE.8040808@yahoo.de> <alpine.LRH.1.10.0903071945470.27410@pub5.ifh.de> <49B2F2E1.3090206@yahoo.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/Mka7ID8Tb7CjMiIr9Gh3a7o
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Elmar,
 
-On Thu, 26 Mar 2009 12:45:18 -0400 Steven Toth (ST) wrote:
+On Sat, 7 Mar 2009, Elmar Stellnberger wrote:
 
-ST> I too tend to have multiple remotes, I don't think it's that unusual for
-ST> long standing Hauppauge customers to have many boards with many types of
-ST> remotes.
-ST>=20
-ST> > It might be better to have an option to explicitly allow old Hauppauge
-ST> > remotes that send 0x00.
-ST> >
-ST> I could live with this. It relegates older remotes but those remotes
-ST> are no longer made. This feels like a good compromise.
+>> dvbscan -adapter 0 -frontend 0 -demux 0 /usr/share/dvb/dvb-s/Astra-19.2E
+> Failed to set frontend
 
-How about changing the parameter such that it is a filter mask? The default
-value of 0x0 would accept all remotes. For non-zero values, each bit set in
-the parameter would filter the device address corresponding to that bit, e.=
-g.
-0x1 would filter address 0x0, 0x80000000 would filter address 0x1f, etc.
+I have the same problem with that scan, please use the older one called 
+scan.
 
-Cheers,
+Are you running the szap below as root, but kaffeine as a normal user ?
 
-	- Udo
+If so, make sure that you are in the group video.
 
---Sig_/Mka7ID8Tb7CjMiIr9Gh3a7o
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+> downloading channel.conf from Astra1
+> has not brought me force.
+>
+>> szap 3sat
+> reading channels from file '/home/elm/.szap/channels.conf'
+> zapping to 20 '3sat':
+> sat 0, frequency = 11954 MHz V, symbolrate 27500000, vpid = 0x00d2, apid
+> = 0x00dc sid = 0x0000
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 00 | signal 0000 | snr 6b2b | ber 00000000 | unc fffffffe |
+> status 00 | signal 0000 | snr 7f02 | ber 00007e00 | unc fffffffe |
+> status 01 | signal aa7e | snr 3d47 | ber 0000ffe8 | unc fffffffe |
+> status 00 | signal 0000 | snr 7fc5 | ber 0000fff0 | unc fffffffe |
+> status 00 | signal 0000 | snr 2232 | ber 00006ef0 | unc fffffffe |
+> status 00 | signal 0000 | snr 1fdd | ber 00000058 | unc fffffffe |
+> status 00 | signal 0000 | snr 19b3 | ber 00000000 | unc fffffffe |
+> status 02 | signal 0000 | snr 192f | ber 00000000 | unc fffffffe |
+> status 00 | signal 0035 | snr 8469 | ber 00000000 | unc fffffffe |
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+This is the first proof that your device is present and the driver is 
+correctly loaded. Please check the output of the dmesg-program to check 
+for lines starting with b2c2-flexcop.
 
-iEYEARECAAYFAknLzWIACgkQnhRzXSM7nSnkcQCbBeWKW2FNgGLQipKL13UmmDOv
-7nQAni1M9XaV544fhJb1D/1CbaYndy2J
-=hCXk
------END PGP SIGNATURE-----
+> what should that output mean?
 
---Sig_/Mka7ID8Tb7CjMiIr9Gh3a7o--
+it means, it can't synchronize the channel on that frequency. This can 
+have a whole bunch of explaination - not necessarily only the driver.
+
+> why does szap not terminate?
+
+It stays in the monitoring loop. Normal.
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
