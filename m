@@ -1,200 +1,992 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.184]:45550 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbZCaEDl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 00:03:41 -0400
-Received: by ti-out-0910.google.com with SMTP id i7so1894921tid.23
-        for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 21:03:37 -0700 (PDT)
+Received: from bombadil.infradead.org ([18.85.46.34]:42428 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752617AbZCHQyT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 12:54:19 -0400
+Date: Sun, 8 Mar 2009 13:54:11 -0300 (BRT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Alain Kalker <miki@dds.nl>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Problem with changeset 10837: causes "make all" not to build
+ many modules
+In-Reply-To: <1236439661.7569.132.camel@miki-desktop>
+Message-ID: <alpine.LRH.2.00.0903081354030.17407@pedra.chehab.org>
+References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>  <20090306074604.10926b03@pedra.chehab.org> <1236439661.7569.132.camel@miki-desktop>
 MIME-Version: 1.0
-In-Reply-To: <412bdbff0903302046x16dcc6a4w8df7506f68f14f7e@mail.gmail.com>
-References: <15ed362e0903301947rf0de73eo8edbd8cbcd5b5abd@mail.gmail.com>
-	 <412bdbff0903301957i77c36f10hcb9e9cb919124057@mail.gmail.com>
-	 <15ed362e0903302039g6d9575cnca5d9b62b566db72@mail.gmail.com>
-	 <412bdbff0903302046x16dcc6a4w8df7506f68f14f7e@mail.gmail.com>
-Date: Tue, 31 Mar 2009 12:03:37 +0800
-Message-ID: <15ed362e0903302103p1fa300c0w295ad6992a166c3c@mail.gmail.com>
-Subject: Re: XC5000 DVB-T/DMB-TH support
-From: David Wong <davidtlwong@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: MULTIPART/Mixed; boundary="=-EjcUob24cTHaUxKE9fHz"
+Content-ID: <alpine.LRH.2.00.0903081342241.17407@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 31, 2009 at 11:46 AM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Mon, Mar 30, 2009 at 11:39 PM, David Wong <davidtlwong@gmail.com> wrote:
->> On Tue, Mar 31, 2009 at 10:57 AM, Devin Heitmueller
->> <devin.heitmueller@gmail.com> wrote:
->>> On Mon, Mar 30, 2009 at 10:47 PM, David Wong <davidtlwong@gmail.com> wrote:
->>>> Does anyone know how to get XC5000 working for DVB-T, especially 8MHz bandwidth?
->>>> Current driver only supports ATSC with 6MHz bandwidth only.
->>>> It seems there is a trick at setting compensated RF frequency.
->>>>
->>>> DVB-T 8MHz support would probably works for DMB-TH, but DMB-TH
->>>> settings is very welcome.
->>>>
->>>> Regards,
->>>> David
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>>
->>> All of my xc5000 work has been with ATSC/QAM, so I can't say
->>> authoritatively what is required to make it work.
->>>
->>> Well, at a minimum you will have to modify xc5000_set_params to
->>> support setting priv->video_standard to DTV8.  Beyond that, I don't
->>> think you need to do anything specific for DVB-T.
->>>
->>> Devin
->>>
->>> --
->>> Devin J. Heitmueller
->>> http://www.devinheitmueller.com
->>> AIM: devinheitmueller
->>>
->>
->> I have tried followings in xc5000_set_params()
->>
->> if (fe->ops.info.type == FE_ATSC) {
->>  ...
->> } else if (fe->ops.info.type == FE_OFDM) {
->>                switch (params->u.ofdm.bandwidth) {
->>                case BANDWIDTH_6_MHZ:
->>                        printk("xc5000 bandwidth 6MHz\n");
->>                        priv->bandwidth = BANDWIDTH_6_MHZ;
->>                        priv->video_standard = DTV6;
->>                        break;
->>                case BANDWIDTH_7_MHZ:
->>                        printk("xc5000 bandwidth 7MHz\n");
->>                        priv->bandwidth = BANDWIDTH_7_MHZ;
->>                        priv->video_standard = DTV7;
->>                        break;
->>                case BANDWIDTH_8_MHZ:
->>                        printk("xc5000 bandwidth 8MHz\n");
->>                        priv->bandwidth = BANDWIDTH_8_MHZ;
->>                        priv->video_standard = DTV8;
->>                        break;
->>                default:
->>                        printk("xc5000 bandwidth not set!\n");
->>                        return -EINVAL;
->>                }
->>                priv->rf_mode = XC_RF_MODE_AIR;
->>                priv->freq_hz = params->frequency - 1750000;
->> }
->>
->>
->> But no success yet.
->> I am wondering the -1750000 compensation for DTV8.
->>
->> BTW, The xc_debug_dump() could get more information like firmware
->> build number and tuner total gain
->>
->> diff -r 2276e777f950 linux/drivers/media/common/tuners/xc5000.c
->> --- a/linux/drivers/media/common/tuners/xc5000.c        Thu Mar 26 22:17:48 2009 -0300
->> +++ b/linux/drivers/media/common/tuners/xc5000.c        Mon Mar 30 16:23:11 2009 +0800
->> @@ -84,6 +84,7 @@
->>  #define XREG_IF_OUT       0x05
->>  #define XREG_SEEK_MODE    0x07
->>  #define XREG_POWER_DOWN   0x0A
->> +#define XREG_OUTPUT_AMP   0x0B
->>  #define XREG_SIGNALSOURCE 0x0D /* 0=Air, 1=Cable */
->>  #define XREG_SMOOTHEDCVBS 0x0E
->>  #define XREG_XTALFREQ     0x0F
->> @@ -100,6 +101,8 @@
->>  #define XREG_VERSION      0x07
->>  #define XREG_PRODUCT_ID   0x08
->>  #define XREG_BUSY         0x09
->> +#define XREG_BUILD_NUM    0x0D
->> +#define XREG_TOTAL_GAIN   0x0F
->>
->>  /*
->>    Basic firmware description. This will remain with
->> @@ -468,7 +485,8 @@
->>
->>  static int xc_get_version(struct xc5000_priv *priv,
->>        u8 *hw_majorversion, u8 *hw_minorversion,
->> -       u8 *fw_majorversion, u8 *fw_minorversion)
->> +       u8 *fw_majorversion, u8 *fw_minorversion,
->> +       u16 *fw_buildnum)
->>  {
->>        u16 data;
->>        int result;
->> @@ -481,6 +499,11 @@
->>        (*hw_minorversion) = (data >>  8) & 0x0F;
->>        (*fw_majorversion) = (data >>  4) & 0x0F;
->>        (*fw_minorversion) = data & 0x0F;
->> +
->> +       result = xc_read_reg(priv, XREG_BUILD_NUM, &data);
->> +       if (result)
->> +               return result;
->> +       *fw_buildnum = data;
->>
->>        return 0;
->>  }
->> @@ -506,6 +529,11 @@
->>  static int xc_get_quality(struct xc5000_priv *priv, u16 *quality)
->>  {
->>        return xc_read_reg(priv, XREG_QUALITY, quality);
->> +}
->> +
->> +static int xc_get_total_gain(struct xc5000_priv *priv, u16 *gain)
->> +{
->> +       return xc_read_reg(priv, XREG_TOTAL_GAIN, gain);
->>  }
->>
->>  static u16 WaitForLock(struct xc5000_priv *priv)
->> @@ -626,8 +654,10 @@
->>        u32 hsync_freq_hz = 0;
->>        u16 frame_lines;
->>        u16 quality;
->> +       u16 gain;
->>        u8 hw_majorversion = 0, hw_minorversion = 0;
->>        u8 fw_majorversion = 0, fw_minorversion = 0;
->> +       u16 fw_buildnum = 0;
->>
->>        /* Wait for stats to stabilize.
->>         * Frame Lines needs two frame times after initial lock
->> @@ -646,10 +676,11 @@
->>                lock_status);
->>
->>        xc_get_version(priv,  &hw_majorversion, &hw_minorversion,
->> -               &fw_majorversion, &fw_minorversion);
->> -       dprintk(1, "*** HW: V%02x.%02x, FW: V%02x.%02x\n",
->> +               &fw_majorversion, &fw_minorversion, &fw_buildnum);
->> +       dprintk(1, "*** HW: V%02x.%02x, FW: V%02x.%02x build %d\n",
->>                hw_majorversion, hw_minorversion,
->> -               fw_majorversion, fw_minorversion);
->> +               fw_majorversion, fw_minorversion,
->> +               fw_buildnum);
->>
->>        xc_get_hsync_freq(priv,  &hsync_freq_hz);
->>        dprintk(1, "*** Horizontal sync frequency = %d Hz\n", hsync_freq_hz);
->> @@ -659,6 +690,9 @@
->>
->>        xc_get_quality(priv,  &quality);
->>        dprintk(1, "*** Quality (0:<8dB, 7:>56dB) = %d\n", quality);
->> +
->> +       xc_get_total_gain(priv,  &gain);
->> +       dprintk(1, "*** Total Gain = %d mdB\n", gain * 1000 / 256);
->>  }
->>
->
-> That compensation offset should be correct for all of the digital standards.
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks Devin, perhaps there is something that I don't know between the
-tuner and the demod (lgs8gl5) on my card, so it doesn't work.
-Honestly I have never seen such digital output from a tuner (DDI
-interface). I don't know if my card use that, and I have never seen
-lgs8xxx with
-serial digital input from tuner.
-What is the "protocol" of DDI of XC5000? UART-like or I2C-like? it has
-only two wires, p and n. I am wonder how it defines clock and data.
+--=-EjcUob24cTHaUxKE9fHz
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-ID: <alpine.LRH.2.00.0903081342242.17407@pedra.chehab.org>
 
-David
+Hi Alain,
+
+On Sat, 7 Mar 2009, Alain Kalker wrote:
+
+> Mauro,
+>
+> Your latest changeset causes many modules (100 in total!) not to be
+> built anymore when doing "make all", i.e. without doing any "make
+> xconfig"/"make gconfig".
+>
+> I think this is related to the config variables for the frontend drivers
+> no longer being defined when DVB_FE_CUSTOMISE=n , so the card drivers
+> cannot depend on them anymore.
+
+Thanks to warning me about that!
+
+This seems to be yet another difference between the in-kernel and the 
+out-of-tree building environment.
+
+This is what I get when unsetting DVB_FE_CUSTOMISE at the -git tree, and 
+selecting all dvb drivers with 'm':
+
+$ grep -f /tmp/fe .config
+# CONFIG_DVB_FE_CUSTOMISE is not set
+CONFIG_DVB_STB0899=m
+CONFIG_DVB_STB6100=m
+CONFIG_DVB_CX24110=m
+CONFIG_DVB_CX24123=m
+CONFIG_DVB_MT312=m
+CONFIG_DVB_ZL10036=m
+CONFIG_DVB_S5H1420=m
+CONFIG_DVB_STV0288=m
+CONFIG_DVB_STB6000=m
+CONFIG_DVB_STV0299=m
+CONFIG_DVB_STV6110=m
+CONFIG_DVB_STV0900=m
+CONFIG_DVB_TDA8083=m
+CONFIG_DVB_TDA10086=m
+CONFIG_DVB_TDA8261=m
+CONFIG_DVB_VES1X93=m
+CONFIG_DVB_TUNER_ITD1000=m
+CONFIG_DVB_TUNER_CX24113=m
+CONFIG_DVB_TDA826X=m
+CONFIG_DVB_TUA6100=m
+CONFIG_DVB_CX24116=m
+CONFIG_DVB_SI21XX=m
+CONFIG_DVB_SP8870=m
+CONFIG_DVB_SP887X=m
+CONFIG_DVB_CX22700=m
+CONFIG_DVB_CX22702=m
+CONFIG_DVB_L64781=m
+CONFIG_DVB_TDA1004X=m
+CONFIG_DVB_NXT6000=m
+CONFIG_DVB_MT352=m
+CONFIG_DVB_ZL10353=m
+CONFIG_DVB_DIB3000MB=m
+CONFIG_DVB_DIB3000MC=m
+CONFIG_DVB_DIB7000M=m
+CONFIG_DVB_DIB7000P=m
+CONFIG_DVB_TDA10048=m
+CONFIG_DVB_VES1820=m
+CONFIG_DVB_TDA10021=m
+CONFIG_DVB_TDA10023=m
+CONFIG_DVB_STV0297=m
+CONFIG_DVB_NXT200X=m
+CONFIG_DVB_OR51211=m
+CONFIG_DVB_OR51132=m
+CONFIG_DVB_BCM3510=m
+CONFIG_DVB_LGDT330X=m
+CONFIG_DVB_S5H1409=m
+CONFIG_DVB_AU8522=m
+CONFIG_DVB_S5H1411=m
+CONFIG_DVB_PLL=m
+CONFIG_DVB_TUNER_DIB0070=m
+CONFIG_DVB_LNBP21=m
+CONFIG_DVB_ISL6405=m
+CONFIG_DVB_ISL6421=m
+CONFIG_DVB_LGS8GL5=m
+CONFIG_DVB_AF9013=m
+
+So, everything seems OK. The 4 unused frontends (lgdt3304, dvb_dummy_fe, 
+s921 and drx397xD) weren't selected. Only the ones that are required by 
+the selected drivers (in the above case, I've selected everything) are 
+handled.
+
+It seems that some fix is needed at our building system to solve this 
+issue.
+
+I'll try to identify what's happening.
+
+Cheers,
+Mauro
+--=-EjcUob24cTHaUxKE9fHz
+Content-Type: TEXT/X-PATCH; name=dot.config.diff.6f1afb4c6fab-6bd427caa0cb; charset=UTF-8
+Content-ID: <alpine.LRH.2.00.0903081342243.17407@pedra.chehab.org>
+Content-Description: 
+Content-Disposition: attachment; filename=dot.config.diff.6f1afb4c6fab-6bd427caa0cb
+
+--- v4l-dvb/v4l/.config	2009-03-07 15:22:26.000000000 +0100
+
++++ v4l-dvb-tip/v4l/.config	2009-03-07 16:02:55.000000000 +0100
+
+@@ -1,28 +1,28 @@
+
+ CONFIG_MEDIA_TUNER_TDA18271=m
+
+ CONFIG_USB_DSBR=m
+
+-CONFIG_VIDEO_CX88_VP3054=m
+
++# CONFIG_VIDEO_CX88_VP3054 is not set
+
+ CONFIG_DAB=y
+
+ CONFIG_DVB_USB=m
+
+-CONFIG_DVB_DUMMY_FE=m
+
++# CONFIG_DVB_DUMMY_FE is not set
+
+ CONFIG_USB_GSPCA_OV534=m
+
+ CONFIG_USB_STKWEBCAM=m
+
+-CONFIG_DVB_S5H1420=m
+
+-CONFIG_DVB_CX22700=m
+
++# CONFIG_DVB_S5H1420 is not set
+
++# CONFIG_DVB_CX22700 is not set
+
+ CONFIG_SOC_CAMERA=m
+
+ CONFIG_VIDEO_CX88_BLACKBIRD=m
+
+ CONFIG_USB_VICAM=m
+
+ CONFIG_VIDEO_USBVISION=m
+
+-CONFIG_DVB_SP8870=m
+
+-CONFIG_DVB_BUDGET_AV=m
+
++# CONFIG_DVB_SP8870 is not set
+
++# CONFIG_DVB_BUDGET_AV is not set
+
+ CONFIG_MEDIA_TUNER=m
+
+-CONFIG_DVB_TUNER_DIB0070=m
+
++# CONFIG_DVB_TUNER_DIB0070 is not set
+
+ CONFIG_VIDEO_VPX3220=m
+
+ CONFIG_MEDIA_TUNER_TDA827X=m
+
+ CONFIG_USB_GSPCA_SPCA561=m
+
+ # CONFIG_USB_STV06XX is not set
+
+ CONFIG_VIDEO_SAA7110=m
+
+ CONFIG_VIDEO_ZORAN_BUZ=m
+
+-CONFIG_DVB_BT8XX=m
+
++# CONFIG_DVB_BT8XX is not set
+
+ CONFIG_VIDEO_SAA7127=m
+
+ CONFIG_DVB_USB_AF9005=m
+
+ CONFIG_USB_GSPCA_PAC7311=m
+
+@@ -30,40 +30,40 @@
+
+ CONFIG_VIDEO_WM8739=m
+
+ CONFIG_RADIO_MAESTRO=m
+
+ CONFIG_VIDEO_CPIA=m
+
+-CONFIG_DVB_CX22702=m
+
++# CONFIG_DVB_CX22702 is not set
+
+ CONFIG_VIDEOBUF_GEN=m
+
+-CONFIG_DVB_B2C2_FLEXCOP_PCI=m
+
++# CONFIG_DVB_B2C2_FLEXCOP_PCI is not set
+
+ CONFIG_RADIO_AZTECH=m
+
+ CONFIG_VIDEO_BT848=m
+
+ CONFIG_VIDEO_VIVI=m
+
+-CONFIG_DVB_USB_CXUSB=m
+
++# CONFIG_DVB_USB_CXUSB is not set
+
+ CONFIG_USB_GSPCA_FINEPIX=m
+
+ CONFIG_SOC_CAMERA_MT9V022=m
+
+ CONFIG_SND_FM801=m
+
+ CONFIG_RADIO_SF16FMI=m
+
+ # CONFIG_VIDEO_HELPER_CHIPS_AUTO is not set
+
+-CONFIG_DVB_ISL6405=m
+
++# CONFIG_DVB_ISL6405 is not set
+
+ CONFIG_DVB_USB_VP702X=m
+
+ CONFIG_DVB_USB_DEBUG=y
+
+ CONFIG_MEDIA_TUNER_XC2028=m
+
+-CONFIG_DVB_USB_ANYSEE=m
+
++# CONFIG_DVB_USB_ANYSEE is not set
+
+ CONFIG_VIDEO_BT856=m
+
+ CONFIG_RADIO_CADET=m
+
+ CONFIG_USB_M5602=m
+
+ CONFIG_VIDEO_PVRUSB2_DEBUGIFC=y
+
+ CONFIG_USB_GSPCA_SONIXJ=m
+
+-CONFIG_DVB_USB_DIBUSB_MB_FAULTY=y
+
+-CONFIG_DVB_DRX397XD=m
+
++# CONFIG_DVB_USB_DIBUSB_MB_FAULTY is not set
+
++# CONFIG_DVB_DRX397XD is not set
+
+ CONFIG_VIDEO_CX25840=m
+
+ CONFIG_VIDEO_VP27SMPX=m
+
+-CONFIG_DVB_B2C2_FLEXCOP_USB=m
+
++# CONFIG_DVB_B2C2_FLEXCOP_USB is not set
+
+ CONFIG_VIDEO_TVP5150=m
+
+ CONFIG_VIDEO_SAA5246A=m
+
+ CONFIG_MEDIA_TUNER_SIMPLE=m
+
+ CONFIG_VIDEO_TEA6415C=m
+
+-CONFIG_DVB_OR51211=m
+
++# CONFIG_DVB_OR51211 is not set
+
+ CONFIG_VIDEO_OVCAMCHIP=m
+
+-CONFIG_DVB_AV7110_OSD=y
+
++# CONFIG_DVB_AV7110_OSD is not set
+
+ CONFIG_VIDEO_ZORAN_LML33=m
+
+ CONFIG_USB_PWC_INPUT_EVDEV=y
+
+ CONFIG_SOC_CAMERA_MT9M111=m
+
+@@ -72,115 +72,115 @@
+
+ CONFIG_SOC_CAMERA_OV772X=m
+
+ CONFIG_VIDEO_CX88=m
+
+ CONFIG_VIDEO_W9966=m
+
+-CONFIG_DVB_S5H1411=m
+
++# CONFIG_DVB_S5H1411 is not set
+
+ CONFIG_VIDEO_TCM825X=m
+
+ CONFIG_USB_S2255=m
+
+ CONFIG_RADIO_ZOLTRIX=m
+
+-CONFIG_DVB_PLL=m
+
+-CONFIG_DVB_LGDT330X=m
+
++# CONFIG_DVB_PLL is not set
+
++# CONFIG_DVB_LGDT330X is not set
+
+ CONFIG_RADIO_TYPHOON_PROC_FS=y
+
+-CONFIG_DVB_STB0899=m
+
++# CONFIG_DVB_STB0899 is not set
+
+ CONFIG_SND_FM801_TEA575X_BOOL=y
+
+-CONFIG_DVB_LNBP21=m
+
+-CONFIG_DVB_B2C2_FLEXCOP=m
+
++# CONFIG_DVB_LNBP21 is not set
+
++# CONFIG_DVB_B2C2_FLEXCOP is not set
+
+ CONFIG_USB_GSPCA_SONIXB=m
+
+ CONFIG_USB_GSPCA_ZC3XX=m
+
+-CONFIG_VIDEO_BT848_DVB=y
+
++# CONFIG_VIDEO_BT848_DVB is not set
+
+ CONFIG_VIDEO_ZORAN_DC10=m
+
+ CONFIG_DVB_USB_CINERGY_T2=m
+
+ CONFIG_RADIO_TERRATEC=m
+
+ CONFIG_VIDEO_KS0127=m
+
+-CONFIG_DVB_VES1820=m
+
+-CONFIG_VIDEO_PVRUSB2_DVB=y
+
++# CONFIG_DVB_VES1820 is not set
+
++# CONFIG_VIDEO_PVRUSB2_DVB is not set
+
+ CONFIG_VIDEO_DEV=m
+
+ CONFIG_VIDEO_SAA717X=m
+
+ CONFIG_RADIO_TEA5764=m
+
+ CONFIG_MT9M001_PCA9536_SWITCH=y
+
+ CONFIG_MEDIA_TUNER_MT20XX=m
+
+-CONFIG_VIDEO_CX23885=m
+
++# CONFIG_VIDEO_CX23885 is not set
+
+ CONFIG_USB_DABUSB=m
+
+-CONFIG_DVB_BUDGET=m
+
+-CONFIG_DVB_VES1X93=m
+
++# CONFIG_DVB_BUDGET is not set
+
++# CONFIG_DVB_VES1X93 is not set
+
+ CONFIG_VIDEO_ALLOW_V4L1=y
+
+ CONFIG_VIDEO_CS5345=m
+
+ # CONFIG_RADIO_GEMTEK_PROBE is not set
+
+ CONFIG_USB_GSPCA_SPCA506=m
+
+-CONFIG_DVB_ISL6421=m
+
++# CONFIG_DVB_ISL6421 is not set
+
+ CONFIG_USB_GSPCA_PAC207=m
+
+-CONFIG_DVB_NXT6000=m
+
++# CONFIG_DVB_NXT6000 is not set
+
+ CONFIG_DVB_TTUSB_DEC=m
+
+ CONFIG_SND_FM801_TEA575X=m
+
+-CONFIG_DVB_USB_NOVA_T_USB2=m
+
++# CONFIG_DVB_USB_NOVA_T_USB2 is not set
+
+ CONFIG_MEDIA_TUNER_XC5000=m
+
+ CONFIG_RADIO_MAXIRADIO=m
+
+-CONFIG_DVB_TDA10048=m
+
++# CONFIG_DVB_TDA10048 is not set
+
+ CONFIG_MEDIA_TUNER_MXL5005S=m
+
+ CONFIG_MEDIA_TUNER_TEA5761=m
+
+ CONFIG_VIDEO_TDA7432=m
+
+ CONFIG_VIDEOBUF_DMA_SG=m
+
+ CONFIG_MEDIA_TUNER_MT2266=m
+
+-CONFIG_VIDEO_CX18=m
+
+-CONFIG_DVB_TDA1004X=m
+
++# CONFIG_VIDEO_CX18 is not set
+
++# CONFIG_DVB_TDA1004X is not set
+
+ CONFIG_VIDEO_MXB=m
+
+-CONFIG_DVB_STV6110=m
+
++# CONFIG_DVB_STV6110 is not set
+
+ CONFIG_VIDEO_ADV7170=m
+
+ CONFIG_DVB_DYNAMIC_MINORS=y
+
+ CONFIG_SOC_CAMERA_PLATFORM=m
+
+ CONFIG_VIDEO_TDA9840=m
+
+ # CONFIG_VIDEO_PXA27x is not set
+
+-CONFIG_DVB_TDA10023=m
+
++# CONFIG_DVB_TDA10023 is not set
+
+ CONFIG_VIDEO_V4L2=m
+
+-CONFIG_DVB_S5H1409=m
+
+-CONFIG_DVB_USB_DIBUSB_MB=m
+
++# CONFIG_DVB_S5H1409 is not set
+
++# CONFIG_DVB_USB_DIBUSB_MB is not set
+
+ CONFIG_VIDEO_SAA7134_ALSA=m
+
+ CONFIG_VIDEO_IR_I2C=m
+
+-CONFIG_DVB_USB_AF9015=m
+
+-CONFIG_DVB_B2C2_FLEXCOP_DEBUG=y
+
++# CONFIG_DVB_USB_AF9015 is not set
+
++# CONFIG_DVB_B2C2_FLEXCOP_DEBUG is not set
+
+ CONFIG_VIDEO_SAA6588=m
+
+ # CONFIG_VIDEO_MX3 is not set
+
+ CONFIG_MEDIA_TUNER_TEA5767=m
+
+-CONFIG_DVB_L64781=m
+
++# CONFIG_DVB_L64781 is not set
+
+ CONFIG_DVB_CAPTURE_DRIVERS=y
+
+ CONFIG_USB_GSPCA_TV8532=m
+
+-CONFIG_DVB_LGDT3304=m
+
++# CONFIG_DVB_LGDT3304 is not set
+
+ CONFIG_RADIO_ADAPTERS=y
+
+-CONFIG_DVB_USB_OPERA1=m
+
+-CONFIG_DVB_MT352=m
+
++# CONFIG_DVB_USB_OPERA1 is not set
+
++# CONFIG_DVB_MT352 is not set
+
+ CONFIG_RADIO_GEMTEK_PCI=m
+
+-CONFIG_DVB_USB_M920X=m
+
++# CONFIG_DVB_USB_M920X is not set
+
+ CONFIG_VIDEO_PVRUSB2_SYSFS=y
+
+-CONFIG_DVB_USB_DIGITV=m
+
++# CONFIG_DVB_USB_DIGITV is not set
+
+ CONFIG_VIDEO_MSP3400=m
+
+ CONFIG_VIDEO_BWQCAM=m
+
+-CONFIG_DVB_USB_UMT_010=m
+
++# CONFIG_DVB_USB_UMT_010 is not set
+
+ CONFIG_USB_GSPCA_SUNPLUS=m
+
+ CONFIG_SOC_CAMERA_TW9910=m
+
+ CONFIG_USB_W9968CF=m
+
+ CONFIG_MEDIA_TUNER_MXL5007T=m
+
+ CONFIG_USB_SN9C102=m
+
+ CONFIG_SOC_CAMERA_MT9M001=m
+
+-CONFIG_DVB_DIB3000MB=m
+
++# CONFIG_DVB_DIB3000MB is not set
+
+ CONFIG_RADIO_GEMTEK=m
+
+ CONFIG_VIDEO_CQCAM=m
+
+-CONFIG_DVB_LGS8GL5=m
+
++# CONFIG_DVB_LGS8GL5 is not set
+
+ CONFIG_RADIO_RTRACK2=m
+
+ CONFIG_VIDEO_TUNER=m
+
+ CONFIG_USB_GSPCA_OV519=m
+
+-CONFIG_DVB_USB_DIBUSB_MC=m
+
++# CONFIG_DVB_USB_DIBUSB_MC is not set
+
+ CONFIG_VIDEO_PMS=m
+
+ # CONFIG_DVB_FE_CUSTOMISE is not set
+
+ CONFIG_USB_OV511=m
+
+ CONFIG_MT9V022_PCA9536_SWITCH=y
+
+ CONFIG_VIDEO_CAPTURE_DRIVERS=y
+
+ CONFIG_VIDEOBUF_DMA_CONTIG=m
+
+-CONFIG_DVB_AF9013=m
+
++# CONFIG_DVB_AF9013 is not set
+
+ CONFIG_VIDEO_ADV_DEBUG=y
+
+ CONFIG_VIDEO_SAA711X=m
+
+-CONFIG_DVB_MT312=m
+
++# CONFIG_DVB_MT312 is not set
+
+ CONFIG_VIDEO_CX88_ALSA=m
+
+ # CONFIG_VIDEO_OMAP2 is not set
+
+-CONFIG_DVB_CX24116=m
+
+-CONFIG_DVB_USB_DW2102=m
+
++# CONFIG_DVB_CX24116 is not set
+
++# CONFIG_DVB_USB_DW2102 is not set
+
+ CONFIG_SND_BT87X=m
+
+ CONFIG_VIDEO_MEDIA=m
+
+ CONFIG_VIDEO_EM28XX=m
+
+@@ -192,76 +192,76 @@
+
+ CONFIG_VIDEO_STRADIS=m
+
+ CONFIG_USB_ZC0301=m
+
+ CONFIG_USB_SI470X=m
+
+-CONFIG_DVB_OR51132=m
+
++# CONFIG_DVB_OR51132 is not set
+
+ CONFIG_VIDEO_TDA9875=m
+
+-CONFIG_VIDEO_CX88_DVB=m
+
++# CONFIG_VIDEO_CX88_DVB is not set
+
+ CONFIG_DVB_SIANO_SMS1XXX_SMS_IDS=y
+
+ CONFIG_USB_GSPCA_SPCA501=m
+
+ CONFIG_USB_GSPCA_SPCA508=m
+
+ CONFIG_USB_GSPCA_SPCA505=m
+
+ CONFIG_MEDIA_TUNER_MT2060=m
+
+-CONFIG_DVB_AU8522=m
+
++# CONFIG_DVB_AU8522 is not set
+
+ CONFIG_RADIO_TYPHOON=m
+
+ CONFIG_VIDEO_CS53L32A=m
+
+-CONFIG_DVB_BUDGET_PATCH=m
+
++# CONFIG_DVB_BUDGET_PATCH is not set
+
+ CONFIG_SOC_CAMERA_MT9T031=m
+
+-CONFIG_DVB_ZL10353=m
+
+-CONFIG_DVB_CX24110=m
+
++# CONFIG_DVB_ZL10353 is not set
+
++# CONFIG_DVB_CX24110 is not set
+
+ # CONFIG_DVB_AV7110_FIRMWARE is not set
+
+ CONFIG_USB_GSPCA=m
+
+-CONFIG_DVB_DIB7000M=m
+
+-CONFIG_VIDEO_SAA7134_DVB=m
+
++# CONFIG_DVB_DIB7000M is not set
+
++# CONFIG_VIDEO_SAA7134_DVB is not set
+
+ CONFIG_USB_GSPCA_VC032X=m
+
+ CONFIG_DVB_SIANO_SMS1XXX=m
+
+ CONFIG_VIDEO_ADV7175=m
+
+ CONFIG_VIDEO_EM28XX_ALSA=m
+
+ CONFIG_VIDEO_USBVIDEO=m
+
+-CONFIG_DVB_DIB3000MC=m
+
++# CONFIG_DVB_DIB3000MC is not set
+
+ CONFIG_MEDIA_TUNER_MC44S803=m
+
+-CONFIG_DVB_TDA8261=m
+
++# CONFIG_DVB_TDA8261 is not set
+
+ CONFIG_VIDEO_MEYE=m
+
+ CONFIG_VIDEO_CX88_MPEG=m
+
+ CONFIG_USB_QUICKCAM_MESSENGER=m
+
+ CONFIG_DVB_BUDGET_CORE=m
+
+-CONFIG_DVB_TDA8083=m
+
++# CONFIG_DVB_TDA8083 is not set
+
+ CONFIG_VIDEO_CX2341X=m
+
+ # CONFIG_VIDEO_SH_MOBILE_CEU is not set
+
+ CONFIG_DVB_CORE=m
+
+ CONFIG_VIDEO_IVTV=m
+
+ CONFIG_USB_GSPCA_SQ905=m
+
+-CONFIG_DVB_TUNER_CX24113=m
+
+-CONFIG_DVB_STB6100=m
+
+-CONFIG_DVB_AV7110=m
+
+-CONFIG_VIDEO_EM28XX_DVB=m
+
+-CONFIG_DVB_STV0299=m
+
++# CONFIG_DVB_TUNER_CX24113 is not set
+
++# CONFIG_DVB_STB6100 is not set
+
++# CONFIG_DVB_AV7110 is not set
+
++# CONFIG_VIDEO_EM28XX_DVB is not set
+
++# CONFIG_DVB_STV0299 is not set
+
+ CONFIG_MEDIA_TUNER_QT1010=m
+
+ # CONFIG_VIDEO_M32R_AR is not set
+
+ CONFIG_VIDEO_CPIA2=m
+
+ CONFIG_VIDEO_SAA7146_VV=m
+
+ CONFIG_USB_KONICAWC=m
+
+-CONFIG_DVB_USB_DIB0700=m
+
++# CONFIG_DVB_USB_DIB0700 is not set
+
+ CONFIG_VIDEO_PVRUSB2=m
+
+ CONFIG_VIDEO_SAA7134=m
+
+ CONFIG_VIDEO_TVP514X=m
+
+-CONFIG_DVB_TUA6100=m
+
++# CONFIG_DVB_TUA6100 is not set
+
+ CONFIG_VIDEO_CAFE_CCIC=m
+
+ CONFIG_USB_PWC_DEBUG=y
+
+ CONFIG_USB_GSPCA_SPCA500=m
+
+ CONFIG_TTPCI_EEPROM=m
+
+-CONFIG_DVB_NXT200X=m
+
++# CONFIG_DVB_NXT200X is not set
+
+ CONFIG_VIDEO_ZORAN_ZR36060=m
+
+ CONFIG_MEDIA_TUNER_TDA8290=m
+
+ CONFIG_VIDEO_SAA7185=m
+
+ CONFIG_USB_STV680=m
+
+ CONFIG_VIDEO_TEA6420=m
+
+-CONFIG_DVB_STV0297=m
+
++# CONFIG_DVB_STV0297 is not set
+
+ CONFIG_RADIO_SF16FMR2=m
+
+ CONFIG_USB_ZR364XX=m
+
+ CONFIG_VIDEOBUF_VMALLOC=m
+
+ CONFIG_VIDEO_CPIA_USB=m
+
+ CONFIG_USB_PWC=m
+
+-CONFIG_DVB_USB_DTV5100=m
+
+-CONFIG_DVB_DM1105=m
+
++# CONFIG_DVB_USB_DTV5100 is not set
+
++# CONFIG_DVB_DM1105 is not set
+
+ # CONFIG_RADIO_TEA5764_XTAL is not set
+
+ CONFIG_DVB_USB_DTT200U=m
+
+ CONFIG_VIDEO_TVEEPROM=m
+
+@@ -269,31 +269,31 @@
+
+ CONFIG_VIDEO_HEXIUM_GEMINI=m
+
+ CONFIG_VIDEO_ZORAN_LML33R10=m
+
+ CONFIG_VIDEO_CPIA_PP=m
+
+-CONFIG_DVB_TDA10021=m
+
++# CONFIG_DVB_TDA10021 is not set
+
+ CONFIG_VIDEO_ZORAN_AVS6EYES=m
+
+ CONFIG_MEDIA_TUNER_TDA9887=m
+
+-CONFIG_DVB_USB_AU6610=m
+
++# CONFIG_DVB_USB_AU6610 is not set
+
+ CONFIG_VIDEO_SAA7191=m
+
+ CONFIG_MEDIA_ATTACH=y
+
+ CONFIG_RADIO_TRUST=m
+
+-CONFIG_DVB_USB_GL861=m
+
++# CONFIG_DVB_USB_GL861 is not set
+
+ CONFIG_USB_GSPCA_ETOMS=m
+
+ CONFIG_VIDEO_FB_IVTV=m
+
+ CONFIG_VIDEO_BT819=m
+
+ CONFIG_VIDEO_SAA7146=m
+
+-CONFIG_DVB_TUNER_ITD1000=m
+
++# CONFIG_DVB_TUNER_ITD1000 is not set
+
+ CONFIG_VIDEO_BTCX=m
+
+ CONFIG_VIDEO_V4L1_COMPAT=y
+
+ CONFIG_VIDEOBUF_DVB=m
+
+-CONFIG_DVB_S921=m
+
++# CONFIG_DVB_S921 is not set
+
+ # CONFIG_VIDEO_FIXED_MINOR_RANGES is not set
+
+ CONFIG_DVB_USB_VP7045=m
+
+ CONFIG_VIDEO_ZORAN=m
+
+-CONFIG_DVB_CX24123=m
+
++# CONFIG_DVB_CX24123 is not set
+
+ CONFIG_RADIO_RTRACK=m
+
+ CONFIG_USB_MR800=m
+
+ CONFIG_MEDIA_TUNER_MT2131=m
+
+-CONFIG_DVB_STV0288=m
+
++# CONFIG_DVB_STV0288 is not set
+
+ CONFIG_MEDIA_TUNER_CUSTOMIZE=y
+
+ CONFIG_USB_VIDEO_CLASS=m
+
+ CONFIG_VIDEO_HEXIUM_ORION=m
+
+@@ -301,34 +301,34 @@
+
+ CONFIG_USB_GSPCA_MR97310A=m
+
+ CONFIG_VIDEO_UPD64031A=m
+
+ CONFIG_VIDEO_TVAUDIO=m
+
+-CONFIG_DVB_PLUTO2=m
+
+-CONFIG_DVB_STB6000=m
+
+-CONFIG_DVB_BUDGET_CI=m
+
++# CONFIG_DVB_PLUTO2 is not set
+
++# CONFIG_DVB_STB6000 is not set
+
++# CONFIG_DVB_BUDGET_CI is not set
+
+ CONFIG_DVB_USB_GP8PSK=m
+
+ CONFIG_USB_IBMCAM=m
+
+ CONFIG_SND_BT87X_OVERCLOCK=y
+
+-CONFIG_DVB_USB_TTUSB2=m
+
+-CONFIG_DVB_TDA826X=m
+
+-CONFIG_DVB_TDA10086=m
+
+-CONFIG_DVB_TTUSB_BUDGET=m
+
++# CONFIG_DVB_USB_TTUSB2 is not set
+
++# CONFIG_DVB_TDA826X is not set
+
++# CONFIG_DVB_TDA10086 is not set
+
++# CONFIG_DVB_TTUSB_BUDGET is not set
+
+ CONFIG_VIDEO_TLV320AIC23B=m
+
+ CONFIG_VIDEO_WM8775=m
+
+ # CONFIG_VIDEO_VINO is not set
+
+-CONFIG_DVB_SP887X=m
+
+-CONFIG_DVB_DIB7000P=m
+
++# CONFIG_DVB_SP887X is not set
+
++# CONFIG_DVB_DIB7000P is not set
+
+ CONFIG_USB_GSPCA_CONEX=m
+
+ CONFIG_USB_ET61X251=m
+
+ CONFIG_VIDEO_V4L1=m
+
+ # CONFIG_VIDEO_M32R_AR_M64278 is not set
+
+ CONFIG_USB_SE401=m
+
+-CONFIG_DVB_SI21XX=m
+
+-CONFIG_DVB_ZL10036=m
+
+-CONFIG_DVB_BCM3510=m
+
+-CONFIG_DVB_STV0900=m
+
++# CONFIG_DVB_SI21XX is not set
+
++# CONFIG_DVB_ZL10036 is not set
+
++# CONFIG_DVB_BCM3510 is not set
+
++# CONFIG_DVB_STV0900 is not set
+
+ CONFIG_VIDEO_SAA5249=m
+
+ CONFIG_DVB_USB_AF9005_REMOTE=m
+
+-CONFIG_VIDEO_AU0828=m
+
++# CONFIG_VIDEO_AU0828 is not set
+
+ CONFIG_VIDEO_ZORAN_DC30=m
+
+-CONFIG_DVB_USB_A800=m
+
++# CONFIG_DVB_USB_A800 is not set
+
+ CONFIG_V4L_USB_DRIVERS=y
+
+ CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
+
+
+--=-EjcUob24cTHaUxKE9fHz--
