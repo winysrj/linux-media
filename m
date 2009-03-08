@@ -1,75 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23031 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096AbZCEHbT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 02:31:19 -0500
-Message-ID: <49AF7FAC.1010004@maxwell.research.nokia.com>
-Date: Thu, 05 Mar 2009 09:30:52 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from wf-out-1314.google.com ([209.85.200.172]:17633 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750AbZCHXg3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 19:36:29 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1629331wfa.4
+        for <linux-media@vger.kernel.org>; Sun, 08 Mar 2009 16:36:28 -0700 (PDT)
 MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+In-Reply-To: <49B141F6.6040301@maxwell.research.nokia.com>
+References: <49B141F6.6040301@maxwell.research.nokia.com>
+Date: Mon, 9 Mar 2009 08:36:28 +0900
+Message-ID: <5e9665e10903081636l3e3afda0ofc215a082631927c@mail.gmail.com>
+Subject: Re: OMAP3 ISP and camera drivers (update)
+From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"ext Hiremath, Vaibhav" <hvaibhav@ti.com>,
 	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
-References: <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	=?ISO-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
+	<antti.koskipaa@nokia.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Alexey Klimov <klimov.linux@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hiremath, Vaibhav wrote:
-> 
-> Thanks,
-> Vaibhav Hiremath
-> 
->> -----Original Message-----
->> From: DongSoo(Nathaniel) Kim [mailto:dongsoo.kim@gmail.com]
->> Sent: Thursday, March 05, 2009 5:41 AM
->> To: Sakari Ailus
->> Cc: Hiremath, Vaibhav; linux-media@vger.kernel.org; linux-
->> omap@vger.kernel.org; Aguirre Rodriguez, Sergio Alberto; Toivonen
->> Tuukka Olli Artturi; Hiroshi DOYU
->> Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
->>
->> Hi Sakari,
->>
->> I'm also facing same issue with Hiremath.
->>
->> Here you are my kernel stack dump.
->>
-> [Hiremath, Vaibhav] I was getting same kernel crash,  The reason is -
-> 
-> Since  isp_probe doesn't get called, leaving omap3isp = NULL. So isp_get will return -EBUSY from the very beginning of function.  And the function "omap34xxcam_device_register" which calls isp_get tries to access vdev->vfd->dev where it crashes. Which is completely wrong, since the vfd gets initialize later part of function
-> 
-> 
-> if (hwc.dev_type == OMAP34XXCAM_SLAVE_SENSOR) {
->     rval = isp_get();
->     if (rval < 0) {
->         dev_err(&vdev->vfd->dev, "can't get ISP, sensor init 					failed\n");
-> [Vaibhav] - Here it crashes.
->          goto err;
->      }
-> }
-> 
-> There are some instances where vdev->vfd is being accessed before initializing.
+Hi Sakari,
 
-Ooops.
+I've been trying to pull your gitorious patchset into my linux-omap
+repository (which is completely clean and up-to-date), but I'm having
+some problem.
+Please find following messages. I captured my git repository messages.
 
-Some parts of those dev_* were just mechanically changed from something 
-else. And I think Alexey Klimov already notified me about that problem. 
-I'm surprised that it was hit it so soon. ;)
+kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git pull
 
-Just removing the dev_err helps to resolve the crash, I guess. You could 
-use late_initcall instead of module_init in the sensor, but that's just 
-a hack, too.
+Already up-to-date.
 
-If you are using modules, please load iommu2 and omap3-iommu before isp-mod.
+kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git status
+
+# On branch master
+
+nothing to commit (working directory clean)
+
+kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$
+git pull http://git.gitorious.org/omap3camera/mainline.git v4l iommu
+omap3camera base
+
+error: Could not read 5b007183d51543624bc9f582966f245a64157b57
+
+error: Could not read fa8977215db5ab6139379e95efc193e45833afa3
+
+error: Could not read 7de046a6a8446358001c38ad1d0b2b829ca0c98c
+
+error: Could not read 5b007183d51543624bc9f582966f245a64157b57
+
+Unable to find common commit with dc05ee10583dca44e0f8d4109bd1397ee3c5ffae
+
+Automatic merge failed; fix conflicts and then commit the result.
+
+
+
+
+I guess other people should also have the same issue with it. or am I
+doing wrong way?
+Please let me know
+
+
+On Sat, Mar 7, 2009 at 12:32 AM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> Hi,
+>
+> I've updated the patchset in Gitorious.
+>
+> <URL:http://www.gitorious.org/projects/omap3camera>
+>
+> Changes include
+>
+> - Power management support. ISP suspend/resume should work now.
+>
+> - Reindented and cleaned up everything. There are still some warnings from
+> checkpatch.pl from the CSI2 code.
+>
+> - Fix for crash in device registration, posted to list already. (Thanks,
+> Vaibhav, Alexey!)
+>
+> - LSC errors should be handled properly now.
+>
+> I won't post the modified patches to the list this time since I guess it
+> wouldn't be much of use, I guess. Or does someone want that? :)
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
+
+
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab. S/W Team.
+DMC
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
