@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:52206 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753317AbZC2Mke (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 08:40:34 -0400
-Date: Sun, 29 Mar 2009 14:40:13 +0200
-From: Janne Grunau <j@jannau.net>
+Received: from mail-out.m-online.net ([212.18.0.9]:43998 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753868AbZCHTUc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 15:20:32 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-media@vger.kernel.org
-Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>
-Subject: [PATCH 2 of 6] cx321xx: use usb_interface.dev for
-	v4l2_device_register
-Message-ID: <20090329124013.GC637@aniel>
-References: <patchbomb.1238329154@aniel>
+Subject: Re: get_dvb_firmware after first review
+Date: Sun, 8 Mar 2009 20:20:25 +0100
+Cc: schollsky@arcor.de
+References: <11673765.1236539194988.JavaMail.ngmail@webmail08.arcor-online.net>
+In-Reply-To: <11673765.1236539194988.JavaMail.ngmail@webmail08.arcor-online.net>
 MIME-Version: 1.0
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: inline; filename="v4l2_device_usb_interface-2.patch"
-In-Reply-To: <patchbomb.1238329154@aniel>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903082020.26649.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Janne Grunau <j@jannau.net>
-# Date 1238190165 -3600
-# Node ID edca57a287041646c86b404852ef9abf0ecd6c72
-# Parent  602a8fff1ba466ec4fb4816d0fb0725c8650c311
-cx321xx: use usb_interface.dev for v4l2_device_register
+On Sonntag, 8. März 2009, schollsky@arcor.de wrote:
+> Hi all,
+>
+> I've browsed through the file and tried to get up to date download
+> locations. The ones on linuxtv.org remain largely unchecked, I presume
+> they're okay.
 
-From: Janne Grunau <j@jannau.net>
+As I already said: Kudos, very nice that someone does this now.
 
-removes the explicitly set v4l2_device.name
+>
+> Comments at the right side are pretty much self-explanatory I hope. For two
+> firmware files I could not find a valid download location, newer pages
+> provide more recent versions here. What I did not check is wether the
+> firmware is working or not - I plainly rely on correct filenames and proper
+> checking routine insinde.
+>
+> Hope you find this useful by now.
 
-Priority: normal
+At first a formal suggestion: Do send a unified diff instead of the file 
+itself, this should show more easy what you did.
 
-Signed-off-by: Janne Grunau <j@jannau.net>
+Second: The check routine uses the md5sum stored in $hash. And if checking is 
+fine, you can be sure you got the exact same file, regardless of what you 
+needed to change otherwise.
 
-diff -r 602a8fff1ba4 -r edca57a28704 linux/drivers/media/video/cx231xx/cx231xx-cards.c
---- a/linux/drivers/media/video/cx231xx/cx231xx-cards.c	Fri Mar 27 22:34:06 2009 +0100
-+++ b/linux/drivers/media/video/cx231xx/cx231xx-cards.c	Fri Mar 27 22:42:45 2009 +0100
-@@ -683,9 +683,7 @@
- 	 */
- 
- 	/* Create v4l2 device */
--	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
--					"%s-%03d", "cx231xx", nr);
--	retval = v4l2_device_register(&udev->dev, &dev->v4l2_dev);
-+	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
- 		cx231xx_errdev("v4l2_device_register failed\n");
- 		cx231xx_devused &= ~(1 << nr);
+Regards
+Matthias
