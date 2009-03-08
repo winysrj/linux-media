@@ -1,47 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:41693 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751939AbZCEUnY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:43:24 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so20416eya.37
-        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 12:43:20 -0800 (PST)
-From: Eduard Huguet <eduardhc@gmail.com>
-To: utar <utar101@gmail.com>
-Subject: Re: Hauppauge NOVA-T 500 falls over after warm reboot
-Date: Thu, 5 Mar 2009 21:43:17 +0100
-Cc: linux-media@vger.kernel.org
-References: <49AD88BF.30507@gmail.com> <617be8890903040026t679991bmf69b0076ff5bb64e@mail.gmail.com> <loom.20090305T195350-142@post.gmane.org>
-In-Reply-To: <loom.20090305T195350-142@post.gmane.org>
+Received: from rv-out-0506.google.com ([209.85.198.230]:32052 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750843AbZCHHzy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 03:55:54 -0400
+Date: Sat, 7 Mar 2009 23:55:21 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, laurent.pinchart@skynet.be,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
+	is probably using the wrong IRQ."
+Message-ID: <20090308075521.GG6869@jenkins.ifup.org>
+References: <20090307084225.GF6869@jenkins.ifup.org> <Pine.LNX.4.44L0.0903071230190.6084-100000@netrider.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200903052143.18265.eduardhc@gmail.com>
+In-Reply-To: <Pine.LNX.4.44L0.0903071230190.6084-100000@netrider.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A Dijous, 5 de març de 2009 20:57:38, utar va escriure:
-> > Have you tried rmmoding the module (dvb_usb_dib0700) and reloading it?
-> > I think that it was in such a case where it then wrongly detected the
-> > card as 'cold', attempting to reload it, which failed.
->
-> No as if I do a cold boot there isn't an issue.  I just thought I would
-> report this so that the developers were aware.
->
-> Many thanks for the suggestion though.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 12:37 Sat 07 Mar 2009, Alan Stern wrote:
+> On Sat, 7 Mar 2009, Brandon Philips wrote:
+> > On 21:26 Fri 06 Mar 2009, Greg KH wrote:
+> > > On Fri, Mar 06, 2009 at 11:11:22AM -0800, Brandon Philips wrote:
+> > > > When an UVC device is open and a S4 is attempted the thaw hangs (see the
+> > > > stack below). I don't see what the UVC driver is doing wrong to cause
+> > > > this to happen though.
+> > > 
+> > > I don't think this is a uvc driver issue, it looks like all you are
+> > > trying to do is a usb control message when things hang.
+> > 
+> > Indeed. When I was poking at this I tried to supress the control message coming
+> > out of the uvcvideo driver after the suspend was issued to see what would
+> > happen and the control messages after the resume locked up instead. Eh.
+> 
+> Have you tried suspending just the two devices plugged into that EHCI 
+> controller instead of suspending the entire system?  That would make it 
+> a lot easier to carry out testing.
 
-Hi, 
-   I agree, the cold reboot does nothave this problem. Anyway, in a case a 
-cold reboot is not possible (I sometimes reboot my backend remotely), stopping 
-the backend and unloading the driver before rebooting seems to also work fine.
+I tried to reproduce with s2ram suspend, echo suspend >
+/sys/bus/usb/devices/.../power/level and /sys/power/pm_test levels but none of
+them reproduced it. So, at this point the only way I can reproduce this is with
+a full S4.
 
-This might be a clue also about what's happening, anyway.
+Is there some other method I missed of testing?
 
-Best regards
+Thanks,
 
+	Brandon
