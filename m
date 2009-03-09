@@ -1,88 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:18329 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbZCBQEC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 11:04:02 -0500
-Date: Mon, 2 Mar 2009 17:03:49 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@radix.net>
+Received: from rotring.dds.nl ([85.17.178.138]:39596 "EHLO rotring.dds.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881AbZCIN53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2009 09:57:29 -0400
+Subject: Re: Problem with changeset 10837: causes "make all" not to build
+ many modules
+From: Alain Kalker <miki@dds.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: linux-media@vger.kernel.org
-Subject: Re: General protection fault on rmmod cx8800
-Message-ID: <20090302170349.18c8fd75@hyperion.delvare>
-In-Reply-To: <1236003365.3071.6.camel@palomino.walls.org>
-References: <20090215214108.34f31c39@hyperion.delvare>
-	<20090302133936.00899692@hyperion.delvare>
-	<1236003365.3071.6.camel@palomino.walls.org>
+In-Reply-To: <20090309013005.66a71767@caramujo.chehab.org>
+References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
+	 <20090306074604.10926b03@pedra.chehab.org>
+	 <1236439661.7569.132.camel@miki-desktop>
+	 <alpine.LRH.2.00.0903081354030.17407@pedra.chehab.org>
+	 <1236565064.7149.49.camel@miki-desktop>
+	 <20090309013005.66a71767@caramujo.chehab.org>
+Content-Type: text/plain
+Date: Mon, 09 Mar 2009 14:57:22 +0100
+Message-Id: <1236607042.5982.7.camel@miki-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
-
-On Mon, 02 Mar 2009 09:16:05 -0500, Andy Walls wrote:
-> On Mon, 2009-03-02 at 13:39 +0100, Jean Delvare wrote:
-> > On Sun, 15 Feb 2009 21:41:08 +0100, Jean Delvare wrote:
-> > > Hi all,
-> > > 
-> > > Today I have hit the following general protection fault when removing
-> > > module cx8800:
-> > 
-> > This has just happened to me again today, with kernel 2.6.28.7. I have
-> > opened a bug in bugzilla:
-> > 
-> > http://bugzilla.kernel.org/show_bug.cgi?id=12802
-> > 
+Op maandag 09-03-2009 om 01:30 uur [tijdzone -0300], schreef Mauro
+Carvalho Chehab:
+> I'm not sure if Kernel has a default language convention for this. Probably, it
+> has, but I can't find anything on Documentation/*. Otherwise, I would vote for
+> using -ISE on both options.
 > 
-> I'll try to look at it later today.  But right off the bat, I think
-> here's a problem:
-
-Thanks for your help looking into this!
-
-> void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir)
-> {
-> [...]
->         if (ir->polling) {
->                 del_timer_sync(&ir->timer);   <--- Wrong order?
->                 flush_scheduled_work();       <--- Wrong order?
->         }
-> }
-
-The order looks OK to me. If you flush the event workqueue before
-deleting the timer, the timer could rearm before you delete it, and
-you'd return before the workqueue is actually flushed. As a matter of
-fact, both bttv-input and ir-kbd-i2c have it in the same order.
-
-> static void cx88_ir_work(struct work_struct *work)
-> {
->         struct cx88_IR *ir = container_of(work, struct cx88_IR, work);
+> Hmm... maybe we can just grep for both and see what happens most on Kernel:
 > 
->         cx88_ir_handle_key(ir);
->         mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
-> }
+> $ git grep -i customise|wc
+>     256    1451   19677
 > 
+> $ git grep -i customize|wc
+>     115     733    9986
 > 
-> mod_timer() acts like del_timer(); mumble; add_timer();  If there was
-> any work flushed when stopping the IR, a new timer gets added.  That
-> seems wrong.
+> It seems that the Britain way is more popular.
 
-As far as I can see the key difference between bttv-input and
-cx88-input is that bttv-input only uses a simple self-rearming timer,
-while cx88-input uses a timer and a separate workqueue. The timer runs
-the workqueue, which rearms the timer, etc. When you flush the timer,
-the separate workqueue can be still active. I presume this is what
-happens on my system. I guess the reason for the separate workqueue is
-that the processing may take some time and we don't want to hurt the
-system's performance?
+I would vote to stick with -ise also, since it is used most in the
+kernel, and also to hono(u)r the fact that Linus, who started it all, is
+European. No offen{c,s}e to the many people from the Americas who
+contribute great and valuable work to it! :-)
 
-So we need to flush both the event workqueue (with
-flush_scheduled_work) and the separate workqueue (with
-flush_workqueue), at the same time, otherwise the active one may rearm
-the flushed one again. This looks tricky, as obviously we can't flush
-both at the exact same time. Alternatively, if we could get rid of one
-of the queues, we'd have only one that needs flushing, this would be a
-lot easier...
+Kind regards,
 
--- 
-Jean Delvare
+Alain
+
