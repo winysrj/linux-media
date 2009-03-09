@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:33265 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754712AbZCMQlO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 12:41:14 -0400
-Date: Fri, 13 Mar 2009 08:40:58 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, laurent.pinchart@skynet.be,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
-	is probably using the wrong IRQ."
-Message-ID: <20090313154058.GB14186@jenkins.ifup.org>
-References: <20090311221555.GB5776@jenkins.ifup.org> <Pine.LNX.4.44L0.0903131033140.2898-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.0903131033140.2898-100000@iolanthe.rowland.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:51021 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752045AbZCIXWy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 19:22:54 -0400
+Date: Mon, 9 Mar 2009 20:20:15 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Cc: Joonyoung Shim <dofmind@gmail.com>, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com
+Subject: Re: About the radio-si470x driver for I2C interface
+Message-ID: <20090309202015.14c78009@pedra.chehab.org>
+In-Reply-To: <200903092333.38819.tobias.lorenz@gmx.net>
+References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
+	<20090306074604.10926b03@pedra.chehab.org>
+	<200903092333.38819.tobias.lorenz@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10:35 Fri 13 Mar 2009, Alan Stern wrote:
-> On Wed, 11 Mar 2009, Brandon Philips wrote:
+On Mon, 9 Mar 2009 23:33:38 +0100
+Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
+
+> Hi,
 > 
-> > On 15:46 Wed 11 Mar 2009, Alan Stern wrote:
-> > > On Wed, 11 Mar 2009, Brandon Philips wrote:
-> > > Okay, here's a diagnostic patch meant to apply on top of 
-> > > gregkh-all-2.6.29-rc7.  Let's see what it says...
+> > The proper way is to break radio-si470x into two parts:
 > > 
-> > Here is the log:
-> >  http://ifup.org/~philips/467317/pearl-alan-debug.log
+> > 	- A i2c adapter driver (similar to what we have on cx88-i2c, for
+> > 	  example, plus the radio part of cx88-video);
+> > 	- A radio driver (similar to tea5767.c).
 > > 
-> > >  	default:
-> > >  		qh = (struct ehci_qh *) urb->hcpriv;
-> > > +		if (alantest == 1) {
-> > > +			alantest = 2;
-> > > +			ehci_info(ehci, "dequeue: qh %p\n", qh);
-> > > +		}
-> > 
-> > This was the last thing printed before I dumped the task states with sysrq
-> > keys.
+> > This way, the i2c driver can be used on designs that use a different i2c adapter.
 > 
-> Okay, not much information there but it's a start.  Here's a more 
-> informative patch to try instead.
+> yes, this is why I already capsulated most of the USB functionality into own functions. I awaited that somewhen the si470x is used in the "usual" way by i2c.
+> 
+> I'm not sure, if we should split the driver into three files (generic/common, usb, i2c) or just implement the new functionality within the same file using macros/defines.
 
-Here is the log:
- http://ifup.org/~philips/467317/pearl-alan-debug-2.log
+It is better to split. It will provide more flexibility.
 
-Thanks,
-
-	Brandon
+Cheers,
+Mauro
