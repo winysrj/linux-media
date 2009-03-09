@@ -1,28 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:39599 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756751AbZCRN1E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 09:27:04 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so49692yxl.1
-        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2009 06:27:02 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <004b01c9a79e$db8d4630$0a00a8c0@vorg>
-References: <000701c9a5de$09033e20$0a00a8c0@vorg>
-	 <49BE5B36.1080901@linuxtv.org> <004b01c9a79e$db8d4630$0a00a8c0@vorg>
-Date: Wed, 18 Mar 2009 09:27:02 -0400
-Message-ID: <de8cad4d0903180627g27ce9e68v8b0c3c4943f2c78c@mail.gmail.com>
-Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: linux-media@vger.kernel.org
+Received: from smtp3-g21.free.fr ([212.27.42.3]:51096 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751915AbZCIG5z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2009 02:57:55 -0400
+Date: Mon, 9 Mar 2009 07:52:50 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: "Andreas Kurz" <kurz.andi@gmx.at>
+Cc: linux-media@vger.kernel.org
+Subject: Re: TT 3650
+Message-ID: <20090309075250.4acf4fec@free.fr>
+In-Reply-To: <20090308152702.258090@gmx.net>
+References: <20090218092217.232120@gmx.net>
+	<20090218103353.64bf6400@free.fr>
+	<20090223113439.90620@gmx.net>
+	<20090223131909.126d0d8c@free.fr>
+	<20090308152702.258090@gmx.net>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 18, 2009 at 3:51 AM, Timothy D. Lenz <tlenz@vorgon.com> wrote:
-> Anyone know how to get the crash data to a log file? A way to redirect main monitor to an ssh client or second linux computer
-> through serial port and null modem cable?
->
+On Sun, 08 Mar 2009 16:27:02 +0100
+"Andreas Kurz" <kurz.andi@gmx.at> wrote:
 
-See the Documentation/serial-console.txt file in your kernel source tree.
+> Hi...
+
+Hi Andreas,
+
+> Still having some problems getting this card to work for me (Suse
+> 11.1, KDE 4.1). I have successfully installed the suggested
+> non-main-repo, szap-s2 and dvbstream. Unter Yast/TV-card I used the
+> Experts button to tell the system to use a unknown tv-card with v4l2.
+> Unfotunately dvbstream -o 8192 | vlc leaves me with 
+> 
+> scyth@NotebookMMC:~> dvbstream -o 8192 | vlc  
+	[snip]
+
+You forgot to tell vlc which is the source:
+
+	dvbstream -o 8192 | vlc -
+	                       ~~~
+
+Don't forget to run szap-s2 with this command. Otherwise, you must give
+dvbstream the frequency and the symbol rate of the transponder.
+
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
