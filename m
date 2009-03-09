@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.atmel.fr ([81.80.104.162]:35126 "EHLO atmel-es2.atmel.fr"
+Received: from smtp4-g21.free.fr ([212.27.42.4]:39366 "EHLO smtp4-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757844AbZCWPVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 11:21:10 -0400
-Message-ID: <49C7A8DF.3040101@atmel.com>
-Date: Mon, 23 Mar 2009 16:21:03 +0100
-From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
-MIME-Version: 1.0
+	id S1751258AbZCITQb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2009 15:16:31 -0400
 To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: atmel v4l2 soc driver
-References: <49B789F8.3070906@atmel.com> <Pine.LNX.4.64.0903111100050.4818@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0903111100050.4818@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Cc: mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/4] pxa_camera: Fix overrun condition on last buffer
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-4-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-5-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0903091236540.3992@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 09 Mar 2009 20:16:18 +0100
+In-Reply-To: <Pine.LNX.4.64.0903091236540.3992@axis700.grange> (Guennadi Liakhovetski's message of "Mon\, 9 Mar 2009 12\:39\:42 +0100 \(CET\)")
+Message-ID: <87zlfuse0t.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-I am writing a driver for the ov9655 sensor from Omnivision.
-To do so I am using the ov772x.c file as an example.
-But I don't understant, because it seems that I never enter the 
-video_probe function...
-Do you have any idea what could I do wrong? Is it coming from a wrong 
-i2c config?
+> On Thu, 5 Mar 2009, Robert Jarzmik wrote:
+>
+>> The last buffer queued will often overrun, as the DMA chain
+>> is finished, and the time the dma irq handler is activated,
+>
+> s/and the time/and during the time/ ?
+If you wish, or might be simply "and before the dma irq handler is
+activated". As you see fit.
 
-Regards,
-Sedji
+>> +		if (camera_status & overrun
+>> +		    && !list_is_last(pcdev->capture.next, &pcdev->capture)) {
+>>  			dev_dbg(pcdev->dev, "FIFO overrun! CISR: %x\n",
+>>  				camera_status);
+>>  			pxa_camera_stop_capture(pcdev);
+>>  			pxa_camera_start_capture(pcdev);
+>>  			goto out;
+>>  		}
+>> -
+>>  		buf->active_dma &= ~act_dma;
+>
+> This empty like removal doesn't belong to the fix, I'll remove it when 
+> committing, and amend the commit message as above. Please, comment if you 
+> disagree.
+I totally agree with you, remove that "removal" :)
 
-Guennadi Liakhovetski a écrit :
-> On Wed, 11 Mar 2009, Sedji Gaouaou wrote:
-> 
->> I am currently porting an atmel isi driver to the soc layer,
-> 
-> This is good!
-> 
->> and I encounter some problems.
->> I have based my driver on pax-camera. and sh_mobile_ceu_camera.c.
->> The point is I can't see any video entry in /dev when I do ls dev/ on my
->> board...
->> So I wonder when is soc_camera_video_start(which call video_register_device)
->> called? Is that at the probe?
-> 
-> Well, you could just do
-> 
-> grep soc_camera_video_start drivers/media/video/*.c
-> 
-> Then you would immediately see, that each specific camera (sensor, 
-> decoder, whatever) driver explicitly calls this function.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> 
+Cheers.
 
-
+--
+Robert
