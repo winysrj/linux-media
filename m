@@ -1,34 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.226]:32707 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318AbZC0IU0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 04:20:26 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so1131684rvb.1
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 01:20:24 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 27 Mar 2009 16:20:24 +0800
-Message-ID: <15ed362e0903270120r32d2c324gfbfda800bb2ce5aa@mail.gmail.com>
-Subject: DMB-TH patches
-From: David Wong <davidtlwong@gmail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2129 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751168AbZCITPt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 15:15:49 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n29JFkso005918
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 9 Mar 2009 20:15:46 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 9 Mar 2009 20:15:46 +0100 (CET)
+Message-Id: <200903091915.n29JFkso005918@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-  Anyone would like to take care of my patch related to DMB-TH? at
-least putting them into some development branch?
-  The unified lgs8gxx code is much complete compare to the reverse
-engineered lgs8gl5, and It is tested by lgs8gl5 original author
-Timothy Lee.
+Results of the daily build of v4l-dvb:
 
- The patches are:
-http://patchwork.kernel.org/patch/12633/
-http://patchwork.kernel.org/patch/12634/
-http://patchwork.kernel.org/patch/12636/
-http://www.spinics.net/lists/linux-media/msg03655.html
+date:        Mon Mar  9 19:00:10 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10857:4552dc2948e0
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-David
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc7-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc7-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc7-m32r: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc7-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc7-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc7): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
