@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2E5QKrP016861
-	for <video4linux-list@redhat.com>; Sat, 14 Mar 2009 01:26:20 -0400
-Received: from s0be.servebeer.com (pool-71-115-160-52.gdrpmi.dsl-w.verizon.net
-	[71.115.160.52])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2E5Q7g6030665
-	for <video4linux-list@redhat.com>; Sat, 14 Mar 2009 01:26:07 -0400
-Message-ID: <49BB3B49.4020405@erley.org>
-Date: Sat, 14 Mar 2009 01:06:17 -0400
-From: Pat Erley <pat-lkml@erley.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n29E6sl6001445
+	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 10:06:54 -0400
+Received: from sperry-03.control.lth.se (sperry-03.control.lth.se
+	[130.235.83.190])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n29E6VnX013436
+	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 10:06:32 -0400
+Message-ID: <49B52263.1010302@control.lth.se>
+Date: Mon, 09 Mar 2009 15:06:27 +0100
+From: Anders Blomdell <anders.blomdell@control.lth.se>
 MIME-Version: 1.0
-To: laurent.pinchart@skynet.be
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+References: <49A8661A.4090907@control.lth.se>	<49B194A7.4030808@kaiser-linux.li>
+	<49B50740.3000902@control.lth.se>
+	<49B50E16.8080703@kaiser-linux.li>
+In-Reply-To: <49B50E16.8080703@kaiser-linux.li>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: [PATCH v2] uvcvideo: Add DEV_RESET_ON_TIMEOUT Quirk
+Subject: Re: Topro 6800 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,168 +30,104 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This patch provides a quirk that causes uvcvideo to reset certain
-devices on -ETIMEOUT.  This is required for my Quickcam Orbit MP 
-to function.  This is based on a patch provided by Michel Stempin
-in January of 2008.  I've reworked it to be less intrusive for 
-other devices.
+Thomas Kaiser wrote:
+> Hello Anders
+> 
+> Anders Blomdell wrote:
+>>>> Anybody who has a good idea of how to find a DQT/Huffman table that works with
+>>>> this image data?
+>>> I did some usbsnoops today and see some similar things in the stream as 
+>>> in your trace. Maybe you can comment on my observation?
+>>>
+>>> When I stop the capturing, the las 2 Bytes are always 0xff 0xd9 which 
+>>> look like a valid JPEG marker (End of Image)
+>>>
+>>> When I search for 0xffd9, I see the following sequence:
+>>>
+>>> FF D9 5x FF D8 FF FE 14 1E xx xx xx
+>> Is the 5x directly following the FFD9 (in my camera, the next frame [55] is in a
+>> new ISO frame)?
+> 
+> Actually, the 5x is always the first byte in the IsoPacket. In my 
+> snoops, it is mostly 5A.
+> 
+>>> - 5x is 55 or 5A
+>> I have only seen ISO frames starting with 55 (new frame) AA (abort frame) CC
+>> (frame continuation), the 5A case is not documented in the manual I have
+> 
+> Can you send this manual to me (private)?
+Will do (TP6801 manual), also available at:
 
-Tested with:
- Philips SPC 1300NC Webcam (0471:0331)
- Logitech Quickcam Orbit MP (046d:08c2)
- 
-Signed-off-by: Pat Erley <pat-lkml@erley.org>
----
-I've been using/updating this patch for 6 months regularly with
-both tested devices, and have not had a problem with it.  
+http://www.topro.com.tw/Product_Show.asp?Product_ID=39
+> 
+>>> - the 3 xx are mostly the same, but they change a lot when I cover the 
+>>> lens of the cam. So I think this is some image information (brightness?).
+>> Or perhaps JPEG encoded data.
+>>
+>>> This said, i don't think that FF D8 and FF FE are JPEG markers, just a 
+>>> unique Byte pattern to mark the start of a new frame.
+>> Since the manual states that the chip does JPEG compression, and the frames are
+>> significantly smaller than 640*480 and varies in size, I expect it to be in some
+>> compressed format, and so far I expect JPEG (but with unknown Huffman/DQT tables).
+>>
+>>> I guess 5x FF D8 FF FE 14 1E xx xx xx and may be some more bytes is the 
+>>> frame marker.
+> 
+> I did some more studying over the weekend....
+> 
+> In my snoops, I think:
+> 5a ff d8 ff fe 14 1e 00 fd f5 45 7e e8 f8 b8 df 49 57
+> 
+> is the frame header, so at offset 18, the JPEG streams starts.
+What do you base that on (just curious, I'm not in a position to argument)?
+
+> And I am 100% sure that the stream is JPEG coded.
+What makes you so sure? FF00 perhaps?
+
+> 
+>>> Comments?
+>> It would be interesting to know if somebody well versed in windows programming
+>> could write a program to get JPEG frames out of the driver directly (provided
+>> this is possible of course), if the image part of such a frame matches the data
+>> seen on USB, we would then have the Huffman/DQT tables.
+> 
+> Might be possible for some one you knows how to interact with the Windoz 
+> driver, I don't.
+> Or you can get the sensor in saturation (only white picture), then you 
+> know how the picture should look like. When the whole picture is only 
+> white, each MCU has to be the same ;-)
+Hmm, perhaps setting all entries in the gammatables to the same value would give
+some useful information then. See more below...
+
+> 
+>> At the moment I'm stuck, since I see no way to find out what Huffman/DQT tables
+>> that are used.
+> 
+> I found some interesting file in a TP6810 folder on my Windoz box after 
+> I installed the driver. See Attachment ;-)
+Looks like 17 DQT tables to me, if one assumes that the description for register
+79 (QUALITY):
+
+  JPEG compression quality factor 0 ~ 31
+    0: good quality
+    15: smallest size
+    16 ~ 31: ultra fine quality
+
+can be interpreted as that there are 17 different quality levels, that should
+mean that we have some information. If we then set the gammatables (Bulk-Out
+with prefix) to constant values, we should know what data goes into the Huffman
+encoding, which might give some additional information.
+> 
+> Hope this helps, I will study some more....
+Don't know, but it's new data to chew on...
 
 
-diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvc_driver.c
---- a/linux/drivers/media/video/uvc/uvc_driver.c	Tue Mar 10 18:32:24 2009 -0300
-+++ b/linux/drivers/media/video/uvc/uvc_driver.c	Sat Mar 14 01:01:08 2009 -0400
-@@ -1510,7 +1510,25 @@
- 	if ((ret = uvc_video_init(&dev->video)) < 0) {
- 		uvc_printk(KERN_ERR, "Failed to initialize the device "
- 			"(%d).\n", ret);
--		return ret;
-+		if(dev->quirks & UVC_QUIRK_DEV_RESET_ON_TIMEOUT) {
-+			uvc_printk(KERN_ERR, "Trying to reset\n");
-+			
-+			if ((ret = uvc_usb_reset(dev))) {
-+				uvc_printk(KERN_ERR, 
-+						"Reset failed (%d)\n",
-+						ret);
-+				return ret;
-+			}
-+
-+			if ((ret = uvc_video_init(&dev->video)) < 0) {
-+				uvc_printk(KERN_ERR, 
-+						"Init after reset"
-+						" failed(%d)\n", ret);
-+				return ret;
-+			}
-+		} else {
-+			return ret;
-+		}
- 	}
- 
- 	/* Register the device with V4L. */
-@@ -1802,7 +1820,8 @@
- 	  .idProduct		= 0x08c2,
- 	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
- 	  .bInterfaceSubClass	= 1,
--	  .bInterfaceProtocol	= 0 },
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info          = UVC_QUIRK_DEV_RESET_ON_TIMEOUT },
- 	/* Logitech Quickcam Pro for Notebook */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
-diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvc_v4l2.c
---- a/linux/drivers/media/video/uvc/uvc_v4l2.c	Tue Mar 10 18:32:24 2009 -0300
-+++ b/linux/drivers/media/video/uvc/uvc_v4l2.c	Sat Mar 14 01:01:08 2009 -0400
-@@ -466,6 +466,13 @@
- 		mutex_unlock(&video->queue.mutex);
- 	}
- 
-+	if(video->dev->quirks & UVC_QUIRK_DEV_RESET_ON_TIMEOUT)
-+	{
-+		/* leave usb device in a clean state */
-+			if (video->dev->state & UVC_DEV_IOERROR)
-+				uvc_video_reinit(video);
-+	}
-+
- 	/* Release the file handle. */
- 	uvc_dismiss_privileges(handle);
- 	kfree(handle);
-diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvc_video.c
---- a/linux/drivers/media/video/uvc/uvc_video.c	Tue Mar 10 18:32:24 2009 -0300
-+++ b/linux/drivers/media/video/uvc/uvc_video.c	Sat Mar 14 01:01:08 2009 -0400
-@@ -55,6 +55,12 @@
- 		uvc_printk(KERN_ERR, "Failed to query (%u) UVC control %u "
- 			"(unit %u) : %d (exp. %u).\n", query, cs, unit, ret,
- 			size);
-+		
-+		/* Reset 'Quirky' device on timeout (-110) */
-+		if((dev->quirks & UVC_QUIRK_DEV_RESET_ON_TIMEOUT) &&
-+		   (ret == -ETIMEDOUT))
-+			dev->state |= UVC_DEV_IOERROR;   	
-+			
- 		return -EIO;
- 	}
- 
-@@ -1160,3 +1166,43 @@
- 	return uvc_init_video(video, GFP_KERNEL);
- }
- 
-+/* 
-+ * Reset and Re-Initialize video device
-+ */
-+int uvc_video_reinit(struct uvc_video_device *video)
-+{
-+	int ret;
-+
-+	if ((ret = uvc_usb_reset(video->dev)) < 0)
-+		return ret;
-+
-+	if ((ret = uvc_set_video_ctrl(video, &video->streaming->ctrl, 0)) < 0) {
-+		uvc_printk(KERN_DEBUG, "uvc_video_reinit: Unable to commit format "
-+			"(%d).\n", ret);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+int uvc_usb_reset(struct uvc_device *dev)
-+{
-+	int l, ret;
-+
-+	l = usb_lock_device_for_reset(dev->udev, dev->intf);
-+
-+	if (l >= 0) {
-+		ret = usb_reset_device(dev->udev);
-+		if (l)
-+			usb_unlock_device(dev->udev);
-+	}
-+	else
-+	ret = -EBUSY;
-+
-+	if (ret)
-+		uvc_printk(KERN_DEBUG, "uvc_usb_reset: Unable to reset usb device"
-+			"(%d).\n", ret);
-+	else
-+		dev->state &= ~UVC_DEV_IOERROR;
-+
-+	return ret;
-+}
-diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvcvideo.h
---- a/linux/drivers/media/video/uvc/uvcvideo.h	Tue Mar 10 18:32:24 2009 -0300
-+++ b/linux/drivers/media/video/uvc/uvcvideo.h	Sat Mar 14 01:01:08 2009 -0400
-@@ -316,6 +316,7 @@
- #define UVC_QUIRK_IGNORE_SELECTOR_UNIT	0x00000020
- #define UVC_QUIRK_PRUNE_CONTROLS	0x00000040
- #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
-+#define UVC_QUIRK_DEV_RESET_ON_TIMEOUT	0x00000100
- 
- /* Format flags */
- #define UVC_FMT_FLAG_COMPRESSED		0x00000001
-@@ -622,6 +623,7 @@
- 
- enum uvc_device_state {
- 	UVC_DEV_DISCONNECTED = 1,
-+	UVC_DEV_IOERROR = 2,
- };
- 
- struct uvc_device {
-@@ -815,6 +817,9 @@
- 		struct usb_host_interface *alts, __u8 epaddr);
- 
- /* Quirks support */
-+extern int uvc_video_reinit(struct uvc_video_device *video);
-+extern int uvc_usb_reset(struct uvc_device *dev);
-+
- void uvc_video_decode_isight(struct urb *urb, struct uvc_video_device *video,
- 		struct uvc_buffer *buf);
- 
+-- 
+Anders Blomdell                  Email: anders.blomdell@control.lth.se
+Department of Automatic Control
+Lund University                  Phone:    +46 46 222 4625
+P.O. Box 118                     Fax:      +46 46 138118
+SE-221 00 Lund, Sweden
 
 --
 video4linux-list mailing list
