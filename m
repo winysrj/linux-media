@@ -1,95 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 203-109-246-148.static.bliink.ihug.co.nz ([203.109.246.148]:20581
-	"EHLO mail.reveal.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756140AbZCMArD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 20:47:03 -0400
-Date: Fri, 13 Mar 2009 13:43:34 +1300
-From: Alan McIvor <alan.mcivor@reveal.co.nz>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Add support for ProVideo PV-183 to bttv (take 2 - changed
- spaces to tabs)
-Message-Id: <20090313134334.d4b9c198.alan.mcivor@reveal.co.nz>
-In-Reply-To: <Pine.LNX.4.58.0903121711370.28292@shell2.speakeasy.net>
-References: <20090313114649.e774c9be.alan.mcivor@reveal.co.nz>
-	<Pine.LNX.4.58.0903121711370.28292@shell2.speakeasy.net>
-Mime-Version: 1.0
+Received: from bear.ext.ti.com ([192.94.94.41]:38145 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753080AbZCIVXq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 17:23:46 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Alexey Klimov <klimov.linux@gmail.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+CC: "Curran, Dominic" <dcurran@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Date: Mon, 9 Mar 2009 16:23:32 -0500
+Subject: RE: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
+Message-ID: <A24693684029E5489D1D202277BE89442E40F864@dlee02.ent.ti.com>
+In-Reply-To: <1236440513.1863.33.camel@tux.localhost>
+Content-Language: en-US
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for ProVideo PV-183 to bttv
+Hi,
 
-From: Alan McIvor <alan.mcivor@reveal.co.nz>
+> -----Original Message-----
+> From: Alexey Klimov [mailto:klimov.linux@gmail.com]
+> Sent: Saturday, March 07, 2009 9:42 AM
+> To: DongSoo(Nathaniel) Kim
+> Cc: Curran, Dominic; Aguirre Rodriguez, Sergio Alberto; linux-
+> media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus; Tuukka.O
+> Toivonen; Hiroshi DOYU; MiaoStanley; Nagalla, Hari; Hiremath, Vaibhav;
+> Lakhani, Amish; Menon, Nishanth
+> Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
+> 
+> Hello, all
+> 
+> On Fri, 2009-03-06 at 10:54 +0900, DongSoo(Nathaniel) Kim wrote:
+> > Hi Alexey,
+> >
+> > On Fri, Mar 6, 2009 at 7:05 AM, Alexey Klimov <klimov.linux@gmail.com>
+> wrote:
+> > > Hello, all
+> > >
+> > > On Thu, Mar 5, 2009 at 7:42 PM, Curran, Dominic <dcurran@ti.com>
+> wrote:
+> > >>
+> > >> Hi Kim
+> > >>
+> > >>> -----Original Message-----
+> > >>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > >>> owner@vger.kernel.org] On Behalf Of DongSoo(Nathaniel) Kim
+> > >>> Sent: Wednesday, March 04, 2009 8:58 PM
+> > >>> To: Aguirre Rodriguez, Sergio Alberto
+> > >>> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari
+> Ailus;
+> > >>> Tuukka.O Toivonen; Hiroshi DOYU; MiaoStanley; Nagalla, Hari;
+> Hiremath,
+> > >>> Vaibhav; Lakhani, Amish; Menon, Nishanth
+> > >>> Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
+> > >>>
+> > >>> Hi Sergio,
+> > >>>
+> > >>>
+> > >>>
+> > >>> On Wed, Mar 4, 2009 at 5:44 AM, Aguirre Rodriguez, Sergio Alberto
+> > >>> <saaguirre@ti.com> wrote:
+> > >>> > +               /* turn on analog power */
+> > >>> > +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> > >>> > +                               VAUX_2_8_V,
+> TWL4030_VAUX2_DEDICATED);
+> > >>> > +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> > >>> > +                               VAUX_DEV_GRP_P1,
+> TWL4030_VAUX2_DEV_GRP);
+> > >>> > +
+> > >>> > +               /* out of standby */
+> > >>> > +               gpio_set_value(MT9P012_STANDBY_GPIO, 0);
+> > >>> > +               udelay(1000);
+> > >>>
+> > >>> It seems better using msleep rather than udelay for 1000us much.
+> Just
+> > >>> to be safe :)
+> > >>> How about you?
+> > >>>
+> > >>
+> > >> Why is msleep safer than udelay ?
+> > >
+> > > I have small guess that he is wondering why you are using big delays
+> > > with help of udelay(). (It's may be obvious but as we know udelay uses
+> > > cpu loops to make delay and msleep calls to scheduler) So, msleep is
+> > > more flexible and "softer" but if you need precise time or you can't
+> > > sleep in code you need udelay. Sometimes using udelay is reasonably
+> > > required.
+> >
+> > I totally agree with you.
+> > But besides the "udelay and mdelay accuracy" issue, Sergio's power up
+> > timing for  MT9P012 seems to delay too much. (not for lens
+> > controller.)
+> > I also have experience using MT9P012 sensor with other ISP, but in
+> > case of mine it took 600 to 800 ms for whole power up sequence.
+> > But if that delay depends on SDP board and Sergio had no options
+> > without making delay for that much, then it explains everything.
+> > So I'm saying if there was no other option than making long delay to
+> > bring up MT9P012 sensor properly, if I were Sergio I should rather use
+> > mdelay than udelay.
+> 
+> I agree with you. mdelay is really safer that udelay.
 
-This patch adds support for the ProVideo PV-183 card to the bttv
-device driver. The PV-183 is a PCI card with 8 BT878 devices plus a Hint
-Corp HiNT HB4 PCI-PCI Bridge. Each BT878 has two composite input channels
-available. There are no tuners on this card.
+Sorry for not participating much in this thread, I have been busy fixing other comments.
 
-This patch was generated against the V4L-DVB mercurial tree as of 12
-March 2009.
+This delay setting was set before I ever touched this drivers by other omap3 Linux camera ex-team member here in TI. I suspect they were set to the minimum working level in SDP already, but I haven't honestly tried to move them. I guess it's a good time to do so. :)
 
-Priority: normal
+I'll fix some other things first, and put this on my plate to check before reposting next version of drivers.
 
-Signed-off-by: Alan McIvor <alan.mcivor@reveal.co.nz>
+I really appreciate your feedback on this.
 
---- linux/drivers/media/video/bt8xx/bttv.h.orig	2009-03-13 10:12:09.000000000 +1300
-+++ linux/drivers/media/video/bt8xx/bttv.h	2009-03-13 10:18:46.000000000 +1300
-@@ -184,6 +184,7 @@
- #define BTTV_BOARD_IVCE8784		   0x9c
- #define BTTV_BOARD_GEOVISION_GV800S	   0x9d
- #define BTTV_BOARD_GEOVISION_GV800S_SL	   0x9e
-+#define BTTV_BOARD_PV183                   0x9f
- 
- 
- /* more card-specific defines */
---- linux/drivers/media/video/bt8xx/bttv-cards.c.orig	2009-03-13 10:12:19.000000000 +1300
-+++ linux/drivers/media/video/bt8xx/bttv-cards.c	2009-03-13 13:19:50.000000000 +1300
-@@ -321,6 +321,16 @@ static struct CARD {
- 	{ 0x763d800b, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
- 	{ 0x763d800c, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
- 	{ 0x763d800d, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
-+
-+	{ 0x15401830, BTTV_BOARD_PV183,         "Provideo PV183-1" },
-+	{ 0x15401831, BTTV_BOARD_PV183,         "Provideo PV183-2" },
-+	{ 0x15401832, BTTV_BOARD_PV183,         "Provideo PV183-3" },
-+	{ 0x15401833, BTTV_BOARD_PV183,         "Provideo PV183-4" },
-+	{ 0x15401834, BTTV_BOARD_PV183,         "Provideo PV183-5" },
-+	{ 0x15401835, BTTV_BOARD_PV183,         "Provideo PV183-6" },
-+	{ 0x15401836, BTTV_BOARD_PV183,         "Provideo PV183-7" },
-+	{ 0x15401837, BTTV_BOARD_PV183,         "Provideo PV183-8" },
-+
- 	{ 0, -1, NULL }
- };
- 
-@@ -2910,6 +2920,20 @@ struct tvcard bttv_tvcards[] = {
- 		.no_tda9875	= 1,
- 		.muxsel_hook    = gv800s_muxsel,
- 	},
-+	[BTTV_BOARD_PV183] = {
-+		.name           = "ProVideo PV183", /* 0x9f */
-+		.video_inputs   = 2,
-+		/* .audio_inputs= 0, */
-+		.svhs           = NO_SVHS,
-+		.gpiomask       = 0,
-+		.muxsel         = MUXSEL(2, 3),
-+		.gpiomux        = { 0 },
-+		.needs_tvaudio  = 0,
-+		.no_msp34xx     = 1,
-+		.pll            = PLL_28,
-+		.tuner_type     = TUNER_ABSENT,
-+		.tuner_addr	= ADDR_UNSET,
-+	},
- };
- 
- static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
---- linux/Documentation/video4linux/CARDLIST.bttv.orig	2009-03-13 13:39:03.000000000 +1300
-+++ linux/Documentation/video4linux/CARDLIST.bttv	2009-03-13 13:28:03.000000000 +1300
-@@ -157,3 +157,4 @@
- 156 -> IVCE-8784                                           [0000:f050,0001:f050,0002:f050,0003:f050]
- 157 -> Geovision GV-800(S) (master)                        [800a:763d]
- 158 -> Geovision GV-800(S) (slave)                         [800b:763d,800c:763d,800d:763d]
-+159 -> ProVideo PV183                                      [1830:1540,1831:1540,1832:1540,1833:1540,1834:1540,1835:1540,1836:1540,1837:1540]
+Regards,
+Sergio
+
+> 
+> >From file include/linux/delay.h:
+> 
+>  * Using udelay() for intervals greater than a few milliseconds can
+>  * risk overflow for high loops_per_jiffy (high bogomips) machines. The
+>  * mdelay() provides a wrapper to prevent this.  For delays greater
+>  * than MAX_UDELAY_MS milliseconds, the wrapper is used.  Architecture
+>  * specific values can be defined in asm-???/delay.h as an override.
+> 
+> So, let's Sergio check and decide what he needed! :)
+> 
+> > Cheers,
+> >
+> > Nate
+> 
+> --
+> Best regards, Klimov Alexey
+> 
 
