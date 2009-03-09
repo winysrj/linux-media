@@ -1,86 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37]:39983
-	"EHLO mk-outboundfilter-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752157AbZC2WRQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 18:17:16 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Jean-Francois Moine" <moinejf@free.fr>
-Subject: Re: [PATCH v2 1/4] Sensor orientation reporting
-Date: Sun, 29 Mar 2009 23:17:10 +0100
-Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>
-References: <200903292309.31267.linux@baker-net.org.uk>
-In-Reply-To: <200903292309.31267.linux@baker-net.org.uk>
+Received: from wf-out-1314.google.com ([209.85.200.175]:21378 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752452AbZCILCe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 07:02:34 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1900426wfa.4
+        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2009 04:02:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903292317.10249.linux@baker-net.org.uk>
+In-Reply-To: <dfeb90390903090318kfc92a05k153f3840c3b699b2@mail.gmail.com>
+References: <49B141F6.6040301@maxwell.research.nokia.com>
+	 <5e9665e10903081636l3e3afda0ofc215a082631927c@mail.gmail.com>
+	 <dfeb90390903090318kfc92a05k153f3840c3b699b2@mail.gmail.com>
+Date: Mon, 9 Mar 2009 20:02:32 +0900
+Message-ID: <5e9665e10903090402y555f8461r8b84d58e80300de3@mail.gmail.com>
+Subject: Re: OMAP3 ISP and camera drivers (update)
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Arun KS <getarunks@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"ext Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
+	=?ISO-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
+	<antti.koskipaa@nokia.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Alexey Klimov <klimov.linux@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support to the SQ-905 driver to pass back to user space the
-sensor orientation information obtained from the camera during init.
-Modifies gspca and the videodev2.h header to create the necessary
-API.
+Hello Arun,
 
-Signed-off-by: Adam Baker <linux@baker-net.org.uk>
----
-diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.c
---- a/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 08:45:36 2009 +0200
-+++ b/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 23:00:08 2009 +0100
-@@ -1147,6 +1147,7 @@
- 	if (input->index != 0)
- 		return -EINVAL;
- 	input->type = V4L2_INPUT_TYPE_CAMERA;
-+	input->status = gspca_dev->cam.input_flags;
- 	strncpy(input->name, gspca_dev->sd_desc->name,
- 		sizeof input->name);
- 	return 0;
-diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.h
---- a/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 08:45:36 2009 +0200
-+++ b/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 23:00:08 2009 +0100
-@@ -56,6 +56,7 @@
- 				 * - cannot be > MAX_NURBS
- 				 * - when 0 and bulk_size != 0 means
- 				 *   1 URB and submit done by subdriver */
-+	u32 input_flags;	/* value for ENUM_INPUT status flags */
- };
- 
- struct gspca_dev;
-diff -r d8d701594f71 linux/drivers/media/video/gspca/sq905.c
---- a/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 08:45:36 2009 +0200
-+++ b/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 23:00:08 2009 +0100
-@@ -360,6 +360,12 @@
- 	gspca_dev->cam.nmodes = ARRAY_SIZE(sq905_mode);
- 	if (!(ident & SQ905_HIRES_MASK))
- 		gspca_dev->cam.nmodes--;
-+
-+	if (ident & SQ905_ORIENTATION_MASK)
-+		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP;
-+	else
-+		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP |
-+					     V4L2_IN_ST_HFLIP;
- 	return 0;
- }
- 
-diff -r d8d701594f71 linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h	Sun Mar 29 08:45:36 2009 +0200
-+++ b/linux/include/linux/videodev2.h	Sun Mar 29 23:00:08 2009 +0100
-@@ -737,6 +737,11 @@
- #define V4L2_IN_ST_NO_SIGNAL   0x00000002
- #define V4L2_IN_ST_NO_COLOR    0x00000004
- 
-+/* field 'status' - sensor orientation */
-+/* If sensor is mounted upside down set both bits */
-+#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped horizontally 
-*/
-+#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped vertically */
-+
- /* field 'status' - analog */
- #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
- #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
+I've tried again after receiving your mail.
+It seems to be weired but it works this time. Difference between last
+time is I cloned linux-omap repo again and tried pulled Sakari's repo
+into that.
+It could be my fault maybe ;(
+Strange day. Sorry for making you confused.
 
+Nate
+
+
+On Mon, Mar 9, 2009 at 7:18 PM, Arun KS <getarunks@gmail.com> wrote:
+> 2009/3/9 DongSoo(Nathaniel) Kim <dongsoo.kim@gmail.com>:
+>> Hi Sakari,
+>>
+>> I've been trying to pull your gitorious patchset into my linux-omap
+>> repository (which is completely clean and up-to-date), but I'm having
+>> some problem.
+>> Please find following messages. I captured my git repository messages.
+>>
+>> kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git pull
+>>
+>> Already up-to-date.
+>>
+>> kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git status
+>>
+>> # On branch master
+>>
+>> nothing to commit (working directory clean)
+>>
+>> kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$
+>> git pull http://git.gitorious.org/omap3camera/mainline.git v4l iommu
+>> omap3camera base
+>>
+>> error: Could not read 5b007183d51543624bc9f582966f245a64157b57
+>>
+>> error: Could not read fa8977215db5ab6139379e95efc193e45833afa3
+>>
+>> error: Could not read 7de046a6a8446358001c38ad1d0b2b829ca0c98c
+>>
+>> error: Could not read 5b007183d51543624bc9f582966f245a64157b57
+>>
+>> Unable to find common commit with dc05ee10583dca44e0f8d4109bd1397ee3c5ffae
+>>
+>> Automatic merge failed; fix conflicts and then commit the result.
+>>
+>>
+>>
+>>
+>> I guess other people should also have the same issue with it. or am I
+>> doing wrong way?
+>> Please let me know
+>
+> Hi Nate,
+>
+> I tried this git pull git://git.gitorious.org/omap3camera/mainline.git
+> v4l iommu omap3camera base
+> and it works for me.
+>
+> Thanks,
+> Arun
+>>
+>>
+>> On Sat, Mar 7, 2009 at 12:32 AM, Sakari Ailus
+>> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>>> Hi,
+>>>
+>>> I've updated the patchset in Gitorious.
+>>>
+>>> <URL:http://www.gitorious.org/projects/omap3camera>
+>>>
+>>> Changes include
+>>>
+>>> - Power management support. ISP suspend/resume should work now.
+>>>
+>>> - Reindented and cleaned up everything. There are still some warnings from
+>>> checkpatch.pl from the CSI2 code.
+>>>
+>>> - Fix for crash in device registration, posted to list already. (Thanks,
+>>> Vaibhav, Alexey!)
+>>>
+>>> - LSC errors should be handled properly now.
+>>>
+>>> I won't post the modified patches to the list this time since I guess it
+>>> wouldn't be much of use, I guess. Or does someone want that? :)
+>>>
+>>> --
+>>> Sakari Ailus
+>>> sakari.ailus@maxwell.research.nokia.com
+>>>
+>>
+>>
+>>
+>> --
+>> ========================================================
+>> DongSoo(Nathaniel), Kim
+>> Engineer
+>> Mobile S/W Platform Lab. S/W Team.
+>> DMC
+>> Samsung Electronics CO., LTD.
+>> e-mail : dongsoo.kim@gmail.com
+>>          dongsoo45.kim@samsung.com
+>> ========================================================
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+
+
+
+-- 
+========================================================
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
