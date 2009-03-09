@@ -1,82 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34799 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752322AbZCPJIw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 05:08:52 -0400
-Date: Mon, 16 Mar 2009 06:08:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
-Message-ID: <20090316060814.2c3fd2d5@gaivota.chehab.org>
-In-Reply-To: <20090315185313.4c15702c@hyperion.delvare>
-References: <200903151344.01730.hverkuil@xs4all.nl>
-	<20090315181207.36d951ac@hyperion.delvare>
-	<Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
-	<20090315185313.4c15702c@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from ti-out-0910.google.com ([209.85.142.189]:32248 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752684AbZCIKSY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 06:18:24 -0400
+Received: by ti-out-0910.google.com with SMTP id d10so1099392tib.23
+        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2009 03:18:21 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5e9665e10903081636l3e3afda0ofc215a082631927c@mail.gmail.com>
+References: <49B141F6.6040301@maxwell.research.nokia.com>
+	 <5e9665e10903081636l3e3afda0ofc215a082631927c@mail.gmail.com>
+Date: Mon, 9 Mar 2009 15:48:20 +0530
+Message-ID: <dfeb90390903090318kfc92a05k153f3840c3b699b2@mail.gmail.com>
+Subject: Re: OMAP3 ISP and camera drivers (update)
+From: Arun KS <getarunks@gmail.com>
+To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"ext Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
+	=?ISO-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
+	<antti.koskipaa@nokia.com>,
+	Cohen David Abraham <david.cohen@nokia.com>,
+	Alexey Klimov <klimov.linux@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Mar 2009 18:53:13 +0100
-Jean Delvare <khali@linux-fr.org> wrote:
+2009/3/9 DongSoo(Nathaniel) Kim <dongsoo.kim@gmail.com>:
+> Hi Sakari,
+>
+> I've been trying to pull your gitorious patchset into my linux-omap
+> repository (which is completely clean and up-to-date), but I'm having
+> some problem.
+> Please find following messages. I captured my git repository messages.
+>
+> kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git pull
+>
+> Already up-to-date.
+>
+> kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$ git status
+>
+> # On branch master
+>
+> nothing to commit (working directory clean)
+>
+> kdsoo@chromatix:/home/share/GIT/OMAP_REF/kernel_org/linux-omap-2.6$
+> git pull http://git.gitorious.org/omap3camera/mainline.git v4l iommu
+> omap3camera base
+>
+> error: Could not read 5b007183d51543624bc9f582966f245a64157b57
+>
+> error: Could not read fa8977215db5ab6139379e95efc193e45833afa3
+>
+> error: Could not read 7de046a6a8446358001c38ad1d0b2b829ca0c98c
+>
+> error: Could not read 5b007183d51543624bc9f582966f245a64157b57
+>
+> Unable to find common commit with dc05ee10583dca44e0f8d4109bd1397ee3c5ffae
+>
+> Automatic merge failed; fix conflicts and then commit the result.
+>
+>
+>
+>
+> I guess other people should also have the same issue with it. or am I
+> doing wrong way?
+> Please let me know
 
-> On Sun, 15 Mar 2009 10:42:41 -0700 (PDT), Trent Piepho wrote:
-> > On Sun, 15 Mar 2009, Jean Delvare wrote:
-> > > On Sun, 15 Mar 2009 13:44:01 +0100, Hans Verkuil wrote:
-> > > This is the typical multifunction device problem. It isn't specifically
-> > > related to I2C, the exact same problem happens for other devices, for
-> > > example a PCI south bridge including hardware monitoring and SMBus, or
-> > > a Super-I/O chip including hardware monitoring, parallel port,
-> > > infrared, watchdog, etc. Linux currently only allows one driver to bind
-> > > to a given device, so it becomes very difficult to make per-function
-> > > drivers for such devices.
-> > >
-> > > For very specific devices, it isn't necessarily a big problem. You can
-> > > simply make an all-in-one driver for that specific device. The real
-> > > problem is when the device in question is fully compatible with other
-> > > devices which only implement functionality A _and_ fully compatible with
-> > > other devices which only implement functionality B. You don't really
-> > > want to support functions A and B in the same driver if most devices
-> > > out there have either function but not both.
-> > 
-> > You can also split the "device" into multiple devices.  Most SoCs have one
-> > register block where all kinds of devices, from i2c controllers to network
-> > adapters, exist.  This is shown to linux as many devices, rather than one
-> > massive multifunction device.
-> 
-> It really depends on the device type. You can't split an I2C or PCI
-> device that way.
+Hi Nate,
 
-In the case of PCI, you can. There are several devices where you have a PCI
-bridge inside the chip. The PCI bus identifies such cases and create a PCI
-sub-bus to handle this. This is what happens by default with cx88 drivers
-(where we have up to 4 different PCI devices at the same chip) and with devices
-with multiple bt848 chips, inside the same board.
+I tried this git pull git://git.gitorious.org/omap3camera/mainline.git
+v4l iommu omap3camera base
+and it works for me.
 
-Of course, a subdev information is attached inside the BUS address on this case.
-
-I suspect that we may need to have something like this, in order to support
-some complex devices that use I2C. It seems to be very common those days to
-have a device using a subaddress to address different functions. With the
-current approach, we need to bind two different things inside the same i2c
-module, which is not good.
-
-
--
-
-Getting back to the problem Hans discovered with PV951 this was introduced by 
-date:        Sun Feb 22 01:59:34 2004 +0000
-
-Yet, I'm not convinced is what Hans discovered is a board with two different
-functions at the same address, or (what I think it is more likely), aboard with
-two different setups. Something like:
-
-
-
-Cheers,
-Mauro
+Thanks,
+Arun
+>
+>
+> On Sat, Mar 7, 2009 at 12:32 AM, Sakari Ailus
+> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>> Hi,
+>>
+>> I've updated the patchset in Gitorious.
+>>
+>> <URL:http://www.gitorious.org/projects/omap3camera>
+>>
+>> Changes include
+>>
+>> - Power management support. ISP suspend/resume should work now.
+>>
+>> - Reindented and cleaned up everything. There are still some warnings from
+>> checkpatch.pl from the CSI2 code.
+>>
+>> - Fix for crash in device registration, posted to list already. (Thanks,
+>> Vaibhav, Alexey!)
+>>
+>> - LSC errors should be handled properly now.
+>>
+>> I won't post the modified patches to the list this time since I guess it
+>> wouldn't be much of use, I guess. Or does someone want that? :)
+>>
+>> --
+>> Sakari Ailus
+>> sakari.ailus@maxwell.research.nokia.com
+>>
+>
+>
+>
+> --
+> ========================================================
+> DongSoo(Nathaniel), Kim
+> Engineer
+> Mobile S/W Platform Lab. S/W Team.
+> DMC
+> Samsung Electronics CO., LTD.
+> e-mail : dongsoo.kim@gmail.com
+>          dongsoo45.kim@samsung.com
+> ========================================================
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
