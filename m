@@ -1,173 +1,342 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from joe.mail.tiscali.it ([213.205.33.54]:55524 "EHLO
-	joe.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754728AbZCHXEo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 19:04:44 -0400
-Received: from mumonkan.7chiese.lan (84.221.229.160) by joe.mail.tiscali.it (8.0.022)
-        id 499F039600B2D5C0 for linux-media@vger.kernel.org; Sun, 8 Mar 2009 23:59:15 +0100
-Message-ID: <49B44DF3.1090005@sganawa.org>
-Date: Mon, 09 Mar 2009 00:00:03 +0100
-From: Mario Chisari <mc-v4l@sganawa.org>
+Received: from mail.gmx.net ([213.165.64.20]:57086 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752995AbZCIKpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2009 06:45:05 -0400
+Date: Mon, 9 Mar 2009 11:45:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/4] pxa_camera: Remove YUV planar formats hole
+In-Reply-To: <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.0903080115090.6783@axis700.grange>
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: Lifeview FlyDVB Hybrid PCI (LR-306N): doesn't work anymore
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I own a Lifeview FlyDVB Hybrid LR-306N model; it is a PCI model, and
-I've been happily using it with my Mythtv for a couple of years, despite
-it was identified as a Cardbus model. About two months ago, I have
-upgraded kernel, and since then DVB function doesn't work anymore.
+On Thu, 5 Mar 2009, Robert Jarzmik wrote:
 
-I've checked what's changed, and I've noticed /var/log/messages once was
-something like:
+> All planes were PAGE aligned (ie. 4096 bytes aligned). This
+> is not consistent with YUV422 format, which requires Y, U
+> and V planes glued together.  The new implementation forces
+> the alignement on 8 bytes (DMA requirement), which is almost
+> always the case (granted by width x height being a multiple
+> of 8).
+> 
+> The test cases include tests in both YUV422 and RGB565 :
+>  - a picture of size 111 x 111 (cross RAM pages example)
+>  - a picture of size 1023 x 4 in (under 1 RAM page)
+>  - a picture of size 1024 x 4 in (exactly 1 RAM page)
+>  - a picture of size 1025 x 4 in (over 1 RAM page)
+>  - a picture of size 1280 x 1024 (many RAM pages)
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/video/pxa_camera.c |  165 ++++++++++++++++++++++++++------------
+>  1 files changed, 114 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> index e3e6b29..54df071 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -242,14 +242,13 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
+>  	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
+>  
+>  	/* planar capture requires Y, U and V buffers to be page aligned */
+> -	if (pcdev->channels == 3) {
+> -		*size = PAGE_ALIGN(icd->width * icd->height); /* Y pages */
+> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* U pages */
+> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* V pages */
+> -	} else {
+> -		*size = icd->width * icd->height *
+> -			((icd->current_fmt->depth + 7) >> 3);
+> -	}
+> +	if (pcdev->channels == 3)
+> +		*size = roundup(icd->width * icd->height, 8) /* Y pages */
+> +			+ roundup(icd->width * icd->height / 2, 8) /* U pages */
+> +			+ roundup(icd->width * icd->height / 2, 8); /* V pages */
+> +	else
+> +		*size = roundup(icd->width * icd->height *
+> +				((icd->current_fmt->depth + 7) >> 3), 8);
+>  
+>  	if (0 == *count)
+>  		*count = 32;
 
-Dec 28 14:07:02 mumonkan kernel: [   56.651901] saa7130/34: v4l2 driver
-version 0.2.14 loaded
-Dec 28 14:07:02 mumonkan kernel: [   57.249000] saa7133[0]: found at
-0000:00:09.0, rev: 208, irq: 19, latency: 32, mmio: 0xfebfe800
-Dec 28 14:07:02 mumonkan kernel: [   57.249083] saa7133[0]:
-subsystem:5168:3306, board: LifeView FlyDVB-T Hybrid Cardbus/MSI TV
-@nywhere A/D NB [card=94,autodetected]
-Dec 28 14:07:02 mumonkan kernel: [   57.249173] saa7133[0]: board init:
-gpio is 210000
-Dec 28 14:07:02 mumonkan kernel: [   57.381216] saa7133[0]: i2c eeprom
-00: 68 51 06 33 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-Dec 28 14:07:02 mumonkan kernel: [   57.382161] saa7133[0]: i2c eeprom
-10: 00 00 62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
-Dec 28 14:07:02 mumonkan kernel: [   57.383096] saa7133[0]: i2c eeprom
-20: 01 40 01 03 03 01 01 03 08 ff 01 16 ff ff ff ff
-Dec 28 14:07:02 mumonkan kernel: [   57.384032] saa7133[0]: i2c eeprom
-30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Dec 28 14:07:02 mumonkan kernel: [   57.384967] saa7133[0]: i2c eeprom
-40: ff 21 00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
-Dec 28 14:07:02 mumonkan kernel: [   57.385911] saa7133[0]: i2c eeprom
-50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Dec 28 14:07:02 mumonkan kernel: [   57.386848] saa7133[0]: i2c eeprom
-60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Dec 28 14:07:02 mumonkan kernel: [   57.387783] saa7133[0]: i2c eeprom
-70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Dec 28 14:07:02 mumonkan kernel: [   57.400815] saa7133[0]: registered
-device video0 [v4l2]
-Dec 28 14:07:02 mumonkan kernel: [   57.400995] saa7133[0]: registered
-device vbi0
-Dec 28 14:07:02 mumonkan kernel: [   57.401173] saa7133[0]: registered
-device radio0
-Dec 28 14:07:02 mumonkan kernel: [  129.568135] DVB: registering new
-adapter (saa7133[0])
-Dec 28 14:07:02 mumonkan kernel: [  129.568234] DVB: registering
-frontend 0 (Philips TDA10046H DVB-T)...
-Dec 28 14:07:02 mumonkan kernel: [  129.638878] tda1004x: setting up
-plls for 48MHz sampling clock
-Dec 28 14:07:02 mumonkan kernel: [  131.632829] tda1004x: found firmware
-revision 29 -- ok
+Ok, this one will change I presume - new alignment calculations and 
+line-breaking. In fact, if you adjust width and height earlier in set_fmt, 
+maybe you'll just remove any rounding here completely.
 
-Now it goes like this:
+> @@ -289,19 +288,63 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+>  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+>  }
+>  
+> +static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
+> +			       int sg_first_ofs, int size)
+> +{
+> +	int i, offset, dma_len, xfer_len;
+> +	struct scatterlist *sg;
+> +
+> +	offset = sg_first_ofs;
+> +	for_each_sg(sglist, sg, sglen, i) {
+> +		dma_len = sg_dma_len(sg);
+> +
+> +		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
+> +		xfer_len = roundup(min(dma_len - offset, size), 8);
 
-Feb 13 22:53:06 mumonkan [    7.138352] saa7130/34: v4l2 driver version
-0.2.14 loaded
-Feb 13 22:53:06 mumonkan [    8.089793] saa7134 0000:00:09.0: PCI INT A
--> GSI 17 (level, low) -> IRQ 17
-Feb 13 22:53:06 mumonkan [    8.089800] saa7133[0]: found at
-0000:00:09.0, rev: 208, irq: 17, latency: 32, mmio: 0xfebfe800
-Feb 13 22:53:06 mumonkan [    8.089808] saa7133[0]: subsystem:
-5168:3306, board: LifeView FlyDVB-T Hybrid Cardbus/MSI TV @nywhere A/D
-NB [card=94,autodetected]
-Feb 13 22:53:06 mumonkan [    8.089827] saa7133[0]: board init: gpio is
-210000
-Feb 13 22:53:06 mumonkan [    8.240008] saa7133[0]: i2c eeprom 00: 68 51
-06 33 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-Feb 13 22:53:06 mumonkan [    8.240019] saa7133[0]: i2c eeprom 10: 00 00
-62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240027] saa7133[0]: i2c eeprom 20: 01 40
-01 03 03 01 01 03 08 ff 01 16 ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240036] saa7133[0]: i2c eeprom 30: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240044] saa7133[0]: i2c eeprom 40: ff 21
-00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240052] saa7133[0]: i2c eeprom 50: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240060] saa7133[0]: i2c eeprom 60: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240068] saa7133[0]: i2c eeprom 70: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240076] saa7133[0]: i2c eeprom 80: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240084] saa7133[0]: i2c eeprom 90: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240092] saa7133[0]: i2c eeprom a0: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240100] saa7133[0]: i2c eeprom b0: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240108] saa7133[0]: i2c eeprom c0: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240116] saa7133[0]: i2c eeprom d0: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240124] saa7133[0]: i2c eeprom e0: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.240132] saa7133[0]: i2c eeprom f0: ff ff
-ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-Feb 13 22:53:06 mumonkan [    8.352063] tuner' 0-004b: chip found @ 0x96
-(saa7133[0])
-Feb 13 22:53:06 mumonkan [    8.440007] tda829x 0-004b: setting tuner
-address to 61
-Feb 13 22:53:06 mumonkan [    8.508506] tda829x 0-004b: type set to
-tda8290+75a
-Feb 13 22:53:06 mumonkan [   12.341578] saa7133[0]: registered device
-video0 [v4l2]
-Feb 13 22:53:06 mumonkan [   12.341611] saa7133[0]: registered device vbi0
-Feb 13 22:53:06 mumonkan [   12.341634] saa7133[0]: registered device radio0
-Feb 13 22:53:06 mumonkan [   12.840571] DVB: registering new adapter
-(saa7133[0])
-Feb 13 22:53:06 mumonkan [   12.840578] DVB: registering frontend 0
-(Philips TDA10046H DVB-T)...
-Feb 13 22:53:06 mumonkan [   12.912507] tda1004x: setting up plls for
-48MHz sampling clock
-Feb 13 22:53:06 mumonkan [   15.156506] tda1004x: timeout waiting for
-DSP ready
-Feb 13 22:53:06 mumonkan [   15.196504] tda1004x: found firmware
-revision 0 -- invalid
-Feb 13 22:53:06 mumonkan [   15.196507] tda1004x: trying to boot from eeprom
-Feb 13 22:53:06 mumonkan [   17.524007] tda1004x: timeout waiting for
-DSP ready
-Feb 13 22:53:06 mumonkan [   17.564005] tda1004x: found firmware
-revision 0 -- invalid
-Feb 13 22:53:06 mumonkan [   17.564007] tda1004x: waiting for firmware
-upload...
-Feb 13 22:53:06 mumonkan [   17.564011] firmware: requesting
-dvb-fe-tda10046.fw
-Feb 13 22:53:06 mumonkan [   30.084007] tda1004x: found firmware
-revision 20 -- ok
+Ok, let's see. dma_len is PAGE_SIZE. offset is for Y-plane 0, for further 
+planes it will be aligned after we recalculate width and height. size will 
+be aligned too, so, roundup will disappear, right? You might want to just 
+just add a test for these. The calculation itself gives size >= xfer_len
 
-If I understand correctly, the main difference is that now tda1004x
-module seems to be unable to recognize already present firmware rev 29
-(failing to start/un-reset device?). So it tries to load a new firmware,
-rev 20; maybe because of this, maybe because of an incorrect
-resetting procedure, anyway it doesn't work on my board: if I try to
-tune any station with tzap, I sometimes get FE_HAS_LOCK, sometimes I
-don't, but as I try to display video with mplayer I always get no
-video/audio (actually most of the times mplayer doesn't even show a window).
-Actually, this is what happens since mid-february or so, after most
-recent changes to saa7134 module. Before that, the board was almost
-non-working, but behaviour was far less consistent. Usually tda1004x
-module, after trying loading firmware several times, gave up. Sometimes
-it started with firmware ver 20, and very rarely it was even usable, but
-frequently the board went stuck when changing channel, and stopped
-tuning anything anymore.
-Another oddity is that now analog TV consistently works with tvtime
-after the first channel change; that was not the case before. Just for
-record, it still doesn't work with mythtv (no tune while scanning), but
-I'm sure this won't surprise anybody  ;-) However, no analog, no DVB-T,
-so no media center...
+> +
+> +		size = max(0, size - xfer_len);
 
-I've tried going back in time, pulling from mercurial old versions
-trying to determine which patch had broken things, but I wasn't unable
-to compile older (than 8848?) versions with my current kernel, so I had
-to give up.
-So... what's changed in the driver over the last year that stopped it
-working? It was OK with kernel 2.6.24.
+So, max is useless here, just "size -= xfer_len."
 
-Thanks.
+> +		offset = 0;
+> +		if (size == 0)
+> +			break;
+> +	}
+> +
+> +	BUG_ON(size != 0);
+> +	return i + 1;
+> +}
+> +
+> +/**
+> + * pxa_init_dma_channel - init dma descriptors
+> + * @pcdev: pxa camera device
+> + * @buf: pxa buffer to find pxa dma channel
+> + * @dma: dma video buffer
+> + * @channel: dma channel (0 => 'Y', 1 => 'U', 2 => 'V')
+> + * @cibr: camera read fifo
+> + * @size: bytes to transfer
+> + * @sg_first: index of first element of sg_list
+> + * @sg_first_ofs: offset in first element of sg_list
+> + *
+> + * Prepares the pxa dma descriptors to transfer one camera channel.
+> + * Beware sg_first and sg_first_ofs are both input and output parameters.
+> + *
+> + * Returns 0
+> + */
+>  static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
+>  				struct pxa_buffer *buf,
+>  				struct videobuf_dmabuf *dma, int channel,
+> -				int sglen, int sg_start, int cibr,
+> -				unsigned int size)
+> +				int cibr, int size,
+> +				struct scatterlist **sg_first, int *sg_first_ofs)
+>  {
+>  	struct pxa_cam_dma *pxa_dma = &buf->dmas[channel];
+> -	int i;
+> +	struct scatterlist *sg;
+> +	int i, offset, sglen;
+> +	int dma_len = 0, xfer_len = 0;
+>  
+>  	if (pxa_dma->sg_cpu)
+>  		dma_free_coherent(pcdev->dev, pxa_dma->sg_size,
+>  				  pxa_dma->sg_cpu, pxa_dma->sg_dma);
+>  
+> +	sglen = calculate_dma_sglen(*sg_first, dma->sglen,
+> +				    *sg_first_ofs, size);
+> +
+>  	pxa_dma->sg_size = (sglen + 1) * sizeof(struct pxa_dma_desc);
+>  	pxa_dma->sg_cpu = dma_alloc_coherent(pcdev->dev, pxa_dma->sg_size,
+>  					     &pxa_dma->sg_dma, GFP_KERNEL);
+> @@ -309,27 +352,51 @@ static int pxa_init_dma_channel(struct pxa_camera_dev *pcdev,
+>  		return -ENOMEM;
+>  
+>  	pxa_dma->sglen = sglen;
+> +	offset = *sg_first_ofs;
+>  
+> -	for (i = 0; i < sglen; i++) {
+> -		int sg_i = sg_start + i;
+> -		struct scatterlist *sg = dma->sglist;
+> -		unsigned int dma_len = sg_dma_len(&sg[sg_i]), xfer_len;
+> +	dev_dbg(pcdev->dev, "DMA: sg_first=%p, sglen=%d, ofs=%d, dma.desc=%x\n",
+> +		*sg_first, sglen, *sg_first_ofs, pxa_dma->sg_dma);
+>  
+> -		pxa_dma->sg_cpu[i].dsadr = pcdev->res->start + cibr;
+> -		pxa_dma->sg_cpu[i].dtadr = sg_dma_address(&sg[sg_i]);
+> +
+> +	for_each_sg(*sg_first, sg, sglen, i) {
+> +		dma_len = sg_dma_len(sg);
+>  
+>  		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
+> -		xfer_len = (min(dma_len, size) + 7) & ~7;
+> +		xfer_len = roundup(min(dma_len - offset, size), 8);
+>  
+> +		size = max(0, size - xfer_len);
+
+Same here for roundup() and max().
+
+> +
+> +		pxa_dma->sg_cpu[i].dsadr = pcdev->res->start + cibr;
+> +		pxa_dma->sg_cpu[i].dtadr = sg_dma_address(sg) + offset;
+>  		pxa_dma->sg_cpu[i].dcmd =
+>  			DCMD_FLOWSRC | DCMD_BURST8 | DCMD_INCTRGADDR | xfer_len;
+> -		size -= dma_len;
+>  		pxa_dma->sg_cpu[i].ddadr =
+>  			pxa_dma->sg_dma + (i + 1) * sizeof(struct pxa_dma_desc);
+> +
+> +		dev_vdbg(pcdev->dev, "DMA: desc.%08x->@phys=0x%08x, len=%d\n",
+> +			 pxa_dma->sg_dma + i * sizeof(struct pxa_dma_desc),
+> +			 sg_dma_address(sg) + offset, xfer_len);
+> +		offset = 0;
+> +
+> +		if (size == 0)
+> +			break;
+>  	}
+>  
+> -	pxa_dma->sg_cpu[sglen - 1].ddadr = DDADR_STOP;
+> -	pxa_dma->sg_cpu[sglen - 1].dcmd |= DCMD_ENDIRQEN;
+> +	pxa_dma->sg_cpu[sglen].ddadr = DDADR_STOP;
+> +	pxa_dma->sg_cpu[sglen].dcmd  = DCMD_FLOWSRC | DCMD_BURST8 | DCMD_ENDIRQEN;
+
+Why are you now always using the n+1'th element? Even if it is right, it 
+rather belongs to the patch "2/4," not "1/4," right? In your earlier email 
+you wrote:
+
+>  - in the former pxa_videobuf_queue(), when a buffer was queued while another
+>  was already active, a dummy descriptor was added, and then the new buffer was
+>  chained with the actively running buffer. See code below :
+> 
+> -                       } else {
+> -                               buf_dma->sg_cpu[nents].ddadr =
+> -                                       DDADR(pcdev->dma_chans[i]);
+> -                       }
+> -
+> -                       /* The next descriptor is the dummy descriptor */
+> -                       DDADR(pcdev->dma_chans[i]) = buf_dma->sg_dma + nents *
+> -                               sizeof(struct pxa_dma_desc);
+> 
+>    The fix is in the code refactoring, as now the buffer is always added at the
+>    tail of the queue through pxa_dma_add_tail_buf().
+
+I don't understand, what this is fixing. It would make a nice 
+simplification, if it worked, but see my review to patch "2/4."
+
+> +
+> +	*sg_first_ofs = xfer_len;
+> +	/*
+> +	 * Handle 1 special case :
+> +	 *  - if we finish the DMA transfer in the last 7 bytes of a RAM page
+> +	 *    then we return the sg element pointing on the next page
+> +	 */
+> +	if (*sg_first_ofs >= dma_len) {
+> +		*sg_first_ofs -= dma_len;
+> +		*sg_first = sg_next(sg);
+> +	} else {
+> +		*sg_first = sg;
+> +	}
+
+As we will not be rounding up any more, this special case shouldn't be 
+needed either, right?
+
+>  
+>  	return 0;
+>  }
+> @@ -342,9 +409,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+>  	struct pxa_camera_dev *pcdev = ici->priv;
+>  	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
+>  	int ret;
+> -	int sglen_y,  sglen_yu = 0, sglen_u = 0, sglen_v = 0;
+> -	int size_y, size_u = 0, size_v = 0;
+> -
+> +	int size_y = 0, size_u = 0, size_v = 0;
+
+Isn't size_y always initialised?
+
+>  	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+>  		vb, vb->baddr, vb->bsize);
+>  
+> @@ -381,53 +446,51 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+>  	}
+>  
+>  	if (vb->state == VIDEOBUF_NEEDS_INIT) {
+> -		unsigned int size = vb->size;
+> +		int size = vb->size;
+> +		int next_ofs = 0;
+>  		struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
+> +		struct scatterlist *sg;
+>  
+>  		ret = videobuf_iolock(vq, vb, NULL);
+>  		if (ret)
+>  			goto fail;
+>  
+>  		if (pcdev->channels == 3) {
+> -			/* FIXME the calculations should be more precise */
+> -			sglen_y = dma->sglen / 2;
+> -			sglen_u = sglen_v = dma->sglen / 4 + 1;
+> -			sglen_yu = sglen_y + sglen_u;
+>  			size_y = size / 2;
+>  			size_u = size_v = size / 4;
+>  		} else {
+> -			sglen_y = dma->sglen;
+>  			size_y = size;
+>  		}
+>  
+> -		/* init DMA for Y channel */
+> -		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, sglen_y,
+> -					   0, 0x28, size_y);
+> +		sg = dma->sglist;
+>  
+> +		/* init DMA for Y channel */
+> +		ret = pxa_init_dma_channel(pcdev, buf, dma, 0, CIBR0, size_y,
+> +					   &sg, &next_ofs);
+>  		if (ret) {
+>  			dev_err(pcdev->dev,
+>  				"DMA initialization for Y/RGB failed\n");
+>  			goto fail;
+>  		}
+>  
+> -		if (pcdev->channels == 3) {
+> -			/* init DMA for U channel */
+> -			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, sglen_u,
+> -						   sglen_y, 0x30, size_u);
+> -			if (ret) {
+> -				dev_err(pcdev->dev,
+> -					"DMA initialization for U failed\n");
+> -				goto fail_u;
+> -			}
+> +		/* init DMA for U channel */
+> +		if (size_u)
+> +			ret = pxa_init_dma_channel(pcdev, buf, dma, 1, CIBR1,
+> +						   size_u, &sg, &next_ofs);
+> +		if (ret) {
+> +			dev_err(pcdev->dev,
+> +				"DMA initialization for U failed\n");
+> +			goto fail_u;
+> +		}
+>  
+> -			/* init DMA for V channel */
+> -			ret = pxa_init_dma_channel(pcdev, buf, dma, 2, sglen_v,
+> -						   sglen_yu, 0x38, size_v);
+> -			if (ret) {
+> -				dev_err(pcdev->dev,
+> -					"DMA initialization for V failed\n");
+> -				goto fail_v;
+> -			}
+> +		/* init DMA for V channel */
+> +		if (size_v)
+> +			ret = pxa_init_dma_channel(pcdev, buf, dma, 2, CIBR2,
+> +						   size_u, &sg, &next_ofs);
+> +		if (ret) {
+> +			dev_err(pcdev->dev,
+> +				"DMA initialization for V failed\n");
+> +			goto fail_v;
+>  		}
+>  
+>  		vb->state = VIDEOBUF_PREPARED;
+> -- 
+> 1.5.6.5
+> 
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
