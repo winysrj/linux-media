@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:65137 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750728AbZCEHrH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 02:47:07 -0500
-From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: identifying camera sensor
-Date: Thu, 5 Mar 2009 09:46:47 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"camera@ok.research.nokia.com" <camera@ok.research.nokia.com>
-References: <63862.62.70.2.252.1236178340.squirrel@webmail.xs4all.nl>
-In-Reply-To: <63862.62.70.2.252.1236178340.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mail1.radix.net ([207.192.128.31]:43297 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751192AbZCIXqR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2009 19:46:17 -0400
+Subject: Re: V4L2 spec
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	wk <handygewinnspiel@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <200903092344.04805.hverkuil@xs4all.nl>
+References: <200903061523.15766.hverkuil@xs4all.nl>
+	 <49B59230.1090305@gmx.de>
+	 <412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
+	 <200903092344.04805.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 09 Mar 2009 19:46:34 -0400
+Message-Id: <1236642394.3104.25.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903050946.47565.tuukka.o.toivonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 04 March 2009 16:52:20 ext Hans Verkuil wrote:
-> > Alternatively, VIDIOC_QUERYCAP could be used to identify the sensor.
-> > Would it make more sense if it would return something like
-> >   capability.card:  `omap3/smia-sensor-12-1234-5678//'
-> > where 12 would be manufacturer_id, 1234 model_id, and
-> > 5678 revision_number?
+On Mon, 2009-03-09 at 23:44 +0100, Hans Verkuil wrote:
+> On Monday 09 March 2009 23:10:56 Devin Heitmueller wrote:
+> > On Mon, Mar 9, 2009 at 6:03 PM, wk <handygewinnspiel@gmx.de> wrote:
+
+> > The reality is that there is *some* value a developer can contribute
+> > in reviewing the content and providing feedback and a *TON* of grunt
+> > work involved that can be done by anybody who takes the time to learn
+> > docbook.  If someone wants to volunteer to do the former, I'm sure
+> > some developers would be willing to do the latter.
 > 
-> Yuck :-)
+> Indeed. If someone could do the 'grunt' work of converting the dvb doc into 
+> DocBook 
 
-Agreed :)
+The Google leads me to ask:
 
-Also, if there are many slaves, the length of the capability.card
-field is not sufficient.
+What about a LaTeX to HTML or OOo Writer convertor:
 
-From: Trent Piepho <xyzzy@speakeasy.org>
-> You could always try to decode the manufacturer name and maybe even the
-> model name.  After all, pretty much every other driver does this.
+http://www.tug.org/utilities/texconv/textopc.html#TeX4ht
 
-That would be possible, but the driver would then need a device name table
-which would need to be modified whenever a new chip comes up :(
+(maybe oolatex?)
 
-On Wednesday 04 March 2009 16:52:20 ext Hans Verkuil wrote:
-> G_CHIP_IDENT is probably the way to go, provided you are aware of the
-> limitations of this ioctl. Should this be a problem, then we need to think
-> of a better solution.
+Then OOo Writer saving to DocBook?
 
-Could you tell me what limitations?
-
-I thought about that ioctl initially, but then read that it is going
-to be removed, that's why abandoned it.
-
-http://n2.nabble.com/-REVIEW--v4l2-debugging:-match-drivers-by-name-instead-of-the-deprecated-ID-td1681635.html
-
-But if you say it's a good way, then I'll go that way.
-The intention is to get the SMIA driver included into official kernel,
-so I'd prefer a method which allows that :-)
+I suspect it won't be perfect, but since existing software does the
+heavy lifting, it beats manual conversion.
 
 
-- Tuukka
+I didn't quite understand why a conversion is necessary, but I do see a
+lot of hard-coded structures in the LaTeX documents, which I suspect is
+a pain to keep up to date.
+
+
+
+> and integrating it into the existing v4l docbook,
+
+I'm not sure of the value in that.
+
+<opinion>
+Implmenting something to multiple (or multi-volume) specifications is
+indeed a pain, but it makes documentation maintenance easier as the task
+is easily divided along areas of personnel expertise.  Assuming the rate
+of documentation maintencance does not rapidly increase, keeping
+documentation maintenace simple is paramount.
+
+Also multiple specifcations (or volumes) clearly group requirements into
+large chunks of "I don't care about that volume" and "I do care about
+this volume".  Combining the V4L2 and DVB spec into one volume would
+probably be a strategic error for some tactical advantage in dealing
+with hybrid devices.
+</opinion>
+
+Regards,
+Andy
+
