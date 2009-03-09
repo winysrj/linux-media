@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2U8G7QL013182
-	for <video4linux-list@redhat.com>; Mon, 30 Mar 2009 04:16:07 -0400
-Received: from psi1.forpsi.com (smtpa.forpsi.com [81.2.195.204])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n2U8Dmm2024189
-	for <video4linux-list@redhat.com>; Mon, 30 Mar 2009 04:13:49 -0400
-Message-ID: <49D07F3B.3090807@heckler-koch.cz>
-Date: Mon, 30 Mar 2009 10:13:47 +0200
-From: "kosa@heckler-koch.cz" <kosa@heckler-koch.cz>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n294pCE9019847
+	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 00:51:12 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n294oft4013769
+	for <video4linux-list@redhat.com>; Mon, 9 Mar 2009 00:50:41 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so1570407wfc.6
+	for <video4linux-list@redhat.com>; Sun, 08 Mar 2009 21:50:41 -0700 (PDT)
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <49C8C0EF.1090500@heckler-koch.cz>
-	<26aa882f0903241026n524b90f9w3898fa9aaaf0cd05@mail.gmail.com>
-In-Reply-To: <26aa882f0903241026n524b90f9w3898fa9aaaf0cd05@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: multi channel
+In-Reply-To: <1236468539.2203.16.camel@pc09.localdom.local>
+References: <ca1417c50903060547l7cedda32q8795dc5a40b896dd@mail.gmail.com>
+	<1236468539.2203.16.camel@pc09.localdom.local>
+Date: Mon, 9 Mar 2009 10:20:40 +0530
+Message-ID: <ca1417c50903082150w173d652el6f1611acf4d4b4bf@mail.gmail.com>
+From: rahul G <freevofc6@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Problem with the TV out Sound !!!
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,66 +30,128 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jackson Yee wrote:
-> 2009/3/24 kosa@heckler-koch.cz <kosa@heckler-koch.cz>:
->   
->> hi all, i am pretty new to video for linux. Last weekend i have successfully installed aver nv3000 (4 analog video-in pci card) on my debian machine. As i am new to video, i quickly found out that many cards have only one chip for 4 video inputs and work with signal as channels 1-4(as /dev/video0 witch 4 channels). My question is if there is some documentation or whatever where can i start to learn how to work with these multi channels to be able to view all 4 channels at the same time. When searching the web i found some software called zone minder, where they have the source in perl, so i hope i can understand their solution to use it in different place.
->>     
->
-> Pavel,
->
-> Here's a quick overview for you:
->
-> * These multiple input cards are used mostly in surveillance systems
-> where you have a number of cameras hooked up to one card. These cards
-> are unsuitable for normal television capture unless you only want to
-> do one input at a time because your frame rate will be divided between
-> different channels (e.g. a normal 29.97 fps NTSC signal will become 7
-> fps or less when you're using multiple inputs simultaneously). Cards
-> do exist which have one chip per channel, but they are far more
-> expensive.
->
-> * The chip is normally a Brooktree BT878 because they're cheap and
-> effective, although other chips are available. The Linux bttv driver
-> does a good job of supporting most common cards, although some of the
-> more esoteric ones aren't supported. For assured support,
-> bluecherry.net is by far the best.
->
-> * Zoneminder is a good program, and so is motion at
->
-> http://www.lavrsen.dk/twiki/bin/view/Motion/WebHome
->
-> They both have good documentation and performance. I have written my
-> own web server in Python for motion which can be located at
->
-> http://www.lavrsen.dk/twiki/bin/view/Motion/PossumCam
->
-> although I have not had time to work on it recently. Zoneminder
-> includes everything including the kitchen sink, and as such can be a
-> pain to start working and managing. Motion is much simpler to install
-> and manage, but requires add-on tools for further functionality.
->
-> * For testing the inputs, TVTime and XawTV are indispensable.
->
-> I'll try to add this information to the linuxtv.org wiki later on
-> today, although any administrators familiar with the wiki are welcome
-> to copy and paste the above.
->
-> Regards,
-> Jackson Yee
-> The Possum Company
-> 540-818-4079
-> me@gotpossum.com
->
->   
-Hi and thank you for links, will check it. For now i have obtain aver nv
-5000 with 4 chips for 4 inputs(each 25fps). At this time i have only
-tested 2 video inputs at the same time. I still have to investigate a
-little bit as this card have Bt878 chip, for which i have to set Pan-Nc
-settings in xawtv(but in vlc just setting  PAL makes the video not shown
-correctly).
-pavel
+Hi hermann,
+         I am extremely sorry about kernel version I mentioned in my
+mail.Actually I am using 2.6.23.1 on which I have tried
+"/sbin/modprobe saa7134 card=77 tuner=54" This command in which Radio
+is working but sound coming out from it very small even not
+audible..On linux-2.6.23.3 by using  "/sbin/modprobe saa7134 card=77
+tuner=54" command TV is working fine but not radio.If you have some
+pointers regarding this please let me know..
 
+Thanks In Advance..
+
+Regards,
+Rahul G.
+
+On Sun, Mar 8, 2009 at 4:58 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> Hi,
+>
+> Am Freitag, den 06.03.2009, 19:17 +0530 schrieb rahul G:
+>>  Hi All....
+>>             I am using Pinnacle 50i TV tuner card for watching TV but
+>> Radio functionality is not working with the card when I used
+>> "/sbin/modprobe saa7134 card=77 tuner=54".
+>> TV is working fine with this on linux-2.26.23.3.But when I used
+>> "/sbin/modprobe saa7134 card=65 tuner=54" my radio is working fine
+>> with this tuner card and not  TV.
+>> When I tried with Linux-2.26.23.1 kernel with same command
+>> "/sbin/modprobe saa7134 card=77 tuner=54" radio is working fine but
+>> sound coming out from the device is too small.which not audiable.Can
+>> any one tell me the reason behind this.
+>>
+>> Thanks In Advance..
+>>
+>> Regards,
+>> Rahul G
+>>
+>
+> hmm, on my 2.6.26 sources radio settings for card=65 and card=77 are
+> exactly the same. Please confirm about which kernel versions you are
+> talking. I know radio was not functional on card=77 and older kernels.
+>
+>        [SAA7134_BOARD_PINNACLE_PCTV_110i] = {
+>               .name           = "Pinnacle PCTV 40i/50i/110i (saa7133)",
+>                .audio_clock    = 0x00187de7,
+>                .tuner_type     = TUNER_PHILIPS_TDA8290,
+>                .radio_type     = UNSET,
+>                .tuner_addr     = ADDR_UNSET,
+>                .radio_addr     = ADDR_UNSET,
+>                .gpiomask       = 0x080200000,
+>                .inputs         = { {
+>                        .name = name_tv,
+>                        .vmux = 4,
+>                        .amux = TV,
+>                        .tv   = 1,
+>                }, {
+>                        .name = name_comp1,
+>                        .vmux = 1,
+>                        .amux = LINE2,
+>                }, {
+>                        .name = name_comp2,
+>                        .vmux = 0,
+>                        .amux = LINE2,
+>                }, {
+>                        .name = name_svideo,
+>                        .vmux = 8,
+>                        .amux = LINE2,
+>                } },
+>                .radio = {
+>                        .name = name_radio,
+>                        .amux = TV,
+>                        .gpio = 0x0200000,
+>                },
+>        },
+>
+> ----
+>
+>        [SAA7134_BOARD_KWORLD_TERMINATOR] = {
+>                /* Kworld V-Stream Studio TV Terminator */
+>                /* "James Webb <jrwebb@qwest.net> */
+>                .name           = "V-Stream Studio TV Terminator",
+>                .audio_clock    = 0x00187de7,
+>                .tuner_type     = TUNER_PHILIPS_TDA8290,
+>                .radio_type     = UNSET,
+>                .tuner_addr     = ADDR_UNSET,
+>                .radio_addr     = ADDR_UNSET,
+>                .gpiomask       = 1 << 21,
+>                .inputs         = {{
+>                        .name = name_tv,
+>                        .vmux = 1,
+>                        .amux = TV,
+>                        .gpio = 0x0000000,
+>                        .tv   = 1,
+>                },{
+>                        .name = name_comp1,     /* Composite input */
+>                        .vmux = 3,
+>                        .amux = LINE2,
+>                        .gpio = 0x0000000,
+>                },{
+>                        .name = name_svideo,    /* S-Video input */
+>                        .vmux = 8,
+>                        .amux = LINE2,
+>                        .gpio = 0x0000000,
+>                }},
+>                .radio = {
+>                        .name = name_radio,
+>                        .amux = TV,
+>                        .gpio = 0x0200000,
+>                },
+>        },
+>
+> Ricardo only used a gpio mask extended to four bytes and the last bit
+> high, what is seen regularly on the windows drivers.
+>
+> However, it doesn't matter, since the chip has only 28 gpio pins (0-27).
+>
+> Does it really makes still a difference if you use radio now on 2.6.26
+> with card=65 ?
+>
+> Cheers,
+> Hermann
+>
+>
+>
 
 --
 video4linux-list mailing list
