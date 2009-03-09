@@ -1,159 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:15699 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbZCTF7E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2009 01:59:04 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so1049535wff.4
-        for <linux-media@vger.kernel.org>; Thu, 19 Mar 2009 22:59:02 -0700 (PDT)
+Received: from smtp1-g21.free.fr ([212.27.42.1]:59227 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751512AbZCITOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Mar 2009 15:14:00 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/4] pxa_camera: Remove YUV planar formats hole
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0903080115090.6783@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 09 Mar 2009 20:13:46 +0100
+In-Reply-To: <Pine.LNX.4.64.0903080115090.6783@axis700.grange> (Guennadi Liakhovetski's message of "Mon\, 9 Mar 2009 11\:45\:08 +0100 \(CET\)")
+Message-ID: <874oy2tsph.fsf@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <49C32A65.4050009@thedirks.org>
-References: <5e9665e10903172132g2c433879j14b292d8f5c96268@mail.gmail.com>
-	 <200903181129.52130.laurent.pinchart@skynet.be>
-	 <5e9665e10903180417w2035de8bp2d4f7775035804e0@mail.gmail.com>
-	 <49C32A65.4050009@thedirks.org>
-Date: Fri, 20 Mar 2009 14:59:02 +0900
-Message-ID: <5e9665e10903192259paf99870kf97d7013bbc657a0@mail.gmail.com>
-Subject: Re: About white balance control.
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Bill Dirks <bill@thedirks.org>
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, dongsoo45.kim@samsung.com,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bill,
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Thank you for your explanation.
-I think this one-shot white balance cal feature should be supported by H/W,
-or we should implement this with AWB activation for short period and
-lock immediately.
-That should be hard to tune properly to make it work in every circumstances.
-I'll do some research on it to make it work properly with my mobile
-camera module devices.
-Any technical advise appreciated.
-Cheers,
-
-Nate
-
-2009/3/20 Bill Dirks <bill@thedirks.org>:
-> DO_WHITE_BALANCE is intended to do a one-shot white balance calibration and
-> then hold it. So you would hold up, for example, a white piece of paper in
-> front of the camera and click the do white balance. Then the white balance
-> should be correct as long as the lighting doesn't change. This can work
-> better than auto white balance which can be fooled by colored walls, etc.
-> Some video cameras used to have a button like this.
+>> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+>> index e3e6b29..54df071 100644
+>> --- a/drivers/media/video/pxa_camera.c
+>> +++ b/drivers/media/video/pxa_camera.c
+>> @@ -242,14 +242,13 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
+>>  	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
+>>  
+>>  	/* planar capture requires Y, U and V buffers to be page aligned */
+>> -	if (pcdev->channels == 3) {
+>> -		*size = PAGE_ALIGN(icd->width * icd->height); /* Y pages */
+>> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* U pages */
+>> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* V pages */
+>> -	} else {
+>> -		*size = icd->width * icd->height *
+>> -			((icd->current_fmt->depth + 7) >> 3);
+>> -	}
+>> +	if (pcdev->channels == 3)
+>> +		*size = roundup(icd->width * icd->height, 8) /* Y pages */
+>> +			+ roundup(icd->width * icd->height / 2, 8) /* U pages */
+>> +			+ roundup(icd->width * icd->height / 2, 8); /* V pages */
+>> +	else
+>> +		*size = roundup(icd->width * icd->height *
+>> +				((icd->current_fmt->depth + 7) >> 3), 8);
+>>  
+>>  	if (0 == *count)
+>>  		*count = 32;
 >
-> Bill.
->
->
-> Dongsoo, Nathaniel Kim wrote:
->>
->> Thank you Pingchart.
->>
->> So, V4L2_CID_DO_WHITE_BALANCE acts WB adjustment at every single time
->> it has issued when device is in manual WB mode like
->> V4L2_CID_WHITE_BALANCE_TEMPERATURE? Now I get it.
->> But CID still missing for white balance presets like "cloudy",
->> "sunny", "fluorescent"and so on.
->> I think some sort of menu type CID could be useful to handle them,
->> because WB presets differ for each devices.
->> Cheers,
->>
->> Nate
->>
->> 2009/3/18 Laurent Pinchart <laurent.pinchart@skynet.be>:
->>
->>>
->>> Hi Kim,
->>>
->>> On Wednesday 18 March 2009 05:32:08 Dongsoo, Nathaniel Kim wrote:
->>>
->>>>
->>>> Hello,
->>>>
->>>> I accidently realized today that I was using white balance control in
->>>> wrong
->>>> way.
->>>>
->>>> As far as I understand we've got
->>>>
->>>> V4L2_CID_AUTO_WHITE_BALANCE which activate auto white balance
->>>> adjustment in runtime, V4L2_CID_DO_WHITE_BALANCE_TEMPERATURE specifying
->>>> absolute kelvin value
->>>>
->>>
->>> I suppose you mean V4L2_CID_WHITE_BALANCE_TEMPERATURE here.
->>>
->>>
->>>>
->>>> but can't get what V4L2_CID_DO_WHITE_BALANCE is for.
->>>>
->>>> I think after issuing V4L2_CID_AUTO_WHITE_BALANCE and
->>>> V4L2_CID_WHITE_BALANCE_TEMPERATURE,
->>>> the white balance functionality works immediately. Isn't it right?
->>>>
->>>> What exactly is the button type V4L2_CID_DO_WHITE_BALANCE for? Because
->>>> the V4L2 API document says that "(the value is ignored)". Does that
->>>> mean that even we have issued V4L2_CID_AUTO_WHITE_BALANCE and
->>>> V4L2_CID_WHITE_BALANCE_TEMPERATURE, we can't see the white balance
->>>> working at that moment?
->>>>
->>>
->>> V4L2_CID_AUTO_WHITE_BALANCE to enables or disables automatic white
->>> balance
->>> adjustment. When automatic white balance is enabled the device adjusts
->>> the
->>> white balance continuously.
->>>
->>> V4L2_CID_WHITE_BALANCE_TEMPERATURE controls the white balance adjustment
->>> manually. The control is only effective when automatic white balance is
->>> disabled.
->>>
->>> V4L2_CID_DO_WHITE_BALANCE instructs the device to run the automatic white
->>> balance adjustment algorithm once and use the results for white balance
->>> correction. It only makes sense when automatic white balance is disabled.
->>>
->>>
->>>>
->>>> And one more thing. If I want to serve several white balance presets,
->>>> like cloudy, dawn, sunny and so on, what should I do?
->>>> I think it should be supported as menu type, but most of drivers are
->>>> using white balance CID with integer type...then what should I do?
->>>> Define preset names with kelvin number like this?
->>>>
->>>> #define WB_CLOUDY 8000
->>>>
->>>> Pretty confusing... anyone knows what should I do?
->>>>
->>>
->>> Best regards,
->>>
->>> Laurent Pinchart
->>>
->>>
->>>
->>
->>
->>
->>
->
+> Ok, this one will change I presume - new alignment calculations and 
+> line-breaking. In fact, if you adjust width and height earlier in set_fmt, 
+> maybe you'll just remove any rounding here completely.
+Helas, not fully.
+The problem is with passthrough and rgb formats, where I don't enforce
+width/height. In the newest form of the patch I have this :
+	if (pcdev->channels == 3)
+		*size = icd->width * icd->height * 2;
+	else
+		*size = roundup(icd->width * icd->height *
+				((icd->current_fmt->depth + 7) >> 3), 8);
 
+>
+>> @@ -289,19 +288,63 @@ static void free_buffer(struct videobuf_queue *vq, struct pxa_buffer *buf)
+>>  	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+>>  }
+>>  
+>> +static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
+>> +			       int sg_first_ofs, int size)
+>> +{
+>> +	int i, offset, dma_len, xfer_len;
+>> +	struct scatterlist *sg;
+>> +
+>> +	offset = sg_first_ofs;
+>> +	for_each_sg(sglist, sg, sglen, i) {
+>> +		dma_len = sg_dma_len(sg);
+>> +
+>> +		/* PXA27x Developer's Manual 27.4.4.1: round up to 8 bytes */
+>> +		xfer_len = roundup(min(dma_len - offset, size), 8);
+>
+> Ok, let's see. dma_len is PAGE_SIZE. offset is for Y-plane 0, for further 
+> planes it will be aligned after we recalculate width and height. size will 
+> be aligned too, so, roundup will disappear, right?
 
+No, I don't think so.
 
--- 
-========================================================
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
+Consider the case of a RGB565 image which size is 223*33 = 7359 bytes. This
+makes a transfer of 4096 bytes and another of 3263 bytes.
+
+But the QIF fifo will give 4096 + 3264 bytes (the last one beeing 0), and this
+last byte has to be read from the fifo. As I understand it, the QIF fifo works
+with 8 bytes permutations, and that why it's giving always a multiple of 8
+bytes. Please, cross-check PXA developper manual, paragraph 27.4.4.1 to see if
+you understand the same as I did.
+
+So the roundup() is to be kept :(
+
+> You might want to just 
+> just add a test for these. The calculation itself gives size >= xfer_len
+>
+>> +
+>> +		size = max(0, size - xfer_len);
+>
+> So, max is useless here, just "size -= xfer_len."
+And so the max() still hold I think.
+
+>> +		size = max(0, size - xfer_len);
+>
+> Same here for roundup() and max().
+Yes, same discussion.
+
+>>  
+>> -	pxa_dma->sg_cpu[sglen - 1].ddadr = DDADR_STOP;
+>> -	pxa_dma->sg_cpu[sglen - 1].dcmd |= DCMD_ENDIRQEN;
+>> +	pxa_dma->sg_cpu[sglen].ddadr = DDADR_STOP;
+>> +	pxa_dma->sg_cpu[sglen].dcmd  = DCMD_FLOWSRC | DCMD_BURST8 | DCMD_ENDIRQEN;
+>
+> Why are you now always using the n+1'th element? Even if it is right, it 
+> rather belongs to the patch "2/4," not "1/4," right? In your earlier email 
+> you wrote:
+>
+>>  - in the former pxa_videobuf_queue(), when a buffer was queued while another
+>>  was already active, a dummy descriptor was added, and then the new buffer was
+>>  chained with the actively running buffer. See code below :
+>> 
+>> -                       } else {
+>> -                               buf_dma->sg_cpu[nents].ddadr =
+>> -                                       DDADR(pcdev->dma_chans[i]);
+>> -                       }
+>> -
+>> -                       /* The next descriptor is the dummy descriptor */
+>> -                       DDADR(pcdev->dma_chans[i]) = buf_dma->sg_dma + nents *
+>> -                               sizeof(struct pxa_dma_desc);
+>> 
+>>    The fix is in the code refactoring, as now the buffer is always added at the
+>>    tail of the queue through pxa_dma_add_tail_buf().
+>
+> I don't understand, what this is fixing. It would make a nice 
+> simplification, if it worked, but see my review to patch "2/4."
+Let's discuss it in patch 2/4 review, yes.
+
+>> +
+>> +	*sg_first_ofs = xfer_len;
+>> +	/*
+>> +	 * Handle 1 special case :
+>> +	 *  - if we finish the DMA transfer in the last 7 bytes of a RAM page
+>> +	 *    then we return the sg element pointing on the next page
+>> +	 */
+>> +	if (*sg_first_ofs >= dma_len) {
+>> +		*sg_first_ofs -= dma_len;
+>> +		*sg_first = sg_next(sg);
+>> +	} else {
+>> +		*sg_first = sg;
+>> +	}
+>
+> As we will not be rounding up any more, this special case shouldn't be 
+> needed either, right?
+Same discussion as before. But here, as sg_first and sf_first_ofs only make
+sense for 3 planes output, and the rounding takes care of the corner cases, this
+part will be simplified, yes.
+
+>
+>>  
+>>  	return 0;
+>>  }
+>> @@ -342,9 +409,7 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
+>>  	struct pxa_camera_dev *pcdev = ici->priv;
+>>  	struct pxa_buffer *buf = container_of(vb, struct pxa_buffer, vb);
+>>  	int ret;
+>> -	int sglen_y,  sglen_yu = 0, sglen_u = 0, sglen_v = 0;
+>> -	int size_y, size_u = 0, size_v = 0;
+>> -
+>> +	int size_y = 0, size_u = 0, size_v = 0;
+>
+> Isn't size_y always initialised?
+Yes, I'll remove that.
+
+Thanks for the review, let's keep that going on :)
+
+Cheers.
+
+--
+Robert
