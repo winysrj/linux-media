@@ -1,79 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail7.sea5.speakeasy.net ([69.17.117.9]:35591 "EHLO
-	mail7.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752364AbZCQTux (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4506 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191AbZCJHPD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 15:50:53 -0400
-Date: Tue, 17 Mar 2009 12:50:47 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Alain Kalker <miki@dds.nl>
-cc: linux-media@vger.kernel.org
-Subject: Re: Improve DKMS build of v4l-dvb?
-In-Reply-To: <1237303798.5988.27.camel@miki-desktop>
-Message-ID: <Pine.LNX.4.58.0903171153230.28292@shell2.speakeasy.net>
-References: <1236612894.5982.72.camel@miki-desktop>
- <Pine.LNX.4.58.0903130153220.28292@shell2.speakeasy.net>
- <1237303798.5988.27.camel@miki-desktop>
+	Tue, 10 Mar 2009 03:15:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: V4L2 spec
+Date: Tue, 10 Mar 2009 08:14:41 +0100
+Cc: Andy Walls <awalls@radix.net>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	wk <handygewinnspiel@gmx.de>, linux-media@vger.kernel.org
+References: <200903061523.15766.hverkuil@xs4all.nl> <1236642394.3104.25.camel@palomino.walls.org> <20090309215415.6445054d@pedra.chehab.org>
+In-Reply-To: <20090309215415.6445054d@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903100814.41383.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 17 Mar 2009, Alain Kalker wrote:
-> Op vrijdag 13-03-2009 om 02:12 uur [tijdzone -0700], schreef Trent
-> Piepho:
-> > On Mon, 9 Mar 2009, Alain Kalker wrote:
-> > > Firstly: generating a .config with just one config variable for the
-> > > requested driver set to 'm' merged with the config for the kernel being
-> > > built for, and then doing a "make silentoldconfig". Big disatvantage is
-> > > that full kernel source is required for the 'silentoldconfig' target to
-> > > be available.
-> >
-> > Does that actually work?  Figuring out that needs to be turned on to enable
-> > some config options is a hard problem.  It's not just simple dependencies
-> > between modules, but complex expressions that need to be satisfied.  E.g.,
-> > something "depends on A || B", which do you turn on, A or B?  There are
-> > multiple solutions so how does the code decide which is best?
+On Tuesday 10 March 2009 01:54:15 Mauro Carvalho Chehab wrote:
+> On Mon, 09 Mar 2009 19:46:34 -0400
 >
-> Well, make_kconfig.pl does quite a nice job trying to select as many
-> drivers without causing conflicts.
+> Andy Walls <awalls@radix.net> wrote:
+> > > and integrating it into the existing v4l docbook,
+> >
+> > I'm not sure of the value in that.
+>
+> The DVB conversion to docbook allows us to add it at the kernel docbook
+> docs (probably, not the entire doc, but the parts that describe the
+> internal kernel API).
+>
+> > <opinion>
+> > Implmenting something to multiple (or multi-volume) specifications is
+> > indeed a pain, but it makes documentation maintenance easier as the
+> > task is easily divided along areas of personnel expertise.  Assuming
+> > the rate of documentation maintencance does not rapidly increase,
+> > keeping documentation maintenace simple is paramount.
+>
+> If you take a look on V4L docbooks, it is divided into multiple volume
+> files:
+>
+> biblio.sgml          pixfmt-nv16.sgml                 vidioc-enumstd.sgml
+> common.sgml          pixfmt-packed-rgb.sgml          
+> vidioc-g-audioout.sgml compat.sgml          pixfmt-packed-yuv.sgml       
+>    vidioc-g-audio.sgml controls.sgml        pixfmt-sbggr16.sgml          
+>    vidioc-g-crop.sgml dev-capture.sgml     pixfmt-sbggr8.sgml            
+>   vidioc-g-ctrl.sgml dev-codec.sgml       pixfmt-sgbrg8.sgml             
+>  vidioc-g-enc-index.sgml ...
+>
+> If we merge DVB there, for sure we should break it into some files, and
+> maybe even having they on separate directories.
+>
+> > Also multiple specifcations (or volumes) clearly group requirements
+> > into large chunks of "I don't care about that volume" and "I do care
+> > about this volume".  Combining the V4L2 and DVB spec into one volume
+> > would probably be a strategic error for some tactical advantage in
+> > dealing with hybrid devices.
+>
+> This is a good point.
+>
+> On my opinion, it seems good to merge the docs. This is just my 2 cents.
+>
+> If we merge both, IMO, we should break the doc into two parts, being one
+> for analog and another for digital, with an introductory text with the
+> hybrid devices glue.
+>
+> If we decide not to merge, we can at least try to follow the same model
+> on both documents, and link a common sgml introductory text for hybrid
+> devices to be added on both documents.
 
-What I did in make_kconfig.pl was just turn everything on, then recursively
-disable anything that has a failed dependency.  There isn't any
-intelligence when it comes to choices where you can have driver set A or
-driver set B, but not both.  Options that we want disabled, like some
-drivers' advanced debug controls, must be explicitly disabled in
-make_kconfig.  Still, it ends up doing what we want in the end, which is to
-compile all the drivers that we can compile.
+Part of the DVB API relating to audio/video decoding is actually shared 
+between DVB and V4L (ivtv uses it for decoding). So that alone is a good 
+argument IMHO to merge the two.
 
-> Anyway, you're quite right about this being a hard problem, and the
-> fact that the Kconfig system wasn't designed to be very helpful in
-> auto-selecting dependencies and resolving conflicts the same way modern
-> package managers are, doesn't make it any easier.
+Regards,
 
->From what I can tell, solving the dependency problem is easily shown to be
-the same as the classical satisfiability problem, which is proven to be NP
-complete.  Now, there are heuristics that can usually solve SAT problems
-quicker but finding the "best" solution quickly is quite a bit harder.
+	Hans
 
-> For the moment, I would suggest either to choose a default which works
-> for most people, or ask the user (using any Kconfig menu tool, if only
-> they didn't need write access to the kernel source, grrr!) to choose
-> among alternatives if no combination of options can be selected
-> automatically.
-
-You don't need write access to the kernel source.  The kernel's config
-programs have to be built, but that can be done ahead of time.  Once they
-are, then you can use that menu tool from v4l-dvb without write access to
-the kernel source.
-
-There is support for an alternate output directory for the kernel that can
-work too.  In the kernel dir, run "make O=~/kernel-output-dir menuconfig".
-That should not require write access to the kernel source dir and will put
-the necessary config programs in ~/kernel-output-dir.  Then point v4l-dvb
-at the kernel output dir, with "make release DIR=~/kernel-output-dir".
-
-See the explanation from my changeset that added this,
-http://linuxtv.org/hg/v4l-dvb/log/6331 Good thing I wrote this 17 months
-ago when I did the work, instead of just using some two word patch
-description, since I sure wouldn't remember how all that works today.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
