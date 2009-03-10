@@ -1,20 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n26Dlj7N022912
-	for <video4linux-list@redhat.com>; Fri, 6 Mar 2009 08:47:45 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n26DlTWq020974
-	for <video4linux-list@redhat.com>; Fri, 6 Mar 2009 08:47:29 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so491611wfc.6
-	for <video4linux-list@redhat.com>; Fri, 06 Mar 2009 05:47:29 -0800 (PST)
-MIME-Version: 1.0
-Date: Fri, 6 Mar 2009 19:17:29 +0530
-Message-ID: <ca1417c50903060547l7cedda32q8795dc5a40b896dd@mail.gmail.com>
-From: rahul G <freevofc6@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2AG5eBS004405
+	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 12:05:40 -0400
+Received: from web54504.mail.re2.yahoo.com (web54504.mail.re2.yahoo.com
+	[206.190.49.154])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n2AG4sSr017061
+	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 12:04:54 -0400
+Message-ID: <504280.69749.qm@web54504.mail.re2.yahoo.com>
+Date: Tue, 10 Mar 2009 09:04:54 -0700 (PDT)
+From: Chris Camacho <chris_camacho@yahoo.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: Problem with the TV out Sound !!!
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Subject: firewire v4l2 bridge
+Reply-To: chris_camacho@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,22 +26,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
- Hi All....
-            I am using Pinnacle 50i TV tuner card for watching TV but
-Radio functionality is not working with the card when I used
-"/sbin/modprobe saa7134 card=77 tuner=54".
-TV is working fine with this on linux-2.26.23.3.But when I used
-"/sbin/modprobe saa7134 card=65 tuner=54" my radio is working fine
-with this tuner card and not  TV.
-When I tried with Linux-2.26.23.1 kernel with same command
-"/sbin/modprobe saa7134 card=77 tuner=54" radio is working fine but
-sound coming out from the device is too small.which not audiable.Can
-any one tell me the reason behind this.
 
-Thanks In Advance..
+I currently use corrianda and vloopback to provide video
+to my own application and also work I do using open-cv
+(alas its v4l v1 :o )
 
-Regards,
-Rahul G
+Using the firewire libs I've managed to make my camera unresponsive a
+number of times and this way round although not ideal is very stable
+
+What I'd love to see is a deamon that took configuration from a file and provided a v4l2 interface. (ideally without needing vloopback)
+
+I'd be quite happy even if the deamon reported that the v4l2 device could only do the mode it was started up with
+(24bit RBG 640x480 15fps I can live with...)
+
+Has anyone seen anything like this for firewire webcams?
+
+Thanks
+Chris
+
+
+
+      
 
 --
 video4linux-list mailing list
