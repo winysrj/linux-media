@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.29])
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alannisota@gmail.com>) id 1LofVP-0007cp-2A
-	for linux-dvb@linuxtv.org; Tue, 31 Mar 2009 17:03:59 +0200
-Received: by yw-out-2324.google.com with SMTP id 2so1881716ywt.41
-	for <linux-dvb@linuxtv.org>; Tue, 31 Mar 2009 08:03:54 -0700 (PDT)
-Message-ID: <49D230CA.1010604@gmail.com>
-Date: Tue, 31 Mar 2009 08:03:38 -0700
-From: Alan Nisota <alannisota@gmail.com>
+Received: from mail1.ewetel.de ([212.6.122.13])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <spieluhr@ewetel.net>) id 1Lh2tb-0000w8-Ew
+	for linux-dvb@linuxtv.org; Tue, 10 Mar 2009 15:25:28 +0100
+Received: from [192.168.1.5] (host-091-097-096-202.ewe-ip-backbone.de
+	[91.97.96.202])
+	by mail1.ewetel.de (8.12.1/8.12.9) with ESMTP id n2AEOoIx015096
+	for <linux-dvb@linuxtv.org>; Tue, 10 Mar 2009 15:24:51 +0100 (CET)
+Message-ID: <49B67832.2060201@ewetel.net>
+Date: Tue, 10 Mar 2009 15:24:50 +0100
+From: Hartmut <spieluhr@ewetel.net>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------010502090109070607040207"
-Subject: [linux-dvb] [PATCH] Remove support for Genpix-CW3K (damages
-	hardware)
+Subject: [linux-dvb] Not able to view HD-TV via Technisat Skystar HD 2
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,115 +21,215 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------010502090109070607040207
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-I have been informed by the manufacturer that the patch currently in the 
-v4l tree to support the Genpix-CW3K version of the hardware will 
-actually damage the firmware on recent units.  As he seems to not want 
-this hardware supported in Linux, and I do not know how to detect the 
-difference between affected and not-affected units, I am requesting the 
-immediate removal of support for this device.  This patch removes a 
-portion of the changeset dce7e08ed2b1 applied 2007-08-18 relating to 
-this specific device.
+> since 3 days I have a Technisat Skystar HD 2 in my Computer (PCI-card) 
 
-Signed off by: Alan Nisota <anisota@gmail.com>
+was my mail some days ago. My fault: I installed the multiproto-driver,
+cause I read this:
 
+>  Mantis/S2API driver
+> 
+> This is the preferred driver. DVB-S2 support in the Linux kernel is provided by API version 5.0, also known as S2API (and not multiproto). This API was released in kernel version 2.6.28
 
---------------010502090109070607040207
-Content-Type: text/plain;
- name="drop_cw3k"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="drop_cw3k"
+So I thought, I can only use this driver, if I use a kernel 2.6.28 which
+I do not and so I installed the multiproto-driver with part-success. But
+I read further and further and found out, that I was wrong. So yesterday
+I installed the S2API-driver with some more success. Channel-switching
+is very fast now and scan-s2 finds the hd-channels. I can even zap to a
+hd-channel, but viewing is the problem:
 
-diff -r 5567e82c34a0 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Mar 31 07:24:14 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Mar 31 07:48:00 2009 -0700
-@@ -225,7 +225,6 @@
- #define USB_PID_GENPIX_8PSK_REV_1_WARM			0x0201
- #define USB_PID_GENPIX_8PSK_REV_2			0x0202
- #define USB_PID_GENPIX_SKYWALKER_1			0x0203
--#define USB_PID_GENPIX_SKYWALKER_CW3K			0x0204
- #define USB_PID_SIGMATEK_DVB_110			0x6610
- #define USB_PID_MSI_DIGI_VOX_MINI_II			0x1513
- #define USB_PID_MSI_DIGIVOX_DUO				0x8801
-diff -r 5567e82c34a0 linux/drivers/media/dvb/dvb-usb/gp8psk.c
---- a/linux/drivers/media/dvb/dvb-usb/gp8psk.c	Tue Mar 31 07:24:14 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/gp8psk.c	Tue Mar 31 07:48:00 2009 -0700
-@@ -138,8 +138,6 @@ static int gp8psk_power_ctrl(struct dvb_
- 	if (onoff) {
- 		gp8psk_usb_in_op(d, GET_8PSK_CONFIG,0,0,&status,1);
- 		if (! (status & bm8pskStarted)) {  /* started */
--			if(gp_product_id == USB_PID_GENPIX_SKYWALKER_CW3K)
--				gp8psk_usb_out_op(d, CW3K_INIT, 1, 0, NULL, 0);
- 			if (gp8psk_usb_in_op(d, BOOT_8PSK, 1, 0, &buf, 1))
- 				return -EINVAL;
- 		}
-@@ -168,8 +166,6 @@ static int gp8psk_power_ctrl(struct dvb_
- 		/* Turn off 8psk power */
- 		if (gp8psk_usb_in_op(d, BOOT_8PSK, 0, 0, &buf, 1))
- 			return -EINVAL;
--		if(gp_product_id == USB_PID_GENPIX_SKYWALKER_CW3K)
--			gp8psk_usb_out_op(d, CW3K_INIT, 0, 0, NULL, 0);
- 	}
- 	return 0;
- }
-@@ -223,7 +219,6 @@ static struct usb_device_id gp8psk_usb_t
- 	    { USB_DEVICE(USB_VID_GENPIX, USB_PID_GENPIX_8PSK_REV_1_WARM) },
- 	    { USB_DEVICE(USB_VID_GENPIX, USB_PID_GENPIX_8PSK_REV_2) },
- 	    { USB_DEVICE(USB_VID_GENPIX, USB_PID_GENPIX_SKYWALKER_1) },
--	    { USB_DEVICE(USB_VID_GENPIX, USB_PID_GENPIX_SKYWALKER_CW3K) },
- 	    { 0 },
- };
- MODULE_DEVICE_TABLE(usb, gp8psk_usb_table);
-@@ -254,7 +249,7 @@ static struct dvb_usb_device_properties 
- 
- 	.generic_bulk_ctrl_endpoint = 0x01,
- 
--	.num_device_descs = 4,
-+	.num_device_descs = 3,
- 	.devices = {
- 		{ .name = "Genpix 8PSK-to-USB2 Rev.1 DVB-S receiver",
- 		  .cold_ids = { &gp8psk_usb_table[0], NULL },
-@@ -267,10 +262,6 @@ static struct dvb_usb_device_properties 
- 		{ .name = "Genpix SkyWalker-1 DVB-S receiver",
- 		  .cold_ids = { NULL },
- 		  .warm_ids = { &gp8psk_usb_table[3], NULL },
--		},
--		{ .name = "Genpix SkyWalker-CW3K DVB-S receiver",
--		  .cold_ids = { NULL },
--		  .warm_ids = { &gp8psk_usb_table[4], NULL },
- 		},
- 		{ NULL },
- 	}
-diff -r 5567e82c34a0 linux/drivers/media/dvb/dvb-usb/gp8psk.h
---- a/linux/drivers/media/dvb/dvb-usb/gp8psk.h	Tue Mar 31 07:24:14 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/gp8psk.h	Tue Mar 31 07:48:00 2009 -0700
-@@ -51,7 +51,6 @@ extern int dvb_usb_gp8psk_debug;
- #define GET_SIGNAL_LOCK                 0x90    /* in */
- #define GET_SERIAL_NUMBER               0x93    /* in */
- #define USE_EXTRA_VOLT                  0x94
--#define CW3K_INIT			0x9d
- 
- /* PSK_configuration bits */
- #define bm8pskStarted                   0x01
+szap-output to a "normal" channel:
 
---------------010502090109070607040207
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+szap-s2 -a 0 -H -r -S 0 -n 373
+zapping to 373 'NDR FS NDS;ARD':
+delivery DVB-S, modulation QPSK
+sat 0, frequency 12109 MHz H, symbolrate 27500000, coderate 3/4, rolloff
+0.35
+vpid 0x0a29, apid 0x0a2a, sid 0x0a2c
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal   0% | snr   0% | ber 0 | unc -2 | FE_HAS_LOCK
+status 1f | signal   0% | snr   0% | ber 0 | unc -2 | FE_HAS_LOCK
+(and so on)
+
+mplayer-output for this channel:
+
+VDecoder init failed :(
+Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
+Selected video codec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
+==========================================================================
+==========================================================================
+Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
+AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
+Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
+==========================================================================
+AO: [oss] 48000Hz 2ch s16le (2 bytes per sample)
+Starting playback...
+VDec: vo config request - 720 x 576 (preferred colorspace: Planar YV12)
+VDec: using Planar YV12 as output csp (no 0)
+Movie-Aspect is 1.33:1 - prescaling to correct movie aspect.
+VO: [xv] 720x576 => 768x576 Planar YV12
+A:91464.4 V:91464.4 A-V:  0.000 ct: -0.518 303/303  9%  2%  0.4% 0 0
+
+OK so far, though the signal-strenght is shown 0%, the picture is Ok.
+
+output of szap if I zap to a HD-channel - in this case arteHD
+
+szap-s2 -a 0 -H -r -S 1 -n 385
+reading channels from file '/home/hartmut/.szap/channels.conf'
+zapping to 385 'arte HD;ZDFvision':
+delivery DVB-S2, modulation 8PSK
+sat 0, frequency 11361 MHz H, symbolrate 22000000, coderate 2/3, rolloff
+0.35
+vpid 0x1842, apid 0x184d, sid 0x1856
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 00 | signal   0% | snr  49% | ber 0 | unc -2 |
+status 1b | signal   2% | snr   0% | ber 0 | unc -2 | FE_HAS_LOCK
+status 1b | signal   2% | snr   0% | ber 2666666 | unc -2 | FE_HAS_LOCK
+status 1b | signal   2% | snr   0% | ber 6666666 | unc -2 | FE_HAS_LOCK
+status 1b | signal   2% | snr   0% | ber 1333333 | unc -2 | FE_HAS_LOCK
+status 1b | signal   2% | snr   0% | ber 0 | unc -2 | FE_HAS_LOCK
+status 1b | signal   2% | snr   0% | ber 0 | unc -2 | FE_HAS_LOCK
+status 1b | signal   2% | snr   0% | ber 0 | unc -2 | FE_HAS_LOCK
+(and so on)
+
+output of mplayer
+Playing /dev/dvb/adapter0/dvr0.
+TS file format detected.
+VIDEO MPEG2(pid=6210) AUDIO MPA(pid=6221) NO SUBS (yet)!  PROGRAM N. 0
+
+(I have to wait 2 minutes)
+
+Too many audio packets in the buffer: (1366 in 8392704 bytes).
+Maybe you are playing a non-interleaved stream/file or the codec failed?
+For AVI files, try to force non-interleaved mode with the -ni option.
+MPEG: FATAL: EOF while searching for sequence header.
+Video: Cannot read properties.
+==========================================================================
+Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
+AUDIO: 48000 Hz, 2 ch, s16le, 256.0 kbit/16.67% (ratio: 32000->192000)
+Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
+==========================================================================
+AO: [oss] 48000Hz 2ch s16le (2 bytes per sample)
+Video: no video
+Starting playback...
+A:10567.0 ( 2:56:07.0) of -1.1 (unknown)  0.2%
+A:10567.1 ( 2:56:07.0) of -1.1 (unknown)  0.2%
+So no video, but only audio
+
+If I start mplayer with mplayer -vc +ffh264 I get the same output
+
+Only ffplay can play the channel:
+3 seconds fluently,
+2 seconds staggering and
+after another 5 seconds my free memory (about 500M) is full and I have
+to kill ffplay
+
+output of ffplay:
+
+  built on Jan 16 2009 22:23:29, gcc: 4.3.1 20080507 (prerelease)
+[gcc-4_3-branch revision 135036]
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]non-existing PPS referenced
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]non-existing PPS referenced
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]non-existing PPS referenced
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]B picture before any references, skipping
+[h264 @ 0x68ac80]decode_slice_header error
+[h264 @ 0x68ac80]no frame!
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+[h264 @ 0x68ac80]number of reference frames exceeds max (probably
+corrupt input), discarding one
+
+I have several HD-TV.ts-files which are played very well with all
+applications, so in  my opinion the videooutput is not ok.
+
+Any advices?
+
+Regards,
+
+Hartmut
+
+PS: Opensuse 11.0 on AMD64, everything updated to the newest ...
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------010502090109070607040207--
