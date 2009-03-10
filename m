@@ -1,27 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2BKPiDE011275
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 16:25:44 -0400
-Received: from insvr08.insite.com.br (insvr08.insite.com.br [66.135.42.188])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2BKPLat026809
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 16:25:21 -0400
-Received: from sk.insite.com.br (sk.insite.com.br [66.135.32.93])
-	by insvr08.insite.com.br (Postfix) with ESMTP id B628015E807B
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 17:25:20 -0300 (BRT)
-Received: from [201.82.105.195] (port=7491 helo=juba.localnet)
-	by sk.insite.com.br with esmtps (TLSv1:AES256-SHA:256) (Exim 4.69)
-	(envelope-from <diniz@wimobilis.com.br>) id 1LhUzQ-0004Rt-86
-	for video4linux-list@redhat.com; Wed, 11 Mar 2009 17:25:20 -0300
-From: Rafael Diniz <diniz@wimobilis.com.br>
-To: video4linux-list@redhat.com
-Date: Wed, 11 Mar 2009 17:25:30 -0300
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2A9eqAS027542
+	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 05:40:52 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.175])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2A9eF0j011708
+	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 05:40:15 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so2257126wfc.6
+	for <video4linux-list@redhat.com>; Tue, 10 Mar 2009 02:40:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Date: Tue, 10 Mar 2009 15:10:14 +0530
+Message-ID: <ca1417c50903100240w41bf3bfds1467a85478c527a2@mail.gmail.com>
+From: rahul G <freevofc6@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903111725.30972.diniz@wimobilis.com.br>
-Subject: loopback dvb device
+Subject: "Pinnacle 50i Remote" not working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,14 +26,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello people,
-I'd like to use a software called redbutton to extract the Data Carousel of a 
-Transport Stream file. But it only works w/ a real DVB tuner.
-Are there any way to create a DVB loopback device like the v4l vloopback 
-software that plays a TS file?
+  Hi All..
+               My pinnacle 50i remote is not woking on linux ..I have
+tried in many ways...Has any one got this remote working..???? Please
+let me know..
 
-Thanks,
-Rafael Diniz
+Thanks In advance...
+
+Regards,
+RahulG
 
 --
 video4linux-list mailing list
