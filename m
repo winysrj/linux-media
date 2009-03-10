@@ -1,87 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4705 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756099AbZCYHM0 convert rfc822-to-8bit (ORCPT
+Received: from mu-out-0910.google.com ([209.85.134.187]:51050 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752279AbZCJINJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 03:12:26 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
-Subject: Re: [PATCH] uvcvideo: add zero fill for VIDIOC_ENUM_FMT
-Date: Wed, 25 Mar 2009 08:12:38 +0100
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-References: <49C9D652.5040104@freemail.hu>
-In-Reply-To: <49C9D652.5040104@freemail.hu>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200903250812.38051.hverkuil@xs4all.nl>
+	Tue, 10 Mar 2009 04:13:09 -0400
+Received: by mu-out-0910.google.com with SMTP id i10so571425mue.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2009 01:13:04 -0700 (PDT)
+Subject: [patch review] radio-terratec: remove unused delay.h
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain
+Date: Tue, 10 Mar 2009 11:13:48 +0300
+Message-Id: <1236672828.11988.46.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 25 March 2009 07:59:30 Németh Márton wrote:
-> From: Márton Németh <nm127@freemail.hu>
->
-> When enumerating formats with VIDIOC_ENUM_FMT the uvcvideo driver does
-> not fill the reserved fields of the struct v4l2_fmtdesc with zeros as
-> required by V4L2 API revision 0.24 [1]. Add the missing initializations.
->
-> The patch was tested with v4l-test 0.10 [2] with CNF7129 webcam found on
-> EeePC 901.
+Hello, all
 
-Or even better, Laurent, why not move to video_ioctl2? That will take care 
-of such things for you. The next step I'm going to take in the 
-implementation of the v4l2 framework is to move all drivers over to 
-v4l2_device and v4l2_ioctl2, so it would certainly help me if you could 
-convert uvcvideo. This is a typical example why using video_ioctl2 is a 
-good (tm) idea!
+I don't know if this patch okay, so it should be tested/reviewed.
+Anyway, compilation process shows no warnings.
 
-Regards,
+---
+Patch removes linux/delay.h which hadn't been used.
 
-	Hans
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
->
-> References:
-> [1] V4L2 API specification, revision 0.24
->     http://v4l2spec.bytesex.org/spec/r8367.htm
->
-> [2] v4l-test: Test environment for Video For Linux Two API
->     http://v4l-test.sourceforge.net/
->
-> Signed-off-by: Márton Németh <nm127@freemail.hu>
-> ---
-> --- linux-2.6.29/drivers/media/video/uvc/uvc_v4l2.c.orig	2009-03-24
-> 00:12:14.000000000 +0100 +++
-> linux-2.6.29/drivers/media/video/uvc/uvc_v4l2.c	2009-03-25
-> 07:24:42.000000000 +0100 @@ -673,11 +673,19 @@ static long
-> uvc_v4l2_do_ioctl(struct fil
->  	{
->  		struct v4l2_fmtdesc *fmt = arg;
->  		struct uvc_format *format;
-> +		__u32 index;
-> +		enum v4l2_buf_type type;
->
->  		if (fmt->type != video->streaming->type ||
->  		    fmt->index >= video->streaming->nformats)
->  			return -EINVAL;
->
-> +		index = fmt->index;
-> +		type = fmt->type;
-> +		memset(fmt, 0, sizeof(*fmt));
-> +		fmt->index = index;
-> +		fmt->type = type;
-> +
->  		format = &video->streaming->format[fmt->index];
->  		fmt->flags = 0;
->  		if (format->flags & UVC_FMT_FLAG_COMPRESSED)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+--
+diff -r 615fb8f01610 linux/drivers/media/radio/radio-terratec.c
+--- a/linux/drivers/media/radio/radio-terratec.c	Tue Mar 10 02:33:02 2009 -0300
++++ b/linux/drivers/media/radio/radio-terratec.c	Tue Mar 10 09:49:36 2009 +0300
+@@ -27,7 +27,6 @@
+ #include <linux/module.h>	/* Modules 			*/
+ #include <linux/init.h>		/* Initdata			*/
+ #include <linux/ioport.h>	/* request_region		*/
+-#include <linux/delay.h>	/* udelay			*/
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/mutex.h>
+ #include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
 
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Best regards, Klimov Alexey
+
