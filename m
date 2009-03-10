@@ -1,42 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.187]:51050 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721AbZCJINO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 04:13:14 -0400
-Received: by mu-out-0910.google.com with SMTP id i10so571425mue.1
-        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2009 01:13:12 -0700 (PDT)
-Subject: [patch] radio-rtrack2: fix double mutex_unlock
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain
-Date: Tue, 10 Mar 2009 11:14:00 +0300
-Message-Id: <1236672840.11988.48.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:32744 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754091AbZCJLBG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 07:01:06 -0400
+Message-ID: <49B6486E.8080009@iki.fi>
+Date: Tue, 10 Mar 2009 13:01:02 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Christoph Pfister <christophpfister@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Initial tuning file update for fi-*
+References: <496E2758.70403@iki.fi>	 <19a3b7a80901141147p6bfcd6c5y369f16d410f63fff@mail.gmail.com>	 <497619CD.6010307@iki.fi> <19a3b7a80901260739q19301a8w2a11df7fee07c9c@mail.gmail.com>
+In-Reply-To: <19a3b7a80901260739q19301a8w2a11df7fee07c9c@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------080800060203060309020407"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch fixes double mutex unlocking.
+This is a multi-part message in MIME format.
+--------------080800060203060309020407
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+Terve,
+DVB-T updates for Finland.
 
---
-diff -r 615fb8f01610 linux/drivers/media/radio/radio-rtrack2.c
---- a/linux/drivers/media/radio/radio-rtrack2.c	Tue Mar 10 02:33:02 2009 -0300
-+++ b/linux/drivers/media/radio/radio-rtrack2.c	Tue Mar 10 09:28:27 2009 +0300
-@@ -60,7 +60,6 @@
- 		return;
- 	mutex_lock(&dev->lock);
- 	outb(1, dev->io);
--	mutex_unlock(&dev->lock);
- 	mutex_unlock(&dev->lock);
- 	dev->muted = 1;
- }
-
-
+regards
+Antti
 -- 
-Best regards, Klimov Alexey
+http://palosaari.fi/
 
+--------------080800060203060309020407
+Content-Type: text/plain;
+ name="fi-update_2009-03-10.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="fi-update_2009-03-10.patch"
+
+ZGlmZiAtciA4OWFjZTg0NDg5YjAgdXRpbC9zY2FuL2R2Yi10L2ZpLVJhbnRhbGFraQotLS0g
+YS91dGlsL3NjYW4vZHZiLXQvZmktUmFudGFsYWtpCVN1biBNYXIgMDggMjI6Mjg6NTEgMjAw
+OSArMDEwMAorKysgL2Rldi9udWxsCVRodSBKYW4gMDEgMDA6MDA6MDAgMTk3MCArMDAwMApA
+QCAtMSw0ICswLDAgQEAKLSMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgZnJvbSBodHRwOi8v
+d3d3LmRpZ2l0di5maS9zaXZ1LmFzcD9wYXRoPTE7ODIyNDs5NTE5Ci0jIFQgZnJlcSBidyBm
+ZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVy
+YXJjaHkKLVQgNzE0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUKLVQg
+NzcwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUKZGlmZiAtciA4OWFj
+ZTg0NDg5YjAgdXRpbC9zY2FuL2R2Yi10L2ZpLVNhbGxhX1NhaWphCi0tLSBhL3V0aWwvc2Nh
+bi9kdmItdC9maS1TYWxsYV9TYWlqYQlTdW4gTWFyIDA4IDIyOjI4OjUxIDIwMDkgKzAxMDAK
+KysrIC9kZXYvbnVsbAlUaHUgSmFuIDAxIDAwOjAwOjAwIDE5NzAgKzAwMDAKQEAgLTEsNCAr
+MCwwIEBACi0jIGF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIGZyb20gaHR0cDovL3d3dy5kaWdp
+dHYuZmkvc2l2dS5hc3A/cGF0aD0xOzgyMjQ7OTUxOQotIyBUIGZyZXEgYncgZmVjX2hpIGZl
+Y19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5Ci1U
+IDUxNDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FCi1UIDYxMDAwMDAw
+MCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FCmRpZmYgLXIgODlhY2U4NDQ4OWIw
+IHV0aWwvc2Nhbi9kdmItdC9maS1TYWxsYV9TYXJpdmFhcmEKLS0tIC9kZXYvbnVsbAlUaHUg
+SmFuIDAxIDAwOjAwOjAwIDE5NzAgKzAwMDAKKysrIGIvdXRpbC9zY2FuL2R2Yi10L2ZpLVNh
+bGxhX1Nhcml2YWFyYQlUdWUgTWFyIDEwIDEyOjU5OjExIDIwMDkgKzAyMDAKQEAgLTAsMCAr
+MSw0IEBACisjIGF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIGZyb20gaHR0cDovL3d3dy5kaWdp
+dHYuZmkvc2l2dS5hc3A/cGF0aD0xOzgyMjQ7OTUxOQorIyBUIGZyZXEgYncgZmVjX2hpIGZl
+Y19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5CitU
+IDUxNDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FCitUIDYxMDAwMDAw
+MCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FCg==
+--------------080800060203060309020407--
