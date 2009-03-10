@@ -1,55 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2932 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752843AbZCKKRJ (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.28]:5108 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752487AbZCJTiW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 06:17:09 -0400
-Message-ID: <12860.62.70.2.252.1236766618.squirrel@webmail.xs4all.nl>
-Date: Wed, 11 Mar 2009 11:16:58 +0100 (CET)
-Subject: Re: [PATCH 4/4] mt9v022: allow setting of bus width from board code
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Sascha Hauer" <s.hauer@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Sascha Hauer" <s.hauer@pengutronix.de>
+	Tue, 10 Mar 2009 15:38:22 -0400
+Date: Tue, 10 Mar 2009 12:38:10 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, laurent.pinchart@skynet.be,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
+	is probably using the wrong IRQ."
+Message-ID: <20090310193809.GA8217@jenkins.ifup.org>
+References: <20090308075521.GG6869@jenkins.ifup.org> <Pine.LNX.4.44L0.0903081239430.5243-100000@netrider.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0903081239430.5243-100000@netrider.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 12:43 Sun 08 Mar 2009, Alan Stern wrote:
+> On Sat, 7 Mar 2009, Brandon Philips wrote:
+> > > Have you tried suspending just the two devices plugged into that EHCI 
+> > > controller instead of suspending the entire system?  That would make it 
+> > > a lot easier to carry out testing.
+> > 
+> > I tried to reproduce with s2ram suspend, echo suspend >
+> > /sys/bus/usb/devices/.../power/level and /sys/power/pm_test levels but none of
+> > them reproduced it. So, at this point the only way I can reproduce this is with
+> > a full S4.
+> 
+> That's a little misleading.
 
-> This patch removes the phytec specific setting of the bus width
-> and switches to the more generic query_bus_param/set_bus_param
-> hooks
->
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> ---
->  drivers/media/video/Kconfig   |    7 ---
->  drivers/media/video/mt9v022.c |   97
-> +++++------------------------------------
->  2 files changed, 11 insertions(+), 93 deletions(-)
->
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 5fc1531..071d66f 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -729,6 +664,7 @@ static int mt9v022_video_probe(struct
-> soc_camera_device *icd)
->  	/* Set monochrome or colour sensor type */
->  	if (sensor_type && (!strcmp("colour", sensor_type) ||
->  			    !strcmp("color", sensor_type))) {
-> +	if (1) {
->  		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
->  		mt9v022->model = V4L2_IDENT_MT9V022IX7ATC;
->  		icd->formats = mt9v022_colour_formats;
+Sorry, what I meant by "full" was `echo disk > /sys/power/state` with
+none in /sys/power/pm_test
 
-'if (1) {': some left-over debugging?
+> Unless I misunderstood your log, the hang occurred _before_ your
+> system entered S4.  In fact, it occurred before the memory image was
+> written out to the disk.
 
-Regards,
+Yes, this is correct. It freezes before the image is written.
 
-     Hans
+> > Is there some other method I missed of testing?
+> 
+> How about echo disk >/sys/power/state with various settings in 
+> /sys/power/disk?
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+First observation: I can't reproduce this bug with console=ttyS0,115200
+console=tty0. Everything works great actually. Is writing to the serial
+port causing just enough delay to hide the bug?
 
+/sys/power/disk tests
+---------------------
+testproc	# OK
+test		# Unlink after no-IRQ? ...
+platform	# Unlink after no-IRQ? ...
+reboot		# Unlink after no-IRQ? ...
+shutdown	# Unlink after no-IRQ? ...
+
+Cheers,
+
+	Brandon
