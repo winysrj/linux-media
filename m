@@ -1,71 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rolfschumacher.eu ([195.8.233.65]:33810 "EHLO august.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:39377 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753961AbZCQUjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 16:39:04 -0400
-Received: from [192.168.1.109] (HSI-KBW-078-042-086-232.hsi3.kabel-badenwuerttemberg.de [78.42.86.232])
-	(Authenticated sender: rolf)
-	by august.de (Postfix) with ESMTPA id 266CC43BDC
-	for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 21:38:59 +0100 (CET)
-Message-ID: <49C00A62.1080803@august.de>
-Date: Tue, 17 Mar 2009 21:38:58 +0100
-From: Rolf Schumacher <mailinglist@august.de>
+	id S1752954AbZCJKJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 06:09:53 -0400
+Message-ID: <49B63C6C.8070709@iki.fi>
+Date: Tue, 10 Mar 2009 12:09:48 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: no video device
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Dmitri Belimov via Mercurial <d.belimov@gmail.com>,
+	linux-media@vger.kernel.org,
+	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
+References: <E1LHmrf-0004LH-VV@www.linuxtv.org> <49A03A94.9030008@iki.fi>
+In-Reply-To: <49A03A94.9030008@iki.fi>
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, dvb professionals,
+Mauro,
+Could you remove this bad patch patch soon? It must not go to the final 
+2.6.29 as it breaks so many old devices. One of those is MSI Megasky 580 
+which is rather popular.
 
-I followed the advices on
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers#Optional_Pre-Compilation_Steps
+regards
+Antti
 
-Build and Installation Instructions
+Antti Palosaari wrote:
+> Hello,
+> This patch breaks devices using tuner behind zl10353 i2c-gate.
+> au6610:
+> Sigmatek DVB-110 DVB-T USB2.0
+> 
+> gl861:
+> MSI Mega Sky 55801 DVB-T USB2.0
+> A-LINK DTU DVB-T USB2.0
+> 
+> Probably some other too.
+> 
+> I think it is better to disable i2c-gate setting callback to NULL after 
+> demod attach like dtv5100 does this.
+> 
+> Also .no_tuner is bad name what it does currently. My opinion is that 
+> current .no_tuner = 1 should be set as default, because most 
+> configuration does not this kind of slave tuner setup where tuner is 
+> programmed by demod.
+> Change no_tuner to slave_tuner and set slave_tuner = 1 only when needed 
+> (not many drivers using that).
+> 
+> Here is small scheme to clear tuner cotrolling issues.
+> http://www.otit.fi/~crope/v4l-dvb/controlling_tuner.txt
+> 
+> regards
+> Antti
+> 
+> Patch from Dmitri Belimov wrote:
+>> The patch number 10151 was added via Mauro Carvalho Chehab 
+>> <mchehab@redhat.com>
+>> to http://linuxtv.org/hg/v4l-dvb master development tree.
+>>
+>> Kernel patches in this development tree may be modified to be backward
+>> compatible with older kernels. Compatibility modifications will be
+>> removed before inclusion into the mainstream Kernel
+>>
+>> If anyone has any objections, please let us know by sending a message to:
+>>     v4l-dvb-maintainer@linuxtv.org
+>>
+>> ------
+>>
+>> From: Dmitri Belimov  <d.belimov@gmail.com>
+>> Fix I2C bridge error in zl10353
+>>
+>>
+>> Fix I2C bridge error in zl10353 if no tunner attached to internal I2C
+>> bus of zl10353 chip.
+>>
+>> When set enable bridge from internal I2C bus to the main I2C bus
+>> (saa7134) the main I2C bus stopped very hardly. No any communication. In
+>> our next board we solder additional resistors to internal I2C bus.
+>>
+>> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>>
+>> ---
+>>
+>>  linux/drivers/media/dvb/frontends/zl10353.c |    7 +++++++
+>>  1 file changed, 7 insertions(+)
+>>
+>> diff -r 166b13cf6fcd -r 24e51eac4234 
+>> linux/drivers/media/dvb/frontends/zl10353.c
+>> --- a/linux/drivers/media/dvb/frontends/zl10353.c    Wed Nov 12 
+>> 15:04:28 2008 +0000
+>> +++ b/linux/drivers/media/dvb/frontends/zl10353.c    Tue Dec 23 
+>> 06:50:09 2008 +0000
+>> @@ -598,7 +598,14 @@ static int zl10353_init(struct dvb_front
+>>  
+>>  static int zl10353_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+>>  {
+>> +    struct zl10353_state *state = fe->demodulator_priv;
+>>      u8 val = 0x0a;
+>> +
+>> +    if (state->config.no_tuner) {
+>> +        /* No tuner attached to the internal I2C bus */
+>> +        /* If set enable I2C bridge, the main I2C bus stopped hardly */
+>> +        return 0;
+>> +    }
+>>  
+>>      if (enable)
+>>          val |= 0x10;
+>>
+>>
+>> ---
+>>
+>> Patch is available at: 
+>> http://linuxtv.org/hg/v4l-dvb/rev/24e51eac4234f118d51b386c6e3168e8d8f461ae 
+>>
+>>
+>> _______________________________________________
+>> linuxtv-commits mailing list
+>> linuxtv-commits@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+> 
+> 
 
-downloaded the v4l sources via mercurial,
-"make" and "sudo make install" finished without error messages.
 
-rebooted the computer
-
-dmesg shows the device:
-
----
-usb 2-1: new high speed USB device using ehci_hcd and address 6
-usb 2-1: configuration #1 chosen from 1 choice
-usb 2-1: New USB device found, idVendor=0b48, idProduct=300d
-usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-1: Product: TT-USB2.0
-usb 2-1: Manufacturer: TechnoTrend
-usb 2-1: SerialNumber: LHKAMG
----
-
-no error if I unplug and plug it on USB again
-
-the connected box is a TechnoTrend CT 3560 CI
-I googled and found chipset names like TDA8274 + TDA10023
-did not find anything in wiki, so I could not determine module or driver
-names to be identified with lsmod.
-
-there is no created /dev/dvb or /dev/video device
-
-google did not help me answering the question "do I need firmware, and
-if so where to get it"
-
-uname -a shows
-Linux rolf9 2.6.28-7.slh.6-sidux-686 #1 SMP PREEMPT Sat Mar 14 02:30:40
-UTC 2009 i686 GNU/Linux
-
-for now I got stuck.
-
-Do you know of a next step towards having tv on my laptop?
-
-Rolf
-
-
-
-
-
-
+-- 
+http://palosaari.fi/
