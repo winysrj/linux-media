@@ -1,96 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:51085 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753597AbZCPWQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 18:16:49 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v3 1/4] pxa_camera: Enforce YUV422P frame sizes to be 16 multiples
-Date: Mon, 16 Mar 2009 23:16:34 +0100
-Message-Id: <1237241797-381-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1237241797-381-1-git-send-email-robert.jarzmik@free.fr>
-References: <1237241797-381-1-git-send-email-robert.jarzmik@free.fr>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3392 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539AbZCJXgE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 19:36:04 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2ANZxf2078489
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 11 Mar 2009 00:36:00 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 11 Mar 2009 00:35:59 +0100 (CET)
+Message-Id: <200903102336.n2ANZxf2078489@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to DMA constraints, the DMA chain always transfers bytes
-from the QCI fifos to memory in 8 bytes units. In planar
-formats, that could mean 0 padding between Y and U plane
-(and between U and V plane), which is against YUV422P
-standard.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Therefore, a frame size is required to be a multiple of 16
-(so U plane size is a multiple of 8). It is enforced in
-try_fmt() and set_fmt() primitives, be aligning height then
-width on 4 multiples as need be, to reach a 16 multiple.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |   32 +++++++++++++++++++++-----------
- 1 files changed, 21 insertions(+), 11 deletions(-)
+date:        Tue Mar 10 23:15:13 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10922:39c257ae5063
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index e3e6b29..8a76225 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -163,6 +163,13 @@
- 			CICR0_EOFM | CICR0_FOM)
- 
- /*
-+ * YUV422P picture size should be a multiple of 16, so the heuristic aligns
-+ * height, width on 4 byte boundaries to reach the 16 multiple for the size.
-+ */
-+#define YUV422P_X_Y_ALIGN 4
-+#define YUV422P_SIZE_ALIGN YUV422P_X_Y_ALIGN * YUV422P_X_Y_ALIGN
-+
-+/*
-  * Structures
-  */
- enum pxa_camera_active_dma {
-@@ -236,20 +243,11 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
- 			      unsigned int *size)
- {
- 	struct soc_camera_device *icd = vq->priv_data;
--	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
--	struct pxa_camera_dev *pcdev = ici->priv;
- 
- 	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
- 
--	/* planar capture requires Y, U and V buffers to be page aligned */
--	if (pcdev->channels == 3) {
--		*size = PAGE_ALIGN(icd->width * icd->height); /* Y pages */
--		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* U pages */
--		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* V pages */
--	} else {
--		*size = icd->width * icd->height *
--			((icd->current_fmt->depth + 7) >> 3);
--	}
-+	*size = roundup(icd->width * icd->height *
-+			((icd->current_fmt->depth + 7) >> 3), 8);
- 
- 	if (0 == *count)
- 		*count = 32;
-@@ -1234,6 +1232,18 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 		pix->width = 2048;
- 	pix->width &= ~0x01;
- 
-+	/*
-+	 * YUV422P planar format requires images size to be a 16 bytes
-+	 * multiple. If not, zeros will be inserted between Y and U planes, and
-+	 * U and V planes, and YUV422P standard would be violated.
-+	 */
-+	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
-+		if (!IS_ALIGNED(pix->width * pix->height, YUV422P_SIZE_ALIGN))
-+			pix->height = ALIGN(pix->height, YUV422P_X_Y_ALIGN);
-+		if (!IS_ALIGNED(pix->width * pix->height, YUV422P_SIZE_ALIGN))
-+			pix->width = ALIGN(pix->width, YUV422P_X_Y_ALIGN);
-+	}
-+
- 	pix->bytesperline = pix->width *
- 		DIV_ROUND_UP(xlate->host_fmt->depth, 8);
- 	pix->sizeimage = pix->height * pix->bytesperline;
--- 
-1.5.6.5
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc7-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: ERRORS
+linux-2.6.28-armv5-omap2: ERRORS
+linux-2.6.29-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc7-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc7-m32r: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc7-mips: OK
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc7-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc7): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
