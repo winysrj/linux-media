@@ -1,77 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.217.174]:52897 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbZCDBPy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 20:15:54 -0500
-Received: by gxk22 with SMTP id 22so6090812gxk.13
-        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2009 17:15:51 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:34740 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755978AbZCJQMV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 12:12:21 -0400
+Message-ID: <49B6915A.6050108@iki.fi>
+Date: Tue, 10 Mar 2009 18:12:10 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <200903032329.54167.j@jannau.net>
-References: <de8cad4d0903030450qf4063f1r9e4e53f5f83f1763@mail.gmail.com>
-	 <200903032218.55382.hverkuil@xs4all.nl>
-	 <200903032329.54167.j@jannau.net>
-Date: Tue, 3 Mar 2009 20:15:50 -0500
-Message-ID: <de8cad4d0903031715t2264c282x2ba4736deeb136cf@mail.gmail.com>
-Subject: Re: Possible omission in v4l2-common.c?
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: Janne Grunau <j@jannau.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
+References: <E1LHmrf-0004LH-VV@www.linuxtv.org>	<49A03A94.9030008@iki.fi>	<49B63C6C.8070709@iki.fi>	<20090310094019.16ab55d7@pedra.chehab.org> <20090310220819.1790cc44@glory.loctelecom.ru> <49B667A7.8090407@iki.fi>
+In-Reply-To: <49B667A7.8090407@iki.fi>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 3, 2009 at 5:29 PM, Janne Grunau <j@jannau.net> wrote:
-> On Tuesday 03 March 2009 22:18:55 Hans Verkuil wrote:
->> On Tuesday 03 March 2009 13:50:30 Brandon Jenkins wrote:
->> > Hello all,
->> >
->> > I was upgrading drivers this morning to capture the latest changes
->> > for the cx18 and I received a merge conflict in v4l2-common.c. In
->> > my system, 1 HDPVR and 3 CX18s. The HDPVR sources are 5 weeks old
->> > from their last sync up but contain:
->> >
->> > case V4L2_CID_SHARPNESS:
->> >
->> > The newer sources do not, but still have reference to sharpness at
->> > line 420: case V4L2_CID_SHARPNESS:                return
->> > "Sharpness";
->> >
->> > Because I don't know which way the code is going (is sharpness in
->> > or out) I can't submit a patch, but thought I would raise here.
->> > Diff below was pulled from clean clone of v4l-dvb tree.
+Antti Palosaari wrote:
+> Dmitri Belimov wrote:
+>>> Could one of you please do such patchset?
 >>
->> Sharpness is definitely in. This is a bug, please submit this patch
->> with a Signed-off-by line and I'll get it merged.
->
-> It is and afaik was never handled in v4l2_ctrl_query_fill(), the hdpvr
-> tree adds that. Since I intend request the merge of the driver in a
-> couple of days a seperate patch shouldn't be needed.
->
-> janne
->
+>> I haven't a lot expirience with kernel programming. If Antti can it is 
+>> good. I'll check it
+>> on our board.
+> 
+> OK, I will do. For the first phase and as a bug fix I will do that 
+> (disable i2c-gate) like dtv5100 driver does. After that I will add new 
+> configuration switch for i2c-gate disable and also change .no_tuner name 
+> to better one.
 
-This is interesting to me. I attempted to merge from a clean clone and
-pull this morning. The only file which failed was v4l2-common.c.
+Here it is, please review and test. I kept changes as small as possible 
+to prevent errors. Lets fix more later.
 
-Here's the fail marker:
+http://linuxtv.org/hg/~anttip/zl10353/
 
-<<<<<<< local
-        case V4L2_CID_SHARPNESS:
-=======
-        case V4L2_CID_RED_BALANCE:
-        case V4L2_CID_BLUE_BALANCE:
-        case V4L2_CID_GAMMA:
->>>>>>> other
-
-To produce this I did this from a clean start this morning:
-
-hg clone http://hg.jannau.net/hdpvr/
-cd hdpvr
-hg pull http://linuxtv.org/hg/v4l-dvb/
-hg merge
-hg commit
-
-I did the very same thing last week as well without a fail.
-
-Brandon
+regards
+Antti
+-- 
+http://palosaari.fi/
