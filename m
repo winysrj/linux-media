@@ -1,77 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:62570 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbZCWXiu (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:55461 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755424AbZCJND7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 19:38:50 -0400
-Message-ID: <49C81D86.1020309@kaiser-linux.li>
-Date: Tue, 24 Mar 2009 00:38:46 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
-MIME-Version: 1.0
-To: Paul Thomas <pthomas8589@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: gspca in the LinuxTv wiki
-References: <49C80321.60402@kaiser-linux.li> <c785bba30903231451q535707e5j881bccf99ad8c6e3@mail.gmail.com>
-In-Reply-To: <c785bba30903231451q535707e5j881bccf99ad8c6e3@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Tue, 10 Mar 2009 09:03:59 -0400
+Date: Tue, 10 Mar 2009 10:03:30 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Hans de Goede" <j.w.r.degoede@hhs.nl>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: get rid of     
+ video_decoder.h
+Message-ID: <20090310100330.3b6d2cf9@pedra.chehab.org>
+In-Reply-To: <29736.62.70.2.252.1236676362.squirrel@webmail.xs4all.nl>
+References: <29736.62.70.2.252.1236676362.squirrel@webmail.xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Paul Thomas wrote:
-> I like it. Can we add a section for tested architectures (i.e. x86,
-> x86_64, arm, sparc, etc...).
 
-Hi Paul
+On Tue, 10 Mar 2009 10:12:42 +0100 (CET)
+"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
 
-I think this is welcome, when it starts....
 
-This is a suggestion, which does not mean that I do all the stuff.
-
-I will get up the webcams from my page to the LinuxTv wiki with all 
-information I can provide....
-
-But I hope other people will contribute, too?
-
-Thomas
-
+> > V4L1 legacy webcam drivers:
+> > 	linux/include/media/ovcamchip.h
+> > 	linux/drivers/media/video/stv680.c
+> > 	linux/drivers/media/video/ov511.h
+> > 	linux/drivers/media/video/w9966.c
+> > 	linux/drivers/media/video/meye.c
+> > 	linux/drivers/media/video/bw-qcam.c
+> > 	linux/drivers/media/video/cpia.h
+> > 	linux/drivers/media/video/cpia2/cpia2_v4l.c
+> > 	linux/drivers/media/video/cpia2/cpia2.h
+> > 	linux/drivers/media/video/cpia2/cpia2dev.h
+> > 	linux/drivers/media/video/se401.h
+> > 	linux/drivers/media/video/c-qcam.c
+> > 	linux/drivers/media/video/usbvideo/usbvideo.h
+> > 	linux/drivers/media/video/usbvideo/vicam.c
+> > 	linux/drivers/media/video/w9968cf.c
+> > 	linux/drivers/media/video/arv.c
+> > 	linux/drivers/media/video/pwc/pwc.h
 > 
-> thanks,
-> Paul
-> 
-> On Mon, Mar 23, 2009 at 2:46 PM, Thomas Kaiser <v4l@kaiser-linux.li> wrote:
->> I was thinking about updating my page [1] with the results I get with gspca
->> V2. But I think it would be better to have this info on the LinuxTV wiki.
->> Unfortunately, I did not find a page for gspca. So I thought I should start
->> one, but I don't think this is the right thing because there are other
->> drivers available for webcams.
->>
->> Why not start a "Webcam compatibly page" similar to my page [1]?
->> - a photo of the webcam
->> - USB ID
->> - capabilities of the cam
->> - the chipsets when known
->> - driver + version (+ kernel version), at the time tested
->> - application used for testing (version)
->> - links with some information to other interesting pages
->> - and some more you can think of
->>
->> What you guys think about it?
->>
->>
->> [1] http://www.kaiser-linux.li/index.php/Linux_and_Webcams
->>
->> Thomas
->>
->> PS: the only reference I found about gspca on the LinuxTV wiki:
->> http://www.linuxtv.org/wiki/index.php/Development:_Reverse_Engineering_USB_Webcams#gspca
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I've got several of these: w9968cf, usbvideo, cpia_usb, stv680 (I think)
+> and ov511.
 
+Once converted one, the other conversions will probably be easy. maybe
+Jean-Francois or another gspca-submaintainer could convert one of the webcam
+drivers you have. Then, you can test (and fix). After this changeset, the
+conversion for the others will likely be trivial.
+> 
+> > A few capture drivers:
+> > 	linux/drivers/media/video/zoran/zoran_driver.c
+> > 	linux/drivers/media/video/stradis.c
+> > 	linux/drivers/media/video/pms.c
+> >
+> > And two i2c helper drivers:
+> > 	linux/drivers/media/video/msp3400-driver.c
+> > 	linux/drivers/media/video/tuner-core.c
+> >
+> > Most of the above are the legacy V4L1 webcam drivers. It would be really
+> > nice
+> > if someone could volunteer to port those Webcam drivers to gspca.
+> >
+> > I suspect that it shouldn't hard to remove the few V4L1 bits from
+> > zoran_driver, after all
+> > the conversions made. Yet, there are some Zoran specific ioctls that use
+> > this.
+> > We should probably discontinue those zoran-specific ioctls.
+> 
+> I didn't dare do that when I did the conversion. Someone would have to
+> analyze these BUZ ioctls, but I think they all have proper v4l2
+> equivalents.
+
+The only BUZ_foo that requires may require some work are the
+BUZIOC_G_PARAMS/BUZIOC_S_PARAMS, since it has some controls to the MJPEG
+stream. I'm not sure if everything is implemented. There are some BUZ_ ioctls
+that are similar to V4L2 (REQBUFS, QBUF). I don't see why we need yet another
+set of mmap methods here. The BUZIOC_SYNC doesn't make much sense to my eyes,
+except if you're stopping a stream. In this case, VIDIOC_STREAMOFF should
+already provide a sync functionality. The last one BUZIOC_G_STATUS is a merge
+of some other status already existent on V4L2.
+
+The only detail here is that the Zoran mmap methods provide two modes: QBUF_PLAY and
+QBUF_CAPT. We should take some care to understand the logic behind this.
+> 
+> > It seems also safe to remove V4L1 code from msp3400, since, AFAIK, all
+> > drivers
+> > that supports it are already converted to V4L2.
+> 
+> I didn't realize that there was still some V4L1 code in that driver. It
+> can certainly be removed.
+
+Ok. Maybe you could provide us an strip patch for those legacy code. Otherwise,
+I'll handle that later.
+
+> > After converting stradis, it will be probably safe also to remove V4L1
+> > code
+> > from tuner-core.
+> >
+> > I doubt that there are still some pms hardware around, but it would be
+> > interesting to keep this module, since this is the first V4L driver wrote.
+> 
+> I have one! I managed to get one for $4 (+$16 shipping :-) ).
+> 
+> It actually works (sort of) and I want to convert it to v4l2, just as a
+> fun project.
+
+Yes, this seems a very interesting fun project ;)
+
+
+Cheers,
+Mauro
