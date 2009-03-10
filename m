@@ -1,107 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1698 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932301AbZCZTYd (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3233 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479AbZCJJNB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 15:24:33 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2QJOUpD007593
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 26 Mar 2009 20:24:30 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 26 Mar 2009 20:24:30 +0100 (CET)
-Message-Id: <200903261924.n2QJOUpD007593@smtp-vbr12.xs4all.nl>
+	Tue, 10 Mar 2009 05:13:01 -0400
+Message-ID: <29736.62.70.2.252.1236676362.squirrel@webmail.xs4all.nl>
+Date: Tue, 10 Mar 2009 10:12:42 +0100 (CET)
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: get rid of
+     video_decoder.h
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: OK
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Hans de Goede" <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+>
+> On Tue, 10 Mar 2009 08:31:32 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> > The V4L1 obsoleted header video_decoder.h is not used anymore by any
+>> > driver. Only a name decoding function at v4l2-ioctl still implements
+>> it.
+>>
+>> Hoorah!
+>
+> Yes! We're finally getting rid of some of those V4L1 headers. The only
+> remaining one is videodev.h.
+>
+>> Note that video_encoder.h is now also unused, but since that header
+>> isn't in v4l-dvb it should be removed manually in the kernel during the
+>> 2.6.30 merge window.
+>
+> I've already got rid of video_encoder.h on my -git tree. I just wrote a
+> patch
+> removing the rest of video_decoder.h references on -git.
+>
+> Yet, there are a few drivers that still requires V4L1 videodev.h header:
+>
+> A minimal set of V4L1 stuff, just for VIDIOCMBUF:
+> 	linux/include/media/videobuf-core.h
+> 	linux/include/media/v4l2-ioctl.h
+>
+> Core modules, to preserve V4L1 compatibility:
+> 	linux/drivers/media/video/v4l2-ioctl.c
+> 	linux/drivers/media/video/v4l1-compat.c
+> 	linux/drivers/media/video/v4l2-compat-ioctl32.c
+>
+> V4L1 legacy webcam drivers:
+> 	linux/include/media/ovcamchip.h
+> 	linux/drivers/media/video/stv680.c
+> 	linux/drivers/media/video/ov511.h
+> 	linux/drivers/media/video/w9966.c
+> 	linux/drivers/media/video/meye.c
+> 	linux/drivers/media/video/bw-qcam.c
+> 	linux/drivers/media/video/cpia.h
+> 	linux/drivers/media/video/cpia2/cpia2_v4l.c
+> 	linux/drivers/media/video/cpia2/cpia2.h
+> 	linux/drivers/media/video/cpia2/cpia2dev.h
+> 	linux/drivers/media/video/se401.h
+> 	linux/drivers/media/video/c-qcam.c
+> 	linux/drivers/media/video/usbvideo/usbvideo.h
+> 	linux/drivers/media/video/usbvideo/vicam.c
+> 	linux/drivers/media/video/w9968cf.c
+> 	linux/drivers/media/video/arv.c
+> 	linux/drivers/media/video/pwc/pwc.h
 
-date:        Thu Mar 26 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11153:56cf0f1772f7
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I've got several of these: w9968cf, usbvideo, cpia_usb, stv680 (I think)
+and ov511.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.29): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+> A few capture drivers:
+> 	linux/drivers/media/video/zoran/zoran_driver.c
+> 	linux/drivers/media/video/stradis.c
+> 	linux/drivers/media/video/pms.c
+>
+> And two i2c helper drivers:
+> 	linux/drivers/media/video/msp3400-driver.c
+> 	linux/drivers/media/video/tuner-core.c
+>
+> Most of the above are the legacy V4L1 webcam drivers. It would be really
+> nice
+> if someone could volunteer to port those Webcam drivers to gspca.
+>
+> I suspect that it shouldn't hard to remove the few V4L1 bits from
+> zoran_driver, after all
+> the conversions made. Yet, there are some Zoran specific ioctls that use
+> this.
+> We should probably discontinue those zoran-specific ioctls.
 
-Detailed results are available here:
+I didn't dare do that when I did the conversion. Someone would have to
+analyze these BUZ ioctls, but I think they all have proper v4l2
+equivalents.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> It seems also safe to remove V4L1 code from msp3400, since, AFAIK, all
+> drivers
+> that supports it are already converted to V4L2.
 
-Full logs are available here:
+I didn't realize that there was still some V4L1 code in that driver. It
+can certainly be removed.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+> After converting stradis, it will be probably safe also to remove V4L1
+> code
+> from tuner-core.
+>
+> I doubt that there are still some pms hardware around, but it would be
+> interesting to keep this module, since this is the first V4L driver wrote.
 
-The V4L2 specification from this daily build is here:
+I have one! I managed to get one for $4 (+$16 shipping :-) ).
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+It actually works (sort of) and I want to convert it to v4l2, just as a
+fun project.
 
-The DVB API specification from this daily build is here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+      Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
