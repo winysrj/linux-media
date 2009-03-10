@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail21.extendcp.co.uk ([79.170.40.21])
+Received: from mail1-hoer.fullrate.dk ([90.185.1.42] helo=smtp.fullrate.dk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mailing-lists@enginuities.com>) id 1LjPgw-00061e-68
-	for linux-dvb@linuxtv.org; Tue, 17 Mar 2009 04:10:11 +0100
-Received: from 220-244-170-229.static.tpgi.com.au ([220.244.170.229]
-	helo=cobra.localnet) by mail21.extendcp.com with esmtpa (Exim 4.63)
-	id 1LjPgr-0006FA-1r
-	for linux-dvb@linuxtv.org; Tue, 17 Mar 2009 03:10:06 +0000
-From: Stuart <mailing-lists@enginuities.com>
+	(envelope-from <rasmus@akvaservice.dk>) id 1LhBFb-0008Bx-BZ
+	for linux-dvb@linuxtv.org; Wed, 11 Mar 2009 00:20:44 +0100
+Received: from [10.0.0.11] (3703ds1-sg.0.fullrate.dk [90.184.225.237])
+	by smtp.fullrate.dk (Postfix) with ESMTP id BA5E49CD36
+	for <linux-dvb@linuxtv.org>; Wed, 11 Mar 2009 00:19:47 +0100 (CET)
+From: Rasmus Pedersen <rasmus@akvaservice.dk>
 To: linux-dvb@linuxtv.org
-Date: Tue, 17 Mar 2009 14:10:30 +1100
-References: <200903140506.00723.mailing-lists@enginuities.com>
-	<49BEC65C.8070302@iki.fi>
-In-Reply-To: <49BEC65C.8070302@iki.fi>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200903171410.31856.mailing-lists@enginuities.com>
-Subject: Re: [linux-dvb] Patch for DigitalNow TinyTwin remote.
-Reply-To: linux-media@vger.kernel.org
+Date: Wed, 11 Mar 2009 00:19:47 +0100
+Message-Id: <1236727187.8238.17.camel@SailCat>
+Mime-Version: 1.0
+Subject: [linux-dvb] KNC1
+Reply-To: linux-media@vger.kernel.org, rasmus@akvaservice.dk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,153 +26,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Antti,
+Hi,
 
-> Someone should really examine that more. Take some sniffs to see how
-> Windows handle that.
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030292.html
-> http://linuxtv.org/wiki/index.php/MSI_DigiVox_mini_II_V3.0
+I've got some problems getting my KNC1 DVB-C working correctly.
 
-I had a look at the links, the problem I had did not stop after pressing a key on the keyboard. Also, with this kernel (2.6.29_rc7) using 'options usbhid quirks=0x13d3:0x3226:0x0004' had no effect, I believe there have been some changes to usbhid in 2.6.28, either way 
-the old macro '#define HID_QUIRK_IGNORE 0x00000004' is not in hid.h in this kernel version. The only way to stop it was to unplug the device. (Trying to type rmmod was impossible as the input from the remote would keep coming!)
+The card is found correctly as
 
-I'd be happy to have a look in to usb sniffing, are there any decent tutorials on how to do this?
+DVB: registering new adapter (KNC1 DVB-C MK3)
+DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)
 
-> I am also not sure about HID changes.
-> And also could you test whether AzureWave IR-tables are OK because
-> device looks just same, even remote.
+I also have a CAM connected with an irdeto card installed. Syslog tells
+me that its been succesfullay detected.
 
-You're absolutely right! The TinyTwin worked with the AzureWave tables (af9015_rc_keys_twinhan and af9015_ir_table_twinhan).
+dvb_ca adapter 0: DVB CAM detected and initialised successfully
 
-I can see in af9015.h there is an ir table (af9015_ir_table_twinhan) with 50 entries, a key table (af9015_rc_keys_twinhan) with 53 entries and that while the remote has 53 keys, the device can only handle 50 of them (the first 50 in the ir table if > 50). I've also 
-found two ir tables from Windows drivers (one from the supplied CD and the one I previously mentioned for Windows MCE). This is an example entry in an ir table:
+I can view non-encrypted/encrypted channels when using Kaffeine,
+everything is working perfectly. 
 
- 1  ,  2  ,  3  ,  4  ,  5  ,  6  ,  7
-0x00, 0xff, 0x16, 0xe9, 0x28, 0x0c, 0x00
+My problem is that I want to record tv from the consol (I'm working on
+script that can record television and expose it thru mediatomb to be
+played on my PS3), and Kaffeine does not run without its UI.
 
-I'm assuming columns 3 & 4 correspond to the key pressed and columns 5 & 6 correspond to the code returned when that key is pressed. In all tables, 3 & 4 are the same while 5 & 6 are sometimes different. I'm assuming that 5 & 6 are important if usbhid attaches itself 
-to the device, however, if dvb_usb_af9015 attaches itself then they seem somewhat arbitrary as the key table only needs to match the ir table to get the correct key press from af9015_rc_query.
+I have tried mplayer and xine, but I quickly found that neither of them
+has the abilty to decrypt using the attached CAM. So I went onto try
+gnutv, and thats where my problems really start.
 
-I wrote a simple programme to look at all the ir and key tables. Looking at af9015_rc_keys_twinhan and af9015_ir_table_twinhan in af9015.h shows there is no entry in af9015_ir_table_twinhan for A/V, Zoom+ or Zoom- and there are two entries with '0x00, 0x0e' 
-corresponding to KEY_POWER and KEY_INFO (I believe the entry '{ 0x00, 0x0e, KEY_POWER }' should be '{ 0x00, 0x4d, KEY_STOP }') in af9015_rc_keys_twinhan.
+When I start gnutv like this.
 
-I'm not sure if columns 5 & 6 need to be specific values, but I've attached a complete list (53 ir table entries and 53 corresponding key table entries). Of course, we can only use 50 of them at a time!
+./gnutv -caslotnum 0 -out file test.ts -channels channels.conf "Kanal 5"
 
-Also, how does the AzureWave handle the remote? Does it use the usbhid driver or dvb_usb_af9015? If it uses dvb_usb_af9015, then I think the TinyTwin should use it as well and it would be necessary to stop usbhid from attaching to the device.
+I get this error in syslog.
+
+DVB: TDA10023(0): tda10023_writereg, writereg error (reg == 0x2a, val ==
+0x02, ret == -121)
+
+gnutv outputs this to console:
+
+CAM Application type: 01
+CAM Application manufacturer: cafe
+CAM Manufacturer code: babe
+CAM Menu string: Irdeto Access
+
+And nothing else.
+
+The stream saved to test.ts has no video, so I presume gnutv does not
+decrypt the video stream.
+
+./gnutv -cammenu works fine, and I can access the cam information using
+it.
+
+The problem is also there when using zap and dvbstreamer. I have not yet
+tried mythtv or vdr, since I was hoping for a simpler solution using
+gnutv or similar software to just dump the stream to disk (decrypted
+ofcourse). 
+
+I have installed latest v4l drivers from CSV and alos latest dvbapps
+from CSV.
+
+I hope somebody might now what the problem could be..
 
 Regards,
-
-Stuart
-
-Complete key & ir tables:
-
-	{ 0x0c, 0x28, KEY_POWER },		/* Power */
-	{ 0x01, 0x0a, KEY_FAVORITES },		/* Favorite List */
-	{ 0x01, 0x17, KEY_TEXT },		/* Teletext */
-	{ 0x01, 0x04, KEY_INFO },		/* Preview */
-	{ 0x01, 0x07, KEY_EPG },		/* Info/EPG */
-	{ 0x01, 0x12, KEY_LIST },		/* Record List */
-	{ 0x00, 0x1e, KEY_1 },			/* 1 */
-	{ 0x00, 0x1f, KEY_2 },			/* 2 */
-	{ 0x00, 0x20, KEY_3 },			/* 3 */
-	{ 0x00, 0x21, KEY_4 },			/* 4 */
-	{ 0x00, 0x22, KEY_5 },			/* 5 */
-	{ 0x00, 0x23, KEY_6 },			/* 6 */
-	{ 0x00, 0x24, KEY_7 },			/* 7 */
-	{ 0x00, 0x25, KEY_8 },			/* 8 */
-	{ 0x00, 0x26, KEY_9 },			/* 9 */
-	{ 0x00, 0x29, KEY_CANCEL },		/* Cancel */
-	{ 0x00, 0x27, KEY_0 },			/* 0 */
-	{ 0x00, 0x4c, KEY_CLEAR },		/* Clear */
-	{ 0x00, 0x2a, KEY_BACK },		/* Back */
-	{ 0x00, 0x2b, KEY_TAB },		/* Tab */
-	{ 0x00, 0x52, KEY_UP },			/* Up */
-	{ 0x00, 0x50, KEY_LEFT },		/* Left */
-	{ 0x00, 0x28, KEY_ENTER },		/* Enter/ok */
-	{ 0x00, 0x4f, KEY_RIGHT },		/* Right */
-	{ 0x00, 0x51, KEY_DOWN },		/* Down */
-	{ 0x00, 0x43, KEY_VOLUMEUP },		/* VOL+ */
-	{ 0x00, 0x42, KEY_VOLUMEDOWN },		/* VOL- */
-	{ 0x00, 0x4e, KEY_CHANNELUP },		/* CH- */
-	{ 0x00, 0x4b, KEY_CHANNELDOWN },	/* CH+ */
-	{ 0x01, 0x15, KEY_RECORD },		/* REC */
-	{ 0x03, 0x13, KEY_PLAY },		/* Play */
-	{ 0x01, 0x13, KEY_PAUSE },		/* Pause */
-	{ 0x03, 0x16, KEY_STOP },		/* Stop */
-	{ 0x03, 0x05, KEY_REWIND },		/* FR */
-	{ 0x03, 0x09, KEY_FASTFORWARD },	/* FF */
-	{ 0x01, 0x05, KEY_PREVIOUS },		/* Replay */
-	{ 0x01, 0x09, KEY_NEXT },		/* Skip */
-	{ 0x00, 0x40, KEY_CAMERA },		/* Capture */
-	{ 0x03, 0x04, KEY_LANGUAGE },		/* SAP */
-	{ 0x00, 0x3f, KEY_TV2 },		/* PIP */
-	{ 0x04, 0x28, KEY_ZOOM },		/* Full Screen */
-	{ 0x03, 0x06, KEY_SUBTITLE },		/* Subtitle/CC */
-	{ 0x00, 0x41, KEY_MUTE },		/* Mute */
-	{ 0x01, 0x41, KEY_AUDIO },		/* L/R */
-	{ 0x04, 0x3d, KEY_SLEEP },		/* Hibernate */
-	{ 0x03, 0x17, KEY_SWITCHVIDEOMODE },	/* A/V */
-	{ 0x05, 0x1a, KEY_AGAIN },		/* Recall */
-	{ 0x03, 0x1d, KEY_ZOOMIN },		/* Zoom+ */
-	{ 0x03, 0x1f, KEY_ZOOMOUT },		/* Zoom- */
-	{ 0x01, 0x14, KEY_RED },		/* Red */
-	{ 0x01, 0x10, KEY_GREEN },		/* Green */
-	{ 0x01, 0x0c, KEY_YELLOW },		/* Yellow */
-	{ 0x01, 0x08, KEY_BLUE },		/* Blue */
-
-	0x00, 0xff, 0x16, 0xe9, 0x28, 0x0c, 0x00, /* Power */
-	0x00, 0xff, 0x17, 0xe8, 0x0a, 0x01, 0x00, /* Favorite List */
-	0x00, 0xff, 0x0f, 0xf0, 0x17, 0x01, 0x00, /* Teletext */
-	0x00, 0xff, 0x48, 0xb7, 0x04, 0x01, 0x00, /* Preview */
-	0x00, 0xff, 0x1c, 0xe3, 0x07, 0x01, 0x00, /* Info/EPG */
-	0x00, 0xff, 0x04, 0xfb, 0x12, 0x01, 0x00, /* Record List */
-	0x00, 0xff, 0x03, 0xfc, 0x1e, 0x00, 0x00, /* 1 */
-	0x00, 0xff, 0x01, 0xfe, 0x1f, 0x00, 0x00, /* 2 */
-	0x00, 0xff, 0x06, 0xf9, 0x20, 0x00, 0x00, /* 3 */
-	0x00, 0xff, 0x09, 0xf6, 0x21, 0x00, 0x00, /* 4 */
-	0x00, 0xff, 0x1d, 0xe2, 0x22, 0x00, 0x00, /* 5 */
-	0x00, 0xff, 0x1f, 0xe0, 0x23, 0x00, 0x00, /* 6 */
-	0x00, 0xff, 0x0d, 0xf2, 0x24, 0x00, 0x00, /* 7 */
-	0x00, 0xff, 0x19, 0xe6, 0x25, 0x00, 0x00, /* 8 */
-	0x00, 0xff, 0x1b, 0xe4, 0x26, 0x00, 0x00, /* 9 */
-	0x00, 0xff, 0x0c, 0xf3, 0x29, 0x00, 0x00, /* Cancel */
-	0x00, 0xff, 0x15, 0xea, 0x27, 0x00, 0x00, /* 0 */
-	0x00, 0xff, 0x4a, 0xb5, 0x4c, 0x00, 0x00, /* Clear */
-	0x00, 0xff, 0x13, 0xec, 0x2a, 0x00, 0x00, /* Back */
-	0x00, 0xff, 0x00, 0xff, 0x2b, 0x00, 0x00, /* Tab */
-	0x00, 0xff, 0x4b, 0xb4, 0x52, 0x00, 0x00, /* Up */
-	0x00, 0xff, 0x4e, 0xb1, 0x50, 0x00, 0x00, /* Left */
-	0x00, 0xff, 0x4f, 0xb0, 0x28, 0x00, 0x00, /* Enter/ok */
-	0x00, 0xff, 0x52, 0xad, 0x4f, 0x00, 0x00, /* Right */
-	0x00, 0xff, 0x51, 0xae, 0x51, 0x00, 0x00, /* Down */
-	0x00, 0xff, 0x1e, 0xe1, 0x43, 0x00, 0x00, /* VOL+ */
-	0x00, 0xff, 0x0a, 0xf5, 0x42, 0x00, 0x00, /* VOL- */
-	0x00, 0xff, 0x02, 0xfd, 0x4e, 0x00, 0x00, /* CH- */
-	0x00, 0xff, 0x05, 0xfa, 0x4b, 0x00, 0x00, /* CH+ */
-	0x00, 0xff, 0x11, 0xee, 0x15, 0x01, 0x00, /* REC */
-	0x00, 0xff, 0x14, 0xeb, 0x13, 0x03, 0x00, /* Play */
-	0x00, 0xff, 0x4c, 0xb3, 0x13, 0x01, 0x00, /* Pause */
-	0x00, 0xff, 0x1a, 0xe5, 0x16, 0x03, 0x00, /* Stop */
-	0x00, 0xff, 0x40, 0xbf, 0x05, 0x03, 0x00, /* FR */
-	0x00, 0xff, 0x12, 0xed, 0x09, 0x03, 0x00, /* FF */
-	0x00, 0xff, 0x41, 0xbe, 0x05, 0x01, 0x00, /* Replay */
-	0x00, 0xff, 0x42, 0xbd, 0x09, 0x01, 0x00, /* Skip */
-	0x00, 0xff, 0x54, 0xab, 0x40, 0x00, 0x00, /* Capture */
-	0x00, 0xff, 0x50, 0xaf, 0x04, 0x03, 0x00, /* SAP */
-	0x00, 0xff, 0x47, 0xb8, 0x3f, 0x00, 0x00, /* PIP */
-	0x00, 0xff, 0x4d, 0xb2, 0x28, 0x04, 0x00, /* Full Screem */
-	0x00, 0xff, 0x43, 0xbc, 0x06, 0x03, 0x00, /* Subtitle/CC */
-	0x00, 0xff, 0x10, 0xef, 0x41, 0x00, 0x00, /* Mute */
-	0x00, 0xff, 0x49, 0xb6, 0x41, 0x01, 0x00, /* L/R */
-	0x00, 0xff, 0x07, 0xf8, 0x3d, 0x04, 0x00, /* Hibernate */
-	0x00, 0xff, 0x08, 0xf7, 0x17, 0x03, 0x00, /* A/V */
-	0x00, 0xff, 0x0e, 0xf1, 0x1a, 0x05, 0x00, /* Recall */
-	0x00, 0xff, 0x45, 0xba, 0x1d, 0x03, 0x00, /* Zoom+ */
-	0x00, 0xff, 0x46, 0xb9, 0x1f, 0x03, 0x00, /* Zoom- */
-	0x00, 0xff, 0x18, 0xe7, 0x14, 0x01, 0x00, /* Red */
-	0x00, 0xff, 0x53, 0xac, 0x10, 0x01, 0x00, /* Green */
-	0x00, 0xff, 0x5e, 0xa1, 0x0c, 0x01, 0x00, /* Yellow */
-	0x00, 0xff, 0x5f, 0xa0, 0x08, 0x01, 0x00, /* Blue */
+Rasmus Pedersen
 
 
 _______________________________________________
