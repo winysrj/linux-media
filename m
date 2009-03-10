@@ -1,75 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:18865 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbZC3FeC (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37588 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751059AbZCJMku (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 01:34:02 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so2401576wff.4
-        for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 22:34:00 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 30 Mar 2009 14:34:00 +0900
-Message-ID: <5e9665e10903292234u3023af4elb9ebf7a1956362c8@mail.gmail.com>
-Subject: [RFC] Is it looking good enough controlling white balance through
-	existing V4L2 API?
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Bill Dirks <bill@thedirks.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 10 Mar 2009 08:40:50 -0400
+Date: Tue, 10 Mar 2009 09:40:19 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Antti Palosaari <crope@iki.fi>,
+	Dmitri Belimov via Mercurial <d.belimov@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
+Message-ID: <20090310094019.16ab55d7@pedra.chehab.org>
+In-Reply-To: <49B63C6C.8070709@iki.fi>
+References: <E1LHmrf-0004LH-VV@www.linuxtv.org>
+	<49A03A94.9030008@iki.fi>
+	<49B63C6C.8070709@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
+On Tue, 10 Mar 2009 12:09:48 +0200
+Antti Palosaari <crope@iki.fi> wrote:
 
-Last few days, I've got a big question popping up handling white
-balance with V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
+> Mauro,
+> Could you remove this bad patch patch soon? It must not go to the final 
+> 2.6.29 as it breaks so many old devices. One of those is MSI Megasky 580 
+> which is rather popular.
 
-Because in digital camera we generally control over user interface
-with pre-defined white balance name. I mean, user controls white
-balance with presets not with kelvin number.
-I'm very certain that TEMPERATURE CID is needed in many of video
-capture devices, but also 100% sure that white balance preset control
-is also necessary for digital cameras.
-How can we control white balance through preset name with existing V4L2 API?
-For now, I define preset names in user space with supported color
-temperature preset in driver like following.
+> 
+> regards
+> Antti
+> 
+> Antti Palosaari wrote:
+> > Hello,
+> > This patch breaks devices using tuner behind zl10353 i2c-gate.
+> > au6610:
+> > Sigmatek DVB-110 DVB-T USB2.0
+> > 
+> > gl861:
+> > MSI Mega Sky 55801 DVB-T USB2.0
+> > A-LINK DTU DVB-T USB2.0
+> > 
+> > Probably some other too.
+> > 
+> > I think it is better to disable i2c-gate setting callback to NULL after 
+> > demod attach like dtv5100 does this.
+> > 
+> > Also .no_tuner is bad name what it does currently. My opinion is that 
+> > current .no_tuner = 1 should be set as default, because most 
+> > configuration does not this kind of slave tuner setup where tuner is 
+> > programmed by demod.
+> > Change no_tuner to slave_tuner and set slave_tuner = 1 only when needed 
+> > (not many drivers using that).
 
-#define MANUAL_WB_TUNGSTEN 3000
-#define MANUAL_WB_FLUORESCENT 4000
-#define MANUAL_WB_SUNNY 5500
-#define MANUAL_WB_CLOUDY 6000
+Hi Antti/Dmitri,
 
-and make driver to handle those presets like this. (I split in several
-ranges to make driver pretend to be generic)
+I agree that no_tuner is a bad name. The best is to rename it to something like
+"tuner_is_behind_bridge". If equal to 1, then it will use the new behaviour,
+otherwise the old one, and fix the boards where this trouble were found.
 
-case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
-		if (vc->value < 3500) {
-			/* tungsten */
-			err = ce131f_cmds(c, ce131f_wb_tungsten);
-		} else if (vc->value < 4100) {
-			/* fluorescent */
-			err = ce131f_cmds(c, ce131f_wb_fluorescent);
-		} else if (vc->value < 6000) {
-			/* sunny */
-			err = ce131f_cmds(c, ce131f_wb_sunny);
-		} else if (vc->value < 6500) {
-			/* cloudy */
-			err = ce131f_cmds(c, ce131f_wb_cloudy);
-		} else {
-			printk(KERN_INFO "%s: unsupported kelvin range\n", __func__);
-		}
-		......
+Could one of you please do such patchset?
 
-I think this way seems to be ugly. Don't you think that another CID is
-necessary to handle WB presets?
-Because most of mobile camera modules can't make various color
-temperatures in expecting kelvin number with user parameter.
-Any opinion will be appreciated.
-Regards,
-
-Nate
+Thanks,
+Mauro.
