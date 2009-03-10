@@ -1,115 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32078 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821AbZCJMPG (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3653 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567AbZCJNua (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 08:15:06 -0400
-Message-ID: <49B659BC.7090409@maxwell.research.nokia.com>
-Date: Tue, 10 Mar 2009 14:14:52 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Tue, 10 Mar 2009 09:50:30 -0400
+Message-ID: <41460.62.70.2.252.1236693001.squirrel@webmail.xs4all.nl>
+Date: Tue, 10 Mar 2009 14:50:01 +0100 (CET)
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: get rid of      
+     video_decoder.h
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Hans de Goede" <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-References: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com> <200903042344.32820.hverkuil@xs4all.nl> <49B031D6.1070203@maxwell.research.nokia.com> <200903052224.03015.hverkuil@xs4all.nl>
-In-Reply-To: <200903052224.03015.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
->> Sergio has posted earlier a patchset containing a driver for using the
->> ISP to process images from memory to memory. The ISP driver is used
->> roughly the same way as with the omap34xxcam and real sensors. The
->> interface towards the userspace offered by the driver, however, is
->> different, you probably saw it (preview and resizer wrappers).
+>> I've got several of these: w9968cf, usbvideo, cpia_usb, stv680 (I think)
+>> and ov511.
+>
+> Once converted one, the other conversions will probably be easy. maybe
+> Jean-Francois or another gspca-submaintainer could convert one of the
+> webcam
+> drivers you have. Then, you can test (and fix). After this changeset, the
+> conversion for the others will likely be trivial.
+
+I'd be happy to test and fix if someone else can do the initial conversion
+to gspca. I have neither the gspca experience nor the time to do that part
+myself.
+
 >>
->> My opinion has been that the memory-to-memory operation of the ISP
->> should also offer V4L2 interface. V4L2, however, doesn't support such
->> devices at the moment. The only differences that I can see is that
+>> > A few capture drivers:
+>> > 	linux/drivers/media/video/zoran/zoran_driver.c
+>> > 	linux/drivers/media/video/stradis.c
+>> > 	linux/drivers/media/video/pms.c
+>> >
+>> > And two i2c helper drivers:
+>> > 	linux/drivers/media/video/msp3400-driver.c
+>> > 	linux/drivers/media/video/tuner-core.c
+>> >
+>> > Most of the above are the legacy V4L1 webcam drivers. It would be
+>> really
+>> > nice
+>> > if someone could volunteer to port those Webcam drivers to gspca.
+>> >
+>> > I suspect that it shouldn't hard to remove the few V4L1 bits from
+>> > zoran_driver, after all
+>> > the conversions made. Yet, there are some Zoran specific ioctls that
+>> use
+>> > this.
+>> > We should probably discontinue those zoran-specific ioctls.
 >>
->> 1. the input is a video buffer instead of sensor and
+>> I didn't dare do that when I did the conversion. Someone would have to
+>> analyze these BUZ ioctls, but I think they all have proper v4l2
+>> equivalents.
+>
+> The only BUZ_foo that requires may require some work are the
+> BUZIOC_G_PARAMS/BUZIOC_S_PARAMS, since it has some controls to the MJPEG
+> stream. I'm not sure if everything is implemented. There are some BUZ_
+> ioctls
+> that are similar to V4L2 (REQBUFS, QBUF). I don't see why we need yet
+> another
+> set of mmap methods here. The BUZIOC_SYNC doesn't make much sense to my
+> eyes,
+> except if you're stopping a stream. In this case, VIDIOC_STREAMOFF should
+> already provide a sync functionality. The last one BUZIOC_G_STATUS is a
+> merge
+> of some other status already existent on V4L2.
+>
+> The only detail here is that the Zoran mmap methods provide two modes:
+> QBUF_PLAY and
+> QBUF_CAPT. We should take some care to understand the logic behind this.
 >>
->> 2. the source format needs to be specified somehow since the ISP can
->> also do format conversion. So it's output and input at the same time.
+>> > It seems also safe to remove V4L1 code from msp3400, since, AFAIK, all
+>> > drivers
+>> > that supports it are already converted to V4L2.
 >>
->> But if we had one video device per ISP, then memory-to-memory operation
->> would be just one... input or output or what? :)
+>> I didn't realize that there was still some V4L1 code in that driver. It
+>> can certainly be removed.
+>
+> Ok. Maybe you could provide us an strip patch for those legacy code.
+> Otherwise,
+> I'll handle that later.
+
+I'll added it to my v4l-dvb tree that contains all the other miscellaneous
+set of patches from me. It would be nice if that could be pulled soon
+since it fixes a lot of daily build breakages.
+
+>> > After converting stradis, it will be probably safe also to remove V4L1
+>> > code
+>> > from tuner-core.
+>> >
+>> > I doubt that there are still some pms hardware around, but it would be
+>> > interesting to keep this module, since this is the first V4L driver
+>> wrote.
 >>
->> Earlier we were thinking of creating one device node for it.
-> 
-> This sounds like a codec interface as 'described' here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/v4l2.html#CODEC
-> 
-> It would be a first for V4L2 to have a driver that can do this, but I agree 
-> that that would be a single device that has both 'output' and 'capture'.
-
-Ok. Although this work most probably will be left for future at this point.
-
->> Currently you can have just one device node using the ISP open.
->> omap34xxcam_open() calls isp_get() which fails if the ISP use count was
->> non-zero (means one).
+>> I have one! I managed to get one for $4 (+$16 shipping :-) ).
 >>
->> Or did I misunderstood something?
-> 
-> Oh dear. Please don't use 'use counts'. It is perfectly acceptable and 
-> desirable to have multiple opens on the same video node. Only one file 
+>> It actually works (sort of) and I want to convert it to v4l2, just as a
+>> fun project.
+>
+> Yes, this seems a very interesting fun project ;)
 
-> Use counts are really bad and totally unnecessary. Only if another file 
-> handle is in streaming mode (and when using VIDIOC_S_PRIORITY) does it make 
-> sense to return -EBUSY for certain ioctls or read/write operations. 
-> Otherwise you shouldn't limit the user from opening the same device node as 
-> many times as he wants and use that to query the video device.
+Yup!
 
-?
+Regards,
 
-Having a use count doesn't prevent multiple file handles nor otherwise 
-artificially limit functionality. We need to be able to shut down the 
-slaves when they are no longer needed. IMO having an use count to do 
-this is fine (unless otherwise proven).
-
-Also the camera driver does try_module_get() to the slaves when it's 
-opened by the first user. module_put() is called on those when the last 
-user goes away.
-
-We'd also like to get rid of the current way of directly telling the 
-slaves what their power state should be. Rather we'd like to tell the 
-slaves what's expected from them. This could translate to 
-open/release/streamon/streamoff commands. To be able to do this, the use 
-count is required --- unless this task is given to the slaves 
-(v4l2_subdevs).
-
-> BTW, I looked at omap24xxcam_open(): data like fh->pix does *not* belong to 
-> the filehandle struct, it should be part of the top-level data structure. 
-
-That's fixed in the omap34xxcam.c. :)
-
-> You want to be able to do simple things like querying a video node for the 
-> currently selected format. You can't do that if the format is stored in the 
-> filehandle! E.g.: you are streaming and you want to run 
-> v4l2-ctl --get-fmt-video to check what video format is being used. Things 
-> like this must be supported by a well-written v4l2 driver. Again, sadly 
-> quite a few v4l2 drivers do this wrong as well :-(
-> 
-> I also see that cam->users is not decreased by one if 
-> omap24xxcam_sensor_enable() fails.
-> 
-> Note that I'm looking at the code in the v4l-dvb repository, the linux-omap 
-> git tree might have fixed that already.
-
-I'm afraid it's still there. Will fix that.
-
-Thanks.
+          Hans
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
