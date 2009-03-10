@@ -1,41 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:34630 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751724AbZCEVKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Mar 2009 16:10:17 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: mike@compulab.co.il,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] pxa_camera: Remove YUV planar formats hole
-References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
-	<1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0903052119590.4980@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Thu, 05 Mar 2009 22:10:04 +0100
-In-Reply-To: <Pine.LNX.4.64.0903052119590.4980@axis700.grange> (Guennadi Liakhovetski's message of "Thu\, 5 Mar 2009 21\:29\:06 +0100 \(CET\)")
-Message-ID: <873adrekwj.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1146 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904AbZCJTNJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 15:13:09 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2AJD6Yn058070
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 10 Mar 2009 20:13:06 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 10 Mar 2009 20:13:06 +0100 (CET)
+Message-Id: <200903101913.n2AJD6Yn058070@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> This is not a review yet - just an explanation why I was suggesting to 
-> adjust height and width - you say yourself, that YUV422P (I think, this is 
-> wat you meant, not just YUV422) requires planes to immediately follow one 
-> another. But you have to align them on 8 byte boundary for DMA, so, you 
-> violate the standard, right? If so, I would rather suggest to adjust width 
-> and height for planar formats to comply to the standard. Or have I 
-> misunderstood you?
-No, you understand perfectly.
+Results of the daily build of v4l-dvb:
 
-And now, what do we do :
- - adjust height ?
- - adjust height ?
- - adjust both ?
+date:        Tue Mar 10 19:00:08 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10907:f7f2fb8805eb
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I couldn't decide which one, any hint ?
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc7-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: ERRORS
+linux-2.6.28-armv5-omap2: ERRORS
+linux-2.6.29-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc7-m32r: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc7-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc7-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc7): ERRORS
 
---
-Robert
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
