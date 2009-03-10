@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56818 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753405AbZCES4Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Mar 2009 13:56:25 -0500
-Date: Thu, 5 Mar 2009 19:56:37 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
-In-Reply-To: <20090304141715.0a1af14d@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
-References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
+Received: from email.brin.com ([208.89.164.15]:52652 "EHLO email.brin.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751999AbZCJUOV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 16:14:21 -0400
+Received: from email.brin.com (email.brin.com [172.19.1.12])
+	by email.brin.com (Postfix) with ESMTP id EA045798001
+	for <linux-media@vger.kernel.org>; Tue, 10 Mar 2009 14:03:10 -0600 (MDT)
+Date: Tue, 10 Mar 2009 14:03:10 -0600 (MDT)
+From: Bob Ingraham <bobi@brin.com>
+To: linux-media@vger.kernel.org
+Message-ID: <824146004.72331236715390866.JavaMail.root@email>
+Subject: How to utilize DVB Network API
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 4 Mar 2009, Mauro Carvalho Chehab wrote:
+Hello All,
 
-> Beside the fact that we don't need to strip support for legacy kernels, the
-> advantage of using this method is that we can evolute to a new development
-> model. As several developers already required, we should really use the
-> standard -git tree as everybody's else. This will simplify a lot the way we
-> work, and give us more agility to send patches upstream.
-> 
-> With this backport script, plus the current v4l-dvb building systems, and after
-> having all backport rules properly mapped, we can generate a "test tree"
-> based on -git drivers/media, for the users to test the drivers against their
-> kernels, and still use a clean tree for development.
+The documentation leaves the Network section of the API as "To be written..."
 
-Sorry, switching to git is great, but just to make sure I understood you 
-right: by "-git drivers/media" you don't mean it is going to be a git tree 
-of only drivers/media, but it is going to be a normal complete Linux 
-kernel tree, right?
+I've looked at the header file, and it may be straightforward to call, but...
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Does anyone know how to properly invoke this part of the API?
+
+Is it correct to assume that the point of the network API is to create a "virtual" network interface that I can treat like any other NIC (unidirectional, of course)?
+
+My goal is to receive multicast packets using a Skystar 2 DVB-S card (rev 2.6), using standard multicast join and UDP receive calls.
+
+The dvb_net_if structure has the following fields:
+
+        __u16 pid;      // This is obvious
+        __u16 if_num;   // Don't know exactly what goes here???
+        __u8  feedtype; // This is either 0 (MPE) or 1 (ULE)
+
+For example, does the following code snippet the proper way to go about this?
+
+struct dbv_net_if dni;
+int sd;
+
+dni.pid = 3022;  // My MPEG2 PID
+dni.if_num = 0;  // ???
+dni.feedtype = DVB_NET_FEEDTYPE_MPE;
+
+sd = open("/dev/dvb/adapter0/net0", O_RDONLY);
+ioctl(sd, NET_ADD_IF, &dni);
+
+Now, do I read packets from /dev/dvb/adapter0/net0 using my sd descriptor?
+
+Or do I at this point open a standard UDP socket and start listening for packets from the satellite interface?
+
+Any help in clearing my basic confusion would be much appreciated.
+
+Thank-you!
+
+Bob
