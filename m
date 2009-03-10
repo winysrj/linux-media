@@ -1,33 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:36740 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762899AbZCYP1m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 11:27:42 -0400
-Date: Wed, 25 Mar 2009 16:27:20 +0100
-From: Janne Grunau <j@jannau.net>
-To: Darius Augulis <augulis.darius@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: how to disable mail sending in this ML?
-Message-ID: <20090325152720.GA5075@aniel>
-References: <49C9DE75.2000600@gmail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4898 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182AbZCJI2f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 04:28:35 -0400
+Message-ID: <11783.62.70.2.252.1236673648.squirrel@webmail.xs4all.nl>
+Date: Tue, 10 Mar 2009 09:27:28 +0100 (CET)
+Subject: Re: [patch] radio-rtrack2: fix double mutex_unlock
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Alexey Klimov" <klimov.linux@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Douglas Schilling Landgraf" <dougsland@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <49C9DE75.2000600@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-On Wed, Mar 25, 2009 at 09:34:13AM +0200, Darius Augulis wrote:
-> 
-> subj.
-> Want to still subscribed, but don't need all these posts in my mailbox.
-> How to disable?
+> Patch fixes double mutex unlocking.
+>
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Since everyone can send mails to the list there is no need to be
-subscribed if you don't want to receive mails.
+Ouch.
 
-HTH
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Janne
+Thanks!
+
+       Hans
+
+>
+> --
+> diff -r 615fb8f01610 linux/drivers/media/radio/radio-rtrack2.c
+> --- a/linux/drivers/media/radio/radio-rtrack2.c	Tue Mar 10 02:33:02 2009
+> -0300
+> +++ b/linux/drivers/media/radio/radio-rtrack2.c	Tue Mar 10 09:28:27 2009
+> +0300
+> @@ -60,7 +60,6 @@
+>  		return;
+>  	mutex_lock(&dev->lock);
+>  	outb(1, dev->io);
+> -	mutex_unlock(&dev->lock);
+>  	mutex_unlock(&dev->lock);
+>  	dev->muted = 1;
+>  }
+>
+>
+> --
+> Best regards, Klimov Alexey
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
