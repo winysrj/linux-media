@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32326 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751730AbZCLKUg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 06:20:36 -0400
-Message-ID: <49B8E1EB.3020501@iki.fi>
-Date: Thu, 12 Mar 2009 12:20:27 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1957 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751759AbZCJHbo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Mar 2009 03:31:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: get rid of video_decoder.h
+Date: Tue, 10 Mar 2009 08:31:32 +0100
+References: <E1LgqdW-00019H-Vp@www.linuxtv.org>
+In-Reply-To: <E1LgqdW-00019H-Vp@www.linuxtv.org>
+Cc: Mauro Carvalho Chehab via Mercurial <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Dmitri Belimov <d.belimov@gmail.com>, linux-media@vger.kernel.org,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
-References: <E1LHmrf-0004LH-VV@www.linuxtv.org>	<49A03A94.9030008@iki.fi>	<49B63C6C.8070709@iki.fi>	<20090310094019.16ab55d7@pedra.chehab.org>	<20090310220819.1790cc44@glory.loctelecom.ru>	<49B667A7.8090407@iki.fi>	<49B6915A.6050108@iki.fi>	<20090312123540.6cd58ac8@glory.loctelecom.ru> <20090312071559.2f8c7a34@pedra.chehab.org>
-In-Reply-To: <20090312071559.2f8c7a34@pedra.chehab.org>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903100831.32788.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> On Thu, 12 Mar 2009 12:35:40 +0900
-> Dmitri Belimov <d.belimov@gmail.com> wrote:
-> 
->> Hi Antti
->>
->>> Antti Palosaari wrote:
->>>> Dmitri Belimov wrote:
->>>>>> Could one of you please do such patchset?
->>>>> I haven't a lot expirience with kernel programming. If Antti can
->>>>> it is good. I'll check it
->>>>> on our board.
->>>> OK, I will do. For the first phase and as a bug fix I will do that 
->>>> (disable i2c-gate) like dtv5100 driver does. After that I will add
->>>> new configuration switch for i2c-gate disable and also
->>>> change .no_tuner name to better one.
->>> Here it is, please review and test. I kept changes as small as
->>> possible to prevent errors. Lets fix more later.
->>>
->>> http://linuxtv.org/hg/~anttip/zl10353/
->> This patch is good. All work is ok.
-> 
-> Antti,
-> 
-> since you said that this patch should go to 2.6.29, I've already merged from
-> your tree, after having Dmitry ack.
+On Tuesday 10 March 2009 02:20:02 Patch from Mauro Carvalho Chehab wrote:
+> The patch number 10870 was added via Mauro Carvalho Chehab
+> <mchehab@redhat.com> to http://linuxtv.org/hg/v4l-dvb master development
+> tree.
+>
+> Kernel patches in this development tree may be modified to be backward
+> compatible with older kernels. Compatibility modifications will be
+> removed before inclusion into the mainstream Kernel
+>
+> If anyone has any objections, please let us know by sending a message to:
+> 	Linux Media Mailing List <linux-media@vger.kernel.org>
+>
+> ------
+>
+> From: Mauro Carvalho Chehab  <mchehab@redhat.com>
+> v4l2-ioctl: get rid of video_decoder.h
+>
+>
+> The V4L1 obsoleted header video_decoder.h is not used anymore by any
+> driver. Only a name decoding function at v4l2-ioctl still implements it.
 
-Thanks.
+Hoorah! Note that video_encoder.h is now also unused, but since that header 
+isn't in v4l-dvb it should be removed manually in the kernel during the 
+2.6.30 merge window.
 
-Antti
+Regards,
 
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
