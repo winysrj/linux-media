@@ -1,36 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pne-smtpout2-sn2.hy.skanova.net ([81.228.8.164]:42191 "EHLO
-	pne-smtpout2-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754650AbZCWS7B (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1879 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714AbZCJHR6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 14:59:01 -0400
-Received: from [192.168.0.100] (90.224.104.93) by pne-smtpout2-sn2.hy.skanova.net (7.3.129)
-        id 4873CA9503DB335B for linux-media@vger.kernel.org; Mon, 23 Mar 2009 19:58:59 +0100
-Message-ID: <49C7DBF2.8090205@gmail.com>
-Date: Mon, 23 Mar 2009 19:58:58 +0100
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+	Tue, 10 Mar 2009 03:17:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Subject: Re: saa7134 and RDS
+Date: Tue, 10 Mar 2009 08:17:54 +0100
+Cc: "Hans J. Koch" <hjk@linutronix.de>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+References: <54836.62.70.2.252.1236254830.squirrel@webmail.xs4all.nl> <200903071019.39979.hverkuil@xs4all.nl> <20090310114957.6077483d@glory.loctelecom.ru>
+In-Reply-To: <20090310114957.6077483d@glory.loctelecom.ru>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: libv4l white balancing
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903100817.54497.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tuesday 10 March 2009 03:49:57 Dmitri Belimov wrote:
+> Hi
+>
+> > On Saturday 07 March 2009 10:02:24 Dmitri Belimov wrote:
+> > > Hi
+> > >
+> > > I build rdsd. But can't start. See log:
+> > >
+> > > Fri Mar  6 03:44:20 2009 RDS handler initialized.
+> > > Fri Mar  6 03:44:20 2009 Added source definition: Beholder M6 Exra
+> > > Fri Mar  6 03:44:20 2009 RDS sources setup OK.
+> > > Fri Mar  6 03:44:20 2009 Unix domain socket created and listening.
+> > > Fri Mar  6 03:44:20 2009 TCP/IP socket created and listening.
+> > > Fri Mar  6 03:44:20 2009 Using V4L2 for Beholder M6 Exra
+> > > Fri Mar  6 03:44:20 2009 open_sources() failed.
+> > > Fri Mar  6 03:44:20 2009 rdsd terminating with error code 13
+> > >
+> > > With my best regards, Dmitry.
+> >
+> > Did you setup the /etc/rdsd.conf file correctly?
+> >
+> > Here is mine:
+> >
+> > $ cat /etc/rdsd.conf
+> > [global]
+> > unix-socket = "/var/tmp/rdsd.sock"
+> > tcpip-port = 4321
+> > logfile = "/var/tmp/rdsd.log"
+> > pidfile = "/var/tmp/rdsd.pid"
+> > console-log = yes
+> > file-log = yes
+> > loglevel = 5
+> >
+> > [source]
+> > name = "Terratec PCI card"
+> > path = "/dev/radio0"
+> > type = "radiodev"
+>
+> I had tunerfreq = 102000 line. After removing this line rdsd started
+> well.
+>
+> > After setting up this file I run 'rdsd'.
+> > With rdsquery -f you can set the frequency in khz.
+>
+> When run rdsquery -f 102000 the programm was hold without any messages.
+> I pressed Crt+C for exit.
 
-Hi,
+Try using v4l2-ctl -d /dev/radio0 -f 102 to set the frequency. That may have 
+been what I was actually using rather than rdsquery.
 
-Is there any plans on adding software white balancing to libv4l and
-is anyone actively working on it right now?
+>
+> > Then run
+> >
+> > rdsquery -t \
+> > rxfre,rxsig,rflags,picode,ptype,pname,locdt,utcdt,rtxt,lrtxt,tmc,aflist
+> > -c0
+>
+> This command not work too, hold and sleep.
 
-Best regards,
-Erik
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+If the frequency wasn't set, then that might explain it. Or perhaps you 
+should combine the -f with the -t flag?
 
-iEYEARECAAYFAknH2/IACgkQN7qBt+4UG0Hn8QCfUT/YYOVnzEDv0CkpEoCNZhXv
-MlwAn2+6U8vfFTFZnsSA/SNMJrOww16k
-=1BTz
------END PGP SIGNATURE-----
+You can also attempt to debug in the saa6588 to see whether it picks up any 
+packets.
+
+Regards,
+
+	Hans
+
+>
+> With my best regards, Dmitry.
+>
+> > and watch the rds data appear.
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
