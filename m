@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47334 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759319AbZC0QvH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 12:51:07 -0400
-Date: Fri, 27 Mar 2009 13:50:55 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Darius Augulis <augulis.darius@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
-Message-ID: <20090327135055.7e3e7aaf@pedra.chehab.org>
-In-Reply-To: <49CCD72F.3070603@gmail.com>
-References: <49C89F00.1020402@gmail.com>
-	<Pine.LNX.4.64.0903261405520.5438@axis700.grange>
-	<49CBD53C.6060700@gmail.com>
-	<20090326170910.6926d8de@pedra.chehab.org>
-	<49CC9E53.9070805@gmail.com>
-	<20090327075625.276376b1@pedra.chehab.org>
-	<49CCD72F.3070603@gmail.com>
+Received: from rotring.dds.nl ([85.17.178.138]:58881 "EHLO rotring.dds.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750766AbZCKOv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 10:51:29 -0400
+Subject: Re: Improve DKMS build of v4l-dvb?
+From: Alain Kalker <miki@dds.nl>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <412bdbff0903110714o6f92c8cax96009226d033c611@mail.gmail.com>
+References: <1236612894.5982.72.camel@miki-desktop>
+	 <20090309204308.10c9afc6@pedra.chehab.org>
+	 <1236771396.5991.24.camel@miki-desktop>
+	 <alpine.LRH.2.00.0903110842570.1207@pedra.chehab.org>
+	 <412bdbff0903110714o6f92c8cax96009226d033c611@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 11 Mar 2009 15:51:24 +0100
+Message-Id: <1236783084.5991.61.camel@miki-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Mar 2009 15:39:59 +0200
-Darius Augulis <augulis.darius@gmail.com> wrote:
+Op woensdag 11-03-2009 om 10:14 uur [tijdzone -0400], schreef Devin
+Heitmueller:
+> I hate to be the one to point this out, but isn't the notion of
+> automatically rebuilding the modules for *your* hardware broken right
+> from the start?  What this would mean that if I own a laptop and my
+> USB based capture device happens to not be connected when I upgrade my
+> kernel, then my drivers are going to be screwed up?
 
-> Mauro Carvalho Chehab wrote:
->  > On Fri, 27 Mar 2009 11:37:23 +0200
->  > Darius Augulis <augulis.darius@gmail.com> wrote:
->  >
->  >> Mauro Carvalho Chehab wrote:
->  >>> Hi Darius,
->  >>>
->  >>> Please always base your patches against the last v4l-dvb tree or linux-next.
->  >>> This is specially important those days, where v4l core is suffering several
->  >>> changes.
->  >
->  > Btw, you shouldn't be c/c a list that requires subscription. Every time I send
->  > something, I got such errors:
-> 
-> I sent it to ARM Linux ML, because it has lot of ARM stuff and there are people who maintain ARM/MXC.
-> You probably could remove some CC from your reply message?
+Not at all. Hardware detection needs to be done only once: when you
+first plug in a new device. The result of this detection is then used to
+generate a dkms.conf file, which specifies exactly which driver needs to
+be (re-)built.
+During initial install, and whenever you upgrade your kernel (Whether
+you have the device plugged in or not), DKMS will (re-)build the driver
+to match the (current or new) kernel and install its modules on your
+system. Whenever you plug in your device, the modules making up its
+driver will get loaded.
 
-If the subject is important to ARM people, the reply messages should be there
-as well. Otherwise you shouldn't c/c it since the beginning ;)
+Kind regards,
 
-Subscribers only list are not good for patches discussion, and aren't
-recommended by Linux practices. 
+Alain
 
-The issues become evident on such discussions where more than one
-subsystem is envolved. 
-
-We've switched this year to linux-media@vger.kernel.org mainly due to that: the
-anti-spam filters at VGER are so efficient that we don't need to be
-subscribers-only anymore. I suggest that you try to argue with ARM list
-maintainer to do the same. 
-
-At the mean time, please c/c only lists that don't require subscriptions, since
-people shouldn't be forced to subscribe just to reply an email, and it is not
-polite to send emails refusing their comments.
-
-Cheers,
-Mauro
