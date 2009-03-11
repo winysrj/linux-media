@@ -1,56 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from email.brin.com ([208.89.164.15]:45703 "EHLO email.brin.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:35511 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751685AbZCSWkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2009 18:40:53 -0400
-Date: Thu, 19 Mar 2009 16:38:04 -0600 (MDT)
-From: Bob Ingraham <bobi@brin.com>
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Message-ID: <1002969792.105131237502284915.JavaMail.root@email>
-In-Reply-To: <1519873602.105111237502250958.JavaMail.root@email>
-Subject: Weird TS Stream from DMX_SET_PES_FILTER
+	id S1752941AbZCKOHk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 10:07:40 -0400
+Message-ID: <49B7C5A9.1050906@iki.fi>
+Date: Wed, 11 Mar 2009 16:07:37 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+To: bloehei <bloehei@yahoo.de>
+CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: EC168 support?!
+References: <200903111217.17846.bloehei@yahoo.de> <49B7A1DF.1080204@iki.fi> <200903111424.02606.bloehei@yahoo.de>
+In-Reply-To: <200903111424.02606.bloehei@yahoo.de>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+bloehei wrote:
+>> 40 00 00 00 40 08 c5 03 >>> 12 0c 93 80 06 12 0d 43 74 83 f0 e5 48 30 e3 78
+hmm, at least that last fw upload packet is wrong. It should look like
+40 00 00 00 00 18 c5 03 >>> 49 9f f5
 
-I've been using the Linux DVB API to grab DBV-S MPEG2 video packets using a TechniSat S2 card.
+I did yesterday many changes and fixed one bad bug that could be behind 
+that. Please test with latest tree at:
+http://linuxtv.org/hg/~anttip/ec168/
 
-But something seems odd about DMX_SET_PES_FILTER.
-
-It returns a TS packets for my pid just fine, but by MPEG2 frames have no PES headers!  The raw compressed MPEG2 frames just immediately follow the TS/adapation-field headers directly.
-
-When I wrote my TS packet decoder, I was expecting to have to decode PES headers after the TS header. But instead I found the raw compressed frames.
-
-They decode fine (with ffmpeg's libavcodec mpeg2 decoder,) and they look fine when rendered using SDL.
-
-But besides my own program, I can't get vlc or mplayer to decode this stream. Both vlc and mplayer sense a TS stream, but then they never render anything because, I suspect, that they can't find PES headers.
-
-So, two questions:
-
-1. Am I crazy or is DMX_SET_PES_FILTER returning a non-standard TS stream?
-
-2. Is there a way to receive a compliant MPEG-TS (or MPEG2-PS,) stream?
-
-3. Should I use DMX_SET_FILTER instead?
-
-4. If so, what goes in the filter/mask members of the dmx_filter_t struct?
-
-
-Thanks,
-Bob
-
-PS: I use the following to filter on my video stream pid (0x1344):
-
- struct dmx_pes_filter_params f;
-
- memset(&f, 0, sizeof(f));
- f.pid = (uint16_t) pid;
- f.input = DMX_IN_FRONTEND;
- f.output = DMX_OUT_TS_TAP;
- f.pes_type = DMX_PES_OTHER;
- f.flags   = DMX_IMMEDIATE_START;
-
+regards
+Antti
+-- 
+http://palosaari.fi/
