@@ -1,50 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:59293
-	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544AbZCMDIM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 23:08:12 -0400
-Message-ID: <49B9CC3B.4060300@wilsonet.com>
-Date: Thu, 12 Mar 2009 23:00:11 -0400
-From: Jarod Wilson <jarod@wilsonet.com>
-MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: Michael Krufky <mkrufky@linuxtv.org>, stable@kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [stable] Fwd: [PATCH] 2.6.27.y: fix NULL ptr deref in cx23885
- video_open
-References: <200902241700.56099.jarod@redhat.com> <37219a840903121324q7b08c8d1ma6d0d3ec4f5eb278@mail.gmail.com> <20090313025051.GA5385@kroah.com>
-In-Reply-To: <20090313025051.GA5385@kroah.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from rotring.dds.nl ([85.17.178.138]:41013 "EHLO rotring.dds.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755341AbZCKLgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 07:36:50 -0400
+Subject: Re: Improve DKMS build of v4l-dvb?
+From: Alain Kalker <miki@dds.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20090309204308.10c9afc6@pedra.chehab.org>
+References: <1236612894.5982.72.camel@miki-desktop>
+	 <20090309204308.10c9afc6@pedra.chehab.org>
+Content-Type: text/plain
+Date: Wed, 11 Mar 2009 12:36:36 +0100
+Message-Id: <1236771396.5991.24.camel@miki-desktop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greg KH wrote:
-> On Thu, Mar 12, 2009 at 04:24:38PM -0400, Michael Krufky wrote:
->> Can we have this merged into -stable?  Jarod Wilson sent this last
->> month, but he left off the cc to stable@kernel.org
-> 
-> What is the git commit id of the patch in Linus's tree that matches up
-> with this?
-> 
-> thanks,
-> 
-> greg k-h
+Op maandag 09-03-2009 om 20:43 uur [tijdzone -0300], schreef Mauro
+Carvalho Chehab: 
+> It is not that hard. You'll have a few vars that will always have the same values, like:
+[snip]
 
+Thanks for the information, I'll use this as a starting point.
 
-Now that I look closer, seems there's an even more complete patch 
-already in linus' tree, commit id:
+> Of course, you'll need to write some script to identify what devices are
+> available at the host (by USB or PCI ID), and associate it with the V4L/DVB
+> drivers.
 
-cd8f894eacf13996d920fdd2aef1afc55156b191
+Scanning for available hardware is already available in Jockey, and
+parsing the output from 'lsusb'/'lspci' will do it for users without
+it. 
 
-Shoulda just forwarded that along, but I was under the impression that 
-area of code had changed significantly in 2.6.28 and the patch was no 
-longer applicable. Maybe that was the v4l/dvb hg tree though... So I'd 
-just grab that, and add:
+Associating IDs with the principal module is easy after doing a test
+build of all modules (which needs to be done anyway, to find out which
+drivers can actually be built with the current tree and to decide
+whether the tree is suitable for packaging for DKMS build).
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+After the test build, all you have to do is run "modinfo -F alias" on
+all the modules, add the principal module name, and you will end up with
+a modaliases list which is directly usable with Jockey. For users
+without it, another simple script will select the correct principal
+module to build.
 
+All that remains then is to sort out the module dependencies...
 
---jarod
+> Probably, the hardest part is to maintain, so, ideally, the scripts should scan
+> the source codes to check what drivers you have, and what are the driver
+> options associated with that device.
+
+Very true. I'm quite dissatisfied with the sad state that Kbuild support
+for building external modules is in, especially for projects that have
+numerous drivers and module dependencies, and I believe v4l-dvb has
+currently the most advanced out-of-tree support available.
+If you enjoy watching a horror movie, have a look at the drivers from
+the ALSA project, they have a hideous 131615 bytes big beast hidden in
+their aclocal.m4, whose sole purpose it is to sort out config variable
+dependencies... Yuck!
+
+> If you can write such script, then we can add it at v4l/scripts and add a
+> "make myconfig" option that would run the script and compile the minimal set of
+> drivers.
+
+That would be great!
+
+Kind regards,
+
+Alain
+
