@@ -1,334 +1,362 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:49798 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750990AbZCPE0d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 00:26:33 -0400
-Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andy Walls <awalls@radix.net>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <1237164753.13144.105.camel@palomino.walls.org>
-References: <200903151344.01730.hverkuil@xs4all.nl>
-	 <20090315181207.36d951ac@hyperion.delvare>
-	 <1237145673.3314.47.camel@palomino.walls.org>
-	 <20090315232612.04346bdb@hyperion.delvare>
-	 <1237164753.13144.105.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Mon, 16 Mar 2009 05:26:54 +0100
-Message-Id: <1237177614.3439.25.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx2.redhat.com ([66.187.237.31]:46127 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754889AbZCKNXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 09:23:54 -0400
+Message-ID: <49B7BB7F.7020802@redhat.com>
+Date: Wed, 11 Mar 2009 14:24:15 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: kilgota@banach.math.auburn.edu
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] libv4lconvert support for SQ905C decompression (revised)
+References: <alpine.LNX.2.00.0903041730550.23054@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903041730550.23054@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-Am Sonntag, den 15.03.2009, 20:52 -0400 schrieb Andy Walls:
-> On Sun, 2009-03-15 at 23:26 +0100, Jean Delvare wrote:
-> > Hi Andy,
+
+kilgota@banach.math.auburn.edu wrote:
 > 
-> Hi Jean,
+> Hans,
 > 
-> Thanks for the reply.
+>  From an abundance of caution, I thought I had better run the v4lconvert 
+> patch which supports the SQ905C compressed format through the 
+> checkpatch.pl process, too. The result of that process appears here, 
+> below the signed-off-by line.
 > 
-> > On Sun, 15 Mar 2009 15:34:33 -0400, Andy Walls wrote:
-> > > On Sun, 2009-03-15 at 18:12 +0100, Jean Delvare wrote:
-> > > > Hi Hans,
-> 
-> > > > This is the typical multifunction device problem. It isn't specifically
-> > > > related to I2C,
-> > > 
-> > > But the specific problem that Hans' brings up is precisely a Linux
-> > > kernel I2C subsystem *software* prohibition on two i2c_clients binding
-> > > to the same address on the same adapter.
-> > 
-> > No. Once again: Linux doesn't support binding more than one driver to a
-> > device. This has _nothing_ to do with any choice done in i2c-core.
-> 
-> So how does the linux identify a "device" when binding, by some n-tuple
-> in a coordinate space right?  The last few parts of that coordinate are
-> dictated by I2C subsystem design for I2C devices.  I believe they are
-> (adapter, address) commonly displayed something 0-004b.  
-> 
-> If the I2C subsystem allowed a coordinate for a device to have the last
-> few parts be (adapter, address, client/function #), like:
-> 
-> 0-004b-0
-> 0-004b-1
-> 
-> then one could have multiple drivers bind to a single piece of hardware
-> and still have the locking on the i2c_adapter provided by the
-> i2c_subsystem.  Wouldn't this be possible once the automatic probing is
-> gone?
-> 
->  
-> > > It seems like an artificial restriction: intended for safety, but
-> > > getting in the way when something like that is a valid need.
-> > 
-> > I think we could remove the check. But then the driver core would fail
-> > for us, so it wouldn't change anything in practice.
-> 
-> 
-> 
-> > You claim that the need is valid, but I disagree.
-> 
-> I suppose validity is subjective, in that I have implicit cost measures
-> and assessments of the costs that are different from yours.
-> 
-> For example you have a need for some threshold number of devices to
-> behave like the I2C device in question before the need would be valid.
-> One such device is not enough.
-> 
-> Fair enough.
-> 
-> 
-> 
-> >  Once a design is in
-> > place, you have to follow it,
-> 
-> 
-> I disagree.  Why does the world now have digital TV broadcast systems
-> instead of just being stuck with analog TV broadcast systems?  A change
-> in the design of the broadcast television system was needed due to
-> pressures to recover spectrum, etc.
-> 
-> 
-> > even if you come up with a case which
-> > doesn't fit in said design perfectly. Otherwise there is no point in
-> > having a design in the first place.
-> 
-> No there is always a point to an intial design.  You always start with a
-> design to address your current needs and perhaps try to accomodate
-> future needs in design considerations.  No one can know everything ahead
-> of time.
-> 
-> 
-> >  Sure, a design can evolve, but not
-> > for just one case.
-> 
-> I agree, there are costs to be weighed.  If it doesn't make sense for a
-> single case, due to the costs involved, then it doesn't make sense.
-> 
-> 
-> > And, in Linux' case, not for just one subsystem. The
-> > strength of the Linux driver model is that it is shared by all
-> > subsystems. That's not something which is going to change.
-> 
-> I was not thinking of trying to "move the world", just accomodate
-> multifunction I2C devices to allow multiple driver modules to access a
-> device at a single (adapter, address) coordinate.  Perhaps by using an
-> (adapter, address, function #) coordinate.
-> 
-> 
->  
-> > > > I know that there was some work in progress to allow multiple drivers
-> > > > to bind to the same device. However it seems to be very slow because it
-> > > > is fundamentally incompatible with the device driver model as it was
-> > > > originally designed.
-> > > 
-> > > The driver model outside of the I2C subsystem?
-> > 
-> > Again this was in no way specific to the I2C subsystem. This was meant
-> > as an extension to the core device driver model.
-> 
-> Thanks, I didn't understand the scope of that effort you had
-> mentioned.  
-> 
-> 
-> 
-> 
-> > > Looking at the rest of i2c_attach_client() (that I didn't paste in
-> > > above), I dont' see how the call to device_register(&client->dev) would
-> > > care, as each i2c_client has it's own dev.  Although I guess you might
-> > > get duplicately named sysfs directory entries like 
-> > > 
-> > > /sys/devices/.../i2c-adapter/i2c-3/3-0096
-> > >
-> > > Which could be a problem for accessing via the sysfs filesystem.  But
-> > > that could be fixed in i2c_attach_client?
-> > 
-> > That's not just duplicated sysfs directories. That's duplicated device
-> > names. The "3-0096" above is how the driver core uniquely identifies
-> > the device in question withing the i2c subsystem name space. By
-> > definition you can't have two devices with the same identifier.
-> 
-> And I guess I was thinking, but didn't write down, that the I2C
-> subsystem could expand it's namespace by one coordinate axis.
-> 
-> 3-004b-0
-> 3-004b-1
-> 
-> 
-> > (I am curious if this is a real device, BTW, as 0x96 isn't a valid
-> > 7-bit I2C address.)
-> 
-> No, I made it up from the device in the discussion. I forgot to shift it
-> down to a 7 bit address of 0x4b.
-> 
-> 
-> > > Then there's a matter of accessing the I2C device only by the address
-> > > which means the wrong client might be used.  But since they both point
-> > > to the same address on the same device, does that really matter?
-> > 
-> > Of course it does matter. The whole point of having only one driver
-> > that can bind to a device is that said driver can control who accesses
-> > the device, and how, and take care of any needed locking or delays.
-> > Having multiple "clients" (software devices) accessing the same
-> > (physical) device is equivalent to not having any client at all. This
-> > would be a significant step backwards.
-> 
-> I was under the impression that access to a bus adapter was locked by
-> the I2C subsystem using adapter->bus_lock.  At that point, if multiple
-> drivers are accessing a multifunction device at a single address, they
-> would just need to "play nice" and stay in different register regions of
-> the multifunction I2C chip.
-> 
-> I hadn't thought about intertransfer delays.  The I2C spec does have a
-> minimum turn around specification between STOP and START, 4.7 us, but I
-> have no idea where it is enforced currently in Linux.
-> 
-> 
-> 
-> > > > In the meantime, one workaround is to list the multifunction device as
-> > > > supported by several drivers, and make the probe functions for this
-> > > > device fail, while still keeping a reference to the device. The
-> > > > reference lets you access the device, and is freed when you remove the
-> > > > drivers. See for example the via686a, vt8231 and i2c-viapro drivers.
-> > > > This approach may or may not be suitable for the ir-kbd-i2c and tvaudio
-> > > > drivers. One drawback is that you can't do power management on the
-> > > > device.
-> > > 
-> > > To me it would be more forward looking to add support in the I2C
-> > > subsystem for allowing multiple client drivers to use the same address
-> > > on the same adapter,
-> > 
-> > No, that's not going to happen in i2c-core, sorry. If anything like
-> > this happens, it will be implemented as part of the core driver model.
-> 
-> OK.  So it sounds like it's not going to happen at all.
-> 
-> 
-> > > instead of adding non-intuitive behavior to module
-> > > probe routines as a workaround.  Integration of discrete I2C chip cores
-> > > into multifunction devices is likely to be a continuing trend.
-> > 
-> > I sure hope not.
-> 
-> 
-> > > The PCI subsystem handles single devices with multiple functions.
-> > 
-> > In the good cases, yes. In some cases (which I have quoted already) it
-> > doesn't. But anyway PCI functions are an implementation detail
-> > irrelevant to this discussion: as far as Linux is concerned, each PCI
-> > function is a separate device, exactly as separate PCI devices.
-> 
-> Ah. You're right.  My analogy corresponds to an I2C chip that responds
-> on two addresses on the same bus.  My analogy was bad.
-> 
-> 
-> > > For an single I2C chip with multiple functions,  I've seen two types of
-> > > functional block separation provided: a separate I2C address per
-> > > functional block, and functions are separated by register address
-> > > ranges.  The CX25843 leaps to mind as being of the second type.  There
-> > > are register blocks for the basic device, the analog front end, the
-> > > consumer IR device, the video decoding, the broadcast audio decoding,
-> > > and AC97 interface functions.
-> > 
-> > And there's nothing preventing you from handling these separate
-> > functions as you wish in your driver. Having a single function per
-> > i2c_client is not a requirement in general.
-> 
-> That's the current state.  So it looks like the problem is there is no
-> "PIC16C54" driver since it's an 8-bit general purpose microcontroller.  
-> 
-> It's a one off case for writing a driver to handle a PIC16C54 with the
-> microcode the manufacturer has programmed into the device.  So I
-> understand the desire to leverage existing modules.
-> 
-> 
-> > > > As far as the PIC16C54 is concerned, another possibility would be to
-> > > > move support to a dedicated driver. Depending on how much code is common
-> > > > between the PIC16C54 and the other supported devices, the new driver
-> > > > may either be standalone, or rely on functions exported by the
-> > > > ir-kbd-i2c and tvaudio modules.
-> > > 
-> > > I'll guess that solution is probably the path of least resistance for
-> > > the problem at hand.  It seems like a workaround for design decision
-> > > made in the I2C subsystem long ago though.
-> > 
-> > Third (and last) time: this is how the Linux device driver model was
-> > designed (and quite rightly so.) Not my decision and not i2c subsystem
-> > specific. The only i2c-specific thing here (and not my choice either)
-> > are the bus identifiers (e.g. 3-0096) but I believe it was a pretty
-> > natural choice given that a given I2C address can indeed only be used
-> > by one (physical) I2C slave on a given I2C segment.
-> 
-> And the problem here is that one physical slave ends up as two logical
-> slaves, that are very similar to individual physical slave handled by
-> other drivers, and people want to levereage existing code.
-> 
-> But you've convinced me that one corner case is not worth going through
-> all the expense to cover.
-> 
-> 
-> 
-> > Instead of blaming me or the i2c subsystem,
-> 
-> My intent was not to blame or offend, but to discuss the issue.  I'm
-> sorry if my tone didn't convey properly.  I'm not the most eloquent
-> writer.
-> 
-> 
-> >  please look carefully at
-> > what the problem is in the first place: the ir-kbd-i2c and tvaudio
-> > drivers are horrible design errors (for which there are certainly
-> > historical errors, but still.) They support many devices each, on the
-> > basis that these devices have the same functionality. Can you imagine a
-> > single driver for all SATA controllers out there? Or a single driver
-> > for all RTC chips out there? This is the design mistake you are looking
-> > for.
-> 
-> I understand now.  The desire to leverage existing crappy code is not
-> worth the cost and risk of perturbing things for the sake of one device.
-> 
-> Regards,
-> Andy
-> 
-> 
-> > Good night,
+> Theodore Kilgore
 > 
 
-sorry, just reading the mail backlash on a first attempt.
+Thanks applied to me tree:
+http://linuxtv.org/hg/~hgoede/libv4l
 
-But what comes into mind from what we really have seen, there are i2c
-devices (tuners) with multiple addresses present on the bus, in fact
-only one of them "works".
+I expect to release libv4l-0.5.9 with this in, soon.
 
-This was improved by new separate silicon radio tuner chips within the
-even same range of possible four addresses. That for the radio tuner
-address field was introduced.
+Regards,
 
-The same goes for 0x86 and 0x4b demodulator stuff and the like.
+Hans
 
-Of course it is known that there is an address clash between tda988x and
-tda 8290 and as well with that pic in tvaudio.
-
-So, in general I'm with Hans and all here, it is better to have this
-device specific in the card's entry.
-
-But Trent is also right in so far, that we don't have it for sure for
-all the devices around previously probed, no final list so far.
-
-What gives me more concerns is, that such addresses shared by multiple
-devices are on the other driver encoded in the eeprom, even manufacturer
-specific (!), and we are more confronted with the mess not to be able to
-identify the _type_ of the device then with identifying its address.
-
-This is most visible for digital demodulators currently.
-
-Good night,
-Hermann
-
+> ---------- Forwarded message ----------
+> Date: Sun, 1 Mar 2009 17:45:32 -0600 (CST)
+> From: kilgota@banach.math.auburn.edu
+> To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+> Subject: [PATCH] libv4lconvert support for SQ905C decompression
+> 
+> Hans,
+> 
+> Below is a patch for libv4lconvert, to support the decompression used by 
+> the SQ905C cameras (0x2770:0x905C) and some other related cameras. There 
+> is at the moment no support module for these cameras in streaming mode, 
+> but I intend to submit one.
+> 
+> This contribution was created in whole by me, based upon code in 
+> libgphoto2 which was created in whole by me, and which was licensed for
+> libgphoto2 under the LGPL license.
+> 
+> Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
+> 
+> -----------------------------------------------------------------------
+> diff -uprN libv4lconvert-old/Makefile libv4lconvert-new/Makefile
+> --- libv4lconvert-old/Makefile    2009-03-01 15:37:38.000000000 -0600
+> +++ libv4lconvert-new/Makefile    2009-03-04 16:22:52.000000000 -0600
+> @@ -12,7 +12,7 @@ endif
+> 
+>  CONVERT_OBJS  = libv4lconvert.o tinyjpeg.o sn9c10x.o sn9c20x.o pac207.o \
+>          mr97310a.o flip.o crop.o jidctflt.o spca561-decompress.o \
+> -        rgbyuv.o spca501.o bayer.o
+> +        rgbyuv.o spca501.o sq905c.o bayer.o
+>  TARGETS       = $(CONVERT_LIB) libv4lconvert.pc
+>  INCLUDES      = ../include/libv4lconvert.h
+> 
+> diff -uprN libv4lconvert-old/libv4lconvert-priv.h 
+> libv4lconvert-new/libv4lconvert-priv.h
+> --- libv4lconvert-old/libv4lconvert-priv.h    2009-03-01 
+> 15:37:38.000000000 -0600
+> +++ libv4lconvert-new/libv4lconvert-priv.h    2009-03-04 
+> 16:22:52.000000000 -0600
+> @@ -47,6 +47,10 @@
+>  #define V4L2_PIX_FMT_MR97310A v4l2_fourcc('M','3','1','0')
+>  #endif
+> 
+> +#ifndef V4L2_PIX_FMT_SQ905C
+> +#define V4L2_PIX_FMT_SQ905C v4l2_fourcc('9', '0', '5', 'C')
+> +#endif
+> +
+>  #ifndef V4L2_PIX_FMT_PJPG
+>  #define V4L2_PIX_FMT_PJPG v4l2_fourcc('P', 'J', 'P', 'G')
+>  #endif
+> @@ -180,6 +184,9 @@ void v4lconvert_decode_pac207(const unsi
+>  void v4lconvert_decode_mr97310a(const unsigned char *src, unsigned char 
+> *dst,
+>    int width, int height);
+> 
+> +void v4lconvert_decode_sq905c(const unsigned char *src, unsigned char 
+> *dst,
+> +  int width, int height);
+> +
+>  void v4lconvert_bayer_to_rgb24(const unsigned char *bayer,
+>    unsigned char *rgb, int width, int height, unsigned int pixfmt);
+> 
+> diff -uprN libv4lconvert-old/libv4lconvert.c 
+> libv4lconvert-new/libv4lconvert.c
+> --- libv4lconvert-old/libv4lconvert.c    2009-03-01 15:37:38.000000000 
+> -0600
+> +++ libv4lconvert-new/libv4lconvert.c    2009-03-04 16:22:52.000000000 
+> -0600
+> @@ -61,6 +61,7 @@ static const struct v4lconvert_pixfmt su
+>    { V4L2_PIX_FMT_SN9C10X,      V4LCONVERT_COMPRESSED },
+>    { V4L2_PIX_FMT_PAC207,       V4LCONVERT_COMPRESSED },
+>    { V4L2_PIX_FMT_MR97310A,     V4LCONVERT_COMPRESSED },
+> +  { V4L2_PIX_FMT_SQ905C,       V4LCONVERT_COMPRESSED },
+>    { V4L2_PIX_FMT_PJPG,         V4LCONVERT_COMPRESSED },
+>  };
+> 
+> @@ -608,6 +609,7 @@ static int v4lconvert_convert_pixfmt(str
+>      case V4L2_PIX_FMT_SN9C10X:
+>      case V4L2_PIX_FMT_PAC207:
+>      case V4L2_PIX_FMT_MR97310A:
+> +    case V4L2_PIX_FMT_SQ905C:
+>      {
+>        unsigned char *tmpbuf;
+> 
+> @@ -633,6 +635,10 @@ static int v4lconvert_convert_pixfmt(str
+>        v4lconvert_decode_mr97310a(src, tmpbuf, width, height);
+>        src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
+>        break;
+> +    case V4L2_PIX_FMT_SQ905C:
+> +      v4lconvert_decode_sq905c(src, tmpbuf, width, height);
+> +      src_pix_fmt = V4L2_PIX_FMT_SRGGB8;
+> +      break;
+>        }
+>        src = tmpbuf;
+>        /* Deliberate fall through to raw bayer fmt code! */
+> diff -uprN libv4lconvert-old/sq905c.c libv4lconvert-new/sq905c.c
+> --- libv4lconvert-old/sq905c.c    1969-12-31 18:00:00.000000000 -0600
+> +++ libv4lconvert-new/sq905c.c    2009-03-04 16:27:17.000000000 -0600
+> @@ -0,0 +1,217 @@
+> +/*
+> + * sq905c.c
+> + *
+> + * Here is the decompression function for the SQ905C cameras. The 
+> functions
+> + * used are adapted from the libgphoto2 functions for the same cameras,
+> + * which was
+> + * Copyright (c) 2005 and 2007 Theodore Kilgore <kilgota@auburn.edu>
+> + * This version for libv4lconvert is
+> + * Copyright (c) 2009 Theodore Kilgore <kilgota@auburn.edu>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU Lesser General Public License as 
+> published by
+> + * the Free Software Foundation; either version 2.1 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU Lesser General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU Lesser General Public 
+> License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  
+> 02111-1307  USA
+> + */
+> +
+> +#include <stdlib.h>
+> +
+> +#include "libv4lconvert-priv.h"
+> +
+> +
+> +#define CLIP(x) ((x) < 0 ? 0 : ((x) > 0xff) ? 0xff : (x))
+> +
+> +
+> +static int
+> +sq905c_first_decompress(unsigned char *output, unsigned char *input,
+> +                        unsigned int outputsize)
+> +{
+> +    unsigned char parity = 0;
+> +    unsigned char nibble_to_keep[2];
+> +    unsigned char temp1 = 0, temp2 = 0;
+> +    unsigned char input_byte;
+> +    unsigned char lookup = 0;
+> +    unsigned int i = 0;
+> +    unsigned int bytes_used = 0;
+> +    unsigned int bytes_done = 0;
+> +    unsigned int bit_counter = 8;
+> +    unsigned int cycles = 0;
+> +    int table[9] = { -1, 0, 2, 6, 0x0e, 0x0e, 0x0e, 0x0e, 0xfb};
+> +    unsigned char lookup_table[16]
+> +             = {0, 2, 6, 0x0e, 0xf0, 0xf1, 0xf2, 0xf3, 0xf4,
+> +            0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb};
+> +    unsigned char translator[16] = {8, 7, 9, 6, 10, 11, 12, 13,
+> +                    14, 15, 5, 4, 3, 2, 1, 0};
+> +
+> +    nibble_to_keep[0] = 0;
+> +    nibble_to_keep[1] = 0;
+> +
+> +    while (bytes_done < outputsize) {
+> +        while (parity < 2) {
+> +            while (lookup > table[cycles]) {
+> +                if (bit_counter == 8) {
+> +                    input_byte = input[bytes_used];
+> +                    bytes_used++;
+> +                    temp1 = input_byte;
+> +                    bit_counter = 0;
+> +                }
+> +                input_byte = temp1;
+> +                temp2 = (temp2 << 1) & 0xFF;
+> +                input_byte = input_byte >> 7;
+> +                temp2 = temp2 | input_byte;
+> +                temp1 = (temp1 << 1) & 0xFF;
+> +                bit_counter++;
+> +                cycles++;
+> +                if (cycles > 9)
+> +                    return -1;
+> +                lookup = temp2 & 0xff;
+> +            }
+> +            temp2 = 0;
+> +            for (i = 0; i < 17; i++) {
+> +                if (lookup == lookup_table[i]) {
+> +                    nibble_to_keep[parity] = translator[i];
+> +                    break;
+> +                }
+> +                if (i == 16)
+> +                    return -1;
+> +            }
+> +            cycles = 0;
+> +            parity++;
+> +        }
+> +        output[bytes_done] = (nibble_to_keep[0]<<4)|nibble_to_keep[1];
+> +        bytes_done++;
+> +        parity = 0;
+> +    }
+> +    return 0;
+> +}
+> +
+> +static int
+> +sq905c_second_decompress(unsigned char *uncomp, unsigned char *in,
+> +                            int width, int height)
+> +{
+> +    int diff = 0;
+> +    int tempval = 0;
+> +    int i, m, parity;
+> +    unsigned char delta_left = 0;
+> +    unsigned char delta_right = 0;
+> +    int input_counter = 0;
+> +    int delta_table[] = {-144, -110, -77, -53, -35, -21, -11, -3,
+> +                2, 10, 20, 34, 52, 76, 110, 144};
+> +    unsigned char *templine_red;
+> +    unsigned char *templine_green;
+> +    unsigned char *templine_blue;
+> +    templine_red = malloc(width);
+> +    if (!templine_red) {
+> +        free(templine_red);
+> +        return -1;
+> +    }
+> +    for (i = 0; i < width; i++)
+> +        templine_red[i] = 0x80;
+> +    templine_green = malloc(width);
+> +    if (!templine_green) {
+> +        free(templine_green);
+> +        return -1;
+> +    }
+> +    for (i = 0; i < width; i++)
+> +        templine_green[i] = 0x80;
+> +    templine_blue = malloc(width);
+> +    if (!templine_blue) {
+> +        free(templine_blue);
+> +        return -1;
+> +    }
+> +    for (i = 0; i < width; i++)
+> +        templine_blue[i] = 0x80;
+> +    for (m = 0; m < height/2; m++) {
+> +        /* First we do an even-numbered line */
+> +        for (i = 0; i < width/2; i++) {
+> +            parity = i&1;
+> +            delta_right = in[input_counter] & 0x0f;
+> +            delta_left = (in[input_counter]>>4)&0xff;
+> +            input_counter++;
+> +            /* left pixel (red) */
+> +            diff = delta_table[delta_left];
+> +            if (!i)
+> +                tempval = templine_red[0] + diff;
+> +            else
+> +                tempval = (templine_red[i]
+> +                    + uncomp[2*m*width+2*i-2])/2 + diff;
+> +            tempval = CLIP(tempval);
+> +            uncomp[2*m*width+2*i] = tempval;
+> +            templine_red[i] = tempval;
+> +            /* right pixel (green) */
+> +            diff = delta_table[delta_right];
+> +            if (!i)
+> +                tempval = templine_green[1] + diff;
+> +            else if (2*i == width - 2)
+> +                tempval = (templine_green[i]
+> +                        + uncomp[2*m*width+2*i-1])/2
+> +                            + diff;
+> +            else
+> +                tempval = (templine_green[i+1]
+> +                        + uncomp[2*m*width+2*i-1])/2
+> +                            + diff;
+> +            tempval = CLIP(tempval);
+> +            uncomp[2*m*width+2*i+1] = tempval;
+> +            templine_green[i] = tempval;
+> +        }
+> +        /* then an odd-numbered line */
+> +        for (i = 0; i < width/2; i++) {
+> +            delta_right = in[input_counter] & 0x0f;
+> +            delta_left = (in[input_counter]>>4) & 0xff;
+> +            input_counter++;
+> +            /* left pixel (green) */
+> +            diff = delta_table[delta_left];
+> +            if (!i)
+> +                tempval = templine_green[0] + diff;
+> +            else
+> +                tempval = (templine_green[i]
+> +                    + uncomp[(2*m+1)*width+2*i-2])/2
+> +                        + diff;
+> +            tempval = CLIP(tempval);
+> +            uncomp[(2*m+1)*width+2*i] = tempval;
+> +            templine_green[i] = tempval;
+> +            /* right pixel (blue) */
+> +            diff = delta_table[delta_right];
+> +            if (!i)
+> +                tempval = templine_blue[0] + diff;
+> +            else
+> +                tempval = (templine_blue[i]
+> +                        + uncomp[(2*m+1)*width+2*i-1])/2
+> +                        + diff;
+> +            tempval = CLIP(tempval);
+> +            uncomp[(2*m+1)*width+2*i+1] = tempval;
+> +            templine_blue[i] = tempval;
+> +        }
+> +    }
+> +    free(templine_green);
+> +    free(templine_red);
+> +    free(templine_blue);
+> +    return 0;
+> +}
+> +
+> +void v4lconvert_decode_sq905c(const unsigned char *src, unsigned char 
+> *dst,
+> +  int width, int height)
+> +{
+> +    int size;
+> +    unsigned char *temp_data;
+> +    unsigned char *raw;
+> +    /* here we get rid of the 0x50 bytes of header in src. */
+> +    raw = src + 0x50;
+> +    size = width*height/2;
+> +    temp_data = malloc(size);
+> +    if (!temp_data)
+> +        goto out;
+> +    sq905c_first_decompress(temp_data, raw, size);
+> +    sq905c_second_decompress(dst, temp_data, width, height);
+> +out:
+> +    free(temp_data);
+> +}
