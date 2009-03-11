@@ -1,67 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:6047 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755208AbZCCMQo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 07:16:44 -0500
-Date: Tue, 3 Mar 2009 13:16:33 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
-Subject: Re: General protection fault on rmmod cx8800
-Message-ID: <20090303131633.52dbb472@hyperion.delvare>
-In-Reply-To: <Pine.LNX.4.58.0903030107110.24268@shell2.speakeasy.net>
-References: <20090215214108.34f31c39@hyperion.delvare>
-	<20090302133936.00899692@hyperion.delvare>
-	<1236003365.3071.6.camel@palomino.walls.org>
-	<20090302170349.18c8fd75@hyperion.delvare>
-	<20090302200513.7fc3568e@hyperion.delvare>
-	<Pine.LNX.4.58.0903021241380.24268@shell2.speakeasy.net>
-	<20090302225235.5d6d47ce@hyperion.delvare>
-	<Pine.LNX.4.58.0903030107110.24268@shell2.speakeasy.net>
+Received: from mx2.redhat.com ([66.187.237.31]:53337 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752442AbZCKOM7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 10:12:59 -0400
+Date: Wed, 11 Mar 2009 11:12:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: hg-commit@linuxtv.org, linuxtv-commits@linuxtv.org,
+	linux-media@vger.kernel.org
+Subject: Re: [hg:v4l-dvb] cx88: Prevent general protection fault on rmmod
+Message-ID: <20090311111238.21e4de95@pedra.chehab.org>
+In-Reply-To: <20090311101952.057d8e54@hyperion.delvare>
+References: <E1LhFXL-0007ri-27@www.linuxtv.org>
+	<20090311101952.057d8e54@hyperion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 3 Mar 2009 01:40:00 -0800 (PST), Trent Piepho wrote:
-> On Mon, 2 Mar 2009, Jean Delvare wrote:
-> > > Makes the most sense to me.  I was just about to make a patch to do the
-> > > same thing when I got your email.  Though I was going to patch the v4l-dvb
-> > > sources to avoid porting work.
-> >
-> > It was easier for me to test on an upstream kernel. The porting should
-> > be fairly easy, I can take care of it. The difficult part will be to
-> > handle the compatibility with kernels < 2.6.20 because delayed_work was
-> > introduced in 2.6.20. Probably "compatibility" here will simply mean
-> > that the bug I've hit will only be fixed for kernels >= 2.6.20. Which
-> > once again raises the question of whether we really want to keep
-> > supporting these old kernels.
-> 
-> cancel_delayed_work_sync() was renamed from cancel_rearming_delayed_work()
-> in 2.6.23.  A compat.h patch can handle that one.
-> 
-> In 2.6.22, cancel_delayed_work_sync(work) was created from
-> cancel_rearming_delayed_workqueue(wq, work).  The kernel has a compat
-> function to turn cancel_rearming_delayed_workqueue() into the
-> cancel_delayed_work_sync() call.  cancel_rearming_delayed_workqueue() has
-> been around since 2.6.13.  Apparently it was un-exported for a while
-> because it had no users, see commit v2.6.12-rc2-8-g81ddef7.  Isn't it nice
-> that there a commit message other than "export
-> cancel_rearming_delayed_workqueue"?  Let me again express my dislike for
-> commit with no description.
-> 
-> In 2.6.20 delayed_work was split from work_struct.  The concept of delayed
-> work was already there and schedule_delayed_work() hasn't changed.  I think
-> this can also be handled with a compat.h change that defines delayed_work
-> to work_struct.  That will only be a problem on pre 2.6.20 kernels if some
-> code decides to define identifiers named work_struct and delayed_work in
-> the same scope.  There are currently no identifier named delayed_work in
-> any driver and one driver (sq905) has a structure member named
-> work_struct.  So I think it'll be ok.
 
-Wow, I didn't expect that many different compatibility issues. This
-goes beyond the time I am ready to spend on it, I'm afraid.
+On Wed, 11 Mar 2009 10:19:52 +0100
+Jean Delvare <khali@linux-fr.org> wrote:
+
+> On Wed, 11 Mar 2009 04:55:19 +0100, Patch from Jean Delvare wrote:
+> > The patch number 10935 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
+> > to http://linuxtv.org/hg/v4l-dvb master development tree.
+> > 
+> > Kernel patches in this development tree may be modified to be backward
+> > compatible with older kernels. Compatibility modifications will be
+> > removed before inclusion into the mainstream Kernel
+> > 
+> > If anyone has any objections, please let us know by sending a message to:
+> > 	Linux Media Mailing List <linux-media@vger.kernel.org>
+> 
+> Ugh, you committed the wrong patches :( I have sent updated patches with
+> much cleaner code since then:
+> http://www.spinics.net/lists/linux-media/msg02646.html
+> http://www.spinics.net/lists/linux-media/msg02647.html
+> http://www.spinics.net/lists/linux-media/msg02648.html
+> http://www.spinics.net/lists/linux-media/msg02649.html
+
+Yes, I noticed, while reviewing the other patches at patchwork. I've already
+reverted it and applied the correct ones.
+> 
+> > ------
+> > 
+> > From: Jean Delvare  <khali@linux-fr.org>
+> > cx88: Prevent general protection fault on rmmod
+> > 
+> > 
+> > When unloading the cx8800 driver I sometimes get a general protection
+> > fault. Analysis revealed a race in cx88_ir_stop(). It can be solved by
+> > using a delayed work instead of a timer for infrared input polling.
+> > 
+> > This fixes kernel.org bug #12802.
+> > 
+> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > 
+> > 
+> > ---
+> > 
+> >  linux/drivers/media/video/cx88/cx88-input.c |   27 +++++++++++++++-----
+> >  1 file changed, 21 insertions(+), 6 deletions(-)
+> > 
+> > diff -r 60b0989f6c7a -r 46412997b3c0 linux/drivers/media/video/cx88/cx88-input.c
+> > --- a/linux/drivers/media/video/cx88/cx88-input.c	Tue Mar 10 19:28:33 2009 -0700
+> > +++ b/linux/drivers/media/video/cx88/cx88-input.c	Thu Mar 05 09:38:24 2009 +0000
+> > @@ -49,8 +49,12 @@ struct cx88_IR {
+> >  
+> >  	/* poll external decoder */
+> >  	int polling;
+> > +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+> >  	struct work_struct work;
+> >  	struct timer_list timer;
+> > +#else
+> > +	struct delayed_work work;
+> > +#endif
+> >  	u32 gpio_addr;
+> >  	u32 last_gpio;
+> >  	u32 mask_keycode;
+> > (...)
+> 
+
 
 -- 
-Jean Delvare
+
+Cheers,
+Mauro
