@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39])
+Received: from mail-ew0-f171.google.com ([209.85.219.171])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <cardsharing@hondelink.com>) id 1Ljh8k-00076B-FT
-	for linux-dvb@linuxtv.org; Tue, 17 Mar 2009 22:48:03 +0100
-Received: from woefpc (kubrick.xs4all.nl [82.95.238.50])
-	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2HLksQ4048495
-	for <linux-dvb@linuxtv.org>; Tue, 17 Mar 2009 22:46:59 +0100 (CET)
-	(envelope-from cardsharing@hondelink.com)
-From: "Maarten Hondelink" <maarten@hondelink.com>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 17 Mar 2009 22:46:54 +0100
-Message-ID: <1EAE808943E247C383BCCC029A3F5204@woefpc>
+	(envelope-from <iridiahot@gmail.com>) id 1LhL3W-00028j-8Z
+	for linux-dvb@linuxtv.org; Wed, 11 Mar 2009 10:48:54 +0100
+Received: by ewy19 with SMTP id 19so1465831ewy.17
+	for <linux-dvb@linuxtv.org>; Wed, 11 Mar 2009 02:48:20 -0700 (PDT)
 MIME-Version: 1.0
-Subject: [linux-dvb] Rotor not working Skystar hd2(VP1041/STB0899) S2API
-	MYTHTV
+Date: Wed, 11 Mar 2009 10:48:20 +0100
+Message-ID: <f2a083620903110248i2a5ef965xb8c2df05530f23f3@mail.gmail.com>
+From: iridia torres <iridiahot@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] PCTV Dual DVB-T Pro PCI / 2000i
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,44 +19,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0251664126=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+--===============0251664126==
+Content-Type: multipart/alternative; boundary=0015174c391a945aeb0464d4c434
 
-I hope that someone can help me. Struggling with this for months now!
-I have a Skystar HD2 connected to a diseqc 1.2 compatible motorized H-H
-rotor and a Smart Titanium 2nd edition LNB. I use the latest S2API drivers
-(http://mercurial.intuxication.org/hg/s2-liplianin) and latest sources from
-the mythtv svn.
+--0015174c391a945aeb0464d4c434
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Whatever I do, the rotor will not move in mythtv. It stays on the same
-position, although Mythtv indicates that it is moving the rotor.
-Reinstalling mythtv, reinstalling the drivers, different OS(Ubuntu instead
-of Centos) etc, whatever I do. The thing wont move! Even when shutting down
-the mythbackend and running the scan-s2 with -r (move to another position)
-and a correct rotor.conf the position does NOT change.
-I have the extra power connector connected on the Skystar HD 2. The only way
-that DOES work is using the xdipo tool 0.7.3! This one moves the rotor! When
-turning on debug, this tool seems to send the diseqc command at least 5-10
-times but somehow this works! Could it be a timing issue?
+Hi,
+Anyone is using this capture card correctly.
 
-The rotor is not the problem since I also have an older skystar 2 card and
-running it under Windows XP with (diseqc 1.2)patched  XP drivers  the rotor
-moves to every wanted position without any hesitation. 
+--0015174c391a945aeb0464d4c434
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-What could be wrong here? Someone any ideas?
+Hi,<br>Anyone is using this capture card correctly.<br>
 
-Regards
+--0015174c391a945aeb0464d4c434--
 
-Maarten
 
+--===============0251664126==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0251664126==--
