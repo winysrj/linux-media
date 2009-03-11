@@ -1,35 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail7.sea5.speakeasy.net ([69.17.117.9]:44478 "EHLO
-	mail7.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005AbZCMANJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 20:13:09 -0400
-Date: Thu, 12 Mar 2009 17:13:06 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Alan McIvor <alan.mcivor@reveal.co.nz>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add support for ProVideo PV-183 to bttv
-In-Reply-To: <20090313114649.e774c9be.alan.mcivor@reveal.co.nz>
-Message-ID: <Pine.LNX.4.58.0903121711370.28292@shell2.speakeasy.net>
-References: <20090313114649.e774c9be.alan.mcivor@reveal.co.nz>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:45345 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750854AbZCKVV2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 17:21:28 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/4] pxa_camera: Redesign DMA handling
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0903091023540.3992@axis700.grange>
+	<87sklms9ni.fsf@free.fr>
+	<Pine.LNX.4.64.0903092310510.5857@axis700.grange>
+	<87r615hwzb.fsf@free.fr>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 11 Mar 2009 22:21:16 +0100
+In-Reply-To: <87r615hwzb.fsf@free.fr> (Robert Jarzmik's message of "Tue\, 10 Mar 2009 22\:46\:48 +0100")
+Message-ID: <873adjhi2b.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 13 Mar 2009, Alan McIvor wrote:
-> +
-> +        { 0x15401830, BTTV_BOARD_PV183,         "Provideo PV183-1" },
-> +        { 0x15401831, BTTV_BOARD_PV183,         "Provideo PV183-2" },
-> +        { 0x15401832, BTTV_BOARD_PV183,         "Provideo PV183-3" },
-> +        { 0x15401833, BTTV_BOARD_PV183,         "Provideo PV183-4" },
-> +        { 0x15401834, BTTV_BOARD_PV183,         "Provideo PV183-5" },
-> +        { 0x15401835, BTTV_BOARD_PV183,         "Provideo PV183-6" },
-> +        { 0x15401836, BTTV_BOARD_PV183,         "Provideo PV183-7" },
-> +        { 0x15401837, BTTV_BOARD_PV183,         "Provideo PV183-8" },
-> +
->  	{ 0, -1, NULL }
->  };
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-Looks like you used spaces here instead of tabs.  If you run make commit
-from the v4l-dvb tree it will fix these things.
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+
+>  It is the result of our conversation about "hot DMA linking". I tested both
+> paths (the optimal one and the one where DMA stops while queuing =>
+> cf. pxa_camera_check_link_miss) for RGB565 format.  I'll test further for
+> YUV422P ...
+
+Well, surprise surprise with the YUV422P format. We're not done yet ...
+
+There is a little issue with overrun : buf->active_dma is cleared in dma irq
+handler (for example suppose is cleared of DMA_U which finished first). Then an
+overrun occurs, and we restart that frame ...
+
+We should have reset buf->active_dma to DMA_Y | DMA_U | DMA_V.
+I think same thing applies to the "hot chain" link miss restart.
+
+The non-regression tests are not yet finished ... exciting, isn't it ? :)
+
+Cheers.
+
+--
+Robert
