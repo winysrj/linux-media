@@ -1,67 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from joan.kewl.org ([212.161.35.248]:51613 "EHLO joan.kewl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752052AbZCZA47 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 20:56:59 -0400
-From: Darron Broad <darron@kewl.org>
-To: "Udo A. Steinberg" <udo@hypervisor.org>
-cc: darron@kewl.org, v4l-dvb-maintainer@linuxtv.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: Hauppauge/IR breakage with 2.6.28/2.6.29 
-In-reply-to: <20090326000932.6aa1a456@laptop.hypervisor.org> 
-References: <20090326000932.6aa1a456@laptop.hypervisor.org>
-Date: Thu, 26 Mar 2009 00:26:47 +0000
-Message-ID: <29212.1238027207@kewl.org>
+Received: from rv-out-0506.google.com ([209.85.198.231]:33143 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742AbZCKXQB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 19:16:01 -0400
+Date: Wed, 11 Mar 2009 15:15:55 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, laurent.pinchart@skynet.be,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
+	is probably using the wrong IRQ."
+Message-ID: <20090311221555.GB5776@jenkins.ifup.org>
+References: <20090311172031.GC22789@jenkins.ifup.org> <Pine.LNX.4.44L0.0903111543580.21047-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0903111543580.21047-100000@iolanthe.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In message <20090326000932.6aa1a456@laptop.hypervisor.org>, "Udo A. Steinberg" wrote:
->
->Hi,
->
->The following patch
->http://kerneltrap.org/mailarchive/git-commits-head/2008/10/13/3643574
->that was added between 2.6.27 and 2.6.28 has resulted in my Hauppauge
->WinTV IR remote not working anymore. I've tracked down the breakage to:
->
->if (dev!=3D0x1e && dev!=3D0x1f)=20
->  return 0;
->
->in drivers/media/video/ir-kbd-i2c.c
->
->My remote sends with dev=3D0x0 and is the following model:
->http://www.phphuoc.com/reviews/tvtuner_hauppauge_wintv_theater/index_files/=
->image001.jpg
->
->Removing the check results in the remote working again. Is there a way to
->convince the remote to send a different dev? Otherwise I guess the check
->should be relaxed.
+On 15:46 Wed 11 Mar 2009, Alan Stern wrote:
+> On Wed, 11 Mar 2009, Brandon Philips wrote:
+> Okay, here's a diagnostic patch meant to apply on top of 
+> gregkh-all-2.6.29-rc7.  Let's see what it says...
 
-You are correct. I happen to have one of those ancient remote
-controls myself and it does use device address 0.
+Here is the log:
+ http://ifup.org/~philips/467317/pearl-alan-debug.log
 
-Please refer to http://www.sbprojects.com/knowledge/ir/rc5.htm
-for an overview of device addresses.
+>  	default:
+>  		qh = (struct ehci_qh *) urb->hcpriv;
+> +		if (alantest == 1) {
+> +			alantest = 2;
+> +			ehci_info(ehci, "dequeue: qh %p\n", qh);
+> +		}
 
-It's something I forget to deal with in that patch. A solution
-would be to allow a device address to be a module param to
-override the more modern addresses of 0x1e and 0x1f.
+This was the last thing printed before I dumped the task states with sysrq
+keys.
 
-I can't remember addresses off the top of my head but I believe
-the modern silver remotes use 0x1f and the older black ones
-use 0x1e. I think the black one I have came with a now dead
-DEC2000.
+Thanks,
 
-The problem with reverting the patch is that it makes modern
-systems unusable as HTPCs when the television uses RC5. This
-is a more important IMHO than supporting what in reality is
-an obsolete remote control.
-
-cya!
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
+	Brandon
