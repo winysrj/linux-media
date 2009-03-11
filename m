@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:23120 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754555AbZC2No1 (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:51040 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752697AbZCKPa4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 09:44:27 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1631612ywb.1
-        for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 06:44:25 -0700 (PDT)
+	Wed, 11 Mar 2009 11:30:56 -0400
+Date: Wed, 11 Mar 2009 11:30:53 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Brandon Philips <brandon@ifup.org>
+cc: Greg KH <gregkh@suse.de>, <laurent.pinchart@skynet.be>,
+	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
+Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
+ is probably using the wrong IRQ."
+In-Reply-To: <20090310193809.GA8217@jenkins.ifup.org>
+Message-ID: <Pine.LNX.4.44L0.0903111125190.2692-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <20090329124251.GF637@aniel>
-References: <patchbomb.1238329154@aniel> <20090329124251.GF637@aniel>
-Date: Sun, 29 Mar 2009 09:44:25 -0400
-Message-ID: <412bdbff0903290644s3c70d5e7rfd4182f55650ead0@mail.gmail.com>
-Subject: Re: [PATCH 5 of 6] au0828: use usb_interface.dev for
-	v4l2_device_register
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Janne Grunau <j@jannau.net>
-Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 29, 2009 at 8:42 AM, Janne Grunau <j@jannau.net> wrote:
->
+On Tue, 10 Mar 2009, Brandon Philips wrote:
 
-Hello Janne,
+> First observation: I can't reproduce this bug with console=ttyS0,115200
+> console=tty0. Everything works great actually. Is writing to the serial
+> port causing just enough delay to hide the bug?
 
-I'm not against this change, but you should also get rid of the "i"
-variable and the au0828_instance list (since the v4l2_device.name was
-the only purpose for both).
+Maybe it is, maybe it isn't.  There's no way to know at present.
 
-Also, your subject didn't really match the function of the patch.  Had
-I not looked at the patch itself, I would have only thought you were
-changing the v4l2_device_register().
+If you can't reproduce the bug when using a serial console, how did you 
+acquire the system log you posted earlier?  Network console?
 
-Please put me on the CC: for anything related to au0828 analog
-support, since I authored the code in question.
+> /sys/power/disk tests
+> ---------------------
+> testproc	# OK
+> test		# Unlink after no-IRQ? ...
+> platform	# Unlink after no-IRQ? ...
+> reboot		# Unlink after no-IRQ? ...
+> shutdown	# Unlink after no-IRQ? ...
 
-Thanks,
+Okay, so "test" is the thing to use.  Although since your system hangs, 
+it doesn't make much difference...
 
-Devin
+The next thing to try is to make sure the bug is still present with the 
+lastest development kernel.  That would be 2.6.29-rc7 together with
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/gregkh-all-2.6.29-rc7.patch
+
+If it is then we'll have to try some diagnostic patches to find out 
+what's going wrong.
+
+Alan Stern
+
