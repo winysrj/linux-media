@@ -1,49 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f167.google.com ([209.85.217.167]:65160 "EHLO
-	mail-gx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbZCIWLY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 18:11:24 -0400
-Received: by gxk11 with SMTP id 11so382538gxk.13
-        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2009 15:11:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <49B59230.1090305@gmx.de>
-References: <200903061523.15766.hverkuil@xs4all.nl> <49B14D3C.3010001@gmx.de>
-	 <alpine.LRH.2.00.0903090803010.6607@caramujo.chehab.org>
-	 <49B59230.1090305@gmx.de>
-Date: Mon, 9 Mar 2009 18:10:56 -0400
-Message-ID: <412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
-Subject: Re: V4L2 spec
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: wk <handygewinnspiel@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41295 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753342AbZCKKHU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 06:07:20 -0400
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH 2/4] pcm990 baseboard: add camera bus width switch setting
+Date: Wed, 11 Mar 2009 11:06:14 +0100
+Message-Id: <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de>
+In-Reply-To: <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de>
+References: <1236765976-20581-1-git-send-email-s.hauer@pengutronix.de>
+ <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 9, 2009 at 6:03 PM, wk <handygewinnspiel@gmx.de> wrote:
-> Its a bad idea to expect someone else, the magic volunteer, doing work with
-> *deep impact* on the dvb driver API structure or documentation.
-> Working on this topic determines complete usability of the driver, so MAIN
-> DEVELOPERS have to REVIEW and CONTRIBUTE.
-> If they think, that they cannot do such work in parallel, they should to
-> stop work on drivers for some time.
+Some Phytec cameras have a I2C GPIO expander which allows it to
+switch between different sensor bus widths. This was previously
+handled in the camera driver. Since handling of this switch
+varies on several boards the cameras are used on, the board
+support seems a better place to handle the switch
 
-Cut me a $25,000 check and I'll happily do it.  Otherwise, don't tell
-a bunch of volunteer developers how they should be spending their
-time.  What you happen to think is the important is not necessarily
-what developers feel is the most valuable use of their time.
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ arch/arm/mach-pxa/pcm990-baseboard.c |   50 +++++++++++++++++++++++++++------
+ 1 files changed, 41 insertions(+), 9 deletions(-)
 
-The reality is that there is *some* value a developer can contribute
-in reviewing the content and providing feedback and a *TON* of grunt
-work involved that can be done by anybody who takes the time to learn
-docbook.  If someone wants to volunteer to do the former, I'm sure
-some developers would be willing to do the latter.
-
-Devin
-
+diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
+index 34841c7..e9feb89 100644
+--- a/arch/arm/mach-pxa/pcm990-baseboard.c
++++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+@@ -381,14 +381,46 @@ static struct pca953x_platform_data pca9536_data = {
+ 	.gpio_base	= NR_BUILTIN_GPIO + 1,
+ };
+ 
+-static struct soc_camera_link iclink[] = {
+-	{
+-		.bus_id	= 0, /* Must match with the camera ID above */
+-		.gpio	= NR_BUILTIN_GPIO + 1,
+-	}, {
+-		.bus_id	= 0, /* Must match with the camera ID above */
+-		.gpio	= -ENXIO,
++static int gpio_bus_switch;
++
++static int pcm990_camera_set_bus_param(struct device *dev,
++		unsigned long flags)
++{
++	if (gpio_bus_switch <= 0)
++		return 0;
++
++	if (flags & SOCAM_DATAWIDTH_8)
++		gpio_set_value(NR_BUILTIN_GPIO + 1, 1);
++	else
++		gpio_set_value(NR_BUILTIN_GPIO + 1, 0);
++
++	return 0;
++}
++
++static unsigned long pcm990_camera_query_bus_param(struct device *dev)
++{
++	int ret;
++
++	if (!gpio_bus_switch) {
++		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
++		if (!ret) {
++			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
++			gpio_direction_output(gpio_bus_switch, 0);
++		} else
++			gpio_bus_switch = -1;
+ 	}
++
++	if (gpio_bus_switch > 0)
++		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
++	else
++		return SOCAM_DATAWIDTH_10;
++}
++
++static struct soc_camera_link iclink = {
++	.bus_id	= 0, /* Must match with the camera ID above */
++	.query_bus_param = pcm990_camera_query_bus_param,
++	.set_bus_param = pcm990_camera_set_bus_param,
++	.gpio	= NR_BUILTIN_GPIO + 1,
+ };
+ 
+ /* Board I2C devices. */
+@@ -399,10 +431,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
+ 		.platform_data = &pca9536_data,
+ 	}, {
+ 		I2C_BOARD_INFO("mt9v022", 0x48),
+-		.platform_data = &iclink[0], /* With extender */
++		.platform_data = &iclink, /* With extender */
+ 	}, {
+ 		I2C_BOARD_INFO("mt9m001", 0x5d),
+-		.platform_data = &iclink[0], /* With extender */
++		.platform_data = &iclink, /* With extender */
+ 	},
+ };
+ #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+1.5.6.5
+
