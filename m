@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2LMDcAP006164
-	for <video4linux-list@redhat.com>; Sat, 21 Mar 2009 18:13:38 -0400
-Received: from mail-bw0-f170.google.com (mail-bw0-f170.google.com
-	[209.85.218.170])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2LMD7bm021817
-	for <video4linux-list@redhat.com>; Sat, 21 Mar 2009 18:13:08 -0400
-Received: by bwz18 with SMTP id 18so1270862bwz.3
-	for <video4linux-list@redhat.com>; Sat, 21 Mar 2009 15:13:07 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2BFBnTl022198
+	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 11:11:49 -0400
+Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2BFBT7r003837
+	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 11:11:29 -0400
+Received: from [192.168.0.201] (adsl-99-142-40-134.dsl.emhril.sbcglobal.net
+	[99.142.40.134]) (authenticated bits=0)
+	by nlpi053.prodigy.net (8.13.8 smtpauth/dk/map_regex/8.13.8) with ESMTP
+	id n2BFBRnm026588
+	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 10:11:28 -0500
+Message-ID: <49B7D4A0.7040503@xnet.com>
+Date: Wed, 11 Mar 2009 10:11:28 -0500
+From: stuart <stuart@xnet.com>
 MIME-Version: 1.0
-Date: Sat, 21 Mar 2009 23:13:07 +0100
-Message-ID: <3c349660903211513g5a04e01dh31cec58ae1d9c0b9@mail.gmail.com>
-From: cesarino vinh <cesarinovinh77@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: DTV200H
+Subject: Getting endless messages: "kernel: [<number.] cx88[0]: Calling
+ XC2028/3023
+ callback" in /var/log/messages / Kword 120 ATSC tuner stopped working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,11 +31,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi
 
-Is there a way to use the WinFast Palmtop DTV200H USB TvTuner on Linux?
+Hi...
 
-Thank you!
+Getting endless messages: "kernel: [<number.] cx88[0]: Calling 
+XC2028/3023 callback" in /var/log/messages.
+
+-and-
+
+Kword 120 ATSC tuner stopped working.
+
+Any ideas?
+
+...thanks
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
