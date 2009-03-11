@@ -1,105 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rotring.dds.nl ([85.17.178.138]:48986 "EHLO rotring.dds.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753034AbZCUVLl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2009 17:11:41 -0400
-Subject: Re: [patch review] radio/Kconfig: introduce 3 groups: isa, pci,
- and others drivers
-From: Alain Kalker <miki@dds.nl>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.58.0903191526120.28292@shell2.speakeasy.net>
-References: <1237467800.19717.37.camel@tux.localhost>
-	 <20090319110303.7a53f9bb@pedra.chehab.org>
-	 <208cbae30903190718l10911cc1j2a6f4f21b7f2b107@mail.gmail.com>
-	 <20090319113903.7663ae71@pedra.chehab.org>
-	 <Pine.LNX.4.58.0903191526120.28292@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Sat, 21 Mar 2009 22:11:30 +0100
-Message-Id: <1237669890.6280.51.camel@miki-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:51132 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753515AbZCKLsD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 07:48:03 -0400
+Date: Wed, 11 Mar 2009 12:48:03 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus <magnus.damm@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] ov772x: Add extra setting method
+In-Reply-To: <uwsb6kjnl.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0903111232340.4818@axis700.grange>
+References: <u63irl9dx.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0903030843090.5059@axis700.grange> <uwsb6kjnl.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op donderdag 19-03-2009 om 15:43 uur [tijdzone -0700], schreef Trent
-Piepho:
-> On Thu, 19 Mar 2009, Mauro Carvalho Chehab wrote:
-> > On Thu, 19 Mar 2009 17:18:47 +0300
-> > Alexey Klimov <klimov.linux@gmail.com> wrote:
-> > over what we currently have on our complex Kbuilding system.
-> >
-> > For the out-of-system building, one alternative would be to create some make
-> > syntax for building just some drivers, like:
-> >
-> > 	make driver=cx88,ivtv
+On Tue, 3 Mar 2009, morimoto.kuninori@renesas.com wrote:
+
+> > can be. For instance, maybe there are only two variants like 
+> > lens-configuration-A and lens-configuration-B? Then I would just add 
+> > respective flags to platform data. If there are really many variants, 
+> > maybe we can let user-space configure them using VIDIOC_DBG_S_REGISTER? 
+> > Can you maybe explain to me at least approximately what those lens 
+> > settings are doing?
 > 
-> The problem with this is that it's really hard to do decently.
+> well...  useing VIDIOC_DBG_S_REGISTER is not good idea for me.
+> Because we have to add CONFIG_VIDEO_ADY_DEBUG option which is for debug.
+> 
+> ap325 lens setting have
+> 
+> o a lot of common control register setting
+> o AGC/AEC/BLC/DSP/AWB setting
+> o Banding filter
+> o Y/G channel average value
+> o color value
+> 
+> a lot of register will be set.
+> like this
+> 
+> +static const struct regval_list ov7725_lens [] = {
+> +	{ 0x09, 0x00 }, { 0x0D, 0x61 }, { 0x0E, 0xD5 }, { 0x0F, 0xC5 },
+> +	{ 0x10, 0x25 }, { 0x11, 0x01 }, { 0x13, 0xEF }, { 0x14, 0x41 },
+> +	{ 0x22, 0x7F }, { 0x23, 0x03 }, { 0x24, 0x40 }, { 0x25, 0x30 },
+> +	{ 0x26, 0x82 }, { 0x2F, 0x35 }, { 0x37, 0x81 }, { 0x39, 0x6C },
+> +	{ 0x3A, 0x8C }, { 0x3B, 0xBC }, { 0x3C, 0xC0 }, { 0x3D, 0x03 },
+> +	{ 0x40, 0xE8 }, { 0x41, 0x00 }, { 0x42, 0x7F }, { 0x49, 0x00 },
+> +	{ 0x4A, 0x00 }, { 0x4B, 0x00 }, { 0x4C, 0x00 }, { 0x4D, 0x09 },
+> +	{ 0x60, 0x00 }, { 0x61, 0x05 }, { 0x63, 0xE0 }, { 0x64, 0xFF },
+> +	{ 0x65, 0x20 }, { 0x66, 0x00 }, { 0x69, 0x9E }, { 0x6B, 0x2D },
+> +	{ 0x6C, 0x09 }, { 0x6E, 0x72 }, { 0x6F, 0x4D }, { 0x70, 0x12 },
+> +	{ 0x71, 0xBF }, { 0x72, 0x0D }, { 0x73, 0x12 }, { 0x74, 0x12 },
+> +	{ 0x76, 0x00 }, { 0x77, 0x3A }, { 0x78, 0x23 }, { 0x79, 0x22 },
+> +	{ 0x7A, 0x41 }, { 0x7E, 0x04 }, { 0x7F, 0x0E }, { 0x80, 0x20 },
+> +	{ 0x81, 0x43 }, { 0x82, 0x53 }, { 0x83, 0x61 }, { 0x84, 0x6D },
+> +	{ 0x85, 0x76 }, { 0x86, 0x7E }, { 0x87, 0x86 }, { 0x88, 0x94 },
+> +	{ 0x89, 0xA1 }, { 0x8A, 0xC5 }, { 0x8E, 0x03 }, { 0x8F, 0x02 },
+> +	{ 0x90, 0x05 }, { 0x91, 0x01 }, { 0x92, 0x03 }, { 0x93, 0x00 },
+> +	{ 0x94, 0x7A }, { 0x95, 0x75 }, { 0x96, 0x05 }, { 0x97, 0x22 },
+> +	{ 0x98, 0x63 }, { 0x99, 0x85 }, { 0x9A, 0x1E }, { 0x9B, 0x08 },
+> +	{ 0x9C, 0x20 }, { 0x9E, 0x00 }, { 0x9F, 0xF8 }, { 0xA0, 0x02 },
+> +	{ 0xA1, 0x50 }, { 0xA6, 0x04 }, { 0xA7, 0x30 }, { 0xA8, 0x30 },
+> +	{ 0xAA, 0x00 }, ENDMARKER,
+> +};
 
-It depends on how you define 'decently'. We're not trying to find a
-general solution to the Boolean Satisfiability Problem here, we can use
-information about the structure of the dependencies to simplify.
-As I see it, drivers depend on subsystems, which in turn depend on core
-functionality. These are mandatory dependencies: an USB device won't
-function without USB support.
-Then there are recommended and optional dependencies, which enhance the
-functionality of a driver. As I have seen with the dummy frontend
-module, a driver doesn't need to _have_ a frontend module to be
-functional (e.g. if there simply isn't one written yet), it just will be
-(much) less useful.
+Ok, this is indeed a lot, still, we should do this properly. After a 
+discussion with Hans on IRC the general conclusion was "noone outside of 
+the device driver shall even know device registers." I think, we shall 
+split this huge array in at least 3 groups:
 
-Pruning (deselecting) all principal modules (i.e. those that actually
-provide modaliases) for devices that we don't want, and then pruning all
-of their dependencies that have now become redundant (i.e. modules that
-have nothing or only unselected modules depending on them) seems decent
-enough to me.
+1. default, that's also valid for other setups with this chip. as you 
+describe this, this set might be empty...
 
-> For instance, if you want cx88 dvb support, you need some front-ends to do
-> anything with it.  Well, what front-ends should be turned on?  You can turn
-> on any number from none to all.  Probably all of them would be best.  But
-> there are tons of other tuners, front-ends, decoders, drivers, etc. that
-> cx88 doesn't use.  Those should be off.
+2. settings, for which controls exist, or can be meaningfully added. For 
+example, there are controls for gain, exposure, auto white balance,...
 
-This is already covered by DVB_FE_CUSTOMIZE. A user who just wants a
-driver for his device and doesn't know (or care) what frontend it uses,
-can just supply a target config of:
+3. a configuration struct with meaningfully named _and_ documented fields. 
+I.e., plese, do not name fields like "r17" or similar:-) This becomes even 
+more important in the absence of a publicly available datasheet. Also, the 
+struct field -- register relationship doesn't have to be one-to-one. I.e., 
+might well be that one field affects several registers, or several fields 
+affect one register.
 
-CONFIG_DVB_FE_CUSTOMISE=n
-CONFIG_<driver>=m
-
-and build the driver, which should simply build all available frontend
-modules. This already happens with allmodconfig, and as far as I know,
-the current drivers don't care if one or many frontent modules are
-available, the right one to use will be selected during hardware
-probe/attach depending on the actual hardware anyway.
-
-A user who wants to further customise the frontend(s) used with the
-driver, should supply this information:
-
-DVB_FE_CUSTOMISE=y
-CONFIG_<driver>=m
-CONFIG_<frontend>=M
-...
-
-This looks very much like the 'virtual packages' and 'alternatives'
-support in package managers.
-
-> So you give an algorithm the config variables you want set (e.g.,
-> VIDEO_CX88) and then tell it to find a valid solution to the rest of the
-> variables given the constraints from Kconfig.  This is the classic
-> NP-complete SAT problem.  It is hard, but we can solve this.
-
-By redefining dependencies and restructuring the dependency graph so
-requirements can be propagated better, you can greatly reduce this
-problem, to the point that simple search, backtracking or heuristics
-become quite feasible. Again, package managers are a good example.
-Entire Linux installers, live cds and preconfigured embedded systems are
-being generated with very little user intervention on a daily basis.
-
-Kind regards,
-
-Alain
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
