@@ -1,51 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.189]:43892 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751743AbZCBSGH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 13:06:07 -0500
-Received: by fk-out-0910.google.com with SMTP id f33so1008400fkf.5
-        for <linux-media@vger.kernel.org>; Mon, 02 Mar 2009 10:06:04 -0800 (PST)
+Received: from ag-out-0708.google.com ([72.14.246.243]:39402 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755201AbZCKIzY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Mar 2009 04:55:24 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so4662741agb.10
+        for <linux-media@vger.kernel.org>; Wed, 11 Mar 2009 01:55:21 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <f917d4dd0903020954h4f7be9d1oa64f7daaef5c766e@mail.gmail.com>
-References: <f917d4dd0902281024veec9c7ay4ee9e609b16c1c2a@mail.gmail.com>
-	 <f917d4dd0902281213n592f8166m97f8e205bc255b93@mail.gmail.com>
-	 <200903021459.08119.nsoranzo@tiscali.it>
-	 <f917d4dd0903020954h4f7be9d1oa64f7daaef5c766e@mail.gmail.com>
-Date: Mon, 2 Mar 2009 21:06:03 +0300
-Message-ID: <208cbae30903021006p1b014bfat54c96d627a8c3990@mail.gmail.com>
-Subject: Re: [PATCH] Add support for GeoVision GV-800(S)
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Bruno Christo <brunochristo@gmail.com>
-Cc: Nicola Soranzo <nsoranzo@tiscali.it>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Wed, 11 Mar 2009 14:25:20 +0530
+Message-ID: <30d7af70903110155l471f7bf3r49a747bb8b095ac1@mail.gmail.com>
+Subject: demux device not gettting registered:(
+From: Lakshmi Vallathol <laks.810@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000e0cd32fae01b2ad0464d40703
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 2, 2009 at 8:54 PM, Bruno Christo <brunochristo@gmail.com> wrote:
-> Hi Nicola,
->
-> 2009/3/2 Nicola Soranzo <nsoranzo@tiscali.it>:
->> Hi Bruno,
->> it look like that your e-mail program is line wrapping your patch.
->> Please read email-clients.txt in Linux Documentation and resubmit the patch,
->> otherwise it cannot be correctly handled by patchwork.kernel.org .
->> Thanks,
->> Nicola
->
-> As you requested, i'm re-submitting the patch. I read email-clients.txt,
-> and I tried to send the patch as part of the body via Gmail with an
-> external editor,
-> evolution, mutt and alpine, but Gmail insists in converting the tabs
-> to whitespace
-> no matter the client used, so I had no choice but to send it as a MIME
-> attachment.
+--000e0cd32fae01b2ad0464d40703
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Well, i used gmail instructions to adjust evolution and it worked well
-(patches inlined okay).
-And i tried mutt - it also works as expected. I read email-clients.txt
-and used "preformatted" inline format in evolution as described. I
-think you can try again if have free time/wish.
+hello,
 
--- 
-Best regards, Klimov Alexey
+We have a problem in our demux device getting detected.. we have
+writen a program code in c++ in linux. the error that it shows while
+compiling is that the demux device does not get detected nor does the
+streams. please do help us with this.. and reply immediately .
+thank you ,
+
+--000e0cd32fae01b2ad0464d40703
+Content-Type: text/plain; charset=US-ASCII; name="oneapp.txt"
+Content-Disposition: attachment; filename="oneapp.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+I2luY2x1ZGU8c3RkaW8uaD4NCiNpbmNsdWRlPHN0cmluZy5oPg0KI2luY2x1ZGU8cG9sbC5oPg0K
+I2luY2x1ZGU8ZXJybm8uaD4NCiNpbmNsdWRlPHN0ZGxpYi5oPg0KI2luY2x1ZGU8bGludXgvdmVy
+c2lvbi5oPg0KI2luY2x1ZGU8bGludXgvZHZiL2RteC5oPg0KI2luY2x1ZGU8bGludXgvZHZiL2Nh
+Lmg+DQojaW5jbHVkZTxzeXMvbXNnLmg+DQojaW5jbHVkZTxsaW51eC90eXBlcy5oPg0KI2luY2x1
+ZGU8cHRocmVhZC5oPg0KI2luY2x1ZGUgPHVuaXN0ZC5oPg0KI2luY2x1ZGU8c3lzL2lvY3RsLmg+
+DQojaW5jbHVkZSA8ZmNudGwuaD4NCiNpbmNsdWRlPHN5cy90eXBlcy5oPg0KI2luY2x1ZGU8c3lz
+L3N0YXQuaD4NCiNpbmNsdWRlPHN5cy9tbWFuLmg+DQojaW5jbHVkZTxzaWduYWwuaD4NCiNpbmNs
+dWRlICJiZ2V0LmMiDQoNCg0KLy9kZWZpbmluZyB0aGUgbWFjcm9zLy8NCg0Kc3RhdGljIHVuc2ln
+bmVkIGludCBtTWVtU3BhY2VIYW5kbGUgPSAtMTsNCnN0YXRpYyBwdGhyZWFkX211dGV4X3QgYmdl
+dF9tZW1fbXV0ZXggPSBQVEhSRUFEX01VVEVYX0lOSVRJQUxJWkVSOw0Kc3RhdGljIGNvbnN0IGNo
+YXIgKkRWQl9UX0RNWF9ERVZJQ0UgPSAiL2Rldi9kdmIvYWRhcHRlcjEvZGVtdXgwIjsNCnN0YXRp
+YyBjb25zdCBjaGFyICpEVkJfQ19ETVhfREVWSUNFID0gIi9kZXYvZHZiL2FkYXB0ZXIyL2RlbXV4
+MSI7DQoNCg0KI2RlZmluZSBNRU1fU1RBUlRfQUREUiAwWDNDMDAwMDANCiNkZWZpbmUgTUVNX1NJ
+WkUgMFgxMDAwMDAwDQoNCiNkZWZpbmUgVEhSRUFEX1NMRUVQX1RJTUUgICAxMCoxMDAwDQojZGVm
+aW5lIE1BWF9TRUNUSU9OX1NJWkUgICAgKDQqMTAyNCkNCnN0YXRpYyBpbnQgYnVmZmVyIFsxMDI0
+KjEwMjRdOw0KDQpzdGF0aWMgaW50ICphZGRyZXNzOw0KdHlwZWRlZiBzdHJ1Y3QNCnsNCiAgICAg
+ICAgaW50IHBpZDsNCiAgICAgICAgaW50IEJ1ZmZlclNpemU7DQogICAgICAgIGludCBmZDsNCiAg
+ICAgICAgaW50IHRocmVhZF9zdGF0dXM7DQogICAgICAgIHB0aHJlYWRfdCB0aHJlYWQ7DQogICAg
+ICAgIGludCBUaW1lT3V0Ow0KfVBjRG14RGF0YVR5cGU7DQpzdGF0aWMgaW50IG1NYWxsb2NNZW0o
+c2l6ZV90IHNpemUpOw0Kc3RhdGljIHZvaWQgbUluaXRNZW0odm9pZCk7DQpzdGF0aWMgdm9pZCBt
+RnJlZU1lbSh2b2lkKTsNCnN0YXRpYyBpbnQgQ29uZmlndXJlRGV2aWNlKGludCBwaWQsaW50IGJ1
+ZmZlcnNpemUsaW50ICplcnJvciwgaW50KnN1YmNyaWQpOw0Kc3RhdGljIHZvaWQgKnBjZG14X3Bl
+c190aHJlYWQodm9pZCAqYXJnKQ0Kew0KICAgICAgICBQY0RteERhdGFUeXBlICpGaWx0ZXIgPSAo
+UGNEbXhEYXRhVHlwZSopYXJnOw0KICAgICAgICBpbnQgKmJ1ZjsNCiAgICAgICAgaW50IGJ5dGVz
+Ow0KICAgICAgICBpbnQgbGVuZ3RoPTA7DQogICAgICAgIHZvaWQgKmhhbmRsZSA9IE5VTEw7DQoN
+CiAgICAgICAgd2hpbGUoRmlsdGVyLT50aHJlYWRfc3RhdHVzID09MSkNCiAgICAgICAgew0KICAg
+ICAgICAgICAgICAgIHVzbGVlcChUSFJFQURfU0xFRVBfVElNRSk7DQogICAgICAgICAgICAgICAg
+YnVmID0gKGludCopbU1hbGxvY01lbShNQVhfU0VDVElPTl9TSVpFKTsNCiAgICAgICAgICAgICAg
+ICBpZihidWYgPT1OVUxMKSBjb250aW51ZTsNCiAgICAgICAgICAgICAgICBieXRlcyA9IHJlYWQo
+RmlsdGVyLT5mZCwgYnVmLCBNQVhfU0VDVElPTl9TSVpFKTsNCiAgICAgICAgICAgICAgICBsZW5n
+dGg9bGVuZ3RoK2J5dGVzOw0KICAgICAgICAgICAgICAgIGlmIChieXRlcyA8IDApDQogICAgICAg
+ICAgICAgICAgew0KICAgICAgICAgICAgICAgICAgICAgICAgRmlsdGVyLT50aHJlYWRfc3RhdHVz
+PTA7DQoJCQkgbUZyZWVNZW0oKTsNCiAgICAgICAgICAgICAgICB9DQogICAgICAgIH0NCg0KICAg
+ICAgICBoYW5kbGU9Zm9wZW4oIi9ob21lL2xha3NobWkvMXN0YXBwLnR4dCIsIndiIik7DQogICAg
+ICAgIGZ3cml0ZShidWYsc2l6ZW9mKGJ1ZiksbGVuZ3RoLGhhbmRsZSk7DQogICAgICAgIGZjbG9z
+ZShoYW5kbGUpOw0KfQ0KaW50IG1haW4oKQ0Kew0KDQogICAgICAgIGludCBlcnJvcixzdWJjcmlk
+Ow0KICAgICAgICBtSW5pdE1lbSgpOw0KICAgICAgICBDb25maWd1cmVEZXZpY2UoNjAwLE1BWF9T
+RUNUSU9OX1NJWkUsJmVycm9yLCZzdWJjcmlkKTsNCn0NCnZvaWQgbUluaXRNZW0odm9pZCkNCnsN
+CiAgICAgICAgY2hhciAqcHRyPShjaGFyKiltYWxsb2MoTUVNX1NJWkUpOw0KDQogICAgICAgIHB0
+aHJlYWRfbXV0ZXhfbG9jaygmYmdldF9tZW1fbXV0ZXgpOw0KDQogICAgICAgIGlmKCFwdHIpDQog
+ICAgICAgIHsNCgkJIGJwb29sKHB0ciwgTUVNX1NJWkUpOw0KICAgICAgICB9DQogICAgICAgIHB0
+aHJlYWRfbXV0ZXhfdW5sb2NrKCZiZ2V0X21lbV9tdXRleCk7DQp9DQppbnQgbU1hbGxvY01lbShz
+aXplX3Qgc2l6ZSkNCnsNCg0KICAgICAgICBwdGhyZWFkX211dGV4X2xvY2soJmJnZXRfbWVtX211
+dGV4KTsNCiAgICAgICAgYWRkcmVzcz1iZ2V0KHNpemUpOw0KICAgICAgICBwdGhyZWFkX211dGV4
+X3VubG9jaygmYmdldF9tZW1fbXV0ZXgpOw0KICAgICAgICByZXR1cm4gYWRkcmVzczsNCn0NCnZv
+aWQgbUZyZWVNZW0odm9pZCkNCg0Kew0KICAgICAgICBwdGhyZWFkX211dGV4X2xvY2soJmJnZXRf
+bWVtX211dGV4KTsNCiAgICAgICAgYnJlbChhZGRyZXNzKTsNCiAgICAgICAgcHRocmVhZF9tdXRl
+eF91bmxvY2soJmJnZXRfbWVtX211dGV4KTsNCn0NCmludCBDb25maWd1cmVEZXZpY2UoaW50IHBp
+ZCxpbnQgYnVmZmVyc2l6ZSxpbnQgKmVycm9yLCBpbnQqc3ViY3JpZCkNCnsNCiAgICAgICAgUGNE
+bXhEYXRhVHlwZSogRmlsdGVyOw0KICAgICAgICBpbnQgZmQ7DQoJIGZkID0gb3BlbihEVkJfVF9E
+TVhfREVWSUNFLChPX1JEV1J8T19OT05CTE9DSykpOw0KICAgICAgICBpZiAoZmQ8MCkNCiAgICAg
+ICAgew0KICAgICAgICAgICAgICAgIHBlcnJvcigiRXJyb3IgaW4gb3BlbmluZyB0aGUgRGVtdXgg
+RGV2aWNlIik7DQogICAgICAgICAgICAgICAgcmV0dXJuIG1NZW1TcGFjZUhhbmRsZTsNCiAgICAg
+ICAgfQ0KICAgICAgICBlbHNlDQogICAgICAgIHsNCiAgICAgICAgICAgICAgICBpZiAoaW9jdGwo
+ZmQsRE1YX1NFVF9CVUZGRVJfU0laRSxidWZmZXJzaXplKT09IC0xKQ0KICAgICAgICAgICAgICAg
+IHsNCiAgICAgICAgICAgICAgICAgICAgICAgIHByaW50ZigiRXJyb3Igd2hpbGUgc2V0dGluZyB0
+aGUgYnVmZmVyIHNpemUhISFcbiIpOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgICAg
+ICBlbHNlDQogICAgICAgICAgICAgICAgew0KICAgICAgICAgICAgICAgICAgICAgICAgRmlsdGVy
+ID0gKFBjRG14RGF0YVR5cGUqKW1NYWxsb2NNZW0oc2l6ZW9mKFBjRG14RGF0YVR5cGUpKTsNCiAg
+ICAgICAgICAgICAgICAgICAgICAgIHByaW50ZigiUHJhc2hhbnRoOiBhbSBoZXJlICEhISBmaXJz
+dCBtZW1vcnkgYWxsb2NhdGlvbiBwYXNzZWRcbiIpOw0KICAgICAgICAgICAgICAgICAgICAgICAg
+aWYgKEZpbHRlciE9TlVMTCkNCiAgICAgICAgICAgICAgICAgICAgICAgIHsNCiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgc3RydWN0IGRteF9wZXNfZmlsdGVyX3BhcmFtcyBmcDsNCiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWVtc2V0KEZpbHRlciwwLERNWF9TRVRfQlVG
+RkVSX1NJWkUpOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmcC5pbnB1dCAgICAg
+ICAgPSBETVhfSU5fRlJPTlRFTkQ7DQoJCQkJIGZwLm91dHB1dCAgICAgICA9IERNWF9PVVRfVEFQ
+Ow0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmcC5wZXNfdHlwZSAgICAgPSBETVhf
+UEVTX09USEVSOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmcC5mbGFncyAgICAg
+ICAgPSBETVhfSU1NRURJQVRFX1NUQVJUOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICBmcC5waWQgICAgICAgICAgPSBwaWQ7DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IGlmIChpb2N0bChmZCxETVhfU0VUX0ZJTFRFUiwmZnApPDApDQogICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIHsNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBt
+RnJlZU1lbSgpOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEZpbHRl
+cj1OVUxMOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHBlcnJvcigi
+ZXJyb3IgaW4gc2V0dGluZyB0aGUgZmlsdGVyIik7DQogICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIH0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZWxzZQ0KICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICB7DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgcHRocmVhZF90ICpwOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIEZpbHRlci0+dGhyZWFkX3N0YXR1cyA9MTsNCiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBwdGhyZWFkX2NyZWF0ZSAocCxOVUxMLCBwY2RteF9wZXNfdGhyZWFk
+LCh2b2lkKilGaWx0ZXIpOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IEZpbHRlci0+dGhyZWFkPSpwOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9DQog
+ICAgICAgICAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAg
+ICAgIGNsb3NlKGZkKTsNCiAgICAgICAgfQ0KfQ0KDQo=
+--000e0cd32fae01b2ad0464d40703--
