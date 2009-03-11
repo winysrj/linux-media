@@ -1,231 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:59529 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752931AbZCMOff (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2932 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752843AbZCKKRJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 10:35:35 -0400
-Date: Fri, 13 Mar 2009 10:35:32 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Brandon Philips <brandon@ifup.org>
-cc: Greg KH <gregkh@suse.de>, <laurent.pinchart@skynet.be>,
-	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
-Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
- is probably using the wrong IRQ."
-In-Reply-To: <20090311221555.GB5776@jenkins.ifup.org>
-Message-ID: <Pine.LNX.4.44L0.0903131033140.2898-100000@iolanthe.rowland.org>
+	Wed, 11 Mar 2009 06:17:09 -0400
+Message-ID: <12860.62.70.2.252.1236766618.squirrel@webmail.xs4all.nl>
+Date: Wed, 11 Mar 2009 11:16:58 +0100 (CET)
+Subject: Re: [PATCH 4/4] mt9v022: allow setting of bus width from board code
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Sascha Hauer" <s.hauer@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Sascha Hauer" <s.hauer@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Mar 2009, Brandon Philips wrote:
 
-> On 15:46 Wed 11 Mar 2009, Alan Stern wrote:
-> > On Wed, 11 Mar 2009, Brandon Philips wrote:
-> > Okay, here's a diagnostic patch meant to apply on top of 
-> > gregkh-all-2.6.29-rc7.  Let's see what it says...
-> 
-> Here is the log:
->  http://ifup.org/~philips/467317/pearl-alan-debug.log
-> 
-> >  	default:
-> >  		qh = (struct ehci_qh *) urb->hcpriv;
-> > +		if (alantest == 1) {
-> > +			alantest = 2;
-> > +			ehci_info(ehci, "dequeue: qh %p\n", qh);
-> > +		}
-> 
-> This was the last thing printed before I dumped the task states with sysrq
-> keys.
+> This patch removes the phytec specific setting of the bus width
+> and switches to the more generic query_bus_param/set_bus_param
+> hooks
+>
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> ---
+>  drivers/media/video/Kconfig   |    7 ---
+>  drivers/media/video/mt9v022.c |   97
+> +++++------------------------------------
+>  2 files changed, 11 insertions(+), 93 deletions(-)
+>
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 5fc1531..071d66f 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -729,6 +664,7 @@ static int mt9v022_video_probe(struct
+> soc_camera_device *icd)
+>  	/* Set monochrome or colour sensor type */
+>  	if (sensor_type && (!strcmp("colour", sensor_type) ||
+>  			    !strcmp("color", sensor_type))) {
+> +	if (1) {
+>  		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
+>  		mt9v022->model = V4L2_IDENT_MT9V022IX7ATC;
+>  		icd->formats = mt9v022_colour_formats;
 
-Okay, not much information there but it's a start.  Here's a more 
-informative patch to try instead.
+'if (1) {': some left-over debugging?
 
-Alan Stern
+Regards,
 
+     Hans
 
-
-Index: usb-2.6/drivers/usb/host/ehci-hcd.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-hcd.c
-+++ usb-2.6/drivers/usb/host/ehci-hcd.c
-@@ -108,6 +108,8 @@ MODULE_PARM_DESC (ignore_oc, "ignore bog
- #include "ehci.h"
- #include "ehci-dbg.c"
- 
-+static int alantest;
-+
- /*-------------------------------------------------------------------------*/
- 
- static void
-@@ -301,12 +303,19 @@ static void ehci_iaa_watchdog(unsigned l
- 	unsigned long		flags;
- 
- 	spin_lock_irqsave (&ehci->lock, flags);
-+	if (alantest == 2)
-+		alantest = 3;
- 
- 	/* Lost IAA irqs wedge things badly; seen first with a vt8235.
- 	 * So we need this watchdog, but must protect it against both
- 	 * (a) SMP races against real IAA firing and retriggering, and
- 	 * (b) clean HC shutdown, when IAA watchdog was pending.
- 	 */
-+	if (alantest == 3)
-+		ehci_info(ehci, "IAA watchdog: reclaim %p pending %d state %d\n",
-+				ehci->reclaim,
-+				timer_pending(&ehci->iaa_watchdog),
-+				ehci_to_hcd(ehci)->state);
- 	if (ehci->reclaim
- 			&& !timer_pending(&ehci->iaa_watchdog)
- 			&& HC_IS_RUNNING(ehci_to_hcd(ehci)->state)) {
-@@ -337,9 +346,15 @@ static void ehci_iaa_watchdog(unsigned l
- 
- 		ehci_vdbg(ehci, "IAA watchdog: status %x cmd %x\n",
- 				status, cmd);
-+		if (alantest == 3)
-+			ehci_info(ehci, "IAA watchdog: status %x cmd %x\n",
-+					status, cmd);
-+
- 		end_unlink_async(ehci);
- 	}
- 
-+	if (alantest == 3)
-+		alantest = 0;
- 	spin_unlock_irqrestore(&ehci->lock, flags);
- }
- 
-@@ -729,6 +744,8 @@ static irqreturn_t ehci_irq (struct usb_
- 					&ehci->regs->command);
- 			ehci_dbg(ehci, "IAA with IAAD still set?\n");
- 		}
-+		if (alantest == 2)
-+			ehci_info(ehci, "IAA: reclaim %p\n", ehci->reclaim);
- 		if (ehci->reclaim) {
- 			COUNT(ehci->stats.reclaim);
- 			end_unlink_async(ehci);
-@@ -847,12 +864,17 @@ static int ehci_urb_enqueue (
- static void unlink_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
- {
- 	/* failfast */
--	if (!HC_IS_RUNNING(ehci_to_hcd(ehci)->state) && ehci->reclaim)
-+	if (!HC_IS_RUNNING(ehci_to_hcd(ehci)->state) && ehci->reclaim) {
-+		if (alantest == 2)
-+			ehci_info(ehci, "call end_unlink_async\n");
- 		end_unlink_async(ehci);
-+	}
- 
- 	/* if it's not linked then there's nothing to do */
--	if (qh->qh_state != QH_STATE_LINKED)
--		;
-+	if (qh->qh_state != QH_STATE_LINKED) {
-+		if (alantest == 2)
-+			ehci_info(ehci, "not linked\n");
-+	}
- 
- 	/* defer till later if busy */
- 	else if (ehci->reclaim) {
-@@ -864,10 +886,15 @@ static void unlink_async (struct ehci_hc
- 			continue;
- 		qh->qh_state = QH_STATE_UNLINK_WAIT;
- 		last->reclaim = qh;
-+		if (alantest == 2)
-+			ehci_info(ehci, "unlink_async: add to reclaim\n");
- 
- 	/* start IAA cycle */
--	} else
-+	} else {
-+		if (alantest == 2)
-+			ehci_info(ehci, "call start_unlink_async\n");
- 		start_unlink_async (ehci, qh);
-+	}
- }
- 
- /* remove from hardware lists
-@@ -891,16 +918,28 @@ static int ehci_urb_dequeue(struct usb_h
- 	// case PIPE_BULK:
- 	default:
- 		qh = (struct ehci_qh *) urb->hcpriv;
-+		if (alantest == 1) {
-+			alantest = 2;
-+			ehci_info(ehci, "dequeue: qh %p state %d\n", qh,
-+				qh->qh_state);
-+		}
- 		if (!qh)
- 			break;
- 		switch (qh->qh_state) {
- 		case QH_STATE_LINKED:
- 		case QH_STATE_COMPLETING:
-+			if (alantest == 2)
-+				ehci_info(ehci, "call unlink_async\n");
- 			unlink_async(ehci, qh);
- 			break;
- 		case QH_STATE_UNLINK:
- 		case QH_STATE_UNLINK_WAIT:
- 			/* already started */
-+			if (alantest == 2) {
-+				alantest = 3;
-+				ehci_info(ehci, "unlink already started, pending %d\n",
-+					timer_pending(&ehci->iaa_watchdog));
-+			}
- 			break;
- 		case QH_STATE_IDLE:
- 			WARN_ON(1);
-Index: usb-2.6/drivers/usb/host/ehci-pci.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-pci.c
-+++ usb-2.6/drivers/usb/host/ehci-pci.c
-@@ -314,6 +314,8 @@ static int ehci_pci_resume(struct usb_hc
- 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
- 	struct pci_dev		*pdev = to_pci_dev(hcd->self.controller);
- 
-+	if (alantest == 0)
-+		alantest = 1;
- 	// maybe restore FLADJ
- 
- 	if (time_before(jiffies, ehci->next_statechange))
-Index: usb-2.6/drivers/usb/host/ehci-q.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-q.c
-+++ usb-2.6/drivers/usb/host/ehci-q.c
-@@ -453,6 +453,8 @@ halt:
- 		/* reinit the xacterr counter for the next qtd */
- 		qh->xacterrs = QH_XACTERR_MAX;
- 	}
-+	if (alantest == 3)
-+		ehci_info(ehci, "qh_completions: qh %p last %p\n", qh, last);
- 
- 	/* last urb's completion might still need calling */
- 	if (likely (last != NULL)) {
-@@ -1062,7 +1064,13 @@ static void end_unlink_async (struct ehc
- 	ehci->reclaim = next;
- 	qh->reclaim = NULL;
- 
-+	if (alantest == 2) {
-+		alantest = 3;
-+		ehci_info(ehci, "end_unlink_async: qh %p\n", qh);
-+	}
- 	qh_completions (ehci, qh);
-+	if (alantest == 3)
-+		alantest = 0;
- 
- 	if (!list_empty (&qh->qtd_list)
- 			&& HC_IS_RUNNING (ehci_to_hcd(ehci)->state))
-@@ -1131,6 +1139,8 @@ static void start_unlink_async (struct e
- 		/* if (unlikely (qh->reclaim != 0))
- 		 *	this will recurse, probably not much
- 		 */
-+		if (alantest == 2)
-+			ehci_info(ehci, "start_unlink_async: halted\n");
- 		end_unlink_async (ehci);
- 		return;
- 	}
-@@ -1139,6 +1149,8 @@ static void start_unlink_async (struct e
- 	ehci_writel(ehci, cmd, &ehci->regs->command);
- 	(void)ehci_readl(ehci, &ehci->regs->command);
- 	iaa_watchdog_start(ehci);
-+	if (alantest == 2)
-+		ehci_info(ehci, "start_unlink_async: IAA started\n");
- }
- 
- /*-------------------------------------------------------------------------*/
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
