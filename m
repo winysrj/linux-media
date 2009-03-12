@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:54486 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751759AbZCNPud (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2009 11:50:33 -0400
-Date: Sat, 14 Mar 2009 16:49:40 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Uri Shkolnik <urishk@yahoo.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] siano: add high level SDIO interface driver for SMS
- based cards
-In-Reply-To: <20090314082916.5f5ae403@pedra.chehab.org>
-Message-ID: <alpine.LRH.1.10.0903141418110.5517@pub4.ifh.de>
-References: <469952.82552.qm@web110812.mail.gq1.yahoo.com> <20090314075154.2e2af9e7@pedra.chehab.org> <alpine.LRH.1.10.0903141154310.5517@pub4.ifh.de> <20090314082916.5f5ae403@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:37372 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459AbZCLJTu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 05:19:50 -0400
+Date: Thu, 12 Mar 2009 06:19:23 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org
+Subject: Re: SDIO stack patch
+Message-ID: <20090312061923.3bfcfba5@pedra.chehab.org>
+In-Reply-To: <84881.14337.qm@web110815.mail.gq1.yahoo.com>
+References: <84881.14337.qm@web110815.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 14 Mar 2009, Mauro Carvalho Chehab wrote:
->> The answer is relatively easy: Some hosts only have a SDIO interface, so
->> no USB, no PCI, no I2C, no MPEG2-streaming interface. So, the device has
->> to provide a SDIO interface in order to read and write register and to
->> make DMAs to get the data to the host. Think of your cell-phone, or your
->> PDA.
->
-> Ok, so, if I understand well, the SDIO interface will be used just like we
-> currently use the I2C or USB bus, right?
->
-> So, we should create some glue between DVB and SDIO bus just like we have with
-> PCI, USB, I2C, etc.
->
-> Ideally something like (using the design we currently have with dvb-usb):
->
-> [...]
+On Thu, 12 Mar 2009 02:00:34 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
-Actually, when I created dvb-usb with the help of a lot of contributors, 
-it served the purpose (and still serves) that there is a lot of different 
-USB-based DVB devices which are delivering data. Bascially every 
-DVB-USB-box/card-vendor is using a generic or specific 
-USB-device-controller which implements some kind of high-level interface 
-to do e.g. I2C and streaming. Those implementations, the USB protocol and 
-its Linux-HAL requires some overhead to implement a driver. It was useful 
-to create some common module and interface.
+> 
+> Hi,
+> 
+> I have a question regarding patching kernel files which reside outside the 'drivers/media' scope.
+> 
+> The SMS device can use SPI and SDIO host interfaces (among others).
+> 
+> Both those drivers' sources require some patching.
+> 
+> The SDIO stack has been patched by Pierre Ossman himself (maintainer of MMC/SD/SDIO stack) back in summer 2008. 
+> Pierre asked that those patches will be committed via the LinuxTV's path.
+> 
+> The SPP patches had been written in Siano (very small patch).
+> 
+> 
+> My questions:
+> 
+> 1) When re-creating the patches (both are quite old, and probably outdated regarding the kernel version which has been used back then), which kernel version should I use for the diff?
 
-With SDIO I can't really see the same right now. First of all, SDIO should 
-be much simpler as USB from the HAL point of view. Correct me if I'm 
-wrong, but the SDIO-host controller should give "simple" DMA access to the 
-device?.
+The last one: 2.6.29-rc*-git*
 
-Another thing for me is, there isn't many SDIO DVB devices out there right 
-now, where Linux support is required (the latter is a pity ;) ). Also, the 
-major part of supported DVB devices in Linux is PC-based and for PC (as of 
-today) there is PCI(e) and USB working quite well, no one needs a SDIO 
-device.
+> 2) Since the V4L hg does not contain those files, should I supply -
+> 	A) The entire updated sources files (only)
+> 	B) Only the patches (like it done with v4l's files)
+> 	C) Both
 
-Having an SDIO device filling in to the DVB-API is rather straight 
-forward, which makes me think that right now there is no need for a 
-dvb-sdio.ko .
-
-Patrick.
-
-PS: please check the date of this email, when reading it in an archive in 
-2 years ;)
+The easiest way, is just to specify at v4l/versions.txt what's the
+minimal version for it to compile (2.6.29, for example). Then, you just send us
+the v4l stuff, and be sure that it will compile fine against that version.
 
 
+Cheers,
+Mauro
