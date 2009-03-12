@@ -1,28 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.237]:32652 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465AbZCaCrx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 22:47:53 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so2761622rvb.1
-        for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 19:47:51 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 31 Mar 2009 10:47:50 +0800
-Message-ID: <15ed362e0903301947rf0de73eo8edbd8cbcd5b5abd@mail.gmail.com>
-Subject: XC5000 DVB-T/DMB-TH support
-From: David Wong <davidtlwong@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mail1.radix.net ([207.192.128.31]:53030 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752670AbZCLXtd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 19:49:33 -0400
+Subject: Re: Fwd: [stable] [PATCH] 2.6.27.y: fix NULL ptr deref in cx23885
+ video_open
+From: Andy Walls <awalls@radix.net>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: stable@kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	LMML <linux-media@vger.kernel.org>
+In-Reply-To: <49B99828.3090002@linuxtv.org>
+References: <200902241700.56099.jarod@redhat.com>
+	 <37219a840903121324q7b08c8d1ma6d0d3ec4f5eb278@mail.gmail.com>
+	 <1236899033.3261.7.camel@palomino.walls.org> <49B99828.3090002@linuxtv.org>
+Content-Type: text/plain
+Date: Thu, 12 Mar 2009 19:49:47 -0400
+Message-Id: <1236901787.3715.23.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Does anyone know how to get XC5000 working for DVB-T, especially 8MHz bandwidth?
-Current driver only supports ATSC with 6MHz bandwidth only.
-It seems there is a trick at setting compensated RF frequency.
+On Thu, 2009-03-12 at 19:18 -0400, Michael Krufky wrote:
+> Andy Walls wrote:
+> > On Thu, 2009-03-12 at 16:24 -0400, Michael Krufky wrote:
+> >   
+> >> Can we have this merged into -stable?  Jarod Wilson sent this last
+> >> month, but he left off the cc to stable@kernel.org
+> >>
+> >> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+> >>     
+> >
+> > Mike,
+> >
+> > A version of this is already in the v4l-dvb hg development repository:
+> >
+> > hg log -vp --limit 1 linux/drivers/media/video/cx23885/cx23885-417.c
+> > hg log -vp --limit 2 linux/drivers/media/video/cx23885/cx23885-video.c 
+> >
+> > I helped Mark work through the solution: I coded some of it, he coded
+> > some of it and he also tested it.
+> >
+> > Regards,
+> > Andy
+> 
+> I'm aware of that, Andy -- That's why I am sending this off to the 
+> -stable team for 2.6.27.y
 
-DVB-T 8MHz support would probably works for DMB-TH, but DMB-TH
-settings is very welcome.
+Ooops. Sorry for my cluelessness. :)
 
 Regards,
-David
+Andy
+
+
+> Thanks & regards,
+> 
+> Mike
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
