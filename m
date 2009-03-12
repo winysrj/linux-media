@@ -1,57 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hamlet.nurpoint.com ([212.239.26.6]:43652 "EHLO
-	hamlet.nurpoint.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbZCBSJf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 13:09:35 -0500
-Received: from dab.z1.infracom.it ([82.193.15.171] helo=[192.168.1.140])
-	by hamlet.nurpoint.com with esmtpa (Exim 4.69)
-	(envelope-from <s.danzi@hawai.it>)
-	id 1LeCa4-0006Sd-By
-	for linux-media@vger.kernel.org; Mon, 02 Mar 2009 19:09:32 +0100
-Message-ID: <49AC20DA.4020203@hawai.it>
-Date: Mon, 02 Mar 2009 19:09:30 +0100
-From: Stefano Danzi <s.danzi@hawai.it>
+Received: from mail.gmx.net ([213.165.64.20]:33591 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751921AbZCLJZc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 05:25:32 -0400
+Date: Thu, 12 Mar 2009 10:25:35 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/4] pcm990 baseboard: add camera bus width switch setting
+In-Reply-To: <20090312091221.GJ425@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.0903121024010.4896@axis700.grange>
+References: <1236765976-20581-1-git-send-email-s.hauer@pengutronix.de>
+ <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de>
+ <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de>
+ <Pine.LNX.4.64.0903120935570.4896@axis700.grange> <20090312091221.GJ425@pengutronix.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DVB-T MUX Frequency list for my city (it-Verona-Zevio)
-Content-Type: multipart/mixed;
- boundary="------------050105060104090608080406"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050105060104090608080406
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 12 Mar 2009, Sascha Hauer wrote:
 
-DVB-T MUX Frequency list for my city (it-Verona-Zevio)
+> On Thu, Mar 12, 2009 at 09:40:46AM +0100, Guennadi Liakhovetski wrote:
+> > One more thing I noticed while looking at your patch 3/4:
+> > 
+> > > +static int pcm990_camera_set_bus_param(struct device *dev,
+> > > +		unsigned long flags)
+> > > +{
+> > > +	if (gpio_bus_switch <= 0)
+> > > +		return 0;
+> > > +
+> > > +	if (flags & SOCAM_DATAWIDTH_8)
+> > > +		gpio_set_value(NR_BUILTIN_GPIO + 1, 1);
+> > > +	else
+> > > +		gpio_set_value(NR_BUILTIN_GPIO + 1, 0);
+> > 
+> > Originally the logic here was "only if flags == SOCAM_DATAWIDTH_8, switch 
+> > to 8 bits, otherwise do 10 bits. I.e., if flags == SOCAM_DATAWIDTH_8 | 
+> > SOCAM_DATAWIDTH_10, it would still do the default (and wider) 10 bits. Do 
+> > you have any reason to change that logic?
+> 
+> I was not aware that I changed any logic. I thought I would get here
+> with only one of the SOCAM_DATAWIDTH_* set. Isn't it a bug when we get
+> here with more than one width flags set?
+> 
+> The mt9v022 driver has this in set_bus_param:
+> 
+> >
+> >	/* Only one width bit may be set */
+> >	if (!is_power_of_2(width_flag))
+> >		return -EINVAL;
+> >
+> 
+> And I think it makes sense.
 
---------------050105060104090608080406
-Content-Type: text/plain;
- name="it-Verona-Zevio"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="it-Verona-Zevio"
+Ok, then, could you, please add the same test to mt9m001? And, as I 
+mentioned in a comment to 3/4, please, return an error if switching is 
+requested but unsupported.
 
-# Italia / Verona / Zevio (it-Verona-Zevio) - 28/02/2009 
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-#
-# C26 - TIMB1
-T 514000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C34 - Mux B Rai
-T 578000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C41 - Mux  DFree
-T 634000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C54 - MBone
-T 738000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C58 - Rete All Music
-T 770000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C61 - Mux Mediaset 2
-T 794000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C64 - Mux DFree
-T 818000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-# C67 - Mediaset 1 
-T 842000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
-
-
---------------050105060104090608080406--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
