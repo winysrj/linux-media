@@ -1,88 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:36047 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754517AbZCZRqw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 13:46:52 -0400
-Date: Thu, 26 Mar 2009 18:47:03 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Questinons regarding soc_camera / pxa_camera
-In-Reply-To: <49CBB13F.7090609@hni.uni-paderborn.de>
-Message-ID: <Pine.LNX.4.64.0903261831430.5438@axis700.grange>
-References: <49CBB13F.7090609@hni.uni-paderborn.de>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4307 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660AbZCLXiz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 19:38:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: disable v4l2-ctl logging --log-status in /var/log/messages
+Date: Fri, 13 Mar 2009 00:39:08 +0100
+Cc: Gregor Fuis <gujs.lists@gmail.com>, linux-media@vger.kernel.org
+References: <50906.62.70.2.252.1236850101.squirrel@webmail.xs4all.nl> <23be820f0903120249n70778ddbh28c04286099cfc5b@mail.gmail.com> <1236900883.3715.9.camel@palomino.walls.org>
+In-Reply-To: <1236900883.3715.9.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903130039.09075.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(moving to the new v4l list)
+On Friday 13 March 2009 00:34:43 Andy Walls wrote:
+> On Thu, 2009-03-12 at 10:49 +0100, Gregor Fuis wrote:
+> > On Thu, Mar 12, 2009 at 10:28 AM, Hans Verkuil <hverkuil@xs4all.nl> 
+wrote:
+> > >> Hello,
+> > >>
+> > >> Is it possible to disable v4l2-ctl aplication logging into
+> > >> /var/log/messages.
+> > >> I am using it to control and monitor my PVR 150 cards and every time
+> > >> I run v4l2-ctl -d /dev/video0 --log-status all output is logged into
+> > >> /var/log/messages and some other linux log files.
+> > >
+> > > All --log-status does is to tell the driver to show it's status in
+> > > the kernel log for debugging purposes. It cannot and should not be
+> > > relied upon for monitoring/controlling a driver.
+> > >
+> > > What do you need it for anyway?
+> >
+> > I am just monitoring if signal is present on tuner, and what signal
+> > format is detected.
+> > These two lines:
+> > cx25840 1-0044: Video signal:              not present
+> > cx25840 1-0044: Detected format:           PAL-Nc
+> > I run this every minute and it is really annoying to have all this in
+> > my system logs.
+> > Is it possible to modify v4l2-ctl source to disable system logging?
+>
+> $ v4l2-ctl -d /dev/video0 -T
+>
+> which calls the VIDIOC_G_TUNER ioctl(), can be used to tell you if a
+> signal is present:
+>
+> Tuner:
+> 	Name                 : cx18 TV Tuner
+> 	Capabilities         : 62.5 kHz multi-standard stereo lang1 lang2
+> 	Frequency range      : 44.0 MHz - 958.0 MHz
+> 	Signal strength/AFC  : 0%/-187500
+> 	Current audio mode   : lang1
+> 	Available subchannels: mono
+>
+> Signal strength will be 0% or 100% - both the cx18 driver and the
+> cx25840 driver behave the same in this regard.
+>
+> AFAICT, other than --log-status (the VIDIOC_LOG_STATUS ioctl()) which
+> always writes to the system logs, there is no way for a non-root user to
+> read out the Video standard detected by the CX25843 hardware.  That
+> would require a change to the driver(s) and maybe an API change (I'm not
+> sure).
 
-On Thu, 26 Mar 2009, Stefan Herbrechtsmeier wrote:
+There is a VIDIOC_QUERYSTD ioctl. However, neither ivtv nor cx25840 supports 
+that. I've always thought that that would be a useful addition, but never 
+got around to implementing it. You are the first one for whom such an ioctl 
+would actually be useful, Gregor :-)
 
-> --- a/linux/drivers/media/video/soc_camera.c    Sun Mar 22 08:53:36 2009 -0300
-> +++ b/linux/drivers/media/video/soc_camera.c    Thu Mar 26 15:35:43 2009 +0100
-> @@ -238,7 +238,7 @@ static int soc_camera_init_user_formats(
->     icd->num_user_formats = fmts;
->     fmts = 0;
-> 
-> -    dev_dbg(&icd->dev, "Found %d supported formats.\n", fmts);
-> +    dev_dbg(&icd->dev, "Found %d supported formats.\n",
-> icd->num_user_formats);
-> 
->     /* Second pass - actually fill data formats */
->     for (i = 0; i < icd->num_formats; i++)
-> 
-> I thing this was wrong or ' fmts = 0;' must be under the output.
+It should be fairly easy to add this, but I really don't have the time for 
+this I'm afraid.
 
-Right, I'd prefer the latter though - to move the "fmts = 0;" assignment 
-down.
+Regards,
 
-> 
-> @@ -675,8 +675,8 @@ static int soc_camera_cropcap(struct fil
->     a->bounds.height        = icd->height_max;
->     a->defrect.left            = icd->x_min;
->     a->defrect.top            = icd->y_min;
-> -    a->defrect.width        = DEFAULT_WIDTH;
-> -    a->defrect.height        = DEFAULT_HEIGHT;
-> +    a->defrect.width        = icd->width_max;
-> +    a->defrect.height        = icd->height_max;
->     a->pixelaspect.numerator    = 1;
->     a->pixelaspect.denominator    = 1;
-> 
-> What was the reason to use fix values? Because of the current implementation
-> of crop,
-> the default value can get bigger than the max value.
+	Hans
 
-Yes, you're right again, taking scaling into account. Although, setting 
-default to maximum doesn't seem a very good idea to me either. Maybe we'd 
-have to add an extra parameter to struct soc_camera_device, but I'm 
-somewhat reluctant to change this now, because all those fields from the 
-struct will have to disappear anyway with the v4l2-subdev transition, at 
-which point, I think, all these requests will have to be passed down to 
-drivers.
-
-> Is there some ongoing work regarding the crop implementation on soc_camera?
-> If I understand the documentation [1] right, the crop vales should represent
-> the area
-> of the capture device before scaling. What was the reason for the current
-> implementation
-> combing crop and fmt values?
-
-See this discussion: 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/68 
-besides, my idea was, that the user cannot be bothered with all scalings / 
-croppings that take place in host and client devices (on camera 
-controllers and / or sensors). My understanding was: the user uses S_FMT 
-to request a window of a certain size, say 640x480, the drivers shall try 
-to fit as much into it as possible using scaling. How many hardware pixels 
-are now used to build this VGA window the user has no idea about. Then you 
-can use S_CROP to select sub-windows from _that_ area. If you want a 
-different resolution, you use S_FMT again (after stopping the running 
-capture), etc. Any other solution seemed too complicated and impractical 
-to me.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
