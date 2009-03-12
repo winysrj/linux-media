@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58005 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753744AbZCTJIe convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42960 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713AbZCLJMY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2009 05:08:34 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Koen Kooi <k.kooi@student.utwente.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Fri, 20 Mar 2009 14:38:19 +0530
-Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EDB3@dbde02.ent.ti.com>
-In-Reply-To: <6EDD6EAA-E1DC-4F71-BB6E-01574AC2D968@student.utwente.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 12 Mar 2009 05:12:24 -0400
+Date: Thu, 12 Mar 2009 10:12:21 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/4] pcm990 baseboard: add camera bus width switch
+	setting
+Message-ID: <20090312091221.GJ425@pengutronix.de>
+References: <1236765976-20581-1-git-send-email-s.hauer@pengutronix.de> <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de> <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903120935570.4896@axis700.grange>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0903120935570.4896@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
-> Sent: Friday, March 20, 2009 2:34 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
+On Thu, Mar 12, 2009 at 09:40:46AM +0100, Guennadi Liakhovetski wrote:
+> One more thing I noticed while looking at your patch 3/4:
 > 
-> 
-> Op 20 mrt 2009, om 06:20 heeft Hardik Shah het volgende geschreven:
-> >
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-> > @@ -711,6 +711,26 @@ config VIDEO_CAFE_CCIC
-> > 	  CMOS camera controller.  This is the controller found on first-
-> > 	  generation OLPC systems.
-> >
-> > +#config VIDEO_OMAP3
-> > +#        tristate "OMAP 3 Camera support"
-> > +#	select VIDEOBUF_GEN
-> > +#	select VIDEOBUF_DMA_SG
-> > +#	depends on VIDEO_V4L2 && ARCH_OMAP34XX
-> > +#	---help---
-> > +#	  Driver for an OMAP 3 camera controller.
+> > +static int pcm990_camera_set_bus_param(struct device *dev,
+> > +		unsigned long flags)
+> > +{
+> > +	if (gpio_bus_switch <= 0)
+> > +		return 0;
 > > +
-> > +config VIDEO_OMAP3
-> > +	bool "OMAP2/OMAP3 Camera and V4L2-DSS drivers"
-> > +	select VIDEOBUF_GEN
-> > +	select VIDEOBUF_DMA_SG
-> > +	select OMAP2_DSS
-> > +	depends on VIDEO_DEV && (ARCH_OMAP24XX || ARCH_OMAP34XX)
-> > +	default y
-> > +	---help---
-> > +        V4L2 DSS and Camera driver support for OMAP2/3 based boards.
+> > +	if (flags & SOCAM_DATAWIDTH_8)
+> > +		gpio_set_value(NR_BUILTIN_GPIO + 1, 1);
+> > +	else
+> > +		gpio_set_value(NR_BUILTIN_GPIO + 1, 0);
 > 
-> 
-> Copy/paste error?
-> 
-> regards,
-> 
-> Koen
-[Shah, Hardik] Yes,
-I will correct it,  Its indeed copy paste error
+> Originally the logic here was "only if flags == SOCAM_DATAWIDTH_8, switch 
+> to 8 bits, otherwise do 10 bits. I.e., if flags == SOCAM_DATAWIDTH_8 | 
+> SOCAM_DATAWIDTH_10, it would still do the default (and wider) 10 bits. Do 
+> you have any reason to change that logic?
 
-Regards,
-Hardik
+I was not aware that I changed any logic. I thought I would get here
+with only one of the SOCAM_DATAWIDTH_* set. Isn't it a bug when we get
+here with more than one width flags set?
+
+The mt9v022 driver has this in set_bus_param:
+
+>
+>	/* Only one width bit may be set */
+>	if (!is_power_of_2(width_flag))
+>		return -EINVAL;
+>
+
+And I think it makes sense.
+
+Sascha
+
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
