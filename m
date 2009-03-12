@@ -1,27 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]:54459 "EHLO
-	shogun.pilppa.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751400AbZC2JTV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 05:19:21 -0400
-Date: Sun, 29 Mar 2009 12:18:52 +0300 (EEST)
-From: Mika Laitio <lamikr@pilppa.org>
-To: Lars Fredriksson <lf@hansson.se>
-cc: linux-media@vger.kernel.org
-Subject: Re: Can't load firmware - HVR4000
-In-Reply-To: <49CEAC86.1090302@hansson.se>
-Message-ID: <Pine.LNX.4.64.0903291218330.25001@shogun.pilppa.org>
-References: <49CEA0BC.4050107@hansson.se> <d9def9db0903281535n76d91619hdce82a24459f9960@mail.gmail.com>
- <49CEAC86.1090302@hansson.se>
+Received: from mail.kapsi.fi ([217.30.184.167]:35498 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753343AbZCLWCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 18:02:35 -0400
+Message-ID: <49B98677.9030102@iki.fi>
+Date: Fri, 13 Mar 2009 00:02:31 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] getting started
+References: <49B982A5.7010103@august.de>
+In-Reply-To: <49B982A5.7010103@august.de>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The firmware loads correctly now!
+Rolf Schumacher wrote:
+> File not found: /lib/modules/2.6.28-7.slh.3-sidux-686/build/.config at
+> ./scripts/make_kconfig.pl line 32, <IN> line 4.
 
-Which devices requires i2c-dev module? I mean if I want to buy new dvb 
-devices in addition of hvr-4000 and hvr-1300, should I then avoid some 
-devices...
+kernel-devel, kernel-headers, linux-devel or linux-headers package is 
+missing. Package name varies from distribution to distribution...
 
-Mika
+
+-- 
+http://palosaari.fi/
