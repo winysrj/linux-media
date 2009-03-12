@@ -1,680 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:4604 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbZCEC6M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 21:58:12 -0500
+Received: from mail.gmx.net ([213.165.64.20]:50208 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751548AbZCLJVS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 05:21:18 -0400
+Date: Thu, 12 Mar 2009 10:21:20 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/4] mt9m001: allow setting of bus width from board code
+In-Reply-To: <1236765976-20581-4-git-send-email-s.hauer@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.0903120941050.4896@axis700.grange>
+References: <1236765976-20581-1-git-send-email-s.hauer@pengutronix.de>
+ <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de>
+ <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de>
+ <1236765976-20581-4-git-send-email-s.hauer@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <A24693684029E5489D1D202277BE89442E1D9223@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89442E1D9223@dlee02.ent.ti.com>
-Date: Thu, 5 Mar 2009 11:58:09 +0900
-Message-ID: <5e9665e10903041858j7d2177abjfa1193532553059c@mail.gmail.com>
-Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
-From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+On Wed, 11 Mar 2009, Sascha Hauer wrote:
 
-
-
-On Wed, Mar 4, 2009 at 5:44 AM, Aguirre Rodriguez, Sergio Alberto
-<saaguirre@ti.com> wrote:
-> This patch adds support for sensors contained in Camkit v3,
-> which has:
->  - Primary sensor (/dev/video0): MT9P012 (Parallel) with
->   DW9710 lens driver.
->  - Secondary sensor (/dev/video4): OV3640 (CSI2).
->
-> It introduces also a new file for storing all camera sensors board
-> specific related functions, like other platforms do (N800 for example).
->
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> This patch removes the phytec specific setting of the bus width
+> and switches to the more generic query_bus_param/set_bus_param
+> hooks
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 > ---
->  arch/arm/mach-omap2/Makefile                    |    3 +-
->  arch/arm/mach-omap2/board-3430sdp-camera.c      |  490 +++++++++++++++++++++++
->  arch/arm/mach-omap2/board-3430sdp.c             |   42 ++-
->  arch/arm/plat-omap/include/mach/board-3430sdp.h |    1 +
->  4 files changed, 534 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-3430sdp-camera.c
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 33b5aa8..8888ee6 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -53,7 +53,8 @@ obj-$(CONFIG_MACH_OMAP2EVM)           += board-omap2evm.o \
->                                           mmc-twl4030.o
->  obj-$(CONFIG_MACH_OMAP_3430SDP)                += board-3430sdp.o \
->                                           mmc-twl4030.o \
-> -                                          board-3430sdp-flash.o
-> +                                          board-3430sdp-flash.o \
-> +                                          board-3430sdp-camera.o
->  obj-$(CONFIG_MACH_OMAP3EVM)            += board-omap3evm.o \
->                                           mmc-twl4030.o \
->                                           board-omap3evm-flash.o \
-> diff --git a/arch/arm/mach-omap2/board-3430sdp-camera.c b/arch/arm/mach-omap2/board-3430sdp-camera.c
-> new file mode 100644
-> index 0000000..661d5ed
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-3430sdp-camera.c
-> @@ -0,0 +1,490 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-3430sdp.c
-> + *
-> + * Copyright (C) 2007 Texas Instruments
-> + *
-> + * Modified from mach-omap2/board-generic.c
-> + *
-> + * Initial code: Syed Mohammed Khasim
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifdef CONFIG_TWL4030_CORE
-> +
-> +#include <linux/clk.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +#include <linux/mm.h>
-> +
-> +#include <linux/i2c/twl4030.h>
-> +
-> +#include <asm/io.h>
-> +
-> +#include <mach/gpio.h>
-> +
-> +static int cam_inited;
-> +#include <media/v4l2-int-device.h>
-> +#include <../drivers/media/video/omap34xxcam.h>
-> +#include <../drivers/media/video/isp/ispreg.h>
-> +#define DEBUG_BASE             0x08000000
-> +
-> +#define REG_SDP3430_FPGA_GPIO_2 (0x50)
-> +#define FPGA_SPR_GPIO1_3v3     (0x1 << 14)
-> +#define FPGA_GPIO6_DIR_CTRL    (0x1 << 6)
-> +
-> +#define VAUX_2_8_V             0x09
-> +#define VAUX_1_8_V             0x05
-> +#define VAUX_DEV_GRP_P1                0x20
-> +#define VAUX_DEV_GRP_NONE      0x00
-> +
-> +#define CAMKITV3_USE_XCLKA     0
-> +#define CAMKITV3_USE_XCLKB     1
-> +
-> +#define CAMKITV3_RESET_GPIO    98
-> +/* Sensor specific GPIO signals */
-> +#define MT9P012_STANDBY_GPIO   58
-> +#define OV3640_STANDBY_GPIO    55
-> +static void __iomem *fpga_map_addr;
-> +
-> +#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-> +#include <media/mt9p012.h>
-> +static enum v4l2_power mt9p012_previous_power = V4L2_POWER_OFF;
-> +#endif
-> +
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +#include <media/ov3640.h>
-> +#include <../drivers/media/video/isp/ispcsi2.h>
-> +static struct omap34xxcam_hw_config *hwc;
-> +#define OV3640_CSI2_CLOCK_POLARITY     0       /* +/- pin order */
-> +#define OV3640_CSI2_DATA0_POLARITY     0       /* +/- pin order */
-> +#define OV3640_CSI2_DATA1_POLARITY     0       /* +/- pin order */
-> +#define OV3640_CSI2_CLOCK_LANE         1        /* Clock lane position: 1 */
-> +#define OV3640_CSI2_DATA0_LANE         2        /* Data0 lane position: 2 */
-> +#define OV3640_CSI2_DATA1_LANE         3        /* Data1 lane position: 3 */
-> +#define OV3640_CSI2_PHY_THS_TERM       4
-> +#define OV3640_CSI2_PHY_THS_SETTLE     14
-> +#define OV3640_CSI2_PHY_TCLK_TERM      0
-> +#define OV3640_CSI2_PHY_TCLK_MISS      1
-> +#define OV3640_CSI2_PHY_TCLK_SETTLE    14
-> +#endif
-> +
-> +#ifdef CONFIG_VIDEO_DW9710
-> +#include <media/dw9710.h>
-> +#endif
-> +
-> +static void __iomem *fpga_map_addr;
-> +
-> +static void enable_fpga_vio_1v8(u8 enable)
-> +{
-> +       u16 reg_val;
-> +
-> +       fpga_map_addr = ioremap(DEBUG_BASE, 4096);
-> +       reg_val = readw(fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
-> +
-> +       /* Ensure that the SPR_GPIO1_3v3 is 0 - powered off.. 1 is on */
-> +       if (reg_val & FPGA_SPR_GPIO1_3v3) {
-> +               reg_val |= FPGA_SPR_GPIO1_3v3;
-> +               reg_val |= FPGA_GPIO6_DIR_CTRL; /* output mode */
-> +               writew(reg_val, fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
-> +               /* give a few milli sec to settle down
-> +                * Let the sensor also settle down.. if required..
-> +                */
-> +               if (enable)
-> +                       mdelay(10);
-> +       }
-> +
-> +       if (enable) {
-> +               reg_val |= FPGA_SPR_GPIO1_3v3 | FPGA_GPIO6_DIR_CTRL;
-> +               writew(reg_val, fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
-> +       }
-> +       /* Vrise time for the voltage - should be less than 1 ms */
-> +       mdelay(1);
-> +}
-> +
-> +#ifdef CONFIG_VIDEO_DW9710
-> +static int dw9710_lens_power_set(enum v4l2_power power)
-> +{
-> +       if (!cam_inited) {
-> +               printk(KERN_ERR "DW9710: Unable to control board GPIOs!\n");
-> +               return -EFAULT;
-> +       }
-> +
-> +       /* The power change depends on MT9P012 powerup, so if we request a
-> +        * power state different from sensor, we should return error
-> +        */
-> +       if ((mt9p012_previous_power != V4L2_POWER_OFF) &&
-> +                                       (power != mt9p012_previous_power))
-> +               return -EIO;
-> +
-> +       switch (power) {
-> +       case V4L2_POWER_OFF:
-> +               /* Power Down Sequence */
-> +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                               VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-> +               enable_fpga_vio_1v8(0);
-> +               iounmap(fpga_map_addr);
-> +               break;
-> +       case V4L2_POWER_ON:
-> +               /* STANDBY_GPIO is active HIGH for set LOW to release */
-> +               gpio_set_value(MT9P012_STANDBY_GPIO, 1);
-> +
-> +               /* nRESET is active LOW. set HIGH to release reset */
-> +               gpio_set_value(CAMKITV3_RESET_GPIO, 1);
-> +
-> +               /* turn on digital power */
-> +               enable_fpga_vio_1v8(1);
-> +
-> +               /* turn on analog power */
-> +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                               VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-> +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                               VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
-> +
-> +               /* out of standby */
-> +               gpio_set_value(MT9P012_STANDBY_GPIO, 0);
-> +               udelay(1000);
-
-It seems better using msleep rather than udelay for 1000us much. Just
-to be safe :)
-How about you?
-
-> +
-> +               /* have to put sensor to reset to guarantee detection */
-> +               gpio_set_value(CAMKITV3_RESET_GPIO, 0);
-> +
-> +               udelay(1500);
-ditto
-
-> +
-> +               /* nRESET is active LOW. set HIGH to release reset */
-> +               gpio_set_value(CAMKITV3_RESET_GPIO, 1);
-> +               /* give sensor sometime to get out of the reset.
-> +                * Datasheet says 2400 xclks. At 6 MHz, 400 usec is
-> +                * enough
-> +                */
-> +               udelay(300);
-and also here..
-
-
-> +               break;
-> +       case V4L2_POWER_STANDBY:
-> +               break;
-> +       }
-> +       return 0;
-> +}
-> +
-> +static int dw9710_lens_set_prv_data(void *priv)
-> +{
-> +       struct omap34xxcam_hw_config *hwc = priv;
-> +
-> +       hwc->dev_index = 0;
-> +       hwc->dev_minor = 0;
-> +       hwc->dev_type = OMAP34XXCAM_SLAVE_LENS;
-> +
-> +       return 0;
-> +}
-> +
-> +struct dw9710_platform_data sdp3430_dw9710_platform_data = {
-> +       .power_set      = dw9710_lens_power_set,
-> +       .priv_data_set  = dw9710_lens_set_prv_data,
-> +};
-> +#endif
-> +
-> +#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-> +static struct omap34xxcam_sensor_config cam_hwc = {
-> +       .sensor_isp = 0,
-> +       .xclk = OMAP34XXCAM_XCLK_A,
-> +       .capture_mem = PAGE_ALIGN(2592 * 1944 * 2) * 4,
-> +       .ival_default   = { 1, 10 },
-> +};
-> +
-> +static int mt9p012_sensor_set_prv_data(void *priv)
-> +{
-> +       struct omap34xxcam_hw_config *hwc = priv;
-> +
-> +       hwc->u.sensor.xclk = cam_hwc.xclk;
-> +       hwc->u.sensor.sensor_isp = cam_hwc.sensor_isp;
-> +       hwc->u.sensor.capture_mem = cam_hwc.capture_mem;
-> +       hwc->dev_index = 0;
-> +       hwc->dev_minor = 0;
-> +       hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
-> +       return 0;
-> +}
-> +
-> +static struct isp_interface_config mt9p012_if_config = {
-> +       .ccdc_par_ser = ISP_PARLL,
-> +       .dataline_shift = 0x1,
-> +       .hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
-> +       .strobe = 0x0,
-> +       .prestrobe = 0x0,
-> +       .shutter = 0x0,
-> +       .prev_sph = 2,
-> +       .prev_slv = 0,
-> +       .wenlog = ISPCCDC_CFG_WENLOG_AND,
-> +       .u.par.par_bridge = 0x0,
-> +       .u.par.par_clk_pol = 0x0,
-> +};
-> +
-> +static int mt9p012_sensor_power_set(enum v4l2_power power)
-> +{
-> +       if (!cam_inited) {
-> +               printk(KERN_ERR "MT9P012: Unable to control board GPIOs!\n");
-> +               return -EFAULT;
-> +       }
-> +
-> +       switch (power) {
-> +       case V4L2_POWER_OFF:
-> +               /* Power Down Sequence */
-> +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                               VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-> +
-> +               enable_fpga_vio_1v8(0);
-> +               iounmap(fpga_map_addr);
-> +               break;
-> +       case V4L2_POWER_ON:
-> +               if (mt9p012_previous_power == V4L2_POWER_OFF) {
-> +                       /* Power Up Sequence */
-> +                       isp_configure_interface(&mt9p012_if_config);
-> +
-> +                       /* set to output mode */
-> +                       gpio_direction_output(MT9P012_STANDBY_GPIO, true);
-> +                       /* set to output mode */
-> +                       gpio_direction_output(CAMKITV3_RESET_GPIO, true);
-> +
-> +                       /* STANDBY_GPIO is active HIGH for set LOW to release */
-> +                       gpio_set_value(MT9P012_STANDBY_GPIO, 1);
-> +
-> +                       /* nRESET is active LOW. set HIGH to release reset */
-> +                       gpio_set_value(CAMKITV3_RESET_GPIO, 1);
-> +
-> +                       /* turn on digital power */
-> +                       enable_fpga_vio_1v8(1);
-> +
-> +                       /* turn on analog power */
-> +                       twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                       VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-> +                       twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                       VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
-> +               }
-> +
-> +               /* out of standby */
-> +               gpio_set_value(MT9P012_STANDBY_GPIO, 0);
-> +               udelay(1000);
-ditto
-
-> +
-> +               if (mt9p012_previous_power == V4L2_POWER_OFF) {
-> +                       /* have to put sensor to reset to guarantee detection */
-> +                       gpio_set_value(CAMKITV3_RESET_GPIO, 0);
-> +
-> +                       udelay(1500);
-ditto
-
-> +
-> +                       /* nRESET is active LOW. set HIGH to release reset */
-> +                       gpio_set_value(CAMKITV3_RESET_GPIO, 1);
-> +                       /* give sensor sometime to get out of the reset.
-> +                        * Datasheet says 2400 xclks. At 6 MHz, 400 usec is
-> +                        * enough
-> +                        */
-> +                       udelay(300);
-ditto
-
-> +               }
-> +               break;
-> +       case V4L2_POWER_STANDBY:
-> +               /* stand by */
-> +               gpio_set_value(MT9P012_STANDBY_GPIO, 1);
-> +               break;
-> +       }
-> +       /* Save powerstate to know what was before calling POWER_ON. */
-> +       mt9p012_previous_power = power;
-> +       return 0;
-> +}
-> +
-> +static u32 mt9p012_sensor_set_xclk(u32 xclkfreq)
-> +{
-> +       return isp_set_xclk(xclkfreq, CAMKITV3_USE_XCLKA);
-> +}
-> +
-> +struct mt9p012_platform_data sdp3430_mt9p012_platform_data = {
-> +       .power_set      = mt9p012_sensor_power_set,
-> +       .priv_data_set  = mt9p012_sensor_set_prv_data,
-> +       .set_xclk       = mt9p012_sensor_set_xclk,
-> +};
-> +
-> +#endif
-> +
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +
-> +static struct omap34xxcam_sensor_config ov3640_hwc = {
-> +       .sensor_isp = 0,
-> +#if defined(CONFIG_VIDEO_OV3640_CSI2)
-> +       .xclk = OMAP34XXCAM_XCLK_B,
-> +#else
-> +       .xclk = OMAP34XXCAM_XCLK_A,
-> +#endif
-> +       .capture_mem = PAGE_ALIGN(2048 * 1536 * 2) * 2,
-> +       .ival_default   = { 1, 15 },
-> +};
-> +
-> +static struct isp_interface_config ov3640_if_config = {
-> +       .ccdc_par_ser = ISP_CSIA,
-> +       .dataline_shift = 0x0,
-> +       .hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
-> +       .strobe = 0x0,
-> +       .prestrobe = 0x0,
-> +       .shutter = 0x0,
-> +       .prev_sph = 2,
-> +       .prev_slv = 0,
-> +       .wenlog = ISPCCDC_CFG_WENLOG_AND,
-> +       .wait_hs_vs = 2,
-> +       .u.csi.crc = 0x0,
-> +       .u.csi.mode = 0x0,
-> +       .u.csi.edge = 0x0,
-> +       .u.csi.signalling = 0x0,
-> +       .u.csi.strobe_clock_inv = 0x0,
-> +       .u.csi.vs_edge = 0x0,
-> +       .u.csi.channel = 0x1,
-> +       .u.csi.vpclk = 0x1,
-> +       .u.csi.data_start = 0x0,
-> +       .u.csi.data_size = 0x0,
-> +       .u.csi.format = V4L2_PIX_FMT_SGRBG10,
-> +};
-> +
-> +static int ov3640_sensor_set_prv_data(void *priv)
-> +{
-> +       hwc = priv;
-> +       hwc->u.sensor.xclk = ov3640_hwc.xclk;
-> +       hwc->u.sensor.sensor_isp = ov3640_hwc.sensor_isp;
-> +       hwc->u.sensor.capture_mem = ov3640_hwc.capture_mem;
-> +       hwc->dev_index = 1;
-> +       hwc->dev_minor = 4;
-> +       hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
-> +       return 0;
-> +}
-> +
-> +static int ov3640_sensor_power_set(enum v4l2_power power)
-> +{
-> +       struct isp_csi2_lanes_cfg lanecfg;
-> +       struct isp_csi2_phy_cfg phyconfig;
-> +       static enum v4l2_power previous_power = V4L2_POWER_OFF;
-> +
-> +       if (!cam_inited) {
-> +               printk(KERN_ERR "OV3640: Unable to control board GPIOs!\n");
-> +               return -EFAULT;
-> +       }
-> +
-> +       switch (power) {
-> +       case V4L2_POWER_ON:
-> +               if (previous_power == V4L2_POWER_OFF)
-> +                       isp_csi2_reset();
-> +
-> +               lanecfg.clk.pol = OV3640_CSI2_CLOCK_POLARITY;
-> +               lanecfg.clk.pos = OV3640_CSI2_CLOCK_LANE;
-> +               lanecfg.data[0].pol = OV3640_CSI2_DATA0_POLARITY;
-> +               lanecfg.data[0].pos = OV3640_CSI2_DATA0_LANE;
-> +               lanecfg.data[1].pol = OV3640_CSI2_DATA1_POLARITY;
-> +               lanecfg.data[1].pos = OV3640_CSI2_DATA1_LANE;
-> +               lanecfg.data[2].pol = 0;
-> +               lanecfg.data[2].pos = 0;
-> +               lanecfg.data[3].pol = 0;
-> +               lanecfg.data[3].pos = 0;
-> +               isp_csi2_complexio_lanes_config(&lanecfg);
-> +               isp_csi2_complexio_lanes_update(true);
-> +
-> +               phyconfig.ths_term = OV3640_CSI2_PHY_THS_TERM;
-> +               phyconfig.ths_settle = OV3640_CSI2_PHY_THS_SETTLE;
-> +               phyconfig.tclk_term = OV3640_CSI2_PHY_TCLK_TERM;
-> +               phyconfig.tclk_miss = OV3640_CSI2_PHY_TCLK_MISS;
-> +               phyconfig.tclk_settle = OV3640_CSI2_PHY_TCLK_SETTLE;
-> +               isp_csi2_phy_config(&phyconfig);
-> +               isp_csi2_phy_update(true);
-> +
-> +               isp_configure_interface(&ov3640_if_config);
-> +
-> +               if (previous_power == V4L2_POWER_OFF) {
-> +                       /* turn on analog power */
-> +#if defined(CONFIG_VIDEO_OV3640_CSI2)
-> +                       twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                       VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
-> +                       twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                       VAUX_DEV_GRP_P1, TWL4030_VAUX4_DEV_GRP);
-> +#else
-> +                       twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                       VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-> +                       twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                       VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
-> +#endif
-> +                       udelay(100);
-> +
-> +                       /* Turn ON Omnivision sensor */
-> +                       gpio_set_value(CAMKITV3_RESET_GPIO, 1);
-> +                       gpio_set_value(OV3640_STANDBY_GPIO, 0);
-> +                       udelay(100);
-> +
-> +                       /* RESET Omnivision sensor */
-> +                       gpio_set_value(CAMKITV3_RESET_GPIO, 0);
-> +                       udelay(100);
-> +                       gpio_set_value(CAMKITV3_RESET_GPIO, 1);
-> +
-> +                       /* Wait 10 ms */
-> +                       mdelay(10);
-> +                       enable_fpga_vio_1v8(1);
-> +                       udelay(100);
-Does that realy takes that much time to turn off OV device?
-> +               }
-> +               break;
-> +       case V4L2_POWER_OFF:
-> +               /* Power Down Sequence */
-> +               isp_csi2_complexio_power(ISP_CSI2_POWER_OFF);
-> +#if defined(CONFIG_VIDEO_OV3640_CSI2)
-> +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                               VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
-> +#else
-> +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                               VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-> +#endif
-> +               enable_fpga_vio_1v8(0);
-> +               iounmap(fpga_map_addr);
-> +               break;
-> +       case V4L2_POWER_STANDBY:
-> +               break;
-> +       }
-> +       previous_power = power;
-> +       return 0;
-> +}
-> +
-> +static u32 ov3640_sensor_set_xclk(u32 xclkfreq)
-> +{
-> +       return isp_set_xclk(xclkfreq, CAMKITV3_USE_XCLKB);
-> +}
-> +
-> +struct ov3640_platform_data sdp3430_ov3640_platform_data = {
-> +       .power_set       = ov3640_sensor_power_set,
-> +       .priv_data_set   = ov3640_sensor_set_prv_data,
-> +       .set_xclk        = ov3640_sensor_set_xclk,
-> +};
-> +
-> +#endif
-> +
-> +void __init sdp3430_cam_init(void)
-> +{
-> +       cam_inited = 0;
-> +       /* Request and configure gpio pins */
-> +       if (gpio_request(CAMKITV3_RESET_GPIO, "camkitv3_reset_gpio") != 0) {
-> +               printk(KERN_ERR "Could not request GPIO %d",
-> +                                       CAMKITV3_RESET_GPIO);
-> +               return;
-> +       }
-> +
-> +       if (gpio_request(OV3640_STANDBY_GPIO, "ov3640_standby_gpio") != 0) {
-> +               printk(KERN_ERR "Could not request GPIO %d",
-> +                                       OV3640_STANDBY_GPIO);
-> +               return;
-> +       }
-> +
-> +       if (gpio_request(MT9P012_STANDBY_GPIO, "mt9p012_standby_gpio")) {
-> +               printk(KERN_ERR "Could not request GPIO %d for MT9P012\n",
-> +                                                       MT9P012_STANDBY_GPIO);
-> +               return;
-> +       }
-> +
-> +       /* set to output mode */
-> +       gpio_direction_output(CAMKITV3_RESET_GPIO, true);
-> +       gpio_direction_output(OV3640_STANDBY_GPIO, true);
-> +       gpio_direction_output(MT9P012_STANDBY_GPIO, true);
-> +
-> +       cam_inited = 1;
-> +}
-> +#else
-> +void __init sdp3430_cam_init(void)
-> +{
-> +}
-> +#endif
-> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-> index 867f5f6..986f087 100644
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -40,6 +40,23 @@
->  #include <mach/dma.h>
->  #include <mach/gpmc.h>
->
-> +#include <media/v4l2-int-device.h>
-> +
-> +#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-> +#include <media/mt9p012.h>
-> +extern struct mt9p012_platform_data sdp3430_mt9p012_platform_data;
-> +#endif
-> +
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +#include <media/ov3640.h>
-> +extern struct ov3640_platform_data sdp3430_ov3640_platform_data;
-> +#endif
-> +
-> +#ifdef CONFIG_VIDEO_DW9710
-> +#include <media/dw9710.h>
-> +extern struct dw9710_platform_data sdp3430_dw9710_platform_data;
-> +#endif
-> +
->  #include <mach/control.h>
->
->  #include "sdram-qimonda-hyb18m512160af-6.h"
-> @@ -610,13 +627,35 @@ static struct i2c_board_info __initdata sdp3430_i2c_boardinfo[] = {
->        },
+>  drivers/media/video/Kconfig   |    7 --
+>  drivers/media/video/mt9m001.c |  130 +++++++++-------------------------------
+>  2 files changed, 30 insertions(+), 107 deletions(-)
+> 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 19cf3b8..5fc1531 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -728,13 +728,6 @@ config SOC_CAMERA_MT9M001
+>  	  This driver supports MT9M001 cameras from Micron, monochrome
+>  	  and colour models.
+>  
+> -config MT9M001_PCA9536_SWITCH
+> -	bool "pca9536 datawidth switch for mt9m001"
+> -	depends on SOC_CAMERA_MT9M001 && GENERIC_GPIO
+> -	help
+> -	  Select this if your MT9M001 camera uses a PCA9536 I2C GPIO
+> -	  extender to switch between 8 and 10 bit datawidth modes
+> -
+>  config SOC_CAMERA_MT9M111
+>  	tristate "mt9m111 and mt9m112 support"
+>  	depends on SOC_CAMERA && I2C
+> diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+> index c1bf75e..112c612 100644
+> --- a/drivers/media/video/mt9m001.c
+> +++ b/drivers/media/video/mt9m001.c
+> @@ -75,7 +75,6 @@ struct mt9m001 {
+>  	int model;	/* V4L2_IDENT_MT9M001* codes from v4l2-chip-ident.h */
+>  	int switch_gpio;
+>  	unsigned char autoexposure;
+> -	unsigned char datawidth;
 >  };
->
-> +static struct i2c_board_info __initdata sdp3430_i2c_boardinfo_2[] = {
-> +#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
-> +       {
-> +               I2C_BOARD_INFO("mt9p012", MT9P012_I2C_ADDR),
-> +               .platform_data = &sdp3430_mt9p012_platform_data,
-> +       },
-> +#ifdef CONFIG_VIDEO_DW9710
-> +       {
-> +               I2C_BOARD_INFO("dw9710",  DW9710_AF_I2C_ADDR),
-> +               .platform_data = &sdp3430_dw9710_platform_data,
-> +       },
-> +#endif
-> +#endif
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +       {
-> +               I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
-> +               .platform_data = &sdp3430_ov3640_platform_data,
-> +       },
-> +#endif
-> +};
-> +
->  static int __init omap3430_i2c_init(void)
->  {
->        /* i2c1 for PMIC only */
->        omap_register_i2c_bus(1, 2600, sdp3430_i2c_boardinfo,
->                        ARRAY_SIZE(sdp3430_i2c_boardinfo));
->        /* i2c2 on camera connector (for sensor control) and optional isp1301 */
-> -       omap_register_i2c_bus(2, 400, NULL, 0);
-> +       omap_register_i2c_bus(2, 400, sdp3430_i2c_boardinfo_2,
-> +                       ARRAY_SIZE(sdp3430_i2c_boardinfo_2));
->        /* i2c3 on display connector (for DVI, tfp410) */
->        omap_register_i2c_bus(3, 400, NULL, 0);
->        return 0;
-> @@ -641,6 +680,7 @@ static void __init omap_3430sdp_init(void)
->        omap_serial_init();
->        usb_musb_init();
->        usb_ehci_init();
-> +       sdp3430_cam_init();
+>  
+>  static int reg_read(struct soc_camera_device *icd, const u8 reg)
+> @@ -181,90 +180,17 @@ static int mt9m001_stop_capture(struct soc_camera_device *icd)
+>  	return 0;
 >  }
->
->  static void __init omap_3430sdp_map_io(void)
-> diff --git a/arch/arm/plat-omap/include/mach/board-3430sdp.h b/arch/arm/plat-omap/include/mach/board-3430sdp.h
-> index 67d3f78..2ddb3e5 100644
-> --- a/arch/arm/plat-omap/include/mach/board-3430sdp.h
-> +++ b/arch/arm/plat-omap/include/mach/board-3430sdp.h
-> @@ -32,6 +32,7 @@
->  extern void sdp3430_usb_init(void);
->  extern void sdp3430_flash_init(void);
->  extern void twl4030_bci_battery_init(void);
-> +extern void sdp3430_cam_init(void);
->
->  #define DEBUG_BASE                     0x08000000  /* debug board */
->
-> --
+>  
+> -static int bus_switch_request(struct mt9m001 *mt9m001,
+> -			      struct soc_camera_link *icl)
+> -{
+> -#ifdef CONFIG_MT9M001_PCA9536_SWITCH
+> -	int ret;
+> -	unsigned int gpio = icl->gpio;
+> -
+> -	if (gpio_is_valid(gpio)) {
+> -		/* We have a data bus switch. */
+> -		ret = gpio_request(gpio, "mt9m001");
+> -		if (ret < 0) {
+> -			dev_err(&mt9m001->client->dev, "Cannot get GPIO %u\n",
+> -				gpio);
+> -			return ret;
+> -		}
+> -
+> -		ret = gpio_direction_output(gpio, 0);
+> -		if (ret < 0) {
+> -			dev_err(&mt9m001->client->dev,
+> -				"Cannot set GPIO %u to output\n", gpio);
+> -			gpio_free(gpio);
+> -			return ret;
+> -		}
+> -	}
+> -
+> -	mt9m001->switch_gpio = gpio;
+> -#else
+> -	mt9m001->switch_gpio = -EINVAL;
+> -#endif
+> -	return 0;
+> -}
+> -
+> -static void bus_switch_release(struct mt9m001 *mt9m001)
+> -{
+> -#ifdef CONFIG_MT9M001_PCA9536_SWITCH
+> -	if (gpio_is_valid(mt9m001->switch_gpio))
+> -		gpio_free(mt9m001->switch_gpio);
+> -#endif
+> -}
+> -
+> -static int bus_switch_act(struct mt9m001 *mt9m001, int go8bit)
+> -{
+> -#ifdef CONFIG_MT9M001_PCA9536_SWITCH
+> -	if (!gpio_is_valid(mt9m001->switch_gpio))
+> -		return -ENODEV;
+> -
+> -	gpio_set_value_cansleep(mt9m001->switch_gpio, go8bit);
+> -	return 0;
+> -#else
+> -	return -ENODEV;
+> -#endif
+> -}
+> -
+> -static int bus_switch_possible(struct mt9m001 *mt9m001)
+> -{
+> -#ifdef CONFIG_MT9M001_PCA9536_SWITCH
+> -	return gpio_is_valid(mt9m001->switch_gpio);
+> -#else
+> -	return 0;
+> -#endif
+> -}
+> -
+>  static int mt9m001_set_bus_param(struct soc_camera_device *icd,
+>  				 unsigned long flags)
+>  {
+>  	struct mt9m001 *mt9m001 = container_of(icd, struct mt9m001, icd);
+> -	unsigned int width_flag = flags & SOCAM_DATAWIDTH_MASK;
+> -	int ret;
+> +	struct soc_camera_link *icl = mt9m001->client->dev.platform_data;
+>  
+>  	/* Flags validity verified in test_bus_param */
+>  
+> -	if ((mt9m001->datawidth != 10 && (width_flag == SOCAM_DATAWIDTH_10)) ||
+> -	    (mt9m001->datawidth != 9  && (width_flag == SOCAM_DATAWIDTH_9)) ||
+> -	    (mt9m001->datawidth != 8  && (width_flag == SOCAM_DATAWIDTH_8))) {
+> -		/* Well, we actually only can do 10 or 8 bits... */
+> -		if (width_flag == SOCAM_DATAWIDTH_9)
+> -			return -EINVAL;
+> -		ret = bus_switch_act(mt9m001,
+> -				     width_flag == SOCAM_DATAWIDTH_8);
+> -		if (ret < 0)
+> -			return ret;
+> -
+> -		mt9m001->datawidth = width_flag == SOCAM_DATAWIDTH_8 ? 8 : 10;
+> -	}
+> +	if (icl->set_bus_param)
+> +		return icl->set_bus_param(&mt9m001->client->dev,
+> +				flags & SOCAM_DATAWIDTH_MASK);
+
+Not quite. Look at the original code. If no change is requested - just 
+return 0. If a change is requested, but switching is impossible - return 
+an error - and this is not, what you are doing in 2/4, please fix. So, you 
+might still want to preserve ".datawidth" for the verification.
+
+Calls to camera-device ->query_bus_param() and ->set_bus_param() methods 
+are currently internal to specific host drivers. So, it is better to be 
+prepared to handle invalid or unexpected parameters.
+
+>  
+>  	return 0;
+>  }
+> @@ -274,12 +200,15 @@ static unsigned long mt9m001_query_bus_param(struct soc_camera_device *icd)
+>  	struct mt9m001 *mt9m001 = container_of(icd, struct mt9m001, icd);
+>  	struct soc_camera_link *icl = mt9m001->client->dev.platform_data;
+>  	/* MT9M001 has all capture_format parameters fixed */
+> -	unsigned long flags = SOCAM_DATAWIDTH_10 | SOCAM_PCLK_SAMPLE_RISING |
+> +	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING |
+>  		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
+>  		SOCAM_MASTER;
+>  
+> -	if (bus_switch_possible(mt9m001))
+> -		flags |= SOCAM_DATAWIDTH_8;
+> +	if (icl->query_bus_param)
+> +		flags |= icl->query_bus_param(&mt9m001->client->dev) &
+> +			SOCAM_DATAWIDTH_MASK;
+> +	else
+> +		flags |= SOCAM_DATAWIDTH_10;
+>  
+>  	return soc_camera_apply_sensor_flags(icl, flags);
+>  }
+> @@ -583,6 +512,7 @@ static int mt9m001_video_probe(struct soc_camera_device *icd)
+>  	struct soc_camera_link *icl = mt9m001->client->dev.platform_data;
+>  	s32 data;
+>  	int ret;
+> +	unsigned long flags;
+>  
+>  	/* We must have a parent by now. And it cannot be a wrong one.
+>  	 * So this entire test is completely redundant. */
+> @@ -603,18 +533,10 @@ static int mt9m001_video_probe(struct soc_camera_device *icd)
+>  	case 0x8421:
+>  		mt9m001->model = V4L2_IDENT_MT9M001C12ST;
+>  		icd->formats = mt9m001_colour_formats;
+> -		if (gpio_is_valid(icl->gpio))
+> -			icd->num_formats = ARRAY_SIZE(mt9m001_colour_formats);
+> -		else
+> -			icd->num_formats = 1;
+>  		break;
+>  	case 0x8431:
+>  		mt9m001->model = V4L2_IDENT_MT9M001C12STM;
+>  		icd->formats = mt9m001_monochrome_formats;
+> -		if (gpio_is_valid(icl->gpio))
+> -			icd->num_formats = ARRAY_SIZE(mt9m001_monochrome_formats);
+> -		else
+> -			icd->num_formats = 1;
+>  		break;
+>  	default:
+>  		ret = -ENODEV;
+> @@ -623,6 +545,25 @@ static int mt9m001_video_probe(struct soc_camera_device *icd)
+>  		goto ei2c;
+>  	}
+>  
+> +	icd->num_formats = 0;
+> +
+> +	/* This is a 10bit sensor, so by default we only allow 10bit.
+> +	 * The platform may support different bus widths due to
+> +	 * different routing of the data lines.
+> +	 */
+> +	if (icl->query_bus_param)
+> +		flags = icl->query_bus_param(&mt9m001->client->dev);
+> +	else
+> +		flags = SOCAM_DATAWIDTH_10;
+> +
+> +	if (flags & SOCAM_DATAWIDTH_10)
+> +		icd->num_formats++;
+> +	else
+> +		icd->formats++;
+> +
+> +	if (flags & SOCAM_DATAWIDTH_8)
+> +		icd->num_formats++;
+> +
+>  	dev_info(&icd->dev, "Detected a MT9M001 chip ID %x (%s)\n", data,
+>  		 data == 0x8431 ? "C12STM" : "C12ST");
+>  
+> @@ -688,18 +629,10 @@ static int mt9m001_probe(struct i2c_client *client,
+>  	icd->height_max	= 1024;
+>  	icd->y_skip_top	= 1;
+>  	icd->iface	= icl->bus_id;
+> -	/* Default datawidth - this is the only width this camera (normally)
+> -	 * supports. It is only with extra logic that it can support
+> -	 * other widths. Therefore it seems to be a sensible default. */
+> -	mt9m001->datawidth = 10;
+>  	/* Simulated autoexposure. If enabled, we calculate shutter width
+>  	 * ourselves in the driver based on vertical blanking and frame width */
+>  	mt9m001->autoexposure = 1;
+>  
+> -	ret = bus_switch_request(mt9m001, icl);
+> -	if (ret)
+> -		goto eswinit;
+> -
+>  	ret = soc_camera_device_register(icd);
+>  	if (ret)
+>  		goto eisdr;
+> @@ -707,8 +640,6 @@ static int mt9m001_probe(struct i2c_client *client,
+>  	return 0;
+>  
+>  eisdr:
+> -	bus_switch_release(mt9m001);
+> -eswinit:
+>  	kfree(mt9m001);
+>  	return ret;
+>  }
+> @@ -718,7 +649,6 @@ static int mt9m001_remove(struct i2c_client *client)
+>  	struct mt9m001 *mt9m001 = i2c_get_clientdata(client);
+>  
+>  	soc_camera_device_unregister(&mt9m001->icd);
+> -	bus_switch_release(mt9m001);
+>  	kfree(mt9m001);
+>  
+>  	return 0;
+> -- 
 > 1.5.6.5
->
->
+> 
 
-
-
--- 
-========================================================
-DongSoo(Nathaniel), Kim
-Engineer
-Mobile S/W Platform Team.
-DMC
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
