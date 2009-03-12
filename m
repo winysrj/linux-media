@@ -1,80 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:27274 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751567AbZCKJUg (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37987 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751012AbZCLKQ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 05:20:36 -0400
-Date: Wed, 11 Mar 2009 10:19:52 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: hg-commit@linuxtv.org, linuxtv-commits@linuxtv.org,
-	linux-media@vger.kernel.org
-Subject: Re: [hg:v4l-dvb] cx88: Prevent general protection fault on rmmod
-Message-ID: <20090311101952.057d8e54@hyperion.delvare>
-In-Reply-To: <E1LhFXL-0007ri-27@www.linuxtv.org>
-References: <E1LhFXL-0007ri-27@www.linuxtv.org>
+	Thu, 12 Mar 2009 06:16:28 -0400
+Date: Thu, 12 Mar 2009 07:15:59 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
+Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
+Message-ID: <20090312071559.2f8c7a34@pedra.chehab.org>
+In-Reply-To: <20090312123540.6cd58ac8@glory.loctelecom.ru>
+References: <E1LHmrf-0004LH-VV@www.linuxtv.org>
+	<49A03A94.9030008@iki.fi>
+	<49B63C6C.8070709@iki.fi>
+	<20090310094019.16ab55d7@pedra.chehab.org>
+	<20090310220819.1790cc44@glory.loctelecom.ru>
+	<49B667A7.8090407@iki.fi>
+	<49B6915A.6050108@iki.fi>
+	<20090312123540.6cd58ac8@glory.loctelecom.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Mar 2009 04:55:19 +0100, Patch from Jean Delvare wrote:
-> The patch number 10935 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
-> 
-> Kernel patches in this development tree may be modified to be backward
-> compatible with older kernels. Compatibility modifications will be
-> removed before inclusion into the mainstream Kernel
-> 
-> If anyone has any objections, please let us know by sending a message to:
-> 	Linux Media Mailing List <linux-media@vger.kernel.org>
+On Thu, 12 Mar 2009 12:35:40 +0900
+Dmitri Belimov <d.belimov@gmail.com> wrote:
 
-Ugh, you committed the wrong patches :( I have sent updated patches with
-much cleaner code since then:
-http://www.spinics.net/lists/linux-media/msg02646.html
-http://www.spinics.net/lists/linux-media/msg02647.html
-http://www.spinics.net/lists/linux-media/msg02648.html
-http://www.spinics.net/lists/linux-media/msg02649.html
+> Hi Antti
+> 
+> > Antti Palosaari wrote:
+> > > Dmitri Belimov wrote:
+> > >>> Could one of you please do such patchset?
+> > >>
+> > >> I haven't a lot expirience with kernel programming. If Antti can
+> > >> it is good. I'll check it
+> > >> on our board.
+> > > 
+> > > OK, I will do. For the first phase and as a bug fix I will do that 
+> > > (disable i2c-gate) like dtv5100 driver does. After that I will add
+> > > new configuration switch for i2c-gate disable and also
+> > > change .no_tuner name to better one.
+> > 
+> > Here it is, please review and test. I kept changes as small as
+> > possible to prevent errors. Lets fix more later.
+> > 
+> > http://linuxtv.org/hg/~anttip/zl10353/
+> 
+> This patch is good. All work is ok.
 
-> ------
-> 
-> From: Jean Delvare  <khali@linux-fr.org>
-> cx88: Prevent general protection fault on rmmod
-> 
-> 
-> When unloading the cx8800 driver I sometimes get a general protection
-> fault. Analysis revealed a race in cx88_ir_stop(). It can be solved by
-> using a delayed work instead of a timer for infrared input polling.
-> 
-> This fixes kernel.org bug #12802.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> 
-> ---
-> 
->  linux/drivers/media/video/cx88/cx88-input.c |   27 +++++++++++++++-----
->  1 file changed, 21 insertions(+), 6 deletions(-)
-> 
-> diff -r 60b0989f6c7a -r 46412997b3c0 linux/drivers/media/video/cx88/cx88-input.c
-> --- a/linux/drivers/media/video/cx88/cx88-input.c	Tue Mar 10 19:28:33 2009 -0700
-> +++ b/linux/drivers/media/video/cx88/cx88-input.c	Thu Mar 05 09:38:24 2009 +0000
-> @@ -49,8 +49,12 @@ struct cx88_IR {
->  
->  	/* poll external decoder */
->  	int polling;
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
->  	struct work_struct work;
->  	struct timer_list timer;
-> +#else
-> +	struct delayed_work work;
-> +#endif
->  	u32 gpio_addr;
->  	u32 last_gpio;
->  	u32 mask_keycode;
-> (...)
+Antti,
 
--- 
-Jean Delvare
+since you said that this patch should go to 2.6.29, I've already merged from
+your tree, after having Dmitry ack.
+> 
+> With my best regards, Dmitry.
+> 
+> > 
+> > regards
+> > Antti
+> > -- 
+> > http://palosaari.fi/
+
+
+
+
+Cheers,
+Mauro
