@@ -1,235 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:35467 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751118AbZCZWba (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 18:31:30 -0400
-Subject: Re: [patch] add documentation for planar YUV 4:4:4 format
-From: Andy Walls <awalls@radix.net>
-To: Daniel =?ISO-8859-1?Q?Gl=F6ckner?= <dg@emlix.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <20090326150538.GB28126@emlix.com>
-References: <1238077846-25751-1-git-send-email-dg@emlix.com>
-	 <20090326150538.GB28126@emlix.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 26 Mar 2009 18:32:13 -0400
-Message-Id: <1238106733.3319.2.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57925 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754368AbZCLL3Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 07:29:24 -0400
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH 2/5] pcm990 baseboard: add camera bus width switch setting
+Date: Thu, 12 Mar 2009 12:27:16 +0100
+Message-Id: <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de>
+In-Reply-To: <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de>
+References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-03-26 at 16:05 +0100, Daniel Glöckner wrote:
-> This patch adds the planar YUV 4:4:4 format to the v4l2 specification.
-> 
-> Signed-off-by: Daniel Glöckner <dg@emlix.com>
-> 
-> diff -r 55df63b82fef -r bd23aedbd597 v4l2-spec/Makefile
-> --- a/v4l2-spec/Makefile	Thu Mar 26 09:13:40 2009 +0100
-> +++ b/v4l2-spec/Makefile	Thu Mar 26 14:06:09 2009 +0100
-> @@ -48,6 +48,7 @@
->  	pixfmt-yuv411p.sgml \
->  	pixfmt-yuv420.sgml \
->  	pixfmt-yuv422p.sgml \
-> +	pixfmt-yuv444p.sgml \
->  	pixfmt-yuyv.sgml \
->  	pixfmt-yvyu.sgml \
->  	pixfmt.sgml \
-> diff -r 55df63b82fef -r bd23aedbd597 v4l2-spec/pixfmt-yuv444p.sgml
-> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-> +++ b/v4l2-spec/pixfmt-yuv444p.sgml	Thu Mar 26 14:06:09 2009 +0100
-> @@ -0,0 +1,171 @@
-> +    <refentry id="V4L2-PIX-FMT-YUV444P">
-> +      <refmeta>
-> +	<refentrytitle>V4L2_PIX_FMT_YUV444P ('444P')</refentrytitle>
-> +	&manvol;
-> +      </refmeta>
-> +      <refnamediv>
-> +	<refname><constant>V4L2_PIX_FMT_YUV444P</constant></refname>
-> +	<refpurpose>Format with full horizontal and vertical chroma resolution,
-> +also known as YUV 4:4:4. Planar layout</refpurpose>
-> +      </refnamediv>
-> +      <refsect1>
-> +	<title>Description</title>
-> +
-> +	<para>This format is not commonly used. The three components are
-> +separated into three sub-images or planes. The Y plane is first. The Cb plane
-> +immediately follows the Y plane in memory. Following the Cb plane is the Cr
-> +plane. All planes have on byte per pixel.</para>
+Some Phytec cameras have a I2C GPIO expander which allows it to
+switch between different sensor bus widths. This was previously
+handled in the camera driver. Since handling of this switch
+varies on several boards the cameras are used on, the board
+support seems a better place to handle the switch
 
-s/on/one/
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ arch/arm/mach-pxa/pcm990-baseboard.c |   49 +++++++++++++++++++++++++++------
+ 1 files changed, 40 insertions(+), 9 deletions(-)
 
-
-Regards,
-Andy
-
-> +	<para>If the Y plane has pad bytes after each row, then the Cr
-> +and Cb planes have the same number of pad bytes after their rows. In other
-> +words, one Cx row (including padding) is exactly as long as one Y row
-> +(including padding).</para>
-> +
-> +	<example>
-> +	  <title><constant>V4L2_PIX_FMT_YUV444P</constant> 4 &times; 4
-> +pixel image</title>
-> +
-> +	  <formalpara>
-> +	    <title>Byte Order.</title>
-> +	    <para>Each cell is one byte.
-> +		<informaltable frame="none">
-> +		<tgroup cols="5" align="center">
-> +		  <colspec align="left" colwidth="2*">
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;0:</entry>
-> +		      <entry>Y'<subscript>00</subscript></entry>
-> +		      <entry>Y'<subscript>01</subscript></entry>
-> +		      <entry>Y'<subscript>02</subscript></entry>
-> +		      <entry>Y'<subscript>03</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;4:</entry>
-> +		      <entry>Y'<subscript>10</subscript></entry>
-> +		      <entry>Y'<subscript>11</subscript></entry>
-> +		      <entry>Y'<subscript>12</subscript></entry>
-> +		      <entry>Y'<subscript>13</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;8:</entry>
-> +		      <entry>Y'<subscript>20</subscript></entry>
-> +		      <entry>Y'<subscript>21</subscript></entry>
-> +		      <entry>Y'<subscript>22</subscript></entry>
-> +		      <entry>Y'<subscript>23</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;12:</entry>
-> +		      <entry>Y'<subscript>30</subscript></entry>
-> +		      <entry>Y'<subscript>31</subscript></entry>
-> +		      <entry>Y'<subscript>32</subscript></entry>
-> +		      <entry>Y'<subscript>33</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;16:</entry>
-> +		      <entry>Cb<subscript>00</subscript></entry>
-> +		      <entry>Cb<subscript>01</subscript></entry>
-> +		      <entry>Cb<subscript>02</subscript></entry>
-> +		      <entry>Cb<subscript>03</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;20:</entry>
-> +		      <entry>Cb<subscript>10</subscript></entry>
-> +		      <entry>Cb<subscript>11</subscript></entry>
-> +		      <entry>Cb<subscript>12</subscript></entry>
-> +		      <entry>Cb<subscript>13</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;24:</entry>
-> +		      <entry>Cb<subscript>20</subscript></entry>
-> +		      <entry>Cb<subscript>21</subscript></entry>
-> +		      <entry>Cb<subscript>22</subscript></entry>
-> +		      <entry>Cb<subscript>23</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;28:</entry>
-> +		      <entry>Cb<subscript>30</subscript></entry>
-> +		      <entry>Cb<subscript>31</subscript></entry>
-> +		      <entry>Cb<subscript>32</subscript></entry>
-> +		      <entry>Cb<subscript>33</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;32:</entry>
-> +		      <entry>Cr<subscript>00</subscript></entry>
-> +		      <entry>Cr<subscript>01</subscript></entry>
-> +		      <entry>Cr<subscript>02</subscript></entry>
-> +		      <entry>Cr<subscript>03</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;36:</entry>
-> +		      <entry>Cr<subscript>10</subscript></entry>
-> +		      <entry>Cr<subscript>11</subscript></entry>
-> +		      <entry>Cr<subscript>12</subscript></entry>
-> +		      <entry>Cr<subscript>13</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;40:</entry>
-> +		      <entry>Cr<subscript>20</subscript></entry>
-> +		      <entry>Cr<subscript>21</subscript></entry>
-> +		      <entry>Cr<subscript>22</subscript></entry>
-> +		      <entry>Cr<subscript>23</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;44:</entry>
-> +		      <entry>Cr<subscript>30</subscript></entry>
-> +		      <entry>Cr<subscript>31</subscript></entry>
-> +		      <entry>Cr<subscript>32</subscript></entry>
-> +		      <entry>Cr<subscript>33</subscript></entry>
-> +		    </row>
-> +		  </tbody>
-> +		</tgroup>
-> +		</informaltable>
-> +	      </para>
-> +	  </formalpara>
-> +
-> +	  <formalpara>
-> +	    <title>Color Sample Location.</title>
-> +	    <para>
-> +		<informaltable frame="none">
-> +		<tgroup cols="5" align="center">
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry></entry>
-> +		      <entry>0</entry><entry>1</entry>
-> +		      <entry>2</entry><entry>3</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>0</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>1</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>2</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>3</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		      <entry>Y/C</entry><entry>Y/C</entry>
-> +		    </row>
-> +		  </tbody>
-> +		</tgroup>
-> +		</informaltable>
-> +	      </para>
-> +	  </formalpara>
-> +	</example>
-> +      </refsect1>
-> +    </refentry>
-> +
-> +  <!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "pixfmt.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +  -->
-> diff -r 55df63b82fef -r bd23aedbd597 v4l2-spec/pixfmt.sgml
-> --- a/v4l2-spec/pixfmt.sgml	Thu Mar 26 09:13:40 2009 +0100
-> +++ b/v4l2-spec/pixfmt.sgml	Thu Mar 26 14:06:09 2009 +0100
-> @@ -596,6 +596,7 @@
->      &sub-y41p;
->      &sub-yuv420;
->      &sub-yuv410;
-> +    &sub-yuv444p;
->      &sub-yuv422p;
->      &sub-yuv411p;
->      &sub-nv12;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
+index 34841c7..8b01565 100644
+--- a/arch/arm/mach-pxa/pcm990-baseboard.c
++++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+@@ -381,14 +381,45 @@ static struct pca953x_platform_data pca9536_data = {
+ 	.gpio_base	= NR_BUILTIN_GPIO + 1,
+ };
+ 
+-static struct soc_camera_link iclink[] = {
+-	{
+-		.bus_id	= 0, /* Must match with the camera ID above */
+-		.gpio	= NR_BUILTIN_GPIO + 1,
+-	}, {
+-		.bus_id	= 0, /* Must match with the camera ID above */
+-		.gpio	= -ENXIO,
++static int gpio_bus_switch;
++
++static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
++		unsigned long flags)
++{
++	if (gpio_bus_switch <= 0)
++		return 0;
++
++	if (flags & SOCAM_DATAWIDTH_8)
++		gpio_set_value(gpio_bus_switch, 1);
++	else
++		gpio_set_value(gpio_bus_switch, 0);
++
++	return 0;
++}
++
++static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
++{
++	int ret;
++
++	if (!gpio_bus_switch) {
++		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
++		if (!ret) {
++			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
++			gpio_direction_output(gpio_bus_switch, 0);
++		} else
++			gpio_bus_switch = -EINVAL;
+ 	}
++
++	if (gpio_bus_switch > 0)
++		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
++	else
++		return SOCAM_DATAWIDTH_10;
++}
++
++static struct soc_camera_link iclink = {
++	.bus_id	= 0, /* Must match with the camera ID above */
++	.query_bus_param = pcm990_camera_query_bus_param,
++	.set_bus_param = pcm990_camera_set_bus_param,
+ };
+ 
+ /* Board I2C devices. */
+@@ -399,10 +430,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
+ 		.platform_data = &pca9536_data,
+ 	}, {
+ 		I2C_BOARD_INFO("mt9v022", 0x48),
+-		.platform_data = &iclink[0], /* With extender */
++		.platform_data = &iclink, /* With extender */
+ 	}, {
+ 		I2C_BOARD_INFO("mt9m001", 0x5d),
+-		.platform_data = &iclink[0], /* With extender */
++		.platform_data = &iclink, /* With extender */
+ 	},
+ };
+ #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
+-- 
+1.5.6.5
 
