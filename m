@@ -1,56 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47153 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080AbZCWWiy (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49168 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755121AbZCLLbf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 18:38:54 -0400
-Date: Mon, 23 Mar 2009 19:38:53 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Pierre Ossman <drzeus@drzeus.cx>
-Cc: Uri Shkolnik <uris@siano-ms.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for
- workarounds
-Message-ID: <20090323193853.4fc0531c@pedra.chehab.org>
-In-Reply-To: <20090322153534.0c64de1e@mjolnir.ossman.eu>
-References: <20090314074201.5c4a1ce1@pedra.chehab.org>
-	<20090322153534.0c64de1e@mjolnir.ossman.eu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Mar 2009 07:31:35 -0400
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH 5/5] soc-camera: remove now unused gpio member of struct soc_camera_link
+Date: Thu, 12 Mar 2009 12:27:19 +0100
+Message-Id: <1236857239-2146-6-git-send-email-s.hauer@pengutronix.de>
+In-Reply-To: <1236857239-2146-5-git-send-email-s.hauer@pengutronix.de>
+References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-4-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-5-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 22 Mar 2009 15:35:34 +0100
-Pierre Ossman <drzeus@drzeus.cx> wrote:
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ include/media/soc_camera.h |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-> On Sat, 14 Mar 2009 07:42:01 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> 
-> > Hi Pierre,
-> > 
-> > Uri sent me this patchset, as part of the changes for supporting some devices
-> > from Siano.
-> > 
-> > The changeset looks fine, although I have no experiences with MMC. Are you
-> > applying it on your tree, or do you prefer if I apply here?
-> > 
-> > If you're applying on yours, this is my ack:
-> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> 
-> This should probably go in your tree with the patch for the Siano SDIO
-> driver. 
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 62f07db..c7a6f42 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -93,8 +93,6 @@ struct soc_camera_host_ops {
+ struct soc_camera_link {
+ 	/* Camera bus id, used to match a camera and a bus */
+ 	int bus_id;
+-	/* GPIO number to switch between 8 and 10 bit modes */
+-	unsigned int gpio;
+ 	/* Per camera SOCAM_SENSOR_* bus flags */
+ 	unsigned long flags;
+ 	/* Optional callbacks to power on or off and reset the sensor */
+-- 
+1.5.6.5
 
-Ok, I'll add it on my -git at the proper time.
-
-> The problem is that that driver isn't ready yet. I was going
-> to do a final cleanup once the USB separations patches were done, but
-> those never materialised.
-
-So, if I understood you well, you want me first to apply the USB patches first,
-or is it something that is still pending from Siano side?
-
-
-Cheers,
-Mauro
