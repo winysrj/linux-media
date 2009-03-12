@@ -1,76 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56014 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203AbZCXOjV (ORCPT
+Received: from 203-109-246-148.static.bliink.ihug.co.nz ([203.109.246.148]:19872
+	"EHLO mail.reveal.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755043AbZCLXFa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 10:39:21 -0400
-Date: Tue, 24 Mar 2009 11:39:13 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [REVIEWv2] bttv v4l2_subdev conversion
-Message-ID: <20090324113913.4afa8f7d@pedra.chehab.org>
-In-Reply-To: <Pine.LNX.4.58.0903202236080.28292@shell2.speakeasy.net>
-References: <200903192124.52524.hverkuil@xs4all.nl>
-	<Pine.LNX.4.58.0903202236080.28292@shell2.speakeasy.net>
+	Thu, 12 Mar 2009 19:05:30 -0400
+Date: Fri, 13 Mar 2009 11:46:49 +1300
+From: Alan McIvor <alan.mcivor@reveal.co.nz>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add support for ProVideo PV-183 to bttv
+Message-Id: <20090313114649.e774c9be.alan.mcivor@reveal.co.nz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+This patch adds support for the ProVideo PV-183 card to the bttv
+device driver. The PV-183 is a PCI card with 8 BT878 devices plus a Hint
+Corp HiNT HB4 PCI-PCI Bridge. Each BT878 has two composite input channels
+available. There are no tuners on this card.
 
-I don't see any points to comment, other than the ones Trent did. So, I'll add
-my comments here.
+This patch was generated against the V4L-DVB mercurial tree as of 12
+March 2009.
 
-On Fri, 20 Mar 2009 22:56:18 -0700 (PDT)
-Trent Piepho <xyzzy@speakeasy.org> wrote:
+Signed-off-by: Alan McIvor <alan.mcivor@reveal.co.nz>
 
-> >  static unsigned int tuner[BTTV_MAX]  = { [ 0 ... (BTTV_MAX-1) ] = UNSET };
-> >  static unsigned int svhs[BTTV_MAX]   = { [ 0 ... (BTTV_MAX-1) ] = UNSET };
-> >  static unsigned int remote[BTTV_MAX] = { [ 0 ... (BTTV_MAX-1) ] = UNSET };
-> > +static unsigned int msp3400[BTTV_MAX];
-> > +static unsigned int tda7432[BTTV_MAX];
-> > +static unsigned int tvaudio[BTTV_MAX];
-> > +static unsigned int saa6588[BTTV_MAX];
-> 
-> Are any of these audio chips mutually exclusive?  Does the driver even
-> support having more than one of them for the same card?  It looks like it
-> doesn't.  In that case you could replace some/all of these options with a
-> "audio chip type" option where 0 is none, 1 is tvaudio, 2 is msp3400, etc.
-> I think that's nicer than adding lots of new options and if you can't have
-> multiple audio chips, why allow one to specify that?
-
-IMO, a mutually exclusive kind of parameter would be better. If the user wants
-to force some audio chip (or even disable it, for some reason), it should
-explicitly select one.
-
-I like Trent's idea of using something like :
-	-1 = no audio
-	 0 = autoprobe
-	 1 = msp3400
-	 2 = tda7432, 
-	...
-
-While I don't see much gain for no-audio, since we are adding such option, I
-don't see why not allowing the user to disable the audio chip support.
-
-> How about not adding this?  It's unused and I just removed a bunch of
-> unused fields from here.  Add it when someone can actually make use of it.
-> 
-> >  	unsigned int tuner_type;  /* tuner chip type */
-> >  	unsigned int tda9887_conf;
-> >  	unsigned int svhs, dig;
-> > +	unsigned int has_saa6588:1;
-> 
-> You're better off not using a bitfield here.  Because of padding, it still
-> takes 32 bits (or more, depending on the alignment of bttv_pll_info) in the
-> struct but takes more code to use.
-
-IMO, it is better to keep it as bitfield since later other bitfields could be
-added. Also, as Hans pointed, this indicates that this is a on/off ("boolean")
-type, but I'm ok if you decide to use another type.
-
-Cheers,
-Mauro
+--- linux/drivers/media/video/bt8xx/bttv.h.orig	2009-03-13 10:12:09.000000000 +1300
++++ linux/drivers/media/video/bt8xx/bttv.h	2009-03-13 10:18:46.000000000 +1300
+@@ -184,6 +184,7 @@
+ #define BTTV_BOARD_IVCE8784		   0x9c
+ #define BTTV_BOARD_GEOVISION_GV800S	   0x9d
+ #define BTTV_BOARD_GEOVISION_GV800S_SL	   0x9e
++#define BTTV_BOARD_PV183                   0x9f
+ 
+ 
+ /* more card-specific defines */
+--- linux/drivers/media/video/bt8xx/bttv-cards.c.orig	2009-03-13 10:12:19.000000000 +1300
++++ linux/drivers/media/video/bt8xx/bttv-cards.c	2009-03-13 10:24:28.000000000 +1300
+@@ -321,6 +321,16 @@ static struct CARD {
+ 	{ 0x763d800b, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
+ 	{ 0x763d800c, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
+ 	{ 0x763d800d, BTTV_BOARD_GEOVISION_GV800S_SL,	"GeoVision GV-800(S) (slave)" },
++
++        { 0x15401830, BTTV_BOARD_PV183,         "Provideo PV183-1" },
++        { 0x15401831, BTTV_BOARD_PV183,         "Provideo PV183-2" },
++        { 0x15401832, BTTV_BOARD_PV183,         "Provideo PV183-3" },
++        { 0x15401833, BTTV_BOARD_PV183,         "Provideo PV183-4" },
++        { 0x15401834, BTTV_BOARD_PV183,         "Provideo PV183-5" },
++        { 0x15401835, BTTV_BOARD_PV183,         "Provideo PV183-6" },
++        { 0x15401836, BTTV_BOARD_PV183,         "Provideo PV183-7" },
++        { 0x15401837, BTTV_BOARD_PV183,         "Provideo PV183-8" },
++	
+ 	{ 0, -1, NULL }
+ };
+ 
+@@ -2910,6 +2920,20 @@ struct tvcard bttv_tvcards[] = {
+ 		.no_tda9875	= 1,
+ 		.muxsel_hook    = gv800s_muxsel,
+ 	},
++	[BTTV_BOARD_PV183] = {
++		.name           = "ProVideo PV183", /* 0x9f */
++		.video_inputs   = 2,
++		/* .audio_inputs= 0, */
++		.svhs           = NO_SVHS,
++		.gpiomask       = 0,
++		.muxsel         = MUXSEL(2, 3),
++		.gpiomux        = { 0 },
++		.needs_tvaudio  = 0,
++		.no_msp34xx     = 1,
++		.pll            = PLL_28,
++		.tuner_type     = TUNER_ABSENT,
++		.tuner_addr	= ADDR_UNSET,
++	},
+ };
+ 
+ static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
