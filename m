@@ -1,300 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-04.arcor-online.net ([151.189.21.44]:46039 "EHLO
-	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753049AbZCXVHm (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49154 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753582AbZCLLbL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 17:07:42 -0400
-Subject: Re: Failure to read saa7134/saa6752hs MPEG output
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Gordon Smith <spider.karma+video4linux-list@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"Robert W. Boone" <rboone@rtd.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com
-In-Reply-To: <2df568dc0903241242j12c07039o3169de0ada62bfcb@mail.gmail.com>
-References: <2df568dc0903201324rc5c4982x45ce071c39ddc74b@mail.gmail.com>
-	 <1237860232.4023.14.camel@pc07.localdom.local>
-	 <1237920433.4964.30.camel@pc07.localdom.local>
-	 <200903242015.21905.hverkuil@xs4all.nl>
-	 <2df568dc0903241242j12c07039o3169de0ada62bfcb@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 24 Mar 2009 22:03:39 +0100
-Message-Id: <1237928619.4964.33.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 12 Mar 2009 07:31:11 -0400
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH 4/5] mt9v022: allow setting of bus width from board code
+Date: Thu, 12 Mar 2009 12:27:18 +0100
+Message-Id: <1236857239-2146-5-git-send-email-s.hauer@pengutronix.de>
+In-Reply-To: <1236857239-2146-4-git-send-email-s.hauer@pengutronix.de>
+References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de>
+ <1236857239-2146-4-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch removes the phytec specific setting of the bus width
+and switches to the more generic query_bus_param/set_bus_param
+hooks
 
-Am Dienstag, den 24.03.2009, 13:42 -0600 schrieb Gordon Smith:
-> On Tue, Mar 24, 2009 at 1:15 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Tuesday 24 March 2009 19:47:13 hermann pitton wrote:
-> >> Am Dienstag, den 24.03.2009, 03:03 +0100 schrieb hermann pitton:
-> >> > Hi,
-> >> >
-> >> > Am Montag, den 23.03.2009, 11:33 -0600 schrieb Gordon Smith:
-> >> > > On Fri, Mar 20, 2009 at 10:02 PM, hermann pitton
-> >> > >
-> >> > > <hermann-pitton@arcor.de> wrote:
-> >> > > > Hi,
-> >> > > >
-> >> > > > Am Freitag, den 20.03.2009, 14:24 -0600 schrieb Gordon Smith:
-> >> > > > > Hello -
-> >> > > > >
-> >> > > > > I'm unable to read or stream compressed data from
-> >> > > > > saa7134/saa6752hs.
-> >> > > > >
-> >> > > > > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
-> >> > > > > hardware encoder per channel, no tuner) running current v4l-dvb
-> >> > > > > in debian 2.6.26-1.
-> >> > > > >
-> >> > > > > MPEG2-TS data is normally available on /dev/video2 and
-> >> > > > > /dev/video3.
-> >> > > > >
-> >> > > > > Previously there were parameters for the saa6752hs module named
-> >> > > > > "force" and "ignore" to modify i2c addresses. The current module
-> >> > > > > appears to lack those parameters and may be using incorrect i2c
-> >> > > > > addresses.
-> >> > > > >
-> >> > > > > Current dmesg:
-> >> > > > >
-> >> > > > > [   13.388944] saa6752hs 3-0020: chip found @ 0x40 (saa7133[0])
-> >> > > > > [   13.588458] saa6752hs 4-0020: chip found @ 0x40 (saa7133[1])
-> >> > > > >
-> >> > > > > Prior dmesg (~2.6.25-gentoo-r7 + v4l-dvb ???):
-> >> > > > >
-> >> > > > > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
-> >> > > > > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
-> >> > > > >
-> >> > > > > Prior modprobe.conf entry:
-> >> > > > > options saa6752hs force=0x1,0x21,0x2,0x21
-> >> > > > > ignore=0x0,0x20,0x1,0x20,0x2,0x20
-> >>
-> >> It was disabled by Hans when converting to v4l2_subdev here.
-> >> http://linuxtv.org/hg/v4l-dvb/rev/c41af551e79f
-> >>
-> >> It is only valid for kernels < 2.6.22 now in saa6752hs.
-> >>
-> >> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 22)
-> >> /* Addresses to scan */
-> >> static unsigned short normal_i2c[] = {0x20, I2C_CLIENT_END};
-> >>
-> >> I2C_CLIENT_INSMOD;
-> >> +#endif
-> >>
-> >> And we only have that single 0x20 address in saa7134-core.c etc.
-> >> That should be the problem.
-> >>
-> >> > > > > $ v4l2-dbg --device /dev/video2 --info
-> >> > > > > Driver info:
-> >> > > > >         Driver name   : saa7134
-> >> > > > >         Card type     : RTD Embedded Technologies VFG73
-> >> > > > >         Bus info      : PCI:0000:02:08.0
-> >> > > > >         Driver version: 526
-> >> > > > >         Capabilities  : 0x05000001
-> >> > > > >                 Video Capture
-> >> > > > >                 Read/Write
-> >> > > > >                 Streaming
-> >> > > > >
-> >> > > > > Streaming is a listed capability but the capture example at
-> >> > > > > http://v4l2spec.bytesex.org/spec/capture-example.html fails
-> >> > > > > during request for buffers.
-> >> > > > >
-> >> > > > > $ v4l2-capture --device /dev/video2 --mmap
-> >> > > > > /dev/video2 does not support memory mapping
-> >> > > > >
-> >> > > > > v4l2-capture.c:
-> >> > > > >         req.count               = 4;
-> >> > > > >         req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> >> > > > >         req.memory              = V4L2_MEMORY_MMAP;
-> >> > > > >
-> >> > > > >         if (-1 == xioctl (fd, VIDIOC_REQBUFS, &req)) {
-> >> > > > >                 if (EINVAL == errno) {
-> >> > > > >                         fprintf (stderr, "%s does not support "
-> >> > > > >                                  "memory mapping\n", dev_name);
-> >> > > > >
-> >> > > > >
-> >> > > > > A read() results in EIO error:
-> >> > > > >
-> >> > > > > $ v4l2-capture --device /dev/video0 --read
-> >> > > > > read error 5, Input/output error
-> >> > > > >
-> >> > > > > v4l2-capture.c:
-> >> > > > >                 if (-1 == read (fd, buffers[0].start,
-> >> > > > > buffers[0].length)) { switch (errno) {
-> >> > > > >             ...
-> >> > > > >                         default:
-> >> > > > >                                 errno_exit ("read");
-> >> > > > >
-> >> > > > >
-> >> > > > > This behavior does not change if the saa6752hs module is not
-> >> > > > > loaded.
-> >> > > > >
-> >> > > > > Is there still a way to modify the i2c address(es) for the
-> >> > > > > saa6752hs module?
-> >> > > > >
-> >> > > > > Any pointers are appreciated.
-> >> > > > >
-> >> > > > > Gordon
-> >> > > >
-> >> > > > thanks for the report.
-> >> > > >
-> >> > > > It was probably forgotten that the prior insmod option had a
-> >> > > > reason.
-> >> > > >
-> >> > > > Try to change it to 0x21 in saa7134-i2c.c
-> >> > > >
-> >> > > > static char *i2c_devs[128] = {
-> >> > > >        [ 0x20      ] = "mpeg encoder (saa6752hs)",
-> >> > > >        [ 0xa0 >> 1 ] = "eeprom",
-> >> > > >        [ 0xc0 >> 1 ] = "tuner (analog)",
-> >> > > >        [ 0x86 >> 1 ] = "tda9887",
-> >> > > >        [ 0x5a >> 1 ] = "remote control",
-> >> > > > };
-> >> > > >
-> >> > > > and report if your cards a usable again.
-> >> > > >
-> >> > > > Seems we need the chip address per card without that insmod option
-> >> > > > and reliable probing.
-> >> > > >
-> >> > > > Cheers,
-> >> > > > Hermann
-> >> > >
-> >> > > Hermann -
-> >> > >
-> >> > > I made the change to saa7134-i2c.c but the i2c address did not
-> >> > > change. I added my initials (gms) to dmesg, so I know I'm loading the
-> >> > > new module.
-> >> > >
-> >> > > I set i2c_debug=1 for saa7134. Here is one device:
-> >> > >
-> >> > > [   13.369175] saa7130/34: v4l2 driver version 0.2.14-gms loaded
-> >> > > [   13.369294] saa7133[0]: found at 0000:02:08.0, rev: 17, irq: 11,
-> >> > > latency: 32, mmio: 0x80000000
-> >> > > [   13.369310] saa7133[0]: subsystem: 1435:7350, board: RTD Embedded
-> >> > > Technologies VFG7350 [card=72,autodetected]
-> >> > > [   13.369335] saa7133[0]: board init: gpio is 10000
-> >> > > [   13.472509] saa7133[0]: i2c xfer: < a0 00 >
-> >> > > [   13.480139] saa7133[0]: i2c xfer: < a1 =35 =14 =50 =73 =ff =ff =ff
-> >> > > =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> >> > > ....snip...
-> >> > > =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> >> > > =ff =ff > [   13.520135] saa7133[0]: i2c eeprom 00: 35 14 50 73 ff ff
-> >> > > ff ff ff ff ff ff ff ff ff ff
-> >> > > ....snip...
-> >> > > [   13.520467] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
-> >> > > ff ff ff ff ff ff ff
-> >> > > [   13.608743] saa6752hs 1-0020: chip found (gms) @ 0x40 (saa7133[0])
-> >> > > [   13.608762] saa7133[0]: i2c xfer: < 40 13 >
-> >> > > [   13.616164] saa7133[0]: i2c xfer: < 41 =13 =13 =13 =13 =13 =13 =13
-> >> > > =13 =13 =13 =13 =13 >
-> >> > > [   13.624161] saa6752hs i2c attach [addr=0x20,client=saa6752hs]
-> >> > > [   13.624337] saa7133[0]: registered device video0 [v4l2]
-> >> > > [   13.624390] saa7133[0]: registered device vbi0
-> >> >
-> >> > yes, sorry, there is more to change.
-> >> >
-> >> > The 0x20 address is also hard coded in saa7134-core.c,
-> >> > saa7134-empress.c and saa6752hs.c.
-> >> >
-> >> > I also don't find your old insmod option for multiple addresses back to
-> >> > 2.6.18 for now. I'll try to find some time to look up the history next
-> >> > days.
-> >>
-> >> See above, static unsigned short normal_i2c[] seems to have allowed to
-> >> set even 0x21, but only 0x20 was visible there.
-> >>
-> >> > With the wrong address and i2c_debug=1 you should see a bunch of ERROR:
-> >> > NO DEVICE stuff from 0x40 and 0x41 if you try "cat /dev/video2" mpeg.
-> >> >
-> >> > Is it really detected at 0x42 with i2c_scan=1 ?
-> >> > Except on i2c_debug level the code seems to tolerate all wrong
-> >> > addresses without warnings.
-> >>
-> >> Please provide the i2c_scan with the device detected at 0x42. I seem to
-> >> find all card related mails from Robert W. Boone from RTD, but not that
-> >> different address information.
-> >>
-> >> We should wait until Hans is back from the Linux embedded conference,
-> >> since he is working on it and I don't even have a working empress
-> >> device, but it seems we need a solution for multiple addresses here too.
-> >>
-> >> If I did not miss anything greping around after lunch, the attached
-> >> patch might work as an interim for you.
-> >
-> > It's good to know that this device can also appear on address 0x42. I'll fix
-> > this properly this weekend. I need to do some work to add saa6588 support
-> > to saa7134 as well, so I can do this at the same time.
-> >
-> > BTW, please post to the new linux-media list rather than the obsolete
-> > video4linux list. I'm no longer subscribed there which is why I didn't see
-> > this earlier.
-> >
-> > Regards,
-> >
-> >        Hans
-> >
-> > --
-> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> >
-> 
-> I have Hermann's data request to verify 0x42 address.
-> 
-> >From RTD Linux Application Note, there is a pcf8574 for digital I/O at 0x40..
-> The saa6752hs is at 0x21.
-> 
-> Here is edited dmesg with i2_scan for first channel:
-> 
-> [   13.268713] Linux video capture interface: v2.00
-> [   13.418744] saa7130/34: v4l2 driver version 0.2.14-gms1 loaded
-> [   13.418875] saa7133[0]: found at 0000:02:08.0, rev: 17, irq: 11,
-> latency: 32, mmio: 0x80000000
-> [   13.418891] saa7133[0]: subsystem: 1435:7350, board: RTD Embedded
-> Technologies VFG7350 [card=72,autodetected]
-> [   13.418918] saa7133[0]: board init: gpio is 10000
-> [   13.520522] saa7133[0]: i2c xfer: < a0 00 >
-> [   13.528156] saa7133[0]: i2c xfer: < a1 =35 =14 =50 =73 =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> ....snip...
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff >
-> [   13.568135] saa7133[0]: i2c eeprom 00: 35 14 50 73 ff ff ff ff ff
-> ff ff ff ff ff ff ff
-> ....snip...
-> [   13.568467] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
-> ff ff ff ff ff ff ff
-> [   13.812492] saa7133[1]: i2c xfer: < 01 ERROR: NO_DEVICE
-> [   13.812640] saa7133[1]: i2c xfer: < 03 ERROR: NO_DEVICE
-> ....snip...
-> [   13.816919] saa7133[1]: i2c xfer: < 3d ERROR: NO_DEVICE
-> [   13.817066] saa7133[1]: i2c xfer: < 3f ERROR: NO_DEVICE
-> [   13.817214] saa7133[1]: i2c xfer: < 41 >
-> [   13.824136] saa7133[1]: i2c xfer: < 43 >
-> [   13.832136] saa7133[1]: i2c xfer: < 45 ERROR: NO_DEVICE
-> [   13.832285] saa7133[1]: i2c xfer: < 47 ERROR: NO_DEVICE
-> ...snip...
-> [   13.838640] saa7133[1]: i2c xfer: < 9d ERROR: NO_DEVICE
-> [   13.838788] saa7133[1]: i2c xfer: < 9f ERROR: NO_DEVICE
-> [   13.838935] saa7133[1]: i2c xfer: < a1 >
-> [   13.844136] saa7133[1]: i2c xfer: < a3 ERROR: NO_DEVICE
-> [   13.844285] saa7133[1]: i2c xfer: < a5 ERROR: NO_DEVICE
-> ....snip...
-> [   13.850787] saa7133[1]: i2c xfer: < fd ERROR: NO_DEVICE
-> [   13.850935] saa7133[1]: i2c xfer: < ff ERROR: NO_DEVICE
-> [   13.678908] saa6752hs 1-0021: chip found (gms1) @ 0x42 (saa7133[0])
-> [   13.678926] saa7133[0]: i2c xfer: < 42 13 >
-> [   13.684221] saa7133[0]: i2c xfer: < 43 =05 =07 =00 =00 =56 =31 =42
-> =34 =02 =06 =00 =00 >
-> [   13.692156] saa6752hs 1-0021: support AC-3
-> [   13.692177] saa6752hs i2c attach [addr=0x21,client=saa6752hs]
-> [   13.692380] saa7133[0]: registered device video0 [v4l2]
-> [   13.692433] saa7133[0]: registered device vbi0
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ drivers/media/video/Kconfig   |    7 --
+ drivers/media/video/mt9v022.c |  141 ++++++++++++-----------------------------
+ 2 files changed, 42 insertions(+), 106 deletions(-)
 
-Ah, that pcf8574 was most confusing.
-
-Gordon and Hans, Thanks.
-
-Cheers,
-Hermann
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 5fc1531..071d66f 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -747,13 +747,6 @@ config SOC_CAMERA_MT9V022
+ 	help
+ 	  This driver supports MT9V022 cameras from Micron
+ 
+-config MT9V022_PCA9536_SWITCH
+-	bool "pca9536 datawidth switch for mt9v022"
+-	depends on SOC_CAMERA_MT9V022 && GENERIC_GPIO
+-	help
+-	  Select this if your MT9V022 camera uses a PCA9536 I2C GPIO
+-	  extender to switch between 8 and 10 bit datawidth modes
+-
+ config SOC_CAMERA_TW9910
+ 	tristate "tw9910 support"
+ 	depends on SOC_CAMERA && I2C
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index b04c8cb..4ddc394 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -13,7 +13,6 @@
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
+ #include <linux/log2.h>
+-#include <linux/gpio.h>
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-chip-ident.h>
+@@ -89,9 +88,7 @@ struct mt9v022 {
+ 	struct i2c_client *client;
+ 	struct soc_camera_device icd;
+ 	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
+-	int switch_gpio;
+ 	u16 chip_control;
+-	unsigned char datawidth;
+ };
+ 
+ static int reg_read(struct soc_camera_device *icd, const u8 reg)
+@@ -209,66 +206,6 @@ static int mt9v022_stop_capture(struct soc_camera_device *icd)
+ 	return 0;
+ }
+ 
+-static int bus_switch_request(struct mt9v022 *mt9v022, struct soc_camera_link *icl)
+-{
+-#ifdef CONFIG_MT9V022_PCA9536_SWITCH
+-	int ret;
+-	unsigned int gpio = icl->gpio;
+-
+-	if (gpio_is_valid(gpio)) {
+-		/* We have a data bus switch. */
+-		ret = gpio_request(gpio, "mt9v022");
+-		if (ret < 0) {
+-			dev_err(&mt9v022->client->dev, "Cannot get GPIO %u\n", gpio);
+-			return ret;
+-		}
+-
+-		ret = gpio_direction_output(gpio, 0);
+-		if (ret < 0) {
+-			dev_err(&mt9v022->client->dev,
+-				"Cannot set GPIO %u to output\n", gpio);
+-			gpio_free(gpio);
+-			return ret;
+-		}
+-	}
+-
+-	mt9v022->switch_gpio = gpio;
+-#else
+-	mt9v022->switch_gpio = -EINVAL;
+-#endif
+-	return 0;
+-}
+-
+-static void bus_switch_release(struct mt9v022 *mt9v022)
+-{
+-#ifdef CONFIG_MT9V022_PCA9536_SWITCH
+-	if (gpio_is_valid(mt9v022->switch_gpio))
+-		gpio_free(mt9v022->switch_gpio);
+-#endif
+-}
+-
+-static int bus_switch_act(struct mt9v022 *mt9v022, int go8bit)
+-{
+-#ifdef CONFIG_MT9V022_PCA9536_SWITCH
+-	if (!gpio_is_valid(mt9v022->switch_gpio))
+-		return -ENODEV;
+-
+-	gpio_set_value_cansleep(mt9v022->switch_gpio, go8bit);
+-	return 0;
+-#else
+-	return -ENODEV;
+-#endif
+-}
+-
+-static int bus_switch_possible(struct mt9v022 *mt9v022)
+-{
+-#ifdef CONFIG_MT9V022_PCA9536_SWITCH
+-	return gpio_is_valid(mt9v022->switch_gpio);
+-#else
+-	return 0;
+-#endif
+-}
+-
+ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
+ 				 unsigned long flags)
+ {
+@@ -282,19 +219,17 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
+ 	if (!is_power_of_2(width_flag))
+ 		return -EINVAL;
+ 
+-	if ((mt9v022->datawidth != 10 && (width_flag == SOCAM_DATAWIDTH_10)) ||
+-	    (mt9v022->datawidth != 9  && (width_flag == SOCAM_DATAWIDTH_9)) ||
+-	    (mt9v022->datawidth != 8  && (width_flag == SOCAM_DATAWIDTH_8))) {
+-		/* Well, we actually only can do 10 or 8 bits... */
+-		if (width_flag == SOCAM_DATAWIDTH_9)
+-			return -EINVAL;
+-
+-		ret = bus_switch_act(mt9v022,
+-				     width_flag == SOCAM_DATAWIDTH_8);
+-		if (ret < 0)
++	if (icl->set_bus_param) {
++		ret = icl->set_bus_param(icl, width_flag);
++		if (ret)
+ 			return ret;
+-
+-		mt9v022->datawidth = width_flag == SOCAM_DATAWIDTH_8 ? 8 : 10;
++	} else {
++		/*
++		 * Without board specific bus width settings we only support the
++		 * sensors native bus width
++		 */
++		if (width_flag != SOCAM_DATAWIDTH_10)
++			return -EINVAL;
+ 	}
+ 
+ 	flags = soc_camera_apply_sensor_flags(icl, flags);
+@@ -328,10 +263,14 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
+ static unsigned long mt9v022_query_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct mt9v022 *mt9v022 = container_of(icd, struct mt9v022, icd);
+-	unsigned int width_flag = SOCAM_DATAWIDTH_10;
++	struct soc_camera_link *icl = mt9v022->client->dev.platform_data;
++	unsigned int width_flag;
+ 
+-	if (bus_switch_possible(mt9v022))
+-		width_flag |= SOCAM_DATAWIDTH_8;
++	if (icl->query_bus_param)
++		width_flag = icl->query_bus_param(icl) &
++			SOCAM_DATAWIDTH_MASK;
++	else
++		width_flag = SOCAM_DATAWIDTH_10;
+ 
+ 	return SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
+ 		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_LOW |
+@@ -699,6 +638,7 @@ static int mt9v022_video_probe(struct soc_camera_device *icd)
+ 	struct soc_camera_link *icl = mt9v022->client->dev.platform_data;
+ 	s32 data;
+ 	int ret;
++	unsigned long flags;
+ 
+ 	if (!icd->dev.parent ||
+ 	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface)
+@@ -732,22 +672,36 @@ static int mt9v022_video_probe(struct soc_camera_device *icd)
+ 		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
+ 		mt9v022->model = V4L2_IDENT_MT9V022IX7ATC;
+ 		icd->formats = mt9v022_colour_formats;
+-		if (gpio_is_valid(icl->gpio))
+-			icd->num_formats = ARRAY_SIZE(mt9v022_colour_formats);
+-		else
+-			icd->num_formats = 1;
+ 	} else {
+ 		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 0x11);
+ 		mt9v022->model = V4L2_IDENT_MT9V022IX7ATM;
+ 		icd->formats = mt9v022_monochrome_formats;
+-		if (gpio_is_valid(icl->gpio))
+-			icd->num_formats = ARRAY_SIZE(mt9v022_monochrome_formats);
+-		else
+-			icd->num_formats = 1;
+ 	}
+ 
+-	if (!ret)
+-		ret = soc_camera_video_start(icd);
++	if (ret < 0)
++		goto eisis;
++
++	icd->num_formats = 0;
++
++	/*
++	 * This is a 10bit sensor, so by default we only allow 10bit.
++	 * The platform may support different bus widths due to
++	 * different routing of the data lines.
++	 */
++	if (icl->query_bus_param)
++		flags = icl->query_bus_param(icl);
++	else
++		flags = SOCAM_DATAWIDTH_10;
++
++	if (flags & SOCAM_DATAWIDTH_10)
++		icd->num_formats++;
++	else
++		icd->formats++;
++
++	if (flags & SOCAM_DATAWIDTH_8)
++		icd->num_formats++;
++
++	ret = soc_camera_video_start(icd);
+ 	if (ret < 0)
+ 		goto eisis;
+ 
+@@ -812,14 +766,6 @@ static int mt9v022_probe(struct i2c_client *client,
+ 	icd->height_max	= 480;
+ 	icd->y_skip_top	= 1;
+ 	icd->iface	= icl->bus_id;
+-	/* Default datawidth - this is the only width this camera (normally)
+-	 * supports. It is only with extra logic that it can support
+-	 * other widths. Therefore it seems to be a sensible default. */
+-	mt9v022->datawidth = 10;
+-
+-	ret = bus_switch_request(mt9v022, icl);
+-	if (ret)
+-		goto eswinit;
+ 
+ 	ret = soc_camera_device_register(icd);
+ 	if (ret)
+@@ -828,8 +774,6 @@ static int mt9v022_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ eisdr:
+-	bus_switch_release(mt9v022);
+-eswinit:
+ 	kfree(mt9v022);
+ 	return ret;
+ }
+@@ -839,7 +783,6 @@ static int mt9v022_remove(struct i2c_client *client)
+ 	struct mt9v022 *mt9v022 = i2c_get_clientdata(client);
+ 
+ 	soc_camera_device_unregister(&mt9v022->icd);
+-	bus_switch_release(mt9v022);
+ 	kfree(mt9v022);
+ 
+ 	return 0;
+-- 
+1.5.6.5
 
