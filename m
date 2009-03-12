@@ -1,71 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:2893 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753839AbZCQQAM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 12:00:12 -0400
-Received: by rv-out-0506.google.com with SMTP id g37so62373rvb.1
-        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 09:00:10 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:52497 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753815AbZCLWMz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 18:12:55 -0400
+Date: Thu, 12 Mar 2009 23:12:55 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/4] pxa_camera: Fix overrun condition on last buffer
+In-Reply-To: <87bps61kzp.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0903122312050.10558@axis700.grange>
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-4-git-send-email-robert.jarzmik@free.fr>
+ <1236282351-28471-5-git-send-email-robert.jarzmik@free.fr>
+ <Pine.LNX.4.64.0903111930300.4818@axis700.grange> <87bps61kzp.fsf@free.fr>
 MIME-Version: 1.0
-Date: Wed, 18 Mar 2009 00:00:10 +0800
-Message-ID: <15ed362e0903170900y6a71cb71oc65768367a8cfd14@mail.gmail.com>
-Subject: [PATCH] Remove stream pipe draining code for CXUSB D680 DMB
-From: David Wong <davidtlwong@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0cd14d665eaa5f046552a9df
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cd14d665eaa5f046552a9df
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+On Thu, 12 Mar 2009, Robert Jarzmik wrote:
 
-CXUSB D680 DMB pipe draining code found to be problematic for new
-kernels (eg. kernel 2.6.27 @ Ubuntu 8.10)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> >> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> >> index 16bf0a3..dd56c35 100644
+> >> --- a/drivers/media/video/pxa_camera.c
+> >> +++ b/drivers/media/video/pxa_camera.c
+> >> @@ -734,14 +734,18 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
+> >>  		status & DCSR_ENDINTR ? "EOF " : "", vb, DDADR(channel));
+> >>  
+> >>  	if (status & DCSR_ENDINTR) {
+> >> -		if (camera_status & overrun) {
+> >> +		/*
+> >> +		 * It's normal if the last frame creates an overrun, as there
+> >> +		 * are no more DMA descriptors to fetch from QIF fifos
+> >> +		 */
+> >> +		if (camera_status & overrun
+> >> +		    && !list_is_last(pcdev->capture.next, &pcdev->capture)) {
+> >
+> > On a second look - didn't you want to test for ->active being the last?
+> 
+> Mmm, I'm not sure I get you right here. AFAICR pcdev->active has no direct link
+> with pcdev->capture (it has nothing to do with a list_head *). Of course with a
+> bit of "container_of" magic (or list_entry equivalent), I'll find it ...
 
-David T.L. Wong
+Ah, sorry, scratch it, I now understand what you're doing here, looks ok.
 
---000e0cd14d665eaa5f046552a9df
-Content-Type: text/x-patch; charset=US-ASCII; name="remove_cxusb_d680_pipe_drains.patch"
-Content-Disposition: attachment;
-	filename="remove_cxusb_d680_pipe_drains.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fserslmv0
-
-ZGlmZiAtciA2MjZjMTM2ZWMyMjEgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9jeHVz
-Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvY3h1c2IuYwlGcmkgTWFy
-IDEzIDE0OjM1OjE0IDIwMDkgLTA3MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZi
-LXVzYi9jeHVzYi5jCVR1ZSBNYXIgMTcgMjM6MjA6MDAgMjAwOSArMDgwMApAQCAtMzIyLDU4ICsz
-MjIsMTEgQEAKIAlyZXR1cm4gMDsKIH0KIAotc3RhdGljIHZvaWQgY3h1c2JfZDY4MF9kbWJfZHJh
-aW5fbWVzc2FnZShzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQpCi17Ci0JaW50ICAgICAgIGVwID0g
-ZC0+cHJvcHMuZ2VuZXJpY19idWxrX2N0cmxfZW5kcG9pbnQ7Ci0JY29uc3QgaW50IHRpbWVvdXQg
-PSAxMDA7Ci0JY29uc3QgaW50IGp1bmtfbGVuID0gMzI7Ci0JdTggICAgICAgICpqdW5rOwotCWlu
-dCAgICAgICByZF9jb3VudDsKLQotCS8qIERpc2NhcmQgcmVtYWluaW5nIGRhdGEgaW4gdmlkZW8g
-cGlwZSAqLwotCWp1bmsgPSBrbWFsbG9jKGp1bmtfbGVuLCBHRlBfS0VSTkVMKTsKLQlpZiAoIWp1
-bmspCi0JCXJldHVybjsKLQl3aGlsZSAoMSkgewotCQlpZiAodXNiX2J1bGtfbXNnKGQtPnVkZXYs
-Ci0JCQl1c2JfcmN2YnVsa3BpcGUoZC0+dWRldiwgZXApLAotCQkJanVuaywganVua19sZW4sICZy
-ZF9jb3VudCwgdGltZW91dCkgPCAwKQotCQkJYnJlYWs7Ci0JCWlmICghcmRfY291bnQpCi0JCQli
-cmVhazsKLQl9Ci0Ja2ZyZWUoanVuayk7Ci19Ci0KLXN0YXRpYyB2b2lkIGN4dXNiX2Q2ODBfZG1i
-X2RyYWluX3ZpZGVvKHN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCkKLXsKLQlzdHJ1Y3QgdXNiX2Rh
-dGFfc3RyZWFtX3Byb3BlcnRpZXMgKnAgPSAmZC0+cHJvcHMuYWRhcHRlclswXS5zdHJlYW07Ci0J
-Y29uc3QgaW50IHRpbWVvdXQgPSAxMDA7Ci0JY29uc3QgaW50IGp1bmtfbGVuID0gcC0+dS5idWxr
-LmJ1ZmZlcnNpemU7Ci0JdTggICAgICAgICpqdW5rOwotCWludCAgICAgICByZF9jb3VudDsKLQot
-CS8qIERpc2NhcmQgcmVtYWluaW5nIGRhdGEgaW4gdmlkZW8gcGlwZSAqLwotCWp1bmsgPSBrbWFs
-bG9jKGp1bmtfbGVuLCBHRlBfS0VSTkVMKTsKLQlpZiAoIWp1bmspCi0JCXJldHVybjsKLQl3aGls
-ZSAoMSkgewotCQlpZiAodXNiX2J1bGtfbXNnKGQtPnVkZXYsCi0JCQl1c2JfcmN2YnVsa3BpcGUo
-ZC0+dWRldiwgcC0+ZW5kcG9pbnQpLAotCQkJanVuaywganVua19sZW4sICZyZF9jb3VudCwgdGlt
-ZW91dCkgPCAwKQotCQkJYnJlYWs7Ci0JCWlmICghcmRfY291bnQpCi0JCQlicmVhazsKLQl9Ci0J
-a2ZyZWUoanVuayk7Ci19Ci0KIHN0YXRpYyBpbnQgY3h1c2JfZDY4MF9kbWJfc3RyZWFtaW5nX2N0
-cmwoCiAJCXN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIgKmFkYXAsIGludCBvbm9mZikKIHsKIAlpZiAo
-b25vZmYpIHsKIAkJdTggYnVmWzJdID0geyAweDAzLCAweDAwIH07Ci0JCWN4dXNiX2Q2ODBfZG1i
-X2RyYWluX3ZpZGVvKGFkYXAtPmRldik7CiAJCXJldHVybiBjeHVzYl9jdHJsX21zZyhhZGFwLT5k
-ZXYsIENNRF9TVFJFQU1JTkdfT04sCiAJCQlidWYsIHNpemVvZihidWYpLCBOVUxMLCAwKTsKIAl9
-IGVsc2UgewpAQCAtMTExOCwxMyArMTA4MSw2IEBACiAJdXNiX2NsZWFyX2hhbHQoZC0+dWRldiwK
-IAkJdXNiX3JjdmJ1bGtwaXBlKGQtPnVkZXYsIGQtPnByb3BzLmFkYXB0ZXJbMF0uc3RyZWFtLmVu
-ZHBvaW50KSk7CiAKLQkvKiBEcmFpbiBVU0IgcGlwZXMgdG8gYXZvaWQgaGFuZyBhZnRlciByZWJv
-b3QgKi8KLQlmb3IgKG4gPSAwOyAgbiA8IDU7ICBuKyspIHsKLQkJY3h1c2JfZDY4MF9kbWJfZHJh
-aW5fbWVzc2FnZShkKTsKLQkJY3h1c2JfZDY4MF9kbWJfZHJhaW5fdmlkZW8oZCk7Ci0JCW1zbGVl
-cCgyMDApOwotCX0KLQogCS8qIFJlc2V0IHRoZSB0dW5lciAqLwogCWlmIChjeHVzYl9kNjgwX2Rt
-Yl9ncGlvX3R1bmVyKGQsIDB4MDcsIDApIDwgMCkgewogCQllcnIoImNsZWFyIHR1bmVyIGdwaW8g
-ZmFpbGVkIik7Cg==
---000e0cd14d665eaa5f046552a9df--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
