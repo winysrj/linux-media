@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:62283 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564AbZCZQpW (ORCPT
+Received: from web110813.mail.gq1.yahoo.com ([67.195.13.236]:41902 "HELO
+	web110813.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753632AbZCLOZb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 12:45:22 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KH4003F0H7IRQ40@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 26 Mar 2009 12:45:19 -0400 (EDT)
-Date: Thu, 26 Mar 2009 12:45:18 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: [PATCH] Allow the user to restrict the RC5 address
-In-reply-to: <200903260824.01970.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Udo A. Steinberg" <udo@hypervisor.org>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	Darron Broad <darron@kewl.org>,
-	"v4l-dvb-maintainer@linuxtv.org" <v4l-dvb-maintainer@linuxtv.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <49CBB11E.2030604@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <20090326033453.7d90236d@laptop.hypervisor.org>
- <200903260824.01970.hverkuil@xs4all.nl>
+	Thu, 12 Mar 2009 10:25:31 -0400
+Message-ID: <541911.18449.qm@web110813.mail.gq1.yahoo.com>
+Date: Thu, 12 Mar 2009 07:25:29 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH 1/1] siano: add high level SDIO interface driver for SMS based cards
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Thursday 26 March 2009 03:34:53 Udo A. Steinberg wrote:
->   
->> Mauro,
->>
->> This patch allows users with multiple remotes to specify an RC5 address
->> for a remote from which key codes will be accepted. If no address is
->> specified, the default value of 0 accepts key codes from any remote. This
->> replaces the current hard-coded address checks, which are too
->> restrictive.
->>     
->
-> I think this should be reviewed by Steve Toth first (CC-ed him).
->
-> One thing that this patch breaks is if you have multiple Hauppauge remotes, 
-> some sending 0x1e, some 0x1f. With this patch I can't use both, only one.
->
->   
-Hans, thanks for bringing this to my attention.
 
-Mauro, This patch is a regression, although a small one. it probably 
-needs a little more work.
+Mauro and all,
 
-I too tend to have multiple remotes, I don't think it's that unusual for 
-long standing Hauppauge customers to have many boards with many types of 
-remotes.
+I submitted 3 patches, two modifications for the SDIO generic stack, and one new high level SDIO interface driver for Siano based devices.
 
-> It might be better to have an option to explicitly allow old Hauppauge 
-> remotes that send 0x00.
->
->   
-I could live with this. It relegates older remotes but those remotes are 
-no longer made. This feels like a good compromise.
+This concludes SDIO related changes, with one exception, which is explained below.
 
-- Steve
+However this explanation requires some overview about Siano's module inner architecture.
+
+The Siano kernel module architecture is composed from:
+1) SMS "Core" - This main component holds all Siano's host-device protocol logic, and any logic needed to bind the other module's components, interface and adapters.
+2) Interfaces drivers (SDIO, USB, TS, SPP, HIF, ...) - At lease one interface driver must be compiled and linked, but multiple interfaces are supported. This feature enables platforms like the Asus UMPC series to use SMS based USB dongle and SMS based SDIO dongle simultaneously. 
+3) Client adapters (DVB API v3, DVB API v5, others) - Similar to the interfaces drivers, at least one client adapter must be linked, but multiple are supported.
+4) SMS "cards" - This component contains any hardware target specific information (like LEDs locations, antenna configuration, alternative firmware names, and much more), leaving any other component target-independent.
+
+
+And now back to SDIO....
+
+True all SDIO related sources files are now updated (after these 3 patches), but since the build system (Kconfig & Makefile) and "smscore" component are yet to be updated, the SDIO interface driver can not be linked into the module.
+The option to link and use the SDIO interface driver, will be available after those files will be updated (hope it'll happen shortly).
+
+
+One question: Should I continue submit patches (I have them ready), or should I wait till the 3 previous submission will be reviewed and committed?
+
+
+Regards,
+
+Uri
+
+
+
+
+
+      
