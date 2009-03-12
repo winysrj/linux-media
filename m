@@ -1,67 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46734 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227AbZC1JfC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 05:35:02 -0400
-Date: Sat, 28 Mar 2009 06:34:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Lamarque Vieira Souza <lamarque@gmail.com>
-Cc: Antoine Jacquet <royale@zerezo.com>, linux-media@vger.kernel.org,
-	video4linux-list@redhat.com
-Subject: Re: Patch implementing V4L2_CAP_STREAMING for zr364xx driver
-Message-ID: <20090328063448.66ff0340@pedra.chehab.org>
-In-Reply-To: <200903271539.27515.lamarque@gmail.com>
-References: <200903252025.11544.lamarque@gmail.com>
-	<20090327133914.7050d21d@pedra.chehab.org>
-	<200903271539.27515.lamarque@gmail.com>
+Received: from mail1.radix.net ([207.192.128.31]:52051 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751228AbZCLXeS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 19:34:18 -0400
+Subject: Re: disable v4l2-ctl logging --log-status in /var/log/messages
+From: Andy Walls <awalls@radix.net>
+To: Gregor Fuis <gujs.lists@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+In-Reply-To: <23be820f0903120249n70778ddbh28c04286099cfc5b@mail.gmail.com>
+References: <50906.62.70.2.252.1236850101.squirrel@webmail.xs4all.nl>
+	 <23be820f0903120249n70778ddbh28c04286099cfc5b@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 12 Mar 2009 19:34:43 -0400
+Message-Id: <1236900883.3715.9.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lamarque,
-On Fri, 27 Mar 2009 15:39:26 -0300
-Lamarque Vieira Souza <lamarque@gmail.com> wrote:
+On Thu, 2009-03-12 at 10:49 +0100, Gregor Fuis wrote:
+> On Thu, Mar 12, 2009 at 10:28 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> >> Hello,
+> >>
+> >> Is it possible to disable v4l2-ctl aplication logging into
+> >> /var/log/messages.
+> >> I am using it to control and monitor my PVR 150 cards and every time I
+> >> run v4l2-ctl -d /dev/video0 --log-status all output is logged into
+> >> /var/log/messages and some other linux log files.
+> >
+> > All --log-status does is to tell the driver to show it's status in the
+> > kernel log for debugging purposes. It cannot and should not be relied upon
+> > for monitoring/controlling a driver.
+> >
+> > What do you need it for anyway?
+> 
+> I am just monitoring if signal is present on tuner, and what signal
+> format is detected.
+> These two lines:
+> cx25840 1-0044: Video signal:              not present
+> cx25840 1-0044: Detected format:           PAL-Nc
+> I run this every minute and it is really annoying to have all this in
+> my system logs.
+> Is it possible to modify v4l2-ctl source to disable system logging?
 
-> 	Here is the patch with the modifications you asked.
+$ v4l2-ctl -d /dev/video0 -T
 
-There's just one important part missing on your patch: you forgot so send your
-Signed-off-by: (please read README.patches file, at v4l-dvb tree:
-http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches).
+which calls the VIDIOC_G_TUNER ioctl(), can be used to tell you if a
+signal is present:
 
-Also, you didn't provide a description.
+Tuner:
+	Name                 : cx18 TV Tuner
+	Capabilities         : 62.5 kHz multi-standard stereo lang1 lang2 
+	Frequency range      : 44.0 MHz - 958.0 MHz
+	Signal strength/AFC  : 0%/-187500
+	Current audio mode   : lang1
+	Available subchannels: mono 
 
-So, I need you to re-send at the proper format, by adding a subject line like:
+Signal strength will be 0% or 100% - both the cx18 driver and the
+cx25840 driver behave the same in this regard.
 
-[PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
+AFAICT, other than --log-status (the VIDIOC_LOG_STATUS ioctl()) which
+always writes to the system logs, there is no way for a non-root user to
+read out the Video standard detected by the CX25843 hardware.  That
+would require a change to the driver(s) and maybe an API change (I'm not
+sure).
 
-And the body of the email should contain just the description plus your patch. Something like:
+Regards,
+Andy
 
-This patch implements V4L2_CAP_STREAMING for the zr364xx driver, by
-converting the driver to use videobuf.
 
-Tested with PC-CAM 880.
 
-It basically:
-. re-implements V4L2_CAP_READWRITE using videobuf;
 
-. copies cam->udev->product to the card field of the v4l2_capability struct.
-That gives more information to the users about the webcam;
+> 
+> Regards,
+> Gregor
 
-. moves the brightness setting code from before requesting a frame (in
-read_frame) to the vidioc_s_ctrl ioctl. This way the brightness code is
-executed only when the application request a change in brightness and
-not before every frame read;
-
-. comments part of zr364xx_vidioc_try_fmt_vid_cap that says that Skype + libv4l
-do not work.
-
-This patch fixes zr364xx for applications such as mplayer,
-Kopete+libv4l and Skype+libv4l can make use of the webcam that comes
-with zr364xx chip.
-
-Signed-off-by: <your name/email should be here>
-
-<the patch>
