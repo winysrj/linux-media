@@ -1,86 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rotring.dds.nl ([85.17.178.138]:40309 "EHLO rotring.dds.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753585AbZCIPfD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2009 11:35:03 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by rotring.dds.nl (Postfix) with ESMTP id 5D592272CD5
-	for <linux-media@vger.kernel.org>; Mon,  9 Mar 2009 16:34:59 +0100 (CET)
-Received: from [192.168.1.222] (cc941058-b.ensch1.ov.home.nl [82.74.126.12])
-	by rotring.dds.nl (Postfix) with ESMTP id 52251272CCE
-	for <linux-media@vger.kernel.org>; Mon,  9 Mar 2009 16:34:53 +0100 (CET)
-Subject: Improve DKMS build of v4l-dvb?
-From: Alain Kalker <miki@dds.nl>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Mon, 09 Mar 2009 16:34:54 +0100
-Message-Id: <1236612894.5982.72.camel@miki-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48727 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980AbZCLTRp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 15:17:45 -0400
+Date: Thu, 12 Mar 2009 20:17:42 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/5] pcm990 baseboard: add camera bus width switch
+	setting
+Message-ID: <20090312191742.GU425@pengutronix.de>
+References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903121405150.4896@axis700.grange> <20090312141819.GN425@pengutronix.de> <alpine.DEB.2.00.0903122008160.9725@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0903122008160.9725@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm interested in improving the very interesting work[1] by Martin
-Pitt[2] on making the v4l-dvb tree build under DKMS[3], so the drivers
-get automatically rebuilt when the user installs a new kernel package.
+On Thu, Mar 12, 2009 at 08:11:27PM +0100, Guennadi Liakhovetski wrote:
+> ...one more thing. I noticed, that after patch 2 the cameras would stop 
+> work, because iclink->gpio would be set to 0. Which would break bisection. 
+> Ok, this is rather theoretical, still I modified the patches a bit. 
+> Please, have a look, if you're ok with these changes, that's how I'm going 
+> to commit them. Affected are patches 2/5 and 5/5. I'm just quoting them 
+> below.
 
-Martin also works on the Jockey driver manager[4] which is used in
-Ubuntu to detect hardware for which there are no drivers in the kernel
-and to inform the user about available driver packages which can then be
-downloaded and installed automatically.
+Yes, I was aware of this bisection problem. I just wanted to avoid
+having patch 5/5 touch arch/arm and include/media or even split this
+up further.
+Anyway, I'm fine with the change.
 
-Enabling DKMS build of v4l-dvb will also enable users with no experience
-in building kernel modules to easily install the latest development
-drivers for their hardware. This will improve the exposure of v4l-dvb
-drivers to a wider community of users who can help with testing the
-drivers on the wide variety of hardware that is out there.
+Sascha
 
-Martin has an older version of the drivers packaged for building with
-DKMS on Ubuntu in his PPA[5], but it currently has some disadvantages:
 
-A. It builds all available drivers, no matter which hardware is actually
-installed in the system. This takes a lot of time, and may not be
-practical at all on systems with limited resources (e.g. embedded, MIDs,
-netbooks)
-B. It currently has no support for Jockey to detect installed hardware,
-so individual drivers can be selected.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> 
+> From 80912f8e2bbbf0f81318c68e1bd5f69fc9537795 Mon Sep 17 00:00:00 2001
+> From: Sascha Hauer <s.hauer@pengutronix.de>
+> Date: Thu, 12 Mar 2009 20:04:43 +0100
+> Subject: [PATCH] pcm990 baseboard: add camera bus width switch setting
+> 
+> Some Phytec cameras have a I2C GPIO expander which allows it to
+> switch between different sensor bus widths. This was previously
+> handled in the camera driver. Since handling of this switch
+> varies on several boards the cameras are used on, the board
+> support seems a better place to handle the switch
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  arch/arm/mach-pxa/pcm990-baseboard.c |   54 ++++++++++++++++++++++++++++-----
+>  1 files changed, 45 insertions(+), 9 deletions(-)
+> 
+> diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
+> index f46698e..90a3990 100644
+> --- a/arch/arm/mach-pxa/pcm990-baseboard.c
+> +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+> @@ -380,14 +380,50 @@ static struct pca953x_platform_data pca9536_data = {
+>  	.gpio_base	= NR_BUILTIN_GPIO + 1,
+>  };
+>  
+> -static struct soc_camera_link iclink[] = {
+> -	{
+> -		.bus_id	= 0, /* Must match with the camera ID above */
+> -		.gpio	= NR_BUILTIN_GPIO + 1,
+> -	}, {
+> -		.bus_id	= 0, /* Must match with the camera ID above */
+> -		.gpio	= -ENXIO,
+> +static int gpio_bus_switch;
+> +
+> +static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
+> +		unsigned long flags)
+> +{
+> +	if (gpio_bus_switch <= 0) {
+> +		if (flags == SOCAM_DATAWIDTH_10)
+> +			return 0;
+> +		else
+> +			return -EINVAL;
+> +	}
+> +
+> +	if (flags & SOCAM_DATAWIDTH_8)
+> +		gpio_set_value(gpio_bus_switch, 1);
+> +	else
+> +		gpio_set_value(gpio_bus_switch, 0);
+> +
+> +	return 0;
+> +}
+> +
+> +static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
+> +{
+> +	int ret;
+> +
+> +	if (!gpio_bus_switch) {
+> +		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
+> +		if (!ret) {
+> +			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
+> +			gpio_direction_output(gpio_bus_switch, 0);
+> +		} else
+> +			gpio_bus_switch = -EINVAL;
+>  	}
+> +
+> +	if (gpio_bus_switch > 0)
+> +		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
+> +	else
+> +		return SOCAM_DATAWIDTH_10;
+> +}
+> +
+> +static struct soc_camera_link iclink = {
+> +	.bus_id	= 0, /* Must match with the camera ID above */
+> +	.gpio = NR_BUILTIN_GPIO + 1,
+> +	.query_bus_param = pcm990_camera_query_bus_param,
+> +	.set_bus_param = pcm990_camera_set_bus_param,
+>  };
+>  
+>  /* Board I2C devices. */
+> @@ -398,10 +434,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
+>  		.platform_data = &pca9536_data,
+>  	}, {
+>  		I2C_BOARD_INFO("mt9v022", 0x48),
+> -		.platform_data = &iclink[0], /* With extender */
+> +		.platform_data = &iclink, /* With extender */
+>  	}, {
+>  		I2C_BOARD_INFO("mt9m001", 0x5d),
+> -		.platform_data = &iclink[0], /* With extender */
+> +		.platform_data = &iclink, /* With extender */
+>  	},
+>  };
+>  #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
+> -- 
+> 1.5.4
+> 
+> 
+> From 2d9b3eb219c391f9d626ae63835c8224ea8ef10e Mon Sep 17 00:00:00 2001
+> From: Sascha Hauer <s.hauer@pengutronix.de>
+> Date: Thu, 12 Mar 2009 20:06:01 +0100
+> Subject: [PATCH] soc-camera: remove now unused gpio member of struct soc_camera_link
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  arch/arm/mach-pxa/pcm990-baseboard.c |    1 -
+>  include/media/soc_camera.h           |    2 --
+>  2 files changed, 0 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
+> index 90a3990..6112740 100644
+> --- a/arch/arm/mach-pxa/pcm990-baseboard.c
+> +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+> @@ -421,7 +421,6 @@ static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
+>  
+>  static struct soc_camera_link iclink = {
+>  	.bus_id	= 0, /* Must match with the camera ID above */
+> -	.gpio = NR_BUILTIN_GPIO + 1,
+>  	.query_bus_param = pcm990_camera_query_bus_param,
+>  	.set_bus_param = pcm990_camera_set_bus_param,
+>  };
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index b44fa09..3701368 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -95,8 +95,6 @@ struct soc_camera_host_ops {
+>  struct soc_camera_link {
+>  	/* Camera bus id, used to match a camera and a bus */
+>  	int bus_id;
+> -	/* GPIO number to switch between 8 and 10 bit modes */
+> -	unsigned int gpio;
+>  	/* Per camera SOCAM_SENSOR_* bus flags */
+>  	unsigned long flags;
+>  	/* Optional callbacks to power on or off and reset the sensor */
+> -- 
+> 1.5.4
+> 
+> 
 
-To address these issues, I would like to propose the following:
-
-A. Building individual drivers (i.e. sets of modules which constitute a
-fully-functional driver), without having to manually configure them
-using "make menuconfig"
-
-I see two possibilities for realizing this:
-Firstly: generating a .config with just one config variable for the
-requested driver set to 'm' merged with the config for the kernel being
-built for, and then doing a "make silentoldconfig". Big disatvantage is
-that full kernel source is required for the 'silentoldconfig' target to
-be available. 
-Secondly, the script v4l/scripts/analyze_build.pl generates a list of
-modules that will get built for each Kconfig variable selected, but it
-currently has no way of determing all the module dependencies that make
-up a fully functional driver.
-The script v4l/scripts/check_deps.pl tries to discover dependencies
-between Kconfig variables, but it currently is somewhat slow, and hase a
-few other problems.
-
-B. To enable hardware autodetection before installing drivers, we need
-to have a list of modaliases of all supported hardware. This may be the
-hardest part, because many VendorIDs and ProductIDs are scattered
-throughout the code. Also coldbooting/warmbooting hardware is a problem.
-
-I am very interested in any comments on these ideas, and getting in
-contact with anyone who would like to help me with this project.
-
-Kind regards,
-
-Alain
-
-[1]
-http://martinpitt.wordpress.com/2008/06/10/packaged-dvb-t-drivers-for-ubuntu-804/
-[2] https://launchpad.net/~pitti
-[3] http://linux.dell.com/projects.shtml#dkms
-[4] https://launchpad.net/jockey
-[5] https://launchpad.net/~pitti/+archive/ppa
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
