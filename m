@@ -1,73 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47048 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751511AbZCIWDd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2009 18:03:33 -0400
-Message-ID: <49B59230.1090305@gmx.de>
-Date: Mon, 09 Mar 2009 23:03:28 +0100
-From: wk <handygewinnspiel@gmx.de>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:51879 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751884AbZCLVhM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 17:37:12 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: mike@compulab.co.il,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/4] pxa_camera: Fix overrun condition on last buffer
+References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-4-git-send-email-robert.jarzmik@free.fr>
+	<1236282351-28471-5-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0903111930300.4818@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Thu, 12 Mar 2009 22:36:58 +0100
+In-Reply-To: <Pine.LNX.4.64.0903111930300.4818@axis700.grange> (Guennadi Liakhovetski's message of "Wed\, 11 Mar 2009 19\:31\:15 +0100 \(CET\)")
+Message-ID: <87bps61kzp.fsf@free.fr>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: V4L2 spec
-References: <200903061523.15766.hverkuil@xs4all.nl> <49B14D3C.3010001@gmx.de> <alpine.LRH.2.00.0903090803010.6607@caramujo.chehab.org>
-In-Reply-To: <alpine.LRH.2.00.0903090803010.6607@caramujo.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+
+>> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+>> index 16bf0a3..dd56c35 100644
+>> --- a/drivers/media/video/pxa_camera.c
+>> +++ b/drivers/media/video/pxa_camera.c
+>> @@ -734,14 +734,18 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
+>>  		status & DCSR_ENDINTR ? "EOF " : "", vb, DDADR(channel));
+>>  
+>>  	if (status & DCSR_ENDINTR) {
+>> -		if (camera_status & overrun) {
+>> +		/*
+>> +		 * It's normal if the last frame creates an overrun, as there
+>> +		 * are no more DMA descriptors to fetch from QIF fifos
+>> +		 */
+>> +		if (camera_status & overrun
+>> +		    && !list_is_last(pcdev->capture.next, &pcdev->capture)) {
 >
-> I think so. The better would be to convert DVB api to docbook (as used 
-> by all other kernel documents), and add a developers document for the 
-> kernel API for both at the kernel documentation structure).
->
-> However, this is a huge task that someone should volunteer for doing, 
-> otherwise, it won't happen.
->
-> Cheers,
-> Mauro
->
-Sorry Mauro,
+> On a second look - didn't you want to test for ->active being the last?
 
-but i disagree with you.
+Mmm, I'm not sure I get you right here. AFAICR pcdev->active has no direct link
+with pcdev->capture (it has nothing to do with a list_head *). Of course with a
+bit of "container_of" magic (or list_entry equivalent), I'll find it ...
 
-Its a bad idea to expect someone else, the magic volunteer, doing work 
-with *deep impact* on the dvb driver API structure or documentation.
-Working on this topic determines complete usability of the driver, so 
-MAIN DEVELOPERS have to REVIEW and CONTRIBUTE.
-If they think, that they cannot do such work in parallel, they should to 
-stop work on drivers for some time.
+If that list_is_last is not good, would you provide me with a better alternative
+?
 
-Status from application side of view at the moment: *not usable* without 
-re-inventing the wheel.
+Cheers.
 
-The very same with the structures in frontend.h, a lot of things are not 
-understandable. I give you some examples (i could give more...):
-
--  TRANSMISSION_MODE_4K is missing, but still mentioned in 300468 
-v.1.9.1  "6.2.13.4 Terrestrial delivery system descriptor"
--  the same for BANDWIDTH_5_MHZ, also 300468 v.1.9.1  "6.2.13.4 
-Terrestrial delivery system descriptor"
--  POLARIZATION for QPSK frontends  is nowhere defined in frontend.h at 
-all, forcing applications to do its own definitions,
-     "6.2.13.2 Satellite delivery system descriptor" gives clear 
-definitions - so why are they not defined in frontend.h?
--  ATSC frontends are mixed cable and terrestrian, whereas older DVB-C 
-and DVB-T are *strictly* separated
--  struct dvb_qpsk_parameters is missing (at least!) to be usable again
-    * fe_modulation_t
-    * fe_pilot_t
-    * fe_rolloff_t
-    * fe_delivery_system_t
-    * west_east_flag
-    * scrambling_sequence_selector
-    * multiple_input_stream_flag
-
-- nearly the same for dvb_qam_parameters, dvb_ofdm_parameters, 
-dvb_atsc_parameters..., at least delivery_system needs to be here
-
-Working on documentation would fix *all* of this problems.
-
-Regards,
-Winfried
+--
+Robert
