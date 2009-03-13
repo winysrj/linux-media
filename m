@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n22Ddqxf011180
-	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 08:39:52 -0500
-Received: from mail-bw0-f160.google.com (mail-bw0-f160.google.com
-	[209.85.218.160])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n22DdbZc005486
-	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 08:39:38 -0500
-Received: by bwz4 with SMTP id 4so2139007bwz.3
-	for <video4linux-list@redhat.com>; Mon, 02 Mar 2009 05:39:37 -0800 (PST)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2DCEbaW028701
+	for <video4linux-list@redhat.com>; Fri, 13 Mar 2009 08:14:37 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2DCDkIE024587
+	for <video4linux-list@redhat.com>; Fri, 13 Mar 2009 08:13:46 -0400
+Message-ID: <49BA4E22.20209@hhs.nl>
+Date: Fri, 13 Mar 2009 13:14:26 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Date: Mon, 2 Mar 2009 19:09:36 +0530
-Message-ID: <77ca8eab0903020539l6a5d015aucba5e222c5466088@mail.gmail.com>
-From: amol verule <amol.debian@gmail.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: application for microdia 0c45:6130
+Cc: 
+Subject: libv4l release: 0.5.9
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,13 +27,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hi to all,
-            i am having device webcam of 0c45:6130 .with camorama it is
-showing blank screen as well not working with ekiga.so can please tell me
-which application should i use to use my webcam?
-             /dev/video0 is created means device is detected properly.
-thanks n regards,
-amol
+Hi All,
+
+Add support for various new formats, see the changelog entry below:
+
+libv4l-0.5.9
+------------
+* Add support for MR97310A decompression by Kyle Guinn <elyk03@gmail.com>
+* Add support for sq905c decompression by Theodore Kilgore
+   <kilgota@auburn.edu>
+* Add hm12 support for the cx2341x MPEG encoder devices by Hans Verkuil
+   <hverkuil@xs4all.nl>
+
+
+Get it here:
+http://people.atrpms.net/~hdegoede/libv4l-0.5.9.tar.gz
+
+Regards,
+
+Hans
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
