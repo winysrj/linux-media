@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56263 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754247AbZCPKiN (ORCPT
+Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:50124 "EHLO
+	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755212AbZCMIdf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 06:38:13 -0400
-Date: Mon, 16 Mar 2009 07:37:42 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: REVIEW: bttv conversion to v4l2_subdev
-Message-ID: <20090316073742.0affb09a@gaivota.chehab.org>
-In-Reply-To: <200903151324.00784.hverkuil@xs4all.nl>
-References: <200903151324.00784.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 13 Mar 2009 04:33:35 -0400
+Date: Fri, 13 Mar 2009 01:33:33 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: VDR User <user.vdr@gmail.com>, Peter Baartz <baartzy@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Kconfig changes in /hg/v4l-dvb caused dvb_usb_cxusb to stop
+ building (fwd)
+In-Reply-To: <alpine.LRH.2.00.0903090746470.6607@caramujo.chehab.org>
+Message-ID: <Pine.LNX.4.58.0903130126270.28292@shell2.speakeasy.net>
+References: <alpine.LRH.2.00.0903090746470.6607@caramujo.chehab.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Mar 2009 13:24:00 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Mon, 9 Mar 2009, Mauro Carvalho Chehab wrote:
+> Btw, if you look at DVB_FE_CUSTOMISE help, it is recommended tho unselect it,
+> if you're not sure what to do.
+>
+>   >
+> >  Anyways, here's what I get:
+> >
+> >  $ grep "^CONFIG" .config
+> >  [everything is 'm']
+> >  CONFIG_DVB_VES1820=m
+> >  CONFIG_DVB_STV0297=m
+> >  CONFIG_DVB_LNBP21=m
+>
+> Seems perfect to my eyes.
 
-> Hi Mauro,
-> 
-> Can you review my ~hverkuil/v4l-dvb-bttv2 tree?
-> 
-> It converts this driver to v4l2_subdev, and as far as I can see it works and 
-> should probe all the different audio devices in the correct and safe order.
-> 
-> I kept things as simple as possible in order to make a review easy.
+I think it might be nicer if the default value for a frontend when
+customize was turned on was whatever it was selected to by the drivers that
+use it.
 
-Could you please break this changeset even more:
-	http://linuxtv.org/hg/~hverkuil/v4l-dvb-bttv2/rev/583981be1a4d
+When you don't use customize, all the frontends default to 'n'.  If you
+set some driver to 'm', it will set all the frontends it uses to 'm'.  Set
+the driver to 'y' and then those frontends get set to 'y'.
 
-The reason is that it not just add support to tda9875, but also changes the
-behaviour of mute and input selection. Had you find a bug with the old way?
-
-> 
-> There is only one possible i2c conflict left between tvaudio and ir-kbd-i2c, 
-> but I'll discuss that separately since we need input from Jean Delvare as 
-> well on that.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-
-
-
-
-Cheers,
-Mauro
+If you turn on customize, the default for the frontends should be same as
+what they are when customize is off.  The difference is now you can see
+them and change their value.
