@@ -1,58 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from email.brin.com ([208.89.164.15]:52652 "EHLO email.brin.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751999AbZCJUOV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 16:14:21 -0400
-Received: from email.brin.com (email.brin.com [172.19.1.12])
-	by email.brin.com (Postfix) with ESMTP id EA045798001
-	for <linux-media@vger.kernel.org>; Tue, 10 Mar 2009 14:03:10 -0600 (MDT)
-Date: Tue, 10 Mar 2009 14:03:10 -0600 (MDT)
-From: Bob Ingraham <bobi@brin.com>
-To: linux-media@vger.kernel.org
-Message-ID: <824146004.72331236715390866.JavaMail.root@email>
-Subject: How to utilize DVB Network API
+Received: from kroah.org ([198.145.64.141]:50424 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752840AbZCMCxb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 22:53:31 -0400
+Date: Thu, 12 Mar 2009 19:50:51 -0700
+From: Greg KH <greg@kroah.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: stable@kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [stable] Fwd: [PATCH] 2.6.27.y: fix NULL ptr deref in cx23885
+	video_open
+Message-ID: <20090313025051.GA5385@kroah.com>
+References: <200902241700.56099.jarod@redhat.com> <37219a840903121324q7b08c8d1ma6d0d3ec4f5eb278@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37219a840903121324q7b08c8d1ma6d0d3ec4f5eb278@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello All,
+On Thu, Mar 12, 2009 at 04:24:38PM -0400, Michael Krufky wrote:
+> Can we have this merged into -stable?  Jarod Wilson sent this last
+> month, but he left off the cc to stable@kernel.org
 
-The documentation leaves the Network section of the API as "To be written..."
+What is the git commit id of the patch in Linus's tree that matches up
+with this?
 
-I've looked at the header file, and it may be straightforward to call, but...
+thanks,
 
-Does anyone know how to properly invoke this part of the API?
-
-Is it correct to assume that the point of the network API is to create a "virtual" network interface that I can treat like any other NIC (unidirectional, of course)?
-
-My goal is to receive multicast packets using a Skystar 2 DVB-S card (rev 2.6), using standard multicast join and UDP receive calls.
-
-The dvb_net_if structure has the following fields:
-
-        __u16 pid;      // This is obvious
-        __u16 if_num;   // Don't know exactly what goes here???
-        __u8  feedtype; // This is either 0 (MPE) or 1 (ULE)
-
-For example, does the following code snippet the proper way to go about this?
-
-struct dbv_net_if dni;
-int sd;
-
-dni.pid = 3022;  // My MPEG2 PID
-dni.if_num = 0;  // ???
-dni.feedtype = DVB_NET_FEEDTYPE_MPE;
-
-sd = open("/dev/dvb/adapter0/net0", O_RDONLY);
-ioctl(sd, NET_ADD_IF, &dni);
-
-Now, do I read packets from /dev/dvb/adapter0/net0 using my sd descriptor?
-
-Or do I at this point open a standard UDP socket and start listening for packets from the satellite interface?
-
-Any help in clearing my basic confusion would be much appreciated.
-
-Thank-you!
-
-Bob
+greg k-h
