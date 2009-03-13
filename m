@@ -1,47 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hamlet.nurpoint.com ([212.239.26.6]:57170 "EHLO
-	hamlet.nurpoint.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbZCKHua (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.28]:18294 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759564AbZCMVc3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 03:50:30 -0400
-Received: from dab.z1.infracom.it ([82.193.15.171] helo=[192.168.1.140])
-	by hamlet.nurpoint.com with esmtpa (Exim 4.69)
-	(envelope-from <s.danzi@hawai.it>)
-	id 1LhJCt-00038X-5Y
-	for linux-media@vger.kernel.org; Wed, 11 Mar 2009 08:50:27 +0100
-Message-ID: <49B76D3F.3010405@hawai.it>
-Date: Wed, 11 Mar 2009 08:50:23 +0100
-From: Stefano Danzi <s.danzi@hawai.it>
+	Fri, 13 Mar 2009 17:32:29 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so434137ywh.1
+        for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 14:32:27 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: frequency file for dvb-t/it-Verona-Sommacampagna
-Content-Type: multipart/mixed;
- boundary="------------070703060302030403000801"
+In-Reply-To: <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>
+References: <49B9BC93.8060906@nav6.org>
+	 <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
+	 <49B9DECC.5090102@nav6.org>
+	 <412bdbff0903130727p719b63a0u3c4779b3bec7520b@mail.gmail.com>
+	 <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>
+Date: Fri, 13 Mar 2009 17:32:27 -0400
+Message-ID: <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>
+Subject: Re: The right way to interpret the content of SNR, signal strength
+	and BER from HVR 4000 Lite
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Ang Way Chuang <wcang@nav6.org>, VDR User <user.vdr@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070703060302030403000801
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Fri, Mar 13, 2009 at 5:11 PM, Trent Piepho <xyzzy@speakeasy.org> wrote:
+> I like 8.8 fixed point a lot better.  It gives more precision.  The range
+> is more in line with that the range of real SNRs are.  Computers are
+> binary, so the math can end up faster.  It's easier to read when printed
+> out in hex, since you can get the integer part of SNR just by looking at
+> the first byte.  E.g., 25.3 would be 0x194C, 0x19 = 25 db, 0x4c = a little
+> more than quarter.  Several drivers already use it.
 
-frequency file for dvb-t/it-Verona-Sommacampagna
+Wow, I know you said you like that idea alot better, but I read it and
+it made me feel sick to my stomach.  Once we have a uniform format, we
+won't need to show it in hex at all.  Tools like femon and scan can
+just show the value in decimal (they show it in hex because it's
+definition varies by device).
 
---------------070703060302030403000801
-Content-Type: application/octet-stream;
- name="it-Verona-Sommacampagna"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="it-Verona-Sommacampagna"
+Target applications can reformat the value any way you prefer.  This
+is a kernel interface.
 
-IyBJdGFsaWEgLyBWZXJvbmEgLyBTb21tYWNhbXBhZ25hIChpdC1WZXJvbmEtU29tbWFjYW1w
-YWduYSkgLSAwMi8wMy8yMDA5IAojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFu
-c21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKIwojIEMyNiAtIFRJTUIx
-ClQgNTE0MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5PTkUKIyBDMzQgLSBN
-dXggQiBSYWkKVCA1NzgwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvMzIgTk9ORQoj
-IEM1NCAtIE1Cb25lClQgNzM4MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzMyIE5P
-TkUKIyBDNTggLSBSZXRlIEFsbCBNdXNpYwpUIDc3MDAwMDAwMCA4TUh6IDIvMyAxLzIgUUFN
-NjQgOGsgMS8zMiBOT05FCiMgQzYxIC0gTXV4IE1lZGlhc2V0IDIKVCA3OTQwMDAwMDAgOE1I
-eiAyLzMgMS8yIFFBTTY0IDhrIDEvMzIgTk9ORQojIEM2NCAtIE11eCBERnJlZQpUIDgxODAw
-MDAwMCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS8zMiBOT05FCg==
---------------070703060302030403000801--
+On a separate note, do you know specifically which drivers use that
+format?  I was putting together a table of all the various
+demodulators and which format they use, so if you have demods you know
+about I would be interested in filling out that data.
+
+>> 2.  Getting everyone to agree on the definition of "Strength".  Is
+>> this the field strength?  Is this some coefficient of the SNR compared
+>> to an arbitrary scale?  Is it a percentage?  If it's a percentage, is
+>> it 0-100 or 0-65535?
+>
+> The problem with strength is that practically no hardware can measure true
+> signal strength.
+
+I'm fine being a little more flexible on the definition of "strength",
+as long as the resulting value is presented in a uniform format.
+While SNR should have a strict definition, I'm fine with having
+strength being something like "0-100%, scaled up to 0xffff".  For
+drivers that only have SNR, they can just scale up the SNR based on a
+fixed maximum (some ATSC drivers for example, consider 35 dB to be
+100%).  Or drivers that have field strength measuring capabilities can
+return that value.
+
+In my mind, the goal isn't being able to compare different devices
+between each other, so much as being able to get a uniform way for
+users to know about what the signal quality is.  I want users of
+Kaffeine to be able to go to the signal monitor section and see the
+"strength" indicator show a value from 0-100%, regardless of which
+device they are using.
+
+Certainly though, I want to get enough logic in there for devices to
+be able to indicate that the driver does not support returning the
+value (instead of returning zero), and be able to indicate that it
+cannot return the valid value right now (for example, many chips
+cannot return a valid value when there is no signal lock).
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
