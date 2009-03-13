@@ -1,111 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:35954 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751766AbZCXWYe (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39582 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917AbZCMVCC convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 18:24:34 -0400
-Subject: Re: [PATCH 12/13][Resubmit][drivers/media] changed ioctls to
- unlocked
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: stoyboyker@gmail.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-In-Reply-To: <1237930711-16200-1-git-send-email-stoyboyker@gmail.com>
-References: <1237930711-16200-1-git-send-email-stoyboyker@gmail.com>
-Content-Type: text/plain
-Date: Wed, 25 Mar 2009 01:25:35 +0300
-Message-Id: <1237933535.9222.12.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 13 Mar 2009 17:02:02 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "stanley.miao@windriver.com" <stanley.miao@windriver.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	MiaoStanley <stanleymiao@hotmail.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Date: Fri, 13 Mar 2009 16:01:47 -0500
+Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
+Message-ID: <A24693684029E5489D1D202277BE89442E53A3CC@dlee02.ent.ti.com>
+In-Reply-To: <1236675821.6759.33.camel@localhost>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Stoyan
 
-On Tue, 2009-03-24 at 16:38 -0500, stoyboyker@gmail.com wrote:
-> From: Stoyan Gaydarov <stoyboyker@gmail.com>
+
+> -----Original Message-----
+> From: stanley.miao [mailto:stanley.miao@windriver.com]
+> Sent: Tuesday, March 10, 2009 3:04 AM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
+> Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim; MiaoStanley;
+> Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
+> Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
 > 
-> Signed-off-by: Stoyan Gaydarov <stoyboyker@gmail.com>
-> ---
->  drivers/media/dvb/bt8xx/dst_ca.c |    7 +++++--
->  drivers/media/video/dabusb.c     |   11 ++++++++---
->  2 files changed, 13 insertions(+), 5 deletions(-)
+> On Mon, 2009-03-09 at 15:24 -0500, Aguirre Rodriguez, Sergio Alberto
+> wrote:
+> > Hi,
+> >
+> > > -----Original Message-----
+> > > From: stanley.miao [mailto:stanley.miao@windriver.com]
+> >
+> > <snip>
+> >
+> > > > +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
+> > > > +#if defined(CONFIG_VIDEO_OV3640) ||
+> defined(CONFIG_VIDEO_OV3640_MODULE)
+> > > > +	{
+> > > > +		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
+> > > > +		.platform_data = &ldp_ov3640_platform_data,
+> > > > +	},
+> > > > +#endif
+> > > > +};
+> > > >
+> > > This new added i2c_board_info was not registered.
+> > > After I added this line,
+> > >
+> > > omap_register_i2c_bus(2, 400, ldp_i2c_boardinfo_2,
+> > >                         ARRAY_SIZE(ldp_i2c_boardinfo_2));
+> > >
+> > > the sensor was found. but the test still failed. A lot of error came
+> out
+> > > when I run my test program.
+> > >
+> > > <3>CSI2: ComplexIO Error IRQ 80
+> > > CSI2: ComplexIO Error IRQ 80
+> > > <3>CSI2: ComplexIO Error IRQ c2
+> > > CSI2: ComplexIO Error IRQ c2
+> > > <3>CSI2: ComplexIO Error IRQ c2
+> > > CSI2: ComplexIO Error IRQ c2
+> > > <3>CSI2: ComplexIO Error IRQ c6
+> > > CSI2: ComplexIO Error IRQ c6
+> > > <3>CSI2: ECC correction failed
+> > > CSI2: ECC correction failed
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > >
+> >
+> > Oops, my mistake. Missed to add that struct there... Fixed now.
+> >
+> > About the CSI2 errors you're receiving... Which version of LDP are you
+> using? Which Silicon revision has (ES2.1 or ES3.0)?
 > 
-> diff --git a/drivers/media/dvb/bt8xx/dst_ca.c b/drivers/media/dvb/bt8xx/dst_ca.c
-> index 0258451..d3487c5 100644
-> --- a/drivers/media/dvb/bt8xx/dst_ca.c
-> +++ b/drivers/media/dvb/bt8xx/dst_ca.c
-> @@ -552,8 +552,10 @@ free_mem_and_exit:
->  	return result;
->  }
->  
-> -static int dst_ca_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long ioctl_arg)
-> +static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioctl_arg)
->  {
-> +	lock_kernel();
-> +
->  	struct dvb_device* dvbdev = (struct dvb_device*) file->private_data;
->  	struct dst_state* state = (struct dst_state*) dvbdev->priv;
->  	struct ca_slot_info *p_ca_slot_info;
-> @@ -647,6 +649,7 @@ static int dst_ca_ioctl(struct inode *inode, struct file *file, unsigned int cmd
->  	kfree (p_ca_slot_info);
->  	kfree (p_ca_caps);
->  
-> +	unlock_kernel();
->  	return result;
->  }
->  
-> @@ -684,7 +687,7 @@ static ssize_t dst_ca_write(struct file *file, const char __user *buffer, size_t
->  
->  static struct file_operations dst_ca_fops = {
->  	.owner = THIS_MODULE,
-> -	.ioctl = dst_ca_ioctl,
-> +	.unlocked_ioctl = dst_ca_ioctl,
->  	.open = dst_ca_open,
->  	.release = dst_ca_release,
->  	.read = dst_ca_read,
-> diff --git a/drivers/media/video/dabusb.c b/drivers/media/video/dabusb.c
-> index 298810d..c31e76f 100644
-> --- a/drivers/media/video/dabusb.c
-> +++ b/drivers/media/video/dabusb.c
-> @@ -657,22 +657,26 @@ static int dabusb_release (struct inode *inode, struct file *file)
->  	return 0;
->  }
->  
-> -static int dabusb_ioctl (struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
-> +static long dabusb_ioctl (struct file *file, unsigned int cmd, unsigned long arg)
->  {
->  	pdabusb_t s = (pdabusb_t) file->private_data;
->  	pbulk_transfer_t pbulk;
->  	int ret = 0;
->  	int version = DABUSB_VERSION;
->  
-> +	lock_kernel();
->  	dbg("dabusb_ioctl");
->  
-> -	if (s->remove_pending)
-> +	if (s->remove_pending) {
-> +		unlock_kernel();
->  		return -EIO;
-> +	}
->  
->  	mutex_lock(&s->mutex);
->  
->  	if (!s->usbdev) {
->  		mutex_unlock(&s->mutex);
-> +		unlock_kernel();
->  		return -EIO;
->  	}
->  
-> @@ -713,6 +717,7 @@ static int dabusb_ioctl (struct inode *inode, struct file *file, unsigned int cm
->  		break;
->  	}
->  	mutex_unlock(&s->mutex);
-> +	unlock_kernel();
+> ZOOM1 board(LDP3430-VG1.0.0-1), omap3430 ES2.1.
+> 
+> When I use your old version patch, sometimes the test succeed, sometimes
+> failed(no data was generated and no error). This version, always failed.
 
-May i ask why big kernel lock is used here?
-Where is an advantage of BKL here?
-Why not to use, for example, one more mutex lock?
+Stanley,
 
--- 
-Best regards, Klimov Alexey
+I'm working on some CSI2 fixes that could help you with this..
+
+I'll keep you updated on this.
+
+Also, about your board version, it is possible that you'll need a HW modfix because of a redundant resistor in CSI2 datalanes. I'm in talks with some people at TI to prepare a ready to publish document about this rework.
+
+Zoom1 with ES3 silicon doesn't need this HW fix.
+
+I'll hope to get back to you about this next week.
+
+Regards,
+Sergio
+
+> 
+> Thanks.
+> Stanley.
+> 
+> >
+> > Regards,
+> > Sergio
+> > >
+> > > Stanley.
 
