@@ -1,71 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37987 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751012AbZCLKQ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 06:16:28 -0400
-Date: Thu, 12 Mar 2009 07:15:59 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] Fix I2C bridge error in zl10353
-Message-ID: <20090312071559.2f8c7a34@pedra.chehab.org>
-In-Reply-To: <20090312123540.6cd58ac8@glory.loctelecom.ru>
-References: <E1LHmrf-0004LH-VV@www.linuxtv.org>
-	<49A03A94.9030008@iki.fi>
-	<49B63C6C.8070709@iki.fi>
-	<20090310094019.16ab55d7@pedra.chehab.org>
-	<20090310220819.1790cc44@glory.loctelecom.ru>
-	<49B667A7.8090407@iki.fi>
-	<49B6915A.6050108@iki.fi>
-	<20090312123540.6cd58ac8@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from nav6.org ([219.93.2.80]:33348 "EHLO nav6.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751124AbZCMETn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2009 00:19:43 -0400
+Message-ID: <49B9DECC.5090102@nav6.org>
+Date: Fri, 13 Mar 2009 13:19:24 +0900
+From: Ang Way Chuang <wcang@nav6.org>
+MIME-Version: 1.0
+To: VDR User <user.vdr@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: The right way to interpret the content of SNR, signal strength
+ 	and BER from HVR 4000 Lite
+References: <49B9BC93.8060906@nav6.org> <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
+In-Reply-To: <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 12 Mar 2009 12:35:40 +0900
-Dmitri Belimov <d.belimov@gmail.com> wrote:
-
-> Hi Antti
+VDR User wrote:
+> On Thu, Mar 12, 2009 at 6:53 PM, Ang Way Chuang <wcang@nav6.org> wrote:
+>> Hi all,
+>>        I've looked through the mailing list and there seems to be no
+>> standard
+>> way to interpret to content of SNR, signal strength and BER returned
+>> from the DVB API. So, I wonder if someone knows how to interpret these
+>> values at least for HVR 4000 Lite? Thanks.
 > 
-> > Antti Palosaari wrote:
-> > > Dmitri Belimov wrote:
-> > >>> Could one of you please do such patchset?
-> > >>
-> > >> I haven't a lot expirience with kernel programming. If Antti can
-> > >> it is good. I'll check it
-> > >> on our board.
-> > > 
-> > > OK, I will do. For the first phase and as a bug fix I will do that 
-> > > (disable i2c-gate) like dtv5100 driver does. After that I will add
-> > > new configuration switch for i2c-gate disable and also
-> > > change .no_tuner name to better one.
-> > 
-> > Here it is, please review and test. I kept changes as small as
-> > possible to prevent errors. Lets fix more later.
-> > 
-> > http://linuxtv.org/hg/~anttip/zl10353/
+> I've seen talk about converting everything to report SNR/STR in dB
+> which is a great idea if it ever happens.  I know a lot of guys not on
+> the mailing list who've been waiting for that.
+
+Yes, please :)
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> This patch is good. All work is ok.
 
-Antti,
-
-since you said that this patch should go to 2.6.29, I've already merged from
-your tree, after having Dmitry ack.
-> 
-> With my best regards, Dmitry.
-> 
-> > 
-> > regards
-> > Antti
-> > -- 
-> > http://palosaari.fi/
-
-
-
-
-Cheers,
-Mauro
