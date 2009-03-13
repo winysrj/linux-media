@@ -1,37 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail11d.verio-web.com ([204.202.242.86]:13458 "HELO
-	mail11d.verio-web.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1762546AbZCSXzZ (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3955 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055AbZCMKU6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2009 19:55:25 -0400
-Received: from mx56.stngva01.us.mxservers.net (204.202.242.16)
-	by mail11d.verio-web.com (RS ver 1.0.95vs) with SMTP id 2-098196922
-	for <linux-media@vger.kernel.org>; Thu, 19 Mar 2009 19:55:22 -0400 (EDT)
-Subject: v4l2-subdev missing video ops
-From: Pete Eberlein <pete@sensoray.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Thu, 19 Mar 2009 16:55:20 -0700
-Message-Id: <1237506920.5572.13.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 13 Mar 2009 06:20:58 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2DAKoRm054537
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 11:20:55 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 13 Mar 2009 11:20:50 +0100 (CET)
+Message-Id: <200903131020.n2DAKoRm054537@smtp-vbr9.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I'm looking at converting the go7007 staging driver to use the subdev
-API.  I don't see any v4l2_subdev_video_ops for VIDIOC_S_INPUT nor
-VIDIOC_S_STD.  Were those overlooked, or should I use the generic
-v4l2_subdev_core_ops->ioctl?  (The chip in particular does not have a
-tuner, but it does have multiple inputs (svidio, composite) and supports
-NTSC or PAL.)
+Results of the daily build of v4l-dvb:
 
-Thanks.
--- 
-Pete Eberlein
-Sensoray Co., Inc.
-Email: pete@sensoray.com
-http://www.sensoray.com
+date:        Fri Mar 13 09:54:54 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   10985:1fd54a62abde
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc7-armv5-ixp: OK
+linux-2.6.27-armv5-omap2: WARNINGS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc7-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc7-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc7-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc7-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc7-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc7-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc7): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
