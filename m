@@ -1,159 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:58577 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752539AbZCFCVy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 21:21:54 -0500
-Received: from banach.math.auburn.edu (localhost [127.0.0.1])
-	by banach.math.auburn.edu (8.14.2/8.14.2) with ESMTP id n262YRj6028575
-	for <linux-media@vger.kernel.org>; Thu, 5 Mar 2009 20:34:27 -0600
-Received: from localhost (kilgota@localhost)
-	by banach.math.auburn.edu (8.14.3/8.14.2/Submit) with ESMTP id n262YRvu028572
-	for <linux-media@vger.kernel.org>; Thu, 5 Mar 2009 20:34:27 -0600
-Date: Thu, 5 Mar 2009 20:34:27 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: linux-media@vger.kernel.org
-Subject: [PATCH] for the file gspca/mr97310a.c
-Message-ID: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu>
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:22994 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751850AbZCMSpk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2009 14:45:40 -0400
+From: David Brownell <david-b@pacbell.net>
+To: chaithrika@ti.com
+Subject: Re: [RFC 5/7] ARM: DaVinci: DM646x Video: Makefile and config files modifications for Display
+Date: Fri, 13 Mar 2009 10:45:35 -0800
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org
+References: <1236934923-32216-1-git-send-email-chaithrika@ti.com>
+In-Reply-To: <1236934923-32216-1-git-send-email-chaithrika@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+Message-Id: <200903131145.36459.david-b@pacbell.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Friday 13 March 2009, chaithrika@ti.com wrote:
+>  
+> +config DISPLAY_DAVINCI_DM646X_EVM
+> +        tristate "DM646x EVM Video Display"
+> +        depends on VIDEO_DEV && MACH_DAVINCI_DM646X_EVM
+> +        select VIDEOBUF_DMA_CONTIG
+> +        select VIDEO_DAVINCI_VPIF
+> +        select VIDEO_ADV7343
+> +        select VIDEO_THS7303
 
-First time ever that I mouse-copied an address and it gained a typo. 
-Amazing. So trying again. The patch works better than the mouse, though. 
-Guaranteed.
+A quick glance at the dm646x_display.c code in patch 7
+suggests that the file name is generic, but the code is
+full of EVM-specific bits.
 
----------- Forwarded message ----------
-Date: Thu, 5 Mar 2009 20:09:52 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Kyle Guinn <elyk03@gmail.com>, Jean-Francois Moine <moinejf@free.fr>,
-     linux-mmedia@vger.kernel.org
-Subject: [PATCH] for the file gspca/mr97310a.c
-
-
-I just realized that the message below only went in one direction and did not 
-have the proper title. So I fix that, now. The purpose of the patch has been 
-extensively discussed in the thread seen in the title of the forwarded message. 
-The patch below improves on the previous patch submitted for discussion, by 
-fixing a bug in that one. The purpose of the patch is to save the header for 
-the raw frames from the MR97310a cameras, which previously was not done. The 
-patch achieves this result, and, when tested with two cameras, gives nice 
-results.
-
-A parallel patch for libv4lconvert/mr97310a.c was also presented in the RFC. 
-Needless to say, it is needed simultaneously, before the output from the camera 
-can be properly decompressed.
-
-Theodore Kilgore
-
----------- Forwarded message ----------
-Date: Thu, 5 Mar 2009 19:27:57 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+I suggest either making the code generic (and maybe move
+most of that VPIF code into the VPIF driver) so other
+dm646x boards can reuse it ... or renaming it.  Generic
+would IMO be preferrable.
 
 
+> +config VIDEO_DAVINCI_VPIF
+> +        tristate "DaVinci VPIF Driver"
+> +        depends on DISPLAY_DAVINCI_DM646X_EVM
 
-On Fri, 6 Mar 2009, Hans de Goede wrote:
+Please have the Kconfig helptext here explain what a VPIF
+is and does.
 
-> Well 2.6.29 is getting closer, so we need to be reasonable quick with the
-> kernel side changes. As we do not want to change this after a kernel
-> has been released with the current behaviour.
-> 
-> For libv4l we can take our time. But having a kernel patch ready soon
-> would be good.
+Surely the driver is usable for any dm646x board, not just
+the EVM hardware; so, "depends on ARCH_DAVINCI_DM646x".
 
-Well, it did not take as long as I thought. And, as far as the libv4lconvert 
-change, you _do_ have a patch, right?
+And, patch style point, most of us like to see one patch
+adding an entire driver ... C source, headers, and its
+associated Kconfig and Kbuild support.  Make sure that
+the kernel continues building between patches; in this
+case, the build will break after patch #5 since the
+source code it tries to build hasn't been added yet.
 
-So, here is a patch for one file, namely for gspca/mr97310a.c. I hope that it 
-will meet all objections.
 
-Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
-----------------------------------------------------------------------
---- mr97310a.c.old	2009-02-23 23:59:07.000000000 -0600
-+++ mr97310a.c	2009-03-05 19:14:13.000000000 -0600
-@@ -29,9 +29,7 @@ MODULE_LICENSE("GPL");
-  /* specific webcam descriptor */
-  struct sd {
-  	struct gspca_dev gspca_dev;  /* !! must be the first item */
--
-  	u8 sof_read;
--	u8 header_read;
-  };
 
-  /* V4L2 controls supported by the driver */
-@@ -100,12 +98,9 @@ static int sd_init(struct gspca_dev *gsp
-
-  static int sd_start(struct gspca_dev *gspca_dev)
-  {
--	struct sd *sd = (struct sd *) gspca_dev;
-  	__u8 *data = gspca_dev->usb_buf;
-  	int err_code;
-
--	sd->sof_read = 0;
--
-  	/* Note:  register descriptions guessed from MR97113A driver */
-
-  	data[0] = 0x01;
-@@ -285,40 +280,29 @@ static void sd_pkt_scan(struct gspca_dev
-  			__u8 *data,                   /* isoc packet */
-  			int len)                      /* iso packet length */
-  {
--	struct sd *sd = (struct sd *) gspca_dev;
-  	unsigned char *sof;
-
-  	sof = pac_find_sof(gspca_dev, data, len);
-  	if (sof) {
-  		int n;
--
-+		int marker_len = sizeof pac_sof_marker;
-  		/* finish decoding current frame */
-  		n = sof - data;
--		if (n > sizeof pac_sof_marker)
--			n -= sizeof pac_sof_marker;
-+		if (n > marker_len)
-+			n -= marker_len;
-  		else
-  			n = 0;
-  		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame,
-  					data, n);
--		sd->header_read = 0;
--		gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
--		len -= sof - data;
-+		/* Start next frame. */
-+		gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
-+			pac_sof_marker, marker_len);
-+		len -= n;
-+		len -= marker_len;
-+		if (len < 0)
-+			len = 0;
-  		data = sof;
-  	}
--	if (sd->header_read < 7) {
--		int needed;
--
--		/* skip the rest of the header */
--		needed = 7 - sd->header_read;
--		if (len <= needed) {
--			sd->header_read += len;
--			return;
--		}
--		data += needed;
--		len -= needed;
--		sd->header_read = 7;
--	}
--
-  	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
-  }
-
-@@ -337,6 +321,7 @@ static const struct sd_desc sd_desc = {
-  /* -- module initialisation -- */
-  static const __devinitdata struct usb_device_id device_table[] = {
-  	{USB_DEVICE(0x08ca, 0x0111)},
-+	{USB_DEVICE(0x093a, 0x010f)},
-  	{}
-  };
-  MODULE_DEVICE_TABLE(usb, device_table);
