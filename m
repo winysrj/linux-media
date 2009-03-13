@@ -1,48 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f178.google.com ([209.85.218.178]:64616 "EHLO
-	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751427AbZCDOi7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 09:38:59 -0500
-Received: by bwz26 with SMTP id 26so2851027bwz.37
-        for <linux-media@vger.kernel.org>; Wed, 04 Mar 2009 06:38:56 -0800 (PST)
+Received: from nav6.org ([219.93.2.80]:53664 "EHLO nav6.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751248AbZCMCSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Mar 2009 22:18:16 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by nav6.org (Postfix) with ESMTP id C13681D6013D
+	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 01:14:23 +0000 (UTC)
+Received: from [202.249.25.153] (unknown [202.249.25.153])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by nav6.org (Postfix) with ESMTP id 2250A1D6011E
+	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 09:14:21 +0800 (MYT)
+Message-ID: <49B9BC93.8060906@nav6.org>
+Date: Fri, 13 Mar 2009 10:53:23 +0900
+From: Ang Way Chuang <wcang@nav6.org>
 MIME-Version: 1.0
-In-Reply-To: <1236150760.9084.2.camel@toptop>
-References: <1236150760.9084.2.camel@toptop>
-Date: Wed, 4 Mar 2009 09:38:56 -0500
-Message-ID: <b886b790903040638x11962a0ct3f891450d11fdbe6@mail.gmail.com>
-Subject: Re: [linux-dvb] good card express for video
-From: Matthew Gardeski <garmat@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Subject: The right way to interpret the content of SNR, signal strength and
+ BER from HVR 4000 Lite
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've been attempting to use an HVR-1500q expresscard in linux.  The
-development of the driver looks promising.  The trouble is that I am
-currently living in a fairly remote valley where there is no TV
-reception, so I can't actually tell if the ATSC or NTSC tuners are
-working.  I'll be spending next week near some larger cities so I will
-be able to test it further.  All I can tell you now is that the card
-is detected correctly and the firmware appears to load properly.
+Hi all,
+	I've looked through the mailing list and there seems to be no standard
+way to interpret to content of SNR, signal strength and BER returned
+from the DVB API. So, I wonder if someone knows how to interpret these
+values at least for HVR 4000 Lite? Thanks.
 
-On Wed, Mar 4, 2009 at 02:12, djamil <djamil@djamil.net> wrote:
-> Hi guys
->
-> I v been waititng on analog support for HVR1400 with no luck
->
-> can anyone tell me if there is a card similar working fully under linux,
-> i mean , hybrid, hd, and analog inputs as an express card, the successor
-> of pcmcia
->
->
->
-> thnx in advance
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Regards,
+Ang Way Chuang
+
