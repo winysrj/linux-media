@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
+Received: from cp-out11.libero.it ([212.52.84.111])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@drajsajtl.cz>) id 1LhBMy-0000aH-QJ
-	for linux-dvb@linuxtv.org; Wed, 11 Mar 2009 00:28:21 +0100
-Message-ID: <000d01c9a1d7$b1a28af0$217da8c0@tdrpc>
-From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
-To: <rasmus@akvaservice.dk>,
-	<linux-dvb@linuxtv.org>
-References: <1236727187.8238.17.camel@SailCat>
-Date: Wed, 11 Mar 2009 00:26:52 +0100
+	(envelope-from <vic@zini-associati.it>) id 1Li63s-0005ol-BO
+	for linux-dvb@linuxtv.org; Fri, 13 Mar 2009 13:00:26 +0100
+Received: from router.ciencio.homeip.net (151.65.182.112) by
+	cp-out11.libero.it (8.5.016.1)
+	id 49AFAC4900B9084F for linux-dvb@linuxtv.org;
+	Fri, 13 Mar 2009 12:59:50 +0100
+Received: from [10.0.0.101] (unknown [10.0.0.101])
+	by router.ciencio.homeip.net (Postfix) with ESMTP id 074321B6
+	for <linux-dvb@linuxtv.org>; Fri, 13 Mar 2009 12:58:38 +0100 (CET)
+Message-ID: <49BA4A7C.1010204@zini-associati.it>
+Date: Fri, 13 Mar 2009 12:58:52 +0100
+From: ciencio <vic@zini-associati.it>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] KNC1
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] lifeview NOT LV3H broblem with dvb
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,43 +30,59 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Rasmus,
-the VLC media player records programs for me perfectly from the command
-line. If you have problems to give the correct options to it, don't hesitate
-to ask.
+Hello all,
+I'm trying to make the card in the object working on my Ubuntu Intrepid box.
+At the moment i'm focused on the dvb-T part, so I've blacklisted the 
+analog driver in order to not have any possible conflict.
+The cx88-dvb modules is modprobed without any problem and lsmod gives 
+this result:
 
-Regards,
-Tomas
+zl10353                15752  1
+cx88_dvb               28420  0
+cx88_vp3054_i2c        10752  1 cx88_dvb
+tuner_xc2028           30772  2
+tuner                  36036  0
+v4l2_common            23808  1 tuner
+cx8802                 23684  1 cx88_dvb
+cx88xx                 79144  2 cx88_dvb,cx8802
+videodev               49312  3 tuner,v4l2_common,cx88xx
+v4l1_compat            21892  1 videodev
+ir_common              56068  1 cx88xx
+i2c_algo_bit           14340  2 cx88_vp3054_i2c,cx88xx
+tveeprom               20356  1 cx88xx
+btcx_risc              12552  2 cx8802,cx88xx
+videobuf_dvb           15236  1 cx88_dvb
+videobuf_dma_sg        20612  3 cx88_dvb,cx8802,cx88xx
+videobuf_core          26372  4 cx8802,cx88xx,videobuf_dvb,videobuf_dma_sg
+dvb_core               94336  2 cx88_dvb,videobuf_dvb
 
+When I try to scan using Kaffeine the result is the following
+Not able to lock to the signal on the given frequency
+Frontend closed
+dvbsi: Cant tune DVB
+Using DVB device 0:0 "Zarlink ZL10353 DVB-T"
+tuning DVB-T to 466000000 Hz
+inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
+.FE_READ_STATUS: Remote I/O error
 
------ Original Message ----- 
-From: "Rasmus Pedersen" <rasmus@akvaservice.dk>
-To: <linux-dvb@linuxtv.org>
-Sent: Wednesday, March 11, 2009 12:19 AM
-Subject: [linux-dvb] KNC1
+Repeated for all the frequences.
 
+while dmesg reports is a occurrence of:
+[ 1409.689323] zl10353_read_register: readreg error (reg=6, ret==-6)
+[ 1410.190219] zl10353: write to reg 55 failed (err = -6)!
+[ 1410.191169] zl10353: write to reg ea failed (err = -6)!
+[ 1410.192132] zl10353: write to reg ea failed (err = -6)!
+[ 1410.192879] zl10353: write to reg 56 failed (err = -6)!
+[ 1410.193623] zl10353: write to reg 5e failed (err = -6)!
+[ 1410.194392] zl10353: write to reg 5c failed (err = -6)!
+[ 1410.195137] zl10353: write to reg 64 failed (err = -6)!
 
-> Hi,
->
-> I've got some problems getting my KNC1 DVB-C working correctly.
->
-> The card is found correctly as
-.........
-> My problem is that I want to record tv from the consol (I'm working on
-> script that can record television and expose it thru mediatomb to be
-> played on my PS3), and Kaffeine does not run without its UI.
-.........
-> The problem is also there when using zap and dvbstreamer. I have not yet
-> tried mythtv or vdr, since I was hoping for a simpler solution using
-> gnutv or similar software to just dump the stream to disk (decrypted
-> ofcourse).
->
-> I hope somebody might now what the problem could be..
->
-> Regards,
-> Rasmus Pedersen
->
->
+I really don't know what to look at, if someone could help, even just to 
+say where to look...
+
+-- 
+vic
+
 
 
 _______________________________________________
