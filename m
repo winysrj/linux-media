@@ -1,209 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail12.syd.optusnet.com.au ([211.29.132.193]:47057 "EHLO
-	mail12.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750805AbZCQOX1 (ORCPT
+Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:58233 "EHLO
+	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752170AbZCMJMI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 10:23:27 -0400
-Received: from jenix (c220-239-230-109.thorn1.nsw.optusnet.com.au [220.239.230.109])
-	by mail12.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id n2HBxEFj019591
-	for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 22:59:16 +1100
-To: linux-media@vger.kernel.org
-Subject: No subsystem id (and therefore no =?UTF-8?Q?cx=38=38=5Fdvb=20loaded=29=20?=
- =?UTF-8?Q?after=20reboot?=
+	Fri, 13 Mar 2009 05:12:08 -0400
+Date: Fri, 13 Mar 2009 02:12:04 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Alain Kalker <miki@dds.nl>
+cc: linux-media@vger.kernel.org
+Subject: Re: Improve DKMS build of v4l-dvb?
+In-Reply-To: <1236612894.5982.72.camel@miki-desktop>
+Message-ID: <Pine.LNX.4.58.0903130153220.28292@shell2.speakeasy.net>
+References: <1236612894.5982.72.camel@miki-desktop>
 MIME-Version: 1.0
-Date: Tue, 17 Mar 2009 22:59:14 +1100
-From: Grant Gardner <grant@lastweekend.com.au>
-Message-ID: <e0f27036e7a5af1cc8e8a725b522593b@localhost>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-
-
-
-I'm looking for some pointers on debugging a problem with my DVICO
-
-FusionHDTV Hybrid DVB-T card.
-
-
-
-The device was working perfectly prior to a reconfiguration of my machine,
-
-kernel upgrade etc...
-
-
-
-Now, on a cold start everything seems to start smoothly but I can't tune
-
-channels.
-
-
-
-Then, after a reboot the device is not detected due to "invalid subsystem
-
-id". As below lspci reports no subsystem information at all. 
-
-
-
-Comparing the lspci output seems to be around the "Region 0: Memory at
-
-ee000000 v de000000", but I'm not
-
-sure what this means, and whether fixing the reboot problem will fix the
-
-channel tuning problem.
-
-
-
-Running mythbuntu 8.10
-
-2.6.27-11-generic #1 SMP Thu Jan 29 19:28:32 UTC 2009 x86_64 GNU/Linux
-
-
-
-lspci -vvnn after cold start
-
-
-
-00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-
-CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
-
-	Subsystem: DViCO Corporation Device [18ac:db40]
-
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-
-Stepping- SERR- FastB2B- DisINTx-
-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
-
-<MAbort- >SERR- <PERR- INTx-
-
-	Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
-
-	Interrupt: pin A routed to IRQ 18
-
-	Region 0: Memory at de000000 (32-bit, non-prefetchable) [size=16M]
-
-	Capabilities: [44] Vital Product Data <?>
-
-	Capabilities: [4c] Power Management version 2
-
-		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-	Kernel driver in use: cx8800
-
-	Kernel modules: cx8800
-
-
-
-00:0a.1 Multimedia controller [0480]: Conexant Systems, Inc. CX23880/1/2/3
-
-PCI Video and Audio Decoder [Audio Port] [14f1:8811] (rev 05)
-
-	Subsystem: DViCO Corporation Device [18ac:db40]
-
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-
-Stepping- SERR- FastB2B- DisINTx-
-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
-
-<MAbort- >SERR- <PERR- INTx-
-
-	Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
-
-	Interrupt: pin A routed to IRQ 11
-
-	Region 0: Memory at df000000 (32-bit, non-prefetchable) [size=16M]
-
-	Capabilities: [4c] Power Management version 2
-
-		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-	Kernel modules: cx88-alsa
-
-
-
-00:0a.2 Multimedia controller [0480]: Conexant Systems, Inc. CX23880/1/2/3
-
-PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
-
-	Subsystem: DViCO Corporation Device [18ac:db40]
-
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-
-Stepping- SERR- FastB2B- DisINTx-
-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
-
-<MAbort- >SERR- <PERR- INTx-
-
-	Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
-
-	Interrupt: pin A routed to IRQ 18
-
-	Region 0: Memory at e0000000 (32-bit, non-prefetchable) [size=16M]
-
-	Capabilities: [4c] Power Management version 2
-
-		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-	Kernel driver in use: cx88-mpeg driver manager
-
-	Kernel modules: cx8802
-
-
-
-
-
-lspci -vvnn after warm reboot
-
-
-
-00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-
-CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
-
-      Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-
-Stepping- SERR- FastB2B- DisINTx-
-
-      Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-
-      Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
-
-      Interrupt: pin A routed to IRQ 18
-
-      Region 0: Memory at ee000000 (32-bit, non-prefetchable) [size=16M]
-
-      Capabilities: [44] Vital Product Data <?>
-
-      Capabilities: [4c] Power Management version 2
-
-              Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-
-              Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-      Kernel driver in use: cx8800
-
-      Kernel modules: cx8800
+On Mon, 9 Mar 2009, Alain Kalker wrote:
+> Martin has an older version of the drivers packaged for building with
+> DKMS on Ubuntu in his PPA[5], but it currently has some disadvantages:
+>
+> A. It builds all available drivers, no matter which hardware is actually
+> installed in the system. This takes a lot of time, and may not be
+> practical at all on systems with limited resources (e.g. embedded, MIDs,
+> netbooks)
+> B. It currently has no support for Jockey to detect installed hardware,
+> so individual drivers can be selected.
+>
+> To address these issues, I would like to propose the following:
+>
+> A. Building individual drivers (i.e. sets of modules which constitute a
+> fully-functional driver), without having to manually configure them
+> using "make menuconfig"
+>
+> I see two possibilities for realizing this:
+> Firstly: generating a .config with just one config variable for the
+> requested driver set to 'm' merged with the config for the kernel being
+> built for, and then doing a "make silentoldconfig". Big disatvantage is
+> that full kernel source is required for the 'silentoldconfig' target to
+> be available.
+
+Does that actually work?  Figuring out that needs to be turned on to enable
+some config options is a hard problem.  It's not just simple dependencies
+between modules, but complex expressions that need to be satisfied.  E.g.,
+something "depends on A || B", which do you turn on, A or B?  There are
+multiple solutions so how does the code decide which is best?
+
+> Secondly, the script v4l/scripts/analyze_build.pl generates a list of
+> modules that will get built for each Kconfig variable selected, but it
+> currently has no way of determing all the module dependencies that make
+> up a fully functional driver.
+
+I just wrote analyze_build.pl to make it easier for developers to figure
+out that source files make up a module and how to enable it.  It's not
+actually used by the build system.  It's also not perfect when it comes to
+parsing makefiles, i.e. it no where near a re-implementation of make's
+parser in perl.  It understands the typical syntax used by the kernel
+makefiles but sometimes there is some unusual bit of make code that it
+won't parse.
+
+> The script v4l/scripts/check_deps.pl tries to discover dependencies
+> between Kconfig variables, but it currently is somewhat slow, and hase a
+> few other problems.
+
+That it is!  It's not totally perfect either.  Sometimes a driver will only
+depend on another if something is turned on.  But the way check_deps.pl
+works won't know that.  There are also lots of Kconfig variables that don't
+turn on a module but instead modify what a module does or are used for
+menus.  I think a better system would be use the dependencies in the
+Kconfig files instead of trying to figure them out from the source.
+
+> B. To enable hardware autodetection before installing drivers, we need
+> to have a list of modaliases of all supported hardware. This may be the
+> hardest part, because many VendorIDs and ProductIDs are scattered
+> throughout the code. Also coldbooting/warmbooting hardware is a problem.
+
+Extract that from the compiled modules should be easy.
