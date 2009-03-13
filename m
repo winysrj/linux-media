@@ -1,38 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f118.google.com ([209.85.221.118]:35717 "EHLO
-	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbZC2DDa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 23:03:30 -0400
-Received: by qyk16 with SMTP id 16so2830190qyk.33
-        for <linux-media@vger.kernel.org>; Sat, 28 Mar 2009 20:03:28 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35465 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752683AbZCMKXB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2009 06:23:01 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2DAMrjA012817
+	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 05:22:59 -0500
+From: chaithrika@ti.com
 To: linux-media@vger.kernel.org
-Subject: Kworld ATSC 120 audio capture bug
-Date: Sat, 28 Mar 2009 22:03:25 -0500
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903282203.25789.vanessaezekowitz@gmail.com>
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Chaithrika U S <chaithrika@ti.com>
+Subject: [RFC 4/7] ARM: DaVinci: DM646x Video: Defintions for standards supported by display
+Date: Fri, 13 Mar 2009 14:31:37 +0530
+Message-Id: <1236934897-32160-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While setting up to rip an old movie from a video tape (one which is not available on any other media), I ran into a bug in the cx88 driver..
+From: Chaithrika U S <chaithrika@ti.com>
 
-As in the past, I can initialize the card into analog mode after a reboot, and view video feeds from over-the-air analog TV (what little remains anyway), composite video in, and svideo in just fine.  Audio for the TV also works fine via the cx88-alsa driver, as usual.
+Add defintions for Digital TV Standards supported by display driver
 
-However, for some reason, switching to either composite or svideo input does *not* switch the audio input to the two RCA jacks on the harness like it should.  Instead, when I switch to composite mode I get the TV audio from the last channel I tuned to, plus a little crackling or static (probably feedback from the VCR I have connected to that input), and plain white noise when I switch to Svideo mode.
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+---
+Applies to v4l-dvb repository located at
+http://linuxtv.org/hg/v4l-dvb/rev/1fd54a62abde
 
-Just to be sure it wasn't an outdated driver, I cleaned up my kernel configuration, fetched a fresh copy of the v4l-dvb repository, and built/installed it, then rebooted and tried again.
+ include/linux/videodev2.h |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-Using `xawtv -noxv` for video and sox for the audio stream, as usual for these kinds of tests.
-
-I could swear that this used to work some time back, but I can't make even a rough guess as to when it quit working.
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 7a8eafd..df4a622 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -704,6 +704,18 @@ typedef __u64 v4l2_std_id;
+ #define V4L2_STD_ALL            (V4L2_STD_525_60	|\
+ 				 V4L2_STD_625_50)
+ 
++#define V4L2_STD_720P_60        ((v4l2_std_id)(0x0001000000000000ULL))
++#define V4L2_STD_1080I_30       ((v4l2_std_id)(0x0002000000000000ULL))
++#define V4L2_STD_1080I_25       ((v4l2_std_id)(0x0004000000000000ULL))
++#define V4L2_STD_480P_60        ((v4l2_std_id)(0x0008000000000000ULL))
++#define V4L2_STD_576P_50        ((v4l2_std_id)(0x0010000000000000ULL))
++#define V4L2_STD_720P_25        ((v4l2_std_id)(0x0020000000000000ULL))
++#define V4L2_STD_720P_30        ((v4l2_std_id)(0x0040000000000000ULL))
++#define V4L2_STD_720P_50        ((v4l2_std_id)(0x0080000000000000ULL))
++#define V4L2_STD_1080P_25       ((v4l2_std_id)(0x0100000000000000ULL))
++#define V4L2_STD_1080P_30       ((v4l2_std_id)(0x0200000000000000ULL))
++#define V4L2_STD_1080P_24       ((v4l2_std_id)(0x0400000000000000ULL))
++
+ struct v4l2_standard {
+ 	__u32		     index;
+ 	v4l2_std_id          id;
 -- 
-"There are some things in life worth obsessing over.  Most
-things aren't, and when you learn that, life improves."
-http://starbase.globalpc.net/~vanessa/
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+1.5.6
+
