@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mout.perfora.net ([74.208.4.194])
+Received: from rv-out-0506.google.com ([209.85.198.231])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tlenz@vorgon.com>) id 1LjqcL-0004VA-2T
-	for linux-dvb@linuxtv.org; Wed, 18 Mar 2009 08:55:14 +0100
-Message-ID: <004b01c9a79e$db8d4630$0a00a8c0@vorg>
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-To: <linux-dvb@linuxtv.org>
-References: <000701c9a5de$09033e20$0a00a8c0@vorg>
-	<49BE5B36.1080901@linuxtv.org>
-Date: Wed, 18 Mar 2009 00:51:40 -0700
+	(envelope-from <tutuyu@usc.edu>) id 1LiEqP-0006Mz-Ba
+	for linux-dvb@linuxtv.org; Fri, 13 Mar 2009 22:23:06 +0100
+Received: by rv-out-0506.google.com with SMTP id l9so1818741rvb.41
+	for <linux-dvb@linuxtv.org>; Fri, 13 Mar 2009 14:22:59 -0700 (PDT)
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
+Date: Fri, 13 Mar 2009 14:22:59 -0700
+Message-ID: <cae4ceb0903131422q7a4bdaa2j7ba7c92ebc4baccc@mail.gmail.com>
+From: Tu-Tu Yu <tutuyu@usc.edu>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Question about if HVR1200 support 64Bit
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,30 +25,10 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Anyone know how to get the crash data to a log file? A way to redirect main monitor to an ssh client or second linux computer
-through serial port and null modem cable?
-
------ Original Message ----- 
-From: "Steven Toth" <stoth@linuxtv.org>
-To: <linux-media@vger.kernel.org>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Monday, March 16, 2009 6:59 AM
-Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-
-
-> Timothy D. Lenz wrote:
-> > Using kernel 2.6.26.8 and v4l from a few days ago. When I modprobe cx23885 to load the drivers, I get kernel panic
->
-> We'll need the oops.
->
-> - Steve
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+Hi there:
+I wanna know if the driver for HVR 1200 support 64bit.
+Thank you!
+Audrey
 
 _______________________________________________
 linux-dvb users mailing list
