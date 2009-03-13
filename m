@@ -1,50 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f165.google.com ([209.85.217.165]:36700 "EHLO
-	mail-gx0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087AbZCQCkF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 22:40:05 -0400
-Received: by gxk9 with SMTP id 9so2479949gxk.13
-        for <linux-media@vger.kernel.org>; Mon, 16 Mar 2009 19:40:02 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 16 Mar 2009 22:40:01 -0400
-Message-ID: <d6a802e70903161940t2ce9d20aw46360de23d987d29@mail.gmail.com>
-Subject: Strange card
-From: Eduardo Kaftanski <ekaftan@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp6-g21.free.fr ([212.27.42.6]:59670 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759132AbZCMXRe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2009 19:17:34 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH v2 4/4] pxa_camera: Fix overrun condition on last buffer
+Date: Sat, 14 Mar 2009 00:17:20 +0100
+Message-Id: <1236986240-24115-5-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1236986240-24115-4-git-send-email-robert.jarzmik@free.fr>
+References: <1236986240-24115-1-git-send-email-robert.jarzmik@free.fr>
+ <1236986240-24115-2-git-send-email-robert.jarzmik@free.fr>
+ <1236986240-24115-3-git-send-email-robert.jarzmik@free.fr>
+ <1236986240-24115-4-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I bought today a card that was packaged as a PICO2000-compatible but I
-can't get it to work... I read all the archives and wikis I could find
-but the only one thread with the same card description but the recipe
-won't work for me.
+The last buffer queued will often overrun, as the DMA chain
+is finished, and the time the dma irq handler is activated,
+the QIF fifos are filled by the sensor.
 
-Here is the lspci... is this card supported?
+The fix is to ignore the overrun condition on the last
+queued buffer, and restart the capture only on intermediate
+buffers of the chain.
 
-01:0a.0 Multimedia video controller: Brooktree Corporation Unknown
-device 016e (    rev 11)
-        Flags: bus master, fast devsel, latency 32, IRQ 11
-        Memory at d9fff000 (32-bit, prefetchable) [size=4K]
-        Capabilities: [44] Vital Product Data
-        Capabilities: [4c] Power Management version 2
+Moreover, a fix was added to the very unlikely condition
+where in YUV422P mode, one channel overruns while another
+completes at the very same time. The capture is restarted
+after the overrun as before, but the other channel
+completion is now ignored.
 
-01:0a.1 Multimedia controller: Brooktree Corporation Bt878 Audio
-Capture (rev 11    )
-        Flags: bus master, fast devsel, latency 32, IRQ 11
-        Memory at d9ffe000 (32-bit, prefetchable) [size=4K]
-        Capabilities: [44] Vital Product Data
-        Capabilities: [4c] Power Management version 2
-
-
-THanks.
-
-
-
--- 
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
-Eduardo Kaftanski
-ekaftan@gmail.com
-eduardo@orsus.cl
+ drivers/media/video/pxa_camera.c |   25 ++++++++++++++++++++-----
+ 1 files changed, 20 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index a0ca982..35e54fc 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -623,6 +623,7 @@ static void pxa_camera_stop_capture(struct pxa_camera_dev *pcdev)
+ 	cicr0 = __raw_readl(pcdev->base + CICR0) & ~CICR0_ENB;
+ 	__raw_writel(cicr0, pcdev->base + CICR0);
+ 
++	pcdev->active = NULL;
+ 	dev_dbg(pcdev->dev, "%s\n", __func__);
+ }
+ 
+@@ -696,7 +697,6 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
+ 
+ 	if (list_empty(&pcdev->capture)) {
+ 		pxa_camera_stop_capture(pcdev);
+-		pcdev->active = NULL;
+ 		for (i = 0; i < pcdev->channels; i++)
+ 			pcdev->sg_tail[i] = NULL;
+ 		return;
+@@ -764,10 +764,20 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
+ 		goto out;
+ 	}
+ 
+-	if (!pcdev->active) {
+-		dev_err(pcdev->dev, "DMA End IRQ with no active buffer!\n");
++	/*
++	 * pcdev->active should not be NULL in DMA irq handler.
++	 *
++	 * But there is one corner case : if capture was stopped due to an
++	 * overrun of channel 1, and at that same channel 2 was completed.
++	 *
++	 * When handling the overrun in DMA irq for channel 1, we'll stop the
++	 * capture and restart it (and thus set pcdev->active to NULL). But the
++	 * DMA irq handler will already be pending for channel 2. So on entering
++	 * the DMA irq handler for channel 2 there will be no active buffer, yet
++	 * that is normal.
++	 */
++	if (!pcdev->active)
+ 		goto out;
+-	}
+ 
+ 	vb = &pcdev->active->vb;
+ 	buf = container_of(vb, struct pxa_buffer, vb);
+@@ -778,7 +788,12 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
+ 		status & DCSR_ENDINTR ? "EOF " : "", vb, DDADR(channel));
+ 
+ 	if (status & DCSR_ENDINTR) {
+-		if (camera_status & overrun) {
++		/*
++		 * It's normal if the last frame creates an overrun, as there
++		 * are no more DMA descriptors to fetch from QIF fifos
++		 */
++		if (camera_status & overrun
++		    && !list_is_last(pcdev->capture.next, &pcdev->capture)) {
+ 			dev_dbg(pcdev->dev, "FIFO overrun! CISR: %x\n",
+ 				camera_status);
+ 			pxa_camera_stop_capture(pcdev);
+-- 
+1.5.6.5
+
