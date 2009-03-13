@@ -1,129 +1,394 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:56874 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752357AbZCEUnl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:43:41 -0500
-Date: Thu, 5 Mar 2009 14:55:44 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-cc: Kyle Guinn <elyk03@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-In-Reply-To: <49B03614.5020701@kaiser-linux.li>
-Message-ID: <alpine.LNX.2.00.0903051444010.27979@banach.math.auburn.edu>
-References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
- <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li> <alpine.LNX.2.00.0903051221510.27780@banach.math.auburn.edu> <49B025B2.1040309@kaiser-linux.li>
- <alpine.LNX.2.00.0903051337130.27979@banach.math.auburn.edu> <49B03614.5020701@kaiser-linux.li>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from comal.ext.ti.com ([198.47.26.152]:35171 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752002AbZCMKWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2009 06:22:05 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2DALtR9012146
+	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 05:22:01 -0500
+From: chaithrika@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Chaithrika U S <chaithrika@ti.com>
+Subject: [RFC 1/7] ARM: DaVinci: DM646x Video: Platform and board specific setup
+Date: Fri, 13 Mar 2009 14:30:40 +0530
+Message-Id: <1236934840-31839-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Chaithrika U S <chaithrika@ti.com>
 
+Add pin mux definitions, display device setup, clock setup functions
 
-On Thu, 5 Mar 2009, Thomas Kaiser wrote:
+Add pin mux related code for the display device, also add platform device
+and resource structures. Also define a platform specific clock setup function
+that can be accessed by the driver to configure the clock and CPLD.
 
-> kilgota@banach.math.auburn.edu wrote:
->>>> That of course is a guess. OTOH it could be on a scale of 0 to 0x80, or 
->>>> it could be that only the digits 0 through 9 are actually used, and the 
->>>> basis is then 100, or too many other variations to count. Also what is 
->>>> considered a "normal" or an "average" value? The trouble with your 
->>>> suggestion of a scale from 0 to 0xff is that it makes sense, and in a 
->>>> situation like this one obviously can not assume that.
->>> 
->>> I don't really understand what you try to tell with this sentence:
->>> "and in a situation like this one obviously can not assume that."
->> 
->> I mean, your interpretation of 0 to 0xff is a natural and sensible 
->> interpretation (for us). But what one can not assume is, it made sense to 
->> those who constructed the system. Perhaps those guys were setting it all up 
->> differently.
->
-> You are right, we don't know what the developer were thinking, unfortunately,
->
-> You have to turn yourself in a webcam developer and think how you would do 
-> it. When you find, by observing/testing the cam, that it looks similar as you 
-> thought about how to do it, the observation should be true!
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+---
+Applies to linux-davinci GIT tree at
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-davinci.git;a=commit;h=486afa37130356662213cc1a2199a285b4fd72af
 
-True enough. In this respect, there is not much difference between still 
-cameras and webcams.
+ arch/arm/mach-davinci/board-dm646x-evm.c    |  109 +++++++++++++++++++++++++++
+ arch/arm/mach-davinci/dm646x.c              |  100 ++++++++++++++++++++++++
+ arch/arm/mach-davinci/include/mach/dm646x.h |    9 ++
+ arch/arm/mach-davinci/include/mach/mux.h    |   17 ++++
+ 4 files changed, 235 insertions(+), 0 deletions(-)
 
-> I will do this again in the next couple of weeks (lens removed).
+diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+index 907f424..a6bf180 100644
+--- a/arch/arm/mach-davinci/board-dm646x-evm.c
++++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+@@ -39,6 +39,7 @@
+ #include <mach/serial.h>
+ #include <mach/i2c.h>
+ #include <mach/mmc.h>
++#include <mach/mux.h>
+ 
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
+@@ -46,6 +47,21 @@
+ #include <linux/etherdevice.h>
+ #include <mach/emac.h>
+ 
++#include <media/adv7343.h>
++
++#define VIDCLKCTL_OFFSET	(0x38)
++#define VSCLKDIS_OFFSET		(0x6c)
++
++#define VCH2CLK_MASK		(0x07 << 8)
++#define VCH2CLK_SYSCLK8		(0x02 << 8)
++#define VCH2CLK_AUXCLK		(0x03 << 8)
++#define VCH3CLK_MASK		(0x07 << 12)
++#define VCH3CLK_SYSCLK8		(0x02 << 12)
++#define VCH3CLK_AUXCLK		(0x03 << 12)
++
++#define VIDCH2CLK		(0x01 << 10)
++#define VIDCH3CLK		(0x01 << 11)
++
+ static struct davinci_uart_config uart_config __initdata = {
+ 	.enabled_uarts = (1 << 0),
+ };
+@@ -95,11 +111,54 @@ int dm646xevm_eeprom_write(void *buf, off_t off, size_t count)
+ }
+ EXPORT_SYMBOL(dm646xevm_eeprom_write);
+ 
++static struct i2c_client *cpld_client;
++
++static int cpld_video_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	cpld_client = client;
++	return 0;
++}
++
++static int __devexit cpld_video_remove(struct i2c_client *client)
++{
++	cpld_client = NULL;
++	return 0;
++}
++
++static const struct i2c_device_id cpld_video_id[] = {
++	{ "cpld_video", 0 },
++	{ }
++};
++
++static struct i2c_driver cpld_video_driver = {
++	.driver = {
++		.name	= "cpld_video",
++	},
++	.probe		= cpld_video_probe,
++	.remove		= cpld_video_remove,
++	.id_table	= cpld_video_id,
++};
++
++static void evm_init_cpld(void)
++{
++	i2c_add_driver(&cpld_video_driver);
++}
++
+ static struct i2c_board_info __initdata i2c_info[] =  {
+ 	{
+ 		I2C_BOARD_INFO("24c256", 0x50),
+ 		.platform_data  = &eeprom_info,
+ 	},
++	{
++		I2C_BOARD_INFO("adv7343", 0x2A),
++	},
++	{
++		I2C_BOARD_INFO("ths7303", 0x2C),
++	},
++	{
++		I2C_BOARD_INFO("cpld_video", 0x3B),
++	},
+ };
+ 
+ static struct davinci_i2c_platform_data i2c_pdata = {
+@@ -107,10 +166,59 @@ static struct davinci_i2c_platform_data i2c_pdata = {
+ 	.bus_delay      = 0 /* usec */,
+ };
+ 
++static int set_vpif_clock(int mux_mode, int hd)
++{
++	int val = 0;
++	int err = 0;
++	unsigned int value;
++	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
++
++	/* disable the clock */
++	value = __raw_readl(base + VSCLKDIS_OFFSET);
++	value |= (VIDCH3CLK | VIDCH2CLK);
++	__raw_writel(value, base + VSCLKDIS_OFFSET);
++
++	val = i2c_smbus_read_byte(cpld_client);
++	if (val < 0)
++		return val;
++
++	if (mux_mode == 1)
++		val &= ~0x40;
++	else
++		val |= 0x40;
++
++	err = i2c_smbus_write_byte(cpld_client, val);
++	if (err)
++		return err;
++
++	value = __raw_readl(base + VIDCLKCTL_OFFSET);
++	value &= ~(VCH2CLK_MASK);
++	value &= ~(VCH3CLK_MASK);
++
++	if (hd >= 1)
++		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
++	else
++		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
++
++	__raw_writel(value, base + VIDCLKCTL_OFFSET);
++
++	/* enable the clock */
++	value = __raw_readl(base + VSCLKDIS_OFFSET);
++	value &= ~(VIDCH3CLK | VIDCH2CLK);
++	__raw_writel(value, base + VSCLKDIS_OFFSET);
++
++	return 0;
++}
++
++static struct dm646x_vpif_config vpif_config = {
++	.set_clock	= set_vpif_clock,
++};
++
+ static void __init evm_init_i2c(void)
+ {
+ 	davinci_init_i2c(&i2c_pdata);
+ 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
++	evm_init_cpld();
+ }
+ 
+ static void __init davinci_map_io(void)
+@@ -123,6 +231,7 @@ static __init void evm_init(void)
+ {
+ 	evm_init_i2c();
+ 	davinci_serial_init(&uart_config);
++	dm646x_setup_vpif(&vpif_config);
+ }
+ 
+ static __init void davinci_dm646x_evm_irq_init(void)
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index af040cf..f069ab9 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -12,6 +12,7 @@
+ #include <linux/init.h>
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <mach/dm646x.h>
+ #include <mach/clock.h>
+@@ -24,6 +25,14 @@
+ #include "clock.h"
+ #include "mux.h"
+ 
++#define DAVINCI_VPIF_BASE       0x01C12000
++#define VDD3P3V_PWDN_OFFSET	(0x48)
++#define VSCLKDIS_OFFSET		(0x6C)
++
++#define VDD3P3V_VID_MASK	(0x0000000F)
++
++#define VSCLKDIS_MASK		(0x00000F00)
++
+ /*
+  * Device specific clocks
+  */
+@@ -230,6 +239,20 @@ static struct clk timer2_clk = {
+ 	.flags = ALWAYS_ENABLED, /* no LPSC, always enabled; c.f. spruep9a */
+ };
+ 
++static struct clk vpif0_clk = {
++	.name = "vpif0",
++	.parent = &ref_clk,
++	.lpsc = DM646X_LPSC_VPSSMSTR,
++	.flags = ALWAYS_ENABLED,
++};
++
++static struct clk vpif1_clk = {
++	.name = "vpif1",
++	.parent = &ref_clk,
++	.lpsc = DM646X_LPSC_VPSSSLV,
++	.flags = ALWAYS_ENABLED,
++};
++
+ struct davinci_clk dm646x_clks[] = {
+ 	CLK(NULL, "ref", &ref_clk),
+ 	CLK(NULL, "aux", &aux_clkin),
+@@ -260,6 +283,8 @@ struct davinci_clk dm646x_clks[] = {
+ 	CLK(NULL, "timer0", &timer0_clk),
+ 	CLK(NULL, "timer1", &timer1_clk),
+ 	CLK("watchdog", NULL, &timer2_clk),
++	CLK(NULL, "vpif0", &vpif0_clk),
++	CLK(NULL, "vpif1", &vpif1_clk),
+ 	CLK(NULL, NULL, NULL),
+ };
+ 
+@@ -275,6 +300,28 @@ MUX_CFG(DM646X, ATAEN,		0,   0,     1,	  1,	 true)
+ MUX_CFG(DM646X, AUDCK1,		0,   29,    1,	  0,	 false)
+ 
+ MUX_CFG(DM646X, AUDCK0,		0,   28,    1,	  0,	 false)
++
++MUX_CFG(DM646X, CRGMUX,			0,   24,    7,    5,	 true)
++
++MUX_CFG(DM646X, STSOMUX_DISABLE,	0,   22,    3,    0,	 true)
++
++MUX_CFG(DM646X, STSIMUX_DISABLE,	0,   20,    3,    0,	 true)
++
++MUX_CFG(DM646X, PTSOMUX_DISABLE,	0,   18,    3,    0,	 true)
++
++MUX_CFG(DM646X, PTSIMUX_DISABLE,	0,   16,    3,    0,	 true)
++
++MUX_CFG(DM646X, STSOMUX,		0,   22,    3,    2,	 true)
++
++MUX_CFG(DM646X, STSIMUX,		0,   20,    3,    2,	 true)
++
++MUX_CFG(DM646X, PTSOMUX_PARALLEL,	0,   18,    3,    2,	 true)
++
++MUX_CFG(DM646X, PTSIMUX_PARALLEL,	0,   16,    3,    2,	 true)
++
++MUX_CFG(DM646X, PTSOMUX_SERIAL,		0,   18,    3,    3,	 true)
++
++MUX_CFG(DM646X, PTSIMUX_SERIAL,		0,   16,    3,    3,	 true)
+ };
+ 
+ /*----------------------------------------------------------------------*/
+@@ -345,8 +392,61 @@ static struct platform_device dm646x_edma_device = {
+ 	.resource		= edma_resources,
+ };
+ 
++static u64 vpif_dma_mask = DMA_32BIT_MASK;
++
++static struct resource vpif_resource[] = {
++	{
++		.start	= DAVINCI_VPIF_BASE,
++		.end	= DAVINCI_VPIF_BASE + 0x03fff,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start = IRQ_DM646X_VP_VERTINT2,
++		.end   = IRQ_DM646X_VP_VERTINT2,
++		.flags = IORESOURCE_IRQ,
++	},
++	{
++		.start = IRQ_DM646X_VP_VERTINT3,
++		.end   = IRQ_DM646X_VP_VERTINT3,
++		.flags = IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device vpif_display_dev = {
++	.name		= "vpif_display",
++	.id		= -1,
++	.dev		= {
++			.dma_mask 		= &vpif_dma_mask,
++			.coherent_dma_mask	= DMA_32BIT_MASK,
++	},
++	.resource	= vpif_resource,
++	.num_resources	= ARRAY_SIZE(vpif_resource),
++};
++
+ /*----------------------------------------------------------------------*/
+ 
++void dm646x_setup_vpif(struct dm646x_vpif_config *config)
++{
++	unsigned int value;
++	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
++
++	value = __raw_readl(base + VSCLKDIS_OFFSET);
++	value &= ~VSCLKDIS_MASK;
++	__raw_writel(value, base + VSCLKDIS_OFFSET);
++
++	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
++	value &= ~VDD3P3V_VID_MASK;
++	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
++
++	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
++	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
++	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
++	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
++
++	vpif_display_dev.dev.platform_data = config;
++
++	platform_device_register(&vpif_display_dev);
++}
+ 
+ void __init dm646x_init(void)
+ {
+diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
+index d917939..216345c 100644
+--- a/arch/arm/mach-davinci/include/mach/dm646x.h
++++ b/arch/arm/mach-davinci/include/mach/dm646x.h
+@@ -12,7 +12,16 @@
+ #define __ASM_ARCH_DM646X_H
+ 
+ #include <mach/hardware.h>
++#include <linux/i2c.h>
+ 
+ void __init dm646x_init(void);
+ 
++void dm646x_video_init(void);
++
++struct dm646x_vpif_config {
++	int (*set_clock)(int, int);
++};
++
++void dm646x_setup_vpif(struct dm646x_vpif_config *config);
++
+ #endif /* __ASM_ARCH_DM646X_H */
+diff --git a/arch/arm/mach-davinci/include/mach/mux.h b/arch/arm/mach-davinci/include/mach/mux.h
+index cd95629..557bebf 100644
+--- a/arch/arm/mach-davinci/include/mach/mux.h
++++ b/arch/arm/mach-davinci/include/mach/mux.h
+@@ -109,6 +109,23 @@ enum davinci_dm646x_index {
+ 	/* AUDIO Clock */
+ 	DM646X_AUDCK1,
+ 	DM646X_AUDCK0,
++
++	/* CRGEN Control */
++	DM646X_CRGMUX,
++
++	/* VPIF Control */
++	DM646X_STSOMUX_DISABLE,
++	DM646X_STSIMUX_DISABLE,
++	DM646X_PTSOMUX_DISABLE,
++	DM646X_PTSIMUX_DISABLE,
++
++	/* TSIF Control */
++	DM646X_STSOMUX,
++	DM646X_STSIMUX,
++	DM646X_PTSOMUX_PARALLEL,
++	DM646X_PTSIMUX_PARALLEL,
++	DM646X_PTSOMUX_SERIAL,
++	DM646X_PTSIMUX_SERIAL,
+ };
+ 
+ enum davinci_dm355_index {
+-- 
+1.5.6
 
->>> I believe that this documents are exists, but not available for public:-( 
->>> Just company confidential.
->> 
->> That may be true. If so, then such documentation is indeed not available. 
->> But sometimes a document is published and available, and one just is not 
->> aware of the fact.
-
-I will add to this that a lot of documentation for a lot of things really 
-is available to the public.
-
->> 
->>> 
->>> Anyway most of the Linux webcam drivers were done by re-engineering the 
->>> Windoz driver (usbsnoop). That said, all information about the cams is "a 
->>> guess".
->> 
->> Very true. Also true about the still cameras that I supported in 
->> libgphoto2. There are no secrets kept on the USB bus. But what is done 
->> inside the computer does not appear on the USB bus and there is no log of 
->> it.
-
-I will brag a little bit. Give me any cheap still camera that I don't know 
-anything about, and a copy of the Windows driver. Provided only that the 
-camera does not use an unknown, proprietary compression algorithm, I will 
-promise you a working libgphoto2 driver for it within a week. Compression 
-algorithms are the big obstacle there, and the only one.
-
->>> For the brightness thing, I just was working with a light and studied what 
->>> is changing in the header of the frame. At this time I did this, I was not 
->>> aware that I could remove the lens of the webcam to be more sensible to 
->>> light change and get more precise results.
->>> 
->>> During the work I did for the PAC7311 Pixart chip I found out that 
->>> removing the lens and put light directly to the sensor does help a lot to 
->>> figure out how the cam is working.
->>> 
->>> And with this idea in mind, we could even get further to guess the 
->>> compression algo from a cam.
->>> 
->>> Assuming that the sensor has a Bayer pattern.
->>> - remove lens.
->>> - put white light on the sensor
->>> - use color filter an put each spectrum (RGB) on the sensor
->>> - check the stream and find out what is changing in the stream according 
->>> to the different light conditions.
-
-I would very much like to see this in action.
-
->>> 
->>> Looks like I get off topic, now ;-)
->> 
->> But it is very interesting nevertheless.
->
-> I think so, I didn't try with the color filter :-(
->
->> 
->>> 
->>> Something else comes in my mind. Would it good to document all this what 
->>> we are talking bout somewhere on a webpage?
->>> 
->>> Thomas
->> 
->> Perhaps so. Also a good idea to try to collect some people who have similar 
->> interests and are trying to work on similar problems. I have been trying to 
->> do that for a while, but with mixed and limited success.
->
-> May be, some people read this and have the same felling. Let's see what 
-> happens.
-
-felling->feeling
-
-We are not chopping down trees. :)
-
-
-Theodore Kilgore
