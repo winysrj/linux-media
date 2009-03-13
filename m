@@ -1,96 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1244 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997AbZCOTXi (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.240]:2424 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751602AbZCMTrH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 15:23:38 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2FJNWuA093340
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2009 20:23:36 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 15 Mar 2009 20:23:32 +0100 (CET)
-Message-Id: <200903151923.n2FJNWuA093340@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Fri, 13 Mar 2009 15:47:07 -0400
+Date: Fri, 13 Mar 2009 12:46:47 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <gregkh@suse.de>, laurent.pinchart@skynet.be,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
+	is probably using the wrong IRQ."
+Message-ID: <20090313194647.GC21008@jenkins.ifup.org>
+References: <20090313154058.GB14186@jenkins.ifup.org> <Pine.LNX.4.44L0.0903131402050.2898-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.0903131402050.2898-100000@iolanthe.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On 14:03 Fri 13 Mar 2009, Alan Stern wrote:
+> On Fri, 13 Mar 2009, Brandon Philips wrote:
+> 
+> > > Okay, not much information there but it's a start.  Here's a more 
+> > > informative patch to try instead.
+> > 
+> > Here is the log:
+> >  http://ifup.org/~philips/467317/pearl-alan-debug-2.log
+> 
+> I still can't tell what's happening.  Here's yet another patch.
 
-Results of the daily build of v4l-dvb:
+http://ifup.org/~philips/467317/pearl-alan-debug-3.log
 
-date:        Sun Mar 15 19:00:05 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11038:626c136ec221
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29-rc8-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc8-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc8-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc8-x86_64: WARNINGS
-fw/apps: WARNINGS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc8): ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Thanks, Brandon
