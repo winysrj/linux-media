@@ -1,76 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1522 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750728AbZCDKEU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 05:04:20 -0500
-Message-ID: <28050.62.70.2.252.1236161035.squirrel@webmail.xs4all.nl>
-Date: Wed, 4 Mar 2009 11:03:55 +0100 (CET)
-Subject: Re: saa7134 and RDS
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans J. Koch" <hjk@linutronix.de>
-Cc: "hermann pitton" <hermann-pitton@arcor.de>,
-	"Dmitri Belimov" <d.belimov@gmail.com>,
-	"Hans J. Koch" <koch@hjk-az.de>,
-	=?iso-8859-1?Q?Hans-J=C3=BCrgen_Koch?= <hjk@linutronix.de>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:41464 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845AbZCMXzm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2009 19:55:42 -0400
+Date: Fri, 13 Mar 2009 16:55:40 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+cc: Ang Way Chuang <wcang@nav6.org>, VDR User <user.vdr@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: The right way to interpret the content of SNR, signal strength
+ 	and BER from HVR 4000 Lite
+In-Reply-To: <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>
+Message-ID: <Pine.LNX.4.58.0903131649380.28292@shell2.speakeasy.net>
+References: <49B9BC93.8060906@nav6.org>  <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
+  <49B9DECC.5090102@nav6.org>  <412bdbff0903130727p719b63a0u3c4779b3bec7520b@mail.gmail.com>
+  <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>
+ <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-> On Wed, Mar 04, 2009 at 01:43:08AM +0100, hermann pitton wrote:
->> Hi,
->>
->> Am Montag, den 02.03.2009, 13:33 +0900 schrieb Dmitri Belimov:
->> > Hi All.
->> >
->> > I want use RDS on our TV cards. But now saa7134 not work with saa6588.
->> > I found this old patch from Hans J. Koch. Why this patch is not in
->> mercurial??
->> > Yes I know that patch for v4l ver.1 and for old kernel. But why not??
->> > v4l has other way for RDS on saa7134 boards?
->>
->> I think the patch got lost, because it was not clear who should pull it
->> in. Likely Hartmut or Mauro would have picked it up in 2006 if pinged
->> directly.
+On Fri, 13 Mar 2009, Devin Heitmueller wrote:
+> On Fri, Mar 13, 2009 at 5:11 PM, Trent Piepho <xyzzy@speakeasy.org> wrote:
+> > I like 8.8 fixed point a lot better.  It gives more precision.  The range
+> > is more in line with that the range of real SNRs are.  Computers are
+> > binary, so the math can end up faster.  It's easier to read when printed
+> > out in hex, since you can get the integer part of SNR just by looking at
+> > the first byte.  E.g., 25.3 would be 0x194C, 0x19 = 25 db, 0x4c = a little
+> > more than quarter.  Several drivers already use it.
 >
-> The main reason was that at that time there was a conflict with the i2c
-> ir keyboard driver. I couldn't fix it immediately and was occupied with
-> different things afterwards. I don't know if saa7134 i2c got fixed
-> in the meantime.
->
->>
->> Please try to work with Hans to get it in now. There was also a
->> suggestion to add a has_rds capability flag and about how to deal with
->> different RDS decoders later, IIRC.
->
-> Right. We should have a flag you could set to something like
->   .has_rds = RDS_SAA6588
-> so that the rds driver could be loaded automagically.
->
-> But I'm afraid I cannot spend much time on this work ATM, sorry.
->
-> Thanks,
-> Hans
+> Wow, I know you said you like that idea alot better, but I read it and
+> it made me feel sick to my stomach.  Once we have a uniform format, we
+> won't need to show it in hex at all.  Tools like femon and scan can
 
-Dmitri,
+But if you do see it in hex, it's easier to understand.  If it's not shown
+in hex, you still have better precision and better math.  What advantage is
+there to using something that's 4.1 decimal fixed point on a binary
+computer?
 
-I have a patch pending to fix this for the saa7134 driver. The i2c
-problems are resolved, so this shouldn't be a problem anymore.
+> On a separate note, do you know specifically which drivers use that
+> format?  I was putting together a table of all the various
 
-The one thing that is holding this back is that I first want to finalize
-the RFC regarding the RDS support. I posted an RFC a few weeks ago, but I
-need to make a second version and for that I need to do a bit of research
-into the US version of RDS. And I haven't found the time to do that yet.
-
-I'll see if I can get the patch merged anyway.
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+or51211, or51132, and lgdt330x at least.  Don't know about the other lg
+demods.  The dvb match code they all use makes it's easy to get the snr in
+8.8 fixed point with the typical log caclulations required.
