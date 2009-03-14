@@ -1,129 +1,371 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:33145 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140AbZCEEXE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 23:23:04 -0500
-Date: Wed, 4 Mar 2009 22:34:13 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Kyle Guinn <elyk03@gmail.com>
-cc: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-In-Reply-To: <200903042049.37829.elyk03@gmail.com>
-Message-ID: <alpine.LNX.2.00.0903042210500.23365@banach.math.auburn.edu>
-References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903042049.37829.elyk03@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:35100 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753958AbZCNMA4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2009 08:00:56 -0400
+Date: Sat, 14 Mar 2009 09:00:20 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: wk <handygewinnspiel@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] dvb-api: update documentation, chapter1
+Message-ID: <20090314090020.5b041c00@pedra.chehab.org>
+In-Reply-To: <49A6EB4D.70208@gmx.de>
+References: <49A18DD5.40206@gmx.de>
+	<20090226121445.74ed3202@caramujo.chehab.org>
+	<49A6EB4D.70208@gmx.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi wk,
+
+Let's commit what we currently have. Could you please re-submit the patch
+again, this time providing a proper description, and your SOB?
+
+Cheers,
+Mauro.
+
+On Thu, 26 Feb 2009 20:19:41 +0100
+wk <handygewinnspiel@gmx.de> wrote:
+
+> Mauro Carvalho Chehab wrote:
+> >> +
+> >> +For this API documentation applies an even/odd versioning scheme, stating
+> >> +unstable or stable versions of that API. Only stable API versions should
+> >> +be used for developing drivers and applications.
+> >>     
+> >
+> > Hmm... I wouldn't add the above. I don't think we should use such versioning scheme for docs.
+> >
+> >   
+> 
+> I removed that lines.
+> 
+> Can you please comment, how the dvb-developers want to deal with in 
+> future with the transition to a updated documentation?
+> By looking at the differences between headers and doc, it will take at 
+> least one year or even longer to finish.
+> 
+> Only a comment "currently under review" is probably not sufficient here.
+> Would it help to add a extra page "Revision History" like its done on 
+> v4l api? If so, please suggest a format for the page.
+> 
+> 
+> >>  
+> >> +In 2003 Convergence and Toshiba Electronics Europe GmbH started the 
+> >> development
+> >> +of
+> >> +\href 
+> >> {http://www.linuxtv.org/downloads/linux-dvb-api-v4/linux-dvb-api-v4-0-3.pdf}{DVB 
+> >> API Version 4}
+> >> +with public discussion on the linux-dvb mailing list. The goal was a 
+> >> complete
+> >> +new API, reflecting that PCs and embedded platforms are diverging. On a PC
+> >> +usually a budget card provides the full raw transport stream and decoding
+> >> +and processing is main CPU's task. On embedded platforms, however, data is
+> >> +multiplexed by specialized hardware or firmware for direct application use
+> >> +which relieves the main CPU from these tasks. Therefore, Linux DVB
+> >> +API Version 4 was suggested, but unfortunally never completed.
+> >>     
+> >
+> > It seems better to say, instead, that "Version 4 was suggested, but it weren't completed nor implemented".
+> >
+> >   
+> 
+> I put in here as suggested by Derek:
+> 
+> "Version 4 was suggested but neither completed, nor implemented"
+> 
+> 
+> >> +Today, the LinuxTV project is an independend and non-profit community 
+> >> project
+> >>     
+> >
+> > s/independend/independent/
+> >
+> >   
+> 
+> Changed.
+> 
+> >> +by DVB/V4L enthusiasts and developers interested in Digital TV and 
+> >> Analog TV,
+> >> +sharing the same hg tree.
+> >> +
+> >> +However, this document describes only the digital TV part.
+> >>     
+> >
+> > I would replace the last paragraph by:
+> >
+> > "This document describes the digital TV API. For Analog TV and radio, please consult V4L2 API."
+> >
+> > IMO, we should also add such cross-reference at the V4L2 API, and point both to
+> > linuxtv.org website (so, adding the corresponding \href pointers), for those
+> > interested on getting the other API to know here both are available.
+> >
+> >   
+> 
+> Changed and linked to   
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/v4l2spec/v4l2.pdf
+> 
+> >> +
+> >> +
+> >> +With the further development of newer DTV standards, the existing version
+> >> +3 of the Linux DVB API was no longer able to support all DTV standards and
+> >> +newer hardware. Two concurrent approaches to overcome the problem where
+> >> +proposed, \texttt{Multiproto} and \texttt{S2API}.
+> >> +
+> >> +At
+> >> +\href {http://www.linuxtv.org/news.php?entry=2008-09-19.mchehab}{Linux 
+> >> Plumbers Conference 2008}
+> >> +the decision was made towards to S2API, basically an extension to
+> >> +\texttt{DVB API Version 3} called \texttt{DVB API Version 5}.
+> >> +
+> >> +
+> >> +This Linux DVB API documentation will be extended to reflect these 
+> >> additions.
+> >>     
+> >
+> > While we don't finish adding the S2API parts, maybe we should say instead:
+> >
+> > This document is currently under review to reflect the S2API additions. 
+> >
+> >   
+> 
+> Changed, but please answer the question above.
+> Also changed: "dvb card" -> "dvb device" as suggested by Derek.
+> 
+> updated patch below.
+> 
+> -- Winfried
+> 
+> --------------------------------------------------------------------------------------------------------------------------------
+> 
+> diff -Nurp v4l-dvb-17554cc18063/dvb-spec/dvbapi/dvbapi.tex 
+> v4l-dvb-17554cc18063_1/dvb-spec/dvbapi/dvbapi.tex
+> --- v4l-dvb-17554cc18063/dvb-spec/dvbapi/dvbapi.tex    2009-02-23 
+> 16:26:38.000000000 +0100
+> +++ v4l-dvb-17554cc18063_1/dvb-spec/dvbapi/dvbapi.tex    2009-02-26 
+> 18:40:35.008186330 +0100
+> @@ -1,4 +1,4 @@
+> -\documentclass[a4paper,10pt]{book}
+> +\documentclass[a4paper,10pt,oneside]{book}
+>  \usepackage[dvips,colorlinks=true]{hyperref}
+>  
+>  \usepackage{times}
+> diff -Nurp v4l-dvb-17554cc18063/dvb-spec/dvbapi/intro.tex 
+> v4l-dvb-17554cc18063_1/dvb-spec/dvbapi/intro.tex
+> --- v4l-dvb-17554cc18063/dvb-spec/dvbapi/intro.tex    2009-02-23 
+> 16:26:38.000000000 +0100
+> +++ v4l-dvb-17554cc18063_1/dvb-spec/dvbapi/intro.tex    2009-02-26 
+> 20:04:57.245819770 +0100
+> @@ -7,49 +7,84 @@
+>  The reader of this document is required to have some knowledge in the
+>  area of digital video broadcasting (DVB) and should be familiar with
+>  part I of the MPEG2 specification ISO/IEC 13818 (aka ITU-T H.222),
+> -i.e you should know what a program/transport stream (PS/TS) is and what is
+> -meant by a packetized elementary stream (PES) or an I-frame.
+> -
+> -Various DVB standards documents are available from
+> -\texttt{http://www.dvb.org/} and/or \texttt{http://www.etsi.org/}.
+> +i.e you should know what a program stream or transport stream (PS/TS) is
+> +and what is meant by a packetized elementary stream (PES) or an I-frame.
+> +Various DVB standards documents are available from 
+> \texttt{http://www.dvb.org/}
+> +and/or \texttt{http://www.etsi.org/}.
+>  
+>  It is also necessary to know how to access unix/linux devices and how
+>  to use ioctl calls. This also includes the knowledge of C or C++.
+>  
+> +The goal of this API is to provide a consistent abstraction layer for
+> +different digital TV hardware, allowing software applications to be
+> +developed without hardware details as well as serving as driver
+> +developers reference.
+> +
+> +\newpage
+>  \section{History}
+>  
+> -The first API for DVB cards we used at Convergence in late 1999
+> -was an extension of the Video4Linux API which was primarily
+> -developed for frame grabber cards.
+> -As such it was not really well suited to be used for DVB cards and
+> +The first API for DVB devices was used at Convergence in late 1999
+> +as an extension of the Video4Linux API which was primarily
+> +developed for frame grabber devices.
+> +
+> +
+> +As such it was not really well suited to be used for DVB devices and
+>  their new features like recording MPEG streams and filtering several
+>  section and PES data streams at the same time.
+>  
+> -In early 2000, we were approached by Nokia with a proposal for a new
+> +
+> +In early 2000, Convergence was approached by Nokia with a proposal for 
+> a new
+>  standard Linux DVB API.
+>  As a commitment to the development of terminals based on open standards,
+>  Nokia and Convergence made it available to all Linux developers and
+>  published it on \texttt{http://www.linuxtv.org/} in September 2000.
+> -Convergence is the maintainer of the Linux DVB API.
+> -Together with the LinuxTV community (i.e. you, the reader of this 
+> document),
+> -the Linux DVB API will be constantly reviewed and improved.
+> -With the Linux driver for the Siemens/Hauppauge DVB PCI card Convergence
+> -provides a first implementation of the Linux DVB API.
+>  
+>  
+> +In 2003 Convergence and Toshiba Electronics Europe GmbH started the 
+> development
+> +of
+> +\href 
+> {http://www.linuxtv.org/downloads/linux-dvb-api-v4/linux-dvb-api-v4-0-3.pdf}{DVB 
+> API Version 4}
+> +with public discussion on the linux-dvb mailing list. The goal was a 
+> complete
+> +new API, reflecting that PCs and embedded platforms are diverging. On a PC
+> +usually a budget device provides the full raw transport stream and 
+> decoding
+> +and processing is main CPU's task. On embedded platforms, however, data is
+> +multiplexed by specialized hardware or firmware for direct application use
+> +which relieves the main CPU from these tasks. Therefore, Linux DVB
+> +API Version 4 was suggested but neither completed, nor implemented.
+> +
+> +
+> +Today, the LinuxTV project is an independent and non-profit community 
+> project
+> +by DVB/V4L enthusiasts and developers interested in Digital TV and 
+> Analog TV,
+> +sharing the same hg tree.
+> +
+> +This document describes the digital TV API. For Analog TV and radio, 
+> please consult
+> +\href{http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/v4l2spec/v4l2.pdf}{V4L2 
+> API}.
+> +
+> +
+> +With the further development of newer DTV standards, the existing version
+> +3 of the Linux DVB API was no longer able to support all DTV standards and
+> +newer hardware. Two concurrent approaches to overcome the problem where
+> +proposed, \texttt{Multiproto} and \texttt{S2API}.
+> +
+> +At
+> +\href {http://www.linuxtv.org/news.php?entry=2008-09-19.mchehab}{Linux 
+> Plumbers Conference 2008}
+> +the decision was made towards to S2API, basically an extension to
+> +\texttt{DVB API Version 3} called \texttt{DVB API Version 5}.
+> +
+> +
+> +This document is currently under review to reflect the S2API additions.
+>  \newpage
+>  \section{Overview}
+>  
+>  \begin{figure}[htbp]
+>    \begin{center}
+>      \includegraphics{dvbstb.ps}
+> -    \caption{Components of a DVB card/STB}
+> +    \caption{Components of a DVB device/STB}
+>      \label{fig:dvbstb}
+>    \end{center}
+>  \end{figure}
+>  
+>  
+> -A DVB PCI card or DVB set-top-box (STB) usually consists of the following
+> +A DVB device or DVB set-top-box (STB) usually consists of the following
+>  main hardware components:
+>  \begin{itemize}
+>  \item Frontend consisting of tuner and DVB demodulator
+> @@ -85,11 +120,11 @@ a TV set.
+>  Figure \ref{fig:dvbstb} shows a crude schematic of the control and data 
+> flow
+>  between those components.
+>  
+> -On a DVB PCI card not all of these have to be present since some
+> -functionality can be provided by the main CPU of the PC (e.g. MPEG picture
+> -and sound decoding) or is not needed (e.g. for data-only uses like
+> -``internet over satellite'').
+> -Also not every card or STB provides conditional access hardware.
+> +On a DVB device not all of these have to be present since some
+> +functionality can be provided by the main CPU of the PC (e.g. MPEG video
+> +and audio decoding) or is not needed (e.g. for data-only uses like
+> +``internet over satellite''). In fact, almost all new DTV devices use 
+> the CPU for MPEG decoding.
+> +Also not every device or STB provides conditional access hardware.
+>  
+>  \section{Linux DVB Devices}
+>  
+> @@ -117,12 +152,11 @@ All devices can be found in the \texttt{
+>  \item \texttt{/dev/dvb/adapterN/demuxM},
+>  \item \texttt{/dev/dvb/adapterN/caM},
+>  \end{itemize}
+> -where N enumerates the DVB PCI cards in a system starting from~0,
+> +where N enumerates the DVB adapters (pci cards, usb devices, ..) in a 
+> system starting from~0,
+>  and M enumerates the devices of each type within each adapter, starting
+>  from~0, too.
+>  We will omit the ``\texttt{/dev/dvb/adapterN/}'' in the further 
+> dicussion of
+> -these devices.  The naming scheme for the devices is the same wheter devfs
+> -is used or not.
+> +these devices.
+>  
+>  More details about the data structures and function calls of
+>  all the devices are described in the following chapters.
+> @@ -137,10 +171,13 @@ in application sources with a partial pa
+>  #include <linux/dvb/frontend.h>
+>  \end{verbatim}
+>  
+> -To enable applications to support different API version, an additional
+> +To enable applications to support different API versions, an additional
+>  include file \texttt{linux/dvb/version.h} exists, which defines the
+>  constant \texttt{DVB\_API\_VERSION}. This document describes
+> -\texttt{DVB\_API\_VERSION~3}.
+> +\texttt{DVB\_API\_VERSION~5}.
+> +
+> +Since API version 5 an API command for quering API version also exists,
+> +allowing user space applications to detect API version during runtime.
+>  
+>  %%% Local Variables:
+>  %%% mode: latex
+> diff -Nurp v4l-dvb-17554cc18063/dvb-spec/dvbapi/title.tex 
+> v4l-dvb-17554cc18063_1/dvb-spec/dvbapi/title.tex
+> --- v4l-dvb-17554cc18063/dvb-spec/dvbapi/title.tex    2009-02-23 
+> 16:26:38.000000000 +0100
+> +++ v4l-dvb-17554cc18063_1/dvb-spec/dvbapi/title.tex    2009-02-26 
+> 18:40:35.008186330 +0100
+> @@ -1,16 +1,20 @@
+>  \pagenumbering{arabic}
+>  \pagestyle{empty}
+> -\title{\huge\textbf{LINUX DVB API Version 3}}
+> +\title{\huge\textbf{LINUX DVB API Version 5}}
+>  
+>  \author{
+>  \includegraphics{cimlogo.psi}\\
+> -  Copyright 2002, 2003 Convergence GmbH\\\\
+> +  Copyright:\\
+> +  2002, 2003 Convergence GmbH,\\
+> +  2008, 2009 www.linuxtv.org\\\\
+>    Written by Dr. Ralph J.K. Metzler\\
+> -  \texttt{<rjkm@metzlerbros.de>}\\\\
+> +  \texttt{<rjkm@metzlerbros.de>}\\
+>    and Dr. Marcus O.C. Metzler\\
+> -  \texttt{<mocm@metzlerbros.de>}\\
+> +  \texttt{<mocm@metzlerbros.de>},\\
+> +  and The Linux DVB developers\\
+> +  \texttt{http://www.linuxtv.org}\\\\
+>  }
+> -\date{24/07/2003\\V 1.0.0}
+> +\date{22/02/2009\\Version 1.1.0}
+>  
+>  \maketitle
+>  
+> 
+> 
+> 
 
 
-On Wed, 4 Mar 2009, Kyle Guinn wrote:
 
-> On Tuesday 03 March 2009 18:12:33 kilgota@banach.math.auburn.edu wrote:
->> contents of file mr97310a.patch follow, for gspca/mr97310a.c
->> --------------------------------------------------------
->> --- mr97310a.c.old	2009-02-23 23:59:07.000000000 -0600
->> +++ mr97310a.c.new	2009-03-03 17:19:06.000000000 -0600
->> @@ -302,21 +302,9 @@ static void sd_pkt_scan(struct gspca_dev
->>   					data, n);
->>   		sd->header_read = 0;
->>   		gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
->> -		len -= sof - data;
->> -		data = sof;
->> -	}
->> -	if (sd->header_read < 7) {
->> -		int needed;
->> -
->> -		/* skip the rest of the header */
->> -		needed = 7 - sd->header_read;
->> -		if (len <= needed) {
->> -			sd->header_read += len;
->> -			return;
->> -		}
->> -		data += needed;
->> -		len -= needed;
->> -		sd->header_read = 7;
->> +		/* keep the header, including sof marker, for coming frame */
->> +		len -= n;
->> +		data = sof - sizeof pac_sof_marker;;
->>   	}
->>
->>   	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
->
-> A few notes:
->
-> 1.  There is an extra semicolon on that last added line.
 
-Oops. My bifocals.
-
-> 2.  sd->header_read no longer seems necessary.
-
-This is very likely true.
-
-> 3.  If the SOF marker is split over two transfers then everything falls apart.
-
-Are you sure about that?
-
-> I don't know if the camera will allow that to happen, but it's better to be
-> safe.
-
-Agreed.
-
-Note that this was a RFC. So if it is agreed that something needs to be 
-done, probably things should be put into a more formal patch structure.
-
-Also I have a question of my own while thinking about this. It relates not 
-to the module but to the decompression code. What do we have over there? 
-Well,
-
-void v4lconvert_decode_mr97310a(const unsigned char *inp, unsigned char 
-*outp,
-                                int width, int height)
-
-and then in my patch it does
-
-         /* remove the header */
-         inp += 12;
-
-Perhaps this is not good, and what ought to be done instead is to "pass 
-off" the inp to an internal variable, and then increase it, instead.
-
-Possibly an even better alternative exists. The easiest way, I think, 
-would be to take the two previous lines back out again, but 
-instead go back to the function
-
-static inline unsigned char get_byte(const unsigned char *inp,
-                                      unsigned int bitpos)
-{
-         const unsigned char *addr;
-         addr = inp + (bitpos >> 3);
-         return (addr[0] << (bitpos & 7)) | (addr[1] >> (8 - (bitpos & 
-7)));
-}
-
-and put the 12-byte shift into the line which computes addr, like this:
-
-         addr = inp + 12 + (bitpos >> 3);
-
-or if one really wants to get fancy about it then give a
-
-#define MR97310a_HEADERSIZE	12
-
-at the top of the file and then one could say
-
-         addr = inp + (bitpos >> 3) + MR97310a_HEADERSIZE;
-
-As I said, if doing any of these then one would leave strictly alone the 
-decoding function and any of its contents. I am not sure if messing with 
-the start of the inp variable is a good idea. Frankly, I do not know 
-enough details to be certain. But on second look my instincts are against 
-screwing with something like that. The thing that worries me is that what 
-exactly happens to those 12 bytes. Do they disappear down a black hole, or 
-what? For, in the end they will have to be deallocated somewhere. And 
-what then? The alternative which I give above would do what is needed and 
-also does not mess with the start location of inp.
-
-Theodore Kilgore
+Cheers,
+Mauro
