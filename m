@@ -1,236 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2767 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762402AbZC3WNF (ORCPT
+Received: from mail11.tpgi.com.au ([203.12.160.161]:35147 "EHLO
+	mail11.tpgi.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716AbZCNFOY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 18:13:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: [review] dsbr100 radio: convert to to v4l2_device
-Date: Tue, 31 Mar 2009 00:13:00 +0200
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1238432987.4027.12.camel@tux.localhost>
-In-Reply-To: <1238432987.4027.12.camel@tux.localhost>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+	Sat, 14 Mar 2009 01:14:24 -0400
+Received: from [10.1.1.2] (60-240-145-26.tpgi.com.au [60.240.145.26])
+	(authenticated bits=0)
+	by mail11.tpgi.com.au (envelope-from certain@tpg.com.au) (8.14.3/8.14.3) with ESMTP id n2E5EIiX017492
+	for <linux-media@vger.kernel.org>; Sat, 14 Mar 2009 16:14:20 +1100
+Subject: Compro T750F - frontend initialization failing
+From: Andrew Reay <certain@tpg.com.au>
+To: linux-media@vger.kernel.org
+In-Reply-To: <49B982A5.7010103@august.de>
+References: <49B982A5.7010103@august.de>
+Content-Type: text/plain
+Date: Sat, 14 Mar 2009 15:14:18 +1000
+Message-Id: <1237007658.19797.0.camel@desktop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903310013.00369.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 30 March 2009 19:09:47 Alexey Klimov wrote:
-> Hello, Hans and Douglas, and others
-> 
-> This is review version for dsbr100 radio.
-> Hans, if you can a bit of free time to look and make comments it will be
-> very good.
-> 
-> I'm still confused about messages like v4l2_err and about unplugging
-> procedure.
+Hi Everyone,
 
-For a simple device like this unregistering the v4l2_device in the disconnect
-is OK. Although the best method would be to call v4l2_device_disconnect()
-in the disconnect function and postpone the v4l2_device_unregister() until the
-usb_dsbr100_video_device_release function.
+I'm having trouble with getting the Compro Video T750F to work under
+Ubuntu 8.10. I had the Compro T300 working great but this card is still
+eluding me.
 
-What is really missing in the v4l2 core is a release function that is called
-when the last video device node is closed. The video_release function is only
-called when that particular video device is released, but for drivers that
-open multiple device nodes you still have to put in administration to wait
-until really the last user of any device node disappears.
+Any suggestions on how to proceed from here?
 
-I might add a feature like that to the v4l2 core in the future. It shouldn't
-be too hard.
+The dmesg is posted below.
 
-Anyway, that's not relevant for a simple USB radio device :-)
+Thanks,
+Andrew
 
-Re: the v4l2_err functions: v4l2_device_register sets up a standard unique
-driver prefix that can be used for logging. Since the 'name' can be
-overwritten by the driver you have more flexibility than the standard
-dev_info functions. I also have some ideas on how to improve there functions.
+[ 13.317113] saa7130/34: v4l2 driver version 0.2.14 loaded
+[ 13.317703] ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
+[ 13.317709] saa7134 0000:04:08.0: PCI INT A -> Link[APC1] -> GSI 16
+(level, low) -> IRQ 16
+[ 13.317716] saa7133[0]: found at 0000:04:08.0, rev: 209, irq: 16,
+latency: 32, mmio: 0xfdbfe000
+[ 13.317723] saa7133[0]: subsystem: 185b:c900, board: Compro VideoMate
+T750 [card=139,autodetected]
+[ 13.317734] saa7133[0]: board init: gpio is 84bf00
+[ 13.317746] saa7133[0]: Oops: IR config error [card=139]
+[ 13.476035] saa7133[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9
+1c 55 d2 b2 92
+[ 13.476046] saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476055] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00
+87 ff ff ff ff
+[ 13.476064] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476072] saa7133[0]: i2c eeprom 40: ff d7 00 c4 86 1e 05 ff 02 c2 ff
+01 c6 ff 05 ff
+[ 13.476081] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff cb
+[ 13.476089] saa7133[0]: i2c eeprom 60: 35 ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476098] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476106] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476115] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476123] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476132] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476140] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476149] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476157] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.476166] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff
+[ 13.508082] tuner 2-0062: chip found @ 0xc4 (saa7133[0])
+[ 13.548912] xc2028 2-0062: creating new instance
+[ 13.548916] xc2028 2-0062: type set to XCeive xc2028/xc3028 tuner
+[ 13.548926] firmware: requesting xc3028-v27.fw
+[ 13.999716] input: ImPS/2 Generic Wheel Mouse
+as /devices/platform/i8042/serio1/input/input5
+[ 14.055433] xc2028 2-0062: Loading 80 firmware images from
+xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[ 14.055534] xc2028 2-0062: Loading firmware for type=BASE F8MHZ MTS
+(7), id 0000000000000000.
+[ 14.055940] xc2028 2-0062: i2c output error: rc = -5 (should be 64)
+[ 14.055943] xc2028 2-0062: -5 returned from send
+[ 14.055947] xc2028 2-0062: Error -22 while loading base firmware
+[ 14.108032] xc2028 2-0062: Loading firmware for type=BASE F8MHZ MTS
+(7), id 0000000000000000.
+[ 14.108570] xc2028 2-0062: i2c output error: rc = -5 (should be 64)
+[ 14.108573] xc2028 2-0062: -5 returned from send
+[ 14.108576] xc2028 2-0062: Error -22 while loading base firmware
+[ 14.108589] xc2028 2-0062: Loading firmware for type=BASE F8MHZ MTS
+(7), id 0000000000000000.
+[ 14.109126] xc2028 2-0062: i2c output error: rc = -5 (should be 64)
+[ 14.109128] xc2028 2-0062: -5 returned from send
+[ 14.109131] xc2028 2-0062: Error -22 while loading base firmware
+[ 14.165021] xc2028 2-0062: Loading firmware for type=BASE F8MHZ MTS
+(7), id 0000000000000000.
+[ 14.165555] xc2028 2-0062: i2c output error: rc = -5 (should be 64)
+[ 14.165557] xc2028 2-0062: -5 returned from send
+[ 14.165560] xc2028 2-0062: Error -22 while loading base firmware
+[ 14.166394] xc2028 2-0062: Error on line 1124: -5
+[ 14.173289] saa7133[0]: registered device video0 [v4l2]
+[ 14.173451] saa7133[0]: registered device vbi0
+[ 14.173507] saa7133[0]: registered device radio0
+[ 14.174059] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 23
+[ 14.174064] HDA Intel 0000:00:10.1: PCI INT B -> Link[AAZA] -> GSI 23
+(level, low) -> IRQ 23
+[ 14.174089] HDA Intel 0000:00:10.1: setting latency timer to 64
+[ 14.196322] saa7134 ALSA driver for DMA sound loaded
+[ 14.196353] saa7133[0]/alsa: saa7133[0] at 0xfdbfe000 irq 16 registered
+as card -2
+[ 14.337099] dvb_init() allocating 1 frontend
+[ 14.337105] saa7133[0]/dvb: Huh? unknown DVB card?
+[ 14.337108] saa7133[0]/dvb: frontend initialization failed
 
-> I tested it with my radio device and it works(unplugging works also
-> without oopses).
-> Douglas, if you can find some free time to test patch it will be very
-> good too :)
-> 
-> --
-> diff -r f86c84534cb4 linux/drivers/media/radio/dsbr100.c
-> --- a/linux/drivers/media/radio/dsbr100.c	Sun Mar 29 22:54:35 2009 -0300
-> +++ b/linux/drivers/media/radio/dsbr100.c	Mon Mar 30 21:00:51 2009 +0400
-> @@ -32,6 +32,9 @@
->   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
->  
->   History:
-> +
-> + Version 0.45:
-> +	Converted to v4l2_device.
->  
->   Version 0.44:
->  	Add suspend/resume functions, fix unplug of device,
-> @@ -88,7 +91,7 @@
->  #include <linux/slab.h>
->  #include <linux/input.h>
->  #include <linux/videodev2.h>
-> -#include <media/v4l2-common.h>
-> +#include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
->  #include <linux/usb.h>
->  #include "compat.h"
-> @@ -98,39 +101,8 @@
->   */
->  #include <linux/version.h>	/* for KERNEL_VERSION MACRO	*/
->  
-> -#define DRIVER_VERSION "v0.44"
-> -#define RADIO_VERSION KERNEL_VERSION(0, 4, 4)
-> -
-> -static struct v4l2_queryctrl radio_qctrl[] = {
-> -	{
-> -		.id            = V4L2_CID_AUDIO_MUTE,
-> -		.name          = "Mute",
-> -		.minimum       = 0,
-> -		.maximum       = 1,
-> -		.default_value = 1,
-> -		.type          = V4L2_CTRL_TYPE_BOOLEAN,
-> -	},
-> -/* HINT: the disabled controls are only here to satify kradio and such apps */
-> -	{       .id             = V4L2_CID_AUDIO_VOLUME,
-> -		.flags          = V4L2_CTRL_FLAG_DISABLED,
-> -	},
-> -	{
-> -		.id             = V4L2_CID_AUDIO_BALANCE,
-> -		.flags          = V4L2_CTRL_FLAG_DISABLED,
-> -	},
-> -	{
-> -		.id             = V4L2_CID_AUDIO_BASS,
-> -		.flags          = V4L2_CTRL_FLAG_DISABLED,
-> -	},
-> -	{
-> -		.id             = V4L2_CID_AUDIO_TREBLE,
-> -		.flags          = V4L2_CTRL_FLAG_DISABLED,
-> -	},
-> -	{
-> -		.id             = V4L2_CID_AUDIO_LOUDNESS,
-> -		.flags          = V4L2_CTRL_FLAG_DISABLED,
-> -	},
-> -};
-> +#define DRIVER_VERSION "v0.45"
-> +#define RADIO_VERSION KERNEL_VERSION(0, 4, 5)
->  
->  #define DRIVER_AUTHOR "Markus Demleitner <msdemlei@tucana.harvard.edu>"
->  #define DRIVER_DESC "D-Link DSB-R100 USB FM radio driver"
-> @@ -168,6 +140,8 @@
->  struct dsbr100_device {
->  	struct usb_device *usbdev;
->  	struct video_device videodev;
-> +	struct v4l2_device v4l2_dev;
-> +
->  	u8 *transfer_buffer;
->  	struct mutex lock;	/* buffer locking */
->  	int curfreq;
-> @@ -387,6 +361,7 @@
->  	mutex_unlock(&radio->lock);
->  
->  	video_unregister_device(&radio->videodev);
-> +	v4l2_device_unregister(&radio->v4l2_dev);
->  }
->  
->  
-> @@ -482,14 +457,11 @@
->  static int vidioc_queryctrl(struct file *file, void *priv,
->  				struct v4l2_queryctrl *qc)
->  {
-> -	int i;
-> +	switch (qc->id) {
-> +	case V4L2_CID_AUDIO_MUTE:
-> +		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
-> +	}
->  
-> -	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
-> -		if (qc->id && qc->id == radio_qctrl[i].id) {
-> -			memcpy(qc, &(radio_qctrl[i]), sizeof(*qc));
-> -			return 0;
-> -		}
-> -	}
->  	return -EINVAL;
->  }
->  
-> @@ -686,22 +658,15 @@
->  	.vidioc_s_input     = vidioc_s_input,
->  };
->  
-> -/* V4L2 interface */
-> -static struct video_device dsbr100_videodev_data = {
-> -	.name		= "D-Link DSB-R 100",
-> -	.fops		= &usb_dsbr100_fops,
-> -	.ioctl_ops 	= &usb_dsbr100_ioctl_ops,
-> -	.release	= usb_dsbr100_video_device_release,
-> -};
-> -
->  /* check if the device is present and register with v4l and usb if it is */
->  static int usb_dsbr100_probe(struct usb_interface *intf,
->  				const struct usb_device_id *id)
->  {
->  	struct dsbr100_device *radio;
-> +	struct v4l2_device *v4l2_dev;
->  	int retval;
->  
-> -	radio = kmalloc(sizeof(struct dsbr100_device), GFP_KERNEL);
-> +	radio = kzalloc(sizeof(struct dsbr100_device), GFP_KERNEL);
->  
->  	if (!radio)
->  		return -ENOMEM;
-> @@ -713,17 +678,35 @@
->  		return -ENOMEM;
->  	}
->  
-> +	v4l2_dev = &radio->v4l2_dev;
-> +	strlcpy(v4l2_dev->name, "dsbr100", sizeof(v4l2_dev->name));
-
-Try to leave this out and let v4l2_device_register fill it in based on the
-parent device. It should generate a decent name. If you create it yourself,
-then make sure it is a unique name.
-
-> +
-> +	retval = v4l2_device_register(&intf->dev, v4l2_dev);
-> +	if (retval < 0) {
-> +		v4l2_err(v4l2_dev, "couldn't register v4l2_device\n");
-> +		kfree(radio->transfer_buffer);
-> +		kfree(radio);
-> +		return retval;
-> +	}
-> +
-> +	strlcpy(radio->videodev.name, v4l2_dev->name, sizeof(radio->videodev.name));
-> +	radio->videodev.v4l2_dev = v4l2_dev;
-> +	radio->videodev.fops = &usb_dsbr100_fops;
-> +	radio->videodev.ioctl_ops = &usb_dsbr100_ioctl_ops;
-> +	radio->videodev.release = usb_dsbr100_video_device_release;
-> +
->  	mutex_init(&radio->lock);
-> -	radio->videodev = dsbr100_videodev_data;
->  
->  	radio->removed = 0;
->  	radio->users = 0;
->  	radio->usbdev = interface_to_usbdev(intf);
->  	radio->curfreq = FREQ_MIN * FREQ_MUL;
->  	video_set_drvdata(&radio->videodev, radio);
-> +
->  	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO, radio_nr);
->  	if (retval < 0) {
->  		dev_err(&intf->dev, "couldn't register video device\n");
-> +		v4l2_device_unregister(v4l2_dev);
->  		kfree(radio->transfer_buffer);
->  		kfree(radio);
->  		return -EIO;
-
-Looks good otherwise.
-
-Regards,
-
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
