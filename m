@@ -1,124 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1433 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752623AbZCEQgq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 11:36:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Dmitri Belimov" <d.belimov@gmail.com>
-Subject: Re: saa7134 and RDS
-Date: Thu, 5 Mar 2009 17:36:44 +0100
-Cc: "Hans J. Koch" <hjk@linutronix.de>,
-	"hermann pitton" <hermann-pitton@arcor.de>,
-	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-References: <54836.62.70.2.252.1236254830.squirrel@webmail.xs4all.nl>
-In-Reply-To: <54836.62.70.2.252.1236254830.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_c+/rJYmVjZ41y5R"
-Message-Id: <200903051736.44582.hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([18.85.46.34]:60812 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037AbZCNMSP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2009 08:18:15 -0400
+Date: Sat, 14 Mar 2009 09:17:47 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] LED control
+Message-ID: <20090314091747.21153855@pedra.chehab.org>
+In-Reply-To: <20090314125923.4229cd93@free.fr>
+References: <20090314125923.4229cd93@free.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_c+/rJYmVjZ41y5R
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Sat, 14 Mar 2009 12:59:23 +0100
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
-On Thursday 05 March 2009 13:07:10 Hans Verkuil wrote:
-> > Hi Hans
-> >
-> > I build fresh video4linux with your patch and my config for our cards.
-> > In a dmesg i see : found RDS decoder.
-> > cat /dev/radio0 give me some slow junk data. Is this RDS data??
-> > Have you any tools for testing RDS?
-> > I try build rdsd from Hans J. Koch, but build crashed with:
-> >
-> > rdshandler.cpp: In member function =E2=80=98void
-> > std::RDShandler::delete_client(std::RDSclient*)=E2=80=99:
-> > rdshandler.cpp:363: error: no matching function for call to
-> > =E2=80=98find(__gnu_cxx::__normal_iterator<std::RDSclient**,
-> > std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >,
-> > __gnu_cxx::__normal_iterator<std::RDSclient**,
-> > std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >,
-> > std::RDSclient*&)=E2=80=99
->
-> Ah yes, that's right. I had to hack the C++ source to make this compile.
-> I'll see if I can post a patch for this tonight.
+> +	    <entry><constant>V4L2_CID_LEDS</constant></entry>
+> +	    <entry>integer</entry>
+> +	    <entry>Switch on or off the LEDs or illuminators of the device.
+> +In the control value, each LED may be coded in one bit (0: off, 1: on) or in
+> +many bits (light intensity).</entry>
+> +	  </row>
+> +	  <row>
 
-Attached is the diff that makes rdsd compile on my system.
+The idea of having some sort of control over the LEDs is interesting, but we
+should have a better way of controlling it. If the LED may have more than one
+bit, maybe the better would be to create more than one CID entry. Something like:
 
-Regards,
+V4L2_CID_LED_POWER	- for showing that the camera is being used
+V4L2_CID_LED_LIGHT	- for normal white light
+V4L2_CID_LED_INFRARED	- for dark light, using infrared
+...
 
-	Hans
+This way a driver can enumberate what kind of leds are available, and get the
+power intensity range for each individual one.
 
-
-=2D-=20
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
---Boundary-00=_c+/rJYmVjZ41y5R
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="rdsd.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="rdsd.diff"
-
-diff -ur rdsd-0.0.1/src/rdsclient.cpp tmp/rdsd-0.0.1/src/rdsclient.cpp
---- rdsd-0.0.1/src/rdsclient.cpp	2009-02-10 23:07:02.000000000 +0100
-+++ tmp/rdsd-0.0.1/src/rdsclient.cpp	2005-12-29 18:01:12.000000000 +0100
-@@ -18,7 +18,6 @@
-  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
-  ***************************************************************************/
- #include "rdsclient.h"
--#include <stdlib.h>
- #include <sstream>
- 
- namespace std {
-diff -ur rdsd-0.0.1/src/rdsd.cpp tmp/rdsd-0.0.1/src/rdsd.cpp
---- rdsd-0.0.1/src/rdsd.cpp	2009-02-10 23:05:29.000000000 +0100
-+++ tmp/rdsd-0.0.1/src/rdsd.cpp	2005-12-29 11:51:42.000000000 +0100
-@@ -26,8 +26,7 @@
- #include "rdshandler.h"
- #include <csignal>
- #include <fcntl.h>
--#include <string.h>
--#include <stdlib.h>
-+#include <string>
- #include <sstream>
- 
- using namespace std;
-diff -ur rdsd-0.0.1/src/rdshandler.cpp tmp/rdsd-0.0.1/src/rdshandler.cpp
---- rdsd-0.0.1/src/rdshandler.cpp	2009-02-10 23:06:18.000000000 +0100
-+++ tmp/rdsd-0.0.1/src/rdshandler.cpp	2005-12-29 11:52:40.000000000 +0100
-@@ -25,7 +25,6 @@
- #include <unistd.h>
- #include <fcntl.h>
- #include <sstream>
--#include <algorithm>
- 
- namespace std {
- 
-@@ -355,7 +354,7 @@
-       FD_CLR(fd,&all_fds);
-       cli->Close();
-     }
--    RDSclientList::iterator it = std::find(clientlist.begin(),clientlist.end(),cli);
-+    RDSclientList::iterator it = find(clientlist.begin(),clientlist.end(),cli);
-     if (it != clientlist.end()) clientlist.erase(it);
-     delete cli;
-     calc_maxfd();
-diff -ur rdsd-0.0.1/src/rdssource.cpp tmp/rdsd-0.0.1/src/rdssource.cpp
---- rdsd-0.0.1/src/rdssource.cpp	2009-02-10 23:06:39.000000000 +0100
-+++ tmp/rdsd-0.0.1/src/rdssource.cpp	2005-12-29 18:03:56.000000000 +0100
-@@ -26,7 +26,6 @@
- #include <linux/videodev.h>
- #include <linux/videodev2.h>
- //#include <linux/i2c.h> //lots of errors if I include this...
--#include <string.h>
- #include <sstream>
- 
- namespace std {
-
---Boundary-00=_c+/rJYmVjZ41y5R--
+Cheers,
+Mauro
