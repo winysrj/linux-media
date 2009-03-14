@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2KJSbsX025064
-	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 15:28:37 -0400
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2KJSJRJ018216
-	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 15:28:19 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so704706yxm.81
-	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 12:28:18 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2E5QKrP016861
+	for <video4linux-list@redhat.com>; Sat, 14 Mar 2009 01:26:20 -0400
+Received: from s0be.servebeer.com (pool-71-115-160-52.gdrpmi.dsl-w.verizon.net
+	[71.115.160.52])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2E5Q7g6030665
+	for <video4linux-list@redhat.com>; Sat, 14 Mar 2009 01:26:07 -0400
+Message-ID: <49BB3B49.4020405@erley.org>
+Date: Sat, 14 Mar 2009 01:06:17 -0400
+From: Pat Erley <pat-lkml@erley.org>
 MIME-Version: 1.0
-In-Reply-To: <1237575285.26159.2.camel@T60p>
-References: <1237575285.26159.2.camel@T60p>
-Date: Fri, 20 Mar 2009 15:28:18 -0400
-Message-ID: <412bdbff0903201228t4cb4b6c8m17763c27878434ed@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Mikhail Jiline <misha@epiphan.com>
+To: laurent.pinchart@skynet.be
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org
-Subject: Re: [PATCH] V4L: em28xx: add support for Digitus/Plextor PX-AV200U
-	grabbers
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: [PATCH v2] uvcvideo: Add DEV_RESET_ON_TIMEOUT Quirk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,76 +26,168 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Mar 20, 2009 at 2:54 PM, Mikhail Jiline <misha@epiphan.com> wrote:
-> From: Misha Zhilin <misha@epiphan.com>
->
-> Adds support for Digitus/Plextor PX-AV200U grabbers
-> Signed-off-by: Misha Zhilin <misha@epiphan.com>
-> ---
->
-> diff -urN linux-2.6.27.x86_64.orig/drivers/media/video/em28xx/em28xx-cards.c linux-2.6.27.x86_64.new/drivers/media/video/em28xx/em28xx-cards.c
-> --- linux-2.6.27.x86_64.orig/drivers/media/video/em28xx/em28xx-cards.c  2008-10-09 18:13:53.000000000 -0400
-> +++ linux-2.6.27.x86_64.new/drivers/media/video/em28xx/em28xx-cards.c   2009-03-04 16:18:03.000000000 -0500
-> @@ -1087,6 +1087,21 @@
->                        .amux     = EM28XX_AMUX_LINE_IN,
->                } },
->        },
-> +       [EM2820_BOARD_PLEXTOR_PX_AV200U] = {
-> +               .name         = "Plextor PX-AV200U",
-> +               .valid        = EM28XX_BOARD_NOT_VALIDATED,
-> +               .vchannels    = 2,
-> +               .decoder      = EM28XX_SAA7113,
-> +               .input          = { {
-> +                       .type     = EM28XX_VMUX_COMPOSITE1,
-> +                       .vmux     = SAA7115_COMPOSITE0,
-> +                       .amux     = EM28XX_AMUX_AC97_LINE_IN,
-> +               }, {
-> +                       .type     = EM28XX_VMUX_SVIDEO,
-> +                       .vmux     = SAA7115_SVIDEO3,
-> +                       .amux     = EM28XX_AMUX_AC97_LINE_IN,
-> +               } },
-> +       },
->  };
->  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
->
-> Binary files linux-2.6.27.x86_64.orig/drivers/media/video/em28xx/.em28xx-cards.c.swp and linux-2.6.27.x86_64.new/drivers/media/video/em28xx/.em28xx-cards.c.swp differ
-> diff -urN linux-2.6.27.x86_64.orig/drivers/media/video/em28xx/em28xx.h linux-2.6.27.x86_64.new/drivers/media/video/em28xx/em28xx.h
-> --- linux-2.6.27.x86_64.orig/drivers/media/video/em28xx/em28xx.h        2008-10-09 18:13:53.000000000 -0400
-> +++ linux-2.6.27.x86_64.new/drivers/media/video/em28xx/em28xx.h 2009-03-04 15:33:24.000000000 -0500
-> @@ -97,6 +97,8 @@
->  #define EM2882_BOARD_PINNACLE_HYBRID_PRO         56
->  #define EM2883_BOARD_KWORLD_HYBRID_A316                  57
->  #define EM2820_BOARD_COMPRO_VIDEOMATE_FORYOU     58
-> +#define EM2820_BOARD_PLEXTOR_PX_AV200U            59
-> +
->
->  /* Limits minimum and default number of buffers */
->  #define EM28XX_MIN_BUF 4
-> diff -urN linux-2.6.27.x86_64.orig/Documentation/video4linux/CARDLIST.em28xx linux-2.6.27.x86_64.new/Documentation/video4linux/CARDLIST.em28xx
-> --- linux-2.6.27.x86_64.orig/Documentation/video4linux/CARDLIST.em28xx  2008-10-09 18:13:53.000000000 -0400
-> +++ linux-2.6.27.x86_64.new/Documentation/video4linux/CARDLIST.em28xx   2009-03-18 11:15:00.000000000 -0400
-> @@ -57,3 +57,4 @@
->  56 -> Pinnacle Hybrid Pro (2)                  (em2882)        [2304:0226]
->  57 -> Kworld PlusTV HD Hybrid 330              (em2883)        [eb1a:a316]
->  58 -> Compro VideoMate ForYou/Stereo           (em2820/em2840) [185b:2041]
-> + 59 -> Plextor PX-AV200U                        (em2880)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
+This patch provides a quirk that causes uvcvideo to reset certain
+devices on -ETIMEOUT.  This is required for my Quickcam Orbit MP 
+to function.  This is based on a patch provided by Michel Stempin
+in January of 2008.  I've reworked it to be less intrusive for 
+other devices.
 
-Is this patch incomplete?  Where is the registration for the USB ID of
-the device?
+Tested with:
+ Philips SPC 1300NC Webcam (0471:0331)
+ Logitech Quickcam Orbit MP (046d:08c2)
+ 
+Signed-off-by: Pat Erley <pat-lkml@erley.org>
+---
+I've been using/updating this patch for 6 months regularly with
+both tested devices, and have not had a problem with it.  
 
-Devin
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvc_driver.c
+--- a/linux/drivers/media/video/uvc/uvc_driver.c	Tue Mar 10 18:32:24 2009 -0300
++++ b/linux/drivers/media/video/uvc/uvc_driver.c	Sat Mar 14 01:01:08 2009 -0400
+@@ -1510,7 +1510,25 @@
+ 	if ((ret = uvc_video_init(&dev->video)) < 0) {
+ 		uvc_printk(KERN_ERR, "Failed to initialize the device "
+ 			"(%d).\n", ret);
+-		return ret;
++		if(dev->quirks & UVC_QUIRK_DEV_RESET_ON_TIMEOUT) {
++			uvc_printk(KERN_ERR, "Trying to reset\n");
++			
++			if ((ret = uvc_usb_reset(dev))) {
++				uvc_printk(KERN_ERR, 
++						"Reset failed (%d)\n",
++						ret);
++				return ret;
++			}
++
++			if ((ret = uvc_video_init(&dev->video)) < 0) {
++				uvc_printk(KERN_ERR, 
++						"Init after reset"
++						" failed(%d)\n", ret);
++				return ret;
++			}
++		} else {
++			return ret;
++		}
+ 	}
+ 
+ 	/* Register the device with V4L. */
+@@ -1802,7 +1820,8 @@
+ 	  .idProduct		= 0x08c2,
+ 	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
+ 	  .bInterfaceSubClass	= 1,
+-	  .bInterfaceProtocol	= 0 },
++	  .bInterfaceProtocol	= 0,
++	  .driver_info          = UVC_QUIRK_DEV_RESET_ON_TIMEOUT },
+ 	/* Logitech Quickcam Pro for Notebook */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvc_v4l2.c
+--- a/linux/drivers/media/video/uvc/uvc_v4l2.c	Tue Mar 10 18:32:24 2009 -0300
++++ b/linux/drivers/media/video/uvc/uvc_v4l2.c	Sat Mar 14 01:01:08 2009 -0400
+@@ -466,6 +466,13 @@
+ 		mutex_unlock(&video->queue.mutex);
+ 	}
+ 
++	if(video->dev->quirks & UVC_QUIRK_DEV_RESET_ON_TIMEOUT)
++	{
++		/* leave usb device in a clean state */
++			if (video->dev->state & UVC_DEV_IOERROR)
++				uvc_video_reinit(video);
++	}
++
+ 	/* Release the file handle. */
+ 	uvc_dismiss_privileges(handle);
+ 	kfree(handle);
+diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvc_video.c
+--- a/linux/drivers/media/video/uvc/uvc_video.c	Tue Mar 10 18:32:24 2009 -0300
++++ b/linux/drivers/media/video/uvc/uvc_video.c	Sat Mar 14 01:01:08 2009 -0400
+@@ -55,6 +55,12 @@
+ 		uvc_printk(KERN_ERR, "Failed to query (%u) UVC control %u "
+ 			"(unit %u) : %d (exp. %u).\n", query, cs, unit, ret,
+ 			size);
++		
++		/* Reset 'Quirky' device on timeout (-110) */
++		if((dev->quirks & UVC_QUIRK_DEV_RESET_ON_TIMEOUT) &&
++		   (ret == -ETIMEDOUT))
++			dev->state |= UVC_DEV_IOERROR;   	
++			
+ 		return -EIO;
+ 	}
+ 
+@@ -1160,3 +1166,43 @@
+ 	return uvc_init_video(video, GFP_KERNEL);
+ }
+ 
++/* 
++ * Reset and Re-Initialize video device
++ */
++int uvc_video_reinit(struct uvc_video_device *video)
++{
++	int ret;
++
++	if ((ret = uvc_usb_reset(video->dev)) < 0)
++		return ret;
++
++	if ((ret = uvc_set_video_ctrl(video, &video->streaming->ctrl, 0)) < 0) {
++		uvc_printk(KERN_DEBUG, "uvc_video_reinit: Unable to commit format "
++			"(%d).\n", ret);
++		return ret;
++	}
++	return 0;
++}
++
++int uvc_usb_reset(struct uvc_device *dev)
++{
++	int l, ret;
++
++	l = usb_lock_device_for_reset(dev->udev, dev->intf);
++
++	if (l >= 0) {
++		ret = usb_reset_device(dev->udev);
++		if (l)
++			usb_unlock_device(dev->udev);
++	}
++	else
++	ret = -EBUSY;
++
++	if (ret)
++		uvc_printk(KERN_DEBUG, "uvc_usb_reset: Unable to reset usb device"
++			"(%d).\n", ret);
++	else
++		dev->state &= ~UVC_DEV_IOERROR;
++
++	return ret;
++}
+diff -r 39c257ae5063 linux/drivers/media/video/uvc/uvcvideo.h
+--- a/linux/drivers/media/video/uvc/uvcvideo.h	Tue Mar 10 18:32:24 2009 -0300
++++ b/linux/drivers/media/video/uvc/uvcvideo.h	Sat Mar 14 01:01:08 2009 -0400
+@@ -316,6 +316,7 @@
+ #define UVC_QUIRK_IGNORE_SELECTOR_UNIT	0x00000020
+ #define UVC_QUIRK_PRUNE_CONTROLS	0x00000040
+ #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
++#define UVC_QUIRK_DEV_RESET_ON_TIMEOUT	0x00000100
+ 
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+@@ -622,6 +623,7 @@
+ 
+ enum uvc_device_state {
+ 	UVC_DEV_DISCONNECTED = 1,
++	UVC_DEV_IOERROR = 2,
+ };
+ 
+ struct uvc_device {
+@@ -815,6 +817,9 @@
+ 		struct usb_host_interface *alts, __u8 epaddr);
+ 
+ /* Quirks support */
++extern int uvc_video_reinit(struct uvc_video_device *video);
++extern int uvc_usb_reset(struct uvc_device *dev);
++
+ void uvc_video_decode_isight(struct urb *urb, struct uvc_video_device *video,
+ 		struct uvc_buffer *buf);
+ 
 
 --
 video4linux-list mailing list
