@@ -1,47 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f160.google.com ([209.85.217.160]:63700 "EHLO
-	mail-gx0-f160.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbZCQWNl convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:43598 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752748AbZCNL3q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 18:13:41 -0400
-Received: by gxk4 with SMTP id 4so243665gxk.13
-        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 15:13:38 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1237327082.5040.174.camel@pete-desktop>
-References: <c785bba30903031051k292a95aeq68d91e5c2bc31fd6@mail.gmail.com>
-	 <1237327082.5040.174.camel@pete-desktop>
-Date: Tue, 17 Mar 2009 18:13:38 -0400
-Message-ID: <412bdbff0903171513k161f32dfkc37e5b46c0b527e0@mail.gmail.com>
-Subject: Re: 4vl + usb + arm
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Pete Eberlein <pete@sensoray.com>
-Cc: Paul Thomas <pthomas8589@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 14 Mar 2009 07:29:46 -0400
+Date: Sat, 14 Mar 2009 08:29:16 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+Cc: Uri Shkolnik <urishk@yahoo.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] siano: add high level SDIO interface driver for SMS
+ based cards
+Message-ID: <20090314082916.5f5ae403@pedra.chehab.org>
+In-Reply-To: <alpine.LRH.1.10.0903141154310.5517@pub4.ifh.de>
+References: <469952.82552.qm@web110812.mail.gq1.yahoo.com>
+	<20090314075154.2e2af9e7@pedra.chehab.org>
+	<alpine.LRH.1.10.0903141154310.5517@pub4.ifh.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 17, 2009 at 5:58 PM, Pete Eberlein <pete@sensoray.com> wrote:
-> The v4l/Makefile.media uses the host strip binary on the ARM .ko files,
-> which doesn't work.  It could use $(CROSS_COMPILE)strip instead.  I
-> worked around the problem using a strip soft-link to arm-eabi-strip in
-> my cross tools bin directory.
+On Sat, 14 Mar 2009 12:02:02 +0100 (CET)
+Patrick Boettcher <patrick.boettcher@desy.de> wrote:
 
-I ran into the issue with strip, and just worked around it by putting
-the cross compiler's bin directory into the path.  If you have a patch
-though that fixes it the "right" way, feel free to submit a patch.
+> Hi Mauro,
+> 
+> (sorry for hijacking) (since when do we like top-posts ? ;) )
 
-> I'd like to know if modules built this way work on actual hardware.
+You're welcome.
 
-Generally speaking, yes they do work.  I did some work with a couple
-of different devices under ARM, and although there are bugs (which I
-am preparing patches for), the drivers basically worked as expected.
+> On Sat, 14 Mar 2009, Mauro Carvalho Chehab wrote:
+> 
+> > Hi Uri,
+> >
+> > The patch looks sane, but I'd like to have a better picture of the Siano
+> > device, to better understand this interface.
+> >
+> > The basic question is: why do we need an SDIO interface for a DVB device? For
+> > what reason this interface is needed?
+> 
+> The answer is relatively easy: Some hosts only have a SDIO interface, so 
+> no USB, no PCI, no I2C, no MPEG2-streaming interface. So, the device has 
+> to provide a SDIO interface in order to read and write register and to 
+> make DMAs to get the data to the host. Think of your cell-phone, or your 
+> PDA.
+> 
+> There are some/a lot of vendors who use Linux in their commercial 
+> mobile-TV product and there are some component-makers like Siano, who are 
+> supporting those vendors through GPL drivers.
 
-Regards,
+Ok, so, if I understand well, the SDIO interface will be used just like we
+currently use the I2C or USB bus, right?
 
-Devin
+So, we should create some glue between DVB and SDIO bus just like we have with
+PCI, USB, I2C, etc.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Ideally something like (using the design we currently have with dvb-usb):
+
++------------+
+| DVB driver |
++------------+
+      |
+      V
++----------+
+| DVB SDIO |
++----------+
+      |
+      V
++----------+
+| DVB Core |
++----------+
+
+Is that what you're thinking?
+
+
+Cheers,
+Mauro
