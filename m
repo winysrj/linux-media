@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpi2.ngi.it ([88.149.128.21]:59811 "EHLO smtpi2.ngi.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308AbZC0KSY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 06:18:24 -0400
-Received: from [127.0.0.1] (81-174-56-138.static.ngi.it [81.174.56.138])
-	by smtpi2.ngi.it (8.13.8/8.13.8) with ESMTP id n2R9EZc9010757
-	for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 10:14:36 +0100
-Message-ID: <49CC98FA.1030106@robertoragusa.it>
-Date: Fri, 27 Mar 2009 10:14:34 +0100
-From: Roberto Ragusa <mail@robertoragusa.it>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3210 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbZCNN0t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2009 09:26:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [RFC 4/7] ARM: DaVinci: DM646x Video: Defintions for standards supported by display
+Date: Sat, 14 Mar 2009 14:27:09 +0100
+Cc: chaithrika@ti.com, linux-media@vger.kernel.org
+References: <1236934897-32160-1-git-send-email-chaithrika@ti.com>
+In-Reply-To: <1236934897-32160-1-git-send-email-chaithrika@ti.com>
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: The right way to interpret the content of SNR, signal strength
- 	and BER from HVR 4000 Lite
-References: <49B9BC93.8060906@nav6.org>	 <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>	 <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>	 <Pine.LNX.4.58.0903131649380.28292@shell2.speakeasy.net>	 <20090319101601.2eba0397@pedra.chehab.org>	 <Pine.LNX.4.58.0903191229370.28292@shell2.speakeasy.net>	 <Pine.LNX.4.58.0903191457580.28292@shell2.speakeasy.net>	 <412bdbff0903191536n525a2facp5bc9637ebea88ff4@mail.gmail.com>	 <49C2D4DB.6060509@gmail.com> <49C33DE7.1050906@gmail.com> <a3ef07920903200807l501889bfu87d7906a082127e7@mail.gmail.com>
-In-Reply-To: <a3ef07920903200807l501889bfu87d7906a082127e7@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
+Content-Disposition: inline
+Message-Id: <200903141427.09177.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VDR User wrote:
-> On Thu, Mar 19, 2009 at 11:55 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
->> * At the peak, you will get the maximum quality
->> * falling down the slope to the left and right you will get falling
->> signal strengths
->> * Still rolling down, you will get increasing ERROR's, with still
->> UNCORRECTABLES being steady.
->> * Still falling down at the thresholds where you are about to loose
->> frontend LOCK, you will see UNCORRECTABLE's getting incremented.
->>
->> Couple this logic into a program, with a feedback to the ROTOR and
->> you get an automated satellite positioner, with a good fine tuned
->> position.
->
-> This would make for a very very useful tool to have.  I can't count
-> the number of times I've seen people inquire about tools to help them
-> aim their dish and this sounds like the perfect solution to that long
-> standing problem.  Especially if it returned the network id once it's
-> achieve a lock so the user can see if he's pointed to the correct
-> satellite.
+On Friday 13 March 2009 10:01:37 chaithrika@ti.com wrote:
+> From: Chaithrika U S <chaithrika@ti.com>
+> 
+> Add defintions for Digital TV Standards supported by display driver
+> 
+> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> ---
+> Applies to v4l-dvb repository located at
+> http://linuxtv.org/hg/v4l-dvb/rev/1fd54a62abde
+> 
+>  include/linux/videodev2.h |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 7a8eafd..df4a622 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -704,6 +704,18 @@ typedef __u64 v4l2_std_id;
+>  #define V4L2_STD_ALL            (V4L2_STD_525_60	|\
+>  				 V4L2_STD_625_50)
+>  
+> +#define V4L2_STD_720P_60        ((v4l2_std_id)(0x0001000000000000ULL))
+> +#define V4L2_STD_1080I_30       ((v4l2_std_id)(0x0002000000000000ULL))
+> +#define V4L2_STD_1080I_25       ((v4l2_std_id)(0x0004000000000000ULL))
+> +#define V4L2_STD_480P_60        ((v4l2_std_id)(0x0008000000000000ULL))
+> +#define V4L2_STD_576P_50        ((v4l2_std_id)(0x0010000000000000ULL))
+> +#define V4L2_STD_720P_25        ((v4l2_std_id)(0x0020000000000000ULL))
+> +#define V4L2_STD_720P_30        ((v4l2_std_id)(0x0040000000000000ULL))
+> +#define V4L2_STD_720P_50        ((v4l2_std_id)(0x0080000000000000ULL))
+> +#define V4L2_STD_1080P_25       ((v4l2_std_id)(0x0100000000000000ULL))
+> +#define V4L2_STD_1080P_30       ((v4l2_std_id)(0x0200000000000000ULL))
+> +#define V4L2_STD_1080P_24       ((v4l2_std_id)(0x0400000000000000ULL))
+> +
+>  struct v4l2_standard {
+>  	__u32		     index;
+>  	v4l2_std_id          id;
 
-If you have a motor and you are able to automatically peak satellites,
-the only thing missing is a program to find all the signals automatically,
-including the ones which are turned on and off in a matter of minutes.
+This requires an RFC. I'm not convinced that using v4l2_std_id is the best
+approach. If you look at the CEA-861-D you see a lot more standards (and E
+adds even more). Not to mention that when the DM646x is used in combination
+with e.g. an FPGA then it should be possible to supply the driver with
+custom timings as well. The v4l2_std_id type was never designed for that.
 
-Just google for *blindscan* (and maybe my name) to find a
-utility I wrote years ago and abandoned after failing to get
-the corresponding mt312-autosymbolrate kernel patch integrated.
+My gut feeling is that v4l2_std_id should be effectively frozen and used for
+the old TV broadcast standards only, and that a new API should be created
+to setup these digital formats.
 
-Next step, automatically upload found signals on some site, maybe
-including a frame from the received video stream and let users
-comment/moderate interesting ones on a sort of forum. :-)
-Hmmmm, feeds...
+I've discussed this with Manju in the past, and I suggest that TI should make
+a proposal in the form of an RFC that we can then discuss on the mailinglists.
+One of the disadvantages of being the first who needs these HDTV formats. The
+advantage of being the first is that you can design it yourself, of course!
 
-Best regards.
+Regards,
+
+	Hans
+
 -- 
-   Roberto Ragusa    mail at robertoragusa.it
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
