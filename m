@@ -1,241 +1,364 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57808 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751250AbZCMSDJ (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37750 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752380AbZCNKme (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 14:03:09 -0400
-Date: Fri, 13 Mar 2009 14:03:05 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Brandon Philips <brandon@ifup.org>
-cc: Greg KH <gregkh@suse.de>, <laurent.pinchart@skynet.be>,
-	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
-Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
- is probably using the wrong IRQ."
-In-Reply-To: <20090313154058.GB14186@jenkins.ifup.org>
-Message-ID: <Pine.LNX.4.44L0.0903131402050.2898-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sat, 14 Mar 2009 06:42:34 -0400
+Date: Sat, 14 Mar 2009 07:42:01 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Uri Shkolnik <uris@siano-ms.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Fw: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for
+ workarounds
+Message-ID: <20090314074201.5c4a1ce1@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 13 Mar 2009, Brandon Philips wrote:
+Hi Pierre,
 
-> > Okay, not much information there but it's a start.  Here's a more 
-> > informative patch to try instead.
-> 
-> Here is the log:
->  http://ifup.org/~philips/467317/pearl-alan-debug-2.log
+Uri sent me this patchset, as part of the changes for supporting some devices
+from Siano.
 
-I still can't tell what's happening.  Here's yet another patch.
+The changeset looks fine, although I have no experiences with MMC. Are you
+applying it on your tree, or do you prefer if I apply here?
 
-Alan Stern
+If you're applying on yours, this is my ack:
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+Cheers,
+Mauro.
+
+
+Forwarded message:
+
+Date: Thu, 12 Mar 2009 06:01:26 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org
+Subject: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for workarounds
 
 
 
-Index: usb-2.6/drivers/usb/host/ehci-hcd.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-hcd.c
-+++ usb-2.6/drivers/usb/host/ehci-hcd.c
-@@ -108,6 +108,8 @@ MODULE_PARM_DESC (ignore_oc, "ignore bog
- #include "ehci.h"
- #include "ehci-dbg.c"
- 
-+static int alantest;
-+
- /*-------------------------------------------------------------------------*/
- 
- static void
-@@ -301,12 +303,19 @@ static void ehci_iaa_watchdog(unsigned l
- 	unsigned long		flags;
- 
- 	spin_lock_irqsave (&ehci->lock, flags);
-+	if (alantest == 2)
-+		alantest = 3;
- 
- 	/* Lost IAA irqs wedge things badly; seen first with a vt8235.
- 	 * So we need this watchdog, but must protect it against both
- 	 * (a) SMP races against real IAA firing and retriggering, and
- 	 * (b) clean HC shutdown, when IAA watchdog was pending.
- 	 */
-+	if (alantest > 0)
-+		ehci_info(ehci, "IAA watchdog: reclaim %p pending %d state %d\n",
-+				ehci->reclaim,
-+				timer_pending(&ehci->iaa_watchdog),
-+				ehci_to_hcd(ehci)->state);
- 	if (ehci->reclaim
- 			&& !timer_pending(&ehci->iaa_watchdog)
- 			&& HC_IS_RUNNING(ehci_to_hcd(ehci)->state)) {
-@@ -337,9 +346,15 @@ static void ehci_iaa_watchdog(unsigned l
- 
- 		ehci_vdbg(ehci, "IAA watchdog: status %x cmd %x\n",
- 				status, cmd);
-+		if (alantest > 0)
-+			ehci_info(ehci, "IAA watchdog: status %x cmd %x\n",
-+					status, cmd);
-+
- 		end_unlink_async(ehci);
- 	}
- 
-+	if (alantest == 3)
-+		alantest = 0;
- 	spin_unlock_irqrestore(&ehci->lock, flags);
+sdio: add low level i/o functions for workarounds
+
+From: Pierre Ossman <drzeus@drzeus.cx>
+
+Some shoddy hardware doesn't properly adhere to the register model
+of SDIO, but treats the system like a series of transaction. That means
+that the drivers must have full control over what goes the bus (and the
+core cannot optimize transactions or work around problems in host
+controllers).
+This commit adds some low level functions that gives SDIO drivers the
+ability to send specific register access commands. They should only be
+used when the hardware is truly broken though.
+
+The patch has been done against 2.6.29-rc7 .
+
+Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+
+diff -uNr linux-2.6.29-rc7.prestine/drivers/mmc/core/sdio_io.c linux-2.6.29-rc7_sdio_patch/drivers/mmc/core/sdio_io.c
+--- linux-2.6.29-rc7.prestine/drivers/mmc/core/sdio_io.c	2009-03-04 03:05:22.000000000 +0200
++++ linux-2.6.29-rc7_sdio_patch/drivers/mmc/core/sdio_io.c	2009-03-12 12:22:42.000000000 +0200
+@@ -635,3 +635,252 @@
+ 		*err_ret = ret;
  }
+ EXPORT_SYMBOL_GPL(sdio_f0_writeb);
++
++/**
++ *	sdio_read_bytes - low level byte mode transfer from an SDIO function
++ *	@func: SDIO function to access
++ *	@dst: buffer to store the data
++ *	@addr: address to begin reading from
++ *	@bytes: number of bytes to read
++ *
++ *	Performs a byte mode transfer from the address space of the given
++ *	SDIO function. The address is increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_read_bytes(struct sdio_func *func, void *dst,
++	unsigned int addr, int bytes)
++{
++	if (bytes > sdio_max_byte_size(func))
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 0, func->num, addr, 1,
++			dst, 1, bytes);
++}
++EXPORT_SYMBOL_GPL(sdio_read_bytes);
++
++/**
++ *	sdio_read_bytes_noincr - low level byte mode transfer from an SDIO function
++ *	@func: SDIO function to access
++ *	@dst: buffer to store the data
++ *	@addr: address to begin reading from
++ *	@bytes: number of bytes to read
++ *
++ *	Performs a byte mode transfer from the address space of the given
++ *	SDIO function. The address is NOT increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_read_bytes_noincr(struct sdio_func *func, void *dst,
++	unsigned int addr, int bytes)
++{
++	if (bytes > sdio_max_byte_size(func))
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 0, func->num, addr, 0,
++			dst, 1, bytes);
++}
++EXPORT_SYMBOL_GPL(sdio_read_bytes_noincr);
++
++/**
++ *	sdio_read_blocks - low level block mode transfer from an SDIO function
++ *	@func: SDIO function to access
++ *	@dst: buffer to store the data
++ *	@addr: address to begin reading from
++ *	@block: number of blocks to read
++ *
++ *	Performs a block mode transfer from the address space of the given
++ *	SDIO function. The address is increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	The block size needs to be explicitly changed by calling
++ *	sdio_set_block_size().
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_read_blocks(struct sdio_func *func, void *dst,
++	unsigned int addr, int blocks)
++{
++	if (!func->card->cccr.multi_block)
++		return -EINVAL;
++
++	if (blocks > func->card->host->max_blk_count)
++		return -EINVAL;
++	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
++		return -EINVAL;
++	if (blocks > 511)
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 0, func->num, addr, 1,
++			dst, blocks, func->cur_blksize);
++}
++EXPORT_SYMBOL_GPL(sdio_read_blocks);
++
++/**
++ *	sdio_read_blocks_noincr - low level block mode transfer from an SDIO function
++ *	@func: SDIO function to access
++ *	@dst: buffer to store the data
++ *	@addr: address to begin reading from
++ *	@block: number of blocks to read
++ *
++ *	Performs a block mode transfer from the address space of the given
++ *	SDIO function. The address is NOT increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	The block size needs to be explicitly changed by calling
++ *	sdio_set_block_size().
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_read_blocks_noincr(struct sdio_func *func, void *dst,
++	unsigned int addr, int blocks)
++{
++	if (!func->card->cccr.multi_block)
++		return -EINVAL;
++
++	if (blocks > func->card->host->max_blk_count)
++		return -EINVAL;
++	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
++		return -EINVAL;
++	if (blocks > 511)
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 0, func->num, addr, 0,
++			dst, blocks, func->cur_blksize);
++}
++EXPORT_SYMBOL_GPL(sdio_read_blocks_noincr);
++
++/**
++ *	sdio_write_bytes - low level byte mode transfer to an SDIO function
++ *	@func: SDIO function to access
++ *	@addr: address to start writing to
++ *	@src: buffer that contains the data to write
++ *	@bytes: number of bytes to write
++ *
++ *	Performs a byte mode transfer to the address space of the given
++ *	SDIO function. The address is increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_write_bytes(struct sdio_func *func, unsigned int addr,
++	 void *src, int bytes)
++{
++	if (bytes > sdio_max_byte_size(func))
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 1, func->num, addr, 1,
++			src, 1, bytes);
++}
++EXPORT_SYMBOL_GPL(sdio_write_bytes);
++
++/**
++ *	sdio_write_bytes_noincr - low level byte mode transfer to an SDIO function
++ *	@func: SDIO function to access
++ *	@addr: address to start writing to
++ *	@src: buffer that contains the data to write
++ *	@bytes: number of bytes to write
++ *
++ *	Performs a byte mode transfer to the address space of the given
++ *	SDIO function. The address is NOT increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_write_bytes_noincr(struct sdio_func *func, unsigned int addr,
++	void *src, int bytes)
++{
++	if (bytes > sdio_max_byte_size(func))
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 1, func->num, addr, 0,
++			src, 1, bytes);
++}
++EXPORT_SYMBOL_GPL(sdio_write_bytes_noincr);
++
++/**
++ *	sdio_read_blocks - low level block mode transfer to an SDIO function
++ *	@func: SDIO function to access
++ *	@addr: address to start writing to
++ *	@src: buffer that contains the data to write
++ *	@block: number of blocks to write
++ *
++ *	Performs a block mode transfer to the address space of the given
++ *	SDIO function. The address is increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	The block size needs to be explicitly changed by calling
++ *	sdio_set_block_size().
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_write_blocks(struct sdio_func *func, unsigned int addr,
++	void *src, int blocks)
++{
++	if (!func->card->cccr.multi_block)
++		return -EINVAL;
++
++	if (blocks > func->card->host->max_blk_count)
++		return -EINVAL;
++	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
++		return -EINVAL;
++	if (blocks > 511)
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 1, func->num, addr, 1,
++			src, blocks, func->cur_blksize);
++}
++EXPORT_SYMBOL_GPL(sdio_write_blocks);
++
++/**
++ *	sdio_read_blocks_noincr - low level block mode transfer to an SDIO function
++ *	@func: SDIO function to access
++ *	@addr: address to start writing to
++ *	@src: buffer that contains the data to write
++ *	@block: number of blocks to write
++ *
++ *	Performs a block mode transfer to the address space of the given
++ *	SDIO function. The address is NOT increased for each byte. Return
++ *	value indicates if the transfer succeeded or not.
++ *
++ *	The block size needs to be explicitly changed by calling
++ *	sdio_set_block_size().
++ *
++ *	Note: This is a low level function that should only be used as a
++ *	workaround when the hardware has a crappy register abstraction
++ *	that relies on specific SDIO operations.
++ */
++int sdio_write_blocks_noincr(struct sdio_func *func, unsigned int addr,
++	void *src, int blocks)
++{
++	if (!func->card->cccr.multi_block)
++		return -EINVAL;
++
++	if (blocks > func->card->host->max_blk_count)
++		return -EINVAL;
++	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
++		return -EINVAL;
++	if (blocks > 511)
++		return -EINVAL;
++
++	return mmc_io_rw_extended(func->card, 1, func->num, addr, 0,
++			src, blocks, func->cur_blksize);
++}
++EXPORT_SYMBOL_GPL(sdio_write_blocks_noincr);
++
+diff -uNr linux-2.6.29-rc7.prestine/include/linux/mmc/sdio_func.h linux-2.6.29-rc7_sdio_patch/include/linux/mmc/sdio_func.h
+--- linux-2.6.29-rc7.prestine/include/linux/mmc/sdio_func.h	2009-03-04 03:05:22.000000000 +0200
++++ linux-2.6.29-rc7_sdio_patch/include/linux/mmc/sdio_func.h	2009-03-12 11:51:55.000000000 +0200
+@@ -150,5 +150,31 @@
+ extern void sdio_f0_writeb(struct sdio_func *func, unsigned char b,
+ 	unsigned int addr, int *err_ret);
  
-@@ -729,6 +744,8 @@ static irqreturn_t ehci_irq (struct usb_
- 					&ehci->regs->command);
- 			ehci_dbg(ehci, "IAA with IAAD still set?\n");
- 		}
-+		if (alantest > 0)
-+			ehci_info(ehci, "IAA: reclaim %p\n", ehci->reclaim);
- 		if (ehci->reclaim) {
- 			COUNT(ehci->stats.reclaim);
- 			end_unlink_async(ehci);
-@@ -846,13 +863,21 @@ static int ehci_urb_enqueue (
- 
- static void unlink_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
- {
-+	if (alantest > 0)
-+		ehci_info(ehci, "unlink_async: qh %p state %d\n",
-+			qh, qh->qh_state);
- 	/* failfast */
--	if (!HC_IS_RUNNING(ehci_to_hcd(ehci)->state) && ehci->reclaim)
-+	if (!HC_IS_RUNNING(ehci_to_hcd(ehci)->state) && ehci->reclaim) {
-+		if (alantest > 0)
-+			ehci_info(ehci, "call end_unlink_async\n");
- 		end_unlink_async(ehci);
-+	}
- 
- 	/* if it's not linked then there's nothing to do */
--	if (qh->qh_state != QH_STATE_LINKED)
--		;
-+	if (qh->qh_state != QH_STATE_LINKED) {
-+		if (alantest > 0)
-+			ehci_info(ehci, "not linked\n");
-+	}
- 
- 	/* defer till later if busy */
- 	else if (ehci->reclaim) {
-@@ -864,10 +889,15 @@ static void unlink_async (struct ehci_hc
- 			continue;
- 		qh->qh_state = QH_STATE_UNLINK_WAIT;
- 		last->reclaim = qh;
-+		if (alantest > 0)
-+			ehci_info(ehci, "unlink_async: add to reclaim\n");
- 
- 	/* start IAA cycle */
--	} else
-+	} else {
-+		if (alantest > 0)
-+			ehci_info(ehci, "call start_unlink_async\n");
- 		start_unlink_async (ehci, qh);
-+	}
- }
- 
- /* remove from hardware lists
-@@ -891,16 +921,28 @@ static int ehci_urb_dequeue(struct usb_h
- 	// case PIPE_BULK:
- 	default:
- 		qh = (struct ehci_qh *) urb->hcpriv;
-+		if (alantest == 1) {
-+			alantest = 2;
-+			ehci_info(ehci, "dequeue: urb %p qh %p state %d\n",
-+				urb, qh, qh->qh_state);
-+		}
- 		if (!qh)
- 			break;
- 		switch (qh->qh_state) {
- 		case QH_STATE_LINKED:
- 		case QH_STATE_COMPLETING:
-+			if (alantest > 0)
-+				ehci_info(ehci, "call unlink_async\n");
- 			unlink_async(ehci, qh);
- 			break;
- 		case QH_STATE_UNLINK:
- 		case QH_STATE_UNLINK_WAIT:
- 			/* already started */
-+			if (alantest == 2) {
-+				alantest = 3;
-+				ehci_info(ehci, "unlink already started, pending %d\n",
-+					timer_pending(&ehci->iaa_watchdog));
-+			}
- 			break;
- 		case QH_STATE_IDLE:
- 			WARN_ON(1);
-Index: usb-2.6/drivers/usb/host/ehci-pci.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-pci.c
-+++ usb-2.6/drivers/usb/host/ehci-pci.c
-@@ -314,6 +314,8 @@ static int ehci_pci_resume(struct usb_hc
- 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
- 	struct pci_dev		*pdev = to_pci_dev(hcd->self.controller);
- 
-+	if (alantest == 0)
-+		alantest = 1;
- 	// maybe restore FLADJ
- 
- 	if (time_before(jiffies, ehci->next_statechange))
-Index: usb-2.6/drivers/usb/host/ehci-q.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-q.c
-+++ usb-2.6/drivers/usb/host/ehci-q.c
-@@ -453,9 +453,13 @@ halt:
- 		/* reinit the xacterr counter for the next qtd */
- 		qh->xacterrs = QH_XACTERR_MAX;
- 	}
-+	if (alantest > 0)
-+		ehci_info(ehci, "qh_completions: qh %p\n", qh);
- 
- 	/* last urb's completion might still need calling */
- 	if (likely (last != NULL)) {
-+		if (alantest > 0)
-+			ehci_info(ehci, "urb done: urb %p\n", last->urb);
- 		ehci_urb_done(ehci, last->urb, last_status);
- 		count++;
- 		ehci_qtd_free (ehci, last);
-@@ -463,6 +467,8 @@ halt:
- 
- 	/* restore original state; caller must unlink or relink */
- 	qh->qh_state = state;
-+	if (alantest > 0)
-+		ehci_info(ehci, "restore state %d\n", state);
- 
- 	/* be sure the hardware's done with the qh before refreshing
- 	 * it after fault cleanup, or recovering from silicon wrongly
-@@ -1034,6 +1040,9 @@ submit_async (
- 	 */
- 	if (likely (qh->qh_state == QH_STATE_IDLE))
- 		qh_link_async (ehci, qh_get (qh));
-+	if (alantest > 0)
-+		ehci_info(ehci, "submit urb %p qh %p state %d\n",
-+			urb, qh, qh->qh_state);
-  done:
- 	spin_unlock_irqrestore (&ehci->lock, flags);
- 	if (unlikely (qh == NULL))
-@@ -1062,7 +1071,11 @@ static void end_unlink_async (struct ehc
- 	ehci->reclaim = next;
- 	qh->reclaim = NULL;
- 
-+	if (alantest > 0)
-+		ehci_info(ehci, "end_unlink_async: qh %p\n", qh);
- 	qh_completions (ehci, qh);
-+	if (alantest == 2)
-+		alantest = 0;
- 
- 	if (!list_empty (&qh->qtd_list)
- 			&& HC_IS_RUNNING (ehci_to_hcd(ehci)->state))
-@@ -1131,10 +1144,14 @@ static void start_unlink_async (struct e
- 		/* if (unlikely (qh->reclaim != 0))
- 		 *	this will recurse, probably not much
- 		 */
-+		if (alantest > 0)
-+			ehci_info(ehci, "start_unlink_async: halted\n");
- 		end_unlink_async (ehci);
- 		return;
- 	}
- 
-+	if (alantest > 0)
-+		ehci_info(ehci, "start_unlink_async: IAA started\n");
- 	cmd |= CMD_IAAD;
- 	ehci_writel(ehci, cmd, &ehci->regs->command);
- 	(void)ehci_readl(ehci, &ehci->regs->command);
++/*
++ * Low-level I/O functions for hardware that doesn't properly abstract
++ * the register space. Don't use these unless you absolutely have to.
++ */
++
++extern int sdio_read_bytes(struct sdio_func *func, void *dst,
++	unsigned int addr, int bytes);
++extern int sdio_read_bytes_noincr(struct sdio_func *func, void *dst,
++	unsigned int addr, int bytes);
++
++extern int sdio_read_blocks(struct sdio_func *func, void *dst,
++	unsigned int addr, int blocks);
++extern int sdio_read_blocks_noincr(struct sdio_func *func, void *dst,
++	unsigned int addr, int blocks);
++
++extern int sdio_write_bytes(struct sdio_func *func, unsigned int addr,
++	 void *src, int bytes);
++extern int sdio_write_bytes_noincr(struct sdio_func *func, unsigned int addr,
++	void *src, int bytes);
++
++extern int sdio_write_blocks(struct sdio_func *func, unsigned int addr,
++	void *src, int blocks);
++extern int sdio_write_blocks_noincr(struct sdio_func *func, unsigned int addr,
++	void *src, int blocks);
++
++
+ #endif
 
+
+
+      
+
+
+
+
+Cheers,
+Mauro
