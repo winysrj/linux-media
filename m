@@ -1,81 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60864 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756072AbZCLRCI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 13:02:08 -0400
-Date: Thu, 12 Mar 2009 18:02:19 +0100 (CET)
-From: Guennadi Liakhovetski <lg@denx.de>
-To: Philippe =?utf-8?q?R=C3=A9tornaz?= <philippe.retornaz@epfl.ch>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Valentin Longchamp <valentin.longchamp@epfl.ch>
-Subject: Re: [PATCH] mt9t031 bugfix
-In-Reply-To: <200903061037.51684.philippe.retornaz@epfl.ch>
-Message-ID: <Pine.LNX.4.64.0903121754130.4896@axis700.grange>
-References: <200903061037.51684.philippe.retornaz@epfl.ch>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:58077 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751172AbZCNCgn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Mar 2009 22:36:43 -0400
+Subject: Re: cx231xx review of i2c handling
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200903130032.07709.hverkuil@xs4all.nl>
+References: <200903130032.07709.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Fri, 13 Mar 2009 22:36:17 -0400
+Message-Id: <1236998177.3290.165.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 6 Mar 2009, Philippe Rétornaz wrote:
-
-> - The video device is not allocated when mt9t031_init() is called, don't use 
-> it in debug printk.
+On Fri, 2009-03-13 at 00:32 +0100, Hans Verkuil wrote:
+> Hi Sri,
 > 
-> - The clock polarity is inverted in mt9t031_set_bus_param(), use the correct 
-> one.
+> Here is a review of the i2c part of this driver, together with pointers on 
+> how to proceed to convert it to v4l2_device/v4l2_subdev.
 > 
+> Time permitting I hope to look at the v4l2 implementation in the driver as 
+> well over the weekend, but the i2c part is for me the most urgent issue at 
+> the moment as you've no doubt guessed by now :-)
 > 
-> Signed-off-by: Philippe Rétornaz <philippe.retornaz@epfl.ch>
+> Although I couldn't help noticing this typo:
 > 
-> ---
+> cx231xx-cards.c:                cx231xx_info("Board is Conexnat RDE 250\n");
+> cx231xx-cards.c:                cx231xx_info("Board is Conexnat RDU 250\n");
 > 
-> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> index acc1fa9..d846110 100644
-> --- a/drivers/media/video/mt9t031.c
-> +++ b/drivers/media/video/mt9t031.c
-> @@ -144,8 +144,6 @@ static int mt9t031_init(struct soc_camera_device *icd)
->  	int ret;
->  
->  	/* Disable chip output, synchronous option update */
-> -	dev_dbg(icd->vdev->parent, "%s\n", __func__);
-> -
->  	ret = reg_write(icd, MT9T031_RESET, 1);
->  	if (ret >= 0)
->  		ret = reg_write(icd, MT9T031_RESET, 0);
-> @@ -186,9 +184,9 @@ static int mt9t031_set_bus_param(struct soc_camera_device *icd,
->  		return -EINVAL;
->  
->  	if (flags & SOCAM_PCLK_SAMPLE_FALLING)
-> -		reg_set(icd, MT9T031_PIXEL_CLOCK_CONTROL, 0x8000);
-> -	else
->  		reg_clear(icd, MT9T031_PIXEL_CLOCK_CONTROL, 0x8000);
-> +	else
-> +		reg_set(icd, MT9T031_PIXEL_CLOCK_CONTROL, 0x8000);
+> :-)
+> 
+> Looking at cx231xx-i2c.c I see it has the following devices:
+> 
+> 0x32: Geminit III
+> 0x02: Acquarius
+> 0xa0: eeprom
+> 0x60: Colibri
+> 0x8e: IR
+> 0x80/0x88: Hammerhead
+> 
+> And it also uses an external tuner.
+> 
+> It is my understanding that these devices are integrated on the cx231xx and 
+> so are completely internal to it:
+> 
+> Geminit III, Acquarius, Colibri, Hammerhead.
+> 
+> Is the eeprom also internal, or is it external?
+> 
+> Why can Hammerhead be at two addresses? Since it is an integral device I'd 
+> expect that the address would be fixed. Or are there two Hammerheads? 
+> Looking at the source I'd say that it can only be at address 0x88.
+> 
+> A general note: please add a description in the cx231xx.h header or in 
+> another suitable place for each of these devices. The codenames themselves 
+> do not give much of an idea of what the device actually does.
 
-Why do you think this is the correct one? According to the "Pin 
-Description" Table (Table 3 on page 8 in my copy), indeed, it says
+Hans,
 
-<quote>
-Pixel clock: pixel data outputs are valid during falling edge of this 
-clock.
-</quote>
+The public product brief for the CX23100, CX23101, CX23102 (Polaris?) is
+here:
 
-which _probably_ should refer to the default configuration, which is 
-R10=0, i.e., non-inverted pixclk. In this case you are right. However, in 
-Figure "Pixel Color Pattern Detail (Top Right Corner)" (Figure 5 on page 
-10) you see the first pixel green in a red row, and this is what I seem to 
-be getting with the current driver, after applying your patch I'm getting 
-a red pixel at the start. Are you basing your patch only on Table 3 or you 
-verified it practically somehow?
+http://www.conexant.com/products/entry.jsp?id=552
+http://www.conexant.com/servlets/DownloadServlet/PBR-201370-004.pdf?docid=1371&revid=4
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
+There's a block diagram on the second page of the PDF and a table on the
+first page showing that the CX23100 and CX23101 do not have the full
+complement of internal components that the CX23102 has.
 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: +49-8142-66989-0 Fax: +49-8142-66989-80  Email: office@denx.de
+Since a Hammerhead is a shark as is a Mako, and since the CX25843
+firmware is often refered to *MakoC.rom in the Windows drivers, I
+guessed that the Hammerhead was an A/V digitizer.  I see you've
+confirmed that from the code.  From the product brief, it looks like the
+internal Hammerhead is not in the CX23100.
+
+>From the code, it looks like the Colibri is the integrated Analog IF
+demodulator.  If true, this unit is also not in the CX23100.  Thus an
+analog IF demod and AV digitizer could be external to a CX23100 (but one
+would have to wonder why an integrator wouuld ever do that...)
+
+>From the code, the Flatiron looks like an Audio source and has at least
+one ADC (sigma-delta) and an Audio Mux to select it's ADC or another
+source for audio.  I'm guessing this is the 18 bit audio ADCs onblock on
+the diagram.
+
+According to the board entries for dmeod I2C addresses both the Gemini
+III and Aquarius are demodulators.  Since the code mentions attaching
+the s5h1411 module, sh51411.h mentions I2C addresses 0x32 and 0x34, and
+the cx231xx code mentions the Gemini III is at 0x32, then I assume the
+Gemini III is a s5h1411.  There is no mention of a linux driver for the
+Aquarius I2C address.
+
+The Product brief doesn't show an EEPROM nor does it call one out.  I'll
+bet it is not internal to the Polaris.
+
+And that's all I can deduce from publicly available information.
+
+
+But the *big* question is my mind is why the unit is called Polaris and
+not Ursa Minor?  The demods got named after whole constellations, and
+not just a single star in one. ;)
+
+
+Regards,
+Andy
+
+
+
