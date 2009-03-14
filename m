@@ -1,65 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3238 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754997AbZCIWoE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 18:44:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: V4L2 spec
-Date: Mon, 9 Mar 2009 23:44:04 +0100
-Cc: wk <handygewinnspiel@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <200903061523.15766.hverkuil@xs4all.nl> <49B59230.1090305@gmx.de> <412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
-In-Reply-To: <412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903092344.04805.hverkuil@xs4all.nl>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:49564 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751989AbZCNN3M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2009 09:29:12 -0400
+Date: Sat, 14 Mar 2009 14:25:13 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] LED control
+Message-ID: <20090314142513.315c52b0@free.fr>
+In-Reply-To: <20090314091747.21153855@pedra.chehab.org>
+References: <20090314125923.4229cd93@free.fr>
+	<20090314091747.21153855@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 09 March 2009 23:10:56 Devin Heitmueller wrote:
-> On Mon, Mar 9, 2009 at 6:03 PM, wk <handygewinnspiel@gmx.de> wrote:
-> > Its a bad idea to expect someone else, the magic volunteer, doing work
-> > with *deep impact* on the dvb driver API structure or documentation.
-> > Working on this topic determines complete usability of the driver, so
-> > MAIN DEVELOPERS have to REVIEW and CONTRIBUTE.
-> > If they think, that they cannot do such work in parallel, they should
-> > to stop work on drivers for some time.
->
-> Cut me a $25,000 check and I'll happily do it.  Otherwise, don't tell
-> a bunch of volunteer developers how they should be spending their
-> time.  What you happen to think is the important is not necessarily
-> what developers feel is the most valuable use of their time.
+On Sat, 14 Mar 2009 09:17:47 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-Hear, hear.
+> On Sat, 14 Mar 2009 12:59:23 +0100
+> Jean-Francois Moine <moinejf@free.fr> wrote:
+> 
+> > +	    <entry><constant>V4L2_CID_LEDS</constant></entry>
+> > +	    <entry>integer</entry>
+> > +	    <entry>Switch on or off the LEDs or illuminators of
+> > the device. +In the control value, each LED may be coded in one bit
+> > (0: off, 1: on) or in +many bits (light intensity).</entry>
+> > +	  </row>
+> > +	  <row>
+> 
+> The idea of having some sort of control over the LEDs is interesting,
+> but we should have a better way of controlling it. If the LED may
+> have more than one bit, maybe the better would be to create more than
+> one CID entry. Something like:
+> 
+> V4L2_CID_LED_POWER	- for showing that the camera is being used
+> V4L2_CID_LED_LIGHT	- for normal white light
+> V4L2_CID_LED_INFRARED	- for dark light, using infrared
+> ...
+> 
+> This way a driver can enumberate what kind of leds are available, and
+> get the power intensity range for each individual one.
 
-> The reality is that there is *some* value a developer can contribute
-> in reviewing the content and providing feedback and a *TON* of grunt
-> work involved that can be done by anybody who takes the time to learn
-> docbook.  If someone wants to volunteer to do the former, I'm sure
-> some developers would be willing to do the latter.
+OK for V4L2_CID_LED_INFRARED: I already know a webcam type which needs
+such a control, but I don't know if it is associated to a LED or to a
+sensor capability.
 
-Indeed. If someone could do the 'grunt' work of converting the dvb doc into 
-DocBook and integrating it into the existing v4l docbook, then that will no 
-doubt get a flow of patches and gradual improvements started from the main 
-developers. In addition, simply asking them to clarify bits of the 
-documentation will generally result in answers and you can then put that 
-into the doc.
+I heard of some webcams with many LEDs (up to 6) and some of these last
+ones may be independently switched on or off. But, actually, I don't
+heard about individual or global LED power.
 
-None of this requires in-depth knowledge, but only motivation and the time 
-to do this work.
+So, as I understand your controls, V4L2_CID_LED_LIGHT would contain a
+bit array, one bit for each LED, and V4L2_CID_LED_POWER would give the
+light intensity for all LEDs. This last control might be added later if
+needed.
 
-You can probably partially automate the conversion with some homebrewn 
-one-off perl scripts (or whatever your favorite script language is). But 
-it's still a lot of manual labor.
+Am I right?
 
-Regards,
-
-	Hans
+Cheers.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
