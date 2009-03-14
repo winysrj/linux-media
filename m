@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n22Jm0mx015806
-	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 14:48:00 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n22Jlhut020179
-	for <video4linux-list@redhat.com>; Mon, 2 Mar 2009 14:47:43 -0500
-Date: Mon, 2 Mar 2009 16:47:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Vitaly Wool <vital@embeddedalley.com>
-Message-ID: <20090302164714.28d0e39f@pedra.chehab.org>
-In-Reply-To: <49ABF746.8000506@embeddedalley.com>
-References: <49ABF746.8000506@embeddedalley.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2EHZBpZ005282
+	for <video4linux-list@redhat.com>; Sat, 14 Mar 2009 13:35:11 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2EHYqCr004555
+	for <video4linux-list@redhat.com>; Sat, 14 Mar 2009 13:34:53 -0400
+Message-ID: <49BBEAEB.5080805@hhs.nl>
+Date: Sat, 14 Mar 2009 18:35:39 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Farkas Levente <lfarkas@lfarkas.org>
+References: <49BA4E22.20209@hhs.nl> <49BA56AF.9040101@lfarkas.org>
+In-Reply-To: <49BA56AF.9040101@lfarkas.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [patch] tvaudio: remove bogus check
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Subject: Re: libv4l release: 0.5.9
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,86 +29,153 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 02 Mar 2009 18:12:06 +0300
-Vitaly Wool <vital@embeddedalley.com> wrote:
-
-> Hello Mauro,
+Farkas Levente wrote:
+> Hans de Goede wrote:
+>> Hi All,
+>>
+>> Add support for various new formats, see the changelog entry below:
+>>
+>> libv4l-0.5.9
+>> ------------
+>> * Add support for MR97310A decompression by Kyle Guinn <elyk03@gmail.com>
+>> * Add support for sq905c decompression by Theodore Kilgore
+>>   <kilgota@auburn.edu>
+>> * Add hm12 support for the cx2341x MPEG encoder devices by Hans Verkuil
+>>   <hverkuil@xs4all.nl>
+>>
+>>
+>> Get it here:
+>> http://people.atrpms.net/~hdegoede/libv4l-0.5.9.tar.gz
 > 
-> below is the patch that removes the subaddr check against ARRAY_SIZE(chip->shadow.bytes).
-> Regardless of anything, the 'bytes' array is 64 bytes large so this check disables 
-> easy standard programming (TDA9874A_ESP) which has a number of 255 which is hardly the
-> intended behavior.
-> 
-> As a matter of fact, we can think of separate check for this case like
-> 	if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes) ||
-> 	    subaddr != 0xFF) {
-> 		... /* weird register, refuse */
-> 	}
-> but I'm not sure if there are no other special cases so for now I suggest to just disable
-> it.
-
-This patch is wrong, since it will allow the access of an inexistent position at the shadow array:
-
-	chip->shadow.bytes[subaddr+1] = val;
-
-The proper fix is to increase the size of the shadow.bytes array to properly
-handle the subaddr = 0xff. Something like:
-
--#define MAXREGS 64
-+#define MAXREGS 256
-
-Except for allocating a few more bytes, such patch won't have any other drawback.
-
-> 
->  drivers/media/video/tvaudio.c |   17 +----------------
->  1 file changed, 1 insertion(+), 16 deletions(-)
-> 
-> Signed-off-by: Vitaly Wool <vital@embeddedalley.com> 
-> 
-> Index: linux-next/drivers/media/video/tvaudio.c
-> ===================================================================
-> --- linux-next.orig/drivers/media/video/tvaudio.c	2009-03-02 17:50:40.000000000 +0300
-> +++ linux-next/drivers/media/video/tvaudio.c	2009-03-02 18:08:08.000000000 +0300
-> @@ -169,13 +169,6 @@
->  			return -1;
->  		}
->  	} else {
-> -		if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
-> -			v4l2_info(sd,
-> -				"Tried to access a non-existent register: %d\n",
-> -				subaddr);
-> -			return -EINVAL;
-> -		}
-> -
->  		v4l2_dbg(1, debug, sd, "chip_write: reg%d=0x%x\n",
->  			subaddr, val);
->  		chip->shadow.bytes[subaddr+1] = val;
-> @@ -198,16 +191,8 @@
->  	if (mask != 0) {
->  		if (subaddr < 0) {
->  			val = (chip->shadow.bytes[1] & ~mask) | (val & mask);
-> -		} else {
-> -			if (subaddr + 1 >= ARRAY_SIZE(chip->shadow.bytes)) {
-> -				v4l2_info(sd,
-> -					"Tried to access a non-existent register: %d\n",
-> -					subaddr);
-> -				return -EINVAL;
-> -			}
-> -
-> +		} else
->  			val = (chip->shadow.bytes[subaddr+1] & ~mask) | (val & mask);
-> -		}
->  	}
->  	return chip_write(chip, subaddr, val);
->  }
-> 
+> is there any plan to be compile on epel-5 to? it's currently can't
+> compile on it.
+> yours.
 > 
 
+Given that libv4l's main purpose is to make applications understand the
+pixelformat generated by webcam drivers in newer kernels (way newer then whats
+in RHEL-5), no.
 
+However if you compile libv4l under the v4l-dvb hg tree, it will use the
+headers from the tree and you can compile it under RHEL-5. Or you could simply
+include the necessary header file (I think it only needs a newer linux/videodev2.h)
+in the source rpm, and add a dir containing it to the header search path.
 
+Regards,
 
-Cheers,
-Mauro
+Hans
+
+> gcc -c -MMD -I../include -I../../../include -fvisibility=hidden -fPIC
+> -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions
+> -fstack-protector --param=ssp-buffer-size=4 -m32 -march=i386
+> -mtune=generic -fasynchronous-unwind-tables -o sn9c20x.o sn9c20x.c
+> In file included from libv4lconvert-priv.h:24,
+>                  from sn9c20x.c:25:
+> ../include/libv4lconvert.h:77: warning: 'struct v4l2_frmsizeenum'
+> declared inside parameter list
+> ../include/libv4lconvert.h:77: warning: its scope is only this
+> definition or declaration, which is probably not what you want
+> ../include/libv4lconvert.h:82: warning: 'struct v4l2_frmivalenum'
+> declared inside parameter list
+> In file included from sn9c20x.c:25:
+> libv4lconvert-priv.h:104: error: array type has incomplete element type
+> sn9c20x.c: In function 'v4lconvert_sn9c20x_to_yuv420':
+> sn9c20x.c:81: warning: unused variable 'height_div2'
+> make[1]: *** [sn9c20x.o] Error 1
+> make[1]: *** Waiting for unfinished jobs....
+> In file included from libv4lconvert-priv.h:24,
+>                  from sn9c10x.c:25:
+> ../include/libv4lconvert.h:77: warning: 'struct v4l2_frmsizeenum'
+> declared inside parameter list
+> ../include/libv4lconvert.h:77: warning: its scope is only this
+> definition or declaration, which is probably not what you want
+> ../include/libv4lconvert.h:82: warning: 'struct v4l2_frmivalenum'
+> declared inside parameter list
+> In file included from sn9c10x.c:25:
+> libv4lconvert-priv.h:104: error: array type has incomplete element type
+> make[1]: *** [sn9c10x.o] Error 1
+> In file included from libv4lconvert.c:27:
+> ../include/libv4lconvert.h:77: warning: 'struct v4l2_frmsizeenum'
+> declared inside parameter list
+> ../include/libv4lconvert.h:77: warning: its scope is only this
+> definition or declaration, which is probably not what you want
+> ../include/libv4lconvert.h:82: warning: 'struct v4l2_frmivalenum'
+> declared inside parameter list
+> In file included from libv4lconvert.c:28:
+> libv4lconvert-priv.h:104: error: array type has incomplete element type
+> libv4lconvert.c: In function 'v4lconvert_get_framesizes':
+> libv4lconvert.c:921: error: variable 'frmsize' has initializer but
+> incomplete type
+> libv4lconvert.c:921: error: unknown field 'pixel_format' specified in
+> initializer
+> libv4lconvert.c:921: warning: excess elements in struct initializer
+> libv4lconvert.c:921: warning: (near initialization for 'frmsize')
+> libv4lconvert.c:921: error: storage size of 'frmsize' isn't known
+> libv4lconvert.c:925: error: 'VIDIOC_ENUM_FRAMESIZES' undeclared (first
+> use in this function)
+> libv4lconvert.c:925: error: (Each undeclared identifier is reported only
+> once
+> libv4lconvert.c:925: error: for each function it appears in.)
+> libv4lconvert.c:935: error: 'V4L2_FRMSIZE_TYPE_DISCRETE' undeclared
+> (first use in this function)
+> libv4lconvert.c:940: error: 'V4L2_FRMSIZE_TYPE_CONTINUOUS' undeclared
+> (first use in this function)
+> libv4lconvert.c:941: error: 'V4L2_FRMSIZE_TYPE_STEPWISE' undeclared
+> (first use in this function)
+> libv4lconvert.c:921: warning: unused variable 'frmsize'
+> libv4lconvert.c: At top level:
+> libv4lconvert.c:979: error: conflicting types for
+> 'v4lconvert_enum_framesizes'
+> ../include/libv4lconvert.h:77: error: previous declaration of
+> 'v4lconvert_enum_framesizes' was here
+> libv4lconvert.c: In function 'v4lconvert_enum_framesizes':
+> libv4lconvert.c:980: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:981: error: 'VIDIOC_ENUM_FRAMESIZES' undeclared (first
+> use in this function)
+> libv4lconvert.c:983: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:988: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:988: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:989: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:990: error: 'V4L2_FRMSIZE_TYPE_DISCRETE' undeclared
+> (first use in this function)
+> libv4lconvert.c:991: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:991: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:993: error: 'V4L2_FRMSIZE_TYPE_CONTINUOUS' undeclared
+> (first use in this function)
+> libv4lconvert.c:994: error: 'V4L2_FRMSIZE_TYPE_STEPWISE' undeclared
+> (first use in this function)
+> libv4lconvert.c:995: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:995: error: dereferencing pointer to incomplete type
+> libv4lconvert.c: At top level:
+> libv4lconvert.c:1003: warning: 'struct v4l2_frmivalenum' declared inside
+> parameter list
+> libv4lconvert.c:1004: error: conflicting types for
+> 'v4lconvert_enum_frameintervals'
+> ../include/libv4lconvert.h:82: error: previous declaration of
+> 'v4lconvert_enum_frameintervals' was here
+> libv4lconvert.c: In function 'v4lconvert_enum_frameintervals':
+> libv4lconvert.c:1008: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1009: error: 'VIDIOC_ENUM_FRAMEINTERVALS' undeclared
+> (first use in this function)
+> libv4lconvert.c:1018: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1019: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1020: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1028: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1029: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1030: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1031: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1033: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1033: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1050: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1051: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1052: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1057: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1073: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1074: error: dereferencing pointer to incomplete type
+> libv4lconvert.c:1075: error: dereferencing pointer to incomplete type
+> make[1]: *** [libv4lconvert.o] Error 1
+> 
+> 
 
 --
 video4linux-list mailing list
