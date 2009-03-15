@@ -1,99 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51279 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773AbZCPPcN (ORCPT
+Received: from proxy.quengel.org ([213.146.113.159]:44086 "EHLO
+	gerlin1.hsp-law.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753128AbZCOVcA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 11:32:13 -0400
-Date: Mon, 16 Mar 2009 12:31:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
-Message-ID: <20090316123106.36704382@pedra.chehab.org>
-In-Reply-To: <20090316152802.7492dd20@hyperion.delvare>
-References: <200903151344.01730.hverkuil@xs4all.nl>
-	<20090315181207.36d951ac@hyperion.delvare>
-	<Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
-	<20090315185313.4c15702c@hyperion.delvare>
-	<20090316063402.1b0da1f3@gaivota.chehab.org>
-	<20090316121801.1c03d747@hyperion.delvare>
-	<20090316095237.21775418@gaivota.chehab.org>
-	<20090316152802.7492dd20@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sun, 15 Mar 2009 17:32:00 -0400
+To: "Matthias Schwarzzot" <zzam@gentoo.org>,
+	"Manu Abraham" <manu@linuxtv.org>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [Resend][resolved]Twinhan DVB-T card does not tune with 2.6.29
+References: <8763ihy4qc.fsf@gerlin1.hsp-law.de>
+From: Ralf Gerbig <rge@quengel.org>
+Date: Tue, 15 Mar 2009 22:52:43 +0100
+Message-ID: <87r60y322c.fsf@gerlin1.hsp-law.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I need to be short, since I'm about to travel.
+Hi Manu, Matthias, Mauro, everybody else,
 
-On Mon, 16 Mar 2009 15:28:02 +0100
-Jean Delvare <khali@linux-fr.org> wrote:
+this:
 
+commit a00d0bb86b20a86a72f4df9d6e31dda94c02b4fa
+Author: Matthias Schwarzzot <zzam@gentoo.org>
+Date:   Tue Jan 27 16:29:44 2009 -0300
 
-> Ah yeah, now I remember. You're the one who considers 2.6.18 a bleeding
-> edge kernel suitable for upstream development. This explains a lot.
+    V4L/DVB (10978): Report tuning algorith correctly
+    
+    Signed-off-by: Manu Abraham <manu@linuxtv.org>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I have 3 separated environments, being the first with the bleeding edge Fedora
-rawhide core (2.6.29-rc-git + several linux-next patches), for development. For
-sure, this is not stable, and an intermediate with 2.6.27 (Fedora 10), for normal tests.
+solved the problem.
 
-But for sure I don't want to loose time or data running my production data on
-an unstable environment. Then, I use RHEL5 on my main machines: it is rock solid.
+> Hi Mauro, everybody else,
 
-On all of those environments, I need my devices properly working with the
-bleeding edge v4l/dvb drivers.
-> 
-> > will almost certainly cause compatibility breakages. I can't see any gain to
-> > the end user of a board that it is properly supported that such change would do.
-> 
-> I'm literally speechless.
+> it is a Twinhan VisionPlus DVB, works perfectly with 2.6.28 and
+> previous.
 
-What's the gain of the change for a user whose card already works? If
-everything went ok, he will just have what he had before. The difference
-affects only users of boards not supported yet (or badly supported).
+> I tried rc6, rc7 and current git. The only thing that stands out (to
+> my untrained eye) is:
 
-> > The reasons I see are in order to provide a more consistent internal model
-> > to represent the devices, and to support devices with more complex approaches
-> > like devices that have some I2C muxes and switches on their buses, to solve the
-> > address problems we're currently facing with such devices.
-> 
-> Abstracting the numerous improvements brought by the new binding model
-> for older devices, which by themselves justify the move IMHO, the key
-> issue here is that the old model and the new model do not mix properly.
-> The different device lifetime cycles make it pretty much impossible to
-> come up with a sane locking model. This is the reason why I want the
-> legacy model to die now.
+>IRQ 17/bt878: IRQF_DISABLED is not guaranteed on shared IRQs
 
-Ok, that's the reason why we're changing: we need the new model for a small
-subset of devices (5%? maybe even less). On those devices, I2C switches do
-exist and this causes troubles with the old model. Since both models don't mix,
-we're migrating even the drivers that won't need such model.
+> messages, /proc/interrupts, modules, lspci included, config.gz
+> attached.
 
-> > > Also, please let's not lose focus here. The important thing here is to
-> > > finish the conversion to the new i2c device driver binding model, and
-> > > quickly.
-> > 
-> > For finishing the conversion, I agree that we just need some kind of workaround
-> > to allow both IR and Audio to work, but we shouldn't loose how it would be done
-> > in the final version.
-> 
-> For finishing the conversion, we don't need to do anything. The
-> PIC16C54 support is already broken today if I understood Hans
-> correctly. We certainly want to fix that someday, but this is unrelated
-> to the model conversion.
+I hope this helps,
 
-It may or may not work. With the current behaviour, someone may load either
-driver (IR or audio). So, both things work, but not simultaneously.
+thanks Ralf
 
-Anyway, you got me wrong: I don't think that pic16c54 is an enough reason for
-justify any changes on the i2c model.
-
-However, there are several devices that have processors connected via i2c
-(including several DVB based devices using Cypress processors). IMO, we will
-need sooner or later some solution for using the sub-address as a different
-device, but we may postpone such discussion to another time.
-
-Cheers,
-Mauro
+debugging stuff elided
+[...]
