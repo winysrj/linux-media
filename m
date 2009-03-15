@@ -1,165 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:41233 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755319AbZCEUqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:46:38 -0500
-Date: Thu, 5 Mar 2009 14:58:54 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Kyle Guinn <elyk03@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
+Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:43639 "EHLO
+	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408AbZCOR2q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 13:28:46 -0400
+Date: Sun, 15 Mar 2009 10:28:42 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
 	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-In-Reply-To: <49B038D8.8060702@redhat.com>
-Message-ID: <alpine.LNX.2.00.0903051457410.27979@banach.math.auburn.edu>
-References: <20090217200928.1ae74819@free.fr> <200903042049.37829.elyk03@gmail.com> <alpine.LNX.2.00.0903042210500.23365@banach.math.auburn.edu> <200903042354.40787.elyk03@gmail.com> <49AF78A0.1030508@redhat.com> <alpine.LNX.2.00.0903051232350.27780@banach.math.auburn.edu>
- <49B022FE.3050206@redhat.com> <alpine.LNX.2.00.0903051345560.27979@banach.math.auburn.edu> <49B038D8.8060702@redhat.com>
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+In-Reply-To: <200903151753.52663.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.58.0903151001040.28292@shell2.speakeasy.net>
+References: <200903151324.00784.hverkuil@xs4all.nl>
+ <Pine.LNX.4.58.0903150859300.28292@shell2.speakeasy.net>
+ <200903151753.52663.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On Thu, 5 Mar 2009, Hans de Goede wrote:
-
+On Sun, 15 Mar 2009, Hans Verkuil wrote:
+> On Sunday 15 March 2009 17:04:43 Trent Piepho wrote:
+> > On Sun, 15 Mar 2009, Hans Verkuil wrote:
+> > > Hi Mauro,
+> > >
+> > > Can you review my ~hverkuil/v4l-dvb-bttv2 tree?
+> >
+> > It would be a lot easier if you would provide patch descriptions.
 >
+> Here it is:
 >
-> kilgota@banach.math.auburn.edu wrote:
->> 
->> 
->> On Thu, 5 Mar 2009, Hans de Goede wrote:
->> 
->>> 
->>> 
->>> kilgota@banach.math.auburn.edu wrote:
->>>> 
->>>> 
->>>> On Thu, 5 Mar 2009, Hans de Goede wrote:
->>>> 
->>>>> 
->>>>> 
->>>>> Kyle Guinn wrote:
->>>>>> On Wednesday 04 March 2009 22:34:13 kilgota@banach.math.auburn.edu 
->>>>>> wrote:
->>>>>>> On Wed, 4 Mar 2009, Kyle Guinn wrote:
->>>>>>>> On Tuesday 03 March 2009 18:12:33 kilgota@banach.math.auburn.edu 
->>>>>>>> wrote:
->>>>>>>>> contents of file mr97310a.patch follow, for gspca/mr97310a.c
->>>>>>>>> --------------------------------------------------------
->>>>>>>>> --- mr97310a.c.old    2009-02-23 23:59:07.000000000 -0600
->>>>>>>>> +++ mr97310a.c.new    2009-03-03 17:19:06.000000000 -0600
->>>>>>>>> @@ -302,21 +302,9 @@ static void sd_pkt_scan(struct gspca_dev
->>>>>>>>>                       data, n);
->>>>>>>>>           sd->header_read = 0;
->>>>>>>>>           gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
->>>>>>>>> -        len -= sof - data;
->>>>>>>>> -        data = sof;
->>>>>>>>> -    }
->>>>>>>>> -    if (sd->header_read < 7) {
->>>>>>>>> -        int needed;
->>>>>>>>> -
->>>>>>>>> -        /* skip the rest of the header */
->>>>>>>>> -        needed = 7 - sd->header_read;
->>>>>>>>> -        if (len <= needed) {
->>>>>>>>> -            sd->header_read += len;
->>>>>>>>> -            return;
->>>>>>>>> -        }
->>>>>>>>> -        data += needed;
->>>>>>>>> -        len -= needed;
->>>>>>>>> -        sd->header_read = 7;
->>>>>>>>> +        /* keep the header, including sof marker, for coming frame 
->>>>>>>>> */
->>>>>>>>> +        len -= n;
->>>>>>>>> +        data = sof - sizeof pac_sof_marker;;
->>>>>>>>>       }
->>>>>>>>>
->>>>>>>>>       gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
->>>>>>>> A few notes:
->>>>>>>> 
->>>>>>>> 1.  There is an extra semicolon on that last added line.
->>>>>>> Oops. My bifocals.
->>>>>>> 
->>>>>>>> 2.  sd->header_read no longer seems necessary.
->>>>>>> This is very likely true.
->>>>>>> 
->>>>>>>> 3.  If the SOF marker is split over two transfers then everything 
->>>>>>>> falls
->>>>>>>> apart.
->>>>>>> Are you sure about that?
->>>>>>> 
->>>>>> 
->>>>>> Simple example:  One transfer ends with FF FF 00 and the next begins 
->>>>>> with FF 96 64.  pac_find_sof() returns a pointer to 64, n is set to 0, 
->>>>>> len stays the same, data now points at 3 bytes _before_ the transfer 
->>>>>> buffer, and we will most likely get undefined behavior when trying to 
->>>>>> copy the data out of the transfer buffer.  Not only that, but the FF FF 
->>>>>> 00 portion of the SOF won't get copied to the frame buffer.
->>>>>> 
->>>>> 
->>>>> Good point, since we will always pass frames to userspace which start 
->>>>> with the
->>>>> sof, maybe we should just only pass the variable part of the header to 
->>>>> userspace?
->>>>> 
->>>>> That sure feels like the easiest solution to me.
->>>>> 
->>>>> Regards,
->>>>> 
->>>>> Hans
->>>>> 
->>>> 
->>>> Hans, that would not solve the problem. In fact, it appears to me that 
->>>> this problem was already inherent in the driver code before I proposed 
->>>> any patches at all.
->>> 
->>> Erm, if I understood correctly (haven't looked yet) the driver is working
->>> with the sof detection from pac_common, which does work with a SOF split
->>> over multiple frames.
->> 
->> That is not my impression of what the code in pac_common is doing. That 
->> code, as I understand, is totally neutral about such things. What is does 
->> is to parse some data and search for an SOF marker, and if it finds such a 
->> thing then it declares the next byte after to be what it calls "sof". 
->> Specifically, there is the function
->> 
->> static unsigned char *pac_find_sof(struct gspca_dev *gspca_dev,
->>                                         unsigned char *m, int len)
->> 
->> and what it does is that it searches through unsigned char *m up to the 
->> extent declared in int len, looking for an SOF marker. If it finds one, 
->> then it returns the location of the next byte after the SOF marker has been 
->> successfully read.
->> 
->
-> Check that function again, more carefully, if it fails, but finds a part of
-> the sof at the end of m it remembers how much of the sof it has already seen
-> and continues where it left of the next time it is called.
+> - bttv: convert to v4l2_subdev.
 
-Well, here is the code in the function. I don't see. So can you explain? 
-Perhaps I am dense.
+You aren't even trying.  I could easily write two pages on this patch.
 
-{
-         struct sd *sd = (struct sd *) gspca_dev;
-         int i;
+What new module parameters did you add?  Why?  What module parameters did
+you delete?  Why?  How does one translate a existing modprobe.conf file?
 
-         /* Search for the SOF marker (fixed part) in the header */
-         for (i = 0; i < len; i++) {
-                 if (m[i] == pac_sof_marker[sd->sof_read]) {
-                         sd->sof_read++;
-                         if (sd->sof_read == sizeof(pac_sof_marker)) {
-                                 PDEBUG(D_FRAM,
-                                         "SOF found, bytes to analyze: %u."
-                                         " Frame starts at byte #%u",
-                                         len, i + 1);
-                                 sd->sof_read = 0;
-                                 return m + i + 1;
-                         }
-                 } else {
-                         sd->sof_read = 0;
-                 }
-         }
+Why are the i2c addresses from various i2c chips moved into the bttv
+driver?  Doesn't it make more sense that the addresses for chip X should be
+in the driver for chip X?
 
-         return NULL;
-}
+How has module loading changed?  Can one no longer *not* autoload modules if
+you are trying to test drivers that are not installed in /lib/modules?
 
+What fields did you add to the card database?  Why?  How much did the size
+increase?  What is the never set has_saa6588 field in tvcards needed for?
+
+What are the parameters to bttv_call_all?
+
+How did you change the probing sequence?  What was it before?  What is it
+now?
+
+Where do the subdevs you created get deleted?
