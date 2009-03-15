@@ -1,65 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:56822 "EHLO
-	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756598AbZCDXmE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 18:42:04 -0500
-Date: Wed, 4 Mar 2009 15:42:01 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-In-Reply-To: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com>
-Message-ID: <Pine.LNX.4.58.0903041502240.24268@shell2.speakeasy.net>
-References: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com>
+Received: from mk-outboundfilter-5.mail.uk.tiscali.com ([212.74.114.1]:54778
+	"EHLO mk-outboundfilter-5.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752475AbZCOWYe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 18:24:34 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: linux-media@vger.kernel.org, kilgota@banach.math.auburn.edu,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC][PATCH 0/2] Sensor orientation reporting
+Date: Sun, 15 Mar 2009 22:24:28 +0000
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903152224.29388.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 4 Mar 2009, Aguirre Rodriguez, Sergio Alberto wrote:
-> As what I understand, we have 2 possible situations for multiple opens here:
->
-> Situation 1
->  - Instance1: Select sensor 1, and Do queue/dequeue of buffers.
->  - Instance2: If sensor 1 is currently selected, Begin loop requesting internally collected OMAP3ISP statistics (with V4L2 private based IOCTLs) for performing user-side Auto-exposure, Auto White Balance, Auto Focus algorithms. And Adjust gains (with S_CTRL) accordingly on sensor as a result.
->
-> Situation 2
->  - Instance1: Select sensor1 as input. Begin streaming.
->  - Instance2: Select sensor2 as input. Attempt to begin streaming.
->
-> So, if I understood right, on Situation 2, if you attempt to do a S_INPUT
-> to sensor2 while capturing from sensor1, it should return a -EBUSY,
-> right?  I mean, the app should consciously make sure the input (sensor)
-> is the correct one before performing any adjustments.
+Hi all,
 
-It's usually perfectly legal to change inputs from one file handle while
-another file handle is capturing.
+I've finally got round to writing a sample patch to support the proposed 
+mechanism of reporting sensor orientation to user space. It is split into 2 
+parts, part 1 contains the kernel changes and part 2 the libv4l changes. In 
+order to keep the patch simple I haven't attempted to add support to libv4l 
+for HFLIP and VFLIP but just assumed for now that if a cam needs one then it 
+needs both. If the basic idea gets accepted then fixing that is purely a user 
+space change.
 
-If changing inputs while capturing is hard for your hardware and not
-supported, then S_INPUT could return EBUSY while capture is in progress.
-But in that case it doesn't matter which file descriptor is trying to
-change inputs.
+I also haven't provided an implementation of VIDIOC_ENUMINPUT in libv4l that 
+updates the flags to reflect what libv4l has done to the image. Hans Verkuil 
+originally said he wanted to leave the orientation information available to 
+the user app but I suspect that is actually undesirable. If an app is 
+designed to work without libv4l and to re-orient an image as required then if 
+someone runs it with the LD_PRELOAD capability of libv4l then correct 
+operation depends upon reporting the corrected orientation to the app, not 
+the original orientation.
 
-v4l2 is designed to allow a device to be controlled from multiple open file
-descriptors.  Just like serial ports or audio mixers can be.
-
-In general, an application should not worry about someone changing inputs
-or frequencies while it is running.  If using v4l2-ctl while and app is
-running leads to undesirable behavior there is a simple solution:  Don't do
-that.
-
-If you want exclusive access you can use a solution external to v4l2.  For
-instance most apps that use serial ports (pppd, minicom, etc.) use lock
-files in /var/lock to control access.  V4L2 also gives you
-VIDIOC_[SG]_PRIORITY to do access control within v4l2, but it's not much
-used.  It has little use because exclusive access just isn't something that
-important.  In theory it seems important, but in practice no one seems to
-care much that it's missing.
+Adam
