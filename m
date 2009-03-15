@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:57866 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751230AbZCLIko (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 04:40:44 -0400
-Date: Thu, 12 Mar 2009 09:40:46 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/4] pcm990 baseboard: add camera bus width switch setting
-In-Reply-To: <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.0903120935570.4896@axis700.grange>
-References: <1236765976-20581-1-git-send-email-s.hauer@pengutronix.de>
- <1236765976-20581-2-git-send-email-s.hauer@pengutronix.de>
- <1236765976-20581-3-git-send-email-s.hauer@pengutronix.de>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3197 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096AbZCOQxj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 12:53:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+Date: Sun, 15 Mar 2009 17:53:52 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <200903151324.00784.hverkuil@xs4all.nl> <Pine.LNX.4.58.0903150859300.28292@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0903150859300.28292@shell2.speakeasy.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903151753.52663.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One more thing I noticed while looking at your patch 3/4:
+On Sunday 15 March 2009 17:04:43 Trent Piepho wrote:
+> On Sun, 15 Mar 2009, Hans Verkuil wrote:
+> > Hi Mauro,
+> >
+> > Can you review my ~hverkuil/v4l-dvb-bttv2 tree?
+>
+> It would be a lot easier if you would provide patch descriptions.
 
-> +static int pcm990_camera_set_bus_param(struct device *dev,
-> +		unsigned long flags)
-> +{
-> +	if (gpio_bus_switch <= 0)
-> +		return 0;
-> +
-> +	if (flags & SOCAM_DATAWIDTH_8)
-> +		gpio_set_value(NR_BUILTIN_GPIO + 1, 1);
-> +	else
-> +		gpio_set_value(NR_BUILTIN_GPIO + 1, 0);
+Here it is:
 
-Originally the logic here was "only if flags == SOCAM_DATAWIDTH_8, switch 
-to 8 bits, otherwise do 10 bits. I.e., if flags == SOCAM_DATAWIDTH_8 | 
-SOCAM_DATAWIDTH_10, it would still do the default (and wider) 10 bits. Do 
-you have any reason to change that logic?
+- bttv: convert to v4l2_subdev.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+That's all it does. You can't do half a conversion. I'm interested whether I 
+got the probing sequence correct. Most of the patch deals with the actual 
+conversion of bttv_call_i2c_clients to the equivalent bttv_call_all and 
+that is pretty boring.
+
+But it's the changes to bttv-cards.c that need to be reviewed just in case I 
+missed something that would break support for some exotic bttv card.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
