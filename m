@@ -1,36 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:45507 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014AbZCBMjv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 07:39:51 -0500
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1Le8Uv-0004dC-3i
-	(TLSv1:AES256-SHA:256)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Mon, 02 Mar 2009 14:47:57 +0100
-Date: Mon, 2 Mar 2009 13:39:36 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: linux-media@vger.kernel.org
-Subject: Re: General protection fault on rmmod cx8800
-Message-ID: <20090302133936.00899692@hyperion.delvare>
-In-Reply-To: <20090215214108.34f31c39@hyperion.delvare>
-References: <20090215214108.34f31c39@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:57291 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477AbZCOPO6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 11:14:58 -0400
+Date: Sun, 15 Mar 2009 08:14:56 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean-Francois Moine <moinejf@free.fr>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] LED control
+In-Reply-To: <20090315105037.6266687a@free.fr>
+Message-ID: <Pine.LNX.4.58.0903150805140.28292@shell2.speakeasy.net>
+References: <20090314125923.4229cd93@free.fr> <20090314091747.21153855@pedra.chehab.org>
+ <Pine.LNX.4.58.0903141315300.28292@shell2.speakeasy.net> <20090315105037.6266687a@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Feb 2009 21:41:08 +0100, Jean Delvare wrote:
-> Hi all,
-> 
-> Today I have hit the following general protection fault when removing
-> module cx8800:
+On Sun, 15 Mar 2009, Jean-Francois Moine wrote:
+> On Sat, 14 Mar 2009 13:16:11 -0700 (PDT)
+> Trent Piepho <xyzzy@speakeasy.org> wrote:
+>
+> > There is already a sysfs led interface, you could just have the driver
+> > export the leds to the led subsystem and use that.
+>
+> Yes, but:
+> - this asks to have a kernel generated with CONFIG_NEW_LEDS,
 
-This has just happened to me again today, with kernel 2.6.28.7. I have
-opened a bug in bugzilla:
+So?
 
-http://bugzilla.kernel.org/show_bug.cgi?id=12802
+> - the user must use some new program to access /sys/class/leds/<device>,
 
--- 
-Jean Delvare
+echo, cat?
+
+> - he must know how the LEDs of his webcam are named in the /sys tree.
+
+Just give them a name like video0:power and it will be easy enough to
+associate them with the device.  I think links in sysfs would do it to,
+/sys/class/video4linux/video0/device/<ledname> or something like that.
+
+The advantage of using the led class is that you get support for triggers
+and automatic blink functions, etc.
