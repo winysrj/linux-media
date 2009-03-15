@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:42285 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbZCDKgc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 05:36:32 -0500
-Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
-	by mail-out.m-online.net (Postfix) with ESMTP id 208811C0209F
-	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:31 +0100 (CET)
-Received: from localhost (dynscan2.mnet-online.de [192.168.1.215])
-	by mail.m-online.net (Postfix) with ESMTP id 2CC8B90069
-	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:30 +0100 (CET)
-Received: from mail.mnet-online.de ([192.168.3.149])
-	by localhost (dynscan2.mnet-online.de [192.168.1.215]) (amavisd-new, port 10024)
-	with ESMTP id fvAWKp5pHWGh for <linux-media@vger.kernel.org>;
-	Wed,  4 Mar 2009 11:36:29 +0100 (CET)
-Received: from gauss.x.fun (ppp-88-217-126-229.dynamic.mnet-online.de [88.217.126.229])
-	by mail.nefkom.net (Postfix) with ESMTP
-	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:29 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-	by gauss.x.fun (Postfix) with ESMTP id B8C891D4371
-	for <linux-media@vger.kernel.org>; Wed,  4 Mar 2009 11:36:28 +0100 (CET)
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: Cleanup of dvb frontend driver header files
-Date: Wed, 4 Mar 2009 11:36:26 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Received: from zone0.gcu-squad.org ([212.85.147.21]:23721 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753048AbZCORxY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 13:53:24 -0400
+Date: Sun, 15 Mar 2009 18:53:13 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+Message-ID: <20090315185313.4c15702c@hyperion.delvare>
+In-Reply-To: <Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
+References: <200903151344.01730.hverkuil@xs4all.nl>
+	<20090315181207.36d951ac@hyperion.delvare>
+	<Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903041136.27283.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there!
+On Sun, 15 Mar 2009 10:42:41 -0700 (PDT), Trent Piepho wrote:
+> On Sun, 15 Mar 2009, Jean Delvare wrote:
+> > On Sun, 15 Mar 2009 13:44:01 +0100, Hans Verkuil wrote:
+> > This is the typical multifunction device problem. It isn't specifically
+> > related to I2C, the exact same problem happens for other devices, for
+> > example a PCI south bridge including hardware monitoring and SMBus, or
+> > a Super-I/O chip including hardware monitoring, parallel port,
+> > infrared, watchdog, etc. Linux currently only allows one driver to bind
+> > to a given device, so it becomes very difficult to make per-function
+> > drivers for such devices.
+> >
+> > For very specific devices, it isn't necessarily a big problem. You can
+> > simply make an all-in-one driver for that specific device. The real
+> > problem is when the device in question is fully compatible with other
+> > devices which only implement functionality A _and_ fully compatible with
+> > other devices which only implement functionality B. You don't really
+> > want to support functions A and B in the same driver if most devices
+> > out there have either function but not both.
+> 
+> You can also split the "device" into multiple devices.  Most SoCs have one
+> register block where all kinds of devices, from i2c controllers to network
+> adapters, exist.  This is shown to linux as many devices, rather than one
+> massive multifunction device.
 
-While having a look at lnbp21.h I have seen it includes <linux/dvb/frontend.h> 
-without needing it. (There are only pointers referring to struct 
-dvb_frontend).
+It really depends on the device type. You can't split an I2C or PCI
+device that way.
 
-So I had a look at the whole directory.
-# cd linux/drivers/media/dvb/frontends
-# grep -l linux/dvb/frontend.h *.h|wc -l
-47
-
-So 47 header files include this header and seem not to need it.
-At least removing this line still allows me to compile the full set of v4l-dvb 
-drivers.
-# sed -e '/linux\/dvb\/frontend/s-^-// -' -i *.h
-
-Some of these files use more headers the same way like dvb_frontend.h, 
-firmware.h or i2c.h
-
-Is this kind of cleanup appreciated, or should the includes be kept even if 
-they are not really needed for pointers to structs like dvb_frontend.
-
-Regards
-Matthias
+-- 
+Jean Delvare
