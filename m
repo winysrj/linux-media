@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:34807 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbZCDKLU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 05:11:20 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Typo in lnbp21.c / changeset: 10800:ba740eb2348e
-Date: Wed, 4 Mar 2009 11:11:14 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:35599 "EHLO
+	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604AbZCOXqj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 19:46:39 -0400
+Date: Sun, 15 Mar 2009 16:46:36 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Andy Walls <awalls@radix.net>
+cc: Jean Delvare <khali@linux-fr.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+In-Reply-To: <1237145673.3314.47.camel@palomino.walls.org>
+Message-ID: <Pine.LNX.4.58.0903151637370.28292@shell2.speakeasy.net>
+References: <200903151344.01730.hverkuil@xs4all.nl>  <20090315181207.36d951ac@hyperion.delvare>
+ <1237145673.3314.47.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_DPlrJE2YdkEFsko"
-Message-Id: <200903041111.15083.zzam@gentoo.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_DPlrJE2YdkEFsko
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sun, 15 Mar 2009, Andy Walls wrote:
+> On Sun, 2009-03-15 at 18:12 +0100, Jean Delvare wrote:
+>
+> > This is the typical multifunction device problem. It isn't specifically
+> > related to I2C,
+>
+> But the specific problem that Hans' brings up is precisely a Linux
+> kernel I2C subsystem *software* prohibition on two i2c_clients binding
+> to the same address on the same adapter.
 
-Hi there!
+For a lot of i2c devices, it would be difficult for two drivers to access
+the device at the same time without some kind of locking.
 
-lnbp21 does show strange messages at depmod.
+If you take the reads and writes of one driver and then intersperse the
+reads and writes of another driver, the resulting sequence from the i2c
+device's point of view is completely broken.
 
-WARNING: Loop detected: /lib/modules/2.6.28-tuxonice-r1/v4l/lnbp21.ko which 
-needs lnbp21.ko again!
-WARNING: Module /lib/modules/2.6.28-tuxonice-r1/v4l/lnbp21.ko ignored, due to 
-loop
-
-So I had a look at latest change and noticed there was a typo in the function 
-name, it should be lnbh24_attach, and not lnbp24_attach I guess.
-The attached patch fixes this.
-
-Regards
-Matthias
-
---Boundary-00=_DPlrJE2YdkEFsko
-Content-Type: text/x-diff;
-  charset="utf-8";
-  name="lnbp21-typo.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="lnbp21-typo.diff"
-
-diff -r 8ebe62795b47 linux/drivers/media/dvb/frontends/lnbp21.c
---- a/linux/drivers/media/dvb/frontends/lnbp21.c	Tue Mar 03 23:05:45 2009 -0300
-+++ b/linux/drivers/media/dvb/frontends/lnbp21.c	Wed Mar 04 10:34:57 2009 +0100
-@@ -138,7 +138,7 @@
- 	return fe;
- }
- 
--struct dvb_frontend *lnbp24_attach(struct dvb_frontend *fe,
-+struct dvb_frontend *lnbh24_attach(struct dvb_frontend *fe,
- 				struct i2c_adapter *i2c, u8 override_set,
- 				u8 override_clear, u8 i2c_addr)
- {
-
---Boundary-00=_DPlrJE2YdkEFsko--
+But, I suppose there are some devices where if the drivers all use
+i2c_smbus_read/write_byte/word_data or equivalent atomic transactions
+with i2c_transfer(), then you could get away with two drivers talking to
+the same chip.
