@@ -1,48 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.187]:51050 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752279AbZCJINJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 04:13:09 -0400
-Received: by mu-out-0910.google.com with SMTP id i10so571425mue.1
-        for <linux-media@vger.kernel.org>; Tue, 10 Mar 2009 01:13:04 -0700 (PDT)
-Subject: [patch review] radio-terratec: remove unused delay.h
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
+Received: from mail1.radix.net ([207.192.128.31]:40072 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757233AbZCOTx4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 15:53:56 -0400
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+From: Andy Walls <awalls@radix.net>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.58.0903151001040.28292@shell2.speakeasy.net>
+References: <200903151324.00784.hverkuil@xs4all.nl>
+	 <Pine.LNX.4.58.0903150859300.28292@shell2.speakeasy.net>
+	 <200903151753.52663.hverkuil@xs4all.nl>
+	 <Pine.LNX.4.58.0903151001040.28292@shell2.speakeasy.net>
 Content-Type: text/plain
-Date: Tue, 10 Mar 2009 11:13:48 +0300
-Message-Id: <1236672828.11988.46.camel@tux.localhost>
+Date: Sun, 15 Mar 2009 15:54:59 -0400
+Message-Id: <1237146899.3314.52.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, all
+On Sun, 2009-03-15 at 10:28 -0700, Trent Piepho wrote:
 
-I don't know if this patch okay, so it should be tested/reviewed.
-Anyway, compilation process shows no warnings.
+> Why are the i2c addresses from various i2c chips moved into the bttv
+> driver?  Doesn't it make more sense that the addresses for chip X should be
+> in the driver for chip X?
 
----
-Patch removes linux/delay.h which hadn't been used.
+One reason that this may be undesirable is that the devices can be set
+to slightly different addresses via external straps (probably a corner
+case, I know).  The bridge driver has the best chance of knowing what
+chips are where with certainty.
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
-
---
-diff -r 615fb8f01610 linux/drivers/media/radio/radio-terratec.c
---- a/linux/drivers/media/radio/radio-terratec.c	Tue Mar 10 02:33:02 2009 -0300
-+++ b/linux/drivers/media/radio/radio-terratec.c	Tue Mar 10 09:49:36 2009 +0300
-@@ -27,7 +27,6 @@
- #include <linux/module.h>	/* Modules 			*/
- #include <linux/init.h>		/* Initdata			*/
- #include <linux/ioport.h>	/* request_region		*/
--#include <linux/delay.h>	/* udelay			*/
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/version.h>      /* for KERNEL_VERSION MACRO     */
+Regards,
+Andy
 
 
--- 
-Best regards, Klimov Alexey
 
