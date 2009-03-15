@@ -1,69 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rotring.dds.nl ([85.17.178.138]:52371 "EHLO rotring.dds.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469AbZCICRw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Mar 2009 22:17:52 -0400
-Subject: Re: Problem with changeset 10837: causes "make all" not to build
- many modules
-From: Alain Kalker <miki@dds.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <alpine.LRH.2.00.0903081354030.17407@pedra.chehab.org>
-References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
-	 <20090306074604.10926b03@pedra.chehab.org>
-	 <1236439661.7569.132.camel@miki-desktop>
-	 <alpine.LRH.2.00.0903081354030.17407@pedra.chehab.org>
-Content-Type: text/plain
-Date: Mon, 09 Mar 2009 03:17:44 +0100
-Message-Id: <1236565064.7149.49.camel@miki-desktop>
-Mime-Version: 1.0
+Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:23529
+	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754592AbZCOW3x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 18:29:53 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: linux-media@vger.kernel.org
+Subject: [RFC][PATCH 1/2] Sensor orientation reporting
+Date: Sun, 15 Mar 2009 22:29:48 +0000
+Cc: kilgota@banach.math.auburn.edu,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <200903152224.29388.linux@baker-net.org.uk>
+In-Reply-To: <200903152224.29388.linux@baker-net.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903152229.48761.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op zondag 08-03-2009 om 13:54 uur [tijdzone -0300], schreef Mauro
-Carvalho Chehab:
-> Hi Alain,
-> 
-> On Sat, 7 Mar 2009, Alain Kalker wrote:
-> 
-> > Mauro,
-> >
-> > Your latest changeset causes many modules (100 in total!) not to be
-> > built anymore when doing "make all", i.e. without doing any "make
-> > xconfig"/"make gconfig".
-> >
-> > I think this is related to the config variables for the frontend drivers
-> > no longer being defined when DVB_FE_CUSTOMISE=n , so the card drivers
-> > cannot depend on them anymore.
-> 
-> Thanks to warning me about that!
-> 
-> This seems to be yet another difference between the in-kernel and the 
-> out-of-tree building environment.
+Add support to the SQ-905 driver to pass back to user space the
+sensor orientation information obtained from the camera during init.
+Modifies gspca and the videodev2.h header to create the necessary
+API.
 
-If the problem doesn't manifest itself during in-kernel build, I believe
-it must be with either v4l/Makefile or one of the scripts in scripts/*
+Signed-off-by: Adam Baker <linux@baker-net.org.uk>
 
-As a matter of fact, I found out that commenting out
-"disable_config('DVB_FE_CUSTOMISE');" in scripts/make_kconfig.pl line
-588 and doing a "make distclean; make all" will cause all the undefined
-config variables to be set to 'm' and the missing modules to be built
-again.
-
-Why is this disable_config() in there anyway? There is no corresponding
-disable_config("MEDIA_TUNER_CUSTOMIZE"), which is used in the same way
-in linux/drivers/media/common/tuners/Kconfig to hide a menu.
-
-The only (aesthetic?) difference is that DVB_FE_CUSTOMISE ends up set to
-'y' in the generated config (as has always been the case with
-MEDIA_TUNER_CUSTOMIZE by the way), but that doesn't matter much at
-module build time. A user should not configure _after_ building modules
-anyway, so the menu showing up doesn't really matter.
-
-Also note yet another -IZE / -ISE spelling issue :-)
-
-Kind regards,
-
-Alain
-
+---
+diff -r 1248509d8bed linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Sat Mar 14 08:44:42 2009 +0100
++++ b/linux/drivers/media/video/gspca/gspca.c	Sun Mar 15 22:25:34 2009 +0000
+@@ -1147,6 +1147,7 @@ static int vidioc_enum_input(struct file
+ 	if (input->index != 0)
+ 		return -EINVAL;
+ 	input->type = V4L2_INPUT_TYPE_CAMERA;
++	input->status = gspca_dev->input_flags;
+ 	strncpy(input->name, gspca_dev->sd_desc->name,
+ 		sizeof input->name);
+ 	return 0;
+diff -r 1248509d8bed linux/drivers/media/video/gspca/gspca.h
+--- a/linux/drivers/media/video/gspca/gspca.h	Sat Mar 14 08:44:42 2009 +0100
++++ b/linux/drivers/media/video/gspca/gspca.h	Sun Mar 15 22:25:34 2009 +0000
+@@ -168,6 +168,7 @@ struct gspca_dev {
+ 	__u8 alt;			/* USB alternate setting */
+ 	__u8 nbalt;			/* number of USB alternate settings */
+ 	u8 bulk;			/* image transfer by 0:isoc / 1:bulk */
++	u32 input_flags;		/* value for ENUM_INPUT status flags */
+ };
+ 
+ int gspca_dev_probe(struct usb_interface *intf,
+diff -r 1248509d8bed linux/drivers/media/video/gspca/sq905.c
+--- a/linux/drivers/media/video/gspca/sq905.c	Sat Mar 14 08:44:42 2009 +0100
++++ b/linux/drivers/media/video/gspca/sq905.c	Sun Mar 15 22:25:34 2009 +0000
+@@ -357,6 +357,12 @@ static int sd_init(struct gspca_dev *gsp
+ 	gspca_dev->cam.nmodes = ARRAY_SIZE(sq905_mode);
+ 	if (!(ident & SQ905_HIRES_MASK))
+ 		gspca_dev->cam.nmodes--;
++
++	if (ident & SQ905_ORIENTATION_MASK)
++		gspca_dev->input_flags = V4L2_IN_ST_VFLIP;
++	else
++		gspca_dev->input_flags = V4L2_IN_ST_VFLIP |
++					 V4L2_IN_ST_HFLIP;
+ 	return 0;
+ }
+ 
+diff -r 1248509d8bed linux/include/linux/videodev2.h
+--- a/linux/include/linux/videodev2.h	Sat Mar 14 08:44:42 2009 +0100
++++ b/linux/include/linux/videodev2.h	Sun Mar 15 22:25:34 2009 +0000
+@@ -736,6 +736,11 @@ struct v4l2_input {
+ #define V4L2_IN_ST_NO_SIGNAL   0x00000002
+ #define V4L2_IN_ST_NO_COLOR    0x00000004
+ 
++/* field 'status' - sensor orientation */
++/* If sensor is mounted upside down set both bits */
++#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped horizontally */
++#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped vertically */
++
+ /* field 'status' - analog */
+ #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+ #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
