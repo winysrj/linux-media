@@ -1,60 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32107.mail.mud.yahoo.com ([68.142.207.121]:24186 "HELO
-	web32107.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752486AbZCBOuI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Mar 2009 09:50:08 -0500
-Message-ID: <26939.71342.qm@web32107.mail.mud.yahoo.com>
-Date: Mon, 2 Mar 2009 06:50:04 -0800 (PST)
-From: Agustin <gatoguan-os@yahoo.com>
-Reply-To: gatoguan-os@yahoo.com
-Subject: Re: [PATCH/RFC 1/4] ipu_idmac: code clean-up and robustness improvements
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Arm Kernel <linux-arm-kernel@lists.arm.linux.org.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>
-In-Reply-To: <Pine.LNX.4.64.0902282253210.20549@axis700.grange>
+Received: from mk-outboundfilter-5.mail.uk.tiscali.com ([212.74.114.1]:9540
+	"EHLO mk-outboundfilter-5.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754488AbZCOWet (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 18:34:49 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: linux-media@vger.kernel.org
+Subject: [RFC][PATCH 2/2] Sensor orientation reporting
+Date: Sun, 15 Mar 2009 22:34:45 +0000
+Cc: kilgota@banach.math.auburn.edu,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <200903152224.29388.linux@baker-net.org.uk>
+In-Reply-To: <200903152224.29388.linux@baker-net.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903152234.46045.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add check to libv4l of the sensor orientation as reported by
+VIDIOC_ENUMINPUT
 
---- On 28/2/09, Guennadi Liakhovetski wrote:
-> On Sat, 28 Feb 2009, Agustin wrote:
->> 
->> Hi Guennadi,
->> 
->> I am having trouble while probing ipu idmac:
->> 
->> At boot:
->> ipu-core: probe of ipu-core failed with error -22
->> 
->> Which is apparently happening at ipu_idmac:1706:
->>    1695 static int __init ipu_probe(struct platform_device *pdev)
->>    ...
->>    1703         mem_ipu = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>    1704         mem_ic  = platform_get_resource(pdev, IORESOURCE_MEM, 1);
->>    1705         if (!pdata || !mem_ipu || !mem_ic)
->>    1706                 return -EINVAL;
->> 
->> Later on, I get error 16, "Device or resource busy" on
-VIDIOC_S_FMT, apparently because mx3_camera can't get its dma channel.
->> 
->> Any clue?
->
->Are you sure it is failing here, have you verified with a printk? If it is 
->indeed this place, then you probably didn't register all required 
->resources in your platfom code. Look at my platform-bindings patch.
->
->Thanks
->Guennadi
+Signed-off-by: Adam Baker <linux@baker-net.org.uk>
 
-Thanks, I was missing "mx3_ipu_data" struct at devices.c file. It happened because I had git-pulled Valentin's older patch from mxc-master which made your patch fail a few chunks, then the code was very similar when I checked it visually.
-
-Now let's see if I can get back on track with my new hardware design and take those pics...
-
-Regards,
---Agustín.
+---
+diff -r a647c2dfa989 v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c
+--- a/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Tue Jan 20 11:25:54 
+2009 +0100
++++ b/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Sun Mar 15 22:34:00 
+2009 +0000
+@@ -28,6 +28,11 @@
+ 
+ #define MIN(a,b) (((a)<(b))?(a):(b))
+ #define ARRAY_SIZE(x) ((int)sizeof(x)/(int)sizeof((x)[0]))
++
++/* Workaround this potentially being missing from videodev2.h */
++#ifndef V4L2_IN_ST_VFLIP
++#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped vertically */
++#endif
+ 
+ /* Note for proper functioning of v4lconvert_enum_fmt the first entries in
+   supported_src_pixfmts must match with the entries in supported_dst_pixfmts 
+*/
+@@ -134,6 +139,7 @@ struct v4lconvert_data *v4lconvert_creat
+   int i, j;
+   struct v4lconvert_data *data = calloc(1, sizeof(struct v4lconvert_data));
+   struct v4l2_capability cap;
++  struct v4l2_input input;
+ 
+   if (!data)
+     return NULL;
+@@ -161,6 +167,13 @@ struct v4lconvert_data *v4lconvert_creat
+ 
+   /* Check if this cam has any special flags */
+   data->flags = v4lconvert_get_flags(data->fd);
++  if ((syscall(SYS_ioctl, fd, VIDIOC_G_INPUT, &input.index) == 0) &&
++      (syscall(SYS_ioctl, fd, VIDIOC_ENUMINPUT, &input) == 0)) {
++    /* Don't yet support independent HFLIP and VFLIP so getting
++     * image the right way up is highest priority. */
++    if (input.status & V4L2_IN_ST_VFLIP)
++      data->flags |= V4LCONVERT_ROTATE_180;
++  }
+   if (syscall(SYS_ioctl, fd, VIDIOC_QUERYCAP, &cap) == 0) {
+     if (!strcmp((char *)cap.driver, "uvcvideo"))
+       data->flags |= V4LCONVERT_IS_UVC;
 
