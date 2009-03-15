@@ -1,38 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:54088 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642AbZCFDNI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 22:13:08 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so293460wfa.4
-        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 19:13:05 -0800 (PST)
-MIME-Version: 1.0
-Date: Fri, 6 Mar 2009 12:13:05 +0900
-Message-ID: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
-Subject: About the radio-si470x driver for I2C interface
-From: Joonyoung Shim <dofmind@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
-	kyungmin.park@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:38811 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759541AbZCOTdg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 15:33:36 -0400
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20090315181207.36d951ac@hyperion.delvare>
+References: <200903151344.01730.hverkuil@xs4all.nl>
+	 <20090315181207.36d951ac@hyperion.delvare>
+Content-Type: text/plain
+Date: Sun, 15 Mar 2009 15:34:33 -0400
+Message-Id: <1237145673.3314.47.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Sun, 2009-03-15 at 18:12 +0100, Jean Delvare wrote:
+> Hi Hans,
+> 
+> On Sun, 15 Mar 2009 13:44:01 +0100, Hans Verkuil wrote:
+> > Hi Mauro, Jean,
+> > 
+> > When converting the bttv driver to v4l2_subdev I found one probing conflict 
+> > between tvaudio and ir-kbd-i2c: address 0x96 (or 0x4b in 7-bit notation).
+> > 
+> > It turns out that this is one and the same PIC16C54 device used on the 
+> > ProVideo PV951 board. This chip is used for both audio input selection and 
+> > for IR handling.
+> > 
+> > But the tvaudio module does the audio part and the ir-kbd-i2c module does 
+> > the IR part. I have truly no idea how this should be handled in the new 
+> > situation. For that matter, I wonder whether it ever worked at all since my 
+> > understanding is that once you called i2c_attach_client for a particular 
+> > address, you cannot do that a second time. So depending on which module 
+> > happens to register itself first, you either have working audio or working 
+> > IR, but not both.
+> 
+> You are right.
+> 
 
-I have worked with Silicon Labs Si4709 chip using the I2C interface.
-There is the radio-si470x driver in linux-kernel, but it uses usb interface.
+> This is the typical multifunction device problem. It isn't specifically
+> related to I2C,
 
-First, i made a new file based on radio-si470x.c in driver/media/radio/ for
-si4709 i2c driver and modified it to use i2c interface instead of usb
-interface and could listen to FM radio station.
+But the specific problem that Hans' brings up is precisely a Linux
+kernel I2C subsystem *software* prohibition on two i2c_clients binding
+to the same address on the same adapter.
 
-I think it can be to join two things together to one file because there isn't
-the difference between the two except for the interface.
-I am considering how to integrate them.
+>From linux/drivers/i2c/i2c-core.c:
 
-Please send your opinion.
+static int __i2c_check_addr(struct device *dev, void *addrp)
+{
+        struct i2c_client       *client = i2c_verify_client(dev);
+        int                     addr = *(int *)addrp;
+
+        if (client && client->addr == addr)
+                return -EBUSY;
+        return 0;
+}
+[...]
+int i2c_attach_client(struct i2c_client *client)
+{
+        struct i2c_adapter *adapter = client->adapter;
+        int res;
+
+        /* Check for address business */
+        res = i2c_check_addr(adapter, client->addr);
+        if (res)
+                return res;
+[...]
 
 
--- 
-- Joonyoung Shim
+It seems like an artificial restriction: intended for safety, but
+getting in the way when something like that is a valid need.
+
+
+>  the exact same problem happens for other devices, for
+> example a PCI south bridge including hardware monitoring and SMBus, or
+> a Super-I/O chip including hardware monitoring, parallel port,
+> infrared, watchdog, etc. Linux currently only allows one driver to bind
+> to a given device, so it becomes very difficult to make per-function
+> drivers for such devices.
+
+
+> I know that there was some work in progress to allow multiple drivers
+> to bind to the same device. However it seems to be very slow because it
+> is fundamentally incompatible with the device driver model as it was
+> originally designed.
+
+The driver model outside of the I2C subsystem?
+
+Looking at the rest of i2c_attach_client() (that I didn't paste in
+above), I dont' see how the call to device_register(&client->dev) would
+care, as each i2c_client has it's own dev.  Although I guess you might
+get duplicately named sysfs directory entries like 
+
+/sys/devices/.../i2c-adapter/i2c-3/3-0096
+
+Which could be a problem for accessing via the sysfs filesystem.  But
+that could be fixed in i2c_attach_client?
+
+Then there's a matter of accessing the I2C device only by the address
+which means the wrong client might be used.  But since they both point
+to the same address on the same device, does that really matter?
+
+> In the meantime, one workaround is to list the multifunction device as
+> supported by several drivers, and make the probe functions for this
+> device fail, while still keeping a reference to the device. The
+> reference lets you access the device, and is freed when you remove the
+> drivers. See for example the via686a, vt8231 and i2c-viapro drivers.
+> This approach may or may not be suitable for the ir-kbd-i2c and tvaudio
+> drivers. One drawback is that you can't do power management on the
+> device.
+
+To me it would be more forward looking to add support in the I2C
+subsystem for allowing multiple client drivers to use the same address
+on the same adapter, instead of adding non-intuitive behavior to module
+probe routines as a workaround.  Integration of discrete I2C chip cores
+into multifunction devices is likely to be a continuing trend.
+
+The PCI subsystem handles single devices with multiple functions.
+There, of course, the function number is in the logical device address.
+
+For an single I2C chip with multiple functions,  I've seen two types of
+functional block separation provided: a separate I2C address per
+functional block, and functions are separated by register address
+ranges.  The CX25843 leaps to mind as being of the second type.  There
+are register blocks for the basic device, the analog front end, the
+consumer IR device, the video decoding, the broadcast audio decoding,
+and AC97 interface functions.
+
+
+> As far as the PIC16C54 is concerned, another possibility would be to
+> move support to a dedicated driver. Depending on how much code is common
+> between the PIC16C54 and the other supported devices, the new driver
+> may either be standalone, or rely on functions exported by the
+> ir-kbd-i2c and tvaudio modules.
+
+I'll guess that solution is probably the path of least resistance for
+the problem at hand.  It seems like a workaround for design decision
+made in the I2C subsystem long ago though.
+
+Regards,
+Andy
+
+> But this is all said without having much knowledge of the bttv, tvaudio
+> and ir-kbd-i2c drivers, so I might as well be completely off track.
+
+
+
+
