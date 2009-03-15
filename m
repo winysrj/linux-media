@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:3087 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753870AbZC3QkT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 12:40:19 -0400
-Message-ID: <49D0F5E1.2030108@linuxtv.org>
-Date: Mon, 30 Mar 2009 12:40:01 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:32265 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754978AbZCOTy5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 15:54:57 -0400
+Message-ID: <49BD5D0E.3090304@iki.fi>
+Date: Sun, 15 Mar 2009 21:54:54 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mark Lord <lkml@rtr.ca>, linux-media@vger.kernel.org
-Subject: Re: Patch for 2.6.29 stable series: remove #ifdef MODULE nonsense
-References: <200903301835.55023.hverkuil@xs4all.nl>
-In-Reply-To: <200903301835.55023.hverkuil@xs4all.nl>
+To: pureherz@gmail.com
+CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] EC168 and MT2060
+References: <1237129041.7993.38.camel@0ri0n>  <49BD3B31.8030308@iki.fi> <1237146464.7993.94.camel@0ri0n>
+In-Reply-To: <1237146464.7993.94.camel@0ri0n>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> Hi Mike,
->
-> The attached patch should be queued for 2.6.29.X. It corresponds to 
-> changeset 11098 (v4l2-common: remove incorrect MODULE test) in our v4l-dvb 
-> tree and is part of the initial set of git patches going into 2.6.30.
->
-> Without this patch loading ivtv as a module while v4l2-common is compiled 
-> into the kernel will cause a delayed load of the i2c modules that ivtv 
-> needs since request_module is never called directly.
->
-> While it is nice to see the delayed load in action, it is not so nice in 
-> that ivtv fails to do a lot of necessary i2c initializations and will oops 
-> later on with a division-by-zero.
->
-> Thanks to Mark Lord for reporting this and helping me figure out what was 
-> wrong.
->
-> Regards,
->
-> 	Hans
->
->   
-Got it, thanks.
+t.Hgch wrote:
+>> Partially received? If there is really MT2060 tuner then channels should 
+>>   not be received at all.
+> 
+> I checked again and i am getting a couple of dtv channels and some more
+> radio channels, and they display/sound pretty well.
 
-In the future, please point to hash codes rather than revision ID's -- 
-my rev IDs are not the same as yours, but hash codes are always unique.
+Then the tuner must be MXL5003S because it is only tuner ec168 Linux 
+driver supports currently.
 
-I'll queue this the moment Linus merges Mauro's pending request.
+> I'm sure that the card model is the one I previously mentioned, the
+> output from lsusb is:
+> 
+> Bus 001 Device 002: ID 18b4:1001  
+> 
+>> I can look usb-sniffs if you will take.
+>> http://www.pcausa.com/Utilities/UsbSnoop/default.htm
+> 
+> I didn't find  usbsnoop for linux, so I used usbmon. Here is a sample:
 
-Cheers,
+Linux usb-sniff is useless. But no need for Windows sniffs because your 
+device is not mt2060 one. If someone have ec168 with mt2060 tuner then 
+Windows sniffs are welcome.
 
-Mike
+regards
+Antti
+-- 
+http://palosaari.fi/
