@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40458 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751319AbZCIW4A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 18:56:00 -0400
-Date: Mon, 9 Mar 2009 19:55:19 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: wk <handygewinnspiel@gmx.de>
-Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: V4L2 spec
-Message-ID: <20090309195519.17f26f72@pedra.chehab.org>
-In-Reply-To: <412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
-References: <200903061523.15766.hverkuil@xs4all.nl>
-	<49B14D3C.3010001@gmx.de>
-	<alpine.LRH.2.00.0903090803010.6607@caramujo.chehab.org>
-	<49B59230.1090305@gmx.de>
-	<412bdbff0903091510n5e000675sfa7b983c9b855123@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from yx-out-2324.google.com ([74.125.44.29]:61174 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754111AbZCOTAa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 15:00:30 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so804202yxm.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Mar 2009 12:00:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.58.0903150922360.28292@shell2.speakeasy.net>
+References: <200903022218.24259.hverkuil@xs4all.nl>
+	 <20090304141715.0a1af14d@pedra.chehab.org>
+	 <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
+	 <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
+	 <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
+	 <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
+	 <Pine.LNX.4.64.0903052315530.4980@axis700.grange>
+	 <Pine.LNX.4.58.0903061532210.24268@shell2.speakeasy.net>
+	 <Pine.LNX.4.64.0903070144520.5665@axis700.grange>
+	 <Pine.LNX.4.58.0903150922360.28292@shell2.speakeasy.net>
+Date: Sun, 15 Mar 2009 15:00:28 -0400
+Message-ID: <412bdbff0903151200l4fc74b82i99045306e95eb162@mail.gmail.com>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Winfried,
+On Sun, Mar 15, 2009 at 12:39 PM, Trent Piepho <xyzzy@speakeasy.org> wrote:
+> It seems like the real complaint is that dealing v4l-dvb's development
+> system is more work for those people who choose not to use it.  Why don't
+> we just switch to CVS while were at it, to make it easier for those who
+> don't want to learn git?
 
-On Mon, 9 Mar 2009 18:10:56 -0400
-Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+Personally, the problem for me is not one of which source control
+system we use.  I don't care if it's cvs, svn, bzr, hg, or git.  What
+I do care about is what the tree contains.
 
-> On Mon, Mar 9, 2009 at 6:03 PM, wk <handygewinnspiel@gmx.de> wrote:
-> > Its a bad idea to expect someone else, the magic volunteer, doing work with
-> > *deep impact* on the dvb driver API structure or documentation.
-> > Working on this topic determines complete usability of the driver, so MAIN
-> > DEVELOPERS have to REVIEW and CONTRIBUTE.
-> > If they think, that they cannot do such work in parallel, they should to
-> > stop work on drivers for some time.
-> 
-> Cut me a $25,000 check and I'll happily do it.  Otherwise, don't tell
-> a bunch of volunteer developers how they should be spending their
-> time.  What you happen to think is the important is not necessarily
-> what developers feel is the most valuable use of their time.
-> 
-> The reality is that there is *some* value a developer can contribute
-> in reviewing the content and providing feedback and a *TON* of grunt
-> work involved that can be done by anybody who takes the time to learn
-> docbook.  If someone wants to volunteer to do the former, I'm sure
-> some developers would be willing to do the latter.
+I do all of my development on a stock Ubuntu box that is running the
+latest stable release (Intrepid right now).  I want to do v4l-dvb
+development, but I do *not* want to be required to run the bleeding
+edge kernel.  I want to do v4l-dvb development without having to worry
+about whether my wireless chipset is going to work today, or my video
+driver.  Having a stable distro allows me to focus on *my* driver
+without being susceptible to breakage unrelated to my work.
 
-I agree with Devin. 
+I know I'm not the only one who develops with this model.  This is not
+just an issue about the people looking to test the tree.
 
-The format conversion itself doesn't aggregate value to the spec. It is just a
-format conversion. Even the merge between V4L and DVB specs doesn't aggregate
-much value, per se. The value of a merged docbook with V4L and DVB will appear
-when some new chapters will be added, mentioning how a hybrid driver should
-work to provide both APIs, and maybe creating some additional functions to
-control the hybrid behaviour (if needed).
+Devin
 
-I doubt that you'll find a main developer to do the docbook conversion work,
-instead of spending his time developing. There are a number of reasons for
-that, including that developers are good with C language but are probably not
-familiar with docbook/latex languages. Also, they are not as skilled on writing
-a book in English than on writing a C file. A proof of this is that most of the
-work on both V4L and DVB APIs were done by a very small subset of people.
-
-So, the better is to have someone more focused with documentation that will do
-the hard work, with the support of the developers that will review and help
-with the contents of the document, fixing the non-compliances (at the code, or
-by proposing a patch to the docs).
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
