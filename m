@@ -1,40 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:40072 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757233AbZCOTx4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 15:53:56 -0400
-Subject: Re: REVIEW: bttv conversion to v4l2_subdev
-From: Andy Walls <awalls@radix.net>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.58.0903151001040.28292@shell2.speakeasy.net>
-References: <200903151324.00784.hverkuil@xs4all.nl>
-	 <Pine.LNX.4.58.0903150859300.28292@shell2.speakeasy.net>
-	 <200903151753.52663.hverkuil@xs4all.nl>
-	 <Pine.LNX.4.58.0903151001040.28292@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Sun, 15 Mar 2009 15:54:59 -0400
-Message-Id: <1237146899.3314.52.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:60461 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753027AbZCONUN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 09:20:13 -0400
+Message-ID: <49BD0088.6050203@gmx.de>
+Date: Sun, 15 Mar 2009 14:20:08 +0100
+From: wk <handygewinnspiel@gmx.de>
+MIME-Version: 1.0
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: The right way to interpret the content of SNR, signal strength
+ 	and BER from HVR 4000 Lite
+References: <49B9BC93.8060906@nav6.org>	 <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>	 <49B9DECC.5090102@nav6.org>	 <412bdbff0903130727p719b63a0u3c4779b3bec7520b@mail.gmail.com>	 <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>	 <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>	 <37219a840903131452mf8b7969h881a24fc2dd031e8@mail.gmail.com>	 <a3ef07920903131527x2762f6e6y18f3a0b825ff2a49@mail.gmail.com> <412bdbff0903131531y3dcb5382red13ac1e4d43feaf@mail.gmail.com>
+In-Reply-To: <412bdbff0903131531y3dcb5382red13ac1e4d43feaf@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-03-15 at 10:28 -0700, Trent Piepho wrote:
+Devin Heitmueller schrieb:
+> On Fri, Mar 13, 2009 at 6:27 PM, VDR User <user.vdr@gmail.com> wrote:
+>   
+>> Just wanted to comment that I'm glad there is a lot of interest in
+>> this.  I've heard endless talk & confusion on the user end over the
+>> years as to the accuracy of the values, or in some cases (as with
+>> Genpix adapters for example) where you don't seem to get any useful
+>> information.  Of course making it really hard for people who are
+>> trying to aim dishes and the like in the case of dvb-s*.
+>>
+>> A quick question about implimenting this though..  What's the most
+>> difficult component?
+>>     
+>
+> Hello,
+>
+> There are basically two "difficult components"
+>
+> 1.  Getting everyone to agree on a standard representation for the
+> field, and how to represent certain error conditions (such as when a
+> demod doesn't support SNR, or when it cannot return a valid value at a
+> given time).
+>
+>   
+Its just straightforward as described in DVB API, chapters
+2.2.3 FE READ STATUS
+2.2.4 FE READ BER
+2.2.5 FE READ SNR
+2.2.6 FE READ SIGNAL STRENGTH
+2.2.7 FE READ UNCORRECTED BLOCKS
 
-> Why are the i2c addresses from various i2c chips moved into the bttv
-> driver?  Doesn't it make more sense that the addresses for chip X should be
-> in the driver for chip X?
+if ioctl suceeds with valid data: 0, if not one of
+EBADF            no valid file descriptor.
+EFAULT          error condition
+ENOSIGNAL  not yet, i have no signal..
+ENOSYS         not supported by device.
 
-One reason that this may be undesirable is that the devices can be set
-to slightly different addresses via external straps (probably a corner
-case, I know).  The bridge driver has the best chance of knowing what
-chips are where with certainty.
+> 2.  Converting all the drivers to the agreed-upon format.  For some
+> drivers this is relatively easy as we have specs available for how the
+> SNR is represented.  For others, the value displayed is entirely
+> reverse engineered so the current representations are completely
+> arbitrary.
+>
+> Devin
+>
+>   
+Since a lot of frontends have no proper docs, probably providing the 
+signal strength unit with a second ioctl could make sense here.
 
-Regards,
-Andy
+a.u.          arbitrary units, not exactly known or not perfectly working
+dBµV       comparable trough all devices, but probably not possible for all
+percent     technical not understandable, percent relative to what? 
+Assumes that there is a optimum/hard limit of 100% which is not the case.
 
+Showing values as human readings is on the app side, so hex output in 
+raw numbers are just fine here. No change needed.
 
-
+-- Winfried
