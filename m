@@ -1,182 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:23809 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753432AbZCYUxH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 16:53:07 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so107606fga.17
-        for <linux-media@vger.kernel.org>; Wed, 25 Mar 2009 13:53:03 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 25 Mar 2009 21:53:02 +0100
-Message-ID: <7b41dd970903251353n46f55bbfg687c1cfa42c5b824@mail.gmail.com>
-Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
-From: klaas de waal <klaas.de.waal@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org,
-	erik_bies@hotmail.com
-Content-Type: multipart/mixed; boundary=000e0cd2981a869e190465f7af40
+Received: from mx38.mail.ru ([94.100.176.52]:64981 "EHLO mx38.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760135AbZCOThQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 15:37:16 -0400
+Received: from [78.36.179.73] (port=51890 helo=localhost.localdomain)
+	by mx38.mail.ru with asmtp
+	id 1Liw93-000LqX-00
+	for linux-media@vger.kernel.org; Sun, 15 Mar 2009 22:37:13 +0300
+Date: Sun, 15 Mar 2009 22:50:37 +0300
+From: Goga777 <goga777@bk.ru>
+To: linux-media@vger.kernel.org
+Subject: BUG: cx88 can't find device struct. Can't proceed with open
+Message-ID: <20090315225037.0196a446@bk.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cd2981a869e190465f7af40
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi
 
-(2nd try, this should be now  in "plain text" instead of HTML)
+I have that errors during of system loading . How is it fix it ?
 
-Hi Hermann,
+in syslog I can see
 
-Thanks for your "howto" on making a proper patch.
-After a "make commit" in my local v4l-dvb tree, and filling in the
-template I got the following output.
-I confess I do not know if this has now ended up somewhere in
-linuxtv.org or that it is just local.
-However, here it is:
+Mar 15 21:50:26 localhost pulseaudio[3572]: main.c: setrlimit(RLIMIT_NICE, (31, 31)) failed: Operation not permitted
+Mar 15 21:50:26 localhost pulseaudio[3572]: main.c: setrlimit(RLIMIT_RTPRIO, (9, 9)) failed: Operation not permitted
+Mar 15 21:50:26 localhost pulseaudio[3572]: shm.c: shm_open() failed: Permission denied
+Mar 15 21:50:26 localhost pulseaudio[3572]: core.c: failed to allocate shared memory pool. Falling back to a normal memory pool.
+Mar 15 21:50:26 localhost kernel: [   47.341579] BUG: cx88 can't find device struct. Can't proceed with open
+Mar 15 21:50:26 localhost pulseaudio[3572]: alsa-util.c: Error opening PCM device hw:1: No such device
+Mar 15 21:50:26 localhost pulseaudio[3572]: module.c: Failed to load  module "module-alsa-source" (argument: "device_id=1 source_name=alsa_input.pci_14f1_8
+811_alsa_capture_0"): initialization failed.
+Mar 15 21:50:26 localhost pulseaudio[3572]: alsa-util.c: Device front:0 doesn't support 44100 Hz, changed to 48000 Hz.
+Mar 15 21:50:26 localhost pulseaudio[3572]: alsa-util.c: Device front:0 doesn't support 44100 Hz, changed to 48000 Hz.
 
-changeset:   11143:f10e05176a88
-tag:         tip
-user:        Klaas de Waal <klaas.de.waal@gmail.com>
-date:        Tue Mar 24 22:59:44 2009 +0100
-files:       linux/drivers/media/common/tuners/tda827x.c
-linux/drivers/media/dvb/ttpci/budget-ci.c
-description:
-Separate tuning table for DVB-C solves tuning problem at 388MHz.
+here's my dmesg
+http://paste.org.ru/?pdmods
 
-From: Klaas de Waal <klaas.de.waal@gmail.com>
-
-TechnoTrend C-1501 DVB-C card does not lock on 388MHz.
-I assume that existing frequency table is valid for DVB-T. This is suggested
-by the name of the table: tda827xa_dvbt.
-Added a table for DVB-C with the name tda827xa_dvbc.
-Added runtime selection of the DVB-C table when the tuner is type FE_QAM.
-This should leave the behaviour of this driver with with DVB_T tuners unchanged.
-This modification is in file tda827x.c
-
-The tda827x.c gives the following warning message when debug=1 :
-
-tda827x: tda827x_config not defined, cannot set LNA gain!
-
-Solved this by adding a tda827x_config struct in budget-ci.c.
-
-Priority: normal
-
-Signed-off-by: Klaas de Waal <klaas.de.waal@gmail.com>
+I'm using liplanin-dvb with current dvb-v4l 
+kernel 2.6.27
 
 
-I have attached the result of "hg diff > tda827x_dvb-c_tuning_table.patch.
-
-Patch is based on the "hg clone" done 23 march.
-Tested again, now with Linux kernel 2.6.28.9.
-
-Cheers,
-Klaas.
-
---000e0cd2981a869e190465f7af40
-Content-Type: text/x-patch; charset=US-ASCII; name="tda827x_dvb-c_tuning_table.patch"
-Content-Disposition: attachment; filename="tda827x_dvb-c_tuning_table.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fsqhk3rp0
-
-ZGlmZiAtciBlN2QyMjI4NWE5ZWIgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3Rk
-YTgyN3guYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhODI3eC5j
-CVN1biBNYXIgMjIgMjI6NDI6MjYgMjAwOSAtMDQwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlh
-L2NvbW1vbi90dW5lcnMvdGRhODI3eC5jCVR1ZSBNYXIgMjQgMjI6NDQ6MTYgMjAwOSArMDEwMApA
-QCAtMzUyLDcgKzM1Miw3IEBACiAJdTggIGdjMzsKIH07CiAKLXN0YXRpYyBjb25zdCBzdHJ1Y3Qg
-dGRhODI3eGFfZGF0YSB0ZGE4Mjd4YV9kdmJ0W10gPSB7CitzdGF0aWMgc3RydWN0IHRkYTgyN3hh
-X2RhdGEgdGRhODI3eGFfZHZidFtdID0gewogCXsgLmxvbWF4ID0gIDU2ODc1MDAwLCAuc3ZjbyA9
-IDMsIC5zcGQgPSA0LCAuc2NyID0gMCwgLnNicyA9IDAsIC5nYzMgPSAxfSwKIAl7IC5sb21heCA9
-ICA2NzI1MDAwMCwgLnN2Y28gPSAwLCAuc3BkID0gMywgLnNjciA9IDAsIC5zYnMgPSAwLCAuZ2Mz
-ID0gMX0sCiAJeyAubG9tYXggPSAgODEyNTAwMDAsIC5zdmNvID0gMSwgLnNwZCA9IDMsIC5zY3Ig
-PSAwLCAuc2JzID0gMCwgLmdjMyA9IDF9LApAQCAtMzgyLDYgKzM4MiwzNiBAQAogCXsgLmxvbWF4
-ID0gICAgICAgICAwLCAuc3ZjbyA9IDAsIC5zcGQgPSAwLCAuc2NyID0gMCwgLnNicyA9IDAsIC5n
-YzMgPSAwfQogfTsKIAorc3RhdGljIHN0cnVjdCB0ZGE4Mjd4YV9kYXRhIHRkYTgyN3hhX2R2YmNb
-XSA9IHsKKwl7IC5sb21heCA9ICA1MDEyNTAwMCwgLnN2Y28gPSAyLCAuc3BkID0gNCwgLnNjciA9
-IDIsIC5zYnMgPSAwLCAuZ2MzID0gM30sCisJeyAubG9tYXggPSAgNTg1MDAwMDAsIC5zdmNvID0g
-MywgLnNwZCA9IDQsIC5zY3IgPSAyLCAuc2JzID0gMCwgLmdjMyA9IDN9LAorCXsgLmxvbWF4ID0g
-IDY5MjUwMDAwLCAuc3ZjbyA9IDAsIC5zcGQgPSAzLCAuc2NyID0gMiwgLnNicyA9IDAsIC5nYzMg
-PSAzfSwKKwl7IC5sb21heCA9ICA4MzYyNTAwMCwgLnN2Y28gPSAxLCAuc3BkID0gMywgLnNjciA9
-IDIsIC5zYnMgPSAwLCAuZ2MzID0gM30sCisJeyAubG9tYXggPSAgOTc1MDAwMDAsIC5zdmNvID0g
-MiwgLnNwZCA9IDMsIC5zY3IgPSAyLCAuc2JzID0gMCwgLmdjMyA9IDN9LAorCXsgLmxvbWF4ID0g
-MTAwMjUwMDAwLCAuc3ZjbyA9IDIsIC5zcGQgPSAzLCAuc2NyID0gMiwgLnNicyA9IDEsIC5nYzMg
-PSAxfSwKKwl7IC5sb21heCA9IDExNzAwMDAwMCwgLnN2Y28gPSAzLCAuc3BkID0gMywgLnNjciA9
-IDIsIC5zYnMgPSAxLCAuZ2MzID0gMX0sCisJeyAubG9tYXggPSAxMzg1MDAwMDAsIC5zdmNvID0g
-MCwgLnNwZCA9IDIsIC5zY3IgPSAyLCAuc2JzID0gMSwgLmdjMyA9IDF9LAorCXsgLmxvbWF4ID0g
-MTY3MjUwMDAwLCAuc3ZjbyA9IDEsIC5zcGQgPSAyLCAuc2NyID0gMiwgLnNicyA9IDEsIC5nYzMg
-PSAxfSwKKwl7IC5sb21heCA9IDE4NzAwMDAwMCwgLnN2Y28gPSAyLCAuc3BkID0gMiwgLnNjciA9
-IDIsIC5zYnMgPSAxLCAuZ2MzID0gMX0sCisJeyAubG9tYXggPSAyMDA1MDAwMDAsIC5zdmNvID0g
-MiwgLnNwZCA9IDIsIC5zY3IgPSAyLCAuc2JzID0gMiwgLmdjMyA9IDF9LAorCXsgLmxvbWF4ID0g
-MjM0MDAwMDAwLCAuc3ZjbyA9IDMsIC5zcGQgPSAyLCAuc2NyID0gMiwgLnNicyA9IDIsIC5nYzMg
-PSAzfSwKKwl7IC5sb21heCA9IDI3NzAwMDAwMCwgLnN2Y28gPSAwLCAuc3BkID0gMSwgLnNjciA9
-IDIsIC5zYnMgPSAyLCAuZ2MzID0gM30sCisJeyAubG9tYXggPSAzMjUwMDAwMDAsIC5zdmNvID0g
-MSwgLnNwZCA9IDEsIC5zY3IgPSAyLCAuc2JzID0gMiwgLmdjMyA9IDF9LAorCXsgLmxvbWF4ID0g
-MzM0NTAwMDAwLCAuc3ZjbyA9IDEsIC5zcGQgPSAxLCAuc2NyID0gMiwgLnNicyA9IDMsIC5nYzMg
-PSAzfSwKKwl7IC5sb21heCA9IDQwMTAwMDAwMCwgLnN2Y28gPSAyLCAuc3BkID0gMSwgLnNjciA9
-IDIsIC5zYnMgPSAzLCAuZ2MzID0gM30sCisJeyAubG9tYXggPSA0NjgwMDAwMDAsIC5zdmNvID0g
-MywgLnNwZCA9IDEsIC5zY3IgPSAyLCAuc2JzID0gMywgLmdjMyA9IDF9LAorCXsgLmxvbWF4ID0g
-NTM1MDAwMDAwLCAuc3ZjbyA9IDAsIC5zcGQgPSAwLCAuc2NyID0gMSwgLnNicyA9IDMsIC5nYzMg
-PSAxfSwKKwl7IC5sb21heCA9IDU1NDAwMDAwMCwgLnN2Y28gPSAwLCAuc3BkID0gMCwgLnNjciA9
-IDIsIC5zYnMgPSAzLCAuZ2MzID0gMX0sCisJeyAubG9tYXggPSA2MzgwMDAwMDAsIC5zdmNvID0g
-MSwgLnNwZCA9IDAsIC5zY3IgPSAxLCAuc2JzID0gNCwgLmdjMyA9IDF9LAorCXsgLmxvbWF4ID0g
-NjY5MDAwMDAwLCAuc3ZjbyA9IDEsIC5zcGQgPSAwLCAuc2NyID0gMiwgLnNicyA9IDQsIC5nYzMg
-PSAxfSwKKwl7IC5sb21heCA9IDcyMDAwMDAwMCwgLnN2Y28gPSAyLCAuc3BkID0gMCwgLnNjciA9
-IDEsIC5zYnMgPSA0LCAuZ2MzID0gMX0sCisJeyAubG9tYXggPSA4MDIwMDAwMDAsIC5zdmNvID0g
-MiwgLnNwZCA9IDAsIC5zY3IgPSAyLCAuc2JzID0gNCwgLmdjMyA9IDF9LAorCXsgLmxvbWF4ID0g
-ODM1MDAwMDAwLCAuc3ZjbyA9IDMsIC5zcGQgPSAwLCAuc2NyID0gMSwgLnNicyA9IDQsIC5nYzMg
-PSAxfSwKKwl7IC5sb21heCA9IDg4NTAwMDAwMCwgLnN2Y28gPSAzLCAuc3BkID0gMCwgLnNjciA9
-IDEsIC5zYnMgPSA0LCAuZ2MzID0gMX0sCisJeyAubG9tYXggPSA5MTEwMDAwMDAsIC5zdmNvID0g
-MywgLnNwZCA9IDAsIC5zY3IgPSAyLCAuc2JzID0gNCwgLmdjMyA9IDF9LAorCXsgLmxvbWF4ID0g
-ICAgICAgICAwLCAuc3ZjbyA9IDAsIC5zcGQgPSAwLCAuc2NyID0gMCwgLnNicyA9IDAsIC5nYzMg
-PSAwfQorfTsKKwogc3RhdGljIHN0cnVjdCB0ZGE4Mjd4YV9kYXRhIHRkYTgyN3hhX2FuYWxvZ1td
-ID0gewogCXsgLmxvbWF4ID0gIDU2ODc1MDAwLCAuc3ZjbyA9IDMsIC5zcGQgPSA0LCAuc2NyID0g
-MCwgLnNicyA9IDAsIC5nYzMgPSAzfSwKIAl7IC5sb21heCA9ICA2NzI1MDAwMCwgLnN2Y28gPSAw
-LCAuc3BkID0gMywgLnNjciA9IDAsIC5zYnMgPSAwLCAuZ2MzID0gM30sCkBAIC00ODUsNiArNTE1
-LDcgQEAKIAkJCSAgICAgICBzdHJ1Y3QgZHZiX2Zyb250ZW5kX3BhcmFtZXRlcnMgKnBhcmFtcykK
-IHsKIAlzdHJ1Y3QgdGRhODI3eF9wcml2ICpwcml2ID0gZmUtPnR1bmVyX3ByaXY7CisJc3RydWN0
-IHRkYTgyN3hhX2RhdGEgKmZyZXF1ZW5jeV9tYXAgPSB0ZGE4Mjd4YV9kdmJ0OwogCXU4IGJ1Zlsx
-MV07CiAKIAlzdHJ1Y3QgaTJjX21zZyBtc2cgPSB7IC5hZGRyID0gcHJpdi0+aTJjX2FkZHIsIC5m
-bGFncyA9IDAsCkBAIC01MTEsMjIgKzU0MiwyNyBAQAogCX0KIAl0dW5lcl9mcmVxID0gcGFyYW1z
-LT5mcmVxdWVuY3kgKyBpZl9mcmVxOwogCisJaWYgKGZlLT5vcHMuaW5mby50eXBlID09IEZFX1FB
-TSkgeworCQlkcHJpbnRrKCIlcyBzZWxlY3QgdGRhODI3eGFfZHZiY1xuIiwgX19mdW5jX18pOwor
-CQlmcmVxdWVuY3lfbWFwID0gdGRhODI3eGFfZHZiYzsKKwl9CisKIAlpID0gMDsKLQl3aGlsZSAo
-dGRhODI3eGFfZHZidFtpXS5sb21heCA8IHR1bmVyX2ZyZXEpIHsKLQkJaWYodGRhODI3eGFfZHZi
-dFtpICsgMV0ubG9tYXggPT0gMCkKKwl3aGlsZSAoZnJlcXVlbmN5X21hcFtpXS5sb21heCA8IHR1
-bmVyX2ZyZXEpIHsKKwkJaWYgKGZyZXF1ZW5jeV9tYXBbaSArIDFdLmxvbWF4ID09IDApCiAJCQli
-cmVhazsKIAkJaSsrOwogCX0KIAotCU4gPSAoKHR1bmVyX2ZyZXEgKyAzMTI1MCkgLyA2MjUwMCkg
-PDwgdGRhODI3eGFfZHZidFtpXS5zcGQ7CisJTiA9ICgodHVuZXJfZnJlcSArIDMxMjUwKSAvIDYy
-NTAwKSA8PCBmcmVxdWVuY3lfbWFwW2ldLnNwZDsKIAlidWZbMF0gPSAwOyAgICAgICAgICAgIC8v
-IHN1YmFkZHJlc3MKIAlidWZbMV0gPSBOID4+IDg7CiAJYnVmWzJdID0gTiAmIDB4ZmY7CiAJYnVm
-WzNdID0gMDsKIAlidWZbNF0gPSAweDE2OwotCWJ1Zls1XSA9ICh0ZGE4Mjd4YV9kdmJ0W2ldLnNw
-ZCA8PCA1KSArICh0ZGE4Mjd4YV9kdmJ0W2ldLnN2Y28gPDwgMykgKwotCQkJdGRhODI3eGFfZHZi
-dFtpXS5zYnM7Ci0JYnVmWzZdID0gMHg0YiArICh0ZGE4Mjd4YV9kdmJ0W2ldLmdjMyA8PCA0KTsK
-KwlidWZbNV0gPSAoZnJlcXVlbmN5X21hcFtpXS5zcGQgPDwgNSkgKyAoZnJlcXVlbmN5X21hcFtp
-XS5zdmNvIDw8IDMpICsKKwkJCWZyZXF1ZW5jeV9tYXBbaV0uc2JzOworCWJ1Zls2XSA9IDB4NGIg
-KyAoZnJlcXVlbmN5X21hcFtpXS5nYzMgPDwgNCk7CiAJYnVmWzddID0gMHgxYzsKIAlidWZbOF0g
-PSAweDA2OwogCWJ1Zls5XSA9IDB4MjQ7CkBAIC01ODUsNyArNjIxLDcgQEAKIAogCS8qIGNvcnJl
-Y3QgQ1AgdmFsdWUgKi8KIAlidWZbMF0gPSAweDMwOwotCWJ1ZlsxXSA9IDB4MTAgKyB0ZGE4Mjd4
-YV9kdmJ0W2ldLnNjcjsKKwlidWZbMV0gPSAweDEwICsgZnJlcXVlbmN5X21hcFtpXS5zY3I7CiAJ
-cmMgPSB0dW5lcl90cmFuc2ZlcihmZSwgJm1zZywgMSk7CiAJaWYgKHJjIDwgMCkKIAkJZ290byBl
-cnI7CkBAIC02MDAsNyArNjM2LDcgQEAKIAltc2xlZXAoMyk7CiAJLyogZnJlZXplIEFHQzEgKi8K
-IAlidWZbMF0gPSAweDUwOwotCWJ1ZlsxXSA9IDB4NGYgKyAodGRhODI3eGFfZHZidFtpXS5nYzMg
-PDwgNCk7CisJYnVmWzFdID0gMHg0ZiArIChmcmVxdWVuY3lfbWFwW2ldLmdjMyA8PCA0KTsKIAly
-YyA9IHR1bmVyX3RyYW5zZmVyKGZlLCAmbXNnLCAxKTsKIAlpZiAocmMgPCAwKQogCQlnb3RvIGVy
-cjsKZGlmZiAtciBlN2QyMjI4NWE5ZWIgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvdHRwY2kvYnVk
-Z2V0LWNpLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvdHRwY2kvYnVkZ2V0LWNpLmMJ
-U3VuIE1hciAyMiAyMjo0MjoyNiAyMDA5IC0wNDAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-ZHZiL3R0cGNpL2J1ZGdldC1jaS5jCVR1ZSBNYXIgMjQgMjI6NDQ6MTYgMjAwOSArMDEwMApAQCAt
-MTA4NCw2ICsxMDg0LDEwIEBACiAJLmRlbHRhZiA9IDB4YTUxMSwKIH07CiAKK3N0YXRpYyBzdHJ1
-Y3QgdGRhODI3eF9jb25maWcgdGRhODI3eF9jb25maWcgPSB7CisJLmNvbmZpZyA9IDAsCit9Owor
-CiAvKiBUVCBTMi0zMjAwIERWQi1TIChTVEIwODk5KSBJbml0dGFiICovCiBzdGF0aWMgY29uc3Qg
-c3RydWN0IHN0YjA4OTlfczFfcmVnIHR0MzIwMF9zdGIwODk5X3MxX2luaXRfMVtdID0gewogCkBA
-IC0xNDIyLDcgKzE0MjYsNyBAQAogCWNhc2UgMHgxMDFhOiAvKiBUVCBCdWRnZXQtQy0xNTAxIChw
-aGlsaXBzIHRkYTEwMDIzL3BoaWxpcHMgdGRhODI3NEEpICovCiAJCWJ1ZGdldF9jaS0+YnVkZ2V0
-LmR2Yl9mcm9udGVuZCA9IGR2Yl9hdHRhY2godGRhMTAwMjNfYXR0YWNoLCAmdGRhMTAwMjNfY29u
-ZmlnLCAmYnVkZ2V0X2NpLT5idWRnZXQuaTJjX2FkYXAsIDB4NDgpOwogCQlpZiAoYnVkZ2V0X2Np
-LT5idWRnZXQuZHZiX2Zyb250ZW5kKSB7Ci0JCQlpZiAoZHZiX2F0dGFjaCh0ZGE4Mjd4X2F0dGFj
-aCwgYnVkZ2V0X2NpLT5idWRnZXQuZHZiX2Zyb250ZW5kLCAweDYxLCAmYnVkZ2V0X2NpLT5idWRn
-ZXQuaTJjX2FkYXAsIE5VTEwpID09IE5VTEwpIHsKKwkJCWlmIChkdmJfYXR0YWNoKHRkYTgyN3hf
-YXR0YWNoLCBidWRnZXRfY2ktPmJ1ZGdldC5kdmJfZnJvbnRlbmQsIDB4NjEsICZidWRnZXRfY2kt
-PmJ1ZGdldC5pMmNfYWRhcCwgJnRkYTgyN3hfY29uZmlnKSA9PSBOVUxMKSB7CiAJCQkJcHJpbnRr
-KEtFUk5fRVJSICIlczogTm8gdGRhODI3eCBmb3VuZCFcbiIsIF9fZnVuY19fKTsKIAkJCQlkdmJf
-ZnJvbnRlbmRfZGV0YWNoKGJ1ZGdldF9jaS0+YnVkZ2V0LmR2Yl9mcm9udGVuZCk7CiAJCQkJYnVk
-Z2V0X2NpLT5idWRnZXQuZHZiX2Zyb250ZW5kID0gTlVMTDsK
---000e0cd2981a869e190465f7af40--
+Goga
