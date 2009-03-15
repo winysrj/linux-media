@@ -1,37 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:60874 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751706AbZCUBkh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Mar 2009 21:40:37 -0400
-Date: Sat, 21 Mar 2009 02:40:17 +0100
-From: Janne Grunau <j@jannau.net>
-To: linux-media@vger.kernel.org
-Cc: Simon Peter <klik.atekon.de@googlemail.com>
-Subject: Re: HD PVR question
-Message-ID: <20090321014017.GE5383@aniel>
-References: <85d71c370903201823v55eebc9ar89bf8b3213b72e82@mail.gmail.com>
+Received: from web110809.mail.gq1.yahoo.com ([67.195.13.232]:46337 "HELO
+	web110809.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752702AbZCOKN5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Mar 2009 06:13:57 -0400
+Message-ID: <355858.3677.qm@web110809.mail.gq1.yahoo.com>
+Date: Sun, 15 Mar 2009 03:13:55 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] Siano: SDIO interface driver - remove two redundant lines
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, Alexey Klimov <klimov.linux@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <85d71c370903201823v55eebc9ar89bf8b3213b72e82@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
 
-answering to linux-media@vger.kernel.org since such things should be
-asked and archieved on a mailing list.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1237111557 -7200
+# Node ID 7311d23c3355629b617013cd51223895a2423770
+# Parent  7352ee1288f651d19d58c7bb479a98f070ad98e6
+Siano: remove two redundant lines
 
-On Sat, Mar 21, 2009 at 02:23:33AM +0100, Simon Peter wrote:
-> 
-> is there a way to set the resolution to 720x576 in the Linux driver
-> when capturing S-Video?
+From: Uri Shkolnik <uris@siano-ms.com>
 
-If you feed a pal signal into the S-Video input the resolution should be
-720 or 704 to 576. You have to select the s-video input and set the
-standard to pal variant with 50Hz. But if you don't do that you won't
-get any data.
+Remove two redundant lines, based on Klimov Alexey code review.
 
-There is to my knowledge no scaler in the device.
+Priority: normal
 
-Janne
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 7352ee1288f6 -r 7311d23c3355 linux/drivers/media/dvb/siano/smssdio.c
+--- a/linux/drivers/media/dvb/siano/smssdio.c	Thu Mar 12 15:48:17 2009 +0200
++++ b/linux/drivers/media/dvb/siano/smssdio.c	Sun Mar 15 12:05:57 2009 +0200
+@@ -96,8 +96,6 @@ static int smssdio_sendrequest(void *con
+ 	if (size) {
+ 		ret = sdio_write_bytes(smsdev->func, SMSSDIO_DATA,
+ 				       buffer, size);
+-		if (ret)
+-			goto out;
+ 	}
+ 
+ out:
+
+
+
+      
