@@ -1,68 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37]:3996
-	"EHLO mk-outboundfilter-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752251AbZC2W3G (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1244 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752997AbZCOTXi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 18:29:06 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: [PATCH v2 4/4] Add support to libv4l to use orientation from VIDIOC_ENUMINPUT
-Date: Sun, 29 Mar 2009 23:28:09 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>
-References: <200903292309.31267.linux@baker-net.org.uk> <200903292322.08660.linux@baker-net.org.uk> <200903292325.16499.linux@baker-net.org.uk>
-In-Reply-To: <200903292325.16499.linux@baker-net.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903292328.09957.linux@baker-net.org.uk>
+	Sun, 15 Mar 2009 15:23:38 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2FJNWuA093340
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 15 Mar 2009 20:23:36 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 15 Mar 2009 20:23:32 +0100 (CET)
+Message-Id: <200903151923.n2FJNWuA093340@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add check to libv4l of the sensor orientation as reported by
-VIDIOC_ENUMINPUT
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Adam Baker <linux@baker-net.org.uk>
+Results of the daily build of v4l-dvb:
 
----
-diff -r a647c2dfa989 v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c
---- a/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Tue Jan 20 11:25:54 2009 +0100
-+++ b/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Sun Mar 29 22:59:56 2009 +0100
-@@ -29,6 +29,11 @@
- #define MIN(a,b) (((a)<(b))?(a):(b))
- #define ARRAY_SIZE(x) ((int)sizeof(x)/(int)sizeof((x)[0]))
- 
-+/* Workaround this potentially being missing from videodev2.h */
-+#ifndef V4L2_IN_ST_VFLIP
-+#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped vertically */
-+#endif
-+
- /* Note for proper functioning of v4lconvert_enum_fmt the first entries in
-   supported_src_pixfmts must match with the entries in supported_dst_pixfmts */
- #define SUPPORTED_DST_PIXFMTS \
-@@ -134,6 +139,7 @@
-   int i, j;
-   struct v4lconvert_data *data = calloc(1, sizeof(struct v4lconvert_data));
-   struct v4l2_capability cap;
-+  struct v4l2_input input;
- 
-   if (!data)
-     return NULL;
-@@ -161,6 +167,13 @@
- 
-   /* Check if this cam has any special flags */
-   data->flags = v4lconvert_get_flags(data->fd);
-+  if ((syscall(SYS_ioctl, fd, VIDIOC_G_INPUT, &input.index) == 0) &&
-+      (syscall(SYS_ioctl, fd, VIDIOC_ENUMINPUT, &input) == 0)) {
-+    /* Don't yet support independent HFLIP and VFLIP so getting
-+     * image the right way up is highest priority. */
-+    if (input.status & V4L2_IN_ST_VFLIP)
-+      data->flags |= V4LCONVERT_ROTATE_180;
-+  }
-   if (syscall(SYS_ioctl, fd, VIDIOC_QUERYCAP, &cap) == 0) {
-     if (!strcmp((char *)cap.driver, "uvcvideo"))
-       data->flags |= V4LCONVERT_IS_UVC;
+date:        Sun Mar 15 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11038:626c136ec221
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc8-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc8-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29-rc8-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc8-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc8-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc8-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc8): ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
