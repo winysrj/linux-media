@@ -1,27 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2NND1Eq017787
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 19:13:01 -0400
-Received: from mail-qy0-f104.google.com (mail-qy0-f104.google.com
-	[209.85.221.104])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2NNBqiW025841
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 19:12:27 -0400
-Received: by qyk2 with SMTP id 2so2744548qyk.23
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 16:11:51 -0700 (PDT)
-From: Lamarque Vieira Souza <lamarque@gmail.com>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Date: Mon, 23 Mar 2009 20:11:40 -0300
-References: <200903231217.45740.lamarque@gmail.com>
-	<1237842462.31041.81.camel@tux.localhost>
-In-Reply-To: <1237842462.31041.81.camel@tux.localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2FEOmwO020260
+	for <video4linux-list@redhat.com>; Sun, 15 Mar 2009 10:24:48 -0400
+Received: from web27506.mail.ukl.yahoo.com (web27506.mail.ukl.yahoo.com
+	[217.146.177.210])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n2FEOSsk002820
+	for <video4linux-list@redhat.com>; Sun, 15 Mar 2009 10:24:29 -0400
+Message-ID: <466763.67320.qm@web27506.mail.ukl.yahoo.com>
+Date: Sun, 15 Mar 2009 14:24:28 +0000 (GMT)
+From: Andrea Amerini <amerini_a@yahoo.it>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903232011.41319.lamarque@gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Patch implementing V4L2_CAP_STREAMING for zr364xx driver
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Subject: Remote Pinnacle PCTV Hybrid Pro pci (310i)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,184 +25,178 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Em Monday 23 March 2009, Alexey Klimov escreveu:
-> Hello, Lamarque
-> May i make few comments ?
 
-	Sure, I am here for reading comments :-)
+Hi,
+I'm using this Pinnacle board but the remote doesn't work at all (RC-42D the coloured one).
 
-> On Mon, 2009-03-23 at 12:17 -0300, Lamarque Vieira Souza wrote:
-> I inlined patch in e-mail to make it easy.
+I'm using Slackware 12.1 ,kernel 2.6.28.5 vanilla
 
-	Ok.
-
-> --- zr364xx.c.orig	2009-03-21 08:51:41.289597517 -0300
-> +++ zr364xx.c	2009-03-23 03:26:00.445999283 -0300
-> @@ -1,15 +1,18 @@
->  /*
-> - * Zoran 364xx based USB webcam module version 0.72
-> + * Zoran 364xx based USB webcam module version 0.73
->   *
->   * Allows you to use your USB webcam with V4L2 applications
->   * This is still in heavy developpement !
->   *
-> - * Copyright (C) 2004  Antoine Jacquet <royale@zerezo.com>
-> + * Copyright (C) 2009  Antoine Jacquet <royale@zerezo.com>
->
-> Maybe it's better not to touch the year here ?
-
-	Ok.
-
-> +struct zr364xx_dmaqueue {
-> +	struct list_head	active;
-> +	/* thread for acquisition */
-> +	struct task_struct	*kthread;
->
-> Is this member of struct used ?
-> I can find only cam->vidq.kthread = NULL; in zr364xx_probe function..
-
-	It is not used. The code is based on s2255drv.c, it is like this in 
-s2255drv.c so I have hot changed it.
-
-> +static int res_check(struct zr364xx_camera *cam)
-> +{
-> +	return cam->resources;
-> +}
->
-> You can make this function inline, right ?
-
-	Probably. I think it is still possible to remove a lot of code. The s2255drv 
-is a more complex driver than zr364xx (it uses four v4l devices), this 
-resource field probably is not needed for zr364xx driver. I will check the 
-code to see if it is possible to remove this.
-
-> +
-> +	cam->mode.color = V4L2_PIX_FMT_JPEG;
->  	DBG("ok!");
->
-> \n ?
-
-	Ok :-)
-
-> To decrease amount of code here you can use something like this:
->
-> struct zr364xx_camera *cam = video_drvdata(file);
->
-> to get *cam from struct file directly(without vdev).
-
-	Good point. 
-
-> +static void read_pipe_completion(struct urb *purb)
-> +{
-> +	struct zr364xx_pipeinfo *pipe_info;
-> +	struct zr364xx_camera *cam;
-> +	int status;
-> +	int pipe;
-> +
-> +	pipe_info = purb->context;
-> +	DBG("%s %p, status %d\n", __func__, purb, purb->status);
-> +	if (pipe_info == NULL) {
-> +		err("no context!");
->
->
-> +		return;
-> +	}
-> +
-> +	cam = pipe_info->cam;
-> +	if (cam == NULL) {
-> +		err("no context!");
->
-> Do you use err() macro from usb.h ?
-> If yes - as i know it's better not to use this macros, because this macros
-> can suddenly became deprecated. It's more comfortable to use printk or
-> dev_err.
-
-	Well, s2255drc.c uses it, since my changes are based on that I supposed it 
-could be used. I will change them to printk's.
+When I press a key on the remote I read these messages on syslog:
 
 
-> +	for (i = 0; i < MAX_PIPE_BUFFERS; i++) {
-> +		pipe_info->state = 1;
-> +		pipe_info->buf_index = (u32) i;
-> +		pipe_info->priority_set = 0;
-> +		pipe_info->stream_urb = usb_alloc_urb(0, GFP_KERNEL);
-> +		if (!pipe_info->stream_urb) {
-> +			dev_err(&cam->udev->dev, "ReadStream: Unable to alloc URB");
->
-> \n ?
-
-	I will add it.
+saa7133[0]: i2c xfer: < 8f =d1 =6d =7d =59 >
+saa7133[0]: i2c xfer: < 8f =17 =1d =fe =fd >
+saa7133[0]: i2c xfer: < 8f =e3 =5c =d5 =4a >
+saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
+saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
+saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
+saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
+saa7133[0]: i2c xfer: < 8f =db =42 =01 =b7 >
 
 
-> +
-> +	if (!res_get(cam)) {
-> +		dev_err(&cam->udev->dev, "zr364xx: stream busy\n");
->
-> As i understand the behavour of dev_err you don't need "zr364xx:" chars in
-> this message.
+Pinnacle PCTV/ir: Pinnacle PCTV key 23
+Pinnacle PCTV/ir: read error
+Pinnacle PCTV/ir: read error
+Pinnacle PCTV/ir: read error
+Pinnacle PCTV/ir: read error
+root@mediacenter:~#
 
-	Ok. I have not reached this error during my tests so I do not know how the 
-output looks like.
 
-> +	DBG("%s\n", __func__);
-> +	if (cam->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> +		printk(KERN_ERR "invalid fh type0\n");
->
-> It's better to add module name here.
+here it is the info of the card:
 
-	I will use dev_err like in streamon.
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7133[0]: found at 0000:03:05.0, rev: 209, irq: 20, latency: 64, mmio: 0xfdfff000
+saa7133[0]: subsystem: 11bd:002f, board: Pinnacle PCTV 310i [card=101,autodetected]
+saa7133[0]: board init: gpio is 600c000
+tuner' 5-004b: chip found @ 0x96 (saa7133[0])
+ir-kbd-i2c: Pinnacle PCTV detected at i2c-5/5-0047/ir0 [saa7133[0]]
+saa7133[0]: i2c eeprom 00: bd 11 2f 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: ff e0 60 06 ff 20 ff ff 00 30 8d 2e 15 13 ff ff
+saa7133[0]: i2c eeprom 20: 01 2c 01 23 23 01 04 30 98 ff 00 e7 ff 21 00 c2
+saa7133[0]: i2c eeprom 30: 96 10 03 32 15 20 ff 15 0e 6c a3 eb 03 c5 e8 9d
+saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c scan: found device @ 0x10  [???]
+saa7133[0]: i2c scan: found device @ 0x8e  [???]
+saa7133[0]: i2c scan: found device @ 0x96  [???]
+saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
+saa7133[0]: registered device video1 [v4l2]
+saa7133[0]: registered device vbi1
+saa7133[0]: registered device radio0
+DVB: registering new adapter (saa7133[0])
+saa7134 ALSA driver for DMA sound loaded
+saa7133[0]/alsa: saa7133[0] at 0xfdfff000 irq 20 registered as card -1
 
-> +		return -EINVAL;
-> +	}
-> +	if (cam->type != type) {
-> +		printk(KERN_ERR "invalid type i\n");
->
-> The same here.
 
-	Ok.
+lspci -vv:
 
-> +	for (i = 0; i < FRAMES; i++) {
-> +		/* allocate the frames */
-> +		cam->buffer.frame[i].lpvbits = vmalloc(reqsize);
-> +
-> +		DBG("valloc %p, idx %lu, pdata %p\n",
-> +			&cam->buffer.frame[i], i,
-> +			cam->buffer.frame[i].lpvbits);
-> +		cam->buffer.frame[i].size = reqsize;
-> +		if (cam->buffer.frame[i].lpvbits == NULL) {
-> +			printk(KERN_INFO "out of memory.  using less frames\n");
->
-> Module name, please.
+03:05.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+        Subsystem: Pinnacle Systems Inc. Unknown device 002f
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (21000ns min, 8000ns max)
+        Interrupt: pin A routed to IRQ 20
+        Region 0: Memory at fdfff000 (32-bit, non-prefetchable) [size=2K]
+        Capabilities: [40] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=1 PME-
+        Kernel driver in use: saa7134
+        Kernel modules: saa7134
 
-	Done.
+lsmod:
 
-> +	if (!cam->read_endpoint) {
-> +		dev_err(&intf->dev, "Could not find bulk-in endpoint");
->
-> \n ?
+Module                  Size  Used by
+saa7134_alsa           11136  0
+saa7134_dvb            20044  0
+saa7134               140628  2 saa7134_alsa,saa7134_dvb
+tda1004x               15556  1
+ir_kbd_i2c              7312  0
+tda827x                 9732  2
+tda8290                12740  1
+cpufreq_userspace       3012  1
+it87                   19984  0
+hwmon_vid               2880  1 it87
+eeprom                  5520  0
+snd_seq_dummy           2756  0
+snd_seq_oss            28992  0
+snd_seq_midi_event      6144  1 snd_seq_oss
+snd_seq                46576  5 snd_seq_dummy,snd_seq_oss,snd_seq_midi_event
+snd_seq_device          6348  3 snd_seq_dummy,snd_seq_oss,snd_seq
+snd_pcm_oss            36640  0
+snd_mixer_oss          14016  1 snd_pcm_oss
+cx8800                 29316  0
+cx88xx                 67240  1 cx8800
+videobuf_dvb            6276  2 saa7134_dvb,cx88xx
+dvb_core               77120  2 saa7134_dvb,videobuf_dvb
+bttv                  161300  0
+btcx_risc               4360  3 cx8800,cx88xx,bttv
+lirc_i2c                8644  1
+powernow_k8            13124  1
+lp                      9732  0
+pcspkr                  2432  0
+psmouse                40528  0
+lirc_imon              15240  2
+lirc_dev               11380  2 lirc_i2c,lirc_imon
+fuse                   50332  1
+joydev                  9344  0
+usbhid                 31776  0
+zd1211rw               44292  0
+mac80211              126736  1 zd1211rw
+tuner_simple           14288  1
+tuner_types            14080  1 tuner_simple
+wm8775                  5612  0
+cx25840                27184  0
+tuner                  26116  0
+evdev                   9312  7
+ivtv                  137540  0
+snd_hda_intel         400468  0
+cx2341x                11460  1 ivtv
+ir_common              38468  4 saa7134,ir_kbd_i2c,cx88xx,bttv
+compat_ioctl32          1152  4 saa7134,cx8800,bttv,ivtv
+v4l2_common            10816  8 saa7134,cx8800,bttv,wm8775,cx25840,tuner,ivtv,cx2341x
+videodev               31488  6 saa7134,cx8800,cx88xx,bttv,tuner,ivtv
+videobuf_dma_sg        10820  6 saa7134_alsa,saa7134_dvb,saa7134,cx8800,cx88xx,bttv
+fan                     4292  0
+v4l1_compat            13124  1 videodev
+nvidia               7230492  32
+videobuf_core          15172  6 saa7134,cx8800,cx88xx,videobuf_dvb,bttv,videobuf_dma_sg
+tveeprom               11908  4 saa7134,cx88xx,bttv,ivtv
+snd_pcm                66948  3 saa7134_alsa,snd_pcm_oss,snd_hda_intel
+thermal                15260  0
+ehci_hcd               33612  0
+processor              39148  2 powernow_k8,thermal
+snd_timer              18952  2 snd_seq,snd_pcm
+button                  5968  0
+ohci_hcd               24208  0
+snd_page_alloc          8072  2 snd_hda_intel,snd_pcm
+serio_raw               5188  0
+i2c_piix4               9168  0
+snd_hwdep               6852  1 snd_hda_intel
+r8169                  32068  0
+k8temp                  4160  0
+ati_agp                 6796  0
+hwmon                   2396  2 it87,k8temp
+snd                    46436  10 saa7134_alsa,snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,snd_hda_intel,snd_pcm,snd_timer,snd_hwdep
+usbcore               132176  7 lirc_imon,usbhid,zd1211rw,ehci_hcd,ohci_hcd
+agpgart                29064  2 nvidia,ati_agp
+sr_mod                 14660  1
+mii                     4544  1 r8169
+cdrom                  33312  1 sr_mod
+rtc_cmos               10284  0
+rtc_core               15388  1 rtc_cmos
+soundcore               6112  1 snd
+rtc_lib                 2496  1 rtc_core
+ssb                    29508  1 ohci_hcd
+parport_pc             24484  1
+parport                30764  2 lp,parport_pc
+sg                     24372  0
 
-	Done.
+If you need any other kind of info I'll be happy to help you.
+Thanks.
+Andrea
 
->  static int __init zr364xx_init(void)
->  {
->  	int retval;
->
->
-> Also, our current maillist is linux-media@vger.kernel.org.
-> It's better to post patches there.
 
-	Ok. When I finish to remove some code I will post the new patch there. That 
-also explain why this list is so calm compared to the other kernel lists I 
-have been to. By the way, do you understande something about pixelformats? I 
-need to convert YUV 4:2:0 into YUV 4:2:2 (UYVY) in libv4l to make my webcam 
-work with Skype. Actually the frame is decoded into uncompressed jpeg before 
-it is converted to YUV 4:2:0, so maybe I do not need to YUV 4:2:0 into YUV 
-4:2:2 (UYVY). I am just not used to the pixel format details.
-
--- 
-Lamarque V. Souza
-http://www.geographicguide.com/brazil.htm
-Linux User #57137 - http://counter.li.org/
+      
 
 --
 video4linux-list mailing list
