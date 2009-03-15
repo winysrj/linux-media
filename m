@@ -1,107 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4192 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759245AbZCXTYo (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.28]:37891 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752790AbZCOOkc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 15:24:44 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2OJOfr9012817
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 24 Mar 2009 20:24:41 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 24 Mar 2009 20:24:41 +0100 (CET)
-Message-Id: <200903241924.n2OJOfr9012817@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: OK
+	Sun, 15 Mar 2009 10:40:32 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so759373ywh.1
+        for <linux-media@vger.kernel.org>; Sun, 15 Mar 2009 07:40:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <49BD0088.6050203@gmx.de>
+References: <49B9BC93.8060906@nav6.org>
+	 <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
+	 <49B9DECC.5090102@nav6.org>
+	 <412bdbff0903130727p719b63a0u3c4779b3bec7520b@mail.gmail.com>
+	 <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>
+	 <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>
+	 <37219a840903131452mf8b7969h881a24fc2dd031e8@mail.gmail.com>
+	 <a3ef07920903131527x2762f6e6y18f3a0b825ff2a49@mail.gmail.com>
+	 <412bdbff0903131531y3dcb5382red13ac1e4d43feaf@mail.gmail.com>
+	 <49BD0088.6050203@gmx.de>
+Date: Sun, 15 Mar 2009 10:40:29 -0400
+Message-ID: <412bdbff0903150740m1a1884bdhc296542e3fb3a87a@mail.gmail.com>
+Subject: Re: The right way to interpret the content of SNR, signal strength
+	and BER from HVR 4000 Lite
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: wk <handygewinnspiel@gmx.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, Mar 15, 2009 at 9:20 AM, wk <handygewinnspiel@gmx.de> wrote:
+>> 1.  Getting everyone to agree on a standard representation for the
+>> field, and how to represent certain error conditions (such as when a
+>> demod doesn't support SNR, or when it cannot return a valid value at a
+>> given time).
+>>
+>>
+>
+> Its just straightforward as described in DVB API, chapters
+> 2.2.3 FE READ STATUS
+> 2.2.4 FE READ BER
+> 2.2.5 FE READ SNR
+> 2.2.6 FE READ SIGNAL STRENGTH
+> 2.2.7 FE READ UNCORRECTED BLOCKS
+>
+> if ioctl suceeds with valid data: 0, if not one of
+> EBADF            no valid fi le descriptor.
+> EFAULT          error condition
+> ENOSIGNAL  not yet, i have no signal..
+> ENOSYS         not supported by device.
 
-Results of the daily build of v4l-dvb:
+You're right, the error codes are indeed currently documented.  I
+guess I just didn't realize that since I saw many different devices
+returning zero when the call was unimplemented, and returning garbage
+when there was no signal lock.  In which case, the error codes don't
+need to be agreed on, they just need to be implemented across all the
+drivers.  Of course, the bigger issue still remains to figure out what
+format the actual SNR should be in.
 
-date:        Tue Mar 24 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11153:56cf0f1772f7
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+>> 2.  Converting all the drivers to the agreed-upon format.  For some
+>> drivers this is relatively easy as we have specs available for how the
+>> SNR is represented.  For others, the value displayed is entirely
+>> reverse engineered so the current representations are completely
+>> arbitrary.
+>
+> Since a lot of frontends have no proper docs, probably providing the signal
+> strength unit with a second ioctl could make sense here.
+>
+> a.u.          arbitrary units, not exactly known or not perfectly working
+> dBµV       comparable trough all devices, but probably not possible for all
+> percent     technical not understandable, percent relative to what? Assumes
+> that there is a optimum/hard limit of 100% which is not the case.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.29): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+That was the very first suggestion I put out - to at least provide an
+ioctl indicating what unit the data was represented in, so
+applications would know how to show it (as opposed to trying to get
+every driver to unify it's return format).  However, at the time the
+thinking was to at least get an inventory of all the different formats
+being used and how many drivers are impacted, and we can then assess
+how hard it would actually be to get them into a unified format.
 
-Detailed results are available here:
+Devin
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
