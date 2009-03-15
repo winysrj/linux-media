@@ -1,107 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:45820 "EHLO smtp2-g21.free.fr"
+Received: from powered.by.root24.eu ([91.121.20.142]:36713 "EHLO Root24.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750728AbZCFXRo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Mar 2009 18:17:44 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: mike@compulab.co.il,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH 1/4] pxa_camera: Remove YUV planar formats hole
-References: <1028158815.2045371236327963888.JavaMail.root@zimbra20-e3.priv.proxad.net>
-	<Pine.LNX.4.64.0903061953170.5665@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sat, 07 Mar 2009 00:17:31 +0100
-Message-ID: <87prgu2qd0.fsf@free.fr>
+	id S1751144AbZCOBTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Mar 2009 21:19:14 -0400
+Message-ID: <49BC5788.50207@ionic.de>
+Date: Sun, 15 Mar 2009 02:19:04 +0100
+From: Ionic <ionic@ionic.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Markus Rechberger <mrechberger@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mateusz <m.jedrasik@gmail.com>, Jacek <wafelj@epf.pl>,
+	Kurt <kurtandre@gmail.com>, Juergen <juergenhaas@gmx.net>,
+	Obri <obri@chaostreff.ch>, Kamre <kamre@student.agh.edu.pl>,
+	=?ISO-8859-1?Q?=C1lvaro?= <aarranz@pegaso.ls.fi.upm.es>,
+	Alfred <garbagemail@web.de>, Andy <andaug@mailbolt.com>
+Subject: Re: Pinnacle PCTV Hybrid Pro Card (310c)... once again...
+References: <49BC3DEE.9050307@ionic.de>	 <d9def9db0903141641g457b9cdar317b0d8e5f132150@mail.gmail.com>	 <49BC4535.6090700@ionic.de> <d9def9db0903141725q86476e9i7fdf97d9198484ac@mail.gmail.com>
+In-Reply-To: <d9def9db0903141725q86476e9i7fdf97d9198484ac@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
 
->> This implies that even if DMA is 8 bytes aligned, width x height should 
->> be a multiple of 16, not 8 as I stated in the first git comment. So that 
->> would align :
->>  - width on 4 bytes (aligning meaning the lowest multiple of 4 below or equal to width)
->>  - and height on 4 bytes (aligning meaning the lowest multiple of 4 below or equal to height)
->> 
->> Do we have an agreement on that specification, so that I can amend the code accordingly ?
+* On 15.03.2009 01:25, Markus Rechberger wrote:
+>> Hi Markus,
+>>
+>> that's cool... but which tree is the one you actually do speak about?
+>> v4l-dvb-experimental? As stated... I've already tried it without any
+>> success. :(
+>>
 >
-> Yep, looks good to me.
+> this tree doesn't exist anymore it's just a symlink to the split out
+> em28xx driver on mcentral.de
+> you should try your luck with the linuxtv.org/hg/v4l-dvb repository
+Okay, thank you!
 
-All right, this should amend patch 1/4. I'll wait for the complete review to
-resend the patch as a whole.
+>> Other than this I am out of ideas... but you could mean
+>> userspace-drivers though, is this the tree to go?  The page the README
+>> file points to is outdated by the way...
+>>
+>
+> those things are not relevant for your device, no drivers on
+> mcentral.de are relevant for your device.
+Interesting... thought they'd be the right drivers to get the device
+working due to the (possibly outdated) information on it's wiki page...
 
-Cheers
+> read your first dmesg log carefully and try to obtain the xc3028
+> firmware and put it to /lib/firmwar
+Well, that seems to be some sort of problem. I found this site (and
+several others during March, 14th)
+http://lists-archives.org/video4linux/20835-extract-tool-for-xc3028-firmware.html
+which shows how to extract the firmware file in question. It doesn't
+seem to fit my card though... I've done it anyways though.
 
---
-Robert
+No error messages printed by the drivers anymore, just the normal output:
 
-commit 4d3bd5219dd3ef27f11c7061adf10f8249d2ba26
-Author: Robert Jarzmik <robert.jarzmik@free.fr>
-Date:   Fri Mar 6 22:39:41 2009 +0100
+[16398.130540] Linux video capture interface: v2.00
+[16398.176622] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+[16398.177500] cx88[0]: subsystem: 12ab:1788, board: Pinnacle Hybrid
+PCTV [card=60,autodetected], frontend(s): 1
+[16398.177504] cx88[0]: TV tuner type 71, Radio tuner type 71
+[16398.185553] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+[16398.326195] tveeprom 4-0050: Huh, no eeprom present (err=-6)?
+[16398.326200] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
+[16398.326207] cx88[0]/2: cx2388x 8802 Driver Manager
+[16398.326221] cx88-mpeg driver manager 0000:07:00.2: enabling device
+(0000 -> 0002)
+[16398.326231] cx88-mpeg driver manager 0000:07:00.2: PCI INT A -> GSI
+22 (level, low) -> IRQ 22
+[16398.326240] cx88-mpeg driver manager 0000:07:00.2: setting latency
+timer to 64
+[16398.326249] cx88[0]/2: found at 0000:07:00.2, rev: 5, irq: 22,
+latency: 64, mmio: 0x8e000000
+[16398.330880] cx8800 0000:07:00.0: enabling device (0000 -> 0002)
+[16398.330890] cx8800 0000:07:00.0: PCI INT A -> GSI 22 (level, low)
+- -> IRQ 22
+[16398.330899] cx88[0]/0: found at 0000:07:00.0, rev: 5, irq: 22,
+latency: 0, mmio: 0x8c000000
+[16398.330908] cx8800 0000:07:00.0: setting latency timer to 64
+[16398.331217] cx88[0]/0: registered device video0 [v4l2]
+[16398.331249] cx88[0]/0: registered device vbi0
+[16398.331284] cx88[0]/0: registered device radio0
+[16398.353479] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[16398.353483] cx88/2: registering cx8802 driver, type: dvb access: shared
+[16398.353486] cx88[0]/2: subsystem: 12ab:1788, board: Pinnacle Hybrid
+PCTV [card=60]
+[16398.353489] cx88[0]/2: cx2388x based DVB/ATSC card
+[16398.353491] cx8802_alloc_frontends() allocating 1 frontend(s)
+[16398.362618] xc2028 4-0061: creating new instance
+[16398.362621] xc2028 4-0061: type set to XCeive xc2028/xc3028 tuner
+[16398.362624] cx88[0]/2: xc3028 attached
+[16398.362628] DVB: registering new adapter (cx88[0])
+[16398.362632] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353
+DVB-T)...
 
-    pxa_camera: Enforce YUV422P frame sizes to be 16 multiples
-    
-    Due to DMA constraints, the DMA chain always transfers bytes
-    from the QIF fifos to memory in 8 bytes units. In planar
-    formats, that could mean 0 padding between Y and U plane
-    (and between U and V plane), which is against YUV422P
-    standard.
-    
-    Therefore, a frame size is required to be a multiple of 16
-    (so U plane size is a multiple of 8). It is enforced in
-    try_fmt() and set_fmt() primitives, be aligning height then
-    width on 4 multiples as need be, to reach a 16 multiple.
-    
-    Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
+Here comes the interesting part, though: radio -s is finding no
+stations (this is not critical for me, but indicates some misbehavior)
+and dvbscan does only output "Unable to query frontend status" (Exit
+code 1.)
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index 54df071..f736f6b 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -162,6 +162,8 @@
- 			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
- 			CICR0_EOFM | CICR0_FOM)
- 
-+#define PIX_YUV422P_ALIGN 16	/* YUV422P pix size should be a multiple of 16 */
-+
- /*
-  * Structures
-  */
-@@ -241,11 +243,8 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
- 
- 	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
- 
--	/* planar capture requires Y, U and V buffers to be page aligned */
- 	if (pcdev->channels == 3)
--		*size = roundup(icd->width * icd->height, 8) /* Y pages */
--			+ roundup(icd->width * icd->height / 2, 8) /* U pages */
--			+ roundup(icd->width * icd->height / 2, 8); /* V pages */
-+		*size = icd->width * icd->height * 2;
- 	else
- 		*size = roundup(icd->width * icd->height *
- 				((icd->current_fmt->depth + 7) >> 3), 8);
-@@ -1297,6 +1296,18 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 		pix->width = 2048;
- 	pix->width &= ~0x01;
- 
-+	/*
-+	 * YUV422P planar format requires images size to be a 16 bytes
-+	 * multiple. If not, zeros will be inserted between Y and U planes, and
-+	 * U and V planes, and YUV422P standard would be violated.
-+	 */
-+	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
-+		if ((pix->width * pix->height) & PIX_YUV422P_ALIGN)
-+			pix->height = ALIGN(pix->height, PIX_YUV422P_ALIGN / 2);
-+		if ((pix->width * pix->height) & PIX_YUV422P_ALIGN)
-+			pix->width = ALIGN(pix->width, PIX_YUV422P_ALIGN / 2);
-+	}
-+
- 	pix->bytesperline = pix->width *
- 		DIV_ROUND_UP(xlate->host_fmt->depth, 8);
- 	pix->sizeimage = pix->height * pix->bytesperline;
+After running dvbcan, dmesg grows by following messages:
+
+[16485.369819] i2c-adapter i2c-4: firmware: requesting xc3028-v27.fw
+[16485.374523] xc2028 4-0061: Loading 80 firmware images from
+xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[16485.374629] cx88[0]: Calling XC2028/3028 callback
+[16485.374632] cx88[0]: setting GPIO to radio!
+[16487.371046] xc2028 4-0061: Loading firmware for type=BASE F8MHZ MTS
+(7), id 0000000000000000.
+[16487.371053] cx88[0]: Calling XC2028/3028 callback
+[16487.371055] cx88[0]: setting GPIO to radio!
+[16491.995176] xc2028 4-0061: Loading firmware for type=D2633 DTV8
+(210), id 0000000000000000.
+[16492.039958] xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7
+DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+[16492.080028] cx88[0]: Calling XC2028/3028 callback
+
+I've also been curious about analog TV (which is my premier "want to
+get it working" aim)... with no luck. tvtime-scanner scanned and
+scanned and scanned without finding any station.
+
+New messages after running tvtime-scanner:
+
+[16491.995176] xc2028 4-0061: Loading firmware for type=D2633 DTV8
+(210), id 0000000000000000.
+[16492.039958] xc2028 4-0061: Loading SCODE for type=DTV6 QAM DTV7
+DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+[16492.080028] cx88[0]: Calling XC2028/3028 callback
+
+So... I guess nothing is working sadly...
+
+I'm really not sure whether the correct firmware is used. This HVR
+firmware file is said to be "generic" (more or less), but your
+firmware package for Pinnacle devices does include a lot of other
+firmware files which seem not to include this "*-v27.fw" file either...
+
+Thank you once again for helping out.
+
+Best regards,
+
+
+Mihai
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iQIcBAEBCgAGBQJJvFeHAAoJEB/WLtluJTqHQFgP/2mDAgLz28No8YwGu5TMu3eN
+s//kEu2G3bUp3gwQ/ijz8C2GTMO8Ioei+ptwyELetet3gUK/yBs0xf5jLTldw2iz
+BkvOQ0P+nPKcHQ87eB21TmRxSZOunju9fjQc/euMOY625QCFqsw7z6pru77ATOC/
+SpJHRVJpTrycFY6Xt67edO2URcrBJQuF+MDDkZhUec4CGMCxxxM/FmJ0KoohEMuI
+re1ci/Dh0untENo9Up4i1MkcpfUFQoKcXddZQj56FPovQFbmF7Wb2CoRToXnr6mR
+cVu3CTTJ64BKpBBqzq0nZu3bmvk5eo9Z3WpfvBZJ32d6umZzix53sOsSXk22Dko6
+D2hg78va/kKBw5YJ+fvwZmlBOJingZkH78VkTgzVNvO8O6fH+jPm0w1tou3oExxg
+6tKixARkDrwF4KiFEXsEaP/e0D+A6FvfsS1CL5DxSiXe7XDLoWPZ+RGjOdoKx1jX
+Y3PoWV1plVHkiZOz22mgnQUuO7et96/gxpWUXkugYqSgvgG4D2d/j0t1WsS2yCfw
+pdJEyGvtwrMpiuokrp28TRqUaeqZAGCYyJs0xIzvs1sdz//3yX0aBZvv7DrBlGoZ
+3POk1vXjdi0ECj9SAg/cnHfyvmDijUbVTMd+aRpqz9xos2WG5FHvZj0jsCLDAreE
+oDAr1qlnvbXj78ySD/eQ
+=SQzv
+-----END PGP SIGNATURE-----
+
