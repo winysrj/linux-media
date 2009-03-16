@@ -1,199 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1588 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751966AbZC0Rpy (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4588 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751428AbZCPHPZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 13:45:54 -0400
+	Mon, 16 Mar 2009 03:15:25 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: [question] about open/release and vidioc_g_input/vidioc_s_input  functions
-Date: Fri, 27 Mar 2009 18:45:33 +0100
-Cc: linux-media@vger.kernel.org,
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+Date: Mon, 16 Mar 2009 08:15:24 +0100
+Cc: Andy Walls <awalls@radix.net>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-References: <1237850047.31041.162.camel@tux.localhost> <200903271750.19032.hverkuil@xs4all.nl> <208cbae30903271034y44fbe6b9p6e6c9d92527c5ade@mail.gmail.com>
-In-Reply-To: <208cbae30903271034y44fbe6b9p6e6c9d92527c5ade@mail.gmail.com>
+	linux-media@vger.kernel.org
+References: <200903151324.00784.hverkuil@xs4all.nl> <1237146899.3314.52.camel@palomino.walls.org> <Pine.LNX.4.58.0903151616540.28292@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0903151616540.28292@shell2.speakeasy.net>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200903271845.33913.hverkuil@xs4all.nl>
+Message-Id: <200903160815.24613.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 27 March 2009 18:34:01 Alexey Klimov wrote:
-> On Fri, Mar 27, 2009 at 7:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Friday 27 March 2009 17:44:05 Alexey Klimov wrote:
-> >> Hello, Hans
-> >>
-> >> On Tue, 2009-03-24 at 08:06 +0100, Hans Verkuil wrote:
-> >> > On Tuesday 24 March 2009 00:14:07 Alexey Klimov wrote:
-> >> > > Hello, all
-> >> > >
-> >> > > ...
-> >> > >  static int terratec_open(struct file *file)
-> >> > > {
-> >> > >         return 0;
-> >> > > }
-> >> > >
-> >> > > static int terratec_release(struct file *file)
-> >> > > {
-> >> > >         return 0;
-> >> > > }
-> >> > > ...
-> >> > >
-> >> > > ...
-> >> > >
-> >> > > Such code used in many radio-drivers as i understand.
-> >> > >
-> >> > > Is it good to place this empty and almost empty functions in:
-> >> > > (here i see two variants)
-> >> > >
-> >> > > 1) In header file that be in linux/drivers/media/radio/ directory.
-> >> > > Later, we can move some generic/or repeating code in this header.
-> >> > >
-> >> > > 2) In any v4l header. What header may contain this ?
-> >> > >
-> >> > > ?
-> >> > >
-> >> > > For what ? Well, as i understand we can decrease amount of lines
-> >> > > and provide this simple generic functions. It's like
-> >> > > video_device_release_empty function behaviour. Maybe not only
-> >> > > radio drivers can use such vidioc_g_input and vidioc_s_input.
-> >> > >
-> >> > > Is it worth ?
-> >> >
-> >> > I don't think it is worth doing this for g/s_input. I think it is
-> >> > useful to have them here: it makes it very clear that there is just
-> >> > a single input and the overhead in both lines and actual bytes is
-> >> > minimal.
-> >> >
-> >> > But for the empty open and release functions you could easily handle
-> >> > that in v4l2-dev.c: if you leave the open and release callbacks to
-> >> > NULL, then v4l2_open and v4l2_release can just return 0. That would
-> >> > be nice.
-> >> >
-> >> > Regards,
-> >> >
-> >> >     Hans
-> >>
-> >> May i ask help with this ?
-> >> Hans, should it be looks like:
-> >>
-> >> diff -r 56cf0f1772f7 linux/drivers/media/radio/radio-terratec.c
-> >> --- a/linux/drivers/media/radio/radio-terratec.c      Mon Mar 23
-> >> 19:18:34 2009 -0300 +++ b/linux/drivers/media/radio/radio-terratec.c  
-> >>      Fri Mar 27 19:32:38 2009 +0300 @@ -333,20 +333,8 @@
-> >>       return a->index ? -EINVAL : 0;
-> >>  }
-> >>
-> >> -static int terratec_open(struct file *file)
-> >> -{
-> >> -     return 0;
-> >> -}
-> >> -
-> >> -static int terratec_release(struct file *file)
-> >> -{
-> >> -     return 0;
-> >> -}
-> >> -
-> >>  static const struct v4l2_file_operations terratec_fops = {
-> >>       .owner          = THIS_MODULE,
-> >> -     .open           = terratec_open,
-> >> -     .release        = terratec_release,
-> >>       .ioctl          = video_ioctl2,
-> >>  };
-> >>
-> >> diff -r 56cf0f1772f7 linux/drivers/media/video/v4l2-dev.c
-> >> --- a/linux/drivers/media/video/v4l2-dev.c    Mon Mar 23 19:18:34 2009
-> >> -0300 +++ b/linux/drivers/media/video/v4l2-dev.c    Fri Mar 27
-> >> 19:32:38 2009 +0300 @@ -264,7 +264,10 @@
-> >>       /* and increase the device refcount */
-> >>       video_get(vdev);
-> >>       mutex_unlock(&videodev_lock);
-> >> -     ret = vdev->fops->open(filp);
-> >> +     if (vdev->fops->open == NULL)
-> >> +             ret = 0;
-> >> +     else
-> >> +             ret = vdev->fops->open(filp);
-> >>       /* decrease the refcount in case of an error */
-> >>       if (ret)
-> >>               video_put(vdev);
-> >> @@ -275,7 +278,12 @@
-> >>  static int v4l2_release(struct inode *inode, struct file *filp)
-> >>  {
-> >>       struct video_device *vdev = video_devdata(filp);
-> >> -     int ret = vdev->fops->release(filp);
-> >> +     int ret;
-> >> +
-> >> +     if (vdev->fops->release == NULL)
-> >> +             ret = 0;
-> >> +     else
-> >> +             ret = vdev->fops->release(filp);
-> >>
-> >>       /* decrease the refcount unconditionally since the release()
-> >>          return value is ignored. */
-> >>
-> >> ?
-> >>
-> >> Or in v4l2_open function i can check if vdev->fops->open == NULL
-> >> before video_get(vdev); (increasing the device refcount), and if it's
-> >> NULL then unlock_mutex and return 0 ?
-> >> And the same in v4l2_release - just return 0 in the begining of
-> >> function in case vdev->fops->release == NULL ?
-> >>
-> >> What approach is better ?
+On Monday 16 March 2009 00:25:44 Trent Piepho wrote:
+> On Sun, 15 Mar 2009, Andy Walls wrote:
+> > On Sun, 2009-03-15 at 10:28 -0700, Trent Piepho wrote:
+> > > Why are the i2c addresses from various i2c chips moved into the bttv
+> > > driver?  Doesn't it make more sense that the addresses for chip X
+> > > should be in the driver for chip X?
 > >
-> > This is simpler:
-> >
-> > diff -r 2e0c6ff1bda3 linux/drivers/media/video/v4l2-dev.c
-> > --- a/linux/drivers/media/video/v4l2-dev.c      Mon Mar 23 19:01:18
-> > 2009 +0100
-> > +++ b/linux/drivers/media/video/v4l2-dev.c      Fri Mar 27 17:47:51
-> > 2009 +0100
-> > @@ -250,7 +250,7 @@
-> >  static int v4l2_open(struct inode *inode, struct file *filp)
-> >  {
-> >        struct video_device *vdev;
-> > -       int ret;
-> > +       int ret = 0;
-> >
-> >        /* Check if the video device is available */
-> >        mutex_lock(&videodev_lock);
-> > @@ -264,7 +264,9 @@
-> >        /* and increase the device refcount */
-> >        video_get(vdev);
-> >        mutex_unlock(&videodev_lock);
-> > -       ret = vdev->fops->open(filp);
-> > +       if (vdev->fops->open)
-> > +               ret = vdev->fops->open(filp);
-> > +
-> >        /* decrease the refcount in case of an error */
-> >        if (ret)
-> >                video_put(vdev);
-> > @@ -275,7 +277,10 @@
-> >  static int v4l2_release(struct inode *inode, struct file *filp)
-> >  {
-> >        struct video_device *vdev = video_devdata(filp);
-> > -       int ret = vdev->fops->release(filp);
-> > +       int ret = 0;
-> > +
-> > +       if (vdev->fops->release)
-> > +               ret = vdev->fops->release(filp);
-> >
-> >        /* decrease the refcount unconditionally since the release()
-> >           return value is ignored. */
+> > One reason that this may be undesirable is that the devices can be set
+> > to slightly different addresses via external straps (probably a corner
+> > case, I know).  The bridge driver has the best chance of knowing what
+> > chips are where with certainty.
 >
-> Looks like you already did right patch ;-)
-> I don't know what to do, should i repost this like patch ?
+> If one knows that some card has a certain chip at a certain address, then
+> it makes the most sense to store that with the rest of the card's data,
+> i.e. in the bridge driver.
+>
+> But the bttv code looks like (I don't know what Hans intended, since he
+> didn't feel anyone else needed to know what, why, or how his code does
+> whatever it is that it does) it is probing all known address that a given
+> chip could be at to see if the chip is there.  In that case what's really
+> being used is an address list from the I2C chip's datasheet and any
+> bridge driver that wants to probe like that will use the same list, which
+> IMHO, makes more sense to put in the driver of the I2C chip rather than
+> every driver that uses the I2C chip.
 
-Just turn it into a patch series with this as the first patch and fixing the 
-radio drivers that can use it.
+Sadly the bttv driver doesn't have the knowledge of where chips are, or even 
+which chips there are. This information was never recorded. So I have to 
+replicate the original behavior here, i.e. probe for all possible 
+addresses. And I agree that those list of addresses should be stored with 
+the driver (using a static inline function in the header as I proposed), 
+but I want to wait with that until all drivers are converted to v4l2_subdev 
+and I have a complete overview of the needs of each driver.
 
-Here's my SoB for this one:
-
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+And if I leave information out, just ask politely and I'll answer. I've been 
+working on this for so long that I sometimes forget that not everyone is 
+aware of all the subtleties.
 
 Regards,
 
