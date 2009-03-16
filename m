@@ -1,124 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39582 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917AbZCMVCC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 17:02:02 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "stanley.miao@windriver.com" <stanley.miao@windriver.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Date: Fri, 13 Mar 2009 16:01:47 -0500
-Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
-Message-ID: <A24693684029E5489D1D202277BE89442E53A3CC@dlee02.ent.ti.com>
-In-Reply-To: <1236675821.6759.33.camel@localhost>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail.gmx.net ([213.165.64.20]:46724 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754429AbZCPUra (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2009 16:47:30 -0400
+Date: Mon, 16 Mar 2009 21:47:17 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Trent Piepho <xyzzy@speakeasy.org>
+cc: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/4] pxa_camera: Enforce YUV422P frame sizes to be 16
+ multiples
+In-Reply-To: <Pine.LNX.4.58.0903161254510.28292@shell2.speakeasy.net>
+Message-ID: <Pine.LNX.4.64.0903162146020.4409@axis700.grange>
+References: <1236986240-24115-1-git-send-email-robert.jarzmik@free.fr>
+ <1236986240-24115-2-git-send-email-robert.jarzmik@free.fr>
+ <Pine.LNX.4.64.0903142359230.8263@axis700.grange> <8763i9fhn9.fsf@free.fr>
+ <Pine.LNX.4.58.0903161254510.28292@shell2.speakeasy.net>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 16 Mar 2009, Trent Piepho wrote:
 
-
-> -----Original Message-----
-> From: stanley.miao [mailto:stanley.miao@windriver.com]
-> Sent: Tuesday, March 10, 2009 3:04 AM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
-> Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim; MiaoStanley;
-> Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
-> Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
-> 
-> On Mon, 2009-03-09 at 15:24 -0500, Aguirre Rodriguez, Sergio Alberto
-> wrote:
-> > Hi,
-> >
-> > > -----Original Message-----
-> > > From: stanley.miao [mailto:stanley.miao@windriver.com]
-> >
-> > <snip>
-> >
-> > > > +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
-> > > > +#if defined(CONFIG_VIDEO_OV3640) ||
-> defined(CONFIG_VIDEO_OV3640_MODULE)
-> > > > +	{
-> > > > +		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
-> > > > +		.platform_data = &ldp_ov3640_platform_data,
-> > > > +	},
-> > > > +#endif
-> > > > +};
-> > > >
-> > > This new added i2c_board_info was not registered.
-> > > After I added this line,
+> On Mon, 16 Mar 2009, Robert Jarzmik wrote:
+> > >> +	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
+> > >> +		if (!IS_ALIGNED(pix->width * pix->height, PIX_YUV422P_ALIGN))
+> > >> +			pix->height = ALIGN(pix->height, PIX_YUV422P_ALIGN / 2);
+> > >> +		if (!IS_ALIGNED(pix->width * pix->height, PIX_YUV422P_ALIGN))
+> > >> +			pix->width = ALIGN(pix->width, PIX_YUV422P_ALIGN / 2);
 > > >
-> > > omap_register_i2c_bus(2, 400, ldp_i2c_boardinfo_2,
-> > >                         ARRAY_SIZE(ldp_i2c_boardinfo_2));
-> > >
-> > > the sensor was found. but the test still failed. A lot of error came
-> out
-> > > when I run my test program.
-> > >
-> > > <3>CSI2: ComplexIO Error IRQ 80
-> > > CSI2: ComplexIO Error IRQ 80
-> > > <3>CSI2: ComplexIO Error IRQ c2
-> > > CSI2: ComplexIO Error IRQ c2
-> > > <3>CSI2: ComplexIO Error IRQ c2
-> > > CSI2: ComplexIO Error IRQ c2
-> > > <3>CSI2: ComplexIO Error IRQ c6
-> > > CSI2: ComplexIO Error IRQ c6
-> > > <3>CSI2: ECC correction failed
-> > > CSI2: ECC correction failed
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > >
+> > > Shouldn't this have been sqrt(PIX_YUV422P_ALIGN) (of course, not
+> > > literally) instead of PIX_YUV422P_ALIGN / 2? At least above you say,
+> > > height and width shall be 4 bytes aligned, not 8.
+> > That's a very good catch.
+> > Maybe 2 defines will fit better, as I'm not very please with log2 logic here ... :
 > >
-> > Oops, my mistake. Missed to add that struct there... Fixed now.
-> >
-> > About the CSI2 errors you're receiving... Which version of LDP are you
-> using? Which Silicon revision has (ES2.1 or ES3.0)?
+> > /*
+> >  * YUV422P picture size should be a multiple of 16, so the heuristic aligns
+> >  * height, width on 4 byte boundaries to reach the 16 multiple for the size.
+> >  */
+> > #define YUV422P_X_Y_ALIGN 4
+> > #define YUV422P_SIZE_ALIGN YUV422P_X_Y_ALIGN * YUV422P_X_Y_ALIGN
 > 
-> ZOOM1 board(LDP3430-VG1.0.0-1), omap3430 ES2.1.
-> 
-> When I use your old version patch, sometimes the test succeed, sometimes
-> failed(no data was generated and no error). This version, always failed.
+> Before you spend too much time on this, maybe I could offer a patch to use
+> the generic alignment function I posted before?  I beleive the method in
+> that code will produce better results I think there are multiple drivers
+> that could make use of it.
 
-Stanley,
+As Robert already replied to you: submit your patches, get them into 
+mainline, then we'll gladly switch to them if they suit our purpose.
 
-I'm working on some CSI2 fixes that could help you with this..
-
-I'll keep you updated on this.
-
-Also, about your board version, it is possible that you'll need a HW modfix because of a redundant resistor in CSI2 datalanes. I'm in talks with some people at TI to prepare a ready to publish document about this rework.
-
-Zoom1 with ES3 silicon doesn't need this HW fix.
-
-I'll hope to get back to you about this next week.
-
-Regards,
-Sergio
-
-> 
-> Thanks.
-> Stanley.
-> 
-> >
-> > Regards,
-> > Sergio
-> > >
-> > > Stanley.
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
