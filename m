@@ -1,99 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3674 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755090AbZCRWfU (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3436 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040AbZCPHqG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 18:35:20 -0400
+	Mon, 16 Mar 2009 03:46:06 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: davinci-linux-open-source@linux.davincidsp.com, chaithrika@ti.com
-Subject: Re: [RFC 4/7] ARM: DaVinci: DM646x Video: Defintions for standards supported by display
-Date: Wed, 18 Mar 2009 23:35:26 +0100
-Cc: linux-media@vger.kernel.org
-References: <1236934897-32160-1-git-send-email-chaithrika@ti.com> <200903141427.09177.hverkuil@xs4all.nl>
-In-Reply-To: <200903141427.09177.hverkuil@xs4all.nl>
+To: Jonathan Corbet <corbet@lwn.net>
+Subject: Re: RFC: ov7670 soc-camera driver
+Date: Mon, 16 Mar 2009 08:46:12 +0100
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de
+References: <49BD3669.1070409@cam.ac.uk> <20090315162338.3be11fec@bike.lwn.net>
+In-Reply-To: <20090315162338.3be11fec@bike.lwn.net>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200903182335.26742.hverkuil@xs4all.nl>
+Message-Id: <200903160846.12487.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chaithrika,
+On Sunday 15 March 2009 23:23:38 Jonathan Corbet wrote:
+> On Sun, 15 Mar 2009 17:10:01 +0000
+>
+> Jonathan Cameron <jic23@cam.ac.uk> wrote:
+> > The primary control on this chip related to shutter rate is actualy
+> > the frame rate. There are rather complex (and largerly undocumented)
+> > interactions between this setting and the auto brightness controls
+> > etc. Anyone have any suggestions on a better way of specifying this?
+>
+> Welcome to the world of the ov7670!  My conclusion, after working with
+> this sensor, is that is consists of something like 150 analog tweakers
+> disguised as digital registers.  Everything interacts with everything
+> else, many of the settings are completely undocumented, and that's not
+> to mention the weird multiplexor at 0x79.  It's hard to make this thing
+> work if you don't have a blessed set of settings from OmniVision.
+>
+> > Clearly this driver shares considerable portions of code with
+> > Jonathan Corbet's driver (in tree). It would be complex to combine
+> > the two drivers, but perhaps people feel this would be worthwhile?
+>
+> I think it's necessary, really.  Having two drivers for the same device
+> seems like a bad idea.  As Hans noted, he's already put quite a bit of
+> work into generalizing the ov7670 driver; I think it would be best to
+> work with him to get a driver that works for everybody.
 
-Just a quick note: getting these digital TV standards sorted out is the main 
-blocking issue for the DM646x. Without this nothing can get merged. In 
-addition, extending the V4L2 API will take time and usually takes several 
-review cycles. So I recommend that this gets a high priority.
-
-I'm not sure if the importance of this came across in my initial review. My 
-apologies if that wasn't clear.
+Just FYI: I'll try to get my ov7670 code merged this week. I'm waiting for 
+Mauro to merge a pending pull request of mine, and then I'll rebase 
+my 'cafe2' tree and send out a pull request for it.
 
 Regards,
 
 	Hans
-
-On Saturday 14 March 2009 14:27:09 Hans Verkuil wrote:
-> On Friday 13 March 2009 10:01:37 chaithrika@ti.com wrote:
-> > From: Chaithrika U S <chaithrika@ti.com>
-> >
-> > Add defintions for Digital TV Standards supported by display driver
-> >
-> > Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-> > ---
-> > Applies to v4l-dvb repository located at
-> > http://linuxtv.org/hg/v4l-dvb/rev/1fd54a62abde
-> >
-> >  include/linux/videodev2.h |   12 ++++++++++++
-> >  1 files changed, 12 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 7a8eafd..df4a622 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -704,6 +704,18 @@ typedef __u64 v4l2_std_id;
-> >  #define V4L2_STD_ALL            (V4L2_STD_525_60	|\
-> >  				 V4L2_STD_625_50)
-> >
-> > +#define V4L2_STD_720P_60        ((v4l2_std_id)(0x0001000000000000ULL))
-> > +#define V4L2_STD_1080I_30       ((v4l2_std_id)(0x0002000000000000ULL))
-> > +#define V4L2_STD_1080I_25       ((v4l2_std_id)(0x0004000000000000ULL))
-> > +#define V4L2_STD_480P_60        ((v4l2_std_id)(0x0008000000000000ULL))
-> > +#define V4L2_STD_576P_50        ((v4l2_std_id)(0x0010000000000000ULL))
-> > +#define V4L2_STD_720P_25        ((v4l2_std_id)(0x0020000000000000ULL))
-> > +#define V4L2_STD_720P_30        ((v4l2_std_id)(0x0040000000000000ULL))
-> > +#define V4L2_STD_720P_50        ((v4l2_std_id)(0x0080000000000000ULL))
-> > +#define V4L2_STD_1080P_25       ((v4l2_std_id)(0x0100000000000000ULL))
-> > +#define V4L2_STD_1080P_30       ((v4l2_std_id)(0x0200000000000000ULL))
-> > +#define V4L2_STD_1080P_24       ((v4l2_std_id)(0x0400000000000000ULL))
-> > +
-> >  struct v4l2_standard {
-> >  	__u32		     index;
-> >  	v4l2_std_id          id;
->
-> This requires an RFC. I'm not convinced that using v4l2_std_id is the
-> best approach. If you look at the CEA-861-D you see a lot more standards
-> (and E adds even more). Not to mention that when the DM646x is used in
-> combination with e.g. an FPGA then it should be possible to supply the
-> driver with custom timings as well. The v4l2_std_id type was never
-> designed for that.
->
-> My gut feeling is that v4l2_std_id should be effectively frozen and used
-> for the old TV broadcast standards only, and that a new API should be
-> created to setup these digital formats.
->
-> I've discussed this with Manju in the past, and I suggest that TI should
-> make a proposal in the form of an RFC that we can then discuss on the
-> mailinglists. One of the disadvantages of being the first who needs these
-> HDTV formats. The advantage of being the first is that you can design it
-> yourself, of course!
->
-> Regards,
->
-> 	Hans
-
-
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
