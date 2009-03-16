@@ -1,20 +1,35 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2KKOXpH021906
-	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 16:24:33 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2KKODbc015564
-	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 16:24:13 -0400
-Received: by yw-out-2324.google.com with SMTP id 3so720154ywj.81
-	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 13:24:13 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2GEspri000928
+	for <video4linux-list@redhat.com>; Mon, 16 Mar 2009 10:54:52 -0400
+Received: from node03.cambriumhosting.nl (node03.cambriumhosting.nl
+	[217.19.16.164])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2GErgDx005983
+	for <video4linux-list@redhat.com>; Mon, 16 Mar 2009 10:53:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by node03.cambriumhosting.nl (Postfix) with ESMTP id 278B0B000182
+	for <video4linux-list@redhat.com>; Mon, 16 Mar 2009 15:53:42 +0100 (CET)
+Received: from node03.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node03.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
+	port 10024)
+	with ESMTP id z38DyAy84Rnv for <video4linux-list@redhat.com>;
+	Mon, 16 Mar 2009 15:53:40 +0100 (CET)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
+	[84.245.3.195])
+	by node03.cambriumhosting.nl (Postfix) with ESMTP id A7A2BB000084
+	for <video4linux-list@redhat.com>; Mon, 16 Mar 2009 15:53:40 +0100 (CET)
+Received: from [192.168.1.239] (unknown [192.168.1.239])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id 4B5A723BC415
+	for <video4linux-list@redhat.com>; Mon, 16 Mar 2009 15:52:18 +0100 (CET)
+Message-ID: <49BE67F2.2000402@powercraft.nl>
+Date: Mon, 16 Mar 2009 15:53:38 +0100
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Date: Fri, 20 Mar 2009 14:24:12 -0600
-Message-ID: <2df568dc0903201324rc5c4982x45ce071c39ddc74b@mail.gmail.com>
-From: Gordon Smith <spider.karma+video4linux-list@gmail.com>
 To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Failure to read saa7134/saa6752hs MPEG output
+Content-Transfer-Encoding: 7bit
+Subject: how to record synchronized real time audio video from usb v4l2
+ devices with generic tools.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,83 +41,71 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello -
+Hello everybody,
 
-I'm unable to read or stream compressed data from saa7134/saa6752hs.
+I have been trying to make a high quality live recording system from an
+eeepc 701 with data input from usb devices. I have used several 2+
+MegaPixel UVC webcams and USB composite grabbing devices.
 
-I have a RTD Technologies VFG7350 (saa7134 based, two channel,
-hardware encoder per channel, no tuner) running current v4l-dvb in
-debian 2.6.26-1.
+I have used gstreamer, vlc, and mplayer, ffmpeg and mencoder for testing.
+I spent 7 days doing testing and sending messages to the mplayer,
+mencoder, gstreamer and uvc mailinglists and irc channels.
 
-MPEG2-TS data is normally available on /dev/video2 and /dev/video3.
+The end result was negative, I have been unable to get my webcams working
+with mencoder or mplayer with higher resolutions then 640x480 while it
+was capable of 1600x1200@5fps and 800x600@25fps.
 
-Previously there were parameters for the saa6752hs module named
-"force" and "ignore" to modify i2c addresses. The current module
-appears to lack those parameters and may be using incorrect i2c addresses.
+gstreamer had limited functionality unable to select v4l2 input sources
+(i found workarounds) and has extreme high cpu requirements making it
+unusable for live data.
 
-Current dmesg:
+With lower resolutions I have had issues that disk throughput was to high
+for the ssd disks +15MBs or that single treaded encoders where to heavy
+for the eeepc 701 (or 901 1,6GHz atom)
 
-[   13.388944] saa6752hs 3-0020: chip found @ 0x40 (saa7133[0])
-[   13.588458] saa6752hs 4-0020: chip found @ 0x40 (saa7133[1])
+There were some commands that run fine with for example 320x240@30fps
+with mpeg4 and mp3 in avi containers but audio and video was out of sync.
 
-Prior dmesg (~2.6.25-gentoo-r7 + v4l-dvb ???):
+ffmpeg was unable to process from two named pipes and needed to run with
+two separated instances that would mux later, but generated out of sync
+video with wrong fps.
 
-saa6752hs 1-0021: saa6752hs: chip found @ 0x42
-saa6752hs 1-0021: saa6752hs: chip found @ 0x42
+One of the major issues was instable fps form the v4l2 recourses
+especially when staring the stream, i don't know why this is but it make
+synchronized recording very hard.
 
-Prior modprobe.conf entry:
-options saa6752hs force=0x1,0x21,0x2,0x21 ignore=0x0,0x20,0x1,0x20,0x2,0x20
+While there are 101 different ways to do things I spent a lot of time on
+trying some of these ways to work.
 
+I have attached all my reports and info in the reports0.tar.gz that can
+be found here: http://filebin.ca/swcom/reports0.tar.gz
 
-$ v4l2-dbg --device /dev/video2 --info
-Driver info:
-        Driver name   : saa7134
-        Card type     : RTD Embedded Technologies VFG73
-        Bus info      : PCI:0000:02:08.0
-        Driver version: 526
-        Capabilities  : 0x05000001
-                Video Capture
-                Read/Write
-                Streaming
+The main file is in the doc/notes.log and test reports of various quality
+can be found in the other directories.
 
-Streaming is a listed capability but the capture example at
-http://v4l2spec.bytesex.org/spec/capture-example.html fails
-during request for buffers.
+I really hope somebody will be able to get a nice test systems working
+and can show me how it can be done on low end machines/embedded systems
+with usb2.0 interfaces.
 
-$ v4l2-capture --device /dev/video2 --mmap
-/dev/video2 does not support memory mapping
+I hope all the collected commands and reports can be of great value for
+anybody trying to get recording and possible later live streaming possible.
 
-v4l2-capture.c:
-        req.count               = 4;
-        req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        req.memory              = V4L2_MEMORY_MMAP;
+Feel free to contact me when you have any questions or when you got some
+nice setup working with free/libre open source software and recognize
+generic tools.
 
-        if (-1 == xioctl (fd, VIDIOC_REQBUFS, &req)) {
-                if (EINVAL == errno) {
-                        fprintf (stderr, "%s does not support "
-                                 "memory mapping\n", dev_name);
+It would also be nice to see some libraries for video and audio
+processing that deliver advanced features found in many digital photo and
+video camera's. So it would be possible to make an usable photo/video
+device with free/libre open source tools.
 
+Thanks in advance,
 
-A read() results in EIO error:
+Best regards,
 
-$ v4l2-capture --device /dev/video0 --read
-read error 5, Input/output error
+Jelle de Jong
 
-v4l2-capture.c:
-                if (-1 == read (fd, buffers[0].start, buffers[0].length)) {
-                        switch (errno) {
-            ...
-                        default:
-                                errno_exit ("read");
-
-
-This behavior does not change if the saa6752hs module is not loaded.
-
-Is there still a way to modify the i2c address(es) for the saa6752hs module?
-
-Any pointers are appreciated.
-
-Gordon
+http://filebin.ca/swcom/reports0.tar.gz
 
 --
 video4linux-list mailing list
