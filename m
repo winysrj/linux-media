@@ -1,59 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:61756 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751061AbZCZJW3 (ORCPT
+Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:60226 "EHLO
+	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750827AbZCPSje (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 05:22:29 -0400
-Received: by fxm2 with SMTP id 2so440114fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 26 Mar 2009 02:22:26 -0700 (PDT)
+	Mon, 16 Mar 2009 14:39:34 -0400
+Date: Mon, 16 Mar 2009 11:39:32 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+In-Reply-To: <24193.62.70.2.252.1237205766.squirrel@webmail.xs4all.nl>
+Message-ID: <Pine.LNX.4.58.0903161137480.28292@shell2.speakeasy.net>
+References: <24193.62.70.2.252.1237205766.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20090326053409.6a310c6a@pedra.chehab.org>
-References: <36c518800903251619j371b31bbyb6731d26c1357a34@mail.gmail.com>
-	 <20090326053409.6a310c6a@pedra.chehab.org>
-Date: Thu, 26 Mar 2009 11:22:26 +0200
-Message-ID: <36c518800903260222j2ae177e9g9d3ad5f5b9d8d37d@mail.gmail.com>
-Subject: Re: patchwork tool
-From: vasaka@gmail.com
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 26, 2009 at 10:34 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> On Thu, 26 Mar 2009 01:19:08 +0200
-> vasaka@gmail.com wrote:
+On Mon, 16 Mar 2009, Hans Verkuil wrote:
+> >> +++ b/linux/drivers/media/video/bt8xx/bttvp.h	Sun Mar 15 13:07:15 2009
+> >> +0100
+> >> @@ -331,6 +331,7 @@ struct bttv {
+> >>  	unsigned int tuner_type;  /* tuner chip type */
+> >>  	unsigned int tda9887_conf;
+> >>  	unsigned int svhs, dig;
+> >> +	int has_saa6588;
+> >
+> > Does it need to be a 32 or 64 bit integer?
 >
->> Hello,
->>
->> how should I format my post in order to patchwork tool understand
->> included patch correctly,
+> I'll replace it with a u8.
 >
-> If patchwork is not adding your patches there, then it means that the patches
-> are broken (for example, line-wrapped), or that you're attaching it, and your
-> emailer are using the wrong mime encoding type for diffs.
->
->> should I just format it like in v4l-dvb/README.patches described?
->> then how should I add additional comments to the mail which I do not
->> want to be in the patch log?
->
-> All comments you add on your patch will be part of the commit message (except
-> for the meta-tags, like from:).
->
->> It seems it is possible without special comment symbols.
->
->
-> Cheers,
-> Mauro
->
+> >
+> >>  	struct bttv_pll_info pll;
+> >>  	int triton1;
+> >>  	int gpioirq;
 
-can it be that patch made by
-$diff -uprN v4l-dvb.orig v4l-dvb.my > patch.patch
-and make commit in .my tree did not complain still broken?
-
-does gmail's web interface plain text mail composer has known issues,
-which can interfere with sending patches?
-
-vasaka
+Due to field alignment in the structure it won't make any difference.
