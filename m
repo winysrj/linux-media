@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-4.mail.uk.tiscali.com ([212.74.114.32]:60963
-	"EHLO mk-outboundfilter-4.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755151AbZCFPsL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Mar 2009 10:48:11 -0500
-Message-ID: <49B145BC.4020405@nildram.co.uk>
-Date: Fri, 06 Mar 2009 15:48:12 +0000
-From: Lou Otway <lotway@nildram.co.uk>
-Reply-To: lotway@nildram.co.uk
+Received: from smtp6-g21.free.fr ([212.27.42.6]:49976 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751230AbZCPS1C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2009 14:27:02 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/4] pxa_camera: Enforce YUV422P frame sizes to be 16 multiples
+References: <1236986240-24115-1-git-send-email-robert.jarzmik@free.fr>
+	<1236986240-24115-2-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0903142359230.8263@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 16 Mar 2009 19:26:50 +0100
+Message-ID: <8763i9fhn9.fsf@free.fr>
 MIME-Version: 1.0
-To: Pierre Gronlier <ticapix@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: TT S2-3200 and CAMs
-References: <49AE8BB3.3010501@nildram.co.uk> <49AEB91C.6010804@gmail.com>
-In-Reply-To: <49AEB91C.6010804@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pierre Gronlier wrote:
-> Lou Otway wrote:
->   
->> Hi,
->>
->> I've been testing the TT S2-3200 card and while it performs well for FTA
->> services I have been unable to get it working with encrypted services using
->> the CI slot.
->>
->> With VLC I am able to tune to the transponder and pick up all the services
->> but they are not decrypted, unencrypted services work fine.
->>
->> Using a DVB-S card with CI I am able to tune successfully, proving the CAMs
->> are valid. This leads me to believe there may be a problem with the drivers
->> for the S2-3200.
->>
->> Has anyone managed to get CAMs working with this card?
->>
->>     
->
-> yes, I manage to decrypt a entire dvb-s transponder using a powercam and
-> mumudvb for streaming channels.
->
-> I'm using the v4l-dvb driver from the hg repository.
->
-> For mumudvb, I made a checkout of the git repository
-> http://mumudvbgit.braice.net/mumudvb.git and compiled the source with
-> LIBDVBEN50221=1 make (you need the dvb-apps to be installed)
->
->
-> But using this card, I didn't manage to lock on my second lnd head, so I
-> manage to lock on astra 19.2E but not on hotbird 13.0E.
->
->
-> Pierre
->   
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Thanks, I managed to get this card working.
+>> @@ -162,6 +162,8 @@
+>>  			CICR0_PERRM | CICR0_QDM | CICR0_CDM | CICR0_SOFM | \
+>>  			CICR0_EOFM | CICR0_FOM)
+>>  
+>> +#define PIX_YUV422P_ALIGN 16	/* YUV422P pix size should be a multiple of 16 */
+>
+> What is a "pix size?" Did you mean "picture size?"
+Yes. I'll change the comment from "pix size" into "picture size"
 
-Lou
+>> -	/* planar capture requires Y, U and V buffers to be page aligned */
+>> -	if (pcdev->channels == 3) {
+>> -		*size = PAGE_ALIGN(icd->width * icd->height); /* Y pages */
+>> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* U pages */
+>> -		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* V pages */
+>> -	} else {
+>> -		*size = icd->width * icd->height *
+>> -			((icd->current_fmt->depth + 7) >> 3);
+>> -	}
+>> +	if (pcdev->channels == 3)
+>> +		*size = icd->width * icd->height * 2;
+>
+> This is not very obvious, why "* 2". Maybe use
+>
+> pxa_camera_formats[0].depth / 8 or at least add a comment?
+
+Yes.
+I was wondering about simplifying the if (removing it actually), and changing :
+>> +	if (pcdev->channels == 3)
+>> +		*size = icd->width * icd->height * 2;
+>> +	else
+>> +		*size = roundup(icd->width * icd->height *
+>> +				((icd->current_fmt->depth + 7) >> 3), 8);
+into:
+	*size = roundup(icd->width * icd->height *
+			((icd->current_fmt->depth + 7) >> 3), 8);
+
+>> +	if (xlate->host_fmt->fourcc == V4L2_PIX_FMT_YUV422P) {
+>> +		if (!IS_ALIGNED(pix->width * pix->height, PIX_YUV422P_ALIGN))
+>> +			pix->height = ALIGN(pix->height, PIX_YUV422P_ALIGN / 2);
+>> +		if (!IS_ALIGNED(pix->width * pix->height, PIX_YUV422P_ALIGN))
+>> +			pix->width = ALIGN(pix->width, PIX_YUV422P_ALIGN / 2);
+>
+> Shouldn't this have been sqrt(PIX_YUV422P_ALIGN) (of course, not 
+> literally) instead of PIX_YUV422P_ALIGN / 2? At least above you say, 
+> height and width shall be 4 bytes aligned, not 8.
+That's a very good catch.
+Maybe 2 defines will fit better, as I'm not very please with log2 logic here ... :
+
+/*
+ * YUV422P picture size should be a multiple of 16, so the heuristic aligns
+ * height, width on 4 byte boundaries to reach the 16 multiple for the size.
+ */
+#define YUV422P_X_Y_ALIGN 4
+#define YUV422P_SIZE_ALIGN YUV422P_X_Y_ALIGN * YUV422P_X_Y_ALIGN
+
+Cheers.
+
+--
+Robert
