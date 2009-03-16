@@ -1,34 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nav6.org ([219.93.2.80]:53664 "EHLO nav6.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248AbZCMCSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 22:18:16 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by nav6.org (Postfix) with ESMTP id C13681D6013D
-	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 01:14:23 +0000 (UTC)
-Received: from [202.249.25.153] (unknown [202.249.25.153])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by nav6.org (Postfix) with ESMTP id 2250A1D6011E
-	for <linux-media@vger.kernel.org>; Fri, 13 Mar 2009 09:14:21 +0800 (MYT)
-Message-ID: <49B9BC93.8060906@nav6.org>
-Date: Fri, 13 Mar 2009 10:53:23 +0900
-From: Ang Way Chuang <wcang@nav6.org>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1447 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752618AbZCPKrz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2009 06:47:55 -0400
+Message-ID: <29389.62.70.2.252.1237200462.squirrel@webmail.xs4all.nl>
+Date: Mon, 16 Mar 2009 11:47:42 +0100 (CET)
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: The right way to interpret the content of SNR, signal strength and
- BER from HVR 4000 Lite
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-	I've looked through the mailing list and there seems to be no standard
-way to interpret to content of SNR, signal strength and BER returned
-from the DVB API. So, I wonder if someone knows how to interpret these
-values at least for HVR 4000 Lite? Thanks.
+
+> On Sun, 15 Mar 2009 13:24:00 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> Hi Mauro,
+>>
+>> Can you review my ~hverkuil/v4l-dvb-bttv2 tree?
+>>
+>> It converts this driver to v4l2_subdev, and as far as I can see it works
+>> and
+>> should probe all the different audio devices in the correct and safe
+>> order.
+>>
+>> I kept things as simple as possible in order to make a review easy.
+>
+> Could you please break this changeset even more:
+> 	http://linuxtv.org/hg/~hverkuil/v4l-dvb-bttv2/rev/583981be1a4d
+>
+> The reason is that it not just add support to tda9875, but also changes
+> the
+> behaviour of mute and input selection. Had you find a bug with the old
+> way?
+
+Oops, I'd forgotten about that. That was indeed a bug and should be put in
+as a separate change. The MUTE support is related to INPUTSEL in tvaudio.
+But it didn't always test for INPUTSEL.
+
+Thanks for catching this.
 
 Regards,
-Ang Way Chuang
+
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
