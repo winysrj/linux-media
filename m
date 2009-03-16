@@ -1,108 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3775 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbZC3Muq convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4657 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354AbZCPPfK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 08:50:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Daniel =?iso-8859-1?q?Gl=F6ckner?= <dg@emlix.com>
-Subject: Re: [patch 5/5] saa7121 driver for s6000 data port
-Date: Mon, 30 Mar 2009 14:50:05 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Chris Zankel <chris@zankel.net>, linux-media@vger.kernel.org
-References: <13003.62.70.2.252.1238080086.squirrel@webmail.xs4all.nl> <200903301203.02327.hverkuil@xs4all.nl> <49D0B71A.5080801@emlix.com>
-In-Reply-To: <49D0B71A.5080801@emlix.com>
+	Mon, 16 Mar 2009 11:35:10 -0400
+Message-ID: <55926.62.70.2.252.1237217691.squirrel@webmail.xs4all.nl>
+Date: Mon, 16 Mar 2009 16:34:51 +0100 (CET)
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Trent Piepho" <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200903301450.05240.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 30 March 2009 14:12:10 Daniel Glöckner wrote:
-> On 03/30/2009 12:03 PM, Hans Verkuil wrote:
-> > What exactly do you need? If there is something missing, then it should be 
-> > added. But my guess is that you can pass such information via the s_routing 
-> > callback. That's what all other drivers that use v4l2_subdev do.
-> 
-> The s_routing callback looks very limited. One can pass only two u32 values.
 
-If a driver needs it, it can be extended. In particular I always thought that
-a third config value would be useful.
+> On Mon, 16 Mar 2009 14:04:19 +0100 (CET)
+> "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+>
+>>
+>> >> > Based on this principle, IMO, the probing function should, by
+>> default,
+>> >> > probe
+>> >> > for tvaudio, if it doesn't find another audio device. You may
+>> >> eventually
+>> >> > ask
+>> >> > for people to report, to warn us that the board entry is broken,
+>> but
+>> >> we
+>> >> > shouln't intentionally break a device that we're almost sure that
+>> >> requires
+>> >> > tvaudio or tda7432.
+>> >>
+>> >> OK. In other words it would be better to probe for:
+>> >>
+>> >> 1) msp3400
+>> >> 2) msp3400_alt
+>> >> 3) tda7432
+>> >> 4) tvaudio
+>> >>
+>> >> and return as soon as we find a chip. So tvaudio is probed
+>> >> unconditionally, effectively ignoring the needs_tvaudio flag and only
+>> >> honoring the tvaudio module option (although I'm not sure whether
+>> that
+>> >> is
+>> >> still needed in that case).
+>> >
+>> > IMO, we should handle the needs_tvaudio with a different behaviour:
+>> using
+>> > such kind of
+>> > glue only when we're sure about the tv audio chips used for a certain
+>> > board. If
+>> > unsure, use the auto probing. Otherwise, we'll probe just that know
+>> > chip(s) range.
+>>
+>> I have to admit that I've no idea what you mean. My patch replicates the
+>> original behavior of 'modprobe tvaudio' where all i2c addresses are
+>> probed
+>> that tvaudio supports (from the normal_i2c array in tvaudio.c). We
+>> cannot
+>> do a subset of this since it was never administrated which chip in
+>> particular is on the board, just that it is one of the chips supported
+>> by
+>> tvaudio.
+>>
+>> If you want to be able to select particular devices, then you need to
+>> administrate that in the card definitions. That's out of scope of this
+>> patch IMHO.
+>
+> You got my idea wrong. I'm just saying that maybe the better is to have
+> the
+> default probing behaviour by default.
+>
+> However, if the board has a defined set of tv audio modules that we're
+> sure,
+> then we may override the automatic loading order.
+>
+> So, the final implementation would be something like:
+>
+> 1) Try the modules that has explicit arguments at modprobe, or that
+> needs_foo
+> first;
+> 2) Try the probing way;
+> 3) Give up trying to load an audio driver, printing an error message.
+>
+> If we eventually found any bttv board without any audio driver, then we
+> can add
+> a no_audio bit field to skip the probing process.
+>
+> Note: since we can't really trust much on what we have (due to the
+> non-standard
+> ways of probing the drivers, that it is possible with bttv), IMO, that
+> the logic you've implemented, with the adjustments I've proposed seem
+> enough,
+> but this is just my 2 cents.
+>
+> We really need some feedback from the users to be sure if the bttv driver
+> is
+> properly working with the new logic, to be more certain that this approach
+> is
+> ok.
 
-> The parameters that have to be negotiated are:
-> - What is the on-wire video format?
+I'll redo my bttv tree incorporating all your review comments on Tuesday
+or Wednesday.
 
-That might go to such a config value.
+One request: I have a v4l-dvb pull request pending. Can you take a look at
+that? It does contain the tvaudio change as well: feel free to skip that
+one if you want me to split that change up into two patches (one for the
+mute bug fix, and one for the tda9875 merge). But besides build fixes and
+some housekeeping changes that tree also contains a patch for a new
+v4l2_device_disconnect function. Both pvrusb2 and my cafe/ov7670
+conversion need that to go in first.
 
-> - how many data lines are connected?
-
-routing
-
-> - synchronization using embedded SAV/EAV codes or using dedicated pins?
-
-config value and/or routing.
-
-> - polarity of sync lines?
-
-config
-
-> - valid CRC and line number in digital blanking?
-
-Do you really need to control these?
-
-> - what is the layout of the digital image?
-> - how many odd lines are there? how many even? (including blanking)
-> - how many horizontal pixels? (incl. blanking)
-> - where is the active region?
-> - on which pixels/lines do we start/end horizontal/vertical sync?
-
-It's a PAL/NTSC encoder, so the standard specified with s_std_output will
-map to the corresponding values that you need to put in. This is knowledge
-that the i2c driver implements.
-
-> 
-> >> It seems the soc-camera framework is a better choice here, but to make it
-> >> work with the saa7121 one would first have to implement support for video
-> >> output.
-> > 
-> > This framework will also be converted to use v4l2_subdev for the 
-> > communication with i2c drivers.
-> 
-> So it shouldn't matter which one I chose?
-
-You will have to do the work anyway. Better to go with the new framework then
-having to do the work twice.
-
-> > Actually, I recommend that you first look at the existing saa7127.c source.
-> > I don't know how many differences there are between the saa7121 and 
-> > saa7127, but perhaps support for the saa7121 can be added there rather than 
-> > introducing a new driver. Of course, that only works if the differences are 
-> > not too big.
-> 
-> The chips appear to be very similar, sharing most of the registers. However, the
-> aforementioned problem still exists with this driver. A driver connecting this
-> sub device must know beforehand that it has to send standard BT.656 video frames
-> with SAV/EAV codes.
-
-So? If some future driver wants to do this differently, then we add the
-necessary code to the i2c driver. It's not fixed in stone, you know :-)
-
-Basically a driver only implements what can be tested. There is little point
-in adding a full feature set for a device if you are unable to test the code
-as well. So if a newer board appears in the future that needs to use
-something new, then we add support for that to the i2c driver.
-
-Looking at the datasheets I don't think you should make a new driver for
-this. Unless something crops up that makes it hard to use saa7127.c I think
-you should extend that driver to support saa7121 and add support for the
-missing functionality. But only what is necessary for your setup.
+Especially Mike Isely is waiting for this to go in so that he can create
+the pull request for the pvrusb2 conversion. And a very big 'Thank you!'
+to him for doing that work!
 
 Regards,
 
-	Hans
+      Hans
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
