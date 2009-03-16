@@ -1,39 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kenny.juvepoland.com ([193.218.153.206]:53511 "EHLO
-	kenny.juvepoland.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670AbZCaSck convert rfc822-to-8bit (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.177]:52594 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752014AbZCPXX6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 14:32:40 -0400
-Received: from railis.localnet (unknown [89.231.199.115])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by kenny.juvepoland.com (Postfix) with ESMTP id D93474E12
-	for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 20:04:16 +0200 (CEST)
-From: Dominik Sito <railis@juvepoland.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Does skystar dvb usb2 card work in linux ?
-Date: Tue, 31 Mar 2009 20:04:44 +0200
-References: <267bb6670903311039j7d37afcelf66d6a9cecd3637c@mail.gmail.com>
-In-Reply-To: <267bb6670903311039j7d37afcelf66d6a9cecd3637c@mail.gmail.com>
+	Mon, 16 Mar 2009 19:23:58 -0400
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200903312004.45039.railis@juvepoland.com>
+In-Reply-To: <20090316225653.GP19229@atomide.com>
+References: <200903051749.13016.hverkuil@xs4all.nl>
+	 <87myblgjye.fsf@deeprootsystems.com>
+	 <20090316225653.GP19229@atomide.com>
+Date: Tue, 17 Mar 2009 08:23:55 +0900
+Message-ID: <9c9fda240903161623g27fc05c9tb847888682beff0e@mail.gmail.com>
+Subject: Re: Embedded Linux Conference
+From: Kyungmin Park <kmpark@infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Manjunath Hadli <mrh@ti.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tuesday 31 March 2009 19:39:28 a dehqan napisał(a):
-> In The Name Of God
->
-> I'll be thankfull if you guide ;
-> Does skystar dvb usb2 card work in linux ?Does it have linux driver ?
-> has anyone tested it ?
->
-> regards dehqan
+Hi,
 
-I think it's still undone. I have not clear information, but there would be 
-any information about that. I'm not sure, but flexcop-usb isn't 
-supported by USB 2.0. If i'm wrong please enlight me.
-Regards
+On Tue, Mar 17, 2009 at 7:56 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
+>> Hans Verkuil <hverkuil@xs4all.nl> writes:
+>>
+>> > Just FYI:
+>> >
+>> > I'll be attending the Embedded Linux Conference in San Francisco, April
+>> > 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
+>> >
+>> > This might be a good opportunity to discuss omap and davinci V4L2 issues
+>> > face-to-face. Let me know if you are interested.
+>> >
+>>
+>> I will be there as well, and while not directly involved with V4L2,
+>> I'm involved in various parts of getting OMAP and DaVinci devices
+>> supported in mainline kernels.
+
+I will be there too,
+I'm interested in Power Management at OMAP and also interested with
+how to work with community
+such as how to open our in-house kernel and so on.
+
+>
+> Yeah I'll be in town too and will be dropping by at the conf
+> here and there.
+>
+> Maybe let's arrange something to get some beers one night during
+> the conf?
+>
+
+then see you there.
+
+Thank you,
+Kyungmin Park
