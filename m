@@ -1,112 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f118.google.com ([209.85.221.118]:42646 "EHLO
-	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752458AbZCaKCX convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2879 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757513AbZCPNEd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 06:02:23 -0400
-Received: by qyk16 with SMTP id 16so4339842qyk.33
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 03:02:21 -0700 (PDT)
+	Mon, 16 Mar 2009 09:04:33 -0400
+Message-ID: <45192.62.70.2.252.1237208659.squirrel@webmail.xs4all.nl>
+Date: Mon, 16 Mar 2009 14:04:19 +0100 (CET)
+Subject: Re: REVIEW: bttv conversion to v4l2_subdev
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Trent Piepho" <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <de8cad4d0903290725t2e7764a8pe2c0d1b7d67ea8c4@mail.gmail.com>
-References: <164695.77575.qm@web56903.mail.re3.yahoo.com>
-	 <412bdbff0903161118o2d038bdetc4d52851e35451df@mail.gmail.com>
-	 <63160.21731.qm@web56906.mail.re3.yahoo.com>
-	 <1237251478.3303.37.camel@palomino.walls.org>
-	 <954486.20343.qm@web56908.mail.re3.yahoo.com>
-	 <1237425168.3303.94.camel@palomino.walls.org>
-	 <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
-	 <871136.15243.qm@web56908.mail.re3.yahoo.com>
-	 <1238297237.3235.42.camel@palomino.walls.org>
-	 <de8cad4d0903290725t2e7764a8pe2c0d1b7d67ea8c4@mail.gmail.com>
-Date: Tue, 31 Mar 2009 06:02:20 -0400
-Message-ID: <de8cad4d0903310302s2df38ba8re605fc0cc3a4f266@mail.gmail.com>
-Subject: Re: Problems with Hauppauge HVR 1600 and cx18 driver
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Corey Taylor <johnfivealive@yahoo.com>,
-	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	ivtv-users@ivtv-driver.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 29, 2009 at 10:25 AM, Brandon Jenkins <bcjenkins@tvwhere.com> wrote:
-> On Sat, Mar 28, 2009 at 11:27 PM, Andy Walls <awalls@radix.net> wrote:
->> On Mon, 2009-03-23 at 06:52 -0700, Corey Taylor wrote:
->>> > Andy,
->>>
->>> > I am noticing an improvement in pixelation by setting the bufsize to
->>> > 64k. I will monitor over the next week and report back. I am running 3
->>> > HVR-1600s and the IRQs are coming up shared with the USB which also
->>> > supports my HD PVR capture device. Monday nights are usually one of
->>> > the busier nights for recording so I will know how well this holds up.
->>>
->>> > Thanks for the tip!
->>>
->>> > Brandon
->>>
->>> Hi Andy and Brandon, I too tried various different bufsizes as suggested and I still see very noticeable pixelation/tearing regardless of the setting.
->>>
->>> I even upgraded my motherboard this past weekend to an Asus AM2+ board with
->>> Phenon II X3 CPU. Still the same problems with the card in a brand new
->>> setup.
->>>
->>> I also tried modifying the cx18 source code as Andy suggested and that
->>> made more debug warning show up in my syslog, but still did not
->>> resolve the issue. Haven't tried this yet with the new motherboard
->>> though.
->>>
->>> Is it possible that this card is more sensitive to hiccups in the
->>> signal coming from the cable line? Or interference from other close-by
->>> cables and electronic equipment?
->>>
->>> When recording/watching Live TV through MythTV, I see that ffmpeg is
->>> constantly outputting various errors related to the video stream. I
->>> can post those here if you think it's relevant.
->>>
->>> Shoud I just return this card and get one with a different chipset? Or
->>> do you think driver updates can solve the issue?
->>>
->>> I'm happy to hold on to this card if it means I can contribute in some
->>> way to fixing the problem, if it's fixable : )
->>
->> Corey and Brandon,
->>
->> I found a race condition between the cx driver and the CX23418 firmware.
->> I have a patch that mitigates the problem here:
->>
->> http://linuxtv.org/hg/~awalls/cx18/rev/9f5f44e0ce6c
->>
->> I think the final form of the patch could be better.  However, this
->> patch essentially eliminated any artifacts I was getting playing back
->> digital TV.  I also had positive results running mplayer without the
->> "-cache" command line for both digital and analog captures.
->>
->> I haven't tested on a single processor machine, nor in a multicard
->> setup, but things looked good enough that I thought it ready for test by
->> others.
->>
->> Let me know if it helps or not.
->>
->> Regards,
->> Andy
->>
->>
-> Hi Andy,
->
-> I have cloned this tree and loaded on the server. I'll let you know
-> over the next couple of days if there is any improvement.
->
-> Thanks!
->
-> Brandon
->
 
-Andy,
+>> > Based on this principle, IMO, the probing function should, by default,
+>> > probe
+>> > for tvaudio, if it doesn't find another audio device. You may
+>> eventually
+>> > ask
+>> > for people to report, to warn us that the board entry is broken, but
+>> we
+>> > shouln't intentionally break a device that we're almost sure that
+>> requires
+>> > tvaudio or tda7432.
+>>
+>> OK. In other words it would be better to probe for:
+>>
+>> 1) msp3400
+>> 2) msp3400_alt
+>> 3) tda7432
+>> 4) tvaudio
+>>
+>> and return as soon as we find a chip. So tvaudio is probed
+>> unconditionally, effectively ignoring the needs_tvaudio flag and only
+>> honoring the tvaudio module option (although I'm not sure whether that
+>> is
+>> still needed in that case).
+>
+> IMO, we should handle the needs_tvaudio with a different behaviour: using
+> such kind of
+> glue only when we're sure about the tv audio chips used for a certain
+> board. If
+> unsure, use the auto probing. Otherwise, we'll probe just that know
+> chip(s) range.
 
-Based on continued discussions it seems you're still exploring things.
-I can tell you that the analog captures are still exhibiting
-artifacts. I'll get to some of the HD captures tonight.
+I have to admit that I've no idea what you mean. My patch replicates the
+original behavior of 'modprobe tvaudio' where all i2c addresses are probed
+that tvaudio supports (from the normal_i2c array in tvaudio.c). We cannot
+do a subset of this since it was never administrated which chip in
+particular is on the board, just that it is one of the chips supported by
+tvaudio.
 
-Brandon
+If you want to be able to select particular devices, then you need to
+administrate that in the card definitions. That's out of scope of this
+patch IMHO.
+
+Regards,
+
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
