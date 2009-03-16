@@ -1,650 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35140 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463AbZCDLrH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 06:47:07 -0500
-Date: Wed, 4 Mar 2009 13:30:30 +0200
-From: Felipe Balbi <felipe.balbi@nokia.com>
-To: "ext Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 1/5] MT9P012: Add driver
-Message-ID: <20090304113030.GT4640@scadufax.research.nokia.com>
-Reply-To: felipe.balbi@nokia.com
-References: <A24693684029E5489D1D202277BE89442E1D9220@dlee02.ent.ti.com>
+Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:54378 "EHLO
+	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753425AbZCPWrU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2009 18:47:20 -0400
+Date: Mon, 16 Mar 2009 15:47:17 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+In-Reply-To: <20090316224040.7672176a@hyperion.delvare>
+Message-ID: <Pine.LNX.4.58.0903161533090.28292@shell2.speakeasy.net>
+References: <200903151344.01730.hverkuil@xs4all.nl> <20090315181207.36d951ac@hyperion.delvare>
+ <Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
+ <20090315185313.4c15702c@hyperion.delvare> <20090316063402.1b0da1f3@gaivota.chehab.org>
+ <20090316121801.1c03d747@hyperion.delvare> <20090316095237.21775418@gaivota.chehab.org>
+ <20090316152802.7492dd20@hyperion.delvare> <Pine.LNX.4.58.0903161202330.28292@shell2.speakeasy.net>
+ <20090316224040.7672176a@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE89442E1D9220@dlee02.ent.ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 16 Mar 2009, Jean Delvare wrote:
+> On Mon, 16 Mar 2009 12:43:33 -0700 (PDT), Trent Piepho wrote:
+> > On Mon, 16 Mar 2009, Jean Delvare wrote:
+> > > Come on, just look at ir-kbd-i2c and tvaudio again, see how great are
+> > > these drivers which have been "designed" on top of the legacy i2c
+> > > binding model. Look at the bttv mess. Look at the zoran driver
+> > > conversion done by Hans a few weeks ago, which killed what, 3000 lines
+> > > of code? The old binding model was so bad that DVB doesn't even use it.
+> >
+> > IIRC, the zoran patch removed more like 1000 lines.
+>
+> You don't remember correctly:
+>  37 files changed, 4570 insertions(+), 7404 deletions(-)
+> That's 2834 lines. 1570 of which is for the removal of the saa7111 and
+> saa7114 and I agree this shouldn't count, so we're down to 1264 lines
+> removed. The removal of some "features" also shouldn't count but I
+> doubt it amounts to more than a few hundred lines.
 
-not looking at v4l2 part since it's not my area...
+1264 lines is "more like 1000 lines" than it is like 3000 lines!
 
+> In fact, to get a more accurate figure you can just look at the result
+> of my own conversion. There were two patches:
+>  13 files changed, 510 insertions(+), 625 deletions(-)
+>  11 files changed, 549 deletions(-)
+> This is -664 lines total. The exact number doesn't really matter. The
+> bottom line is that the new binding model requires significantly less
+> glue code than the legacy model. If you think some more about it, it
+> means a lot.
 
-On Tue, Mar 03, 2009 at 09:44:14PM +0100, ext Aguirre Rodriguez, Sergio Alberto wrote:
-> +#define SENSOR_DETECTED                1
-> +#define SENSOR_NOT_DETECTED    0
+Then how come the bttv patch added lines of code and a couple kB to the
+compiled driver size?
 
-these two should be unneeded...
+> > But it also deleted
+> > v4l1 support, highmem support, and bigphys_area support.  Maybe other
+> > things, Hans doesn't decribe his patches, so there's really no way to know
+> > what the zoran patch really did other than to weed through 10,000+ lines of
+> > diff which is mostly but not entirely moving blocks of code from one space
+> > to another and reindenting them.
+>
+> You are unfair. The pull request came with a short log of all the
+> changes.
 
-> +
-> +/**
-> + * struct mt9p012_reg - mt9p012 register format
-> + * @length: length of the register
-> + * @reg: 16-bit offset to register
-> + * @val: 8/16/32-bit register value
-> + *
-> + * Define a structure for MT9P012 register initialization values
-> + */
-> +struct mt9p012_reg {
-> +       u16     length;
-> +       u16     reg;
-> +       u32     val;
-> +};
-> +
-> +enum image_size {
-> +       BIN4XSCALE,
-> +       BIN4X,
-> +       BIN2X,
-> +       THREE_MP,
-> +       FIVE_MP
+"short" log.  His entire series was decribed with fewer words than I would
+use on a single patch that changes ten lines.
 
-you probably wanna prefix these with MT9P012_ to avoid namespace
-conflicts.
+> > If one includes the v4l1-compat module that is now providing v4l1 support
+> > (though it doesn't work correctly for zoran), the driver and the compat
+> > module are larger than the old driver was.  Of course one can now turn off
+> > v4l1 support and get a smaller driver than before.  And the v4l1 compat
+> > already existed and can be shared.  But I think it's more correct to say
+> > the size reduction of the zoran driver was from removing features and not
+> > from v4l2_subdev.  It seems like more of the the other subdev conversions
+> > have overall added more code than they removed.
+>
+> I am not familiar enough with this part of the code to say. But I guess
+> it doesn't really matter, as it wasn't my point anyway.
 
-> +};
-> +
-> +enum pixel_format {
-> +       RAWBAYER10
-> +};
-> +
-> +#define NUM_IMAGE_SIZES                5
-> +#define NUM_PIXEL_FORMATS      1
-> +#define NUM_FPS                        2       /* 2 ranges */
-> +#define FPS_LOW_RANGE          0
-> +#define FPS_HIGH_RANGE         1
-> +
-> +/**
-> + * struct capture_size - image capture size information
-> + * @width: image width in pixels
-> + * @height: image height in pixels
-> + */
-> +struct capture_size {
-> +       unsigned long width;
-> +       unsigned long height;
-> +};
-> +
-> +/**
-> + * struct mt9p012_pll_settings - struct for storage of sensor pll values
-> + * @vt_pix_clk_div: vertical pixel clock divider
-> + * @vt_sys_clk_div: veritcal system clock divider
-> + * @pre_pll_div: pre pll divider
-> + * @fine_int_tm: fine resolution interval time
-> + * @frame_lines: number of lines in frame
-> + * @line_len: number of pixels in line
-> + * @min_pll: minimum pll multiplier
-> + * @max_pll: maximum pll multiplier
-> + */
-> +struct mt9p012_pll_settings {
-> +       u16     vt_pix_clk_div;
-> +       u16     vt_sys_clk_div;
-> +       u16     pre_pll_div;
-> +
-> +       u16     fine_int_tm;
-> +       u16     frame_lines;
-> +       u16     line_len;
-> +
-> +       u16     min_pll;
-> +       u16     max_pll;
-> +};
-> +
-> +/*
-> + * Array of image sizes supported by MT9P012.  These must be ordered from
-> + * smallest image size to largest.
-> + */
-> +const static struct capture_size mt9p012_sizes[] = {
-> +       {  216, 162 },  /* 4X BINNING+SCALING */
-> +       {  648, 486 },  /* 4X BINNING */
-> +       { 1296, 972 },  /* 2X BINNING */
-> +       { 2048, 1536},  /* 3 MP */
-> +       { 2592, 1944},  /* 5 MP */
-> +};
-> +
-> +/* PLL settings for MT9P012 */
-> +enum mt9p012_pll_type {
-> +  PLL_5MP = 0,
-> +  PLL_3MP,
-> +  PLL_1296_15FPS,
-> +  PLL_1296_30FPS,
-> +  PLL_648_15FPS,
-> +  PLL_648_30FPS,
-> +  PLL_216_15FPS,
-> +  PLL_216_30FPS
-> +};
-
-missing tabs, fix identation.
-
-> +
-> +/* Debug functions */
-> +static int debug;
-> +module_param(debug, bool, 0644);
-> +MODULE_PARM_DESC(debug, "Debug level (0-1)");
-
-if it's a bool it's not debug level, it's debug on/off switch :-p
-
-> +static struct mt9p012_sensor mt9p012;
-> +static struct i2c_driver mt9p012sensor_i2c_driver;
-
-unneeded.
-
-> +static unsigned long xclk_current = MT9P012_XCLK_NOM_1;
-
-why ??
-
-> +static int
-> +find_vctrl(int id)
-
-I guess it fits in one line...
-
-> +static int
-> +mt9p012_read_reg(struct i2c_client *client, u16 data_length, u16 reg, u32 *val)
-> +{
-> +       int err;
-> +       struct i2c_msg msg[1];
-> +       unsigned char data[4];
-> +
-> +       if (!client->adapter)
-> +               return -ENODEV;
-> +       if (data_length != MT9P012_8BIT && data_length != MT9P012_16BIT
-> +                                       && data_length != MT9P012_32BIT)
-> +               return -EINVAL;
-> +
-> +       msg->addr = client->addr;
-> +       msg->flags = 0;
-> +       msg->len = 2;
-> +       msg->buf = data;
-> +
-> +       /* high byte goes out first */
-> +       data[0] = (u8) (reg >> 8);;
-> +       data[1] = (u8) (reg & 0xff);
-> +       err = i2c_transfer(client->adapter, msg, 1);
-> +       if (err >= 0) {
-> +               msg->len = data_length;
-> +               msg->flags = I2C_M_RD;
-> +               err = i2c_transfer(client->adapter, msg, 1);
-> +       }
-> +       if (err >= 0) {
-> +               *val = 0;
-> +               /* high byte comes first */
-> +               if (data_length == MT9P012_8BIT)
-> +                       *val = data[0];
-> +               else if (data_length == MT9P012_16BIT)
-> +                       *val = data[1] + (data[0] << 8);
-> +               else
-> +                       *val = data[3] + (data[2] << 8) +
-> +                               (data[1] << 16) + (data[0] << 24);
-> +               return 0;
-> +       }
-> +       dev_err(&client->dev, "read from offset 0x%x error %d", reg, err);
-
-doesn't this chip support smbus ?? It would be a lot simpler if it
-does... :-s
-
-> +static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power on)
-> +{
-> +       struct mt9p012_sensor *sensor = s->priv;
-> +       struct i2c_client *c = sensor->i2c_client;
-> +       int rval;
-> +
-> +       if ((on == V4L2_POWER_STANDBY) && (sensor->state == SENSOR_DETECTED))
-> +               mt9p012_write_regs(c, stream_off_list);
-> +
-> +       if (on != V4L2_POWER_ON)
-> +               sensor->pdata->set_xclk(0);
-> +       else
-> +               sensor->pdata->set_xclk(xclk_current);
-
-I guess this should be clk_enable() and clk_disabled() calls.
-
-> +
-> +       rval = sensor->pdata->power_set(on);
-> +       if (rval < 0) {
-> +               dev_err(&c->dev, "Unable to set the power state: " DRIVER_NAME
-> +                                                               " sensor\n");
-
-dev_err() should already hold the driver name. This could be changed to:
-
-dev_err(&c->dev, "Unable to set the power state, err %d\n"), rval);
-
-> +               sensor->pdata->set_xclk(0);
-> +               return rval;
-> +       }
-> +
-> +       if ((on == V4L2_POWER_ON) && (sensor->state == SENSOR_DETECTED))
-> +               mt9p012_configure(s);
-> +
-> +       if ((on == V4L2_POWER_ON) && (sensor->state == SENSOR_NOT_DETECTED)) {
-> +               rval = mt9p012_detect(c);
-
-this should be called during probe() and if it fails you bail out...
-otherwise the device will always be available, I guess...
-
-> +               if (rval < 0) {
-> +                       dev_err(&c->dev, "Unable to detect " DRIVER_NAME
-> +                                                               " sensor\n");
-> +                       sensor->state = SENSOR_NOT_DETECTED;
-> +                       return rval;
-> +               }
-> +               sensor->state = SENSOR_DETECTED;
-> +               sensor->ver = rval;
-> +               pr_info(DRIVER_NAME " chip version 0x%02x detected\n",
-> +                                                               sensor->ver);
-
-no pr_info, use dev_dbg();
-
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +/**
-> + * ioctl_init - V4L2 sensor interface handler for VIDIOC_INT_INIT
-> + * @s: pointer to standard V4L2 device structure
-> + *
-> + * Initialize the sensor device (call mt9p012_configure())
-> + */
-> +static int ioctl_init(struct v4l2_int_device *s)
-> +{
-> +       return 0;
-> +}
-> +
-> +/**
-> + * ioctl_dev_exit - V4L2 sensor interface handler for vidioc_int_dev_exit_num
-> + * @s: pointer to standard V4L2 device structure
-> + *
-> + * Delinitialise the dev. at slave detach.  The complement of ioctl_dev_init.
-> + */
-> +static int ioctl_dev_exit(struct v4l2_int_device *s)
-> +{
-> +       return 0;
-> +}
-> +
-> +/**
-> + * ioctl_dev_init - V4L2 sensor interface handler for vidioc_int_dev_init_num
-> + * @s: pointer to standard V4L2 device structure
-> + *
-> + * Initialise the device when slave attaches to the master.  Returns 0 if
-> + * mt9p012 device could be found, otherwise returns appropriate error.
-> + */
-> +static int ioctl_dev_init(struct v4l2_int_device *s)
-> +{
-> +       return 0;
-> +}
-> +/**
-> + * ioctl_enum_framesizes - V4L2 sensor if handler for vidioc_int_enum_framesizes
-> + * @s: pointer to standard V4L2 device structure
-> + * @frms: pointer to standard V4L2 framesizes enumeration structure
-> + *
-> + * Returns possible framesizes depending on choosen pixel format
-> + **/
-> +static int ioctl_enum_framesizes(struct v4l2_int_device *s,
-> +                                       struct v4l2_frmsizeenum *frms)
-> +{
-> +       int ifmt;
-> +
-> +       for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
-> +               if (frms->pixel_format == mt9p012_formats[ifmt].pixelformat)
-> +                       break;
-> +       }
-> +       /* Is requested pixelformat not found on sensor? */
-> +       if (ifmt == NUM_CAPTURE_FORMATS)
-> +               return -EINVAL;
-> +
-> +       /* Do we already reached all discrete framesizes? */
-> +       if (frms->index >= 5)
-> +               return -EINVAL;
-> +
-> +       frms->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-> +       frms->discrete.width = mt9p012_sizes[frms->index].width;
-> +       frms->discrete.height = mt9p012_sizes[frms->index].height;
-> +
-> +       return 0;
-> +}
-> +
-> +const struct v4l2_fract mt9p012_frameintervals[] = {
-> +       {  .numerator = 1, .denominator = 11 },
-> +       {  .numerator = 1, .denominator = 15 },
-> +       {  .numerator = 1, .denominator = 20 },
-> +       {  .numerator = 1, .denominator = 25 },
-> +       {  .numerator = 1, .denominator = 30 },
-> +};
-> +
-> +static int ioctl_enum_frameintervals(struct v4l2_int_device *s,
-> +                                       struct v4l2_frmivalenum *frmi)
-> +{
-> +       int ifmt;
-> +
-> +       for (ifmt = 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
-> +               if (frmi->pixel_format == mt9p012_formats[ifmt].pixelformat)
-> +                       break;
-> +       }
-> +       /* Is requested pixelformat not found on sensor? */
-> +       if (ifmt == NUM_CAPTURE_FORMATS)
-> +               return -EINVAL;
-> +
-> +       /* Do we already reached all discrete framesizes? */
-> +
-> +       if (((frmi->width == mt9p012_sizes[4].width) &&
-> +                               (frmi->height == mt9p012_sizes[4].height)) ||
-> +                               ((frmi->width == mt9p012_sizes[3].width) &&
-> +                               (frmi->height == mt9p012_sizes[3].height))) {
-> +               /* FIXME: The only frameinterval supported by 5MP and 3MP
-> +                * capture sizes is 1/11 fps
-> +                */
-> +               if (frmi->index != 0)
-> +                       return -EINVAL;
-> +       } else {
-> +               if (frmi->index >= 5)
-> +                       return -EINVAL;
-> +       }
-> +
-> +       frmi->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-> +       frmi->discrete.numerator =
-> +                               mt9p012_frameintervals[frmi->index].numerator;
-> +       frmi->discrete.denominator =
-> +                               mt9p012_frameintervals[frmi->index].denominator;
-> +
-> +       return 0;
-> +}
-> +
-> +static struct v4l2_int_ioctl_desc mt9p012_ioctl_desc[] = {
-> +       { .num = vidioc_int_enum_framesizes_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_enum_framesizes },
-> +       { .num = vidioc_int_enum_frameintervals_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_enum_frameintervals },
-> +       { .num = vidioc_int_dev_init_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_dev_init },
-> +       { .num = vidioc_int_dev_exit_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_dev_exit },
-> +       { .num = vidioc_int_s_power_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_s_power },
-> +       { .num = vidioc_int_g_priv_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_g_priv },
-> +       { .num = vidioc_int_init_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_init },
-> +       { .num = vidioc_int_enum_fmt_cap_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_enum_fmt_cap },
-> +       { .num = vidioc_int_try_fmt_cap_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_try_fmt_cap },
-> +       { .num = vidioc_int_g_fmt_cap_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_g_fmt_cap },
-> +       { .num = vidioc_int_s_fmt_cap_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_s_fmt_cap },
-> +       { .num = vidioc_int_g_parm_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_g_parm },
-> +       { .num = vidioc_int_s_parm_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_s_parm },
-> +       { .num = vidioc_int_queryctrl_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_queryctrl },
-> +       { .num = vidioc_int_g_ctrl_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_g_ctrl },
-> +       { .num = vidioc_int_s_ctrl_num,
-> +         .func = (v4l2_int_ioctl_func *)ioctl_s_ctrl },
-> +};
-> +
-> +static struct v4l2_int_slave mt9p012_slave = {
-> +       .ioctls = mt9p012_ioctl_desc,
-> +       .num_ioctls = ARRAY_SIZE(mt9p012_ioctl_desc),
-> +};
-> +
-> +static struct v4l2_int_device mt9p012_int_device = {
-> +       .module = THIS_MODULE,
-> +       .name = DRIVER_NAME,
-> +       .priv = &mt9p012,
-> +       .type = v4l2_int_type_slave,
-> +       .u = {
-> +               .slave = &mt9p012_slave,
-> +       },
-
-please tabify this.
-
-> +};
-> +
-> +/**
-> + * mt9p012_probe - sensor driver i2c probe handler
-> + * @client: i2c driver client device structure
-> + *
-> + * Register sensor as an i2c client device and V4L2
-> + * device.
-> + */
-> +static int
-> +mt9p012_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> +{
-> +       struct mt9p012_sensor *sensor = &mt9p012;
-
-you should kzalloc(sensor) during probe() and be sure to kfree() in the
-error case and on remove().
-
-> +       int err;
-> +
-> +       if (i2c_get_clientdata(client))
-> +               return -EBUSY;
-> +
-> +       sensor->pdata = client->dev.platform_data;
-
-it's not a good practice to hold the complete pdata. You should have
-something like:
-
-
-struct mt9p012_platform_data *pdata = client->dev.platorm_data;
-
-if (!pdata) {
-	dev_err(&client->dev, "no pdata\n";
-	return -EINVAL
-}
-
-sensor->power_set = pdata->power_set;
-sensor->... = pdata->...
-> +
-> +       if (!sensor->pdata) {
-> +               dev_err(&client->dev, "no platform data?\n");
-> +               return -ENODEV;
-
-why no dev ?? the device seems to exist...
-
-> +       }
-> +
-> +       sensor->v4l2_int_device = &mt9p012_int_device;
-> +       sensor->i2c_client = client;
-
-You don't wanna hold client, you just need dev. From dev you can fecth
-the i2c client pointer again by:
-
-sensor->dev = &client->dev;
-
-...
-
-client = to_i2c_client(sensor->dev);
-
-> +       i2c_set_clientdata(client, sensor);
-> +
-> +       /* Make the default capture format QCIF V4L2_PIX_FMT_SGRBG10 */
-> +       sensor->pix.width = MT9P012_VIDEO_WIDTH_4X_BINN_SCALED;
-> +       sensor->pix.height = MT9P012_VIDEO_WIDTH_4X_BINN_SCALED;
-> +       sensor->pix.pixelformat = V4L2_PIX_FMT_SGRBG10;
-> +
-> +       err = v4l2_int_device_register(sensor->v4l2_int_device);
-> +       if (err)
-> +               i2c_set_clientdata(client, NULL);
-> +
-> +       return err;
-> +}
-> +
-> +/**
-> + * mt9p012_remove - sensor driver i2c remove handler
-> + * @client: i2c driver client device structure
-> + *
-> + * Unregister sensor as an i2c client device and V4L2
-> + * device.  Complement of mt9p012_probe().
-> + */
-> +static int __exit
-> +mt9p012_remove(struct i2c_client *client)
-
-you can't do it, remove __exit from here. i2c drivers can't sit in
-__init or __exit only sections.
-
-> +{
-> +       struct mt9p012_sensor *sensor = i2c_get_clientdata(client);
-> +
-> +       if (!client->adapter)
-> +               return -ENODEV; /* our client isn't attached */
-
-this won't happen, if it does, fix your driver :-p
-
-> +
-> +       v4l2_int_device_unregister(sensor->v4l2_int_device);
-> +       i2c_set_clientdata(client, NULL);
-> +
-> +       return 0;
-> +}
-> +
-> +static const struct i2c_device_id mt9p012_id[] = {
-> +       { DRIVER_NAME, 0 },
-> +       { },
-> +};
-> +MODULE_DEVICE_TABLE(i2c, mt9p012_id);
-> +
-> +static struct i2c_driver mt9p012sensor_i2c_driver = {
-> +       .driver = {
-> +               .name = DRIVER_NAME,
-> +               .owner = THIS_MODULE,
-> +       },
-> +       .probe = mt9p012_probe,
-> +       .remove = __exit_p(mt9p012_remove),
-
-remove __exit_p()
-
-> +       .id_table = mt9p012_id,
-> +};
-> +
-> +static struct mt9p012_sensor mt9p012 = {
-> +       .timeperframe = {
-> +               .numerator = 1,
-> +               .denominator = 15,
-> +       },
-> +       .state = SENSOR_NOT_DETECTED,
-> +};
-> +
-> +/**
-> + * mt9p012sensor_init - sensor driver module_init handler
-> + *
-> + * Registers driver as an i2c client driver.  Returns 0 on success,
-> + * error code otherwise.
-> + */
-> +static int __init mt9p012sensor_init(void)
-> +{
-> +       return i2c_add_driver(&mt9p012sensor_i2c_driver);
-> +}
-> +module_init(mt9p012sensor_init);
-> +
-> +/**
-> + * mt9p012sensor_cleanup - sensor driver module_exit handler
-> + *
-> + * Unregisters/deletes driver as an i2c client driver.
-> + * Complement of mt9p012sensor_init.
-> + */
-> +static void __exit mt9p012sensor_cleanup(void)
-> +{
-> +       i2c_del_driver(&mt9p012sensor_i2c_driver);
-> +}
-> +module_exit(mt9p012sensor_cleanup);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_DESCRIPTION("mt9p012 camera sensor driver");
-> diff --git a/drivers/media/video/mt9p012_regs.h b/drivers/media/video/mt9p012_regs.h
-> new file mode 100644
-> index 0000000..70f6ee7
-> --- /dev/null
-> +++ b/drivers/media/video/mt9p012_regs.h
-> @@ -0,0 +1,74 @@
-> +/*
-> + * drivers/media/video/mt9p012_regs.h
-> + *
-> + * Register definitions for the MT9P012 camera sensor.
-> + *
-> + * Author:
-> + *     Sameer Venkatraman <sameerv@ti.com>
-> + *     Sergio Aguirre <saaguirre@ti.com>
-> + *     Martinez Leonides
-> + *
-> + *
-> + * Copyright (C) 2008 Texas Instruments.
-> + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2. This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
-> + */
-
-no reason to add this. It's only used in the sibbling C file, so move
-these there.
-
-> diff --git a/include/media/mt9p012.h b/include/media/mt9p012.h
-> new file mode 100644
-> index 0000000..13a9745
-> --- /dev/null
-> +++ b/include/media/mt9p012.h
-> @@ -0,0 +1,37 @@
-> +/*
-> + * drivers/media/video/mt9p012.h
-
-This path is wrong and nobody uses it anymore, it should be in form:
-
-mt9p012.h - Register definitions for the MT9P012 camera sensor
-
-> + *
-> + * Register definitions for the MT9P012 camera sensor.
-> + *
-> + * Author:
-> + *     Sameer Venkatraman <sameerv@ti.com>
-> + *     Martinez Leonides
-> + *
-> + *
-> + * Copyright (C) 2008 Texas Instruments.
-> + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2. This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
-> + */
-> +
-> +#ifndef MT9P012_H
-> +#define MT9P012_H
-> +
-> +
-> +#define MT9P012_I2C_ADDR               0x10
-> +
-> +/**
-> + * struct mt9p012_platform_data - platform data values and access functions
-> + * @power_set: Power state access function, zero is off, non-zero is on.
-> + * @default_regs: Default registers written after power-on or reset.
-> + * @ifparm: Interface parameters access function
-> + * @priv_data_set: device private data (pointer) access function
-> + */
-> +struct mt9p012_platform_data {
-> +       int (*power_set)(enum v4l2_power power);
-> +       u32 (*set_xclk)(u32 xclkfreq);
-
-You shouldn't need this function, should be using clk fw.
-
--- 
-balbi
+It seems like your point was that conversions to v4l2_subdev allow drivers
+to be more efficient remove lots of code.  The numbers I see just don't
+support that claim.
