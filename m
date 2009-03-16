@@ -1,122 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:47619 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751637AbZCFIMo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Mar 2009 03:12:44 -0500
-Message-ID: <49B0DAF4.50408@redhat.com>
-Date: Fri, 06 Mar 2009 09:12:36 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Kyle Guinn <elyk03@gmail.com>, linux-media@vger.kernel.org,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH] for the file gspca/mr97310a.c
-References: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu> <200903052258.48365.elyk03@gmail.com> <alpine.LNX.2.00.0903052317070.28734@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0903052317070.28734@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4206 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752093AbZCPTWF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2009 15:22:05 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2GJM0Oq051736
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 16 Mar 2009 20:22:01 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 16 Mar 2009 20:22:00 +0100 (CET)
+Message-Id: <200903161922.n2GJM0Oq051736@smtp-vbr3.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
 
-kilgota@banach.math.auburn.edu wrote:
-> 
-> 
-> On Thu, 5 Mar 2009, Kyle Guinn wrote:
-> 
->> On Thursday 05 March 2009 20:34:27 kilgota@banach.math.auburn.edu wrote:
->>> Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
->>> ----------------------------------------------------------------------
->>> --- mr97310a.c.old    2009-02-23 23:59:07.000000000 -0600
->>> +++ mr97310a.c    2009-03-05 19:14:13.000000000 -0600
->>> @@ -29,9 +29,7 @@ MODULE_LICENSE("GPL");
->>>   /* specific webcam descriptor */
->>>   struct sd {
->>>       struct gspca_dev gspca_dev;  /* !! must be the first item */
->>> -
->>>       u8 sof_read;
->>> -    u8 header_read;
->>>   };
->>>
->>>   /* V4L2 controls supported by the driver */
->>> @@ -100,12 +98,9 @@ static int sd_init(struct gspca_dev *gsp
->>>
->>>   static int sd_start(struct gspca_dev *gspca_dev)
->>>   {
->>> -    struct sd *sd = (struct sd *) gspca_dev;
->>>       __u8 *data = gspca_dev->usb_buf;
->>>       int err_code;
->>>
->>> -    sd->sof_read = 0;
->>> -
->>
->> Good catch, I didn't realize this was kzalloc'd.
-> 
-> Hmmm. Perhaps I cut too much and _that_ should go back in. What if one 
-> stops the streaming and then restarts it? OTOH, one only risks losing 
-> one frame. OTTH, one might really want that frame. I will put it back.
-> 
+date:        Mon Mar 16 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11038:626c136ec221
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Ack I was about to make a comment along the same lines, please put it back in.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc8-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc8-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc8-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29-rc8-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc8-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc8-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-rc8-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc8): ERRORS
 
->>
->>>       /* Note:  register descriptions guessed from MR97113A driver */
->>>
->>>       data[0] = 0x01;
->>> @@ -285,40 +280,29 @@ static void sd_pkt_scan(struct gspca_dev
->>>               __u8 *data,                   /* isoc packet */
->>>               int len)                      /* iso packet length */
->>>   {
->>> -    struct sd *sd = (struct sd *) gspca_dev;
->>>       unsigned char *sof;
->>>
->>>       sof = pac_find_sof(gspca_dev, data, len);
->>>       if (sof) {
->>>           int n;
->>> -
->>> +        int marker_len = sizeof pac_sof_marker;
->>
->> The value doesn't change; there's no need to use a variable for this.
-> 
-> True. I was just working for legibility, and trying to substitute a 
-> shorter symbol for something which is long and cumbersome and screws up 
-> 80-character lines. If it is bad to do that, then I can take it right 
-> back out, of course.
-> 
->>
->>>           /* finish decoding current frame */
->>>           n = sof - data;
->>> -        if (n > sizeof pac_sof_marker)
->>> -            n -= sizeof pac_sof_marker;
->>> +        if (n > marker_len)
->>> +            n -= marker_len;
->>>           else
->>>               n = 0;
->>>           frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame,
->>>                       data, n);
->>> -        sd->header_read = 0;
->>> -        gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
->>> -        len -= sof - data;
->>> +        /* Start next frame. */
->>> +        gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
->>> +            pac_sof_marker, marker_len);
->>> +        len -= n;
->>> +        len -= marker_len;
->>> +        if (len < 0)
->>> +            len = 0;
->>
->> len -= sof - data; is a shorter way to find the remaining length.
-> 
-> Now, why did I try that and it did not work, but now it does? Weird. OK, 
-> you are right.
-> 
+Detailed results are available here:
 
-Actually, that is the right thing to do, as in cases where the frame only contained
-the last part of a sof sequence, your code from the patch as send won't work.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-<snip>
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Hans
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
