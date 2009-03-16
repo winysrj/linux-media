@@ -1,89 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:50054 "EHLO
-	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753369AbZCHBbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2009 20:31:07 -0500
-Date: Sat, 7 Mar 2009 17:31:02 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:51279 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751773AbZCPPcN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2009 11:32:13 -0400
+Date: Mon, 16 Mar 2009 12:31:06 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 To: Jean Delvare <khali@linux-fr.org>
-cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] zoran: Drop the lock_norm module parameter
-In-Reply-To: <20090307110729.37230310@hyperion.delvare>
-Message-ID: <Pine.LNX.4.58.0903071729520.24268@shell2.speakeasy.net>
-References: <20090307110729.37230310@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Trent Piepho <xyzzy@speakeasy.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+Message-ID: <20090316123106.36704382@pedra.chehab.org>
+In-Reply-To: <20090316152802.7492dd20@hyperion.delvare>
+References: <200903151344.01730.hverkuil@xs4all.nl>
+	<20090315181207.36d951ac@hyperion.delvare>
+	<Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
+	<20090315185313.4c15702c@hyperion.delvare>
+	<20090316063402.1b0da1f3@gaivota.chehab.org>
+	<20090316121801.1c03d747@hyperion.delvare>
+	<20090316095237.21775418@gaivota.chehab.org>
+	<20090316152802.7492dd20@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 7 Mar 2009, Jean Delvare wrote:
-> The lock_norm module parameter doesn't look terribly useful. If you
-> don't want to change the norm, just don't change it. As a matter of
-> fact, no other v4l driver has such a parameter.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Trent Piepho <xyzzy@speakeasy.org>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> ---
->  linux/Documentation/video4linux/Zoran          |    3 +--
->  linux/drivers/media/video/zoran/zoran_driver.c |   20 --------------------
->  2 files changed, 1 insertion(+), 22 deletions(-)
+I need to be short, since I'm about to travel.
 
-I have a tree with some more zoran changes, so I'll take this patch and the
-other one and work them in.
+On Mon, 16 Mar 2009 15:28:02 +0100
+Jean Delvare <khali@linux-fr.org> wrote:
 
->
-> --- v4l-dvb-zoran.orig/linux/Documentation/video4linux/Zoran	2009-02-20 09:42:36.000000000 +0100
-> +++ v4l-dvb-zoran/linux/Documentation/video4linux/Zoran	2009-02-20 09:45:42.000000000 +0100
-> @@ -401,8 +401,7 @@ Additional notes for software developers
->     first set the correct norm. Well, it seems logically correct: TV
->     standard is "more constant" for current country than geometry
->     settings of a variety of TV capture cards which may work in ITU or
-> -   square pixel format. Remember that users now can lock the norm to
-> -   avoid any ambiguity.
-> +   square pixel format.
->  --
->  Please note that lavplay/lavrec are also included in the MJPEG-tools
->  (http://mjpeg.sf.net/).
-> --- v4l-dvb-zoran.orig/linux/drivers/media/video/zoran/zoran_driver.c	2009-02-20 09:42:47.000000000 +0100
-> +++ v4l-dvb-zoran/linux/drivers/media/video/zoran/zoran_driver.c	2009-02-20 09:45:42.000000000 +0100
-> @@ -163,10 +163,6 @@ const struct zoran_format zoran_formats[
->  };
->  #define NUM_FORMATS ARRAY_SIZE(zoran_formats)
->
-> -static int lock_norm;	/* 0 = default 1 = Don't change TV standard (norm) */
-> -module_param(lock_norm, int, 0644);
-> -MODULE_PARM_DESC(lock_norm, "Prevent norm changes (1 = ignore, >1 = fail)");
-> -
->  	/* small helper function for calculating buffersizes for v4l2
->  	 * we calculate the nearest higher power-of-two, which
->  	 * will be the recommended buffersize */
-> @@ -1497,22 +1493,6 @@ zoran_set_norm (struct zoran *zr,
->  		return -EBUSY;
->  	}
->
-> -	if (lock_norm && norm != zr->norm) {
-> -		if (lock_norm > 1) {
-> -			dprintk(1,
-> -				KERN_WARNING
-> -				"%s: set_norm() - TV standard is locked, can not switch norm\n",
-> -				ZR_DEVNAME(zr));
-> -			return -EPERM;
-> -		} else {
-> -			dprintk(1,
-> -				KERN_WARNING
-> -				"%s: set_norm() - TV standard is locked, norm was not changed\n",
-> -				ZR_DEVNAME(zr));
-> -			norm = zr->norm;
-> -		}
-> -	}
-> -
->  	if (!(norm & zr->card.norms)) {
->  		dprintk(1,
->  			KERN_ERR "%s: set_norm() - unsupported norm %llx\n",
->
->
-> --
-> Jean Delvare
->
+
+> Ah yeah, now I remember. You're the one who considers 2.6.18 a bleeding
+> edge kernel suitable for upstream development. This explains a lot.
+
+I have 3 separated environments, being the first with the bleeding edge Fedora
+rawhide core (2.6.29-rc-git + several linux-next patches), for development. For
+sure, this is not stable, and an intermediate with 2.6.27 (Fedora 10), for normal tests.
+
+But for sure I don't want to loose time or data running my production data on
+an unstable environment. Then, I use RHEL5 on my main machines: it is rock solid.
+
+On all of those environments, I need my devices properly working with the
+bleeding edge v4l/dvb drivers.
+> 
+> > will almost certainly cause compatibility breakages. I can't see any gain to
+> > the end user of a board that it is properly supported that such change would do.
+> 
+> I'm literally speechless.
+
+What's the gain of the change for a user whose card already works? If
+everything went ok, he will just have what he had before. The difference
+affects only users of boards not supported yet (or badly supported).
+
+> > The reasons I see are in order to provide a more consistent internal model
+> > to represent the devices, and to support devices with more complex approaches
+> > like devices that have some I2C muxes and switches on their buses, to solve the
+> > address problems we're currently facing with such devices.
+> 
+> Abstracting the numerous improvements brought by the new binding model
+> for older devices, which by themselves justify the move IMHO, the key
+> issue here is that the old model and the new model do not mix properly.
+> The different device lifetime cycles make it pretty much impossible to
+> come up with a sane locking model. This is the reason why I want the
+> legacy model to die now.
+
+Ok, that's the reason why we're changing: we need the new model for a small
+subset of devices (5%? maybe even less). On those devices, I2C switches do
+exist and this causes troubles with the old model. Since both models don't mix,
+we're migrating even the drivers that won't need such model.
+
+> > > Also, please let's not lose focus here. The important thing here is to
+> > > finish the conversion to the new i2c device driver binding model, and
+> > > quickly.
+> > 
+> > For finishing the conversion, I agree that we just need some kind of workaround
+> > to allow both IR and Audio to work, but we shouldn't loose how it would be done
+> > in the final version.
+> 
+> For finishing the conversion, we don't need to do anything. The
+> PIC16C54 support is already broken today if I understood Hans
+> correctly. We certainly want to fix that someday, but this is unrelated
+> to the model conversion.
+
+It may or may not work. With the current behaviour, someone may load either
+driver (IR or audio). So, both things work, but not simultaneously.
+
+Anyway, you got me wrong: I don't think that pic16c54 is an enough reason for
+justify any changes on the i2c model.
+
+However, there are several devices that have processors connected via i2c
+(including several DVB based devices using Cypress processors). IMO, we will
+need sooner or later some solution for using the sub-address as a different
+device, but we may postpone such discussion to another time.
+
+Cheers,
+Mauro
