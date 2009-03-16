@@ -1,248 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3271 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751507AbZC3RCh (ORCPT
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:49798 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750990AbZCPE0d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 13:02:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2 framework
-Date: Mon, 30 Mar 2009 19:02:21 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Kumar, Purushotam" <purushotam@ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	Mon, 16 Mar 2009 00:26:33 -0400
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <1237164753.13144.105.camel@palomino.walls.org>
+References: <200903151344.01730.hverkuil@xs4all.nl>
+	 <20090315181207.36d951ac@hyperion.delvare>
+	 <1237145673.3314.47.camel@palomino.walls.org>
+	 <20090315232612.04346bdb@hyperion.delvare>
+	 <1237164753.13144.105.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Mon, 16 Mar 2009 05:26:54 +0100
+Message-Id: <1237177614.3439.25.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903301902.21783.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 30 March 2009 16:34:42 Hiremath, Vaibhav wrote:
-> Hi,
->
-> With reference to the mail-thread started by Sakari on Resizer driver
-> interface,
->
-> http://marc.info/?l=linux-omap&m=123628392325716&w=2
->
-> I would like to bring some issues and propose changes to adapt such
-> devices under V4L2 framework. Sorry for delayed response on this
-> mail-thread, actually I was on vacation.
->
-> As proposed by Sakari, I do agree with the approach of having V4L2
-> interface for memory-to-memory operation of the ISP (like resizer and
-> previewer), but I would like to bring some important aspects/issues here
-> -
->
-> 	- Some drawbacks of V4L2-buf layer framework for such kind of devices
-> 	- Need for backward compatibility.
->
-> Drawbacks for V4L2-Buf layer -
-> -----------------------------
->
-> 1} In case of resizer driver, the input buffer will always be different
-> than output buffer.
->
-> In case of Mmapped buffer there is no issue, since driver allocates
-> maximum of input and output. User doesn't have control on this, although
-> there is loss of memory from system point of view.
->
-> In case of User Pointer Exchange, User would expect and may allocate
-> different sizes of buffers for input and output which V4L2-buf layer
-> doesn't support with single queue. And to address this, I think here we
-> need to have either of following approaches -
->
-> 	- Use two separate buffer queues, one for input and another for output.
-> 	- Or hack the driver for v4l2_buffer, internally using different buffer
-> params for input and output. [Not recommended]
->
-> Please note that sometimes application receives buffers from another
-> driver or from some codecs engine that's why input and output buffer will
-> never be of same size.
->
-> 2) V4L2-buf layer doesn't support IOMEM coming from user application.
-> Just to give low level details about this -
->
-> When application tries to configure for 'V4L2_MEMORY_USERPTR' with buffer
-> coming from another driver (which is iomampped), then QUEUEBUF ioctl will
-> fail from 'videobuf_iolock' --> videobuf_dma_init_user_locked -->
-> get_user_pages.
->
-> In 'get_user_pages' it checks for IOMEM flag and returns error, which is
-> expected behavior from Kernel point of view. We are trying to map buffer
-> which is already mapped to kernel by another driver.
->
-> One thing I am not able to understand, how nobody came across such
-> use-case which is very common. And to address this issue we need to add
-> support for IOMEM in V4L2-buf layer.
->
-> NOTE: Currently both of these issues have been addressed as a custom
-> implementation for our internal use case.
->
-> Backward Compatibility -
-> -----------------------
->
-> This is an important aspect, since similar hardware modules are available
-> on Davinci as well as on OMAP and their driver interface is completely
-> different.
->
-> On Davinci, resizer driver is supported through plane char driver
-> interface which handles all data/buffer processing and control paths. It
-> maintains internal queue for priority of resizing tasks and stuff.
->
-> The driver is present under /drivers/char/Davinci.
->
-> Here I feel, V4L2 way is better, since all image processing drivers
-> should go under "drivers/media/video/". And again we can make use of
-> readily available V4L2 framework interface for data and control path to
-> manage buffers. We should enhance V4L2 framework to support such devices.
->
->
-> Proposed Required Changes -
-> --------------------------
->
-> I am putting some high level changes required to be done for supporting
-> such devices -
->
-> 	- Enhancement in V4L2-buf layer for above issues
->
-> 	- Will be directly using sub-device frame-work and have to enhance it to
-> support such devices.
->
-> 	- Below are the parameters we need to configure for Resizer from user
-> application -
->
->   __s32 in_hsize;    /* input frame horizontal size.*/
->   __s32 in_vsize;    /* input frame vertical size */
->   __s32 in_pitch;    /* offset between 2 rows of input frame.*/
->   __s32 inptyp;      /* for determining 16 bit or 8 bit data.*/
->   __s32 vert_starting_pixel; /* vertical starting pixel in input.*/
->   __s32 horz_starting_pixel; /* horizontal starting pixel in input.*/
->   __s32 cbilin;      /* filter with luma or bi-linear interpolation.*/
->   __s32 pix_fmt;     /* UYVY or YUYV */
->   __s32 out_hsize;   /* output frame horizontal size. */
->   __s32 out_vsize;   /* output frame vertical size.*/
->   __s32 out_pitch;   /* offset between 2 rows of output frame.*/
->   __s32 hstph;       /* for specifying horizontal starting phase.*/
->   __s32 vstph;       /* for specifying vertical starting phase.*/
->   __u16 tap4filt_coeffs[32]; /* horizontal filtercoefficients.*/
->   __u16 tap7filt_coeffs[32]; /* vertical filter coefficients. */
->   struct rsz_yenh yenh_params;
->
-> (Pasted from previous patches posted by Sergio)
->
->
-> Putting one sample proposal using VIDIOC_S_FMT -
->
-> APPROACH 1 -
-> ----------
->
-> Either we can add this under "struct v4l2_format" or need to enhance
-> "stuct v4l2_crop" to support such device.
->
-> We can use 'VIDIOC_S_FMT' ioctl to configure the resizer parameters. From
-> top level it will look something like -
->
-> struct v4l2_buffer buf;
-> struct v4l2_format fmt;
-> struct rsz_parm parm;	/*Contains custom configuration specific to module
-> other than input and output params*/
->
-> <Fill the "rsz_parm" structure>
->
-> fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> fmt.fmt.pix.width = IN_WIDTH;
-> fmt.fmt.pix.height = IN_HEIGHT;
-> fmt.fmt.pix.bytesperline= IN_WIDTH*2;
-> fmt.fmt.pix.pixelformat= V4L2_PIX_FMT_YUYV/V4L2_PIX_FMT_UYVY
-> fmt.fmt.pix.priv = &parm;
->
-> ret = ioctl(rsz_fd, VIDIOC_S_FMT, &fmt);
-> if(ret<0) {
-> 	perror("Set Format failed\n");
-> 	return -1;
-> }
->
-> To set output buffer we can use VIDIOC_S_FMT
->
-> fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> fmt.fmt.pix.width = OUT_WIDTH;
-> fmt.fmt.pix.height = OUT_HEIGHT;
-> fmt.fmt.pix.bytesperline= OUT_WIDTH*2;
->
-> ret = ioctl(rsz_fd, VIDIOC_S_FMT, &fmt);
-> if(ret<0) {
-> 	perror("Set Format failed\n");
-> 	return -1;
-> }
->
-> In case of resizer driver we would need to call VIDIOC_S_FMT twice, one
-> for input params and second for output params. And in case of Previewer
-> we need to call VIDIOC_S_FMT only once, with all required params as a
-> part of custom struct (priv).
->
->
-> APPROACH 2 -
-> ----------
->
-> Instead of using "priv" variable, we can make it capability based
-> interface. For this we have to create separate class of devices, called
-> "V4L2_BUF_TYPE_VIDEO_RESIZE" with "struct v4l2_fmt_resize" and "struct
-> v4l2_fmt_previewer".
->
-> And depending on the capability application will configure params using
-> VIDIOC_S_FMT.
->
-> In both the cases we need to add one IOCTL to trigger the operation and
-> this should be standard, should be common for all such memory-to-memory
-> device operations.
->
->
-> APPROACH 3 -
-> ----------
->
-> .....
->
-> (Any other approach which I could not think of would be appreciated)
->
->
-> I would prefer second approach, since this will provide standard
-> interface to applications independent on underneath hardware.
->
-> There may be many number of such configuration parameters required for
-> different such devices, we need to work on this and come up with some
-> standard capability fields covering most of available devices.
->
-> Does anybody have some other opinions on this?
-> Any suggestions will be helpful here,
+Hi,
 
-FYI: I have very little time to look at this for the next 2-3 weeks. As you
-know I'm working on the last pieces of the v4l2_subdev conversion for 2.6.30 
-that should be finished this week. After that I'm attending the Embedded 
-Linux Conference in San Francisco.
+Am Sonntag, den 15.03.2009, 20:52 -0400 schrieb Andy Walls:
+> On Sun, 2009-03-15 at 23:26 +0100, Jean Delvare wrote:
+> > Hi Andy,
+> 
+> Hi Jean,
+> 
+> Thanks for the reply.
+> 
+> > On Sun, 15 Mar 2009 15:34:33 -0400, Andy Walls wrote:
+> > > On Sun, 2009-03-15 at 18:12 +0100, Jean Delvare wrote:
+> > > > Hi Hans,
+> 
+> > > > This is the typical multifunction device problem. It isn't specifically
+> > > > related to I2C,
+> > > 
+> > > But the specific problem that Hans' brings up is precisely a Linux
+> > > kernel I2C subsystem *software* prohibition on two i2c_clients binding
+> > > to the same address on the same adapter.
+> > 
+> > No. Once again: Linux doesn't support binding more than one driver to a
+> > device. This has _nothing_ to do with any choice done in i2c-core.
+> 
+> So how does the linux identify a "device" when binding, by some n-tuple
+> in a coordinate space right?  The last few parts of that coordinate are
+> dictated by I2C subsystem design for I2C devices.  I believe they are
+> (adapter, address) commonly displayed something 0-004b.  
+> 
+> If the I2C subsystem allowed a coordinate for a device to have the last
+> few parts be (adapter, address, client/function #), like:
+> 
+> 0-004b-0
+> 0-004b-1
+> 
+> then one could have multiple drivers bind to a single piece of hardware
+> and still have the locking on the i2c_adapter provided by the
+> i2c_subsystem.  Wouldn't this be possible once the automatic probing is
+> gone?
+> 
+>  
+> > > It seems like an artificial restriction: intended for safety, but
+> > > getting in the way when something like that is a valid need.
+> > 
+> > I think we could remove the check. But then the driver core would fail
+> > for us, so it wouldn't change anything in practice.
+> 
+> 
+> 
+> > You claim that the need is valid, but I disagree.
+> 
+> I suppose validity is subjective, in that I have implicit cost measures
+> and assessments of the costs that are different from yours.
+> 
+> For example you have a need for some threshold number of devices to
+> behave like the I2C device in question before the need would be valid.
+> One such device is not enough.
+> 
+> Fair enough.
+> 
+> 
+> 
+> >  Once a design is in
+> > place, you have to follow it,
+> 
+> 
+> I disagree.  Why does the world now have digital TV broadcast systems
+> instead of just being stuck with analog TV broadcast systems?  A change
+> in the design of the broadcast television system was needed due to
+> pressures to recover spectrum, etc.
+> 
+> 
+> > even if you come up with a case which
+> > doesn't fit in said design perfectly. Otherwise there is no point in
+> > having a design in the first place.
+> 
+> No there is always a point to an intial design.  You always start with a
+> design to address your current needs and perhaps try to accomodate
+> future needs in design considerations.  No one can know everything ahead
+> of time.
+> 
+> 
+> >  Sure, a design can evolve, but not
+> > for just one case.
+> 
+> I agree, there are costs to be weighed.  If it doesn't make sense for a
+> single case, due to the costs involved, then it doesn't make sense.
+> 
+> 
+> > And, in Linux' case, not for just one subsystem. The
+> > strength of the Linux driver model is that it is shared by all
+> > subsystems. That's not something which is going to change.
+> 
+> I was not thinking of trying to "move the world", just accomodate
+> multifunction I2C devices to allow multiple driver modules to access a
+> device at a single (adapter, address) coordinate.  Perhaps by using an
+> (adapter, address, function #) coordinate.
+> 
+> 
+>  
+> > > > I know that there was some work in progress to allow multiple drivers
+> > > > to bind to the same device. However it seems to be very slow because it
+> > > > is fundamentally incompatible with the device driver model as it was
+> > > > originally designed.
+> > > 
+> > > The driver model outside of the I2C subsystem?
+> > 
+> > Again this was in no way specific to the I2C subsystem. This was meant
+> > as an extension to the core device driver model.
+> 
+> Thanks, I didn't understand the scope of that effort you had
+> mentioned.  
+> 
+> 
+> 
+> 
+> > > Looking at the rest of i2c_attach_client() (that I didn't paste in
+> > > above), I dont' see how the call to device_register(&client->dev) would
+> > > care, as each i2c_client has it's own dev.  Although I guess you might
+> > > get duplicately named sysfs directory entries like 
+> > > 
+> > > /sys/devices/.../i2c-adapter/i2c-3/3-0096
+> > >
+> > > Which could be a problem for accessing via the sysfs filesystem.  But
+> > > that could be fixed in i2c_attach_client?
+> > 
+> > That's not just duplicated sysfs directories. That's duplicated device
+> > names. The "3-0096" above is how the driver core uniquely identifies
+> > the device in question withing the i2c subsystem name space. By
+> > definition you can't have two devices with the same identifier.
+> 
+> And I guess I was thinking, but didn't write down, that the I2C
+> subsystem could expand it's namespace by one coordinate axis.
+> 
+> 3-004b-0
+> 3-004b-1
+> 
+> 
+> > (I am curious if this is a real device, BTW, as 0x96 isn't a valid
+> > 7-bit I2C address.)
+> 
+> No, I made it up from the device in the discussion. I forgot to shift it
+> down to a 7 bit address of 0x4b.
+> 
+> 
+> > > Then there's a matter of accessing the I2C device only by the address
+> > > which means the wrong client might be used.  But since they both point
+> > > to the same address on the same device, does that really matter?
+> > 
+> > Of course it does matter. The whole point of having only one driver
+> > that can bind to a device is that said driver can control who accesses
+> > the device, and how, and take care of any needed locking or delays.
+> > Having multiple "clients" (software devices) accessing the same
+> > (physical) device is equivalent to not having any client at all. This
+> > would be a significant step backwards.
+> 
+> I was under the impression that access to a bus adapter was locked by
+> the I2C subsystem using adapter->bus_lock.  At that point, if multiple
+> drivers are accessing a multifunction device at a single address, they
+> would just need to "play nice" and stay in different register regions of
+> the multifunction I2C chip.
+> 
+> I hadn't thought about intertransfer delays.  The I2C spec does have a
+> minimum turn around specification between STOP and START, 4.7 us, but I
+> have no idea where it is enforced currently in Linux.
+> 
+> 
+> 
+> > > > In the meantime, one workaround is to list the multifunction device as
+> > > > supported by several drivers, and make the probe functions for this
+> > > > device fail, while still keeping a reference to the device. The
+> > > > reference lets you access the device, and is freed when you remove the
+> > > > drivers. See for example the via686a, vt8231 and i2c-viapro drivers.
+> > > > This approach may or may not be suitable for the ir-kbd-i2c and tvaudio
+> > > > drivers. One drawback is that you can't do power management on the
+> > > > device.
+> > > 
+> > > To me it would be more forward looking to add support in the I2C
+> > > subsystem for allowing multiple client drivers to use the same address
+> > > on the same adapter,
+> > 
+> > No, that's not going to happen in i2c-core, sorry. If anything like
+> > this happens, it will be implemented as part of the core driver model.
+> 
+> OK.  So it sounds like it's not going to happen at all.
+> 
+> 
+> > > instead of adding non-intuitive behavior to module
+> > > probe routines as a workaround.  Integration of discrete I2C chip cores
+> > > into multifunction devices is likely to be a continuing trend.
+> > 
+> > I sure hope not.
+> 
+> 
+> > > The PCI subsystem handles single devices with multiple functions.
+> > 
+> > In the good cases, yes. In some cases (which I have quoted already) it
+> > doesn't. But anyway PCI functions are an implementation detail
+> > irrelevant to this discussion: as far as Linux is concerned, each PCI
+> > function is a separate device, exactly as separate PCI devices.
+> 
+> Ah. You're right.  My analogy corresponds to an I2C chip that responds
+> on two addresses on the same bus.  My analogy was bad.
+> 
+> 
+> > > For an single I2C chip with multiple functions,  I've seen two types of
+> > > functional block separation provided: a separate I2C address per
+> > > functional block, and functions are separated by register address
+> > > ranges.  The CX25843 leaps to mind as being of the second type.  There
+> > > are register blocks for the basic device, the analog front end, the
+> > > consumer IR device, the video decoding, the broadcast audio decoding,
+> > > and AC97 interface functions.
+> > 
+> > And there's nothing preventing you from handling these separate
+> > functions as you wish in your driver. Having a single function per
+> > i2c_client is not a requirement in general.
+> 
+> That's the current state.  So it looks like the problem is there is no
+> "PIC16C54" driver since it's an 8-bit general purpose microcontroller.  
+> 
+> It's a one off case for writing a driver to handle a PIC16C54 with the
+> microcode the manufacturer has programmed into the device.  So I
+> understand the desire to leverage existing modules.
+> 
+> 
+> > > > As far as the PIC16C54 is concerned, another possibility would be to
+> > > > move support to a dedicated driver. Depending on how much code is common
+> > > > between the PIC16C54 and the other supported devices, the new driver
+> > > > may either be standalone, or rely on functions exported by the
+> > > > ir-kbd-i2c and tvaudio modules.
+> > > 
+> > > I'll guess that solution is probably the path of least resistance for
+> > > the problem at hand.  It seems like a workaround for design decision
+> > > made in the I2C subsystem long ago though.
+> > 
+> > Third (and last) time: this is how the Linux device driver model was
+> > designed (and quite rightly so.) Not my decision and not i2c subsystem
+> > specific. The only i2c-specific thing here (and not my choice either)
+> > are the bus identifiers (e.g. 3-0096) but I believe it was a pretty
+> > natural choice given that a given I2C address can indeed only be used
+> > by one (physical) I2C slave on a given I2C segment.
+> 
+> And the problem here is that one physical slave ends up as two logical
+> slaves, that are very similar to individual physical slave handled by
+> other drivers, and people want to levereage existing code.
+> 
+> But you've convinced me that one corner case is not worth going through
+> all the expense to cover.
+> 
+> 
+> 
+> > Instead of blaming me or the i2c subsystem,
+> 
+> My intent was not to blame or offend, but to discuss the issue.  I'm
+> sorry if my tone didn't convey properly.  I'm not the most eloquent
+> writer.
+> 
+> 
+> >  please look carefully at
+> > what the problem is in the first place: the ir-kbd-i2c and tvaudio
+> > drivers are horrible design errors (for which there are certainly
+> > historical errors, but still.) They support many devices each, on the
+> > basis that these devices have the same functionality. Can you imagine a
+> > single driver for all SATA controllers out there? Or a single driver
+> > for all RTC chips out there? This is the design mistake you are looking
+> > for.
+> 
+> I understand now.  The desire to leverage existing crappy code is not
+> worth the cost and risk of perturbing things for the sake of one device.
+> 
+> Regards,
+> Andy
+> 
+> 
+> > Good night,
+> 
 
-But I always thought that something like this would be just a regular video 
-device that can do both 'output' and 'capture'. For a resizer I would 
-expect that you set the 'output' size (the size of your source image) and 
-the 'capture' size (the size of the resized image), then just send the 
-frames to the device (== resizer) and get them back on the capture side.
+sorry, just reading the mail backlash on a first attempt.
 
-Regards,
+But what comes into mind from what we really have seen, there are i2c
+devices (tuners) with multiple addresses present on the bus, in fact
+only one of them "works".
 
-	Hans
+This was improved by new separate silicon radio tuner chips within the
+even same range of possible four addresses. That for the radio tuner
+address field was introduced.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+The same goes for 0x86 and 0x4b demodulator stuff and the like.
+
+Of course it is known that there is an address clash between tda988x and
+tda 8290 and as well with that pic in tvaudio.
+
+So, in general I'm with Hans and all here, it is better to have this
+device specific in the card's entry.
+
+But Trent is also right in so far, that we don't have it for sure for
+all the devices around previously probed, no final list so far.
+
+What gives me more concerns is, that such addresses shared by multiple
+devices are on the other driver encoded in the eeprom, even manufacturer
+specific (!), and we are more confronted with the mess not to be able to
+identify the _type_ of the device then with identifying its address.
+
+This is most visible for digital demodulators currently.
+
+Good night,
+Hermann
+
