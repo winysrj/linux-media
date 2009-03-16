@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web56908.mail.re3.yahoo.com ([66.196.97.97]:23808 "HELO
-	web56908.mail.re3.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750822AbZCWNwG (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:32388 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754249AbZCPIfs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 09:52:06 -0400
-Message-ID: <871136.15243.qm@web56908.mail.re3.yahoo.com>
-References: <164695.77575.qm@web56903.mail.re3.yahoo.com>  <412bdbff0903161118o2d038bdetc4d52851e35451df@mail.gmail.com>  <63160.21731.qm@web56906.mail.re3.yahoo.com>  <1237251478.3303.37.camel@palomino.walls.org>  <954486.20343.qm@web56908.mail.re3.yahoo.com>  <1237425168.3303.94.camel@palomino.walls.org> <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
-Date: Mon, 23 Mar 2009 06:52:01 -0700 (PDT)
-From: Corey Taylor <johnfivealive@yahoo.com>
-Subject: Re: Problems with Hauppauge HVR 1600 and cx18 driver
-To: Brandon Jenkins <bcjenkins@tvwhere.com>,
-	Andy Walls <awalls@radix.net>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Mon, 16 Mar 2009 04:35:48 -0400
+Date: Mon, 16 Mar 2009 09:35:25 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+Message-ID: <20090316093525.15f3dd62@hyperion.delvare>
+In-Reply-To: <Pine.LNX.4.58.0903151637370.28292@shell2.speakeasy.net>
+References: <200903151344.01730.hverkuil@xs4all.nl>
+	<20090315181207.36d951ac@hyperion.delvare>
+	<1237145673.3314.47.camel@palomino.walls.org>
+	<Pine.LNX.4.58.0903151637370.28292@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Trent,
 
-> Andy,
+On Sun, 15 Mar 2009 16:46:36 -0700 (PDT), Trent Piepho wrote:
+> On Sun, 15 Mar 2009, Andy Walls wrote:
+> > But the specific problem that Hans' brings up is precisely a Linux
+> > kernel I2C subsystem *software* prohibition on two i2c_clients binding
+> > to the same address on the same adapter.
+> 
+> For a lot of i2c devices, it would be difficult for two drivers to access
+> the device at the same time without some kind of locking.
+> 
+> If you take the reads and writes of one driver and then intersperse the
+> reads and writes of another driver, the resulting sequence from the i2c
+> device's point of view is completely broken.
 
-> I am noticing an improvement in pixelation by setting the bufsize to
-> 64k. I will monitor over the next week and report back. I am running 3
-> HVR-1600s and the IRQs are coming up shared with the USB which also
-> supports my HD PVR capture device. Monday nights are usually one of
-> the busier nights for recording so I will know how well this holds up.
+Correct.
 
-> Thanks for the tip!
+> But, I suppose there are some devices where if the drivers all use
+> i2c_smbus_read/write_byte/word_data or equivalent atomic transactions
+> with i2c_transfer(), then you could get away with two drivers talking to
+> the same chip.
 
-> Brandon
+Yes, this may be possible for some devices, but it can't be
+generalized. Non-atomic transactions are one problem but there are
+others, for example some I2C devices do not have a flat address space
+(the same I2C transaction can access different registers depending on
+the value of another register commonly known as bank selector.) Another
+problem is read-modify-write cycles, which in my experience are often
+needed for I2C devices, and which are racy if several drivers attempt
+to handle the same device and want to touch the same register.
 
-Hi Andy and Brandon, I too tried various different bufsizes as suggested and I still see very noticeable pixelation/tearing regardless of the setting.
+So, all in all, great care should always be taken when more than one
+driver accesses the same I2C device. And even if only one driver
+accesses the I2C device, all accesses that can happen in parallel (for
+example triggered by sysfs attribute reads or writes) may have to be
+serialized by the driver.
 
-I even upgraded my motherboard this past weekend to an Asus AM2+ board with
-Phenon II X3 CPU. Still the same problems with the card in a brand new
-setup.
-
-I also tried modifying the cx18 source code as Andy suggested and that made more debug warning show up in my syslog, but still did not resolve the issue. Haven't tried this yet with the new motherboard though.
-
-Is it possible that this card is more sensitive to hiccups in the signal coming from the cable line? Or interference from other close-by cables and electronic equipment?
-
-When recording/watching Live TV through MythTV, I see that ffmpeg is constantly outputting various errors related to the video stream. I can post those here if you think it's relevant.
-
-Shoud I just return this card and get one with a different chipset? Or do you think driver updates can solve the issue?
-
-I'm happy to hold on to this card if it means I can contribute in some way to fixing the problem, if it's fixable : )
-
-
-      
+-- 
+Jean Delvare
