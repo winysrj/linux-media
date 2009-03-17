@@ -1,113 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:2847 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400AbZC2JGZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 05:06:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org,
-	Trent Piepho via Mercurial <xyzzy@speakeasy.org>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: Check format for S_PARM and G_PARM
-Date: Sun, 29 Mar 2009 11:06:19 +0200
-References: <E1LnqiQ-00077f-80@mail.linuxtv.org>
-In-Reply-To: <E1LnqiQ-00077f-80@mail.linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903291106.19466.hverkuil@xs4all.nl>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:38666 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754064AbZCQIfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2009 04:35:12 -0400
+Date: Tue, 17 Mar 2009 09:28:54 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] LED control
+Message-ID: <20090317092854.55f27763@free.fr>
+In-Reply-To: <Pine.LNX.4.58.0903150805140.28292@shell2.speakeasy.net>
+References: <20090314125923.4229cd93@free.fr>
+	<20090314091747.21153855@pedra.chehab.org>
+	<Pine.LNX.4.58.0903141315300.28292@shell2.speakeasy.net>
+	<20090315105037.6266687a@free.fr>
+	<Pine.LNX.4.58.0903150805140.28292@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 29 March 2009 10:50:02 Patch from Trent Piepho wrote:
-> The patch number 11260 was added via Trent Piepho <xyzzy@speakeasy.org>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
->
-> Kernel patches in this development tree may be modified to be backward
-> compatible with older kernels. Compatibility modifications will be
-> removed before inclusion into the mainstream Kernel
->
-> If anyone has any objections, please let us know by sending a message to:
-> 	Linux Media Mailing List <linux-media@vger.kernel.org>
->
-> ------
->
-> From: Trent Piepho  <xyzzy@speakeasy.org>
-> v4l2-ioctl:  Check format for S_PARM and G_PARM
->
->
-> Return EINVAL if VIDIOC_S/G_PARM is called for a buffer type that the
-> driver doesn't define a ->vidioc_try_fmt_XXX() method for.  Several other
-> ioctls, like QUERYBUF, QBUF, and DQBUF, etc.  do this too.  It saves each
-> driver from having to check if the buffer type is one that it supports.
+On Sun, 15 Mar 2009 08:14:56 -0700 (PDT)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-Hi Trent,
+> > - this asks to have a kernel generated with CONFIG_NEW_LEDS,  
+> 
+> So?
+>
+> > - the user must use some new program to
+> > access /sys/class/leds/<device>,  
+> 
+> echo, cat?
+> 
+> > - he must know how the LEDs of his webcam are named in the /sys
+> > tree.  
+> 
+> Just give them a name like video0:power and it will be easy enough to
+> associate them with the device.  I think links in sysfs would do it
+> to, /sys/class/video4linux/video0/device/<ledname> or something like
+> that.
+> 
+> The advantage of using the led class is that you get support for
+> triggers and automatic blink functions, etc.
 
-I wonder whether this change is correct. Looking at the spec I see that 
-g/s_parm only supports VIDEO_CAPTURE, VIDEO_OUTPUT and PRIVATE or up.
+Sorry for I don't see the usage of blinking the LEDs for a webcam.
 
-So what should happen if the type is VIDEO_OVERLAY? I think the g/s_parm 
-implementation in v4l2-ioctl.c should first exclude the unsupported types 
-before calling check_fmt.
+Again, using the led class makes me wonder about:
 
-I also wonder whether check_fmt shouldn't check for the presence of the 
-s_fmt callbacks instead of try_fmt since try_fmt is an optional ioctl.
+1) The end users.
 
-Regards,
+Many Linux users don't know the kernel internal, nor which of the too
+many applications they should use to make their devices work. If no
+developper creates a tool to handle the webcams, the users have to
+search again and again. Even if there is a full documentation, they
+will try anything and eventually ask the kernel developpers why they
+cannot have their LEDs switched on.
 
-	Hans
+Actually, there are a few programs that can handle the webcam
+parameters. In fact I know only 'v4l2-ctl': I did not succeeded to
+compile qv4l2; v4l2ucp has been removed from Debian; and, anyway, these
+programs don't handle the VIDIOC_G_JPEGCOMP and VIDIOC_S_JPEGCOMP
+ioctls.
 
->
-> Priority: normal
->
-> Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
->
->
-> ---
->
->  linux/drivers/media/video/v4l2-ioctl.c |    7 +++++++
->  1 file changed, 7 insertions(+)
->
-> diff -r 346bab8698ea -r 44632c5fe5b2
-> linux/drivers/media/video/v4l2-ioctl.c ---
-> a/linux/drivers/media/video/v4l2-ioctl.c	Sat Mar 28 18:25:35 2009 -0700
-> +++ b/linux/drivers/media/video/v4l2-ioctl.c	Sat Mar 28 18:25:35 2009
-> -0700 @@ -1552,6 +1552,9 @@ static long __video_do_ioctl(struct file
->  		struct v4l2_streamparm *p = arg;
->
->  		if (ops->vidioc_g_parm) {
-> +			ret = check_fmt(ops, p->type);
-> +			if (ret)
-> +				break;
->  			ret = ops->vidioc_g_parm(file, fh, p);
->  		} else {
->  			if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> @@ -1571,6 +1574,10 @@ static long __video_do_ioctl(struct file
->
->  		if (!ops->vidioc_s_parm)
->  			break;
-> +		ret = check_fmt(ops, p->type);
-> +		if (ret)
-> +			break;
-> +
->  		dbgarg(cmd, "type=%d\n", p->type);
->  		ret = ops->vidioc_s_parm(file, fh, p);
->  		break;
->
->
-> ---
->
-> Patch is available at:
-> http://linuxtv.org/hg/v4l-dvb/rev/44632c5fe5b2cd973c75501a88d61b43a39f6c4
->3
->
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+2) The memory overhead.
 
+Using the led class adds more kernel code and asks the webcam drivers
+to create a new device. Also, the function called for changing the LED
+brighness cannot sleep, so the use a workqueue is required.
 
+On contrary, with a webcam control, only one byte (for 8 LEDs) is added
+to the webcam structure and the change is immediatly done in the ioctl.
+
+3) The development time.
+
+I already spent 2 hours to look how the led class was working. I am not
+sure to develop a full LED mechanism in less than 5 to 8 hours, and, as
+I cannot test it by myself, I will have to wait for testers to know if
+the various protections (USB access, USB disconnection) work in all
+cases.
+
+Otherwise, adding a new control in a driver may be done in less than
+half an hour, and, sure, it will work well at the first go!
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
