@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:51256 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbZCEVWg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 16:22:36 -0500
-Date: Thu, 5 Mar 2009 13:22:32 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, mike@compulab.co.il,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/4] pxa_camera: Remove YUV planar formats hole
-In-Reply-To: <873adrekwj.fsf@free.fr>
-Message-ID: <Pine.LNX.4.58.0903051317010.24268@shell2.speakeasy.net>
-References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
- <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
- <Pine.LNX.4.64.0903052119590.4980@axis700.grange> <873adrekwj.fsf@free.fr>
+Received: from wf-out-1314.google.com ([209.85.200.168]:21477 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbZCQAOa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Mar 2009 20:14:30 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20090316225653.GP19229@atomide.com>
+References: <200903051749.13016.hverkuil@xs4all.nl>
+	 <87myblgjye.fsf@deeprootsystems.com>
+	 <20090316225653.GP19229@atomide.com>
+Date: Mon, 16 Mar 2009 17:14:28 -0700
+Message-ID: <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com>
+Subject: Re: Embedded Linux Conference
+From: Steve Sakoman <sakoman@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Manjunath Hadli <mrh@ti.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Robert Jarzmik wrote:
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
+>> Hans Verkuil <hverkuil@xs4all.nl> writes:
+>>
+>> > Just FYI:
+>> >
+>> > I'll be attending the Embedded Linux Conference in San Francisco, April
+>> > 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
+>> >
+>> > This might be a good opportunity to discuss omap and davinci V4L2 issues
+>> > face-to-face. Let me know if you are interested.
+>> >
+>>
+>> I will be there as well, and while not directly involved with V4L2,
+>> I'm involved in various parts of getting OMAP and DaVinci devices
+>> supported in mainline kernels.
 >
-> > This is not a review yet - just an explanation why I was suggesting to
-> > adjust height and width - you say yourself, that YUV422P (I think, this is
-> > wat you meant, not just YUV422) requires planes to immediately follow one
-> > another. But you have to align them on 8 byte boundary for DMA, so, you
-> > violate the standard, right? If so, I would rather suggest to adjust width
-> > and height for planar formats to comply to the standard. Or have I
-> > misunderstood you?
-> No, you understand perfectly.
+> Yeah I'll be in town too and will be dropping by at the conf
+> here and there.
 >
-> And now, what do we do :
->  - adjust height ?
->  - adjust height ?
->  - adjust both ?
->
-> I couldn't decide which one, any hint ?
+> Maybe let's arrange something to get some beers one night during
+> the conf?
 
-Shame the planes have to be contiguous.  Software like ffmpeg doesn't
-require this and could handle planes with gaps between them without
-trouble.  Plans aligned on 8 bytes boundaries would probably be faster in
-fact.  Be better if v4l2_buffer gave us offsets for each plane.
+I'll be there too.  How about Wednesday evening for beers?
 
-If you must adjust, probably better to adjust both.
+Steve
