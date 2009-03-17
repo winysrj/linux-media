@@ -1,75 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58532 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307AbZCCUo0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 15:44:26 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Date: Tue, 3 Mar 2009 14:44:12 -0600
-Subject: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
-Message-ID: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from rolfschumacher.eu ([195.8.233.65]:33810 "EHLO august.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753961AbZCQUjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2009 16:39:04 -0400
+Received: from [192.168.1.109] (HSI-KBW-078-042-086-232.hsi3.kabel-badenwuerttemberg.de [78.42.86.232])
+	(Authenticated sender: rolf)
+	by august.de (Postfix) with ESMTPA id 266CC43BDC
+	for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 21:38:59 +0100 (CET)
+Message-ID: <49C00A62.1080803@august.de>
+Date: Tue, 17 Mar 2009 21:38:58 +0100
+From: Rolf Schumacher <mailinglist@august.de>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: no video device
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series depends on the following patches:
+Hi, dvb professionals,
 
- - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
- - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus on
-   March 3rd. (Please follow his instructions to pull from gitorious.org server)
+I followed the advices on
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers#Optional_Pre-Compilation_Steps
 
-This has been tested with:
- - SDP3430-VG5.0.1 with OMAP3430-ES3.1 daughter board upgrade.
- - Camkit V3.0.1 with MT9P012 and OV3640 sensors
- - LDP with OV3640 sensor
+Build and Installation Instructions
 
-Sergio Aguirre (5):
-  MT9P012: Add driver
-  DW9710: Add driver
-  OV3640: Add driver
-  OMAP3430SDP: Add support for Camera Kit v3
-  LDP: Add support for built-in camera
+downloaded the v4l sources via mercurial,
+"make" and "sudo make install" finished without error messages.
 
- arch/arm/mach-omap2/Makefile                    |    6 +-
- arch/arm/mach-omap2/board-3430sdp-camera.c      |  490 +++++
- arch/arm/mach-omap2/board-3430sdp.c             |   42 +-
- arch/arm/mach-omap2/board-ldp-camera.c          |  203 +++
- arch/arm/mach-omap2/board-ldp.c                 |   17 +
- arch/arm/plat-omap/include/mach/board-3430sdp.h |    1 +
- arch/arm/plat-omap/include/mach/board-ldp.h     |    1 +
- drivers/media/video/Kconfig                     |   31 +
- drivers/media/video/Makefile                    |    3 +
- drivers/media/video/dw9710.c                    |  548 ++++++
- drivers/media/video/dw9710_priv.h               |   57 +
- drivers/media/video/mt9p012.c                   | 1890 +++++++++++++++++++
- drivers/media/video/mt9p012_regs.h              |   74 +
- drivers/media/video/ov3640.c                    | 2202 +++++++++++++++++++++++
- drivers/media/video/ov3640_regs.h               |  600 ++++++
- include/media/dw9710.h                          |   35 +
- include/media/mt9p012.h                         |   37 +
- include/media/ov3640.h                          |   31 +
- 18 files changed, 6265 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-3430sdp-camera.c
- create mode 100644 arch/arm/mach-omap2/board-ldp-camera.c
- create mode 100644 drivers/media/video/dw9710.c
- create mode 100644 drivers/media/video/dw9710_priv.h
- create mode 100644 drivers/media/video/mt9p012.c
- create mode 100644 drivers/media/video/mt9p012_regs.h
- create mode 100644 drivers/media/video/ov3640.c
- create mode 100644 drivers/media/video/ov3640_regs.h
- create mode 100644 include/media/dw9710.h
- create mode 100644 include/media/mt9p012.h
- create mode 100644 include/media/ov3640.h
+rebooted the computer
+
+dmesg shows the device:
+
+---
+usb 2-1: new high speed USB device using ehci_hcd and address 6
+usb 2-1: configuration #1 chosen from 1 choice
+usb 2-1: New USB device found, idVendor=0b48, idProduct=300d
+usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 2-1: Product: TT-USB2.0
+usb 2-1: Manufacturer: TechnoTrend
+usb 2-1: SerialNumber: LHKAMG
+---
+
+no error if I unplug and plug it on USB again
+
+the connected box is a TechnoTrend CT 3560 CI
+I googled and found chipset names like TDA8274 + TDA10023
+did not find anything in wiki, so I could not determine module or driver
+names to be identified with lsmod.
+
+there is no created /dev/dvb or /dev/video device
+
+google did not help me answering the question "do I need firmware, and
+if so where to get it"
+
+uname -a shows
+Linux rolf9 2.6.28-7.slh.6-sidux-686 #1 SMP PREEMPT Sat Mar 14 02:30:40
+UTC 2009 i686 GNU/Linux
+
+for now I got stuck.
+
+Do you know of a next step towards having tv on my laptop?
+
+Rolf
+
+
+
+
+
 
