@@ -1,56 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:52791 "EHLO
-	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844AbZCZP7T (ORCPT
+Received: from mail-gx0-f160.google.com ([209.85.217.160]:63700 "EHLO
+	mail-gx0-f160.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032AbZCQWNl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 11:59:19 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta4.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KH400BMEF2O1H21@mta4.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 26 Mar 2009 11:59:13 -0400 (EDT)
-Date: Thu, 26 Mar 2009 11:59:11 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: V4L2 Advanced Codec questions
-To: linux-media@vger.kernel.org
-Message-id: <49CBA64F.2080506@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
+	Tue, 17 Mar 2009 18:13:41 -0400
+Received: by gxk4 with SMTP id 4so243665gxk.13
+        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 15:13:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1237327082.5040.174.camel@pete-desktop>
+References: <c785bba30903031051k292a95aeq68d91e5c2bc31fd6@mail.gmail.com>
+	 <1237327082.5040.174.camel@pete-desktop>
+Date: Tue, 17 Mar 2009 18:13:38 -0400
+Message-ID: <412bdbff0903171513k161f32dfkc37e5b46c0b527e0@mail.gmail.com>
+Subject: Re: 4vl + usb + arm
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Pete Eberlein <pete@sensoray.com>
+Cc: Paul Thomas <pthomas8589@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+On Tue, Mar 17, 2009 at 5:58 PM, Pete Eberlein <pete@sensoray.com> wrote:
+> The v4l/Makefile.media uses the host strip binary on the ARM .ko files,
+> which doesn't work.  It could use $(CROSS_COMPILE)strip instead.  I
+> worked around the problem using a strip soft-link to arm-eabi-strip in
+> my cross tools bin directory.
 
-I want to open a couple of HVR22xx items up for discussion.
+I ran into the issue with strip, and just worked around it by putting
+the cross compiler's bin directory into the path.  If you have a patch
+though that fixes it the "right" way, feel free to submit a patch.
 
-The HVR-22xx analog encoder is capable of encoded to all kinds of video and 
-audio codecs in various containers formats.
+> I'd like to know if modules built this way work on actual hardware.
 
- From memory, wm9, mpeg4, mpeg2, divx, AAC, AC3, Windows audio codecs in asf, 
-ts, ps, avi containers, depending on various firmware license enablements and 
-configuration options. Maybe more, maybe, I'll draw up a complete list when I 
-begin to focus on analog.
+Generally speaking, yes they do work.  I did some work with a couple
+of different devices under ARM, and although there are bugs (which I
+am preparing patches for), the drivers basically worked as expected.
 
-Any single encoder on the HVR22xx can produce (if licensed) any of the formats 
-above. However, due to a lack of CPU horsepower in the RISC engine, the board is 
-not completely symmetrical when the encoders are running concurrently. This is 
-the main reason why Hauppauge have disabled these features in the windows driver.
+Regards,
 
-It's possible for example to get two concurrent MPEG2 PS streams but only if the 
-bitrate is limited to 6Mbps, which we also do in the windows driver.
+Devin
 
-Apart from the fact that we (the LinuxTV community) will need to determine 
-what's possible concurrently, and what isn't, it does raise interesting issues 
-for the V4L2 API.
-
-So, how do we expose this advanced codec and hardware encoder limitation 
-information through v4l2 to the applications?
-
-Do we, don't we?
-
-Suggestions?
-
-- Steve
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
