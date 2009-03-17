@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:56944 "EHLO
-	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753321AbZCZB3s (ORCPT
+Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212]:50121 "EHLO
+	ch-smtp01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751105AbZCQHt7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 21:29:48 -0400
-Message-ID: <49CABAF8.4030306@blueyonder.co.uk>
-Date: Wed, 25 Mar 2009 23:15:04 +0000
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Reply-To: sboyce@blueyonder.co.uk
+	Tue, 17 Mar 2009 03:49:59 -0400
+Message-ID: <33182803.5941237275696423.JavaMail.defaultUser@defaultHost>
+Date: Tue, 17 Mar 2009 08:41:36 +0100 (CET)
+From: SAILOR LOANS <cattie@comhem.se>
+Reply-To: SAILOR LOANS <cattie@comhem.se>
+Subject: CONTACT MELISSALENDERS@GOOGLEMAIL.COM FOR LOAN OFFER @3%
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Asus PG221 monitor camera sensor not recognised
-References: <Pine.LNX.4.64.0903252026380.5795@axis700.grange> <49CA9228.5030105@gmail.com>
-In-Reply-To: <49CA9228.5030105@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Erik Andrén wrote:
-> 
-> 
-> Guennadi Liakhovetski wrote:
->> Forwarding to linux-media for a better chance for a reply.
-> 
->> ---
->> Guennadi Liakhovetski, Ph.D.
->> Freelance Open-Source Software Developer
-> 
->> ---------- Forwarded message ----------
->> Date: Wed, 25 Mar 2009 17:08:05 +0000
->> From: Sid Boyce <sboyce@blueyonder.co.uk>
->> To: linux-usb@vger.kernel.org
->> Subject: Asus PG221 monitor camera sensor not recognised
-> 
->> The camera has never worked though it used to be enumerated as
->> /dev/videoX with sensor s5k83a in earlier kernels.
->> gspca: main v2.4.0 registered
->> gspca: probing 0402:5602
->> ALi m5602: Probing for a po1030 sensor
->> ALi m5602: Probing for a mt9m111 sensor
->> ALi m5602: Probing for a s5k4aa sensor
->> ALi m5602: Probing for an ov9650 sensor
->> ALi m5602: Probing for a s5k83a sensor
->> ALi m5602: Failed to find a sensor
->> ALi m5602: ALi m5602 webcam failed
->> usbcore: registered new interface driver ALi m5602
->> ALi m5602: registered
-> 
-> 
-> Hi,
-> I've been in contact with Sid last year and I still need usb snoops
-> from using the cam in windows in order to help him further.
-> 
-> Best regards,
-> Erik
+HELLO:
 
-OK, I shall see what I can do, but no Windows available.
-Regards
-Sid.
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
+I am Dr Richard Max the Managing Director of MELISSA JOHNSON 
+LOAN FIRM, we are certified Loan Lenders, offering loan to 
+people who are in need. Our funds are given in Dollars at a low 
+rate of 3%. Funds are given from a minimum range of $10,000.00
+USD. Here is the solution to all your financial problems.
+
+
+Contact us today for that loan you desire. If Interested, fill 
+out the information below:
+
+
+Name in Full....
+Address/Country.
+Amount Needed ..
+
+
+In acknowledgment to this mail, we can start with the 
+processing of your loan.
+There is more to gain by getting a loan from us.
+
+
+Contact us via this email: MELISSALENDERS@GOOGLEMAIL.COM
+
+
+Dr. Richard Max
+Melissa Johnson Loan Firm.
