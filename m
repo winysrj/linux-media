@@ -1,53 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44419 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753789AbZCEWUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Mar 2009 17:20:16 -0500
-Date: Thu, 5 Mar 2009 23:20:14 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from rv-out-0506.google.com ([209.85.198.227]:16268 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752210AbZCQRgK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2009 13:36:10 -0400
+Cc: Kevin Hilman <khilman@deeprootsystems.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
-In-Reply-To: <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
-Message-ID: <Pine.LNX.4.64.0903052315530.4980@axis700.grange>
-References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
- <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
- <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
- <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
- <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Manjunath Hadli <mrh@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Message-Id: <1A273197-550B-4D21-A29E-BB955D8ADF8D@gmail.com>
+From: Dongsoo Kim <dongsoo.kim@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+In-Reply-To: <20090317164525.GT19229@atomide.com>
+Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Subject: Re: Embedded Linux Conference
+Date: Wed, 18 Mar 2009 02:36:02 +0900
+References: <200903051749.13016.hverkuil@xs4all.nl> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com> <200903170809.10467.hverkuil@xs4all.nl> <49BFB8A8.3080201@deeprootsystems.com> <20090317164525.GT19229@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Trent Piepho wrote:
+Hi Tony,
 
-> ALSA used a partial tree, but their system was much worse than v4l-dvb's.
-> I think the reason more systems don't do it is that setting up the build
-> system we have with v4l-dvb was a lot of work.  They don't have that.
+I think I can join you. And also Kyungmin Park I guess.
+See you then.
 
-Right, it was a lot of work, it is still quite a bit of work (well, I'm 
-not doing that work directly, but it affetcs me too, when I have to adjust 
-patches, that I generated from a complete kernel tree to fit 
-compatibility-"emhanced" versions), and it is not going to be less work.
+Nate
 
-> Lots of subsystems are more tightly connected to the kernel and compiling
-> the subsystem out of tree against any kernel just wouldn't work.  Some
-> subsystems (like say gpio or led) mostly provide a framework to the rest of
-> the kernel so working on them without the rest of the tree doesn't make
-> sense either.  Or they don't get many patches and don't have many active
-> maintainers so they don't really have any development SCM at all.  Just
-> some patches through email that get applied by one maintainer.
+2009. 03. 18, 오전 1:45, Tony Lindgren 작성:
 
-That's why I didn't give LED or GPIO or SPI or I2C or SCSI or ATA or MMC 
-or MTD or ... as examples, but audio and network, which are also largely 
-"consumer" interfaces and are actively developed.
+> * Kevin Hilman <khilman@deeprootsystems.com> [090317 07:50]:
+>> Hans Verkuil wrote:
+>>> On Tuesday 17 March 2009 01:14:28 Steve Sakoman wrote:
+>>>> On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com>  
+>>>> wrote:
+>>>>> * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
+>>>>>> Hans Verkuil <hverkuil@xs4all.nl> writes:
+>>>>>>> Just FYI:
+>>>>>>>
+>>>>>>> I'll be attending the Embedded Linux Conference in San  
+>>>>>>> Francisco,
+>>>>>>> April 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
+>>>>>>>
+>>>>>>> This might be a good opportunity to discuss omap and davinci  
+>>>>>>> V4L2
+>>>>>>> issues face-to-face. Let me know if you are interested.
+>>>>>> I will be there as well, and while not directly involved with  
+>>>>>> V4L2,
+>>>>>> I'm involved in various parts of getting OMAP and DaVinci devices
+>>>>>> supported in mainline kernels.
+>>>>> Yeah I'll be in town too and will be dropping by at the conf
+>>>>> here and there.
+>>>>>
+>>>>> Maybe let's arrange something to get some beers one night during
+>>>>> the conf?
+>>>> I'll be there too.  How about Wednesday evening for beers?
+>>>>
+>>>> Steve
+>>>
+>>> On Wednesday evening there is the 'social event', which means free  
+>>> food
+>>> and beer :-). So I'd say that evening is covered.
+>>>
+>>> However, I'd welcome dinner on Sunday evening. Having arrived that  
+>>> day
+>>> from Europe I won't be a sparkling conversationalist but it beats
+>>> having dinner by your own and gives us a chance to meet one another.
+>>>
+>>
+>> I won't be arriving until late Sunday night, and I imagine others  
+>> may be
+>> arrving Monday morning.
+>>
+>> How about Monday night after the Dinner (ends at 7pm [1]) we meet for
+>> beers.  I'll let someone local (Tony) pick the venue.
+>
+> OK, let's plan for Monday night then. I'll find some place with
+> drinks easily available, and within walking distance from the
+> conference.
+>
+> I've added a placeholder for the event where I'll post the details
+> later on:
+>
+> http://www.muru.com/linux/omap/events/
+>
+> To get a rough idea how many people we'll have, please reply to this
+> thread, or send me an email if you're planning to attend.
+>
+> Cheers,
+>
+> Tony
+>
+>
+>> [1] http://www.embeddedlinuxconference.com/elc_2009/program.html
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
